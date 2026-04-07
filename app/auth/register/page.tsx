@@ -56,7 +56,7 @@ export default function RegisterPage() {
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl">Crear Cuenta</CardTitle>
             <CardDescription>
-              Regístrate en Sistema ERP Minero
+              n3uralia ERP mining - Registrate en la Plataforma
             </CardDescription>
           </CardHeader>
           <CardContent>

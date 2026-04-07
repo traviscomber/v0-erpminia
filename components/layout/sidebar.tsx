@@ -81,8 +81,8 @@ export function Sidebar() {
               <BarChart3 className="w-6 h-6 text-sidebar-primary-foreground" />
             </div>
             <div className="flex flex-col">
-              <span className="font-bold text-sidebar-foreground">Minero</span>
-              <span className="text-xs text-sidebar-accent-foreground">ERP</span>
+              <span className="font-bold text-sidebar-foreground">n3uralia</span>
+              <span className="text-xs text-sidebar-accent-foreground">mining</span>
             </div>
           </div>
         </div>

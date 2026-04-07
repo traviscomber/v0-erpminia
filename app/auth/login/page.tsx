@@ -40,7 +40,7 @@ export default function LoginPage() {
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl">Iniciar Sesión</CardTitle>
             <CardDescription>
-              Sistema ERP para Minería Integral
+              n3uralia ERP mining - Plataforma de Gestión Minera
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -98,7 +98,7 @@ export default function LoginPage() {
               </p>
               <div className="bg-muted p-3 rounded-lg text-xs">
                 <p className="font-semibold mb-1">Credenciales de Prueba:</p>
-                <p>Email: demo@minero.cl</p>
+                <p>Email: demo@n3uralia.cl</p>
                 <p>Contraseña: cualquier texto</p>
               </div>
             </div>
