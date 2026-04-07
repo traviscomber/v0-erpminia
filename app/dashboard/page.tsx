@@ -68,7 +68,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatCurrency(kpiData.inventoryValue.value / 1000)} K
+              {formatCurrency(kpiData.inventoryValue.value)}
             </div>
             <div className="flex items-center gap-1 text-xs text-green-600 mt-1">
               <TrendingUp className="h-3 w-3" />
@@ -99,10 +99,10 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatCurrency(kpiData.financialSummary.totalExpense / 1000)} K
+              {formatCurrency(kpiData.financialSummary.totalExpense)}
             </div>
             <div className="text-xs text-muted-foreground mt-1">
-              Pagado: {formatCurrency(kpiData.financialSummary.paid / 1000)} K
+              Pagado: {formatCurrency(kpiData.financialSummary.paid)}
             </div>
           </CardContent>
         </Card>

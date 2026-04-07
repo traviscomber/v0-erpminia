@@ -73,7 +73,7 @@ export default function FinanzasPage() {
             <CardTitle className="text-sm font-medium">Total Adeudado</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalAmount / 1000)} K</div>
+            <div className="text-2xl font-bold">{formatCurrency(totalAmount)}</div>
             <p className="text-xs text-muted-foreground mt-1">
               {filteredFinances.length} facturas
             </p>
@@ -89,7 +89,7 @@ export default function FinanzasPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {formatCurrency(paidAmount / 1000)} K
+              {formatCurrency(paidAmount)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               {((paidAmount / totalAmount) * 100).toFixed(0)}% del total
@@ -103,7 +103,7 @@ export default function FinanzasPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-yellow-600">
-              {formatCurrency(pendingAmount / 1000)} K
+              {formatCurrency(pendingAmount)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               {filteredFinances.filter((f) => f.status === 'Pendiente').length} en trámite

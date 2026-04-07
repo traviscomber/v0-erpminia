@@ -68,9 +68,8 @@ export default function ComprasPage() {
           <CardContent>
             <div className="text-2xl font-bold">
               {formatCurrency(
-                filteredOrders.reduce((sum, order) => sum + order.amount, 0) / 1000
-              )}{' '}
-              K
+                filteredOrders.reduce((sum, order) => sum + order.amount, 0)
+              )}
             </div>
           </CardContent>
         </Card>

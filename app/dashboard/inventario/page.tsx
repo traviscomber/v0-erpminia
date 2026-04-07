@@ -74,7 +74,7 @@ export default function InventarioPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatCurrency(getTotalInventoryValue() / 1000)} K
+              {formatCurrency(getTotalInventoryValue())}
             </div>
           </CardContent>
         </Card>
