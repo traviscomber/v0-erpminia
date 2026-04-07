@@ -37,14 +37,14 @@ const categoryColors: Record<string, string> = {
 
 export default function DocumentosPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedDoc, setSelectedDoc] = useState<typeof mockDocuments[0] | null>(null);
 
   const filteredDocs = mockDocuments.filter(
     (doc) =>
       (doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         doc.id.toLowerCase().includes(searchTerm.toLowerCase())) &&
-      (selectedCategory === '' || doc.category === selectedCategory)
+      (selectedCategory === 'all' || doc.category === selectedCategory)
   );
 
   const getFileIcon = (type: string) => {
@@ -128,7 +128,7 @@ export default function DocumentosPage() {
                 <SelectValue placeholder="Categoría" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas las Categorías</SelectItem>
+                <SelectItem value="all">Todas las Categorías</SelectItem>
                 {categories.map((cat) => (
                   <SelectItem key={cat} value={cat}>
                     {cat}
