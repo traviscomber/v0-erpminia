@@ -1,37 +1,40 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Search, Filter, Eye, Edit2, Trash2, TrendingUp, AlertCircle } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  Calendar,
+  Search,
+} from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 import { mockFinances } from '@/lib/data';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-
-const statusConfig: Record<string, { color: string; label: string }> = {
-  'Pagada': { color: 'bg-green-500/20 text-green-700', label: 'Pagada' },
-  'Pendiente': { color: 'bg-yellow-500/20 text-yellow-700', label: 'Pendiente' },
-  'Vencida': { color: 'bg-red-500/20 text-red-700', label: 'Vencida' },
-};
 
 export default function FinanzasPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedInvoice, setSelectedInvoice] = useState<typeof mockFinances[0] | null>(null);
-
-  const filteredFinances = mockFinances.filter(
-    (finance) =>
-      finance.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      finance.vendor.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const [statusFilter, setStatusFilter] = useState('all');
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('es-CL', {
@@ -41,266 +44,281 @@ export default function FinanzasPage() {
     }).format(value);
   };
 
+  const filteredFinances = mockFinances.filter(
+    (finance) =>
+      (finance.vendor.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        finance.id.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      (statusFilter === 'all' || finance.status === statusFilter)
+  );
+
   const totalAmount = filteredFinances.reduce((sum, f) => sum + f.amount, 0);
   const paidAmount = filteredFinances
     .filter((f) => f.status === 'Pagada')
     .reduce((sum, f) => sum + f.amount, 0);
   const pendingAmount = filteredFinances
-    .filter((f) => f.status === 'Pendiente' || f.status === 'Vencida')
+    .filter((f) => f.status === 'Pendiente')
+    .reduce((sum, f) => sum + f.amount, 0);
+  const overdueAmount = filteredFinances
+    .filter((f) => f.status === 'Vencida')
     .reduce((sum, f) => sum + f.amount, 0);
 
-  const chartData = [
-    { name: 'Pagado', value: paidAmount, fill: '#10b981' },
-    { name: 'Pendiente', value: pendingAmount, fill: '#f59e0b' },
+  const pieData = [
+    { name: 'Pagada', value: paidAmount },
+    { name: 'Pendiente', value: pendingAmount },
+    { name: 'Vencida', value: overdueAmount },
   ];
 
   const COLORS = ['#10b981', '#f59e0b', '#ef4444'];
 
+  const statusConfig = {
+    Pagada: 'bg-green-100 text-green-800 border-green-200',
+    Pendiente: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    Vencida: 'bg-red-100 text-red-800 border-red-200',
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Finanzas</h1>
-        <p className="text-muted-foreground mt-2">
-          Gestión de Facturas, Pagos y Reportes Financieros
-        </p>
+      <div className="pb-4">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+          <div>
+            <h1 className="text-4xl font-bold tracking-tight">Finanzas</h1>
+            <p className="text-muted-foreground mt-3">
+              Gestión de Facturas, Pagos y Reportes Financieros
+            </p>
+          </div>
+          <Button>Crear Factura</Button>
+        </div>
       </div>
 
-      {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-border">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Adeudado</CardTitle>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="border-border overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-chart-1/10 to-transparent rounded-full -mr-12 -mt-12" />
+          <CardHeader className="pb-3 relative z-10">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Total Adeudado
+              </CardTitle>
+              <div className="p-2 bg-chart-1/10 rounded-lg">
+                <DollarSign className="h-4 w-4 text-chart-1" />
+              </div>
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="relative z-10">
             <div className="text-2xl font-bold">{formatCurrency(totalAmount)}</div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground mt-2">
               {filteredFinances.length} facturas
             </p>
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-green-500/5">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-green-600" />
-              Pagado
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {formatCurrency(paidAmount)}
+        <Card className="border-border bg-green-500/5 overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-green-500/10 to-transparent rounded-full -mr-12 -mt-12" />
+          <CardHeader className="pb-3 relative z-10">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-green-600" />
+                Pagado
+              </CardTitle>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {((paidAmount / totalAmount) * 100).toFixed(0)}% del total
-            </p>
+          </CardHeader>
+          <CardContent className="relative z-10">
+            <div className="text-2xl font-bold text-green-600">{formatCurrency(paidAmount)}</div>
+            <div className="text-xs text-muted-foreground mt-2">
+              {totalAmount > 0 ? ((paidAmount / totalAmount) * 100).toFixed(0) : 0}% del total
+            </div>
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-yellow-500/5">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Pendiente</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">
-              {formatCurrency(pendingAmount)}
+        <Card className="border-border bg-yellow-500/5 overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-yellow-500/10 to-transparent rounded-full -mr-12 -mt-12" />
+          <CardHeader className="pb-3 relative z-10">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Pendiente</CardTitle>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
+          </CardHeader>
+          <CardContent className="relative z-10">
+            <div className="text-2xl font-bold text-yellow-600">{formatCurrency(pendingAmount)}</div>
+            <p className="text-xs text-muted-foreground mt-2">
               {filteredFinances.filter((f) => f.status === 'Pendiente').length} en trámite
             </p>
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-red-500/5">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-red-600" />
-              Vencidas
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              {filteredFinances.filter((f) => f.status === 'Vencida').length}
+        <Card className="border-border bg-red-500/5 overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-red-500/10 to-transparent rounded-full -mr-12 -mt-12" />
+          <CardHeader className="pb-3 relative z-10">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <TrendingDown className="w-4 h-4 text-red-600" />
+                Vencida
+              </CardTitle>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Requieren atención
+          </CardHeader>
+          <CardContent className="relative z-10">
+            <div className="text-2xl font-bold text-red-600">{formatCurrency(overdueAmount)}</div>
+            <p className="text-xs text-muted-foreground mt-2">
+              {filteredFinances.filter((f) => f.status === 'Vencida').length} por pagar
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Chart and Control */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Pie Chart */}
         <Card className="border-border">
           <CardHeader>
-            <CardTitle className="text-base">Distribución de Pagos</CardTitle>
-            <CardDescription>Estado de facturas</CardDescription>
+            <CardTitle>Distribución de Pagos</CardTitle>
+            <CardDescription>Estado actual de facturas</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
                 <Pie
-                  data={chartData}
+                  data={pieData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={90}
-                  paddingAngle={5}
+                  innerRadius={50}
+                  outerRadius={80}
+                  paddingAngle={2}
                   dataKey="value"
                 >
-                  {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index]} />
                   ))}
                 </Pie>
                 <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                <Legend />
               </PieChart>
             </ResponsiveContainer>
+            <div className="grid grid-cols-3 gap-2 mt-6 pt-4 border-t border-border">
+              {pieData.map((item, idx) => (
+                <div key={item.name} className="text-center">
+                  <div
+                    className="w-2 h-2 rounded-full mx-auto mb-2"
+                    style={{ backgroundColor: COLORS[idx] }}
+                  />
+                  <p className="text-xs font-medium text-muted-foreground">{item.name}</p>
+                  <p className="text-sm font-bold">{formatCurrency(item.value)}</p>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
 
-        {/* Control Section */}
+        {/* Bar Chart */}
         <Card className="border-border lg:col-span-2">
-          <CardHeader className="pb-4">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <CardTitle>Facturas</CardTitle>
-              <Button className="w-full md:w-auto">
-                <Plus className="w-4 h-4 mr-2" />
-                Nueva Factura
-              </Button>
-            </div>
+          <CardHeader>
+            <CardTitle>Análisis por Proveedor</CardTitle>
+            <CardDescription>Montos adeudados por vendedor</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Search and Filter */}
+          <CardContent>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart
+                data={mockFinances.map((f) => ({
+                  name: f.vendor.split(' ')[0],
+                  amount: f.amount,
+                }))}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
+                <XAxis dataKey="name" stroke="var(--color-muted-foreground)" />
+                <YAxis stroke="var(--color-muted-foreground)" />
+                <Tooltip
+                  formatter={(value) => formatCurrency(value as number)}
+                  contentStyle={{
+                    backgroundColor: 'var(--color-card)',
+                    border: '1px solid var(--color-border)',
+                  }}
+                />
+                <Bar dataKey="amount" fill="var(--color-chart-1)" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Table Section */}
+      <Card className="border-border">
+        <CardHeader className="pb-4">
+          <div className="flex flex-col md:flex-row md:items-center gap-4">
+            <div className="flex-1">
+              <CardTitle>Listado de Facturas</CardTitle>
+              <CardDescription>Gestión detallada de transacciones</CardDescription>
+            </div>
             <div className="flex gap-2">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <div className="relative flex-1 md:flex-initial md:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar factura o proveedor..."
+                  placeholder="Buscar factura..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 bg-input"
                 />
               </div>
-              <Button variant="outline" className="gap-2">
-                <Filter className="w-4 h-4" />
-                Filtros
-              </Button>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-40 bg-input">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los Estados</SelectItem>
+                  <SelectItem value="Pagada">Pagada</SelectItem>
+                  <SelectItem value="Pendiente">Pendiente</SelectItem>
+                  <SelectItem value="Vencida">Vencida</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-
-            {/* Table */}
-            <div className="border border-border rounded-lg overflow-hidden max-h-[400px] overflow-y-auto">
-              <Table>
-                <TableHeader className="bg-muted/50 sticky top-0">
-                  <TableRow className="border-border">
-                    <TableHead className="font-semibold">Factura</TableHead>
-                    <TableHead className="font-semibold">Proveedor</TableHead>
-                    <TableHead className="font-semibold text-right">Monto</TableHead>
-                    <TableHead className="font-semibold">Estado</TableHead>
-                    <TableHead className="font-semibold">Vencimiento</TableHead>
-                    <TableHead className="text-right font-semibold">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredFinances.map((finance) => (
-                    <TableRow key={finance.id} className="border-border hover:bg-muted/50">
-                      <TableCell className="font-medium">{finance.id}</TableCell>
-                      <TableCell>{finance.vendor}</TableCell>
-                      <TableCell className="text-right">
-                        {formatCurrency(finance.amount)}
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={statusConfig[finance.status]?.color || ''}>
-                          {finance.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{finance.dueDate}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setSelectedInvoice(finance)}
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Edit2 className="w-4 h-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Detail Modal */}
-      {selectedInvoice && (
-        <Card className="border-border">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <div>
-              <CardTitle>Detalles de Factura: {selectedInvoice.id}</CardTitle>
-              <CardDescription>Información de pago</CardDescription>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSelectedInvoice(null)}
-            >
-              Cerrar
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Proveedor</p>
-                <p className="font-semibold">{selectedInvoice.vendor}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Tipo</p>
-                <p className="font-semibold">{selectedInvoice.type}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Monto</p>
-                <p className="font-semibold">{formatCurrency(selectedInvoice.amount)}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Estado</p>
-                <Badge className={statusConfig[selectedInvoice.status]?.color || ''}>
-                  {selectedInvoice.status}
-                </Badge>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Fecha de Vencimiento</p>
-                <p className="font-semibold">{selectedInvoice.dueDate}</p>
-              </div>
-              {selectedInvoice.paidDate && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Fecha de Pago</p>
-                  <p className="font-semibold">{selectedInvoice.paidDate}</p>
-                </div>
-              )}
-            </div>
-
-            <div className="border-t border-border pt-4 flex gap-2">
-              <Button className="flex-1">
-                Procesar Pago
-              </Button>
-              <Button variant="outline" className="flex-1">
-                Descargar Factura
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="text-left font-semibold text-muted-foreground py-3 px-4">Factura</th>
+                  <th className="text-left font-semibold text-muted-foreground py-3 px-4">Proveedor</th>
+                  <th className="text-left font-semibold text-muted-foreground py-3 px-4">Monto</th>
+                  <th className="text-left font-semibold text-muted-foreground py-3 px-4">Estado</th>
+                  <th className="text-left font-semibold text-muted-foreground py-3 px-4">Vencimiento</th>
+                  <th className="text-left font-semibold text-muted-foreground py-3 px-4">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredFinances.map((finance) => (
+                  <tr
+                    key={finance.id}
+                    className="border-b border-border/50 hover:bg-muted/30 transition-colors group"
+                  >
+                    <td className="py-3 px-4 font-medium text-sm">{finance.id}</td>
+                    <td className="py-3 px-4 text-sm text-muted-foreground">{finance.vendor}</td>
+                    <td className="py-3 px-4 font-bold">{formatCurrency(finance.amount)}</td>
+                    <td className="py-3 px-4">
+                      <span
+                        className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium border ${
+                          statusConfig[finance.status as keyof typeof statusConfig]
+                        }`}
+                      >
+                        {finance.status}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        {new Date(finance.dueDate).toLocaleDateString('es-CL')}
+                      </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                        Ver
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
