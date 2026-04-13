@@ -176,21 +176,11 @@ export default function MantenimientoPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Additional Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="border-border overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-chart-1/10 to-transparent rounded-full -mr-12 -mt-12" />
-          <CardHeader className="pb-3 relative z-10">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Órdenes Totales
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="relative z-10">
-            <div className="text-3xl font-bold">{orders.length}</div>
-            <p className="text-xs text-muted-foreground mt-2">en el sistema</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border bg-blue-500/5 overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-blue-500/10 to-transparent rounded-full -mr-12 -mt-12" />
           <CardHeader className="pb-3 relative z-10">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Preventivas
@@ -212,6 +202,19 @@ export default function MantenimientoPage() {
           <CardContent className="relative z-10">
             <div className="text-3xl font-bold text-red-600">{correctiveOrders}</div>
             <p className="text-xs text-muted-foreground mt-2">respuestas a fallas</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border bg-purple-500/5 overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-purple-500/10 to-transparent rounded-full -mr-12 -mt-12" />
+          <CardHeader className="pb-3 relative z-10">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Predictivas
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="relative z-10">
+            <div className="text-3xl font-bold text-purple-600">{predictiveOrders}</div>
+            <p className="text-xs text-muted-foreground mt-2">análisis y predicción</p>
           </CardContent>
         </Card>
 
