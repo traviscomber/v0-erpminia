@@ -39,11 +39,18 @@ import {
 interface MaintenanceOrder {
   id: string;
   asset_name: string;
-  order_type: string;
-  status: string;
+  asset_id: string;
+  order_type: 'preventiva' | 'correctiva' | 'predictiva';
+  status: 'pendiente' | 'en_progreso' | 'completada' | 'cancelada';
   scheduled_date: string;
   completion_date?: string;
   technician: string;
+  priority: 'baja' | 'media' | 'alta' | 'critica_seguridad';
+  estimated_mttr?: number; // minutes
+  actual_mttr?: number; // minutes
+  failure_code?: string;
+  preventive_score?: number; // 0-100
+  safety_critical?: boolean;
 }
 
 export default function MantenimientoPage() {
@@ -59,8 +66,19 @@ export default function MantenimientoPage() {
 
   const preventiveOrders = orders.filter(o => o.order_type === 'preventiva').length;
   const correctiveOrders = orders.filter(o => o.order_type === 'correctiva').length;
+  const predictiveOrders = orders.filter(o => o.order_type === 'predictiva').length;
   const completedOrders = orders.filter(o => o.status === 'completada').length;
   const pendingOrders = orders.filter(o => o.status === 'pendiente').length;
+  const safetyOrders = orders.filter(o => o.priority === 'critica_seguridad').length;
+
+  // Calculate MTBF/MTTR metrics
+  const avgMTTR = orders.filter(o => o.actual_mttr).length > 0
+    ? Math.round(orders.filter(o => o.actual_mttr).reduce((sum, o) => sum + (o.actual_mttr || 0), 0) / orders.filter(o => o.actual_mttr).length)
+    : 0;
+
+  // Calculate equipment availability
+  const totalDowntime = orders.filter(o => o.status === 'completada').reduce((sum, o) => sum + (o.actual_mttr || 0), 0);
+  const availability = orders.length > 0 ? Math.round((1 - (totalDowntime / (30 * 24 * 60))) * 100) : 100;
 
   const statusColors: Record<string, string> = {
     pendiente: 'bg-yellow-100 text-yellow-800',
@@ -69,12 +87,20 @@ export default function MantenimientoPage() {
     cancelada: 'bg-gray-100 text-gray-800',
   };
 
+  const priorityColors: Record<string, string> = {
+    baja: 'bg-gray-100 text-gray-800',
+    media: 'bg-yellow-100 text-yellow-800',
+    alta: 'bg-orange-100 text-orange-800',
+    critica_seguridad: 'bg-red-100 text-red-800 font-bold',
+  };
+
   const chartData = [
     { name: 'Preventivas', value: preventiveOrders },
     { name: 'Correctivas', value: correctiveOrders },
+    { name: 'Predictivas', value: predictiveOrders },
   ];
 
-  const COLORS = ['#3b82f6', '#ef4444'];
+  const COLORS = ['#3b82f6', '#ef4444', '#8b5cf6'];
 
   return (
     <div className="space-y-8">
@@ -82,9 +108,9 @@ export default function MantenimientoPage() {
       <div className="pb-4">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-bold tracking-tight">Sistema de Mantenimiento</h1>
+            <h1 className="text-4xl font-bold tracking-tight">Gestión de Mantenimiento</h1>
             <p className="text-muted-foreground mt-3">
-              Gestión de órdenes preventivas, correctivas y análisis de disponibilidad
+              Órdenes preventivas/predictivas, MTBF/MTTR, seguridad crítica y disponibilidad de equipos
             </p>
           </div>
           <Button className="gap-2">
@@ -96,6 +122,60 @@ export default function MantenimientoPage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="border-border overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-chart-1/10 to-transparent rounded-full -mr-12 -mt-12" />
+          <CardHeader className="pb-3 relative z-10">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Órdenes Totales
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="relative z-10">
+            <div className="text-3xl font-bold">{orders.length}</div>
+            <p className="text-xs text-muted-foreground mt-2">{completedOrders} completadas</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border bg-red-500/5 overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-red-500/10 to-transparent rounded-full -mr-12 -mt-12" />
+          <CardHeader className="pb-3 relative z-10">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 text-red-600" />
+              Seguridad Crítica
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="relative z-10">
+            <div className="text-3xl font-bold text-red-600">{safetyOrders}</div>
+            <p className="text-xs text-muted-foreground mt-2">órdenes de seguridad</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border bg-blue-500/5 overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-blue-500/10 to-transparent rounded-full -mr-12 -mt-12" />
+          <CardHeader className="pb-3 relative z-10">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              MTTR Promedio
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="relative z-10">
+            <div className="text-3xl font-bold text-blue-600">{avgMTTR}m</div>
+            <p className="text-xs text-muted-foreground mt-2">tiempo a reparación</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border bg-green-500/5 overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-green-500/10 to-transparent rounded-full -mr-12 -mt-12" />
+          <CardHeader className="pb-3 relative z-10">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-green-600" />
+              Disponibilidad
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="relative z-10">
+            <div className="text-3xl font-bold text-green-600">{availability}%</div>
+            <p className="text-xs text-muted-foreground mt-2">equipos operacionales</p>
+          </CardContent>
+        </Card>
+      </div>
         <Card className="border-border overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-chart-1/10 to-transparent rounded-full -mr-12 -mt-12" />
           <CardHeader className="pb-3 relative z-10">

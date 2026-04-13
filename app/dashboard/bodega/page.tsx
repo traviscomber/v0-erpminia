@@ -18,6 +18,11 @@ import {
   AlertTriangle,
   TrendingUp,
   DollarSign,
+  QrCode,
+  MapPin,
+  Barcode,
+  ArrowRightLeft,
+  Eye,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -43,6 +48,17 @@ interface InventoryItem {
   minimum_stock: number;
   unit_cost: number;
   total_value: number;
+  warehouse_location?: string;
+  zone?: string;
+  rack?: string;
+  level?: string;
+  qr_code?: string;
+  batch_number?: string;
+  received_date?: string;
+  expiry_date?: string;
+  fifo_order?: number;
+  last_movement?: string;
+  traceability_enabled?: boolean;
 }
 
 export default function BodegaPage() {
@@ -83,13 +99,17 @@ export default function BodegaPage() {
           <div>
             <h1 className="text-4xl font-bold tracking-tight">Gestión de Bodegas</h1>
             <p className="text-muted-foreground mt-3">
-              Movimientos de mercadería, recepciones, despachos y ubicaciones físicas
+              Trazabilidad completa FIFO, QR/barcode, ubicaciones multi-nivel (Zona/Rack/Nivel) y conteo cíclico
             </p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" className="gap-2">
+              <QrCode className="h-4 w-4" />
+              Escanear QR
+            </Button>
+            <Button variant="outline" className="gap-2">
               <Package className="h-4 w-4" />
-              Conteo Físico
+              Conteo Cíclico
             </Button>
             <Button className="gap-2">
               <Plus className="h-4 w-4" />
@@ -317,11 +337,11 @@ export default function BodegaPage() {
                 <thead>
                   <tr className="border-b border-border">
                     <th className="text-left font-semibold text-muted-foreground py-3 px-4">Nombre</th>
-                    <th className="text-left font-semibold text-muted-foreground py-3 px-4">SKU</th>
-                    <th className="text-left font-semibold text-muted-foreground py-3 px-4">Categoría</th>
+                    <th className="text-left font-semibold text-muted-foreground py-3 px-4">SKU / Lote</th>
+                    <th className="text-left font-semibold text-muted-foreground py-3 px-4">Ubicación (Zona/Rack/Nivel)</th>
                     <th className="text-left font-semibold text-muted-foreground py-3 px-4">Stock Actual</th>
-                    <th className="text-left font-semibold text-muted-foreground py-3 px-4">Stock Mínimo</th>
                     <th className="text-left font-semibold text-muted-foreground py-3 px-4">Valor Total</th>
+                    <th className="text-left font-semibold text-muted-foreground py-3 px-4">Trazabilidad</th>
                     <th className="text-left font-semibold text-muted-foreground py-3 px-4">Acciones</th>
                   </tr>
                 </thead>
@@ -332,8 +352,27 @@ export default function BodegaPage() {
                       className="border-b border-border/50 hover:bg-muted/30 transition-colors group"
                     >
                       <td className="py-3 px-4 font-medium">{item.name}</td>
-                      <td className="py-3 px-4 text-sm text-muted-foreground">{item.sku}</td>
-                      <td className="py-3 px-4 text-sm">{item.category}</td>
+                      <td className="py-3 px-4 text-sm">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1">
+                            <Barcode className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-muted-foreground">{item.sku}</span>
+                          </div>
+                          {item.batch_number && (
+                            <div className="text-xs text-muted-foreground">Lote: {item.batch_number}</div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-sm">
+                        {item.zone && item.rack && item.level ? (
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <MapPin className="h-3 w-3" />
+                            <span>{item.zone}/{item.rack}/{item.level}</span>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">Sin ubicación</span>
+                        )}
+                      </td>
                       <td className="py-3 px-4">
                         <Badge
                           variant="outline"
@@ -346,15 +385,30 @@ export default function BodegaPage() {
                           {item.current_stock}
                         </Badge>
                       </td>
-                      <td className="py-3 px-4 text-sm text-muted-foreground">{item.minimum_stock}</td>
                       <td className="py-3 px-4 font-semibold">{formatCurrency(item.total_value)}</td>
+                      <td className="py-3 px-4">
+                        {item.traceability_enabled ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-green-600" />
+                            <span className="text-xs text-green-700 font-medium">Activa</span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-yellow-700 font-medium">Desactiva</span>
+                        )}
+                        {item.qr_code && (
+                          <div className="mt-1 text-xs text-muted-foreground">
+                            QR: {item.qr_code.slice(0, 6)}...
+                          </div>
+                        )}
+                      </td>
                       <td className="py-3 px-4">
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity gap-1"
                         >
-                          Editar
+                          <Eye className="h-3 w-3" />
+                          Ver Trazabilidad
                         </Button>
                       </td>
                     </tr>

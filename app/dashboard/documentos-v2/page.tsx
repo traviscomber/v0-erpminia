@@ -4,22 +4,31 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, FileText, Search, Upload, AlertCircle, Calendar } from 'lucide-react';
+import { Plus, FileText, Search, Upload, AlertCircle, Calendar, CheckCircle2, Clock, BarChart3 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 interface Document {
   id: string;
   title: string;
   category: string;
-  status: string;
+  status: 'vigente' | 'vencido' | 'pendiente_aprobacion';
   expiration_date?: string;
   created_at: string;
+  approval_status?: 'pendiente' | 'aprobado' | 'rechazado';
+  approvals?: {
+    level: 'manager' | 'finance' | 'director';
+    approved: boolean;
+    date?: string;
+  }[];
+  compliance_score?: number;
+  sernageomin_compliant?: boolean;
 }
 
 export default function DocumentosPage() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [selectedTab, setSelectedTab] = useState<'all' | 'pending' | 'compliance'>('all');
 
   useEffect(() => {
     // TODO: Fetch from API
@@ -33,10 +42,21 @@ export default function DocumentosPage() {
     return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
   });
 
+  const pendingApprovals = documents.filter(d => d.approval_status === 'pendiente');
+  const complianceScore = documents.length > 0 
+    ? Math.round((documents.filter(d => d.sernageomin_compliant).length / documents.length) * 100)
+    : 0;
+
   const statusColors: Record<string, string> = {
     vigente: 'bg-green-100 text-green-800',
     vencido: 'bg-red-100 text-red-800',
-    proximo_vencer: 'bg-yellow-100 text-yellow-800',
+    pendiente_aprobacion: 'bg-blue-100 text-blue-800',
+  };
+
+  const approvalColors = {
+    pendiente: 'bg-yellow-100 text-yellow-800',
+    aprobado: 'bg-green-100 text-green-800',
+    rechazado: 'bg-red-100 text-red-800',
   };
 
   return (
@@ -45,9 +65,9 @@ export default function DocumentosPage() {
       <div className="pb-4">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-bold tracking-tight">Sistema de Documentos</h1>
+            <h1 className="text-4xl font-bold tracking-tight">Gestión de Documentos</h1>
             <p className="text-muted-foreground mt-3">
-              Gestión centralizada de documentos, cumplimiento normativo y trazabilidad
+              Sistema de aprobaciones multinivel, cumplimiento SERNAGEOMIN y trazabilidad completa
             </p>
           </div>
           <div className="flex gap-2">
@@ -74,22 +94,35 @@ export default function DocumentosPage() {
           </CardHeader>
           <CardContent className="relative z-10">
             <div className="text-3xl font-bold">{documents.length}</div>
-            <p className="text-xs text-muted-foreground mt-2">documentos en el sistema</p>
+            <p className="text-xs text-muted-foreground mt-2">en el sistema</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border bg-blue-500/5 overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-blue-500/10 to-transparent rounded-full -mr-12 -mt-12" />
+          <CardHeader className="pb-3 relative z-10">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Clock className="h-4 w-4 text-blue-600" />
+              Pendiente Aprobación
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="relative z-10">
+            <div className="text-3xl font-bold text-blue-600">{pendingApprovals.length}</div>
+            <p className="text-xs text-muted-foreground mt-2">en flujo de aprobación</p>
           </CardContent>
         </Card>
 
         <Card className="border-border bg-green-500/5 overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-green-500/10 to-transparent rounded-full -mr-12 -mt-12" />
           <CardHeader className="pb-3 relative z-10">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Vigentes
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
+              Cumplimiento SERNAGEOMIN
             </CardTitle>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="text-3xl font-bold text-green-600">
-              {documents.filter(d => d.status === 'vigente').length}
-            </div>
-            <p className="text-xs text-muted-foreground mt-2">documentos activos</p>
+            <div className="text-3xl font-bold text-green-600">{complianceScore}%</div>
+            <p className="text-xs text-muted-foreground mt-2">documentos normados</p>
           </CardContent>
         </Card>
 
@@ -103,21 +136,6 @@ export default function DocumentosPage() {
           <CardContent className="relative z-10">
             <div className="text-3xl font-bold text-yellow-600">{expiringDocuments.length}</div>
             <p className="text-xs text-muted-foreground mt-2">próximos 30 días</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border bg-red-500/5 overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-red-500/10 to-transparent rounded-full -mr-12 -mt-12" />
-          <CardHeader className="pb-3 relative z-10">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Vencidos
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="relative z-10">
-            <div className="text-3xl font-bold text-red-600">
-              {documents.filter(d => d.status === 'vencido').length}
-            </div>
-            <p className="text-xs text-muted-foreground mt-2">requieren atención</p>
           </CardContent>
         </Card>
       </div>
@@ -141,13 +159,37 @@ export default function DocumentosPage() {
         </Card>
       )}
 
+      {/* Tabs */}
+      <div className="flex gap-2 border-b border-border">
+        <Button 
+          variant={selectedTab === 'all' ? 'default' : 'ghost'}
+          onClick={() => setSelectedTab('all')}
+        >
+          Todos
+        </Button>
+        <Button 
+          variant={selectedTab === 'pending' ? 'default' : 'ghost'}
+          onClick={() => setSelectedTab('pending')}
+        >
+          Pendiente Aprobación ({pendingApprovals.length})
+        </Button>
+        <Button 
+          variant={selectedTab === 'compliance' ? 'default' : 'ghost'}
+          onClick={() => setSelectedTab('compliance')}
+          className="gap-2"
+        >
+          <BarChart3 className="h-4 w-4" />
+          Cumplimiento
+        </Button>
+      </div>
+
       {/* Documents Table */}
       <Card className="border-border">
         <CardHeader className="pb-4">
           <div className="flex flex-col md:flex-row md:items-center gap-4">
             <div className="flex-1">
               <CardTitle>Listado de Documentos</CardTitle>
-              <CardDescription>Administra todos los documentos del sistema</CardDescription>
+              <CardDescription>Gestión centralizada con trazabilidad completa</CardDescription>
             </div>
             <div className="relative flex-1 md:flex-initial md:w-64">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -180,6 +222,8 @@ export default function DocumentosPage() {
                     <th className="text-left font-semibold text-muted-foreground py-3 px-4">Título</th>
                     <th className="text-left font-semibold text-muted-foreground py-3 px-4">Categoría</th>
                     <th className="text-left font-semibold text-muted-foreground py-3 px-4">Estado</th>
+                    <th className="text-left font-semibold text-muted-foreground py-3 px-4">Aprobación</th>
+                    <th className="text-left font-semibold text-muted-foreground py-3 px-4">SERNAGEOMIN</th>
                     <th className="text-left font-semibold text-muted-foreground py-3 px-4">Vencimiento</th>
                     <th className="text-left font-semibold text-muted-foreground py-3 px-4">Acciones</th>
                   </tr>
@@ -201,6 +245,18 @@ export default function DocumentosPage() {
                         <Badge className={statusColors[doc.status] || ''}>
                           {doc.status}
                         </Badge>
+                      </td>
+                      <td className="py-3 px-4">
+                        <Badge className={approvalColors[doc.approval_status || 'pendiente'] || ''}>
+                          {doc.approval_status || 'pendiente'}
+                        </Badge>
+                      </td>
+                      <td className="py-3 px-4">
+                        {doc.sernageomin_compliant ? (
+                          <CheckCircle2 className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <AlertCircle className="h-4 w-4 text-yellow-600" />
+                        )}
                       </td>
                       <td className="py-3 px-4 text-sm text-muted-foreground">
                         {doc.expiration_date ? (
