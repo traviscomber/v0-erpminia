@@ -48,26 +48,38 @@ export default function InventarioPage() {
     return Math.min((quantity / (minLevel * 3)) * 100, 100);
   };
 
+  // ABC Analysis - Pareto
+  const abcAnalysis = () => {
+    const sorted = [...filteredItems].sort((a, b) => b.totalValue - a.totalValue);
+    const totalValue = getTotalInventoryValue();
+    let accumulated = 0;
+    return sorted.map((item) => {
+      accumulated += item.totalValue;
+      const percentage = (accumulated / totalValue) * 100;
+      let category = 'C';
+      if (percentage <= 80) category = 'A';
+      else if (percentage <= 95) category = 'B';
+      return { ...item, abcCategory: category, accumulatedValue: percentage };
+    });
+  };
+
+  const abc = abcAnalysis();
+  const abcA = abc.filter(i => i.abcCategory === 'A').length;
+  const abcB = abc.filter(i => i.abcCategory === 'B').length;
+  const abcC = abc.filter(i => i.abcCategory === 'C').length;
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Inventario</h1>
-        <p className="text-muted-foreground mt-2">
-          Gestión de Stock, Valuación y Movimientos
+        <h1 className="text-4xl font-bold tracking-tight">Control de Inventario</h1>
+        <p className="text-muted-foreground mt-3">
+          Análisis consolidado: valuación, rotación, ABC y alertas de reorden
         </p>
       </div>
 
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="border-border">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Artículos Totales</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{filteredItems.length}</div>
-          </CardContent>
-        </Card>
         <Card className="border-border">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Valor Total Inventario</CardTitle>
@@ -76,6 +88,16 @@ export default function InventarioPage() {
             <div className="text-2xl font-bold">
               {formatCurrency(getTotalInventoryValue())}
             </div>
+            <p className="text-xs text-muted-foreground mt-1">{filteredItems.length} artículos</p>
+          </CardContent>
+        </Card>
+        <Card className="border-border">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Análisis ABC - Artículos A</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">{abcA}</div>
+            <p className="text-xs text-muted-foreground mt-1">80% del valor (críticos)</p>
           </CardContent>
         </Card>
         <Card className="border-border bg-yellow-500/5">
@@ -87,6 +109,7 @@ export default function InventarioPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-yellow-600">{getLowStockItems()}</div>
+            <p className="text-xs text-muted-foreground mt-1">requieren reorden</p>
           </CardContent>
         </Card>
       </div>

@@ -81,9 +81,9 @@ export default function BodegaPage() {
       <div className="pb-4">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-bold tracking-tight">Sistema de Bodega</h1>
+            <h1 className="text-4xl font-bold tracking-tight">Gestión de Bodegas</h1>
             <p className="text-muted-foreground mt-3">
-              Gestión de inventario, movimientos de stock y control de reorden
+              Movimientos de mercadería, recepciones, despachos y ubicaciones físicas
             </p>
           </div>
           <div className="flex gap-2">
@@ -93,7 +93,7 @@ export default function BodegaPage() {
             </Button>
             <Button className="gap-2">
               <Plus className="h-4 w-4" />
-              Nuevo Item
+              Nuevo Movimiento
             </Button>
           </div>
         </div>
@@ -105,12 +105,12 @@ export default function BodegaPage() {
           <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-chart-1/10 to-transparent rounded-full -mr-12 -mt-12" />
           <CardHeader className="pb-3 relative z-10">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Items en Stock
+              Movimientos Hoy
             </CardTitle>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="text-3xl font-bold">{items.length}</div>
-            <p className="text-xs text-muted-foreground mt-2">productos en bodega</p>
+            <div className="text-3xl font-bold">12</div>
+            <p className="text-xs text-muted-foreground mt-2">recepciones + despachos</p>
           </CardContent>
         </Card>
 
@@ -118,27 +118,25 @@ export default function BodegaPage() {
           <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-blue-500/10 to-transparent rounded-full -mr-12 -mt-12" />
           <CardHeader className="pb-3 relative z-10">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Valor Total
+              Bodegas Activas
             </CardTitle>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="text-2xl font-bold text-blue-600 line-clamp-1">
-              {formatCurrency(totalValue)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-2">inventario valuado</p>
+            <div className="text-3xl font-bold text-blue-600">4</div>
+            <p className="text-xs text-muted-foreground mt-2">Central, Faena, Regional, Campaña</p>
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-red-500/5 overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-red-500/10 to-transparent rounded-full -mr-12 -mt-12" />
+        <Card className="border-border bg-yellow-500/5 overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-yellow-500/10 to-transparent rounded-full -mr-12 -mt-12" />
           <CardHeader className="pb-3 relative z-10">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Stock Bajo
+              Recepción Pendiente
             </CardTitle>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="text-3xl font-bold text-red-600">{lowStockItems}</div>
-            <p className="text-xs text-muted-foreground mt-2">requieren reorden</p>
+            <div className="text-3xl font-bold text-yellow-600">3</div>
+            <p className="text-xs text-muted-foreground mt-2">OC por confirmar</p>
           </CardContent>
         </Card>
 
@@ -146,12 +144,12 @@ export default function BodegaPage() {
           <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-green-500/10 to-transparent rounded-full -mr-12 -mt-12" />
           <CardHeader className="pb-3 relative z-10">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Categorías
+              Exactitud Inventario
             </CardTitle>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="text-3xl font-bold text-green-600">{categories.length}</div>
-            <p className="text-xs text-muted-foreground mt-2">tipos de productos</p>
+            <div className="text-3xl font-bold text-green-600">98.2%</div>
+            <p className="text-xs text-muted-foreground mt-2">físico vs sistema</p>
           </CardContent>
         </Card>
       </div>
