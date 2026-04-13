@@ -38,6 +38,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { CHART_COLORS_LIGHT } from '@/lib/theme-colors';
 
 interface InventoryItem {
   id: string;
@@ -81,7 +82,7 @@ export default function BodegaPage() {
     items: items.filter(i => i.category === cat).length,
   }));
 
-  const COLORS = ['var(--color-chart-1)', 'var(--color-chart-2)', 'var(--color-chart-3)', 'var(--color-chart-4)', 'var(--color-chart-5)'];
+  const COLORS = CHART_COLORS_LIGHT;
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('es-CL', {

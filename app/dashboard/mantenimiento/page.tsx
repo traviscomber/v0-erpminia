@@ -35,6 +35,7 @@ import {
   Pie,
   Cell,
 } from 'recharts';
+import { CHART_COLORS_LIGHT } from '@/lib/theme-colors';
 
 interface MaintenanceOrder {
   id: string;
@@ -100,7 +101,7 @@ export default function MantenimientoPage() {
     { name: 'Predictivas', value: predictiveOrders },
   ];
 
-  const COLORS = ['var(--color-chart-1)', 'var(--color-chart-2)', 'var(--color-chart-3)'];
+  const COLORS = CHART_COLORS_LIGHT.slice(0, 3);
 
   return (
     <div className="space-y-8">
