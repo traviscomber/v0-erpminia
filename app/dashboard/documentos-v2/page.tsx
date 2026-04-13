@@ -48,15 +48,15 @@ export default function DocumentosPage() {
     : 0;
 
   const statusColors: Record<string, string> = {
-    vigente: 'bg-green-100 text-green-800',
-    vencido: 'bg-red-100 text-red-800',
-    pendiente_aprobacion: 'bg-blue-100 text-blue-800',
+    vigente: 'bg-accent/10 text-accent',
+    vencido: 'bg-destructive/10 text-destructive',
+    pendiente_aprobacion: 'bg-primary/10 text-primary',
   };
 
   const approvalColors = {
-    pendiente: 'bg-yellow-100 text-yellow-800',
-    aprobado: 'bg-green-100 text-green-800',
-    rechazado: 'bg-red-100 text-red-800',
+    pendiente: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-200',
+    aprobado: 'bg-accent/10 text-accent',
+    rechazado: 'bg-destructive/10 text-destructive',
   };
 
   return (
@@ -126,15 +126,15 @@ export default function DocumentosPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-yellow-500/5 overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-yellow-500/10 to-transparent rounded-full -mr-12 -mt-12" />
+        <Card className="border-border bg-muted/50 overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-muted to-transparent rounded-full -mr-12 -mt-12" />
           <CardHeader className="pb-3 relative z-10">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Por Vencer
             </CardTitle>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="text-3xl font-bold text-yellow-600">{expiringDocuments.length}</div>
+            <div className="text-3xl font-bold text-muted-foreground">{expiringDocuments.length}</div>
             <p className="text-xs text-muted-foreground mt-2">próximos 30 días</p>
           </CardContent>
         </Card>
@@ -142,15 +142,15 @@ export default function DocumentosPage() {
 
       {/* Alert for Expiring */}
       {expiringDocuments.length > 0 && (
-        <Card className="border-yellow-200 bg-yellow-50 dark:bg-yellow-950">
+        <Card className="border-destructive/30 bg-destructive/5">
           <CardHeader className="pb-3">
             <div className="flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
               <div>
-                <CardTitle className="text-yellow-900 dark:text-yellow-100">
+                <CardTitle className="text-destructive">
                   Documentos por Vencer
                 </CardTitle>
-                <CardDescription className="text-yellow-800 dark:text-yellow-200">
+                <CardDescription>
                   {expiringDocuments.length} documento(s) vencerá(n) en los próximos 30 días
                 </CardDescription>
               </div>

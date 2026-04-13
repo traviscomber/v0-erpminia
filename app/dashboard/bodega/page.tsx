@@ -81,7 +81,7 @@ export default function BodegaPage() {
     items: items.filter(i => i.category === cat).length,
   }));
 
-  const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+  const COLORS = ['var(--color-chart-1)', 'var(--color-chart-2)', 'var(--color-chart-3)', 'var(--color-chart-4)', 'var(--color-chart-5)'];
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('es-CL', {
@@ -134,41 +134,41 @@ export default function BodegaPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-blue-500/5 overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-blue-500/10 to-transparent rounded-full -mr-12 -mt-12" />
+        <Card className="border-border bg-primary/5 overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-primary/10 to-transparent rounded-full -mr-12 -mt-12" />
           <CardHeader className="pb-3 relative z-10">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Bodegas Activas
             </CardTitle>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="text-3xl font-bold text-blue-600">4</div>
+            <div className="text-3xl font-bold text-primary">4</div>
             <p className="text-xs text-muted-foreground mt-2">Central, Faena, Regional, Campaña</p>
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-yellow-500/5 overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-yellow-500/10 to-transparent rounded-full -mr-12 -mt-12" />
+        <Card className="border-border bg-destructive/5 overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-destructive/10 to-transparent rounded-full -mr-12 -mt-12" />
           <CardHeader className="pb-3 relative z-10">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Recepción Pendiente
             </CardTitle>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="text-3xl font-bold text-yellow-600">3</div>
+            <div className="text-3xl font-bold text-destructive">3</div>
             <p className="text-xs text-muted-foreground mt-2">OC por confirmar</p>
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-green-500/5 overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-green-500/10 to-transparent rounded-full -mr-12 -mt-12" />
+        <Card className="border-border bg-accent/5 overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-accent/10 to-transparent rounded-full -mr-12 -mt-12" />
           <CardHeader className="pb-3 relative z-10">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Exactitud Inventario
             </CardTitle>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="text-3xl font-bold text-green-600">98.2%</div>
+            <div className="text-3xl font-bold text-accent">98.2%</div>
             <p className="text-xs text-muted-foreground mt-2">físico vs sistema</p>
           </CardContent>
         </Card>
@@ -176,15 +176,15 @@ export default function BodegaPage() {
 
       {/* Alert for Low Stock */}
       {lowStockItems > 0 && (
-        <Card className="border-red-200 bg-red-50 dark:bg-red-950">
+        <Card className="border-destructive/30 bg-destructive/5">
           <CardHeader className="pb-3">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <AlertTriangle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
               <div>
-                <CardTitle className="text-red-900 dark:text-red-100">
+                <CardTitle className="text-destructive">
                   Items con Stock Bajo
                 </CardTitle>
-                <CardDescription className="text-red-800 dark:text-red-200">
+                <CardDescription>
                   {lowStockItems} artículo(s) está(n) por debajo del nivel mínimo
                 </CardDescription>
               </div>
@@ -378,8 +378,8 @@ export default function BodegaPage() {
                           variant="outline"
                           className={
                             item.current_stock <= item.minimum_stock
-                              ? 'bg-red-100 text-red-800 border-red-200'
-                              : 'bg-green-100 text-green-800 border-green-200'
+                              ? 'bg-destructive/10 text-destructive border-destructive/30'
+                              : 'bg-accent/10 text-accent border-accent/30'
                           }
                         >
                           {item.current_stock}
@@ -389,11 +389,11 @@ export default function BodegaPage() {
                       <td className="py-3 px-4">
                         {item.traceability_enabled ? (
                           <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-green-600" />
-                            <span className="text-xs text-green-700 font-medium">Activa</span>
+                            <div className="w-2 h-2 rounded-full bg-accent" />
+                            <span className="text-xs text-accent font-medium">Activa</span>
                           </div>
                         ) : (
-                          <span className="text-xs text-yellow-700 font-medium">Desactiva</span>
+                          <span className="text-xs text-muted-foreground font-medium">Desactiva</span>
                         )}
                         {item.qr_code && (
                           <div className="mt-1 text-xs text-muted-foreground">

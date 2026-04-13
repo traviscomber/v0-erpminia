@@ -81,17 +81,17 @@ export default function MantenimientoPage() {
   const availability = orders.length > 0 ? Math.round((1 - (totalDowntime / (30 * 24 * 60))) * 100) : 100;
 
   const statusColors: Record<string, string> = {
-    pendiente: 'bg-yellow-100 text-yellow-800',
-    en_progreso: 'bg-blue-100 text-blue-800',
-    completada: 'bg-green-100 text-green-800',
-    cancelada: 'bg-gray-100 text-gray-800',
+    pendiente: 'bg-muted/50 text-muted-foreground',
+    en_progreso: 'bg-primary/10 text-primary',
+    completada: 'bg-accent/10 text-accent',
+    cancelada: 'bg-secondary/10 text-secondary-foreground',
   };
 
   const priorityColors: Record<string, string> = {
-    baja: 'bg-gray-100 text-gray-800',
-    media: 'bg-yellow-100 text-yellow-800',
-    alta: 'bg-orange-100 text-orange-800',
-    critica_seguridad: 'bg-red-100 text-red-800 font-bold',
+    baja: 'bg-secondary/10 text-secondary-foreground',
+    media: 'bg-muted/50 text-muted-foreground',
+    alta: 'bg-destructive/10 text-destructive',
+    critica_seguridad: 'bg-destructive/20 text-destructive font-bold',
   };
 
   const chartData = [
@@ -100,7 +100,7 @@ export default function MantenimientoPage() {
     { name: 'Predictivas', value: predictiveOrders },
   ];
 
-  const COLORS = ['#3b82f6', '#ef4444', '#8b5cf6'];
+  const COLORS = ['var(--color-chart-1)', 'var(--color-chart-2)', 'var(--color-chart-3)'];
 
   return (
     <div className="space-y-8">
@@ -135,43 +135,43 @@ export default function MantenimientoPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-red-500/5 overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-red-500/10 to-transparent rounded-full -mr-12 -mt-12" />
+        <Card className="border-border bg-destructive/5 overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-destructive/10 to-transparent rounded-full -mr-12 -mt-12" />
           <CardHeader className="pb-3 relative z-10">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 text-red-600" />
+              <AlertCircle className="h-4 w-4 text-destructive" />
               Seguridad Crítica
             </CardTitle>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="text-3xl font-bold text-red-600">{safetyOrders}</div>
+            <div className="text-3xl font-bold text-destructive">{safetyOrders}</div>
             <p className="text-xs text-muted-foreground mt-2">órdenes de seguridad</p>
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-blue-500/5 overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-blue-500/10 to-transparent rounded-full -mr-12 -mt-12" />
+        <Card className="border-border bg-primary/5 overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-primary/10 to-transparent rounded-full -mr-12 -mt-12" />
           <CardHeader className="pb-3 relative z-10">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               MTTR Promedio
             </CardTitle>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="text-3xl font-bold text-blue-600">{avgMTTR}m</div>
+            <div className="text-3xl font-bold text-primary">{avgMTTR}m</div>
             <p className="text-xs text-muted-foreground mt-2">tiempo a reparación</p>
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-green-500/5 overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-green-500/10 to-transparent rounded-full -mr-12 -mt-12" />
+        <Card className="border-border bg-accent/5 overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-accent/10 to-transparent rounded-full -mr-12 -mt-12" />
           <CardHeader className="pb-3 relative z-10">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-green-600" />
+              <TrendingUp className="h-4 w-4 text-accent" />
               Disponibilidad
             </CardTitle>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="text-3xl font-bold text-green-600">{availability}%</div>
+            <div className="text-3xl font-bold text-accent">{availability}%</div>
             <p className="text-xs text-muted-foreground mt-2">equipos operacionales</p>
           </CardContent>
         </Card>
@@ -179,54 +179,54 @@ export default function MantenimientoPage() {
 
       {/* Additional Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="border-border overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-chart-1/10 to-transparent rounded-full -mr-12 -mt-12" />
+        <Card className="border-border bg-primary/5 overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-primary/10 to-transparent rounded-full -mr-12 -mt-12" />
           <CardHeader className="pb-3 relative z-10">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Preventivas
             </CardTitle>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="text-3xl font-bold text-blue-600">{preventiveOrders}</div>
+            <div className="text-3xl font-bold text-primary">{preventiveOrders}</div>
             <p className="text-xs text-muted-foreground mt-2">mantenimiento planeado</p>
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-red-500/5 overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-red-500/10 to-transparent rounded-full -mr-12 -mt-12" />
+        <Card className="border-border bg-destructive/5 overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-destructive/10 to-transparent rounded-full -mr-12 -mt-12" />
           <CardHeader className="pb-3 relative z-10">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Correctivas
             </CardTitle>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="text-3xl font-bold text-red-600">{correctiveOrders}</div>
+            <div className="text-3xl font-bold text-destructive">{correctiveOrders}</div>
             <p className="text-xs text-muted-foreground mt-2">respuestas a fallas</p>
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-purple-500/5 overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-purple-500/10 to-transparent rounded-full -mr-12 -mt-12" />
+        <Card className="border-border bg-secondary/5 overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-secondary/10 to-transparent rounded-full -mr-12 -mt-12" />
           <CardHeader className="pb-3 relative z-10">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Predictivas
             </CardTitle>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="text-3xl font-bold text-purple-600">{predictiveOrders}</div>
+            <div className="text-3xl font-bold text-secondary-foreground">{predictiveOrders}</div>
             <p className="text-xs text-muted-foreground mt-2">análisis y predicción</p>
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-green-500/5 overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-green-500/10 to-transparent rounded-full -mr-12 -mt-12" />
+        <Card className="border-border bg-accent/5 overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-accent/10 to-transparent rounded-full -mr-12 -mt-12" />
           <CardHeader className="pb-3 relative z-10">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Completadas
             </CardTitle>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="text-3xl font-bold text-green-600">{completedOrders}</div>
+            <div className="text-3xl font-bold text-accent">{completedOrders}</div>
             <p className="text-xs text-muted-foreground mt-2">órdenes finalizadas</p>
           </CardContent>
         </Card>
