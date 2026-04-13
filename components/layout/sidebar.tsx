@@ -15,6 +15,7 @@ import {
   Wrench,
   Boxes,
   Bell,
+  Plus,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -25,6 +26,11 @@ const menuItems = [
     label: 'Dashboard',
     href: '/dashboard',
     icon: BarChart3,
+  },
+  {
+    label: 'Crear Tarea',
+    href: '/dashboard/crear-tarea',
+    icon: Plus,
   },
   {
     label: 'Alertas',
