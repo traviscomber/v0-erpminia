@@ -12,6 +12,8 @@ import {
   LogOut,
   Menu,
   X,
+  Wrench,
+  Boxes,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -24,6 +26,21 @@ const menuItems = [
     icon: BarChart3,
   },
   {
+    label: 'Documentos',
+    href: '/dashboard/documentos-v2',
+    icon: FileText,
+  },
+  {
+    label: 'Mantenimiento',
+    href: '/dashboard/mantenimiento',
+    icon: Wrench,
+  },
+  {
+    label: 'Bodega',
+    href: '/dashboard/bodega',
+    icon: Boxes,
+  },
+  {
     label: 'Compras',
     href: '/dashboard/compras',
     icon: ShoppingCart,
@@ -32,11 +49,6 @@ const menuItems = [
     label: 'Inventario',
     href: '/dashboard/inventario',
     icon: Package,
-  },
-  {
-    label: 'Documentos',
-    href: '/dashboard/documentos',
-    icon: FileText,
   },
   {
     label: 'Finanzas',

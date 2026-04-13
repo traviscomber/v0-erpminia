@@ -1,0 +1,372 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Plus,
+  Package,
+  Search,
+  AlertTriangle,
+  TrendingUp,
+  DollarSign,
+} from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import {
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
+
+interface InventoryItem {
+  id: string;
+  name: string;
+  sku: string;
+  category: string;
+  current_stock: number;
+  minimum_stock: number;
+  unit_cost: number;
+  total_value: number;
+}
+
+export default function BodegaPage() {
+  const [items, setItems] = useState<InventoryItem[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // TODO: Fetch from API
+    setLoading(false);
+  }, []);
+
+  const lowStockItems = items.filter(i => i.current_stock <= i.minimum_stock).length;
+  const totalValue = items.reduce((sum, i) => sum + i.total_value, 0);
+  const categories = [...new Set(items.map(i => i.category))];
+
+  const categoryData = categories.map(cat => ({
+    name: cat,
+    items: items.filter(i => i.category === cat).length,
+  }));
+
+  const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('es-CL', {
+      style: 'currency',
+      currency: 'CLP',
+      minimumFractionDigits: 0,
+    }).format(value);
+  };
+
+  return (
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="pb-4">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+          <div>
+            <h1 className="text-4xl font-bold tracking-tight">Sistema de Bodega</h1>
+            <p className="text-muted-foreground mt-3">
+              Gestión de inventario, movimientos de stock y control de reorden
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" className="gap-2">
+              <Package className="h-4 w-4" />
+              Conteo Físico
+            </Button>
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              Nuevo Item
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="border-border overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-chart-1/10 to-transparent rounded-full -mr-12 -mt-12" />
+          <CardHeader className="pb-3 relative z-10">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Items en Stock
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="relative z-10">
+            <div className="text-3xl font-bold">{items.length}</div>
+            <p className="text-xs text-muted-foreground mt-2">productos en bodega</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border bg-blue-500/5 overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-blue-500/10 to-transparent rounded-full -mr-12 -mt-12" />
+          <CardHeader className="pb-3 relative z-10">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Valor Total
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="relative z-10">
+            <div className="text-2xl font-bold text-blue-600 line-clamp-1">
+              {formatCurrency(totalValue)}
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">inventario valuado</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border bg-red-500/5 overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-red-500/10 to-transparent rounded-full -mr-12 -mt-12" />
+          <CardHeader className="pb-3 relative z-10">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Stock Bajo
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="relative z-10">
+            <div className="text-3xl font-bold text-red-600">{lowStockItems}</div>
+            <p className="text-xs text-muted-foreground mt-2">requieren reorden</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border bg-green-500/5 overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-green-500/10 to-transparent rounded-full -mr-12 -mt-12" />
+          <CardHeader className="pb-3 relative z-10">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Categorías
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="relative z-10">
+            <div className="text-3xl font-bold text-green-600">{categories.length}</div>
+            <p className="text-xs text-muted-foreground mt-2">tipos de productos</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Alert for Low Stock */}
+      {lowStockItems > 0 && (
+        <Card className="border-red-200 bg-red-50 dark:bg-red-950">
+          <CardHeader className="pb-3">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <CardTitle className="text-red-900 dark:text-red-100">
+                  Items con Stock Bajo
+                </CardTitle>
+                <CardDescription className="text-red-800 dark:text-red-200">
+                  {lowStockItems} artículo(s) está(n) por debajo del nivel mínimo
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+      )}
+
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Category Distribution */}
+        <Card className="border-border">
+          <CardHeader>
+            <CardTitle>Distribución por Categoría</CardTitle>
+            <CardDescription>Items por categoría</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={categoryData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={50}
+                  outerRadius={80}
+                  paddingAngle={2}
+                  dataKey="items"
+                >
+                  {categoryData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="grid grid-cols-2 gap-2 mt-6 pt-4 border-t border-border">
+              {categoryData.slice(0, 4).map((item, idx) => (
+                <div key={item.name} className="text-center">
+                  <div
+                    className="w-2 h-2 rounded-full mx-auto mb-2"
+                    style={{ backgroundColor: COLORS[idx % COLORS.length] }}
+                  />
+                  <p className="text-xs font-medium text-muted-foreground truncate">{item.name}</p>
+                  <p className="text-sm font-bold">{item.items}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Stock Status */}
+        <Card className="border-border lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Estado del Inventario</CardTitle>
+            <CardDescription>Análisis de disponibilidad</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">Items Disponibles</span>
+                <span className="text-2xl font-bold text-green-600">
+                  {items.filter(i => i.current_stock > i.minimum_stock).length}
+                </span>
+              </div>
+              <div className="w-full bg-muted rounded-full h-2">
+                <div
+                  className="bg-green-600 h-2 rounded-full"
+                  style={{
+                    width: `${
+                      items.length > 0
+                        ? (items.filter(i => i.current_stock > i.minimum_stock).length / items.length) * 100
+                        : 0
+                    }%`,
+                  }}
+                />
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">Items con Stock Bajo</span>
+                <span className="text-2xl font-bold text-red-600">{lowStockItems}</span>
+              </div>
+              <div className="w-full bg-muted rounded-full h-2">
+                <div
+                  className="bg-red-600 h-2 rounded-full"
+                  style={{
+                    width: `${items.length > 0 ? (lowStockItems / items.length) * 100 : 0}%`,
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-border">
+              <p className="text-xs text-muted-foreground">
+                Disponibilidad: {items.length > 0 ? ((items.filter(i => i.current_stock > i.minimum_stock).length / items.length) * 100).toFixed(1) : 0}%
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Inventory Items Table */}
+      <Card className="border-border">
+        <CardHeader className="pb-4">
+          <div className="flex flex-col md:flex-row md:items-center gap-4">
+            <div className="flex-1">
+              <CardTitle>Listado de Inventario</CardTitle>
+              <CardDescription>Administra todos los items en bodega</CardDescription>
+            </div>
+            <div className="flex gap-2">
+              <div className="relative flex-1 md:flex-initial md:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar item..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 bg-input"
+                />
+              </div>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-40 bg-input">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas</SelectItem>
+                  {categories.map(cat => (
+                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="text-center py-8 text-muted-foreground">Cargando inventario...</div>
+          ) : items.length === 0 ? (
+            <div className="text-center py-8">
+              <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+              <p className="text-muted-foreground">No hay items registrados</p>
+              <Button className="mt-4 gap-2">
+                <Plus className="h-4 w-4" />
+                Crear primer item
+              </Button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left font-semibold text-muted-foreground py-3 px-4">Nombre</th>
+                    <th className="text-left font-semibold text-muted-foreground py-3 px-4">SKU</th>
+                    <th className="text-left font-semibold text-muted-foreground py-3 px-4">Categoría</th>
+                    <th className="text-left font-semibold text-muted-foreground py-3 px-4">Stock Actual</th>
+                    <th className="text-left font-semibold text-muted-foreground py-3 px-4">Stock Mínimo</th>
+                    <th className="text-left font-semibold text-muted-foreground py-3 px-4">Valor Total</th>
+                    <th className="text-left font-semibold text-muted-foreground py-3 px-4">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((item) => (
+                    <tr
+                      key={item.id}
+                      className="border-b border-border/50 hover:bg-muted/30 transition-colors group"
+                    >
+                      <td className="py-3 px-4 font-medium">{item.name}</td>
+                      <td className="py-3 px-4 text-sm text-muted-foreground">{item.sku}</td>
+                      <td className="py-3 px-4 text-sm">{item.category}</td>
+                      <td className="py-3 px-4">
+                        <Badge
+                          variant="outline"
+                          className={
+                            item.current_stock <= item.minimum_stock
+                              ? 'bg-red-100 text-red-800 border-red-200'
+                              : 'bg-green-100 text-green-800 border-green-200'
+                          }
+                        >
+                          {item.current_stock}
+                        </Badge>
+                      </td>
+                      <td className="py-3 px-4 text-sm text-muted-foreground">{item.minimum_stock}</td>
+                      <td className="py-3 px-4 font-semibold">{formatCurrency(item.total_value)}</td>
+                      <td className="py-3 px-4">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          Editar
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
