@@ -14,6 +14,7 @@ import {
   X,
   Wrench,
   Boxes,
+  Bell,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -24,6 +25,12 @@ const menuItems = [
     label: 'Dashboard',
     href: '/dashboard',
     icon: BarChart3,
+  },
+  {
+    label: 'Alertas',
+    href: '/dashboard/alertas',
+    icon: Bell,
+    badge: 3,
   },
   {
     label: 'Documentos',
@@ -110,11 +117,16 @@ export function Sidebar() {
                 <Link key={item.href} href={item.href}>
                   <Button
                     variant={isActive ? 'default' : 'ghost'}
-                    className="w-full justify-start gap-3"
+                    className="w-full justify-start gap-3 relative"
                     onClick={() => setIsOpen(false)}
                   >
                     <Icon className="w-5 h-5" />
                     <span>{item.label}</span>
+                    {item.badge && (
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-red-600 text-white text-xs flex items-center justify-center font-semibold">
+                        {item.badge}
+                      </span>
+                    )}
                   </Button>
                 </Link>
               );
