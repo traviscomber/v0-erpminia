@@ -16,6 +16,8 @@ import {
   Boxes,
   Bell,
   Plus,
+  HardHat,
+  AlertTriangle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -26,47 +28,72 @@ const menuItems = [
     label: 'Dashboard',
     href: '/dashboard',
     icon: BarChart3,
-  },
-  {
-    label: 'Crear Tarea',
-    href: '/dashboard/crear-tarea',
-    icon: Plus,
+    group: 'Core',
   },
   {
     label: 'Alertas',
     href: '/dashboard/alertas',
     icon: Bell,
     badge: 3,
+    group: 'Core',
+  },
+  // Mining Operations
+  {
+    label: 'Operaciones',
+    href: '/dashboard/operaciones',
+    icon: HardHat,
+    group: 'Minería',
   },
   {
-    label: 'Documentos',
-    href: '/dashboard/documentos-v2',
-    icon: FileText,
+    label: 'Work Orders',
+    href: '/dashboard/work-orders',
+    icon: Plus,
+    group: 'Minería',
   },
   {
     label: 'Mantenimiento',
     href: '/dashboard/mantenimiento',
     icon: Wrench,
+    group: 'Minería',
   },
+  // Supply Chain
   {
-    label: 'Bodega',
-    href: '/dashboard/bodega',
-    icon: Boxes,
-  },
-  {
-    label: 'Compras',
-    href: '/dashboard/compras',
+    label: 'Procurement',
+    href: '/dashboard/procurement',
     icon: ShoppingCart,
+    group: 'Logística',
   },
   {
     label: 'Inventario',
-    href: '/dashboard/inventario',
-    icon: Package,
+    href: '/dashboard/bodega',
+    icon: Boxes,
+    group: 'Logística',
+  },
+  // Safety & Compliance
+  {
+    label: 'HSE / Compliance',
+    href: '/dashboard/hse',
+    icon: AlertTriangle,
+    group: 'Seguridad',
+  },
+  {
+    label: 'Documentos',
+    href: '/dashboard/documentos-v2',
+    icon: FileText,
+    group: 'Seguridad',
+  },
+  // Administrative
+  {
+    label: 'Reportes',
+    href: '/dashboard/reportes',
+    icon: BarChart3,
+    group: 'Administración',
   },
   {
     label: 'Finanzas',
     href: '/dashboard/finanzas',
     icon: DollarSign,
+    group: 'Administración',
   },
 ];
 
@@ -113,28 +140,42 @@ export function Sidebar() {
         </div>
 
         {/* Navigation Menu */}
-        <nav className="flex-1 px-4 py-6">
-          <div className="space-y-2">
-            {menuItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
+        <nav className="flex-1 px-4 py-6 overflow-y-auto">
+          <div className="space-y-6">
+            {['Core', 'Minería', 'Logística', 'Seguridad', 'Administración'].map((group) => {
+              const groupItems = menuItems.filter((item) => item.group === group);
+              if (groupItems.length === 0) return null;
 
               return (
-                <Link key={item.href} href={item.href}>
-                  <Button
-                    variant={isActive ? 'default' : 'ghost'}
-                    className="w-full justify-start gap-3 relative"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    <Icon className="w-5 h-5" />
-                    <span>{item.label}</span>
-                    {item.badge && (
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-red-600 text-white text-xs flex items-center justify-center font-semibold">
-                        {item.badge}
-                      </span>
-                    )}
-                  </Button>
-                </Link>
+                <div key={group}>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-2">
+                    {group}
+                  </p>
+                  <div className="space-y-1">
+                    {groupItems.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = pathname === item.href;
+
+                      return (
+                        <Link key={item.href} href={item.href}>
+                          <Button
+                            variant={isActive ? 'default' : 'ghost'}
+                            className="w-full justify-start gap-3 relative"
+                            onClick={() => setIsOpen(false)}
+                          >
+                            <Icon className="w-5 h-5" />
+                            <span>{item.label}</span>
+                            {item.badge && (
+                              <span className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-destructive text-white text-xs flex items-center justify-center font-semibold">
+                                {item.badge}
+                              </span>
+                            )}
+                          </Button>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
               );
             })}
           </div>

@@ -9,286 +9,290 @@ import {
   Clock,
   CheckCircle2,
   AlertTriangle,
+  TrendingUp,
+  Eye,
+  Plus,
   Zap,
   MapPin,
   Users,
   Wrench,
-  TrendingDown,
   RefreshCw,
 } from 'lucide-react';
 
-// Trust markers component
-function TrustMarkers() {
-  return (
-    <div className="flex flex-wrap gap-4 text-xs font-medium">
-      <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-accent/10 text-accent">
-        <Zap className="w-3 h-3" />
-        <span>Producción</span>
-      </div>
-      <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 text-primary">
-        <MapPin className="w-3 h-3" />
-        <span>Faena Central</span>
-      </div>
-      <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-secondary/10 text-secondary-foreground">
-        <Clock className="w-3 h-3" />
-        <span>Turno 1 (06:00-14:00)</span>
-      </div>
-      <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-muted text-muted-foreground">
-        <RefreshCw className="w-3 h-3" />
-        <span>Sincronizado hace 2 min</span>
-      </div>
-    </div>
-  );
-}
-
-// Status strip - critical at-a-glance view
-function StatusStrip() {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-      {/* Active Incidents */}
-      <Card className="border-destructive/30 bg-destructive/5">
-        <CardContent className="p-4 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-xs font-medium text-muted-foreground">INCIDENTES ACTIVOS</p>
-            <p className="text-2xl font-bold text-destructive mt-1">3</p>
-            <p className="text-xs text-muted-foreground mt-1">2 críticos, 1 en proceso</p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Delayed Work Orders */}
-      <Card className="border-yellow-600/30 bg-yellow-600/5">
-        <CardContent className="p-4 flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-xs font-medium text-muted-foreground">ÓRDENES ATRASADAS</p>
-            <p className="text-2xl font-bold text-yellow-600 mt-1">5</p>
-            <p className="text-xs text-muted-foreground mt-1">Promedio 3.2 hrs retraso</p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Equipment Unavailable */}
-      <Card className="border-orange-600/30 bg-orange-600/5">
-        <CardContent className="p-4 flex items-start gap-3">
-          <Wrench className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-xs font-medium text-muted-foreground">EQUIPOS FUERA</p>
-            <p className="text-2xl font-bold text-orange-600 mt-1">2</p>
-            <p className="text-xs text-muted-foreground mt-1">Excavadora 4, Pala 12</p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Pending Approvals */}
-      <Card className="border-primary/30 bg-primary/5">
-        <CardContent className="p-4 flex items-start gap-3">
-          <Clock className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-xs font-medium text-muted-foreground">APROBACIONES</p>
-            <p className="text-2xl font-bold text-primary mt-1">7</p>
-            <p className="text-xs text-muted-foreground mt-1">4 hoy, 3 mañana</p>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-// Critical tasks panel
-function CriticalTasksPanel() {
-  const tasks = [
-    {
-      id: 1,
-      title: 'Revisión pre-turno Excavadora 4',
-      owner: 'Carlos Meneses',
-      site: 'Faena Central',
-      dueTime: '06:30',
-      priority: 'critica',
-      status: 'pendiente',
-    },
-    {
-      id: 2,
-      title: 'Inspección seguridad área norte',
-      owner: 'María González',
-      site: 'Faena Central',
-      dueTime: '08:00',
-      priority: 'alta',
-      status: 'en_progreso',
-    },
-    {
-      id: 3,
-      title: 'Cambio de aceite Pala 12',
-      owner: 'Roberto Silva',
-      site: 'Faena Central',
-      dueTime: '10:00',
-      priority: 'alta',
-      status: 'pendiente',
-    },
-  ];
-
-  return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Zap className="w-5 h-5 text-destructive" />
-              Tareas Críticas Hoy
-            </CardTitle>
-            <CardDescription>3 tareas que requieren atención inmediata</CardDescription>
-          </div>
-          <Button variant="outline" size="sm">
-            + Crear Tarea
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {tasks.map((task) => (
-            <div
-              key={task.id}
-              className="flex items-center justify-between p-3 rounded-lg border border-border bg-card hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <p className="font-medium text-sm">{task.title}</p>
-                  {task.priority === 'critica' && (
-                    <Badge className="bg-destructive text-white text-xs">Crítica</Badge>
-                  )}
-                  {task.priority === 'alta' && (
-                    <Badge className="bg-orange-600 text-white text-xs">Alta</Badge>
-                  )}
-                </div>
-                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Users className="w-3 h-3" />
-                    {task.owner}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <MapPin className="w-3 h-3" />
-                    {task.site}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    Vence {task.dueTime}
-                  </span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {task.status === 'en_progreso' && (
-                  <Badge variant="outline" className="text-primary">
-                    En Curso
-                  </Badge>
-                )}
-                {task.status === 'pendiente' && (
-                  <Badge variant="outline" className="text-muted-foreground">
-                    Pendiente
-                  </Badge>
-                )}
-                <Button variant="ghost" size="sm">
-                  Actuar
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-// Shift status by site
-function ShiftStatus() {
-  const sites = [
-    {
-      id: 1,
-      name: 'Faena Central',
-      shift: 'Turno 1',
-      active: true,
-      crew: 24,
-      equipment: 8,
-      incidents: 0,
-      efficiency: 94,
-    },
-    {
-      id: 2,
-      name: 'Faena Norte',
-      shift: 'Turno 1',
-      active: true,
-      crew: 18,
-      equipment: 5,
-      incidents: 1,
-      efficiency: 87,
-    },
-  ];
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Estado Operacional por Sitio</CardTitle>
-        <CardDescription>Resumen de operaciones activas</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {sites.map((site) => (
-            <div key={site.id} className="p-3 rounded-lg border border-border bg-card">
-              <div className="flex items-center justify-between mb-2">
-                <div>
-                  <p className="font-medium">{site.name}</p>
-                  <p className="text-xs text-muted-foreground">{site.shift}</p>
-                </div>
-                <Badge className="bg-accent">Activo</Badge>
-              </div>
-              <div className="grid grid-cols-4 gap-2 text-sm">
-                <div className="text-center">
-                  <p className="text-lg font-bold">{site.crew}</p>
-                  <p className="text-xs text-muted-foreground">Personal</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-lg font-bold">{site.equipment}</p>
-                  <p className="text-xs text-muted-foreground">Equipos</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-lg font-bold text-yellow-600">{site.incidents}</p>
-                  <p className="text-xs text-muted-foreground">Incidentes</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-lg font-bold text-accent">{site.efficiency}%</p>
-                  <p className="text-xs text-muted-foreground">Eficiencia</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
+interface CriticalTask {
+  id: string;
+  title: string;
+  site: string;
+  assigned_to: string;
+  due_time: string;
+  priority: 'critical' | 'high' | 'medium';
+  type: 'incident' | 'approval' | 'task' | 'delay';
 }
 
 export default function DashboardPage() {
+  const [tasks] = useState<CriticalTask[]>([
+    {
+      id: '1',
+      title: 'Equipo excavadora sin mantenimiento hace 30 días',
+      site: 'Faena Mapocho',
+      assigned_to: 'Carlos Mendoza',
+      due_time: 'Hoy 14:00',
+      priority: 'critical',
+      type: 'incident',
+    },
+    {
+      id: '2',
+      title: 'Aprobación de orden de compra emergencia',
+      site: 'Central',
+      assigned_to: 'Juan López',
+      due_time: 'Pendiente desde ayer',
+      priority: 'high',
+      type: 'approval',
+    },
+    {
+      id: '3',
+      title: 'Inspección HSE retrasada - región norte',
+      site: 'Faena Antacaña',
+      assigned_to: 'María García',
+      due_time: 'Hace 2 días',
+      priority: 'high',
+      type: 'delay',
+    },
+  ]);
+
+  const statusIndicators = [
+    {
+      label: 'Incidentes Hoy',
+      value: '3',
+      status: 'critical',
+      icon: AlertCircle,
+    },
+    {
+      label: 'Aprobaciones Pendientes',
+      value: '2',
+      status: 'warning',
+      icon: Clock,
+    },
+    {
+      label: 'Equipos en Mantenimiento',
+      value: '5',
+      status: 'info',
+      icon: AlertTriangle,
+    },
+    {
+      label: 'Tasks Completadas Hoy',
+      value: '14',
+      status: 'success',
+      icon: CheckCircle2,
+    },
+  ];
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'critical':
+        return 'bg-destructive/10 text-destructive border-destructive/20';
+      case 'high':
+        return 'bg-orange-100/50 text-orange-800 border-orange-200';
+      default:
+        return 'bg-yellow-100/50 text-yellow-800 border-yellow-200';
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'critical':
+        return 'text-destructive';
+      case 'warning':
+        return 'text-orange-600';
+      case 'info':
+        return 'text-blue-600';
+      case 'success':
+        return 'text-accent';
+      default:
+        return 'text-muted-foreground';
+    }
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header with trust markers */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight mb-2">Dashboard Operacional</h1>
-        <p className="text-muted-foreground mb-4">
-          Estado en tiempo real de operaciones mineras
+        <h1 className="text-3xl font-bold tracking-tight">Centro de Operaciones</h1>
+        <p className="text-muted-foreground mt-2">
+          Visión en tiempo real de incidentes, aprobaciones y estado operacional
         </p>
-        <TrustMarkers />
+        {/* Trust markers */}
+        <div className="flex flex-wrap gap-3 mt-4">
+          <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-accent/10 text-accent text-xs font-medium">
+            <Zap className="w-3 h-3" />
+            <span>Producción</span>
+          </div>
+          <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
+            <MapPin className="w-3 h-3" />
+            <span>Faena Central</span>
+          </div>
+          <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-secondary/10 text-secondary-foreground text-xs font-medium">
+            <Clock className="w-3 h-3" />
+            <span>Turno 1 (06:00-14:00)</span>
+          </div>
+          <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-muted text-muted-foreground text-xs font-medium">
+            <RefreshCw className="w-3 h-3" />
+            <span>Sincronizado hace 2 min</span>
+          </div>
+        </div>
       </div>
 
-      {/* Critical status strip */}
-      <StatusStrip />
+      {/* Status Indicators Strip - 4 KPIs only */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {statusIndicators.map((indicator, idx) => {
+          const Icon = indicator.icon;
+          return (
+            <Card key={idx} className="border-border">
+              <CardContent className="pt-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground font-medium">
+                      {indicator.label}
+                    </p>
+                    <p className={`text-3xl font-bold mt-2 ${getStatusColor(indicator.status)}`}>
+                      {indicator.value}
+                    </p>
+                  </div>
+                  <Icon className={`h-8 w-8 ${getStatusColor(indicator.status)} opacity-60`} />
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
 
-      {/* Critical tasks and shift status */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <CriticalTasksPanel />
-        </div>
-        <div>
-          <ShiftStatus />
+      {/* Critical Tasks Panel */}
+      <Card className="border-border">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-destructive" />
+                Tareas Críticas de Hoy
+              </CardTitle>
+              <CardDescription>Acciones inmediatas requeridas</CardDescription>
+            </div>
+            <Button variant="outline" size="sm">
+              Ver todas
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {tasks.length === 0 ? (
+            <div className="text-center py-8">
+              <CheckCircle2 className="h-12 w-12 mx-auto text-accent opacity-50 mb-4" />
+              <p className="text-muted-foreground">No hay tareas críticas pendientes</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {tasks.map((task) => (
+                <div
+                  key={task.id}
+                  className="flex items-start justify-between p-4 rounded-lg border border-border/50 hover:bg-muted/50 transition-colors group"
+                >
+                  <div className="flex-1">
+                    <div className="flex items-start gap-3">
+                      <Badge className={getPriorityColor(task.priority)} variant="outline">
+                        {task.priority.toUpperCase()}
+                      </Badge>
+                      <div>
+                        <p className="font-medium leading-tight">{task.title}</p>
+                        <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            {task.site}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Users className="w-3 h-3" />
+                            {task.assigned_to}
+                          </span>
+                          <span className="font-semibold text-destructive flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {task.due_time}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="ml-4 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Quick Stats - Shift Information */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="border-border">
+          <CardHeader>
+            <CardTitle className="text-base">Estado Turno - Faena Mapocho</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between py-2 border-b border-border">
+              <span className="text-sm text-muted-foreground">Personal Presente</span>
+              <span className="font-semibold">43 / 45</span>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b border-border">
+              <span className="text-sm text-muted-foreground">Equipos Operacionales</span>
+              <span className="font-semibold">18 / 20</span>
+            </div>
+            <div className="flex items-center justify-between py-2">
+              <span className="text-sm text-muted-foreground">Producción vs Meta</span>
+              <span className="font-semibold text-accent">98%</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border">
+          <CardHeader>
+            <CardTitle className="text-base">Alertas de Seguridad Última Hora</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-orange-100/30 border border-orange-200/50">
+                <AlertTriangle className="h-5 w-5 text-orange-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm">
+                  <p className="font-medium text-orange-900">Temperatura anómala en compresor</p>
+                  <p className="text-xs text-orange-700 mt-1">Reportado a las 11:45 - En revisión</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-green-100/30 border border-green-200/50">
+                <CheckCircle2 className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" />
+                <div className="text-sm">
+                  <p className="font-medium text-accent">Inspección zona A completada</p>
+                  <p className="text-xs text-muted-foreground mt-1">Sin incidencias - 10:30</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Call to Action */}
+      <div className="bg-muted/50 border border-border rounded-lg p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-semibold">Crear nueva tarea o reporte</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Registra incidentes, work orders o solicitudes de aprobación rápidamente
+            </p>
+          </div>
+          <Button className="gap-2">
+            <Plus className="h-4 w-4" />
+            Crear Tarea
+          </Button>
         </div>
       </div>
     </div>
