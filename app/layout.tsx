@@ -8,7 +8,7 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'n3uralia ERP mining',
+  title: 'ERP SegurIA',
   description: 'Plataforma integral de gestión de operaciones mineras',
   generator: 'v0.app',
   icons: {

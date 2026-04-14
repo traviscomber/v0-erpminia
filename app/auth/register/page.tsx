@@ -56,7 +56,7 @@ export default function RegisterPage() {
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl">Crear Cuenta</CardTitle>
             <CardDescription>
-              n3uralia ERP mining - Registrate en la Plataforma
+              ERP SegurIA - Registrate en la Plataforma
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -154,6 +154,9 @@ export default function RegisterPage() {
                 <Link href="/auth/login" className="text-sidebar-primary hover:underline font-semibold">
                   Inicia sesión aquí
                 </Link>
+              </p>
+              <p className="text-xs text-muted-foreground text-center mt-4 pt-4 border-t border-border">
+                Powered by <a href="https://n3uralia.com" target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline">n3uralia</a>
               </p>
             </div>
           </CardContent>
