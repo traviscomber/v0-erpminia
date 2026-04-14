@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BrandCard } from '@/components/ui/brand-card';
-import { Zap, Map, CheckCircle2, BarChart3, HelpCircle, ArrowRight } from 'lucide-react';
+import { Zap, Map, CheckCircle2, BarChart3, HelpCircle, ArrowRight, FileText, Package, Wrench } from 'lucide-react';
 
 export default function Home() {
   return (
@@ -97,85 +97,85 @@ export default function Home() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {/* Árbol de Fallas */}
+            {/* Mantenimiento de Maquinarias */}
             <Card className="border-l-4 border-l-[var(--brand-naranja)]">
               <CardHeader>
-                <Map className="h-8 w-8 text-[var(--brand-naranja)] mb-2" />
-                <CardTitle>Árbol de Fallas</CardTitle>
-                <CardDescription>Diagnóstico Inteligente</CardDescription>
+                <Wrench className="h-8 w-8 text-[var(--brand-naranja)] mb-2" />
+                <CardTitle>Mantenimiento de Maquinarias</CardTitle>
+                <CardDescription>Árbol de Fallas & OT</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm">
-                  Mapeo jerárquico de vehículos y componentes con identificación automática de modos de falla.
+                  Sistema integrado de diagnóstico y gestión de órdenes de trabajo jerárquicas con trabajo paralelo de técnicos.
                 </p>
                 <ul className="text-sm space-y-2 text-muted-foreground">
                   <li className="flex gap-2">
                     <span className="text-[var(--brand-naranja)]">→</span>
-                    Visualización de componentes expandible
+                    Árbol de fallas con modos de falla
                   </li>
                   <li className="flex gap-2">
                     <span className="text-[var(--brand-naranja)]">→</span>
-                    Síntomas y causas probables
+                    Órdenes anidadas por componente
                   </li>
                   <li className="flex gap-2">
                     <span className="text-[var(--brand-naranja)]">→</span>
-                    Piezas de desgaste asociadas
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* Órdenes de Trabajo */}
-            <Card className="border-l-4 border-l-[var(--brand-verde)]">
-              <CardHeader>
-                <CheckCircle2 className="h-8 w-8 text-[var(--brand-verde)] mb-2" />
-                <CardTitle>Órdenes de Trabajo</CardTitle>
-                <CardDescription>Gestión Jerárquica</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm">
-                  Sistema de OT anidadas que permite trabajo paralelo de múltiples técnicos.
-                </p>
-                <ul className="text-sm space-y-2 text-muted-foreground">
-                  <li className="flex gap-2">
-                    <span className="text-[var(--brand-verde)]">→</span>
-                    OT principal + Sub-OTs por componente
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-[var(--brand-verde)]">→</span>
-                    Asignación de técnicos y piezas
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-[var(--brand-verde)]">→</span>
                     Tracking de progreso en tiempo real
                   </li>
                 </ul>
               </CardContent>
             </Card>
 
-            {/* Inventario */}
-            <Card className="border-l-4 border-l-[var(--brand-rojo)]">
+            {/* Inventario y Bodega */}
+            <Card className="border-l-4 border-l-[var(--brand-verde)]">
               <CardHeader>
-                <BarChart3 className="h-8 w-8 text-[var(--brand-rojo)] mb-2" />
-                <CardTitle>Inventario & Bodega</CardTitle>
+                <Package className="h-8 w-8 text-[var(--brand-verde)] mb-2" />
+                <CardTitle>Inventario y Bodega</CardTitle>
                 <CardDescription>Control Total</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm">
-                  Gestión completa de recepción, almacenamiento y despacho con trazabilidad FIFO.
+                  Gestión completa de recepción, almacenamiento y despacho con trazabilidad FIFO y códigos QR.
+                </p>
+                <ul className="text-sm space-y-2 text-muted-foreground">
+                  <li className="flex gap-2">
+                    <span className="text-[var(--brand-verde)]">→</span>
+                    Códigos QR y trazabilidad completa
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-[var(--brand-verde)]">→</span>
+                    Alertas de bajo stock automáticas
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-[var(--brand-verde)]">→</span>
+                    Control de vencimientos FIFO
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Gestión Documental */}
+            <Card className="border-l-4 border-l-[var(--brand-rojo)]">
+              <CardHeader>
+                <FileText className="h-8 w-8 text-[var(--brand-rojo)] mb-2" />
+                <CardTitle>Gestión Documental</CardTitle>
+                <CardDescription>Trazabilidad Legal</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm">
+                  Gestión centralizada de documentos, reportes y registros de cumplimiento normativo y HSE.
                 </p>
                 <ul className="text-sm space-y-2 text-muted-foreground">
                   <li className="flex gap-2">
                     <span className="text-[var(--brand-rojo)]">→</span>
-                    Códigos QR y trazabilidad
+                    Almacenamiento centralizado seguro
                   </li>
                   <li className="flex gap-2">
                     <span className="text-[var(--brand-rojo)]">→</span>
-                    Alertas de bajo stock
+                    Versionado y auditoría completa
                   </li>
                   <li className="flex gap-2">
                     <span className="text-[var(--brand-rojo)]">→</span>
-                    Control de vencimientos
+                    Cumplimiento normativo HSE
                   </li>
                 </ul>
               </CardContent>
