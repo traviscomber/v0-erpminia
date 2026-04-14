@@ -74,9 +74,36 @@ n3uralia proporciona:
 
 ## Propuesta de Negocio
 
-### Modelo de Revenue
+### Estructura de Costos y Precios
 
-**SaaS Tiered Model:**
+#### INVERSIÓN MVP (6 Meses)
+
+**Desarrollo del MVP:** 
+- **Costo Total:** $3,000,000 CLP + IVA
+- **Incluye:** 4 meses desarrollo + 2 meses Testing/QA exhaustivo
+- **Team:** 7-8 profesionales
+- **Equivalente:** ~$3,500 USD (a tasa 860 CLP/USD)
+
+#### Soporte, Mantenimiento y Updates
+
+**Servicio Post-Launch (Mensual):**
+- **Costo Mensual:** $1,500,000 CLP
+- **Incluye:**
+  - Soporte técnico 24/7
+  - Mantenimiento de infraestructura
+  - Bug fixes y parches
+  - 20 horas/mes de desarrollo (nuevas features)
+  - SLA 99.5%
+  - Backup y disaster recovery
+  - Actualizaciones de seguridad
+
+**Costo Anual:** $18,000,000 CLP (~$20,930 USD)
+
+---
+
+### Modelo de Revenue SaaS (Post-Launch)
+
+**Planes Mensuales en CLP:**
 
 ```
 Plan BASIC (Contratistas, PyMEs)
@@ -84,7 +111,8 @@ Plan BASIC (Contratistas, PyMEs)
 - 1 faena
 - Almacenamiento 100 GB
 - Soporte email (24-48h)
-- Precio: $1,200 USD/mes ($14,400/año)
+- Precio: $1,200,000 CLP/mes ($1,395 USD/mes)
+- Anual: $14,400,000 CLP
 
 Plan PROFESSIONAL (Medianas empresas)
 - Hasta 200 usuarios
@@ -93,37 +121,40 @@ Plan PROFESSIONAL (Medianas empresas)
 - API access
 - Soporte 24/7
 - Integraciones 3rd party
-- Precio: $3,500 USD/mes ($42,000/año)
+- Precio: $3,500,000 CLP/mes ($4,070 USD/mes)
+- Anual: $42,000,000 CLP
 
 Plan ENTERPRISE (Grandes operaciones)
 - Usuarios ilimitados
 - Faenas ilimitadas
 - Almacenamiento 2 TB
-- Dedicado account manager
+- Account manager dedicado
 - Custom integrations
 - SLA 99.9%
-- Precio: Negociado (typical: $8k-15k USD/mes)
+- Precio: Negociado ($8-15M CLP/mes)
 ```
 
-### Revenue Projections
+---
 
-**Year 1:**
-- 10 customers BASIC @ $14.4k = $144k
-- 5 customers PROFESSIONAL @ $42k = $210k
-- 1 customer ENTERPRISE @ $100k = $100k
-- **Total Year 1 Revenue: $454k USD**
+### Proyecciones de Revenue (Mercado Chileno)
+
+**Year 1 (Lanzamiento):**
+- 10 customers BASIC @ $14.4M CLP = $144M
+- 5 customers PROFESSIONAL @ $42M CLP = $210M
+- 1 customer ENTERPRISE @ $100M CLP = $100M
+- **Total Year 1 Revenue: $454M CLP** (~$527k USD)
 
 **Year 2:**
-- 30 customers BASIC @ $14.4k = $432k
-- 20 customers PROFESSIONAL @ $42k = $840k
-- 5 customers ENTERPRISE @ $120k = $600k
-- **Total Year 2 Revenue: $1.87M USD**
+- 30 customers BASIC @ $14.4M CLP = $432M
+- 20 customers PROFESSIONAL @ $42M CLP = $840M
+- 5 customers ENTERPRISE @ $120M CLP = $600M
+- **Total Year 2 Revenue: $1,872M CLP** (~$2.17M USD)
 
 **Year 3:**
-- 80 customers BASIC @ $14.4k = $1.15M
-- 50 customers PROFESSIONAL @ $42k = $2.1M
-- 15 customers ENTERPRISE @ $120k = $1.8M
-- **Total Year 3 Revenue: $5.05M USD**
+- 80 customers BASIC @ $14.4M CLP = $1,152M
+- 50 customers PROFESSIONAL @ $42M CLP = $2,100M
+- 15 customers ENTERPRISE @ $120M CLP = $1,800M
+- **Total Year 3 Revenue: $5,052M CLP** (~$5.87M USD)
 
 ---
 
@@ -330,25 +361,38 @@ Soporte 24/7          | ✓   | ✓        | ✓   | ✗      | ✓
 
 **n3uralia ERP mining representa una oportunidad única** de capturar un mercado subatendido (minería chilena) con una solución moderna, especializada y económicamente accesible.
 
-Con un MVP entregado en **6 meses** (4 de desarrollo + 2 de QA exhaustivo), proyectamos:
-- **Year 1:** $454k revenue, 16 customers
-- **Year 2:** $1.87M revenue, 55 customers  
-- **Year 3:** $5.05M revenue, 145 customers
-- **Break-even:** Q2 Year 2
+### Inversión Requerida
+
+**MVP (6 meses):** $3,000,000 CLP + IVA = $3,570,000 CLP (IVA 19%)
+
+### Retorno de Inversión (ROI)
+
+- **Year 1 Revenue:** $454M CLP
+- **MVP Cost (amortizado):** $3.6M + Soporte ($18M/año) = $21.6M Year 1 cost
+- **Break-even:** Q2 Year 2 (~12-14 meses post-lanzamiento)
+- **Year 3 Revenue:** $5,052M CLP (EBITDA ~$2,500M)
+
+### Timeline
+
+- **Mes 0:** Cierre de inversión y team formation
+- **Meses 1-4:** MVP Development
+- **Meses 5-6:** Testing exhaustivo, QA, launch preparation
+- **Mes 7:** Lanzamiento público (beta)
+- **Mes 8:** Go-to-market oficial
+- **Mes 12:** 16 clientes, $454M CLP revenue
 
 **El mercado está listo. La solución es viable. El timing es ahora.**
 
 ---
 
-## Next Steps
+## Próximos Pasos
 
-1. **Stakeholder Alignment:** Confirmar commitment de inversión
-2. **Team Formation:** Recrutar arquitecto + primeros 2 engineers
-3. **MVP Development:** Iniciar Fase 0 (Week 1)
-4. **Customer Outreach:** Identificar 5 beta customers
-5. **Launch Prep:** Plan de marketing y go-to-market
-
-**Timeline:** Lanzamiento público Mes 7, primeros 10 clientes Mes 12
+1. **Aprobación de inversión:** $3M CLP + IVA para MVP
+2. **Suscripción a soporte:** $1.5M CLP mensuales post-launch
+3. **Team formation:** Recruitar arquitecto + primeros developers
+4. **MVP Development:** Iniciar Fase 0 (Week 1)
+5. **Customer outreach:** Identificar 5 beta customers
+6. **Launch preparation:** Plan de marketing y go-to-market
 
 ---
 

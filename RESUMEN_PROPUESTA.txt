@@ -1,0 +1,174 @@
+RESUMEN EJECUTIVO - n3uralia ERP mining
+========================================
+
+INVERSIÓN Y COSTOS (En Pesos Chilenos)
+=====================================
+
+MVP DEVELOPMENT (6 Meses)
+- Costo Total: $3,000,000 CLP + IVA
+- IVA 19%: $570,000 CLP
+- Total con IVA: $3,570,000 CLP
+- Equivalente: ~$4,150 USD (a tasa 860 CLP/USD)
+
+SOPORTE Y MANTENIMIENTO (Post-Launch)
+- Mensual: $1,500,000 CLP
+- Anual: $18,000,000 CLP
+- Incluye: 24/7 support, mantenimiento infraestructura, bug fixes, 20h/mes de desarrollo
+
+ROI TIMELINE
+============
+
+Inversión Total Año 1: 
+- MVP: $3,570,000 CLP
+- Soporte (6 meses post-launch): $9,000,000 CLP
+- Total Año 1: $12,570,000 CLP
+
+Revenue Proyectado Año 1:
+- 10 clientes BASIC @ $14.4M = $144M CLP
+- 5 clientes PROFESSIONAL @ $42M = $210M CLP
+- 1 cliente ENTERPRISE @ $100M = $100M CLP
+- Total: $454M CLP
+
+Revenue Proyectado Año 2:
+- 30 clientes BASIC = $432M CLP
+- 20 clientes PROFESSIONAL = $840M CLP
+- 5 clientes ENTERPRISE = $600M CLP
+- Total: $1,872M CLP
+
+Revenue Proyectado Año 3:
+- Total: $5,052M CLP
+- EBITDA estimado: ~$2,500M CLP
+
+Break-even: Q2 Year 2 (~12-14 meses post-lanzamiento)
+
+PLANES DE PRECIOS (SaaS)
+=======================
+
+BASIC (Contratistas/PyMEs)
+- $1,200,000 CLP/mes o $14,400,000 CLP/año
+- Hasta 50 usuarios, 1 faena
+- Incluye: 100GB almacenamiento, soporte email
+
+PROFESSIONAL (Empresas Medianas)
+- $3,500,000 CLP/mes o $42,000,000 CLP/año
+- Hasta 200 usuarios, 3 faenas
+- Incluye: 500GB, API access, soporte 24/7
+
+ENTERPRISE (Operaciones Grandes)
+- Negociado ($8-15M CLP/mes)
+- Usuarios/faenas ilimitados
+- Incluye: Account manager, custom integrations, SLA 99.9%
+
+TIMELINE
+========
+
+Mes 0: Cierre inversión + team formation
+Meses 1-4: MVP Development (4 módulos core)
+Meses 5-6: Testing exhaustivo + QA (2 meses dedicados)
+Mes 7: Lanzamiento beta (3-5 beta customers)
+Mes 8: Go-to-market oficial + campaña SEM/LinkedIn
+Mes 12: 16 clientes, $454M revenue
+
+EQUIPO
+======
+
+MVP Development (6 meses):
+- 1 Tech Lead/Architect
+- 2 Full-Stack Developers
+- 1 Frontend Developer
+- 1 QA Engineer
+- 1 DevOps Engineer
+- 1 Product Manager
+- 1 Designer
+
+Post-Launch (Operativo):
+- 1 CTO/Tech Lead
+- 2 Backend Engineers
+- 1 Frontend Engineer
+- 1 QA Engineer
+- 1 DevOps
+- 2 Sales AE
+- 1 Customer Success Manager
+
+MÓDULOS CORE (MVP)
+==================
+
+1. SISTEMA DE DOCUMENTOS
+   - Upload/versionado de documentos
+   - Workflow de aprobaciones multinivel
+   - SERNAGEOMIN compliance
+   - Digital signatures
+   - Full-text search
+
+2. SISTEMA DE MANTENIMIENTO
+   - Gestión de assets/equipos
+   - Work orders (preventivo/correctivo/predictivo)
+   - Maintenance planning
+   - MTTR/MTBF tracking
+   - Safety compliance
+
+3. SISTEMA DE BODEGA/INVENTARIO
+   - Gestión multi-ubicación
+   - Trazabilidad FIFO
+   - QR scanning
+   - Stock alerts
+   - Movement history
+
+TECH STACK
+==========
+
+Frontend: Next.js 16, React 19, TypeScript, Tailwind CSS, shadcn/ui
+Backend: Next.js API Routes, Supabase PostgreSQL, Prisma ORM, tRPC
+Testing: Vitest, Playwright, MSW
+DevOps: GitHub Actions, Vercel, Sentry, Datadog
+
+MERCADO
+=======
+
+TAM (Total Addressable Market): $80-150M USD anuales
+SAM (Serviceable Market): $20-40M USD (Chile)
+SOM (Obtainable Market): $5-10M USD Year 1-3
+
+Target: 145 clientes en 3 años (10-15% market penetration)
+
+VENTAJAS COMPETITIVAS
+=====================
+
+✓ 30-40% más económico que SAP/NetSuite/IFS
+✓ 2-3 meses implementación vs 12-18 meses competidores
+✓ 100% especializado en minería chilena
+✓ Interfaz moderna vs. UI legacy
+✓ Cloud-native y escalable
+✓ Soporte local 24/7
+✓ 2 meses de QA exhaustivo en MVP
+
+RIESGOS Y MITIGACIONES
+======================
+
+Riesgo: Adopción lenta de clientes
+Mitigación: Freemium tier, programa de champions, referral incentives
+
+Riesgo: Competencia entra al mercado
+Mitigación: First-mover advantage, especialización minería, network effects
+
+Riesgo: Regulatory changes (SERNAGEOMIN)
+Mitigación: Built-in compliance framework, legal review, quick iterations
+
+Riesgo: Technical debt
+Mitigación: 2 meses de QA exhaustivo, automated testing 80%+, code quality focus
+
+SIGUIENTES PASOS
+================
+
+1. Aprobación de inversión: $3,000,000 CLP + IVA
+2. Suscripción soporte post-launch: $1,500,000 CLP/mes
+3. Team formation (semana 1)
+4. MVP development (semanas 2-21)
+5. Customer outreach (semana 15 en paralelo)
+6. Lanzamiento público (semana 27)
+
+---
+
+Propuesta preparada por: n3uralia Team
+Fecha: 2026
+Confidencial - Solo para decisión de inversión
