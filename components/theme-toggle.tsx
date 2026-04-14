@@ -18,16 +18,20 @@ export function ThemeToggle() {
   return (
     <Button
       variant="ghost"
-      size="icon"
       onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-      className="w-full justify-start"
+      className="w-full justify-start gap-3"
     >
       {theme === 'dark' ? (
-        <Sun className="h-4 w-4 mr-2" />
+        <>
+          <Sun className="h-5 w-5" />
+          <span>Modo Claro</span>
+        </>
       ) : (
-        <Moon className="h-4 w-4 mr-2" />
+        <>
+          <Moon className="h-5 w-5" />
+          <span>Modo Oscuro</span>
+        </>
       )}
-      {theme === 'dark' ? 'Modo Claro' : 'Modo Oscuro'}
     </Button>
   );
 }
