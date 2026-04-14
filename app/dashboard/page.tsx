@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { BrandCard } from '@/components/ui/brand-card';
 import {
   AlertCircle,
   Clock,
@@ -17,6 +19,8 @@ import {
   Users,
   Wrench,
   RefreshCw,
+  BookOpen,
+  HelpCircle,
 } from 'lucide-react';
 
 interface CriticalTask {
@@ -141,6 +145,27 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Educational Info Card */}
+      <BrandCard>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <BookOpen className="h-5 w-5 text-[var(--brand-naranja)]" />
+            ¿Necesitas ayuda?
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-4">
+            ERP SegurIA tiene guías paso a paso para cada función. Aprende cómo crear órdenes de trabajo, usar el árbol de fallas y gestionar inventario.
+          </p>
+          <Link href="/dashboard/guias">
+            <Button variant="outline" size="sm" className="gap-2 border-[var(--brand-naranja)] text-[var(--brand-naranja)] hover:bg-[var(--brand-naranja)]/10">
+              <HelpCircle className="h-4 w-4" />
+              Ver Guías Educativas
+            </Button>
+          </Link>
+        </CardContent>
+      </BrandCard>
 
       {/* Status Indicators Strip - 4 KPIs only */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

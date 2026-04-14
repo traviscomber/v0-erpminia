@@ -30,6 +30,12 @@ export default function VehiclesPage() {
         <p className="text-muted-foreground mt-2">
           Administra vehículos y árbol de fallas para diagnóstico de mantenimiento
         </p>
+        <div className="mt-4 p-4 rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800">
+          <p className="text-sm text-blue-900 dark:text-blue-100">
+            <strong>💡 Cómo funciona:</strong> Cada vehículo tiene un árbol jerárquico de componentes (Motor, Hidráulica, etc.) 
+            con modos de falla, síntomas y piezas asociadas. Haz click en "Ver Árbol de Fallas" para diagnosticar problemas y crear órdenes de trabajo.
+          </p>
+        </div>
       </div>
 
       {/* Create Vehicle Button */}

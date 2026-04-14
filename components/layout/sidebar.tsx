@@ -91,6 +91,13 @@ const menuItems = [
     icon: DollarSign,
     group: 'Administración',
   },
+  // Educational & Help
+  {
+    label: 'Guías de Uso',
+    href: '/dashboard/guias',
+    icon: HelpCircle,
+    group: 'Ayuda',
+  },
 ];
 
 export function Sidebar() {
