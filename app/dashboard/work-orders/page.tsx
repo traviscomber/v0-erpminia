@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -77,11 +78,16 @@ export default function WorkOrdersPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Órdenes de Trabajo</h1>
-        <p className="text-muted-foreground mt-2">
-          Gestión de tareas preventivas, correctivas y de mantenimiento
-        </p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Órdenes de Trabajo</h1>
+          <p className="text-muted-foreground">Gestión de mantenimiento con sistema jerárquico por componentes</p>
+        </div>
+        <Link href="/dashboard/work-orders/create">
+          <Button className="gap-2">
+            <Plus className="w-4 h-4" /> Crear Nueva Orden
+          </Button>
+        </Link>
       </div>
 
       {/* Quick Stats */}
@@ -137,10 +143,6 @@ export default function WorkOrdersPage() {
 
       {/* Actions */}
       <div className="flex gap-2">
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Nueva Orden
-        </Button>
         <Button variant="outline" className="gap-2">
           <Filter className="h-4 w-4" />
           Filtrar
@@ -156,47 +158,48 @@ export default function WorkOrdersPage() {
         <CardContent>
           <div className="space-y-3">
             {workOrders.map((wo) => (
-              <div
-                key={wo.id}
-                className={`border-2 ${getPriorityColor(wo.priority)} rounded-lg p-4 hover:bg-muted/30 transition-colors`}
-              >
-                <div className="flex items-start justify-between gap-4 mb-3">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <code className="text-xs font-mono bg-muted px-2 py-1 rounded">
-                        {wo.id}
-                      </code>
-                      <Badge className={getStatusColor(wo.status)} variant="outline">
-                        {wo.status.replace('_', ' ').toUpperCase()}
-                      </Badge>
-                      <Badge variant="outline">{wo.type.toUpperCase()}</Badge>
+              <Link key={wo.id} href={`/dashboard/work-orders/${wo.id}`}>
+                <div
+                  className={`border-2 ${getPriorityColor(wo.priority)} rounded-lg p-4 hover:bg-muted/30 transition-colors cursor-pointer`}
+                >
+                  <div className="flex items-start justify-between gap-4 mb-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <code className="text-xs font-mono bg-muted px-2 py-1 rounded">
+                          {wo.id}
+                        </code>
+                        <Badge className={getStatusColor(wo.status)} variant="outline">
+                          {wo.status.replace('_', ' ').toUpperCase()}
+                        </Badge>
+                        <Badge variant="outline">{wo.type.toUpperCase()}</Badge>
+                      </div>
+                      <h3 className="font-semibold">{wo.title}</h3>
+                      <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                        <span>{wo.site}</span>
+                        <span>Asignado: {wo.assignee}</span>
+                        <span>Vence: {new Date(wo.dueDate).toLocaleDateString('es-CL')}</span>
+                      </div>
                     </div>
-                    <h3 className="font-semibold">{wo.title}</h3>
-                    <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                      <span>{wo.site}</span>
-                      <span>Asignado: {wo.assignee}</span>
-                      <span>Vence: {new Date(wo.dueDate).toLocaleDateString('es-CL')}</span>
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="sm">
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm">
+                        <Edit className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="sm">
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm">
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
 
-                {/* Progress Bar */}
-                <div className="w-full bg-muted rounded-full h-2">
-                  <div
-                    className="bg-primary h-2 rounded-full transition-all"
-                    style={{ width: `${wo.progress}%` }}
-                  />
+                  {/* Progress Bar */}
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div
+                      className="bg-primary h-2 rounded-full transition-all"
+                      style={{ width: `${wo.progress}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">{wo.progress}% completado</p>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">{wo.progress}% completado</p>
-              </div>
+              </Link>
             ))}
           </div>
         </CardContent>
