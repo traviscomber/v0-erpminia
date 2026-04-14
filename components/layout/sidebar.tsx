@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   BarChart3,
@@ -125,15 +124,29 @@ export function Sidebar() {
       >
         {/* Logo Section */}
         <div className="p-6 border-b border-sidebar-border">
-          <Link href="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <Image 
-              src="/lapatagua-logo.png" 
-              alt="LA PATAGUA" 
-              width={200}
-              height={70}
-              priority
-              className="w-auto h-auto"
-            />
+          <Link href="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <svg 
+              viewBox="0 0 200 70" 
+              className="w-32 h-auto"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {/* Mountain outline */}
+              <path
+                d="M 40 45 L 50 30 L 60 38 L 75 20 L 95 35 L 120 15 L 140 30 L 160 25"
+                stroke="currentColor"
+                strokeWidth="2"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              {/* LA PATAGUA text */}
+              <text x="40" y="60" fontSize="16" fontWeight="bold" fill="currentColor" className="dark:text-orange-400 text-orange-600">
+                LA
+              </text>
+              <text x="85" y="60" fontSize="16" fontWeight="bold" fill="currentColor" className="dark:text-orange-400 text-orange-600">
+                PATAGUA
+              </text>
+            </svg>
           </Link>
         </div>
 
