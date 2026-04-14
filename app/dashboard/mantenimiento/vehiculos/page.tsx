@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { BrandCard } from '@/components/ui/brand-card';
+import { BrandBadge } from '@/components/ui/brand-badge';
 import { ChevronRight, Plus, AlertTriangle, CheckCircle2, Zap } from 'lucide-react';
 
 export default function VehiclesPage() {
@@ -31,14 +33,12 @@ export default function VehiclesPage() {
       </div>
 
       {/* Create Vehicle Button */}
-      <Card className="border-primary/20 bg-primary/5">
-        <CardContent className="pt-6">
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
-            Crear Nuevo Vehículo
-          </Button>
-        </CardContent>
-      </Card>
+      <BrandCard variant="default">
+        <Button className="gap-2 bg-[var(--brand-naranja)] hover:bg-[var(--brand-naranja)]/90">
+          <Plus className="h-4 w-4" />
+          Crear Nuevo Vehículo
+        </Button>
+      </BrandCard>
 
       {/* Vehicles List */}
       <Card>
