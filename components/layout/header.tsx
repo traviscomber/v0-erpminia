@@ -16,7 +16,7 @@ export function Header() {
       <div className="flex items-center justify-between h-16 px-4 md:px-6">
         <div className="flex items-center gap-3">
           <div>
-            <h1 className="text-lg font-semibold">n3uralia ERP mining</h1>
+            <h1 className="text-lg font-semibold">ERP SegurIA</h1>
             <p className="text-xs text-muted-foreground">Plataforma de Gestión Minera</p>
           </div>
           {/* Environment badge */}

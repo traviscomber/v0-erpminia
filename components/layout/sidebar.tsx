@@ -207,6 +207,19 @@ export function Sidebar() {
             <LogOut className="w-5 h-5" />
             <span>Cerrar Sesión</span>
           </Button>
+          
+          {/* Powered by n3uralia Footer */}
+          <div className="border-t border-sidebar-border pt-4 mt-4">
+            <p className="text-xs text-sidebar-accent-foreground text-center mb-2">Powered by</p>
+            <a 
+              href="https://n3uralia.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="block text-center text-xs font-semibold text-sidebar-primary hover:text-sidebar-primary/80 transition-colors"
+            >
+              n3uralia
+            </a>
+          </div>
         </div>
       </aside>
 
