@@ -19,6 +19,7 @@ import {
   HardHat,
   AlertTriangle,
   Cpu,
+  HelpCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
