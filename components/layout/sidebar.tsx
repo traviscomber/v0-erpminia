@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   BarChart3,
@@ -124,15 +125,16 @@ export function Sidebar() {
       >
         {/* Logo Section */}
         <div className="p-6 border-b border-sidebar-border">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-lg bg-sidebar-primary flex items-center justify-center">
-              <BarChart3 className="w-6 h-6 text-sidebar-primary-foreground" />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-bold text-sidebar-foreground">n3uralia</span>
-              <span className="text-xs text-sidebar-accent-foreground">mining</span>
-            </div>
-          </div>
+          <Link href="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <Image 
+              src="/lapatagua-logo.png" 
+              alt="LA PATAGUA" 
+              width={200}
+              height={70}
+              priority
+              className="w-auto h-auto"
+            />
+          </Link>
         </div>
 
         {/* Navigation Menu */}
