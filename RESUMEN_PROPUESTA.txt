@@ -5,10 +5,11 @@ INVERSIÓN Y COSTOS (En Pesos Chilenos)
 =====================================
 
 MVP DEVELOPMENT (6 Meses)
-- Costo Total: $3,000,000 CLP + IVA
-- IVA 19%: $570,000 CLP
-- Total con IVA: $3,570,000 CLP
-- Equivalente: ~$4,150 USD (a tasa 860 CLP/USD)
+- Costo Mensual: $3,000,000 CLP + IVA 19%
+- Costo Mensual con IVA: $3,570,000 CLP/mes
+- Costo Total (6 meses): $18,000,000 CLP + IVA
+- Total con IVA: $21,420,000 CLP
+- Equivalente: ~$24,900 USD total (a tasa 860 CLP/USD)
 
 SOPORTE Y MANTENIMIENTO (Post-Launch)
 - Mensual: $1,500,000 CLP
@@ -19,9 +20,9 @@ ROI TIMELINE
 ============
 
 Inversión Total Año 1: 
-- MVP: $3,570,000 CLP
+- MVP (6 meses): $21,420,000 CLP
 - Soporte (6 meses post-launch): $9,000,000 CLP
-- Total Año 1: $12,570,000 CLP
+- Total Inversión Año 1: $30,420,000 CLP
 
 Revenue Proyectado Año 1:
 - 10 clientes BASIC @ $14.4M = $144M CLP
@@ -29,33 +30,38 @@ Revenue Proyectado Año 1:
 - 1 cliente ENTERPRISE @ $100M = $100M CLP
 - Total: $454M CLP
 
+NET CONTRIBUTION Year 1: $454M - $30.42M = $423.6M CLP
+
 Revenue Proyectado Año 2:
 - 30 clientes BASIC = $432M CLP
 - 20 clientes PROFESSIONAL = $840M CLP
 - 5 clientes ENTERPRISE = $600M CLP
 - Total: $1,872M CLP
+- Menos soporte anual: $18M
+- Net: $1,854M CLP
 
 Revenue Proyectado Año 3:
 - Total: $5,052M CLP
 - EBITDA estimado: ~$2,500M CLP
 
 Break-even: Q2 Year 2 (~12-14 meses post-lanzamiento)
+3-Year ROI: +$10,150M CLP (~$11.8M USD)
 
-PLANES DE PRECIOS (SaaS)
-=======================
+PLANES DE PRECIOS (SaaS) - Modelo de Monetización
+==================================================
 
 BASIC (Contratistas/PyMEs)
 - $1,200,000 CLP/mes o $14,400,000 CLP/año
 - Hasta 50 usuarios, 1 faena
-- Incluye: 100GB almacenamiento, soporte email
+- Incluye: 100GB almacenamiento, soporte email 24-48h
 
 PROFESSIONAL (Empresas Medianas)
 - $3,500,000 CLP/mes o $42,000,000 CLP/año
 - Hasta 200 usuarios, 3 faenas
-- Incluye: 500GB, API access, soporte 24/7
+- Incluye: 500GB, API access, soporte 24/7, integraciones
 
 ENTERPRISE (Operaciones Grandes)
-- Negociado ($8-15M CLP/mes)
+- Negociado ($8-15M CLP/mes = $96-180M CLP/año)
 - Usuarios/faenas ilimitados
 - Incluye: Account manager, custom integrations, SLA 99.9%
 
@@ -160,12 +166,21 @@ Mitigación: 2 meses de QA exhaustivo, automated testing 80%+, code quality focu
 SIGUIENTES PASOS
 ================
 
-1. Aprobación de inversión: $3,000,000 CLP + IVA
-2. Suscripción soporte post-launch: $1,500,000 CLP/mes
-3. Team formation (semana 1)
-4. MVP development (semanas 2-21)
+1. Aprobación de inversión: $3,000,000 CLP/mes × 6 meses = $18M + IVA
+2. Suscripción soporte post-launch: $1,500,000 CLP/mes (negociable después de Mes 12)
+3. Team formation (semana 1 post-firma)
+4. MVP development (semanas 2-21 del proyecto)
 5. Customer outreach (semana 15 en paralelo)
-6. Lanzamiento público (semana 27)
+6. Lanzamiento público (semana 27 = 6 meses + ramp-up)
+
+COMMITMENT REQUERIDO
+====================
+
+Inversión MVP:           $21,420,000 CLP (6 meses)
+Soporte post-launch:     $1,500,000 CLP/mes (indefinido)
+Timeline:                6 meses hasta lanzamiento beta
+Team:                    Proveeremos equipo de 7-8 profesionales
+Risk:                    Garantizamos MVP listo, soporte SLA 99.5%
 
 ---
 

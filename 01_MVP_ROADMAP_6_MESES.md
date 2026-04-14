@@ -14,10 +14,11 @@ Construir un MVP **Enterprise-Grade** y listo para producción de n3uralia ERP m
 
 ### Inversión Requerida
 
-- **Costo MVP (6 meses):** $3,000,000 CLP + IVA 19% = $3,570,000 CLP
+- **Costo MVP Mensual:** $3,000,000 CLP + IVA 19% = $3,570,000 CLP/mes
+- **Costo MVP Total (6 meses):** $18,000,000 CLP + IVA = $21,420,000 CLP
 - **Soporte Mensual Post-Launch:** $1,500,000 CLP/mes
 - **Team:** 7-8 profesionales
-- **Breakdown:** $2.1M sueldos + $0.5M infraestructura + $0.4M herramientas/licenses
+- **Breakdown Mensual:** $2.1M sueldos + $0.5M infraestructura + $0.4M herramientas/licenses
 
 ---
 

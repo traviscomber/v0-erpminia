@@ -79,10 +79,11 @@ n3uralia proporciona:
 #### INVERSIÓN MVP (6 Meses)
 
 **Desarrollo del MVP:** 
-- **Costo Total:** $3,000,000 CLP + IVA
+- **Costo Mensual:** $3,000,000 CLP + IVA 19% = $3,570,000 CLP/mes
+- **Costo Total (6 meses):** $18,000,000 CLP + IVA = $21,420,000 CLP
 - **Incluye:** 4 meses desarrollo + 2 meses Testing/QA exhaustivo
 - **Team:** 7-8 profesionales
-- **Equivalente:** ~$3,500 USD (a tasa 860 CLP/USD)
+- **Equivalente:** ~$24,900 USD total (a tasa 860 CLP/USD)
 
 #### Soporte, Mantenimiento y Updates
 
@@ -138,11 +139,13 @@ Plan ENTERPRISE (Grandes operaciones)
 
 ### Proyecciones de Revenue (Mercado Chileno)
 
-**Year 1 (Lanzamiento):**
+**Year 1 (Lanzamiento - 6 meses post-MVP):**
 - 10 customers BASIC @ $14.4M CLP = $144M
 - 5 customers PROFESSIONAL @ $42M CLP = $210M
 - 1 customer ENTERPRISE @ $100M CLP = $100M
 - **Total Year 1 Revenue: $454M CLP** (~$527k USD)
+- **Menos MVP + Soporte: $21.4M + $9M (6 meses) = $30.4M CLP**
+- **Net Contribution Year 1: $423.6M CLP**
 
 **Year 2:**
 - 30 customers BASIC @ $14.4M CLP = $432M
@@ -363,14 +366,19 @@ Soporte 24/7          | ✓   | ✓        | ✓   | ✗      | ✓
 
 ### Inversión Requerida
 
-**MVP (6 meses):** $3,000,000 CLP + IVA = $3,570,000 CLP (IVA 19%)
+**MVP (6 meses):** $3,000,000 CLP/mes × 6 = $18,000,000 CLP + IVA 19% = **$21,420,000 CLP**
 
 ### Retorno de Inversión (ROI)
 
 - **Year 1 Revenue:** $454M CLP
-- **MVP Cost (amortizado):** $3.6M + Soporte ($18M/año) = $21.6M Year 1 cost
+- **Year 1 Costs:** 
+  - MVP: $21.42M CLP
+  - Soporte (6 meses): $1.5M × 6 = $9M CLP
+  - **Total Costs:** $30.42M CLP
+- **Net Contribution Year 1:** $423.58M CLP
 - **Break-even:** Q2 Year 2 (~12-14 meses post-lanzamiento)
 - **Year 3 Revenue:** $5,052M CLP (EBITDA ~$2,500M)
+- **3-Year ROI:** +$10,150M CLP (~$11.8M USD)
 
 ### Timeline
 
