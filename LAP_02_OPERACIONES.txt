@@ -1,0 +1,147 @@
+LAP OPERACIONES MINERAS - PROCESS DISCOVERY
+============================================
+La Patagua - Reunión: Operaciones
+
+OBJETIVO
+========
+Mapear ciclo completo de operaciones: planificación → extracción → fin turno → incidentes
+
+PARTICIPANTES
+=============
+- Director/Supervisor de Operaciones
+- Jefe de Turno
+- Coordinador de Faena
+Duración: 2 horas
+
+CONTEXTO ACTUAL LA PATAGUA
+==========================
+- Faenas: Central, Norte, Sur
+- Turnos: 3 × 8 horas = 24/7 operación
+- Personal por turno: ~50-80 personas
+- Equipos principales: Excavadoras (8), Palas (6), Dumpers (12), Perforadoras (4)
+- Producción meta: 5,000 TM/día
+
+PREGUNTAS PRINCIPALES
+=====================
+
+1. CICLO DE OPERACIONES DIARIAS
+   - ¿Cuál es el flujo desde planificación hasta fin de turno?
+   - ¿Quién planifica la producción? (Jefe MTTO? Operaciones?)
+   - ¿Cómo se asignan equipos a zonas?
+   - ¿Qué información necesita cada operador al inicio de turno?
+   - ¿Se hace briefing diario? ¿Cómo? ¿Cuánto tiempo?
+   - ¿Cómo se comunican cambios during el turno?
+   - ¿Cómo se registra lo realizado? (hojas, tablet, app?)
+
+2. INCIDENTES Y PROBLEMAS
+   - ¿Qué tipo de incidentes ocurren? (accidentes, equipos, retrasos, etc)
+   - ¿Quién reporta un incidente?
+   - ¿Cuál es el proceso de escalado?
+   - ¿Cuánto tiempo toma reportar-decidir-actuar?
+   - ¿Se genera OT automáticamente en MTTO?
+   - ¿Quién autoriza parar equipos?
+   - ¿Cómo se comunica a todas las áreas?
+
+3. EQUIPOS Y ASIGNACIONES
+   - ¿Cómo sabemos qué equipos están operacionales?
+   - ¿Quién mantiene lista de equipos disponibles?
+   - ¿Cómo se asignan turnos a operadores?
+   - ¿Cómo se controla que operador maneje qué equipo?
+   - ¿Hay restricciones de operadores por equipo?
+   - ¿Cuántas horas promedio por equipo por día?
+
+4. PRODUCCIÓN Y MÉTRICAS
+   - ¿Cómo se mide producción?
+   - ¿Quién reporta números?
+   - ¿Cuándo se reportan? (real-time o fin de turno?)
+   - ¿Qué datos se necesitan? (toneladas, horas máquina, etc)
+   - ¿Cómo se validan números?
+   - ¿Se compara contra meta?
+   - ¿Quién tiene acceso a esta info?
+
+5. TURNOS Y PERSONAL
+   - ¿Cuál es estructura de turnos? (duración, rotación, etc)
+   - ¿Quién controla asistencia?
+   - ¿Cómo se controla que personas estén en zona asignada?
+   - ¿Qué pasa si alguien falta?
+   - ¿Cómo se comunican permisos, cambios de turno?
+   - ¿Hay coordinación con RRHH?
+
+6. INTEGRACIÓN CON OTRAS ÁREAS
+   - ¿Cómo comunican necesidad de repuestos?
+   - ¿Cuándo solicitan MTTO?
+   - ¿Cómo reciben autorización de parada?
+   - ¿Comunican números a Finanzas?
+   - ¿Cómo se coordinan acciones de seguridad?
+
+7. SISTEMAS ACTUALES
+   - ¿Qué sistemas usan hoy? (SAP, custom, Excel, etc)
+   - ¿Qué datos en cada sistema?
+   - ¿Cómo comunican sistemas entre ellos?
+   - ¿Qué reportes generan?
+   - ¿Cuál es el pain point mayor?
+   - ¿Qué información se duplica manualmente?
+
+INFORMACIÓN A RECOLECTAR
+========================
+
+[ ] Ejemplos de documentos actuales:
+    - Planificación diaria
+    - Reporte de turno
+    - Formulario de incidentes
+    - Asignación de equipos
+    - Producción reportada
+
+[ ] Screenshots de sistemas (SAP, app, excel, etc)
+
+[ ] Organigrama de Operaciones
+
+[ ] Horarios y turnos típicos
+
+[ ] Lista de equipos con capacidades
+
+[ ] KPIs que miden (y cómo los calculan)
+
+[ ] Regulaciones que aplican (SERNAGEOMIN, seguridad)
+
+MATRIZ DE PROCESOS OPERACIONES
+==============================
+
+Proceso               | Frecuencia    | Duración | Personas | Sistemas | Pain Points
+---------------------|---------------|----------|----------|----------|------------------
+Planificación diaria  | 1x/día        | 30 min   | 5        | Excel?   |
+Briefing de turno     | 3x/día        | 15 min   | 20-50    | Manual   |
+Asignación de equipos | Continuo      | Real-time| 2        | ?        |
+Reporte de producción | 3x/día        | 15 min   | 1        | SAP?     |
+Reporte de incidentes | As-needed     | 10 min   | 3-5      | Manual   |
+Solicitud de MTTO     | As-needed     | 5 min    | 1        | Phone?   |
+Cierre de turno       | 3x/día        | 30 min   | 3        | Excel?   |
+
+RACI MATRIX
+===========
+
+Actividad                | Responsible | Accountable | Consulted | Informed
+-------------------------|-------------|-------------|-----------|----------
+Planificación            | Jefe Op.    | Dir. Op.    | MTTO      | Todos
+Briefing                 | Supervisor  | Jefe Turno  | Seguridad | Operadores
+Asignación equipos       | Jefe Turno  | Supervisor  | -         | Operadores
+Reporte producción       | Operador    | Jefe Turno  | Finanzas  | Dir. Op.
+Incidentes               | Testigo     | Supervisor  | RRHH      | Todos
+MTTO request             | Operador    | Jefe Turno  | MTTO      | -
+Cierre turno             | Jefe Turno  | Supervisor  | -         | Próx. Turno
+
+PAIN POINTS POTENCIALES
+======================
+
+- [ ] Retrasos en comunicación de incidentes
+- [ ] Información de equipos no está actualizada
+- [ ] No hay visibility real-time de producción
+- [ ] Demoras en autorización de paradas
+- [ ] Duplicación manual de datos entre sistemas
+- [ ] Difícil validar números de producción
+- [ ] Coordinación lenta con MTTO
+- [ ] Permisos/cambios de personal no sincronizados
+
+PRÓXIMA REUNIÓN: MANTENIMIENTO
+==============================
+Validar cómo reciben OT y cómo priorizan paradas de equipos

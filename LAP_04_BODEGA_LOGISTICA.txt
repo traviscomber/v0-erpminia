@@ -1,0 +1,207 @@
+LAP BODEGA Y LOGÍSTICA - PROCESS DISCOVERY
+==========================================
+La Patagua - Reunión: Bodega
+
+OBJETIVO
+========
+Mapear recepción, almacenamiento, despacho, trazabilidad FIFO, códigos QR/barcode
+
+PARTICIPANTES
+=============
+- Jefe de Bodega
+- Almacenero
+- Coordinador Logístico
+Duración: 2 horas
+
+CONTEXTO ACTUAL LA PATAGUA
+==========================
+- Bodegas: Central, Faena Norte, Faena Sur (¿más?)
+- Tipos de materiales: Repuestos, insumos, equipos, combustible
+- SKUs estimados: ¿100? ¿1000?
+- Recepción mensual: ¿Cuánta?
+- Rotación: ¿Rápida? ¿Lenta?
+- Terceros: ¿Usan bodega de proveedores?
+- Sistema actual: ¿SISA? ¿SAP? ¿Excel?
+
+PREGUNTAS PRINCIPALES
+=====================
+
+1. RECEPCIÓN DE MATERIALES
+   - ¿Quién recibe materiales?
+   - ¿Cuál es proceso de recepción?
+   - ¿Se valida contra OC?
+   - ¿Se inspecciona calidad?
+   - ¿Se registra estado? (bueno/dañado/etc)
+   - ¿Quién autoriza ingreso?
+   - ¿Cuánto toma proceso recepción?
+   - ¿Se generan reportes de recepción?
+   - ¿Se fotografía o solo registro?
+
+2. ALMACENAMIENTO
+   - ¿Cómo se organizan materiales?
+   - ¿Por código? ¿Por tipo? ¿Por proveedor?
+   - ¿Hay código de ubicación? ¿Cómo?
+   - ¿Se usan códigos QR/barcode?
+   - ¿Etiquetas manuales o sistema?
+   - ¿Quién actualiza ubicaciones?
+   - ¿Se usa FIFO? ¿Se controla?
+   - ¿Hay segregación de materiales peligrosos?
+   - ¿Control de temperatura/humedad?
+   - ¿Frecuencia de inventario físico?
+
+3. STOCK Y CONTROL
+   - ¿Se conoce stock actual? ¿Dónde está info?
+   - ¿Stock mínimo definido por material?
+   - ¿Alertas si stock bajo?
+   - ¿Quién autoriza compra nueva?
+   - ¿Cuándo se compra?
+   - ¿Hay stock de seguridad?
+   - ¿Cómo se valida exactitud?
+   - ¿Diferencias entre sistema y físico?
+   - ¿Quién investiga diferencias?
+
+4. DESPACHO/SALIDA
+   - ¿Quién solicita materiales? (¿MTTO? ¿Operaciones?)
+   - ¿Cómo llega solicitud? (formulario, email, verbal, sistema?)
+   - ¿Cuánto toma despacho?
+   - ¿Se valida que cantidad solicitada existe?
+   - ¿Quién autoriza despacho?
+   - ¿Se entrega completa o parcial?
+   - ¿Se notifica de parciales?
+   - ¿Se registra salida? ¿Cómo?
+   - ¿Se requiere firma de recibido?
+   - ¿Se generan reportes de despacho?
+
+5. TRAZABILIDAD
+   - ¿Se necesita rastrear dónde va cada material?
+   - ¿A nivel de lote/serial?
+   - ¿FIFO es obligatorio?
+   - ¿Se audita trazabilidad?
+   - ¿Regulaciones requieren esto? (SERNAGEOMIN, etc)
+   - ¿Cómo se valida FIFO hoy?
+   - ¿Hay problema con materiales vencidos?
+   - ¿Se registra vencimiento en sistema?
+
+6. CÓDIGOS Y ESTÁNDARES
+   - ¿Cómo se codifican materiales?
+   - ¿Código SAP? ¿Código interno?
+   - ¿Se usan códigos QR?
+   - ¿Se usan códigos barras?
+   - ¿Estandarizado o varía por bodega?
+   - ¿Quién mantiene catálogo de códigos?
+   - ¿Proceso para nuevo código?
+   - ¿Hay duplicados?
+
+7. INTEGRACIÓN CON OTRAS ÁREAS
+   - ¿Cómo comunican con Mantenimiento?
+   - ¿Cómo comunican con Finanzas?
+   - ¿Se pasan datos a SAP? ¿Cómo?
+   - ¿Se envían reportes de consumo?
+   - ¿Cómo se valida costo de material?
+   - ¿Quién recibe reporte de compras?
+   - ¿Hay coordinación con proveedores?
+
+8. SISTEMAS ACTUALES
+   - ¿Qué sistemas usan? (SISA? SAP? Woomb? Excel?)
+   - ¿Qué datos en cada sistema?
+   - ¿Se integran?
+   - ¿Reportes que generan?
+   - ¿Qué duele del sistema?
+   - ¿Información manual vs automática?
+   - ¿Qué falta?
+
+INFORMACIÓN A RECOLECTAR
+========================
+
+[ ] Ejemplo de:
+    - Orden de Compra
+    - Recepción de material
+    - Solicitud de material
+    - Despacho
+    - Inventario físico
+
+[ ] Catálogo de materiales con:
+    - Código
+    - Descripción
+    - Proveedor
+    - Precio unitario
+    - Stock actual
+    - Stock mínimo
+
+[ ] Organización de bodega:
+    - Plano/diagrama
+    - Ubicaciones
+    - Capacidad
+
+[ ] Ejemplos de etiquetas (código QR, barcode, manual)
+
+[ ] Listado de proveedores principales
+
+[ ] Matriz de materiales por faena/departamento
+
+[ ] Proceso de inventario físico (cuándo, cuántas personas, cuánto toma)
+
+[ ] Reportes mensuales/anuales de bodega
+
+MATRIZ DE PROCESOS BODEGA
+========================
+
+Proceso               | Frecuencia   | Duración | Personas | Sistemas | Pain Points
+-----------------------|--------------|----------|----------|----------|------------------
+Recepción material    | Continuo     | 30 min   | 2        | SISA?    |
+Ingreso a sistema     | Continuo     | 15 min   | 1        | SAP?     |
+Almacenamiento        | Continuo     | 20 min   | 1        | Manual?  |
+Solicitud de material | Continuo     | 5 min    | 1        | Email?   |
+Búsqueda de material  | Continuo     | 10 min   | 1        | Manual?  |
+Despacho              | Continuo     | 20 min   | 1        | Manual?  |
+Actualización sistema | Continuo     | 10 min   | 1        | Manual?  |
+Inventario físico     | 1x/trimestre | 6h       | 3-5      | Manual?  |
+
+RACI MATRIX
+===========
+
+Actividad            | Responsible | Accountable | Consulted | Informed
+---------------------|-------------|-------------|-----------|----------
+Recepción            | Almacenero  | Jefe Bodega | -         | Finanzas
+Ingreso a sistema    | Almacenero  | Jefe Bodega | -         | -
+Almacenamiento       | Almacenero  | Jefe Bodega | -         | -
+Solicitud material   | Técnico/Op. | Jefe Mtto. | Bodega    | -
+Búsqueda material    | Almacenero  | -           | -         | -
+Despacho             | Almacenero  | Jefe Bodega | -         | Solicitante
+Actualización        | Almacenero  | Jefe Bodega | -         | -
+Inventario físico    | Almacenero  | Jefe Bodega | Auditor   | Finanzas
+
+PAIN POINTS POTENCIALES
+======================
+
+- [ ] Recepción toma mucho tiempo
+- [ ] Ingreso a sistema es manual y lento
+- [ ] No hay visibilidad de stock en tiempo real
+- [ ] Búsqueda de materiales toma mucho tiempo
+- [ ] Duplicidad de códigos entre bodegas
+- [ ] FIFO no se cumple siempre
+- [ ] Vencimientos no se controlan bien
+- [ ] Diferencias entre sistema y físico
+- [ ] Sin trazabilidad a qué equipo fue material
+- [ ] No hay alertas de stock bajo
+- [ ] Despacho parciales sin notificación
+
+INTEGRACIÓN CON n3uralia MVP
+============================
+
+n3uralia BODEGA debe incluir:
+
+1. Recepción digital con foto de material
+2. Códigos QR automáticos
+3. Almacenamiento con ubicación
+4. Búsqueda rápida por código/descripción
+5. FIFO automático
+6. Stock en tiempo real
+7. Alertas de stock bajo
+8. Integración con Mantenimiento (solicitudes → despacho)
+9. Reportes de consumo por departamento
+10. Trazabilidad completa (entrada → uso → salida)
+
+PRÓXIMA REUNIÓN: DOCUMENTACIÓN & COMPLIANCE
+============================================
+Validar cómo controlan vencimientos y auditorías

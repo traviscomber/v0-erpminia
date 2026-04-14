@@ -1,0 +1,235 @@
+LAP DOCUMENTACIÓN Y COMPLIANCE - PROCESS DISCOVERY
+==================================================
+La Patagua - Reunión: Documentación & Compliance
+
+OBJETIVO
+========
+Mapear gestión documental, vencimientos, aprobaciones, auditorías, SERNAGEOMIN
+
+PARTICIPANTES
+=============
+- Responsable Compliance
+- Jefe de Documentación
+- Auditor Interno
+Duración: 2 horas
+
+CONTEXTO ACTUAL LA PATAGUA
+==========================
+- Regulador principal: SERNAGEOMIN
+- Otros reguladores: Superintendencia de Seguridad Social, DT, SMA
+- Documentos bajo control: ¿50? ¿100+?
+- Vencimientos críticos: ¿Mensual? ¿Trimestral?
+- Auditorías: ¿Internas? ¿Externas?
+- Multas por incumplimiento: ¿Cuál fue última?
+
+PREGUNTAS PRINCIPALES
+=====================
+
+1. DOCUMENTOS REGULATORIOS
+   - ¿Qué documentos requiere SERNAGEOMIN?
+   - ¿Qué vencimiento tiene cada uno?
+   - ¿Quién es responsable de cada documento?
+   - ¿Dónde se almacenan físicamente?
+   - ¿Quién tiene copias?
+   - ¿Se envían a SERNAGEOMIN?
+   - ¿Frecuencia de reportes?
+   - ¿Formato requerido? (digital, papel, ambos)
+   - ¿Hay multa por atraso?
+
+2. VENCIMIENTOS Y RENOVACIONES
+   - ¿Cómo se controla vencimientos hoy?
+   - ¿Excel? ¿Sistema? ¿Calendario?
+   - ¿Quién es responsable de verificar?
+   - ¿Con cuánto tiempo de anticipación inician renovación?
+   - ¿Quién gestiona renovación?
+   - ¿A quién notifican vencimiento próximo?
+   - ¿Qué pasa si se vence?
+   - ¿Hay documentos que vencieron?
+   - ¿Proceso de multa?
+
+3. DOCUMENTOS OPERACIONALES
+   - ¿Qué documentos requiere Operaciones?
+   - ¿Planes de faena?
+   - ¿Planes de MTTO?
+   - ¿Reportes de seguridad?
+   - ¿Investigaciones de incidentes?
+   - ¿Dónde se archivan?
+   - ¿Versión control?
+   - ¿Quién autoriza cambios?
+   - ¿Retención: cuánto tiempo guardan?
+
+4. APROBACIONES Y AUTORIZACIONES
+   - ¿Qué requiere aprobación?
+   - ¿Quién aprueba qué?
+   - ¿Flujo de aprobación?
+   - ¿Cuánto tiempo toma aprobar?
+   - ¿Hay límites de autoridad?
+   - ¿Se registran aprobaciones?
+   - ¿Digital o papel?
+   - ¿Se integra con otros sistemas?
+
+5. AUDITORÍAS Y CUMPLIMIENTO
+   - ¿Hay auditorías internas?
+   - ¿Frecuencia?
+   - ¿Quién audita?
+   - ¿Qué se audita?
+   - ¿Hay auditorías externas?
+   - ¿De quién?
+   - ¿Frecuencia?
+   - ¿Hallazgos típicos?
+   - ¿Tiempo de corrección?
+   - ¿Cómo se rastrea corrección?
+
+6. GESTIÓN DE CAMBIOS
+   - ¿Qué es un "cambio" que requiere documentación?
+   - ¿Cambios en procedimientos?
+   - ¿Cambios en equipos?
+   - ¿Cambios en personal?
+   - ¿Proceso de cambio formal?
+   - ¿Quién aprueba cambios?
+   - ¿Se comunica a todos?
+   - ¿Versión control de procedimientos?
+
+7. INTEGRACIÓN CON OTRAS ÁREAS
+   - ¿Operaciones genera documentos?
+   - ¿Mantenimiento genera documentos?
+   - ¿RRHH genera documentos?
+   - ¿Cómo se reciben?
+   - ¿Dónde se archivan?
+   - ¿Hay coordinación para vencimientos?
+   - ¿Se comunican automaticidades?
+
+8. SISTEMAS ACTUALES
+   - ¿Qué sistemas usan? (Sharepoint? Alfresco? Drive? Papel?)
+   - ¿Dónde está cada tipo de documento?
+   - ¿Se duplican en múltiples lugares?
+   - ¿Versión control?
+   - ¿Búsqueda fácil o difícil?
+   - ¿Reportes que generan?
+   - ¿Qué duele del sistema?
+   - ¿Qué falta?
+
+INFORMACIÓN A RECOLECTAR
+========================
+
+[ ] Listado completo de documentos regulatorios:
+    - Nombre
+    - Regulador
+    - Vencimiento
+    - Responsable
+    - Ubicación
+    - Últimas multas
+
+[ ] Procedimientos y políticas clave
+
+[ ] Matriz de aprobadores
+
+[ ] Últimas auditorías (interna y externa):
+    - Fecha
+    - Hallazgos
+    - Correcciones
+    - Plazo
+
+[ ] Matriz de retención de documentos
+
+[ ] Ejemplos de documentos SERNAGEOMIN
+
+[ ] Ejemplos de reportes regulatorios
+
+[ ] Políticas de versión control
+
+[ ] Organigrama de responsables
+
+[ ] Calendarios de vencimientos
+
+MATRIZ DE PROCESOS DOCUMENTACIÓN
+================================
+
+Proceso                    | Frecuencia   | Duración | Personas | Sistemas | Pain Points
+---------------------------|--------------|----------|----------|----------|------------------
+Creación documento         | Continuo     | 2h       | 2-3      | Word?    |
+Aprobación documento       | Continuo     | 1-5 días | 2-3      | Email?   |
+Publicación/archivo        | Continuo     | 30 min   | 1        | Manual?  |
+Control de cambios         | Continuo     | 1 día    | 1-2      | Manual?  |
+Verificar vencimientos     | 1x/semana    | 1h       | 1        | Excel?   |
+Notificar renovación       | As-needed    | 15 min   | 1        | Email?   |
+Renovación documento       | Trimestral   | 2h       | 2        | Manual?  |
+Auditoría interna          | 2x/año       | 5 días   | 3-4      | Papel?   |
+Reportes regulatorios      | Mensual      | 3h       | 2        | Manual?  |
+
+RACI MATRIX
+===========
+
+Actividad               | Responsible | Accountable | Consulted | Informed
+-----------------------|-------------|-------------|-----------|----------
+Crear documento        | Responsable | Jefe Compl. | -         | -
+Aprobar documento      | Autoridad   | Dir.        | Jefe Compl| -
+Publicar/archivar      | Admin       | Jefe Compl. | -         | Todos
+Control de cambios     | Admin       | Jefe Compl. | Autor     | -
+Vencimientos           | Compl.      | Jefe Compl. | -         | Responsable
+Renovación             | Responsable | Jefe Compl. | -         | Dir.
+Auditoría interna      | Auditor     | Compl. Mgr. | -         | Todos
+Reportes regulatorios  | Compl.      | Dir.        | CFO       | Regulador
+
+PAIN POINTS POTENCIALES
+======================
+
+- [ ] Vencimientos no se controlan bien
+- [ ] Documentos vencidos sin saberlo
+- [ ] Aprobaciones toman mucho tiempo
+- [ ] Versión control desorganizado
+- [ ] Múltiples copias de mismos documentos
+- [ ] Búsqueda de documentos lenta
+- [ ] No hay alertas de vencimiento
+- [ ] Multas por incumplimiento
+- [ ] Auditorías encuentran documentos faltantes
+- [ ] Cambios en procedimientos no comunicados
+- [ ] No hay trazabilidad de quién hizo qué
+
+REGULACIONES CLAVE
+==================
+
+SERNAGEOMIN:
+- Planes de faena trimestral
+- Reporte de producción mensual
+- Reporte de seguridad mensual
+- Mapeo de faena actualizado
+- Plan de cierre (si aplica)
+- Otros: ___________________
+
+SUPERINTENDENCIA SEGURIDAD SOCIAL:
+- Reporte de accidentes
+- Plan de prevención
+- Capacitaciones
+- Otros: ___________________
+
+DT (Dirección del Trabajo):
+- Registro de personal
+- Planillas
+- Contratos
+- Otros: ___________________
+
+SMA (Superintendencia del Medio Ambiente):
+- Plan de manejo ambiental
+- Monitoreo ambiental
+- Otros: ___________________
+
+INTEGRACIÓN CON n3uralia MVP
+============================
+
+n3uralia DOCUMENTACIÓN debe incluir:
+
+1. Registro centralizado de todos los documentos
+2. Vencimientos con alertas automáticas
+3. Workflow de aprobación
+4. Versión control automático
+5. Trazabilidad de quién, cuándo, qué cambió
+6. Reportes regulatorios automáticos (o asistidos)
+7. Integración con calendario
+8. Archivo digital con búsqueda
+9. Auditoría trail completo
+10. Notificaciones a responsables
+
+PRÓXIMA REUNIÓN: FINANZAS
+========================
+Validar cómo se capturan costos y cómo se reportan a CFO

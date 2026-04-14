@@ -1,0 +1,324 @@
+LAP PROCESS DISCOVERY - ÍNDICE DE DOCUMENTOS
+=============================================
+
+OBJETIVO
+========
+Conjunto completo de documentación para levantar procesos en La Patagua Mining
+y diseñar implementación óptima de n3uralia ERP.
+
+DOCUMENTOS DISPONIBLES
+======================
+
+📋 DOCUMENTOS DE GUÍA
+
+1. LAP_00_GUIA_FACILITADOR.txt [LEER PRIMERO]
+   └─ Guía práctica para facilitar las 6 reuniones
+   └─ Preguntas clave, timeline, plantillas
+   └─ Manejo de situaciones difíciles
+   └─ Métricas a capturar
+
+2. LAP_01_DISCOVERY_GUIDE.txt
+   └─ Objetivo y alcance general
+   └─ 6 departamentos a entrevistar
+   └─ Metodología de mapeo (4 fases)
+   └─ Preguntas universales
+
+📊 DOCUMENTOS POR DEPARTAMENTO
+
+3. LAP_02_OPERACIONES.txt
+   Reunión: Lunes Semana 1
+   Participantes: Director/Supervisor, Jefe Turno
+   └─ Ciclo de operaciones diarias
+   └─ Incidentes y problemas
+   └─ Equipos y asignaciones
+   └─ Producción y métricas
+   └─ Turnos y personal
+   Resultado esperado: Mapeo de 7 procesos operacionales
+
+4. LAP_03_MANTENIMIENTO.txt
+   Reunión: Miércoles Semana 1
+   Participantes: Jefe MTTO, Técnico, Planificador
+   └─ Planificación preventivo/correctivo
+   └─ Órdenes de trabajo (OT)
+   └─ Incidentes correctivos
+   └─ Repuestos y proveedores
+   └─ Registros y documentación
+   Resultado esperado: Mapeo de 8 procesos MTTO + integración con Operaciones
+
+5. LAP_04_BODEGA_LOGISTICA.txt
+   Reunión: Viernes Semana 1
+   Participantes: Jefe Bodega, Almacenero, Coordinador
+   └─ Recepción de materiales
+   └─ Almacenamiento y códigos
+   └─ Stock y control
+   └─ Despacho/salida
+   └─ Trazabilidad FIFO
+   Resultado esperado: Mapeo de 9 procesos bodega + integraciones
+
+6. LAP_05_DOCUMENTACION_COMPLIANCE.txt
+   Reunión: Martes Semana 2
+   Participantes: Responsable Compliance, Jefe Documentación, Auditor
+   └─ Documentos regulatorios (SERNAGEOMIN)
+   └─ Vencimientos y renovaciones
+   └─ Documentos operacionales
+   └─ Aprobaciones y autorizaciones
+   └─ Auditorías y cumplimiento
+   Resultado esperado: Mapeo de 9 procesos documentales + requerimientos regulatorios
+
+7. LAP_06_FINANZAS_RRHH.txt
+   Reunión: Jueves Semana 2
+   Participantes: CFO, Contador, Jefe RRHH, Resp. Nómina
+   └─ Presupuestos y costos
+   └─ Centros de costo
+   └─ Nómina y asistencia
+   └─ Sobretiempo y bonos
+   └─ Seguridad y cumplimiento
+   Resultado esperado: Mapeo de 10 procesos financieros + integraciones RRHH
+
+📈 DOCUMENTO DE CONSOLIDACIÓN
+
+8. LAP_07_MATRIZ_PROCESOS_CONSOLIDADA.txt
+   Reunión: Lunes Semana 3
+   └─ Matriz consolidada de 45+ procesos
+   └─ Priorización (Crítico/Importante/Nice-to-have)
+   └─ Complejidad de implementación
+   └─ Faseado de 6 meses
+   └─ Matriz de dependencias
+   Resultado esperado: Plan de implementación validado con La Patagua
+
+ESTRUCTURA DE ARCHIVOS
+======================
+
+Cada documento de departamento (3-6) contiene:
+
+┌─ OBJETIVO
+├─ PARTICIPANTES
+├─ CONTEXTO ACTUAL
+├─ 6-8 PREGUNTAS PRINCIPALES
+├─ INFORMACIÓN A RECOLECTAR (checklist)
+├─ MATRIZ DE PROCESOS
+├─ RACI MATRIX
+├─ PAIN POINTS POTENCIALES
+└─ INTEGRACIÓN CON n3uralia
+
+CÓMO USAR ESTOS DOCUMENTOS
+==========================
+
+PASO 1: PREPARACIÓN (Semana previa)
+───────────────────────────────────
+
+Facilitador:
+1. Lee LAP_00_GUIA_FACILITADOR.txt (1h)
+2. Lee LAP_01_DISCOVERY_GUIDE.txt (30min)
+3. Lee los 3 documentos de la primera semana (1.5h)
+4. Imprime matrices y preguntas
+5. Envía agendas a participantes con 48h anticipación
+
+PASO 2: REUNIÓN 1 - OPERACIONES (2h)
+─────────────────────────────────────
+
+Facilitador abre LAP_02_OPERACIONES.txt:
+1. Introduce objetivo (5min)
+2. Mapea procesos usando preguntas (60min)
+3. Valida matriz con participantes (40min)
+4. Captura fotos de pizarra (5min)
+5. Cierra (10min)
+
+Resultado: Matriz completada + Pain points validados
+
+PASO 3: DOCUMENTACIÓN (24h post-reunión)
+─────────────────────────────────────────
+
+Facilitador:
+1. Limpia notas
+2. Completa matriz
+3. Documenta pain points
+4. Envía resumen a participantes para validación
+5. Obtiene firma de validación
+
+PASO 4: SÍNTESIS (Después de 6 reuniones)
+──────────────────────────────────────────
+
+Facilitador:
+1. Lee todos los pain points capturados
+2. Llena LAP_07_MATRIZ_PROCESOS_CONSOLIDADA.txt
+3. Identifica 12-15 procesos CRÍTICOS
+4. Mapea dependencias
+5. Propone fases de implementación
+6. Valida con La Patagua
+
+PASO 5: PRESENTACIÓN
+─────────────────────
+
+Usa estructura de LAP_00_GUIA_FACILITADOR.txt:
+1. Resumen ejecutivo (10min)
+2. Estado actual (15min)
+3. Procesos críticos (15min)
+4. Roadmap (15min)
+5. Próximos pasos (5min)
+
+PREGUNTAS CLAVE POR DEPARTAMENTO
+=================================
+
+OPERACIONES:
+- ¿Cuál es el ciclo diario completo?
+- ¿Cuánto toma el ciclo? ¿Debería tomar menos?
+- ¿Qué información se pierde?
+
+MANTENIMIENTO:
+- ¿Cómo reciben solicitudes de Operaciones?
+- ¿Cuánto toma de incidente a resolución?
+- ¿Cómo priorizan OT?
+
+BODEGA:
+- ¿Qué tiempo toma despacho desde solicitud?
+- ¿Se cumple FIFO siempre?
+- ¿Hay diferencias entre sistema y físico?
+
+DOCUMENTACIÓN:
+- ¿Cuántos documentos vencen cada mes?
+- ¿Alguien falta renovación?
+- ¿Cómo se comunican cambios de procedimientos?
+
+FINANZAS:
+- ¿Cuánto tiempo toma cierre de mes?
+- ¿De dónde vienen los costos?
+- ¿Presupuesto vs real: qué varía?
+
+RRHH:
+- ¿Cuánto toma procesar nómina?
+- ¿Asistencia biométrico o manual?
+- ¿Certificaciones vencidas se controlan?
+
+CHECKLIST DE EJECUCIÓN
+======================
+
+PREPARACIÓN:
+[ ] Leer toda documentación
+[ ] Imprimir guías por departamento
+[ ] Confirmar participantes 48h antes
+[ ] Reservar salas
+[ ] Test de equipamiento
+[ ] Traer: laptop, proyector, tablet, cámara, markers
+
+REUNIONES (x6):
+[ ] Llegada 10min antes
+[ ] Dibujar flujos en pizarra
+[ ] Tomar fotos de pizarra
+[ ] Completar matriz
+[ ] Capturar pain points
+[ ] Validar con participantes
+[ ] Enviar resumen en 24h
+
+POST-REUNIONES:
+[ ] Procesar notas
+[ ] Limpiar fotos
+[ ] Actualizar matrices
+[ ] Validar con participantes
+[ ] Archivar en Notion/GitHub
+
+SÍNTESIS (POST-6 REUNIONES):
+[ ] Consolidar matriz
+[ ] Identificar procesos críticos
+[ ] Mapear dependencias
+[ ] Proponer fases
+[ ] Validar con La Patagua
+[ ] Presentar findings
+
+ENTREGABLES FINALES
+===================
+
+Después de completar todo:
+
+1. MATRIZ CONSOLIDAD (Excel)
+   └─ 45+ procesos mapeados
+   └─ Priorización clara
+   └─ Complejidad estimada
+
+2. DIAGRAMA DE FLUJOS (PDF)
+   └─ Flujos actuales por departamento
+   └─ Integraciones
+
+3. PAIN POINTS DOCUMENTO (PDF)
+   └─ Top 20 problemas
+   └─ Impacto en $
+   └─ Solución propuesta
+
+4. ROADMAP 6 MESES (PowerPoint/PDF)
+   └─ Fases de implementación
+   └─ Timeline
+   └─ Inversión
+   └─ Expected ROI
+
+5. REQUIREMENTS DEFINITIVOS
+   └─ 12-15 procesos críticos especificados
+   └─ Campos de datos requeridos
+   └─ Integraciones necesarias
+   └─ Regulaciones a cumplir
+
+TIMELINE RECOMENDADO
+====================
+
+Semana 1:     Reuniones 1-3 (Ops, MTTO, Bodega)
+Semana 2:     Reuniones 4-5 (Documentación, Finanzas/RRHH)
+Semana 3:     Reunión 6 (Síntesis) + Documentación
+Semana 4:     Preparación de presentación
+Semana 5:     Presentación de findings
+Semana 6:     Ajustes y kick-off con desarrollo
+
+TOTAL: 6 SEMANAS de process discovery
+
+PRÓXIMOS PASOS DESPUÉS DE DISCOVERY
+==================================
+
+1. KICK-OFF CON EQUIPO DESARROLLO
+   └─ Presentar findings
+   └─ Revisar arquitectura propuesta
+   └─ Definir sprints
+
+2. DESIGN WORKSHOPS
+   └─ Diseñar UX/UI basado en procesos
+   └─ Validar con usuarios
+   └─ Crear prototipos
+
+3. DESARROLLO MVP
+   └─ Fase 1: Core operacional (Ops → MTTO → Bodega)
+   └─ Fase 2: Documentación & Finanzas
+   └─ Fase 3: RRHH & Optimización
+
+4. TESTING & QA
+   └─ UAT con La Patagua (Meses 5-6)
+   └─ Ciclos de feedback
+   └─ Refinamiento
+
+5. GO-LIVE
+   └─ Capacitación
+   └─ Migration de datos
+   └─ Support 24/7
+   └─ Optimización post-launch
+
+¿DUDAS O PREGUNTAS?
+==================
+
+Consulta:
+- LAP_00_GUIA_FACILITADOR.txt para preguntas sobre facilitation
+- Documentos de departamento para preguntas técnicas
+- LAP_07_MATRIZ para entender priorización
+
+ÚLTIMA NOTA
+===========
+
+Esta documentación está diseñada para ser:
+✓ Práctica: usa directamente en reuniones
+✓ Exhaustiva: cubre todos los ángulos
+✓ Flexible: adapta a situación de La Patagua
+✓ Accionable: clara guía paso a paso
+
+El éxito depende de:
+1. Llegar preparado a cada reunión
+2. Escuchar sin prescribir
+3. Documentar completamente
+4. Validar todo con participantes
+5. Consolidar insights en matriz clara
+
+¡Buena suerte con process discovery! 🚀

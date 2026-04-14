@@ -1,0 +1,156 @@
+LAP PROCESS DISCOVERY GUIDE
+===========================
+La Patagua Mining - Levantamiento de Procesos para n3uralia ERP
+
+OBJETIVO
+========
+Mapear todos los procesos operacionales, administrativos y de compliance de La Patagua
+para implementación optimizada de n3uralia ERP mining.
+
+ALCANCE
+=======
+- 6 departamentos clave
+- ~50 procesos operacionales
+- 120+ sistemas/herramientas actuales a integrar
+- Timeline: 6 reuniones de 2 horas (3 semanas)
+
+DEPARTAMENTOS A ENTREVISTAR
+===========================
+
+1. OPERACIONES MINERAS
+   - Director/Supervisor de Operaciones
+   - Jefe de Turno
+   - Coordinador de Faena
+   Objetivo: Mapear ciclo completo de extracción, turnos, equipos, incidentes
+
+2. MANTENIMIENTO
+   - Jefe de Mantenimiento
+   - Técnico Senior
+   - Planificador de MTTO
+   Objetivo: Preventivo, correctivo, predictivo, OT, repuestos, proveedores
+
+3. BODEGA Y LOGÍSTICA
+   - Jefe de Bodega
+   - Almacenero
+   - Coordinador Logístico
+   Objetivo: Recepción, almacenamiento, despacho, trazabilidad, FIFO, QR
+
+4. DOCUMENTACIÓN Y COMPLIANCE
+   - Responsable Compliance
+   - Jefe de Documentación
+   - Auditor Interno
+   Objetivo: Gestión documental SERNAGEOMIN, vencimientos, aprobaciones, auditorías
+
+5. FINANZAS
+   - Contador/CFO
+   - Analista de Costos
+   - Tesorero
+   Objetivo: Presupuestos, costos operacionales, contabilidad minera
+
+6. RRHH
+   - Jefe RRHH
+   - Responsable Nómina
+   - Coordinador de Seguridad
+   Objetivo: Asistencia, nómina, permisos, capacitaciones, incidentes
+
+METODOLOGÍA
+===========
+
+Cada reunión sigue este flujo:
+
+1. INTRODUCCIÓN (10 min)
+   - Objetivo: Entender procesos actuales sin prescribir solución
+   - No presentar n3uralia aún - escuchar primero
+   - Establecer confianza
+
+2. MAPEO ACTUAL (60 min)
+   - ¿Qué procesos tenemos?
+   - ¿Cómo fluye la información?
+   - ¿Dónde está el dolor?
+   - ¿Qué sistemas usan hoy?
+   - ¿Cuáles son los KPIs?
+
+3. VALIDACIÓN (40 min)
+   - ¿Es completo el mapeo?
+   - ¿Falta algo?
+   - ¿Integraciones clave?
+   - ¿Requerimientos especiales?
+
+4. SIGUIENTE PASO (10 min)
+   - Resumen de findings
+   - Próxima reunión
+
+PREGUNTAS CLAVE (TODAS LAS ÁREAS)
+=================================
+
+GENERALES:
+- ¿Cuáles son los top 3 pain points hoy?
+- ¿Cuánta información se pierde en el proceso manual?
+- ¿Cuál es el ciclo actual? (entrada → salida)
+- ¿Cuántas personas involucradas?
+- ¿Tiempo promedio de ejecución?
+- ¿Frecuencia? (diaria, semanal, mensual)
+- ¿Qué sistemas usan para esto?
+- ¿Qué datos necesitan exportar/importar?
+
+INTEGRACIONES:
+- ¿Qué sistemas comunican con este proceso?
+- ¿Es manual o automático?
+- ¿Qué información falta a menudo?
+- ¿Qué auditorías se requieren?
+
+COMPLIANCE:
+- ¿Qué regulaciones aplican?
+- ¿Qué reportes regulatorios se generan?
+- ¿Quién aprueba qué?
+- ¿Qué trazabilidad se requiere?
+
+DELIVERABLES POR REUNIÓN
+=========================
+
+Cada reunión genera:
+
+1. Process Map (diagrama de flujo)
+2. RACI Matrix (Responsible/Accountable/Consulted/Informed)
+3. Current Tools Inventory (sistemas usados)
+4. Pain Points List (problemas identificados)
+5. Integration Requirements (qué conectar)
+6. KPIs y Métricas (cómo miden éxito)
+7. Compliance Checklist (regulaciones aplican)
+
+TIMELINE PROPUESTO
+==================
+
+Semana 1:
+- Lunes: Operaciones
+- Miércoles: Mantenimiento
+- Viernes: Bodega
+
+Semana 2:
+- Martes: Documentación & Compliance
+- Jueves: Finanzas
+
+Semana 3:
+- Lunes: RRHH
+- Miércoles: Síntesis y validación final
+
+POST-DISCOVERY
+===============
+
+Con todos los datos:
+1. Mapeo consolidado de procesos
+2. Matriz de prioridades (quick wins vs complejos)
+3. Requirements definitivos para MVP
+4. Roadmap de implementación por fase
+5. Plan de cambio organizacional
+
+FACILITADOR NOTES
+=================
+
+- Trae laptop + tablet para tomar notas
+- Pide permiso para grabar audio (para transcripción)
+- Saca fotos de pizarras/workflows
+- Pide ejemplos reales (documentos, formas actuales)
+- NO diseñes soluciones en la reunión - toma datos
+- Al final: "¿Qué preguntas NO hicimos que deberíamos hacer?"
+- Envía resumen en 24h para validación

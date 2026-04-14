@@ -1,0 +1,180 @@
+LAP MANTENIMIENTO - PROCESS DISCOVERY
+====================================
+La Patagua - Reunión: Mantenimiento
+
+OBJETIVO
+========
+Mapear procesos preventivo/correctivo/predictivo, órdenes de trabajo, repuestos, proveedores
+
+PARTICIPANTES
+=============
+- Jefe de Mantenimiento
+- Técnico Senior
+- Planificador de MTTO
+Duración: 2 horas
+
+CONTEXTO ACTUAL LA PATAGUA
+==========================
+- Equipos bajo MTTO: 30+ máquinas mineras
+- Tipo MTTO: Preventivo + Correctivo (¿Predictivo?)
+- Frecuencia: Preventivo cada 250/500/1000 horas según equipo
+- Personal MTTO: 15-20 técnicos
+- Proveedores: ¿Cuántos? ¿Internos/externos?
+- Repuestos: ¿Dónde se almacenan? ¿Stock mínimo?
+
+PREGUNTAS PRINCIPALES
+=====================
+
+1. PLANIFICACIÓN DE MANTENIMIENTO
+   - ¿Cómo se planifica MTTO preventivo?
+   - ¿Quién es responsable de plan?
+   - ¿Con qué anticipación se planifica? (mensual, trimestral, anual?)
+   - ¿Se coordina con Operaciones? ¿Cómo?
+   - ¿Cuál es el proceso para solicitar parada?
+   - ¿Quién autoriza? ¿Cuánto toma?
+   - ¿Se puede pausar un mantenimiento? ¿Cuándo?
+   - ¿Hay MTTO predictivo? ¿Basado en qué?
+
+2. ÓRDENES DE TRABAJO (OT)
+   - ¿Quién genera OT? (¿Manual o automático?)
+   - ¿Cuál es el flujo OT desde creación a cierre?
+   - ¿Quién asigna técnico?
+   - ¿Cuánto tiempo promedio por OT?
+   - ¿Se estiman tiempos? ¿Quién estima?
+   - ¿Se registra tiempo real? ¿Cómo?
+   - ¿Se usan códigos de falla? ¿Cuáles?
+   - ¿Quién valida/aprueba cierre de OT?
+   - ¿Se generan reportes por OT? ¿Cuáles?
+
+3. INCIDENTES CORRECTIVOS
+   - ¿Cómo llega incidente a Mantenimiento?
+   - ¿De dónde viene? (Operaciones? Observación propia?)
+   - ¿Cuál es proceso escalado de urgencia?
+   - ¿Hay clasificación de severidad?
+   - ¿MTTO Correctivo vs Preventivo: ¿diferente OT?
+   - ¿Cuál es tiempo promedio reparación?
+   - ¿Qué hace durante espera de repuestos?
+   - ¿Cómo se prioriza entre OT?
+   - ¿Se notifica a Operaciones de avance?
+
+4. REPUESTOS Y PROVEEDORES
+   - ¿Dónde están almacenados repuestos?
+   - ¿Cuántos SKUs?
+   - ¿Hay stock mínimo definido?
+   - ¿Quién controla stock?
+   - ¿Cómo se solicitan repuestos?
+   - ¿Proveedores: internos, externos, mixtos?
+   - ¿Cuál es tiempo promedio entrega?
+   - ¿Se hacen órdenes por emergencia?
+   - ¿Cómo se autoriza gasto de repuestos?
+   - ¿Se controla costo por OT?
+
+5. REGISTROS Y DOCUMENTACIÓN
+   - ¿Qué se registra en cada OT?
+   - ¿Se toman fotos/videos?
+   - ¿Se mantiene historial por equipo?
+   - ¿Cómo se genera reportes? (Excel? Sistema?)
+   - ¿Qué reportes necesitan?
+   - ¿Compliance: qué se debe auditar?
+   - ¿Hay manual de equipos? ¿Dónde?
+   - ¿Se actualiza documentación después de MTTO?
+
+6. RECURSOS Y PERSONAL
+   - ¿Cómo se asignan técnicos a OT?
+   - ¿Hay especialidades? (mecánico, eléctrico, etc)
+   - ¿Se entrenan en nuevos equipos?
+   - ¿Control de capacidades por técnico?
+   - ¿Hay coordinación con RRHH?
+   - ¿Se registran horas por técnico?
+   - ¿Sobre-tiempo común?
+
+7. INTEGRACIÓN CON OTRAS ÁREAS
+   - ¿Comunican planes a Operaciones? ¿Cómo?
+   - ¿Necesitan aprobación de Finanzas?
+   - ¿Se envían reportes a Bodega para repuestos?
+   - ¿Cómo se trasladan datos a Finanzas? (costos)
+   - ¿Seguridad participa en MTTO?
+   - ¿Hay coordinación con Documentación?
+
+8. SISTEMAS ACTUALES
+   - ¿Qué sistemas usan? (SAP? Maximo? Custom? Excel?)
+   - ¿Qué datos en cada sistema?
+   - ¿Se integran entre ellos?
+   - ¿Reportes que generan?
+   - ¿Qué NO les gusta del sistema?
+   - ¿Información duplicada donde?
+   - ¿Qué manual/automatizado?
+
+INFORMACIÓN A RECOLECTAR
+========================
+
+[ ] Ejemplos de OT:
+    - OT Preventiva completa
+    - OT Correctiva urgente
+    - OT con parada de equipo
+    - OT con cambio de componente mayor
+
+[ ] Listado de equipos bajo MTTO con:
+    - Marca/Modelo
+    - Horas de operación esperadas
+    - Intervalos de MTTO
+    - Técnicos autorizados
+    - Componentes críticos
+
+[ ] Plan de MTTO actual (mensual/trimestral)
+
+[ ] Ejemplo de reporte de MTTO
+
+[ ] Listado de código de fallas
+
+[ ] Estructura de clasificación de severidad
+
+[ ] Proveedores de repuestos (con tiempos entrega)
+
+[ ] Ejemplo de stock de repuestos por equipo
+
+MATRIZ DE PROCESOS MANTENIMIENTO
+================================
+
+Proceso                    | Frecuencia   | Duración | Personas | Sistemas | Pain Points
+---------------------------|--------------|----------|----------|----------|------------------
+Planificación MTTO prev.    | 1x/mes       | 2h       | 3        | ?        |
+Solicitud parada equipo     | Continuo     | 10 min   | 2        | ?        |
+Creación de OT              | Continuo     | 5 min    | 1        | SAP?     |
+Asignación de técnico       | Continuo     | 5 min    | 1        | Manual?  |
+Ejecución de MTTO           | Continuo     | 2-8h     | 2-4      | Papel?   |
+Solicitud de repuesto       | Continuo     | 10 min   | 1        | Sistema? |
+Cierre de OT                | Continuo     | 15 min   | 1        | SAP?     |
+Reporte MTTO mensual        | 1x/mes       | 1h       | 1        | Excel?   |
+
+RACI MATRIX
+===========
+
+Actividad              | Responsible | Accountable | Consulted | Informed
+-----------------------|-------------|-------------|-----------|----------
+Planificación MTTO     | Planificador| Jefe MTTO   | Operac.   | Dir. Op.
+Solicitud parada       | Jefe MTTO   | Operaciones | -         | Técnicos
+Crear OT               | Planificador| Jefe MTTO   | -         | Técnico
+Asignar técnico        | Jefe MTTO   | -           | Técnico   | -
+Ejecutar MTTO          | Técnico     | Jefe MTTO   | -         | Operador
+Solicitar repuesto     | Técnico     | Jefe MTTO   | Bodega    | -
+Autorizar gasto        | Finanzas    | Jefe MTTO   | -         | -
+Cierre OT              | Técnico     | Jefe MTTO   | -         | Operador
+
+PAIN POINTS POTENCIALES
+======================
+
+- [ ] Retrasos en planificación MTTO preventivo
+- [ ] OT toma mucho tiempo crear
+- [ ] Asignación de técnicos lenta/ineficiente
+- [ ] No hay visibilidad de progreso en tiempo real
+- [ ] Paradas no coordinadas causan retrasos en producción
+- [ ] Repuestos no disponibles →demoras
+- [ ] Información de costos no capturada bien
+- [ ] Historial de equipos desorganizado
+- [ ] No hay predictivo/analytics
+- [ ] Falta trazabilidad de trabajos completados
+
+PRÓXIMA REUNIÓN: BODEGA
+=======================
+Validar cómo reciben solicitudes de repuestos y cómo manejan stock

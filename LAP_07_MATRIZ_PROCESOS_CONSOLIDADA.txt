@@ -1,0 +1,204 @@
+LAP MATRIZ CONSOLIDADA DE PROCESOS
+===================================
+La Patagua - Análisis Final & Plan de Implementación
+
+OBJETIVO
+========
+Consolidar todos los procesos mapeados y crear matriz de priorización para n3uralia MVP
+
+ESTRUCTURA
+===========
+
+Después de las 6 reuniones, completar esta matriz con:
+- Proceso name
+- Departamento
+- Frecuencia actual
+- Duración
+- Personas
+- Sistemas actuales
+- Pain points
+- Prioridad MVP (1=crítico, 5=nice-to-have)
+- Complejidad implementación (1=simple, 5=complejo)
+
+MATRIZ CONSOLIDADA DE PROCESOS
+==============================
+
+OPERACIONES:
+
+# | Proceso                  | Depto | Frec.    | Dur.  | Pers. | Sistemas | Pain Points | Prio | Compl.
+--|--------------------------|-------|----------|-------|-------|----------|-------------|------|-------
+1 | Planificación diaria      | Ops   | 1x/día   | 30min | 5     | Excel?   | Manual      | 1    | 2
+2 | Briefing de turno         | Ops   | 3x/día   | 15min | 20+   | Manual   | Lento       | 1    | 2
+3 | Asignación de equipos     | Ops   | Cont.    | Real  | 2     | ?        | Ad-hoc      | 2    | 2
+4 | Reporte de producción     | Ops   | 3x/día   | 15min | 1     | SAP?     | Manual      | 1    | 1
+5 | Reporte de incidentes     | Ops   | AS-N     | 10min | 3-5   | Manual   | Lento       | 1    | 2
+6 | Solicitud de MTTO         | Ops   | AS-N     | 5min  | 1     | Phone?   | Lento       | 1    | 1
+7 | Cierre de turno           | Ops   | 3x/día   | 30min | 3     | Excel?   | Manual      | 2    | 2
+
+MANTENIMIENTO:
+
+# | Proceso                  | Depto | Frec.    | Dur.  | Pers. | Sistemas | Pain Points | Prio | Compl.
+--|--------------------------|-------|----------|-------|-------|----------|-------------|------|-------
+8 | Planificación MTTO preven | MTTO | 1x/mes   | 2h    | 3     | Excel?   | Manual      | 2    | 3
+9 | Solicitud de parada       | MTTO | Cont.    | 10min | 2     | Manual   | Lento       | 2    | 1
+10| Creación de OT            | MTTO | Cont.    | 5min  | 1     | SAP?     | Manual      | 1    | 2
+11| Asignación de técnico     | MTTO | Cont.    | 5min  | 1     | Manual   | Manual      | 2    | 2
+12| Ejecución de MTTO         | MTTO | Cont.    | 2-8h  | 2-4   | Papel?   | Sin track   | 1    | 2
+13| Solicitud de repuesto     | MTTO | Cont.    | 10min | 1     | Sistema? | Lento       | 1    | 2
+14| Cierre de OT              | MTTO | Cont.    | 15min | 1     | SAP?     | Manual      | 1    | 2
+15| Reporte MTTO mensual      | MTTO | 1x/mes   | 1h    | 1     | Excel?   | Manual      | 2    | 2
+
+BODEGA:
+
+# | Proceso                  | Depto | Frec.    | Dur.  | Pers. | Sistemas | Pain Points | Prio | Compl.
+--|--------------------------|-------|----------|-------|-------|----------|-------------|------|-------
+16| Recepción de material     | Bod.  | Cont.    | 30min | 2     | SISA?    | Lento       | 2    | 2
+17| Ingreso a sistema         | Bod.  | Cont.    | 15min | 1     | SAP?     | Manual      | 1    | 1
+18| Almacenamiento            | Bod.  | Cont.    | 20min | 1     | Manual   | Sin QR      | 1    | 2
+19| Solicitud de material     | Bod.  | Cont.    | 5min  | 1     | Email?   | Lento       | 1    | 1
+20| Búsqueda de material      | Bod.  | Cont.    | 10min | 1     | Manual   | Lento       | 1    | 2
+21| Despacho                  | Bod.  | Cont.    | 20min | 1     | Manual   | Parciales   | 1    | 2
+22| Actualización sistema     | Bod.  | Cont.    | 10min | 1     | Manual   | Manual      | 1    | 1
+23| Inventario físico         | Bod.  | Trim.    | 6h    | 3-5   | Manual   | Diferencias | 2    | 3
+24| Control FIFO              | Bod.  | Cont.    | Real  | 1     | Manual   | No trazado  | 1    | 3
+
+DOCUMENTACIÓN & COMPLIANCE:
+
+# | Proceso                  | Depto | Frec.    | Dur.  | Pers. | Sistemas | Pain Points | Prio | Compl.
+--|--------------------------|-------|----------|-------|-------|----------|-------------|------|-------
+25| Creación de documento    | Doc. | Cont.    | 2h    | 2-3   | Word?    | Manual      | 2    | 2
+26| Aprobación de documento  | Doc. | Cont.    | 1-5d  | 2-3   | Email?   | Lento       | 1    | 2
+27| Publicación/archivo      | Doc. | Cont.    | 30min | 1     | Manual   | Manual      | 1    | 1
+28| Control de cambios       | Doc. | Cont.    | 1d    | 1-2   | Manual   | Manual      | 2    | 2
+29| Verificar vencimientos   | Doc. | 1x/sem   | 1h    | 1     | Excel?   | Manual      | 1    | 1
+30| Notificar renovación     | Doc. | AS-N     | 15min | 1     | Email?   | Manual      | 1    | 1
+31| Renovación de doc.       | Doc. | Trim.    | 2h    | 2     | Manual   | Manual      | 1    | 2
+32| Auditoría interna        | Doc. | 2x/año   | 5d    | 3-4   | Papel?   | Lento       | 2    | 3
+33| Reportes regulatorios    | Doc. | Mensual  | 3h    | 2     | Manual   | Manual      | 1    | 3
+
+FINANZAS:
+
+# | Proceso                  | Depto | Frec.    | Dur.  | Pers. | Sistemas | Pain Points | Prio | Compl.
+--|--------------------------|-------|----------|-------|-------|----------|-------------|------|-------
+34| Elaborar presupuesto     | Fin.  | 1x/año   | 5d    | 5     | Excel?   | Manual      | 2    | 3
+35| Revisar presupuesto      | Fin.  | 1x/mes   | 2h    | 2     | SAP?     | Manual      | 2    | 2
+36| Capturar costos          | Fin.  | Cont.    | Var.  | 2-3   | Manual   | Manual      | 1    | 2
+37| Cierre de mes            | Fin.  | 1x/mes   | 2-3d  | 3     | SAP?     | Lento       | 1    | 3
+38| Análisis de variancias   | Fin.  | 1x/mes   | 4h    | 2     | Excel?   | Manual      | 2    | 3
+39| P&L mensual              | Fin.  | 1x/mes   | 3h    | 1     | SAP?     | Manual      | 2    | 2
+
+RRHH:
+
+# | Proceso                  | Depto | Frec.    | Dur.  | Pers. | Sistemas | Pain Points | Prio | Compl.
+--|--------------------------|-------|----------|-------|-------|----------|-------------|------|-------
+40| Carga de asistencia      | RRHH | 1x/día   | 1h    | 1     | Biomet.  | Discrepacias| 2    | 2
+41| Validar asistencia       | RRHH | 1x/sem   | 2h    | 1     | Excel?   | Manual      | 2    | 2
+42| Procesar nómina          | RRHH | 1x/mes   | 2d    | 2     | Sistema? | Lento       | 1    | 3
+43| Registrar capacita.      | RRHH | Cont.    | 30min | 1     | Manual   | Manual      | 2    | 2
+44| Reportar accidentes      | RRHH | AS-N     | 1h    | 2     | Manual   | Manual      | 1    | 2
+
+PRIORIZACIÓN PARA MVP
+=====================
+
+CRÍTICOS (Prio 1 - Implementar Mes 1-3):
+
+1. Reporte de producción (Ops) - Automático desde MTTO + Bodega
+2. Reporte de incidentes (Ops) - Centralizado
+3. Creación/cierre OT (MTTO) - Core del MVP
+4. Solicitud de MTTO (Ops) - Trigger para OT
+5. Solicitud de repuesto (MTTO) - Trigger para bodega
+6. Ingreso a sistema (Bodega) - Entrada de datos
+7. Almacenamiento (Bodega) - Con QR/Barcode
+8. Despacho (Bodega) - Integración con MTTO
+9. Verificar vencimientos (Doc) - Alertas
+10. Aprobación de documentos (Doc) - Workflow
+11. Capturar costos (Finanzas) - Desde MTTO + Bodega + Nómina
+12. Procesar nómina (RRHH) - Automatizado
+
+IMPORTANTES (Prio 2 - Implementar Mes 2-4):
+
+- Planificación diaria (Ops)
+- Asignación de equipos (Ops)
+- Cierre de turno (Ops)
+- Planificación MTTO preventivo
+- Solicitud parada (MTTO)
+- Asignación técnico (MTTO)
+- Recepción material (Bodega)
+- Inventario físico (Bodega)
+- Creación documentos (Doc)
+- Control de cambios (Doc)
+- Renovación documentos (Doc)
+- Presupuesto (Finanzas)
+- Cargar asistencia (RRHH) - Si no integra biométrico
+
+NICE-TO-HAVE (Prio 3-5 - Post-MVP):
+
+- Auditorías internas
+- Reportes regulatorios avanzados
+- Análisis predictivo
+- Mobile apps para técnicos
+- Análisis de variancias avanzado
+
+PLAN DE IMPLEMENTACIÓN FASEADO
+==============================
+
+FASE 1 (Sem 1-6): CORE OPERACIONAL
+-----------------------------------
+Enfoque: Operaciones → MTTO → Bodega
+- Crear OT desde incidente en Operaciones
+- Asignar técnico y registrar MTTO
+- Solicitar repuesto desde OT
+- Despachar desde Bodega
+- Cerrar OT y registrar costos
+
+Valor: "De incident a resolved en < 4 horas" (vs hoy: > 1 día)
+
+FASE 2 (Sem 7-12): DOCUMENTACIÓN & FINANCIERO
+----------------------------------------------
+Enfoque: Control regulatorio y costos
+- Vencimientos automáticos con alertas
+- Workflow de aprobaciones
+- Captura de costos por actividad
+- Reportes de cumplimiento
+
+Valor: "Cero multas y clarity de costos"
+
+FASE 3 (Sem 13-20): RRHH & PRESUPUESTOS
+---------------------------------------
+Enfoque: Nómina y planificación financiera
+- Nómina automática desde asistencia
+- Presupuesto vs real en tiempo real
+- Centro de costos automático
+
+Valor: "Salarios en banco sin demoras + visibilidad financiera"
+
+FASE 4 (Sem 21-26): OPTIMIZACIÓN
+---------------------------------
+- Mobile para técnicos
+- Analytics y dashboards
+- Predictivo para MTTO
+- Optimización de rutas
+
+MATRIZ DE DEPENDENCIAS
+======================
+
+n3uralia OPERACIONES
+  ↓ (incidentes/OT)
+n3uralia MANTENIMIENTO
+  ↓ (repuestos solicitados)
+n3uralia BODEGA
+  ↓ (materiales despachados)
+n3uralia DOCUMENTACIÓN (vencimientos de equipos)
+n3uralia FINANZAS (costos capturados)
+n3uralia RRHH (técnicos, horas)
+
+PRÓXIMAS ACCIONES
+=================
+
+[ ] Completar esta matriz en reunión de síntesis
+[ ] Validar prioridades con La Patagua
+[ ] Identificar quick wins (implementar en Mes 1)
+[ ] Crear roadmap de 6 meses
+[ ] Asignar sponsor por módulo
+[ ] Definir KPIs de éxito
+[ ] Kick-off de desarrollo

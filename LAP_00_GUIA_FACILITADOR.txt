@@ -1,0 +1,285 @@
+LAP COORDINACIÓN DE REUNIONES - GUÍA PARA FACILITADOR
+=====================================================
+
+OBJETIVO
+========
+Guía práctica para facilitar las 6 reuniones de process discovery con La Patagua
+
+TIMELINE DE REUNIONES
+====================
+
+SEMANA 1:
+---------
+Lunes 9:00-11:00    | Operaciones
+Miércoles 10:00-12:00 | Mantenimiento  
+Viernes 14:00-16:00 | Bodega & Logística
+
+SEMANA 2:
+---------
+Martes 9:00-11:30   | Documentación & Compliance (2.5h)
+Jueves 14:00-16:00  | Finanzas & RRHH (2.5h)
+
+SEMANA 3:
+---------
+Lunes 9:00-11:00    | Síntesis y validación final
+Miércoles 14:00-16:00 | Presentación de findings y roadmap
+
+ANTES DE CADA REUNIÓN
+===================
+
+48 HORAS ANTES:
+- Enviar agenda al responsable de área
+- Incluir: objetivo, duración, participantes, documentos a traer
+- Pedir que avisen si no pueden asistir
+
+24 HORAS ANTES:
+- Confirmar asistencia
+- Reconfirmar sala y equipamiento
+
+EN LA REUNIÓN
+=============
+
+LLEGADA (10 min antes):
+- Test de proyector/laptop
+- Imprimir matrices
+- Traer tablet + libreta
+- Cámara/teléfono para fotos
+
+APERTURA (10 min):
+- Presentación facilitador
+- Objetivo de la reunión
+- Explicar que es exploración, no prescripción
+- "No hay respuestas malas"
+- Confidencialidad (si aplica)
+
+MAPEO (60 min):
+- Usar preguntas de guía
+- Tomar notas completas
+- Dibujar flujos en pizarra
+- Pedir ejemplos reales
+- No interrumpir, dejar hablar
+- Profundizar en pain points
+
+VALIDACIÓN (40 min):
+- "¿Es así?"
+- Mostrar diagrama dibujado
+- "¿Falta algo?"
+- "¿Cuál es el principal problema?"
+- "¿Qué está roto hoy?"
+
+CIERRE (10 min):
+- Resumen de lo cubierto
+- "¿Qué NO pregunté que debería preguntar?"
+- Siguiente reunión
+- Gracias
+
+DESPUÉS DE CADA REUNIÓN
+=======================
+
+MISMO DÍA (2 horas después):
+- Limpieza de notas
+- Fotos de pizarras
+- Completar matriz de procesos
+- Documentar pain points
+
+DENTRO DE 24h:
+- Enviar resumen a participantes para validación
+- Destacar: "Revisado/Validado por [Nombre]"
+- Solicitar retroalimentación
+
+CONSOLIDACIÓN (después de todas las reuniones):
+- Llenar matriz consolidada
+- Identificar 12-15 procesos CRÍTICOS
+- Definir roadmap de 6 meses
+- Preparar presentación de findings
+
+PRESENTACIÓN DE FINDINGS
+========================
+
+Estructura (1 hora):
+
+1. RESUMEN EJECUTIVO (10 min)
+   - 6 departamentos mapeados
+   - 45+ procesos identificados
+   - Top 5 pain points
+   - Oportunidad de ahorro
+
+2. ESTADO ACTUAL (15 min)
+   - Por cada departamento: flujo actual
+   - Sistemas utilizados
+   - Pain points principales
+   - Métrica: "Hoy toma 3 días... mañana 2 horas"
+
+3. PROCESOS CRÍTICOS (15 min)
+   - Los 12-15 procesos a incluir en MVP
+   - Por qué cada uno
+   - Interdependencias
+   - Priorización
+
+4. ROADMAP (15 min)
+   - Fases de 4-6 semanas
+   - Qué se entrega en cada fase
+   - Cuándo estaría listo
+   - Investment required
+
+5. PRÓXIMOS PASOS (5 min)
+   - Kick-off con desarrollo
+   - Asignación de sponsors
+   - Comunicación interna
+   - Go-live plan
+
+DOCUMENTOS FACILITADOR DEBE LLEVAR
+==================================
+
+[ ] Guía de discovery (esta)
+[ ] Guías específicas por departamento (6)
+[ ] Matriz consolidada en blanco
+[ ] Laptop + proyector
+[ ] Tablet para notas
+[ ] Cámara/teléfono
+[ ] Pizarra + markers
+[ ] Notas de reuniones anteriores
+[ ] Organigrama La Patagua
+[ ] Último balance (contexto)
+[ ] Ejemplos de n3uralia
+
+PREGUNTAS CLAVE UNIVERSALES
+===========================
+
+Usar si la conversación "se pierde":
+
+1. "¿Cuál es el problema #1 hoy con este proceso?"
+2. "¿Cuánto tiempo demora hoy? ¿Y debería demorar?"
+3. "¿Cuántas personas involucradas? ¿Necesitan todas?"
+4. "¿Cómo validan que esté correcto?"
+5. "¿Qué pasa si algo falla?"
+6. "¿Cómo integra esto con [otro área]?"
+7. "¿Qué información se pierde?"
+8. "¿Si pudieran cambiar una sola cosa, cuál sería?"
+
+MANEJO DE SITUACIONES DIFÍCILES
+==============================
+
+SI ALGUIEN NO QUIERE PARTICIPAR:
+- "Sólo necesito entender cómo funciona hoy"
+- "No vamos a cambiar nada ya (promesa)"
+- "Tu input es crítico para que esto funcione"
+
+SI HAY CONFLICTO ENTRE ÁREAS:
+- No tomar partido
+- "Eso es importante entender de ambos lados"
+- "Dejaremos registrado para resolver después"
+
+SI LAS RESPUESTAS SON VAGAS:
+- "Dame un ejemplo específico"
+- "Eso me pasa el 100% de las veces?"
+- "Cuándo fue la última vez?"
+
+SI DICEN "TODO ES MANUAL":
+- "¿Cuánto tiempo toma?"
+- "¿Es siempre igual o varía?"
+- "¿Se equivocan a veces?"
+
+SI DICEN "TODOS LOS SISTEMAS HABLAN ENTRE SÍ":
+- Pedir evidencia (reportes, logs)
+- "¿Cuándo fue la última vez que fallé la integración?"
+- Documentar igual
+
+MÉTRICAS A CAPTURAR
+===================
+
+Para cada proceso CRÍTICO:
+
+TIEMPO:
+- Tiempo actual: _____ minutos/horas
+- Tiempo deseado: _____ minutos/horas
+- Ahorro potencial: _____ por mes
+
+PERSONAS:
+- Personas involucradas hoy: _____
+- Personas necesarias idealmente: _____
+- Horas-persona por mes: _____
+
+ERRORES:
+- % de errores hoy: _____
+- Costo por error: $ _____
+- Errores prevenidos por mes: _____
+
+DINERO:
+- Costo de herramientas hoy: $ _____
+- Costo manual laboral: $ _____
+- Total costo anual: $ _____
+
+SATISFACCIÓN:
+- Satisfacción usuario (1-10): _____
+- Principal frustración: _____
+
+PLANTILLA DE RESUMEN REUNIÓN
+=============================
+
+LA PATAGUA - REUNIÓN [DEPARTAMENTO]
+Fecha: ___________
+Facilitador: ___________
+Participantes: ___________
+
+1. PROCESOS MAPEADOS (listar)
+   - Proceso 1: _________
+   - Proceso 2: _________
+
+2. SISTEMAS ACTUALES
+   - Sistema 1: _________
+   - Sistema 2: _________
+
+3. TOP 3 PAIN POINTS
+   1. _________
+   2. _________
+   3. _________
+
+4. OPORTUNIDADES RÁPIDAS (Quick wins)
+   - _________
+   - _________
+
+5. SIGUIENTES PASOS
+   - _________
+   - _________
+
+VALIDADO POR: _________________ (Responsable área)
+
+FECHA VALIDACIÓN: _________________
+
+HERRAMIENTAS RECOMENDADAS
+=========================
+
+PARA MAPEAR:
+- Lucidchart: diagramas de flujo
+- Miro: pizarra digital colaborativa
+- Draw.io: diagramas simples
+
+PARA DOCUMENTAR:
+- Notion: wiki de procesos
+- Confluence: documentación colaborativa
+- Markdown + GitHub: version control
+
+PARA MATRICES:
+- Excel: simple pero efectivo
+- Airtable: más flexible
+- Google Sheets: colaborativo
+
+PARA NOTAS:
+- OneNote: organizado por reunión
+- Notion: búsqueda automática
+- Markdown: simple
+
+ÉXITO EN 6 SEMANAS
+==================
+
+Deberías tener:
+
+✓ 45+ procesos mapeados y documentados
+✓ Matriz de priorización (12-15 críticos)
+✓ Pain points validados con gerentes
+✓ Roadmap de 6 meses definido
+✓ Sponsors identificados por módulo
+✓ Expectativas de La Patagua claras
+✓ Confianza en el equipo de desarrollo
+✓ Plan de go-live validado

@@ -1,0 +1,247 @@
+LAP FINANZAS Y RRHH - PROCESS DISCOVERY
+======================================
+La Patagua - Reunión: Finanzas y RRHH
+
+OBJETIVO
+========
+Mapear presupuestos, costos operacionales, contabilidad, nómina, asistencia
+
+PARTICIPANTES
+=============
+- Contador/CFO
+- Analista de Costos
+- Jefe RRHH
+- Responsable Nómina
+Duración: 2.5 horas
+
+CONTEXTO ACTUAL LA PATAGUA
+==========================
+- Personal operativo: ~150-200 personas
+- Personal administrativo: ~20-30
+- Presupuesto anual: ¿$50M? ¿$100M+ CLP?
+- Moneda: CLP o UF?
+- Ciclo presupuestario: ¿Anual? ¿Trimestral?
+- Centros de costo: ¿Cuántos?
+- Sistema contable: ¿SAP? ¿Soluci ón local?
+
+PREGUNTAS FINANZAS
+==================
+
+1. PRESUPUESTOS
+   - ¿Cómo se elabora presupuesto?
+   - ¿Quién participa?
+   - ¿Ciclo de presupuestación?
+   - ¿Bottom-up o top-down?
+   - ¿Se revisa en tiempo real?
+   - ¿Hay alerts si se excede?
+   - ¿Frecuencia de revisión?
+   - ¿Quién aprueba cambios?
+   - ¿Se compara vs real?
+
+2. COSTOS OPERACIONALES
+   - ¿Cuáles son principales costos?
+   - ¿Cómo se capturan costos operacionales?
+   - ¿Manual o automático desde sistemas?
+   - ¿Costos por faena? ¿Por equipo?
+   - ¿Se asignan costos a OT?
+   - ¿Quién reporta costos?
+   - ¿Frecuencia?
+   - ¿Cuánto tiempo toma cierre de mes?
+   - ¿Hay cortes de costos?
+
+3. CENTROS DE COSTO
+   - ¿Cuántos centros de costo?
+   - ¿Estructura?
+   - ¿Por departamento? ¿Por faena? ¿Por proyecto?
+   - ¿Cómo se asignan gastos?
+   - ¿Responsable por cada centro?
+   - ¿Se analiza variancias?
+
+4. REPORTES Y ANÁLISIS
+   - ¿Qué reportes genera Finanzas?
+   - ¿P&L? ¿Balance? ¿Cash flow?
+   - ¿Reportes de costos?
+   - ¿Análisis de variancias?
+   - ¿Frecuencia?
+   - ¿A quién se reporta?
+   - ¿Cuánto tiempo toma generar?
+
+5. INTEGRACIÓN CON OPERACIONES
+   - ¿Cómo se pasan costos de MTTO?
+   - ¿De consumo de bodega?
+   - ¿De salarios?
+   - ¿Cómo se valida?
+   - ¿Hay diferencias?
+   - ¿Quién reconcilia?
+
+PREGUNTAS RRHH
+==============
+
+1. PERSONAL Y NÓMINA
+   - ¿Cuánto personal total?
+   - ¿Por categoría? (operativo, administrativo, management)
+   - ¿Tipo de contrato?
+   - ¿Tercerizados?
+   - ¿Cómo se gestiona nómina?
+   - ¿Sistema? ¿Manual?
+   - ¿Frecuencia?
+   - ¿Quién autoriza cambios salariales?
+
+2. ASISTENCIA Y CONTROL
+   - ¿Cómo se controla asistencia?
+   - ¿Biométrico? ¿Manual? ¿App?
+   - ¿Quién captura datos?
+   - ¿En tiempo real o batch?
+   - ¿Retardos?
+   - ¿Permisos? ¿Cuándo?
+   - ¿Ausencias?
+   - ¿Descuentos automáticos?
+
+3. INTEGRACIÓN CON OPERACIONES
+   - ¿Operaciones reporta asistencia?
+   - ¿A RRHH directamente?
+   - ¿Sistema?
+   - ¿Cuánto se demora reconciliar?
+   - ¿Hay discrepancias?
+   - ¿Quién investiga?
+
+4. SOBRETIEMPO Y BONOS
+   - ¿Hay sobretiempo común?
+   - ¿Se registra en sistema?
+   - ¿Quién autoriza OT?
+   - ¿Cómo se paga?
+   - ¿Bonos por producción?
+   - ¿Cálculo manual o automático?
+
+5. CAPACITACIONES
+   - ¿Plan de capacitación?
+   - ¿Quién gestiona?
+   - ¿Se registra en sistema?
+   - ¿Certificaciones? ¿Vencen?
+   - ¿Integración con Documentación?
+
+6. SEGURIDAD Y CUMPLIMIENTO
+   - ¿Reportes de accidentes?
+   - ¿Investigación de incidentes?
+   - ¿Auditorías de seguridad?
+   - ¿Capacitación en seguridad?
+   - ¿Registros médicos?
+   - ¿Quién gestiona todo esto?
+
+INFORMACIÓN A RECOLECTAR
+========================
+
+[ ] Presupuesto anual por área
+[ ] Estructura de centros de costo
+[ ] Últimos 3 meses de P&L
+[ ] Estructura organizacional de RRHH
+[ ] Nómina modelo de un mes
+[ ] Ejemplo de asistencia vs real
+[ ] Políticas de sobretiempo
+[ ] Políticas de bonos
+[ ] Calendarios de capacitación
+[ ] Registro de accidentes (últimos 6 meses)
+[ ] Sistema de nómina actual
+[ ] Sistema de asistencia actual
+[ ] Integraciones actuales
+
+MATRIZ DE PROCESOS FINANZAS & RRHH
+=================================
+
+FINANZAS:
+
+Proceso               | Frecuencia   | Duración | Personas | Sistemas | Pain Points
+-----------------------|--------------|----------|----------|----------|------------------
+Elaborar presupuesto  | 1x/año       | 5 días   | 5        | Excel?   |
+Revisar presupuesto   | 1x/mes       | 2h       | 2        | SAP?     |
+Capturar costos       | Continuo     | Variable | 2-3      | Manual?  |
+Cierre de mes         | 1x/mes       | 2-3 días | 3        | SAP?     |
+Análisis variancias   | 1x/mes       | 4h       | 2        | Excel?   |
+P&L mensual           | 1x/mes       | 3h       | 1        | SAP?     |
+Balance               | 1x/trimestre | 2 días   | 2        | SAP?     |
+
+RRHH:
+
+Proceso               | Frecuencia   | Duración | Personas | Sistemas | Pain Points
+-----------------------|--------------|----------|----------|----------|------------------
+Carga de asistencia   | 1x/día       | 1h       | 1        | Biomet.? |
+Validar asistencia    | 1x/semana    | 2h       | 1        | Excel?   |
+Procesar nómina       | 1x/mes       | 2 días   | 2        | Sistema? |
+Pagar salarios        | 1x/mes       | 1h       | 1        | Banco    |
+Registrar capacita.   | Continuo     | 30 min   | 1        | Manual?  |
+Reportar accidentes   | As-needed    | 1h       | 2        | Manual?  |
+
+RACI MATRIX - FINANZAS
+=====================
+
+Actividad              | Responsible | Accountable | Consulted | Informed
+-----------------------|-------------|-------------|-----------|----------
+Presupuesto           | Manager     | CFO         | Dir.      | Todos
+Captura de costos     | Operaciones | Contador    | -         | Finanzas
+Cierre de mes         | Contador    | CFO         | -         | Dir.
+Reportes financieros  | Contador    | CFO         | Auditor   | Dir.
+Análisis variancias   | Analista    | CFO         | Manager   | -
+
+RACI MATRIX - RRHH
+==================
+
+Actividad              | Responsible | Accountable | Consulted | Informed
+-----------------------|-------------|-------------|-----------|----------
+Cargar asistencia     | Operador    | Jefe Op.    | RRHH      | -
+Validar asistencia    | RRHH        | Jefe RRHH   | Contador  | -
+Procesar nómina       | RRHH        | Jefe RRHH   | Contador  | Banco
+Capacitaciones        | Trainer     | Jefe RRHH   | -         | Documen.
+Reportar accidentes   | Supervisor  | Jefe Seg.   | RRHH      | Regulador
+
+PAIN POINTS POTENCIALES - FINANZAS
+==================================
+
+- [ ] Captura de costos es manual y lenta
+- [ ] Costos de MTTO no se reflejan bien
+- [ ] Consumo de bodega no se integra
+- [ ] Cierre de mes toma demasiado
+- [ ] Variancias no se explican
+- [ ] No hay visibility en tiempo real
+- [ ] Presupuesto vs real: diferencias grandes sin explicación
+- [ ] Centros de costo mal asignados
+- [ ] Reportes manuales y lentoas
+
+PAIN POINTS POTENCIALES - RRHH
+=============================
+
+- [ ] Asistencia manual vs biométrico: discrepancias
+- [ ] Nómina toma mucho tiempo
+- [ ] Sobretiempo no se captura bien
+- [ ] Capacitaciones no se registran centralmente
+- [ ] Accidentes: información desorganizada
+- [ ] No hay trazabilidad de cursos completados
+- [ ] Vencimientos de certificaciones no se controlan
+- [ ] Integración con Operaciones es manual
+
+INTEGRACIÓN CON n3uralia MVP
+============================
+
+n3uralia FINANZAS debe incluir:
+
+1. Captura de costos desde MTTO, Bodega, Operaciones automática
+2. Presupuesto vs real en tiempo real
+3. Alerts de overspend
+4. Centros de costo mapping automático
+5. Reportes P&L automáticos
+6. Análisis de variancias
+7. Integración con contabilidad
+
+n3uralia RRHH debe incluir:
+
+1. Integración con biométrico
+2. Validación de asistencia semanal
+3. Nómina automática basada en asistencia
+4. Integración con bancos
+5. Capacitaciones centralizadas
+6. Registro de certificaciones con vencimiento
+7. Incidentes/accidentes centralizados
+8. Reportes de seguridad automáticos
+
+PRÓXIMA REUNIÓN: SÍNTESIS
+=========================
+Consolidar todos los procesos y crear plan de implementación
