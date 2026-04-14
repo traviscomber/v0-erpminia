@@ -21,6 +21,7 @@ import {
   Cpu,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 
@@ -178,6 +179,7 @@ export function Sidebar() {
 
         {/* Bottom Section */}
         <div className="border-t border-sidebar-border p-4 space-y-2">
+          <ThemeToggle />
           <Button variant="ghost" className="w-full justify-start gap-3">
             <Settings className="w-5 h-5" />
             <span>Configuración</span>
