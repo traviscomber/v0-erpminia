@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -78,10 +79,12 @@ export default function VehiclesPage() {
                     </div>
                   </div>
                 </div>
-                <Button variant="outline" className="gap-2 ml-4">
-                  Ver Árbol de Fallas
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
+                <Link href={`/dashboard/mantenimiento/vehiculos/${vehicle.id}/arbol`}>
+                  <Button variant="outline" className="gap-2 ml-4">
+                    Ver Árbol de Fallas
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </Link>
               </div>
             ))}
           </div>
