@@ -18,6 +18,7 @@ import {
   Plus,
   HardHat,
   AlertTriangle,
+  Cpu,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -54,6 +55,12 @@ const menuItems = [
     label: 'Mantenimiento',
     href: '/dashboard/mantenimiento',
     icon: Wrench,
+    group: 'Minería',
+  },
+  {
+    label: 'Gestión de Vehículos',
+    href: '/dashboard/mantenimiento/vehiculos',
+    icon: Cpu,
     group: 'Minería',
   },
   // Supply Chain

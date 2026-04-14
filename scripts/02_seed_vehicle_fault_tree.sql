@@ -1,193 +1,167 @@
--- Seed Data: Vehicle Fault Tree Templates y Example Vehicles
+-- Seed Data: Vehicle Fault Tree - Simple version
+-- Insert test vehicle directly
 
--- ============================================
--- 1. COMPONENT TEMPLATES (Excavadora CAT 390F)
--- ============================================
+-- 1. CREATE TEST VEHICLE
+INSERT INTO vehicles (code, name, vehicle_type, model, year, site, status, purchase_date)
+VALUES ('EXC-001', 'Excavadora CAT 390F', 'excavadora', 'CAT 390F', 2019, 'Faena Central', 'operativo', '2019-03-15');
 
--- Root: Excavadora CAT 390F
+-- 2. CREATE COMPONENT TEMPLATES for Excavadora
+-- Root template
 INSERT INTO components_template (vehicle_type, name, code, parent_id, level, description)
-VALUES ('excavadora', 'Excavadora CAT 390F', 'EXC-CAT390F', NULL, 0, 'Excavadora hidráulica de 390 toneladas');
+VALUES ('excavadora', 'Excavadora CAT 390F', 'TMPL-EXC-ROOT', NULL, 0, 'Template raíz para excavadora');
 
--- Subsystems (Level 1)
+-- Get IDs for use in subsequent inserts
+-- Motor subsystem
 INSERT INTO components_template (vehicle_type, name, code, parent_id, level, description)
-SELECT 'excavadora', name, code, id, 1, description
-FROM (VALUES
-  ('Sistema Motor y Transmisión', 'EXC-MOTOR', 'Sistema de propulsión'),
-  ('Sistema Hidráulico', 'EXC-HIDRAULICO', 'Sistema de potencia hidráulica'),
-  ('Tren de Rodaje', 'EXC-RODAJE', 'Orugas, rodillos y bastidor'),
-  ('Cuchara y Brazo', 'EXC-CUCHARA', 'Brazos hidráulicos y cuchara'),
-  ('Sistema Eléctrico', 'EXC-ELECTRICO', 'Baterías, alternador, controles'),
-  ('Cabina y Estructura', 'EXC-CABINA', 'Estructura principal y cabina'),
-  ('Sistema de Enfriamiento', 'EXC-ENFRIAMIENTO', 'Radiadores y ventiladores'),
-  ('Sistema de Lubricación', 'EXC-LUBRICACION', 'Bombas y depósitos de aceite')
-) AS t(name, code, description)
-WHERE components_template.id = (SELECT id FROM components_template WHERE code = 'EXC-CAT390F');
+SELECT 'excavadora', 'Sistema Motor', 'TMPL-MOTOR', id, 1, 'Motor diesel y transmisión'
+FROM components_template WHERE code = 'TMPL-EXC-ROOT';
 
--- Motor Components (Level 2)
+-- Motor diesel component
 INSERT INTO components_template (vehicle_type, name, code, parent_id, level, description)
-SELECT 'excavadora', name, code, motor_id, 2, description
-FROM (VALUES
-  ('Motor Diesel CAT 3412', 'EXC-MOT-DIESEL', 'Motor principal'),
-  ('Turbocompresor', 'EXC-MOT-TURBO', 'Incrementa potencia'),
-  ('Sistema de Inyección', 'EXC-MOT-INYECCION', 'Inyectores diésel')
-) AS t(name, code, description)
-WHERE motor_id = (SELECT id FROM components_template WHERE code = 'EXC-MOTOR');
+SELECT 'excavadora', 'Motor Diesel CAT 3412', 'TMPL-MOT-DIESEL', id, 2, 'Motor principal CAT'
+FROM components_template WHERE code = 'TMPL-MOTOR';
 
--- Subsystems de Motor (Level 3)
+-- Motor parts
 INSERT INTO components_template (vehicle_type, name, code, parent_id, level, description)
-SELECT 'excavadora', name, code, diesel_id, 3, description
-FROM (VALUES
-  ('Bloque Motor', 'EXC-MOT-BLOQUE', 'Cilindros y pistones'),
-  ('Culata', 'EXC-MOT-CULATA', 'Válvulas y cámaras'),
-  ('Cigüeñal', 'EXC-MOT-CIGUENAL', 'Eje de rotación'),
-  ('Bielas', 'EXC-MOT-BIELAS', 'Conexión pistones-cigüeñal'),
-  ('Correas y Poleas', 'EXC-MOT-CORREAS', 'Transmisión de potencia')
-) AS t(name, code, description)
-WHERE diesel_id = (SELECT id FROM components_template WHERE code = 'EXC-MOT-DIESEL');
+SELECT 'excavadora', 'Bloque Motor', 'TMPL-BLOQUE', id, 3, 'Cilindros y pistones'
+FROM components_template WHERE code = 'TMPL-MOT-DIESEL';
 
--- Sistema Hidráulico Components (Level 2)
 INSERT INTO components_template (vehicle_type, name, code, parent_id, level, description)
-SELECT 'excavadora', name, code, hidraulico_id, 2, description
-FROM (VALUES
-  ('Bomba Hidráulica Principal', 'EXC-HID-BOMBA', 'Bomba de desplazamiento variable'),
-  ('Cilindros Hidráulicos', 'EXC-HID-CILINDROS', 'Cilindros de accionamiento'),
-  ('Válvulas de Control', 'EXC-HID-VALVULAS', 'Válvulas directoras'),
-  ('Tanque Hidráulico', 'EXC-HID-TANQUE', 'Depósito de fluido'),
-  ('Sistema de Enfriamiento Hidráulico', 'EXC-HID-ENFRIAMIENTO', 'Enfriadores de aceite')
-) AS t(name, code, description)
-WHERE hidraulico_id = (SELECT id FROM components_template WHERE code = 'EXC-HIDRAULICO');
+SELECT 'excavadora', 'Culata', 'TMPL-CULATA', id, 3, 'Válvulas y cámaras'
+FROM components_template WHERE code = 'TMPL-MOT-DIESEL';
 
--- Tren de Rodaje (Level 2)
 INSERT INTO components_template (vehicle_type, name, code, parent_id, level, description)
-SELECT 'excavadora', name, code, rodaje_id, 2, description
-FROM (VALUES
-  ('Orugas', 'EXC-ROD-ORUGAS', 'Cadenas de rodaje'),
-  ('Rodillos Inferiores', 'EXC-ROD-RODILLOS', 'Rodillos de contacto'),
-  ('Rueda Tensora', 'EXC-ROD-TENSORA', 'Rueda de tensión'),
-  ('Rueda Conductora', 'EXC-ROD-CONDUCTORA', 'Rueda motriz'),
-  ('Bastidor de Rodaje', 'EXC-ROD-BASTIDOR', 'Estructura de rodaje')
-) AS t(name, code, description)
-WHERE rodaje_id = (SELECT id FROM components_template WHERE code = 'EXC-RODAJE');
+SELECT 'excavadora', 'Turbocompresor', 'TMPL-TURBO', id, 3, 'Incrementa potencia'
+FROM components_template WHERE code = 'TMPL-MOT-DIESEL';
 
--- ============================================
--- 2. FAULT MODES (Modos de Falla)
--- ============================================
+INSERT INTO components_template (vehicle_type, name, code, parent_id, level, description)
+SELECT 'excavadora', 'Correas y Poleas', 'TMPL-CORREAS', id, 3, 'Transmisión de potencia'
+FROM components_template WHERE code = 'TMPL-MOT-DIESEL';
 
--- Fallas del Motor Diesel
+-- Hydraulic subsystem
+INSERT INTO components_template (vehicle_type, name, code, parent_id, level, description)
+SELECT 'excavadora', 'Sistema Hidráulico', 'TMPL-HIDRAULICO', id, 1, 'Bomba y circuitos hidráulicos'
+FROM components_template WHERE code = 'TMPL-EXC-ROOT';
+
+INSERT INTO components_template (vehicle_type, name, code, parent_id, level, description)
+SELECT 'excavadora', 'Bomba Hidráulica', 'TMPL-BOMBA', id, 2, 'Bomba principal'
+FROM components_template WHERE code = 'TMPL-HIDRAULICO';
+
+INSERT INTO components_template (vehicle_type, name, code, parent_id, level, description)
+SELECT 'excavadora', 'Cilindros Hidráulicos', 'TMPL-CILINDROS', id, 2, 'Actuadores hidráulicos'
+FROM components_template WHERE code = 'TMPL-HIDRAULICO';
+
+-- Track/undercarriage subsystem
+INSERT INTO components_template (vehicle_type, name, code, parent_id, level, description)
+SELECT 'excavadora', 'Tren de Rodaje', 'TMPL-RODAJE', id, 1, 'Orugas y rodillos'
+FROM components_template WHERE code = 'TMPL-EXC-ROOT';
+
+INSERT INTO components_template (vehicle_type, name, code, parent_id, level, description)
+SELECT 'excavadora', 'Orugas', 'TMPL-ORUGAS', id, 2, 'Cadenas de tracción'
+FROM components_template WHERE code = 'TMPL-RODAJE';
+
+INSERT INTO components_template (vehicle_type, name, code, parent_id, level, description)
+SELECT 'excavadora', 'Rodillos', 'TMPL-RODILLOS', id, 2, 'Rodillos de apoyo'
+FROM components_template WHERE code = 'TMPL-RODAJE';
+
+-- Cooling system
+INSERT INTO components_template (vehicle_type, name, code, parent_id, level, description)
+SELECT 'excavadora', 'Sistema Enfriamiento', 'TMPL-ENFRIAMIENTO', id, 1, 'Radiadores y ventiladores'
+FROM components_template WHERE code = 'TMPL-EXC-ROOT';
+
+INSERT INTO components_template (vehicle_type, name, code, parent_id, level, description)
+SELECT 'excavadora', 'Radiador', 'TMPL-RADIADOR', id, 2, 'Disipador de calor'
+FROM components_template WHERE code = 'TMPL-ENFRIAMIENTO';
+
+INSERT INTO components_template (vehicle_type, name, code, parent_id, level, description)
+SELECT 'excavadora', 'Ventilador', 'TMPL-VENTILADOR', id, 2, 'Ventilador eléctrico'
+FROM components_template WHERE code = 'TMPL-ENFRIAMIENTO';
+
+-- Electrical system
+INSERT INTO components_template (vehicle_type, name, code, parent_id, level, description)
+SELECT 'excavadora', 'Sistema Eléctrico', 'TMPL-ELECTRICO', id, 1, 'Baterías y alternador'
+FROM components_template WHERE code = 'TMPL-EXC-ROOT';
+
+INSERT INTO components_template (vehicle_type, name, code, parent_id, level, description)
+SELECT 'excavadora', 'Batería', 'TMPL-BATERIA', id, 2, 'Batería principal'
+FROM components_template WHERE code = 'TMPL-ELECTRICO';
+
+INSERT INTO components_template (vehicle_type, name, code, parent_id, level, description)
+SELECT 'excavadora', 'Alternador', 'TMPL-ALTERNADOR', id, 2, 'Generador eléctrico'
+FROM components_template WHERE code = 'TMPL-ELECTRICO';
+
+-- 3. CREATE FAULT MODES for Motor
 INSERT INTO fault_modes (component_template_id, fault_code, fault_name, description, severity, symptoms, probable_causes)
-SELECT id, fault_code, fault_name, description, severity, symptoms, probable_causes
-FROM (VALUES
-  ('EXC-MOT-DIESEL', 'FM-001', 'Sobrecalentamiento Motor', 'Temperatura excedemax 95°C', 'critica', 'Temperatura alta, pérdida potencia', 'Radiador sucio, termostato fallido, falta de agua'),
-  ('EXC-MOT-DIESEL', 'FM-002', 'Pérdida de Potencia', 'RPM no alcanzan límite', 'mayor', 'Baja potencia, aceleración lenta', 'Turbo fallido, inyectores sucios, filtro aire'),
-  ('EXC-MOT-DIESEL', 'FM-003', 'Ruidos Anormales', 'Golpes o chirridos', 'mayor', 'Ruidos metálicos, vibraciones', 'Bielas flojas, cigüeñal desgastado'),
-  ('EXC-MOT-BLOQUE', 'FM-004', 'Pérdida de Aceite', 'Goteos de aceite', 'mayor', 'Manchas de aceite, bajo nivel', 'Juntas gastadas, grietas en bloque'),
-  ('EXC-MOT-CORREAS', 'FM-005', 'Ruptura de Correas', 'Correas dañadas', 'critica', 'Ruidos chirriantes, avería del motor', 'Desgaste, desalineación de poleas, tensión incorrecta')
-) AS t(component_code, fault_code, fault_name, description, severity, symptoms, probable_causes)
-INNER JOIN components_template ct ON ct.code = t.component_code;
+SELECT id, 'FM-MOTOR-001', 'Sobrecalentamiento', 'Motor excede temperatura límite', 'critica', 'Temperatura > 95°C, humo', 'Radiador obstruido, termostato defectuoso, ventilador lento'
+FROM components_template WHERE code = 'TMPL-MOT-DIESEL';
 
--- Fallas del Sistema Hidráulico
 INSERT INTO fault_modes (component_template_id, fault_code, fault_name, description, severity, symptoms, probable_causes)
-SELECT id, fault_code, fault_name, description, severity, symptoms, probable_causes
-FROM (VALUES
-  ('EXC-HID-BOMBA', 'FM-010', 'Pérdida de Presión', 'Presión baja (<250 bar)', 'critica', 'Movimientos lentos, falta de potencia', 'Bomba desgastada, filtro obstruido, válvula defectuosa'),
-  ('EXC-HID-CILINDROS', 'FM-011', 'Cilindro con Fuga', 'Goteos de aceite', 'mayor', 'Movimiento errático, pérdida potencia', 'Sellos gastados, vástagos dañados'),
-  ('EXC-HID-VALVULAS', 'FM-012', 'Válvula Atascada', 'No responde comando', 'mayor', 'Direcciones no funcionan', 'Sedimento en válvula, aceite contaminado'),
-  ('EXC-HID-TANQUE', 'FM-013', 'Contaminación de Aceite', 'Aceite sucio o turbio', 'mayor', 'Fallos intermitentes, daño de componentes', 'Filtros sucios, entrada de agua/polvo'),
-  ('EXC-HID-ENFRIAMIENTO', 'FM-014', 'Sobrecalentamiento Hidráulico', 'Temp aceite >60°C', 'mayor', 'Falta de presión, sistema lento', 'Enfriador obstruido, radiador sucio')
-) AS t(component_code, fault_code, fault_name, description, severity, symptoms, probable_causes)
-INNER JOIN components_template ct ON ct.code = t.component_code;
+SELECT id, 'FM-MOTOR-002', 'Pérdida de potencia', 'Rendimiento motor disminuido', 'mayor', 'Baja presión, humo negro', 'Inyectores defectuosos, filtro saturado, turbo fallido'
+FROM components_template WHERE code = 'TMPL-MOT-DIESEL';
 
--- Fallas del Tren de Rodaje
 INSERT INTO fault_modes (component_template_id, fault_code, fault_name, description, severity, symptoms, probable_causes)
-SELECT id, fault_code, fault_name, description, severity, symptoms, probable_causes
-FROM (VALUES
-  ('EXC-ROD-ORUGAS', 'FM-020', 'Ruptura de Oruga', 'Cadena rota', 'critica', 'Pérdida de tracción, vehículo inmovilizado', 'Desgaste extremo, impacto, sobrecarga'),
-  ('EXC-ROD-RODILLOS', 'FM-021', 'Rodillo Desgastado', 'Rodillo desalineado', 'mayor', 'Vibración, ruido, desplazamiento lento', 'Desgaste normal por uso, falta de lubricación'),
-  ('EXC-ROD-TENSORA', 'FM-022', 'Rueda Tensora Floja', 'Tensión incorrecta', 'menor', 'Chirridos, vibración leve', 'Pernos sueltos, rodamiento desgastado'),
-  ('EXC-ROD-CONDUCTORA', 'FM-023', 'Rueda Conductora Dañada', 'Dientes rotos', 'critica', 'No hay tracción, vehículo inmovilizado', 'Sobrecarga, impacto, desgaste')
-) AS t(component_code, fault_code, fault_name, description, severity, symptoms, probable_causes)
-INNER JOIN components_template ct ON ct.code = t.component_code;
+SELECT id, 'FM-MOTOR-003', 'Fuga de aceite', 'Pérdida de aceite del motor', 'mayor', 'Manchas bajo máquina, bajo nivel', 'Sello defectuoso, junta quemada, grieta en bloque'
+FROM components_template WHERE code = 'TMPL-MOT-DIESEL';
 
--- ============================================
--- 3. WEAR PARTS (Piezas de Desgaste)
--- ============================================
+-- 4. CREATE WEAR PARTS for Motor faults
+INSERT INTO wear_parts (fault_mode_id, part_code, part_name, description, supplier, unit_cost, lead_time_days, is_critical, stock_current, stock_min)
+SELECT id, 'PART-RAD-001', 'Radiador', 'Radiador completo CAT 390F', 'Dealer CAT Chile', 4500.00, 7, true, 0, 1
+FROM fault_modes WHERE fault_code = 'FM-MOTOR-001';
 
--- Piezas para FM-001 (Sobrecalentamiento)
-INSERT INTO wear_parts (fault_mode_id, part_code, part_name, description, supplier, unit_cost, lead_time_days, is_critical, stock_min)
-SELECT id, part_code, part_name, description, supplier, unit_cost, lead_time_days, is_critical, stock_min
-FROM (VALUES
-  ('FM-001', 'P-001', 'Termostato CAT', 'Termostato de 82°C', 'CAT Parts', 450.00, 3, true, 2),
-  ('FM-001', 'P-002', 'Correa Radiador', 'Correa de transmisión radiador', 'Gates', 120.00, 2, false, 3),
-  ('FM-001', 'P-003', 'Agua Destilada (Garrafón)', '5 litros agua destilada', 'General', 15.00, 1, false, 5)
-) AS t(fault_code, part_code, part_name, description, supplier, unit_cost, lead_time_days, is_critical, stock_min)
-INNER JOIN fault_modes fm ON fm.fault_code = t.fault_code;
+INSERT INTO wear_parts (fault_mode_id, part_code, part_name, description, supplier, unit_cost, lead_time_days, is_critical, stock_current, stock_min)
+SELECT id, 'PART-TERM-001', 'Termostato', 'Termostato regulable', 'Dealer CAT Chile', 450.00, 3, true, 2, 1
+FROM fault_modes WHERE fault_code = 'FM-MOTOR-001';
 
--- Piezas para FM-005 (Ruptura de Correas)
-INSERT INTO wear_parts (fault_mode_id, part_code, part_name, description, supplier, unit_cost, lead_time_days, is_critical, stock_min)
-SELECT id, part_code, part_name, description, supplier, unit_cost, lead_time_days, is_critical, stock_min
-FROM (VALUES
-  ('FM-005', 'P-010', 'Correa Serpentina CAT 3412', 'Correa principal motor', 'CAT Parts', 280.00, 5, true, 2),
-  ('FM-005', 'P-011', 'Polea Cigüeñal', 'Polea motriz', 'CAT Parts', 350.00, 7, true, 1),
-  ('FM-005', 'P-012', 'Tensor de Correa', 'Tensor automático', 'CAT Parts', 180.00, 5, false, 2)
-) AS t(fault_code, part_code, part_name, description, supplier, unit_cost, lead_time_days, is_critical, stock_min)
-INNER JOIN fault_modes fm ON fm.fault_code = t.fault_code;
+INSERT INTO wear_parts (fault_mode_id, part_code, part_name, description, supplier, unit_cost, lead_time_days, is_critical, stock_current, stock_min)
+SELECT id, 'PART-VEN-001', 'Ventilador', 'Ventilador hidráulico', 'Dealer CAT Chile', 2800.00, 5, true, 1, 1
+FROM fault_modes WHERE fault_code = 'FM-MOTOR-001';
 
--- Piezas para FM-010 (Pérdida de Presión Hidráulica)
-INSERT INTO wear_parts (fault_mode_id, part_code, part_name, description, supplier, unit_cost, lead_time_days, is_critical, stock_min)
-SELECT id, part_code, part_name, description, supplier, unit_cost, lead_time_days, is_critical, stock_min
-FROM (VALUES
-  ('FM-010', 'P-020', 'Filtro Hidráulico Principal', 'Filtro de 10 micras', 'Parker', 95.00, 2, true, 3),
-  ('FM-010', 'P-021', 'Kit Reparación Bomba Hidráulica', 'Sellos y empaques', 1200.00, 14, true, 1),
-  ('FM-010', 'P-022', 'Aceite Hidráulico ISO 46', 'Barril de 208 litros', 'Shell Tellus', 380.00, 3, true, 2)
-) AS t(fault_code, part_code, part_name, description, supplier, unit_cost, lead_time_days, is_critical, stock_min)
-INNER JOIN fault_modes fm ON fm.fault_code = t.fault_code;
+INSERT INTO wear_parts (fault_mode_id, part_code, part_name, description, supplier, unit_cost, lead_time_days, is_critical, stock_current, stock_min)
+SELECT id, 'PART-INY-001', 'Juego Inyectores', '6 Inyectores diésel', 'Dealer CAT Chile', 1800.00, 10, true, 0, 1
+FROM fault_modes WHERE fault_code = 'FM-MOTOR-002';
 
--- Piezas para FM-011 (Cilindro con Fuga)
-INSERT INTO wear_parts (fault_mode_id, part_code, part_name, description, supplier, unit_cost, lead_time_days, is_critical, stock_min)
-SELECT id, part_code, part_name, description, supplier, unit_cost, lead_time_days, is_critical, stock_min
-FROM (VALUES
-  ('FM-011', 'P-030', 'Kit Sellos Cilindro', 'Set de sellos y empaques', 'Eaton', 280.00, 7, true, 2),
-  ('FM-011', 'P-031', 'Vástago de Cilindro', 'Vástago cromado 3.5"', 'Parker', 420.00, 10, true, 1)
-) AS t(fault_code, part_code, part_name, description, supplier, unit_cost, lead_time_days, is_critical, stock_min)
-INNER JOIN fault_modes fm ON fm.fault_code = t.fault_code;
+INSERT INTO wear_parts (fault_mode_id, part_code, part_name, description, supplier, unit_cost, lead_time_days, is_critical, stock_current, stock_min)
+SELECT id, 'PART-TURBO-001', 'Turbocompresor', 'Turbo completo', 'Dealer CAT Chile', 8900.00, 14, true, 0, 1
+FROM fault_modes WHERE fault_code = 'FM-MOTOR-002';
 
--- Piezas para FM-020 (Ruptura de Oruga)
-INSERT INTO wear_parts (fault_mode_id, part_code, part_name, description, supplier, unit_cost, lead_time_days, is_critical, stock_min)
-SELECT id, part_code, part_name, description, supplier, unit_cost, lead_time_days, is_critical, stock_min
-FROM (VALUES
-  ('FM-020', 'P-040', 'Oruga Completa CAT 390F', 'Cadena de rodaje completa', 'CAT Parts', 15000.00, 30, true, 0),
-  ('FM-020', 'P-041', 'Eslabón de Oruga', 'Eslabón individual', 'CAT Parts', 280.00, 5, false, 10),
-  ('FM-020', 'P-042', 'Pasador de Eslabón', 'Pasador de acero', 'General', 45.00, 2, false, 20)
-) AS t(fault_code, part_code, part_name, description, supplier, unit_cost, lead_time_days, is_critical, stock_min)
-INNER JOIN fault_modes fm ON fm.fault_code = t.fault_code;
+INSERT INTO wear_parts (fault_mode_id, part_code, part_name, description, supplier, unit_cost, lead_time_days, is_critical, stock_current, stock_min)
+SELECT id, 'PART-SELLO-001', 'Kit sellos motor', 'Sellos y juntas completos', 'Distribuidor Local', 550.00, 2, false, 3, 2
+FROM fault_modes WHERE fault_code = 'FM-MOTOR-003';
 
--- Piezas para FM-023 (Rueda Conductora Dañada)
-INSERT INTO wear_parts (fault_mode_id, part_code, part_name, description, supplier, unit_cost, lead_time_days, is_critical, stock_min)
-SELECT id, part_code, part_name, description, supplier, unit_cost, lead_time_days, is_critical, stock_min
-FROM (VALUES
-  ('FM-023', 'P-050', 'Rueda Conductora CAT 390F', 'Rueda motriz completa', 'CAT Parts', 8500.00, 21, true, 1),
-  ('FM-023', 'P-051', 'Diente de Rueda', 'Diente de reemplazo', 'CAT Parts', 180.00, 7, false, 5),
-  ('FM-023', 'P-052', 'Rodamiento Rueda Conductora', 'Rodamiento SKF', 'SKF', 450.00, 5, true, 2)
-) AS t(fault_code, part_code, part_name, description, supplier, unit_cost, lead_time_days, is_critical, stock_min)
-INNER JOIN fault_modes fm ON fm.fault_code = t.fault_code;
+-- 5. CREATE FAULT MODES for Hydraulic System
+INSERT INTO fault_modes (component_template_id, fault_code, fault_name, description, severity, symptoms, probable_causes)
+SELECT id, 'FM-HID-001', 'Baja presión hidráulica', 'Presión menor a límite operacional', 'critica', 'Movimientos lentos, sin fuerza', 'Bomba desgastada, fuga interna, filtro sucio'
+FROM components_template WHERE code = 'TMPL-BOMBA';
 
--- ============================================
--- 4. EXAMPLE VEHICLE (Excavadora Real)
--- ============================================
+INSERT INTO fault_modes (component_template_id, fault_code, fault_name, description, severity, symptoms, probable_causes)
+SELECT id, 'FM-HID-002', 'Fuga hidráulica', 'Pérdida de fluido', 'mayor', 'Manchas, bajo nivel depósito', 'Manguera rota, sello defectuoso, conexión suelta'
+FROM components_template WHERE code = 'TMPL-BOMBA';
 
-INSERT INTO vehicles (code, name, vehicle_type, model, year, site, status)
-VALUES ('EXC-001', 'Excavadora Amarilla #1', 'excavadora', 'CAT 390F', 2018, 'Faena Mapocho', 'operativo');
+-- 6. CREATE WEAR PARTS for Hydraulic faults
+INSERT INTO wear_parts (fault_mode_id, part_code, part_name, description, supplier, unit_cost, lead_time_days, is_critical, stock_current, stock_min)
+SELECT id, 'PART-BOMBA-001', 'Bomba Hidráulica', 'Bomba de desplazamiento variable', 'Dealer CAT Chile', 12500.00, 21, true, 0, 1
+FROM fault_modes WHERE fault_code = 'FM-HID-001';
 
--- Crear instancias de componentes para esta excavadora
-WITH vehicle_id AS (
-  SELECT id FROM vehicles WHERE code = 'EXC-001'
-),
-template_tree AS (
-  SELECT id, code, name, level
-  FROM components_template
-  WHERE vehicle_type = 'excavadora'
-)
+INSERT INTO wear_parts (fault_mode_id, part_code, part_name, description, supplier, unit_cost, lead_time_days, is_critical, stock_current, stock_min)
+SELECT id, 'PART-FILTRO-HID-001', 'Filtro Hidráulico', 'Elemento filtrante 100µ', 'Distribuidor Local', 180.00, 1, false, 5, 2
+FROM fault_modes WHERE fault_code = 'FM-HID-001';
+
+INSERT INTO wear_parts (fault_mode_id, part_code, part_name, description, supplier, unit_cost, lead_time_days, is_critical, stock_current, stock_min)
+SELECT id, 'PART-MANGUERA-001', 'Juego Mangueras', 'Mangueras de alta presión', 'Distribuidor Local', 2200.00, 3, false, 2, 1
+FROM fault_modes WHERE fault_code = 'FM-HID-002';
+
+-- 7. CREATE COMPONENT INSTANCES for the test vehicle
+-- Motor instance
 INSERT INTO components (vehicle_id, template_id, code, name, parent_id, status)
-SELECT v.id, t.id, 'INST-' || t.code, t.name, NULL, 'operativo'
-FROM vehicle_id v, template_tree t
-WHERE t.level <= 2;
+SELECT v.id, ct.id, 'MOTOR-EXC-001', 'Motor Principal', NULL, 'operativo'
+FROM vehicles v, components_template ct
+WHERE v.code = 'EXC-001' AND ct.code = 'TMPL-MOT-DIESEL';
+
+-- Hydraulic components
+INSERT INTO components (vehicle_id, template_id, code, name, parent_id, status)
+SELECT v.id, ct.id, 'HIDRO-BOMBA-001', 'Bomba Hidráulica', NULL, 'operativo'
+FROM vehicles v, components_template ct
+WHERE v.code = 'EXC-001' AND ct.code = 'TMPL-BOMBA';
+
+-- Commit message
+SELECT 'Seed data - Excavadora CAT 390F con árbol de fallas completo insertado exitosamente' as message;
