@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>n3uralia ERP mining - MVP Roadmap 5 Meses</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #1f2937;
+            background: #fff;
+            padding: 60px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 2.8em;
+            margin: 40px 0 20px 0;
+            color: #0f172a;
+            border-bottom: 4px solid #3b82f6;
+            padding-bottom: 15px;
+        }
+        h2 {
+            font-size: 2em;
+            margin: 35px 0 15px 0;
+            color: #1e293b;
+            border-left: 5px solid #3b82f6;
+            padding-left: 20px;
+        }
+        h3 {
+            font-size: 1.4em;
+            margin: 25px 0 12px 0;
+            color: #334155;
+        }
+        h4 {
+            font-size: 1.1em;
+            margin: 15px 0 10px 0;
+            color: #475569;
+            font-weight: 600;
+        }
+        p {
+            margin: 12px 0 12px 0;
+            text-align: justify;
+        }
+        ul, ol {
+            margin: 15px 0 15px 40px;
+        }
+        li {
+            margin: 8px 0;
+        }
+        code {
+            background: #f8fafc;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.95em;
+            border: 1px solid #e2e8f0;
+        }
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 20px 0;
+            line-height: 1.5;
+            font-size: 0.9em;
+        }
+        pre code {
+            background: none;
+            padding: 0;
+            border: none;
+            color: inherit;
+        }
+        strong {
+            font-weight: 600;
+            color: #0f172a;
+        }
+        a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95em;
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background: #f1f5f9;
+            font-weight: 600;
+            color: #0f172a;
+        }
+        .page-break {
+            page-break-after: always;
+            margin: 40px 0;
+        }
+        .section-header {
+            background: #f0f9ff;
+            border-left: 5px solid #3b82f6;
+            padding: 15px 20px;
+            margin: 25px 0;
+            border-radius: 4px;
+        }
+        .highlight {
+            background: #fef3c7;
+            padding: 1px 4px;
+            border-radius: 2px;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .card {
+            border: 1px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            background: #f8fafc;
+        }
+        @media print {
+            body {
+                padding: 30px;
+                font-size: 10pt;
+            }
+            h1, h2, h3 {
+                page-break-after: avoid;
+            }
+            ul, ol {
+                page-break-inside: avoid;
+            }
+            pre {
+                page-break-inside: avoid;
+            }
+            .page-break {
+                page-break-after: always;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div style="text-align: center; margin-bottom: 50px;">
+        <h1>n3uralia ERP mining</h1>
+        <h2 style="border: none; padding: 0; margin: 10px 0; color: #64748b;">MVP Roadmap — 5 Meses</h2>
+        <p style="margin-top: 20px; color: #64748b; font-size: 1.1em;">Plataforma integral de gestión para operaciones mineras</p>
+    </div>
+
+    <div class="section-header">
+        <h3 style="margin: 0;">Objetivo General</h3>
+    </div>
+    <p>Construir un MVP funcional y listo para producción de <strong>n3uralia ERP mining</strong> enfocado en los 3 módulos operacionales críticos para empresas mineras medianas y contratistas en Chile:</p>
+    <ol style="margin-top: 15px;">
+        <li><strong>Sistema de Documentos</strong> (Document Management & Compliance)</li>
+        <li><strong>Sistema de Mantenimiento</strong> (Assets & Maintenance Management)</li>
+        <li><strong>Bodega/Inventario</strong> (Inventory & Warehouse Management)</li>
+    </ol>
+    <p style="margin-top: 20px;"><strong>Horizonte:</strong> <span class="highlight">5 meses</span> (Enero-Mayo o Julio-Noviembre)</p>
+    <ul>
+        <li><strong>Meses 1-4:</strong> Desarrollo y features core</li>
+        <li><strong>Mes 5:</strong> Testing, QA, bugfixes y optimización</li>
+    </ul>
+
+    <div class="page-break"></div>
+
+    <h2>Fase 0: Setup & Arquitectura (Semanas 1-2)</h2>
+    
+    <h3>Deliverables</h3>
+    <ul>
+        <li>Infraestructura cloud (Vercel, Supabase, o similar)</li>
+        <li>Arquitectura de base de datos relacional normalizada</li>
+        <li>System design de autenticación y RBAC (Role-Based Access Control)</li>
+        <li>Framework de testing (unit, integration, e2e)</li>
+        <li>Documentación de API contracts</li>
+        <li>Setup de CI/CD pipeline</li>
+        <li>Estructura de monorepo (si aplica)</li>
+        <li>Design tokens y componentes base consolidados</li>
+    </ul>
+
+    <h3>Technology Stack</h3>
+    
+    <h4>Frontend</h4>
+    <ul>
+        <li>Next.js 16 / React 19 (SSR para mejor UX)</li>
+        <li>TypeScript strict mode</li>
+        <li>Tailwind CSS v4 (con design system consolidado)</li>
+        <li>shadcn/ui (componentes base)</li>
+        <li>React Hook Form + Zod (forms + validación)</li>
+        <li>TanStack Query (data fetching)</li>
+        <li>Zustand (state management minimalista)</li>
+        <li>Recharts (visualización)</li>
+    </ul>
+
+    <h4>Backend</h4>
+    <ul>
+        <li>Next.js API Routes + Middleware personalizado</li>
+        <li>Supabase o Neon PostgreSQL (database)</li>
+        <li>Prisma ORM (type-safe queries)</li>
+        <li>tRPC (type-safe API)</li>
+        <li>Next Auth (authentication)</li>
+        <li>Bull/Queues para jobs asíncronos</li>
+        <li>OpenAI API (para asistente IA, fase futura)</li>
+    </ul>
+
+    <h4>Testing</h4>
+    <ul>
+        <li>Vitest (unit tests)</li>
+        <li>Playwright (e2e tests)</li>
+        <li>Mock Service Worker (API mocking)</li>
+    </ul>
+
+    <h4>DevOps</h4>
+    <ul>
+        <li>GitHub Actions (CI/CD)</li>
+        <li>Vercel (deployment)</li>
+        <li>Sentry (error tracking)</li>
+        <li>LogRocket (session replay)</li>
+    </ul>
+
+    <div class="page-break"></div>
+
+    <h2>Fase 1: Maestros & Core (Semanas 3-6)</h2>
+    
+    <h3>1.1 Tablas Maestras Fundamentales</h3>
+    <p><strong>Entidades base:</strong></p>
+    <ul style="columns: 2;">
+        <li>companies (empresas)</li>
+        <li>sites/faenas (faenas)</li>
+        <li>contracts (contratos)</li>
+        <li>cost_centers (centros de costo)</li>
+        <li>departments (departamentos)</li>
+        <li>users (usuarios + roles)</li>
+        <li>suppliers (proveedores)</li>
+        <li>warehouses (bodegas)</li>
+        <li>assets (equipos/activos)</li>
+        <li>asset_categories</li>
+        <li>item_categories</li>
+        <li>locations (ubicaciones en bodega)</li>
+        <li>audit_logs (trazabilidad)</li>
+    </ul>
+
+    <h3>1.2 Autenticación & RBAC</h3>
+    <p><strong>Roles base:</strong></p>
+    <ul>
+        <li><code>admin_system</code> - control total del sistema</li>
+        <li><code>admin_company</code> - administrador de empresa</li>
+        <li><code>site_manager</code> - gerente de faena</li>
+        <li><code>warehouse_manager</code> - jefe de bodega</li>
+        <li><code>maintenance_technician</code> - técnico de mantenimiento</li>
+        <li><code>compliance_officer</code> - encargado de cumplimiento documental</li>
+        <li><code>operator</code> - operador general con lectura</li>
+    </ul>
+
+    <h3>1.3 Componentes Base Consolidados</h3>
+    <ul style="columns: 2;">
+        <li><code>DataTable</code> (sorting, filtering, pagination)</li>
+        <li><code>FormBuilder</code> (forms con validación)</li>
+        <li><code>Modal</code> (diálogos consistentes)</li>
+        <li><code>StatusBadge</code> (estados visuales)</li>
+        <li><code>AlertBanner</code> (notificaciones)</li>
+        <li><code>TabsPanel</code> (navegación)</li>
+        <li><code>SearchBar</code> (búsqueda global)</li>
+        <li><code>EmptyState</code> (sin datos)</li>
+        <li><code>ProgressIndicator</code> (workflows)</li>
+        <li><code>TimelineCard</code> (historial)</li>
+    </ul>
+
+    <div class="page-break"></div>
+
+    <h2>Fase 2: Módulo 1 — Sistema de Documentos (Semanas 7-12)</h2>
+    
+    <h3>Objetivo</h3>
+    <p>Crear un sistema robusto de gestión, almacenamiento, versionamiento y cumplimiento de documentos con trazabilidad completa.</p>
+
+    <h3>2.1 Funcionalidades Core</h3>
+    
+    <h4>a) Ingesta y Clasificación de Documentos</h4>
+    <ul>
+        <li>Upload de archivos (PDF, DOC, XLS, JPG, PNG, ZIP)</li>
+        <li>Clasificación automática por tipo (contrato, certificación, permiso, auditoría, procedimiento)</li>
+        <li>Asignación a entidad (proveedor, equipo, faena, contrato)</li>
+        <li>Versionamiento automático</li>
+        <li>Almacenamiento seguro en Vercel Blob o S3</li>
+        <li>OCR básico (extracción de metadatos clave)</li>
+    </ul>
+
+    <h4>b) Gestión de Cumplimiento</h4>
+    <ul>
+        <li>Rastreo de vencimientos</li>
+        <li>Alertas anticipadas (30, 15, 7, 3 días antes)</li>
+        <li>Dashboard de documentos por vencer</li>
+        <li>Checklists de cumplimiento documental</li>
+        <li>Auditoría de aprobaciones</li>
+    </ul>
+
+    <h3>2.2 Especificaciones Técnicas</h3>
+    <p><strong>Backend APIs:</strong></p>
+    <ul>
+        <li><code>POST /api/documents/upload</code> - upload multipart</li>
+        <li><code>GET /api/documents?filter=type,status,expiry</code> - list con filtros</li>
+        <li><code>GET /api/documents/{id}</code> - detalle</li>
+        <li><code>DELETE /api/documents/{id}</code> - delete/archive</li>
+        <li><code>GET /api/documents/{id}/versions</code> - historial de versiones</li>
+    </ul>
+
+    <h3>2.3 Deliverables Fase 2</h3>
+    <ul>
+        <li>Tablas de base de datos para documentos</li>
+        <li>API CRUD completa</li>
+        <li>Dashboard con KPIs</li>
+        <li>Vista de documento individual</li>
+        <li>Modal de carga con validación</li>
+        <li>Reporte de cumplimiento</li>
+        <li>Job automático de alertas</li>
+        <li>Trazabilidad completa</li>
+        <li>Unit + Integration tests</li>
+        <li>API documentation</li>
+    </ul>
+
+    <div class="page-break"></div>
+
+    <h2>Fase 3: Módulo 2 — Sistema de Mantenimiento (Semanas 13-18)</h2>
+    
+    <h3>Objetivo</h3>
+    <p>Crear un sistema de planificación, ejecución y análisis de mantenimiento de activos con trazabilidad de repuestos, costos y tiempo de inactividad.</p>
+
+    <h3>3.1 Funcionalidades Core</h3>
+    
+    <h4>a) Gestión de Activos</h4>
+    <ul>
+        <li>Registro de equipos/activos con metadata completa</li>
+        <li>Código único por activo</li>
+        <li>Historial completo de mantenimiento</li>
+        <li>Documentación asociada (manuales, garantías)</li>
+        <li>Ubicación y responsable asignado</li>
+        <li>Estados: Operacional, En Mantenimiento, Inactivo</li>
+    </ul>
+
+    <h4>b) Órdenes de Mantenimiento</h4>
+    <ul>
+        <li>Mantenimiento preventivo (planificado)</li>
+        <li>Mantenimiento correctivo (reactivo)</li>
+        <li>Inspecciones</li>
+        <li>Asignación automática a técnicos</li>
+        <li>Estimación de costo y tiempo</li>
+        <li>Priorización (baja, normal, alta, crítica)</li>
+    </ul>
+
+    <h4>c) Análisis y Reportes</h4>
+    <ul>
+        <li>Costo total de mantenimiento por activo</li>
+        <li>MTBF (Mean Time Between Failures)</li>
+        <li>MTTR (Mean Time To Repair)</li>
+        <li>Tendencias de falla</li>
+        <li>Alertas de próximo mantenimiento</li>
+    </ul>
+
+    <h3>3.2 Especificaciones Técnicas</h3>
+    <p><strong>Backend APIs:</strong></p>
+    <ul>
+        <li><code>POST /api/maintenance-orders</code> - crear orden</li>
+        <li><code>GET /api/maintenance-orders?filter=status,priority,asset</code> - list</li>
+        <li><code>PUT /api/maintenance-orders/{id}</code> - actualizar</li>
+        <li><code>POST /api/maintenance-orders/{id}/complete</code> - completar</li>
+        <li><code>GET /api/assets/{id}/maintenance-history</code> - historial de activo</li>
+    </ul>
+
+    <h3>3.3 Deliverables Fase 3</h3>
+    <ul>
+        <li>Tablas de activos y órdenes de mantenimiento</li>
+        <li>API CRUD completa</li>
+        <li>Dashboard con KPIs</li>
+        <li>Vista de orden en ejecución</li>
+        <li>Reporte de mantenimiento</li>
+        <li>Job automático de próximos mantenimientos</li>
+        <li>Historial y trazabilidad</li>
+        <li>Unit + Integration tests</li>
+    </ul>
+
+    <div class="page-break"></div>
+
+    <h2>Fase 4: Módulo 3 — Sistema de Bodega/Inventario (Semanas 19-24)</h2>
+    
+    <h3>Objetivo</h3>
+    <p>Crear un sistema de control y trazabilidad de inventario con gestión de recepción, consumo, transferencias y ajustes.</p>
+
+    <h3>4.1 Funcionalidades Core</h3>
+    
+    <h4>a) Gestión de Ítems</h4>
+    <ul>
+        <li>Catálogo de artículos con código, descripción, categoría</li>
+        <li>Unidades de medida (piezas, kg, litros, metros)</li>
+        <li>Costos por unidad</li>
+        <li>Niveles mínimos, máximos y reorden</li>
+        <li>Proveedores asociados</li>
+    </ul>
+
+    <h4>b) Transacciones de Inventario</h4>
+    <ul>
+        <li>Recepción de compras</li>
+        <li>Consumo/salida de materiales</li>
+        <li>Transferencias entre bodegas</li>
+        <li>Ajustes de inventario</li>
+        <li>Devoluciones</li>
+    </ul>
+
+    <h4>c) Localización en Bodega</h4>
+    <ul>
+        <li>Ubicación física (pasillo, estante, bandeja)</li>
+        <li>QR/Barcode por ubicación</li>
+        <li>Búsqueda por ubicación</li>
+        <li>Mapeo visual de bodega</li>
+    </ul>
+
+    <h3>4.2 Especificaciones Técnicas</h3>
+    <p><strong>Backend APIs:</strong></p>
+    <ul>
+        <li><code>POST /api/inventory-items</code> - crear ítem</li>
+        <li><code>GET /api/inventory-items?filter=category,warehouse,status</code> - list</li>
+        <li><code>POST /api/inventory-transactions/receive</code> - recepción</li>
+        <li><code>POST /api/inventory-transactions/consume</code> - salida</li>
+        <li><code>POST /api/inventory-transactions/transfer</code> - transferencia</li>
+        <li><code>POST /api/inventory-transactions/adjust</code> - ajuste</li>
+    </ul>
+
+    <h3>4.3 Deliverables Fase 4</h3>
+    <ul>
+        <li>Tablas de inventario y transacciones</li>
+        <li>API CRUD completa</li>
+        <li>Dashboard con KPIs</li>
+        <li>Vista de ítem con historial</li>
+        <li>Módulos de recepción y salida</li>
+        <li>Módulo de transferencias</li>
+        <li>Reportes de inventario</li>
+        <li>Integración con scanner QR/barcode</li>
+        <li>Unit + Integration tests</li>
+    </ul>
+
+    <div class="page-break"></div>
+
+    <h2>Fase 5: Testing, QA & Optimización (Semanas 25-30 / MES 5)</h2>
+    
+    <h3>Objetivo</h3>
+    <p>Garantizar que el MVP es estable, seguro, rápido y listo para producción. <span class="highlight">100% del mes 5 dedicado a QA.</span></p>
+
+    <h3>5.1 Testing Strategy</h3>
+    
+    <h4>Unit Testing (30% del tiempo)</h4>
+    <ul>
+        <li>Mínimo 80% cobertura de funciones core</li>
+        <li>Vitest + Coverage reporting</li>
+        <li>Test de validaciones (schemas Zod)</li>
+        <li>Test de cálculos (MTBF, MTTR, costeo)</li>
+        <li>Test de transformaciones de datos</li>
+    </ul>
+
+    <h4>Integration Testing (30% del tiempo)</h4>
+    <ul>
+        <li>Flujos end-to-end de cada módulo</li>
+        <li>Interacciones entre tablas (cascadas, foreign keys)</li>
+        <li>APIs de cada módulo</li>
+        <li>Autenticación y RBAC</li>
+        <li>Trazabilidad y audit logs</li>
+    </ul>
+
+    <h4>E2E Testing (20% del tiempo)</h4>
+    <ul>
+        <li>Playwright tests en navegador real</li>
+        <li>Flujos críticos: crear documento, crear orden, recibir inventario</li>
+        <li>Navegación y filtros</li>
+        <li>Upload de archivos y búsqueda</li>
+        <li>Permisos y acceso por rol</li>
+    </ul>
+
+    <h3>5.2 Performance Testing</h3>
+    <ul>
+        <li><strong>Frontend:</strong> Lighthouse score >80, TTI <3s, FCP <1.5s</li>
+        <li><strong>Backend:</strong> Response time <200ms para 95% de requests</li>
+        <li><strong>Database:</strong> Queries optimizadas, índices creados, <strong>O(1) lookups</strong></li>
+        <li><strong>Load Testing:</strong> Simular 100 usuarios concurrentes sin degradación</li>
+    </ul>
+
+    <h3>5.3 Security Testing (OWASP Top 10)</h3>
+    <ul>
+        <li>SQL Injection - parameterized queries verificadas</li>
+        <li>XSS - sanitization en inputs y outputs</li>
+        <li>CSRF - tokens en forms</li>
+        <li>Authentication - password hashing, session management</li>
+        <li>Authorization - RBAC enforcement en APIs</li>
+        <li>Data exposure - encriptación de datos sensibles</li>
+        <li>External API risks - validación de inputs externos</li>
+    </ul>
+
+    <h3>5.4 Manual QA Checklist</h3>
+    
+    <h4>Módulo Documentos</h4>
+    <ul>
+        <li>Upload de diferentes tipos de archivo</li>
+        <li>Versionamiento automático</li>
+        <li>Alertas de vencimiento</li>
+        <li>Búsqueda y filtros funcionan</li>
+        <li>Permisos de descarga/visualización</li>
+        <li>Audit logs registran acciones</li>
+    </ul>
+
+    <h4>Módulo Mantenimiento</h4>
+    <ul>
+        <li>Crear orden preventiva/correctiva</li>
+        <li>Asignación automática a técnico</li>
+        <li>Consumo de repuestos se deduce del inventario</li>
+        <li>Cálculos de MTBF/MTTR son correctos</li>
+        <li>Reportes muestran datos consistentes</li>
+    </ul>
+
+    <h4>Módulo Bodega</h4>
+    <ul>
+        <li>Recepción de compra (escaneo QR, validación cantidades)</li>
+        <li>Consumo deduce stock correctamente</li>
+        <li>Transferencias entre bodegas funcionan</li>
+        <li>Alertas de stock bajo se generan</li>
+        <li>Reportes de inventario son precisos</li>
+    </ul>
+
+    <h3>5.5 Bug Fixes & Optimization</h3>
+    <ul>
+        <li>Priorizar y resolver bugs críticos (crash, data loss)</li>
+        <li>Optimizar queries lentas</li>
+        <li>Mejorar UX basado en feedback</li>
+        <li>Limpiar código y remover technical debt</li>
+        <li>Actualizar dependencias</li>
+    </ul>
+
+    <h3>5.6 Documentation & Training</h3>
+    <ul>
+        <li>API documentation completa (Swagger/OpenAPI)</li>
+        <li>User guides por módulo</li>
+        <li>Video tutoriales (3-5 min cada uno)</li>
+        <li>Guía de administrador (roles, permisos, backups)</li>
+        <li>Troubleshooting guide</li>
+    </ul>
+
+    <h3>5.7 Launch Preparation</h3>
+    <ul>
+        <li><strong>Production Setup:</strong> Database, secrets, CDN, backups</li>
+        <li><strong>Monitoring:</strong> Sentry, LogRocket, error alerts</li>
+        <li><strong>Runbook:</strong> Procedimientos de incident response</li>
+        <li><strong>Training:</strong> Sesiones con usuarios finales</li>
+        <li><strong>Go-Live Plan:</strong> Rollout gradual, pilot users</li>
+    </ul>
+
+    <h3>5.8 Success Criteria</h3>
+    <ul>
+        <li>✅ 0 críticos bugs en producción por 7 días</li>
+        <li>✅ 80%+ test coverage</li>
+        <li>✅ Lighthouse score >80</li>
+        <li>✅ Uptime > 99.5%</li>
+        <li>✅ Response time p95 <200ms</li>
+        <li>✅ Todos los requisitos OWASP cumplidos</li>
+        <li>✅ Documentación completa y usuarios capacitados</li>
+    </ul>
+
+    <div class="page-break"></div>
+
+    <h2>Estimación de Recursos</h2>
+    
+    <div class="grid-2">
+        <div class="card">
+            <h4>Equipo Recomendado</h4>
+            <ul style="margin-left: 20px;">
+                <li>1x Lead Developer (full-stack)</li>
+                <li>2x Backend Developers</li>
+                <li>2x Frontend Developers</li>
+                <li>1x QA Engineer</li>
+                <li>1x DevOps/Infrastructure</li>
+                <li>1x Product Manager (part-time)</li>
+            </ul>
+        </div>
+        <div class="card">
+            <h4>Costos Estimados</h4>
+            <ul style="margin-left: 20px;">
+                <li>Cloud Infrastructure: $1,500-2,500/mes</li>
+                <li>Third-party services: $500-1,000/mes</li>
+                <li>Development: $150k-200k USD</li>
+                <li>Testing & QA: $20k-30k USD</li>
+                <li><strong>Total MVP: $200k-270k USD</strong></li>
+            </ul>
+        </div>
+    </div>
+
+    <h2>Riesgos & Mitigación</h2>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Riesgo</th>
+                <th>Probabilidad</th>
+                <th>Mitigación</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Scope creep (features adicionales)</td>
+                <td>Alta</td>
+                <td>Definir MVP mínimo, rechazar features fuera de scope</td>
+            </tr>
+            <tr>
+                <td>Problemas de performance en producción</td>
+                <td>Media</td>
+                <td>Load testing riguroso en Fase 5, monitoring desde día 1</td>
+            </tr>
+            <tr>
+                <td>Bugs críticos post-lanzamiento</td>
+                <td>Media</td>
+                <td>80%+ coverage de tests, pilot users antes de full rollout</td>
+            </tr>
+            <tr>
+                <td>Retraso en integración de módulos</td>
+                <td>Media</td>
+                <td>APIs contractuales claras desde Fase 0, testing temprano</td>
+            </tr>
+            <tr>
+                <td>Usuarios no adoptan la plataforma</td>
+                <td>Baja</td>
+                <td>Capacitación, UX testing con usuarios reales, feedback loop</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="page-break"></div>
+
+    <h2>Próximos Pasos Post-MVP</h2>
+    
+    <h3>Meses 6-12 (Roadmap Futuro)</h3>
+    <ul>
+        <li><strong>Módulo 4 - Finanzas:</strong> Costeo, presupuestos, flujo de caja</li>
+        <li><strong>Módulo 5 - HSE/Seguridad:</strong> Incidentes, inspecciones, reportes de seguridad</li>
+        <li><strong>Integración con proveedores:</strong> API para ERP externos, automatización</li>
+        <li><strong>IA/Automación:</strong> Asistente IA para análisis de datos, predicciones</li>
+        <li><strong>Mobile app:</strong> React Native para operaciones campo</li>
+        <li><strong>Multi-tenancy avanzada:</strong> Gestión de múltiples empresas</li>
+    </ul>
+
+    <h2>Conclusión</h2>
+    <p>Este roadmap proporciona una ruta clara para construir un MVP de n3uralia ERP mining que sea:</p>
+    <ul>
+        <li>✅ <strong>Funcional:</strong> 3 módulos core operacionales completos</li>
+        <li>✅ <strong>Confiable:</strong> 80%+ test coverage, seguridad OWASP, monitoring</li>
+        <li>✅ <strong>Escalable:</strong> Arquitectura preparada para crecimiento futuro</li>
+        <li>✅ <strong>Mantenible:</strong> Código limpio, documentado, equipo capacitado</li>
+        <li>✅ <strong>Lanzable:</strong> Mes 5 100% dedicado a QA y producción-ready</li>
+    </ul>
+    <p style="margin-top: 30px; font-weight: 600;">El MVP será un producto competitivo en el mercado de ERPs mineros chilenos.</p>
+
+    <div style="margin-top: 60px; padding-top: 30px; border-top: 2px solid #e2e8f0; text-align: center; color: #64748b; font-size: 0.9em;">
+        <p><strong>n3uralia ERP mining — MVP Roadmap 5 Meses</strong></p>
+        <p>Documento generado automáticamente | Versión 1.0</p>
+        <p style="margin-top: 10px; font-size: 0.85em;">Clasificación: Interno | Para: Stakeholders & Equipo de Desarrollo</p>
+    </div>
+</body>
+</html>

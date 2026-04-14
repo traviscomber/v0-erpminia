@@ -3,8 +3,24 @@ import os
 import re
 from pathlib import Path
 
+# Buscar el archivo
+possible_paths = [
+    "MVP_ROADMAP_5_MONTHS.md",
+    "/vercel/share/v0-project/MVP_ROADMAP_5_MONTHS.md",
+]
+
+md_file = None
+for path in possible_paths:
+    if os.path.exists(path):
+        md_file = Path(path)
+        print(f"✓ Encontrado: {path}")
+        break
+
+if not md_file:
+    print(f"Error: No se encontró MVP_ROADMAP_5_MONTHS.md")
+    exit(1)
+
 # Read the markdown file
-md_file = Path('/vercel/share/v0-project/MVP_ROADMAP_5_MONTHS.md')
 content = md_file.read_text(encoding='utf-8')
 
 # Convert markdown to HTML
@@ -203,9 +219,9 @@ full_html = f"""<!DOCTYPE html>
 """
 
 # Write HTML file
-output_file = Path('/vercel/share/v0-project/MVP_ROADMAP_5_MONTHS.html')
+output_file = Path('MVP_ROADMAP_5_MONTHS.html')
 output_file.write_text(full_html, encoding='utf-8')
 
 print(f"✓ PDF HTML generado exitosamente")
-print(f"✓ Archivo: {output_file}")
+print(f"✓ Archivo: MVP_ROADMAP_5_MONTHS.html")
 print(f"✓ Abre el archivo en tu navegador y presiona Ctrl+P (o Cmd+P en Mac) para guardar como PDF")
