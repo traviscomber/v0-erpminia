@@ -58,24 +58,12 @@ const menuItems = [
   },
   // Supply Chain
   {
-    label: 'Procurement',
-    href: '/dashboard/procurement',
-    icon: ShoppingCart,
-    group: 'Logística',
-  },
-  {
     label: 'Inventario',
     href: '/dashboard/bodega',
     icon: Boxes,
     group: 'Logística',
   },
   // Safety & Compliance
-  {
-    label: 'HSE / Compliance',
-    href: '/dashboard/hse',
-    icon: AlertTriangle,
-    group: 'Seguridad',
-  },
   {
     label: 'Documentos',
     href: '/dashboard/documentos-v2',
