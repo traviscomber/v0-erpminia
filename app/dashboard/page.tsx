@@ -202,9 +202,11 @@ export default function DashboardPage() {
               </CardTitle>
               <CardDescription>Acciones inmediatas requeridas</CardDescription>
             </div>
-            <Button variant="outline" size="sm">
-              Ver todas
-            </Button>
+            <Link href="/dashboard/alertas">
+              <Button variant="outline" size="sm" className="gap-2 bg-[var(--brand-verde)] text-white hover:bg-[var(--brand-verde)]/90 border-0">
+                Ver todas
+              </Button>
+            </Link>
           </div>
         </CardHeader>
         <CardContent>
