@@ -7,6 +7,9 @@ import {
   TrendingDown,
   Calendar,
   Search,
+  Download,
+  Filter,
+  Eye,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -18,6 +21,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { BrandCard } from '@/components/ui/brand-card';
+import { StatusBadge } from '@/components/status-badge';
+import { AuditTrail } from '@/components/audit-trail';
+import { exportToCSV } from '@/lib/export-utils';
 import {
   PieChart,
   Pie,
@@ -35,6 +42,7 @@ import { mockFinances } from '@/lib/data';
 export default function FinanzasPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [selectedInvoice, setSelectedInvoice] = useState<typeof mockFinances[0] | null>(null);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('es-CL', {

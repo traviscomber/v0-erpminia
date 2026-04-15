@@ -23,8 +23,14 @@ import {
   Barcode,
   ArrowRightLeft,
   Eye,
+  Download,
+  Filter,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { BrandCard } from '@/components/ui/brand-card';
+import { AuditTrail } from '@/components/audit-trail';
+import { StatusBadge } from '@/components/status-badge';
+import { exportToCSV } from '@/lib/export-utils';
 import {
   BarChart,
   Bar,
@@ -37,10 +43,20 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  LineChart,
+  Line,
 } from 'recharts';
 import { CHART_COLORS_LIGHT } from '@/lib/theme-colors';
 
-interface InventoryItem {
+interface InventoryMovement {
+  id: string;
+  type: 'in' | 'out' | 'adjustment';
+  quantity: number;
+  date: string;
+  reference: string;
+  responsible: string;
+  notes?: string;
+}
   id: string;
   name: string;
   sku: string;
@@ -64,6 +80,7 @@ interface InventoryItem {
 
 export default function BodegaPage() {
   const [items, setItems] = useState<InventoryItem[]>([]);
+  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [loading, setLoading] = useState(true);

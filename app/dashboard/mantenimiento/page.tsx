@@ -18,8 +18,16 @@ import {
   AlertCircle,
   TrendingUp,
   BarChart3,
+  Download,
+  Filter,
+  Eye,
+  Link2,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { BrandCard } from '@/components/ui/brand-card';
+import { StatusBadge } from '@/components/status-badge';
+import { AuditTrail } from '@/components/audit-trail';
+import { exportToCSV } from '@/lib/export-utils';
 import {
   BarChart,
   Bar,
@@ -48,6 +56,9 @@ interface MaintenanceOrder {
   technician: string;
   priority: 'baja' | 'media' | 'alta' | 'critica_seguridad';
   estimated_mttr?: number; // minutes
+  purchase_order_id?: string; // Link to Compras
+  inventory_items?: string[]; // Links to Bodega
+  document_id?: string; // Link to Documentos
   actual_mttr?: number; // minutes
   failure_code?: string;
   preventive_score?: number; // 0-100

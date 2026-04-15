@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Search, Filter, Eye, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Search, Filter, Eye, Edit2, Trash2, Download } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,10 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { BrandCard } from '@/components/ui/brand-card';
+import { StatusBadge } from '@/components/status-badge';
+import { AuditTrail } from '@/components/audit-trail';
+import { exportToCSV } from '@/lib/export-utils';
 import { mockPurchaseOrders } from '@/lib/data';
 
 const statusConfig: Record<string, { color: string; label: string }> = {
@@ -26,6 +30,7 @@ const statusConfig: Record<string, { color: string; label: string }> = {
 export default function ComprasPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<typeof mockPurchaseOrders[0] | null>(null);
+  const [statusFilter, setStatusFilter] = useState('all');
 
   const filteredOrders = mockPurchaseOrders.filter(
     (order) =>
