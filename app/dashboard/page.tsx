@@ -314,10 +314,12 @@ export default function DashboardPage() {
               Registra incidentes, work orders o solicitudes de aprobación rápidamente
             </p>
           </div>
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
-            Crear Tarea
-          </Button>
+          <Link href="/dashboard/crear-tarea">
+            <Button className="gap-2 bg-[var(--brand-naranja)] hover:bg-[var(--brand-naranja)]/90">
+              <Plus className="h-4 w-4" />
+              Crear Tarea
+            </Button>
+          </Link>
         </div>
       </div>
     </div>
