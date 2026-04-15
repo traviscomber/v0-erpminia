@@ -40,7 +40,7 @@ export default function VehiclesPage() {
 
       {/* Create Vehicle Button */}
       <BrandCard variant="default">
-        <Button className="gap-2 bg-[var(--brand-naranja)] hover:bg-[var(--brand-naranja)]/90">
+        <Button className="gap-2 bg-[var(--brand-naranja)] hover:bg-[var(--brand-naranja)]/90" onClick={() => alert('Crear nuevo vehículo - Funcionalidad próximamente')}>
           <Plus className="h-4 w-4" />
           Crear Nuevo Vehículo
         </Button>

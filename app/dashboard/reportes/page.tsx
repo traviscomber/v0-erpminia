@@ -63,7 +63,7 @@ export default function ExecutiveDashboard() {
               Visión consolidada de los 3 módulos operacionales clave
             </p>
           </div>
-          <Button className="gap-2">
+          <Button className="gap-2" onClick={() => alert('Exportar reporte próximamente')}>
             <Download className="h-4 w-4" />
             Exportar Reporte
           </Button>

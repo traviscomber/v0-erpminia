@@ -92,7 +92,7 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="bg-muted/50 py-20">
+      <section id="modules" className="bg-muted/50 py-20">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4">3 Módulos Integrados</h2>
@@ -371,8 +371,10 @@ export default function Home() {
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10 gap-2">
-              Ver Documentación
+            <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10 gap-2" asChild>
+              <Link href="/dashboard/guias">
+                Ver Documentación
+              </Link>
             </Button>
           </div>
         </div>

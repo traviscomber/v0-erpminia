@@ -95,7 +95,7 @@ export default function FinanzasPage() {
               Gestión de Facturas, Pagos y Reportes Financieros
             </p>
           </div>
-          <Button>Crear Factura</Button>
+          <Button onClick={() => alert('Crear nueva factura próximamente')}>Crear Factura</Button>
         </div>
       </div>
 

@@ -121,15 +121,15 @@ export default function BodegaPage() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" className="gap-2">
+            <Button variant="outline" className="gap-2" onClick={() => alert('Funcionalidad de escaneo QR próximamente')}>
               <QrCode className="h-4 w-4" />
               Escanear QR
             </Button>
-            <Button variant="outline" className="gap-2">
+            <Button variant="outline" className="gap-2" onClick={() => alert('Módulo de conteo cíclico próximamente')}>
               <Package className="h-4 w-4" />
               Conteo Cíclico
             </Button>
-            <Button className="gap-2">
+            <Button className="gap-2" onClick={() => alert('Crear nuevo movimiento de inventario próximamente')}>
               <Plus className="h-4 w-4" />
               Nuevo Movimiento
             </Button>

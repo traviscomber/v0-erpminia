@@ -105,7 +105,7 @@ export default function DocumentosPage() {
         <CardHeader className="pb-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <CardTitle>Biblioteca de Documentos</CardTitle>
-            <Button className="w-full md:w-auto">
+            <Button className="w-full md:w-auto" onClick={() => alert('Subir nuevo documento próximamente')}>
               <Plus className="w-4 h-4 mr-2" />
               Subir Documento
             </Button>

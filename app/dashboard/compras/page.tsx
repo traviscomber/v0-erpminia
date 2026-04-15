@@ -31,6 +31,7 @@ export default function ComprasPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<typeof mockPurchaseOrders[0] | null>(null);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [showFilters, setShowFilters] = useState(false);
 
   const filteredOrders = mockPurchaseOrders.filter(
     (order) =>
@@ -95,7 +96,7 @@ export default function ComprasPage() {
         <CardHeader className="pb-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <CardTitle>Órdenes de Compra</CardTitle>
-            <Button className="w-full md:w-auto">
+            <Button className="w-full md:w-auto" onClick={() => alert('Crear nueva orden de compra próximamente')}>
               <Plus className="w-4 h-4 mr-2" />
               Nueva Orden
             </Button>
@@ -113,7 +114,7 @@ export default function ComprasPage() {
                 className="pl-10 bg-input"
               />
             </div>
-            <Button variant="outline" className="gap-2">
+            <Button variant="outline" className="gap-2" onClick={() => setShowFilters(!showFilters)}>
               <Filter className="w-4 h-4" />
               Filtros
             </Button>

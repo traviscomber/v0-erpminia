@@ -305,10 +305,10 @@ export default function WorkOrderDetailPage() {
 
       {/* Actions */}
       <div className="flex gap-3">
-        <Button variant="outline">Editar</Button>
-        <Button variant="outline">Generar Reporte</Button>
-        <Button variant="outline">Cerrar Orden</Button>
-        <Button className="ml-auto" variant="outline">Volver</Button>
+        <Button variant="outline" onClick={() => alert('Editar orden de trabajo próximamente')}>Editar</Button>
+        <Button variant="outline" onClick={() => alert('Generar reporte de OT próximamente')}>Generar Reporte</Button>
+        <Button variant="outline" onClick={() => alert('Cerrar orden de trabajo próximamente')}>Cerrar Orden</Button>
+        <Button className="ml-auto" variant="outline" onClick={() => window.history.back()}>Volver</Button>
       </div>
     </div>
   );
