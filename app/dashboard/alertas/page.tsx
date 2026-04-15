@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -106,6 +107,7 @@ export default function AlertasPage() {
   const [alerts, setAlerts] = useState(mockAlerts);
   const [filter, setFilter] = useState<'todos' | 'no-leidas' | 'criticas' | 'accion'>('todos');
   const [archivedCount, setArchivedCount] = useState(0);
+  const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
 
   const filteredAlerts = alerts.filter((alert) => {
     if (filter === 'no-leidas') return !alert.read;
@@ -223,8 +225,10 @@ export default function AlertasPage() {
         </Button>
       </div>
 
-      {/* Alerts List */}
-      <div className="space-y-3">
+      {/* Main Content with Detail Panel */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          {/* Alerts List */}
         {filteredAlerts.length === 0 ? (
           <Card className="border-border">
             <CardContent className="py-12 text-center">
@@ -240,7 +244,8 @@ export default function AlertasPage() {
             return (
               <Card
                 key={alert.id}
-                className={`border-border transition-all ${!alert.read ? 'bg-accent' : ''}`}
+                className={`border-border transition-all cursor-pointer ${!alert.read ? 'bg-accent' : ''} ${selectedAlert?.id === alert.id ? 'ring-2 ring-[var(--brand-naranja)]' : ''}`}
+                onClick={() => setSelectedAlert(alert)}
               >
                 <CardContent className="p-4">
                   <div className="flex gap-4">
@@ -306,6 +311,63 @@ export default function AlertasPage() {
               </Card>
             );
           })
+        )}
+      </div>
+        </div>
+
+        {/* Detail Panel */}
+        {selectedAlert && (
+          <div className="lg:col-span-1">
+            <Card className="border-[var(--brand-naranja)]/30 bg-[var(--brand-naranja)]/5 sticky top-20">
+              <CardHeader>
+                <div className="flex items-start justify-between gap-2">
+                  <CardTitle>Detalles de Alerta</CardTitle>
+                  <button onClick={() => setSelectedAlert(null)} className="text-muted-foreground hover:text-foreground">✕</button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase font-semibold mb-1">Título</p>
+                  <p className="font-semibold text-foreground">{selectedAlert.title}</p>
+                </div>
+                
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase font-semibold mb-1">Descripción</p>
+                  <p className="text-sm text-foreground">{selectedAlert.description}</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase font-semibold mb-1">Severidad</p>
+                    <Badge className={severityConfig[selectedAlert.severity].color}>
+                      {severityConfig[selectedAlert.severity].label}
+                    </Badge>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase font-semibold mb-1">Tipo</p>
+                    <Badge variant="outline">{selectedAlert.type}</Badge>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase font-semibold mb-1">Fecha</p>
+                  <p className="text-sm text-foreground">{new Date(selectedAlert.timestamp).toLocaleString('es-CL')}</p>
+                </div>
+
+                <div className="pt-2">
+                  {selectedAlert.actionUrl && (
+                    <Button asChild className="w-full bg-[var(--brand-naranja)] hover:bg-[var(--brand-naranja)]/90" onClick={() => {
+                      setSelectedAlert(null);
+                    }}>
+                      <Link href={selectedAlert.actionUrl}>
+                        Ir a {selectedAlert.type === 'documento' ? 'Documentos' : selectedAlert.type === 'mantenimiento' ? 'Mantenimiento' : 'Bodega'}
+                      </Link>
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         )}
       </div>
     </div>
