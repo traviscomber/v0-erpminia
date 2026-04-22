@@ -347,124 +347,101 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Roles Section - Elegant Branded Design */}
+      {/* Roles Section - Elegant & Sophisticated */}
       <section className="max-w-7xl mx-auto px-4 py-24">
         <div className="text-center mb-20">
           <h2 className="text-5xl font-bold mb-6">Diseñado para Cada Rol</h2>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Cada persona en tu equipo accede exactamente a lo que necesita. Controles granulares, auditoría completa, y vistas personalizadas por rol.
+            Cada persona accede exactamente a lo que necesita. Controles granulares, auditoría completa, vistas personalizadas.
           </p>
         </div>
 
-        {/* Stats Cards - Top Overview */}
-        <div className="grid md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
-          {[
-            { label: 'Roles', value: '6', color: 'text-[var(--brand-naranja)]' },
-            { label: 'Módulos', value: '13', color: 'text-[var(--brand-verde)]' },
-            { label: 'Permisos', value: 'Granular', color: 'text-purple-500' },
-            { label: 'Auditoría', value: '100%', color: 'text-[var(--brand-rojo)]' },
-            { label: 'Personalizable', value: 'Sí', color: 'text-blue-500' },
-            { label: 'Seguridad', value: 'Top', color: 'text-emerald-500' },
-          ].map((stat, i) => (
-            <div key={i} className="bg-card border border-border rounded-lg p-4 text-center hover:border-[var(--brand-naranja)]/50 transition-colors">
-              <div className={`text-2xl font-bold ${stat.color} mb-1`}>{stat.value}</div>
-              <div className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">{stat.label}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Roles Grid */}
+        {/* Roles Grid - Clean & Minimal */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[
             {
               role: 'Operador de Producción',
               icon: '⚙️',
-              color: 'bg-[var(--brand-naranja)]/5',
-              borderColor: 'border-l-4 border-l-[var(--brand-naranja)]',
-              badgeBg: 'bg-[var(--brand-naranja)]/20 text-[var(--brand-naranja)]',
+              accentColor: 'border-t-2 border-t-[var(--brand-naranja)]',
+              badgeBg: 'bg-[var(--brand-naranja)]/10 text-[var(--brand-naranja)]',
               badge: '4 módulos',
-              description: 'Ve la operación en vivo. Detecta anomalías antes de que causen paradas costosas.',
+              description: 'Monitorea la operación en vivo, detecta anomalías y reporta fallas en tiempo real.',
               modules: ['Producción', 'Alertas'],
               tasks: ['Monitorear sensores', 'Detectar anomalías', 'Reportar fallas', 'Ver KPIs']
             },
             {
               role: 'Jefe de Mantención',
               icon: '👷',
-              color: 'bg-purple-500/5',
-              borderColor: 'border-l-4 border-l-purple-500',
-              badgeBg: 'bg-purple-500/20 text-purple-500',
+              accentColor: 'border-t-2 border-t-purple-400',
+              badgeBg: 'bg-purple-400/10 text-purple-400',
               badge: '9 módulos',
-              description: 'Gestiona toda la mantención. Asigna OT, supervisa progreso, optimiza MTTR.',
+              description: 'Gestiona la mantención completa, asigna OT y supervisa progreso en vivo.',
               modules: ['Mantención', 'Work-Orders', 'Bodega', '+2'],
               tasks: ['Crear y asignar OT', 'Monitorear progreso', 'Resolver bloqueos', 'Analizar MTTR']
             },
             {
               role: 'Técnico de Campo',
               icon: '🔧',
-              color: 'bg-[var(--brand-verde)]/5',
-              borderColor: 'border-l-4 border-l-[var(--brand-verde)]',
-              badgeBg: 'bg-[var(--brand-verde)]/20 text-[var(--brand-verde)]',
+              accentColor: 'border-t-2 border-t-sky-400',
+              badgeBg: 'bg-sky-400/10 text-sky-400',
               badge: '4 módulos',
-              description: 'OT en móvil/tablet. Checklist, QR, evidencia. Todo offline-first.',
+              description: 'Recibe OT en móvil/tablet con checklist, QR y captura de evidencia offline-first.',
               modules: ['Mantención', 'Work-Orders', 'Bodega'],
               tasks: ['Recibir OT', 'Checklist móvil', 'Escanear QR', 'Adjuntar evidencia']
             },
             {
               role: 'Responsable Bodega',
               icon: '📦',
-              color: 'bg-[var(--brand-verde)]/5',
-              borderColor: 'border-l-4 border-l-[var(--brand-verde)]',
-              badgeBg: 'bg-[var(--brand-verde)]/20 text-[var(--brand-verde)]',
+              accentColor: 'border-t-2 border-t-emerald-400',
+              badgeBg: 'bg-emerald-400/10 text-emerald-400',
               badge: '5 módulos',
-              description: 'Controla todo el inventario. Stock, FIFO, reórdenes automáticas.',
+              description: 'Controla inventario, stock y reórdenes automáticas con trazabilidad FIFO.',
               modules: ['Bodega', 'Inventario', 'Compras', '+1'],
               tasks: ['Recibir materiales', 'Gestionar stock', 'Escanear QR', 'Alertas stock']
             },
             {
               role: 'Oficial HSE/Compliance',
               icon: '✅',
-              color: 'bg-[var(--brand-rojo)]/5',
-              borderColor: 'border-l-4 border-l-[var(--brand-rojo)]',
-              badgeBg: 'bg-[var(--brand-rojo)]/20 text-[var(--brand-rojo)]',
+              accentColor: 'border-t-2 border-t-amber-400',
+              badgeBg: 'bg-amber-400/10 text-amber-400',
               badge: '10 módulos',
-              description: 'Auditoría completa. Documentos, checklists, cumplimiento normativo.',
+              description: 'Auditoría completa de OT, documentos, checklists y cumplimiento normativo.',
               modules: ['HSE', 'Documentos', 'Mantención', '+2'],
               tasks: ['Auditar OT', 'Ver documentos', 'Revisar checklists', 'Reportes']
             },
             {
               role: 'Supervisor/Gerencia',
               icon: '📊',
-              color: 'bg-gradient-to-br from-[var(--brand-naranja)]/10 to-purple-500/10',
-              borderColor: 'border-l-4 border-l-[var(--brand-naranja)]',
-              badgeBg: 'bg-[var(--brand-naranja)]/30 text-[var(--brand-naranja)] font-bold',
+              accentColor: 'border-t-2 border-t-[var(--brand-naranja)]',
+              badgeBg: 'bg-[var(--brand-naranja)]/15 text-[var(--brand-naranja)] font-semibold',
               badge: 'ACCESO TOTAL',
-              description: 'Dashboard ejecutivo integral. KPIs, costos, tendencias, ROI en tiempo real.',
+              description: 'Dashboard ejecutivo integral con KPIs, costos, tendencias y ROI en tiempo real.',
               modules: ['Todos', 'los', 'módulos'],
               tasks: ['Dashboard KPIs', 'Análisis costos', 'Tendencias fallas', 'ROI preventivo']
             },
           ].map((item, i) => (
             <div
               key={i}
-              className={`${item.borderColor} ${item.color} rounded-lg p-6 backdrop-blur-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer`}
+              className={`${item.accentColor} rounded-xl bg-card/50 backdrop-blur-sm border border-border/40 p-6 hover:border-border/60 hover:bg-card/70 transition-all duration-300 group hover:shadow-md`}
             >
-              <div className="flex justify-between items-start mb-5">
-                <span className="text-4xl group-hover:scale-110 transition-transform">{item.icon}</span>
-                <span className={`${item.badgeBg} text-xs font-bold px-3 py-1.5 rounded-full whitespace-nowrap`}>
+              <div className="flex justify-between items-start mb-4">
+                <span className="text-4xl group-hover:scale-110 transition-transform duration-300">{item.icon}</span>
+                <span className={`${item.badgeBg} text-xs font-semibold px-3 py-1 rounded-lg`}>
                   {item.badge}
                 </span>
               </div>
 
-              <h3 className="text-xl font-bold mb-2 text-foreground">{item.role}</h3>
-              <p className="text-sm text-muted-foreground mb-5 leading-relaxed">{item.description}</p>
+              <h3 className="text-lg font-bold mb-1.5 text-foreground">{item.role}</h3>
+              <p className="text-sm text-muted-foreground mb-5">{item.description}</p>
 
-              <div className="space-y-5">
+              <div className="space-y-4">
                 <div>
-                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Acceso a</p>
+                  <p className="text-xs font-bold text-muted-foreground/70 uppercase tracking-wide mb-2">Acceso a</p>
                   <div className="flex flex-wrap gap-2">
                     {item.modules.map((mod, j) => (
                       <span
                         key={j}
-                        className="text-xs px-3 py-1.5 rounded-full bg-background/50 border border-border/50 text-foreground font-medium group-hover:border-[var(--brand-naranja)]/50 transition-colors"
+                        className="text-xs px-2.5 py-1 rounded-md bg-muted/60 border border-border/30 text-foreground/80 font-medium"
                       >
                         {mod}
                       </span>
@@ -472,13 +449,13 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="border-t border-border/30 pt-4">
-                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Funciones clave</p>
-                  <ul className="space-y-2">
+                <div className="border-t border-border/20 pt-4">
+                  <p className="text-xs font-bold text-muted-foreground/70 uppercase tracking-wide mb-2">Funciones</p>
+                  <ul className="space-y-1.5">
                     {item.tasks.map((task, j) => (
-                      <li key={j} className="flex gap-3 text-sm">
-                        <span className="text-[var(--brand-naranja)] font-bold text-lg leading-none">•</span>
-                        <span className="text-foreground">{task}</span>
+                      <li key={j} className="flex gap-2.5 text-sm">
+                        <span className="text-muted-foreground/40 font-light">−</span>
+                        <span className="text-foreground/80">{task}</span>
                       </li>
                     ))}
                   </ul>
@@ -489,11 +466,10 @@ export default function Home() {
         </div>
 
         <div className="mt-16 text-center">
-          <p className="text-muted-foreground mb-6 text-sm">Necesitas ver permisos específicos o crear roles personalizados?</p>
           <Link href="/dashboard/roles">
-            <Button size="lg" className="gap-2 bg-[var(--brand-naranja)] hover:bg-[var(--brand-naranja)]/90">
-              Explorar Matriz de Permisos
-              <ArrowRight className="h-5 w-5" />
+            <Button size="lg" className="gap-2 bg-[var(--brand-naranja)] hover:bg-[var(--brand-naranja)]/90 text-white shadow-sm">
+              Ver Matriz de Permisos Detallada
+              <ArrowRight className="h-4 w-4" />
             </Button>
           </Link>
         </div>
