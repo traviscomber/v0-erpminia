@@ -1,0 +1,33 @@
+{
+  "extends": [
+    "next/core-web-vitals",
+    "plugin:@next/next/recommended",
+    "plugin:security/recommended"
+  ],
+  "plugins": ["security", "@next/next"],
+  "rules": {
+    "react/no-unescaped-entities": "warn",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
+    "@next/next/no-html-link-for-pages": "warn",
+    "security/detect-object-injection": "warn",
+    "security/detect-non-literal-regexp": "warn",
+    "no-console": [
+      "warn",
+      {
+        "allow": ["warn", "error"]
+      }
+    ],
+    "no-eval": "error",
+    "no-implied-eval": "error",
+    "no-new-func": "error"
+  },
+  "overrides": [
+    {
+      "files": ["app/**/*.tsx", "components/**/*.tsx"],
+      "rules": {
+        "react/no-unescaped-entities": "off"
+      }
+    }
+  ]
+}
