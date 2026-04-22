@@ -34,6 +34,40 @@ export async function middleware(request: NextRequest) {
     }
   );
 
+  // Handle Supabase auth callback from email links
+  if (request.nextUrl.pathname === '/auth/callback') {
+    const code = request.nextUrl.searchParams.get('code');
+    const error = request.nextUrl.searchParams.get('error');
+    const error_description = request.nextUrl.searchParams.get('error_description');
+
+    if (error) {
+      console.error('[v0] Auth callback error:', error, error_description);
+      return NextResponse.redirect(
+        new URL(`/auth/login?error=${encodeURIComponent(error_description || error)}`, request.url)
+      );
+    }
+
+    if (code) {
+      try {
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+        if (exchangeError) {
+          console.error('[v0] Code exchange error:', exchangeError);
+          return NextResponse.redirect(
+            new URL(`/auth/login?error=${encodeURIComponent(exchangeError.message)}`, request.url)
+          );
+        }
+
+        // Session established successfully
+        return NextResponse.redirect(new URL('/dashboard', request.url));
+      } catch (err) {
+        console.error('[v0] Callback error:', err);
+        return NextResponse.redirect(
+          new URL('/auth/login?error=authentication_failed', request.url)
+        );
+      }
+    }
+  }
+
   // Refresh session
   const {
     data: { user },
@@ -43,6 +77,13 @@ export async function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith('/dashboard')) {
     if (!user) {
       return NextResponse.redirect(new URL('/auth/login', request.url));
+    }
+  }
+
+  // Protected routes - setup only accessible before auth
+  if (request.nextUrl.pathname === '/setup') {
+    if (user) {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
     }
   }
 

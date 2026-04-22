@@ -242,9 +242,45 @@ NEXTAUTH_SECRET=your_secret_key
 NEXT_PUBLIC_SENTRY_DSN=https://your-sentry-dsn
 ```
 
+### Supabase Configuration (Important for Production)
+
+**Email Redirect URLs:**
+Configure in Supabase Console → Authentication → URL Configuration:
+
+1. **Local Development:**
+   - `http://localhost:3000/auth/callback`
+
+2. **Production:**
+   - `https://your-domain.com/auth/callback`
+   - `https://your-domain.vercel.app/auth/callback` (if using Vercel)
+
+**Email Templates:**
+Update in Supabase Console → Authentication → Email Templates:
+- Confirmation Email: Use `{{ .ConfirmationURL }}` (will redirect to /auth/callback automatically)
+- Password Reset: Use `{{ .ConfirmationURL }}`
+
+**Site URL:**
+Set in Supabase Console → Authentication → Settings:
+- Site URL: Your production domain (e.g., `https://your-domain.com`)
+
 ---
 
-## Development
+## Quick Fix: Email Confirmation Not Working
+
+**Problem:** Email confirmation links redirect to localhost or show authentication error
+
+**Solution:**
+1. Go to [Supabase Console](https://app.supabase.com)
+2. Select your project → Authentication → URL Configuration
+3. Add your production URL to **Redirect URLs**:
+   ```
+   https://your-domain.com/auth/callback
+   https://your-domain.vercel.app/auth/callback
+   ```
+4. Set **Site URL** to: `https://your-domain.com`
+5. Save and test email confirmation again
+
+---
 
 ### Running Tests
 ```bash
