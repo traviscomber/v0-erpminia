@@ -109,6 +109,12 @@ const menuItems = [
   },
   // Educational & Help
   {
+    label: 'Integración Completa',
+    href: '/dashboard/integracion-completa',
+    icon: Network,
+    group: 'Ayuda',
+  },
+  {
     label: 'Arquitectura Integración',
     href: '/dashboard/integracion-arquitectura',
     icon: Network,
