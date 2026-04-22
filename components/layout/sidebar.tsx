@@ -185,7 +185,7 @@ export function Sidebar() {
           </Link>
         </div>
 
-        {/* Navigation Menu */}
+        {/* Navigation Menu - v2 */}
         <nav className="flex-1 px-4 py-6 overflow-y-auto">
           <div className="space-y-6">
             {['Core', 'Minería', 'Logística', 'Seguridad', 'Administración', 'Ayuda'].map((group) => {
