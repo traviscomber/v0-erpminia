@@ -6,39 +6,80 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart3 } from 'lucide-react';
+import { BarChart3, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [formData, setFormData] = useState({
-    company: '',
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
+  const supabase = createClient();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [fullName, setFullName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const validatePassword = (pwd: string) => {
+    if (pwd.length < 8) return 'Mínimo 8 caracteres';
+    if (!/[A-Z]/.test(pwd)) return 'Debe contener mayúscula';
+    if (!/[0-9]/.test(pwd)) return 'Debe contener número';
+    if (!/[!@#$%^&*]/.test(pwd)) return 'Debe contener símbolo (!@#$%^&*)';
+    return null;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (formData.password !== formData.confirmPassword) {
-      alert('Las contraseñas no coinciden');
+    setError(null);
+    setSuccess(false);
+
+    // Validations
+    if (!email || !password || !confirmPassword || !fullName) {
+      setError('Todos los campos son obligatorios');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Las contraseñas no coinciden');
+      return;
+    }
+
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setError(`Contraseña débil: ${passwordError}`);
       return;
     }
 
     setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      router.push('/dashboard');
+
+    try {
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+            role: 'operador_produccion', // Default role
+          },
+        },
+      });
+
+      if (signUpError) {
+        setError(signUpError.message);
+        setIsLoading(false);
+        return;
+      }
+
+      if (data.user) {
+        setSuccess(true);
+        setTimeout(() => {
+          router.push('/auth/login');
+        }, 2000);
+      }
+    } catch (err) {
+      setError('Error al registrarse. Intenta de nuevo.');
       setIsLoading(false);
-    }, 500);
+    }
   };
 
   return (
@@ -56,97 +97,103 @@ export default function RegisterPage() {
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl">Crear Cuenta</CardTitle>
             <CardDescription>
-              ERP SegurIA - Registrate en la Plataforma
+              n3uralia ERP - Plataforma de Gestión Minera
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <label htmlFor="company" className="text-sm font-medium">
-                  Empresa
-                </label>
-                <Input
-                  id="company"
-                  name="company"
-                  placeholder="Nombre de la Empresa"
-                  value={formData.company}
-                  onChange={handleChange}
-                  required
-                  className="bg-input"
-                />
+            {success ? (
+              <div className="flex flex-col items-center justify-center py-8 space-y-3">
+                <CheckCircle2 className="w-12 h-12 text-green-600" />
+                <p className="font-semibold text-center">¡Registro exitoso!</p>
+                <p className="text-sm text-muted-foreground text-center">
+                  Redirigiendo a login en 2 segundos...
+                </p>
               </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {error && (
+                  <div className="flex items-start gap-3 p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
+                    <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-destructive">{error}</p>
+                  </div>
+                )}
 
-              <div className="space-y-2">
-                <label htmlFor="name" className="text-sm font-medium">
-                  Nombre Completo
-                </label>
-                <Input
-                  id="name"
-                  name="name"
-                  placeholder="Tu Nombre"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="bg-input"
-                />
-              </div>
+                <div className="space-y-2">
+                  <label htmlFor="fullName" className="text-sm font-medium">
+                    Nombre Completo
+                  </label>
+                  <Input
+                    id="fullName"
+                    type="text"
+                    placeholder="Juan Pérez"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    disabled={isLoading}
+                    required
+                    className="bg-input"
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium">
-                  Correo Electrónico
-                </label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="usuario@empresa.cl"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="bg-input"
-                />
-              </div>
+                <div className="space-y-2">
+                  <label htmlFor="email" className="text-sm font-medium">
+                    Correo Electrónico
+                  </label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="usuario@empresa.cl"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={isLoading}
+                    required
+                    className="bg-input"
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <label htmlFor="password" className="text-sm font-medium">
-                  Contraseña
-                </label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  className="bg-input"
-                />
-              </div>
+                <div className="space-y-2">
+                  <label htmlFor="password" className="text-sm font-medium">
+                    Contraseña
+                  </label>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={isLoading}
+                    required
+                    className="bg-input"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Mínimo 8 caracteres, mayúscula, número y símbolo (!@#$%^&*)
+                  </p>
+                </div>
 
-              <div className="space-y-2">
-                <label htmlFor="confirmPassword" className="text-sm font-medium">
-                  Confirmar Contraseña
-                </label>
-                <Input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  placeholder="••••••••"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  required
-                  className="bg-input"
-                />
-              </div>
+                <div className="space-y-2">
+                  <label htmlFor="confirmPassword" className="text-sm font-medium">
+                    Confirmar Contraseña
+                  </label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    placeholder="••••••••"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    disabled={isLoading}
+                    required
+                    className="bg-input"
+                  />
+                </div>
 
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Registrando...' : 'Crear Cuenta'}
-              </Button>
-            </form>
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Registrando...' : 'Crear Cuenta'}
+                </Button>
+              </form>
+            )}
 
             <div className="mt-6 text-center text-sm">
               <p className="text-muted-foreground">
@@ -155,7 +202,10 @@ export default function RegisterPage() {
                   Inicia sesión aquí
                 </Link>
               </p>
-              <p className="text-xs text-muted-foreground text-center mt-4 pt-4 border-t border-border">
+            </div>
+
+            <div className="mt-6 pt-6 border-t border-border">
+              <p className="text-xs text-muted-foreground text-center pt-4">
                 Powered by <a href="https://n3uralia.com" target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline">n3uralia</a>
               </p>
             </div>
