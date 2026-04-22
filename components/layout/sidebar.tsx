@@ -21,6 +21,8 @@ import {
   Cpu,
   HelpCircle,
   Network,
+  Zap,
+  Shield,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -49,6 +51,12 @@ const menuItems = [
     group: 'Minería',
   },
   {
+    label: 'Producción',
+    href: '/dashboard/produccion',
+    icon: Zap,
+    group: 'Minería',
+  },
+  {
     label: 'Work Orders',
     href: '/dashboard/work-orders',
     icon: Plus,
@@ -74,6 +82,12 @@ const menuItems = [
     group: 'Logística',
   },
   // Safety & Compliance
+  {
+    label: 'HSE & Compliance',
+    href: '/dashboard/hse',
+    icon: Shield,
+    group: 'Seguridad',
+  },
   {
     label: 'Documentos',
     href: '/dashboard/documentos-v2',
@@ -168,7 +182,7 @@ export function Sidebar() {
         {/* Navigation Menu */}
         <nav className="flex-1 px-4 py-6 overflow-y-auto">
           <div className="space-y-6">
-            {['Core', 'Minería', 'Logística', 'Seguridad', 'Administración'].map((group) => {
+            {['Core', 'Minería', 'Logística', 'Seguridad', 'Administración', 'Ayuda'].map((group) => {
               const groupItems = menuItems.filter((item) => item.group === group);
               if (groupItems.length === 0) return null;
 
