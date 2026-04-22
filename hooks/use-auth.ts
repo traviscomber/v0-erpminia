@@ -12,21 +12,26 @@ export function useAuth() {
 
   useEffect(() => {
     const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
 
-      if (!user) {
-        router.push('/auth/login');
-        return;
+        if (user) {
+          setUser(user);
+          const userRole = user.user_metadata?.role || 'viewer';
+          setRole(userRole);
+        } else {
+          setUser(null);
+          setRole(null);
+        }
+      } catch (error) {
+        console.error('[v0] Error getting user:', error);
+        setUser(null);
+        setRole(null);
+      } finally {
+        setLoading(false);
       }
-
-      setUser(user);
-      
-      // Get user role from metadata or database
-      const userRole = user.user_metadata?.role || 'viewer';
-      setRole(userRole);
-      setLoading(false);
     };
 
     getUser();
@@ -34,10 +39,11 @@ export function useAuth() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('[v0] Auth state changed:', event);
+      
       if (!session?.user) {
         setUser(null);
         setRole(null);
-        router.push('/auth/login');
       } else {
         setUser(session.user);
         const userRole = session.user.user_metadata?.role || 'viewer';
@@ -46,11 +52,29 @@ export function useAuth() {
     });
 
     return () => subscription?.unsubscribe();
-  }, [router, supabase]);
+  }, [supabase]);
 
   const logout = async () => {
-    await supabase.auth.signOut();
-    router.push('/');
+    try {
+      console.log('[v0] Logging out user...');
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('[v0] Logout error:', error);
+        throw error;
+      }
+      
+      setUser(null);
+      setRole(null);
+      console.log('[v0] Logout successful, redirecting...');
+      
+      // Redirect after state is cleared
+      router.push('/auth/login');
+    } catch (error) {
+      console.error('[v0] Error during logout:', error);
+      // Force redirect anyway
+      router.push('/auth/login');
+    }
   };
 
   return { user, loading, role, logout };
