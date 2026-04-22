@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     const supabase = createClient();
 
     // Get user by email
-    const { data: users, error: getUserError } = await supabase.auth.admin.listUsers();
+    const { data: { users }, error: getUserError } = await supabase.auth.admin.listUsers();
 
     if (getUserError) {
       console.error('[v0] Error listing users:', getUserError);
@@ -34,31 +34,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Mark email as confirmed
-    const { error: updateError } = await supabase.auth.admin.updateUserById(user.id, {
+    // Mark email as confirmed using the correct parameter
+    const { data, error: updateError } = await supabase.auth.admin.updateUserById(user.id, {
       email_confirm: true,
-      user_metadata: {
-        ...user.user_metadata,
-        email_confirmed: true,
-      },
     });
 
     if (updateError) {
       console.error('[v0] Error confirming email:', updateError);
       return NextResponse.json(
-        { error: 'Failed to confirm email' },
+        { error: `Failed to confirm email: ${updateError.message}` },
         { status: 500 }
       );
     }
 
     return NextResponse.json(
-      { success: true, message: `Email ${email} marked as confirmed` },
+      { 
+        success: true, 
+        message: `Email ${email} marked as confirmed`,
+        user_id: user.id
+      },
       { status: 200 }
     );
   } catch (err) {
     console.error('[v0] Confirm email error:', err);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: `Internal server error: ${err instanceof Error ? err.message : 'Unknown error'}` },
       { status: 500 }
     );
   }
