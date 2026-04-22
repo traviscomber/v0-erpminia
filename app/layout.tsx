@@ -9,8 +9,8 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 const _montserrat = Montserrat({ subsets: ["latin"], variable: "--font-heading" });
 
 export const metadata: Metadata = {
-  title: 'ERP SegurIA',
-  description: 'Plataforma integral de gestión de operaciones mineras',
+  title: 'n3uralia ERP Minería - Plataforma Integral de Gestión Operacional',
+  description: 'Sistema integrado de Producción, Mantención, Bodega, HSE y Documentos para operaciones mineras. Dashboards en vivo, automatización inteligente y auditoría completa.',
   generator: 'v0.app',
   icons: {
     icon: [

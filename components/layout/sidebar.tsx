@@ -228,7 +228,7 @@ export function Sidebar() {
           </Link>
         </div>
 
-        {/* Navigation Menu - v6 Collapsible Groups */}
+        {/* Navigation Menu - v7 Sistema Completo 5 Módulos */}
         <nav className="flex-1 px-4 py-6 overflow-y-auto">
           <div className="space-y-2">
             {['Core', 'Minería', 'Logística', 'Documentos', 'Seguridad', 'Administración', 'Ayuda'].map((group) => {

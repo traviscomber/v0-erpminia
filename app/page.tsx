@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BrandCard } from '@/components/ui/brand-card';
-import { Zap, Map, CheckCircle2, BarChart3, HelpCircle, ArrowRight, FileText, Package, Wrench } from 'lucide-react';
+import { Zap, Map, CheckCircle2, BarChart3, HelpCircle, ArrowRight, FileText, Package, Wrench, Shield, Cpu, FolderOpen } from 'lucide-react';
 
 export default function Home() {
   return (
@@ -12,7 +12,7 @@ export default function Home() {
       {/* Navigation */}
       <nav className="border-b border-border sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="font-bold text-xl text-[var(--brand-naranja)]">ERP SegurIA</div>
+          <div className="font-bold text-xl text-[var(--brand-naranja)]">n3uralia ERP</div>
           <Link href="/auth/login">
             <Button className="bg-[var(--brand-naranja)] hover:bg-[var(--brand-naranja)]/90">
               Iniciar Sesión
@@ -30,10 +30,10 @@ export default function Home() {
             </p>
           </div>
           <h1 className="text-5xl md:text-6xl font-bold text-foreground">
-            ERP SegurIA
+            n3uralia ERP Minería
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Plataforma integral de gestión operacional minera. De la identificación de fallas hasta el reporte de costos, todo integrado en un solo sistema.
+            Plataforma integral de gestión operacional minera. Producción, Mantención, Bodega, HSE y Documentos integrados. De sensor a decisión ejecutiva en tiempo real.
           </p>
           <div className="flex gap-4 justify-center pt-4">
             <Link href="/auth/login">
@@ -95,92 +95,148 @@ export default function Home() {
       <section id="modules" className="bg-muted/50 py-20">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">3 Módulos Integrados</h2>
+            <h2 className="text-4xl font-bold mb-4">5 Módulos Integrados</h2>
             <p className="text-muted-foreground text-lg">
-              Todo lo que necesitas para gestionar operaciones mineras en una sola plataforma
+              Plataforma completa de gestión operacional minera integrada en tiempo real
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* Mantenimiento de Maquinarias */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6">
+            {/* Producción */}
             <Card className="border-l-4 border-l-[var(--brand-naranja)]">
               <CardHeader>
-                <Wrench className="h-8 w-8 text-[var(--brand-naranja)] mb-2" />
-                <CardTitle>Mantenimiento de Maquinarias</CardTitle>
-                <CardDescription>Árbol de Fallas & OT</CardDescription>
+                <Zap className="h-8 w-8 text-[var(--brand-naranja)] mb-2" />
+                <CardTitle className="text-base">Producción</CardTitle>
+                <CardDescription>OT Real-time</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm">
-                  Sistema integrado de diagnóstico y gestión de órdenes de trabajo jerárquicas con trabajo paralelo de técnicos.
+              <CardContent className="space-y-3">
+                <p className="text-xs">
+                  Monitoreo en vivo de equipos, sensores y KPIs operacionales
                 </p>
-                <ul className="text-sm space-y-2 text-muted-foreground">
+                <ul className="text-xs space-y-1 text-muted-foreground">
                   <li className="flex gap-2">
                     <span className="text-[var(--brand-naranja)]">→</span>
-                    Árbol de fallas con modos de falla
+                    Sensores & Telemetría
                   </li>
                   <li className="flex gap-2">
                     <span className="text-[var(--brand-naranja)]">→</span>
-                    Órdenes anidadas por componente
+                    Alarmas en vivo
                   </li>
                   <li className="flex gap-2">
                     <span className="text-[var(--brand-naranja)]">→</span>
-                    Tracking de progreso en tiempo real
+                    KPIs de equipos
                   </li>
                 </ul>
               </CardContent>
             </Card>
 
-            {/* Inventario y Bodega */}
+            {/* Mantención */}
+            <Card className="border-l-4 border-l-purple-500">
+              <CardHeader>
+                <Wrench className="h-8 w-8 text-purple-500 mb-2" />
+                <CardTitle className="text-base">Mantención</CardTitle>
+                <CardDescription>OT Jerárquicas</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-xs">
+                  Árbol de fallas y órdenes de trabajo anidadas
+                </p>
+                <ul className="text-xs space-y-1 text-muted-foreground">
+                  <li className="flex gap-2">
+                    <span className="text-purple-500">→</span>
+                    Diagnóstico automático
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-purple-500">→</span>
+                    OT paralelas
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-purple-500">→</span>
+                    MTTR tracking
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Bodega */}
             <Card className="border-l-4 border-l-[var(--brand-verde)]">
               <CardHeader>
                 <Package className="h-8 w-8 text-[var(--brand-verde)] mb-2" />
-                <CardTitle>Inventario y Bodega</CardTitle>
+                <CardTitle className="text-base">Bodega</CardTitle>
                 <CardDescription>Control Total</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm">
-                  Gestión completa de recepción, almacenamiento y despacho con trazabilidad FIFO y códigos QR.
+              <CardContent className="space-y-3">
+                <p className="text-xs">
+                  Gestión completa de inventario con trazabilidad QR
                 </p>
-                <ul className="text-sm space-y-2 text-muted-foreground">
+                <ul className="text-xs space-y-1 text-muted-foreground">
                   <li className="flex gap-2">
                     <span className="text-[var(--brand-verde)]">→</span>
-                    Códigos QR y trazabilidad completa
+                    Códigos QR
                   </li>
                   <li className="flex gap-2">
                     <span className="text-[var(--brand-verde)]">→</span>
-                    Alertas de bajo stock automáticas
+                    FIFO automático
                   </li>
                   <li className="flex gap-2">
                     <span className="text-[var(--brand-verde)]">→</span>
-                    Control de vencimientos FIFO
+                    Stock alerts
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* HSE & Compliance */}
+            <Card className="border-l-4 border-l-[var(--brand-rojo)]">
+              <CardHeader>
+                <Shield className="h-8 w-8 text-[var(--brand-rojo)] mb-2" />
+                <CardTitle className="text-base">HSE</CardTitle>
+                <CardDescription>Compliance</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-xs">
+                  Seguridad, incidentes y cumplimiento normativo
+                </p>
+                <ul className="text-xs space-y-1 text-muted-foreground">
+                  <li className="flex gap-2">
+                    <span className="text-[var(--brand-rojo)]">→</span>
+                    Matriz de riesgos
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-[var(--brand-rojo)]">→</span>
+                    Incidentes & RCA
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-[var(--brand-rojo)]">→</span>
+                    Auditorías
                   </li>
                 </ul>
               </CardContent>
             </Card>
 
             {/* Gestión Documental */}
-            <Card className="border-l-4 border-l-[var(--brand-rojo)]">
+            <Card className="border-l-4 border-l-[var(--brand-gold)]">
               <CardHeader>
-                <FileText className="h-8 w-8 text-[var(--brand-rojo)] mb-2" />
-                <CardTitle>Gestión Documental</CardTitle>
-                <CardDescription>Trazabilidad Legal</CardDescription>
+                <FolderOpen className="h-8 w-8 text-[var(--brand-gold)] mb-2" />
+                <CardTitle className="text-base">Documentos</CardTitle>
+                <CardDescription>Central</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm">
-                  Gestión centralizada de documentos, reportes y registros de cumplimiento normativo y HSE.
+              <CardContent className="space-y-3">
+                <p className="text-xs">
+                  Contratos, procedimientos y reportes versionados
                 </p>
-                <ul className="text-sm space-y-2 text-muted-foreground">
+                <ul className="text-xs space-y-1 text-muted-foreground">
                   <li className="flex gap-2">
-                    <span className="text-[var(--brand-rojo)]">→</span>
-                    Almacenamiento centralizado seguro
+                    <span className="text-[var(--brand-gold)]">→</span>
+                    Contratos & OC
                   </li>
                   <li className="flex gap-2">
-                    <span className="text-[var(--brand-rojo)]">→</span>
-                    Versionado y auditoría completa
+                    <span className="text-[var(--brand-gold)]">→</span>
+                    Procedimientos
                   </li>
                   <li className="flex gap-2">
-                    <span className="text-[var(--brand-rojo)]">→</span>
-                    Cumplimiento normativo HSE
+                    <span className="text-[var(--brand-gold)]">→</span>
+                    Versionado
                   </li>
                 </ul>
               </CardContent>
@@ -190,55 +246,85 @@ export default function Home() {
       </section>
 
       {/* Integrated Workflow Section */}
-      <section className="max-w-7xl mx-auto px-4 py-20 bg-muted/30 rounded-2xl">
+      <section className="max-w-7xl mx-auto px-4 py-20">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4">El Flujo Integrado: De Falla a Cierre</h2>
+          <h2 className="text-4xl font-bold mb-4">La Cascada Completa: De Sensor a Decisión</h2>
           <p className="text-muted-foreground text-lg">
-            Cómo los 3 módulos trabajan juntos en una operación real de minería
+            Cómo los 5 módulos se comunican automáticamente en una operación real
           </p>
         </div>
 
-        <div className="space-y-6 max-w-4xl mx-auto">
-          {/* Mantenimiento */}
+        <div className="space-y-4 max-w-4xl mx-auto">
+          {/* Producción */}
           <div className="bg-background rounded-lg border border-[var(--brand-naranja)]/20 p-6">
             <div className="flex gap-4 mb-4">
               <div className="flex-shrink-0">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--brand-naranja)] text-white font-bold text-sm">1-3</div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--brand-naranja)] text-white font-bold text-sm">1</div>
               </div>
               <div>
-                <h3 className="font-semibold text-lg text-[var(--brand-naranja)]">Mantenimiento: Identificar → Diagnosticar → Crear OT</h3>
+                <h3 className="font-semibold text-lg text-[var(--brand-naranja)]">Producción: Sensor Detecta Anomalía</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Técnico identifica falla en excavadora → Sistema muestra árbol de fallas → Selecciona modo de falla probable → Sistema sugiere piezas necesarias → OT se crea automáticamente con técnicos y componentes asignados
+                  Sensor de vibración en excavadora dispara alerta. Sistema identifica equipoafectado y posible modo de falla.
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Inventario */}
-          <div className="bg-background rounded-lg border border-[var(--brand-verde)]/20 p-6">
+          {/* Mantención */}
+          <div className="bg-background rounded-lg border border-purple-500/20 p-6 ml-8">
             <div className="flex gap-4 mb-4">
               <div className="flex-shrink-0">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--brand-verde)] text-white font-bold text-sm">4-5</div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-500 text-white font-bold text-sm">2</div>
               </div>
               <div>
-                <h3 className="font-semibold text-lg text-[var(--brand-verde)]">Inventario: Reservar → Consumir → Reponer</h3>
+                <h3 className="font-semibold text-lg text-purple-600">Mantención: OT Automática Creada</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  OT solicita piezas → Bodega las reserva → Técnico las consume en el sitio (código QR) → Sistema actualiza stock automáticamente → Alerta si cae bajo mínimo → Se genera reorden
+                  OT se genera automáticamente con árbol de fallas sugerido. Técnicos reciben asignación en sus tablets. Sistema asigna técnicos paralelos por componente.
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Documental */}
-          <div className="bg-background rounded-lg border border-[var(--brand-rojo)]/20 p-6">
+          {/* Bodega */}
+          <div className="bg-background rounded-lg border border-[var(--brand-verde)]/20 p-6 ml-16">
             <div className="flex gap-4 mb-4">
               <div className="flex-shrink-0">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--brand-rojo)] text-white font-bold text-sm">6-7</div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--brand-verde)] text-white font-bold text-sm">3</div>
               </div>
               <div>
-                <h3 className="font-semibold text-lg text-[var(--brand-rojo)]">Documental: Evidencia → Cierre → Auditoría</h3>
+                <h3 className="font-semibold text-lg text-[var(--brand-verde)]">Bodega: Stock Reservado</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Técnico adjunta fotos, checklist firmado, y manual de procedimiento a la OT → Sistema cierra OT → Documentos quedan asociados y versionados → Auditoría: historial completo de intervención, costos, tiempo, stock usado
+                  Piezas necesarias se reservan automáticamente. Si falta algo, se dispara reorden. Código QR scanea cada movimiento.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* HSE */}
+          <div className="bg-background rounded-lg border border-[var(--brand-rojo)]/20 p-6 ml-24">
+            <div className="flex gap-4 mb-4">
+              <div className="flex-shrink-0">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--brand-rojo)] text-white font-bold text-sm">4</div>
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg text-[var(--brand-rojo)]">HSE: Alertas & Requisitos</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Incidente registrado automáticamente. Se disparan requisitos normativos si aplican. Checklists de seguridad obligatorios en la OT.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Documentos */}
+          <div className="bg-background rounded-lg border border-[var(--brand-gold)]/20 p-6 ml-32">
+            <div className="flex gap-4 mb-4">
+              <div className="flex-shrink-0">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--brand-gold)] text-white font-bold text-sm">5</div>
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg text-[var(--brand-gold)]">Documentos: Cierre & Auditoría</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  OT cierra con evidencia (fotos, firmas). Documentos versionados y almacenados. Auditoría completa del incidente: qué, quién, cuándo, cuánto costó, qué se usó.
                 </p>
               </div>
             </div>
@@ -251,9 +337,9 @@ export default function Home() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--brand-naranja)] text-white font-bold text-sm">✓</div>
               </div>
               <div>
-                <h3 className="font-semibold text-lg">Resultado: Datos Integrados</h3>
+                <h3 className="font-semibold text-lg">Resultado: Dashboard Ejecutivo</h3>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Gerencia ve en dashboards: MTTR, costo por activo, patrón de fallas repetidas, consumo de stock, cumplimiento HSE. Todo vinculado, nada duplicado.
+                  Gerencia ve MTTR, costo total del incidente, patrón de fallas, stock consumido, cumplimiento HSE. Todo vinculado, ningún dato duplicado, decisiones informadas en tiempo real.
                 </p>
               </div>
             </div>
@@ -273,34 +359,34 @@ export default function Home() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[
             {
+              role: 'Operador de Producción',
+              icon: '⚙️',
+              tasks: ['Monitorear sensores', 'Detectar anomalías', 'Reportar fallas', 'Ver KPIs en vivo']
+            },
+            {
               role: 'Jefe de Mantención',
               icon: '👷',
-              tasks: ['Asignar OT', 'Ver progreso en tiempo real', 'Resolver bloqueos', 'Analizar MTTR']
+              tasks: ['Asignar OT', 'Ver progreso en vivo', 'Resolver bloqueos', 'Analizar MTTR']
             },
             {
               role: 'Técnico de Campo',
               icon: '🔧',
-              tasks: ['Recibir OT', 'Checklist en tablet/móvil', 'Consumir piezas (QR)', 'Adjuntar evidencia']
+              tasks: ['Recibir OT', 'Checklist en móvil', 'Consumir piezas (QR)', 'Adjuntar evidencia']
             },
             {
               role: 'Responsable Bodega',
               icon: '📦',
-              tasks: ['Recibir materiales', 'Gestionar stock', 'Escanear movimientos', 'Alertas de bajo stock']
+              tasks: ['Recibir materiales', 'Gestionar stock', 'Escanear movimientos', 'Alertas de stock']
             },
             {
-              role: 'HSE/Compliance',
+              role: 'Oficial HSE/Compliance',
               icon: '✅',
-              tasks: ['Auditar OT cerradas', 'Ver documentos versionados', 'Checklists firmados', 'Reportes de cumplimiento']
+              tasks: ['Auditar OT', 'Ver documentos', 'Checklists firmados', 'Reportes de cumplimiento']
             },
             {
               role: 'Supervisor/Gerencia',
               icon: '📊',
               tasks: ['Dashboard de KPIs', 'Análisis de costos', 'Tendencias de fallas', 'ROI preventivo']
-            },
-            {
-              role: 'Contratistas',
-              icon: '🤝',
-              tasks: ['Documentos requeridos', 'OT asignadas', 'Historial de trabajos', 'Evaluación']
             },
           ].map((item, i) => (
             <BrandCard key={i}>
@@ -326,33 +412,45 @@ export default function Home() {
       {/* Trust & Features Section */}
       <section className="max-w-7xl mx-auto px-4 py-20">
         <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold mb-4">Construido para Confianza Operacional</h2>
+          <h2 className="text-3xl font-bold mb-4">Construido para Operaciones Mineras Complejas</h2>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
           <div className="space-y-2">
-            <h3 className="font-semibold flex items-center gap-2">🔒 Auditoría Completa</h3>
-            <p className="text-sm text-muted-foreground">Historial inmutable de cada cambio, quién lo hizo y cuándo. Trazabilidad legal para cumplimiento.</p>
+            <h3 className="font-semibold flex items-center gap-2">📡 Monitoreo 24/7</h3>
+            <p className="text-sm text-muted-foreground">Sensores en vivo, alarmas automáticas, detección temprana de anomalías antes de que causen paradas costosas.</p>
           </div>
           <div className="space-y-2">
-            <h3 className="font-semibold flex items-center gap-2">📱 Acceso Móvil & Offline</h3>
-            <p className="text-sm text-muted-foreground">Técnicos trabajan sin conexión. La app sincroniza cuando regresa la cobertura. Cero downtime de campo.</p>
+            <h3 className="font-semibold flex items-center gap-2">🔒 Auditoría Completa</h3>
+            <p className="text-sm text-muted-foreground">Historial inmutable de cada evento, quién hizo qué, cuándo. Trazabilidad legal para cumplimiento regulatorio.</p>
+          </div>
+          <div className="space-y-2">
+            <h3 className="font-semibold flex items-center gap-2">📱 Acceso Móvil</h3>
+            <p className="text-sm text-muted-foreground">Técnicos en el campo con tablets/móvil. Trabajo offline sincronizado automáticamente. Cero downtime.</p>
           </div>
           <div className="space-y-2">
             <h3 className="font-semibold flex items-center gap-2">🎯 Trazabilidad QR</h3>
-            <p className="text-sm text-muted-foreground">Escanea piezas, equipos, ubicaciones. Sabe exactamente dónde está cada asset y su histórico.</p>
+            <p className="text-sm text-muted-foreground">Escanea equipos, piezas, ubicaciones. Sabe exactamente dónde está cada asset y su histórico completo.</p>
           </div>
           <div className="space-y-2">
             <h3 className="font-semibold flex items-center gap-2">⏱️ Reportes en Vivo</h3>
-            <p className="text-sm text-muted-foreground">Dashboards actualizados cada minuto. MTTR, costos, stock, KPIs de seguridad en tiempo real.</p>
+            <p className="text-sm text-muted-foreground">Dashboards actualizados cada minuto. MTTR, costos, stock, KPIs de seguridad. Decisiones informadas en tiempo real.</p>
           </div>
           <div className="space-y-2">
             <h3 className="font-semibold flex items-center gap-2">🔗 Integración Total</h3>
-            <p className="text-sm text-muted-foreground">Mantenimiento, inventario y documentos hablan entre sí. Datos sincronizados, un único fuente de verdad.</p>
+            <p className="text-sm text-muted-foreground">Todos los módulos se comunican automáticamente. De sensor a decisión ejecutiva, sin intervención manual. Un único fuente de verdad.</p>
           </div>
           <div className="space-y-2">
             <h3 className="font-semibold flex items-center gap-2">🛡️ HSE First</h3>
-            <p className="text-sm text-muted-foreground">Alertas de riesgo, checklists de seguridad obligatorios, cumplimiento normativo automático.</p>
+            <p className="text-sm text-muted-foreground">Alertas de riesgo, checklists de seguridad obligatorios, cumplimiento normativo automático integrado.</p>
+          </div>
+          <div className="space-y-2">
+            <h3 className="font-semibold flex items-center gap-2">📊 Analytics Avanzado</h3>
+            <p className="text-sm text-muted-foreground">Identifica patrones de fallas, optimiza frecuencia de mantención preventiva, calcula ROI por activo.</p>
+          </div>
+          <div className="space-y-2">
+            <h3 className="font-semibold flex items-center gap-2">⚡ Automatización Inteligente</h3>
+            <p className="text-sm text-muted-foreground">OT automáticas, reservas de stock, alertas, RCA sugeridos. Reduce trabajo manual, acelera tiempo de respuesta.</p>
           </div>
         </div>
       </section>
@@ -384,7 +482,7 @@ export default function Home() {
       <footer className="border-t border-border bg-muted/30 py-8">
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
           <p className="text-sm text-muted-foreground">
-            ERP SegurIA © 2026 • Powered by <a href="https://n3uralia.com" target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline">n3uralia</a>
+              ERP SegurIA © 2026 • Powered by <a href="https://n3uralia.com" target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline">n3uralia</a>
           </p>
           <p className="text-sm text-muted-foreground">
             Una iniciativa de <span className="font-semibold">Cía. Minera La Patagua</span>
