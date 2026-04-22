@@ -31,13 +31,13 @@ const categories: DocumentCategory[] = [
     color: 'bg-blue-500/10 border-blue-500/20',
   },
   {
-    id: 'procuracion',
-    name: 'Documentos de Procuración',
-    description: 'Órdenes de compra, requisiciones y documentos de procuración',
+    id: 'adquisiciones',
+    name: 'Adquisiciones',
+    description: 'Órdenes de compra, requisiciones y documentos de adquisiciones',
     icon: <Building2 className="h-6 w-6" />,
     count: 156,
     pendingApprovals: 12,
-    href: '/dashboard/documentos-gestion/procuracion',
+    href: '/dashboard/documentos-gestion/adquisiciones',
     color: 'bg-green-500/10 border-green-500/20',
   },
   {

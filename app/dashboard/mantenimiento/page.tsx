@@ -120,7 +120,7 @@ export default function MantenimientoPage() {
       <div className="pb-4">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-bold tracking-tight">Gestión de Mantenimiento</h1>
+            <h1 className="text-4xl font-bold tracking-tight">Gestión de Mantención</h1>
             <p className="text-muted-foreground mt-3">
               Órdenes preventivas/predictivas, MTBF/MTTR, seguridad crítica y disponibilidad de equipos
             </p>
@@ -337,7 +337,7 @@ export default function MantenimientoPage() {
         <CardHeader className="pb-4">
           <div className="flex flex-col md:flex-row md:items-center gap-4">
             <div className="flex-1">
-              <CardTitle>Órdenes de Mantenimiento</CardTitle>
+              <CardTitle>Órdenes de Mantención</CardTitle>
               <CardDescription>Administra todas las órdenes del sistema</CardDescription>
             </div>
             <div className="flex gap-2">

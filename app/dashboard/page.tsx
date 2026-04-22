@@ -80,7 +80,7 @@ export default function DashboardPage() {
       icon: Clock,
     },
     {
-      label: 'Equipos en Mantenimiento',
+      label: 'Equipos en Mantención',
       value: '5',
       status: 'info',
       icon: AlertTriangle,

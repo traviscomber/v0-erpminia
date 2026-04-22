@@ -220,7 +220,7 @@ export default function CrearTareaPage() {
                         <SelectValue placeholder="Seleccionar categoría" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="mantenimiento">Mantenimiento</SelectItem>
+                        <SelectItem value="mantenimiento">Mantención</SelectItem>
                         <SelectItem value="inspección">Inspección</SelectItem>
                         <SelectItem value="reparación">Reparación</SelectItem>
                         <SelectItem value="seguridad">Seguridad</SelectItem>

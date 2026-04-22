@@ -124,7 +124,7 @@ export default function IntegrationArchitecturePage() {
                   <p className="ml-4">↓</p>
                   <p><Badge className="bg-yellow-500">Producción</Badge> Alerta crítica en dashboard</p>
                   <p className="ml-4">↓</p>
-                  <p><Badge className="bg-purple-500">Mantenimiento</Badge> OT correctiva automática</p>
+                  <p><Badge className="bg-purple-500">Mantención</Badge> OT correctiva automática</p>
                   <p className="ml-4">↓</p>
                   <p><Badge className="bg-amber-500">Inventario</Badge> Reserva repuestos automáticamente</p>
                   <p className="ml-4">↓</p>
@@ -184,8 +184,8 @@ export default function IntegrationArchitecturePage() {
             <div className="grid md:grid-cols-2 gap-6">
               {[
                 {
-                  entity: 'Equipment (Activo)',
-                  uses: ['Producción', 'Mantenimiento', 'HSE'],
+                  entity: 'Equipo (Activo)',
+                  uses: ['Producción', 'Mantención', 'HSE'],
                   dispara: ['Alarmas', 'OT', 'Acciones Correctivas'],
                   vincula: ['Sensores', 'Repuestos', 'Documentos'],
                   color: 'bg-blue-600 border-blue-500'
@@ -194,33 +194,33 @@ export default function IntegrationArchitecturePage() {
                   entity: 'Sensor/Tag',
                   uses: ['Producción', 'Alertas'],
                   dispara: ['Eventos de Producción'],
-                  vincula: ['Equipment', 'Telemetría'],
+                  vincula: ['Equipo', 'Telemetría'],
                   color: 'bg-purple-600 border-purple-500'
                 },
                 {
                   entity: 'OT (Orden de Trabajo)',
-                  uses: ['Mantenimiento', 'Producción', 'HSE'],
+                  uses: ['Mantención', 'Producción', 'HSE'],
                   dispara: ['Reserva de Repuestos', 'Facturación'],
-                  vincula: ['Equipment', 'Repuestos', 'Documentos'],
+                  vincula: ['Equipo', 'Repuestos', 'Documentos'],
                   color: 'bg-green-600 border-green-500'
                 },
                 {
-                  entity: 'Incident',
+                  entity: 'Incidente',
                   uses: ['HSE', 'Producción'],
                   dispara: ['Acciones Correctivas', 'Alertas'],
-                  vincula: ['Equipment', 'Documentos'],
+                  vincula: ['Equipo', 'Documentos'],
                   color: 'bg-red-600 border-red-500'
                 },
                 {
-                  entity: 'RegulatoryRequirement',
+                  entity: 'Requisito Normativo',
                   uses: ['HSE', 'Documentos'],
                   dispara: ['Tareas', 'Alertas de Vencimiento'],
                   vincula: ['Procedimientos', 'Controles', 'Evidencias'],
                   color: 'bg-amber-600 border-amber-500'
                 },
                 {
-                  entity: 'Document',
-                  uses: ['Producción', 'HSE', 'Mantenimiento'],
+                  entity: 'Documento',
+                  uses: ['Producción', 'HSE', 'Mantención'],
                   dispara: ['Notificaciones de Cambio'],
                   vincula: ['Procedimientos', 'RCA', 'Evidencias'],
                   color: 'bg-indigo-600 border-indigo-500'
@@ -308,7 +308,7 @@ export default function IntegrationArchitecturePage() {
                     'Tablas maestras (Plants, Areas, Equipment, Sensors)',
                     'Dashboard Producción básico',
                     'Dashboard HSE básico (Incidentes + Matriz)',
-                    'Integración Producción → Mantenimiento (Auto OT)',
+                    'Integración Producción → Mantención (Auto OT)',
                     'Integración Producción → Inventario (Reserva repuestos)',
                   ],
                   deliverables: '15 tablas | 5 dashboards | 2 flujos'

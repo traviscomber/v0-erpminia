@@ -58,13 +58,13 @@ const menuItems = [
     group: 'Minería',
   },
   {
-    label: 'Work Orders',
+    label: 'Órdenes de Trabajo',
     href: '/dashboard/work-orders',
     icon: Plus,
     group: 'Minería',
   },
   {
-    label: 'Mantenimiento',
+    label: 'Mantención',
     href: '/dashboard/mantenimiento',
     icon: Wrench,
     group: 'Minería',
@@ -103,8 +103,8 @@ const menuItems = [
     group: 'Documentos',
   },
   {
-    label: 'Procuración',
-    href: '/dashboard/documentos-gestion/procuracion',
+    label: 'Adquisiciones',
+    href: '/dashboard/documentos-gestion/adquisiciones',
     icon: FileText,
     group: 'Documentos',
   },
@@ -217,7 +217,7 @@ export function Sidebar() {
           </Link>
         </div>
 
-        {/* Navigation Menu - v4 */}
+        {/* Navigation Menu - v5 Español Chileno */}
         <nav className="flex-1 px-4 py-6 overflow-y-auto">
           <div className="space-y-6">
             {['Core', 'Minería', 'Logística', 'Documentos', 'Seguridad', 'Administración', 'Ayuda'].map((group) => {

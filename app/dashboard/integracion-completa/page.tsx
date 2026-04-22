@@ -15,7 +15,7 @@ export default function IntegracionCompletaPage() {
     sensor: [
       { module: 'Producción', icon: Zap, status: 'Sensor detecta vibración', time: '14:32:15' },
       { module: 'HSE', icon: Shield, status: 'Alerta crítica generada', time: '14:32:16' },
-      { module: 'Mantenimiento', icon: Wrench, status: 'OT correctiva creada', time: '14:32:17' },
+      { module: 'Mantención', icon: Wrench, status: 'OT correctiva creada', time: '14:32:17' },
       { module: 'Bodega', icon: Package, status: 'Repuestos reservados', time: '14:32:18' },
       { module: 'Finanzas', icon: DollarSign, status: 'Costo estimado: $45K', time: '14:32:19' },
     ]
@@ -29,10 +29,10 @@ export default function IntegracionCompletaPage() {
   ];
 
   const integrationMetrics = [
-    { name: 'Ene', produccion: 85, mantenimiento: 78, bodega: 92, hse: 88, finanzas: 81 },
-    { name: 'Feb', produccion: 88, mantenimiento: 82, bodega: 94, hse: 90, finanzas: 84 },
-    { name: 'Mar', produccion: 92, mantenimiento: 88, bodega: 96, hse: 93, finanzas: 89 },
-    { name: 'Abr', produccion: 95, mantenimiento: 91, bodega: 97, hse: 95, finanzas: 92 },
+    { name: 'Ene', produccion: 85, mantencion: 78, bodega: 92, hse: 88, finanzas: 81 },
+    { name: 'Feb', produccion: 88, mantencion: 82, bodega: 94, hse: 90, finanzas: 84 },
+    { name: 'Mar', produccion: 92, mantencion: 88, bodega: 96, hse: 93, finanzas: 89 },
+    { name: 'Abr', produccion: 95, mantencion: 91, bodega: 97, hse: 95, finanzas: 92 },
   ];
 
   return (
@@ -102,7 +102,7 @@ export default function IntegracionCompletaPage() {
               <Tooltip />
               <Legend />
               <Line type="monotone" dataKey="produccion" stroke="#ff6b35" name="Producción" />
-              <Line type="monotone" dataKey="mantenimiento" stroke="#004e89" name="Mantenimiento" />
+              <Line type="monotone" dataKey="mantencion" stroke="#004e89" name="Mantención" />
               <Line type="monotone" dataKey="bodega" stroke="#1b998b" name="Bodega" />
               <Line type="monotone" dataKey="hse" stroke="#d62828" name="HSE" />
               <Line type="monotone" dataKey="finanzas" stroke="#f77f00" name="Finanzas" />
@@ -123,11 +123,11 @@ export default function IntegracionCompletaPage() {
           <CardContent className="space-y-2 text-sm">
             <p><strong>Entidades Centrales:</strong></p>
             <ul className="list-disc pl-5 space-y-1">
-              <li>Equipment (Equipos minería)</li>
-              <li>Sensors (Telemetría en vivo)</li>
-              <li>Maintenance Orders (OT)</li>
-              <li>Incidents (Problemas reportados)</li>
-              <li>Requirements (Requerimientos normativos)</li>
+              <li>Equipos (Activos minería)</li>
+              <li>Sensores (Telemetría en vivo)</li>
+              <li>Órdenes de Mantención (OT)</li>
+              <li>Incidentes (Problemas reportados)</li>
+              <li>Requisitos (Requerimientos normativos)</li>
             </ul>
           </CardContent>
         </Card>
@@ -143,7 +143,7 @@ export default function IntegracionCompletaPage() {
             <p><strong>Triggers Automáticos:</strong></p>
             <ul className="list-disc pl-5 space-y-1">
               <li>Sensor fuera rango → Alerta HSE</li>
-              <li>Alerta crítica → OT Mantenimiento</li>
+              <li>Alerta crítica → OT Mantención</li>
               <li>OT → Reserva Bodega</li>
               <li>Consumo → Actualiza Finanzas</li>
               <li>Cierre → Reporte Compliance</li>

@@ -42,7 +42,7 @@ const mockAlerts: Alert[] = [
   },
   {
     id: '2',
-    title: 'Orden de mantenimiento crítica - Equipo parado',
+    title: 'Orden de mantención crítica - Equipo parado',
     description: 'Molino SAG-01 sin disponibilidad hace 4 horas. MTTR actual: 240 min',
     severity: 'critica',
     type: 'mantenimiento',
@@ -75,8 +75,8 @@ const mockAlerts: Alert[] = [
   },
   {
     id: '5',
-    title: 'Mantenimiento preventivo próximo',
-    description: 'Bomba de agua requiere mantenimiento preventivo en 3 días. Programar ahora.',
+    title: 'Mantención preventiva próxima',
+    description: 'Bomba de agua requiere mantención preventiva en 3 días. Programar ahora.',
     severity: 'media',
     type: 'mantenimiento',
     timestamp: '2026-04-13T06:15:00',
@@ -359,7 +359,7 @@ export default function AlertasPage() {
                       setSelectedAlert(null);
                     }}>
                       <Link href={selectedAlert.actionUrl}>
-                        Ir a {selectedAlert.type === 'documento' ? 'Documentos' : selectedAlert.type === 'mantenimiento' ? 'Mantenimiento' : 'Bodega'}
+                        Ir a {selectedAlert.type === 'documento' ? 'Documentos' : selectedAlert.type === 'mantenimiento' ? 'Mantención' : 'Bodega'}
                       </Link>
                     </Button>
                   )}

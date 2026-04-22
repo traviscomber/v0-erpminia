@@ -60,7 +60,7 @@ export default function GuidesPage() {
         <div id="arbol" className="border-l-4 border-l-[var(--brand-verde)] pl-6 py-6">
           <h2 className="text-3xl font-bold mb-6">Cómo Usar el Árbol de Fallas</h2>
           <ol className="space-y-4">
-            <li><strong>Paso 1:</strong> Ve a Mantenimiento → Gestión de Vehículos</li>
+            <li><strong>Paso 1:</strong> Ve a Mantención → Gestión de Vehículos</li>
             <li><strong>Paso 2:</strong> Selecciona un vehículo y haz click en "Ver Árbol de Fallas"</li>
             <li><strong>Paso 3:</strong> Expande componentes (Motor, Hidráulica) para ver detalles</li>
             <li><strong>Paso 4:</strong> Visualiza síntomas, causas y piezas de desgaste asociadas</li>
@@ -93,10 +93,10 @@ export default function GuidesPage() {
             <li><strong>Acceso:</strong> Dashboard → Sección de Alertas muestra todos los equipos en riesgo</li>
             <li><strong>Reportes:</strong> Administración → Reportes → Selecciona período</li>
             <li><strong>Métricas:</strong> OTs completadas, costo vs presupuesto, ROI preventivo vs correctivo</li>
-            <li><strong>Decisiones:</strong> Usa datos para optimizar frecuencia de mantenimiento preventivo</li>
+            <li><strong>Decisiones:</strong> Usa datos para optimizar frecuencia de mantención preventiva</li>
           </ol>
           <p className="mt-6 p-4 bg-yellow-50 dark:bg-yellow-950 rounded text-sm">
-            📊 Dato: Mantenimiento preventivo cuesta 30-50% menos que correctivo por parada inesperada
+            📊 Dato: Mantención preventiva cuesta 30-50% menos que correctiva por parada inesperada
           </p>
         </div>
       </div>

@@ -7,20 +7,20 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Search, Download, FileText } from 'lucide-react';
 
-export default function ProcuracionPage() {
+export default function AdquisicionesPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const procurementDocs = [
+  const adquisicionesDocs = [
     { id: 'RFQ-001', type: 'RFQ', title: 'Cotización Bombas Hidráulicas', vendor: 'Hidra Minería', date: '2024-04-15', status: 'Enviado', amount: '$125,000' },
-    { id: 'PO-2024-045', type: 'PO', title: 'OC Repuestos Chancadora', vendor: 'Industrial Parts', date: '2024-04-10', status: 'Aprobado', amount: '$85,500' },
+    { id: 'OC-2024-045', type: 'OC', title: 'OC Repuestos Chancadora', vendor: 'Industrial Parts', date: '2024-04-10', status: 'Aprobado', amount: '$85,500' },
     { id: 'REQ-2024-112', type: 'Requisición', title: 'Solicitud Cable Eléctrico', vendor: 'Penco', date: '2024-04-12', status: 'Pendiente', amount: '$42,300' },
-    { id: 'RFQ-002', type: 'RFQ', title: 'Servicio Mantenimiento Equipos', vendor: 'Mantec Chile', date: '2024-04-08', status: 'Cotizado', amount: '$210,000' },
+    { id: 'RFQ-002', type: 'RFQ', title: 'Servicio Mantención Equipos', vendor: 'Mantec Chile', date: '2024-04-08', status: 'Cotizado', amount: '$210,000' },
   ];
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Documentos de Procuración</h1>
+        <h1 className="text-3xl font-bold">Adquisiciones</h1>
         <p className="text-muted-foreground">Gestiona RFQs, órdenes de compra y requisiciones</p>
       </div>
 

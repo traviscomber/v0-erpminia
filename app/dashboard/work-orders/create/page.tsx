@@ -65,8 +65,8 @@ export default function CreateWorkOrderPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Crear Orden de Mantenimiento</h1>
-        <p className="text-muted-foreground mt-2">Sistema jerárquico para mantenimiento por componentes</p>
+        <h1 className="text-3xl font-bold">Crear Orden de Mantención</h1>
+        <p className="text-muted-foreground mt-2">Sistema jerárquico para mantención por componentes</p>
       </div>
 
       {/* Step Indicator */}
