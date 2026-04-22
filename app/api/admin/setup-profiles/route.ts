@@ -3,7 +3,16 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient();
+    // Validate environment variables
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('[v0] Missing SUPABASE_SERVICE_ROLE_KEY');
+      return NextResponse.json(
+        { error: 'Missing SUPABASE_SERVICE_ROLE_KEY environment variable' },
+        { status: 500 }
+      );
+    }
+
+    const supabase = await createClient();
 
     // Create profiles table and triggers
     const { error: createTableError } = await supabase.rpc('exec_sql', {
@@ -59,7 +68,7 @@ export async function POST(request: NextRequest) {
     if (createTableError) {
       console.error('[v0] Table creation error:', createTableError);
       return NextResponse.json(
-        { error: 'Failed to create profiles table', details: createTableError },
+        { error: 'Failed to create profiles table', details: createTableError.message },
         { status: 500 }
       );
     }

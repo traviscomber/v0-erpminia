@@ -3,6 +3,14 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('[v0] Missing SUPABASE_SERVICE_ROLE_KEY');
+      return NextResponse.json(
+        { error: 'Missing SUPABASE_SERVICE_ROLE_KEY environment variable' },
+        { status: 500 }
+      );
+    }
+
     const { email } = await request.json();
 
     if (!email) {
@@ -12,7 +20,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = createClient();
+    const supabase = await createClient();
 
     // Get user by email
     const { data: { users }, error: getUserError } = await supabase.auth.admin.listUsers();

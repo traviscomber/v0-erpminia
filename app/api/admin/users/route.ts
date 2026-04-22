@@ -3,7 +3,15 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createClient();
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('[v0] Missing SUPABASE_SERVICE_ROLE_KEY');
+      return NextResponse.json(
+        { error: 'Missing SUPABASE_SERVICE_ROLE_KEY environment variable' },
+        { status: 500 }
+      );
+    }
+
+    const supabase = await createClient();
 
     // Get all users from Supabase Auth
     const { data: { users }, error } = await supabase.auth.admin.listUsers();
@@ -31,7 +39,7 @@ export async function GET(request: NextRequest) {
   } catch (err) {
     console.error('[v0] GET /api/admin/users error:', err);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: err instanceof Error ? err.message : 'Unknown error' },
       { status: 500 }
     );
   }
@@ -39,6 +47,14 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('[v0] Missing SUPABASE_SERVICE_ROLE_KEY');
+      return NextResponse.json(
+        { error: 'Missing SUPABASE_SERVICE_ROLE_KEY environment variable' },
+        { status: 500 }
+      );
+    }
+
     const { email, password, full_name, role } = await request.json();
 
     if (!email || !password) {
@@ -48,7 +64,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = createClient();
+    const supabase = await createClient();
 
     // Create user in Supabase Auth
     const { data, error } = await supabase.auth.admin.createUser({

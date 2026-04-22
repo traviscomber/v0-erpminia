@@ -3,7 +3,16 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient();
+    // Validate environment variables
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('[v0] Missing SUPABASE_SERVICE_ROLE_KEY');
+      return NextResponse.json(
+        { error: 'Missing SUPABASE_SERVICE_ROLE_KEY environment variable' },
+        { status: 500 }
+      );
+    }
+
+    const supabase = await createClient();
 
     // Get all users from Supabase Auth
     const { data: { users }, error: listError } = await supabase.auth.admin.listUsers();
@@ -11,7 +20,7 @@ export async function POST(request: NextRequest) {
     if (listError) {
       console.error('[v0] Error listing users:', listError);
       return NextResponse.json(
-        { error: 'Failed to list users', details: listError },
+        { error: 'Failed to list users', details: listError.message },
         { status: 500 }
       );
     }
