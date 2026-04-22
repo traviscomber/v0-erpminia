@@ -20,6 +20,7 @@ import {
   AlertTriangle,
   Cpu,
   HelpCircle,
+  Network,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -93,6 +94,12 @@ const menuItems = [
     group: 'Administración',
   },
   // Educational & Help
+  {
+    label: 'Arquitectura Integración',
+    href: '/dashboard/integracion-arquitectura',
+    icon: Network,
+    group: 'Ayuda',
+  },
   {
     label: 'Guías de Uso',
     href: '/dashboard/guias',
