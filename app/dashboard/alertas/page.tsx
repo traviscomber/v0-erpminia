@@ -313,7 +313,6 @@ export default function AlertasPage() {
           })
         )}
       </div>
-        </div>
 
         {/* Detail Panel */}
         {selectedAlert && (
