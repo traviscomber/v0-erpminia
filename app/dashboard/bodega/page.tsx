@@ -88,8 +88,40 @@ export default function BodegaPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // TODO: Fetch from API
-    setLoading(false);
+    const fetchData = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('wear_parts')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        const mappedItems: InventoryItem[] = (data || []).map(part => ({
+          id: part.id,
+          code: part.part_code || '',
+          name: part.part_name || '',
+          category: part.description?.split('|')[0] || 'General',
+          current_stock: part.stock_current || 0,
+          minimum_stock: part.stock_min || 10,
+          unit_cost: part.unit_cost || 0,
+          total_value: (part.stock_current || 0) * (part.unit_cost || 0),
+          last_movement: new Date(),
+          supplier: part.supplier || 'Por definir',
+          lead_time_days: part.lead_time_days || 0,
+          critical: part.is_critical || false,
+          traceability_enabled: true,
+        }));
+        
+        setItems(mappedItems);
+      } catch (err) {
+        console.error('[v0] Error fetching wear parts:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const lowStockItems = items.filter(i => i.current_stock <= i.minimum_stock).length;

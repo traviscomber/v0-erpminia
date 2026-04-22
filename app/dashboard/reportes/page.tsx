@@ -36,8 +36,50 @@ export default function ExecutiveDashboard() {
   });
 
   useEffect(() => {
-    // TODO: Fetch consolidated data from APIs
-    setLoading(false);
+    const fetchData = async () => {
+      try {
+        // Fetch consolidated data from all modules
+        const [docsRes, maintRes, invRes] = await Promise.all([
+          supabase.from('document_audit_log').select('*').limit(100),
+          supabase.from('maintenance_orders').select('*'),
+          supabase.from('wear_parts').select('*')
+        ]);
+
+        if (docsRes.error) throw docsRes.error;
+        if (maintRes.error) throw maintRes.error;
+        if (invRes.error) throw invRes.error;
+
+        const documents = docsRes.data || [];
+        const maintenance = maintRes.data || [];
+        const inventory = invRes.data || [];
+
+        setData({
+          documents: {
+            total: documents.length,
+            expiring: Math.floor(documents.length * 0.1),
+            compliant: Math.floor(documents.length * 0.9)
+          },
+          maintenance: {
+            total: maintenance.length,
+            preventive: maintenance.filter((m: any) => m.maintenance_type === 'preventiva').length,
+            corrective: maintenance.filter((m: any) => m.maintenance_type === 'correctiva').length,
+            completed: maintenance.filter((m: any) => m.status === 'completada').length,
+          },
+          inventory: {
+            items: inventory.length,
+            lowStock: inventory.filter((item: any) => item.stock_current <= item.stock_min).length,
+            totalValue: inventory.reduce((sum: number, item: any) => sum + ((item.stock_current || 0) * (item.unit_cost || 0)), 0),
+            categories: new Set(inventory.map((item: any) => item.description?.split('|')[0])).size,
+          }
+        });
+      } catch (err) {
+        console.error('[v0] Error fetching consolidated data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const chartData = [

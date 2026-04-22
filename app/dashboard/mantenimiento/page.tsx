@@ -72,8 +72,53 @@ export default function MantenimientoPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // TODO: Fetch from API
-    setLoading(false);
+    const fetchData = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('maintenance_orders')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        const mappedOrders: MaintenanceOrder[] = (data || []).map(order => ({
+          id: order.id,
+          order_number: order.order_number || `MO-${order.id.slice(0, 8)}`,
+          title: order.title || 'Orden de Mantenimiento',
+          description: order.description || '',
+          equipment_id: order.vehicle_id || '',
+          assigned_to: order.assigned_to || '',
+          order_type: (['preventiva', 'correctiva', 'predictiva'].includes(order.maintenance_type) 
+            ? order.maintenance_type 
+            : 'preventiva') as 'preventiva' | 'correctiva' | 'predictiva',
+          priority: (['baja', 'media', 'alta', 'critica_seguridad'].includes(order.priority)
+            ? order.priority
+            : 'media') as 'baja' | 'media' | 'alta' | 'critica_seguridad',
+          status: (['pendiente', 'en_progreso', 'completada', 'cancelada'].includes(order.status)
+            ? order.status
+            : 'pendiente') as 'pendiente' | 'en_progreso' | 'completada' | 'cancelada',
+          scheduled_date: order.scheduled_date ? new Date(order.scheduled_date) : new Date(),
+          start_date: order.start_date ? new Date(order.start_date) : undefined,
+          completion_date: order.completion_date ? new Date(order.completion_date) : undefined,
+          estimated_hours: order.estimated_hours || 0,
+          actual_hours: order.actual_hours || 0,
+          estimated_cost: order.estimated_cost || 0,
+          actual_cost: order.actual_cost || 0,
+          actual_mttr: order.actual_hours || 0,
+          progress_percentage: order.progress_percentage || 0,
+          technician_name: order.technician_name || 'Técnico Asignado',
+          safety_critical: order.priority === 'critica_seguridad',
+        }));
+        
+        setOrders(mappedOrders);
+      } catch (err) {
+        console.error('[v0] Error fetching maintenance orders:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const preventiveOrders = orders.filter(o => o.order_type === 'preventiva').length;

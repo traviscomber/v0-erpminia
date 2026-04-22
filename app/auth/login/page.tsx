@@ -6,23 +6,42 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart3 } from 'lucide-react';
+import { BarChart3, AlertCircle } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 
 export default function LoginPage() {
   const router = useRouter();
+  const supabase = createClient();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      router.push('/dashboard');
+    try {
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        setError(signInError.message);
+        setIsLoading(false);
+        return;
+      }
+
+      if (data.user) {
+        // Successful login
+        router.push('/dashboard');
+      }
+    } catch (err) {
+      setError('Error al iniciar sesión. Intenta de nuevo.');
       setIsLoading(false);
-    }, 500);
+    }
   };
 
   return (
@@ -40,11 +59,18 @@ export default function LoginPage() {
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl">Iniciar Sesión</CardTitle>
             <CardDescription>
-              ERP SegurIA - Plataforma de Gestión Minera
+              n3uralia ERP - Plataforma de Gestión Minera
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <div className="flex items-start gap-3 p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
+                  <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-destructive">{error}</p>
+                </div>
+              )}
+              
               <div className="space-y-2">
                 <label htmlFor="email" className="text-sm font-medium">
                   Correo Electrónico
@@ -55,6 +81,7 @@ export default function LoginPage() {
                   placeholder="usuario@empresa.cl"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  disabled={isLoading}
                   required
                   className="bg-input"
                 />
@@ -69,6 +96,7 @@ export default function LoginPage() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
                   required
                   className="bg-input"
                 />
@@ -94,14 +122,9 @@ export default function LoginPage() {
 
             <div className="mt-6 pt-6 border-t border-border">
               <p className="text-xs text-muted-foreground text-center mb-3">
-                Demo: usa cualquier email y contraseña
+                Usa tus credenciales de n3uralia
               </p>
-              <div className="bg-muted p-3 rounded-lg text-xs">
-                <p className="font-semibold mb-1">Credenciales de Prueba:</p>
-                <p>Email: demo@seguria.cl</p>
-                <p>Contraseña: cualquier texto</p>
-              </div>
-              <p className="text-xs text-muted-foreground text-center mt-4 pt-4 border-t border-border">
+              <p className="text-xs text-muted-foreground text-center pt-4 border-t border-border">
                 Powered by <a href="https://n3uralia.com" target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline">n3uralia</a>
               </p>
             </div>
