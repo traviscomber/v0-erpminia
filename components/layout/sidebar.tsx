@@ -23,6 +23,7 @@ import {
   Network,
   Zap,
   Shield,
+  FolderOpen,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -88,11 +89,24 @@ const menuItems = [
     icon: Shield,
     group: 'Seguridad',
   },
+  // Document Management
   {
-    label: 'Documentos',
+    label: 'Gestión Documental',
+    href: '/dashboard/documentos-gestion',
+    icon: FolderOpen,
+    group: 'Documentos',
+  },
+  {
+    label: 'Contratos & Subcontratos',
+    href: '/dashboard/documentos-gestion/contratos',
+    icon: FileText,
+    group: 'Documentos',
+  },
+  {
+    label: 'Procedimientos',
     href: '/dashboard/documentos-v2',
     icon: FileText,
-    group: 'Seguridad',
+    group: 'Documentos',
   },
   // Administrative
   {
@@ -185,10 +199,10 @@ export function Sidebar() {
           </Link>
         </div>
 
-        {/* Navigation Menu - v2 */}
+        {/* Navigation Menu - v3 */}
         <nav className="flex-1 px-4 py-6 overflow-y-auto">
           <div className="space-y-6">
-            {['Core', 'Minería', 'Logística', 'Seguridad', 'Administración', 'Ayuda'].map((group) => {
+            {['Core', 'Minería', 'Logística', 'Documentos', 'Seguridad', 'Administración', 'Ayuda'].map((group) => {
               const groupItems = menuItems.filter((item) => item.group === group);
               if (groupItems.length === 0) return null;
 

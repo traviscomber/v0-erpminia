@@ -22,6 +22,7 @@ import {
   BookOpen,
   HelpCircle,
   Shield,
+  FolderOpen,
 } from 'lucide-react';
 
 interface CriticalTask {
@@ -264,7 +265,7 @@ export default function DashboardPage() {
       {/* New Modules Quick Access */}
       <div className="space-y-3">
         <h2 className="text-lg font-semibold">Nuevos Módulos Operacionales</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Link href="/dashboard/produccion">
             <BrandCard className="cursor-pointer hover:shadow-lg transition-shadow h-full">
               <CardHeader>
@@ -289,14 +290,26 @@ export default function DashboardPage() {
             </BrandCard>
           </Link>
 
+          <Link href="/dashboard/documentos-gestion">
+            <BrandCard className="cursor-pointer hover:shadow-lg transition-shadow h-full">
+              <CardHeader>
+                <FolderOpen className="h-6 w-6 text-[var(--brand-verde)] mb-2" />
+                <CardTitle>Gestión Documental</CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm text-muted-foreground">
+                Centraliza contratos, procedimientos, reportes y documentos operacionales
+              </CardContent>
+            </BrandCard>
+          </Link>
+
           <Link href="/dashboard/integracion-completa">
             <BrandCard className="cursor-pointer hover:shadow-lg transition-shadow h-full">
               <CardHeader>
-                <RefreshCw className="h-6 w-6 text-[var(--brand-verde)] mb-2" />
+                <RefreshCw className="h-6 w-6 text-blue-600 mb-2" />
                 <CardTitle>Integración</CardTitle>
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground">
-                Ver cómo los 5 módulos trabajan en cascada automáticamente
+                Ver cómo los 5+ módulos trabajan en cascada automáticamente
               </CardContent>
             </BrandCard>
           </Link>
