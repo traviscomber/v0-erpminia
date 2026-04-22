@@ -39,9 +39,9 @@ export default function IntegrationArchitecturePage() {
               {/* Main Modules */}
               <div className="grid md:grid-cols-2 gap-6">
                 {/* Producción */}
-                <div className="bg-blue-50 border border-blue-300 rounded-lg p-4">
-                  <h3 className="font-semibold text-blue-900 mb-2">PRODUCCIÓN (Gemelo Operacional)</h3>
-                  <ul className="text-sm space-y-1 text-blue-800">
+                <div className="bg-blue-600 border border-blue-500 rounded-lg p-4">
+                  <h3 className="font-semibold text-white mb-2">PRODUCCIÓN (Gemelo Operacional)</h3>
+                  <ul className="text-sm space-y-1 text-blue-100">
                     <li>• Plantas & Áreas</li>
                     <li>• Líneas/Circuitos</li>
                     <li>• Equipos & Subcomponentes</li>
@@ -53,9 +53,9 @@ export default function IntegrationArchitecturePage() {
                 </div>
 
                 {/* HSE */}
-                <div className="bg-green-50 border border-green-300 rounded-lg p-4">
-                  <h3 className="font-semibold text-green-900 mb-2">HSE/COMPLIANCE (Motor Normativo)</h3>
-                  <ul className="text-sm space-y-1 text-green-800">
+                <div className="bg-green-600 border border-green-500 rounded-lg p-4">
+                  <h3 className="font-semibold text-white mb-2">HSE/COMPLIANCE (Motor Normativo)</h3>
+                  <ul className="text-sm space-y-1 text-green-100">
                     <li>• Incidentes & Investigaciones</li>
                     <li>• Inspecciones</li>
                     <li>• Acciones Correctivas</li>
@@ -74,29 +74,29 @@ export default function IntegrationArchitecturePage() {
 
               {/* Integration Points */}
               <div className="grid md:grid-cols-3 gap-4">
-                <div className="bg-purple-50 border border-purple-300 rounded-lg p-3 text-center">
-                  <p className="font-semibold text-purple-900 text-sm">MANTENIMIENTO</p>
-                  <p className="text-xs text-purple-700">OT, MTTR, Costos</p>
+                <div className="bg-purple-600 border border-purple-500 rounded-lg p-3 text-center">
+                  <p className="font-semibold text-white text-sm">MANTENIMIENTO</p>
+                  <p className="text-xs text-purple-100">OT, MTTR, Costos</p>
                 </div>
-                <div className="bg-amber-50 border border-amber-300 rounded-lg p-3 text-center">
-                  <p className="font-semibold text-amber-900 text-sm">INVENTARIO</p>
-                  <p className="text-xs text-amber-700">Stock, Repuestos</p>
+                <div className="bg-amber-600 border border-amber-500 rounded-lg p-3 text-center">
+                  <p className="font-semibold text-white text-sm">INVENTARIO</p>
+                  <p className="text-xs text-amber-100">Stock, Repuestos</p>
                 </div>
-                <div className="bg-red-50 border border-red-300 rounded-lg p-3 text-center">
-                  <p className="font-semibold text-red-900 text-sm">COMPRAS</p>
-                  <p className="text-xs text-red-700">PO, Proveedores</p>
+                <div className="bg-red-600 border border-red-500 rounded-lg p-3 text-center">
+                  <p className="font-semibold text-white text-sm">COMPRAS</p>
+                  <p className="text-xs text-red-100">PO, Proveedores</p>
                 </div>
-                <div className="bg-cyan-50 border border-cyan-300 rounded-lg p-3 text-center">
-                  <p className="font-semibold text-cyan-900 text-sm">FINANZAS</p>
-                  <p className="text-xs text-cyan-700">Costos, Facturas</p>
+                <div className="bg-cyan-600 border border-cyan-500 rounded-lg p-3 text-center">
+                  <p className="font-semibold text-white text-sm">FINANZAS</p>
+                  <p className="text-xs text-cyan-100">Costos, Facturas</p>
                 </div>
-                <div className="bg-indigo-50 border border-indigo-300 rounded-lg p-3 text-center">
-                  <p className="font-semibold text-indigo-900 text-sm">DOCUMENTOS</p>
-                  <p className="text-xs text-indigo-700">Manuales, RCA</p>
+                <div className="bg-indigo-600 border border-indigo-500 rounded-lg p-3 text-center">
+                  <p className="font-semibold text-white text-sm">DOCUMENTOS</p>
+                  <p className="text-xs text-indigo-100">Manuales, RCA</p>
                 </div>
-                <div className="bg-slate-50 border border-slate-300 rounded-lg p-3 text-center">
-                  <p className="font-semibold text-slate-900 text-sm">ALERTAS</p>
-                  <p className="text-xs text-slate-700">Notificaciones</p>
+                <div className="bg-slate-600 border border-slate-500 rounded-lg p-3 text-center">
+                  <p className="font-semibold text-white text-sm">ALERTAS</p>
+                  <p className="text-xs text-slate-100">Notificaciones</p>
                 </div>
               </div>
             </div>
@@ -118,7 +118,7 @@ export default function IntegrationArchitecturePage() {
             <div className="space-y-6">
               {/* Flow 1 */}
               <div className="border-l-4 border-blue-500 pl-4">
-                <h3 className="font-semibold text-blue-900 mb-2">Flujo 1: Anomalía en Sensor → Cascada Completa</h3>
+                <h3 className="font-semibold text-blue-400 mb-2">Flujo 1: Anomalía en Sensor → Cascada Completa</h3>
                 <div className="text-sm space-y-2 text-muted-foreground">
                   <p><Badge className="bg-blue-500">Sensor</Badge> Vibración alta en Correa CV-101</p>
                   <p className="ml-4">↓</p>
@@ -136,7 +136,7 @@ export default function IntegrationArchitecturePage() {
 
               {/* Flow 2 */}
               <div className="border-l-4 border-green-500 pl-4">
-                <h3 className="font-semibold text-green-900 mb-2">Flujo 2: Incidente HSE → Investigación → Cierre</h3>
+                <h3 className="font-semibold text-green-400 mb-2">Flujo 2: Incidente HSE → Investigación → Cierre</h3>
                 <div className="text-sm space-y-2 text-muted-foreground">
                   <p><Badge className="bg-green-500">HSE</Badge> Incidente de seguridad reportado</p>
                   <p className="ml-4">↓</p>
@@ -152,7 +152,7 @@ export default function IntegrationArchitecturePage() {
 
               {/* Flow 3 */}
               <div className="border-l-4 border-orange-500 pl-4">
-                <h3 className="font-semibold text-orange-900 mb-2">Flujo 3: Requisito Normativo Vencido → Ejecución</h3>
+                <h3 className="font-semibold text-orange-400 mb-2">Flujo 3: Requisito Normativo Vencido → Ejecución</h3>
                 <div className="text-sm space-y-2 text-muted-foreground">
                   <p><Badge className="bg-orange-500">Alerta</Badge> DS 132 vence en 5 días</p>
                   <p className="ml-4">↓</p>
@@ -188,47 +188,47 @@ export default function IntegrationArchitecturePage() {
                   uses: ['Producción', 'Mantenimiento', 'HSE'],
                   dispara: ['Alarmas', 'OT', 'Acciones Correctivas'],
                   vincula: ['Sensores', 'Repuestos', 'Documentos'],
-                  color: 'bg-blue-50 border-blue-300'
+                  color: 'bg-blue-600 border-blue-500'
                 },
                 {
                   entity: 'Sensor/Tag',
                   uses: ['Producción', 'Alertas'],
                   dispara: ['Eventos de Producción'],
                   vincula: ['Equipment', 'Telemetría'],
-                  color: 'bg-purple-50 border-purple-300'
+                  color: 'bg-purple-600 border-purple-500'
                 },
                 {
                   entity: 'OT (Orden de Trabajo)',
                   uses: ['Mantenimiento', 'Producción', 'HSE'],
                   dispara: ['Reserva de Repuestos', 'Facturación'],
                   vincula: ['Equipment', 'Repuestos', 'Documentos'],
-                  color: 'bg-green-50 border-green-300'
+                  color: 'bg-green-600 border-green-500'
                 },
                 {
                   entity: 'Incident',
                   uses: ['HSE', 'Producción'],
                   dispara: ['Acciones Correctivas', 'Alertas'],
                   vincula: ['Equipment', 'Documentos'],
-                  color: 'bg-red-50 border-red-300'
+                  color: 'bg-red-600 border-red-500'
                 },
                 {
                   entity: 'RegulatoryRequirement',
                   uses: ['HSE', 'Documentos'],
                   dispara: ['Tareas', 'Alertas de Vencimiento'],
                   vincula: ['Procedimientos', 'Controles', 'Evidencias'],
-                  color: 'bg-amber-50 border-amber-300'
+                  color: 'bg-amber-600 border-amber-500'
                 },
                 {
                   entity: 'Document',
                   uses: ['Producción', 'HSE', 'Mantenimiento'],
                   dispara: ['Notificaciones de Cambio'],
                   vincula: ['Procedimientos', 'RCA', 'Evidencias'],
-                  color: 'bg-indigo-50 border-indigo-300'
+                  color: 'bg-indigo-600 border-indigo-500'
                 },
               ].map((item, idx) => (
                 <div key={idx} className={`border rounded-lg p-4 ${item.color}`}>
-                  <h4 className="font-semibold mb-2">{item.entity}</h4>
-                  <div className="text-xs space-y-1">
+                  <h4 className="font-semibold mb-2 text-white">{item.entity}</h4>
+                  <div className="text-xs space-y-1 text-white/90">
                     <div><span className="font-semibold">Usado por:</span> {item.uses.join(', ')}</div>
                     <div><span className="font-semibold">Dispara:</span> {item.dispara.join(', ')}</div>
                     <div><span className="font-semibold">Vincula:</span> {item.vincula.join(', ')}</div>
@@ -342,10 +342,10 @@ export default function IntegrationArchitecturePage() {
                   deliverables: '+8 pantallas | Motor eventos | Reportes regulatorios'
                 },
               ].map((phase, idx) => (
-                <div key={idx} className="border rounded-lg p-4">
+                <div key={idx} className="border border-border rounded-lg p-4 bg-card">
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-semibold text-lg">{phase.phase}</h4>
-                    <Badge>{phase.duration}</Badge>
+                    <h4 className="font-semibold text-lg text-foreground">{phase.phase}</h4>
+                    <Badge className="bg-[var(--brand-naranja)] text-white">{phase.duration}</Badge>
                   </div>
                   <p className="text-sm font-semibold text-[var(--brand-naranja)] mb-2">{phase.focus}</p>
                   <ul className="text-sm space-y-1 mb-3">
@@ -353,7 +353,7 @@ export default function IntegrationArchitecturePage() {
                       <li key={i} className="text-muted-foreground">• {item}</li>
                     ))}
                   </ul>
-                  <div className="bg-muted p-2 rounded text-xs font-semibold">
+                  <div className="bg-muted p-2 rounded text-xs font-semibold text-foreground">
                     {phase.deliverables}
                   </div>
                 </div>
