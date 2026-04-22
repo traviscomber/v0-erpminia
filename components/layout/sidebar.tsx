@@ -130,6 +130,12 @@ const menuItems = [
   },
   // Administrative
   {
+    label: 'Gestión de Usuarios',
+    href: '/dashboard/admin/users',
+    icon: Users,
+    group: 'Administración',
+  },
+  {
     label: 'Reportes',
     href: '/dashboard/reportes',
     icon: BarChart3,
