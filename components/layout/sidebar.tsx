@@ -103,8 +103,26 @@ const menuItems = [
     group: 'Documentos',
   },
   {
+    label: 'Procuración',
+    href: '/dashboard/documentos-gestion/procuracion',
+    icon: FileText,
+    group: 'Documentos',
+  },
+  {
     label: 'Procedimientos',
-    href: '/dashboard/documentos-v2',
+    href: '/dashboard/documentos-gestion/procedimientos',
+    icon: FileText,
+    group: 'Documentos',
+  },
+  {
+    label: 'Documentos Seguridad',
+    href: '/dashboard/documentos-gestion/seguridad',
+    icon: FileText,
+    group: 'Documentos',
+  },
+  {
+    label: 'Reportes & Análisis',
+    href: '/dashboard/documentos-gestion/reportes',
     icon: FileText,
     group: 'Documentos',
   },
@@ -199,7 +217,7 @@ export function Sidebar() {
           </Link>
         </div>
 
-        {/* Navigation Menu - v3 */}
+        {/* Navigation Menu - v4 */}
         <nav className="flex-1 px-4 py-6 overflow-y-auto">
           <div className="space-y-6">
             {['Core', 'Minería', 'Logística', 'Documentos', 'Seguridad', 'Administración', 'Ayuda'].map((group) => {
