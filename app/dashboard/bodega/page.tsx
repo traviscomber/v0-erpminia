@@ -57,6 +57,8 @@ interface InventoryMovement {
   responsible: string;
   notes?: string;
 }
+
+interface InventoryItem {
   id: string;
   name: string;
   sku: string;

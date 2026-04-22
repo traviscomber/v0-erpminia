@@ -29,3 +29,5 @@ export const BrandCard = React.forwardRef<HTMLDivElement, BrandCardProps>(
 )
 
 BrandCard.displayName = 'BrandCard'
+
+export default BrandCard
