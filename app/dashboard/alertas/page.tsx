@@ -38,7 +38,7 @@ const mockAlerts: Alert[] = [
     timestamp: '2026-04-13T09:15:00',
     read: false,
     actionRequired: true,
-    actionUrl: '/dashboard/documentos-v2',
+    actionUrl: '/dashboard/documentos-gestion',
   },
   {
     id: '2',
@@ -71,7 +71,7 @@ const mockAlerts: Alert[] = [
     timestamp: '2026-04-13T07:30:00',
     read: true,
     actionRequired: true,
-    actionUrl: '/dashboard/documentos-v2',
+    actionUrl: '/dashboard/documentos-gestion',
   },
   {
     id: '5',
