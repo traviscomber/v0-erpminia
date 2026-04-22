@@ -21,8 +21,6 @@ import {
   Cpu,
   HelpCircle,
   Network,
-  Activity,
-  Shield,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -37,12 +35,6 @@ const menuItems = [
     group: 'Core',
   },
   {
-    label: 'Integración Ejecutiva',
-    href: '/dashboard/integracion-ejecutiva',
-    icon: Network,
-    group: 'Core',
-  },
-  {
     label: 'Alertas',
     href: '/dashboard/alertas',
     icon: Bell,
@@ -54,12 +46,6 @@ const menuItems = [
     label: 'Operaciones',
     href: '/dashboard/operaciones',
     icon: HardHat,
-    group: 'Minería',
-  },
-  {
-    label: 'Producción',
-    href: '/dashboard/produccion',
-    icon: Activity,
     group: 'Minería',
   },
   {
@@ -88,12 +74,6 @@ const menuItems = [
     group: 'Logística',
   },
   // Safety & Compliance
-  {
-    label: 'HSE & Compliance',
-    href: '/dashboard/hse',
-    icon: Shield,
-    group: 'Seguridad',
-  },
   {
     label: 'Documentos',
     href: '/dashboard/documentos-v2',
