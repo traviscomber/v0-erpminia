@@ -24,6 +24,7 @@ import {
   Zap,
   Shield,
   FolderOpen,
+  ChevronDown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -164,6 +165,16 @@ export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
+    'Core': true, // Core siempre expandido por defecto
+  });
+
+  const toggleGroup = (group: string) => {
+    setExpandedGroups(prev => ({
+      ...prev,
+      [group]: !prev[group]
+    }));
+  };
 
   const handleLogout = () => {
     router.push('/auth/login');
@@ -217,19 +228,32 @@ export function Sidebar() {
           </Link>
         </div>
 
-        {/* Navigation Menu - v5 Español Chileno */}
+        {/* Navigation Menu - v6 Collapsible Groups */}
         <nav className="flex-1 px-4 py-6 overflow-y-auto">
-          <div className="space-y-6">
+          <div className="space-y-2">
             {['Core', 'Minería', 'Logística', 'Documentos', 'Seguridad', 'Administración', 'Ayuda'].map((group) => {
               const groupItems = menuItems.filter((item) => item.group === group);
               if (groupItems.length === 0) return null;
+              const isExpanded = expandedGroups[group] ?? false;
 
               return (
                 <div key={group}>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-2">
-                    {group}
-                  </p>
-                  <div className="space-y-1">
+                  <button
+                    onClick={() => toggleGroup(group)}
+                    className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider hover:bg-muted/50 rounded-md transition-colors"
+                  >
+                    <span>{group}</span>
+                    <ChevronDown 
+                      className={cn(
+                        "w-4 h-4 transition-transform duration-200",
+                        isExpanded ? "rotate-0" : "-rotate-90"
+                      )} 
+                    />
+                  </button>
+                  <div className={cn(
+                    "space-y-1 overflow-hidden transition-all duration-200",
+                    isExpanded ? "max-h-[500px] opacity-100 mt-1" : "max-h-0 opacity-0"
+                  )}>
                     {groupItems.map((item) => {
                       const Icon = item.icon;
                       const isActive = pathname === item.href;
