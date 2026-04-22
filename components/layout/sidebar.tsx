@@ -154,6 +154,12 @@ const menuItems = [
     group: 'Ayuda',
   },
   {
+    label: 'Gestión de Roles',
+    href: '/dashboard/roles',
+    icon: Users,
+    group: 'Administración',
+  },
+  {
     label: 'Guías de Uso',
     href: '/dashboard/guias',
     icon: HelpCircle,

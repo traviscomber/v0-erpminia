@@ -463,15 +463,20 @@ export default function Home() {
             Accede a una demo guiada del sistema completo. Conoce cómo mantenimiento, inventario y documentos se integran en una única plataforma.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
-            <Link href="/auth/login">
+            <Link href="/dashboard">
               <Button size="lg" className="bg-white text-[var(--brand-naranja)] hover:bg-gray-100 gap-2">
-                Solicitar Demo
+                Ir al Sistema
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
             <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10 gap-2" asChild>
+              <Link href="/dashboard/roles">
+                Ver Roles y Permisos
+              </Link>
+            </Button>
+            <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10 gap-2" asChild>
               <Link href="/dashboard/guias">
-                Ver Documentación
+                Documentación
               </Link>
             </Button>
           </div>
