@@ -347,12 +347,17 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Roles Section */}
+      {/* Roles Section - Enhanced */}
       <section className="max-w-7xl mx-auto px-4 py-20">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold mb-4">Diseñado para Cada Rol</h2>
-          <p className="text-muted-foreground text-lg">
-            Cada persona en tu equipo ve exactamente lo que necesita
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+            Cada persona en tu equipo accede exactamente a lo que necesita. Seguridad, privacidad y eficiencia en cada vista personalizada.
+          </p>
+          <p className="text-sm text-muted-foreground mt-4">
+            <Link href="/dashboard/roles" className="underline text-[var(--brand-naranja)] hover:no-underline">
+              Ver matriz completa de acceso y permisos
+            </Link>
           </p>
         </div>
 
@@ -361,51 +366,103 @@ export default function Home() {
             {
               role: 'Operador de Producción',
               icon: '⚙️',
-              tasks: ['Monitorear sensores', 'Detectar anomalías', 'Reportar fallas', 'Ver KPIs en vivo']
+              color: 'border-l-[var(--brand-naranja)]',
+              badge: '4 módulos',
+              description: 'Ve la operación en vivo. Detecta anomalías antes de que causen paradas.',
+              modules: ['Producción', 'Alertas'],
+              tasks: ['Monitorear sensores en vivo', 'Detectar anomalías en equipos', 'Reportar fallas inmediatamente', 'Análisis de KPIs operacionales']
             },
             {
               role: 'Jefe de Mantención',
               icon: '👷',
-              tasks: ['Asignar OT', 'Ver progreso en vivo', 'Resolver bloqueos', 'Analizar MTTR']
+              color: 'border-l-purple-500',
+              badge: '9 módulos',
+              description: 'Gestiona toda la mantención. Asigna OT, supervisa progreso, optimiza MTTR.',
+              modules: ['Mantención', 'Work-Orders', 'Bodega', 'Dashboards', 'Alertas'],
+              tasks: ['Crear y asignar OT jerárquicas', 'Monitorear progreso en vivo', 'Resolver bloqueos técnicos', 'Analizar MTTR por equipo']
             },
             {
               role: 'Técnico de Campo',
               icon: '🔧',
-              tasks: ['Recibir OT', 'Checklist en móvil', 'Consumir piezas (QR)', 'Adjuntar evidencia']
+              color: 'border-l-[var(--brand-verde)]',
+              badge: '4 módulos',
+              description: 'OT en móvil/tablet. Checklist, QR, evidencia. Todo offline-first.',
+              modules: ['Mantención', 'Work-Orders', 'Bodega', 'Alertas'],
+              tasks: ['Recibir OT en campo (móvil)', 'Completar checklist de seguridad', 'Escanear piezas con QR', 'Adjuntar fotos como evidencia']
             },
             {
               role: 'Responsable Bodega',
               icon: '📦',
-              tasks: ['Recibir materiales', 'Gestionar stock', 'Escanear movimientos', 'Alertas de stock']
+              color: 'border-l-[var(--brand-verde)]',
+              badge: '5 módulos',
+              description: 'Controla todo el inventario. Stock, FIFO, reórdenes automáticas.',
+              modules: ['Bodega', 'Inventario', 'Compras', 'Alertas', 'Reportes'],
+              tasks: ['Recibir y catalogar materiales', 'Gestionar stock con FIFO', 'Escanear movimientos con QR', 'Alertas automáticas de bajo stock']
             },
             {
               role: 'Oficial HSE/Compliance',
               icon: '✅',
-              tasks: ['Auditar OT', 'Ver documentos', 'Checklists firmados', 'Reportes de cumplimiento']
+              color: 'border-l-[var(--brand-rojo)]',
+              badge: '10 módulos',
+              description: 'Auditoría completa. Documentos, checklists, cumplimiento normativo.',
+              modules: ['HSE', 'Documentos', 'Mantención', 'Alertas', 'Reportes', 'Integración'],
+              tasks: ['Auditar OT cerradas completas', 'Verificar documentos y versiones', 'Revisar checklists firmados', 'Generar reportes de cumplimiento']
             },
             {
               role: 'Supervisor/Gerencia',
               icon: '📊',
-              tasks: ['Dashboard de KPIs', 'Análisis de costos', 'Tendencias de fallas', 'ROI preventivo']
+              color: 'border-l-[var(--brand-naranja)]',
+              badge: 'ACCESO TOTAL',
+              description: 'Dashboard ejecutivo. KPIs, costos, tendencias, ROI. Todo integrado.',
+              modules: ['Dashboard', 'Producción', 'Mantención', 'Bodega', 'HSE', 'Documentos', 'Finanzas', 'Reportes'],
+              tasks: ['Dashboard ejecutivo con KPIs en vivo', 'Análisis de costos y ROI', 'Tendencias de fallas predictivas', 'Reportes de cumplimiento normativo']
             },
           ].map((item, i) => (
-            <BrandCard key={i}>
-              <CardHeader>
-                <div className="text-3xl mb-2">{item.icon}</div>
-                <CardTitle className="text-lg">{item.role}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="text-sm space-y-2">
+            <div key={i} className={`border-l-4 ${item.color} rounded-lg bg-card p-6 hover:shadow-lg transition-shadow`}>
+              <div className="flex justify-between items-start mb-4">
+                <div className="text-3xl">{item.icon}</div>
+                <span className="text-xs font-bold px-3 py-1 rounded-full bg-[var(--brand-naranja)]/20 text-[var(--brand-naranja)]">
+                  {item.badge}
+                </span>
+              </div>
+              
+              <h3 className="font-bold text-lg mb-2">{item.role}</h3>
+              <p className="text-sm text-muted-foreground mb-4">{item.description}</p>
+              
+              <div className="mb-4">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Módulos accesibles</p>
+                <div className="flex flex-wrap gap-2">
+                  {item.modules.map((mod, j) => (
+                    <span key={j} className="text-xs px-2 py-1 rounded bg-muted text-foreground">
+                      {mod}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Funciones clave</p>
+                <ul className="text-sm space-y-1">
                   {item.tasks.map((task, j) => (
                     <li key={j} className="flex gap-2">
-                      <span className="text-[var(--brand-naranja)]">•</span>
-                      {task}
+                      <span className="text-[var(--brand-naranja)] font-bold">→</span>
+                      <span className="text-foreground">{task}</span>
                     </li>
                   ))}
                 </ul>
-              </CardContent>
-            </BrandCard>
+              </div>
+            </div>
           ))}
+        </div>
+
+        <div className="mt-12 text-center">
+          <p className="text-sm text-muted-foreground mb-4">¿Quieres ver la matriz completa de permisos y qué rol accede a cada funcionalidad?</p>
+          <Link href="/dashboard/roles">
+            <Button size="lg" variant="outline" className="gap-2">
+              Ver Detalles de Roles y Permisos
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
         </div>
       </section>
 
