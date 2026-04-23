@@ -6,6 +6,8 @@ n3uralia ERP is an enterprise-grade operational management platform for Chilean 
 
 **🚀 Status: PRODUCTION READY - All 10 Phases Completed**
 
+**📋 Commercial Proposal Available:** View the complete commercial proposal at `/propuesta` with pricing, timeline, team structure, and financial projections.
+
 ---
 
 ## What's Included
@@ -536,7 +538,7 @@ components/
 │   ├── header.tsx               # Top navigation
 │   └── sidebar.tsx              # Side navigation
 ├── theme-provider.tsx           # Theme configuration
-└── ui/                           # shadcn/ui components (55+)
+���── ui/                           # shadcn/ui components (55+)
 ```
 
 ## Getting Started
