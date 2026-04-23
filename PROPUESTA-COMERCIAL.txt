@@ -1,0 +1,243 @@
+
+# PROPUESTA COMERCIAL
+## n3uralia ERP - Plataforma de Gestión Minera
+
+**Fecha:** 23 de Abril, 2026  
+**Válida hasta:** 23 de Mayo, 2026  
+**Preparado por:** n3uralia  
+**Dirigido a:** [Cliente]
+
+---
+
+## 1. RESUMEN EJECUTIVO
+
+Se propone el desarrollo de **n3uralia ERP**, una plataforma enterprise de gestión operacional específicamente diseñada para empresas mineras y contratistas en Chile.
+
+**Valor de Propuesta:**
+- Integración de 5 módulos operacionales en una única plataforma
+- Cumplimiento automático con regulaciones SERNAGEOMIN
+- Reducción de costos operacionales del 15-25%
+- Implementación en 7 meses
+- Soporte y mantenimiento incluido por 1 año
+
+---
+
+## 2. ALCANCE DEL PROYECTO
+
+### Módulos Incluidos:
+
+1. **Módulo Producción** - Telemetría en vivo (50+ sensores, alertas automáticas)
+2. **Módulo Mantención** - Gestión de órdenes de trabajo, MTTR, históricos
+3. **Módulo Bodega** - Inventario con FIFO, QR scanning, reorden automático
+4. **Módulo HSE** - Compliance SERNAGEOMIN, reportes de incidentes, auditorías
+5. **Módulo Documentos** - Gestión centralizada, versionado, workflows de aprobación
+
+### Características Técnicas:
+
+- **Frontend:** Next.js 16 + React 19 + TypeScript
+- **Backend:** API REST + Server Actions
+- **Database:** Supabase (PostgreSQL) con RLS
+- **Autenticación:** Supabase Auth + JWT
+- **UI Components:** shadcn/ui (60+ componentes)
+- **Hosting:** Vercel (CDN global, Edge Functions)
+- **Monitoreo:** Sentry + Vercel Analytics
+
+### No Incluido:
+
+- Integración con SAP/Oracle (disponible en fase 2)
+- Apps móviles nativas (web responsive incluida)
+- Entrenamiento presencial (virtual incluido)
+- Hardware o licencias de terceros
+
+---
+
+## 3. TIMELINE Y HITOS
+
+| Fase | Período | Entregables |
+|------|---------|------------|
+| **Fase 0** | Semanas 1-2 | Infraestructura, Setup Supabase, CI/CD |
+| **Fase 1** | Semanas 3-4 | Autenticación, RBAC, Roles (6 roles, 50+ permisos) |
+| **Fase 2** | Semanas 5-6 | API Core, Database Layer, Modelos de datos |
+| **Fase 3** | Semanas 7-10 | Módulo Producción (telemetría + alertas) |
+| **Fase 4** | Semanas 11-13 | Módulo Mantención (work orders + MTTR) |
+| **Fase 5** | Semanas 14-16 | Módulo Bodega (inventario + QR + FIFO) |
+| **Fase 6** | Semanas 17-18 | Módulo HSE (compliance + auditorías) |
+| **Fase 7** | Semanas 19-21 | Módulo Documentos (versionado + aprobaciones) |
+| **Fase 8** | Semanas 22-23 | QA Completo, Testing 80%+, Security Audit |
+| **Fase 9** | Semanas 24-25 | Documentación, Training, User Guides |
+| **Fase 10** | Semana 26 | Go-Live, Deployment, SaaS Setup |
+
+**Duración Total:** 26 semanas (6 meses + buffer de 1 semana)
+
+---
+
+## 4. MODELO FINANCIERO
+
+### Inversión Inicial - Desarrollo (7 meses)
+
+| Concepto | Monto | IVA (19%) | Total |
+|----------|-------|----------|-------|
+| **Desarrollo Plataforma** | CLP 25,000,000 | CLP 4,750,000 | **CLP 29,750,000** |
+
+**Incluye:**
+- Diseño y arquitectura
+- 5 módulos operacionales completos
+- API REST con 15+ endpoints
+- Testing automatizado (80%+ coverage)
+- Documentación técnica y usuario
+- 2 semanas de training
+- 1 mes de soporte post-launch
+
+---
+
+### Modelo SaaS - Soporte y Operación (Año 1)
+
+**Costo Mensual:** CLP 1,000,000 + IVA (19%)
+
+| Mes | Períod | Costo Base | IVA | Total Mensual |
+|-----|--------|-----------|-----|---------------|
+| 1-12 | Año 1 | CLP 1,000,000 | CLP 190,000 | CLP 1,190,000 |
+
+**Incluye:**
+- Hosting en Vercel (infraestructura, CDN, Edge Functions)
+- Database Supabase (backups automáticos, redundancia)
+- SSL/TLS, seguridad, compliance
+- Monitoreo 24/7 (Sentry)
+- Soporte por email (<24h response)
+- Chat in-app (horario de oficina)
+- Actualizaciones y parches de seguridad
+- 99.9% SLA uptime guarantee
+- Máximo 43 minutos downtime/mes
+
+---
+
+### Proyección Financiera (3 años)
+
+| Período | Ingresos | Costos | Margen |
+|---------|----------|--------|--------|
+| **Desarrollo (Meses 1-7)** | CLP 29.75M | CLP 29.75M | 0% |
+| **Año 1 (Meses 8-19)** | CLP 12M | CLP 3.6M | 70% |
+| **Año 2 (Meses 20-31)** | CLP 12M | CLP 3.8M | 68% |
+| **Año 3 (Meses 32-43)** | CLP 12M | CLP 4.2M | 65% |
+
+**Break-even:** Octubre 2027 (22 meses desde inicio)
+
+---
+
+## 5. EQUIPO
+
+### Fase de Desarrollo (7 meses)
+
+| Rol | Cantidad | Responsabilidad |
+|-----|----------|-----------------|
+| **Tech Lead** | 1 | Arquitectura, decisiones técnicas, code review |
+| **Backend Engineers** | 2 | APIs, base de datos, lógica de negocio |
+| **Frontend Engineer** | 1 | UI/UX, componentes, integraciones |
+| **QA/DevOps Engineer** | 1 | Testing, deployment, monitoreo |
+| **Project Manager** | 0.5 | Comunicación, timeline, tracking |
+
+**Total:** 5.5 FTE
+
+### Fase de Operación SaaS (Post-launch)
+
+| Rol | Cantidad | Responsabilidad |
+|-----|----------|-----------------|
+| **DevOps Engineer** | 0.5 | Infraestructura, backups, monitoring |
+| **Support Engineer** | 0.5 | Soporte a usuarios, bug fixes |
+| **Product Manager** | 0.25 | Feature roadmap, mejoras |
+
+**Total:** 1.25 FTE
+
+---
+
+## 6. TÉRMINOS DE PAGO
+
+### Opción 1 - Pago por Hitos (Recomendado)
+
+| Hito | Semana | % | Monto | Condición |
+|------|--------|---|-------|-----------|
+| **Kickoff** | 1 | 20% | CLP 5,950,000 | Firmas y documentos |
+| **Fase 3 (Producción)** | 10 | 20% | CLP 5,950,000 | Módulo en testing |
+| **Fase 6 (HSE)** | 18 | 30% | CLP 8,925,000 | 3 módulos funcionando |
+| **Fase 9 (Documentación)** | 25 | 20% | CLP 5,950,000 | Plataforma completada |
+| **Go-Live + 1 mes soporte** | 30 | 10% | CLP 2,975,000 | Plataforma en producción |
+
+**Total:** CLP 29,750,000 (excluye IVA)
+
+### Opción 2 - Pago Mensual
+
+- CLP 4,246,429 / mes (12 meses)
+- Incluye IVA (19%)
+- Total: CLP 50,957,000
+
+### SaaS - Modelo de Suscripción
+
+- **Mensual:** CLP 1,190,000 (incluye IVA)
+- **Anual (descuento 10%):** CLP 12,870,000
+- Facturable el 1º de cada mes
+- Período de prueba: 30 días gratis (opcional)
+
+---
+
+## 7. SUPUESTOS Y RESTRICCIONES
+
+### Supuestos
+
+✓ Cliente proporciona especificaciones funcionales detalladas  
+✓ Acceso a expertos del cliente para requirements (4h/semana)  
+✓ Estabilidad de requirements (máximo 10% cambios)  
+✓ El cliente tiene licencia Supabase o la proporciona  
+✓ Infraestructura estable y sin restricciones de acceso
+
+### Restricciones
+
+✗ No incluye integración con sistemas legacy complejos  
+✗ No incluye desarrollo de apps móviles nativas  
+✗ Cambios de scope > 10% requieren aumento de presupuesto  
+✗ Retraso en especificaciones retrasa timeline  
+✗ No incluye hardware, licencias externas, o capacitación presencial
+
+---
+
+## 8. GARANTÍAS Y SLA
+
+### Garantías de Calidad
+
+✓ **Cobertura de Tests:** Mínimo 80% code coverage  
+✓ **Security:** OWASP Top 10 compliance, auditoría de seguridad  
+✓ **Performance:** Page load < 1.5s, API latency < 500ms  
+✓ **Availability:** 99.9% uptime SLA durante year 1  
+✓ **Soporte:** 1 año incluido post-launch
+
+### Período de Correcciones
+
+- **Bugs críticos:** 24 horas
+- **Bugs menores:** 1 semana
+- **Feature requests:** Roadmap del siguiente quarter
+
+---
+
+## 9. PRÓXIMOS PASOS
+
+1. **Semana 1:** Reunión de kick-off y alineación de objetivos
+2. **Semana 2:** Firma de contrato y acuerdos de confidencialidad
+3. **Semana 3:** Inicio formal del desarrollo
+4. **Semana 26:** Go-live y transición a operación SaaS
+
+**Contacto:** hello@n3uralia.com
+
+---
+
+## 10. VALIDEZ Y CONDICIONES
+
+- **Propuesta válida hasta:** 23 de Mayo, 2026
+- **Moneda:** Pesos Chilenos (CLP)
+- **Impuestos:** IVA (19%) no incluido en monto base
+- **Cambios de scope:** Requerirá amendment de propuesta
+- **Cancelación anticipada:** 50% penalidad de lo que queda
+
+---
+
+**Preparado por:** n3uralia  
+**Fecha:** 23 de Abril, 2026  
+**Versión:** 1.0 - FINAL
