@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import useSWR from 'swr';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +16,7 @@ import {
   AlertCircle,
   CheckCircle2,
   XCircle,
+  RefreshCw,
 } from 'lucide-react';
 import {
   LineChart,
@@ -32,58 +34,36 @@ import {
 } from 'recharts';
 import { CHART_COLORS_LIGHT } from '@/lib/theme-colors';
 
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
 export default function ProduccionPage() {
-  const [plants, setPlants] = useState([
-    { id: '1', name: 'Faena Centro', location: 'Atacama', status: 'operational', equipment_count: 42 },
-    { id: '2', name: 'Planta Procesamiento', location: 'Atacama', status: 'operational', equipment_count: 28 },
-  ]);
-
-  const [selectedPlant, setSelectedPlant] = useState(plants[0]);
-
-  const [equipment, setEquipment] = useState([
+  const [selectedEquipment, setSelectedEquipment] = useState<any>(null);
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  
+  // Fetch telemetry data from API
+  const { data, error, isLoading, mutate } = useSWR(
+    '/api/dashboard/produccion',
+    fetcher,
     {
-      id: 'eq-01',
-      name: 'Excavadora CAT 390',
-      type: 'excavadora',
-      status: 'operational',
-      availability: 94,
-      temperature: 62,
-      pressure: 8.2,
-      alarms: 1,
-      last_maintenance: '2024-03-15',
-    },
-    {
-      id: 'eq-02',
-      name: 'Bomba Hidráulica P-4',
-      type: 'bomba',
-      status: 'operational',
-      availability: 98,
-      temperature: 45,
-      pressure: 7.5,
-      alarms: 0,
-      last_maintenance: '2024-03-10',
-    },
-    {
-      id: 'eq-03',
-      name: 'Motor Eléctrico M-7',
-      type: 'motor',
-      status: 'warning',
-      availability: 87,
-      temperature: 78,
-      pressure: 6.1,
-      alarms: 2,
-      last_maintenance: '2024-02-20',
-    },
-  ]);
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      refreshInterval: autoRefresh ? 30000 : 0, // 30 seconds if auto-refresh enabled
+    }
+  );
 
-  const [sensorData, setSensorData] = useState([
-    { timestamp: '08:00', temp: 65, pressure: 8.0, vibration: 2.1 },
-    { timestamp: '08:15', temp: 66, pressure: 8.1, vibration: 2.2 },
-    { timestamp: '08:30', temp: 67, pressure: 8.2, vibration: 2.4 },
-    { timestamp: '08:45', temp: 69, pressure: 8.3, vibration: 2.6 },
-    { timestamp: '09:00', temp: 71, pressure: 8.5, vibration: 2.8 },
-    { timestamp: '09:15', temp: 72, pressure: 8.6, vibration: 3.1 },
-  ]);
+  useEffect(() => {
+    if (data?.equipment && data.equipment.length > 0 && !selectedEquipment) {
+      setSelectedEquipment(data.equipment[0]);
+    }
+  }, [data?.equipment, selectedEquipment]);
+
+  if (error) return <div className="text-red-500">Error loading telemetry data</div>;
+  if (isLoading) return <div className="text-gray-500">Loading telemetry...</div>;
+
+  const equipment = data?.equipment || [];
+  const sensors = data?.sensors || [];
+  const readings = data?.readings || [];
+  const alarms = data?.alarms || [];
 
   const getStatusColor = (status: string) => {
     switch (status) {

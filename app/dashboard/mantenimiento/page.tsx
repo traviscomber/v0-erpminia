@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import useSWR from 'swr';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +23,7 @@ import {
   Filter,
   Eye,
   Link2,
+  RefreshCw,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { BrandCard } from '@/components/ui/brand-card';
@@ -45,39 +47,36 @@ import {
 } from 'recharts';
 import { CHART_COLORS_LIGHT } from '@/lib/theme-colors';
 
-interface MaintenanceOrder {
-  id: string;
-  asset_name: string;
-  asset_id: string;
-  order_type: 'preventiva' | 'correctiva' | 'predictiva';
-  status: 'pendiente' | 'en_progreso' | 'completada' | 'cancelada';
-  scheduled_date: string;
-  completion_date?: string;
-  technician: string;
-  priority: 'baja' | 'media' | 'alta' | 'critica_seguridad';
-  estimated_mttr?: number; // minutes
-  purchase_order_id?: string; // Link to Compras
-  inventory_items?: string[]; // Links to Bodega
-  document_id?: string; // Link to Documentos
-  actual_mttr?: number; // minutes
-  failure_code?: string;
-  preventive_score?: number; // 0-100
-  safety_critical?: boolean;
-}
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function MantenimientoPage() {
-  const [orders, setOrders] = useState<MaintenanceOrder[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('maintenance_orders')
-          .select('*')
-          .order('created_at', { ascending: false });
+  // Fetch maintenance orders from API
+  const { data, error, isLoading, mutate } = useSWR(
+    statusFilter === 'all' 
+      ? '/api/dashboard/mantenimiento' 
+      : `/api/dashboard/mantenimiento?status=${statusFilter}`,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      refreshInterval: 60000, // 1 minute
+    }
+  );
+
+  if (error) return <div className="text-red-500">Error loading maintenance data</div>;
+  if (isLoading) return <div className="text-gray-500">Loading maintenance orders...</div>;
+
+  const orders = data?.orders || [];
+  const mtbf = data?.mtbf || 0;
+
+  // Filter orders by search term
+  const filteredOrders = orders.filter((order: any) =>
+    (order.title?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (order.order_number?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+  );
         
         if (error) throw error;
         
