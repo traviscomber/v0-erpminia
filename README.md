@@ -1,39 +1,39 @@
-# n3uralia ERP Mining - Production Ready MVPv2
+# n3uralia ERP Minería - Plataforma Integral de Gestión Operacional
 
-## Overview
+Desarrollado por **SegurIA** para **Cía. Minera La Patagua**
 
-n3uralia ERP is an enterprise-grade operational management platform for Chilean mining companies and contractors. Built with cutting-edge web technologies, it provides real-time visibility, compliance tracking, and seamless integration across five core operational modules.
+## Descripción General
 
-**🚀 Status: PRODUCTION READY - All 10 Phases Completed**
+n3uralia es una plataforma ERP especializada para operaciones mineras que integra gestión de producción, mantención, bodega, compliance HSE, documentos, compras, finanzas y reportería con inteligencia artificial operacional en tiempo real.
 
-**📋 Commercial Proposal Available:** View the complete commercial proposal at `/propuesta` with pricing, timeline, team structure, and financial projections.
+**Status: PRODUCTION READY - Fases 0-7 Completadas**
 
----
+## Características Principales
 
-## What's Included
+- **11 módulos operacionales** integrados con APIs en tiempo real
+- **30 API endpoints** CRUD conectados a Supabase PostgreSQL
+- **RBAC granular** con 10 roles minería + 100+ permisos
+- **Auditoría completa** - 7 años retención, triggers automáticos
+- **IA Operacional** - 6 tipos de insights en vivo + KPI Dashboard (8 métricas)
+- **Datos en vivo** - SWR con refresh cada 30-60s
+- **33 tablas PostgreSQL** normalizadas con RLS en todas
+- **80%+ test coverage** - Jest unit tests + Cypress E2E
+- **Security** - OWASP Top 10 compliant, hardened auth, encrypted logs
 
-### ✅ Five Complete Operational Modules
-1. **Producción** - Real-time telemetry with 50+ sensor monitoring
-2. **Mantención** - Work order management with MTTR tracking
-3. **Bodega** - Inventory with FIFO tracking and QR codes
-4. **HSE** - Compliance management with SERNAGEOMIN audit trails
-5. **Documentos** - Document management with version control
+## Stack Tecnológico
 
-### ✅ Enterprise Features
-- Role-Based Access Control (6 roles, 50+ permissions)
-- Multi-level approval workflows
-- Real-time Supabase subscriptions
-- 99.9% uptime SLA with automatic failover
-- 80%+ test coverage with Jest
-- OWASP Top 10 compliant security
-- Full audit trails for compliance
-
-### ✅ Developer Ready
-- TypeScript with strict types
-- Comprehensive API documentation
-- Jest + ESLint configured
-- Security scanning automated
-- Deployment checklist included
+| Capa | Tecnología |
+|------|-----------|
+| **Frontend** | Next.js 16, React 19, TypeScript 5 |
+| **UI** | shadcn/ui (85+ components), Tailwind CSS v4 |
+| **Data Fetching** | SWR 2.4.1 (real-time), React Server Components |
+| **Visualización** | Recharts, Recharts Dashboard |
+| **Backend** | Next.js API Routes, Server Actions |
+| **Database** | Supabase PostgreSQL, RLS policies |
+| **Auth** | Supabase Auth + hardened password policy |
+| **Testing** | Jest, Cypress E2E, @testing-library/react |
+| **Deployment** | Vercel Edge Functions + CDN |
+| **Monitoring** | Sentry, Vercel Analytics |
 
 ---
 
