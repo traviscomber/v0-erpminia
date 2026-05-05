@@ -1,63 +1,39 @@
 'use client';
 
 import { useState } from 'react';
+import useSWR from 'swr';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Search, Upload, Plus, FileText, Building2, Hammer, ShieldAlert, BarChart3, Clock } from 'lucide-react';
+import { Search, Upload, Plus, FileText, Building2, Hammer, ShieldAlert, BarChart3, Clock, RefreshCw } from 'lucide-react';
+import { DocumentVersionHistory } from '@/components/documents/document-version-history';
 
-interface DocumentCategory {
-  id: string;
-  name: string;
-  description: string;
-  icon: React.ReactNode;
-  count: number;
-  pendingApprovals: number;
-  href: string;
-  color: string;
-}
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-const categories: DocumentCategory[] = [
-  {
-    id: 'contratos',
-    name: 'Contratos & Subcontratos',
-    description: 'Gestión de contratos principales y subcontratos con contratistas',
-    icon: <FileText className="h-6 w-6" />,
-    count: 24,
-    pendingApprovals: 3,
-    href: '/dashboard/documentos-gestion/contratos',
-    color: 'bg-blue-500/10 border-blue-500/20',
-  },
-  {
-    id: 'adquisiciones',
-    name: 'Adquisiciones',
-    description: 'Órdenes de compra, requisiciones y documentos de adquisiciones',
-    icon: <Building2 className="h-6 w-6" />,
-    count: 156,
-    pendingApprovals: 12,
-    href: '/dashboard/documentos-gestion/adquisiciones',
-    color: 'bg-green-500/10 border-green-500/20',
-  },
-  {
-    id: 'procedimientos',
-    name: 'Procedimientos Operacionales',
-    description: 'POS, SOPs y procedimientos estándar de operación',
-    icon: <Hammer className="h-6 w-6" />,
-    count: 89,
-    pendingApprovals: 2,
-    href: '/dashboard/documentos-gestion/procedimientos',
-    color: 'bg-orange-500/10 border-orange-500/20',
-  },
-  {
-    id: 'seguridad',
-    name: 'Documentos de Seguridad',
-    description: 'Procedimientos HSE, alertas, y documentación de seguridad',
-    icon: <ShieldAlert className="h-6 w-6" />,
-    count: 67,
-    pendingApprovals: 1,
-    href: '/dashboard/documentos-gestion/seguridad',
+export default function DocumentosGestionPage() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  // Fetch documents from API
+  const { data, error, isLoading, mutate } = useSWR(
+    '/api/dashboard/documentos-gestion',
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      refreshInterval: 300000, // 5 minutes
+    }
+  );
+
+  if (error) return <div className="text-red-500">Error loading documents</div>;
+  if (isLoading) return <div className="text-gray-500">Loading document management...</div>;
+
+  const categories = data?.categories || [];
+  const recentDocuments = data?.recentDocuments || [];
+  const expiringDocuments = data?.expiringDocuments || [];
+  const pendingApprovals = data?.pendingApprovals || [];
     color: 'bg-red-500/10 border-red-500/20',
   },
   {

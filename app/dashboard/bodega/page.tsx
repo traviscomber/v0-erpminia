@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import useSWR from 'swr';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,6 +26,7 @@ import {
   Eye,
   Download,
   Filter,
+  RefreshCw,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { BrandCard } from '@/components/ui/brand-card';
@@ -48,56 +50,32 @@ import {
 } from 'recharts';
 import { CHART_COLORS_LIGHT } from '@/lib/theme-colors';
 
-interface InventoryMovement {
-  id: string;
-  type: 'in' | 'out' | 'adjustment';
-  quantity: number;
-  date: string;
-  reference: string;
-  responsible: string;
-  notes?: string;
-}
-
-interface InventoryItem {
-  id: string;
-  name: string;
-  sku: string;
-  category: string;
-  current_stock: number;
-  minimum_stock: number;
-  unit_cost: number;
-  total_value: number;
-  warehouse_location?: string;
-  zone?: string;
-  rack?: string;
-  level?: string;
-  qr_code?: string;
-  batch_number?: string;
-  received_date?: string;
-  expiry_date?: string;
-  fifo_order?: number;
-  last_movement?: string;
-  traceability_enabled?: boolean;
-}
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function BodegaPage() {
-  const [items, setItems] = useState<InventoryItem[]>([]);
-  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
-  const [loading, setLoading] = useState(true);
+  const [showQRMode, setShowQRMode] = useState(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('wear_parts')
-          .select('*')
-          .order('created_at', { ascending: false });
-        
-        if (error) throw error;
-        
-        const mappedItems: InventoryItem[] = (data || []).map(part => ({
+  // Fetch warehouse inventory from API
+  const { data, error, isLoading, mutate } = useSWR(
+    `/api/dashboard/bodega${categoryFilter !== 'all' ? `?category=${categoryFilter}` : ''}`,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      refreshInterval: 60000, // 1 minute
+    }
+  );
+
+  if (error) return <div className="text-red-500">Error loading warehouse data</div>;
+  if (isLoading) return <div className="text-gray-500">Loading inventory...</div>;
+
+  const items = data?.items || [];
+  const criticalItems = data?.criticalItems || [];
+  const totalValue = data?.totalValue || 0;
+  const reorderAlerts = data?.reorderAlerts || [];
           id: part.id,
           code: part.part_code || '',
           name: part.part_name || '',

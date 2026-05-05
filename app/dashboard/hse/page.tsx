@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import useSWR from 'swr';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +16,7 @@ import {
   AlertCircle,
   Target,
   CheckSquare,
+  RefreshCw,
 } from 'lucide-react';
 import {
   BarChart,
@@ -33,51 +35,29 @@ import {
 } from 'recharts';
 import { CHART_COLORS_LIGHT } from '@/lib/theme-colors';
 
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
 export default function HSEPage() {
   const [selectedFramework, setSelectedFramework] = useState('all');
 
-  const frameworks = [
-    { id: 'ds132', name: 'DS 132 - Seguridad Minera', incidents: 2, requirements: 45, compliance: 96 },
-    { id: 'ley19300', name: 'Ley 19.300 - Ambiental', incidents: 1, requirements: 32, compliance: 98 },
-    { id: 'ds148', name: 'DS 148 - Residuos', incidents: 0, requirements: 28, compliance: 100 },
-  ];
+  // Fetch HSE data from API
+  const { data, error, isLoading, mutate } = useSWR(
+    `/api/dashboard/hse${selectedFramework !== 'all' ? `?framework=${selectedFramework}` : ''}`,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      refreshInterval: 120000, // 2 minutes
+    }
+  );
 
-  const incidents = [
-    {
-      id: 'inc-001',
-      type: 'Incidente de Seguridad',
-      equipment: 'Excavadora CAT 390',
-      severity: 'high',
-      status: 'investigating',
-      date: '2024-03-20',
-      description: 'Contacto accidental durante operación',
-    },
-    {
-      id: 'inc-002',
-      type: 'Observación Ambiental',
-      equipment: 'Planta Procesamiento',
-      severity: 'medium',
-      status: 'pending_action',
-      date: '2024-03-18',
-      description: 'Posible vertimiento de agua aceitosa',
-    },
-    {
-      id: 'inc-003',
-      type: 'No Conformidad HSE',
-      equipment: 'Área de Almacenamiento',
-      severity: 'low',
-      status: 'closed',
-      date: '2024-03-15',
-      description: 'Falta de señalización en zona de riesgo',
-    },
-  ];
+  if (error) return <div className="text-red-500">Error loading HSE data</div>;
+  if (isLoading) return <div className="text-gray-500">Loading HSE compliance data...</div>;
 
-  const requirementsDueData = [
-    { name: 'Esta Semana', count: 3, status: 'on_track' },
-    { name: 'Próx. 2 Semanas', count: 7, status: 'on_track' },
-    { name: 'Próx. Mes', count: 12, status: 'warning' },
-    { name: 'Vencidas', count: 2, status: 'overdue' },
-  ];
+  const frameworks = data?.frameworks || [];
+  const incidents = data?.incidents || [];
+  const requirementsDueData = data?.requirementsDueData || [];
+  const complianceByFramework = data?.complianceByFramework || [];
 
   const complianceByArea = [
     { area: 'Seguridad Op.', compliance: 98, target: 100 },
