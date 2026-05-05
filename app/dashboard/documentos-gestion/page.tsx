@@ -34,31 +34,6 @@ export default function DocumentosGestionPage() {
   const recentDocuments = data?.recentDocuments || [];
   const expiringDocuments = data?.expiringDocuments || [];
   const pendingApprovals = data?.pendingApprovals || [];
-    color: 'bg-red-500/10 border-red-500/20',
-  },
-  {
-    id: 'reportes',
-    name: 'Reportes & Análisis',
-    description: 'Reportes operacionales, análisis y documentos ejecutivos',
-    icon: <BarChart3 className="h-6 w-6" />,
-    count: 234,
-    pendingApprovals: 5,
-    href: '/dashboard/documentos-gestion/reportes',
-    color: 'bg-purple-500/10 border-purple-500/20',
-  },
-];
-
-export default function DocumentosGestionPage() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-
-  const filteredCategories = categories.filter((cat) =>
-    cat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    cat.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const totalDocuments = categories.reduce((sum, cat) => sum + cat.count, 0);
-  const totalPendingApprovals = categories.reduce((sum, cat) => sum + cat.pendingApprovals, 0);
 
   return (
     <div className="space-y-6">

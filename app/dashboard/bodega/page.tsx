@@ -76,50 +76,14 @@ export default function BodegaPage() {
   const criticalItems = data?.criticalItems || [];
   const totalValue = data?.totalValue || 0;
   const reorderAlerts = data?.reorderAlerts || [];
-          id: part.id,
-          code: part.part_code || '',
-          name: part.part_name || '',
-          category: part.description?.split('|')[0] || 'General',
-          current_stock: part.stock_current || 0,
-          minimum_stock: part.stock_min || 10,
-          unit_cost: part.unit_cost || 0,
-          total_value: (part.stock_current || 0) * (part.unit_cost || 0),
-          last_movement: new Date(),
-          supplier: part.supplier || 'Por definir',
-          lead_time_days: part.lead_time_days || 0,
-          critical: part.is_critical || false,
-          traceability_enabled: true,
-        }));
-        
-        setItems(mappedItems);
-      } catch (err) {
-        console.error('[v0] Error fetching wear parts:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    fetchData();
-  }, []);
+  // Filter items by search and category
+  const filteredItems = items.filter((item: any) =>
+    (item.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (item.code?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+  );
 
-  const lowStockItems = items.filter(i => i.current_stock <= i.minimum_stock).length;
-  const totalValue = items.reduce((sum, i) => sum + i.total_value, 0);
-  const categories = [...new Set(items.map(i => i.category))];
-
-  const categoryData = categories.map(cat => ({
-    name: cat,
-    items: items.filter(i => i.category === cat).length,
-  }));
-
-  const COLORS = CHART_COLORS_LIGHT;
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('es-CL', {
-      style: 'currency',
-      currency: 'CLP',
-      minimumFractionDigits: 0,
-    }).format(value);
-  };
+  const lowStockItems = items.filter((i: any) => i.current_stock <= i.minimum_stock).length;
 
   return (
     <div className="space-y-8">

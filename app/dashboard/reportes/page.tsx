@@ -72,41 +72,6 @@ export default function ReportesPage() {
   const chartData = data?.chartData || [];
   const summary = data?.summary || {};
   const details = data?.details || [];
-          },
-          maintenance: {
-            total: maintenance.length,
-            preventive: maintenance.filter((m: any) => m.maintenance_type === 'preventiva').length,
-            corrective: maintenance.filter((m: any) => m.maintenance_type === 'correctiva').length,
-            completed: maintenance.filter((m: any) => m.status === 'completada').length,
-          },
-          inventory: {
-            items: inventory.length,
-            lowStock: inventory.filter((item: any) => item.stock_current <= item.stock_min).length,
-            totalValue: inventory.reduce((sum: number, item: any) => sum + ((item.stock_current || 0) * (item.unit_cost || 0)), 0),
-            categories: new Set(inventory.map((item: any) => item.description?.split('|')[0])).size,
-          }
-        });
-      } catch (err) {
-        console.error('[v0] Error fetching consolidated data:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  const chartData = [
-    { name: 'Documentos', vigentes: 32, vencidos: 3, alertas: 5 },
-    { name: 'Mantenimiento', preventivas: 12, correctivas: 8, pendientes: 6 },
-    { name: 'Inventario', items: 145, bajoStock: 12, categorias: 8 },
-  ];
-
-  const modulesHealth = [
-    { name: 'Documentos', value: 91, color: '#3b82f6' },
-    { name: 'Mantenimiento', value: 85, color: '#10b981' },
-    { name: 'Inventario', value: 88, color: '#f59e0b' },
-  ];
 
   return (
     <div className="space-y-8">

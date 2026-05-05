@@ -245,7 +245,7 @@ export default function ProposalPage() {
             </li>
             <li className="flex gap-3">
               <span className="text-green-600 font-bold">✓</span>
-              <span>Soporte técnico (<24h respuesta en horas hábiles)</span>
+              <span>{'Soporte técnico (<24h respuesta en horas hábiles)'}</span>
             </li>
             <li className="flex gap-3">
               <span className="text-green-600 font-bold">✓</span>
@@ -257,7 +257,7 @@ export default function ProposalPage() {
             </li>
             <li className="flex gap-3">
               <span className="text-green-600 font-bold">✓</span>
-              <span>Recuperación ante desastres (RTO <4h)</span>
+              <span>{'Recuperación ante desastres (RTO <4h)'}</span>
             </li>
           </ul>
         </section>
