@@ -1,8 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import useSWR from 'swr';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import {
   BarChart,
   Bar,
@@ -25,39 +34,44 @@ import {
   AlertCircle,
   TrendingUp,
   Download,
+  RefreshCw,
+  Settings,
 } from 'lucide-react';
+import { CHART_COLORS_LIGHT } from '@/lib/theme-colors';
 
-export default function ExecutiveDashboard() {
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState({
-    documents: { total: 0, expiring: 0, compliant: 0 },
-    maintenance: { total: 0, preventive: 0, corrective: 0, completed: 0 },
-    inventory: { items: 0, lowStock: 0, totalValue: 0, categories: 0 },
-  });
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch consolidated data from all modules
-        const [docsRes, maintRes, invRes] = await Promise.all([
-          supabase.from('document_audit_log').select('*').limit(100),
-          supabase.from('maintenance_orders').select('*'),
-          supabase.from('wear_parts').select('*')
-        ]);
+const REPORT_TYPES = [
+  { id: 'maintenance', name: 'Reporte Mantención', icon: Wrench },
+  { id: 'production', name: 'Reporte Producción', icon: TrendingUp },
+  { id: 'equipment', name: 'Reporte Equipos', icon: Package },
+  { id: 'financial', name: 'Reporte Financiero', icon: FileText },
+  { id: 'hse', name: 'Reporte HSE', icon: AlertCircle },
+  { id: 'combined', name: 'Reporte Integrado', icon: FileText },
+];
 
-        if (docsRes.error) throw docsRes.error;
-        if (maintRes.error) throw maintRes.error;
-        if (invRes.error) throw invRes.error;
+export default function ReportesPage() {
+  const [reportType, setReportType] = useState('maintenance');
+  const [dateRange, setDateRange] = useState('month');
+  const [filters, setFilters] = useState<Record<string, string>>({});
 
-        const documents = docsRes.data || [];
-        const maintenance = maintRes.data || [];
-        const inventory = invRes.data || [];
+  // Fetch report data from API
+  const { data, error, isLoading, mutate } = useSWR(
+    `/api/dashboard/reportes?type=${reportType}&range=${dateRange}`,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      refreshInterval: 600000, // 10 minutes
+    }
+  );
 
-        setData({
-          documents: {
-            total: documents.length,
-            expiring: Math.floor(documents.length * 0.1),
-            compliant: Math.floor(documents.length * 0.9)
+  if (error) return <div className="text-red-500">Error loading report data</div>;
+  if (isLoading) return <div className="text-gray-500">Generating report...</div>;
+
+  const chartData = data?.chartData || [];
+  const summary = data?.summary || {};
+  const details = data?.details || [];
           },
           maintenance: {
             total: maintenance.length,

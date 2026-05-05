@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Search, Filter, Eye, Edit2, Trash2, Download } from 'lucide-react';
+import useSWR from 'swr';
+import { Plus, Search, Filter, Eye, Edit2, Trash2, Download, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,26 +19,43 @@ import { BrandCard } from '@/components/ui/brand-card';
 import { StatusBadge } from '@/components/status-badge';
 import { AuditTrail } from '@/components/audit-trail';
 import { exportToCSV } from '@/lib/export-utils';
-import { mockPurchaseOrders } from '@/lib/data';
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const statusConfig: Record<string, { color: string; label: string }> = {
-  'Pendiente': { color: 'bg-yellow-500/20 text-yellow-700', label: 'Pendiente' },
-  'Confirmada': { color: 'bg-blue-500/20 text-blue-700', label: 'Confirmada' },
-  'Entregado': { color: 'bg-green-500/20 text-green-700', label: 'Entregado' },
-  'Cancelada': { color: 'bg-red-500/20 text-red-700', label: 'Cancelada' },
+  'draft': { color: 'bg-gray-500/20 text-gray-700', label: 'Borrador' },
+  'pending': { color: 'bg-yellow-500/20 text-yellow-700', label: 'Pendiente' },
+  'approved': { color: 'bg-blue-500/20 text-blue-700', label: 'Aprobada' },
+  'received': { color: 'bg-green-500/20 text-green-700', label: 'Recibida' },
+  'closed': { color: 'bg-green-600/20 text-green-800', label: 'Cerrada' },
+  'cancelled': { color: 'bg-red-500/20 text-red-700', label: 'Cancelada' },
 };
 
 export default function ComprasPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedOrder, setSelectedOrder] = useState<typeof mockPurchaseOrders[0] | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState('all');
-  const [showFilters, setShowFilters] = useState(false);
 
-  const filteredOrders = mockPurchaseOrders.filter(
-    (order) =>
-      order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.vendor.toLowerCase().includes(searchTerm.toLowerCase())
+  // Fetch purchase orders from API
+  const { data, error, isLoading, mutate } = useSWR(
+    statusFilter === 'all'
+      ? '/api/dashboard/compras'
+      : `/api/dashboard/compras?status=${statusFilter}`,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      refreshInterval: 120000, // 2 minutes
+    }
   );
+
+  if (error) return <div className="text-red-500">Error loading purchase orders</div>;
+  if (isLoading) return <div className="text-gray-500">Loading procurement data...</div>;
+
+  const orders = data?.orders || [];
+  const totalValue = data?.totalValue || 0;
+  const pendingOrders = data?.pendingOrders || 0;
+  const suppliers = data?.suppliers || [];
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('es-CL', {

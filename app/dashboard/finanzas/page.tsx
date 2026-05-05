@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import useSWR from 'swr';
 import {
   DollarSign,
   TrendingUp,
@@ -10,6 +11,7 @@ import {
   Download,
   Filter,
   Eye,
+  RefreshCw,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -36,13 +38,37 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  LineChart,
+  Line,
 } from 'recharts';
-import { mockFinances } from '@/lib/data';
+import { CHART_COLORS_LIGHT } from '@/lib/theme-colors';
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function FinanzasPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [selectedInvoice, setSelectedInvoice] = useState<typeof mockFinances[0] | null>(null);
+  const [selectedPeriod, setSelectedPeriod] = useState('monthly');
+
+  // Fetch financial data from API
+  const { data, error, isLoading, mutate } = useSWR(
+    `/api/dashboard/finanzas?period=${selectedPeriod}`,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      refreshInterval: 300000, // 5 minutes
+    }
+  );
+
+  if (error) return <div className="text-red-500">Error loading financial data</div>;
+  if (isLoading) return <div className="text-gray-500">Loading financial reports...</div>;
+
+  const budget = data?.budget || {};
+  const expenses = data?.expenses || [];
+  const budgetVsActual = data?.budgetVsActual || [];
+  const forecast = data?.forecast || [];
+  const departmentSpend = data?.departmentSpend || [];
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('es-CL', {
