@@ -1,0 +1,89 @@
+AUDIT DE MÓDULOS - n3uralia ERP Minería MVP
+============================================
+
+ESTADO: 23/10 módulos principales implementados (70%)
+
+MÓDULOS IMPLEMENTADOS:
+=======================
+
+SECCIÓN: Core
+✅ Dashboard - /dashboard/page.tsx (EXISTS)
+✅ Alertas - /dashboard/alertas/page.tsx (EXISTS)
+
+SECCIÓN: Operación Crítica (6 módulos)
+✅ Producción - /dashboard/produccion/page.tsx (EXISTS)
+✅ Mantención - /dashboard/mantenimiento/page.tsx (EXISTS)
+   └─ Sub: Vehículos - /dashboard/mantenimiento/vehiculos/page.tsx (EXISTS)
+   └─ Sub: Árbol de mantenimiento - /dashboard/mantenimiento/vehiculos/[id]/arbol/page.tsx (EXISTS)
+✅ Órdenes de Trabajo - /dashboard/work-orders/page.tsx (EXISTS)
+   └─ Sub: Create - /dashboard/work-orders/create/page.tsx (EXISTS)
+   └─ Sub: Detail - /dashboard/work-orders/[id]/page.tsx (EXISTS)
+✅ Bodega & Inventario - /dashboard/bodega/page.tsx (EXISTS)
+   └─ También: /dashboard/inventario/page.tsx (EXISTS - DUPLICADO)
+✅ HSE & Compliance - /dashboard/hse/page.tsx (EXISTS)
+✅ Gestión Documental - /dashboard/documentos-gestion/page.tsx (EXISTS)
+   └─ Sub: Contratos - /dashboard/documentos-gestion/contratos/page.tsx (EXISTS)
+   └─ Sub: Adquisiciones - /dashboard/documentos-gestion/adquisiciones/page.tsx (EXISTS)
+   └─ Sub: Procedimientos - /dashboard/documentos-gestion/procedimientos/page.tsx (EXISTS)
+   └─ Sub: Seguridad - /dashboard/documentos-gestion/seguridad/page.tsx (EXISTS)
+   └─ Sub: Reportes - /dashboard/documentos-gestion/reportes/page.tsx (EXISTS)
+
+SECCIÓN: Gestión Empresarial (3 módulos)
+✅ Compras & OCs - /dashboard/compras/page.tsx (EXISTS)
+✅ Finanzas & Presupuesto - /dashboard/finanzas/page.tsx (EXISTS)
+✅ Reportes & Análisis - /dashboard/reportes/page.tsx (EXISTS)
+
+SECCIÓN: Inteligencia Artificial (2 módulos)
+❌ IA Operacional Minera - /dashboard/ia-operacional/page.tsx (MISSING)
+❌ Dashboard de KPIs - /dashboard/kpi-dashboard/page.tsx (MISSING)
+
+SECCIÓN: Administración (2 módulos)
+✅ Gestión de Usuarios - /dashboard/admin/users/page.tsx (EXISTS)
+✅ Roles & Permisos - /dashboard/roles/page.tsx (EXISTS)
+
+SECCIÓN: Ayuda (1 módulo)
+✅ Guías de Uso - /dashboard/guias/page.tsx (EXISTS)
+
+ARCHIVOS REDUNDANTES/LEGACY:
+❌ /dashboard/operaciones/page.tsx (DUPLICADO - similar a Producción)
+❌ /dashboard/documentos/page.tsx (DUPLICADO - ver documentos-gestion)
+❌ /dashboard/documentos-v2/page.tsx (LEGACY VERSION)
+❌ /dashboard/integracion-completa/page.tsx (LEGACY/EDUCATIVO)
+❌ /dashboard/integracion-arquitectura/page.tsx (LEGACY/EDUCATIVO)
+❌ /dashboard/crear-tarea/page.tsx (LEGACY)
+
+RESUMEN:
+========
+Total Módulos en Sidebar: 10
+Módulos Principales Implementados: 8/10 (80%)
+Sub-módulos/Detalles: 7 (work-orders, mantenimiento, documentos)
+Total Rutas Funcionales: 23/31 (74%)
+
+MÓDULOS QUE FALTA IMPLEMENTAR (2):
+==================================
+1. IA Operacional Minera
+   - Ruta: /dashboard/ia-operacional
+   - Descripción: 6+ casos de uso IA (riesgos equipos, vencimientos documentos, stock crítico, mantenciones pendientes, OCs vencidas, resumen ejecutivo)
+   - Prioridad: ALTA (Fase 5)
+
+2. Dashboard de KPIs
+   - Ruta: /dashboard/kpi-dashboard
+   - Descripción: 8 KPIs mineros (equipos operativos, mantenciones pendientes, stock bajo, documentos vencidos, incidentes HSE, OCs pendientes, gastos vs presupuesto, alertas activas)
+   - Prioridad: ALTA (Fase 6)
+
+RECOMENDACIONES:
+================
+1. Limpiar/eliminar archivos redundantes (operaciones, documentos-v2, integracion-*)
+2. Implementar IA Operacional Minera (2-3 días)
+3. Implementar KPI Dashboard (2-3 días)
+4. Consolidar contenido de módulos existentes (muchos están vacíos)
+5. Agregar lógica real a cada módulo (búsqueda, filtros, CRUD completo)
+
+PRÓXIMAS ACCIONES:
+==================
+Fase 2: Mejorar Producción y Mantención (semana 3-5)
+Fase 3: Consolidar Bodega, HSE, Documentos (semana 6-10)
+Fase 4: Validar Compras, Finanzas, Reportes (semana 11-13)
+Fase 5: Implementar IA Operacional (semana 14-15)
+Fase 6: Implementar KPI Dashboard (semana 16-18)
+Fase 7: QA, Security, Go-Live (semana 19-26)
