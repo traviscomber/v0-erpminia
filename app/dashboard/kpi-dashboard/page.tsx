@@ -1,9 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import useSWR from 'swr';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
+import { TrendingUp, TrendingDown, AlertCircle, RefreshCw, Target } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface KPI {
   id: string;
@@ -17,7 +20,39 @@ interface KPI {
   description: string;
 }
 
-const KPIS: KPI[] = [
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
+const statusColors = {
+  green: 'bg-green-50 border-green-200',
+  yellow: 'bg-yellow-50 border-yellow-200',
+  red: 'bg-red-50 border-red-200',
+};
+
+const statusBadgeColors = {
+  green: 'bg-green-100 text-green-800',
+  yellow: 'bg-yellow-100 text-yellow-800',
+  red: 'bg-red-100 text-red-800',
+};
+
+export default function KPIDashboardPage() {
+  // Fetch KPI data from API
+  const { data, error, isLoading, mutate } = useSWR(
+    '/api/dashboard/kpi-dashboard',
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      refreshInterval: 60000, // 1 minute for KPI updates
+    }
+  );
+
+  if (error) return <div className="text-red-500">Error loading KPI data</div>;
+  if (isLoading) return <div className="text-gray-500">Loading KPI dashboard...</div>;
+
+  const kpis = data?.kpis || [];
+  const trendData = data?.trendData || [];
+  const alertsDistribution = data?.alertsDistribution || [];
+  const recommendations = data?.recommendations || [];
   {
     id: 'equipos',
     name: 'Equipos Operativos',

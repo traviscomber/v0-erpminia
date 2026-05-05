@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import useSWR from 'swr';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, TrendingDown, AlertTriangle, Package, FileCheck, Zap } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { AlertCircle, TrendingDown, AlertTriangle, Package, FileCheck, Zap, RefreshCw } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface AIInsight {
@@ -15,16 +17,44 @@ interface AIInsight {
   icon: React.ReactNode;
   action?: string;
   timestamp: Date;
+  affected_resource?: string;
 }
 
-export default function IAOperacionalPage() {
-  const [insights, setInsights] = useState<AIInsight[]>([]);
-  const [loading, setLoading] = useState(true);
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-  useEffect(() => {
-    // Simular carga de insights IA
-    setTimeout(() => {
-      setInsights([
+const severityConfig = {
+  critical: { color: 'destructive', bgColor: 'bg-red-50 border-red-200' },
+  warning: { color: 'warning', bgColor: 'bg-yellow-50 border-yellow-200' },
+  info: { color: 'secondary', bgColor: 'bg-blue-50 border-blue-200' },
+};
+
+const iconMap = {
+  riesgo: <AlertTriangle className="h-5 w-5 text-red-600" />,
+  vencimiento: <FileCheck className="h-5 w-5 text-yellow-600" />,
+  stock: <Package className="h-5 w-5 text-yellow-600" />,
+  mantencion: <Zap className="h-5 w-5 text-red-600" />,
+  oc: <TrendingDown className="h-5 w-5 text-yellow-600" />,
+  resumen: <AlertCircle className="h-5 w-5 text-blue-600" />,
+};
+
+export default function IAOperacionalPage() {
+  // Fetch IA insights from API
+  const { data, error, isLoading, mutate } = useSWR(
+    '/api/dashboard/ia-operacional',
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      refreshInterval: 30000, // 30 seconds for real-time insights
+    }
+  );
+
+  if (error) return <div className="text-red-500">Error loading IA insights</div>;
+  if (isLoading) return <div className="text-gray-500">Loading operational intelligence...</div>;
+
+  const insights = data?.insights || [];
+  const criticalCount = insights.filter((i: any) => i.severity === 'critical').length;
+  const warningCount = insights.filter((i: any) => i.severity === 'warning').length;
         {
           id: '1',
           type: 'riesgo',
