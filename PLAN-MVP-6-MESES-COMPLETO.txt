@@ -1,0 +1,269 @@
+n3uralia ERP MINERÍA - MVP 6 MESES
+PLAN DETALLADO POR FASE
+
+Contrato: CLP 25,000,000 + IVA (19%)
+Timeline: 26 semanas = 6 meses
+Equipo: 5.5 FTE (Tech Lead, 2 Backend, 1 Frontend, 1 QA/DevOps, 0.5 PM)
+Cliente: Cía. Minera La Patagua
+Desarrollador: SegurIA
+
+═════════════════════════════════════════════════════════════════════════════════
+
+FASE 0: BRANDING & SITE ALIGNMENT (SEMANA 1)
+Status: ✅ COMPLETADA
+Entregables:
+  ✅ Header actualizado: "n3uralia ERP Minería - Desarrollado por SegurIA"
+  ✅ Metadata actualizada con 8 módulos
+  ✅ Sidebar reorganizado en 3 secciones (Operación Crítica, Gestión Empresarial, IA)
+  ✅ Footer con atribución La Patagua
+
+═════════════════════════════════════════════════════════════════════════════════
+
+FASE 1: INFRAESTRUCTURA & RBAC MEJORADO (SEMANAS 1-2)
+Status: IN PROGRESS (60% completado)
+Entregables:
+  ✅ Supabase setup: 33 tablas, RLS habilitado, env vars completas
+  ✅ Auth Supabase: Login, registro, password reset
+  ✅ Roles minería (10 roles específicos)
+  ⏳ Permisos granulares (100+)
+  ⏳ Audit system (user_activity_log)
+  ⏳ Authentication hardening (2FA, session timeout)
+
+Próximos pasos:
+  - Crear user_permissions table para permisos dinámicos
+  - Implementar audit triggers en todas las tablas
+  - Crear endpoints de permission management
+  - Testing de RLS policies
+
+═════════════════════════════════════════════════════════════════════════════════
+
+FASE 2: MÓDULOS OPERACIONALES CORE (SEMANAS 3-10)
+Status: TODO
+Módulos:
+  1. PRODUCCIÓN (Weeks 3-4)
+     - Dashboard telemetría en vivo (50+ sensores)
+     - Real-time alerts con color coding
+     - Equipment status + availability tracking
+     - 6-month sensor history
+     
+  2. MANTENCIÓN (Weeks 5-6)
+     - Work order management (create/assign/track/complete)
+     - MTBF/MTTR calculations
+     - Maintenance history por equipo
+     - Technician assignment + mobile support
+     
+  Milestones:
+  - Week 4: Producción en staging
+  - Week 6: Mantención en staging
+  - Week 7: Integration testing
+  - Week 8: UAT con cliente
+
+═════════════════════════════════════════════════════════════════════════════════
+
+FASE 3: MÓDULOS OPERACIONALES COMPLEMENTO (SEMANAS 7-14)
+Status: TODO
+Módulos:
+  1. BODEGA & INVENTARIO (Weeks 7-8)
+     - FIFO tracking
+     - QR code scanning
+     - Automatic reorder points
+     - Stock movement traceability
+     - Multi-warehouse support
+     
+  2. HSE & COMPLIANCE (Weeks 9-10)
+     - Incident & accident reporting
+     - SERNAGEOMIN compliance tracking
+     - Document audit trails
+     - Compliance scoring dashboard
+     
+  3. GESTIÓN DOCUMENTAL (Weeks 11-12)
+     - Centralized document repository
+     - Version control con changelogs
+     - Multi-level approval workflows
+     - Expiration tracking + notifications
+     
+  Milestones:
+  - Week 10: Bodega en staging
+  - Week 12: HSE en staging
+  - Week 13: Documentos en staging
+  - Week 14: Full integration testing
+
+═════════════════════════════════════════════════════════════════════════════════
+
+FASE 4: MÓDULOS GESTIÓN EMPRESARIAL (SEMANAS 11-16)
+Status: TODO
+Módulos:
+  1. COMPRAS & ÓRDENES (Weeks 11-12)
+     - Purchase order management
+     - Supplier database
+     - Delivery tracking
+     - Spending analytics
+     
+  2. FINANZAS & PRESUPUESTO (Weeks 13-14)
+     - Budget creation + tracking
+     - Cost allocation por proyecto
+     - Financial reports + KPIs
+     - Cash flow projections
+     
+  3. REPORTES DINÁMICOS (Weeks 15-16)
+     - Report builder (drag & drop)
+     - Pre-built reports (20+ templates)
+     - Export: PDF, Excel, CSV
+     - Scheduled reports + email delivery
+     
+  Milestones:
+  - Week 12: Compras en staging
+  - Week 14: Finanzas en staging
+  - Week 16: Reportes en staging
+
+═════════════════════════════════════════════════════════════════════════════════
+
+FASE 5: IA OPERACIONAL MINERA (SEMANAS 15-18)
+Status: TODO
+Features:
+  1. Predictive Alerts (6+ casos de uso)
+     - Equipment risk analysis (MTBF anomalies)
+     - Document expiration warnings (HSE, permisos)
+     - Stock critical level alerts (automatic reorder)
+     - Maintenance predictability (next failure prediction)
+     - Purchase order delays (vendor performance)
+     - Executive summary (daily KPI briefing)
+  
+  2. AI Integration
+     - Groq API para inference rápido
+     - Real-time processing de anomalías
+     - Historical data analysis (90-day patterns)
+     - Confidence scores por predicción
+     - Manual override capability
+     
+  3. IA Dashboard
+     - Alertas prioritizadas por severidad
+     - Trend analysis + visualizations
+     - Recommended actions
+     - False positive feedback loop
+
+═════════════════════════════════════════════════════════════════════════════════
+
+FASE 6: KPI DASHBOARD MINERO (SEMANAS 17-21)
+Status: TODO
+Features:
+  1. 8 KPIs Críticos Minería
+     - Equipment Availability %: Uptime real-time
+     - MTBF/MTTR Trend: Maintenance efficiency
+     - Inventory Stock Turnover: Bodega health
+     - Document Compliance %: HSE compliance
+     - OC Delivery On-Time %: Supplier performance
+     - Budget vs Actual: Financial tracking
+     - HSE Incidents: Safety metrics
+     - IA Alerts Resolved: IA effectiveness
+  
+  2. Visualizaciones
+     - Real-time gauges (color coded)
+     - Trend charts (30-day)
+     - Comparison vs targets
+     - Drilldown capabilities
+     - Custom dashboards por rol
+  
+  3. Alertas Automáticas
+     - Target breach notifications
+     - Trend degradation alerts
+     - Anomaly detection
+
+═════════════════════════════════════════════════════════════════════════════════
+
+FASE 7: QA, SECURITY & GO-LIVE (SEMANAS 19-26)
+Status: TODO
+
+QA & Testing (Weeks 19-21)
+  - Unit tests: 80%+ code coverage (Jest)
+  - Integration testing: Modelos + APIs
+  - E2E testing: Cypress (critical paths)
+  - Performance testing: Load testing con k6
+  - Browser compatibility: Chrome, Firefox, Safari
+  - Accessibility: WCAG 2.1 AA
+
+Security Audit (Weeks 20-22)
+  - OWASP Top 10 compliance
+  - Penetration testing
+  - SQL injection prevention
+  - XSS prevention
+  - CSRF tokens
+  - RLS policy testing
+  - Secrets management
+  - SSL/TLS configuration
+
+Documentation (Weeks 21-23)
+  - User Guide (español): 50+ pages
+  - Admin Guide: Configuration, backup, disaster recovery
+  - API Documentation: Swagger/OpenAPI
+  - Training materials: Video + slides
+  - Troubleshooting guide
+
+Deployment (Weeks 24-26)
+  - Pre-production testing
+  - Data migration (if applicable)
+  - User training (2 semanas)
+  - Go-live checklist
+  - 24/7 support during launch
+  - 1-month post-launch support
+
+═════════════════════════════════════════════════════════════════════════════════
+
+TIMELINE VISUAL (26 SEMANAS)
+
+Semana  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26
+Fase 0  [✓]
+Fase 1  [==========]
+Fase 2      [  Producción  ][   Mantención   ]
+Fase 3          [  Bodega  ][  HSE  ][  Docs  ]
+Fase 4              [Compras ][Finanzas][Reportes]
+Fase 5                    [     IA Operacional     ]
+Fase 6                        [    KPI Dashboard   ]
+Fase 7                              [QA|Security|Docs|Go-Live]
+
+═════════════════════════════════════════════════════════════════════════════════
+
+HITOS CRÍTICOS
+
+Week 4: Producción ✓
+Week 6: Mantención ✓
+Week 8: Fase 2 UAT con cliente
+Week 10: Bodega ✓
+Week 12: HSE ✓
+Week 14: Documentos ✓
+Week 16: Compras ✓
+Week 18: Finanzas + Reportes ✓
+Week 19: IA Operacional ✓
+Week 21: KPI Dashboard ✓
+Week 23: Security Audit ✓
+Week 26: GO-LIVE
+
+═════════════════════════════════════════════════════════════════════════════════
+
+EQUIPO & ASIGNACIONES
+
+Tech Lead (1 FTE): Arquitectura, decisiones técnicas, code review todo el proyecto
+Backend Engineer #1 (1 FTE): Fase 2-3 (Producción, Mantención, Bodega)
+Backend Engineer #2 (1 FTE): Fase 3-4 (HSE, Documentos, Compras, Finanzas)
+Frontend Engineer (1 FTE): UI/UX, integración frontend de todas las fases
+QA/DevOps (1 FTE): Testing automatizado, CI/CD, deployment
+Project Manager (0.5 FTE): Comunicación, tracking, riesgos
+
+═════════════════════════════════════════════════════════════════════════════════
+
+FINANCIERO
+
+Base: CLP 25,000,000
+IVA: CLP 4,750,000
+TOTAL: CLP 29,750,000
+
+Opción Hitos:
+- Week 1 (20%): CLP 5,950,000
+- Week 8 (20%): CLP 5,950,000
+- Week 14 (30%): CLP 8,925,000
+- Week 23 (20%): CLP 5,950,000
+- Week 26 (10%): CLP 2,975,000
+
+Post-Launch SaaS:
+- Mensual: CLP 1,000,000 + IVA
+- Break-even: Oct 2027 (Mes 22)

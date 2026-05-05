@@ -46,87 +46,74 @@ const menuItems = [
     badge: 3,
     group: 'Core',
   },
-  // Mining Operations
-  {
-    label: 'Operaciones',
-    href: '/dashboard/operaciones',
-    icon: HardHat,
-    group: 'Minería',
-  },
+  // Operación Crítica Minera
   {
     label: 'Producción',
     href: '/dashboard/produccion',
     icon: Zap,
-    group: 'Minería',
-  },
-  {
-    label: 'Órdenes de Trabajo',
-    href: '/dashboard/work-orders',
-    icon: Plus,
-    group: 'Minería',
+    group: 'Operación Crítica',
   },
   {
     label: 'Mantención',
     href: '/dashboard/mantenimiento',
     icon: Wrench,
-    group: 'Minería',
+    group: 'Operación Crítica',
   },
   {
-    label: 'Gestión de Vehículos',
-    href: '/dashboard/mantenimiento/vehiculos',
-    icon: Cpu,
-    group: 'Minería',
+    label: 'Órdenes de Trabajo',
+    href: '/dashboard/work-orders',
+    icon: Plus,
+    group: 'Operación Crítica',
   },
-  // Supply Chain
   {
-    label: 'Inventario',
+    label: 'Bodega & Inventario',
     href: '/dashboard/bodega',
     icon: Boxes,
-    group: 'Logística',
+    group: 'Operación Crítica',
   },
-  // Safety & Compliance
   {
     label: 'HSE & Compliance',
     href: '/dashboard/hse',
     icon: Shield,
-    group: 'Seguridad',
+    group: 'Operación Crítica',
   },
-  // Document Management
   {
     label: 'Gestión Documental',
     href: '/dashboard/documentos-gestion',
     icon: FolderOpen,
-    group: 'Documentos',
+    group: 'Operación Crítica',
+  },
+  // Gestión Empresarial
+  {
+    label: 'Compras & OCs',
+    href: '/dashboard/compras',
+    icon: ShoppingCart,
+    group: 'Gestión Empresarial',
   },
   {
-    label: 'Contratos & Subcontratos',
-    href: '/dashboard/documentos-gestion/contratos',
-    icon: FileText,
-    group: 'Documentos',
-  },
-  {
-    label: 'Adquisiciones',
-    href: '/dashboard/documentos-gestion/adquisiciones',
-    icon: FileText,
-    group: 'Documentos',
-  },
-  {
-    label: 'Procedimientos',
-    href: '/dashboard/documentos-gestion/procedimientos',
-    icon: FileText,
-    group: 'Documentos',
-  },
-  {
-    label: 'Documentos Seguridad',
-    href: '/dashboard/documentos-gestion/seguridad',
-    icon: FileText,
-    group: 'Documentos',
+    label: 'Finanzas & Presupuesto',
+    href: '/dashboard/finanzas',
+    icon: DollarSign,
+    group: 'Gestión Empresarial',
   },
   {
     label: 'Reportes & Análisis',
-    href: '/dashboard/documentos-gestion/reportes',
-    icon: FileText,
-    group: 'Documentos',
+    href: '/dashboard/reportes',
+    icon: BarChart3,
+    group: 'Gestión Empresarial',
+  },
+  // IA & Analytics
+  {
+    label: 'IA Operacional Minera',
+    href: '/dashboard/ia-operacional',
+    icon: Cpu,
+    group: 'Inteligencia Artificial',
+  },
+  {
+    label: 'Dashboard de KPIs',
+    href: '/dashboard/kpi-dashboard',
+    icon: BarChart3,
+    group: 'Inteligencia Artificial',
   },
   // Administrative
   {
@@ -136,36 +123,12 @@ const menuItems = [
     group: 'Administración',
   },
   {
-    label: 'Reportes',
-    href: '/dashboard/reportes',
-    icon: BarChart3,
-    group: 'Administración',
-  },
-  {
-    label: 'Finanzas',
-    href: '/dashboard/finanzas',
-    icon: DollarSign,
-    group: 'Administración',
-  },
-  // Educational & Help
-  {
-    label: 'Integración Completa',
-    href: '/dashboard/integracion-completa',
-    icon: Network,
-    group: 'Ayuda',
-  },
-  {
-    label: 'Arquitectura Integración',
-    href: '/dashboard/integracion-arquitectura',
-    icon: Network,
-    group: 'Ayuda',
-  },
-  {
-    label: 'Gestión de Roles',
+    label: 'Roles & Permisos',
     href: '/dashboard/roles',
-    icon: Users,
+    icon: Shield,
     group: 'Administración',
   },
+  // Help
   {
     label: 'Guías de Uso',
     href: '/dashboard/guias',

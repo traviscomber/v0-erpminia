@@ -1,0 +1,72 @@
+FASE 1: INFRAESTRUCTURA & RBAC COMPLETA
+========================================
+
+Status: IN PROGRESS
+Objetivo: Setup Supabase, Auth mejorado, 10 roles mineros, permisos granulares
+
+COMPONENTES ENTREGABLES:
+
+1. ROLES MINERÍA ESPECÍFICOS (10 roles)
+   - Admin: Acceso total a todos los módulos
+   - Manager Operaciones: Toda operación crítica + reporting
+   - Supervisor Producción: Producción, telemetría, alertas
+   - Técnico Mantención: Mantención, órdenes, equipos
+   - Responsable Bodega: Bodega, inventario, proveedores
+   - Oficial HSE: HSE, compliance, incidentes, inspecciones
+   - Gestor Documentos: Documentos, aprobaciones, versionado
+   - Coordinador Compras: Compras, OCs, proveedores
+   - Analista Finanzas: Finanzas, presupuesto, reportes
+   - Viewer: Lectura de todos los módulos (sin edición)
+
+2. PERMISOS GRANULARES (100+ permisos)
+   Por módulo:
+   - Producción: view, create_alerts, acknowledge_alerts, resolve_alerts
+   - Mantención: view, create_orders, assign_orders, complete_orders, view_history
+   - Bodega: view, create_items, edit_stock, view_history, generate_reorders
+   - HSE: view, report_incidents, approve_incidents, create_inspections, audit_access
+   - Documentos: view, upload, approve, manage_versions, delete
+   - Compras: view, create_oc, approve_oc, track_delivery
+   - Finanzas: view, create_budget, approve_spending, view_reports
+   - Reportes: view, create_report, export_pdf, export_excel, schedule_report
+
+3. USER_PERMISSIONS TABLE
+   - Almacena permisos dinámicos por usuario
+   - Permite sobrescribir permisos de rol
+   - Facilita permisos temporales (ej: reemplazo)
+   - Auditoría de cambios de permisos
+
+4. RLS POLICIES ACTUALIZADO
+   - Cada tabla tiene policies basadas en roles
+   - Validación en cada operación (SELECT, INSERT, UPDATE, DELETE)
+   - Prevent data leakage entre areas
+
+5. AUDIT TRIGGERS
+   - `user_activity_log` tabla: Registra cambios por usuario
+   - Trigger en cada tabla principal
+   - Timestamps, user_id, action, old/new values
+   - Retention: 7 años (cumplimiento normativo)
+
+6. AUTHENTICATION HARDENING
+   - Email verification obligatorio
+   - 2FA setup (opcional para admin/manager)
+   - Session timeout: 4 horas inactividad
+   - Password policy: 12+ chars, uppercase, digit, symbol
+   - Login audit trail
+
+ARCHIVOS A CREAR/ACTUALIZAR:
+
+✓ lib/rbac.ts - Roles y permisos (ya existe, mejorar)
+- lib/permissions.ts (new) - Granular permission checking
+- lib/audit.ts (new) - Audit log utilities
+- middleware.ts (update) - Permission validation middleware
+- app/api/admin/permissions/route.ts (new) - API para gestionar permisos
+- components/admin/permissions-manager.tsx (new) - UI para gestionar permisos
+
+STATUS: 60% COMPLETADO
+- Supabase setup: 100% ✅
+- Roles definition: 100% ✅  
+- Database schema: 85% (falta user_permissions table refinement)
+- RLS policies: 70% (falta testing)
+- Audit system: 0% (pendiente)
+- Authentication: 50% (basic auth existe, falta 2FA y hardening)
+- API & UI: 20% (admin/users exists, falta permissions API)

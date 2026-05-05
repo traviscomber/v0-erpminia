@@ -10,7 +10,7 @@ const _montserrat = Montserrat({ subsets: ["latin"], variable: "--font-heading" 
 
 export const metadata: Metadata = {
   title: 'n3uralia ERP Minería - Plataforma Integral de Gestión Operacional',
-  description: 'Sistema integrado de Producción, Mantención, Bodega, HSE y Documentos para operaciones mineras. Dashboards en vivo, automatización inteligente y auditoría completa.',
+  description: 'Sistema integrado de Producción, Mantención, Bodega, HSE, Documentos, Compras, Finanzas y Reportes para operaciones mineras. Con IA Operacional e IA Dashboard. Desarrollado por SegurIA para Cía. Minera La Patagua.',
   generator: 'v0.app',
   icons: {
     icon: [

@@ -16,8 +16,8 @@ export function Header() {
       <div className="flex items-center justify-between h-16 px-4 md:px-6">
         <div className="flex items-center gap-3">
           <div>
-            <h1 className="text-lg font-semibold">ERP SegurIA</h1>
-            <p className="text-xs text-muted-foreground">Plataforma de Gestión Minera</p>
+            <h1 className="text-lg font-semibold">n3uralia ERP Minería</h1>
+            <p className="text-xs text-muted-foreground">Desarrollado por SegurIA | Cía. Minera La Patagua</p>
           </div>
           {/* Environment badge */}
           <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 text-accent text-xs font-medium">
