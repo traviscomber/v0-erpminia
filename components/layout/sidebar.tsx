@@ -123,8 +123,8 @@ const menuItems = [
     group: 'Administración',
   },
   {
-    label: 'Roles & Permisos',
-    href: '/dashboard/roles',
+    label: 'Gestión de Permisos',
+    href: '/dashboard/admin/permissions',
     icon: Shield,
     group: 'Administración',
   },
