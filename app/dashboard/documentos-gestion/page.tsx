@@ -118,29 +118,33 @@ export default function DocumentosGestionPage() {
 
       {/* Categories Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredCategories.map((category: any) => (
-          <Link key={category.id} href={`/dashboard/documentos-gestion/${category.id}`}>
-            <Card className="cursor-pointer hover:shadow-lg transition-all">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="text-lg">{category.name}</CardTitle>
-                    <CardDescription className="text-xs mt-1">{category.description}</CardDescription>
+        {filteredCategories.map((category: any) => {
+          // Generate slug from category name for cleaner URLs
+          const slug = category.name.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '');
+          return (
+            <Link key={category.id} href={`/dashboard/documentos-gestion/${slug}`}>
+              <Card className="cursor-pointer hover:shadow-lg transition-all">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <CardTitle className="text-lg">{category.name}</CardTitle>
+                      <CardDescription className="text-xs mt-1">{category.description}</CardDescription>
+                    </div>
+                    {category.pendingApprovals > 0 && (
+                      <Badge variant="destructive">{category.pendingApprovals}</Badge>
+                    )}
                   </div>
-                  {category.pendingApprovals > 0 && (
-                    <Badge variant="destructive">{category.pendingApprovals}</Badge>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">{category.count || 0} documentos</span>
-                  <span className="font-semibold">{category.pendingApprovals || 0} pendientes</span>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">{category.count || 0} documentos</span>
+                    <span className="font-semibold">{category.pendingApprovals || 0} pendientes</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          );
+        })}
       </div>
 
       {filteredCategories.length === 0 && (
