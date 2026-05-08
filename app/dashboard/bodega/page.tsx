@@ -53,6 +53,7 @@ import { CHART_COLORS_LIGHT } from '@/lib/theme-colors';
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function BodegaPage() {
+  // Call all hooks at the top level
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -69,9 +70,6 @@ export default function BodegaPage() {
     }
   );
 
-  if (error) return <div className="text-red-500">Error loading warehouse data</div>;
-  if (isLoading) return <div className="text-gray-500">Loading inventory...</div>;
-
   const items = data?.items || [];
   const criticalItems = data?.criticalItems || [];
   const totalValue = data?.totalValue || 0;
@@ -84,6 +82,10 @@ export default function BodegaPage() {
   );
 
   const lowStockItems = items.filter((i: any) => i.current_stock <= i.minimum_stock).length;
+
+  // Early returns AFTER all hooks
+  if (error) return <div className="text-red-500">Error loading warehouse data</div>;
+  if (isLoading) return <div className="text-gray-500">Loading inventory...</div>;
 
   return (
     <div className="space-y-8">

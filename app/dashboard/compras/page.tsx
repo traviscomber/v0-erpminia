@@ -32,6 +32,7 @@ const statusConfig: Record<string, { color: string; label: string }> = {
 };
 
 export default function ComprasPage() {
+  // Call all hooks at the top level
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState('all');
@@ -50,9 +51,7 @@ export default function ComprasPage() {
     }
   );
 
-  if (error) return <div className="text-red-500">Error loading purchase orders</div>;
-  if (isLoading) return <div className="text-gray-500">Loading procurement data...</div>;
-
+  // Safe data extraction
   const orders = data?.orders || [];
   const totalValue = data?.totalValue || 0;
   const pendingOrders = data?.pendingOrders || 0;
@@ -65,6 +64,10 @@ export default function ComprasPage() {
       minimumFractionDigits: 0,
     }).format(value);
   };
+
+  // Early returns AFTER all hooks
+  if (error) return <div className="text-red-500">Error loading purchase orders</div>;
+  if (isLoading) return <div className="text-gray-500">Loading procurement data...</div>;
 
   return (
     <div className="space-y-6">

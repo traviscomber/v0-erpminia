@@ -12,6 +12,7 @@ import { Search, Plus } from 'lucide-react';
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function DocumentosGestionPage() {
+  // Call all hooks at the top level BEFORE any conditional returns
   const [searchTerm, setSearchTerm] = useState('');
 
   // Fetch documents from API
@@ -25,9 +26,7 @@ export default function DocumentosGestionPage() {
     }
   );
 
-  if (error) return <div className="text-red-500">Error loading documents</div>;
-  if (isLoading) return <div className="text-gray-500">Loading document management...</div>;
-
+  // Extract data safely
   const categories = data?.categories || [];
   const recentDocuments = data?.recentDocuments || [];
   const expiringDocuments = data?.expiringDocuments || [];
@@ -37,7 +36,7 @@ export default function DocumentosGestionPage() {
   const totalDocuments = recentDocuments.length;
   const totalPendingApprovals = pendingApprovals.length;
 
-  // Filter categories based on search
+  // Filter categories based on search - must be called after other hooks
   const filteredCategories = useMemo(() => {
     if (!searchTerm) return categories;
     return categories.filter(cat =>
@@ -45,6 +44,10 @@ export default function DocumentosGestionPage() {
       cat.description?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [categories, searchTerm]);
+
+  // Now safe to return early if loading/error AFTER all hooks
+  if (error) return <div className="text-red-500">Error loading documents</div>;
+  if (isLoading) return <div className="text-gray-500">Loading document management...</div>;
 
   return (
     <div className="space-y-6">

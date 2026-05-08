@@ -39,6 +39,7 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 export default function ProduccionPage() {
   const [selectedEquipment, setSelectedEquipment] = useState<any>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [selectedEquipment, setSelectedEquipment] = useState<any>(null);
   
   // Fetch telemetry data from API
   const { data, error, isLoading, mutate } = useSWR(
@@ -51,19 +52,21 @@ export default function ProduccionPage() {
     }
   );
 
+  // Call useEffect after all other hooks
   useEffect(() => {
     if (data?.equipment && data.equipment.length > 0 && !selectedEquipment) {
       setSelectedEquipment(data.equipment[0]);
     }
   }, [data?.equipment, selectedEquipment]);
 
-  if (error) return <div className="text-red-500">Error loading telemetry data</div>;
-  if (isLoading) return <div className="text-gray-500">Loading telemetry...</div>;
-
   const equipment = data?.equipment || [];
   const sensors = data?.sensors || [];
   const readings = data?.readings || [];
   const alarms = data?.alarms || [];
+
+  // Early returns AFTER all hooks
+  if (error) return <div className="text-red-500">Error loading telemetry data</div>;
+  if (isLoading) return <div className="text-gray-500">Loading telemetry...</div>;
 
   const getStatusColor = (status: string) => {
     switch (status) {

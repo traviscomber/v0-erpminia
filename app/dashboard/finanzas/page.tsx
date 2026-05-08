@@ -46,6 +46,7 @@ import { CHART_COLORS_LIGHT } from '@/lib/theme-colors';
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function FinanzasPage() {
+  // Call all hooks at the top level
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedPeriod, setSelectedPeriod] = useState('monthly');
@@ -61,9 +62,6 @@ export default function FinanzasPage() {
     }
   );
 
-  if (error) return <div className="text-red-500">Error loading financial data</div>;
-  if (isLoading) return <div className="text-gray-500">Loading financial reports...</div>;
-
   const budget = data?.budget || {};
   const expenses = data?.expenses || [];
   const budgetVsActual = data?.budgetVsActual || [];
@@ -77,6 +75,10 @@ export default function FinanzasPage() {
       minimumFractionDigits: 0,
     }).format(value);
   };
+
+  // Early returns AFTER all hooks
+  if (error) return <div className="text-red-500">Error loading financial data</div>;
+  if (isLoading) return <div className="text-gray-500">Loading financial reports...</div>;
 
   const filteredFinances = mockFinances.filter(
     (finance) =>

@@ -50,6 +50,7 @@ import { CHART_COLORS_LIGHT } from '@/lib/theme-colors';
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function MantenimientoPage() {
+  // Call all hooks at the top level
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -66,9 +67,6 @@ export default function MantenimientoPage() {
     }
   );
 
-  if (error) return <div className="text-red-500">Error loading maintenance data</div>;
-  if (isLoading) return <div className="text-gray-500">Loading maintenance orders...</div>;
-
   const orders = data?.orders || [];
   const mtbf = data?.mtbf || 0;
 
@@ -77,6 +75,10 @@ export default function MantenimientoPage() {
     (order.title?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
     (order.order_number?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   );
+
+  // Early returns AFTER all hooks
+  if (error) return <div className="text-red-500">Error loading maintenance data</div>;
+  if (isLoading) return <div className="text-gray-500">Loading maintenance orders...</div>;
 
   return (
     <div className="space-y-8">
