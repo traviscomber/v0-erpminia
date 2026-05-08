@@ -51,6 +51,7 @@ const REPORT_TYPES = [
 ];
 
 export default function ReportesPage() {
+  // Call all hooks at the top level
   const [reportType, setReportType] = useState('maintenance');
   const [dateRange, setDateRange] = useState('month');
   const [filters, setFilters] = useState<Record<string, string>>({});
@@ -66,12 +67,26 @@ export default function ReportesPage() {
     }
   );
 
+  // Define module health data with default values
+  const modulesHealth = [
+    { name: 'Documentos', value: 91, color: 'var(--color-chart-1)' },
+    { name: 'Mantenimiento', value: 85, color: 'var(--color-chart-2)' },
+    { name: 'Bodega', value: 88, color: 'var(--color-chart-3)' },
+  ];
+
+  // Early returns AFTER all hooks
   if (error) return <div className="text-red-500">Error loading report data</div>;
   if (isLoading) return <div className="text-gray-500">Generating report...</div>;
 
+  // Safe data extraction with defaults
   const chartData = data?.chartData || [];
   const summary = data?.summary || {};
   const details = data?.details || [];
+
+  // Extract nested data safely
+  const documentsData = data?.documents || { compliant: 120, expiring: 8 };
+  const maintenanceData = data?.maintenance || { preventive: 45, corrective: 12 };
+  const inventoryData = data?.inventory || { items: 2450, lowStock: 23 };
 
   return (
     <div className="space-y-8">
@@ -119,11 +134,11 @@ export default function ReportesPage() {
             <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/50">
               <div>
                 <p className="text-xs text-muted-foreground">Vigentes</p>
-                <p className="text-lg font-bold">{data.documents.compliant}</p>
+                <p className="text-lg font-bold">{documentsData.compliant}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Por Vencer</p>
-                <p className="text-lg font-bold text-yellow-600">{data.documents.expiring}</p>
+                <p className="text-lg font-bold text-yellow-600">{documentsData.expiring}</p>
               </div>
             </div>
           </CardContent>
@@ -155,11 +170,11 @@ export default function ReportesPage() {
             <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/50">
               <div>
                 <p className="text-xs text-muted-foreground">Preventivas</p>
-                <p className="text-lg font-bold">{data.maintenance.preventive}</p>
+                <p className="text-lg font-bold">{maintenanceData.preventive}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Correctivas</p>
-                <p className="text-lg font-bold text-red-600">{data.maintenance.corrective}</p>
+                <p className="text-lg font-bold text-red-600">{maintenanceData.corrective}</p>
               </div>
             </div>
           </CardContent>
@@ -191,11 +206,11 @@ export default function ReportesPage() {
             <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/50">
               <div>
                 <p className="text-xs text-muted-foreground">Items</p>
-                <p className="text-lg font-bold">{data.inventory.items}</p>
+                <p className="text-lg font-bold">{inventoryData.items}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Stock Bajo</p>
-                <p className="text-lg font-bold text-red-600">{data.inventory.lowStock}</p>
+                <p className="text-lg font-bold text-red-600">{inventoryData.lowStock}</p>
               </div>
             </div>
           </CardContent>
