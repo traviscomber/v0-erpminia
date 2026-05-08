@@ -80,23 +80,23 @@ export default function FinanzasPage() {
   if (error) return <div className="text-red-500">Error loading financial data</div>;
   if (isLoading) return <div className="text-gray-500">Loading financial reports...</div>;
 
-  const filteredFinances = mockFinances.filter(
-    (finance) =>
-      (finance.vendor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        finance.id.toLowerCase().includes(searchTerm.toLowerCase())) &&
+  const filteredFinances = expenses.filter(
+    (finance: any) =>
+      (finance.vendor?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        finance.id?.toLowerCase().includes(searchTerm.toLowerCase())) &&
       (statusFilter === 'all' || finance.status === statusFilter)
   );
 
-  const totalAmount = filteredFinances.reduce((sum, f) => sum + f.amount, 0);
+  const totalAmount = filteredFinances.reduce((sum: number, f: any) => sum + (f.amount || 0), 0);
   const paidAmount = filteredFinances
-    .filter((f) => f.status === 'Pagada')
-    .reduce((sum, f) => sum + f.amount, 0);
+    .filter((f: any) => f.status === 'Pagada')
+    .reduce((sum: number, f: any) => sum + (f.amount || 0), 0);
   const pendingAmount = filteredFinances
-    .filter((f) => f.status === 'Pendiente')
-    .reduce((sum, f) => sum + f.amount, 0);
+    .filter((f: any) => f.status === 'Pendiente')
+    .reduce((sum: number, f: any) => sum + (f.amount || 0), 0);
   const overdueAmount = filteredFinances
-    .filter((f) => f.status === 'Vencida')
-    .reduce((sum, f) => sum + f.amount, 0);
+    .filter((f: any) => f.status === 'Vencida')
+    .reduce((sum: number, f: any) => sum + (f.amount || 0), 0);
 
   const pieData = [
     { name: 'Pagada', value: paidAmount },
