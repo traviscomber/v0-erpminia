@@ -30,7 +30,28 @@ import {
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useAuth } from '@/hooks/use-auth';
+
+// Define permitted roles for each module
+const rolePermissions: Record<string, string[]> = {
+  'Dashboard': ['superadmin', 'admin', 'manager', 'supervisor', 'viewer'],
+  'Alertas': ['superadmin', 'admin', 'manager', 'supervisor'],
+  'Producción': ['superadmin', 'admin', 'Operaciones-Supervisor'],
+  'Mantención': ['superadmin', 'admin', 'Operaciones-Supervisor'],
+  'Órdenes de Trabajo': ['superadmin', 'admin', 'Operaciones-Supervisor'],
+  'Bodega & Inventario': ['superadmin', 'admin', 'Bodega-Supervisor'],
+  'HSE & Compliance': ['superadmin', 'admin', 'HSE-Supervisor'],
+  'Gestión Documental': ['superadmin', 'admin', 'manager'],
+  'Compras & OCs': ['superadmin', 'admin', 'Compras-Supervisor'],
+  'Finanzas & Presupuesto': ['superadmin', 'admin', 'Finanzas-Supervisor'],
+  'Reportes & Análisis': ['superadmin', 'admin', 'manager', 'supervisor'],
+  'IA Operacional Minera': ['superadmin', 'admin'],
+  'Dashboard de KPIs': ['superadmin', 'admin', 'manager'],
+  'Gestión de Usuarios': ['superadmin', 'admin'],
+  'Gestión de Permisos': ['superadmin', 'admin'],
+  'Guías de Uso': ['superadmin', 'admin', 'manager', 'supervisor', 'viewer'],
+};
 
 const menuItems = [
   {
@@ -140,10 +161,27 @@ const menuItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { role } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
-    'Core': true, // Core siempre expandido por defecto
+    'Core': true,
   });
+
+  // Filter menu items based on user role
+  const filteredMenuItems = useMemo(() => {
+    if (!role) return [];
+    
+    // Superadmin ve todo
+    if (role === 'superadmin' || role === 'admin') {
+      return menuItems;
+    }
+    
+    // Otros roles ven solo lo permitido
+    return menuItems.filter(item => {
+      const allowedRoles = rolePermissions[item.label] || [];
+      return allowedRoles.includes(role);
+    });
+  }, [role]);
 
   const toggleGroup = (group: string) => {
     setExpandedGroups(prev => ({
@@ -152,7 +190,7 @@ export function Sidebar() {
     }));
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     router.push('/auth/login');
   };
 
@@ -207,8 +245,8 @@ export function Sidebar() {
         {/* Navigation Menu - v7 Sistema Completo 5 Módulos */}
         <nav className="flex-1 px-4 py-6 overflow-y-auto">
           <div className="space-y-2">
-            {['Core', 'Minería', 'Logística', 'Documentos', 'Seguridad', 'Administración', 'Ayuda'].map((group) => {
-              const groupItems = menuItems.filter((item) => item.group === group);
+            {['Core', 'Operación Crítica', 'Gestión Empresarial', 'Inteligencia Artificial', 'Administración', 'Ayuda'].map((group) => {
+              const groupItems = filteredMenuItems.filter((item) => item.group === group);
               if (groupItems.length === 0) return null;
               const isExpanded = expandedGroups[group] ?? false;
 
