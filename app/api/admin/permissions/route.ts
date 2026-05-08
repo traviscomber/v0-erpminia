@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
       .eq('id', (await supabase.auth.getUser()).data.user?.id || '')
       .single();
 
-    if (!adminCheck || adminCheck.role !== 'admin') {
+    if (!adminCheck || (adminCheck.role !== 'admin' && adminCheck.role !== 'superadmin')) {
       return NextResponse.json(
         { error: 'Only admins can grant permissions' },
         { status: 403 }

@@ -19,7 +19,7 @@ export default function AdminUsersPage() {
     );
   }
 
-  if (!user || role !== 'admin') {
+  if (!user || (role !== 'admin' && role !== 'superadmin')) {
     return (
       <div className="flex items-center justify-center min-h-screen p-4">
         <Card className="max-w-md border-red-200 bg-red-50">

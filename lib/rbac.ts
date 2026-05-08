@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'manager' | 'technician' | 'warehouse_staff' | 'finance_officer' | 'viewer';
+export type UserRole = 'superadmin' | 'admin' | 'manager' | 'technician' | 'warehouse_staff' | 'finance_officer' | 'viewer';
 
 export type Permission = 'create' | 'read' | 'update' | 'delete' | 'approve' | 'export';
 
@@ -9,6 +9,13 @@ export interface RolePermissions {
 }
 
 export const rolePermissions: RolePermissions = {
+  superadmin: {
+    compras: ['create', 'read', 'update', 'delete', 'approve', 'export'],
+    bodega: ['create', 'read', 'update', 'delete', 'approve', 'export'],
+    finanzas: ['create', 'read', 'update', 'delete', 'approve', 'export'],
+    mantenimiento: ['create', 'read', 'update', 'delete', 'approve', 'export'],
+    documentos: ['create', 'read', 'update', 'delete', 'approve', 'export'],
+  },
   admin: {
     compras: ['create', 'read', 'update', 'delete', 'approve', 'export'],
     bodega: ['create', 'read', 'update', 'delete', 'approve', 'export'],
@@ -52,6 +59,11 @@ export function canPerform(role: UserRole, module: string, permission: Permissio
 
 export function getVisibleFields(role: UserRole, module: string): string[] {
   const fieldVisibility: Record<string, Record<string, string[]>> = {
+    superadmin: {
+      compras: ['id', 'po_number', 'vendor', 'amount', 'status', 'created_by', 'created_at', 'modified_at', 'cost'],
+      bodega: ['id', 'sku', 'name', 'quantity', 'cost', 'location', 'batch', 'received_date', 'modified_at'],
+      finanzas: ['id', 'invoice', 'vendor', 'amount', 'status', 'due_date', 'paid_date', 'po_link', 'created_by'],
+    },
     admin: {
       compras: ['id', 'po_number', 'vendor', 'amount', 'status', 'created_by', 'created_at', 'modified_at', 'cost'],
       bodega: ['id', 'sku', 'name', 'quantity', 'cost', 'location', 'batch', 'received_date', 'modified_at'],
