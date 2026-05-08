@@ -146,17 +146,17 @@ export default function KPIDashboardPage() {
       success: 'bg-green-50 border-green-200',
       warning: 'bg-yellow-50 border-yellow-200',
       danger: 'bg-red-50 border-red-200',
-      neutral: 'bg-gray-50 border-gray-200',
+      neutral: 'bg-slate-50 border-slate-200',
     };
     return colors[status] || colors.neutral;
   };
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      success: 'text-green-600',
-      warning: 'text-yellow-600',
-      danger: 'text-red-600',
-      neutral: 'text-gray-600',
+      success: 'text-[var(--brand-verde)]',
+      warning: 'text-[var(--brand-gold)]',
+      danger: 'text-[var(--brand-rojo)]',
+      neutral: 'text-muted-foreground',
     };
     return colors[status] || colors.neutral;
   };
@@ -223,9 +223,9 @@ export default function KPIDashboardPage() {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="equipos" stroke="#10b981" name="Equipos Op." />
-                <Line type="monotone" dataKey="mtbf" stroke="#3b82f6" name="MTBF (hrs)" />
-                <Line type="monotone" dataKey="stock" stroke="#ef4444" name="Stock Crítico" />
+                <Line type="monotone" dataKey="equipos" stroke="var(--brand-verde)" name="Equipos Op." strokeWidth={2} />
+                <Line type="monotone" dataKey="mtbf" stroke="var(--brand-naranja)" name="MTBF (hrs)" strokeWidth={2} />
+                <Line type="monotone" dataKey="stock" stroke="var(--brand-rojo)" name="Stock Crítico" strokeWidth={2} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -269,24 +269,24 @@ export default function KPIDashboardPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <div className="mt-0.5">✓</div>
+            <div className="flex items-start gap-3 p-4 bg-green-50 border border-[var(--brand-verde)] rounded-lg">
+              <div className="mt-0.5 text-[var(--brand-verde)]">✓</div>
               <div>
                 <p className="font-semibold text-sm">Seguridad (HSE)</p>
                 <p className="text-xs text-muted-foreground">47 días sin incidentes. Cumplimiento SERNAGEOMIN vigente.</p>
               </div>
             </div>
 
-            <div className="flex items-start gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
+            <div className="flex items-start gap-3 p-4 bg-yellow-50 border border-[var(--brand-gold)] rounded-lg">
+              <AlertCircle className="h-5 w-5 text-[var(--brand-gold)] mt-0.5" />
               <div>
                 <p className="font-semibold text-sm">Operación</p>
                 <p className="text-xs text-muted-foreground">2 equipos en mantención. MTBF bajo target. 3 repuestos en stock crítico.</p>
               </div>
             </div>
 
-            <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="mt-0.5">ℹ</div>
+            <div className="flex items-start gap-3 p-4 bg-blue-50 border border-[var(--brand-naranja)] rounded-lg">
+              <div className="mt-0.5 text-[var(--brand-naranja)]">ℹ</div>
               <div>
                 <p className="font-semibold text-sm">Gestión</p>
                 <p className="text-xs text-muted-foreground">OCs al día. Costos 3.3% sobre presupuesto. Documentos vigentes 93%.</p>
