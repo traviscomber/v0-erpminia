@@ -275,8 +275,8 @@ export default function DocumentCategoryDetailPage() {
       {/* New Document Dialog */}
       {showNewDocumentDialog && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-2xl bg-background border-white/10">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <Card className="w-full max-w-3xl bg-background border-white/10 max-h-[90vh] overflow-y-auto">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 sticky top-0 bg-background border-b border-white/10">
               <div>
                 <CardTitle>Crear Nuevo {config.name}</CardTitle>
                 <CardDescription>Registra un nuevo documento en el sistema</CardDescription>
@@ -289,35 +289,127 @@ export default function DocumentCategoryDetailPage() {
                 ✕
               </Button>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Nombre del Documento</label>
-                  <Input placeholder="Ej: Contrato Principal 2024" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Código</label>
-                  <Input placeholder="Ej: CNT-2024-001" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Descripción</label>
-                  <Input placeholder="Breve descripción del documento" />
-                </div>
+            <CardContent className="pt-6">
+              <div className="space-y-5">
+                {/* Título y Número */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Fecha de Creación</label>
-                    <Input type="date" />
+                    <label className="block text-sm font-medium mb-2">Título del Documento *</label>
+                    <Input placeholder="Ej: Contrato Principal La Patagua 2024" className="bg-white/5 border-white/10" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Estado</label>
-                    <select className="w-full px-3 py-2 bg-background border border-white/10 rounded-md text-sm">
+                    <label className="block text-sm font-medium mb-2">Número de Contrato *</label>
+                    <Input placeholder="Ej: CNT-2024-001" className="bg-white/5 border-white/10" />
+                  </div>
+                </div>
+
+                {/* Descripción */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Descripción</label>
+                  <Input placeholder="Breve descripción del contrato y su propósito" className="bg-white/5 border-white/10" />
+                </div>
+
+                {/* Tipo de Contrato y Estado */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Tipo de Contrato *</label>
+                    <select className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-md text-sm">
+                      <option>Seleccionar tipo...</option>
+                      <option>Principal</option>
+                      <option>Subcontrato</option>
+                      <option>Addendum</option>
+                      <option>Enmienda</option>
+                      <option>Marco</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Estado *</label>
+                    <select className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-md text-sm">
                       {config.statuses.map((status: string) => (
                         <option key={status} value={status}>{status}</option>
                       ))}
                     </select>
                   </div>
                 </div>
-                <div className="flex justify-end gap-2 pt-4">
+
+                {/* Fechas */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Fecha de Inicio *</label>
+                    <Input type="date" className="bg-white/5 border-white/10" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Fecha de Término *</label>
+                    <Input type="date" className="bg-white/5 border-white/10" />
+                  </div>
+                </div>
+
+                {/* Valor y Moneda */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Valor del Contrato</label>
+                    <Input type="number" placeholder="Ej: 1000000" className="bg-white/5 border-white/10" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Moneda</label>
+                    <select className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-md text-sm">
+                      <option>CLP</option>
+                      <option>USD</option>
+                      <option>EUR</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Términos de Pago */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Términos de Pago</label>
+                  <Input placeholder="Ej: A 30 días desde la emisión" className="bg-white/5 border-white/10" />
+                </div>
+
+                {/* Responsable y Área */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Responsable</label>
+                    <Input placeholder="Nombre del responsable" className="bg-white/5 border-white/10" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Área Responsable</label>
+                    <select className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-md text-sm">
+                      <option>Seleccionar área...</option>
+                      <option>Administración</option>
+                      <option>Operaciones</option>
+                      <option>Legal</option>
+                      <option>Finanzas</option>
+                      <option>RRHH</option>
+                      <option>Compras</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Divider */}
+                <div className="border-t border-white/10 my-2" />
+
+                {/* File Upload */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Documento PDF o Word *</label>
+                  <div className="flex items-center justify-center w-full">
+                    <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-[var(--brand-naranja)]/50 rounded-lg cursor-pointer hover:bg-[var(--brand-naranja)]/5 transition">
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <svg className="w-8 h-8 text-[var(--brand-naranja)] mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <p className="text-sm text-muted-foreground mb-1">
+                          <span className="font-semibold text-white">Haz clic para subir</span> o arrastra el archivo
+                        </p>
+                        <p className="text-xs text-muted-foreground">PDF, DOC, DOCX (máx. 50MB)</p>
+                      </div>
+                      <input type="file" className="hidden" accept=".pdf,.doc,.docx" />
+                    </label>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-end gap-3 pt-6 border-t border-white/10 mt-6">
                   <Button 
                     variant="outline"
                     onClick={() => setShowNewDocumentDialog(false)}
