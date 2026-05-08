@@ -83,6 +83,20 @@ export default function BodegaPage() {
 
   const lowStockItems = items.filter((i: any) => i.current_stock <= i.minimum_stock).length;
 
+  // Create category data for PieChart - group items by category
+  const categoryData = items.reduce((acc: any[], item: any) => {
+    const existing = acc.find((c: any) => c.name === (item.category || 'Otros'));
+    if (existing) {
+      existing.items += 1;
+    } else {
+      acc.push({ name: item.category || 'Otros', items: 1 });
+    }
+    return acc;
+  }, []);
+
+  // Define colors for chart
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
+
   // Early returns AFTER all hooks
   if (error) return <div className="text-red-500">Error loading warehouse data</div>;
   if (isLoading) return <div className="text-gray-500">Loading inventory...</div>;
