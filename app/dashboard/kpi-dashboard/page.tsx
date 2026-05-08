@@ -140,13 +140,13 @@ export default function KPIDashboardPage() {
     },
   ];
 
-  // Helper function to get status background color
+  // Helper function to get status background color - now with transparency
   const getStatusBg = (status: string) => {
     const colors: Record<string, string> = {
-      success: 'bg-green-50 border-green-200',
-      warning: 'bg-yellow-50 border-yellow-200',
-      danger: 'bg-red-50 border-red-200',
-      neutral: 'bg-slate-50 border-slate-200',
+      success: 'bg-[var(--brand-verde)]/10 backdrop-blur-md border-[var(--brand-verde)]/20',
+      warning: 'bg-[var(--brand-gold)]/10 backdrop-blur-md border-[var(--brand-gold)]/20',
+      danger: 'bg-[var(--brand-rojo)]/10 backdrop-blur-md border-[var(--brand-rojo)]/20',
+      neutral: 'bg-white/5 backdrop-blur-md border-white/10',
     };
     return colors[status] || colors.neutral;
   };
@@ -210,7 +210,7 @@ export default function KPIDashboardPage() {
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Trend Chart */}
-        <Card>
+        <Card className="bg-white/5 backdrop-blur-md border-white/10">
           <CardHeader>
             <CardTitle>Tendencias Semanales</CardTitle>
             <CardDescription>Seguimiento de KPIs clave en las últimas 4 semanas</CardDescription>
@@ -262,7 +262,7 @@ export default function KPIDashboardPage() {
       </div>
 
       {/* Performance Summary */}
-      <Card>
+      <Card className="bg-white/5 backdrop-blur-md border-white/10">
         <CardHeader>
           <CardTitle>Resumen de Desempeño</CardTitle>
           <CardDescription>Estado general de operaciones mineras</CardDescription>
