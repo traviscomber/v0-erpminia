@@ -146,25 +146,11 @@ export default function ProduccionPage() {
         </BrandCard>
       </div>
 
-      {/* Plants Selector */}
-      <div className="flex gap-2 flex-wrap">
-        {plants.map((plant) => (
-          <Button
-            key={plant.id}
-            variant={selectedPlant.id === plant.id ? 'default' : 'outline'}
-            onClick={() => setSelectedPlant(plant)}
-            className={selectedPlant.id === plant.id ? 'bg-[var(--brand-naranja)]' : ''}
-          >
-            {plant.name}
-          </Button>
-        ))}
-      </div>
-
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Equipment List */}
         <div className="lg:col-span-2 space-y-3">
-          <h2 className="text-lg font-semibold">Equipos de {selectedPlant.name}</h2>
+          <h2 className="text-lg font-semibold">Equipos en Operación</h2>
           {equipment.map((eq) => (
             <Card key={eq.id} className="cursor-pointer hover:shadow-md transition-shadow">
               <CardContent className="p-4">
