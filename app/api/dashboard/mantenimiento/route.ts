@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from('maintenance_orders')
-      .select('*, components(name, code), vehicles(name, code)')
+      .select('*')
       .order('created_at', { ascending: false });
 
     if (status) {

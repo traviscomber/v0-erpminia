@@ -74,6 +74,8 @@ export default function MantenimientoPage() {
   const completedOrders = orders.filter((order: any) => order.status === 'Completada').length;
   const safetyOrders = orders.filter((order: any) => order.type === 'Seguridad' || order.priority === 'Crítica').length;
   const preventiveOrders = orders.filter((order: any) => order.type === 'Preventiva').length;
+  const correctiveOrders = orders.filter((order: any) => order.type === 'Correctiva').length;
+  const predictiveOrders = orders.filter((order: any) => order.type === 'Predictiva').length;
   
   // Calculate MTTR (Mean Time To Repair) - default 4.5 hours if no data
   const avgMTTR = data?.avgMTTR || 4.5;
@@ -86,6 +88,13 @@ export default function MantenimientoPage() {
     (order.title?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
     (order.order_number?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   );
+
+  // Create chart data from order types
+  const chartData = [
+    { name: 'Preventivas', value: preventiveOrders },
+    { name: 'Correctivas', value: correctiveOrders },
+    { name: 'Predictivas', value: predictiveOrders },
+  ].filter((item: any) => item.value > 0);
 
   // Early returns AFTER all hooks
   if (error) return <div className="text-red-500">Error loading maintenance data</div>;
