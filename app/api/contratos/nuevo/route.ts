@@ -10,13 +10,25 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    const { contractor_name, contract_name, monto_neto, fecha_inicio, fecha_fin, proyecto, propiedad, estado, descripcion } = body;
+    const { 
+      contractor_name, 
+      contract_name, 
+      monto_total, 
+      monto_neto,
+      fecha_inicio, 
+      fecha_fin, 
+      proyecto, 
+      propiedad, 
+      estado 
+    } = body;
+
+    const monto = monto_neto || monto_total || 0;
 
     // Crear o obtener contratista
     let { data: contractor, error: contractorError } = await supabase
       .from('contractors')
       .select('id')
-      .eq('nombre', contractor_name)
+      .eq('name', contractor_name)
       .single();
 
     if (contractorError && contractorError.code !== 'PGRST116') {
@@ -29,10 +41,11 @@ export async function POST(request: NextRequest) {
         .from('contractors')
         .insert([
           {
-            nombre: contractor_name,
-            email: '',
-            telefono: '',
-            tipo: 'principal',
+            name: contractor_name,
+            contact_email: '',
+            contact_phone: '',
+            business_type: 'principal',
+            registration_status: 'activo',
           },
         ])
         .select()
@@ -42,44 +55,33 @@ export async function POST(request: NextRequest) {
       contractor = newContractor;
     }
 
-    // Crear contrato (almacenamiento en contratos_hitos como registro maestro)
-    const { data: hito, error: hitoError } = await supabase
-      .from('contratos_hitos')
+    // Crear contrato en tabla contracts (mejor que hitos para contratos maestros)
+    const { data: contract, error: contractError } = await supabase
+      .from('contracts')
       .insert([
         {
           contractor_id: contractor.id,
-          hito_number: 1,
-          hito_name: contract_name,
-          monto_neto: monto_neto,
-          fecha_programada: fecha_inicio,
-          estado: 'pendiente',
-          descripcion: descripcion || `Contrato: ${contract_name}. Proyecto: ${proyecto}. Propiedad: ${propiedad}. Fecha fin: ${fecha_fin}`,
+          contract_number: `CONT-${Date.now()}`,
+          title: contract_name,
+          contract_value: monto,
+          start_date: fecha_inicio,
+          end_date: fecha_fin,
+          status: 'active',
+          contract_type: proyecto || 'principal',
+          description: `Proyecto: ${proyecto}. Propiedad: ${propiedad}.`,
+          currency: 'CLP',
+          payment_terms: 'A convenir',
         },
       ])
       .select();
 
-    if (hitoError) throw hitoError;
-
-    // Crear alerta automática
-    await supabase.from('contratos_alertas').insert([
-      {
-        tipo: 'vencimiento',
-        contractor_id: contractor.id,
-        hito_id: hito[0].id,
-        titulo: `Nuevo contrato creado: ${contract_name}`,
-        descripcion: `Contrato iniciado con ${contractor_name}`,
-        severidad: 'media',
-        fecha_alerta: new Date().toISOString().split('T')[0],
-        fecha_vencimiento: fecha_fin,
-        estado: 'activa',
-      },
-    ]);
+    if (contractError) throw contractError;
 
     return NextResponse.json(
       {
         success: true,
-        data: hito[0],
-        message: `Contrato creado exitosamente`,
+        data: contract[0],
+        message: `Contrato "${contract_name}" creado exitosamente con ${contractor_name}`,
       },
       { status: 201 }
     );
