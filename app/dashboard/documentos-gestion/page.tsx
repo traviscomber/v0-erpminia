@@ -1,20 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import useSWR from 'swr';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Search, Upload, Plus, FileText, Building2, Hammer, ShieldAlert, BarChart3, Clock, RefreshCw } from 'lucide-react';
-import { DocumentVersionHistory } from '@/components/documents/document-version-history';
+import { Search, Plus } from 'lucide-react';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function DocumentosGestionPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   // Fetch documents from API
   const { data, error, isLoading, mutate } = useSWR(
@@ -35,6 +33,19 @@ export default function DocumentosGestionPage() {
   const expiringDocuments = data?.expiringDocuments || [];
   const pendingApprovals = data?.pendingApprovals || [];
 
+  // Calculate stats
+  const totalDocuments = recentDocuments.length;
+  const totalPendingApprovals = pendingApprovals.length;
+
+  // Filter categories based on search
+  const filteredCategories = useMemo(() => {
+    if (!searchTerm) return categories;
+    return categories.filter(cat =>
+      cat.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      cat.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [categories, searchTerm]);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -45,7 +56,7 @@ export default function DocumentosGestionPage() {
             Centraliza y gestiona todos los documentos de la operación minera
           </p>
         </div>
-        <Button className="gap-2 bg-[var(--brand-naranja)] hover:bg-[var(--brand-naranja)]/90">
+        <Button className="gap-2 bg-orange-600 hover:bg-orange-700">
           <Plus className="h-4 w-4" />
           Cargar Documento
         </Button>
@@ -68,7 +79,7 @@ export default function DocumentosGestionPage() {
             <CardTitle className="text-sm font-medium">Pendiente Aprobación</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-[var(--brand-naranja)]">{totalPendingApprovals}</div>
+            <div className="text-3xl font-bold text-orange-600">{totalPendingApprovals}</div>
             <p className="text-xs text-muted-foreground mt-1">Requieren revisión</p>
           </CardContent>
         </Card>
@@ -104,17 +115,14 @@ export default function DocumentosGestionPage() {
 
       {/* Categories Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredCategories.map((category) => (
-          <Link key={category.id} href={category.href}>
-            <Card className={`cursor-pointer hover:shadow-lg transition-all border ${category.color}`}>
+        {filteredCategories.map((category: any) => (
+          <Link key={category.id} href={`/dashboard/documentos-gestion/${category.id}`}>
+            <Card className="cursor-pointer hover:shadow-lg transition-all">
               <CardHeader>
                 <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-background">{category.icon}</div>
-                    <div>
-                      <CardTitle className="text-lg">{category.name}</CardTitle>
-                      <CardDescription className="text-xs mt-1">{category.description}</CardDescription>
-                    </div>
+                  <div>
+                    <CardTitle className="text-lg">{category.name}</CardTitle>
+                    <CardDescription className="text-xs mt-1">{category.description}</CardDescription>
                   </div>
                   {category.pendingApprovals > 0 && (
                     <Badge variant="destructive">{category.pendingApprovals}</Badge>
@@ -123,8 +131,8 @@ export default function DocumentosGestionPage() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">{category.count} documentos</span>
-                  <span className="font-semibold">{category.pendingApprovals} pendientes</span>
+                  <span className="text-muted-foreground">{category.count || 0} documentos</span>
+                  <span className="font-semibold">{category.pendingApprovals || 0} pendientes</span>
                 </div>
               </CardContent>
             </Card>
