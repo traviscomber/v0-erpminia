@@ -85,6 +85,7 @@ export default function DocumentCategoryDetailPage() {
   const router = useRouter();
   const categoryId = params.id as string;
   const [searchTerm, setSearchTerm] = useState('');
+  const [showNewDocumentDialog, setShowNewDocumentDialog] = useState(false);
 
   const config = CATEGORY_CONFIG[categoryId] || CATEGORY_CONFIG['1'];
 
@@ -133,7 +134,10 @@ export default function DocumentCategoryDetailPage() {
               <p className="text-muted-foreground">{config.description}</p>
             </div>
           </div>
-          <Button className="bg-[var(--brand-naranja)] text-white hover:bg-[var(--brand-naranja)]/90">
+          <Button 
+            className="bg-[var(--brand-naranja)] text-white hover:bg-[var(--brand-naranja)]/90"
+            onClick={() => setShowNewDocumentDialog(true)}
+          >
             <Plus className="w-4 h-4 mr-2" />
             Nuevo {config.name}
           </Button>
@@ -267,6 +271,74 @@ export default function DocumentCategoryDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* New Document Dialog */}
+      {showNewDocumentDialog && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-2xl bg-background border-white/10">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
+              <div>
+                <CardTitle>Crear Nuevo {config.name}</CardTitle>
+                <CardDescription>Registra un nuevo documento en el sistema</CardDescription>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setShowNewDocumentDialog(false)}
+              >
+                ✕
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Nombre del Documento</label>
+                  <Input placeholder="Ej: Contrato Principal 2024" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Código</label>
+                  <Input placeholder="Ej: CNT-2024-001" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Descripción</label>
+                  <Input placeholder="Breve descripción del documento" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Fecha de Creación</label>
+                    <Input type="date" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Estado</label>
+                    <select className="w-full px-3 py-2 bg-background border border-white/10 rounded-md text-sm">
+                      {config.statuses.map((status: string) => (
+                        <option key={status} value={status}>{status}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2 pt-4">
+                  <Button 
+                    variant="outline"
+                    onClick={() => setShowNewDocumentDialog(false)}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button 
+                    className="bg-[var(--brand-naranja)] text-white hover:bg-[var(--brand-naranja)]/90"
+                    onClick={() => {
+                      // Handle document creation here
+                      setShowNewDocumentDialog(false);
+                    }}
+                  >
+                    Crear Documento
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
