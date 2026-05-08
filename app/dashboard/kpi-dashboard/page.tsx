@@ -35,6 +35,8 @@ const statusBadgeColors = {
 };
 
 export default function KPIDashboardPage() {
+  const [selectedKPI, setSelectedKPI] = useState<string | null>(null);
+
   // Fetch KPI data from API
   const { data, error, isLoading, mutate } = useSWR(
     '/api/dashboard/kpi-dashboard',
@@ -54,6 +56,12 @@ export default function KPIDashboardPage() {
   const alertsDistribution = data?.alertsDistribution || [];
   const recommendations = data?.recommendations || [];
 
+  // Helper function to get status background color
+  const getStatusBg = (status: string) => statusColors[status as keyof typeof statusColors] || statusColors.yellow;
+  
+  // Helper function to get badge color
+  const getBadgeColor = (status: string) => statusBadgeColors[status as keyof typeof statusBadgeColors] || statusBadgeColors.yellow;
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -66,7 +74,7 @@ export default function KPIDashboardPage() {
 
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {KPIS.map((kpi) => (
+        {kpis.map((kpi: KPI) => (
           <Card
             key={kpi.id}
             className={`cursor-pointer transition-all ${getStatusBg(kpi.status)} border-2 ${
