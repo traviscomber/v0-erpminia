@@ -35,6 +35,7 @@ export default function ComprasPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [showFilters, setShowFilters] = useState(false);
 
   // Fetch purchase orders from API
   const { data, error, isLoading, mutate } = useSWR(
@@ -82,7 +83,7 @@ export default function ComprasPage() {
             <CardTitle className="text-sm font-medium">Órdenes Totales</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{filteredOrders.length}</div>
+            <div className="text-2xl font-bold">{orders.length}</div>
           </CardContent>
         </Card>
         <Card className="border-border">
@@ -92,7 +93,7 @@ export default function ComprasPage() {
           <CardContent>
             <div className="text-2xl font-bold">
               {formatCurrency(
-                filteredOrders.reduce((sum, order) => sum + order.amount, 0)
+                orders.reduce((sum: number, order: any) => sum + (order.amount || 0), 0)
               )}
             </div>
           </CardContent>
@@ -103,7 +104,7 @@ export default function ComprasPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {filteredOrders.filter((o) => o.status === 'Pendiente').length}
+              {pendingOrders}
             </div>
           </CardContent>
         </Card>
@@ -152,7 +153,11 @@ export default function ComprasPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredOrders.map((order) => (
+                {orders.filter((order: any) => 
+                  !searchTerm || 
+                  order.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  order.vendor?.toLowerCase().includes(searchTerm.toLowerCase())
+                ).map((order: any) => (
                   <TableRow key={order.id} className="border-border hover:bg-muted/50">
                     <TableCell className="font-medium">{order.id}</TableCell>
                     <TableCell>{order.vendor}</TableCell>
