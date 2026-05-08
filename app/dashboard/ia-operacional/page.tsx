@@ -136,30 +136,31 @@ export default function IAOperacionalPage() {
               <p className="text-muted-foreground text-center py-4">No hay insights disponibles</p>
             ) : (
               criticalEquipment.map((item: any, idx: number) => (
-              <Alert key={idx} className="border-red-200 bg-red-50">
-                <div className="flex items-start gap-4">
-                  <div className="mt-0.5 text-red-600">⚠️</div>
-                  <div className="flex-1">
-                    <AlertDescription className="font-semibold text-base mb-1">
-                      {item.name || item.title || 'Equipo Crítico'}
-                    </AlertDescription>
-                    <AlertDescription className="text-sm mb-3">
-                      {item.description || item.issue || 'Requiere atención inmediata'}
-                    </AlertDescription>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs">
-                        {item.status?.toUpperCase() || 'CRÍTICO'}
-                      </Badge>
-                      {item.action && (
-                        <button className="text-xs font-semibold hover:underline">
-                          → {item.action}
-                        </button>
-                      )}
+                <Alert key={idx} className="border-red-200 bg-red-50">
+                  <div className="flex items-start gap-4">
+                    <div className="mt-0.5 text-red-600">⚠️</div>
+                    <div className="flex-1">
+                      <AlertDescription className="font-semibold text-base mb-1">
+                        {item.name || item.title || 'Equipo Crítico'}
+                      </AlertDescription>
+                      <AlertDescription className="text-sm mb-3">
+                        {item.description || item.issue || 'Requiere atención inmediata'}
+                      </AlertDescription>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">
+                          {item.status?.toUpperCase() || 'CRÍTICO'}
+                        </Badge>
+                        {item.action && (
+                          <button className="text-xs font-semibold hover:underline">
+                            → {item.action}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Alert>
-            ))}
+                </Alert>
+              ))
+            )}
           </div>
         )}
       </div>
