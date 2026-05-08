@@ -63,6 +63,14 @@ export default function ProduccionPage() {
   const readings = data?.readings || [];
   const alarms = data?.alarms || [];
 
+  // Format sensor data for the chart - convert readings to chart format
+  const sensorData = (readings || []).map((reading: any) => ({
+    timestamp: reading.timestamp || new Date().toLocaleTimeString(),
+    temp: reading.temperature || 0,
+    pressure: reading.pressure || 0,
+    vibration: reading.vibration || 0,
+  })).slice(-20); // Show last 20 readings
+
   // Early returns AFTER all hooks
   if (error) return <div className="text-red-500">Error loading telemetry data</div>;
   if (isLoading) return <div className="text-gray-500">Loading telemetry...</div>;
