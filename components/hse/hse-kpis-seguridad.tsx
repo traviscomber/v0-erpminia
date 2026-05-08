@@ -4,7 +4,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-interface KPISeg uridad {
+interface KPISeguridadProps {
   mes: string;
   tasa_accidentabilidad: number;
   tasa_frecuencia: number;
@@ -14,7 +14,7 @@ interface KPISeg uridad {
   dias_sin_accidentes: number;
 }
 
-export function HSEKPIsSeguridad({ kpis, meta_iirl = 1.0 }: { kpis: KPISeg uridad[]; meta_iirl?: number }) {
+export function HSEKPIsSeguridad({ kpis, meta_iirl = 1.0 }: { kpis: KPISeguridadProps[]; meta_iirl?: number }) {
   const ultimoMes = kpis[kpis.length - 1] || {};
   const mesPrevio = kpis[kpis.length - 2] || {};
 
