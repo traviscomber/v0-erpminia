@@ -126,30 +126,33 @@ export default function IAOperacionalPage() {
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Insights Actuales</h2>
 
-        {loading ? (
+        {isLoading ? (
           <div className="text-center py-8">
             <p className="text-muted-foreground">Analizando datos operacionales...</p>
           </div>
         ) : (
           <div className="space-y-4">
-            {insights.map((insight) => (
-              <Alert key={insight.id} className={getSeverityColor(insight.severity)}>
+            {criticalEquipment.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">No hay insights disponibles</p>
+            ) : (
+              criticalEquipment.map((item: any, idx: number) => (
+              <Alert key={idx} className="border-red-200 bg-red-50">
                 <div className="flex items-start gap-4">
-                  <div className="mt-0.5">{insight.icon}</div>
+                  <div className="mt-0.5 text-red-600">⚠️</div>
                   <div className="flex-1">
                     <AlertDescription className="font-semibold text-base mb-1">
-                      {insight.title}
+                      {item.name || item.title || 'Equipo Crítico'}
                     </AlertDescription>
                     <AlertDescription className="text-sm mb-3">
-                      {insight.description}
+                      {item.description || item.issue || 'Requiere atención inmediata'}
                     </AlertDescription>
                     <div className="flex items-center gap-2">
                       <Badge variant="outline" className="text-xs">
-                        {insight.type.toUpperCase()}
+                        {item.status?.toUpperCase() || 'CRÍTICO'}
                       </Badge>
-                      {insight.action && (
+                      {item.action && (
                         <button className="text-xs font-semibold hover:underline">
-                          → {insight.action}
+                          → {item.action}
                         </button>
                       )}
                     </div>
