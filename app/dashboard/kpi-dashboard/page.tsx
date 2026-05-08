@@ -269,27 +269,27 @@ export default function KPIDashboardPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="flex items-start gap-3 p-4 bg-green-50 border border-[var(--brand-verde)] rounded-lg">
+            <div className="flex items-start gap-3 p-4 bg-[var(--brand-verde)]/15 backdrop-blur-md border border-[var(--brand-verde)]/50 rounded-lg">
               <div className="mt-0.5 text-[var(--brand-verde)]">✓</div>
               <div>
-                <p className="font-semibold text-sm">Seguridad (HSE)</p>
-                <p className="text-xs text-muted-foreground">47 días sin incidentes. Cumplimiento SERNAGEOMIN vigente.</p>
+                <p className="font-semibold text-sm text-[var(--brand-verde)]">Seguridad (HSE)</p>
+                <p className="text-xs text-gray-300">47 días sin incidentes. Cumplimiento SERNAGEOMIN vigente.</p>
               </div>
             </div>
 
-            <div className="flex items-start gap-3 p-4 bg-yellow-50 border border-[var(--brand-gold)] rounded-lg">
+            <div className="flex items-start gap-3 p-4 bg-[var(--brand-gold)]/15 backdrop-blur-md border border-[var(--brand-gold)]/50 rounded-lg">
               <AlertCircle className="h-5 w-5 text-[var(--brand-gold)] mt-0.5" />
               <div>
-                <p className="font-semibold text-sm">Operación</p>
-                <p className="text-xs text-muted-foreground">2 equipos en mantención. MTBF bajo target. 3 repuestos en stock crítico.</p>
+                <p className="font-semibold text-sm text-[var(--brand-gold)]">Operación</p>
+                <p className="text-xs text-gray-300">2 equipos en mantención. MTBF bajo target. 3 repuestos en stock crítico.</p>
               </div>
             </div>
 
-            <div className="flex items-start gap-3 p-4 bg-blue-50 border border-[var(--brand-naranja)] rounded-lg">
+            <div className="flex items-start gap-3 p-4 bg-[var(--brand-naranja)]/15 backdrop-blur-md border border-[var(--brand-naranja)]/50 rounded-lg">
               <div className="mt-0.5 text-[var(--brand-naranja)]">ℹ</div>
               <div>
-                <p className="font-semibold text-sm">Gestión</p>
-                <p className="text-xs text-muted-foreground">OCs al día. Costos 3.3% sobre presupuesto. Documentos vigentes 93%.</p>
+                <p className="font-semibold text-sm text-[var(--brand-naranja)]">Gestión</p>
+                <p className="text-xs text-gray-300">OCs al día. Costos 3.3% sobre presupuesto. Documentos vigentes 93%.</p>
               </div>
             </div>
           </div>
@@ -297,23 +297,23 @@ export default function KPIDashboardPage() {
       </Card>
 
       {/* Recommendations */}
-      <Card>
+      <Card className="bg-white/5 backdrop-blur-md border-white/10">
         <CardHeader>
           <CardTitle>Recomendaciones IA</CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="space-y-3 text-sm">
             <li className="flex gap-2">
-              <span className="font-semibold text-red-600">1.</span>
-              <span><strong>Mantención Inmediata:</strong> CAT 320 con 847 hrs MTBF. Riesgo de falla en 48-72 hrs.</span>
+              <span className="font-semibold text-[var(--brand-rojo)]">1.</span>
+              <span className="text-gray-300"><strong className="text-white">Mantención Inmediata:</strong> CAT 320 con 847 hrs MTBF. Riesgo de falla en 48-72 hrs.</span>
             </li>
             <li className="flex gap-2">
-              <span className="font-semibold text-yellow-600">2.</span>
-              <span><strong>Renovar Documentos:</strong> 7 certificados HSE vencen en 14 días. Iniciar trámite hoy.</span>
+              <span className="font-semibold text-[var(--brand-gold)]">2.</span>
+              <span className="text-gray-300"><strong className="text-white">Renovar Documentos:</strong> 7 certificados HSE vencen en 14 días. Iniciar trámite hoy.</span>
             </li>
             <li className="flex gap-2">
-              <span className="font-semibold text-yellow-600">3.</span>
-              <span><strong>Reorden de Stock:</strong> Filtros hidráulicos bajo nivel. Acelerar entrega con proveedor.</span>
+              <span className="font-semibold text-[var(--brand-gold)]">3.</span>
+              <span className="text-gray-300"><strong className="text-white">Reorden de Stock:</strong> Filtros hidráulicos bajo nivel. Acelerar entrega con proveedor.</span>
             </li>
             <li className="flex gap-2">
               <span className="font-semibold text-yellow-600">4.</span>
