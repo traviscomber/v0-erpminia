@@ -72,6 +72,7 @@ export default function MantenimientoPage() {
 
   // Calculate metrics from orders
   const completedOrders = orders.filter((order: any) => order.status === 'Completada').length;
+  const pendingOrders = orders.filter((order: any) => order.status === 'Pendiente' || order.status === 'En Progreso').length;
   const safetyOrders = orders.filter((order: any) => order.type === 'Seguridad' || order.priority === 'Crítica').length;
   const preventiveOrders = orders.filter((order: any) => order.type === 'Preventiva').length;
   const correctiveOrders = orders.filter((order: any) => order.type === 'Correctiva').length;
