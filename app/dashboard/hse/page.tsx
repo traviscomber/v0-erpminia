@@ -34,6 +34,9 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { CHART_COLORS_LIGHT } from '@/lib/theme-colors';
+import { HSEDocumentosCard } from '@/components/hse/hse-documentos-card';
+import { HSECapacitacionesCard } from '@/components/hse/hse-capacitaciones-card';
+import { HSEEPPCard } from '@/components/hse/hse-epp-card';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 

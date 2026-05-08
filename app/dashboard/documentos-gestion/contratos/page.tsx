@@ -1,108 +1,50 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+import useSWR from 'swr';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Search, Download, Eye, Trash2, FileText, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { RefreshCw, Plus, Search } from 'lucide-react';
+import { ContratoHitosCard } from '@/components/contratos/contrato-hitos-card';
+import { ContratoGarantiasCard } from '@/components/contratos/contrato-garantias-card';
+import { AlertasContratos } from '@/components/alerts/alertas-panel';
 
-interface Contract {
-  id: string;
-  number: string;
-  contractor: string;
-  title: string;
-  amount: number;
-  startDate: string;
-  endDate: string;
-  status: 'activo' | 'pendiente' | 'vencido' | 'suspendido';
-  type: 'principal' | 'subcontrato';
-  approvalStatus: 'aprobado' | 'pendiente' | 'rechazado';
-  documents: number;
-  lastModified: string;
-}
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-const mockContracts: Contract[] = [
-  {
-    id: '1',
-    number: 'CONT-2024-001',
-    contractor: 'Minería Chile SpA',
-    title: 'Servicios de Perforación y Tronadura',
-    amount: 2500000,
-    startDate: '2024-01-15',
-    endDate: '2025-01-14',
-    status: 'activo',
-    type: 'principal',
-    approvalStatus: 'aprobado',
-    documents: 8,
-    lastModified: '2024-04-20',
-  },
-  {
-    id: '2',
-    number: 'SUBCONT-2024-001',
-    contractor: 'Transporte y Logística SA',
-    title: 'Transporte de Material',
-    amount: 450000,
-    startDate: '2024-02-01',
-    endDate: '2024-12-31',
-    status: 'activo',
-    type: 'subcontrato',
-    approvalStatus: 'aprobado',
-    documents: 5,
-    lastModified: '2024-04-18',
-  },
-  {
-    id: '3',
-    number: 'CONT-2024-002',
-    contractor: 'Servicios de Mantenimiento Integral',
-    title: 'Mantenimiento de Equipos Mineros',
-    amount: 1800000,
-    startDate: '2024-03-01',
-    endDate: '2024-12-31',
-    status: 'activo',
-    type: 'principal',
-    approvalStatus: 'pendiente',
-    documents: 12,
-    lastModified: '2024-04-19',
-  },
-  {
-    id: '4',
-    number: 'SUBCONT-2024-002',
-    contractor: 'Análisis Químico Minero',
-    title: 'Análisis de Muestras de Mineral',
-    amount: 280000,
-    startDate: '2024-04-01',
-    endDate: '2024-09-30',
-    status: 'pendiente',
-    type: 'subcontrato',
-    approvalStatus: 'pendiente',
-    documents: 3,
-    lastModified: '2024-04-21',
-  },
-  {
-    id: '5',
-    number: 'CONT-2023-015',
-    contractor: 'Consultoría Ambiental Ltd',
-    title: 'Estudios de Impacto Ambiental',
-    amount: 950000,
-    startDate: '2023-06-01',
-    endDate: '2024-03-31',
-    status: 'vencido',
-    type: 'principal',
-    approvalStatus: 'aprobado',
-    documents: 15,
-    lastModified: '2024-03-30',
-  },
-];
+export default function ContratosPage() {
+  const [searchTerm, setSearchTerm] = useState('');
 
-const statusConfig = {
-  activo: { color: 'bg-green-500/10 text-green-700', label: 'Activo' },
-  pendiente: { color: 'bg-yellow-500/10 text-yellow-700', label: 'Pendiente' },
-  vencido: { color: 'bg-red-500/10 text-red-700', label: 'Vencido' },
-  suspendido: { color: 'bg-gray-500/10 text-gray-700', label: 'Suspendido' },
-};
+  // Fetch contractors with contracts
+  const { data: dataContratos, error: errorContratos, isLoading: loadingContratos, mutate } = useSWR(
+    `/api/contratos/hitos?search=${searchTerm}`,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      refreshInterval: 60000,
+    }
+  );
+
+  // Fetch guarantees
+  const { data: dataGarantias } = useSWR('/api/contratos/garantias', fetcher, {
+    revalidateOnFocus: false,
+    refreshInterval: 60000,
+  });
+
+  // Fetch alerts
+  const { data: dataAlertas } = useSWR('/api/contratos/alertas', fetcher, {
+    revalidateOnFocus: false,
+    refreshInterval: 30000,
+  });
+
+  if (loadingContratos) return <div className="text-center py-8">Cargando contratos...</div>;
+  if (errorContratos) return <div className="text-red-500">Error al cargar datos</div>;
+
+  const contractors = dataContratos?.contractors || [];
+  const hitos = dataContratos?.hitos || [];
+  const garantias = dataGarantias?.garantias || [];
+  const alertas = dataAlertas?.alertas || [];
 
 const approvalConfig = {
   aprobado: { icon: CheckCircle2, color: 'text-green-600', label: 'Aprobado' },
@@ -143,238 +85,94 @@ export default function ContratosPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Contratos & Subcontratos</h1>
-          <p className="text-muted-foreground mt-1">Gestiona contratos principales y subcontratos con contratistas</p>
+          <h1 className="text-3xl font-bold tracking-tight">Control de Contratos</h1>
+          <p className="text-muted-foreground mt-1">Gestión centralizada de pagos, hitos y garantías</p>
         </div>
-        <Button className="gap-2 bg-[var(--brand-naranja)] hover:bg-[var(--brand-naranja)]/90">
-          <Plus className="h-4 w-4" />
-          Nuevo Contrato
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => mutate()}>
+            <RefreshCw className="h-4 w-4 mr-1" />
+            Actualizar
+          </Button>
+          <Button size="sm">
+            <Plus className="h-4 w-4 mr-1" />
+            Nuevo Contrato
+          </Button>
+        </div>
       </div>
 
-      {/* KPI Cards */}
+      {/* Alerts Panel */}
+      <AlertasContratos alertas={alertas} />
+
+      {/* Search */}
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar contratista o proyecto..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-8"
+          />
+        </div>
+      </div>
+
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Activos</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Contratos Activos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-600">{stats.activos}</div>
+            <div className="text-2xl font-bold">{contractors.length}</div>
+            <p className="text-xs text-muted-foreground mt-1">Prestadores/Contratistas</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Pendientes</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Hitos Pendientes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-yellow-600">{stats.pendientes}</div>
+            <div className="text-2xl font-bold">{hitos.filter((h: any) => h.estado === 'pendiente').length}</div>
+            <p className="text-xs text-muted-foreground mt-1">Pagos próximos</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Vencidos</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Garantías Activas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-red-600">{stats.vencidos}</div>
+            <div className="text-2xl font-bold">{garantias.filter((g: any) => g.estado === 'retenida').length}</div>
+            <p className="text-xs text-muted-foreground mt-1">Retenciones vigentes</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Pendiente Aprobación</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Alertas Activas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-[var(--brand-naranja)]">{stats.pendienteAprobacion}</div>
+            <div className="text-2xl font-bold text-red-600">{alertas.filter((a: any) => a.estado === 'activa').length}</div>
+            <p className="text-xs text-muted-foreground mt-1">Requiere atención</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Search and Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filtros</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Busca por número, contratista o título..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+      {/* Main Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <ContratoHitosCard hitos={hitos} />
+        </div>
 
-          <div className="flex flex-wrap gap-2">
-            <Badge
-              variant={contractType === 'all' ? 'default' : 'outline'}
-              className="cursor-pointer"
-              onClick={() => setContractType('all')}
-            >
-              Todos
-            </Badge>
-            <Badge
-              variant={contractType === 'principal' ? 'default' : 'outline'}
-              className="cursor-pointer"
-              onClick={() => setContractType('principal')}
-            >
-              Principales
-            </Badge>
-            <Badge
-              variant={contractType === 'subcontrato' ? 'default' : 'outline'}
-              className="cursor-pointer"
-              onClick={() => setContractType('subcontrato')}
-            >
-              Subcontratos
-            </Badge>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Contracts List */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="activos">Activos ({stats.activos})</TabsTrigger>
-          <TabsTrigger value="pendientes">Pendientes ({stats.pendientes})</TabsTrigger>
-          <TabsTrigger value="vencidos">Vencidos ({stats.vencidos})</TabsTrigger>
-          <TabsTrigger value="todos">Todos</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="activos" className="space-y-4">
-          {filteredContracts.length > 0 ? (
-            filteredContracts.map((contract) => (
-              <ContractCard key={contract.id} contract={contract} />
-            ))
-          ) : (
-            <Card>
-              <CardContent className="py-8 text-center text-muted-foreground">
-                No hay contratos activos
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-
-        <TabsContent value="pendientes" className="space-y-4">
-          {filteredContracts.length > 0 ? (
-            filteredContracts.map((contract) => (
-              <ContractCard key={contract.id} contract={contract} />
-            ))
-          ) : (
-            <Card>
-              <CardContent className="py-8 text-center text-muted-foreground">
-                No hay contratos pendientes
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-
-        <TabsContent value="vencidos" className="space-y-4">
-          {filteredContracts.length > 0 ? (
-            filteredContracts.map((contract) => (
-              <ContractCard key={contract.id} contract={contract} />
-            ))
-          ) : (
-            <Card>
-              <CardContent className="py-8 text-center text-muted-foreground">
-                No hay contratos vencidos
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-
-        <TabsContent value="todos" className="space-y-4">
-          {filteredContracts.length > 0 ? (
-            filteredContracts.map((contract) => (
-              <ContractCard key={contract.id} contract={contract} />
-            ))
-          ) : (
-            <Card>
-              <CardContent className="py-8 text-center text-muted-foreground">
-                No se encontraron contratos
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-      </Tabs>
+        <div className="space-y-6">
+          <ContratoGarantiasCard garantias={garantias} />
+        </div>
+      </div>
     </div>
-  );
-}
-
-function ContractCard({ contract }: { contract: Contract }) {
-  const statusConfig = {
-    activo: { color: 'bg-green-500/10 text-green-700', label: 'Activo' },
-    pendiente: { color: 'bg-yellow-500/10 text-yellow-700', label: 'Pendiente' },
-    vencido: { color: 'bg-red-500/10 text-red-700', label: 'Vencido' },
-    suspendido: { color: 'bg-gray-500/10 text-gray-700', label: 'Suspendido' },
-  };
-
-  const ApprovalIcon = approvalConfig[contract.approvalStatus].icon;
-
-  return (
-    <Card className="hover:shadow-lg transition-shadow">
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <FileText className="h-5 w-5 text-muted-foreground" />
-              <span className="font-mono text-sm font-semibold">{contract.number}</span>
-              <Badge variant="outline">{contract.type === 'principal' ? 'Principal' : 'Subcontrato'}</Badge>
-            </div>
-            <CardTitle>{contract.title}</CardTitle>
-            <CardDescription className="mt-1">{contract.contractor}</CardDescription>
-          </div>
-          <div className="text-right">
-            <Badge className={statusConfig[contract.status].color}>{statusConfig[contract.status].label}</Badge>
-            <div className="mt-2 flex items-center justify-end gap-1">
-              <ApprovalIcon
-                className={`h-4 w-4 ${approvalConfig[contract.approvalStatus].color}`}
-              />
-              <span className="text-xs text-muted-foreground">{approvalConfig[contract.approvalStatus].label}</span>
-            </div>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-          <div>
-            <p className="text-xs text-muted-foreground">Monto</p>
-            <p className="font-semibold">${(contract.amount / 1000000).toFixed(1)}M</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Inicio</p>
-            <p className="font-semibold text-sm">{new Date(contract.startDate).toLocaleDateString('es-CL')}</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Termino</p>
-            <p className="font-semibold text-sm">{new Date(contract.endDate).toLocaleDateString('es-CL')}</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Documentos</p>
-            <p className="font-semibold">{contract.documents} archivos</p>
-          </div>
-        </div>
-
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="gap-2">
-            <Eye className="h-4 w-4" />
-            Ver Detalles
-          </Button>
-          <Button variant="outline" size="sm" className="gap-2">
-            <Download className="h-4 w-4" />
-            Descargar
-          </Button>
-          <Button variant="outline" size="sm" className="gap-2">
-            <FileText className="h-4 w-4" />
-            Enmiendas
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
   );
 }
