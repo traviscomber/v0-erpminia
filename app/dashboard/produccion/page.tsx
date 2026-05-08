@@ -39,7 +39,6 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 export default function ProduccionPage() {
   const [selectedEquipment, setSelectedEquipment] = useState<any>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
-  const [selectedEquipment, setSelectedEquipment] = useState<any>(null);
   
   // Fetch telemetry data from API
   const { data, error, isLoading, mutate } = useSWR(
