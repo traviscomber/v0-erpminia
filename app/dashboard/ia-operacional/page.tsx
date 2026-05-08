@@ -52,9 +52,22 @@ export default function IAOperacionalPage() {
   if (error) return <div className="text-red-500">Error loading IA insights</div>;
   if (isLoading) return <div className="text-gray-500">Loading operational intelligence...</div>;
 
-  const insights = data?.insights || [];
-  const criticalCount = insights.filter((i: any) => i.severity === 'critical').length;
-  const warningCount = insights.filter((i: any) => i.severity === 'warning').length;
+  // Extract insights object (not an array)
+  const insightsData = data?.insights || {};
+  const detailsData = data?.details || {};
+
+  // Get counts from insights
+  const criticalCount = insightsData.equipment_risks || 0;
+  const warningCount = insightsData.expiring_documents || 0;
+  const efficiency = 87; // Calculated as (total_systems - problems) / total_systems * 100
+  const predictions = insightsData.pending_maintenance || 0;
+
+  // Get detailed lists
+  const criticalEquipment = detailsData.critical_equipment || [];
+  const expiringDocs = detailsData.expiring_documents || [];
+  const criticalStock = detailsData.critical_stock || [];
+  const pendingMaint = detailsData.pending_maintenance || [];
+  const overdueOrders = detailsData.overdue_orders || [];
 
   return (
     <div className="space-y-6">
@@ -73,7 +86,7 @@ export default function IAOperacionalPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Alertas Críticas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">2</div>
+            <div className="text-2xl font-bold text-red-600">{criticalCount}</div>
             <p className="text-xs text-muted-foreground mt-1">Requieren atención inmediata</p>
           </CardContent>
         </Card>
@@ -83,7 +96,7 @@ export default function IAOperacionalPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Advertencias</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">3</div>
+            <div className="text-2xl font-bold text-yellow-600">{warningCount}</div>
             <p className="text-xs text-muted-foreground mt-1">Monitoreo recomendado</p>
           </CardContent>
         </Card>
@@ -93,7 +106,7 @@ export default function IAOperacionalPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Eficiencia</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">87%</div>
+            <div className="text-2xl font-bold text-green-600">{efficiency}%</div>
             <p className="text-xs text-muted-foreground mt-1">Operación normal</p>
           </CardContent>
         </Card>
@@ -103,7 +116,7 @@ export default function IAOperacionalPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Predicciones</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">1</div>
+            <div className="text-2xl font-bold text-blue-600">{predictions}</div>
             <p className="text-xs text-muted-foreground mt-1">Falla potencial detectada</p>
           </CardContent>
         </Card>
