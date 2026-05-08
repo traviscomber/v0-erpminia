@@ -106,12 +106,17 @@ export default function DocumentCategoryDetailPage() {
   const category = data?.category || {};
   const documents = data?.documents || [];
 
-  // Filter documents by search term
-  const filteredDocuments = documents.filter((doc: any) =>
-    doc.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    doc.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    doc.description?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter documents by search term - handle different field names per category
+  const filteredDocuments = documents.filter((doc: any) => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      doc.name?.toLowerCase().includes(searchLower) ||
+      doc.title?.toLowerCase().includes(searchLower) ||
+      doc.code?.toLowerCase().includes(searchLower) ||
+      doc.contract_number?.toLowerCase().includes(searchLower) ||
+      doc.description?.toLowerCase().includes(searchLower)
+    );
+  });
 
   // Calculate status distribution
   const statusCount = filteredDocuments.reduce((acc: any, doc: any) => {
@@ -216,10 +221,10 @@ export default function DocumentCategoryDetailPage() {
                     {filteredDocuments.map((doc: any, idx: number) => (
                       <tr key={idx} className="border-b border-white/10 hover:bg-white/5 transition-colors">
                         <td className="py-3 px-4">
-                          <div className="font-medium">{doc.name}</div>
-                          <div className="text-xs text-muted-foreground">{doc.description}</div>
+                          <div className="font-medium">{doc.title || doc.name || 'N/A'}</div>
+                          <div className="text-xs text-muted-foreground">{doc.description || 'Sin descripción'}</div>
                         </td>
-                        <td className="py-3 px-4 text-muted-foreground">{doc.code}</td>
+                        <td className="py-3 px-4 text-muted-foreground">{doc.contract_number || doc.code || '-'}</td>
                         <td className="py-3 px-4">
                           <Badge variant="outline" className="flex items-center gap-1 w-fit">
                             {getStatusIcon(doc.status)}
@@ -227,7 +232,7 @@ export default function DocumentCategoryDetailPage() {
                           </Badge>
                         </td>
                         <td className="py-3 px-4 text-muted-foreground">
-                          {doc.date ? new Date(doc.date).toLocaleDateString('es-CL') : '-'}
+                          {doc.start_date ? new Date(doc.start_date).toLocaleDateString('es-CL') : doc.date ? new Date(doc.date).toLocaleDateString('es-CL') : '-'}
                         </td>
                         <td className="py-3 px-4 text-right">
                           <div className="flex justify-end gap-2">
