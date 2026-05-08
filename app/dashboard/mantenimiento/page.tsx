@@ -352,7 +352,7 @@ export default function MantenimientoPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {loading ? (
+          {isLoading ? (
             <div className="text-center py-8 text-muted-foreground">Cargando órdenes...</div>
           ) : orders.length === 0 ? (
             <div className="text-center py-8">
