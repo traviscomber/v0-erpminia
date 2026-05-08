@@ -252,9 +252,9 @@ export default function FinanzasPage() {
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
               <BarChart
-                data={mockFinances.map((f) => ({
-                  name: f.vendor.split(' ')[0],
-                  amount: f.amount,
+                data={filteredFinances.map((f: any) => ({
+                  name: (f.vendor || 'N/A').split(' ')[0],
+                  amount: f.amount || 0,
                 }))}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
