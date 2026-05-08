@@ -51,16 +51,115 @@ export default function KPIDashboardPage() {
   if (error) return <div className="text-red-500">Error loading KPI data</div>;
   if (isLoading) return <div className="text-gray-500">Loading KPI dashboard...</div>;
 
-  const kpis = data?.kpis || [];
+  const kpisData = data?.kpis || {};
   const trendData = data?.trendData || [];
   const alertsDistribution = data?.alertsDistribution || [];
   const recommendations = data?.recommendations || [];
 
+  // Transform KPI object into array of KPI cards
+  const kpis = [
+    {
+      id: '1',
+      name: 'Equipos Operacionales',
+      value: kpisData.operating_equipment || 0,
+      unit: 'equipos',
+      status: (kpisData.operating_equipment || 0) > 80 ? 'success' : 'warning',
+      description: 'Equipos en operación',
+      trend: 'up',
+      change: 5,
+    },
+    {
+      id: '2',
+      name: 'MTBF',
+      value: kpisData.mtbf_hours || 0,
+      unit: 'horas',
+      status: (kpisData.mtbf_hours || 0) > 500 ? 'success' : 'warning',
+      description: 'Tiempo promedio entre fallos',
+      trend: 'up',
+      change: 3,
+    },
+    {
+      id: '3',
+      name: 'Stock Crítico',
+      value: kpisData.critical_stock_items || 0,
+      unit: 'items',
+      status: (kpisData.critical_stock_items || 0) < 50 ? 'success' : 'danger',
+      description: 'Items en bajo stock',
+      trend: 'down',
+      change: 2,
+    },
+    {
+      id: '4',
+      name: 'Documentos Válidos',
+      value: `${kpisData.valid_documents_pct || 0}%`,
+      unit: 'validez',
+      status: (kpisData.valid_documents_pct || 0) > 90 ? 'success' : 'warning',
+      description: 'Documentos vigentes',
+      trend: 'up',
+      change: 1,
+    },
+    {
+      id: '5',
+      name: 'Días sin Incidentes',
+      value: kpisData.days_no_incidents || 0,
+      unit: 'días',
+      status: (kpisData.days_no_incidents || 0) > 30 ? 'success' : 'warning',
+      description: 'Seguridad operacional',
+      trend: 'up',
+      change: 0,
+    },
+    {
+      id: '6',
+      name: 'OCs a Tiempo',
+      value: `${kpisData.on_time_purchase_orders_pct || 0}%`,
+      unit: 'puntualidad',
+      status: (kpisData.on_time_purchase_orders_pct || 0) > 85 ? 'success' : 'warning',
+      description: 'Órdenes de compra cumplidas',
+      trend: 'up',
+      change: 2,
+    },
+    {
+      id: '7',
+      name: 'Costos Operacionales',
+      value: `$${(kpisData.operational_costs_monthly || 0).toLocaleString()}`,
+      unit: 'CLP',
+      status: 'neutral',
+      description: 'Gastos del mes',
+      trend: 'down',
+      change: 5,
+    },
+    {
+      id: '8',
+      name: 'Alertas Activas',
+      value: kpisData.active_alerts || 0,
+      unit: 'alertas',
+      status: (kpisData.active_alerts || 0) > 3 ? 'danger' : 'success',
+      description: 'Sistema de alertas',
+      trend: (kpisData.active_alerts || 0) > 3 ? 'down' : 'up',
+      change: (kpisData.active_alerts || 0) > 3 ? 1 : 0,
+    },
+  ];
+
   // Helper function to get status background color
-  const getStatusBg = (status: string) => statusColors[status as keyof typeof statusColors] || statusColors.yellow;
-  
-  // Helper function to get badge color
-  const getBadgeColor = (status: string) => statusBadgeColors[status as keyof typeof statusBadgeColors] || statusBadgeColors.yellow;
+  const getStatusBg = (status: string) => {
+    const colors: Record<string, string> = {
+      success: 'bg-green-50 border-green-200',
+      warning: 'bg-yellow-50 border-yellow-200',
+      danger: 'bg-red-50 border-red-200',
+      neutral: 'bg-gray-50 border-gray-200',
+    };
+    return colors[status] || colors.neutral;
+  };
+
+  const getStatusColor = (status: string) => {
+    const colors: Record<string, string> = {
+      success: 'text-green-600',
+      warning: 'text-yellow-600',
+      danger: 'text-red-600',
+      neutral: 'text-gray-600',
+    };
+    return colors[status] || colors.neutral;
+  };
 
   return (
     <div className="space-y-6">
