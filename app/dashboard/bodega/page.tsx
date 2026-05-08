@@ -83,6 +83,9 @@ export default function BodegaPage() {
 
   const lowStockItems = items.filter((i: any) => i.current_stock <= i.minimum_stock).length;
 
+  // Extract unique categories from items
+  const categories = Array.from(new Set(items.map((item: any) => item.category || 'Otros').filter(Boolean)));
+
   // Create category data for PieChart - group items by category
   const categoryData = items.reduce((acc: any[], item: any) => {
     const existing = acc.find((c: any) => c.name === (item.category || 'Otros'));
@@ -330,7 +333,7 @@ export default function BodegaPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {loading ? (
+          {isLoading ? (
             <div className="text-center py-8 text-muted-foreground">Cargando inventario...</div>
           ) : items.length === 0 ? (
             <div className="text-center py-8">
