@@ -53,7 +53,7 @@ export default function KPIDashboardPage() {
 
   const kpisData = data?.kpis || {};
   const trendData = data?.trendData || [];
-  const alertsDistribution = data?.alertsDistribution || [];
+  const alertDistribution = data?.alertsDistribution || [];
   const recommendations = data?.recommendations || [];
 
   // Transform KPI object into array of KPI cards
