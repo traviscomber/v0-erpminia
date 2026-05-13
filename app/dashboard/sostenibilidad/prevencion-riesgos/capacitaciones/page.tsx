@@ -1,0 +1,191 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Search, Calendar, Users, Clock, Download, Eye, Trash2 } from 'lucide-react';
+import useSWR from 'swr';
+
+interface Capacitacion {
+  id: string;
+  nombre_capacitacion: string;
+  tipo: 'ACHS' | 'OTEC' | 'inducción' | 'específica';
+  tema: string;
+  programa_hse: string;
+  proveedor_instructor: string;
+  fecha_programada: string;
+  duracion_horas: number;
+  faenas_cargos: string[];
+  estado: 'planificada' | 'realizada' | 'cancelada';
+}
+
+const fetcher = (url: string) => fetch(url).then(r => r.json());
+
+export default function CapacitacionesPage() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showNewForm, setShowNewForm] = useState(false);
+
+  const { data: capacitaciones = [], isLoading } = useSWR('/api/sostenibilidad/capacitaciones', fetcher);
+
+  const filteredCapacitaciones = (capacitaciones.data || []).filter((cap: Capacitacion) =>
+    cap.nombre_capacitacion.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    cap.tema.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const estadoColor = {
+    planificada: 'bg-yellow-100 text-yellow-800',
+    realizada: 'bg-green-100 text-green-800',
+    cancelada: 'bg-red-100 text-red-800',
+  };
+
+  return (
+    <div className="min-h-screen bg-background p-6">
+      {/* Header */}
+      <div className="mb-8 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Gestión de Capacitaciones</h1>
+          <p className="text-muted-foreground">Registra y gestiona todas las capacitaciones del personal</p>
+        </div>
+        <Button 
+          onClick={() => setShowNewForm(!showNewForm)}
+          className="bg-[var(--brand-naranja)] text-white hover:bg-[var(--brand-naranja)]/90"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Nueva Capacitación
+        </Button>
+      </div>
+
+      {/* Search */}
+      <div className="mb-6">
+        <div className="flex gap-2">
+          <Input
+            placeholder="Buscar por nombre, tema o programa..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="flex-1"
+          />
+          <Button variant="outline" size="icon">
+            <Search className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Capacitaciones</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{filteredCapacitaciones.length}</div>
+            <p className="text-xs text-muted-foreground">Este año</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Planificadas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{filteredCapacitaciones.filter((c: Capacitacion) => c.estado === 'planificada').length}</div>
+            <p className="text-xs text-muted-foreground">Por realizar</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Realizadas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{filteredCapacitaciones.filter((c: Capacitacion) => c.estado === 'realizada').length}</div>
+            <p className="text-xs text-muted-foreground">Completadas</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Horas Totales</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{filteredCapacitaciones.reduce((sum: number, c: Capacitacion) => sum + (c.duracion_horas || 0), 0)}</div>
+            <p className="text-xs text-muted-foreground">Horas capacitación</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Capacitaciones Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Capacitaciones Registradas</CardTitle>
+          <CardDescription>Lista completa de capacitaciones planificadas y realizadas</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <p className="text-muted-foreground">Cargando...</p>
+          ) : filteredCapacitaciones.length === 0 ? (
+            <p className="text-muted-foreground text-center py-8">No hay capacitaciones registradas</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-white/10">
+                    <th className="text-left py-3 px-4 font-medium">Nombre</th>
+                    <th className="text-left py-3 px-4 font-medium">Tipo</th>
+                    <th className="text-left py-3 px-4 font-medium">Proveedor</th>
+                    <th className="text-left py-3 px-4 font-medium">Fecha</th>
+                    <th className="text-left py-3 px-4 font-medium">Duración</th>
+                    <th className="text-left py-3 px-4 font-medium">Estado</th>
+                    <th className="text-right py-3 px-4 font-medium">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredCapacitaciones.map((cap: Capacitacion) => (
+                    <tr key={cap.id} className="border-b border-white/10 hover:bg-white/5 transition">
+                      <td className="py-3 px-4">
+                        <div className="font-medium">{cap.nombre_capacitacion}</div>
+                        <div className="text-xs text-muted-foreground">{cap.tema}</div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <Badge variant="outline">{cap.tipo}</Badge>
+                      </td>
+                      <td className="py-3 px-4 text-muted-foreground">{cap.proveedor_instructor}</td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <Calendar className="w-4 h-4" />
+                          {new Date(cap.fecha_programada).toLocaleDateString('es-CL')}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-4 h-4 text-muted-foreground" />
+                          {cap.duracion_horas}h
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <Badge className={estadoColor[cap.estado]}>
+                          {cap.estado}
+                        </Badge>
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button variant="ghost" size="sm" title="Ver detalles">
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" title="Descargar">
+                            <Download className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" title="Eliminar">
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
