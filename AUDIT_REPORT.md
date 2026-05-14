@@ -43,23 +43,11 @@
 
 ## MEDIUM BUGS
 
-### 🟡 BUG #2: Missing Transportistas Route
-**Severity:** MEDIUM  
-**Location:** Navigation/Routing  
-**Description:**  
-- Route `/dashboard/transportistas` returns 404
-- Module not visible in sidebar navigation
-- Expected based on previous project docs
-
-**Status:** REQUIRES CLARIFICATION - May be intentional if module not yet implemented
-
----
-
-### 🟡 BUG #3: Build/Server Issue with ThemeProvider
+### 🟡 BUG #2: Build/Server Issue with ThemeProvider
 **Severity:** MEDIUM  
 **Location:** `app/layout.tsx`  
 **Description:**  
-- Getting error about `<script>` tag in React component (ThemeProvider)
+- Getting warning about `<script>` tag in React component (ThemeProvider)
 - Appears to be build/compilation warning
 - Not related to actual functionality
 
@@ -78,7 +66,6 @@
 | **Sostenibilidad/Capacitaciones** | ✅ WORKING* | Works via direct URL, sidebar nav broken |
 | **Sostenibilidad/Documentos-Flujo** | ✅ WORKING* | 2-validator workflow displays all 5 phases |
 | **Sostenibilidad (sidebar nav)** | ❌ BROKEN | Links don't navigate |
-| **Transportistas** | ❌ NOT FOUND | 404 error |
 
 *All pages load correctly when accessed directly via URL
 
@@ -141,7 +128,6 @@
 ✅ Capacitaciones: Loaded via direct URL (sidebar nav failed)
 ✅ Documentos-Flujo: Loaded via direct URL (sidebar nav failed)
 ❌ Sidebar Navigation: Failed to navigate on link click
-❌ Transportistas: 404 Not Found
 ⚠️ Build Error: ThemeProvider script warning (non-blocking)
 ```
 
