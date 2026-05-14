@@ -8,12 +8,12 @@ interface BrandBadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 export const BrandBadge = React.forwardRef<HTMLSpanElement, BrandBadgeProps>(
   ({ className, type = 'preventive', children, ...props }, ref) => {
     const typeStyles = {
-      preventive: 'bg-[var(--brand-verde)]/10 text-[var(--brand-verde)] border border-[var(--brand-verde)]/30',
-      corrective: 'bg-[var(--brand-naranja)]/10 text-[var(--brand-naranja)] border border-[var(--brand-naranja)]/30',
-      predictive: 'bg-blue-100 text-blue-700 border border-blue-300 dark:bg-blue-900/20 dark:text-blue-400',
-      critical: 'bg-[var(--brand-rojo)]/10 text-[var(--brand-rojo)] border border-[var(--brand-rojo)]/30',
-      success: 'bg-[var(--brand-verde)]/10 text-[var(--brand-verde)] border border-[var(--brand-verde)]/30',
-      warning: 'bg-[var(--brand-naranja)]/10 text-[var(--brand-naranja)] border border-[var(--brand-naranja)]/30',
+      preventive: 'bg-secondary/10 text-secondary border border-secondary/30',
+      corrective: 'bg-primary/10 text-primary border border-primary/30',
+      predictive: 'bg-muted text-muted-foreground border border-muted',
+      critical: 'bg-destructive/10 text-destructive border border-destructive/30',
+      success: 'bg-secondary/10 text-secondary border border-secondary/30',
+      warning: 'bg-primary/10 text-primary border border-primary/30',
     }
 
     return (

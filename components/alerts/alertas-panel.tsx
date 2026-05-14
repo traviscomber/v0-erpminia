@@ -16,10 +16,10 @@ interface ContratoAlerta {
 }
 
 const severidadColores = {
-  baja: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-800', badge: 'bg-blue-100 text-blue-800' },
-  media: { bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-800', badge: 'bg-yellow-100 text-yellow-800' },
-  alta: { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-800', badge: 'bg-orange-100 text-orange-800' },
-  critica: { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-800', badge: 'bg-red-100 text-red-800' },
+  baja: { bg: 'bg-muted', border: 'border-muted', text: 'text-muted-foreground', badge: 'bg-muted text-muted-foreground' },
+  media: { bg: 'bg-primary/10', border: 'border-primary/20', text: 'text-primary', badge: 'bg-primary/10 text-primary' },
+  alta: { bg: 'bg-primary/15', border: 'border-primary/30', text: 'text-primary', badge: 'bg-primary/10 text-primary' },
+  critica: { bg: 'bg-destructive/10', border: 'border-destructive/20', text: 'text-destructive', badge: 'bg-destructive/10 text-destructive' },
 };
 
 const tipoIconos = {
@@ -37,10 +37,10 @@ export function AlertasContratos({ alertas }: { alertas: ContratoAlerta[] }) {
   const alertasAltas = alertasActivas.filter((a) => a.severidad === 'alta');
 
   return (
-    <Card className="border-2 border-red-200">
+    <Card className="border-2 border-destructive/20">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <AlertTriangle className="h-5 w-5 text-red-600" />
+          <AlertTriangle className="h-5 w-5 text-destructive" />
           Alertas del Sistema
         </CardTitle>
         <CardDescription>
@@ -61,7 +61,7 @@ export function AlertasContratos({ alertas }: { alertas: ContratoAlerta[] }) {
             return (
               <div
                 key={alerta.id}
-                className={`${colores.bg} ${colores.border} border rounded-lg p-3 space-y-1 ${!alerta.leida ? 'ring-2 ring-offset-1 ring-red-400' : ''}`}
+                className={`${colores.bg} ${colores.border} border rounded-lg p-3 space-y-1 ${!alerta.leida ? 'ring-2 ring-offset-1 ring-destructive/40' : ''}`}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-2 flex-1">

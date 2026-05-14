@@ -98,9 +98,9 @@ export default function DashboardPage() {
       case 'critical':
         return 'bg-destructive/10 text-destructive border-destructive/20';
       case 'high':
-        return 'bg-orange-100/50 text-orange-800 border-orange-200';
+        return 'bg-primary/10 text-primary border-primary/20';
       default:
-        return 'bg-yellow-100/50 text-yellow-800 border-yellow-200';
+        return 'bg-muted text-muted-foreground border-muted';
     }
   };
 
@@ -109,11 +109,11 @@ export default function DashboardPage() {
       case 'critical':
         return 'text-destructive';
       case 'warning':
-        return 'text-orange-600';
+        return 'text-primary';
       case 'info':
-        return 'text-blue-600';
+        return 'text-muted-foreground';
       case 'success':
-        return 'text-accent';
+        return 'text-secondary';
       default:
         return 'text-muted-foreground';
     }
@@ -305,7 +305,7 @@ export default function DashboardPage() {
           <Link href="/dashboard/integracion-completa">
             <BrandCard className="cursor-pointer hover:shadow-lg transition-shadow h-full">
               <CardHeader>
-                <RefreshCw className="h-6 w-6 text-blue-600 mb-2" />
+                <RefreshCw className="h-6 w-6 text-primary mb-2" />
                 <CardTitle>Integración</CardTitle>
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground">
@@ -343,22 +343,24 @@ export default function DashboardPage() {
             <CardTitle className="text-base">Alertas de Seguridad Última Hora</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-start gap-3 p-3 rounded-lg bg-orange-100/30 border border-orange-200/50">
-                <AlertTriangle className="h-5 w-5 text-orange-600 flex-shrink-0 mt-0.5" />
-                <div className="text-sm">
-                  <p className="font-medium text-orange-900">Temperatura anómala en compresor</p>
-                  <p className="text-xs text-orange-700 mt-1">Reportado a las 11:45 - En revisión</p>
+            <Card className="border-border">
+              <CardContent className="pt-6">
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-primary/10 border border-primary/20">
+                  <AlertTriangle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                  <div className="text-sm">
+                    <p className="font-medium text-foreground">Temperatura anómala en compresor</p>
+                    <p className="text-xs text-muted-foreground mt-1">Reportado a las 11:45 - En revisión</p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-start gap-3 p-3 rounded-lg bg-green-100/30 border border-green-200/50">
-                <CheckCircle2 className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" />
-                <div className="text-sm">
-                  <p className="font-medium text-accent">Inspección zona A completada</p>
-                  <p className="text-xs text-muted-foreground mt-1">Sin incidencias - 10:30</p>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-secondary/10 border border-secondary/20 mt-3">
+                  <CheckCircle2 className="h-5 w-5 text-secondary flex-shrink-0 mt-0.5" />
+                  <div className="text-sm">
+                    <p className="font-medium text-foreground">Inspección zona A completada</p>
+                    <p className="text-xs text-muted-foreground mt-1">Sin incidencias - 10:30</p>
+                  </div>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </CardContent>
         </Card>
       </div>
