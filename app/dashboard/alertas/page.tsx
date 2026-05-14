@@ -96,11 +96,11 @@ const mockAlerts: Alert[] = [
 ];
 
 const severityConfig = {
-  critica: { color: 'bg-red-100 text-red-800 border-red-200', icon: AlertTriangle, label: 'Crítica' },
-  alta: { color: 'bg-orange-100 text-orange-800 border-orange-200', icon: AlertCircle, label: 'Alta' },
-  media: { color: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: AlertCircle, label: 'Media' },
-  baja: { color: 'bg-blue-100 text-blue-800 border-blue-200', icon: Info, label: 'Baja' },
-  info: { color: 'bg-gray-100 text-gray-800 border-gray-200', icon: Info, label: 'Info' },
+  critica: { color: 'bg-destructive/10 text-destructive border-destructive/20', icon: AlertTriangle, label: 'Crítica' },
+  alta: { color: 'bg-primary/10 text-primary border-primary/20', icon: AlertCircle, label: 'Alta' },
+  media: { color: 'bg-primary/10 text-primary border-primary/20', icon: AlertCircle, label: 'Media' },
+  baja: { color: 'bg-muted text-muted-foreground border-muted', icon: Info, label: 'Baja' },
+  info: { color: 'bg-muted text-muted-foreground border-muted', icon: Info, label: 'Info' },
 };
 
 export default function AlertasPage() {
@@ -161,35 +161,35 @@ export default function AlertasPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-red-500/5">
+        <Card className="border-border bg-destructive/5">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-red-600" />
+              <AlertTriangle className="h-4 w-4 text-destructive" />
               Críticas
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-red-600">{criticalCount}</div>
+            <div className="text-3xl font-bold text-destructive">{criticalCount}</div>
             <p className="text-xs text-muted-foreground mt-1">acción inmediata</p>
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-orange-500/5">
+        <Card className="border-border bg-primary/5">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Requieren Acción</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-orange-600">{actionCount}</div>
+            <div className="text-3xl font-bold text-primary">{actionCount}</div>
             <p className="text-xs text-muted-foreground mt-1">pendientes</p>
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-green-500/5">
+        <Card className="border-border bg-secondary/5">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Archivadas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-600">{archivedCount}</div>
+            <div className="text-3xl font-bold text-secondary">{archivedCount}</div>
             <p className="text-xs text-muted-foreground mt-1">resueltas</p>
           </CardContent>
         </Card>
@@ -213,7 +213,7 @@ export default function AlertasPage() {
         <Button
           variant={filter === 'criticas' ? 'default' : 'ghost'}
           onClick={() => setFilter('criticas')}
-          className="gap-2 text-red-600"
+          className="gap-2 text-destructive"
         >
           Críticas ({criticalCount})
         </Button>
@@ -232,7 +232,7 @@ export default function AlertasPage() {
         {filteredAlerts.length === 0 ? (
           <Card className="border-border">
             <CardContent className="py-12 text-center">
-              <CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-green-600 opacity-50" />
+              <CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-secondary opacity-50" />
               <p className="text-muted-foreground">No hay alertas en esta categoría</p>
             </CardContent>
           </Card>
@@ -244,7 +244,7 @@ export default function AlertasPage() {
             return (
               <Card
                 key={alert.id}
-                className={`border-border transition-all cursor-pointer ${!alert.read ? 'bg-accent' : ''} ${selectedAlert?.id === alert.id ? 'ring-2 ring-[var(--brand-naranja)]' : ''}`}
+                className={`border-border transition-all cursor-pointer ${!alert.read ? 'bg-background' : ''} ${selectedAlert?.id === alert.id ? 'ring-2 ring-primary' : ''}`}
                 onClick={() => setSelectedAlert(alert)}
               >
                 <CardContent className="p-4">
