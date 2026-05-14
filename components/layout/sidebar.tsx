@@ -26,6 +26,15 @@ import {
   FolderOpen,
   ChevronDown,
   Users,
+  Leaf,
+  Calendar,
+  ClipboardCheck,
+  GraduationCap,
+  HardHat as HelmetIcon,
+  Activity,
+  TreePine,
+  Building2,
+  FileCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -41,7 +50,6 @@ const rolePermissions: Record<string, string[]> = {
   'Mantención': ['superadmin', 'admin', 'Operaciones-Supervisor'],
   'Órdenes de Trabajo': ['superadmin', 'admin', 'Operaciones-Supervisor'],
   'Bodega & Inventario': ['superadmin', 'admin', 'Bodega-Supervisor'],
-  'HSE & Compliance': ['superadmin', 'admin', 'HSE-Supervisor'],
   'Gestión Documental': ['superadmin', 'admin', 'manager'],
   'Compras & OCs': ['superadmin', 'admin', 'Compras-Supervisor'],
   'Finanzas & Presupuesto': ['superadmin', 'admin', 'Finanzas-Supervisor'],
@@ -51,9 +59,21 @@ const rolePermissions: Record<string, string[]> = {
   'Gestión de Usuarios': ['superadmin', 'admin'],
   'Gestión de Permisos': ['superadmin', 'admin'],
   'Guías de Uso': ['superadmin', 'admin', 'manager', 'supervisor', 'viewer'],
+  // Sostenibilidad - Transversal (all 12 modules)
+  'Dashboard Sostenibilidad': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
+  'Prevención de Riesgos': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
+  'Capacitaciones': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor', 'manager'],
+  'Artículos EPP': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor', 'Bodega-Supervisor'],
+  'KPI Prevención': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor', 'manager'],
+  'Inspecciones': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
+  'Calendario': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor', 'manager', 'supervisor'],
+  'Medio Ambiente': ['superadmin', 'admin', 'Sostenibilidad-Supervisor'],
+  'Comunidades': ['superadmin', 'admin', 'Sostenibilidad-Supervisor'],
+  'Flujo Documental': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'manager'],
 };
 
 const menuItems = [
+  // CORE - Dashboard Principal
   {
     label: 'Dashboard',
     href: '/dashboard',
@@ -67,44 +87,96 @@ const menuItems = [
     badge: 3,
     group: 'Core',
   },
-  // Operación Crítica Minera
+  
+  // OPERACIONES - Depto. Operaciones
   {
     label: 'Producción',
     href: '/dashboard/produccion',
     icon: Zap,
-    group: 'Operación Crítica',
+    group: 'Operaciones',
   },
   {
     label: 'Mantención',
     href: '/dashboard/mantenimiento',
     icon: Wrench,
-    group: 'Operación Crítica',
+    group: 'Operaciones',
   },
   {
     label: 'Órdenes de Trabajo',
     href: '/dashboard/work-orders',
     icon: Plus,
-    group: 'Operación Crítica',
+    group: 'Operaciones',
   },
   {
     label: 'Bodega & Inventario',
     href: '/dashboard/bodega',
     icon: Boxes,
-    group: 'Operación Crítica',
+    group: 'Operaciones',
+  },
+  
+  // SOSTENIBILIDAD - Transversal (4 Pilares, 12 Módulos)
+  {
+    label: 'Dashboard Sostenibilidad',
+    href: '/dashboard/sostenibilidad',
+    icon: Leaf,
+    group: 'Sostenibilidad',
   },
   {
-    label: 'HSE & Compliance',
-    href: '/dashboard/hse',
+    label: 'Prevención de Riesgos',
+    href: '/dashboard/sostenibilidad/prevencion-riesgos',
     icon: Shield,
-    group: 'Operación Crítica',
+    group: 'Sostenibilidad',
   },
   {
-    label: 'Gestión Documental',
-    href: '/dashboard/documentos-gestion',
-    icon: FolderOpen,
-    group: 'Operación Crítica',
+    label: 'Capacitaciones',
+    href: '/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones',
+    icon: GraduationCap,
+    group: 'Sostenibilidad',
   },
-  // Gestión Empresarial
+  {
+    label: 'Artículos EPP',
+    href: '/dashboard/sostenibilidad/prevencion-riesgos/epp',
+    icon: HardHat,
+    group: 'Sostenibilidad',
+  },
+  {
+    label: 'KPI Prevención',
+    href: '/dashboard/sostenibilidad/prevencion-riesgos/kpi',
+    icon: Activity,
+    group: 'Sostenibilidad',
+  },
+  {
+    label: 'Inspecciones',
+    href: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones-internas',
+    icon: ClipboardCheck,
+    group: 'Sostenibilidad',
+  },
+  {
+    label: 'Calendario',
+    href: '/dashboard/sostenibilidad/calendario',
+    icon: Calendar,
+    group: 'Sostenibilidad',
+  },
+  {
+    label: 'Medio Ambiente',
+    href: '/dashboard/sostenibilidad/medio-ambiente',
+    icon: TreePine,
+    group: 'Sostenibilidad',
+  },
+  {
+    label: 'Comunidades',
+    href: '/dashboard/sostenibilidad/comunidades',
+    icon: Building2,
+    group: 'Sostenibilidad',
+  },
+  {
+    label: 'Flujo Documental',
+    href: '/dashboard/sostenibilidad/documentos-flujo',
+    icon: FileCheck,
+    group: 'Sostenibilidad',
+  },
+  
+  // GESTIÓN EMPRESARIAL
   {
     label: 'Compras & OCs',
     href: '/dashboard/compras',
@@ -118,12 +190,19 @@ const menuItems = [
     group: 'Gestión Empresarial',
   },
   {
+    label: 'Gestión Documental',
+    href: '/dashboard/documentos-gestion',
+    icon: FolderOpen,
+    group: 'Gestión Empresarial',
+  },
+  {
     label: 'Reportes & Análisis',
     href: '/dashboard/reportes',
     icon: BarChart3,
     group: 'Gestión Empresarial',
   },
-  // IA & Analytics
+  
+  // INTELIGENCIA ARTIFICIAL
   {
     label: 'IA Operacional Minera',
     href: '/dashboard/ia-operacional',
@@ -136,7 +215,8 @@ const menuItems = [
     icon: BarChart3,
     group: 'Inteligencia Artificial',
   },
-  // Administrative
+  
+  // ADMINISTRACIÓN DEL SISTEMA
   {
     label: 'Gestión de Usuarios',
     href: '/dashboard/admin/users',
@@ -149,7 +229,8 @@ const menuItems = [
     icon: Shield,
     group: 'Administración',
   },
-  // Help
+  
+  // AYUDA
   {
     label: 'Guías de Uso',
     href: '/dashboard/guias',
@@ -245,7 +326,7 @@ export function Sidebar() {
         {/* Navigation Menu - v7 Sistema Completo 5 Módulos */}
         <nav className="flex-1 px-4 py-6 overflow-y-auto">
           <div className="space-y-2">
-            {['Core', 'Operación Crítica', 'Gestión Empresarial', 'Inteligencia Artificial', 'Administración', 'Ayuda'].map((group) => {
+            {['Core', 'Operaciones', 'Sostenibilidad', 'Gestión Empresarial', 'Inteligencia Artificial', 'Administración', 'Ayuda'].map((group) => {
               const groupItems = filteredMenuItems.filter((item) => item.group === group);
               if (groupItems.length === 0) return null;
               const isExpanded = expandedGroups[group] ?? false;
