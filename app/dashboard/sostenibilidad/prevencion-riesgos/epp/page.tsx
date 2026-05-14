@@ -146,7 +146,7 @@ export default function EPPPage() {
                         <Badge variant="secondary">{item.frecuencia_reemplazo}</Badge>
                       </td>
                       <td className="py-3 px-4">
-                        <Badge className={item.activo ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
+                        <Badge className={item.activo ? 'bg-secondary/10 text-secondary' : 'bg-muted text-muted-foreground'}>
                           {item.activo ? 'Activo' : 'Inactivo'}
                         </Badge>
                       </td>
@@ -159,7 +159,7 @@ export default function EPPPage() {
                             <Download className="w-4 h-4" />
                           </Button>
                           <Button variant="ghost" size="sm" title="Eliminar">
-                            <Trash2 className="w-4 h-4 text-red-500" />
+                            <Trash2 className="w-4 h-4 text-destructive" />
                           </Button>
                         </div>
                       </td>
@@ -173,10 +173,10 @@ export default function EPPPage() {
       </Card>
 
       {/* Alerts about expiring EPP */}
-      <Card className="mt-6 border-l-4 border-l-yellow-500">
+      <Card className="mt-6 border-l-4 border-l-primary">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-yellow-500" />
+            <AlertCircle className="w-5 h-5 text-primary" />
             EPP Próximo a Reemplazarse
           </CardTitle>
         </CardHeader>

@@ -41,13 +41,14 @@ export default function CalendarioSostenibilidadPage() {
   const firstDay = getFirstDayOfMonth(currentDate);
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
+  // Brandbook: primary (naranja), secondary (verde), destructive (rojo), muted (gris)
   const eventTypeColors = {
-    inspeccion_interna: 'bg-blue-100 text-blue-800',
-    inspeccion_externa: 'bg-purple-100 text-purple-800',
-    capacitacion: 'bg-green-100 text-green-800',
-    tarea: 'bg-yellow-100 text-yellow-800',
-    auditoria: 'bg-red-100 text-red-800',
-    otra: 'bg-gray-100 text-gray-800',
+    inspeccion_interna: 'bg-muted text-muted-foreground',
+    inspeccion_externa: 'bg-primary/10 text-primary',
+    capacitacion: 'bg-secondary/10 text-secondary',
+    tarea: 'bg-primary/10 text-primary',
+    auditoria: 'bg-destructive/10 text-destructive',
+    otra: 'bg-muted text-muted-foreground',
   };
 
   const getEventsForDay = (day: number) => {
@@ -196,7 +197,7 @@ export default function CalendarioSostenibilidadPage() {
                         <h3 className="font-bold">{event.titulo}</h3>
                       </div>
                       <Button variant="ghost" size="sm">
-                        <Trash2 className="w-4 h-4 text-red-500" />
+                        <Trash2 className="w-4 h-4 text-destructive" />
                       </Button>
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">

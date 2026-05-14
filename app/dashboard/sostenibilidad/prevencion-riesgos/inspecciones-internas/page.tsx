@@ -32,10 +32,11 @@ export default function InspeccionesInternasPage() {
     insp.area_faena.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Brandbook: primary (naranja), secondary (verde), muted (gris)
   const estadoIcon = {
-    planificada: <Clock className="w-4 h-4 text-yellow-500" />,
-    realizada: <CheckCircle className="w-4 h-4 text-green-500" />,
-    cerrada: <AlertCircle className="w-4 h-4 text-blue-500" />,
+    planificada: <Clock className="w-4 h-4 text-primary" />,
+    realizada: <CheckCircle className="w-4 h-4 text-secondary" />,
+    cerrada: <AlertCircle className="w-4 h-4 text-muted-foreground" />,
   };
 
   return (
@@ -144,7 +145,7 @@ export default function InspeccionesInternasPage() {
                         <Download className="w-4 h-4" />
                       </Button>
                       <Button variant="ghost" size="sm">
-                        <Trash2 className="w-4 h-4 text-red-500" />
+                        <Trash2 className="w-4 h-4 text-destructive" />
                       </Button>
                     </td>
                   </tr>

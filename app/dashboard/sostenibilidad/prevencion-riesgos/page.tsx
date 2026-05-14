@@ -11,13 +11,12 @@ import {
   Activity, 
   ClipboardCheck,
   AlertTriangle,
-  TrendingUp,
-  Users,
   FileText,
   ArrowRight,
   Calendar
 } from "lucide-react";
 
+// Brandbook: only primary (naranja), secondary (verde), destructive (rojo), muted (gris)
 const modules = [
   {
     title: "Documentos HSE",
@@ -25,8 +24,8 @@ const modules = [
     href: "/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse",
     icon: FileText,
     stats: { total: 45, vigentes: 42, revision: 3 },
-    color: "text-blue-500",
-    bgColor: "bg-blue-500/10",
+    color: "text-primary",
+    bgColor: "bg-primary/10",
   },
   {
     title: "Capacitaciones",
@@ -34,8 +33,8 @@ const modules = [
     href: "/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones",
     icon: GraduationCap,
     stats: { planificadas: 12, realizadas: 89, proximas: 5 },
-    color: "text-green-500",
-    bgColor: "bg-green-500/10",
+    color: "text-secondary",
+    bgColor: "bg-secondary/10",
   },
   {
     title: "Articulos EPP",
@@ -43,8 +42,8 @@ const modules = [
     href: "/dashboard/sostenibilidad/prevencion-riesgos/epp",
     icon: HardHat,
     stats: { articulos: 156, asignados: 1240, pendientes: 23 },
-    color: "text-orange-500",
-    bgColor: "bg-orange-500/10",
+    color: "text-primary",
+    bgColor: "bg-primary/10",
   },
   {
     title: "KPI Prevencion",
@@ -52,8 +51,8 @@ const modules = [
     href: "/dashboard/sostenibilidad/prevencion-riesgos/kpi",
     icon: Activity,
     stats: { diasSinAccidentes: 127, tasaFrec: 2.1, tasaGrav: 45.2 },
-    color: "text-purple-500",
-    bgColor: "bg-purple-500/10",
+    color: "text-secondary",
+    bgColor: "bg-secondary/10",
   },
   {
     title: "Inspecciones Internas",
@@ -61,8 +60,8 @@ const modules = [
     href: "/dashboard/sostenibilidad/prevencion-riesgos/inspecciones-internas",
     icon: ClipboardCheck,
     stats: { programadas: 8, realizadas: 45, hallazgos: 12 },
-    color: "text-cyan-500",
-    bgColor: "bg-cyan-500/10",
+    color: "text-muted-foreground",
+    bgColor: "bg-muted",
   },
   {
     title: "Inspecciones Externas",
@@ -70,8 +69,8 @@ const modules = [
     href: "/dashboard/sostenibilidad/prevencion-riesgos/inspecciones-externas",
     icon: Shield,
     stats: { proximas: 2, aprobadas: 15, observaciones: 3 },
-    color: "text-red-500",
-    bgColor: "bg-red-500/10",
+    color: "text-destructive",
+    bgColor: "bg-destructive/10",
   },
 ];
 
@@ -87,8 +86,8 @@ export default function PrevencionRiesgosPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className="p-3 rounded-lg bg-orange-500/10">
-            <Shield className="w-8 h-8 text-orange-500" />
+          <div className="p-3 rounded-lg bg-primary/10">
+            <Shield className="w-8 h-8 text-primary" />
           </div>
           <div>
             <h1 className="text-2xl font-bold">Prevencion de Riesgos</h1>
@@ -105,10 +104,10 @@ export default function PrevencionRiesgosPage() {
 
       {/* Alerts Banner */}
       {alerts.length > 0 && (
-        <Card className="border-orange-500/50 bg-orange-500/5">
+        <Card className="border-primary/50 bg-primary/5">
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-orange-500" />
+              <AlertTriangle className="w-5 h-5 text-primary" />
               <CardTitle className="text-lg">Alertas Activas</CardTitle>
             </div>
           </CardHeader>
@@ -135,7 +134,7 @@ export default function PrevencionRiesgosPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center">
-              <p className="text-3xl font-bold text-green-500">127</p>
+              <p className="text-3xl font-bold text-secondary">127</p>
               <p className="text-sm text-muted-foreground">Dias sin accidentes</p>
             </div>
           </CardContent>
@@ -159,7 +158,7 @@ export default function PrevencionRiesgosPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center">
-              <p className="text-3xl font-bold text-cyan-500">45</p>
+              <p className="text-3xl font-bold text-primary">45</p>
               <p className="text-sm text-muted-foreground">Inspecciones completadas</p>
             </div>
           </CardContent>

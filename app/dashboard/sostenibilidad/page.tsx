@@ -21,8 +21,9 @@ import {
 interface PillarData {
   title: string;
   icon: React.ReactNode;
-  color: string;
-  bgColor: string;
+  colorClass: string;
+  bgClass: string;
+  borderClass: string;
   modules: Module[];
   kpis: KPI[];
   alerts: Alert[];
@@ -47,29 +48,20 @@ interface Alert {
 }
 
 export default function SostenibilidadDashboard() {
-  const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch dashboard data
-    loadData();
+    setLoading(false);
   }, []);
 
-  const loadData = async () => {
-    try {
-      setLoading(false);
-    } catch (error) {
-      console.error('Error loading data:', error);
-      setLoading(false);
-    }
-  };
-
+  // Brandbook: 4 colors only - primary (naranja), secondary (verde), destructive (rojo), muted (gris)
   const pillars: PillarData[] = [
     {
       title: 'Prevención de Riesgos',
       icon: <Shield className="w-8 h-8" />,
-      color: 'text-red-500',
-      bgColor: 'bg-red-50',
+      colorClass: 'text-primary',
+      bgClass: 'bg-primary/10',
+      borderClass: 'border-l-primary',
       modules: [
         { name: 'Documentos HSE', path: '/dashboard/sostenibilidad/prevencion-riesgos/documentos', count: 24, status: 'active' },
         { name: 'Capacitaciones', path: '/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones', count: 8, status: 'active' },
@@ -89,8 +81,9 @@ export default function SostenibilidadDashboard() {
     {
       title: 'Medio Ambiente',
       icon: <Leaf className="w-8 h-8" />,
-      color: 'text-green-500',
-      bgColor: 'bg-green-50',
+      colorClass: 'text-secondary',
+      bgClass: 'bg-secondary/10',
+      borderClass: 'border-l-secondary',
       modules: [
         { name: 'Monitoreos', path: '/dashboard/sostenibilidad/medio-ambiente/monitoreos', count: 12, status: 'active' },
         { name: 'Permisos', path: '/dashboard/sostenibilidad/medio-ambiente/permisos', count: 5, status: 'active' },
@@ -108,8 +101,9 @@ export default function SostenibilidadDashboard() {
     {
       title: 'Comunidades',
       icon: <Users className="w-8 h-8" />,
-      color: 'text-blue-500',
-      bgColor: 'bg-blue-50',
+      colorClass: 'text-muted-foreground',
+      bgClass: 'bg-muted',
+      borderClass: 'border-l-muted-foreground',
       modules: [
         { name: 'Stakeholders', path: '/dashboard/sostenibilidad/comunidades/stakeholders', count: 18, status: 'active' },
         { name: 'Compromisos', path: '/dashboard/sostenibilidad/comunidades/compromisos', count: 7, status: 'active' },
@@ -125,8 +119,9 @@ export default function SostenibilidadDashboard() {
     {
       title: 'Proyectos Sostenibilidad',
       icon: <Target className="w-8 h-8" />,
-      color: 'text-purple-500',
-      bgColor: 'bg-purple-50',
+      colorClass: 'text-destructive',
+      bgClass: 'bg-destructive/10',
+      borderClass: 'border-l-destructive',
       modules: [
         { name: 'Iniciativas', path: '/dashboard/sostenibilidad/proyectos/iniciativas', count: 6, status: 'active' },
         { name: 'Presupuesto', path: '/dashboard/sostenibilidad/proyectos/presupuesto', count: 1, status: 'active' },
@@ -156,7 +151,7 @@ export default function SostenibilidadDashboard() {
       {/* Quick Actions */}
       <div className="flex gap-4 mb-8 flex-wrap">
         <Link href="/dashboard/sostenibilidad/calendario">
-          <Button className="bg-[var(--brand-naranja)] text-white hover:bg-[var(--brand-naranja)]/90">
+          <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
             <Calendar className="w-4 h-4 mr-2" />
             Calendario de Eventos
           </Button>
@@ -172,11 +167,11 @@ export default function SostenibilidadDashboard() {
       {/* 4 Pillar Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
         {pillars.map((pillar, idx) => (
-          <Card key={idx} className="border-l-4" style={{ borderLeftColor: pillar.color.split('-')[1] === 'red' ? '#ef4444' : pillar.color.split('-')[1] === 'green' ? '#22c55e' : pillar.color.split('-')[1] === 'blue' ? '#3b82f6' : '#a855f7' }}>
+          <Card key={idx} className={`border-l-4 ${pillar.borderClass}`}>
             <CardHeader>
               <div className="flex items-center gap-3 mb-4">
-                <div className={`p-3 rounded-lg ${pillar.bgColor}`}>
-                  <div className={pillar.color}>{pillar.icon}</div>
+                <div className={`p-3 rounded-lg ${pillar.bgClass}`}>
+                  <div className={pillar.colorClass}>{pillar.icon}</div>
                 </div>
                 <div>
                   <CardTitle className="text-xl">{pillar.title}</CardTitle>
@@ -191,14 +186,14 @@ export default function SostenibilidadDashboard() {
                 <div className="space-y-2">
                   {pillar.modules.map((module, midx) => (
                     <Link key={midx} href={module.path}>
-                      <div className="flex items-center justify-between p-3 rounded-lg border border-white/10 hover:bg-white/5 transition cursor-pointer">
+                      <div className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted transition cursor-pointer">
                         <span className="text-sm font-medium">{module.name}</span>
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className="text-xs">
                             {module.count}
                           </Badge>
-                          {module.status === 'active' && <CheckCircle className="w-4 h-4 text-green-500" />}
-                          {module.status === 'pending' && <Clock className="w-4 h-4 text-yellow-500" />}
+                          {module.status === 'active' && <CheckCircle className="w-4 h-4 text-secondary" />}
+                          {module.status === 'pending' && <Clock className="w-4 h-4 text-primary" />}
                         </div>
                       </div>
                     </Link>
@@ -207,7 +202,7 @@ export default function SostenibilidadDashboard() {
               </div>
 
               {/* KPIs */}
-              <div className="pt-4 border-t border-white/10">
+              <div className="pt-4 border-t border-border">
                 <h3 className="text-sm font-semibold mb-3 text-foreground">KPIs Principales</h3>
                 <div className="grid grid-cols-1 gap-2">
                   {pillar.kpis.map((kpi, kidx) => (
@@ -215,8 +210,8 @@ export default function SostenibilidadDashboard() {
                       <span className="text-muted-foreground">{kpi.label}</span>
                       <div className="flex items-center gap-2">
                         <span className="font-semibold">{kpi.value}</span>
-                        {kpi.trend === 'up' && <TrendingUp className="w-4 h-4 text-green-500" />}
-                        {kpi.trend === 'down' && <TrendingUp className="w-4 h-4 text-red-500 rotate-180" />}
+                        {kpi.trend === 'up' && <TrendingUp className="w-4 h-4 text-secondary" />}
+                        {kpi.trend === 'down' && <TrendingUp className="w-4 h-4 text-destructive rotate-180" />}
                       </div>
                     </div>
                   ))}
@@ -225,12 +220,12 @@ export default function SostenibilidadDashboard() {
 
               {/* Alerts */}
               {pillar.alerts.length > 0 && (
-                <div className="pt-4 border-t border-white/10">
+                <div className="pt-4 border-t border-border">
                   <h3 className="text-sm font-semibold mb-3 text-foreground">Alertas</h3>
                   <div className="space-y-2">
                     {pillar.alerts.map((alert, aidx) => (
-                      <div key={aidx} className="flex items-start gap-2 p-2 rounded bg-white/5">
-                        <AlertCircle className={`w-4 h-4 mt-0.5 flex-shrink-0 ${alert.type === 'error' ? 'text-red-500' : alert.type === 'warning' ? 'text-yellow-500' : 'text-blue-500'}`} />
+                      <div key={aidx} className="flex items-start gap-2 p-2 rounded bg-muted">
+                        <AlertCircle className={`w-4 h-4 mt-0.5 flex-shrink-0 ${alert.type === 'error' ? 'text-destructive' : alert.type === 'warning' ? 'text-primary' : 'text-muted-foreground'}`} />
                         <p className="text-xs text-muted-foreground">{alert.message}</p>
                       </div>
                     ))}

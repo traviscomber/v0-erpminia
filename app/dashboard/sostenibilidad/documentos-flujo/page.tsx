@@ -46,15 +46,16 @@ export default function FlujDocumentalPage() {
     (!filterEstado || doc.estado === filterEstado)
   );
 
+  // Brandbook: primary (naranja), secondary (verde), destructive (rojo), muted (gris)
   const getEstadoColor = (estado: string) => {
     const colors: Record<string, string> = {
-      borrador: 'bg-gray-100 text-gray-800',
-      pendiente_validador1: 'bg-yellow-100 text-yellow-800',
-      aprobado_validador1: 'bg-blue-100 text-blue-800',
-      pendiente_validador2: 'bg-orange-100 text-orange-800',
-      aprobado_final: 'bg-green-100 text-green-800',
+      borrador: 'bg-muted text-muted-foreground',
+      pendiente_validador1: 'bg-primary/10 text-primary',
+      aprobado_validador1: 'bg-secondary/10 text-secondary',
+      pendiente_validador2: 'bg-primary/10 text-primary',
+      aprobado_final: 'bg-secondary/10 text-secondary',
     };
-    return colors[estado] || 'bg-gray-100 text-gray-800';
+    return colors[estado] || 'bg-muted text-muted-foreground';
   };
 
   const getEstadoIcon = (estado: string) => {
@@ -171,7 +172,7 @@ export default function FlujDocumentalPage() {
                       {/* Validador 1 */}
                       <div className="border border-white/10 rounded-lg p-4">
                         <h4 className="font-bold text-sm mb-3 flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-yellow-500 text-white flex items-center justify-center text-xs">1</div>
+                          <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs">1</div>
                           Jefe de Sostenibilidad
                         </h4>
                         {doc.validador1_nombre ? (
@@ -194,7 +195,7 @@ export default function FlujDocumentalPage() {
                       {/* Validador 2 */}
                       <div className="border border-white/10 rounded-lg p-4">
                         <h4 className="font-bold text-sm mb-3 flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs">2</div>
+                          <div className="w-6 h-6 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center text-xs">2</div>
                           Gerente de Operaciones
                         </h4>
                         {doc.validador2_nombre ? (

@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Calendar, Users, Clock, Download, Eye, Trash2 } from 'lucide-react';
+import { Plus, Search, Calendar, Clock, Download, Eye, Trash2 } from 'lucide-react';
 import useSWR from 'swr';
 
 interface Capacitacion {
@@ -34,10 +34,11 @@ export default function CapacitacionesPage() {
     cap.tema.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Brandbook: primary (naranja), secondary (verde), destructive (rojo)
   const estadoColor = {
-    planificada: 'bg-yellow-100 text-yellow-800',
-    realizada: 'bg-green-100 text-green-800',
-    cancelada: 'bg-red-100 text-red-800',
+    planificada: 'bg-primary/10 text-primary',
+    realizada: 'bg-secondary/10 text-secondary',
+    cancelada: 'bg-destructive/10 text-destructive',
   };
 
   return (
@@ -50,7 +51,7 @@ export default function CapacitacionesPage() {
         </div>
         <Button 
           onClick={() => setShowNewForm(!showNewForm)}
-          className="bg-[var(--brand-naranja)] text-white hover:bg-[var(--brand-naranja)]/90"
+          className="bg-primary text-primary-foreground hover:bg-primary/90"
         >
           <Plus className="w-4 h-4 mr-2" />
           Nueva Capacitación
@@ -127,7 +128,7 @@ export default function CapacitacionesPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-white/10">
+                  <tr className="border-b border-border">
                     <th className="text-left py-3 px-4 font-medium">Nombre</th>
                     <th className="text-left py-3 px-4 font-medium">Tipo</th>
                     <th className="text-left py-3 px-4 font-medium">Proveedor</th>
@@ -139,7 +140,7 @@ export default function CapacitacionesPage() {
                 </thead>
                 <tbody>
                   {filteredCapacitaciones.map((cap: Capacitacion) => (
-                    <tr key={cap.id} className="border-b border-white/10 hover:bg-white/5 transition">
+                    <tr key={cap.id} className="border-b border-border hover:bg-muted transition">
                       <td className="py-3 px-4">
                         <div className="font-medium">{cap.nombre_capacitacion}</div>
                         <div className="text-xs text-muted-foreground">{cap.tema}</div>
@@ -174,7 +175,7 @@ export default function CapacitacionesPage() {
                             <Download className="w-4 h-4" />
                           </Button>
                           <Button variant="ghost" size="sm" title="Eliminar">
-                            <Trash2 className="w-4 h-4 text-red-500" />
+                            <Trash2 className="w-4 h-4 text-destructive" />
                           </Button>
                         </div>
                       </td>

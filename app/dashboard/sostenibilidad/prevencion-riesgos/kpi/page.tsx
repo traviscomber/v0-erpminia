@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, TrendingDown, Plus, Download, LineChart } from 'lucide-react';
+import { TrendingUp, TrendingDown, Plus, Download } from 'lucide-react';
 import useSWR from 'swr';
 import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
@@ -34,10 +33,11 @@ export default function KPIPrevenccionPage() {
     return current < previous ? 'down' : current > previous ? 'up' : 'stable';
   };
 
+  // Brandbook: secondary=verde (good), destructive=rojo (bad), muted=gris (neutral)
   const getTrendColor = (trend?: string | null) => {
-    if (trend === 'down') return 'text-green-500';
-    if (trend === 'up') return 'text-red-500';
-    return 'text-gray-500';
+    if (trend === 'down') return 'text-secondary';
+    if (trend === 'up') return 'text-destructive';
+    return 'text-muted-foreground';
   };
 
   const chartData = kpis.map((item: KPIData) => ({
@@ -55,7 +55,7 @@ export default function KPIPrevenccionPage() {
           <h1 className="text-3xl font-bold text-foreground mb-2">KPIs de Prevención</h1>
           <p className="text-muted-foreground">Indicadores de salud y seguridad ocupacional (SSO)</p>
         </div>
-        <Button className="bg-[var(--brand-naranja)] text-white hover:bg-[var(--brand-naranja)]/90">
+        <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
           <Plus className="w-4 h-4 mr-2" />
           Agregar Mes
         </Button>
@@ -75,13 +75,13 @@ export default function KPIPrevenccionPage() {
                 {calculateTrend(currentMonth.tasa_accidentabilidad, previousMonth?.tasa_accidentabilidad) === 'down' && (
                   <>
                     <TrendingDown className={getTrendColor('down')} />
-                    <p className="text-xs text-green-500">Mejorando</p>
+                    <p className="text-xs text-secondary">Mejorando</p>
                   </>
                 )}
                 {calculateTrend(currentMonth.tasa_accidentabilidad, previousMonth?.tasa_accidentabilidad) === 'up' && (
                   <>
                     <TrendingUp className={getTrendColor('up')} />
-                    <p className="text-xs text-red-500">Aumentando</p>
+                    <p className="text-xs text-destructive">Aumentando</p>
                   </>
                 )}
               </div>
@@ -111,12 +111,12 @@ export default function KPIPrevenccionPage() {
           </Card>
 
           {/* Días sin Accidentes */}
-          <Card className="border-l-4 border-l-green-500">
+          <Card className="border-l-4 border-l-secondary">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Días sin Accidentes</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-500">{currentMonth.dias_sin_accidentes || 0}</div>
+              <div className="text-2xl font-bold text-secondary">{currentMonth.dias_sin_accidentes || 0}</div>
               <p className="text-xs text-muted-foreground mt-2">Jornadas sin incidentes</p>
             </CardContent>
           </Card>
@@ -137,16 +137,16 @@ export default function KPIPrevenccionPage() {
           ) : (
             <ResponsiveContainer width="100%" height={300}>
               <RechartsLineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="white/10" />
-                <XAxis dataKey="mes" stroke="white/50" />
-                <YAxis stroke="white/50" />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="mes" stroke="hsl(var(--muted-foreground))" />
+                <YAxis stroke="hsl(var(--muted-foreground))" />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.95)', border: '1px solid rgba(255,255,255,0.1)' }}
+                  contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
                 />
                 <Legend />
-                <Line type="monotone" dataKey="accidentabilidad" stroke="#ef4444" strokeWidth={2} name="Accidentabilidad %" />
-                <Line type="monotone" dataKey="frecuencia" stroke="#f59e0b" strokeWidth={2} name="Frecuencia" />
-                <Line type="monotone" dataKey="gravedad" stroke="#3b82f6" strokeWidth={2} name="Gravedad" />
+                <Line type="monotone" dataKey="accidentabilidad" stroke="hsl(var(--destructive))" strokeWidth={2} name="Accidentabilidad %" />
+                <Line type="monotone" dataKey="frecuencia" stroke="hsl(var(--primary))" strokeWidth={2} name="Frecuencia" />
+                <Line type="monotone" dataKey="gravedad" stroke="hsl(var(--secondary))" strokeWidth={2} name="Gravedad" />
               </RechartsLineChart>
             </ResponsiveContainer>
           )}
@@ -168,7 +168,7 @@ export default function KPIPrevenccionPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-white/10">
+                  <tr className="border-b border-border">
                     <th className="text-left py-3 px-4 font-medium">Período</th>
                     <th className="text-center py-3 px-4 font-medium">Accidentabilidad %</th>
                     <th className="text-center py-3 px-4 font-medium">Tasa Frecuencia</th>
@@ -179,7 +179,7 @@ export default function KPIPrevenccionPage() {
                 </thead>
                 <tbody>
                   {kpis.map((kpi: KPIData) => (
-                    <tr key={kpi.id} className="border-b border-white/10 hover:bg-white/5 transition">
+                    <tr key={kpi.id} className="border-b border-border hover:bg-muted transition">
                       <td className="py-3 px-4 font-medium">
                         {new Date(kpi.mes_ano).toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })}
                       </td>
