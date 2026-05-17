@@ -24,31 +24,33 @@ import {
 } from '@/components/ui/select';
 import { AlertCircle, Loader2 } from 'lucide-react';
 
-// Validación
-const inspeccionSchema = z.object({
+// Validación - Similar a internas pero con campos adicionales
+const inspeccionExternaSchema = z.object({
   numero_inspeccion: z.string().min(3, 'Mínimo 3 caracteres'),
   fecha_planificada: z.string().min(1, 'Selecciona una fecha'),
   area_faena: z.string().min(1, 'Selecciona un área'),
   inspector: z.string().min(1, 'Nombre del inspector'),
+  empresa_externa: z.string().min(1, 'Nombre de la empresa'),
+  contacto_externo: z.string().min(1, 'Nombre del contacto'),
   hallazgos_count: z.coerce.number().min(0, 'No puede ser negativo'),
   estado: z.enum(['planificada', 'realizada', 'cerrada']),
 });
 
-type InspeccionFormData = z.infer<typeof inspeccionSchema>;
+type InspeccionExternaFormData = z.infer<typeof inspeccionExternaSchema>;
 
-interface InspeccionModalProps {
+interface InspeccionExternaModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  inspeccion?: InspeccionFormData & { id?: string };
+  inspeccion?: InspeccionExternaFormData & { id?: string };
   onSuccess?: () => void;
 }
 
-export function InspeccionModal({
+export function InspeccionExternaModal({
   open,
   onOpenChange,
   inspeccion,
   onSuccess,
-}: InspeccionModalProps) {
+}: InspeccionExternaModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -59,13 +61,15 @@ export function InspeccionModal({
     reset,
     watch,
     setValue,
-  } = useForm<InspeccionFormData>({
-    resolver: zodResolver(inspeccionSchema),
+  } = useForm<InspeccionExternaFormData>({
+    resolver: zodResolver(inspeccionExternaSchema),
     defaultValues: inspeccion || {
       numero_inspeccion: '',
       fecha_planificada: new Date().toISOString().split('T')[0],
       area_faena: '',
       inspector: '',
+      empresa_externa: '',
+      contacto_externo: '',
       hallazgos_count: 0,
       estado: 'planificada',
     },
@@ -82,25 +86,27 @@ export function InspeccionModal({
         fecha_planificada: new Date().toISOString().split('T')[0],
         area_faena: '',
         inspector: '',
+        empresa_externa: '',
+        contacto_externo: '',
         hallazgos_count: 0,
         estado: 'planificada',
       });
     }
   }, [open, inspeccion, reset]);
 
-  const onSubmit = async (data: InspeccionFormData) => {
+  const onSubmit = async (data: InspeccionExternaFormData) => {
     setLoading(true);
     setError(null);
 
     try {
       const url = inspeccion?.id
-        ? `/api/sostenibilidad/inspecciones?id=${inspeccion.id}&tipo=internas`
+        ? `/api/sostenibilidad/inspecciones?id=${inspeccion.id}&tipo=externas`
         : '/api/sostenibilidad/inspecciones';
 
       const method = inspeccion?.id ? 'PUT' : 'POST';
       const body = inspeccion?.id
-        ? { id: inspeccion.id, tipo: 'internas', ...data }
-        : { tipo: 'internas', ...data };
+        ? { id: inspeccion.id, tipo: 'externas', ...data }
+        : { tipo: 'externas', ...data };
 
       const response = await fetch(url, {
         method,
@@ -114,11 +120,11 @@ export function InspeccionModal({
       }
 
       const successMessage = inspeccion?.id
-        ? 'Inspección actualizada correctamente'
-        : 'Inspección creada correctamente';
+        ? 'Inspección externa actualizada correctamente'
+        : 'Inspección externa creada correctamente';
       
       toast.success(successMessage, {
-        description: `Número: ${data.numero_inspeccion}`,
+        description: `Auditoría: ${data.numero_inspeccion} - ${data.empresa_externa}`,
       });
 
       onOpenChange(false);
@@ -141,12 +147,12 @@ export function InspeccionModal({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>
-            {inspeccion?.id ? 'Editar Inspección' : 'Nueva Inspección'}
+            {inspeccion?.id ? 'Editar Inspección Externa' : 'Nueva Inspección Externa'}
           </DialogTitle>
           <DialogDescription>
             {inspeccion?.id
-              ? 'Modifica los detalles de la inspección interna'
-              : 'Registra una nueva inspección interna'}
+              ? 'Modifica los detalles de la inspección externa'
+              : 'Registra una nueva inspección externa'}
           </DialogDescription>
         </DialogHeader>
 
@@ -164,7 +170,7 @@ export function InspeccionModal({
               Número de Inspección *
             </label>
             <Input
-              placeholder="INS-001, INS-002, etc."
+              placeholder="EXT-001, EXT-002, etc."
               {...register('numero_inspeccion')}
               disabled={!!inspeccion?.id}
               className={errors.numero_inspeccion ? 'border-destructive' : ''}
@@ -226,10 +232,10 @@ export function InspeccionModal({
 
           {/* Grid 2 columnas */}
           <div className="grid grid-cols-2 gap-4">
-            {/* Inspector */}
+            {/* Inspector Interno */}
             <div>
               <label className="text-sm font-medium mb-1 block">
-                Inspector *
+                Inspector Interno *
               </label>
               <Input
                 placeholder="Nombre del inspector"
@@ -239,6 +245,43 @@ export function InspeccionModal({
               {errors.inspector && (
                 <p className="text-xs text-destructive mt-1">
                   {errors.inspector.message}
+                </p>
+              )}
+            </div>
+
+            {/* Empresa Externa */}
+            <div>
+              <label className="text-sm font-medium mb-1 block">
+                Empresa Externa *
+              </label>
+              <Input
+                placeholder="Nombre de la empresa auditora"
+                {...register('empresa_externa')}
+                className={errors.empresa_externa ? 'border-destructive' : ''}
+              />
+              {errors.empresa_externa && (
+                <p className="text-xs text-destructive mt-1">
+                  {errors.empresa_externa.message}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Grid 2 columnas */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Contacto Externo */}
+            <div>
+              <label className="text-sm font-medium mb-1 block">
+                Contacto Externo *
+              </label>
+              <Input
+                placeholder="Nombre del auditor/inspector"
+                {...register('contacto_externo')}
+                className={errors.contacto_externo ? 'border-destructive' : ''}
+              />
+              {errors.contacto_externo && (
+                <p className="text-xs text-destructive mt-1">
+                  {errors.contacto_externo.message}
                 </p>
               )}
             </div>

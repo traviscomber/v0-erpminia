@@ -7,17 +7,18 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Search, AlertCircle, CheckCircle, Clock, Eye, Download, Trash2, Loader2 } from 'lucide-react';
 import useSWR from 'swr';
-import { InspeccionModal } from '@/components/sostenibilidad/inspeccion-modal';
+import { InspeccionExternaModal } from '@/components/sostenibilidad/inspeccion-externa-modal';
 import { ConfirmDeleteDialog } from '@/components/sostenibilidad/confirm-delete-dialog';
-import { FilterPanel } from '@/components/sostenibilidad/filter-panel';
 
-interface InspeccionInterna {
+interface InspeccionExterna {
   id: string;
   numero_inspeccion: string;
   fecha_planificada: string;
   fecha_realizada?: string;
   area_faena: string;
   inspector: string;
+  empresa_externa: string;
+  contacto_externo: string;
   hallazgos_count: number;
   estado: 'planificada' | 'realizada' | 'cerrada';
   reporte_url?: string;
@@ -25,26 +26,24 @@ interface InspeccionInterna {
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
-export default function InspeccionesInternasPage() {
+export default function InspeccionesExternasPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [estado, setEstado] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [selectedInspeccion, setSelectedInspeccion] = useState<InspeccionInterna | null>(null);
+  const [selectedInspeccion, setSelectedInspeccion] = useState<InspeccionExterna | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const { data: inspecciones = [], mutate } = useSWR(
-    '/api/sostenibilidad/inspecciones?tipo=internas',
+    '/api/sostenibilidad/inspecciones?tipo=externas',
     fetcher
   );
 
-  const inspeccionesList = (inspecciones.data || []) as InspeccionInterna[];
-  const filteredInspecciones = inspeccionesList.filter((insp) => {
-    const matchSearch = insp.numero_inspeccion.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      insp.area_faena.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchEstado = !estado || insp.estado === estado;
-    return matchSearch && matchEstado;
-  });
+  const inspeccionesList = (inspecciones.data || []) as InspeccionExterna[];
+  const filteredInspecciones = inspeccionesList.filter((insp) =>
+    insp.numero_inspeccion.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    insp.area_faena.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    insp.empresa_externa.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleDelete = async () => {
     if (!selectedInspeccion?.id) return;
@@ -52,7 +51,7 @@ export default function InspeccionesInternasPage() {
 
     try {
       const response = await fetch(
-        `/api/sostenibilidad/inspecciones?id=${selectedInspeccion.id}&tipo=internas`,
+        `/api/sostenibilidad/inspecciones?id=${selectedInspeccion.id}&tipo=externas`,
         { method: 'DELETE' }
       );
 
@@ -69,12 +68,12 @@ export default function InspeccionesInternasPage() {
     }
   };
 
-  const handleEditClick = (insp: InspeccionInterna) => {
+  const handleEditClick = (insp: InspeccionExterna) => {
     setSelectedInspeccion(insp);
     setModalOpen(true);
   };
 
-  const handleDeleteClick = (insp: InspeccionInterna) => {
+  const handleDeleteClick = (insp: InspeccionExterna) => {
     setSelectedInspeccion(insp);
     setDeleteOpen(true);
   };
@@ -84,7 +83,6 @@ export default function InspeccionesInternasPage() {
     setSelectedInspeccion(null);
   };
 
-  // Brandbook: primary (naranja), secondary (verde), muted (gris)
   const estadoIcon = {
     planificada: <Clock className="w-4 h-4 text-primary" />,
     realizada: <CheckCircle className="w-4 h-4 text-secondary" />,
@@ -96,8 +94,8 @@ export default function InspeccionesInternasPage() {
       {/* Header */}
       <div className="mb-8 flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Inspecciones Internas</h1>
-          <p className="text-muted-foreground">Registro y seguimiento de inspecciones operacionales internas</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Inspecciones Externas</h1>
+          <p className="text-muted-foreground">Registro de auditorías y fiscalizaciones de organismos externos</p>
         </div>
         <Button 
           className="bg-primary hover:bg-primary/90"
@@ -112,7 +110,7 @@ export default function InspeccionesInternasPage() {
       </div>
 
       {/* Modales */}
-      <InspeccionModal
+      <InspeccionExternaModal
         open={modalOpen}
         onOpenChange={setModalOpen}
         inspeccion={selectedInspeccion || undefined}
@@ -123,24 +121,25 @@ export default function InspeccionesInternasPage() {
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
         titulo={`Inspección ${selectedInspeccion?.numero_inspeccion}`}
-        descripcion={`Se eliminará la inspección "${selectedInspeccion?.numero_inspeccion}" del área ${selectedInspeccion?.area_faena}. Esta acción no se puede deshacer.`}
+        descripcion={`Se eliminará la inspección "${selectedInspeccion?.numero_inspeccion}" de ${selectedInspeccion?.empresa_externa}. Esta acción no se puede deshacer.`}
         onConfirm={handleDelete}
       />
 
-      {/* Search & Filters */}
-      <FilterPanel
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        estado={estado}
-        onEstadoChange={setEstado}
-        onReset={() => {
-          setSearchTerm('');
-          setEstado('');
-        }}
-      />
+      {/* Search */}
+      <div className="mb-6 flex gap-2">
+        <Input
+          placeholder="Buscar por número, área o empresa..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="flex-1"
+        />
+        <Button variant="outline" size="icon">
+          <Search className="w-4 h-4" />
+        </Button>
+      </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Inspecciones</CardTitle>
@@ -154,7 +153,9 @@ export default function InspeccionesInternasPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Planificadas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{filteredInspecciones.filter((i) => i.estado === 'planificada').length}</div>
+            <div className="text-2xl font-bold text-primary">
+              {filteredInspecciones.filter(i => i.estado === 'planificada').length}
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -162,52 +163,69 @@ export default function InspeccionesInternasPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Realizadas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{filteredInspecciones.filter((i) => i.estado === 'realizada').length}</div>
+            <div className="text-2xl font-bold text-secondary">
+              {filteredInspecciones.filter(i => i.estado === 'realizada').length}
+            </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Hallazgos</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Cerradas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{filteredInspecciones.reduce((sum, i) => sum + i.hallazgos_count, 0)}</div>
+            <div className="text-2xl font-bold text-muted-foreground">
+              {filteredInspecciones.filter(i => i.estado === 'cerrada').length}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Hallazgos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {filteredInspecciones.reduce((sum, i) => sum + i.hallazgos_count, 0)}
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Inspections Table */}
+      {/* Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Registro de Inspecciones</CardTitle>
+          <CardTitle>Listado de Inspecciones</CardTitle>
+          <CardDescription>Total: {filteredInspecciones.length} registros</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-white/10">
-                  <th className="text-left py-3 px-4 font-medium">N° Inspección</th>
-                  <th className="text-left py-3 px-4 font-medium">Área/Faena</th>
-                  <th className="text-left py-3 px-4 font-medium">Inspector</th>
-                  <th className="text-left py-3 px-4 font-medium">Fecha Planificada</th>
-                  <th className="text-left py-3 px-4 font-medium">Hallazgos</th>
-                  <th className="text-left py-3 px-4 font-medium">Estado</th>
-                  <th className="text-right py-3 px-4 font-medium">Acciones</th>
+                <tr className="border-b">
+                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Número</th>
+                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Área</th>
+                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Empresa Externa</th>
+                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Contacto</th>
+                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Fecha</th>
+                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Hallazgos</th>
+                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Estado</th>
+                  <th className="text-right py-3 px-4 font-semibold text-muted-foreground">Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredInspecciones.map((insp) => (
-                  <tr key={insp.id} className="border-b border-white/10 hover:bg-white/5 transition">
+                  <tr key={insp.id} className="border-b hover:bg-muted/50">
                     <td className="py-3 px-4 font-medium">{insp.numero_inspeccion}</td>
                     <td className="py-3 px-4">{insp.area_faena}</td>
-                    <td className="py-3 px-4">{insp.inspector}</td>
-                    <td className="py-3 px-4">{new Date(insp.fecha_planificada).toLocaleDateString('es-CL')}</td>
+                    <td className="py-3 px-4">{insp.empresa_externa}</td>
+                    <td className="py-3 px-4 text-sm text-muted-foreground">{insp.contacto_externo}</td>
+                    <td className="py-3 px-4 text-sm">{new Date(insp.fecha_planificada).toLocaleDateString()}</td>
                     <td className="py-3 px-4">
                       <Badge variant="outline">{insp.hallazgos_count}</Badge>
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
                         {estadoIcon[insp.estado]}
-                        <span className="capitalize text-muted-foreground">{insp.estado}</span>
+                        <span className="text-sm capitalize">{insp.estado}</span>
                       </div>
                     </td>
                     <td className="py-3 px-4 text-right space-x-1">
@@ -238,6 +256,11 @@ export default function InspeccionesInternasPage() {
                 ))}
               </tbody>
             </table>
+            {filteredInspecciones.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                No hay inspecciones que mostrar
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

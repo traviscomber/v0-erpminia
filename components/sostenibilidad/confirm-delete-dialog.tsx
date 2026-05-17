@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,9 +37,16 @@ export function ConfirmDeleteDialog({
 
     try {
       await onConfirm();
+      toast.success('Eliminado correctamente', {
+        description: `${titulo} ha sido eliminado permanentemente`,
+      });
       onOpenChange(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al eliminar');
+      const errorMessage = err instanceof Error ? err.message : 'Error al eliminar';
+      setError(errorMessage);
+      toast.error('Error al eliminar', {
+        description: errorMessage,
+      });
       console.error('[v0] Delete error:', err);
     } finally {
       setLoading(false);
