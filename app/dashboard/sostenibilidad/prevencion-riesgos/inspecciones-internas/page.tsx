@@ -5,8 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, AlertCircle, CheckCircle, Clock, Eye, Download, Trash2 } from 'lucide-react';
+import { Plus, Search, AlertCircle, CheckCircle, Clock, Eye, Download, Trash2, Loader2 } from 'lucide-react';
 import useSWR from 'swr';
+import { InspeccionModal } from '@/components/sostenibilidad/inspeccion-modal';
+import { ConfirmDeleteDialog } from '@/components/sostenibilidad/confirm-delete-dialog';
 
 interface InspeccionInterna {
   id: string;
@@ -24,13 +26,59 @@ const fetcher = (url: string) => fetch(url).then(r => r.json());
 
 export default function InspeccionesInternasPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const { data: inspecciones = [] } = useSWR('/api/sostenibilidad/inspecciones/internas', fetcher);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [selectedInspeccion, setSelectedInspeccion] = useState<InspeccionInterna | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const { data: inspecciones = [], mutate } = useSWR(
+    '/api/sostenibilidad/inspecciones?tipo=internas',
+    fetcher
+  );
 
   const inspeccionesList = (inspecciones.data || []) as InspeccionInterna[];
   const filteredInspecciones = inspeccionesList.filter((insp) =>
     insp.numero_inspeccion.toLowerCase().includes(searchTerm.toLowerCase()) ||
     insp.area_faena.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleDelete = async () => {
+    if (!selectedInspeccion?.id) return;
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(
+        `/api/sostenibilidad/inspecciones?id=${selectedInspeccion.id}&tipo=internas`,
+        { method: 'DELETE' }
+      );
+
+      if (!response.ok) throw new Error('Error al eliminar');
+
+      await mutate();
+      setDeleteOpen(false);
+      setSelectedInspeccion(null);
+    } catch (error) {
+      console.error('[v0] Delete error:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleEditClick = (insp: InspeccionInterna) => {
+    setSelectedInspeccion(insp);
+    setModalOpen(true);
+  };
+
+  const handleDeleteClick = (insp: InspeccionInterna) => {
+    setSelectedInspeccion(insp);
+    setDeleteOpen(true);
+  };
+
+  const handleModalSuccess = () => {
+    mutate();
+    setSelectedInspeccion(null);
+  };
 
   // Brandbook: primary (naranja), secondary (verde), muted (gris)
   const estadoIcon = {
@@ -47,11 +95,33 @@ export default function InspeccionesInternasPage() {
           <h1 className="text-3xl font-bold text-foreground mb-2">Inspecciones Internas</h1>
           <p className="text-muted-foreground">Registro y seguimiento de inspecciones operacionales internas</p>
         </div>
-        <Button className="bg-[var(--brand-naranja)] text-white hover:bg-[var(--brand-naranja)]/90">
+        <Button 
+          className="bg-primary hover:bg-primary/90"
+          onClick={() => {
+            setSelectedInspeccion(null);
+            setModalOpen(true);
+          }}
+        >
           <Plus className="w-4 h-4 mr-2" />
           Nueva Inspección
         </Button>
       </div>
+
+      {/* Modales */}
+      <InspeccionModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        inspeccion={selectedInspeccion || undefined}
+        onSuccess={handleModalSuccess}
+      />
+
+      <ConfirmDeleteDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        titulo={`Inspección ${selectedInspeccion?.numero_inspeccion}`}
+        descripcion={`Se eliminará la inspección "${selectedInspeccion?.numero_inspeccion}" del área ${selectedInspeccion?.area_faena}. Esta acción no se puede deshacer.`}
+        onConfirm={handleDelete}
+      />
 
       {/* Search */}
       <div className="mb-6 flex gap-2">
@@ -138,13 +208,26 @@ export default function InspeccionesInternasPage() {
                       </div>
                     </td>
                     <td className="py-3 px-4 text-right space-x-1">
-                      <Button variant="ghost" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleEditClick(insp)}
+                      >
                         <Eye className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        disabled={isLoading}
+                      >
                         <Download className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleDeleteClick(insp)}
+                        disabled={isLoading}
+                      >
                         <Trash2 className="w-4 h-4 text-destructive" />
                       </Button>
                     </td>
