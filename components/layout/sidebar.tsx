@@ -242,7 +242,7 @@ const menuItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { role } = useAuth();
+  const { role, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     'Core': true,
@@ -388,7 +388,7 @@ export function Sidebar() {
           <Button
             variant="ghost"
             className="w-full justify-start gap-3 text-destructive hover:text-destructive"
-            onClick={handleLogout}
+            onClick={logout}
           >
             <LogOut className="w-5 h-5" />
             <span>Cerrar Sesión</span>
