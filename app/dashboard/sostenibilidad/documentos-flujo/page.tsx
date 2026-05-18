@@ -11,6 +11,7 @@ import { Plus, Search, FileText, CheckCircle, Clock, AlertCircle, MessageSquare,
 import useSWR from 'swr';
 import { DemoDataBadge } from '@/components/sostenibilidad/demo-data-badge';
 import { mockFlujDocumentalData, addMockDataIfEmpty } from '@/lib/mock-data-sostenibilidad';
+import { DocumentUpload } from '@/components/sostenibilidad/document-upload';
 import {
   Dialog,
   DialogContent,
@@ -49,6 +50,7 @@ export default function FlujDocumentalPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterEstado, setFilterEstado] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [formData, setFormData] = useState({
     documento_nombre: '',
     descripcion: '',
@@ -93,6 +95,15 @@ export default function FlujDocumentalPage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleUploadSuccess = (fileUrl: string, fileName: string) => {
+    setFormData(prev => ({
+      ...prev,
+      archivo_url: fileUrl,
+      documento_nombre: fileName.split('.')[0], // Use filename as default name
+    }));
+    toast.success('Documento cargado, ahora completa los detalles');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -140,63 +151,83 @@ export default function FlujDocumentalPage() {
               Nuevo Documento
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Nuevo Documento</DialogTitle>
               <DialogDescription>
-                Crea un nuevo documento para el flujo de aprobación
+                Sube un documento y completa sus detalles para el flujo de aprobación
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-6">
+              {/* Upload Section */}
               <div>
-                <Label htmlFor="nombre">Nombre del Documento</Label>
-                <Input
-                  id="nombre"
-                  name="documento_nombre"
-                  value={formData.documento_nombre}
-                  onChange={handleInputChange}
-                  placeholder="Ej: Procedimiento de Seguridad"
-                  required
+                <Label className="text-base font-semibold mb-3 block">1. Subir Documento</Label>
+                <DocumentUpload 
+                  onUploadSuccess={handleUploadSuccess}
+                  maxSizeMB={10}
+                  acceptedTypes={['.pdf', '.doc', '.docx', '.xlsx', '.xls', '.txt']}
                 />
               </div>
-              <div>
-                <Label htmlFor="descripcion">Descripción</Label>
-                <textarea
-                  id="descripcion"
-                  name="descripcion"
-                  value={formData.descripcion}
-                  onChange={handleInputChange}
-                  placeholder="Descripción del documento"
-                  className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm"
-                  rows={3}
-                />
+
+              {/* Document Details */}
+              <div className="border-t pt-6">
+                <Label className="text-base font-semibold mb-4 block">2. Detalles del Documento</Label>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <Label htmlFor="nombre">Nombre del Documento *</Label>
+                    <Input
+                      id="nombre"
+                      name="documento_nombre"
+                      value={formData.documento_nombre}
+                      onChange={handleInputChange}
+                      placeholder="Ej: Procedimiento de Seguridad"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="descripcion">Descripción</Label>
+                    <textarea
+                      id="descripcion"
+                      name="descripcion"
+                      value={formData.descripcion}
+                      onChange={handleInputChange}
+                      placeholder="Descripción del documento"
+                      className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm"
+                      rows={3}
+                    />
+                  </div>
+                  {formData.archivo_url && (
+                    <div className="bg-secondary/10 border border-secondary rounded-md p-3">
+                      <p className="text-sm text-secondary">✓ Documento cargado correctamente</p>
+                      <p className="text-xs text-muted-foreground mt-1">{formData.archivo_url.split('/').pop()}</p>
+                    </div>
+                  )}
+                  <div className="flex gap-2 justify-end pt-4 border-t">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setIsModalOpen(false);
+                        setFormData({
+                          documento_nombre: '',
+                          descripcion: '',
+                          archivo_url: '',
+                        });
+                      }}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={!formData.archivo_url}
+                      className="bg-primary text-primary-foreground hover:bg-primary/90"
+                    >
+                      Crear Documento
+                    </Button>
+                  </div>
+                </form>
               </div>
-              <div>
-                <Label htmlFor="archivo">URL del Archivo (opcional)</Label>
-                <Input
-                  id="archivo"
-                  name="archivo_url"
-                  value={formData.archivo_url}
-                  onChange={handleInputChange}
-                  placeholder="https://ejemplo.com/archivo.pdf"
-                />
-              </div>
-              <div className="flex gap-2 justify-end pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsModalOpen(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  type="submit"
-                  className="bg-primary text-primary-foreground hover:bg-primary/90"
-                >
-                  Crear Documento
-                </Button>
-              </div>
-            </form>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
