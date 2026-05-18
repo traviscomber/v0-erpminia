@@ -74,7 +74,7 @@ export function ExportButtons({ data, fileName, columns }: ExportButtonsProps) {
       table.appendChild(tbody);
       element.appendChild(table);
 
-      const opt = {
+      const opt: any = {
         margin: 10,
         filename: `${fileName}_${new Date().toISOString().split('T')[0]}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
@@ -82,7 +82,7 @@ export function ExportButtons({ data, fileName, columns }: ExportButtonsProps) {
         jsPDF: { orientation: 'landscape', unit: 'mm', format: 'a4' },
       };
 
-      html2pdf().set(opt).from(element).save();
+      (html2pdf() as any).set(opt).from(element).save();
       toast.success('PDF descargado exitosamente');
     } catch (error) {
       console.error('[v0] PDF export error:', error);

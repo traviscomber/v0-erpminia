@@ -63,8 +63,8 @@ export default function EPPPage() {
           className="px-3 py-2 bg-background border border-white/10 rounded-md text-sm"
         >
           <option value="">Todos los cargos</option>
-          {cargos.map((cargo) => (
-            <option key={cargo} value={cargo}>{cargo}</option>
+          {cargos.map((cargo, idx) => (
+            <option key={`${cargo}-${idx}`} value={cargo as string}>{cargo as string}</option>
           ))}
         </select>
         <Button variant="outline" size="icon">
