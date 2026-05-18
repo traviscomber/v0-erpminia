@@ -120,6 +120,7 @@ export const mockMedioAmbienteData = [
 export const mockComunidadesData = [
   {
     id: '1',
+    numero_registro: 'COM-2024-001',
     tipo: 'evento' as const,
     descripcion: 'Jornada de limpieza con comunidad La Patagua',
     stakeholder: 'Comunidad La Patagua',
@@ -128,6 +129,7 @@ export const mockComunidadesData = [
   },
   {
     id: '2',
+    numero_registro: 'COM-2024-002',
     tipo: 'comunicacion' as const,
     descripcion: 'Reunión de diálogo sobre impactos ambientales',
     stakeholder: 'Junta de Vecinos',
@@ -136,6 +138,7 @@ export const mockComunidadesData = [
   },
   {
     id: '3',
+    numero_registro: 'COM-2024-003',
     tipo: 'compromiso' as const,
     descripcion: 'Compromiso de reducción de ruido en 15% para 2024',
     stakeholder: 'Municipalidad',
