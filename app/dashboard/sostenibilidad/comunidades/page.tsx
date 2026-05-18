@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Eye, Trash2 } from 'lucide-react';
 import useSWR from 'swr';
@@ -10,6 +12,21 @@ import { ConfirmDeleteDialog } from '@/components/sostenibilidad/confirm-delete-
 import { FilterPanel } from '@/components/sostenibilidad/filter-panel';
 import { ExportButtons } from '@/components/sostenibilidad/export-buttons';
 import { toast } from 'sonner';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface ComunidadRecord {
   id: string;
@@ -27,8 +44,16 @@ export default function ComunidadesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [tipo, setTipo] = useState('');
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selected, setSelected] = useState<ComunidadRecord | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    tipo: 'evento' as const,
+    descripcion: '',
+    stakeholder: '',
+    estado: 'pendiente' as const,
+    fecha: new Date().toISOString().split('T')[0],
+  });
 
   const { data: registros = [], mutate } = useSWR(
     '/api/sostenibilidad/comunidades',
@@ -72,6 +97,40 @@ export default function ComunidadesPage() {
     en_revision: 'bg-muted/10 text-muted-foreground',
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await fetch('/api/sostenibilidad/comunidades', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        toast.success('Registro creado correctamente');
+        setIsModalOpen(false);
+        setFormData({
+          tipo: 'evento',
+          descripcion: '',
+          stakeholder: '',
+          estado: 'pendiente',
+          fecha: new Date().toISOString().split('T')[0],
+        });
+        mutate();
+      } else {
+        toast.error('Error al crear registro');
+      }
+    } catch (error) {
+      console.error('[v0] Error creating comunidad record:', error);
+      toast.error('Error al crear registro');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="mb-8 flex justify-between items-center">
@@ -79,10 +138,100 @@ export default function ComunidadesPage() {
           <h1 className="text-3xl font-bold text-foreground mb-2">Relación con Comunidades</h1>
           <p className="text-muted-foreground">Eventos, comunicaciones y compromisos con stakeholders</p>
         </div>
-        <Button className="bg-primary hover:bg-primary/90">
-          <Plus className="w-4 h-4 mr-2" />
-          Nuevo Registro
-        </Button>
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+              <Plus className="w-4 h-4 mr-2" />
+              Nuevo Registro
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Nuevo Registro de Comunidad</DialogTitle>
+              <DialogDescription>
+                Registra eventos, comunicaciones o compromisos con stakeholders
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="tipo">Tipo</Label>
+                <Select value={formData.tipo} onValueChange={(value) => setFormData(prev => ({ ...prev, tipo: value as any }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="evento">Evento</SelectItem>
+                    <SelectItem value="comunicacion">Comunicación</SelectItem>
+                    <SelectItem value="compromiso">Compromiso</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="stakeholder">Stakeholder</Label>
+                <Input
+                  id="stakeholder"
+                  name="stakeholder"
+                  value={formData.stakeholder}
+                  onChange={handleInputChange}
+                  placeholder="Ej: Comunidad de La Patagua"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="fecha">Fecha</Label>
+                <Input
+                  id="fecha"
+                  type="date"
+                  name="fecha"
+                  value={formData.fecha}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="descripcion">Descripción</Label>
+                <textarea
+                  id="descripcion"
+                  name="descripcion"
+                  value={formData.descripcion}
+                  onChange={handleInputChange}
+                  placeholder="Detalles del evento, comunicación o compromiso"
+                  className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm"
+                  rows={3}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="estado">Estado</Label>
+                <Select value={formData.estado} onValueChange={(value) => setFormData(prev => ({ ...prev, estado: value as any }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pendiente">Pendiente</SelectItem>
+                    <SelectItem value="en_revision">En Revisión</SelectItem>
+                    <SelectItem value="completado">Completado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex gap-2 justify-end pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsModalOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  Crear Registro
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <FilterPanel

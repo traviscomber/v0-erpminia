@@ -4,10 +4,20 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Search, FileText, CheckCircle, Clock, AlertCircle, MessageSquare, Download, Eye } from 'lucide-react';
 import useSWR from 'swr';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { toast } from 'sonner';
 
 interface DocumentoFlujo {
   id: string;
@@ -36,8 +46,14 @@ const estadoSteps = [
 export default function FlujDocumentalPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterEstado, setFilterEstado] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    documento_nombre: '',
+    descripcion: '',
+    archivo_url: '',
+  });
 
-  const { data: documentos = [] } = useSWR('/api/sostenibilidad/documentos-flujo', fetcher);
+  const { data: documentos = [], mutate } = useSWR('/api/sostenibilidad/documentos-flujo', fetcher);
   const docList = (documentos.data || []) as DocumentoFlujo[];
 
   const filteredDocs = docList.filter((doc) =>
@@ -72,6 +88,38 @@ export default function FlujDocumentalPage() {
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await fetch('/api/sostenibilidad/documentos-flujo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        toast.success('Documento creado correctamente');
+        setIsModalOpen(false);
+        setFormData({
+          documento_nombre: '',
+          descripcion: '',
+          archivo_url: '',
+        });
+        mutate();
+      } else {
+        toast.error('Error al crear documento');
+      }
+    } catch (error) {
+      console.error('[v0] Error creating document:', error);
+      toast.error('Error al crear documento');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background p-6">
       {/* Header */}
@@ -80,10 +128,72 @@ export default function FlujDocumentalPage() {
           <h1 className="text-3xl font-bold text-foreground mb-2">Flujo de Aprobación de Documentos</h1>
           <p className="text-muted-foreground">Workflow de 2 validadores: Jefe de Sostenibilidad → Gerente de Operaciones</p>
         </div>
-        <Button className="bg-[var(--brand-naranja)] text-white hover:bg-[var(--brand-naranja)]/90">
-          <Plus className="w-4 h-4 mr-2" />
-          Nuevo Documento
-        </Button>
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+              <Plus className="w-4 h-4 mr-2" />
+              Nuevo Documento
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Nuevo Documento</DialogTitle>
+              <DialogDescription>
+                Crea un nuevo documento para el flujo de aprobación
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="nombre">Nombre del Documento</Label>
+                <Input
+                  id="nombre"
+                  name="documento_nombre"
+                  value={formData.documento_nombre}
+                  onChange={handleInputChange}
+                  placeholder="Ej: Procedimiento de Seguridad"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="descripcion">Descripción</Label>
+                <textarea
+                  id="descripcion"
+                  name="descripcion"
+                  value={formData.descripcion}
+                  onChange={handleInputChange}
+                  placeholder="Descripción del documento"
+                  className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm"
+                  rows={3}
+                />
+              </div>
+              <div>
+                <Label htmlFor="archivo">URL del Archivo (opcional)</Label>
+                <Input
+                  id="archivo"
+                  name="archivo_url"
+                  value={formData.archivo_url}
+                  onChange={handleInputChange}
+                  placeholder="https://ejemplo.com/archivo.pdf"
+                />
+              </div>
+              <div className="flex gap-2 justify-end pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsModalOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  Crear Documento
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Workflow Diagram */}

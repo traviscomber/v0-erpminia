@@ -3,9 +3,27 @@
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Plus, ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, MapPin, Users, Trash2 } from 'lucide-react';
 import useSWR from 'swr';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { toast } from 'sonner';
 
 interface CalendarEvent {
   id: string;
@@ -24,8 +42,19 @@ const fetcher = (url: string) => fetch(url).then(r => r.json());
 export default function CalendarioSostenibilidadPage() {
   const [currentDate, setCurrentDate] = useState(new Date(2024, 4)); // May 2024
   const [viewMode, setViewMode] = useState<'mes' | 'semana' | 'lista'>('mes');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    titulo: '',
+    tipo_evento: 'tarea',
+    fecha_inicio: new Date().toISOString().split('T')[0],
+    fecha_fin: '',
+    ubicacion: '',
+    descripcion: '',
+    responsable: '',
+    estado: 'programado',
+  });
 
-  const { data: events = [] } = useSWR('/api/sostenibilidad/calendario', fetcher);
+  const { data: events = [], mutate } = useSWR('/api/sostenibilidad/calendario', fetcher);
   const eventList = (events.data || []) as CalendarEvent[];
 
   const getDaysInMonth = (date: Date) => {
@@ -70,6 +99,43 @@ export default function CalendarioSostenibilidadPage() {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await fetch('/api/sostenibilidad/calendario', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        toast.success('Evento creado correctamente');
+        setIsModalOpen(false);
+        setFormData({
+          titulo: '',
+          tipo_evento: 'tarea',
+          fecha_inicio: new Date().toISOString().split('T')[0],
+          fecha_fin: '',
+          ubicacion: '',
+          descripcion: '',
+          responsable: '',
+          estado: 'programado',
+        });
+        mutate();
+      } else {
+        toast.error('Error al crear evento');
+      }
+    } catch (error) {
+      console.error('[v0] Error creating calendar event:', error);
+      toast.error('Error al crear evento');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background p-6">
       {/* Header */}
@@ -78,10 +144,119 @@ export default function CalendarioSostenibilidadPage() {
           <h1 className="text-3xl font-bold text-foreground mb-2">Calendario de Eventos - Sostenibilidad</h1>
           <p className="text-muted-foreground">Centraliza inspecciones, capacitaciones, auditorías y tareas</p>
         </div>
-        <Button className="bg-[var(--brand-naranja)] text-white hover:bg-[var(--brand-naranja)]/90">
-          <Plus className="w-4 h-4 mr-2" />
-          Nuevo Evento
-        </Button>
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+              <Plus className="w-4 h-4 mr-2" />
+              Nuevo Evento
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Nuevo Evento</DialogTitle>
+              <DialogDescription>
+                Crea un nuevo evento en el calendario
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="titulo">Título</Label>
+                <Input
+                  id="titulo"
+                  name="titulo"
+                  value={formData.titulo}
+                  onChange={handleInputChange}
+                  placeholder="Ej: Inspección interna"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="tipo">Tipo de Evento</Label>
+                <Select value={formData.tipo_evento} onValueChange={(value) => setFormData(prev => ({ ...prev, tipo_evento: value }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="inspeccion_interna">Inspección Interna</SelectItem>
+                    <SelectItem value="inspeccion_externa">Inspección Externa</SelectItem>
+                    <SelectItem value="capacitacion">Capacitación</SelectItem>
+                    <SelectItem value="tarea">Tarea</SelectItem>
+                    <SelectItem value="auditoria">Auditoría</SelectItem>
+                    <SelectItem value="otra">Otra</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="fecha_inicio">Fecha Inicio</Label>
+                <Input
+                  id="fecha_inicio"
+                  type="date"
+                  name="fecha_inicio"
+                  value={formData.fecha_inicio}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="fecha_fin">Fecha Fin (opcional)</Label>
+                <Input
+                  id="fecha_fin"
+                  type="date"
+                  name="fecha_fin"
+                  value={formData.fecha_fin}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div>
+                <Label htmlFor="ubicacion">Ubicación (opcional)</Label>
+                <Input
+                  id="ubicacion"
+                  name="ubicacion"
+                  value={formData.ubicacion}
+                  onChange={handleInputChange}
+                  placeholder="Ej: Sector operaciones"
+                />
+              </div>
+              <div>
+                <Label htmlFor="responsable">Responsable (opcional)</Label>
+                <Input
+                  id="responsable"
+                  name="responsable"
+                  value={formData.responsable}
+                  onChange={handleInputChange}
+                  placeholder="Ej: Juan Pérez"
+                />
+              </div>
+              <div>
+                <Label htmlFor="descripcion">Descripción</Label>
+                <textarea
+                  id="descripcion"
+                  name="descripcion"
+                  value={formData.descripcion}
+                  onChange={handleInputChange}
+                  placeholder="Detalles del evento"
+                  className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm"
+                  rows={2}
+                />
+              </div>
+              <div className="flex gap-2 justify-end pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsModalOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  Crear Evento
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* View Mode Selector */}

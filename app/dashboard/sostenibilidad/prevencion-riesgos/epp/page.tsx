@@ -4,9 +4,19 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Search, AlertCircle, Edit, Trash2, Download, Package } from 'lucide-react';
 import useSWR from 'swr';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { toast } from 'sonner';
 
 interface EPP {
   id: string;
@@ -23,8 +33,17 @@ const fetcher = (url: string) => fetch(url).then(r => r.json());
 export default function EPPPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCargo, setSelectedCargo] = useState<string>('');
+  const [isOpen, setIsOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    cargo_puesto: '',
+    elemento_epp: '',
+    cantidad_elemento: 1,
+    marca_modelo: '',
+    frecuencia_reemplazo: 'semestral',
+    activo: true,
+  });
 
-  const { data: epp = [], isLoading } = useSWR('/api/sostenibilidad/epp', fetcher);
+  const { data: epp = [], isLoading, mutate } = useSWR('/api/sostenibilidad/epp', fetcher);
 
   const eqqData = epp.data || [];
   const cargos = [...new Set(eqqData.map((item: EPP) => item.cargo_puesto))];
@@ -35,6 +54,44 @@ export default function EPPPage() {
     (!selectedCargo || item.cargo_puesto === selectedCargo)
   );
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target as any;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : name === 'cantidad_elemento' ? parseInt(value) || 1 : value,
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await fetch('/api/sostenibilidad/epp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        toast.success('EPP registrado correctamente');
+        setIsOpen(false);
+        setFormData({
+          cargo_puesto: '',
+          elemento_epp: '',
+          cantidad_elemento: 1,
+          marca_modelo: '',
+          frecuencia_reemplazo: 'semestral',
+          activo: true,
+        });
+        mutate();
+      } else {
+        toast.error('Error al registrar EPP');
+      }
+    } catch (error) {
+      console.error('[v0] Error creating EPP:', error);
+      toast.error('Error al registrar EPP');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background p-6">
       {/* Header */}
@@ -43,10 +100,109 @@ export default function EPPPage() {
           <h1 className="text-3xl font-bold text-foreground mb-2">Gestión de Artículos de EPP</h1>
           <p className="text-muted-foreground">Equipos de Protección Personal por puesto de trabajo</p>
         </div>
-        <Button className="bg-[var(--brand-naranja)] text-white hover:bg-[var(--brand-naranja)]/90">
-          <Plus className="w-4 h-4 mr-2" />
-          Nuevo EPP
-        </Button>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+              <Plus className="w-4 h-4 mr-2" />
+              Nuevo EPP
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Registrar Nuevo EPP</DialogTitle>
+              <DialogDescription>
+                Agrega un nuevo equipo de protección personal
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="cargo">Cargo/Puesto</Label>
+                <Input
+                  id="cargo"
+                  name="cargo_puesto"
+                  value={formData.cargo_puesto}
+                  onChange={handleInputChange}
+                  placeholder="Ej: Operario"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="elemento">Elemento EPP</Label>
+                <Input
+                  id="elemento"
+                  name="elemento_epp"
+                  value={formData.elemento_epp}
+                  onChange={handleInputChange}
+                  placeholder="Ej: Casco de seguridad"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="cantidad">Cantidad</Label>
+                <Input
+                  id="cantidad"
+                  type="number"
+                  name="cantidad_elemento"
+                  value={formData.cantidad_elemento}
+                  onChange={handleInputChange}
+                  min="1"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="marca">Marca/Modelo</Label>
+                <Input
+                  id="marca"
+                  name="marca_modelo"
+                  value={formData.marca_modelo}
+                  onChange={handleInputChange}
+                  placeholder="Ej: MSA V-Guard"
+                />
+              </div>
+              <div>
+                <Label htmlFor="frecuencia">Frecuencia de Reemplazo</Label>
+                <select
+                  id="frecuencia"
+                  name="frecuencia_reemplazo"
+                  value={formData.frecuencia_reemplazo}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm"
+                >
+                  <option value="mensual">Mensual</option>
+                  <option value="trimestral">Trimestral</option>
+                  <option value="semestral">Semestral</option>
+                  <option value="anual">Anual</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  id="activo"
+                  type="checkbox"
+                  name="activo"
+                  checked={formData.activo}
+                  onChange={handleInputChange}
+                  className="w-4 h-4"
+                />
+                <Label htmlFor="activo" className="mb-0">Activo</Label>
+              </div>
+              <div className="flex gap-2 justify-end pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  Crear EPP
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Search and Filters */}

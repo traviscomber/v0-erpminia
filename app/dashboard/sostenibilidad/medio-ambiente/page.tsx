@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Eye, Trash2 } from 'lucide-react';
 import useSWR from 'swr';
@@ -10,6 +12,21 @@ import { ConfirmDeleteDialog } from '@/components/sostenibilidad/confirm-delete-
 import { FilterPanel } from '@/components/sostenibilidad/filter-panel';
 import { ExportButtons } from '@/components/sostenibilidad/export-buttons';
 import { toast } from 'sonner';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface MedioAmbienteRecord {
   id: string;
@@ -31,6 +48,13 @@ export default function MedioAmbientePage() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selected, setSelected] = useState<MedioAmbienteRecord | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    tipo: 'emisiones' as const,
+    descripcion: '',
+    valor: '',
+    unidad: 'kg',
+    cumplimiento: 'conforme' as const,
+  });
 
   const { data: registros = [], mutate } = useSWR(
     '/api/sostenibilidad/medio-ambiente',
@@ -61,6 +85,40 @@ export default function MedioAmbientePage() {
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await fetch('/api/sostenibilidad/medio-ambiente', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        toast.success('Registro creado correctamente');
+        setModalOpen(false);
+        setFormData({
+          tipo: 'emisiones',
+          descripcion: '',
+          valor: '',
+          unidad: 'kg',
+          cumplimiento: 'conforme',
+        });
+        mutate();
+      } else {
+        toast.error('Error al crear registro');
+      }
+    } catch (error) {
+      console.error('[v0] Error creating registro:', error);
+      toast.error('Error al crear registro');
+    }
+  };
+
   const tipoLabels = {
     emisiones: 'Emisiones',
     residuos: 'Residuos',
@@ -81,10 +139,103 @@ export default function MedioAmbientePage() {
           <h1 className="text-3xl font-bold text-foreground mb-2">Medio Ambiente</h1>
           <p className="text-muted-foreground">Monitoreo de emisiones, residuos, agua y ruido</p>
         </div>
-        <Button className="bg-primary hover:bg-primary/90" onClick={() => setModalOpen(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Nuevo Registro
-        </Button>
+        <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+              <Plus className="w-4 h-4 mr-2" />
+              Nuevo Registro
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Nuevo Registro Ambiental</DialogTitle>
+              <DialogDescription>
+                Registra datos de emisiones, residuos, agua o ruido
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="tipo">Tipo</Label>
+                <Select value={formData.tipo} onValueChange={(value) => setFormData(prev => ({ ...prev, tipo: value as any }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="emisiones">Emisiones</SelectItem>
+                    <SelectItem value="residuos">Residuos</SelectItem>
+                    <SelectItem value="agua">Agua</SelectItem>
+                    <SelectItem value="ruido">Ruido</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="descripcion">Descripción</Label>
+                <textarea
+                  id="descripcion"
+                  name="descripcion"
+                  value={formData.descripcion}
+                  onChange={handleInputChange}
+                  placeholder="Detalles del registro"
+                  className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm"
+                  rows={2}
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label htmlFor="valor">Valor</Label>
+                  <Input
+                    id="valor"
+                    name="valor"
+                    value={formData.valor}
+                    onChange={handleInputChange}
+                    placeholder="Ej: 1.5"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="unidad">Unidad</Label>
+                  <Input
+                    id="unidad"
+                    name="unidad"
+                    value={formData.unidad}
+                    onChange={handleInputChange}
+                    placeholder="kg, L, dB"
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="cumplimiento">Cumplimiento</Label>
+                <Select value={formData.cumplimiento} onValueChange={(value) => setFormData(prev => ({ ...prev, cumplimiento: value as any }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="conforme">Conforme</SelectItem>
+                    <SelectItem value="no_conforme">No Conforme</SelectItem>
+                    <SelectItem value="en_revisin">En Revisión</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex gap-2 justify-end pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setModalOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  Crear Registro
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <FilterPanel
