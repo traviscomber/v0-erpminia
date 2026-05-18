@@ -91,7 +91,7 @@ export default function MedioAmbientePage() {
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         estado={tipo}
-        onEstadoChange={setTipo}
+        onEstadoChange={(value) => setTipo(value === 'todos' ? '' : value)}
         onReset={() => {
           setSearchTerm('');
           setTipo('');
