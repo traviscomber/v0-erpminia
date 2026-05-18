@@ -1,419 +1,235 @@
 'use client';
 
 import { useState } from 'react';
-import useSWR from 'swr';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Plus,
-  Wrench,
-  Search,
-  AlertCircle,
-  TrendingUp,
-  BarChart3,
-  Download,
-  Filter,
-  Eye,
-  Link2,
-  RefreshCw,
-} from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { BrandCard } from '@/components/ui/brand-card';
-import { StatusBadge } from '@/components/status-badge';
-import { AuditTrail } from '@/components/audit-trail';
-import { exportToCSV } from '@/lib/export-utils';
-import {
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from 'recharts';
-import { CHART_COLORS_LIGHT } from '@/lib/theme-colors';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Plus, AlertCircle, Clock, TrendingUp, Wrench } from 'lucide-react';
+import useSWR from 'swr';
+import { toast } from 'sonner';
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+import { WorkOrderForm } from '@/components/maintenance/work-order-form';
+import { AssetCard } from '@/components/maintenance/asset-card';
+import { MaintenanceSchedule } from '@/components/maintenance/maintenance-schedule';
 
-export default function MantenimientoPage() {
-  // Call all hooks at the top level
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
+export default function MaintenanceDashboard() {
+  const [showWorkOrderForm, setShowWorkOrderForm] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
 
-  // Fetch maintenance orders from API
-  const { data, error, isLoading, mutate } = useSWR(
-    statusFilter === 'all' 
-      ? '/api/dashboard/mantenimiento' 
-      : `/api/dashboard/mantenimiento?status=${statusFilter}`,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: true,
-      refreshInterval: 60000, // 1 minute
-    }
-  );
+  const { data: mttrStats } = useSWR('/api/maintenance/mttr', async (url) => {
+    const res = await fetch(url);
+    return res.ok ? res.json() : null;
+  });
 
-  const orders = data?.orders || [];
-  const mtbf = data?.mtbf || 0;
+  const { data: schedules } = useSWR('/api/maintenance/preventive', async (url) => {
+    const res = await fetch(url);
+    return res.ok ? res.json() : null;
+  });
 
-  // Calculate metrics from orders
-  const completedOrders = orders.filter((order: any) => order.status === 'Completada').length;
-  const pendingOrders = orders.filter((order: any) => order.status === 'Pendiente' || order.status === 'En Progreso').length;
-  const safetyOrders = orders.filter((order: any) => order.type === 'Seguridad' || order.priority === 'Crítica').length;
-  const preventiveOrders = orders.filter((order: any) => order.type === 'Preventiva').length;
-  const correctiveOrders = orders.filter((order: any) => order.type === 'Correctiva').length;
-  const predictiveOrders = orders.filter((order: any) => order.type === 'Predictiva').length;
-  
-  // Calculate MTTR (Mean Time To Repair) - default 4.5 hours if no data
-  const avgMTTR = data?.avgMTTR || 4.5;
-  
-  // Calculate equipment availability percentage (100% - (downtime / total time))
-  const availability = data?.availability || 95;
+  const { data: assets } = useSWR('/api/maintenance/assets', async (url) => {
+    const res = await fetch(url);
+    return res.ok ? res.json() : null;
+  });
 
-  // Filter orders by search term
-  const filteredOrders = orders.filter((order: any) =>
-    (order.title?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-    (order.order_number?.toLowerCase() || '').includes(searchTerm.toLowerCase())
-  );
+  const { data: workOrders } = useSWR('/api/maintenance/work-orders', async (url) => {
+    const res = await fetch(url);
+    return res.ok ? res.json() : null;
+  });
 
-  // Create chart data from order types
-  const chartData = [
-    { name: 'Preventivas', value: preventiveOrders },
-    { name: 'Correctivas', value: correctiveOrders },
-    { name: 'Predictivas', value: predictiveOrders },
-  ].filter((item: any) => item.value > 0);
-
-  // Early returns AFTER all hooks
-  if (error) return <div className="text-red-500">Error loading maintenance data</div>;
-  if (isLoading) return <div className="text-gray-500">Loading maintenance orders...</div>;
+  const stats = mttrStats || {};
+  const schedulesList = schedules?.schedules || [];
+  const assetsList = assets?.assets || [];
+  const woList = workOrders?.workOrders || [];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="pb-4">
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-          <div>
-            <h1 className="text-4xl font-bold tracking-tight">Gestión de Mantención</h1>
-            <p className="text-muted-foreground mt-3">
-              Órdenes preventivas/predictivas, MTBF/MTTR, seguridad crítica y disponibilidad de equipos
-            </p>
-          </div>
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
-            Nueva Orden
-          </Button>
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Mantenimiento</h1>
+          <p className="text-muted-foreground">Work orders, assets, preventive maintenance & KPIs</p>
         </div>
+        <Button className="bg-primary hover:bg-primary/90" onClick={() => setShowWorkOrderForm(true)}>
+          <Plus className="w-4 h-4 mr-2" />
+          New Work Order
+        </Button>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="border-border overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-chart-1/10 to-transparent rounded-full -mr-12 -mt-12" />
-          <CardHeader className="pb-3 relative z-10">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Órdenes Totales
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="relative z-10">
-            <div className="text-3xl font-bold">{orders.length}</div>
-            <p className="text-xs text-muted-foreground mt-2">{completedOrders} completadas</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border bg-destructive/5 overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-destructive/10 to-transparent rounded-full -mr-12 -mt-12" />
-          <CardHeader className="pb-3 relative z-10">
+      {/* KPIs */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 text-destructive" />
-              Seguridad Crítica
+              <Clock className="w-4 h-4" />
+              Avg MTTR
             </CardTitle>
-          </CardHeader>
-          <CardContent className="relative z-10">
-            <div className="text-3xl font-bold text-destructive">{safetyOrders}</div>
-            <p className="text-xs text-muted-foreground mt-2">órdenes de seguridad</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border bg-primary/5 overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-primary/10 to-transparent rounded-full -mr-12 -mt-12" />
-          <CardHeader className="pb-3 relative z-10">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              MTTR Promedio
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="relative z-10">
-            <div className="text-3xl font-bold text-primary">{avgMTTR}m</div>
-            <p className="text-xs text-muted-foreground mt-2">tiempo a reparación</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border bg-accent/5 overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-accent/10 to-transparent rounded-full -mr-12 -mt-12" />
-          <CardHeader className="pb-3 relative z-10">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-accent" />
-              Disponibilidad
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="relative z-10">
-            <div className="text-3xl font-bold text-accent">{availability}%</div>
-            <p className="text-xs text-muted-foreground mt-2">equipos operacionales</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Additional Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="border-border bg-primary/5 overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-primary/10 to-transparent rounded-full -mr-12 -mt-12" />
-          <CardHeader className="pb-3 relative z-10">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Preventivas
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="relative z-10">
-            <div className="text-3xl font-bold text-primary">{preventiveOrders}</div>
-            <p className="text-xs text-muted-foreground mt-2">mantenimiento planeado</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border bg-destructive/5 overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-destructive/10 to-transparent rounded-full -mr-12 -mt-12" />
-          <CardHeader className="pb-3 relative z-10">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Correctivas
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="relative z-10">
-            <div className="text-3xl font-bold text-destructive">{correctiveOrders}</div>
-            <p className="text-xs text-muted-foreground mt-2">respuestas a fallas</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border bg-secondary/5 overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-secondary/10 to-transparent rounded-full -mr-12 -mt-12" />
-          <CardHeader className="pb-3 relative z-10">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Predictivas
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="relative z-10">
-            <div className="text-3xl font-bold text-secondary-foreground">{predictiveOrders}</div>
-            <p className="text-xs text-muted-foreground mt-2">análisis y predicción</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border bg-accent/5 overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-accent/10 to-transparent rounded-full -mr-12 -mt-12" />
-          <CardHeader className="pb-3 relative z-10">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Completadas
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="relative z-10">
-            <div className="text-3xl font-bold text-accent">{completedOrders}</div>
-            <p className="text-xs text-muted-foreground mt-2">órdenes finalizadas</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Pie Chart */}
-        <Card className="border-border">
-          <CardHeader>
-            <CardTitle>Distribución de Órdenes</CardTitle>
-            <CardDescription>Preventivas vs Correctivas</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie
-                  data={chartData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={80}
-                  paddingAngle={2}
-                  dataKey="value"
-                >
-                  {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="grid grid-cols-2 gap-2 mt-6 pt-4 border-t border-border">
-              {chartData.map((item, idx) => (
-                <div key={item.name} className="text-center">
-                  <div
-                    className="w-2 h-2 rounded-full mx-auto mb-2"
-                    style={{ backgroundColor: COLORS[idx] }}
-                  />
-                  <p className="text-xs font-medium text-muted-foreground">{item.name}</p>
-                  <p className="text-sm font-bold">{item.value}</p>
-                </div>
-              ))}
-            </div>
+            <p className="text-2xl font-bold text-foreground">{stats.averageMTTR?.toFixed(1) || '-'} hrs</p>
           </CardContent>
         </Card>
 
-        {/* Analytics Card */}
-        <Card className="border-border lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Análisis de Disponibilidad</CardTitle>
-            <CardDescription>Indicadores clave de mantenimiento</CardDescription>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <AlertCircle className="w-4 h-4" />
+              Downtime (30d)
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">Órdenes Pendientes</span>
-                <span className="text-2xl font-bold text-yellow-600">{pendingOrders}</span>
-              </div>
-              <div className="w-full bg-muted rounded-full h-2">
-                <div
-                  className="bg-yellow-600 h-2 rounded-full"
-                  style={{
-                    width: `${orders.length > 0 ? (pendingOrders / orders.length) * 100 : 0}%`,
-                  }}
-                />
-              </div>
-            </div>
+          <CardContent>
+            <p className="text-2xl font-bold text-destructive">{stats.totalDowntime30d?.toFixed(1) || '-'} hrs</p>
+          </CardContent>
+        </Card>
 
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">Órdenes Completadas</span>
-                <span className="text-2xl font-bold text-green-600">{completedOrders}</span>
-              </div>
-              <div className="w-full bg-muted rounded-full h-2">
-                <div
-                  className="bg-green-600 h-2 rounded-full"
-                  style={{
-                    width: `${orders.length > 0 ? (completedOrders / orders.length) * 100 : 0}%`,
-                  }}
-                />
-              </div>
-            </div>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <TrendingUp className="w-4 h-4" />
+              Availability
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold text-secondary">{stats.availability?.toFixed(1) || '-'}%</p>
+          </CardContent>
+        </Card>
 
-            <div className="pt-4 border-t border-border">
-              <p className="text-xs text-muted-foreground">
-                Tasa de Cumplimiento: {orders.length > 0 ? ((completedOrders / orders.length) * 100).toFixed(1) : 0}%
-              </p>
-            </div>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Wrench className="w-4 h-4" />
+              Completed WOs
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold text-primary">{stats.completedWorkOrders || '-'}</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Maintenance Orders Table */}
-      <Card className="border-border">
-        <CardHeader className="pb-4">
-          <div className="flex flex-col md:flex-row md:items-center gap-4">
-            <div className="flex-1">
-              <CardTitle>Órdenes de Mantención</CardTitle>
-              <CardDescription>Administra todas las órdenes del sistema</CardDescription>
-            </div>
-            <div className="flex gap-2">
-              <div className="relative flex-1 md:flex-initial md:w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar orden..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-input"
-                />
-              </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-40 bg-input">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="pendiente">Pendiente</SelectItem>
-                  <SelectItem value="en_progreso">En Progreso</SelectItem>
-                  <SelectItem value="completada">Completada</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="text-center py-8 text-muted-foreground">Cargando órdenes...</div>
-          ) : orders.length === 0 ? (
-            <div className="text-center py-8">
-              <Wrench className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-              <p className="text-muted-foreground">No hay órdenes registradas</p>
-              <Button className="mt-4 gap-2">
-                <Plus className="h-4 w-4" />
-                Crear primera orden
-              </Button>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left font-semibold text-muted-foreground py-3 px-4">Activo</th>
-                    <th className="text-left font-semibold text-muted-foreground py-3 px-4">Tipo</th>
-                    <th className="text-left font-semibold text-muted-foreground py-3 px-4">Estado</th>
-                    <th className="text-left font-semibold text-muted-foreground py-3 px-4">Técnico</th>
-                    <th className="text-left font-semibold text-muted-foreground py-3 px-4">Fecha Programada</th>
-                    <th className="text-left font-semibold text-muted-foreground py-3 px-4">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orders.map((order) => (
-                    <tr
-                      key={order.id}
-                      className="border-b border-border/50 hover:bg-muted/30 transition-colors group"
-                    >
-                      <td className="py-3 px-4 font-medium">{order.asset_name}</td>
-                      <td className="py-3 px-4">
-                        <Badge variant="outline">
-                          {order.order_type === 'preventiva' ? 'Preventiva' : 'Correctiva'}
-                        </Badge>
-                      </td>
-                      <td className="py-3 px-4">
-                        <Badge className={statusColors[order.status] || ''}>
-                          {order.status}
-                        </Badge>
-                      </td>
-                      <td className="py-3 px-4 text-sm text-muted-foreground">{order.technician}</td>
-                      <td className="py-3 px-4 text-sm text-muted-foreground">
-                        {new Date(order.scheduled_date).toLocaleDateString('es-CL')}
-                      </td>
-                      <td className="py-3 px-4">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          Ver
-                        </Button>
-                      </td>
-                    </tr>
+      {/* Main Content */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="work-orders">Work Orders ({woList.length})</TabsTrigger>
+          <TabsTrigger value="schedule">Preventive ({schedulesList.length})</TabsTrigger>
+          <TabsTrigger value="assets">Assets ({assetsList.length})</TabsTrigger>
+        </TabsList>
+
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Due Maintenance</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <MaintenanceSchedule schedules={schedulesList.slice(0, 5)} />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Critical Assets</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {assetsList
+                  .filter((a: any) => a.criticality === 'critical')
+                  .slice(0, 3)
+                  .map((asset: any) => (
+                    <div key={asset.id} className="flex justify-between items-center p-2 bg-muted rounded">
+                      <span className="font-semibold text-sm">{asset.asset_name}</span>
+                      <span className="text-xs text-destructive">CRITICAL</span>
+                    </div>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Work Orders Tab */}
+        <TabsContent value="work-orders" className="space-y-4">
+          <div className="grid grid-cols-1 gap-4">
+            {woList.length === 0 ? (
+              <Card>
+                <CardContent className="py-8 text-center text-muted-foreground">
+                  No work orders yet
+                </CardContent>
+              </Card>
+            ) : (
+              woList.map((wo: any) => (
+                <Card key={wo.id}>
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <CardTitle className="text-base">{wo.title}</CardTitle>
+                        <CardDescription>{wo.work_order_number}</CardDescription>
+                      </div>
+                      <span className="text-xs font-semibold">{wo.status.toUpperCase()}</span>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">{wo.description}</p>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+        </TabsContent>
+
+        {/* Preventive Schedule Tab */}
+        <TabsContent value="schedule">
+          <Card>
+            <CardHeader>
+              <CardTitle>Scheduled Maintenance</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <MaintenanceSchedule schedules={schedulesList} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Assets Tab */}
+        <TabsContent value="assets">
+          <div className="grid md:grid-cols-2 gap-4">
+            {assetsList.length === 0 ? (
+              <Card className="col-span-2">
+                <CardContent className="py-8 text-center text-muted-foreground">
+                  No assets registered yet
+                </CardContent>
+              </Card>
+            ) : (
+              assetsList.map((asset: any) => (
+                <AssetCard
+                  key={asset.id}
+                  asset={asset}
+                  onCreateWorkOrder={() => setShowWorkOrderForm(true)}
+                />
+              ))
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      {/* Work Order Modal */}
+      {showWorkOrderForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-background rounded-lg p-6 max-w-md w-full mx-4">
+            <WorkOrderForm
+              onSuccess={() => {
+                setShowWorkOrderForm(false);
+                toast.success('Work order created');
+              }}
+            />
+            <Button
+              variant="outline"
+              className="w-full mt-4"
+              onClick={() => setShowWorkOrderForm(false)}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
