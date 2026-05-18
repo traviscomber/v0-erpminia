@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Eye, Trash2 } from 'lucide-react';
 import useSWR from 'swr';
-import { InspeccionModal } from '@/components/sostenibilidad/inspeccion-modal';
 import { ConfirmDeleteDialog } from '@/components/sostenibilidad/confirm-delete-dialog';
 import { FilterPanel } from '@/components/sostenibilidad/filter-panel';
+import { ExportButtons } from '@/components/sostenibilidad/export-buttons';
 import { toast } from 'sonner';
 
 interface MedioAmbienteRecord {
@@ -97,6 +97,22 @@ export default function MedioAmbientePage() {
           setTipo('');
         }}
       />
+
+      {/* Export Buttons */}
+      <div className="mb-6 mt-6">
+        <ExportButtons
+          data={filtered}
+          fileName="Medio_Ambiente"
+          columns={[
+            { key: 'numero_registro', label: 'Número' },
+            { key: 'fecha', label: 'Fecha' },
+            { key: 'tipo', label: 'Tipo' },
+            { key: 'descripcion', label: 'Descripción' },
+            { key: 'valor', label: 'Valor' },
+            { key: 'cumplimiento', label: 'Cumplimiento' },
+          ]}
+        />
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 my-8">
         {Object.entries(tipoLabels).map(([key, label]) => (

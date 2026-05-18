@@ -10,6 +10,7 @@ import useSWR from 'swr';
 import { InspeccionModal } from '@/components/sostenibilidad/inspeccion-modal';
 import { ConfirmDeleteDialog } from '@/components/sostenibilidad/confirm-delete-dialog';
 import { FilterPanel } from '@/components/sostenibilidad/filter-panel';
+import { ExportButtons } from '@/components/sostenibilidad/export-buttons';
 
 interface InspeccionInterna {
   id: string;
@@ -138,6 +139,22 @@ export default function InspeccionesInternasPage() {
           setEstado('');
         }}
       />
+
+      {/* Export Buttons */}
+      <div className="mb-6 mt-6">
+        <ExportButtons
+          data={filteredInspecciones}
+          fileName="Inspecciones_Internas"
+          columns={[
+            { key: 'numero_inspeccion', label: 'Número' },
+            { key: 'fecha_planificada', label: 'Fecha Planificada' },
+            { key: 'area_faena', label: 'Área' },
+            { key: 'inspector', label: 'Inspector' },
+            { key: 'hallazgos_count', label: 'Hallazgos' },
+            { key: 'estado', label: 'Estado' },
+          ]}
+        />
+      </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">

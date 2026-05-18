@@ -8,6 +8,7 @@ import { Plus, Eye, Trash2 } from 'lucide-react';
 import useSWR from 'swr';
 import { ConfirmDeleteDialog } from '@/components/sostenibilidad/confirm-delete-dialog';
 import { FilterPanel } from '@/components/sostenibilidad/filter-panel';
+import { ExportButtons } from '@/components/sostenibilidad/export-buttons';
 import { toast } from 'sonner';
 
 interface ComunidadRecord {
@@ -94,6 +95,22 @@ export default function ComunidadesPage() {
           setTipo('');
         }}
       />
+
+      {/* Export Buttons */}
+      <div className="mb-6 mt-6">
+        <ExportButtons
+          data={filtered}
+          fileName="Comunidades"
+          columns={[
+            { key: 'numero_registro', label: 'Número' },
+            { key: 'fecha', label: 'Fecha' },
+            { key: 'tipo', label: 'Tipo' },
+            { key: 'stakeholder', label: 'Stakeholder' },
+            { key: 'descripcion', label: 'Descripción' },
+            { key: 'estado', label: 'Estado' },
+          ]}
+        />
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-8">
         {Object.entries(tipoLabels).map(([key, label]) => (
