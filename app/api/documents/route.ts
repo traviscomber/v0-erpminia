@@ -1,72 +1,98 @@
-import { supabase } from '@/lib/db/supabase';
 import { NextRequest, NextResponse } from 'next/server';
+import { rbacMiddleware } from '@/lib/middleware/rbac.middleware';
+import { DocumentService } from '@/lib/services/document.service';
+import { MultiTenantService } from '@/lib/services/multitenant.service';
+import { AuditTrailService } from '@/lib/services/audittrail.service';
 
-export async function GET(req: NextRequest) {
+/**
+ * GET /api/documents
+ * Listar documentos con filtros
+ */
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const companyId = searchParams.get('companyId');
-    const category = searchParams.get('category');
+    const auth = await rbacMiddleware(request, {
+      requiredPermissions: [{ resource: 'documents', action: 'read' }],
+    });
+
+    if (!auth.isAuthorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.statusCode });
+    }
+
+    const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
+    const category = searchParams.get('category');
+    const search = searchParams.get('search');
+    const limit = parseInt(searchParams.get('limit') || '50');
+    const offset = parseInt(searchParams.get('offset') || '0');
 
-    if (!companyId) {
-      return NextResponse.json({ error: 'Company ID required' }, { status: 400 });
-    }
+    const result = await DocumentService.listDocuments(auth.organizationId!, {
+      status: status || undefined,
+      category: category || undefined,
+      search: search || undefined,
+      limit,
+      offset,
+    });
 
-    let query = supabase
-      .from('documents')
-      .select('*')
-      .eq('company_id', companyId)
-      .order('created_at', { ascending: false });
-
-    if (category && category !== 'all') {
-      query = query.eq('category', category);
-    }
-
-    if (status && status !== 'all') {
-      query = query.eq('status', status);
-    }
-
-    const { data, error } = await query;
-
-    if (error) throw error;
-    return NextResponse.json(data);
+    return NextResponse.json(result);
   } catch (error) {
-    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+    console.error('[API] GET /documents error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-export async function POST(req: NextRequest) {
+/**
+ * POST /api/documents
+ * Crear documento nuevo
+ */
+export async function POST(request: NextRequest) {
   try {
-    const body = await req.json();
-    
-    const { data, error } = await supabase
-      .from('documents')
-      .insert([body])
-      .select()
-      .single();
+    const auth = await rbacMiddleware(request, {
+      requiredPermissions: [{ resource: 'documents', action: 'create' }],
+    });
 
-    if (error) throw error;
-    return NextResponse.json(data, { status: 201 });
+    if (!auth.isAuthorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.statusCode });
+    }
+
+    const formData = await request.formData();
+    const title = formData.get('title') as string;
+    const description = formData.get('description') as string;
+    const documentType = formData.get('documentType') as string;
+    const category = formData.get('category') as string;
+    const templateId = formData.get('templateId') as string | undefined;
+    const file = formData.get('file') as File;
+
+    if (!title || !documentType || !category || !file) {
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
+
+    const result = await DocumentService.uploadDocument({
+      organizationId: auth.organizationId!,
+      title,
+      description,
+      documentType,
+      category,
+      templateId,
+      file,
+      createdBy: auth.userId!,
+    });
+
+    // Log a audit trail
+    await AuditTrailService.logAction({
+      organizationId: auth.organizationId!,
+      userId: auth.userId!,
+      action: 'create',
+      resourceType: 'document',
+      resourceId: result.documentId,
+      newValues: { title, documentType, category },
+    });
+
+    return NextResponse.json(result, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
-  }
-}
-
-export async function PUT(req: NextRequest) {
-  try {
-    const body = await req.json();
-    const { id, ...updates } = body;
-
-    const { data, error } = await supabase
-      .from('documents')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return NextResponse.json(data);
-  } catch (error) {
-    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+    console.error('[API] POST /documents error:', error);
+    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
   }
 }
