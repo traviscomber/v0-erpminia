@@ -66,14 +66,14 @@ export async function PUT(
     const result = await DocumentService.approveDocument(
       params.id,
       approvalLevelId,
-      auth.userId!,
+      auth.user.id,
       comments
     );
 
     // Log a audit trail
     await AuditTrailService.logAction({
       organizationId: auth.organizationId!,
-      userId: auth.userId!,
+      userId: auth.user.id,
       action: 'approve',
       resourceType: 'document',
       resourceId: params.id,
@@ -117,14 +117,14 @@ export async function DELETE(
     const result = await DocumentService.rejectDocument(
       params.id,
       approvalLevelId,
-      auth.userId!,
+      auth.user.id,
       rejectionReason
     );
 
     // Log a audit trail
     await AuditTrailService.logAction({
       organizationId: auth.organizationId!,
-      userId: auth.userId!,
+      userId: auth.user.id,
       action: 'reject',
       resourceType: 'document',
       resourceId: params.id,

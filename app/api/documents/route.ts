@@ -77,13 +77,13 @@ export async function POST(request: NextRequest) {
       category,
       templateId,
       file,
-      createdBy: auth.userId!,
+      createdBy: auth.user.id,
     });
 
     // Log a audit trail
     await AuditTrailService.logAction({
       organizationId: auth.organizationId!,
-      userId: auth.userId!,
+      userId: auth.user.id,
       action: 'create',
       resourceType: 'document',
       resourceId: result.documentId,

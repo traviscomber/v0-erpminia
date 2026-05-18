@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     }
 
     const pendingApprovals = await DocumentService.getPendingApprovals(
-      auth.userId!,
+      auth.user.id,
       auth.organizationId!
     );
 

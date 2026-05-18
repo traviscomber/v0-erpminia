@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     await AuditTrailService.logAction({
       organizationId: auth.organizationId!,
-      userId: auth.userId!,
+      userId: auth.user.id,
       action: 'create',
       resourceType: 'asset',
       resourceId: asset.id,

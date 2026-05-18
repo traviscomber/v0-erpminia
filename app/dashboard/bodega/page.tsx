@@ -1,437 +1,134 @@
 'use client';
-
-import { useState } from 'react';
-import useSWR from 'swr';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Plus,
-  Package,
-  Search,
-  AlertTriangle,
-  TrendingUp,
-  DollarSign,
-  QrCode,
-  MapPin,
-  Barcode,
-  ArrowRightLeft,
-  Eye,
-  Download,
-  Filter,
-  RefreshCw,
-} from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { BrandCard } from '@/components/ui/brand-card';
-import { AuditTrail } from '@/components/audit-trail';
-import { StatusBadge } from '@/components/status-badge';
-import { exportToCSV } from '@/lib/export-utils';
-import {
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-} from 'recharts';
-import { CHART_COLORS_LIGHT } from '@/lib/theme-colors';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AlertCircle, TrendingUp, Package, QrCode } from 'lucide-react';
+import useSWR from 'swr';
+import { StockCard } from '@/components/warehouse/stock-card';
+import { QRScanner } from '@/components/warehouse/qr-scanner';
+import { TransferModal } from '@/components/warehouse/transfer-modal';
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+export default function BodesaDashboard() {
+  const { data: stock } = useSWR('/api/warehouse/stock', async (url) => {
+    const res = await fetch(url);
+    return res.ok ? res.json() : null;
+  });
 
-export default function BodegaPage() {
-  // Call all hooks at the top level
-  const [selectedItem, setSelectedItem] = useState<any>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [showQRMode, setShowQRMode] = useState(false);
+  const { data: reorder } = useSWR('/api/warehouse/reorder', async (url) => {
+    const res = await fetch(url);
+    return res.ok ? res.json() : null;
+  });
 
-  // Fetch warehouse inventory from API
-  const { data, error, isLoading, mutate } = useSWR(
-    `/api/dashboard/bodega${categoryFilter !== 'all' ? `?category=${categoryFilter}` : ''}`,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: true,
-      refreshInterval: 60000, // 1 minute
-    }
-  );
+  const stockList = stock?.stock || [];
+  const alerts = reorder?.alerts || [];
+  const stats = reorder?.stats || {};
 
-  const items = data?.items || [];
-  const criticalItems = data?.criticalItems || [];
-  const totalValue = data?.totalValue || 0;
-  const reorderAlerts = data?.reorderAlerts || [];
-
-  // Filter items by search and category
-  const filteredItems = items.filter((item: any) =>
-    (item.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-    (item.code?.toLowerCase() || '').includes(searchTerm.toLowerCase())
-  );
-
-  const lowStockItems = items.filter((i: any) => i.current_stock <= i.minimum_stock).length;
-
-  // Extract unique categories from items
-  const categories = Array.from(new Set(items.map((item: any) => item.category || 'Otros').filter(Boolean)));
-
-  // Create category data for PieChart - group items by category
-  const categoryData = items.reduce((acc: any[], item: any) => {
-    const existing = acc.find((c: any) => c.name === (item.category || 'Otros'));
-    if (existing) {
-      existing.items += 1;
-    } else {
-      acc.push({ name: item.category || 'Otros', items: 1 });
-    }
-    return acc;
-  }, []);
-
-  // Define colors for chart
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
-
-  // Early returns AFTER all hooks
-  if (error) return <div className="text-red-500">Error loading warehouse data</div>;
-  if (isLoading) return <div className="text-gray-500">Loading inventory...</div>;
+  const totalValue = stockList.reduce((sum: number, s: any) => sum + ((s.quantity_on_hand || 0) * (s.unit_cost || 0)), 0);
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="pb-4">
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-          <div>
-            <h1 className="text-4xl font-bold tracking-tight">Gestión de Bodegas</h1>
-            <p className="text-muted-foreground mt-3">
-              Trazabilidad completa FIFO, QR/barcode, ubicaciones multi-nivel (Zona/Rack/Nivel) y conteo cíclico
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" className="gap-2" onClick={() => alert('Funcionalidad de escaneo QR próximamente')}>
-              <QrCode className="h-4 w-4" />
-              Escanear QR
-            </Button>
-            <Button variant="outline" className="gap-2" onClick={() => alert('Módulo de conteo cíclico próximamente')}>
-              <Package className="h-4 w-4" />
-              Conteo Cíclico
-            </Button>
-            <Button className="gap-2" onClick={() => alert('Crear nuevo movimiento de inventario próximamente')}>
-              <Plus className="h-4 w-4" />
-              Nuevo Movimiento
-            </Button>
-          </div>
+    <div className="space-y-6">
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Bodega/Inventario</h1>
+          <p className="text-muted-foreground">Stock management, QR scanning, reorder alerts</p>
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="border-border overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-chart-1/10 to-transparent rounded-full -mr-12 -mt-12" />
-          <CardHeader className="pb-3 relative z-10">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Movimientos Hoy
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Package className="w-4 h-4" />
+              Total Items
             </CardTitle>
-          </CardHeader>
-          <CardContent className="relative z-10">
-            <div className="text-3xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground mt-2">recepciones + despachos</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border bg-primary/5 overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-primary/10 to-transparent rounded-full -mr-12 -mt-12" />
-          <CardHeader className="pb-3 relative z-10">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Bodegas Activas
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="relative z-10">
-            <div className="text-3xl font-bold text-primary">4</div>
-            <p className="text-xs text-muted-foreground mt-2">Central, Faena, Regional, Campaña</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border bg-destructive/5 overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-destructive/10 to-transparent rounded-full -mr-12 -mt-12" />
-          <CardHeader className="pb-3 relative z-10">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Recepción Pendiente
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="relative z-10">
-            <div className="text-3xl font-bold text-destructive">3</div>
-            <p className="text-xs text-muted-foreground mt-2">OC por confirmar</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border bg-accent/5 overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-accent/10 to-transparent rounded-full -mr-12 -mt-12" />
-          <CardHeader className="pb-3 relative z-10">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Exactitud Inventario
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="relative z-10">
-            <div className="text-3xl font-bold text-accent">98.2%</div>
-            <p className="text-xs text-muted-foreground mt-2">físico vs sistema</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Alert for Low Stock */}
-      {lowStockItems > 0 && (
-        <Card className="border-destructive/30 bg-destructive/5">
-          <CardHeader className="pb-3">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
-              <div>
-                <CardTitle className="text-destructive">
-                  Items con Stock Bajo
-                </CardTitle>
-                <CardDescription>
-                  {lowStockItems} artículo(s) está(n) por debajo del nivel mínimo
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-        </Card>
-      )}
-
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Category Distribution */}
-        <Card className="border-border">
-          <CardHeader>
-            <CardTitle>Distribución por Categoría</CardTitle>
-            <CardDescription>Items por categoría</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie
-                  data={categoryData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={80}
-                  paddingAngle={2}
-                  dataKey="items"
-                >
-                  {categoryData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="grid grid-cols-2 gap-2 mt-6 pt-4 border-t border-border">
-              {categoryData.slice(0, 4).map((item, idx) => (
-                <div key={item.name} className="text-center">
-                  <div
-                    className="w-2 h-2 rounded-full mx-auto mb-2"
-                    style={{ backgroundColor: COLORS[idx % COLORS.length] }}
-                  />
-                  <p className="text-xs font-medium text-muted-foreground truncate">{item.name}</p>
-                  <p className="text-sm font-bold">{item.items}</p>
-                </div>
-              ))}
-            </div>
+            <p className="text-2xl font-bold">{stockList.length}</p>
           </CardContent>
         </Card>
 
-        {/* Stock Status */}
-        <Card className="border-border lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Estado del Inventario</CardTitle>
-            <CardDescription>Análisis de disponibilidad</CardDescription>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <AlertCircle className="w-4 h-4" />
+              Low Stock
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">Items Disponibles</span>
-                <span className="text-2xl font-bold text-green-600">
-                  {items.filter(i => i.current_stock > i.minimum_stock).length}
-                </span>
-              </div>
-              <div className="w-full bg-muted rounded-full h-2">
-                <div
-                  className="bg-green-600 h-2 rounded-full"
-                  style={{
-                    width: `${
-                      items.length > 0
-                        ? (items.filter(i => i.current_stock > i.minimum_stock).length / items.length) * 100
-                        : 0
-                    }%`,
-                  }}
-                />
-              </div>
-            </div>
+          <CardContent>
+            <p className="text-2xl font-bold text-destructive">{stats.lowStockItems || 0}</p>
+          </CardContent>
+        </Card>
 
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">Items con Stock Bajo</span>
-                <span className="text-2xl font-bold text-red-600">{lowStockItems}</span>
-              </div>
-              <div className="w-full bg-muted rounded-full h-2">
-                <div
-                  className="bg-red-600 h-2 rounded-full"
-                  style={{
-                    width: `${items.length > 0 ? (lowStockItems / items.length) * 100 : 0}%`,
-                  }}
-                />
-              </div>
-            </div>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <TrendingUp className="w-4 h-4" />
+              Total Value
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">${(totalValue / 1000000).toFixed(1)}M</p>
+          </CardContent>
+        </Card>
 
-            <div className="pt-4 border-t border-border">
-              <p className="text-xs text-muted-foreground">
-                Disponibilidad: {items.length > 0 ? ((items.filter(i => i.current_stock > i.minimum_stock).length / items.length) * 100).toFixed(1) : 0}%
-              </p>
-            </div>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <QrCode className="w-4 h-4" />
+              Alerts
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold text-primary">{stats.activeAlerts || 0}</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Inventory Items Table */}
-      <Card className="border-border">
-        <CardHeader className="pb-4">
-          <div className="flex flex-col md:flex-row md:items-center gap-4">
-            <div className="flex-1">
-              <CardTitle>Listado de Inventario</CardTitle>
-              <CardDescription>Administra todos los items en bodega</CardDescription>
-            </div>
-            <div className="flex gap-2">
-              <div className="relative flex-1 md:flex-initial md:w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar item..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-input"
-                />
-              </div>
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-40 bg-input">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
-                  {categories.map(cat => (
-                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+      <Tabs defaultValue="stock" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="stock">All Stock</TabsTrigger>
+          <TabsTrigger value="alerts">Low Stock ({stats.lowStockItems})</TabsTrigger>
+          <TabsTrigger value="scanner">QR Scanner</TabsTrigger>
+          <TabsTrigger value="transfer">Transfer</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="stock">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {stockList.map((item: any) => (
+              <StockCard
+                key={item.id}
+                partCode={item.part_code}
+                partName={item.part_name}
+                quantityOnHand={item.quantity_on_hand}
+                quantityAvailable={item.quantity_available}
+                reorderLevel={item.reorder_level}
+                unitCost={item.unit_cost}
+                binLocation={item.bin?.bin_location || 'N/A'}
+              />
+            ))}
           </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="text-center py-8 text-muted-foreground">Cargando inventario...</div>
-          ) : items.length === 0 ? (
-            <div className="text-center py-8">
-              <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-              <p className="text-muted-foreground">No hay items registrados</p>
-              <Button className="mt-4 gap-2">
-                <Plus className="h-4 w-4" />
-                Crear primer item
-              </Button>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left font-semibold text-muted-foreground py-3 px-4">Nombre</th>
-                    <th className="text-left font-semibold text-muted-foreground py-3 px-4">SKU / Lote</th>
-                    <th className="text-left font-semibold text-muted-foreground py-3 px-4">Ubicación (Zona/Rack/Nivel)</th>
-                    <th className="text-left font-semibold text-muted-foreground py-3 px-4">Stock Actual</th>
-                    <th className="text-left font-semibold text-muted-foreground py-3 px-4">Valor Total</th>
-                    <th className="text-left font-semibold text-muted-foreground py-3 px-4">Trazabilidad</th>
-                    <th className="text-left font-semibold text-muted-foreground py-3 px-4">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((item) => (
-                    <tr
-                      key={item.id}
-                      className="border-b border-border/50 hover:bg-muted/30 transition-colors group"
-                    >
-                      <td className="py-3 px-4 font-medium">{item.name}</td>
-                      <td className="py-3 px-4 text-sm">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-1">
-                            <Barcode className="h-3 w-3 text-muted-foreground" />
-                            <span className="text-muted-foreground">{item.sku}</span>
-                          </div>
-                          {item.batch_number && (
-                            <div className="text-xs text-muted-foreground">Lote: {item.batch_number}</div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-sm">
-                        {item.zone && item.rack && item.level ? (
-                          <div className="flex items-center gap-1 text-muted-foreground">
-                            <MapPin className="h-3 w-3" />
-                            <span>{item.zone}/{item.rack}/{item.level}</span>
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground text-xs">Sin ubicación</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4">
-                        <Badge
-                          variant="outline"
-                          className={
-                            item.current_stock <= item.minimum_stock
-                              ? 'bg-destructive/10 text-destructive border-destructive/30'
-                              : 'bg-accent/10 text-accent border-accent/30'
-                          }
-                        >
-                          {item.current_stock}
-                        </Badge>
-                      </td>
-                      <td className="py-3 px-4 font-semibold">{formatCurrency(item.total_value)}</td>
-                      <td className="py-3 px-4">
-                        {item.traceability_enabled ? (
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-accent" />
-                            <span className="text-xs text-accent font-medium">Activa</span>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-muted-foreground font-medium">Desactiva</span>
-                        )}
-                        {item.qr_code && (
-                          <div className="mt-1 text-xs text-muted-foreground">
-                            QR: {item.qr_code.slice(0, 6)}...
-                          </div>
-                        )}
-                      </td>
-                      <td className="py-3 px-4">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="opacity-0 group-hover:opacity-100 transition-opacity gap-1"
-                        >
-                          <Eye className="h-3 w-3" />
-                          Ver Trazabilidad
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        </TabsContent>
+
+        <TabsContent value="alerts">
+          <div className="space-y-3">
+            {alerts.map((alert: any) => (
+              <Card key={alert.id} className="border-destructive/50 bg-destructive/5">
+                <CardContent className="pt-6">
+                  <p><strong>{alert.stock?.part_name}</strong> ({alert.stock?.part_code})</p>
+                  <p className="text-sm text-muted-foreground">Level: {alert.current_value} / {alert.threshold_value}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="scanner">
+          <QRScanner />
+        </TabsContent>
+
+        <TabsContent value="transfer">
+          <TransferModal />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

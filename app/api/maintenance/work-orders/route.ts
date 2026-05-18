@@ -20,12 +20,12 @@ export async function POST(request: NextRequest) {
       priority: body.priority,
       plannedDurationHours: body.plannedDurationHours,
       assignedTo: body.assignedTo,
-      createdBy: auth.userId!,
+      createdBy: auth.user.id,
     });
 
     await AuditTrailService.logAction({
       organizationId: auth.organizationId!,
-      userId: auth.userId!,
+      userId: auth.user.id,
       action: 'create',
       resourceType: 'work_order',
       resourceId: wo.id,
