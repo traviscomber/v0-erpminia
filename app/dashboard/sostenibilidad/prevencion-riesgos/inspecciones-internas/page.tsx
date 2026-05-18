@@ -11,6 +11,8 @@ import { InspeccionModal } from '@/components/sostenibilidad/inspeccion-modal';
 import { ConfirmDeleteDialog } from '@/components/sostenibilidad/confirm-delete-dialog';
 import { FilterPanel } from '@/components/sostenibilidad/filter-panel';
 import { ExportButtons } from '@/components/sostenibilidad/export-buttons';
+import { DemoDataBadge } from '@/components/sostenibilidad/demo-data-badge';
+import { mockInspeccionesData } from '@/lib/mock-data-sostenibilidad';
 
 interface InspeccionInterna {
   id: string;
@@ -39,8 +41,26 @@ export default function InspeccionesInternasPage() {
     fetcher
   );
 
-  const inspeccionesList = (inspecciones.data || []) as InspeccionInterna[];
-  const filteredInspecciones = inspeccionesList.filter((insp) => {
+  // Convertir mock data a formato InspeccionInterna
+  const mockDataFormatted: InspeccionInterna[] = (mockInspeccionesData || [])
+    .filter((m: any) => m.tipo === 'interna')
+    .map((m: any, idx: number) => ({
+      id: m.id,
+      numero_inspeccion: `INP-${new Date(m.fecha).getFullYear()}-${String(idx + 1).padStart(3, '0')}`,
+      fecha_planificada: m.fecha,
+      fecha_realizada: m.estado === 'completada' ? m.fecha : undefined,
+      area_faena: ['Sector operaciones', 'Planta principal', 'Almacén', 'Sector procesamiento', 'Área administrativa', 'Sector mantenimiento', 'Higiene Industrial'][idx % 7],
+      inspector: m.inspector,
+      hallazgos_count: m.hallazgos || 0,
+      estado: m.estado === 'completada' ? 'realizada' : 'planificada',
+      reporte_url: m.estado === 'completada' ? `/reportes/inspeccion-${m.id}.pdf` : undefined,
+    }));
+
+  const inspeccionesList = (inspecciones.data || inspecciones || []) as InspeccionInterna[];
+  const displayData = inspeccionesList.length > 0 ? inspeccionesList : mockDataFormatted;
+  const useMockData = inspeccionesList.length === 0;
+
+  const filteredInspecciones = displayData.filter((insp) => {
     const matchSearch = insp.numero_inspeccion.toLowerCase().includes(searchTerm.toLowerCase()) ||
       insp.area_faena.toLowerCase().includes(searchTerm.toLowerCase());
     const matchEstado = !estado || insp.estado === estado;
@@ -99,6 +119,7 @@ export default function InspeccionesInternasPage() {
         <div>
           <h1 className="text-3xl font-bold text-foreground mb-2">Inspecciones Internas</h1>
           <p className="text-muted-foreground">Registro y seguimiento de inspecciones operacionales internas</p>
+          {useMockData && <DemoDataBadge />}
         </div>
         <Button 
           className="bg-primary hover:bg-primary/90"

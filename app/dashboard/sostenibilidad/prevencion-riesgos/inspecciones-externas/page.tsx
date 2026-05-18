@@ -9,6 +9,8 @@ import { Plus, Search, AlertCircle, CheckCircle, Clock, Eye, Download, Trash2, L
 import useSWR from 'swr';
 import { InspeccionExternaModal } from '@/components/sostenibilidad/inspeccion-externa-modal';
 import { ConfirmDeleteDialog } from '@/components/sostenibilidad/confirm-delete-dialog';
+import { DemoDataBadge } from '@/components/sostenibilidad/demo-data-badge';
+import { mockInspeccionesData } from '@/lib/mock-data-sostenibilidad';
 
 interface InspeccionExterna {
   id: string;
@@ -38,8 +40,28 @@ export default function InspeccionesExternasPage() {
     fetcher
   );
 
-  const inspeccionesList = (inspecciones.data || []) as InspeccionExterna[];
-  const filteredInspecciones = inspeccionesList.filter((insp) =>
+  // Convertir mock data a formato InspeccionExterna
+  const mockDataFormatted: InspeccionExterna[] = (mockInspeccionesData || [])
+    .filter((m: any) => m.tipo === 'externa')
+    .map((m: any, idx: number) => ({
+      id: m.id,
+      numero_inspeccion: `EXP-${new Date(m.fecha).getFullYear()}-${String(idx + 1).padStart(3, '0')}`,
+      fecha_planificada: m.fecha,
+      fecha_realizada: m.estado === 'completada' ? m.fecha : undefined,
+      area_faena: ['Planta general', 'Sector operaciones', 'Almacén'][idx % 3],
+      inspector: m.inspector,
+      empresa_externa: m.inspector,
+      contacto_externo: 'contacto@' + m.inspector.toLowerCase().replace(/\s/g, '.') + '.com',
+      hallazgos_count: m.hallazgos || 0,
+      estado: m.estado === 'completada' ? 'realizada' : 'planificada',
+      reporte_url: m.estado === 'completada' ? `/reportes/externa-${m.id}.pdf` : undefined,
+    }));
+
+  const inspeccionesList = (inspecciones.data || inspecciones || []) as InspeccionExterna[];
+  const displayData = inspeccionesList.length > 0 ? inspeccionesList : mockDataFormatted;
+  const useMockData = inspeccionesList.length === 0;
+
+  const filteredInspecciones = displayData.filter((insp) =>
     insp.numero_inspeccion.toLowerCase().includes(searchTerm.toLowerCase()) ||
     insp.area_faena.toLowerCase().includes(searchTerm.toLowerCase()) ||
     insp.empresa_externa.toLowerCase().includes(searchTerm.toLowerCase())
@@ -96,6 +118,7 @@ export default function InspeccionesExternasPage() {
         <div>
           <h1 className="text-3xl font-bold text-foreground mb-2">Inspecciones Externas</h1>
           <p className="text-muted-foreground">Registro de auditorías y fiscalizaciones de organismos externos</p>
+          {useMockData && <DemoDataBadge />}
         </div>
         <Button 
           className="bg-primary hover:bg-primary/90"

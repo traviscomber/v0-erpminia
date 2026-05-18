@@ -63,11 +63,25 @@ export default function MedioAmbientePage() {
     fetcher
   );
 
-  const filteredRegistros = addMockDataIfEmpty(registros.data || registros, mockMedioAmbienteData);
+  // Convertir mock data a formato MedioAmbienteRecord
+  const mockDataFormatted: MedioAmbienteRecord[] = (mockMedioAmbienteData || []).map((m: any, idx: number) => ({
+    id: m.id,
+    numero_registro: `MA-${new Date(m.fecha).getFullYear()}-${String(idx + 1).padStart(3, '0')}`,
+    fecha: m.fecha,
+    tipo: m.tipo,
+    descripcion: m.descripcion,
+    valor: m.valor,
+    unidad: m.unidad,
+    cumplimiento: m.cumplimiento,
+  }));
 
-  const registrosList = (registros.data || []) as MedioAmbienteRecord[];
-  const filtered = registrosList.filter((r) => {
-    const matchSearch = r.numero_registro.toLowerCase().includes(searchTerm.toLowerCase());
+  const registrosList = (registros.data || registros || []) as MedioAmbienteRecord[];
+  const displayData = registrosList.length > 0 ? registrosList : mockDataFormatted;
+  const useMockData = registrosList.length === 0;
+
+  const filtered = displayData.filter((r) => {
+    const matchSearch = r.numero_registro.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      r.descripcion.toLowerCase().includes(searchTerm.toLowerCase());
     const matchTipo = !tipo || r.tipo === tipo;
     return matchSearch && matchTipo;
   });
@@ -142,7 +156,7 @@ export default function MedioAmbientePage() {
         <div>
           <div className="flex items-center gap-3 mb-2">
             <h1 className="text-3xl font-bold text-foreground">Medio Ambiente</h1>
-            {(!registros || (registros.data && registros.data.length === 0) || (Array.isArray(registros) && registros.length === 0)) && <DemoDataBadge />}
+            {useMockData && <DemoDataBadge />}
           </div>
           <p className="text-muted-foreground">Monitoreo de emisiones, residuos, agua y ruido</p>
         </div>
