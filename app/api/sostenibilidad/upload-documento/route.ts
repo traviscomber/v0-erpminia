@@ -1,13 +1,7 @@
 import { put } from '@vercel/blob';
 import { NextRequest, NextResponse } from 'next/server';
 
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '11mb',
-    },
-  },
-};
+export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   try {

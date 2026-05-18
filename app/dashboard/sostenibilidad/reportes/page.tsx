@@ -327,7 +327,11 @@ export default function ReportesPage() {
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
-      </div>
+        </Card>
+        </div>
+
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
