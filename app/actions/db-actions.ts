@@ -34,13 +34,23 @@ export async function createWearPart(partData: {
     .single();
   
   if (error) throw new Error(error.message);
-  revalidateTag('wear-parts');
+  revalidateTag('wear-parts', 'max');
   return data;
 }
 
 export async function updateWearPart(
   id: string,
-  updates: Partial<typeof partData>
+  updates: {
+    part_code?: string;
+    part_name?: string;
+    description?: string;
+    unit_cost?: number;
+    stock_min?: number;
+    stock_current?: number;
+    supplier?: string;
+    lead_time_days?: number;
+    is_critical?: boolean;
+  }
 ) {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -51,7 +61,7 @@ export async function updateWearPart(
     .single();
   
   if (error) throw new Error(error.message);
-  revalidateTag('wear-parts');
+  revalidateTag('wear-parts', 'max');
   return data;
 }
 
@@ -87,13 +97,24 @@ export async function createMaintenanceOrder(orderData: {
     .single();
   
   if (error) throw new Error(error.message);
-  revalidateTag('maintenance-orders');
+  revalidateTag('maintenance-orders', 'max');
   return data;
 }
 
 export async function updateMaintenanceOrder(
   id: string,
-  updates: Partial<typeof orderData>
+  updates: {
+    order_number?: string;
+    title?: string;
+    description?: string;
+    vehicle_id?: string;
+    assigned_to?: string;
+    maintenance_type?: string;
+    priority?: string;
+    status?: string;
+    estimated_hours?: number;
+    estimated_cost?: number;
+  }
 ) {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -104,7 +125,7 @@ export async function updateMaintenanceOrder(
     .single();
   
   if (error) throw new Error(error.message);
-  revalidateTag('maintenance-orders');
+  revalidateTag('maintenance-orders', 'max');
   return data;
 }
 
@@ -137,7 +158,7 @@ export async function createAlarm(alarmData: {
     .single();
   
   if (error) throw new Error(error.message);
-  revalidateTag('alarms');
+  revalidateTag('alarms', 'max');
   return data;
 }
 

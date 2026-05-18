@@ -1,7 +1,7 @@
 // FASE 1: RBAC Middleware - Protección de rutas basada en permisos
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 import RBACService from '@/lib/services/rbac.service';
 
 export interface ProtectRouteOptions {
@@ -41,7 +41,7 @@ export async function rbacMiddleware(
 
   try {
     // Obtener usuario autenticado
-    const supabase = createServerClient();
+    const supabase = await createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -149,7 +149,7 @@ export async function validateUserOwnership(
   request: NextRequest,
   userIdFromUrl: string
 ) {
-  const supabase = createServerClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -172,7 +172,7 @@ export async function validateOrganizationAccess(
   request: NextRequest,
   organizationId: string
 ) {
-  const supabase = createServerClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

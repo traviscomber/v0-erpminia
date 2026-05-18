@@ -117,7 +117,7 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const supabase = createClient();
+    const supabase = await createClient();
 
     // Update user metadata with new role
     const { data, error } = await supabase.auth.admin.updateUserById(userId, {
@@ -167,7 +167,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const supabase = createClient();
+    const supabase = await createClient();
 
     // Delete user from Supabase Auth
     const { error } = await supabase.auth.admin.deleteUser(userId);

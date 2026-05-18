@@ -6,12 +6,17 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 );
 
+export type RouteHandlerConfig = {
+  params: Promise<{ id: string }>;
+};
+
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
-    const categoryId = params.id;
+    const categoryId = id;
 
     // Map category slugs and IDs to table names
     const categoryTableMap: Record<string, string> = {

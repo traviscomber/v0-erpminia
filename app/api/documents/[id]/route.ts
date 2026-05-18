@@ -4,14 +4,19 @@ import { DocumentService } from '@/lib/services/document.service';
 import { DocumentApprovalWorkflowService } from '@/lib/services/document-approval-workflow.service';
 import { AuditTrailService } from '@/lib/services/audittrail.service';
 
+export type RouteHandlerConfig = {
+  params: Promise<{ id: string }>;
+};
+
 /**
  * GET /api/documents/[id]
  * Obtener documento específico con todas las relaciones
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const auth = await rbacMiddleware(request, {
       requiredPermissions: [{ resource: 'documents', action: 'read' }],
@@ -21,7 +26,7 @@ export async function GET(
       return NextResponse.json({ error: auth.error }, { status: auth.statusCode });
     }
 
-    const document = await DocumentService.getDocument(params.id);
+    const document = await DocumentService.getDocument(id);
 
     if (!document) {
       return NextResponse.json({ error: 'Document not found' }, { status: 404 });
@@ -45,8 +50,9 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const auth = await rbacMiddleware(request, {
       requiredPermissions: [{ resource: 'documents', action: 'approve' }],
@@ -64,7 +70,7 @@ export async function PUT(
     }
 
     const result = await DocumentService.approveDocument(
-      params.id,
+      id,
       approvalLevelId,
       auth.user.id,
       comments
@@ -76,7 +82,7 @@ export async function PUT(
       userId: auth.user.id,
       action: 'approve',
       resourceType: 'document',
-      resourceId: params.id,
+      resourceId: id,
       newValues: { approvalLevelId, comments },
     });
 
@@ -93,8 +99,9 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const auth = await rbacMiddleware(request, {
       requiredPermissions: [{ resource: 'documents', action: 'delete' }],
@@ -115,7 +122,7 @@ export async function DELETE(
     }
 
     const result = await DocumentService.rejectDocument(
-      params.id,
+      id,
       approvalLevelId,
       auth.user.id,
       rejectionReason
@@ -127,7 +134,7 @@ export async function DELETE(
       userId: auth.user.id,
       action: 'reject',
       resourceType: 'document',
-      resourceId: params.id,
+      resourceId: id,
       newValues: { approvalLevelId, rejectionReason },
     });
 
