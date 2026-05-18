@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Search, Calendar, Clock, Download, Eye, Trash2 } from 'lucide-react';
 import useSWR from 'swr';
+import { DemoDataBadge } from '@/components/sostenibilidad/demo-data-badge';
+import { mockCapacitacionesData, addMockDataIfEmpty } from '@/lib/mock-data-sostenibilidad';
 import {
   Dialog,
   DialogContent,
@@ -23,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { toast } from 'sonner';
 
 interface Capacitacion {
   id: string;
@@ -54,10 +57,11 @@ export default function CapacitacionesPage() {
 
   const { data: capacitaciones = [], isLoading, mutate } = useSWR('/api/sostenibilidad/capacitaciones', fetcher);
 
-  const filteredCapacitaciones = (capacitaciones.data || []).filter((cap: Capacitacion) =>
+  const filteredCapacitaciones = addMockDataIfEmpty(capacitaciones.data || capacitaciones, mockCapacitacionesData).filter((cap: Capacitacion) =>
     cap.nombre_capacitacion.toLowerCase().includes(searchTerm.toLowerCase()) ||
     cap.tema.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  const isDemo = !capacitaciones || (capacitaciones.data && capacitaciones.data.length === 0) || (Array.isArray(capacitaciones) && capacitaciones.length === 0);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -103,9 +107,12 @@ export default function CapacitacionesPage() {
   return (
     <div className="min-h-screen bg-background p-6">
       {/* Header */}
-      <div className="mb-8 flex justify-between items-center">
+      <div className="mb-8 flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Gestión de Capacitaciones</h1>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-3xl font-bold text-foreground">Gestión de Capacitaciones</h1>
+            {isDemo && <DemoDataBadge />}
+          </div>
           <p className="text-muted-foreground">Registra y gestiona todas las capacitaciones del personal</p>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>

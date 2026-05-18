@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Eye, Trash2 } from 'lucide-react';
 import useSWR from 'swr';
+import { DemoDataBadge } from '@/components/sostenibilidad/demo-data-badge';
+import { mockMedioAmbienteData, addMockDataIfEmpty } from '@/lib/mock-data-sostenibilidad';
 import { ConfirmDeleteDialog } from '@/components/sostenibilidad/confirm-delete-dialog';
 import { FilterPanel } from '@/components/sostenibilidad/filter-panel';
 import { ExportButtons } from '@/components/sostenibilidad/export-buttons';
@@ -60,6 +62,8 @@ export default function MedioAmbientePage() {
     '/api/sostenibilidad/medio-ambiente',
     fetcher
   );
+
+  const filteredRegistros = addMockDataIfEmpty(registros.data || registros, mockMedioAmbienteData);
 
   const registrosList = (registros.data || []) as MedioAmbienteRecord[];
   const filtered = registrosList.filter((r) => {
@@ -134,9 +138,12 @@ export default function MedioAmbientePage() {
 
   return (
     <div className="min-h-screen bg-background p-6">
-      <div className="mb-8 flex justify-between items-center">
+      <div className="mb-8 flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Medio Ambiente</h1>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-3xl font-bold text-foreground">Medio Ambiente</h1>
+            {(!registros || (registros.data && registros.data.length === 0) || (Array.isArray(registros) && registros.length === 0)) && <DemoDataBadge />}
+          </div>
           <p className="text-muted-foreground">Monitoreo de emisiones, residuos, agua y ruido</p>
         </div>
         <Dialog open={modalOpen} onOpenChange={setModalOpen}>

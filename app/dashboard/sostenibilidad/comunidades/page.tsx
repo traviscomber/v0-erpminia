@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Eye, Trash2 } from 'lucide-react';
 import useSWR from 'swr';
+import { DemoDataBadge } from '@/components/sostenibilidad/demo-data-badge';
+import { mockComunidadesData, addMockDataIfEmpty } from '@/lib/mock-data-sostenibilidad';
 import { ConfirmDeleteDialog } from '@/components/sostenibilidad/confirm-delete-dialog';
 import { FilterPanel } from '@/components/sostenibilidad/filter-panel';
 import { ExportButtons } from '@/components/sostenibilidad/export-buttons';
@@ -60,7 +62,7 @@ export default function ComunidadesPage() {
     fetcher
   );
 
-  const registrosList = (registros.data || []) as ComunidadRecord[];
+  const registrosList = addMockDataIfEmpty(registros.data || registros, mockComunidadesData) as ComunidadRecord[];
   const filtered = registrosList.filter((r) => {
     const matchSearch = r.numero_registro.toLowerCase().includes(searchTerm.toLowerCase()) ||
       r.stakeholder.toLowerCase().includes(searchTerm.toLowerCase());
@@ -133,9 +135,12 @@ export default function ComunidadesPage() {
 
   return (
     <div className="min-h-screen bg-background p-6">
-      <div className="mb-8 flex justify-between items-center">
+      <div className="mb-8 flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Relación con Comunidades</h1>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-3xl font-bold text-foreground">Relación con Comunidades</h1>
+            {(!registros || (registros.data && registros.data.length === 0) || (Array.isArray(registros) && registros.length === 0)) && <DemoDataBadge />}
+          </div>
           <p className="text-muted-foreground">Eventos, comunicaciones y compromisos con stakeholders</p>
         </div>
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>

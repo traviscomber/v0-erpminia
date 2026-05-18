@@ -9,6 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Search, FileText, CheckCircle, Clock, AlertCircle, MessageSquare, Download, Eye } from 'lucide-react';
 import useSWR from 'swr';
+import { DemoDataBadge } from '@/components/sostenibilidad/demo-data-badge';
+import { mockFlujDocumentalData, addMockDataIfEmpty } from '@/lib/mock-data-sostenibilidad';
 import {
   Dialog,
   DialogContent,
@@ -54,7 +56,7 @@ export default function FlujDocumentalPage() {
   });
 
   const { data: documentos = [], mutate } = useSWR('/api/sostenibilidad/documentos-flujo', fetcher);
-  const docList = (documentos.data || []) as DocumentoFlujo[];
+  const docList = addMockDataIfEmpty(documentos.data || documentos, mockFlujDocumentalData) as DocumentoFlujo[];
 
   const filteredDocs = docList.filter((doc) =>
     (doc.documento_nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -123,9 +125,12 @@ export default function FlujDocumentalPage() {
   return (
     <div className="min-h-screen bg-background p-6">
       {/* Header */}
-      <div className="mb-8 flex justify-between items-center">
+      <div className="mb-8 flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Flujo de Aprobación de Documentos</h1>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-3xl font-bold text-foreground">Flujo de Aprobación de Documentos</h1>
+            {(!documentos || (documentos.data && documentos.data.length === 0) || (Array.isArray(documentos) && documentos.length === 0)) && <DemoDataBadge />}
+          </div>
           <p className="text-muted-foreground">Workflow de 2 validadores: Jefe de Sostenibilidad → Gerente de Operaciones</p>
         </div>
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
