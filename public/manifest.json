@@ -1,0 +1,110 @@
+{
+  "name": "Sostenibilidad - N3URALIA ERP",
+  "short_name": "Sostenibilidad",
+  "description": "Sistema integrado de gestión de sostenibilidad, salud y seguridad ocupacional",
+  "start_url": "/dashboard/sostenibilidad",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#f59e0b",
+  "categories": ["business", "productivity"],
+  "screenshots": [
+    {
+      "src": "/screenshots/screenshot1.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/screenshots/screenshot2.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Inspecciones",
+      "short_name": "Inspecciones",
+      "description": "Ver y crear inspecciones",
+      "url": "/dashboard/sostenibilidad/prevencion-riesgos/inspecciones-internas",
+      "icons": [
+        {
+          "src": "/icon-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "No-Conformidades",
+      "short_name": "NCs",
+      "description": "Gestionar no-conformidades",
+      "url": "/dashboard/sostenibilidad/no-conformidades",
+      "icons": [
+        {
+          "src": "/icon-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Acciones Correctivas",
+      "short_name": "Acciones",
+      "description": "Ver acciones correctivas",
+      "url": "/dashboard/sostenibilidad/acciones-correctivas",
+      "icons": [
+        {
+          "src": "/icon-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "file",
+          "accept": ["image/*", "application/pdf", ".doc", ".docx"]
+        }
+      ]
+    }
+  }
+}
