@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select,
   SelectContent,
@@ -14,6 +15,7 @@ import {
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import useSWR from 'swr';
 import { ExportButtons } from '@/components/sostenibilidad/export-buttons';
+import { SustainabilityKPIDashboard } from '@/components/sostenibilidad/kpi-dashboard';
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
@@ -117,9 +119,23 @@ export default function ReportesPage() {
     <div className="min-h-screen bg-background p-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-foreground mb-2">Reportes de Sostenibilidad</h1>
-        <p className="text-muted-foreground">Análisis comparativo por período de inspecciones y hallazgos</p>
+        <p className="text-muted-foreground">Análisis comparativo por período de inspecciones, hallazgos y KPIs</p>
       </div>
 
+      {/* Tabs for different views */}
+      <Tabs defaultValue="kpi" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="kpi">Dashboard KPI</TabsTrigger>
+          <TabsTrigger value="detailed">Análisis Detallado</TabsTrigger>
+        </TabsList>
+
+        {/* KPI Dashboard Tab */}
+        <TabsContent value="kpi" className="space-y-6">
+          <SustainabilityKPIDashboard />
+        </TabsContent>
+
+        {/* Detailed Analysis Tab */}
+        <TabsContent value="detailed" className="space-y-6">
       {/* Controles de período */}
       <Card className="mb-8">
         <CardHeader>
@@ -311,7 +327,6 @@ export default function ReportesPage() {
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
-        </Card>
       </div>
     </div>
   );

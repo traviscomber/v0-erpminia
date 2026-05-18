@@ -1,0 +1,217 @@
+'use client';
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { TrendingUp, TrendingDown, Target, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import useSWR from 'swr';
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
+export function SustainabilityKPIDashboard() {
+  const { data: dashboardData, isLoading } = useSWR(
+    '/api/sostenibilidad/dashboard/overview',
+    fetcher
+  );
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map((i) => (
+          <Card key={i}>
+            <CardContent className="p-6 h-24 bg-muted/50 rounded animate-pulse" />
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  if (!dashboardData) return null;
+
+  const { overview, trends, top_risks } = dashboardData;
+
+  const getComplianceColor = (score: number) => {
+    if (score >= 85) return 'text-secondary';
+    if (score >= 70) return 'text-primary';
+    return 'text-destructive';
+  };
+
+  const getTrendIcon = (trend: string) => {
+    if (trend === 'mejorando') return <TrendingUp className="h-4 w-4 text-secondary" />;
+    if (trend === 'empeorando') return <TrendingDown className="h-4 w-4 text-destructive" />;
+    return <Target className="h-4 w-4 text-muted-foreground" />;
+  };
+
+  const COLORS = ['#22C55E', '#F97316', '#EF4444']; // Verde, Naranja, Rojo
+
+  return (
+    <div className="space-y-6">
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Compliance Score */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-semibold">Compliance Score</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className={`text-3xl font-bold ${getComplianceColor(overview.compliance_score)}`}>
+              {overview.compliance_score}%
+            </div>
+            <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
+              {getTrendIcon(overview.trend)}
+              <span className="capitalize">{overview.trend}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* NCs Abiertas */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-semibold">NCs Abiertas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-primary">{overview.open_ncs}</div>
+            <div className="mt-2 text-xs text-muted-foreground">
+              de {overview.total_ncs} totales
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* CAs Vencidas */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-semibold">CAs Vencidas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className={`text-3xl font-bold ${overview.overdue_cas > 0 ? 'text-destructive' : 'text-secondary'}`}>
+              {overview.overdue_cas}
+            </div>
+            <div className="mt-2 text-xs text-muted-foreground">
+              Requiere acción inmediata
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Cierre Rate */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-semibold">Tasa Cierre</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-secondary">
+              {overview.total_ncs > 0
+                ? Math.round((overview.closed_ncs / overview.total_ncs) * 100)
+                : 0}
+              %
+            </div>
+            <div className="mt-2 text-xs text-muted-foreground">
+              {overview.closed_ncs} cerradas
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Trends Chart */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Tendencia de Compliance Score</CardTitle>
+          <CardDescription>Últimos 12 meses</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {trends && trends.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={trends}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="report_period"
+                  tick={{ fontSize: 12 }}
+                />
+                <YAxis domain={[0, 100]} />
+                <Tooltip />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="compliance_score"
+                  stroke="#22C55E"
+                  name="Score"
+                  dot={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-300 flex items-center justify-center text-muted-foreground">
+              Sin datos disponibles
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* NC Distribution */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Distribución de NCs por Estado</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={[
+                    { name: 'Abiertas', value: overview.open_ncs },
+                    { name: 'Cerradas', value: overview.closed_ncs },
+                  ]}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, value }) => `${name}: ${value}`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  <Cell fill="#F97316" />
+                  <Cell fill="#22C55E" />
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Top Risks */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Top Riesgos Abiertos</CardTitle>
+            <CardDescription>NCs por cerrar</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {top_risks && top_risks.length > 0 ? (
+                top_risks.map((risk: any) => (
+                  <div key={risk.id} className="flex items-start gap-2 p-2 bg-muted/50 rounded text-sm">
+                    <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0 text-destructive" />
+                    <div className="flex-1">
+                      <p className="font-medium">{risk.nc_number}</p>
+                      <p className="text-xs text-muted-foreground">{risk.title}</p>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className={
+                        risk.severity === 'crítica'
+                          ? 'bg-destructive/10'
+                          : 'bg-primary/10'
+                      }
+                    >
+                      {risk.severity}
+                    </Badge>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">Sin riesgos abiertos</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

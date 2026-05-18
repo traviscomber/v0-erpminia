@@ -17,6 +17,8 @@ import {
   Calendar,
   FileText,
 } from 'lucide-react';
+import { SustainabilityWorkflowDiagram } from '@/components/sostenibilidad/sustainability-workflow-diagram';
+import { SustainabilityModuleConnections } from '@/components/sostenibilidad/module-connections';
 
 interface PillarData {
   title: string;
@@ -235,6 +237,16 @@ export default function SostenibilidadDashboard() {
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      {/* Workflow Integration Diagram */}
+      <div className="mt-12 mb-8">
+        <SustainabilityWorkflowDiagram />
+      </div>
+
+      {/* Module Connections & Real-time Status */}
+      <div className="mt-12">
+        <SustainabilityModuleConnections />
       </div>
     </div>
   );
