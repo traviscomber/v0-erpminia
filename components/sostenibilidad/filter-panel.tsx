@@ -51,12 +51,12 @@ export function FilterPanel({
         {onEstadoChange && (
           <div>
             <label className="text-sm font-medium mb-2 block">Estado</label>
-            <Select value={estado || ''} onValueChange={onEstadoChange}>
+            <Select value={estado || 'todos'} onValueChange={onEstadoChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Todos los estados" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos</SelectItem>
+                <SelectItem value="todos">Todos</SelectItem>
                 <SelectItem value="planificada">Planificada</SelectItem>
                 <SelectItem value="realizada">Realizada</SelectItem>
                 <SelectItem value="cerrada">Cerrada</SelectItem>
@@ -68,12 +68,12 @@ export function FilterPanel({
         {onInspectorChange && inspectores.length > 0 && (
           <div>
             <label className="text-sm font-medium mb-2 block">Inspector</label>
-            <Select value={inspector || ''} onValueChange={onInspectorChange}>
+            <Select value={inspector || 'todos'} onValueChange={onInspectorChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Todos los inspectores" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos</SelectItem>
+                <SelectItem value="todos">Todos</SelectItem>
                 {inspectores.map((insp) => (
                   <SelectItem key={insp} value={insp}>
                     {insp}
