@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, FileText, Sheet, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -13,8 +13,14 @@ interface ExportButtonsProps {
 
 export function ExportButtons({ data, fileName, columns }: ExportButtonsProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const exportToPDF = async () => {
+    if (!isMounted) return;
     setIsLoading(true);
     try {
       const html2pdf = (await import('html2pdf.js')).default;
@@ -93,6 +99,7 @@ export function ExportButtons({ data, fileName, columns }: ExportButtonsProps) {
   };
 
   const exportToExcel = async () => {
+    if (!isMounted) return;
     setIsLoading(true);
     try {
       const XLSX = (await import('xlsx')).default;
@@ -120,6 +127,10 @@ export function ExportButtons({ data, fileName, columns }: ExportButtonsProps) {
       setIsLoading(false);
     }
   };
+
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <div className="flex gap-2">
