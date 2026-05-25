@@ -1,11 +1,20 @@
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const cookieStore = await cookies();
+  const authToken = cookieStore.get('auth_token');
+
+  if (!authToken) {
+    redirect('/auth/login');
+  }
+
   return (
     <div className="flex h-screen bg-background">
       <Sidebar />
@@ -18,3 +27,4 @@ export default function DashboardLayout({
     </div>
   );
 }
+

@@ -24,12 +24,16 @@ export default function LoginPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
+        credentials: 'include',
       });
 
       const data = await response.json();
 
       if (response.ok && data.success) {
-        router.push('/dashboard');
+        // Wait a moment for cookies to be set, then redirect
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 100);
         return;
       }
 
