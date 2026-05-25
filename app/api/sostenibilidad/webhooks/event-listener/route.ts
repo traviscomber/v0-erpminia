@@ -1,14 +1,39 @@
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
+
+// Validar webhook signature HMAC
+function validateWebhookSignature(request: NextRequest, payload: string): boolean {
+  const signature = request.headers.get('x-signature');
+  if (!signature) return false;
+
+  const secret = process.env.WEBHOOK_SECRET || 'default-secret';
+  const hash = crypto
+    .createHmac('sha256', secret)
+    .update(payload)
+    .digest('hex');
+
+  return crypto.timingSafeEqual(
+    Buffer.from(signature),
+    Buffer.from(hash)
+  );
+}
 
 // Webhook para procesar eventos de event_log
-// Escucha cambios en inspecciones y automáticamente genera NCs
 export async function POST(request: NextRequest) {
   try {
-    const supabase = getSupabaseServerClient();
-    const payload = await request.json();
+    const payload = await request.text();
+    
+    // Validar firma HMAC
+    if (!validateWebhookSignature(request, payload)) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
 
-    const { type, record } = payload;
+    const data = JSON.parse(payload);
+    const { type, record } = data;
 
     // Validar que es un evento válido
     if (!type || !record) {
@@ -18,7 +43,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('[v0] Processing webhook event:', type, record.id);
+    const supabase = getSupabaseServerClient();
 
     // Procesar según tipo de evento
     if (type === 'INSERT' && record.source_table === 'inspecciones_internas') {
