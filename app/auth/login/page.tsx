@@ -17,7 +17,6 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('[v0] Login form submitted with email:', email);
     setError(null);
     setIsLoading(true);
     
@@ -30,7 +29,6 @@ export default function LoginPage() {
       });
 
       if (response.ok) {
-        console.log('[v0] Login successful, redirecting...');
         setIsLoading(false);
         router.push('/dashboard');
         return;
@@ -40,7 +38,6 @@ export default function LoginPage() {
       setError(data.error || 'Credenciales inválidas');
       setIsLoading(false);
     } catch (err) {
-      console.error('[v0] Login error:', err);
       setError('Error al iniciar sesión. Intenta de nuevo.');
       setIsLoading(false);
     }
