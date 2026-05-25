@@ -7,11 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart3, AlertCircle } from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
 
 export default function LoginPage() {
   const router = useRouter();
-  const supabase = createClient();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -19,26 +17,30 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[v0] Login form submitted with email:', email);
     setError(null);
     setIsLoading(true);
     
     try {
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      // Call API to login
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
       });
 
-      if (signInError) {
-        setError(signInError.message);
+      if (response.ok) {
+        console.log('[v0] Login successful, redirecting...');
         setIsLoading(false);
+        router.push('/dashboard');
         return;
       }
 
-      if (data.user) {
-        // Successful login
-        router.push('/dashboard');
-      }
+      const data = await response.json();
+      setError(data.error || 'Credenciales inválidas');
+      setIsLoading(false);
     } catch (err) {
+      console.error('[v0] Login error:', err);
       setError('Error al iniciar sesión. Intenta de nuevo.');
       setIsLoading(false);
     }
@@ -97,7 +99,6 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
-                  required
                   className="bg-input"
                 />
               </div>

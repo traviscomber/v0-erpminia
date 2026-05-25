@@ -57,6 +57,11 @@ export function useAuth() {
   const logout = async () => {
     try {
       console.log('[v0] Logging out user...');
+      
+      // Clear demo auth
+      localStorage.removeItem('auth_token');
+      document.cookie = 'demo_auth=; path=/; max-age=0';
+      
       const { error } = await supabase.auth.signOut();
       
       if (error) {
