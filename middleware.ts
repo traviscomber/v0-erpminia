@@ -73,6 +73,14 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Protected API routes - require authentication
+  if (request.nextUrl.pathname.startsWith('/api/admin') || 
+      request.nextUrl.pathname.startsWith('/api/sostenibilidad')) {
+    if (!user) {
+      return NextResponse.redirect(new URL('/auth/login', request.url));
+    }
+  }
+
   // Protected routes - require authentication
   if (request.nextUrl.pathname.startsWith('/dashboard')) {
     if (!user) {

@@ -191,6 +191,6 @@ export async function reportIncident(incidentData: {
     .single();
   
   if (error) throw new Error(error.message);
-  revalidateTag('incidents');
+  revalidateTag('incidents', 'max');
   return data;
 }

@@ -1,4 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
+
+// Authentication middleware
+async function authenticateRequest(request: NextRequest) {
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value;
+        },
+      },
+    }
+  );
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error('Unauthorized');
+  }
+
+  // Check if user is admin
+  if (user.user_metadata?.role !== 'admin') {
+    throw new Error('Forbidden: Admin access required');
+  }
+
+  return user;
+}
 
 // Mock in-memory database for demo
 const mockUsers: Record<string, any> = {
@@ -15,13 +46,27 @@ const mockUsers: Record<string, any> = {
 let userCounter = 2;
 
 // GET - Fetch all users
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    await authenticateRequest(request);
     const users = Object.values(mockUsers);
     return NextResponse.json({ users });
   } catch (error) {
+    const message = error instanceof Error ? error.message : 'Error al obtener usuarios';
+    if (message.includes('Unauthorized')) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+    if (message.includes('Forbidden')) {
+      return NextResponse.json(
+        { error: message },
+        { status: 403 }
+      );
+    }
     return NextResponse.json(
-      { error: 'Error al obtener usuarios' },
+      { error: message },
       { status: 500 }
     );
   }
@@ -30,6 +75,7 @@ export async function GET() {
 // POST - Create new user
 export async function POST(request: NextRequest) {
   try {
+    await authenticateRequest(request);
     const body = await request.json();
     const { email, password, full_name, role } = body;
 
@@ -70,16 +116,21 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Error al crear usuario' },
-      { status: 500 }
-    );
+    const message = error instanceof Error ? error.message : 'Error al crear usuario';
+    if (message.includes('Unauthorized')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (message.includes('Forbidden')) {
+      return NextResponse.json({ error: message }, { status: 403 });
+    }
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
 // PATCH - Update user role
 export async function PATCH(request: NextRequest) {
   try {
+    await authenticateRequest(request);
     const body = await request.json();
     const { userId, role } = body;
 
@@ -103,16 +154,21 @@ export async function PATCH(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Error al actualizar usuario' },
-      { status: 500 }
-    );
+    const message = error instanceof Error ? error.message : 'Error al actualizar usuario';
+    if (message.includes('Unauthorized')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (message.includes('Forbidden')) {
+      return NextResponse.json({ error: message }, { status: 403 });
+    }
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
 // DELETE - Delete user
 export async function DELETE(request: NextRequest) {
   try {
+    await authenticateRequest(request);
     const body = await request.json();
     const { userId } = body;
 
@@ -136,9 +192,13 @@ export async function DELETE(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Error al eliminar usuario' },
-      { status: 500 }
-    );
+    const message = error instanceof Error ? error.message : 'Error al eliminar usuario';
+    if (message.includes('Unauthorized')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (message.includes('Forbidden')) {
+      return NextResponse.json({ error: message }, { status: 403 });
+    }
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
