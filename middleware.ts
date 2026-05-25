@@ -73,33 +73,26 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Protected API routes - require authentication
+  // Protected API routes - return 401 JSON for unauthenticated requests
   if (request.nextUrl.pathname.startsWith('/api/admin') || 
       request.nextUrl.pathname.startsWith('/api/sostenibilidad')) {
     if (!user) {
-      return NextResponse.redirect(new URL('/auth/login', request.url));
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
     }
   }
 
-  // Protected admin/setup routes - require admin role
+  // Protected admin/setup routes - redirect to login
   if (request.nextUrl.pathname.startsWith('/setup') || 
       request.nextUrl.pathname.startsWith('/admin')) {
     if (!user) {
       return NextResponse.redirect(new URL('/auth/login', request.url));
     }
-    // Check server-side role (don't trust client metadata)
-    const { data: userData } = await supabase
-      .from('auth.users')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-    
-    if (userData?.role !== 'admin') {
-      return NextResponse.redirect(new URL('/', request.url));
-    }
   }
 
-  // Protected routes - require authentication
+  // Protected dashboard - redirect to login
   if (request.nextUrl.pathname.startsWith('/dashboard')) {
     if (!user) {
       return NextResponse.redirect(new URL('/auth/login', request.url));

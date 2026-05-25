@@ -1,75 +1,37 @@
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { NextRequest, NextResponse } from 'next/server';
 
-// GET /api/sostenibilidad/compliance/calculate-score
-// Calcula el compliance score actual de sostenibilidad
+// Helper: Calculate compliance score (read-only)
+async function calculateComplianceScore(supabase: any, organization_id?: string) {
+  const { data: allNCs, error: ncError } = await supabase
+    .from('sostenibilidad_nonconformances')
+    .select('id, status, severity, created_at');
+
+  if (ncError) throw ncError;
+
+  const totalNCs = allNCs.length;
+  const closedNCs = allNCs.filter((nc) => nc.status === 'cerrada').length;
+  const openNCs = totalNCs - closedNCs;
+  const overduNCs = allNCs.filter(
+    (nc) => nc.status !== 'cerrada' && isOverdue(nc.created_at)
+  ).length;
+
+  const complianceScore = totalNCs > 0 ? Math.round((closedNCs / totalNCs) * 100) : 100;
+
+  return { totalNCs, closedNCs, openNCs, overduNCs, complianceScore };
+}
+
+// GET /api/sostenibilidad/compliance/calculate-score - READ ONLY
 export async function GET(request: NextRequest) {
   try {
     const supabase = getSupabaseServerClient();
     const { searchParams } = new URL(request.url);
-    const organization_id = searchParams.get('organization_id');
-    const period = searchParams.get('period') || getCurrentPeriod();
+    const organization_id = searchParams.get('organization_id') || 'default';
 
-    // Obtener todas las NCs (abierta y cerrada)
-    const { data: allNCs, error: ncError } = await supabase
-      .from('sostenibilidad_nonconformances')
-      .select('id, status, severity, created_at');
+    const { totalNCs, closedNCs, openNCs, overduNCs, complianceScore } = 
+      await calculateComplianceScore(supabase, organization_id);
 
-    if (ncError) throw ncError;
-
-    // Contar por estado
-    const totalNCs = allNCs.length;
-    const closedNCs = allNCs.filter((nc) => nc.status === 'cerrada').length;
-    const openNCs = totalNCs - closedNCs;
-    const overduNCs = allNCs.filter(
-      (nc) => nc.status !== 'cerrada' && isOverdue(nc.created_at)
-    ).length;
-
-    // Calcular compliance score (0-100)
-    // Fórmula: (NCs cerradas / NCs totales) * 100
-    const complianceScore =
-      totalNCs > 0 ? Math.round((closedNCs / totalNCs) * 100) : 100;
-
-    // Obtener tendencia
-    const { data: previousHistory } = await supabase
-      .from('sostenibilidad_compliance_history')
-      .select('compliance_score')
-      .eq('organization_id', organization_id || 'default')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
-
-    let trend = 'estable';
-    if (previousHistory) {
-      if (complianceScore > previousHistory.compliance_score) {
-        trend = 'mejorando';
-      } else if (complianceScore < previousHistory.compliance_score) {
-        trend = 'empeorando';
-      }
-    }
-
-    // Guardar en histórico
-    const { data: savedHistory, error: saveError } = await supabase
-      .from('sostenibilidad_compliance_history')
-      .insert([
-        {
-          organization_id: organization_id || 'default',
-          report_period: period,
-          compliance_score: complianceScore,
-          total_ncs: totalNCs,
-          open_ncs: openNCs,
-          closed_ncs: closedNCs,
-          overdue_cas: overduNCs,
-          trend,
-          created_at: new Date().toISOString(),
-        },
-      ])
-      .select()
-      .single();
-
-    if (saveError) console.error('Error saving compliance history:', saveError);
-
-    // Generar alertas si es necesario
+    // Generate alerts
     const alerts = [];
     if (complianceScore < 60) {
       alerts.push({
@@ -84,7 +46,6 @@ export async function GET(request: NextRequest) {
         action_required: false,
       });
     }
-
     if (overduNCs > 0) {
       alerts.push({
         severity: 'alta',
@@ -99,8 +60,6 @@ export async function GET(request: NextRequest) {
       open_ncs: openNCs,
       closed_ncs: closedNCs,
       overdue_cas: overduNCs,
-      trend,
-      period,
       alerts,
       timestamp: new Date().toISOString(),
     });
@@ -113,22 +72,39 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/sostenibilidad/compliance/calculate-score
-// Recalcular compliance score manualmente
+// POST /api/sostenibilidad/compliance/calculate-score - SAVE HISTORY
 export async function POST(request: NextRequest) {
   try {
     const supabase = getSupabaseServerClient();
     const { organization_id, period } = await request.json();
+    const org = organization_id || 'default';
+    const p = period || getCurrentPeriod();
 
-    // Llamar a la lógica GET
-    const url = new URL('/api/sostenibilidad/compliance/calculate-score', process.env.NEXTAUTH_URL || 'http://localhost:3000');
-    if (organization_id) url.searchParams.append('organization_id', organization_id);
-    if (period) url.searchParams.append('period', period);
+    const { totalNCs, closedNCs, openNCs, overduNCs, complianceScore } = 
+      await calculateComplianceScore(supabase, org);
 
-    const response = await fetch(url.toString());
-    const data = await response.json();
+    // Save to history (POST side effect)
+    const { error: saveError } = await supabase
+      .from('sostenibilidad_compliance_history')
+      .insert([
+        {
+          organization_id: org,
+          report_period: p,
+          compliance_score: complianceScore,
+          total_ncs: totalNCs,
+          open_ncs: openNCs,
+          closed_ncs: closedNCs,
+          overdue_cas: overduNCs,
+          created_at: new Date().toISOString(),
+        },
+      ]);
 
-    return NextResponse.json(data, { status: 200 });
+    if (saveError) console.error('Error saving compliance history:', saveError);
+
+    return NextResponse.json({
+      compliance_score: complianceScore,
+      saved: !saveError,
+    });
   } catch (error) {
     console.error('Error in compliance score calculation:', error);
     return NextResponse.json(
