@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+import bcrypt from 'bcrypt';
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,28 +14,32 @@ export async function POST(request: NextRequest) {
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
+      console.error('[v0] Missing Supabase config');
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
 
-    // Use direct REST API call instead of client
-    const url = `${supabaseUrl}/rest/v1/profiles?email=eq.${encodeURIComponent(email)}&select=*`;
-    
-    console.log('[v0] Fetching from:', url);
-
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${supabaseKey}`,
-        'apikey': supabaseKey,
-        'Content-Type': 'application/json',
-      },
+    // Create Supabase client with service role
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      db: { schema: 'public' },
+      auth: { persistSession: false }
     });
 
-    const profiles = await response.json();
+    console.log('[v0] Login attempt for:', email);
 
-    console.log('[v0] Response status:', response.status, 'Profiles count:', Array.isArray(profiles) ? profiles.length : 'not array');
+    // Query profiles with proper error handling
+    const { data: profiles, error: queryError } = await supabase
+      .from('profiles')
+      .select('id, email, full_name, organization_id, password_hash')
+      .eq('email', email)
+      .limit(1);
 
-    if (!Array.isArray(profiles) || profiles.length === 0) {
-      console.log('[v0] No profiles found');
+    if (queryError) {
+      console.error('[v0] Query error:', queryError.message);
+      return NextResponse.json({ error: 'Database query failed' }, { status: 500 });
+    }
+
+    if (!profiles || profiles.length === 0) {
+      console.log('[v0] User not found:', email);
       return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
     }
 
@@ -41,28 +47,32 @@ export async function POST(request: NextRequest) {
 
     // Verify password
     if (!profile.password_hash) {
+      console.log('[v0] No password hash for user');
       return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
     }
 
-    const bcrypt = require('bcrypt');
-    const passwordMatch = await bcrypt.compare(password, profile.password_hash);
-    
-    if (!passwordMatch) {
-      return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
+    try {
+      const passwordMatch = await bcrypt.compare(password, profile.password_hash);
+      
+      if (!passwordMatch) {
+        console.log('[v0] Password mismatch for:', email);
+        return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
+      }
+    } catch (bcryptError) {
+      console.error('[v0] Bcrypt error:', bcryptError);
+      return NextResponse.json({ error: 'Password verification failed' }, { status: 500 });
     }
 
     // Get user role
-    const roleUrl = `${supabaseUrl}/rest/v1/user_roles?user_id=eq.${profile.id}&select=role`;
-    const roleRes = await fetch(roleUrl, {
-      headers: {
-        'Authorization': `Bearer ${supabaseKey}`,
-        'apikey': supabaseKey,
-      },
-    });
+    const { data: roleData, error: roleError } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', profile.id)
+      .limit(1);
 
-    const roles = await roleRes.json();
-    const role = roles?.[0]?.role || 'viewer';
+    const role = roleData?.[0]?.role || 'viewer';
 
+    // Create session
     const sessionData = {
       user: {
         id: profile.id,
@@ -74,23 +84,25 @@ export async function POST(request: NextRequest) {
       session_token: `${profile.id}-${Date.now()}`,
     };
 
-    const resp = NextResponse.json({ success: true, user: sessionData });
+    const response = NextResponse.json({ success: true, user: sessionData });
 
-    resp.cookies.set('auth_token', JSON.stringify(sessionData), {
+    // Set secure cookie
+    response.cookies.set('auth_token', JSON.stringify(sessionData), {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 86400 * 7,
     });
 
-    resp.cookies.set('user_email', profile.email, {
+    response.cookies.set('user_email', profile.email, {
       httpOnly: false,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 86400 * 7,
     });
 
-    return resp;
+    console.log('[v0] Login successful for:', email);
+    return response;
   } catch (error) {
     console.error('[v0] Login error:', error);
     return NextResponse.json({ error: 'Login failed' }, { status: 500 });
