@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     return NextResponse.json({ data: [] });
   } catch (error) {
@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     return NextResponse.json({ data: {} }, { status: 201 });
   } catch (error) {
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function PUT(request: NextRequest) {
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     return NextResponse.json({ data: {} });
   } catch (error) {
