@@ -12,13 +12,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
     }
 
+    console.error('[v0] LOGIN DEBUG: Starting login process');
+    console.error('[v0] LOGIN DEBUG: Email:', email);
+    console.error('[v0] LOGIN DEBUG: NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL?.slice(0, 20) + '...');
+    console.error('[v0] LOGIN DEBUG: SUPABASE_SERVICE_ROLE_KEY exists:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
+
     // Create Supabase client with service role (for server-side operations)
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
     if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('[v0] Missing Supabase configuration');
+      console.error('[v0] Missing Supabase configuration', { supabaseUrl: !!supabaseUrl, supabaseServiceKey: !!supabaseServiceKey });
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    console.error('[v0] LOGIN DEBUG: Supabase client created');
 
     // Check if user exists in profiles table
     const { data: profile, error: profileError } = await supabase
@@ -27,8 +36,17 @@ export async function POST(request: NextRequest) {
       .eq('email', email)
       .single();
 
-    if (profileError || !profile) {
-      console.log('[v0] User not found:', email);
+    console.error('[v0] LOGIN DEBUG: Query executed');
+    console.error('[v0] LOGIN DEBUG: Profile data:', profile);
+    console.error('[v0] LOGIN DEBUG: Profile error:', profileError);
+
+    if (profileError) {
+      console.error('[v0] Profile query error:', { email, error: profileError.message, code: profileError.code });
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+    }
+
+    if (!profile) {
+      console.log('[v0] No profile found for email:', email);
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
