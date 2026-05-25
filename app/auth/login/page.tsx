@@ -21,24 +21,23 @@ export default function LoginPage() {
     setIsLoading(true);
     
     try {
-      // Call API to login
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
-      if (response.ok) {
-        setIsLoading(false);
+      const data = await response.json();
+
+      if (response.ok && data.success) {
         router.push('/dashboard');
         return;
       }
 
-      const data = await response.json();
       setError(data.error || 'Credenciales inválidas');
-      setIsLoading(false);
     } catch (err) {
       setError('Error al iniciar sesión. Intenta de nuevo.');
+    } finally {
       setIsLoading(false);
     }
   };
