@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import bcrypt from 'bcrypt';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -12,42 +13,46 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
     }
 
-    console.error('[v0] LOGIN DEBUG: Starting login process');
-    console.error('[v0] LOGIN DEBUG: Email:', email);
-    console.error('[v0] LOGIN DEBUG: NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL?.slice(0, 20) + '...');
-    console.error('[v0] LOGIN DEBUG: SUPABASE_SERVICE_ROLE_KEY exists:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
+    if (!password) {
+      return NextResponse.json({ error: 'Password is required' }, { status: 400 });
+    }
 
     // Create Supabase client with service role (for server-side operations)
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
     if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('[v0] Missing Supabase configuration', { supabaseUrl: !!supabaseUrl, supabaseServiceKey: !!supabaseServiceKey });
+      console.error('[v0] Missing Supabase configuration');
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    console.error('[v0] LOGIN DEBUG: Supabase client created');
 
     // Check if user exists in profiles table
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('id, email, full_name, organization_id')
+      .select('id, email, full_name, organization_id, password_hash')
       .eq('email', email)
       .single();
 
-    console.error('[v0] LOGIN DEBUG: Query executed');
-    console.error('[v0] LOGIN DEBUG: Profile data:', profile);
-    console.error('[v0] LOGIN DEBUG: Profile error:', profileError);
-
-    if (profileError) {
-      console.error('[v0] Profile query error:', { email, error: profileError.message, code: profileError.code });
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+    if (profileError || !profile) {
+      console.log('[v0] User not found:', email);
+      return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
     }
 
-    if (!profile) {
-      console.log('[v0] No profile found for email:', email);
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+    // Verify password
+    if (!profile.password_hash) {
+      console.log('[v0] No password set for user:', email);
+      return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
+    }
+
+    try {
+      const passwordMatch = await bcrypt.compare(password, profile.password_hash);
+      
+      if (!passwordMatch) {
+        console.log('[v0] Password mismatch for user:', email);
+        return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
+      }
+    } catch (bcryptError) {
+      console.error('[v0] Bcrypt error:', bcryptError);
+      return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
     }
 
     // Get user role

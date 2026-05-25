@@ -96,6 +96,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
+                  required
                   className="bg-input"
                 />
               </div>
