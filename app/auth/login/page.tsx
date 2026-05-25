@@ -43,7 +43,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4" suppressHydrationWarning>
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex justify-center mb-8">
