@@ -2,6 +2,13 @@ import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { NextRequest, NextResponse } from 'next/server';
 
 // Helper: Calculate compliance score (read-only)
+interface NonConformance {
+  id: string;
+  status: string;
+  severity: string;
+  created_at: string;
+}
+
 async function calculateComplianceScore(supabase: any, organization_id?: string) {
   const { data: allNCs, error: ncError } = await supabase
     .from('sostenibilidad_nonconformances')
@@ -9,11 +16,12 @@ async function calculateComplianceScore(supabase: any, organization_id?: string)
 
   if (ncError) throw ncError;
 
-  const totalNCs = allNCs.length;
-  const closedNCs = allNCs.filter((nc) => nc.status === 'cerrada').length;
+  const ncs: NonConformance[] = allNCs || [];
+  const totalNCs = ncs.length;
+  const closedNCs = ncs.filter((nc: NonConformance) => nc.status === 'cerrada').length;
   const openNCs = totalNCs - closedNCs;
-  const overduNCs = allNCs.filter(
-    (nc) => nc.status !== 'cerrada' && isOverdue(nc.created_at)
+  const overduNCs = ncs.filter(
+    (nc: NonConformance) => nc.status !== 'cerrada' && isOverdue(nc.created_at)
   ).length;
 
   const complianceScore = totalNCs > 0 ? Math.round((closedNCs / totalNCs) * 100) : 100;

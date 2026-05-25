@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -104,6 +105,7 @@ const severityConfig = {
 };
 
 export default function AlertasPage() {
+  const router = useRouter();
   const [alerts, setAlerts] = useState(mockAlerts);
   const [filter, setFilter] = useState<'todos' | 'no-leidas' | 'criticas' | 'accion'>('todos');
   const [archivedCount, setArchivedCount] = useState(0);
@@ -282,7 +284,7 @@ export default function AlertasPage() {
                             <Button
                               size="sm"
                               variant="default"
-                              onClick={() => window.location.href = alert.actionUrl}
+                              onClick={() => router.push(alert.actionUrl!)}
                             >
                               Ir
                             </Button>

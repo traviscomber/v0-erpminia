@@ -84,7 +84,7 @@ export default function ContratosReportesPage() {
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="nombre" angle={-45} textAnchor="end" height={80} />
                       <YAxis />
-                      <Tooltip formatter={(value) => `CLP ${(value / 1000000).toFixed(1)}M`} />
+                      <Tooltip formatter={(value: any) => `CLP ${(Number(value) / 1000000).toFixed(1)}M`} />
                       <Legend />
                       <Bar dataKey="monto_pagado" fill="#10b981" name="Pagado" />
                       <Bar dataKey="monto_pendiente" fill="#f59e0b" name="Pendiente" />
@@ -119,7 +119,7 @@ export default function ContratosReportesPage() {
                         fill="#8884d8"
                         dataKey="cantidad"
                       >
-                        {garantiasActivas.map((_, index) => (
+                        {garantiasActivas.map((_: any, index: number) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
@@ -148,7 +148,7 @@ export default function ContratosReportesPage() {
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="mes" />
                       <YAxis />
-                      <Tooltip formatter={(value) => `CLP ${(value / 1000000).toFixed(1)}M`} />
+                      <Tooltip formatter={(value: any) => `CLP ${(Number(value) / 1000000).toFixed(1)}M`} />
                       <Legend />
                       <Line type="monotone" dataKey="propiedad_1" stroke="#0ea5e9" name="Propiedad 1" />
                       <Line type="monotone" dataKey="propiedad_2" stroke="#10b981" name="Propiedad 2" />
