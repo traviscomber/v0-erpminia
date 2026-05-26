@@ -1,0 +1,49 @@
+# robots.txt for Motil - Mining ERP Platform
+# Last updated: 2026-05-26
+
+# Allow all robots
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /dashboard/
+Disallow: /api/
+Disallow: /*.json$
+Disallow: /*?*sort=
+Disallow: /*?*filter=
+Disallow: /*?*page=
+
+# Specific rules for popular crawlers
+User-agent: Googlebot
+Allow: /
+Allow: /api/
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /dashboard/
+Crawl-delay: 0
+
+User-agent: Bingbot
+Allow: /
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /dashboard/
+Crawl-delay: 1
+
+# Block bad bots
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+# Sitemap location
+Sitemap: https://motil.app/sitemap.xml
+
+# Crawl budget optimization
+Request-rate: 30/1s

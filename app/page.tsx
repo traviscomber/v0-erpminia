@@ -1,14 +1,35 @@
 'use client';
 
 import Link from 'next/link';
+import Script from 'next/script';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BrandCard } from '@/components/ui/brand-card';
 import { Zap, Map, CheckCircle2, BarChart3, HelpCircle, ArrowRight, FileText, Package, Wrench, Shield, Cpu, FolderOpen } from 'lucide-react';
+import { organizationSchema, productSchema, faqSchema } from '@/lib/schema-markup';
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+      {/* JSON-LD Schema Markup - Lightweight SEO boost */}
+      <Script
+        id="organization-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        strategy="afterInteractive"
+      />
+      <Script
+        id="product-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+        strategy="afterInteractive"
+      />
+      <Script
+        id="faq-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema[0]) }}
+        strategy="afterInteractive"
+      />
       {/* Navigation */}
       <nav className="border-b border-border sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
