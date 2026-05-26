@@ -79,7 +79,7 @@ export default function MedioAmbientePage() {
   const displayData = registrosList.length > 0 ? registrosList : mockDataFormatted;
   const useMockData = registrosList.length === 0;
 
-  const filtered = displayData.filter((r) => {
+  const filtered = displayData.filter((r: any) => {
     const matchSearch = r.numero_registro.toLowerCase().includes(searchTerm.toLowerCase()) ||
       r.descripcion.toLowerCase().includes(searchTerm.toLowerCase());
     const matchTipo = !tipo || r.tipo === tipo;
@@ -321,7 +321,7 @@ export default function MedioAmbientePage() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((r) => (
+                {filtered.map((r: any) => (
                   <tr key={r.id} className="border-b hover:bg-muted/50">
                     <td className="py-3 px-4 font-medium">{r.numero_registro}</td>
                     <td className="py-3 px-4"><Badge>{tipoLabels[r.tipo as keyof typeof tipoLabels]}</Badge></td>

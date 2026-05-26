@@ -60,7 +60,7 @@ export default function InspeccionesInternasPage() {
   const displayData = inspeccionesList.length > 0 ? inspeccionesList : mockDataFormatted;
   const useMockData = inspeccionesList.length === 0;
 
-  const filteredInspecciones = displayData.filter((insp) => {
+  const filteredInspecciones = displayData.filter((insp: any) => {
     const matchSearch = insp.numero_inspeccion.toLowerCase().includes(searchTerm.toLowerCase()) ||
       insp.area_faena.toLowerCase().includes(searchTerm.toLowerCase());
     const matchEstado = !estado || insp.estado === estado;
@@ -192,7 +192,7 @@ export default function InspeccionesInternasPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Planificadas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{filteredInspecciones.filter((i) => i.estado === 'planificada').length}</div>
+            <div className="text-2xl font-bold">{filteredInspecciones.filter((i: any) => i.estado === 'planificada').length}</div>
           </CardContent>
         </Card>
         <Card>
@@ -200,7 +200,7 @@ export default function InspeccionesInternasPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Realizadas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{filteredInspecciones.filter((i) => i.estado === 'realizada').length}</div>
+            <div className="text-2xl font-bold">{filteredInspecciones.filter((i: any) => i.estado === 'realizada').length}</div>
           </CardContent>
         </Card>
         <Card>
@@ -233,7 +233,7 @@ export default function InspeccionesInternasPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredInspecciones.map((insp) => (
+                {filteredInspecciones.map((insp: any) => (
                   <tr key={insp.id} className="border-b border-white/10 hover:bg-white/5 transition">
                     <td className="py-3 px-4 font-medium">{insp.numero_inspeccion}</td>
                     <td className="py-3 px-4">{insp.area_faena}</td>

@@ -320,7 +320,7 @@ export default function FinanzasPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredFinances.map((finance) => (
+                {filteredFinances.map((finance: any) => (
                   <tr
                     key={finance.id}
                     className="border-b border-border/50 hover:bg-muted/30 transition-colors group"

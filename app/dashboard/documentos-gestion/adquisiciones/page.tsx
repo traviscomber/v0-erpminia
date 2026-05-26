@@ -88,7 +88,7 @@ export default function AdquisicionesPage() {
             </div>
 
             <div className="space-y-3">
-              {adquisicionesDocs.map((doc) => (
+              {adquisicionesDocs.map((doc: any) => (
                 <div key={doc.id} className="flex items-center justify-between border rounded-lg p-4 hover:bg-accent transition-colors">
                   <div className="flex items-center gap-4 flex-1">
                     <FileText className="h-5 w-5 text-muted-foreground" />

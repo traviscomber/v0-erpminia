@@ -54,7 +54,7 @@ export default function VehiclesPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {vehicles.map((vehicle) => (
+            {vehicles.map((vehicle: any) => (
               <div
                 key={vehicle.id}
                 className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors"

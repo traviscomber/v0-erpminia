@@ -152,7 +152,7 @@ export default function HSEDocumentosPage() {
             >
               Todos
             </Button>
-            {['política', 'programa', 'reglamento', 'procedimiento', 'instructivo', 'plan'].map((tipo) => (
+            {['política', 'programa', 'reglamento', 'procedimiento', 'instructivo', 'plan'].map((tipo: any) => (
               <Button
                 key={tipo}
                 variant={tipoFiltro === tipo ? 'default' : 'outline'}

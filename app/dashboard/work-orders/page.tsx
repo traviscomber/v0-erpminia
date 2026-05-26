@@ -157,7 +157,7 @@ export default function WorkOrdersPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {workOrders.map((wo) => (
+            {workOrders.map((wo: any) => (
               <Link key={wo.id} href={`/dashboard/work-orders/${wo.id}`}>
                 <div
                   className={`border-2 ${getPriorityColor(wo.priority)} rounded-lg p-4 hover:bg-muted/30 transition-colors cursor-pointer`}

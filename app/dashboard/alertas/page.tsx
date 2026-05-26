@@ -111,7 +111,7 @@ export default function AlertasPage() {
   const [archivedCount, setArchivedCount] = useState(0);
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
 
-  const filteredAlerts = alerts.filter((alert) => {
+  const filteredAlerts = alerts.filter((alert: any) => {
     if (filter === 'no-leidas') return !alert.read;
     if (filter === 'criticas') return alert.severity === 'critica';
     if (filter === 'accion') return alert.actionRequired;
@@ -239,7 +239,7 @@ export default function AlertasPage() {
             </CardContent>
           </Card>
         ) : (
-          filteredAlerts.map((alert) => {
+          filteredAlerts.map((alert: any) => {
             const SeverityIcon = severityConfig[alert.severity].icon;
             const severityClass = severityConfig[alert.severity].color;
 

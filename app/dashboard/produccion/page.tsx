@@ -159,7 +159,7 @@ export default function ProduccionPage() {
         {/* Equipment List */}
         <div className="lg:col-span-2 space-y-3">
           <h2 className="text-lg font-semibold">Equipos en Operación</h2>
-          {equipment.map((eq) => (
+          {equipment.map((eq: any) => (
             <Card key={eq.id} className="cursor-pointer hover:shadow-md transition-shadow">
               <CardContent className="p-4">
                 <div className="flex items-start justify-between gap-4">

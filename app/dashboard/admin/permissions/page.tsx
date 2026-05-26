@@ -155,7 +155,7 @@ export default function PermissionsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {MINING_ROLES.map((role) => (
+                  {MINING_ROLES.map((role: any) => (
                     <SelectItem key={role.id} value={role.id}>
                       {role.label}
                     </SelectItem>
@@ -172,7 +172,7 @@ export default function PermissionsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {MODULES.map((mod) => (
+                  {MODULES.map((mod: any) => (
                     <SelectItem key={mod} value={mod}>
                       {mod.charAt(0).toUpperCase() + mod.slice(1)}
                     </SelectItem>
@@ -199,7 +199,7 @@ export default function PermissionsPage() {
           <div className="space-y-2">
             <label className="text-sm font-medium">Acciones</label>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {ACTIONS.map((action) => (
+              {ACTIONS.map((action: any) => (
                 <div key={action} className="flex items-center space-x-2">
                   <Checkbox
                     id={action}
@@ -208,7 +208,7 @@ export default function PermissionsPage() {
                       setSelectedActions(
                         checked
                           ? [...selectedActions, action]
-                          : selectedActions.filter((a) => a !== action)
+                          : selectedActions.filter((a: any) => a !== action)
                       );
                     }}
                   />
@@ -309,7 +309,7 @@ export default function PermissionsPage() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {MINING_ROLES.map((role) => (
+            {MINING_ROLES.map((role: any) => (
               <BrandCard key={role.id} className="p-4">
                 <div className="font-semibold">{role.label}</div>
                 <div className="text-sm text-muted-foreground">{role.description}</div>

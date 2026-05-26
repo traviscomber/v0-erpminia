@@ -88,7 +88,7 @@ export default function ReportesPage() {
             </div>
 
             <div className="space-y-3">
-              {reports.map((report) => (
+              {reports.map((report: any) => (
                 <div key={report.id} className="flex items-center justify-between border rounded-lg p-4 hover:bg-accent transition-colors">
                   <div className="flex items-center gap-4 flex-1">
                     {report.type === 'Financiero' ? (

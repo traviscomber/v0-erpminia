@@ -170,7 +170,7 @@ function ComponentNode({ component, onSelectPart }: { component: ComponentNode; 
 
       {expanded && (
         <div className="ml-6 space-y-4 border-l-2 border-border pl-4">
-          {component.faults.map((fault) => (
+          {component.faults.map((fault: any) => (
             <FaultItem key={fault.id} fault={fault} onSelectPart={onSelectPart} />
           ))}
         </div>
@@ -208,7 +208,7 @@ export default function VehicleFaultTreePage({ params }: { params: { id: string 
             <CardDescription>Haz clic en un componente para ver sus modos de falla</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {faultTreeData.components.map((component) => (
+            {faultTreeData.components.map((component: any) => (
               <ComponentNode key={component.id} component={component} onSelectPart={handleSelectPart} />
             ))}
           </CardContent>
@@ -228,7 +228,7 @@ export default function VehicleFaultTreePage({ params }: { params: { id: string 
             ) : (
               <>
                 <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {selectedParts.map((part) => (
+                  {selectedParts.map((part: any) => (
                     <div key={part.id} className="p-3 rounded-lg bg-muted border border-border text-sm">
                       <div className="flex items-start justify-between gap-2">
                         <div>

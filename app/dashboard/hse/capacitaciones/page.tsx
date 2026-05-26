@@ -170,7 +170,7 @@ export default function HSECapacitacionesPage() {
             >
               Todas
             </Button>
-            {['programada', 'realizada', 'cancelada'].map((est) => (
+            {['programada', 'realizada', 'cancelada'].map((est: any) => (
               <Button
                 key={est}
                 variant={estado === est ? 'default' : 'outline'}

@@ -88,7 +88,7 @@ export default function ProcedimientosPage() {
             </div>
 
             <div className="space-y-3">
-              {procedures.map((proc) => (
+              {procedures.map((proc: any) => (
                 <div key={proc.id} className="flex items-center justify-between border rounded-lg p-4 hover:bg-accent transition-colors">
                   <div className="flex items-center gap-4 flex-1">
                     {proc.status === 'Vigente' ? (

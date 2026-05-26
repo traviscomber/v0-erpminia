@@ -47,7 +47,7 @@ export default function ContratosReportesPage() {
       <Card>
         <CardContent className="pt-6">
           <div className="flex gap-2">
-            {['mes', 'trimestre', 'anual'].map((p) => (
+            {['mes', 'trimestre', 'anual'].map((p: any) => (
               <Button
                 key={p}
                 variant={periodo === p ? 'default' : 'outline'}
