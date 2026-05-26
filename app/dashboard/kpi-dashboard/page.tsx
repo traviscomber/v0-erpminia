@@ -23,15 +23,15 @@ interface KPI {
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const statusColors = {
-  green: 'bg-green-50 border-green-200',
-  yellow: 'bg-yellow-50 border-yellow-200',
-  red: 'bg-red-50 border-red-200',
+  green: 'bg-[var(--brand-verde)]/5 border-[var(--brand-verde)]/30',
+  yellow: 'bg-[var(--secondary)]/5 border-[var(--secondary)]/30',
+  red: 'bg-[var(--brand-rojo)]/5 border-[var(--brand-rojo)]/30',
 };
 
 const statusBadgeColors = {
-  green: 'bg-green-100 text-green-800',
-  yellow: 'bg-yellow-100 text-yellow-800',
-  red: 'bg-red-100 text-red-800',
+  green: 'bg-[var(--brand-verde)]/10 text-[var(--brand-verde)]',
+  yellow: 'bg-[var(--secondary)]/10 text-[var(--secondary)]',
+  red: 'bg-[var(--brand-rojo)]/10 text-[var(--brand-rojo)]',
 };
 
 export default function KPIDashboardPage() {
@@ -173,7 +173,7 @@ export default function KPIDashboardPage() {
 
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {kpis.map((kpi: KPI) => (
+        {kpis.map((kpi: any) => (
           <Card
             key={kpi.id}
             className={`cursor-pointer transition-all ${getStatusBg(kpi.status)} border-2 ${
@@ -250,7 +250,7 @@ export default function KPIDashboardPage() {
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {alertDistribution.map((entry, index) => (
+                  {alertDistribution.map((entry: any, index: number) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
@@ -316,7 +316,7 @@ export default function KPIDashboardPage() {
               <span className="text-gray-300"><strong className="text-white">Reorden de Stock:</strong> Filtros hidráulicos bajo nivel. Acelerar entrega con proveedor.</span>
             </li>
             <li className="flex gap-2">
-              <span className="font-semibold text-yellow-600">4.</span>
+              <span className="font-semibold text-[var(--secondary)]">4.</span>
               <span><strong>Gestión de Pagos:</strong> 3 OCs excedieron términos. Procesar pagos para mantener relaciones.</span>
             </li>
           </ul>

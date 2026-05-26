@@ -94,7 +94,7 @@ function FaultItem({ fault, onSelectPart }: any) {
   const severityColor = {
     critica: 'bg-destructive/10 text-destructive border-destructive/20',
     mayor: 'bg-orange-100/50 text-orange-800 border-orange-200',
-    menor: 'bg-yellow-100/50 text-yellow-800 border-yellow-200',
+    menor: 'bg-[var(--secondary)]/10/50 text-[var(--secondary)] border-[var(--secondary)]/30',
   };
 
   const SeverityIcon = fault.severity === 'critica' ? AlertCircle : AlertTriangle;
@@ -170,7 +170,7 @@ function ComponentNode({ component, onSelectPart }: { component: ComponentNode; 
 
       {expanded && (
         <div className="ml-6 space-y-4 border-l-2 border-border pl-4">
-          {component.faults.map((fault) => (
+          {component.faults.map((fault: any) => (
             <FaultItem key={fault.id} fault={fault} onSelectPart={onSelectPart} />
           ))}
         </div>
@@ -208,7 +208,7 @@ export default function VehicleFaultTreePage({ params }: { params: { id: string 
             <CardDescription>Haz clic en un componente para ver sus modos de falla</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {faultTreeData.components.map((component) => (
+            {faultTreeData.components.map((component: any) => (
               <ComponentNode key={component.id} component={component} onSelectPart={handleSelectPart} />
             ))}
           </CardContent>
@@ -228,7 +228,7 @@ export default function VehicleFaultTreePage({ params }: { params: { id: string 
             ) : (
               <>
                 <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {selectedParts.map((part) => (
+                  {selectedParts.map((part: any) => (
                     <div key={part.id} className="p-3 rounded-lg bg-muted border border-border text-sm">
                       <div className="flex items-start justify-between gap-2">
                         <div>

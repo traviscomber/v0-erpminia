@@ -37,7 +37,7 @@ export default function InventarioPage() {
   };
 
   const getLowStockItems = () => {
-    return filteredItems.filter((item) => item.quantity <= item.minLevel).length;
+    return filteredItems.filter((item: any) => item.quantity <= item.minLevel).length;
   };
 
   const getTotalInventoryValue = () => {
@@ -53,7 +53,7 @@ export default function InventarioPage() {
     const sorted = [...filteredItems].sort((a, b) => b.totalValue - a.totalValue);
     const totalValue = getTotalInventoryValue();
     let accumulated = 0;
-    return sorted.map((item) => {
+    return sorted.map((item: any) => {
       accumulated += item.totalValue;
       const percentage = (accumulated / totalValue) * 100;
       let category = 'C';
@@ -96,19 +96,19 @@ export default function InventarioPage() {
             <CardTitle className="text-sm font-medium">Análisis ABC - Artículos A</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{abcA}</div>
+            <div className="text-2xl font-bold text-[var(--brand-rojo)]">{abcA}</div>
             <p className="text-xs text-muted-foreground mt-1">80% del valor (críticos)</p>
           </CardContent>
         </Card>
-        <Card className="border-border bg-yellow-500/5">
+        <Card className="border-border bg-[var(--secondary)]/5">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-yellow-600" />
+              <AlertCircle className="w-4 h-4 text-[var(--secondary)]" />
               Stock Bajo
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{getLowStockItems()}</div>
+            <div className="text-2xl font-bold text-[var(--secondary)]">{getLowStockItems()}</div>
             <p className="text-xs text-muted-foreground mt-1">requieren reorden</p>
           </CardContent>
         </Card>
@@ -157,7 +157,7 @@ export default function InventarioPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredItems.map((item) => (
+                {filteredItems.map((item: any) => (
                   <TableRow key={item.id} className="border-border hover:bg-muted/50">
                     <TableCell>
                       <div>
@@ -173,7 +173,7 @@ export default function InventarioPage() {
                             {item.quantity} {item.unit}
                           </span>
                           {item.quantity <= item.minLevel && (
-                            <Badge className="bg-yellow-500/20 text-yellow-700">Bajo</Badge>
+                            <Badge className="bg-[var(--secondary)]/20 text-[var(--secondary)]">Bajo</Badge>
                           )}
                         </div>
                         <Progress
@@ -274,11 +274,11 @@ export default function InventarioPage() {
               </div>
               <p className="text-xs text-muted-foreground">
                 {selectedItem.status === 'Bajo Stock' ? (
-                  <span className="text-yellow-600 font-medium">
+                  <span className="text-[var(--secondary)] font-medium">
                     Alerta: Stock por debajo del nivel mínimo
                   </span>
                 ) : (
-                  <span className="text-green-600 font-medium">Stock en nivel normal</span>
+                  <span className="text-[var(--brand-verde)] font-medium">Stock en nivel normal</span>
                 )}
               </p>
             </div>

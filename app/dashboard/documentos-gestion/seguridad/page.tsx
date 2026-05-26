@@ -38,7 +38,7 @@ export default function SeguridadPage() {
             <CardTitle className="text-sm">MSDS Vigentes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">28</div>
+            <div className="text-2xl font-bold text-[var(--brand-verde)]">28</div>
           </CardContent>
         </Card>
         <Card>
@@ -46,7 +46,7 @@ export default function SeguridadPage() {
             <CardTitle className="text-sm">Incidentes Mes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">3</div>
+            <div className="text-2xl font-bold text-[var(--brand-rojo)]">3</div>
           </CardContent>
         </Card>
         <Card>
@@ -88,19 +88,19 @@ export default function SeguridadPage() {
             </div>
 
             <div className="space-y-3">
-              {safetyDocs.map((doc) => (
+              {safetyDocs.map((doc: any) => (
                 <div key={doc.id} className="flex items-center justify-between border rounded-lg p-4 hover:bg-accent transition-colors">
                   <div className="flex items-center gap-4 flex-1">
                     {doc.type === 'Reporte Incidente' ? (
-                      <AlertTriangle className="h-5 w-5 text-red-600" />
+                      <AlertTriangle className="h-5 w-5 text-[var(--brand-rojo)]" />
                     ) : (
-                      <Shield className="h-5 w-5 text-blue-600" />
+                      <Shield className="h-5 w-5 text-[var(--secondary)]" />
                     )}
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <span className="font-semibold">{doc.id}</span>
                         <Badge variant="outline">{doc.type}</Badge>
-                        <Badge className={doc.status === 'Vigente' || doc.status === 'Completado' ? 'bg-green-600' : 'bg-yellow-600'}>
+                        <Badge className={doc.status === 'Vigente' || doc.status === 'Completado' ? 'bg-[var(--brand-verde)]' : 'bg-[var(--secondary)]'}>
                           {doc.status}
                         </Badge>
                       </div>

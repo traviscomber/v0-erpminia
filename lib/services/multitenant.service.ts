@@ -193,7 +193,7 @@ export class MultiTenantService {
         .eq('organization_id', organizationId)
         .limit(1);
 
-      return data && data.length > 0;
+      return !!(data && data.length > 0);
     } catch (error) {
       console.error('[v0] Error verifying user access:', error);
       return false;

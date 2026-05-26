@@ -51,7 +51,7 @@ export default function GuidesPage() {
             <li><strong>Paso 5:</strong> Asigna técnicos responsables por componente</li>
             <li><strong>Paso 6:</strong> Sistema crea OT principal + N sub-órdenes automáticamente</li>
           </ol>
-          <p className="mt-6 p-4 bg-blue-50 dark:bg-blue-950 rounded text-sm">
+          <p className="mt-6 p-4 bg-[var(--secondary)]/5 dark:bg-blue-950 rounded text-sm">
             💡 Consejo: Las sub-órdenes permiten que múltiples técnicos trabajen en paralelo, aumentando la eficiencia
           </p>
         </div>
@@ -66,7 +66,7 @@ export default function GuidesPage() {
             <li><strong>Paso 4:</strong> Visualiza síntomas, causas y piezas de desgaste asociadas</li>
             <li><strong>Paso 5:</strong> Selecciona piezas del sidebar y crea orden directamente desde el árbol</li>
           </ol>
-          <p className="mt-6 p-4 bg-green-50 dark:bg-green-950 rounded text-sm">
+          <p className="mt-6 p-4 bg-[var(--brand-verde)]/5 dark:bg-green-950 rounded text-sm">
             🎯 Ventaja: Todo el diagnóstico en un solo lugar - síntomas, causas y piezas necesarias
           </p>
         </div>
@@ -80,7 +80,7 @@ export default function GuidesPage() {
             <li><strong>Despacho:</strong> Bodega → Despacho → Selecciona OT</li>
             <li><strong>Registro:</strong> Sistema lista piezas necesarias → Confirma → Se genera acta</li>
           </ol>
-          <p className="mt-6 p-4 bg-red-50 dark:bg-red-950 rounded text-sm">
+          <p className="mt-6 p-4 bg-[var(--brand-rojo)]/5 dark:bg-red-950 rounded text-sm">
             ⚠️ Importante: FIFO significa "First In, First Out" - se despachan las piezas más antiguas primero
           </p>
         </div>
@@ -95,7 +95,7 @@ export default function GuidesPage() {
             <li><strong>Métricas:</strong> OTs completadas, costo vs presupuesto, ROI preventivo vs correctivo</li>
             <li><strong>Decisiones:</strong> Usa datos para optimizar frecuencia de mantención preventiva</li>
           </ol>
-          <p className="mt-6 p-4 bg-yellow-50 dark:bg-yellow-950 rounded text-sm">
+          <p className="mt-6 p-4 bg-[var(--secondary)]/5 dark:bg-yellow-950 rounded text-sm">
             📊 Dato: Mantención preventiva cuesta 30-50% menos que correctiva por parada inesperada
           </p>
         </div>

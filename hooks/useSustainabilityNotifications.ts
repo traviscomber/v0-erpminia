@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Toast, toast } from 'sonner';
+import { toast } from 'sonner';
 
 // Sistema de notificaciones en tiempo real para sostenibilidad
 export function useSustainabilityNotifications() {

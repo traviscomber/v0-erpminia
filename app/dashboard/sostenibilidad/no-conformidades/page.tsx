@@ -16,12 +16,12 @@ export default function NonconformanceDashboard() {
   const [showCAModal, setShowCAModal] = useState(false);
   const [selectedNC, setSelectedNC] = useState<any>(null);
 
-  const { data: ncData, mutate: mutateNCs } = useSWR('/api/sostenibilidad/nonconformances', async (url) => {
+  const { data: ncData, mutate: mutateNCs } = useSWR('/api/sostenibilidad/nonconformances', async (url: string) => {
     const res = await fetch(url);
     return res.ok ? res.json() : null;
   });
 
-  const { data: reportData } = useSWR('/api/sostenibilidad/compliance-report', async (url) => {
+  const { data: reportData } = useSWR('/api/sostenibilidad/compliance-report', async (url: string) => {
     const res = await fetch(url);
     return res.ok ? res.json() : null;
   });
@@ -185,7 +185,7 @@ export default function NonconformanceDashboard() {
                 <CardTitle>Severity Distribution</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {['critical', 'high', 'medium', 'low'].map((sev) => (
+                {['critical', 'high', 'medium', 'low'].map((sev: any) => (
                   <div key={sev} className="flex justify-between text-sm">
                     <span className="capitalize">{sev}</span>
                     <span className="font-medium">{report.by_severity?.[sev] || 0}</span>
@@ -236,7 +236,7 @@ export default function NonconformanceDashboard() {
 
         <TabsContent value="severity">
           <div className="grid md:grid-cols-2 gap-4">
-            {['critical', 'high', 'medium', 'low'].map((sev) => {
+            {['critical', 'high', 'medium', 'low'].map((sev: any) => {
               const filtered = ncs.filter((nc: any) => nc.severity === sev && nc.status !== 'closed');
               return (
                 <Card key={sev}>

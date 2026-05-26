@@ -63,7 +63,7 @@ export default function ComunidadesPage() {
   );
 
   const registrosList = addMockDataIfEmpty(registros.data || registros, mockComunidadesData) as ComunidadRecord[];
-  const filtered = registrosList.filter((r) => {
+  const filtered = registrosList.filter((r: any) => {
     const matchSearch = r.numero_registro.toLowerCase().includes(searchTerm.toLowerCase()) ||
       r.stakeholder.toLowerCase().includes(searchTerm.toLowerCase());
     const matchTipo = !tipo || r.tipo === tipo;
@@ -301,7 +301,7 @@ export default function ComunidadesPage() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((r) => (
+                {filtered.map((r: any) => (
                   <tr key={r.id} className="border-b hover:bg-muted/50">
                     <td className="py-3 px-4 font-medium">{r.numero_registro}</td>
                     <td className="py-3 px-4"><Badge>{tipoLabels[r.tipo as keyof typeof tipoLabels]}</Badge></td>

@@ -75,7 +75,7 @@ export function useRealtimeSensors(equipmentId: string) {
 
 export function useRealtimeAlarms() {
   const supabase = createClient();
-  const [alarms, setAlarms] = useState([]);
+  const [alarms, setAlarms] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {

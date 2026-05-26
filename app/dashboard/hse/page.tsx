@@ -78,7 +78,7 @@ export default function HSEPage() {
       case 'low':
         return 'bg-[var(--brand-verde)]/20 text-[var(--brand-verde)]';
       default:
-        return 'bg-gray-500/20 text-gray-700';
+        return 'bg-muted/20 text-gray-700';
     }
   };
 
@@ -155,7 +155,7 @@ export default function HSEPage() {
         >
           Todos los Marcos
         </Button>
-        {frameworks.map((fw) => (
+        {frameworks.map((fw: any) => (
           <Button
             key={fw.id}
             variant={selectedFramework === fw.id ? 'default' : 'outline'}
@@ -172,7 +172,7 @@ export default function HSEPage() {
         {/* Incidents */}
         <div className="lg:col-span-2 space-y-3">
           <h2 className="text-lg font-semibold">Incidentes y No Conformidades</h2>
-          {incidents.map((incident) => (
+          {incidents.map((incident: any) => (
             <Card key={incident.id} className="cursor-pointer hover:shadow-md transition-shadow">
               <CardContent className="p-4">
                 <div className="flex items-start justify-between gap-4">
@@ -209,7 +209,7 @@ export default function HSEPage() {
         <div className="space-y-3">
           <h2 className="text-lg font-semibold">Requisitos por Vencer</h2>
           <div className="space-y-2">
-            {requirementsDueData.map((req, i) => (
+            {requirementsDueData.map((req: any, i: number) => (
               <Card key={i} className="p-3">
                 <div className="flex items-center justify-between">
                   <div>
@@ -257,7 +257,7 @@ export default function HSEPage() {
 
       {/* Framework Details */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {frameworks.map((fw) => (
+        {frameworks.map((fw: any) => (
           <Card key={fw.id}>
             <CardHeader>
               <CardTitle className="text-base">{fw.name}</CardTitle>

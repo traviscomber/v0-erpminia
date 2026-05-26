@@ -30,7 +30,7 @@ export default function VehiclesPage() {
         <p className="text-muted-foreground mt-2">
           Administra vehículos y árbol de fallas para diagnóstico de mantenimiento
         </p>
-        <div className="mt-4 p-4 rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800">
+        <div className="mt-4 p-4 rounded-lg bg-[var(--secondary)]/5 dark:bg-blue-950 border border-[var(--secondary)]/30 dark:border-blue-800">
           <p className="text-sm text-blue-900 dark:text-blue-100">
             <strong>💡 Cómo funciona:</strong> Cada vehículo tiene un árbol jerárquico de componentes (Motor, Hidráulica, etc.) 
             con modos de falla, síntomas y piezas asociadas. Haz click en "Ver Árbol de Fallas" para diagnosticar problemas y crear órdenes de trabajo.
@@ -54,7 +54,7 @@ export default function VehiclesPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {vehicles.map((vehicle) => (
+            {vehicles.map((vehicle: any) => (
               <div
                 key={vehicle.id}
                 className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors"

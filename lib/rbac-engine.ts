@@ -14,9 +14,7 @@ export type Permission =
   | 'export:data'
   | 'manage:users';
 
-interface RolePermissions {
-  [key in Role]: Permission[];
-}
+type RolePermissions = Record<Role, Permission[]>;
 
 const ROLE_PERMISSIONS: RolePermissions = {
   admin: [

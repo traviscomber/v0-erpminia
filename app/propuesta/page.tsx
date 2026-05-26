@@ -67,15 +67,15 @@ export default function ProposalPage() {
             Propuesta integral para desarrollar e implementar n3uralia ERP, una plataforma web enterprise para gestión operacional en empresas mineras chilenas. El proyecto incluye 5 módulos operacionales, autenticación avanzada, compliance regulatorio (SERNAGEOMIN), y 1 año de soporte SaaS.
           </p>
           <div className="grid grid-cols-3 gap-4 mt-6">
-            <div className="p-4 bg-gray-50 rounded-lg">
+            <div className="p-4 bg-muted/5 rounded-lg">
               <p className="text-sm text-gray-600">Duración Desarrollo</p>
               <p className="text-2xl font-bold text-gray-900">7 Meses</p>
             </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
+            <div className="p-4 bg-muted/5 rounded-lg">
               <p className="text-sm text-gray-600">Inversión Base</p>
               <p className="text-2xl font-bold text-gray-900">CLP 25M</p>
             </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
+            <div className="p-4 bg-muted/5 rounded-lg">
               <p className="text-sm text-gray-600">SaaS Mensual</p>
               <p className="text-2xl font-bold text-gray-900">CLP 1M</p>
             </div>
@@ -87,7 +87,7 @@ export default function ProposalPage() {
           <h2 className="text-2xl font-bold mb-4 text-gray-900">Estructura de Precios</h2>
           
           <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-3 text-gray-800">Fase 1: Desarrollo (7 Meses)</h3>
+            <h3 className="text-lg font-semibold mb-3 text-foreground">Fase 1: Desarrollo (7 Meses)</h3>
             <table className="w-full text-sm">
               <tbody className="divide-y">
                 <tr>
@@ -98,7 +98,7 @@ export default function ProposalPage() {
                   <td className="py-2 text-gray-700">IVA (19%)</td>
                   <td className="py-2 text-right font-semibold">CLP 4,750,000</td>
                 </tr>
-                <tr className="bg-gray-50 font-bold">
+                <tr className="bg-muted/5 font-bold">
                   <td className="py-2">TOTAL A PAGAR</td>
                   <td className="py-2 text-right">CLP 29,750,000</td>
                 </tr>
@@ -107,7 +107,7 @@ export default function ProposalPage() {
           </div>
 
           <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-3 text-gray-800">Fase 2: SaaS - Soporte y Operación (Año 1)</h3>
+            <h3 className="text-lg font-semibold mb-3 text-foreground">Fase 2: SaaS - Soporte y Operación (Año 1)</h3>
             <table className="w-full text-sm">
               <tbody className="divide-y">
                 <tr>
@@ -118,11 +118,11 @@ export default function ProposalPage() {
                   <td className="py-2 text-gray-700">IVA Mensual (19%)</td>
                   <td className="py-2 text-right font-semibold">CLP 190,000</td>
                 </tr>
-                <tr className="bg-gray-50 font-bold">
+                <tr className="bg-muted/5 font-bold">
                   <td className="py-2">Total Mensual</td>
                   <td className="py-2 text-right">CLP 1,190,000</td>
                 </tr>
-                <tr className="bg-gray-50 font-bold">
+                <tr className="bg-muted/5 font-bold">
                   <td className="py-2">Total Anual (12 meses)</td>
                   <td className="py-2 text-right">CLP 14,280,000</td>
                 </tr>
@@ -130,9 +130,9 @@ export default function ProposalPage() {
             </table>
           </div>
 
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="p-4 bg-[var(--secondary)]/5 border border-[var(--secondary)]/30 rounded-lg">
             <p className="font-semibold text-gray-900 mb-1">Inversión Total Año 1 (Desarrollo + SaaS)</p>
-            <p className="text-2xl font-bold text-blue-600">CLP 44,030,000 (con IVA)</p>
+            <p className="text-2xl font-bold text-[var(--secondary)]">CLP 44,030,000 (con IVA)</p>
           </div>
         </section>
 
@@ -189,35 +189,35 @@ export default function ProposalPage() {
           <h2 className="text-2xl font-bold mb-4 text-gray-900">Incluido en CLP 25M</h2>
           <ul className="space-y-2 text-gray-700">
             <li className="flex gap-3">
-              <span className="text-green-600 font-bold">✓</span>
+              <span className="text-[var(--brand-verde)] font-bold">✓</span>
               <span>5 módulos operacionales completos (Producción, Mantención, Bodega, HSE, Documentos)</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-green-600 font-bold">✓</span>
+              <span className="text-[var(--brand-verde)] font-bold">✓</span>
               <span>15+ endpoints API documentados y testeados</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-green-600 font-bold">✓</span>
+              <span className="text-[var(--brand-verde)] font-bold">✓</span>
               <span>Autenticación avanzada con RBAC (6 roles definidos)</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-green-600 font-bold">✓</span>
+              <span className="text-[var(--brand-verde)] font-bold">✓</span>
               <span>Testing automatizado (80%+ code coverage)</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-green-600 font-bold">✓</span>
+              <span className="text-[var(--brand-verde)] font-bold">✓</span>
               <span>Documentación técnica y guía de usuario completa</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-green-600 font-bold">✓</span>
+              <span className="text-[var(--brand-verde)] font-bold">✓</span>
               <span>2 semanas de capacitación a equipo cliente</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-green-600 font-bold">✓</span>
+              <span className="text-[var(--brand-verde)] font-bold">✓</span>
               <span>1 mes de soporte post-launch sin costo</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-green-600 font-bold">✓</span>
+              <span className="text-[var(--brand-verde)] font-bold">✓</span>
               <span>Compliance SERNAGEOMIN integrado</span>
             </li>
           </ul>
@@ -228,35 +228,35 @@ export default function ProposalPage() {
           <h2 className="text-2xl font-bold mb-4 text-gray-900">Incluido en CLP 1M/Mes (SaaS)</h2>
           <ul className="space-y-2 text-gray-700">
             <li className="flex gap-3">
-              <span className="text-green-600 font-bold">✓</span>
+              <span className="text-[var(--brand-verde)] font-bold">✓</span>
               <span>Hosting Vercel con infraestructura global</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-green-600 font-bold">✓</span>
+              <span className="text-[var(--brand-verde)] font-bold">✓</span>
               <span>Database PostgreSQL (Supabase) con backups diarios</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-green-600 font-bold">✓</span>
+              <span className="text-[var(--brand-verde)] font-bold">✓</span>
               <span>SSL/TLS, seguridad OWASP Top 10</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-green-600 font-bold">✓</span>
+              <span className="text-[var(--brand-verde)] font-bold">✓</span>
               <span>Monitoreo 24/7 con alertas automáticas</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-green-600 font-bold">✓</span>
+              <span className="text-[var(--brand-verde)] font-bold">✓</span>
               <span>{'Soporte técnico (<24h respuesta en horas hábiles)'}</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-green-600 font-bold">✓</span>
+              <span className="text-[var(--brand-verde)] font-bold">✓</span>
               <span>SLA 99.9% de disponibilidad</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-green-600 font-bold">✓</span>
+              <span className="text-[var(--brand-verde)] font-bold">✓</span>
               <span>Parches de seguridad y actualizaciones</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-green-600 font-bold">✓</span>
+              <span className="text-[var(--brand-verde)] font-bold">✓</span>
               <span>{'Recuperación ante desastres (RTO <4h)'}</span>
             </li>
           </ul>
@@ -345,7 +345,7 @@ export default function ProposalPage() {
         <section className="mb-8">
           <h2 className="text-2xl font-bold mb-4 text-gray-900">Proyección Financiera</h2>
           <table className="w-full text-sm">
-            <thead className="bg-gray-100">
+            <thead className="bg-muted/50">
               <tr>
                 <th className="py-2 px-2 text-left">Período</th>
                 <th className="py-2 px-2 text-right">Ingresos</th>
@@ -366,7 +366,7 @@ export default function ProposalPage() {
                 <td className="py-2 px-2 text-right">CLP 1.8M</td>
                 <td className="py-2 px-2 text-right">64%</td>
               </tr>
-              <tr className="bg-gray-50 font-semibold">
+              <tr className="bg-muted/5 font-semibold">
                 <td className="py-2 px-2">Año 1 Completo</td>
                 <td className="py-2 px-2 text-right">CLP 34.75M</td>
                 <td className="py-2 px-2 text-right">CLP 31.55M</td>

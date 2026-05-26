@@ -107,9 +107,9 @@ export default function FinanzasPage() {
   const COLORS = ['#10b981', '#f59e0b', '#ef4444'];
 
   const statusConfig = {
-    Pagada: 'bg-green-100 text-green-800 border-green-200',
-    Pendiente: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    Vencida: 'bg-red-100 text-red-800 border-red-200',
+    Pagada: 'bg-[var(--brand-verde)]/10 text-[var(--brand-verde)] border-[var(--brand-verde)]/30',
+    Pendiente: 'bg-[var(--secondary)]/10 text-[var(--secondary)] border-[var(--secondary)]/30',
+    Vencida: 'bg-[var(--brand-rojo)]/10 text-[var(--brand-rojo)] border-[var(--brand-rojo)]/30',
   };
 
   return (
@@ -149,25 +149,25 @@ export default function FinanzasPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-green-500/5 overflow-hidden">
+        <Card className="border-border bg-[var(--brand-verde)]/5 overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-green-500/10 to-transparent rounded-full -mr-12 -mt-12" />
           <CardHeader className="pb-3 relative z-10">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-green-600" />
+                <TrendingUp className="w-4 h-4 text-[var(--brand-verde)]" />
                 Pagado
               </CardTitle>
             </div>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="text-2xl font-bold text-green-600">{formatCurrency(paidAmount)}</div>
+            <div className="text-2xl font-bold text-[var(--brand-verde)]">{formatCurrency(paidAmount)}</div>
             <div className="text-xs text-muted-foreground mt-2">
               {totalAmount > 0 ? ((paidAmount / totalAmount) * 100).toFixed(0) : 0}% del total
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-yellow-500/5 overflow-hidden">
+        <Card className="border-border bg-[var(--secondary)]/5 overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-yellow-500/10 to-transparent rounded-full -mr-12 -mt-12" />
           <CardHeader className="pb-3 relative z-10">
             <div className="flex items-center justify-between">
@@ -175,27 +175,27 @@ export default function FinanzasPage() {
             </div>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="text-2xl font-bold text-yellow-600">{formatCurrency(pendingAmount)}</div>
+            <div className="text-2xl font-bold text-[var(--secondary)]">{formatCurrency(pendingAmount)}</div>
             <p className="text-xs text-muted-foreground mt-2">
-              {filteredFinances.filter((f) => f.status === 'Pendiente').length} en trámite
+              {filteredFinances.filter((f: any) => f.status === 'Pendiente').length} en trámite
             </p>
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-red-500/5 overflow-hidden">
+        <Card className="border-border bg-[var(--brand-rojo)]/5 overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-red-500/10 to-transparent rounded-full -mr-12 -mt-12" />
           <CardHeader className="pb-3 relative z-10">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <TrendingDown className="w-4 h-4 text-red-600" />
+                <TrendingDown className="w-4 h-4 text-[var(--brand-rojo)]" />
                 Vencida
               </CardTitle>
             </div>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="text-2xl font-bold text-red-600">{formatCurrency(overdueAmount)}</div>
+            <div className="text-2xl font-bold text-[var(--brand-rojo)]">{formatCurrency(overdueAmount)}</div>
             <p className="text-xs text-muted-foreground mt-2">
-              {filteredFinances.filter((f) => f.status === 'Vencida').length} por pagar
+              {filteredFinances.filter((f: any) => f.status === 'Vencida').length} por pagar
             </p>
           </CardContent>
         </Card>
@@ -320,7 +320,7 @@ export default function FinanzasPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredFinances.map((finance) => (
+                {filteredFinances.map((finance: any) => (
                   <tr
                     key={finance.id}
                     className="border-b border-border/50 hover:bg-muted/30 transition-colors group"

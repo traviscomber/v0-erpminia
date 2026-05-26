@@ -38,7 +38,7 @@ export default function ReportesPage() {
             <CardTitle className="text-sm">Este Mes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">6</div>
+            <div className="text-2xl font-bold text-[var(--secondary)]">6</div>
           </CardContent>
         </Card>
         <Card>
@@ -88,13 +88,13 @@ export default function ReportesPage() {
             </div>
 
             <div className="space-y-3">
-              {reports.map((report) => (
+              {reports.map((report: any) => (
                 <div key={report.id} className="flex items-center justify-between border rounded-lg p-4 hover:bg-accent transition-colors">
                   <div className="flex items-center gap-4 flex-1">
                     {report.type === 'Financiero' ? (
                       <BarChart3 className="h-5 w-5 text-emerald-600" />
                     ) : (
-                      <TrendingUp className="h-5 w-5 text-blue-600" />
+                      <TrendingUp className="h-5 w-5 text-[var(--secondary)]" />
                     )}
                     <div className="flex-1">
                       <div className="flex items-center gap-2">

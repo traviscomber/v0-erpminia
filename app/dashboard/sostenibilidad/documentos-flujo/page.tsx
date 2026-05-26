@@ -60,7 +60,7 @@ export default function FlujDocumentalPage() {
   const { data: documentos = [], mutate } = useSWR('/api/sostenibilidad/documentos-flujo', fetcher);
   const docList = addMockDataIfEmpty(documentos.data || documentos, mockFlujDocumentalData) as DocumentoFlujo[];
 
-  const filteredDocs = docList.filter((doc) =>
+  const filteredDocs = docList.filter((doc: any) =>
     (doc.documento_nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
       doc.documento_id.toLowerCase().includes(searchTerm.toLowerCase())) &&
     (!filterEstado || doc.estado === filterEstado)
@@ -287,7 +287,7 @@ export default function FlujDocumentalPage() {
             {filteredDocs.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">No hay documentos</p>
             ) : (
-              filteredDocs.map((doc) => (
+              filteredDocs.map((doc: any) => (
                 <Card key={doc.id} className="border-l-4 border-l-[var(--brand-naranja)]">
                   <CardHeader>
                     <div className="flex justify-between items-start">

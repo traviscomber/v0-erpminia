@@ -52,9 +52,9 @@ export default function ContratosPage() {
     switch (status) {
       case 'Vigente': return 'bg-[var(--brand-verde)]/20 text-[var(--brand-verde)] border-[var(--brand-verde)]/50';
       case 'Por Vencer': return 'bg-[var(--brand-gold)]/20 text-[var(--brand-gold)] border-[var(--brand-gold)]/50';
-      case 'En Revisión': return 'bg-blue-500/20 text-blue-400 border-blue-500/50';
+      case 'En Revisión': return 'bg-[var(--secondary)]/20 text-[var(--secondary)] border-[var(--secondary)]/20/50';
       case 'Vencido': return 'bg-[var(--brand-rojo)]/20 text-[var(--brand-rojo)] border-[var(--brand-rojo)]/50';
-      default: return 'bg-gray-500/20 text-gray-400 border-gray-500/50';
+      default: return 'bg-muted/20 text-gray-400 border-gray-500/50';
     }
   };
 
@@ -167,10 +167,10 @@ export default function ContratosPage() {
 
         <Card className="bg-white/5 border-white/10">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-blue-400">En Revisión</CardTitle>
+            <CardTitle className="text-sm font-medium text-[var(--secondary)]">En Revisión</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-400">{stats.enRevision}</div>
+            <div className="text-2xl font-bold text-[var(--secondary)]">{stats.enRevision}</div>
             <p className="text-xs text-muted-foreground mt-1">Pendientes</p>
           </CardContent>
         </Card>

@@ -59,8 +59,12 @@ export function EquipmentMonitor() {
               status: eq.status || 'operational',
               availability: Math.floor(Math.random() * (100 - 80) + 80),
               activeAlarms: alarmData?.length || 0,
-              lastReading: readingData,
-            };
+              lastReading: readingData ? {
+                value: typeof readingData.value === 'number' ? readingData.value : 0,
+                unit: typeof readingData.unit === 'string' ? readingData.unit : '',
+                timestamp: typeof readingData.timestamp === 'string' ? readingData.timestamp : new Date().toISOString(),
+              } : undefined,
+            } as EquipmentStatus;
           })
         );
 

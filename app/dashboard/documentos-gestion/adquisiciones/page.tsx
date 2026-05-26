@@ -46,7 +46,7 @@ export default function AdquisicionesPage() {
             <CardTitle className="text-sm">Aprobadas Mes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">12</div>
+            <div className="text-2xl font-bold text-[var(--brand-verde)]">12</div>
           </CardContent>
         </Card>
         <Card>
@@ -88,7 +88,7 @@ export default function AdquisicionesPage() {
             </div>
 
             <div className="space-y-3">
-              {adquisicionesDocs.map((doc) => (
+              {adquisicionesDocs.map((doc: any) => (
                 <div key={doc.id} className="flex items-center justify-between border rounded-lg p-4 hover:bg-accent transition-colors">
                   <div className="flex items-center gap-4 flex-1">
                     <FileText className="h-5 w-5 text-muted-foreground" />
@@ -96,7 +96,7 @@ export default function AdquisicionesPage() {
                       <div className="flex items-center gap-2">
                         <span className="font-semibold">{doc.id}</span>
                         <Badge variant="outline">{doc.type}</Badge>
-                        <Badge className={doc.status === 'Aprobado' ? 'bg-green-600' : doc.status === 'Pendiente' ? 'bg-yellow-600' : 'bg-blue-600'}>
+                        <Badge className={doc.status === 'Aprobado' ? 'bg-[var(--brand-verde)]' : doc.status === 'Pendiente' ? 'bg-[var(--secondary)]' : 'bg-[var(--secondary)]'}>
                           {doc.status}
                         </Badge>
                       </div>

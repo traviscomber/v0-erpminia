@@ -42,9 +42,9 @@ export default function CategoryDetailPage() {
   const docs = data?.documents || { aprobados: [], pendientes: [], rechazados: [] };
 
   const getStatusBadge = (estado: string) => {
-    if (estado === 'aprobado') return <Badge className="bg-green-600">✓ Aprobado</Badge>;
-    if (estado.includes('pendiente')) return <Badge className="bg-yellow-600">⏱ Pendiente</Badge>;
-    if (estado === 'rechazado') return <Badge className="bg-red-600">✗ Rechazado</Badge>;
+    if (estado === 'aprobado') return <Badge className="bg-[var(--brand-verde)]">✓ Aprobado</Badge>;
+    if (estado.includes('pendiente')) return <Badge className="bg-[var(--secondary)]">⏱ Pendiente</Badge>;
+    if (estado === 'rechazado') return <Badge className="bg-[var(--brand-rojo)]">✗ Rechazado</Badge>;
     return <Badge>{estado}</Badge>;
   };
 
@@ -93,17 +93,17 @@ export default function CategoryDetailPage() {
           <CardHeader className="pb-3"><CardTitle className="text-sm">Total</CardTitle></CardHeader>
           <CardContent><div className="text-3xl font-bold">{stats.total}</div></CardContent>
         </Card>
-        <Card className="border-green-600/30 bg-green-600/5">
-          <CardHeader className="pb-3"><CardTitle className="text-sm text-green-600">Aprobados</CardTitle></CardHeader>
-          <CardContent><div className="text-3xl font-bold text-green-600">{stats.aprobados}</div></CardContent>
+        <Card className="border-[var(--brand-verde)]/30 bg-[var(--brand-verde)]/5">
+          <CardHeader className="pb-3"><CardTitle className="text-sm text-[var(--brand-verde)]">Aprobados</CardTitle></CardHeader>
+          <CardContent><div className="text-3xl font-bold text-[var(--brand-verde)]">{stats.aprobados}</div></CardContent>
         </Card>
-        <Card className="border-yellow-600/30 bg-yellow-600/5">
-          <CardHeader className="pb-3"><CardTitle className="text-sm text-yellow-600">Pendientes</CardTitle></CardHeader>
-          <CardContent><div className="text-3xl font-bold text-yellow-600">{stats.pendientes}</div></CardContent>
+        <Card className="border-[var(--secondary)]/30 bg-[var(--secondary)]/5">
+          <CardHeader className="pb-3"><CardTitle className="text-sm text-[var(--secondary)]">Pendientes</CardTitle></CardHeader>
+          <CardContent><div className="text-3xl font-bold text-[var(--secondary)]">{stats.pendientes}</div></CardContent>
         </Card>
-        <Card className="border-red-600/30 bg-red-600/5">
-          <CardHeader className="pb-3"><CardTitle className="text-sm text-red-600">Rechazados</CardTitle></CardHeader>
-          <CardContent><div className="text-3xl font-bold text-red-600">{stats.rechazados}</div></CardContent>
+        <Card className="border-[var(--brand-rojo)]/30 bg-[var(--brand-rojo)]/5">
+          <CardHeader className="pb-3"><CardTitle className="text-sm text-[var(--brand-rojo)]">Rechazados</CardTitle></CardHeader>
+          <CardContent><div className="text-3xl font-bold text-[var(--brand-rojo)]">{stats.rechazados}</div></CardContent>
         </Card>
       </div>
 

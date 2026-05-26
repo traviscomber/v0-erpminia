@@ -167,7 +167,7 @@ export default function PrevencionRiesgosPage() {
 
       {/* Modules Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {modules.map((module) => {
+        {modules.map((module: any) => {
           const Icon = module.icon;
           return (
             <Link key={module.href} href={module.href}>
@@ -186,7 +186,7 @@ export default function PrevencionRiesgosPage() {
                   <div className="flex flex-wrap gap-2">
                     {Object.entries(module.stats).map(([key, value]) => (
                       <Badge key={key} variant="outline" className="text-xs">
-                        {key}: {value}
+                        {key}: {String(value)}
                       </Badge>
                     ))}
                   </div>

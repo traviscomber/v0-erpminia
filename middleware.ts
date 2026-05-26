@@ -73,14 +73,15 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Check for auth token from our login API
-  const authToken = request.cookies.get('auth_token')?.value;
-  const isAuthenticated = !!user || !!authToken;
+  const isAuthenticated = !!user;
 
-  // Protected API routes - return 401 JSON for unauthenticated requests
-  // Note: /api/sostenibilidad is now public since frontend needs to fetch data
-  if (request.nextUrl.pathname.startsWith('/api/admin')) {
-    if (!isAuthenticated) {
+  // Protected API routes - ALL API routes require authentication except public ones
+  if (request.nextUrl.pathname.startsWith('/api/')) {
+    // Explicit public routes (don't require auth)
+    const publicApiRoutes = ['/api/health', '/api/auth/login', '/api/auth/register'];
+    const isPublicRoute = publicApiRoutes.some(route => request.nextUrl.pathname.startsWith(route));
+    
+    if (!isPublicRoute && !isAuthenticated) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -97,12 +98,10 @@ export async function middleware(request: NextRequest) {
   }
 
   // Protected dashboard - redirect to login
-  // DEMO MODE: Allow documentos-gestion access without authentication
   if (request.nextUrl.pathname.startsWith('/dashboard')) {
-    if (!isAuthenticated && !request.nextUrl.pathname.includes('documentos-gestion')) {
+    if (!isAuthenticated) {
       return NextResponse.redirect(new URL('/auth/login', request.url));
     }
-    // documentos-gestion is accessible without auth for demo/development
   }
 
   // Protected routes - setup only accessible before auth

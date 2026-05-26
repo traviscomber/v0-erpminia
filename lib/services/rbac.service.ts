@@ -251,6 +251,7 @@ export class RBACService {
       for (const role of defaultRoles) {
         await this.createRole(organizationId, {
           ...role,
+          organization_id: organizationId,
           status: 'active',
           created_by: createdBy,
         });

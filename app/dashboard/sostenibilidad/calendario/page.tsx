@@ -83,7 +83,7 @@ export default function CalendarioSostenibilidadPage() {
   };
 
   const getEventsForDay = (day: number) => {
-    return eventList.filter((event) => {
+    return eventList.filter((event: any) => {
       const eventDate = new Date(event.fecha_inicio);
       return (
         eventDate.getDate() === day &&
@@ -306,7 +306,7 @@ export default function CalendarioSostenibilidadPage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-7 gap-2">
-              {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sab', 'Dom'].map((day) => (
+              {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sab', 'Dom'].map((day: any) => (
                 <div key={day} className="text-center font-semibold text-sm text-muted-foreground py-2">
                   {day}
                 </div>
@@ -314,7 +314,7 @@ export default function CalendarioSostenibilidadPage() {
               {Array.from({ length: firstDay }).map((_, i) => (
                 <div key={`empty-${i}`} className="bg-white/5 rounded-lg min-h-24"></div>
               ))}
-              {days.map((day) => {
+              {days.map((day: any) => {
                 const dayEvents = getEventsForDay(day);
                 return (
                   <div
@@ -323,7 +323,7 @@ export default function CalendarioSostenibilidadPage() {
                   >
                     <div className="font-bold text-sm mb-1">{day}</div>
                     <div className="space-y-1">
-                      {dayEvents.slice(0, 2).map((event) => (
+                      {dayEvents.slice(0, 2).map((event: any) => (
                         <div
                           key={event.id}
                           className={`text-xs px-2 py-1 rounded truncate ${
@@ -357,9 +357,9 @@ export default function CalendarioSostenibilidadPage() {
           <CardContent>
             <div className="space-y-3">
               {eventList
-                .filter((e) => e.estado === 'programado')
+                .filter((e: any) => e.estado === 'programado')
                 .sort((a, b) => new Date(a.fecha_inicio).getTime() - new Date(b.fecha_inicio).getTime())
-                .map((event) => (
+                .map((event: any) => (
                   <div
                     key={event.id}
                     className="border border-white/10 rounded-lg p-4 hover:bg-white/5 transition"

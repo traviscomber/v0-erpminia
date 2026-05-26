@@ -61,7 +61,7 @@ export default function InspeccionesExternasPage() {
   const displayData = inspeccionesList.length > 0 ? inspeccionesList : mockDataFormatted;
   const useMockData = inspeccionesList.length === 0;
 
-  const filteredInspecciones = displayData.filter((insp) =>
+  const filteredInspecciones = displayData.filter((insp: any) =>
     insp.numero_inspeccion.toLowerCase().includes(searchTerm.toLowerCase()) ||
     insp.area_faena.toLowerCase().includes(searchTerm.toLowerCase()) ||
     insp.empresa_externa.toLowerCase().includes(searchTerm.toLowerCase())
@@ -235,7 +235,7 @@ export default function InspeccionesExternasPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredInspecciones.map((insp) => (
+                {filteredInspecciones.map((insp: any) => (
                   <tr key={insp.id} className="border-b hover:bg-muted/50">
                     <td className="py-3 px-4 font-medium">{insp.numero_inspeccion}</td>
                     <td className="py-3 px-4">{insp.area_faena}</td>
@@ -247,7 +247,7 @@ export default function InspeccionesExternasPage() {
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
-                        {estadoIcon[insp.estado]}
+                        {estadoIcon[insp.estado as keyof typeof estadoIcon]}
                         <span className="text-sm capitalize">{insp.estado}</span>
                       </div>
                     </td>

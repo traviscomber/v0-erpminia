@@ -50,7 +50,7 @@ export default function ReportesPage() {
     if (periodoTipo === 'mes') {
       const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
       for (let i = 0; i < meses.length; i++) {
-        const mesInspecciones = inspeccionesList.filter((insp) => {
+        const mesInspecciones = inspeccionesList.filter((insp: any) => {
           const date = new Date(insp.fecha_planificada);
           return date.getMonth() === i && date.getFullYear().toString() === anio;
         });
@@ -68,7 +68,7 @@ export default function ReportesPage() {
       
       trimestres.forEach((trim, idx) => {
         const [start, end] = mesRanges[idx];
-        const trimInspecciones = inspeccionesList.filter((insp) => {
+        const trimInspecciones = inspeccionesList.filter((insp: any) => {
           const date = new Date(insp.fecha_planificada);
           const month = date.getMonth();
           return month >= start && month <= end && date.getFullYear().toString() === anio;

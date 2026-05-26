@@ -219,7 +219,7 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {tasks.map((task) => (
+              {tasks.map((task: any) => (
                 <div
                   key={task.id}
                   className="flex items-start justify-between p-4 rounded-lg border border-border/50 hover:bg-muted/50 transition-colors group"
