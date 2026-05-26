@@ -22,29 +22,57 @@ export async function POST(request: NextRequest) {
     // Create Supabase client with service role key
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Use RPC function to get user (bypasses schema cache issues)
-    const { data: profileData, error: profileError } = await supabase.rpc('get_user_for_login', {
-      p_email: email,
-    });
+    // Query profiles table directly
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('id, email, full_name, password_hash, organization_id')
+      .eq('email', email);
 
-    if (profileError || !profileData || profileData.length === 0) {
+    if (profileError) {
+      console.error('[v0] Database error:', profileError);
+      return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    }
+
+    if (!profileData || profileData.length === 0) {
+      console.log('[v0] User not found:', email);
       return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
     }
 
     const profile = profileData[0];
 
-    // Verify password with bcrypt
-    const passwordMatch = await bcrypt.compare(password, profile.password_hash);
-    if (!passwordMatch) {
+    if (!profile.password_hash) {
+      console.error('[v0] No password hash for user:', email);
       return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
     }
 
-    // Get user role using RPC
-    const { data: roleData } = await supabase.rpc('get_user_role', {
-      p_user_id: profile.id,
-    });
+    // Verify password with bcrypt
+    let passwordMatch = false;
+    try {
+      passwordMatch = await bcrypt.compare(password, profile.password_hash);
+    } catch (err) {
+      console.error('[v0] Bcrypt error:', err);
+      return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
+    }
 
-    const role = roleData && roleData.length > 0 ? roleData[0].role : 'viewer';
+    if (!passwordMatch) {
+      console.log('[v0] Password mismatch for:', email);
+      return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
+    }
+
+    console.log('[v0] Password matched for:', email);
+
+    // Query user role
+    const { data: roleData, error: roleError } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', profile.id);
+
+    let role = 'viewer';
+    if (roleError) {
+      console.log('[v0] Role query error:', roleError, '- using default viewer role');
+    } else if (roleData && roleData.length > 0) {
+      role = roleData[0].role;
+    }
 
     const sessionData = {
       user: {
