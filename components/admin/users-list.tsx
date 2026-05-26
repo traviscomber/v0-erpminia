@@ -31,9 +31,10 @@ interface User {
   last_sign_in_at?: string;
 }
 
-const ROLES: UserRole[] = ['admin', 'manager', 'technician', 'warehouse_staff', 'finance_officer', 'viewer'];
+const ROLES: UserRole[] = ['superadmin', 'admin', 'manager', 'technician', 'warehouse_staff', 'finance_officer', 'viewer'];
 
 const roleColors = {
+  superadmin: 'bg-red-200 text-red-900',
   admin: 'bg-red-100 text-red-800',
   manager: 'bg-blue-100 text-blue-800',
   technician: 'bg-green-100 text-green-800',
