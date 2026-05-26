@@ -73,7 +73,20 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isAuthenticated = !!user;
+  // Also check for custom auth_token cookie (from our login API)
+  const authToken = request.cookies.get('auth_token')?.value;
+  let customAuthValid = false;
+  
+  if (authToken) {
+    try {
+      const sessionData = JSON.parse(authToken);
+      customAuthValid = !!(sessionData?.user?.id && sessionData?.session_token);
+    } catch {
+      customAuthValid = false;
+    }
+  }
+
+  const isAuthenticated = !!user || customAuthValid;
 
   // Protected API routes - ALL API routes require authentication except public ones
   if (request.nextUrl.pathname.startsWith('/api/')) {
