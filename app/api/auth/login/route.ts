@@ -2,9 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json();
+    const body = await request.json();
+    const { email, password } = body;
+
+    console.log('[v0] Login attempt:', { email, passwordLength: password?.length, bodyKeys: Object.keys(body) });
 
     if (!email || !password) {
+      console.log('[v0] Missing credentials');
       return NextResponse.json({ error: 'Email and password required' }, { status: 400 });
     }
 
@@ -43,7 +47,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
   } catch (error) {
-    console.error('[v0] Login error:', error);
-    return NextResponse.json({ error: 'Login failed' }, { status: 500 });
+    console.error('[v0] Login error:', error instanceof Error ? error.message : String(error));
+    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
   }
 }

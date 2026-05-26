@@ -86,7 +86,7 @@ export default function LoginPage() {
               <Button 
                 type="submit" 
                 className="w-full"
-                onClick={handleSubmit}
+                disabled={isLoading}
               >
                 {isLoading ? 'Ingresando...' : 'Iniciar Sesión'}
               </Button>
