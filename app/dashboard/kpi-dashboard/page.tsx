@@ -250,7 +250,7 @@ export default function KPIDashboardPage() {
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {alertDistribution.map((entry, index) => (
+                  {alertDistribution.map((entry: any, index: number) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
