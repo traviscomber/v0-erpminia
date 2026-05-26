@@ -20,7 +20,7 @@ export function AdvancedSearch({
 }: AdvancedSearchProps) {
   const [value, setValue] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const timeoutRef = React.useRef<ReturnType<typeof setTimeout> | undefined>();
+  const timeoutRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const handleSearch = useCallback(
     (query: string) => {
