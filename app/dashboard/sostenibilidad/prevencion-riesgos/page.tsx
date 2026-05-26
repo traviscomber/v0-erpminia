@@ -186,7 +186,7 @@ export default function PrevencionRiesgosPage() {
                   <div className="flex flex-wrap gap-2">
                     {Object.entries(module.stats).map(([key, value]) => (
                       <Badge key={key} variant="outline" className="text-xs">
-                        {key}: {value}
+                        {key}: {String(value)}
                       </Badge>
                     ))}
                   </div>
