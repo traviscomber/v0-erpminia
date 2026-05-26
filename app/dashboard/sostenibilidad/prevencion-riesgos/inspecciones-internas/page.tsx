@@ -244,7 +244,7 @@ export default function InspeccionesInternasPage() {
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
-                        {estadoIcon[insp.estado]}
+                        {estadoIcon[insp.estado as keyof typeof estadoIcon]}
                         <span className="capitalize text-muted-foreground">{insp.estado}</span>
                       </div>
                     </td>
