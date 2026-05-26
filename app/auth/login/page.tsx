@@ -1,16 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle } from 'lucide-react';
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  // Only render form after client-side hydration is complete
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,8 +47,31 @@ export default function LoginPage() {
     }
   };
 
+  // Don't render until mounted (prevents hydration mismatch)
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="w-full max-w-md">
+          <Card>
+            <CardHeader className="space-y-2">
+              <CardTitle className="text-2xl">Iniciar Sesión</CardTitle>
+              <CardDescription>n3uralia ERP - Plataforma de Gestión Minera</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="h-10 bg-muted animate-pulse rounded"></div>
+                <div className="h-10 bg-muted animate-pulse rounded"></div>
+                <div className="h-10 bg-muted animate-pulse rounded"></div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4" suppressHydrationWarning>
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
         <Card>
           <CardHeader className="space-y-2">
@@ -65,8 +94,7 @@ export default function LoginPage() {
                   placeholder="usuario@empresa.cl"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="email"
-                  suppressHydrationWarning
+                  autoComplete="off"
                 />
               </div>
 
@@ -77,9 +105,8 @@ export default function LoginPage() {
                   placeholder="********"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="current-password"
+                  autoComplete="off"
                   required
-                  suppressHydrationWarning
                 />
               </div>
 
@@ -87,7 +114,6 @@ export default function LoginPage() {
                 type="submit" 
                 className="w-full"
                 disabled={isLoading}
-                suppressHydrationWarning
               >
                 {isLoading ? 'Ingresando...' : 'Iniciar Sesión'}
               </Button>
@@ -97,4 +123,8 @@ export default function LoginPage() {
       </div>
     </div>
   );
+}
+
+export default function LoginPage() {
+  return <LoginForm />;
 }
