@@ -32,7 +32,7 @@ export default function RolesPage() {
       {/* Roles Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {roles.map((role: any) => {
-          const config = ROLE_PERMISSIONS[role];
+          const config = ROLE_PERMISSIONS[role as keyof typeof ROLE_PERMISSIONS];
           const isSelected = role === selectedRole;
 
           return (
@@ -132,7 +132,7 @@ export default function RolesPage() {
                 <th className="text-left py-2 px-2 font-semibold">Módulo</th>
                 {roles.map((role: any) => (
                   <th key={role} className="text-center py-2 px-1">
-                    <span className="text-xs">{ROLE_PERMISSIONS[role].icon}</span>
+                    <span className="text-xs">{ROLE_PERMISSIONS[role as keyof typeof ROLE_PERMISSIONS].icon}</span>
                   </th>
                 ))}
               </tr>
@@ -154,7 +154,7 @@ export default function RolesPage() {
                     <code className="bg-muted px-2 py-1 rounded">{module}</code>
                   </td>
                   {roles.map((role: any) => {
-                    const canAccess = ROLE_PERMISSIONS[role].accessibleModules.some(m =>
+                    const canAccess = ROLE_PERMISSIONS[role as keyof typeof ROLE_PERMISSIONS].accessibleModules.some(m =>
                       module.startsWith(m)
                     );
                     return (
@@ -179,7 +179,7 @@ export default function RolesPage() {
         <h2 className="text-2xl font-bold">Resumen por Rol</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {roles.map((role: any) => {
-            const config = ROLE_PERMISSIONS[role];
+            const config = ROLE_PERMISSIONS[role as keyof typeof ROLE_PERMISSIONS];
             return (
               <Card key={role} className="border-l-4" style={{ borderLeftColor: 'var(--brand-naranja)' }}>
                 <CardHeader>
