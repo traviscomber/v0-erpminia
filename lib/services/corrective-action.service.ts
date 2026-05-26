@@ -170,7 +170,7 @@ export class CorrectiveActionService {
       .neq('status', 'completed')
       .neq('status', 'verified');
 
-    return (data || []).filter(ca => ca.nonconformance?.organization_id === organizationId);
+    return (data || []).filter((ca: any) => ca.nonconformance?.organization_id === organizationId);
   }
 
   static async getCAStats(organizationId: string) {
@@ -188,10 +188,10 @@ export class CorrectiveActionService {
       .eq('organization_id', organizationId);
 
     const ncIds = new Set((ncs || []).map((nc: any) => nc.id));
-    const filtered = (all || []).filter(ca => ncIds.has(ca.nc_id));
+    const filtered = (all || []).filter((ca: any) => ncIds.has(ca.nc_id));
     
-    const inProgress = filtered.filter(ca => ca.status === 'in_progress').length;
-    const completed = filtered.filter(ca => ca.status === 'completed').length;
+    const inProgress = filtered.filter((ca: any) => ca.status === 'in_progress').length;
+    const completed = filtered.filter((ca: any) => ca.status === 'completed').length;
     const overdue = await this.getOverdueCorrectiveActions(organizationId);
 
     return {
@@ -209,8 +209,8 @@ export class CorrectiveActionService {
       .select('estimated_cost, actual_cost')
       .eq('nc_id', ncId);
 
-    const estimated = (data || []).reduce((sum, ca) => sum + (ca.estimated_cost || 0), 0);
-    const actual = (data || []).reduce((sum, ca) => sum + (ca.actual_cost || 0), 0);
+    const estimated = (data || []).reduce((sum: number, ca: any) => sum + (ca.estimated_cost || 0), 0);
+    const actual = (data || []).reduce((sum: number, ca: any) => sum + (ca.actual_cost || 0), 0);
 
     return { estimated, actual };
   }

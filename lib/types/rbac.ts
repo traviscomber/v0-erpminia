@@ -1,6 +1,6 @@
 // FASE 1: RBAC Types & Interfaces
 
-export type Permission = 'create' | 'read' | 'update' | 'delete' | 'approve' | 'export' | 'assign' | 'transfer' | 'scan_qr' | 'close' | 'manage_users' | 'manage_roles' | 'manage_organization' | 'audit_logs';
+export type PermissionAction = 'create' | 'read' | 'update' | 'delete' | 'approve' | 'export' | 'assign' | 'transfer' | 'scan_qr' | 'close' | 'manage_users' | 'manage_roles' | 'manage_organization' | 'audit_logs';
 
 export type Resource = 'documents' | 'maintenance' | 'inventory' | 'reports' | 'admin';
 

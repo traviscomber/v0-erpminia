@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/db/supabase';
-import type { InventoryItem, StockMovement } from '@/lib/types';
+import { InventoryMovementType } from '@/lib/types';
+import type { InventoryItem, InventoryMovement } from '@/lib/types';
 
 export const inventoryService = {
   // Get all inventory items in a warehouse
@@ -65,7 +66,7 @@ export const inventoryService = {
   },
 
   // Record stock movement (entrada/salida)
-  async recordStockMovement(movement: Omit<StockMovement, 'id' | 'created_at'>) {
+  async recordStockMovement(movement: Omit<InventoryMovement, 'id' | 'created_at'>) {
     // First, record the movement
     const { data: moveData, error: moveError } = await supabase
       .from('stock_movements')
@@ -84,7 +85,8 @@ export const inventoryService = {
     
     if (itemError) throw itemError;
 
-    const newStock = item.current_stock + (movement.movement_type === 'entrada' ? movement.quantity : -movement.quantity);
+    const isReceipt = movement.movement_type === InventoryMovementType.RECEIPT || movement.movement_type === InventoryMovementType.RETURN;
+    const newStock = item.current_stock + (isReceipt ? movement.quantity : -movement.quantity);
     
     await supabase
       .from('inventory_items')
@@ -170,11 +172,14 @@ export const inventoryService = {
       
       // Record adjustment movement
       await this.recordStockMovement({
+        company_id: '', // Should be from context
         inventory_item_id: itemId,
-        movement_type: difference > 0 ? 'entrada' : 'salida',
+        movement_type: difference > 0 ? InventoryMovementType.RECEIPT : InventoryMovementType.ISSUANCE,
         quantity: Math.abs(difference),
+        unit_cost: 0,
+        total_value: 0,
         reason: 'ajuste_conteo_fisico',
-        user_id: 'system', // Should be from context
+        created_by: 'system', // Should be from context
       });
       
       results.push({

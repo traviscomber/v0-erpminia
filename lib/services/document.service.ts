@@ -167,10 +167,12 @@ export class DocumentService {
       query = query.ilike('search_text', `%${filters.search}%`);
     }
 
+    const limit = filters?.limit || 50;
+    const offset = filters?.offset || 0;
+    
     query = query
       .order('created_at', { ascending: false })
-      .limit(filters?.limit || 50)
-      .offset(filters?.offset || 0);
+      .range(offset, offset + limit - 1);
 
     const { data, count, error } = await query;
     if (error) throw error;

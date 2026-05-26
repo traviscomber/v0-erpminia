@@ -1,10 +1,10 @@
-import { useCallback, useRef, useMemo } from 'react';
+import { useCallback, useRef, useMemo, useState, useEffect, DependencyList } from 'react';
 
 // Debounce hook for optimizing frequent updates
 export function useDebounce<T>(value: T, delay: number = 500): T {
-  const [debouncedValue, setDebouncedValue] = React.useState<T>(value);
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedValue(value);
     }, delay);
@@ -17,10 +17,10 @@ export function useDebounce<T>(value: T, delay: number = 500): T {
 
 // Throttle hook for API calls and event handlers
 export function useThrottle<T>(value: T, interval: number = 1000): T {
-  const [throttledValue, setThrottledValue] = React.useState<T>(value);
+  const [throttledValue, setThrottledValue] = useState<T>(value);
   const lastRanRef = useRef<number>(Date.now());
 
-  React.useEffect(() => {
+  useEffect(() => {
     const now = Date.now();
     if (now >= lastRanRef.current + interval) {
       lastRanRef.current = now;
@@ -51,10 +51,10 @@ export function useMemoizedList<T extends { id: string | number }>(
 
 // Lazy load images for better performance
 export function useLazyImage(src: string, placeholder: string = '') {
-  const [imageSrc, setImageSrc] = React.useState(placeholder);
-  const [imageRef, setImageRef] = React.useState<HTMLImageElement | null>(null);
+  const [imageSrc, setImageSrc] = useState(placeholder);
+  const [imageRef, setImageRef] = useState<HTMLImageElement | null>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     let observer: IntersectionObserver;
 
     if (imageRef && imageSrc === placeholder) {
@@ -82,7 +82,7 @@ export function useLazyImage(src: string, placeholder: string = '') {
 // Cache hook for memoizing expensive computations
 export function useCache<T>(
   computeFn: () => T,
-  dependencies: React.DependencyList,
+  dependencies: DependencyList,
   cacheKey?: string
 ): T {
   const cacheRef = useRef<{ key: string; value: T } | null>(null);
@@ -102,7 +102,7 @@ export function useCache<T>(
 
 // Pagination hook for large lists
 export function usePagination<T>(items: T[], itemsPerPage: number = 10) {
-  const [currentPage, setCurrentPage] = React.useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const totalPages = Math.ceil(items.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
