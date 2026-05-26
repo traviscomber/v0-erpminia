@@ -22,17 +22,16 @@ export async function POST(request: NextRequest) {
     // Create Supabase client with service role key
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Query profiles table
-    const { data: profiles, error: profileError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('email', email.toLowerCase());
+    // Use RPC function to get user (bypasses schema cache issues)
+    const { data: profileData, error: profileError } = await supabase.rpc('get_user_for_login', {
+      p_email: email,
+    });
 
-    if (profileError || !profiles || profiles.length === 0) {
+    if (profileError || !profileData || profileData.length === 0) {
       return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
     }
 
-    const profile = profiles[0];
+    const profile = profileData[0];
 
     // Verify password with bcrypt
     const passwordMatch = await bcrypt.compare(password, profile.password_hash);
@@ -40,14 +39,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
     }
 
-    // Get user role
-    const { data: roles } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', profile.id)
-      .limit(1);
+    // Get user role using RPC
+    const { data: roleData } = await supabase.rpc('get_user_role', {
+      p_user_id: profile.id,
+    });
 
-    const role = roles && roles.length > 0 ? roles[0].role : 'viewer';
+    const role = roleData && roleData.length > 0 ? roleData[0].role : 'viewer';
 
     const sessionData = {
       user: {
