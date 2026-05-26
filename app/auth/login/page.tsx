@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +11,25 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Suppress hydration mismatch warnings from browser extensions
+  useEffect(() => {
+    const originalError = console.error;
+    console.error = (...args: any[]) => {
+      if (
+        typeof args[0] === 'string' &&
+        args[0].includes('Hydration failed') &&
+        args[0].includes('fdprocessedid')
+      ) {
+        return; // Suppress this specific error
+      }
+      originalError(...args);
+    };
+
+    return () => {
+      console.error = originalError;
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,9 +71,9 @@ export default function LoginPage() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
-                <div className="flex gap-2 p-3 bg-[var(--brand-rojo)]/10 border border-[var(--brand-rojo)]/20/20 rounded">
-                  <AlertCircle className="h-4 w-4 text-[var(--brand-rojo)] flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-[var(--brand-rojo)]">{error}</p>
+                <div className="flex gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded">
+                  <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-destructive">{error}</p>
                 </div>
               )}
               
