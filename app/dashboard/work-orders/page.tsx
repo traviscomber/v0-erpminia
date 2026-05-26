@@ -52,7 +52,7 @@ export default function WorkOrdersPage() {
     },
   ];
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'completada':
         return 'bg-accent/10 text-accent';
@@ -65,7 +65,7 @@ export default function WorkOrdersPage() {
     }
   };
 
-  const getPriorityColor = (priority) => {
+  const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'crítica':
         return 'border-destructive/50 bg-destructive/5';
