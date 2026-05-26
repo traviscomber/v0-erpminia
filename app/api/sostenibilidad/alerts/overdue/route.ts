@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       .neq('status', 'verificada');
 
     // Consolidar alertas
-    const alerts = [];
+    const alerts: any[] = [];
 
     // Agregar NCs vencidas
     overdueNCs?.forEach((nc) => {
@@ -48,20 +48,21 @@ export async function GET(request: NextRequest) {
     });
 
     // Agregar CAs vencidas
-    overdueCAs?.forEach((ca) => {
+    overdueCAs?.forEach((ca: any) => {
       const daysOverdue = calculateDaysOverdue(ca.scheduled_completion_date);
+      const ncData = ca.sostenibilidad_nonconformances?.[0] || { severity: 'media', nc_number: 'N/A' };
       alerts.push({
         id: ca.id,
         type: 'ca_overdue',
         number: ca.ca_number,
         title: ca.action_description,
-        severity: ca.sostenibilidad_nonconformances.severity,
+        severity: ncData.severity,
         days_overdue: daysOverdue,
         status: 'active',
         related_entity: 'Acción Correctiva',
-        related_nc: ca.sostenibilidad_nonconformances.nc_number,
+        related_nc: ncData.nc_number,
         action_required: daysOverdue > 3,
-        priority: calculatePriority(ca.sostenibilidad_nonconformances.severity, daysOverdue),
+        priority: calculatePriority(ncData.severity, daysOverdue),
       });
     });
 
@@ -73,7 +74,7 @@ export async function GET(request: NextRequest) {
 
     // Ordenar por prioridad (descendente)
     filteredAlerts.sort((a, b) => {
-      const priorityOrder = { crítica: 3, alta: 2, media: 1, baja: 0 };
+      const priorityOrder: Record<string, number> = { crítica: 3, alta: 2, media: 1, baja: 0 };
       return (
         (priorityOrder[b.priority] || 0) - (priorityOrder[a.priority] || 0)
       );

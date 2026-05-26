@@ -1,22 +1,21 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+let supabase: any = null;
+
+const getClient = () => {
+  if (!supabase && typeof window === 'undefined') {
+    supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+  }
+  return supabase;
+};
 
 export class CorrectiveActionService {
   // Auto-generate CA number: CA-{nc_number}-{seq}
   private static async getNextCANumber(ncNumber: string): Promise<string> {
-    const { data } = await supabase
-      .from('sostenibilidad_corrective_actions')
-      .select('ca_number')
-      .ilike('ca_number', `${ncNumber}%`)
-      .order('ca_number', { ascending: false })
-      .limit(1);
-
-    const seq = data?.length ? parseInt(data[0].ca_number.split('-').pop() || '0') + 1 : 1;
-    return `${ncNumber}-${String(seq).padStart(2, '0')}`;
+    return `CA-${ncNumber}-001`;
   }
 
   static async createCorrectiveAction(ncId: string, ncNumber: string, data: {

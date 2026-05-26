@@ -73,9 +73,32 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Protected routes - require authentication
+  // Check for auth token from our login API
+  const authToken = request.cookies.get('auth_token')?.value;
+  const isAuthenticated = !!user || !!authToken;
+
+  // Protected API routes - return 401 JSON for unauthenticated requests
+  if (request.nextUrl.pathname.startsWith('/api/admin') || 
+      request.nextUrl.pathname.startsWith('/api/sostenibilidad')) {
+    if (!isAuthenticated) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+  }
+
+  // Protected admin/setup routes - redirect to login
+  if (request.nextUrl.pathname.startsWith('/setup') || 
+      request.nextUrl.pathname.startsWith('/admin')) {
+    if (!isAuthenticated) {
+      return NextResponse.redirect(new URL('/auth/login', request.url));
+    }
+  }
+
+  // Protected dashboard - redirect to login
   if (request.nextUrl.pathname.startsWith('/dashboard')) {
-    if (!user) {
+    if (!isAuthenticated) {
       return NextResponse.redirect(new URL('/auth/login', request.url));
     }
   }

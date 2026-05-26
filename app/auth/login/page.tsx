@@ -2,17 +2,14 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart3, AlertCircle } from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
+import { AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
-  const supabase = createClient();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState('juan@n3uralia.com');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,111 +20,77 @@ export default function LoginPage() {
     setIsLoading(true);
     
     try {
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+        credentials: 'include',
       });
 
-      if (signInError) {
-        setError(signInError.message);
-        setIsLoading(false);
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // Wait a moment for cookies to be set, then redirect
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 100);
         return;
       }
 
-      if (data.user) {
-        // Successful login
-        router.push('/dashboard');
-      }
+      setError(data.error || 'Credenciales inválidas');
+      setIsLoading(false);
     } catch (err) {
-      setError('Error al iniciar sesión. Intenta de nuevo.');
+      setError('Error al iniciar sesión');
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="flex justify-center mb-8">
-          <div className="w-12 h-12 bg-sidebar-primary rounded-lg flex items-center justify-center">
-            <BarChart3 className="w-8 h-8 text-sidebar-primary-foreground" />
-          </div>
-        </div>
-
-        {/* Login Card */}
-        <Card className="border-border">
-          <CardHeader className="space-y-1">
+        <Card>
+          <CardHeader className="space-y-2">
             <CardTitle className="text-2xl">Iniciar Sesión</CardTitle>
-            <CardDescription>
-              n3uralia ERP - Plataforma de Gestión Minera
-            </CardDescription>
+            <CardDescription>n3uralia ERP - Plataforma de Gestión Minera</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
-                <div className="flex items-start gap-3 p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
-                  <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-destructive">{error}</p>
+                <div className="flex gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded">
+                  <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-red-600">{error}</p>
                 </div>
               )}
               
               <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium">
-                  Correo Electrónico
-                </label>
+                <label className="text-sm font-medium">Correo Electrónico</label>
                 <Input
-                  id="email"
                   type="email"
-                  placeholder="usuario@empresa.cl"
+                  placeholder="juan@n3uralia.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  disabled={isLoading}
-                  required
-                  className="bg-input"
                 />
               </div>
+
               <div className="space-y-2">
-                <label htmlFor="password" className="text-sm font-medium">
-                  Contraseña
-                </label>
+                <label className="text-sm font-medium">Contraseña</label>
                 <Input
-                  id="password"
                   type="password"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  disabled={isLoading}
                   required
-                  className="bg-input"
                 />
               </div>
 
-              <Button
-                type="submit"
+              <Button 
+                type="submit" 
                 className="w-full"
                 disabled={isLoading}
               >
-                {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+                {isLoading ? 'Ingresando...' : 'Iniciar Sesión'}
               </Button>
             </form>
-
-            <div className="mt-6 text-center text-sm">
-              <p className="text-muted-foreground">
-                ¿No tienes cuenta?{' '}
-                <Link href="/auth/register" className="text-sidebar-primary hover:underline font-semibold">
-                  Regístrate aquí
-                </Link>
-              </p>
-            </div>
-
-            <div className="mt-6 pt-6 border-t border-border">
-              <p className="text-xs text-muted-foreground text-center mb-3">
-                Usa tus credenciales de n3uralia
-              </p>
-              <p className="text-xs text-muted-foreground text-center pt-4 border-t border-border">
-                Powered by <a href="https://n3uralia.com" target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline">n3uralia</a>
-              </p>
-            </div>
           </CardContent>
         </Card>
       </div>
