@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,25 +11,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Suppress hydration mismatch warnings from browser extensions
-  useEffect(() => {
-    const originalError = console.error;
-    console.error = (...args: any[]) => {
-      if (
-        typeof args[0] === 'string' &&
-        args[0].includes('Hydration failed') &&
-        args[0].includes('fdprocessedid')
-      ) {
-        return; // Suppress this specific error
-      }
-      originalError(...args);
-    };
-
-    return () => {
-      console.error = originalError;
-    };
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,7 +42,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4" suppressHydrationWarning>
       <div className="w-full max-w-md">
         <Card>
           <CardHeader className="space-y-2">
@@ -85,6 +66,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   autoComplete="email"
+                  suppressHydrationWarning
                 />
               </div>
 
@@ -97,6 +79,7 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="current-password"
                   required
+                  suppressHydrationWarning
                 />
               </div>
 
@@ -104,6 +87,7 @@ export default function LoginPage() {
                 type="submit" 
                 className="w-full"
                 disabled={isLoading}
+                suppressHydrationWarning
               >
                 {isLoading ? 'Ingresando...' : 'Iniciar Sesión'}
               </Button>
