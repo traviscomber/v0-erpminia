@@ -240,8 +240,9 @@ export default function AlertasPage() {
           </Card>
         ) : (
           filteredAlerts.map((alert: any) => {
-            const SeverityIcon = severityConfig[alert.severity].icon;
-            const severityClass = severityConfig[alert.severity].color;
+            const severity = alert.severity as keyof typeof severityConfig;
+            const SeverityIcon = severityConfig[severity].icon;
+            const severityClass = severityConfig[severity].color;
 
             return (
               <Card
@@ -252,7 +253,7 @@ export default function AlertasPage() {
                 <CardContent className="p-4">
                   <div className="flex gap-4">
                     <div className="flex-shrink-0 pt-1">
-                      <SeverityIcon className={`h-5 w-5 ${severityConfig[alert.severity].color.split(' ')[1]}`} />
+                      <SeverityIcon className={`h-5 w-5 ${severityConfig[severity].color.split(' ')[1]}`} />
                     </div>
 
                     <div className="flex-1 min-w-0">
@@ -267,7 +268,7 @@ export default function AlertasPage() {
                           <p className="text-sm text-muted-foreground mt-1">{alert.description}</p>
                           <div className="flex items-center gap-2 mt-2">
                             <Badge className={severityClass}>
-                              {severityConfig[alert.severity].label}
+                              {severityConfig[severity].label}
                             </Badge>
                             <span className="text-xs text-muted-foreground flex items-center gap-1">
                               <Clock className="h-3 w-3" />
@@ -340,8 +341,8 @@ export default function AlertasPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <p className="text-xs text-muted-foreground uppercase font-semibold mb-1">Severidad</p>
-                    <Badge className={severityConfig[selectedAlert.severity].color}>
-                      {severityConfig[selectedAlert.severity].label}
+                    <Badge className={severityConfig[selectedAlert.severity as keyof typeof severityConfig].color}>
+                      {severityConfig[selectedAlert.severity as keyof typeof severityConfig].label}
                     </Badge>
                   </div>
                   <div>

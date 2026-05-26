@@ -209,7 +209,7 @@ export default function HSEPage() {
         <div className="space-y-3">
           <h2 className="text-lg font-semibold">Requisitos por Vencer</h2>
           <div className="space-y-2">
-            {requirementsDueData.map((req, i) => (
+            {requirementsDueData.map((req: any, i: number) => (
               <Card key={i} className="p-3">
                 <div className="flex items-center justify-between">
                   <div>
