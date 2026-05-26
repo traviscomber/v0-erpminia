@@ -91,7 +91,7 @@ export async function middleware(request: NextRequest) {
   // Protected API routes - ALL API routes require authentication except public ones
   if (request.nextUrl.pathname.startsWith('/api/')) {
     // Explicit public routes (don't require auth)
-    const publicApiRoutes = ['/api/health', '/api/auth/login', '/api/auth/register'];
+    const publicApiRoutes = ['/api/health', '/api/auth/login', '/api/auth/register', '/api/auth/logout'];
     const isPublicRoute = publicApiRoutes.some(route => request.nextUrl.pathname.startsWith(route));
     
     if (!isPublicRoute && !isAuthenticated) {

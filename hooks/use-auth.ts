@@ -43,8 +43,17 @@ export function useAuth() {
     try {
       console.log('[v0] Logging out user...');
       
-      // Clear all auth cookies
-      document.cookie = 'auth_token=; path=/; max-age=0';
+      // Call logout API to clear server-side cookies
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!response.ok) {
+        console.error('[v0] Logout API failed:', response.status);
+      }
+
+      // Clear client-side cookies that can be cleared
       document.cookie = 'user_email=; path=/; max-age=0';
       document.cookie = 'user_role=; path=/; max-age=0';
       
@@ -52,7 +61,7 @@ export function useAuth() {
       setRole(null);
       console.log('[v0] Logout successful, redirecting...');
       
-      // Hard redirect to login
+      // Redirect to login
       window.location.href = '/auth/login';
     } catch (error) {
       console.error('[v0] Error during logout:', error);
