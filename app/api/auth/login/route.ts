@@ -66,6 +66,14 @@ export async function POST(request: NextRequest) {
       maxAge: 86400 * 7,
     });
 
+    // Also set role as a non-HttpOnly cookie so JavaScript can read it
+    response.cookies.set('user_role', role, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 86400 * 7,
+    });
+
     response.cookies.set('user_email', email, {
       httpOnly: false,
       secure: process.env.NODE_ENV === 'production',
@@ -73,6 +81,7 @@ export async function POST(request: NextRequest) {
       maxAge: 86400 * 7,
     });
 
+    console.log('[v0] Login successful:', { email, role });
     return response;
   } catch (error) {
     console.error('[v0] Login error:', error instanceof Error ? error.message : String(error));

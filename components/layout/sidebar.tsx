@@ -39,7 +39,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { cn } from '@/lib/utils';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 
 // Define permitted roles for each module
@@ -247,6 +247,12 @@ export function Sidebar() {
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     'Core': true,
   });
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Force re-render after mount to ensure cookies are read
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Filter menu items based on user role
   const filteredMenuItems = useMemo(() => {
