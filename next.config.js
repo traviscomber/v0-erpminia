@@ -124,9 +124,6 @@ const nextConfig = {
 
   // Production source maps disabled for performance
   productionBrowserSourceMaps: false,
-
-  // SWC minification (faster than Terser)
-  swcMinify: true,
 };
 
 module.exports = nextConfig;

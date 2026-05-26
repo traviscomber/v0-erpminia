@@ -86,7 +86,7 @@ export function CashFlowAnalysis({ data, budget_limit }: CashFlowProps) {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis />
-              <Tooltip formatter={(value) => `CLP ${(value / 1e6).toFixed(2)}M`} />
+              <Tooltip formatter={(value: number) => `CLP ${(value / 1e6).toFixed(2)}M`} />
               <Legend />
               <Area type="monotone" dataKey="inflow" fill="#10b981" stroke="#10b981" name="Ingresos" />
               <Area type="monotone" dataKey="outflow" fill="#ef4444" stroke="#ef4444" name="Egresos" />
@@ -105,7 +105,7 @@ export function CashFlowAnalysis({ data, budget_limit }: CashFlowProps) {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis />
-              <Tooltip formatter={(value) => `CLP ${(value / 1e6).toFixed(2)}M`} />
+              <Tooltip formatter={(value: number) => `CLP ${(value / 1e6).toFixed(2)}M`} />
               <Legend />
               <Bar dataKey="outflow" fill="#ef4444" name="Gasto Real" />
               <Bar dataKey="forecast" fill="#3b82f6" name="Presupuestado" />
