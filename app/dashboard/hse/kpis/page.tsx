@@ -35,9 +35,9 @@ export default function HSEKPIsPage() {
 
       {/* Alert Meta */}
       {!cumpleMeta && (
-        <Alert className="border-red-200 bg-red-50">
-          <AlertTriangle className="h-4 w-4 text-red-600" />
-          <AlertDescription className="text-red-800">
+        <Alert className="border-[var(--brand-rojo)]/30 bg-[var(--brand-rojo)]/5">
+          <AlertTriangle className="h-4 w-4 text-[var(--brand-rojo)]" />
+          <AlertDescription className="text-[var(--brand-rojo)]">
             IIRL por encima de meta (Actual: {ultimoMes.iirl?.toFixed(2)}, Meta: {metaIirl})
           </AlertDescription>
         </Alert>
@@ -52,8 +52,8 @@ export default function HSEKPIsPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
               Tasa de Accidentabilidad
-              {cambioIirl < 0 && <TrendingDown className="h-4 w-4 text-green-600" />}
-              {cambioIirl > 0 && <TrendingUp className="h-4 w-4 text-red-600" />}
+              {cambioIirl < 0 && <TrendingDown className="h-4 w-4 text-[var(--brand-verde)]" />}
+              {cambioIirl > 0 && <TrendingUp className="h-4 w-4 text-[var(--brand-rojo)]" />}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -67,7 +67,7 @@ export default function HSEKPIsPage() {
             <CardTitle className="text-sm text-muted-foreground">Días Sin Accidentes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-600">{ultimoMes.dias_sin_accidentes || '0'}</div>
+            <div className="text-3xl font-bold text-[var(--brand-verde)]">{ultimoMes.dias_sin_accidentes || '0'}</div>
             <p className="text-xs text-muted-foreground mt-1">Marca actual</p>
           </CardContent>
         </Card>
@@ -98,9 +98,9 @@ export default function HSEKPIsPage() {
                 </div>
                 <div className="text-right">
                   {mes.iirl <= metaIirl ? (
-                    <Badge className="bg-green-100 text-green-800">Dentro de Meta</Badge>
+                    <Badge className="bg-[var(--brand-verde)]/10 text-[var(--brand-verde)]">Dentro de Meta</Badge>
                   ) : (
-                    <Badge className="bg-red-100 text-red-800">Fuera de Meta</Badge>
+                    <Badge className="bg-[var(--brand-rojo)]/10 text-[var(--brand-rojo)]">Fuera de Meta</Badge>
                   )}
                 </div>
               </div>
@@ -116,14 +116,14 @@ export default function HSEKPIsPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-blue-50 rounded">
+            <div className="flex items-center justify-between p-3 bg-[var(--secondary)]/5 rounded">
               <div>
                 <p className="font-semibold">IIRL Target</p>
                 <p className="text-sm text-muted-foreground">Índice de Lesión Incapacitante</p>
               </div>
               <p className="font-bold text-lg">&lt; 1.0</p>
             </div>
-            <div className="flex items-center justify-between p-3 bg-green-50 rounded">
+            <div className="flex items-center justify-between p-3 bg-[var(--brand-verde)]/5 rounded">
               <div>
                 <p className="font-semibold">Cero Accidentes</p>
                 <p className="text-sm text-muted-foreground">Meta aspiracional</p>

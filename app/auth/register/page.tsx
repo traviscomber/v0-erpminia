@@ -103,7 +103,7 @@ export default function RegisterPage() {
           <CardContent>
             {success ? (
               <div className="flex flex-col items-center justify-center py-8 space-y-3">
-                <CheckCircle2 className="w-12 h-12 text-green-600" />
+                <CheckCircle2 className="w-12 h-12 text-[var(--brand-verde)]" />
                 <p className="font-semibold text-center">¡Registro exitoso!</p>
                 <p className="text-sm text-muted-foreground text-center">
                   Redirigiendo a login en 2 segundos...

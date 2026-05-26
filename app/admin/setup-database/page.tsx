@@ -82,20 +82,20 @@ export default function SetupPage() {
 
           {step === 'complete' && result && (
             <div className="space-y-4">
-              <div className="flex items-start gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <div className="flex items-start gap-3 p-3 bg-[var(--brand-verde)]/5 border border-[var(--brand-verde)]/30 rounded-lg">
+                <CheckCircle2 className="h-5 w-5 text-[var(--brand-verde)] flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="font-semibold text-green-900">Setup Completado</p>
-                  <p className="text-sm text-green-800 mt-1">
+                  <p className="text-sm text-[var(--brand-verde)] mt-1">
                     {result.synced} usuarios sincronizados
                   </p>
                 </div>
               </div>
 
               {result.errors && result.errors.length > 0 && (
-                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="p-3 bg-[var(--secondary)]/5 border border-[var(--secondary)]/30 rounded-lg">
                   <p className="text-sm font-medium text-yellow-900 mb-2">Errores:</p>
-                  <ul className="text-sm text-yellow-800 space-y-1">
+                  <ul className="text-sm text-[var(--secondary)] space-y-1">
                     {result.errors.map((err: string, i: number) => (
                       <li key={i}>• {err}</li>
                     ))}

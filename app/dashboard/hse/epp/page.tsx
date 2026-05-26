@@ -54,11 +54,11 @@ export default function HSEEPPPage() {
 
       {/* Alerts */}
       {pendingDevoluciones.length > 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex gap-3">
-          <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0" />
+        <div className="bg-[var(--secondary)]/5 border border-[var(--secondary)]/30 rounded-lg p-4 flex gap-3">
+          <AlertTriangle className="h-5 w-5 text-[var(--secondary)] flex-shrink-0" />
           <div>
             <p className="font-semibold text-yellow-900">{pendingDevoluciones.length} devolución(es) pendiente(s)</p>
-            <p className="text-sm text-yellow-700">Personal debe devolver equipo antiguo para recibir reemplazo</p>
+            <p className="text-sm text-[var(--secondary)]">Personal debe devolver equipo antiguo para recibir reemplazo</p>
           </div>
         </div>
       )}
@@ -78,7 +78,7 @@ export default function HSEEPPPage() {
             <CardTitle className="text-sm text-muted-foreground">Equipos Nuevos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{entregasNuevas.length}</div>
+            <div className="text-2xl font-bold text-[var(--brand-verde)]">{entregasNuevas.length}</div>
           </CardContent>
         </Card>
         <Card>
@@ -94,7 +94,7 @@ export default function HSEEPPPage() {
             <CardTitle className="text-sm text-muted-foreground">Devoluciones Pendientes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{pendingDevoluciones.length}</div>
+            <div className="text-2xl font-bold text-[var(--brand-rojo)]">{pendingDevoluciones.length}</div>
           </CardContent>
         </Card>
       </div>
@@ -151,10 +151,10 @@ export default function HSEEPPPage() {
                     Entregado: {new Date(entrega.fecha_entrega).toLocaleDateString('es-CL')}
                   </p>
                   {entrega.devolucion_requerida && !entrega.fecha_devolucion && (
-                    <Badge className="mt-2 bg-red-100 text-red-800">Devolución pendiente</Badge>
+                    <Badge className="mt-2 bg-[var(--brand-rojo)]/10 text-[var(--brand-rojo)]">Devolución pendiente</Badge>
                   )}
                   {entrega.fecha_devolucion && (
-                    <Badge className="mt-2 bg-green-100 text-green-800" >
+                    <Badge className="mt-2 bg-[var(--brand-verde)]/10 text-[var(--brand-verde)]" >
                       <Check className="h-3 w-3 mr-1" />
                       Devuelto
                     </Badge>

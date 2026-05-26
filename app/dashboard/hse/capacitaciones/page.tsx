@@ -12,9 +12,9 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const estadoColores = {
-  programada: 'bg-blue-100 text-blue-800',
-  realizada: 'bg-green-100 text-green-800',
-  cancelada: 'bg-red-100 text-red-800',
+  programada: 'bg-[var(--secondary)]/10 text-blue-800',
+  realizada: 'bg-[var(--brand-verde)]/10 text-[var(--brand-verde)]',
+  cancelada: 'bg-[var(--brand-rojo)]/10 text-[var(--brand-rojo)]',
 };
 
 export default function HSECapacitacionesPage() {
@@ -66,7 +66,7 @@ export default function HSECapacitacionesPage() {
 
       {/* Próximas */}
       {proximasCapacitaciones.length > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="bg-[var(--secondary)]/5 border border-[var(--secondary)]/30 rounded-lg p-4">
           <h3 className="font-semibold text-blue-900 mb-3">Próximas Capacitaciones</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {proximasCapacitaciones.slice(0, 3).map((cap: any) => (
@@ -79,7 +79,7 @@ export default function HSECapacitacionesPage() {
                     month: 'short',
                   })}
                 </p>
-                <p className="text-xs text-blue-600 mt-1">{cap.duracion_horas}h</p>
+                <p className="text-xs text-[var(--secondary)] mt-1">{cap.duracion_horas}h</p>
               </div>
             ))}
           </div>
@@ -101,7 +101,7 @@ export default function HSECapacitacionesPage() {
             <CardTitle className="text-sm text-muted-foreground">Programadas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
+            <div className="text-2xl font-bold text-[var(--secondary)]">
               {capacitaciones.filter((c: any) => c.estado === 'programada').length}
             </div>
           </CardContent>
@@ -111,7 +111,7 @@ export default function HSECapacitacionesPage() {
             <CardTitle className="text-sm text-muted-foreground">Realizadas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-[var(--brand-verde)]">
               {capacitaciones.filter((c: any) => c.estado === 'realizada').length}
             </div>
           </CardContent>

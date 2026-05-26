@@ -261,7 +261,7 @@ export default function AlertasPage() {
                           <div className="flex items-center gap-2">
                             <h3 className="font-semibold text-foreground">{alert.title}</h3>
                             {!alert.read && (
-                              <div className="w-2 h-2 rounded-full bg-blue-600 flex-shrink-0" />
+                              <div className="w-2 h-2 rounded-full bg-[var(--secondary)] flex-shrink-0" />
                             )}
                           </div>
                           <p className="text-sm text-muted-foreground mt-1">{alert.description}</p>

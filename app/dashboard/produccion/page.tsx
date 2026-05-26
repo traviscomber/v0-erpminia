@@ -78,15 +78,15 @@ export default function ProduccionPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'operational':
-        return 'bg-green-500/20 text-green-700';
+        return 'bg-[var(--brand-verde)]/20 text-[var(--brand-verde)]';
       case 'warning':
-        return 'bg-yellow-500/20 text-yellow-700';
+        return 'bg-[var(--secondary)]/20 text-[var(--secondary)]';
       case 'maintenance':
-        return 'bg-blue-500/20 text-blue-700';
+        return 'bg-[var(--secondary)]/20 text-[var(--secondary)]';
       case 'offline':
-        return 'bg-red-500/20 text-red-700';
+        return 'bg-[var(--brand-rojo)]/20 text-[var(--brand-rojo)]';
       default:
-        return 'bg-gray-500/20 text-gray-700';
+        return 'bg-muted/20 text-gray-700';
     }
   };
 

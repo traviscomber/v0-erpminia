@@ -22,12 +22,12 @@ export default function AdminUsersPage() {
   if (!user || (role !== 'admin' && role !== 'superadmin')) {
     return (
       <div className="flex items-center justify-center min-h-screen p-4">
-        <Card className="max-w-md border-red-200 bg-red-50">
+        <Card className="max-w-md border-[var(--brand-rojo)]/30 bg-[var(--brand-rojo)]/5">
           <CardContent className="flex gap-4 pt-6">
-            <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0" />
+            <AlertCircle className="h-6 w-6 text-[var(--brand-rojo)] flex-shrink-0" />
             <div>
               <h2 className="font-semibold text-red-900">Acceso Denegado</h2>
-              <p className="text-sm text-red-800 mt-1">
+              <p className="text-sm text-[var(--brand-rojo)] mt-1">
                 Solo administradores pueden acceder a esta sección.
               </p>
             </div>
@@ -52,7 +52,7 @@ export default function AdminUsersPage() {
       <UsersList key={refreshKey} />
 
       {/* Info Card */}
-      <Card className="bg-blue-50 border-blue-200">
+      <Card className="bg-[var(--secondary)]/5 border-[var(--secondary)]/30">
         <CardContent className="pt-6 space-y-3">
           <div>
             <h3 className="font-semibold text-blue-900">Información de Roles</h3>

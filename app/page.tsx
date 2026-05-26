@@ -131,9 +131,9 @@ export default function Home() {
             </Card>
 
             {/* Mantención */}
-            <Card className="border-l-4 border-l-purple-500">
+            <Card className="border-l-4 border-l-[var(--brand-verde)]">
               <CardHeader>
-                <Wrench className="h-8 w-8 text-purple-500 mb-2" />
+                <Wrench className="h-8 w-8 text-[var(--brand-verde)] mb-2" />
                 <CardTitle className="text-base">Mantención</CardTitle>
                 <CardDescription>Sin improvisaciones</CardDescription>
               </CardHeader>
@@ -143,15 +143,15 @@ export default function Home() {
                 </p>
                 <ul className="text-xs space-y-1 text-muted-foreground">
                   <li className="flex gap-2">
-                    <span className="text-purple-500">→</span>
+                    <span className="text-[var(--brand-verde)]">→</span>
                     Diagnóstico automático
                   </li>
                   <li className="flex gap-2">
-                    <span className="text-purple-500">→</span>
+                    <span className="text-[var(--brand-verde)]">→</span>
                     OT paralelas
                   </li>
                   <li className="flex gap-2">
-                    <span className="text-purple-500">→</span>
+                    <span className="text-[var(--brand-verde)]">→</span>
                     MTTR tracking
                   </li>
                 </ul>
@@ -271,13 +271,13 @@ export default function Home() {
           </div>
 
           {/* Mantención */}
-          <div className="bg-background rounded-lg border border-purple-500/20 p-6 ml-8">
+          <div className="bg-background rounded-lg border border-[var(--brand-verde)]/20 p-6 ml-8">
             <div className="flex gap-4 mb-4">
               <div className="flex-shrink-0">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-500 text-white font-bold text-sm">2</div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--brand-verde)] text-white font-bold text-sm">2</div>
               </div>
               <div>
-                <h3 className="font-semibold text-lg text-purple-600">2. Se Crea una Orden de Trabajo Automáticamente</h3>
+                <h3 className="font-semibold text-lg text-[var(--brand-verde)]">2. Se Crea una Orden de Trabajo Automáticamente</h3>
                 <p className="text-sm text-muted-foreground mt-1">
                   Sin esperar a que el jefe la cree. Los técnicos la ven en sus tablets. Saben qué hacer y cómo hacerlo.
                 </p>
@@ -372,8 +372,8 @@ export default function Home() {
             {
               role: 'Jefe de Mantención',
               icon: '👷',
-              accentColor: 'border-t-2 border-t-purple-400',
-              badgeBg: 'bg-purple-400/10 text-purple-400',
+              accentColor: 'border-t-2 border-t-[var(--brand-verde)]',
+              badgeBg: 'bg-[var(--brand-verde)]/10 text-[var(--brand-verde)]',
               badge: 'Control total',
               description: 'Ves el árbol completo: qué se rompió, quién lo va a reparar, dónde está, cuánto cuesta.',
               modules: ['Mantención', 'OT', 'Bodega', '+2'],
@@ -382,8 +382,8 @@ export default function Home() {
             {
               role: 'Técnico de Campo',
               icon: '🔧',
-              accentColor: 'border-t-2 border-t-sky-400',
-              badgeBg: 'bg-sky-400/10 text-sky-400',
+              accentColor: 'border-t-2 border-t-[var(--brand-rojo)]',
+              badgeBg: 'bg-[var(--brand-rojo)]/10 text-[var(--brand-rojo)]',
               badge: 'Móvil-first',
               description: 'La orden te llega al celular. Sabes qué arreglar, con qué materiales, y las fotos de evidencia.',
               modules: ['OT', 'Checklist', 'QR', 'Evidencia'],
@@ -392,8 +392,8 @@ export default function Home() {
             {
               role: 'Responsable Bodega',
               icon: '📦',
-              accentColor: 'border-t-2 border-t-emerald-400',
-              badgeBg: 'bg-emerald-400/10 text-emerald-400',
+              accentColor: 'border-t-2 border-t-[var(--brand-verde)]',
+              badgeBg: 'bg-[var(--brand-verde)]/10 text-[var(--brand-verde)]',
               badge: 'Stock en vivo',
               description: 'Todo trackeado por QR. Sabes qué tienes, qué falta, y cuándo se acabará. Sin sorpresas.',
               modules: ['Bodega', 'Stock', 'Reórdenes', 'QR'],
@@ -402,8 +402,8 @@ export default function Home() {
             {
               role: 'Oficial HSE',
               icon: '✅',
-              accentColor: 'border-t-2 border-t-amber-400',
-              badgeBg: 'bg-amber-400/10 text-amber-400',
+              accentColor: 'border-t-2 border-t-[var(--brand-rojo)]',
+              badgeBg: 'bg-[var(--brand-rojo)]/10 text-[var(--brand-rojo)]',
               badge: 'Auditoría automática',
               description: 'Cada incidente documentado, cada orden cerrada con evidencia. Los inspectores ven todo lo que piden.',
               modules: ['HSE', 'Documentos', 'Auditoría', 'Reportes'],
@@ -530,7 +530,7 @@ export default function Home() {
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <Link href="/dashboard">
-              <Button size="lg" className="bg-white text-[var(--brand-naranja)] hover:bg-gray-100 gap-2">
+              <Button size="lg" className="bg-white text-[var(--brand-naranja)] hover:bg-muted/50 gap-2">
                 Ir al Sistema
                 <ArrowRight className="h-4 w-4" />
               </Button>

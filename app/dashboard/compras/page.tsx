@@ -23,12 +23,12 @@ import { exportToCSV } from '@/lib/export-utils';
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const statusConfig: Record<string, { color: string; label: string }> = {
-  'draft': { color: 'bg-gray-500/20 text-gray-700', label: 'Borrador' },
-  'pending': { color: 'bg-yellow-500/20 text-yellow-700', label: 'Pendiente' },
-  'approved': { color: 'bg-blue-500/20 text-blue-700', label: 'Aprobada' },
-  'received': { color: 'bg-green-500/20 text-green-700', label: 'Recibida' },
-  'closed': { color: 'bg-green-600/20 text-green-800', label: 'Cerrada' },
-  'cancelled': { color: 'bg-red-500/20 text-red-700', label: 'Cancelada' },
+  'draft': { color: 'bg-muted/20 text-gray-700', label: 'Borrador' },
+  'pending': { color: 'bg-[var(--secondary)]/20 text-[var(--secondary)]', label: 'Pendiente' },
+  'approved': { color: 'bg-[var(--secondary)]/20 text-[var(--secondary)]', label: 'Aprobada' },
+  'received': { color: 'bg-[var(--brand-verde)]/20 text-[var(--brand-verde)]', label: 'Recibida' },
+  'closed': { color: 'bg-[var(--brand-verde)]/20 text-[var(--brand-verde)]', label: 'Cerrada' },
+  'cancelled': { color: 'bg-[var(--brand-rojo)]/20 text-[var(--brand-rojo)]', label: 'Cancelada' },
 };
 
 export default function ComprasPage() {

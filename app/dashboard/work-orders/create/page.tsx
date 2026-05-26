@@ -146,7 +146,7 @@ export default function CreateWorkOrderPage() {
             ))}
 
             {selectedComponents.length > 0 && (
-              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="mt-4 p-3 bg-[var(--secondary)]/5 border border-[var(--secondary)]/30 rounded-lg">
                 <p className="text-sm font-semibold">Total estimado: {totalHours} horas</p>
                 <p className="text-sm text-muted-foreground">Se crearán {selectedComponents.length} sub-órdenes</p>
               </div>
@@ -226,7 +226,7 @@ export default function CreateWorkOrderPage() {
           </Button>
         )}
         {step === 3 && (
-          <Button onClick={handleCreateOT} className="ml-auto gap-2 bg-green-600 hover:bg-green-700">
+          <Button onClick={handleCreateOT} className="ml-auto gap-2 bg-[var(--brand-verde)] hover:bg-[var(--brand-verde)]/90">
             <CheckCircle2 className="w-4 h-4" /> Crear Orden Jerárquica
           </Button>
         )}

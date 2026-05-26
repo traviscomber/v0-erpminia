@@ -11,18 +11,18 @@ import { FileText, Plus, Search, Upload, Download, AlertTriangle } from 'lucide-
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const tipoColores: Record<string, string> = {
-  'política': 'bg-blue-100 text-blue-800',
-  programa: 'bg-green-100 text-green-800',
-  reglamento: 'bg-purple-100 text-purple-800',
+  'política': 'bg-[var(--secondary)]/10 text-blue-800',
+  programa: 'bg-[var(--brand-verde)]/10 text-[var(--brand-verde)]',
+  reglamento: 'bg-[var(--secondary)]/10 text-[var(--secondary)]',
   procedimiento: 'bg-orange-100 text-orange-800',
-  instructivo: 'bg-pink-100 text-pink-800',
-  plan: 'bg-indigo-100 text-indigo-800',
+  instructivo: 'bg-[var(--secondary)]/10 text-[var(--secondary)]',
+  plan: 'bg-[var(--secondary)]/10 text-[var(--secondary)]',
 };
 
 const estadoColores = {
-  vigente: 'bg-green-100 text-green-800',
-  en_revision: 'bg-yellow-100 text-yellow-800',
-  obsoleto: 'bg-red-100 text-red-800',
+  vigente: 'bg-[var(--brand-verde)]/10 text-[var(--brand-verde)]',
+  en_revision: 'bg-[var(--secondary)]/10 text-[var(--secondary)]',
+  obsoleto: 'bg-[var(--brand-rojo)]/10 text-[var(--brand-rojo)]',
 };
 
 export default function HSEDocumentosPage() {
@@ -83,11 +83,11 @@ export default function HSEDocumentosPage() {
 
       {/* Alerts */}
       {documentosVencidos.length > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex gap-3">
-          <AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+        <div className="bg-[var(--brand-rojo)]/5 border border-[var(--brand-rojo)]/30 rounded-lg p-4 flex gap-3">
+          <AlertTriangle className="h-5 w-5 text-[var(--brand-rojo)] flex-shrink-0 mt-0.5" />
           <div>
-            <p className="font-semibold text-red-800">{documentosVencidos.length} documento(s) requiere(n) actualización</p>
-            <p className="text-sm text-red-700">Última actualización fue más de 1 año atrás</p>
+            <p className="font-semibold text-[var(--brand-rojo)]">{documentosVencidos.length} documento(s) requiere(n) actualización</p>
+            <p className="text-sm text-[var(--brand-rojo)]">Última actualización fue más de 1 año atrás</p>
           </div>
         </div>
       )}
@@ -107,7 +107,7 @@ export default function HSEDocumentosPage() {
             <CardTitle className="text-sm text-muted-foreground">Vigentes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-[var(--brand-verde)]">
               {documentos.filter((d: any) => d.estado === 'vigente').length}
             </div>
           </CardContent>
@@ -117,7 +117,7 @@ export default function HSEDocumentosPage() {
             <CardTitle className="text-sm text-muted-foreground">En Revisión</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">
+            <div className="text-2xl font-bold text-[var(--secondary)]">
               {documentos.filter((d: any) => d.estado === 'en_revision').length}
             </div>
           </CardContent>
@@ -127,7 +127,7 @@ export default function HSEDocumentosPage() {
             <CardTitle className="text-sm text-muted-foreground">Requiere Actualización</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{documentosVencidos.length}</div>
+            <div className="text-2xl font-bold text-[var(--brand-rojo)]">{documentosVencidos.length}</div>
           </CardContent>
         </Card>
       </div>

@@ -138,7 +138,7 @@ export default function ReportesPage() {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Por Vencer</p>
-                <p className="text-lg font-bold text-yellow-600">{documentsData.expiring}</p>
+                <p className="text-lg font-bold text-[var(--secondary)]">{documentsData.expiring}</p>
               </div>
             </div>
           </CardContent>
@@ -152,8 +152,8 @@ export default function ReportesPage() {
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Sistema de Mantenimiento
               </CardTitle>
-              <div className="p-2 bg-green-500/10 rounded-lg">
-                <Wrench className="h-4 w-4 text-green-600" />
+              <div className="p-2 bg-[var(--brand-verde)]/10 rounded-lg">
+                <Wrench className="h-4 w-4 text-[var(--brand-verde)]" />
               </div>
             </div>
           </CardHeader>
@@ -161,10 +161,10 @@ export default function ReportesPage() {
             <div>
               <div className="flex justify-between items-center mb-2">
                 <span className="text-xs font-medium text-muted-foreground">Salud del Sistema</span>
-                <span className="text-lg font-bold text-green-600">85%</span>
+                <span className="text-lg font-bold text-[var(--brand-verde)]">85%</span>
               </div>
               <div className="w-full bg-muted rounded-full h-2">
-                <div className="bg-green-600 h-2 rounded-full" style={{ width: '85%' }} />
+                <div className="bg-[var(--brand-verde)] h-2 rounded-full" style={{ width: '85%' }} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/50">
@@ -174,7 +174,7 @@ export default function ReportesPage() {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Correctivas</p>
-                <p className="text-lg font-bold text-red-600">{maintenanceData.corrective}</p>
+                <p className="text-lg font-bold text-[var(--brand-rojo)]">{maintenanceData.corrective}</p>
               </div>
             </div>
           </CardContent>
@@ -188,8 +188,8 @@ export default function ReportesPage() {
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Sistema de Bodega
               </CardTitle>
-              <div className="p-2 bg-yellow-500/10 rounded-lg">
-                <Package className="h-4 w-4 text-yellow-600" />
+              <div className="p-2 bg-[var(--secondary)]/10 rounded-lg">
+                <Package className="h-4 w-4 text-[var(--secondary)]" />
               </div>
             </div>
           </CardHeader>
@@ -197,10 +197,10 @@ export default function ReportesPage() {
             <div>
               <div className="flex justify-between items-center mb-2">
                 <span className="text-xs font-medium text-muted-foreground">Salud del Sistema</span>
-                <span className="text-lg font-bold text-yellow-600">88%</span>
+                <span className="text-lg font-bold text-[var(--secondary)]">88%</span>
               </div>
               <div className="w-full bg-muted rounded-full h-2">
-                <div className="bg-yellow-600 h-2 rounded-full" style={{ width: '88%' }} />
+                <div className="bg-[var(--secondary)] h-2 rounded-full" style={{ width: '88%' }} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/50">
@@ -210,7 +210,7 @@ export default function ReportesPage() {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Stock Bajo</p>
-                <p className="text-lg font-bold text-red-600">{inventoryData.lowStock}</p>
+                <p className="text-lg font-bold text-[var(--brand-rojo)]">{inventoryData.lowStock}</p>
               </div>
             </div>
           </CardContent>
@@ -218,15 +218,15 @@ export default function ReportesPage() {
       </div>
 
       {/* Critical Alerts */}
-      <Card className="border-red-200 bg-red-50 dark:bg-red-950">
+      <Card className="border-[var(--brand-rojo)]/30 bg-[var(--brand-rojo)]/5 dark:bg-red-950">
         <CardHeader className="pb-3">
           <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="h-5 w-5 text-[var(--brand-rojo)] flex-shrink-0 mt-0.5" />
             <div>
               <CardTitle className="text-red-900 dark:text-red-100">
                 Alertas Críticas del Sistema
               </CardTitle>
-              <CardDescription className="text-red-800 dark:text-red-200">
+              <CardDescription className="text-[var(--brand-rojo)] dark:text-red-200">
                 5 documentos por vencer, 2 órdenes de mantenimiento vencidas, 3 items con stock crítico
               </CardDescription>
             </div>

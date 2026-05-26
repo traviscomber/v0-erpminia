@@ -94,7 +94,7 @@ function FaultItem({ fault, onSelectPart }: any) {
   const severityColor = {
     critica: 'bg-destructive/10 text-destructive border-destructive/20',
     mayor: 'bg-orange-100/50 text-orange-800 border-orange-200',
-    menor: 'bg-yellow-100/50 text-yellow-800 border-yellow-200',
+    menor: 'bg-[var(--secondary)]/10/50 text-[var(--secondary)] border-[var(--secondary)]/30',
   };
 
   const SeverityIcon = fault.severity === 'critica' ? AlertCircle : AlertTriangle;

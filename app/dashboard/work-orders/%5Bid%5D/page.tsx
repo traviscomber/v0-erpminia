@@ -91,10 +91,10 @@ const mockMainOT = {
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case 'completed': return 'bg-green-100 text-green-800';
-    case 'in_progress': return 'bg-blue-100 text-blue-800';
-    case 'pending': return 'bg-gray-100 text-gray-800';
-    default: return 'bg-gray-100 text-gray-800';
+    case 'completed': return 'bg-[var(--brand-verde)]/10 text-[var(--brand-verde)]';
+    case 'in_progress': return 'bg-[var(--secondary)]/10 text-blue-800';
+    case 'pending': return 'bg-muted/50 text-foreground';
+    default: return 'bg-muted/50 text-foreground';
   }
 };
 
@@ -170,9 +170,9 @@ function SubOTCard({ subOT, expanded, onToggle }: SubOTProps) {
             {subOT.tasks.map(task => (
               <div key={task.id} className="flex items-center gap-3 p-2 bg-accent/50 rounded">
                 {task.status === 'completed' ? (
-                  <CheckCircle2 className="w-4 h-4 text-green-600" />
+                  <CheckCircle2 className="w-4 h-4 text-[var(--brand-verde)]" />
                 ) : (
-                  <AlertCircle className="w-4 h-4 text-yellow-600" />
+                  <AlertCircle className="w-4 h-4 text-[var(--secondary)]" />
                 )}
                 <div className="flex-1">
                   <p className="text-sm">{task.name}</p>

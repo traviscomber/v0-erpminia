@@ -38,7 +38,7 @@ export default function ProcedimientosPage() {
             <CardTitle className="text-sm">Vigentes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">15</div>
+            <div className="text-2xl font-bold text-[var(--brand-verde)]">15</div>
           </CardContent>
         </Card>
         <Card>
@@ -92,7 +92,7 @@ export default function ProcedimientosPage() {
                 <div key={proc.id} className="flex items-center justify-between border rounded-lg p-4 hover:bg-accent transition-colors">
                   <div className="flex items-center gap-4 flex-1">
                     {proc.status === 'Vigente' ? (
-                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      <CheckCircle2 className="h-5 w-5 text-[var(--brand-verde)]" />
                     ) : (
                       <Clock className="h-5 w-5 text-orange-600" />
                     )}
@@ -100,7 +100,7 @@ export default function ProcedimientosPage() {
                       <div className="flex items-center gap-2">
                         <span className="font-semibold">{proc.id}</span>
                         <Badge variant="outline">{proc.version}</Badge>
-                        <Badge className={proc.status === 'Vigente' ? 'bg-green-600' : 'bg-yellow-600'}>
+                        <Badge className={proc.status === 'Vigente' ? 'bg-[var(--brand-verde)]' : 'bg-[var(--secondary)]'}>
                           {proc.status}
                         </Badge>
                       </div>

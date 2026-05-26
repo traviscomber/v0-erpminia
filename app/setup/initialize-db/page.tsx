@@ -67,21 +67,21 @@ export default function InitializeDBPage() {
 
           {/* Status Messages */}
           {status === 'success' && (
-            <div className="flex gap-3 p-4 bg-green-500/10 rounded-lg border border-green-500/30">
-              <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+            <div className="flex gap-3 p-4 bg-[var(--brand-verde)]/10 rounded-lg border border-green-500/30">
+              <CheckCircle2 className="h-5 w-5 text-[var(--brand-verde)] flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold text-green-700">Éxito</p>
-                <p className="text-sm text-green-600">{message}</p>
+                <p className="font-semibold text-[var(--brand-verde)]">Éxito</p>
+                <p className="text-sm text-[var(--brand-verde)]">{message}</p>
               </div>
             </div>
           )}
 
           {status === 'error' && (
-            <div className="flex gap-3 p-4 bg-red-500/10 rounded-lg border border-red-500/30">
-              <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <div className="flex gap-3 p-4 bg-[var(--brand-rojo)]/10 rounded-lg border border-[var(--brand-rojo)]/20/30">
+              <AlertCircle className="h-5 w-5 text-[var(--brand-rojo)] flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold text-red-700">Error</p>
-                <p className="text-sm text-red-600">{message}</p>
+                <p className="font-semibold text-[var(--brand-rojo)]">Error</p>
+                <p className="text-sm text-[var(--brand-rojo)]">{message}</p>
               </div>
             </div>
           )}
@@ -120,8 +120,8 @@ export default function InitializeDBPage() {
           </Button>
 
           {/* Info Box */}
-          <div className="bg-blue-500/10 p-4 rounded-lg border border-blue-500/30">
-            <p className="text-xs text-blue-600">
+          <div className="bg-[var(--secondary)]/10 p-4 rounded-lg border border-[var(--secondary)]/20/30">
+            <p className="text-xs text-[var(--secondary)]">
               <strong>Nota:</strong> Esta operación es segura y solo puede ejecutarse una vez con el token correcto. Las tablas existentes no serán borradas.
             </p>
           </div>

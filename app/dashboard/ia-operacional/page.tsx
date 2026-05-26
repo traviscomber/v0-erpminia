@@ -23,18 +23,18 @@ interface AIInsight {
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const severityConfig = {
-  critical: { color: 'destructive', bgColor: 'bg-red-50 border-red-200' },
-  warning: { color: 'warning', bgColor: 'bg-yellow-50 border-yellow-200' },
-  info: { color: 'secondary', bgColor: 'bg-blue-50 border-blue-200' },
+  critical: { color: 'destructive', bgColor: 'bg-[var(--brand-rojo)]/5 border-[var(--brand-rojo)]/30' },
+  warning: { color: 'warning', bgColor: 'bg-[var(--secondary)]/5 border-[var(--secondary)]/30' },
+  info: { color: 'secondary', bgColor: 'bg-[var(--secondary)]/5 border-[var(--secondary)]/30' },
 };
 
 const iconMap = {
-  riesgo: <AlertTriangle className="h-5 w-5 text-red-600" />,
-  vencimiento: <FileCheck className="h-5 w-5 text-yellow-600" />,
-  stock: <Package className="h-5 w-5 text-yellow-600" />,
-  mantencion: <Zap className="h-5 w-5 text-red-600" />,
-  oc: <TrendingDown className="h-5 w-5 text-yellow-600" />,
-  resumen: <AlertCircle className="h-5 w-5 text-blue-600" />,
+  riesgo: <AlertTriangle className="h-5 w-5 text-[var(--brand-rojo)]" />,
+  vencimiento: <FileCheck className="h-5 w-5 text-[var(--secondary)]" />,
+  stock: <Package className="h-5 w-5 text-[var(--secondary)]" />,
+  mantencion: <Zap className="h-5 w-5 text-[var(--brand-rojo)]" />,
+  oc: <TrendingDown className="h-5 w-5 text-[var(--secondary)]" />,
+  resumen: <AlertCircle className="h-5 w-5 text-[var(--secondary)]" />,
 };
 
 export default function IAOperacionalPage() {
@@ -86,7 +86,7 @@ export default function IAOperacionalPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Alertas Críticas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{criticalCount}</div>
+            <div className="text-2xl font-bold text-[var(--brand-rojo)]">{criticalCount}</div>
             <p className="text-xs text-muted-foreground mt-1">Requieren atención inmediata</p>
           </CardContent>
         </Card>
@@ -96,7 +96,7 @@ export default function IAOperacionalPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Advertencias</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{warningCount}</div>
+            <div className="text-2xl font-bold text-[var(--secondary)]">{warningCount}</div>
             <p className="text-xs text-muted-foreground mt-1">Monitoreo recomendado</p>
           </CardContent>
         </Card>
@@ -106,7 +106,7 @@ export default function IAOperacionalPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Eficiencia</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{efficiency}%</div>
+            <div className="text-2xl font-bold text-[var(--brand-verde)]">{efficiency}%</div>
             <p className="text-xs text-muted-foreground mt-1">Operación normal</p>
           </CardContent>
         </Card>
@@ -116,7 +116,7 @@ export default function IAOperacionalPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Predicciones</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{predictions}</div>
+            <div className="text-2xl font-bold text-[var(--secondary)]">{predictions}</div>
             <p className="text-xs text-muted-foreground mt-1">Falla potencial detectada</p>
           </CardContent>
         </Card>
@@ -136,9 +136,9 @@ export default function IAOperacionalPage() {
               <p className="text-muted-foreground text-center py-4">No hay insights disponibles</p>
             ) : (
               criticalEquipment.map((item: any, idx: number) => (
-                <Alert key={idx} className="border-red-200 bg-red-50">
+                <Alert key={idx} className="border-[var(--brand-rojo)]/30 bg-[var(--brand-rojo)]/5">
                   <div className="flex items-start gap-4">
-                    <div className="mt-0.5 text-red-600">⚠️</div>
+                    <div className="mt-0.5 text-[var(--brand-rojo)]">⚠️</div>
                     <div className="flex-1">
                       <AlertDescription className="font-semibold text-base mb-1">
                         {item.name || item.title || 'Equipo Crítico'}

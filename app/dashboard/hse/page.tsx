@@ -78,7 +78,7 @@ export default function HSEPage() {
       case 'low':
         return 'bg-[var(--brand-verde)]/20 text-[var(--brand-verde)]';
       default:
-        return 'bg-gray-500/20 text-gray-700';
+        return 'bg-muted/20 text-gray-700';
     }
   };
 
