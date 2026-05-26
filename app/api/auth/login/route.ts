@@ -1,19 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
+import bcrypt from 'bcrypt';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { email, password } = body;
 
-    console.log('[v0] Login attempt:', { email, passwordLength: password?.length, bodyKeys: Object.keys(body) });
-
     if (!email || !password) {
-      console.log('[v0] Missing credentials');
       return NextResponse.json({ error: 'Email and password required' }, { status: 400 });
     }
 
-    // Accept juan@n3uralia.com with password c4rlit0s
-    if (email.toLowerCase() === 'juan@n3uralia.com' && (password === 'c4rlit0s' || password === 'admin')) {
+    // Hardcoded user for now - this is the test user in Supabase
+    // TODO: Replace with actual Supabase query once schema cache issue is fixed
+    if (email.toLowerCase() === 'juan@n3uralia.com') {
+      // Hash: $2b$10$5dC5lGiidsxTi2tIYk4mVuQrX8UD6Pb1574Q8bLkPQR6wT21ziu7e (password: c4rlit0s)
+      const correctHash = '$2b$10$5dC5lGiidsxTi2tIYk4mVuQrX8UD6Pb1574Q8bLkPQR6wT21ziu7e';
+      
+      const passwordMatch = await bcrypt.compare(password, correctHash);
+      if (!passwordMatch) {
+        return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
+      }
+
       const sessionData = {
         user: {
           id: 'f62975b1-aa71-4a10-82d8-9e3353a77525',
@@ -41,7 +48,7 @@ export async function POST(request: NextRequest) {
         maxAge: 86400 * 7,
       });
 
-      console.log('[v0] Test login successful:', email);
+      console.log('[v0] Login successful:', email);
       return response;
     }
 
