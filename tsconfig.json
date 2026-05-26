@@ -37,6 +37,12 @@
   ],
   "exclude": [
     "node_modules",
-    "cypress"
+    "cypress",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "jest.setup.ts",
+    ".jest"
   ]
 }
