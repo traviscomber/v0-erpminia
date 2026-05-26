@@ -38,8 +38,8 @@ export async function GET(request: NextRequest) {
     if (error) throw error;
 
     return NextResponse.json({
-      data,
-      pagination: { total: count, limit, offset },
+      data: data || [],
+      pagination: { total: count || 0, limit, offset },
     });
   } catch (error) {
     console.error('Error fetching inspecciones:', error);
