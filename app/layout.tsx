@@ -12,8 +12,8 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 const _montserrat = Montserrat({ subsets: ["latin"], variable: "--font-heading" });
 
 export const metadata: Metadata = {
-  title: 'n3uralia ERP Minería - Plataforma Integral de Gestión Operacional',
-  description: 'Sistema integrado de Producción, Mantención, Bodega, HSE, Documentos, Compras, Finanzas y Reportes para operaciones mineras. Con IA Operacional e IA Dashboard. Desarrollado por SegurIA para Cía. Minera La Patagua.',
+  title: 'Motil - Plataforma Integral de Gestión Operacional Minera',
+  description: 'Sistema integrado de Producción, Mantención, HSE, Documentos, Compras, Finanzas y Reportes para operaciones mineras. Plataforma de gestión operacional con IA.',
   generator: 'v0.app',
   icons: {
     icon: [

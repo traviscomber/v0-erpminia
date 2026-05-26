@@ -12,7 +12,7 @@ export default function Home() {
       {/* Navigation */}
       <nav className="border-b border-border sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="font-bold text-xl text-[var(--brand-naranja)]">n3uralia ERP</div>
+          <div className="font-bold text-xl text-[var(--brand-naranja)]">Motil</div>
           <Link href="/auth/login">
             <Button className="bg-[var(--brand-naranja)] hover:bg-[var(--brand-naranja)]/90">
               Iniciar Sesión
@@ -26,14 +26,14 @@ export default function Home() {
         <div className="text-center space-y-6 mb-16">
           <div className="inline-block px-4 py-2 rounded-full bg-[var(--brand-naranja)]/10 border border-[var(--brand-naranja)]/20">
             <p className="text-sm font-semibold text-[var(--brand-naranja)]">
-              Desarrollado por n3uralia para Cía. Minera La Patagua
+              Plataforma de Gestión Operacional Minera
             </p>
           </div>
           <h1 className="text-5xl md:text-6xl font-bold text-foreground">
-            n3uralia ERP Minería
+            Motil
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Plataforma integral de gestión operacional minera. Producción, Mantención, Bodega, HSE y Documentos integrados. De sensor a decisión ejecutiva en tiempo real.
+            Plataforma integral de gestión operacional minera. Producción, Mantención, HSE, Documentos y más integrados. De sensor a decisión ejecutiva en tiempo real.
           </p>
           <div className="flex gap-4 justify-center pt-4">
             <Link href="/auth/login">

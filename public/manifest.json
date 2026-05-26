@@ -1,8 +1,8 @@
 {
-  "name": "Sostenibilidad - N3URALIA ERP",
-  "short_name": "Sostenibilidad",
-  "description": "Sistema integrado de gestión de sostenibilidad, salud y seguridad ocupacional",
-  "start_url": "/dashboard/sostenibilidad",
+  "name": "Motil - Gestión Operacional Minera",
+  "short_name": "Motil",
+  "description": "Plataforma integral de gestión operacional minera. Producción, Mantención, HSE, Documentos, Compras y Finanzas integrados.",
+  "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
@@ -49,13 +49,12 @@
       "purpose": "maskable"
     }
   ],
-  "screenshots": [],
   "shortcuts": [
     {
-      "name": "Inspecciones",
-      "short_name": "Inspecciones",
-      "description": "Ver y crear inspecciones",
-      "url": "/dashboard/sostenibilidad/prevencion-riesgos/inspecciones-internas",
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Acceder al dashboard principal",
+      "url": "/dashboard",
       "icons": [
         {
           "src": "/icon-96.png",
@@ -65,10 +64,10 @@
       ]
     },
     {
-      "name": "No-Conformidades",
-      "short_name": "NCs",
-      "description": "Gestionar no-conformidades",
-      "url": "/dashboard/sostenibilidad/no-conformidades",
+      "name": "Operaciones",
+      "short_name": "Ops",
+      "description": "Ver operaciones mineras",
+      "url": "/dashboard/operaciones",
       "icons": [
         {
           "src": "/icon-96.png",
@@ -78,10 +77,10 @@
       ]
     },
     {
-      "name": "Acciones Correctivas",
-      "short_name": "Acciones",
-      "description": "Ver acciones correctivas",
-      "url": "/dashboard/sostenibilidad/acciones-correctivas",
+      "name": "HSE",
+      "short_name": "HSE",
+      "description": "Gestión HSE e incidentes",
+      "url": "/dashboard/hse",
       "icons": [
         {
           "src": "/icon-96.png",
