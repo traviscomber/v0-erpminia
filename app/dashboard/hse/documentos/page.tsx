@@ -10,8 +10,8 @@ import { FileText, Plus, Search, Upload, Download, AlertTriangle } from 'lucide-
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-const tipoColores = {
-  politica: 'bg-blue-100 text-blue-800',
+const tipoColores: Record<string, string> = {
+  'política': 'bg-blue-100 text-blue-800',
   programa: 'bg-green-100 text-green-800',
   reglamento: 'bg-purple-100 text-purple-800',
   procedimiento: 'bg-orange-100 text-orange-800',
@@ -28,25 +28,44 @@ const estadoColores = {
 export default function HSEDocumentosPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [tipoFiltro, setTipoFiltro] = useState('todos');
-  const [faena, setFaena] = useState('');
 
   const { data: docData } = useSWR(
-    `/api/hse/documentos?tipo=${tipoFiltro !== 'todos' ? tipoFiltro : ''}&faena=${faena}`,
+    `/api/documentos?tipo=hse_master`,
     fetcher,
-    { revalidateOnFocus: false, refreshInterval: 600000 } // 10 minutos
+    { revalidateOnFocus: false, refreshInterval: 600000 }
   );
 
-  const documentos = docData?.documentos || [];
+  // Map API response to expected format
+  const rawData = docData?.data || [];
+  console.log('[v0] Raw API data:', rawData);
+  
+  const documentos = rawData.map((d: any) => ({
+    id: d.id,
+    nombre: d.nombre_documento || d.nombre || 'Sin nombre',
+    tipo: d.tipo,
+    version: d.version_actual || d.version || '1.0',
+    fecha_actualizacion: d.fecha_actualizacion,
+    estado: d.estado === 'en revisión' ? 'en_revision' : d.estado,
+    descripcion: d.descripcion || '',
+    areas: d.areas_aplica || [],
+    cargos: d.cargos_aplica || [],
+  }));
+  
+  console.log('[v0] Mapped documentos:', documentos);
+
   const documentosVencidos = documentos.filter((d: any) => {
+    if (!d.fecha_actualizacion) return false;
     const actualizado = new Date(d.fecha_actualizacion);
     const hoy = new Date();
     const diasDesdeActualizacion = Math.floor((hoy.getTime() - actualizado.getTime()) / (1000 * 60 * 60 * 24));
     return diasDesdeActualizacion > 365;
   });
 
-  const filtrados = documentos.filter((d: any) =>
-    d.nombre.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filtrados = documentos.filter((d: any) => {
+    const matchSearch = d.nombre?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchTipo = tipoFiltro === 'todos' || d.tipo === tipoFiltro;
+    return matchSearch && matchTipo;
+  });
 
   return (
     <div className="space-y-6">
@@ -133,7 +152,7 @@ export default function HSEDocumentosPage() {
             >
               Todos
             </Button>
-            {['politica', 'programa', 'reglamento', 'procedimiento', 'instructivo', 'plan'].map((tipo) => (
+            {['política', 'programa', 'reglamento', 'procedimiento', 'instructivo', 'plan'].map((tipo) => (
               <Button
                 key={tipo}
                 variant={tipoFiltro === tipo ? 'default' : 'outline'}

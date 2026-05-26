@@ -1,32 +1,34 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
-import type { User } from '@supabase/supabase-js';
 
 export function useAuth() {
   const router = useRouter();
-  const supabase = createClient();
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [role, setRole] = useState<string | null>(null);
 
   useEffect(() => {
-    const getUser = async () => {
+    const getAuthFromCookies = () => {
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
-        if (user) {
-          setUser(user);
-          const userRole = user.user_metadata?.role || 'viewer';
+        // Get role from user_role cookie (non-HttpOnly)
+        const cookies = document.cookie.split(';');
+        const roleCookie = cookies.find(c => c.trim().startsWith('user_role='));
+        const emailCookie = cookies.find(c => c.trim().startsWith('user_email='));
+        
+        if (roleCookie && emailCookie) {
+          const userRole = decodeURIComponent(roleCookie.split('=')[1]);
+          const userEmail = decodeURIComponent(emailCookie.split('=')[1]);
+          
+          setUser({ email: userEmail });
           setRole(userRole);
+          console.log('[v0] Auth loaded from cookies:', { role: userRole, email: userEmail });
         } else {
           setUser(null);
           setRole(null);
+          console.log('[v0] No auth cookies found');
         }
       } catch (error) {
-        console.error('[v0] Error getting user:', error);
+        console.error('[v0] Error reading auth cookies:', error);
         setUser(null);
         setRole(null);
       } finally {
@@ -34,51 +36,27 @@ export function useAuth() {
       }
     };
 
-    getUser();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('[v0] Auth state changed:', event);
-      
-      if (!session?.user) {
-        setUser(null);
-        setRole(null);
-      } else {
-        setUser(session.user);
-        const userRole = session.user.user_metadata?.role || 'viewer';
-        setRole(userRole);
-      }
-    });
-
-    return () => subscription?.unsubscribe();
-  }, [supabase]);
+    getAuthFromCookies();
+  }, []);
 
   const logout = async () => {
     try {
       console.log('[v0] Logging out user...');
       
-      // Clear demo auth
-      localStorage.removeItem('auth_token');
-      document.cookie = 'demo_auth=; path=/; max-age=0';
-      
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        console.error('[v0] Logout error:', error);
-        throw error;
-      }
+      // Clear all auth cookies
+      document.cookie = 'auth_token=; path=/; max-age=0';
+      document.cookie = 'user_email=; path=/; max-age=0';
+      document.cookie = 'user_role=; path=/; max-age=0';
       
       setUser(null);
       setRole(null);
       console.log('[v0] Logout successful, redirecting...');
       
-      // Redirect after state is cleared
-      router.push('/auth/login');
+      // Hard redirect to login
+      window.location.href = '/auth/login';
     } catch (error) {
       console.error('[v0] Error during logout:', error);
-      // Force redirect anyway
-      router.push('/auth/login');
+      window.location.href = '/auth/login';
     }
   };
 
