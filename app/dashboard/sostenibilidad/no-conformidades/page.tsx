@@ -16,12 +16,12 @@ export default function NonconformanceDashboard() {
   const [showCAModal, setShowCAModal] = useState(false);
   const [selectedNC, setSelectedNC] = useState<any>(null);
 
-  const { data: ncData, mutate: mutateNCs } = useSWR('/api/sostenibilidad/nonconformances', async (url) => {
+  const { data: ncData, mutate: mutateNCs } = useSWR('/api/sostenibilidad/nonconformances', async (url: string) => {
     const res = await fetch(url);
     return res.ok ? res.json() : null;
   });
 
-  const { data: reportData } = useSWR('/api/sostenibilidad/compliance-report', async (url) => {
+  const { data: reportData } = useSWR('/api/sostenibilidad/compliance-report', async (url: string) => {
     const res = await fetch(url);
     return res.ok ? res.json() : null;
   });

@@ -36,7 +36,7 @@ export default function DocumentosDashboard() {
   // Fetch documentos
   const { data: documentsData, isLoading: docsLoading, mutate: mutateDocuments } = useSWR(
     activeTab === 'all' ? '/api/documents' : `/api/documents?status=${activeTab}`,
-    async (url) => {
+    async (url: string) => {
       const res = await fetch(url);
       if (!res.ok) throw new Error('Failed to fetch documents');
       return res.json();
@@ -46,7 +46,7 @@ export default function DocumentosDashboard() {
   // Fetch aprobaciones pendientes
   const { data: approvalsData, isLoading: approvalsLoading } = useSWR(
     '/api/documents/pending',
-    async (url) => {
+    async (url: string) => {
       const res = await fetch(url);
       if (!res.ok) throw new Error('Failed to fetch pending approvals');
       return res.json();
@@ -54,7 +54,7 @@ export default function DocumentosDashboard() {
   );
 
   // Fetch stats
-  const { data: statsData } = useSWR('/api/documents/stats', async (url) => {
+  const { data: statsData } = useSWR('/api/documents/stats', async (url: string) => {
     const res = await fetch(url);
     if (!res.ok) throw new Error('Failed to fetch stats');
     return res.json();
@@ -266,7 +266,7 @@ export default function DocumentosDashboard() {
         <DocumentViewer
           open={viewerOpen}
           onOpenChange={setViewerOpen}
-          document={selectedDocument}
+          document={selectedDocument as any}
         />
       )}
     </div>

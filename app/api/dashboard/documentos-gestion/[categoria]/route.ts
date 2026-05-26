@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { categoria: string } }
+  { params }: { params: Promise<{ categoria: string }> }
 ) {
   try {
+    const { categoria } = await params;
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -34,7 +35,7 @@ export async function GET(
       laboral: ['RIOHS', 'Capacitación', 'Permiso'],
     };
 
-    const keywords = categoryMap[params.categoria] || [];
+    const keywords = categoryMap[categoria] || [];
 
     // Filter documents by category
     const documents = allDocs
@@ -71,7 +72,7 @@ export async function GET(
     const rechazados = documents.filter((d: any) => d.estado === 'rechazado');
 
     return NextResponse.json({
-      categoria: params.categoria,
+      categoria,
       stats: {
         total: documents.length,
         aprobados: aprobados.length,

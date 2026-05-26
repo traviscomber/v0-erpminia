@@ -8,12 +8,12 @@ import { QRScanner } from '@/components/warehouse/qr-scanner';
 import { TransferModal } from '@/components/warehouse/transfer-modal';
 
 export default function BodesaDashboard() {
-  const { data: stock } = useSWR('/api/warehouse/stock', async (url) => {
+  const { data: stock } = useSWR('/api/warehouse/stock', async (url: string) => {
     const res = await fetch(url);
     return res.ok ? res.json() : null;
   });
 
-  const { data: reorder } = useSWR('/api/warehouse/reorder', async (url) => {
+  const { data: reorder } = useSWR('/api/warehouse/reorder', async (url: string) => {
     const res = await fetch(url);
     return res.ok ? res.json() : null;
   });

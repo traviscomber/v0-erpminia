@@ -35,7 +35,7 @@ export default function DocumentosGestionPage() {
   // Filter categories based on search
   const filteredCategories = useMemo(() => {
     if (!searchTerm) return categories;
-    return categories.filter(cat =>
+    return categories.filter((cat: any) =>
       cat.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       cat.description?.toLowerCase().includes(searchTerm.toLowerCase())
     );

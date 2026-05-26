@@ -37,7 +37,7 @@ export default function InventarioPage() {
   };
 
   const getLowStockItems = () => {
-    return filteredItems.filter((item) => item.quantity <= item.minLevel).length;
+    return filteredItems.filter((item: any) => item.quantity <= item.minLevel).length;
   };
 
   const getTotalInventoryValue = () => {
@@ -53,7 +53,7 @@ export default function InventarioPage() {
     const sorted = [...filteredItems].sort((a, b) => b.totalValue - a.totalValue);
     const totalValue = getTotalInventoryValue();
     let accumulated = 0;
-    return sorted.map((item) => {
+    return sorted.map((item: any) => {
       accumulated += item.totalValue;
       const percentage = (accumulated / totalValue) * 100;
       let category = 'C';
@@ -157,7 +157,7 @@ export default function InventarioPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredItems.map((item) => (
+                {filteredItems.map((item: any) => (
                   <TableRow key={item.id} className="border-border hover:bg-muted/50">
                     <TableCell>
                       <div>

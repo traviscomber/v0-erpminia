@@ -289,7 +289,7 @@ export default function ReportesPage() {
               </PieChart>
             </ResponsiveContainer>
             <div className="space-y-2 mt-6 pt-4 border-t border-border">
-              {modulesHealth.map((item) => (
+              {modulesHealth.map((item: any) => (
                 <div key={item.name} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div

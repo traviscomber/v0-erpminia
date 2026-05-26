@@ -16,22 +16,22 @@ export default function MaintenanceDashboard() {
   const [showWorkOrderForm, setShowWorkOrderForm] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
 
-  const { data: mttrStats } = useSWR('/api/maintenance/mttr', async (url) => {
+  const { data: mttrStats } = useSWR('/api/maintenance/mttr', async (url: string) => {
     const res = await fetch(url);
     return res.ok ? res.json() : null;
   });
 
-  const { data: schedules } = useSWR('/api/maintenance/preventive', async (url) => {
+  const { data: schedules } = useSWR('/api/maintenance/preventive', async (url: string) => {
     const res = await fetch(url);
     return res.ok ? res.json() : null;
   });
 
-  const { data: assets } = useSWR('/api/maintenance/assets', async (url) => {
+  const { data: assets } = useSWR('/api/maintenance/assets', async (url: string) => {
     const res = await fetch(url);
     return res.ok ? res.json() : null;
   });
 
-  const { data: workOrders } = useSWR('/api/maintenance/work-orders', async (url) => {
+  const { data: workOrders } = useSWR('/api/maintenance/work-orders', async (url: string) => {
     const res = await fetch(url);
     return res.ok ? res.json() : null;
   });

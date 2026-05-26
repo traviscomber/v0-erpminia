@@ -13,9 +13,6 @@ export async function GET() {
   const supabase = createClient(supabaseUrl, supabaseKey, {
     db: {
       schema: 'public'
-    },
-    headers: {
-      'X-Client-Info': 'supabase-js/debug'
     }
   });
 

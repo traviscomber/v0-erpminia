@@ -177,7 +177,7 @@ export default function FinanzasPage() {
           <CardContent className="relative z-10">
             <div className="text-2xl font-bold text-[var(--secondary)]">{formatCurrency(pendingAmount)}</div>
             <p className="text-xs text-muted-foreground mt-2">
-              {filteredFinances.filter((f) => f.status === 'Pendiente').length} en trámite
+              {filteredFinances.filter((f: any) => f.status === 'Pendiente').length} en trámite
             </p>
           </CardContent>
         </Card>
@@ -195,7 +195,7 @@ export default function FinanzasPage() {
           <CardContent className="relative z-10">
             <div className="text-2xl font-bold text-[var(--brand-rojo)]">{formatCurrency(overdueAmount)}</div>
             <p className="text-xs text-muted-foreground mt-2">
-              {filteredFinances.filter((f) => f.status === 'Vencida').length} por pagar
+              {filteredFinances.filter((f: any) => f.status === 'Vencida').length} por pagar
             </p>
           </CardContent>
         </Card>
