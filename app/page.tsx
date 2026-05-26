@@ -12,7 +12,7 @@ export default function Home() {
       {/* Navigation */}
       <nav className="border-b border-border sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="font-bold text-xl text-[var(--brand-naranja)]">n3uralia ERP</div>
+          <div className="font-bold text-xl text-[var(--brand-naranja)]">Motil</div>
           <Link href="/auth/login">
             <Button className="bg-[var(--brand-naranja)] hover:bg-[var(--brand-naranja)]/90">
               Iniciar Sesión
@@ -26,14 +26,14 @@ export default function Home() {
         <div className="text-center space-y-6 mb-16">
           <div className="inline-block px-4 py-2 rounded-full bg-[var(--brand-naranja)]/10 border border-[var(--brand-naranja)]/20">
             <p className="text-sm font-semibold text-[var(--brand-naranja)]">
-              Desarrollado por n3uralia para Cía. Minera La Patagua
+              Controla tu operación minera en tiempo real
             </p>
           </div>
           <h1 className="text-5xl md:text-6xl font-bold text-foreground">
-            n3uralia ERP Minería
+            Motil
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Plataforma integral de gestión operacional minera. Producción, Mantención, Bodega, HSE y Documentos integrados. De sensor a decisión ejecutiva en tiempo real.
+            La plataforma que conecta tus sensores, tu equipo y tu gestión. Desde el molino hasta la oficina: todo integrado, todo visible, todo bajo control.
           </p>
           <div className="flex gap-4 justify-center pt-4">
             <Link href="/auth/login">
@@ -60,7 +60,7 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Alertas en tiempo real, trazabilidad completa y reportes de riesgo para proteger a tu equipo.
+                Alertas al instante, visibilidad total y equipos protegidos. Sin sorpresas.
               </p>
             </CardContent>
           </BrandCard>
@@ -72,7 +72,7 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Automatiza mantenimiento, optimiza inventario y reduce tiempos de inactividad.
+                Menos tiempos muertos, menos papeles perdidos, más dinero en el bolsillo.
               </p>
             </CardContent>
           </BrandCard>
@@ -84,7 +84,7 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Reportes detallados y métricas clave para impulsar mejoras continuas.
+                Números claros, datos reales. Decisiones inteligentes, no intuición.
               </p>
             </CardContent>
           </BrandCard>
@@ -95,9 +95,9 @@ export default function Home() {
       <section id="modules" className="bg-muted/50 py-20">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">5 Módulos Integrados</h2>
+            <h2 className="text-4xl font-bold mb-4">5 Módulos que Hablan Entre Sí</h2>
             <p className="text-muted-foreground text-lg">
-              Plataforma completa de gestión operacional minera integrada en tiempo real
+              No son herramientas aisladas. Todo se comunica automáticamente, sin papeleos ni demoras.
             </p>
           </div>
 
@@ -107,11 +107,11 @@ export default function Home() {
               <CardHeader>
                 <Zap className="h-8 w-8 text-[var(--brand-naranja)] mb-2" />
                 <CardTitle className="text-base">Producción</CardTitle>
-                <CardDescription>OT Real-time</CardDescription>
+                <CardDescription>Lo que está pasando ahora</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 <p className="text-xs">
-                  Monitoreo en vivo de equipos, sensores y KPIs operacionales
+                  Ves todo en vivo: equipos, sensores, alertas. Sin retrasos, sin filtros.
                 </p>
                 <ul className="text-xs space-y-1 text-muted-foreground">
                   <li className="flex gap-2">
@@ -135,11 +135,11 @@ export default function Home() {
               <CardHeader>
                 <Wrench className="h-8 w-8 text-purple-500 mb-2" />
                 <CardTitle className="text-base">Mantención</CardTitle>
-                <CardDescription>OT Jerárquicas</CardDescription>
+                <CardDescription>Sin improvisaciones</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 <p className="text-xs">
-                  Árbol de fallas y órdenes de trabajo anidadas
+                  Las reparaciones se crean automáticas, bien organizadas, y todos saben qué hacer.
                 </p>
                 <ul className="text-xs space-y-1 text-muted-foreground">
                   <li className="flex gap-2">
@@ -163,11 +163,11 @@ export default function Home() {
               <CardHeader>
                 <Package className="h-8 w-8 text-[var(--brand-verde)] mb-2" />
                 <CardTitle className="text-base">Bodega</CardTitle>
-                <CardDescription>Control Total</CardDescription>
+                <CardDescription>Nada se pierde</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 <p className="text-xs">
-                  Gestión completa de inventario con trazabilidad QR
+                  Todo trackeado, nada perdido. Sabes dónde está cada pieza y cuándo la necesitas.
                 </p>
                 <ul className="text-xs space-y-1 text-muted-foreground">
                   <li className="flex gap-2">
@@ -191,11 +191,11 @@ export default function Home() {
               <CardHeader>
                 <Shield className="h-8 w-8 text-[var(--brand-rojo)] mb-2" />
                 <CardTitle className="text-base">HSE</CardTitle>
-                <CardDescription>Compliance</CardDescription>
+                <CardDescription>Seguridad integrada</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 <p className="text-xs">
-                  Seguridad, incidentes y cumplimiento normativo
+                  Cumples normas sin sacrificar velocidad. Todo documentado, nada ad-hoc.
                 </p>
                 <ul className="text-xs space-y-1 text-muted-foreground">
                   <li className="flex gap-2">
@@ -219,11 +219,11 @@ export default function Home() {
               <CardHeader>
                 <FolderOpen className="h-8 w-8 text-[var(--brand-gold)] mb-2" />
                 <CardTitle className="text-base">Documentos</CardTitle>
-                <CardDescription>Central</CardDescription>
+                <CardDescription>Todo en su lugar</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 <p className="text-xs">
-                  Contratos, procedimientos y reportes versionados
+                  Ningún contrato, procedimiento o reporte se pierde. Todo versionado y trazable.
                 </p>
                 <ul className="text-xs space-y-1 text-muted-foreground">
                   <li className="flex gap-2">
@@ -248,9 +248,9 @@ export default function Home() {
       {/* Integrated Workflow Section */}
       <section className="max-w-7xl mx-auto px-4 py-20">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4">La Cascada Completa: De Sensor a Decisión</h2>
+          <h2 className="text-4xl font-bold mb-4">Así Funciona en la Práctica</h2>
           <p className="text-muted-foreground text-lg">
-            Cómo los 5 módulos se comunican automáticamente en una operación real
+            Un sensor detecta un problema y todo se pone en movimiento automáticamente. Sin intermediarios, sin demoras.
           </p>
         </div>
 
@@ -262,9 +262,9 @@ export default function Home() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--brand-naranja)] text-white font-bold text-sm">1</div>
               </div>
               <div>
-                <h3 className="font-semibold text-lg text-[var(--brand-naranja)]">Producción: Sensor Detecta Anomalía</h3>
+                <h3 className="font-semibold text-lg text-[var(--brand-naranja)]">1. El Sensor ve el Problema</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Sensor de vibración en excavadora dispara alerta. Sistema identifica equipoafectado y posible modo de falla.
+                  La excavadora vibra más de lo normal. El sensor lo detecta, el sistema lo ve. Fin del misterio.
                 </p>
               </div>
             </div>
@@ -277,9 +277,9 @@ export default function Home() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-500 text-white font-bold text-sm">2</div>
               </div>
               <div>
-                <h3 className="font-semibold text-lg text-purple-600">Mantención: OT Automática Creada</h3>
+                <h3 className="font-semibold text-lg text-purple-600">2. Se Crea una Orden de Trabajo Automáticamente</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  OT se genera automáticamente con árbol de fallas sugerido. Técnicos reciben asignación en sus tablets. Sistema asigna técnicos paralelos por componente.
+                  Sin esperar a que el jefe la cree. Los técnicos la ven en sus tablets. Saben qué hacer y cómo hacerlo.
                 </p>
               </div>
             </div>
@@ -292,9 +292,9 @@ export default function Home() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--brand-verde)] text-white font-bold text-sm">3</div>
               </div>
               <div>
-                <h3 className="font-semibold text-lg text-[var(--brand-verde)]">Bodega: Stock Reservado</h3>
+                <h3 className="font-semibold text-lg text-[var(--brand-verde)]">3. Bodega Reserva las Piezas</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Piezas necesarias se reservan automáticamente. Si falta algo, se dispara reorden. Código QR scanea cada movimiento.
+                  Sin que nadie lo pida. El sistema sabe qué se va a necesitar y las aparta automáticamente.
                 </p>
               </div>
             </div>
@@ -307,9 +307,9 @@ export default function Home() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--brand-rojo)] text-white font-bold text-sm">4</div>
               </div>
               <div>
-                <h3 className="font-semibold text-lg text-[var(--brand-rojo)]">HSE: Alertas & Requisitos</h3>
+                <h3 className="font-semibold text-lg text-[var(--brand-rojo)]">4. HSE Se Activa Automáticamente</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Incidente registrado automáticamente. Se disparan requisitos normativos si aplican. Checklists de seguridad obligatorios en la OT.
+                  Se genera el reporte, se activan los checklists de seguridad. Cumples normativas sin hacer nada extra.
                 </p>
               </div>
             </div>
@@ -322,9 +322,9 @@ export default function Home() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--brand-gold)] text-white font-bold text-sm">5</div>
               </div>
               <div>
-                <h3 className="font-semibold text-lg text-[var(--brand-gold)]">Documentos: Cierre & Auditoría</h3>
+                <h3 className="font-semibold text-lg text-[var(--brand-gold)]">5. Todo Queda Registrado</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  OT cierra con evidencia (fotos, firmas). Documentos versionados y almacenados. Auditoría completa del incidente: qué, quién, cuándo, cuánto costó, qué se usó.
+                  La orden cierra con fotos y firmas. Todo guardado, nada se pierde. Auditoría lista para inspectores.
                 </p>
               </div>
             </div>
@@ -337,9 +337,9 @@ export default function Home() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--brand-naranja)] text-white font-bold text-sm">✓</div>
               </div>
               <div>
-                <h3 className="font-semibold text-lg">Resultado: Dashboard Ejecutivo</h3>
+                <h3 className="font-semibold text-lg">El Resultado: Dashboard en Tiempo Real</h3>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Gerencia ve MTTR, costo total del incidente, patrón de fallas, stock consumido, cumplimiento HSE. Todo vinculado, ningún dato duplicado, decisiones informadas en tiempo real.
+                  Gerencia ve el MTTR, el costo, si vuelve a pasar lo mismo. Sin llamadas, sin reportes manuales, sin esperas. Solo números reales.
                 </p>
               </div>
             </div>
@@ -350,9 +350,9 @@ export default function Home() {
       {/* Roles Section - Elegant & Sophisticated */}
       <section className="max-w-7xl mx-auto px-4 py-24">
         <div className="text-center mb-20">
-          <h2 className="text-5xl font-bold mb-6">Diseñado para Cada Rol</h2>
+          <h2 className="text-5xl font-bold mb-6">Cada Rol en Su Lugar</h2>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Cada persona accede exactamente a lo que necesita. Controles granulares, auditoría completa, vistas personalizadas.
+            No es una sola plataforma gigante. Es 6 espacios diferentes, cada uno perfecto para quién lo usa. Con permisos justos y nada de lo que no necesita.
           </p>
         </div>
 
@@ -365,59 +365,59 @@ export default function Home() {
               accentColor: 'border-t-2 border-t-[var(--brand-naranja)]',
               badgeBg: 'bg-[var(--brand-naranja)]/10 text-[var(--brand-naranja)]',
               badge: '4 módulos',
-              description: 'Monitorea la operación en vivo, detecta anomalías y reporta fallas en tiempo real.',
+              description: 'Tu dashboard es simple: ¿Qué está pasando ahora? ¿Hay algo raro? Eso es todo lo que ves.',
               modules: ['Producción', 'Alertas'],
-              tasks: ['Monitorear sensores', 'Detectar anomalías', 'Reportar fallas', 'Ver KPIs']
+              tasks: ['Monitorear', 'Alertas', 'Reportar fallas', 'Datos en vivo']
             },
             {
               role: 'Jefe de Mantención',
               icon: '👷',
               accentColor: 'border-t-2 border-t-purple-400',
               badgeBg: 'bg-purple-400/10 text-purple-400',
-              badge: '9 módulos',
-              description: 'Gestiona la mantención completa, asigna OT y supervisa progreso en vivo.',
-              modules: ['Mantención', 'Work-Orders', 'Bodega', '+2'],
-              tasks: ['Crear y asignar OT', 'Monitorear progreso', 'Resolver bloqueos', 'Analizar MTTR']
+              badge: 'Control total',
+              description: 'Ves el árbol completo: qué se rompió, quién lo va a reparar, dónde está, cuánto cuesta.',
+              modules: ['Mantención', 'OT', 'Bodega', '+2'],
+              tasks: ['Crear OT', 'Asignar técnicos', 'Resolver bloqueos', 'Ver MTTR']
             },
             {
               role: 'Técnico de Campo',
               icon: '🔧',
               accentColor: 'border-t-2 border-t-sky-400',
               badgeBg: 'bg-sky-400/10 text-sky-400',
-              badge: '4 módulos',
-              description: 'Recibe OT en móvil/tablet con checklist, QR y captura de evidencia offline-first.',
-              modules: ['Mantención', 'Work-Orders', 'Bodega'],
-              tasks: ['Recibir OT', 'Checklist móvil', 'Escanear QR', 'Adjuntar evidencia']
+              badge: 'Móvil-first',
+              description: 'La orden te llega al celular. Sabes qué arreglar, con qué materiales, y las fotos de evidencia.',
+              modules: ['OT', 'Checklist', 'QR', 'Evidencia'],
+              tasks: ['Recibir OT', 'Checklist móvil', 'Escanear', 'Adjuntar fotos']
             },
             {
               role: 'Responsable Bodega',
               icon: '📦',
               accentColor: 'border-t-2 border-t-emerald-400',
               badgeBg: 'bg-emerald-400/10 text-emerald-400',
-              badge: '5 módulos',
-              description: 'Controla inventario, stock y reórdenes automáticas con trazabilidad FIFO.',
-              modules: ['Bodega', 'Inventario', 'Compras', '+1'],
-              tasks: ['Recibir materiales', 'Gestionar stock', 'Escanear QR', 'Alertas stock']
+              badge: 'Stock en vivo',
+              description: 'Todo trackeado por QR. Sabes qué tienes, qué falta, y cuándo se acabará. Sin sorpresas.',
+              modules: ['Bodega', 'Stock', 'Reórdenes', 'QR'],
+              tasks: ['Recibir', 'Gestionar', 'Escanear', 'Alertas auto']
             },
             {
-              role: 'Oficial HSE/Compliance',
+              role: 'Oficial HSE',
               icon: '✅',
               accentColor: 'border-t-2 border-t-amber-400',
               badgeBg: 'bg-amber-400/10 text-amber-400',
-              badge: '10 módulos',
-              description: 'Auditoría completa de OT, documentos, checklists y cumplimiento normativo.',
-              modules: ['HSE', 'Documentos', 'Mantención', '+2'],
-              tasks: ['Auditar OT', 'Ver documentos', 'Revisar checklists', 'Reportes']
+              badge: 'Auditoría automática',
+              description: 'Cada incidente documentado, cada orden cerrada con evidencia. Los inspectores ven todo lo que piden.',
+              modules: ['HSE', 'Documentos', 'Auditoría', 'Reportes'],
+              tasks: ['Auditar', 'Revisar docs', 'Checklists', 'Reportes']
             },
             {
               role: 'Supervisor/Gerencia',
               icon: '📊',
               accentColor: 'border-t-2 border-t-[var(--brand-naranja)]',
               badgeBg: 'bg-[var(--brand-naranja)]/15 text-[var(--brand-naranja)] font-semibold',
-              badge: 'ACCESO TOTAL',
-              description: 'Dashboard ejecutivo integral con KPIs, costos, tendencias y ROI en tiempo real.',
+              badge: 'El panel de control',
+              description: 'Un dashboard con lo que importa: costos, disponibilidad, patrones de fallas, tendencias. Decisiones basadas en datos.',
               modules: ['Todos', 'los', 'módulos'],
-              tasks: ['Dashboard KPIs', 'Análisis costos', 'Tendencias fallas', 'ROI preventivo']
+              tasks: ['KPIs', 'Costos', 'Tendencias', 'ROI']
             },
           ].map((item, i) => (
             <div

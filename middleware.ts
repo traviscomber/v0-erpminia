@@ -97,10 +97,12 @@ export async function middleware(request: NextRequest) {
   }
 
   // Protected dashboard - redirect to login
+  // DEMO MODE: Allow documentos-gestion access without authentication
   if (request.nextUrl.pathname.startsWith('/dashboard')) {
-    if (!isAuthenticated) {
+    if (!isAuthenticated && !request.nextUrl.pathname.includes('documentos-gestion')) {
       return NextResponse.redirect(new URL('/auth/login', request.url));
     }
+    // documentos-gestion is accessible without auth for demo/development
   }
 
   // Protected routes - setup only accessible before auth

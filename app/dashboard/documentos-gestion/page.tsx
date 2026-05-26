@@ -7,16 +7,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Search, Plus } from 'lucide-react';
+import { Search, Plus, AlertCircle, CheckCircle, Clock, XCircle } from 'lucide-react';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function DocumentosGestionPage() {
-  // Call all hooks at the top level BEFORE any conditional returns
   const [searchTerm, setSearchTerm] = useState('');
 
   // Fetch documents from API
-  const { data, error, isLoading, mutate } = useSWR(
+  const { data, error, isLoading } = useSWR(
     '/api/dashboard/documentos-gestion',
     fetcher,
     {
@@ -28,15 +27,12 @@ export default function DocumentosGestionPage() {
 
   // Extract data safely
   const categories = data?.categories || [];
+  const pendingApprovals = data?.pendingApprovals || [];
   const recentDocuments = data?.recentDocuments || [];
   const expiringDocuments = data?.expiringDocuments || [];
-  const pendingApprovals = data?.pendingApprovals || [];
+  const stats = data?.stats || { total: 0, pending: 0, expiring: 0 };
 
-  // Calculate stats
-  const totalDocuments = recentDocuments.length;
-  const totalPendingApprovals = pendingApprovals.length;
-
-  // Filter categories based on search - must be called after other hooks
+  // Filter categories based on search
   const filteredCategories = useMemo(() => {
     if (!searchTerm) return categories;
     return categories.filter(cat =>
@@ -45,9 +41,22 @@ export default function DocumentosGestionPage() {
     );
   }, [categories, searchTerm]);
 
-  // Now safe to return early if loading/error AFTER all hooks
   if (error) return <div className="text-red-500">Error loading documents</div>;
   if (isLoading) return <div className="text-gray-500">Loading document management...</div>;
+
+  const getEstadoBadge = (estado: string) => {
+    switch (estado) {
+      case 'aprobado':
+        return <Badge className="bg-green-600 gap-1"><CheckCircle className="h-3 w-3" /> Aprobado</Badge>;
+      case 'pendiente_validador1':
+      case 'pendiente_validador2':
+        return <Badge className="bg-yellow-600 gap-1"><Clock className="h-3 w-3" /> Pendiente</Badge>;
+      case 'rechazado':
+        return <Badge className="bg-red-600 gap-1"><XCircle className="h-3 w-3" /> Rechazado</Badge>;
+      default:
+        return <Badge variant="outline">{estado}</Badge>;
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -66,24 +75,34 @@ export default function DocumentosGestionPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium">Total Documentos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{totalDocuments}</div>
-            <p className="text-xs text-muted-foreground mt-1">Documentos en el sistema</p>
+            <div className="text-3xl font-bold">{stats.total}</div>
+            <p className="text-xs text-muted-foreground mt-1">En el sistema</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-yellow-600/30 bg-yellow-600/5">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Pendiente Aprobación</CardTitle>
+            <CardTitle className="text-sm font-medium text-yellow-600">Pendiente Aprobación</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-orange-600">{totalPendingApprovals}</div>
+            <div className="text-3xl font-bold text-yellow-600">{stats.pending}</div>
             <p className="text-xs text-muted-foreground mt-1">Requieren revisión</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-blue-600/30 bg-blue-600/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-blue-600">Recientemente Actualizados</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-blue-600">{expiringDocuments.length}</div>
+            <p className="text-xs text-muted-foreground mt-1">Últimos 7 días</p>
           </CardContent>
         </Card>
 
@@ -97,6 +116,62 @@ export default function DocumentosGestionPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Pending Approvals Section */}
+      {pendingApprovals.length > 0 && (
+        <Card className="border-yellow-600/30 bg-yellow-600/5">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-yellow-600" />
+              <CardTitle>Documentos Pendientes de Aprobación</CardTitle>
+            </div>
+            <CardDescription>{pendingApprovals.length} documentos requieren revisión</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {pendingApprovals.map((doc: any) => (
+              <div key={doc.id} className="flex items-center justify-between p-3 bg-background/50 rounded border border-yellow-600/20">
+                <div className="flex-1">
+                  <div className="font-semibold text-sm">{doc.nombre}</div>
+                  <div className="text-xs text-muted-foreground flex items-center gap-3 mt-1">
+                    <span>ID: {doc.documentId} • v{doc.version}</span>
+                    <span className="text-yellow-600">Por revisar: {doc.pendingBy || 'Sin asignar'}</span>
+                  </div>
+                </div>
+                {getEstadoBadge(doc.estado)}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Recent Documents */}
+      {recentDocuments.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Documentos Recientes</CardTitle>
+            <CardDescription>Últimos documentos creados o actualizados</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {recentDocuments.map((doc: any, idx: number) => (
+                <div key={idx} className="flex items-center justify-between p-3 hover:bg-accent rounded border">
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">{doc.nombre}</div>
+                    <div className="text-xs text-muted-foreground flex items-center gap-2 mt-1">
+                      <span>{doc.documentId}</span>
+                      <span>•</span>
+                      <span>v{doc.version}</span>
+                      <span>•</span>
+                      <span>Por: {doc.creador}</span>
+                    </div>
+                  </div>
+                  {getEstadoBadge(doc.estado)}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Search */}
       <Card>
@@ -118,33 +193,29 @@ export default function DocumentosGestionPage() {
 
       {/* Categories Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredCategories.map((category: any) => {
-          // Generate slug from category name for cleaner URLs
-          const slug = category.name.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '');
-          return (
-            <Link key={category.id} href={`/dashboard/documentos-gestion/${slug}`}>
-              <Card className="cursor-pointer hover:shadow-lg transition-all">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-lg">{category.name}</CardTitle>
-                      <CardDescription className="text-xs mt-1">{category.description}</CardDescription>
-                    </div>
-                    {category.pendingApprovals > 0 && (
-                      <Badge variant="destructive">{category.pendingApprovals}</Badge>
-                    )}
+        {filteredCategories.map((category: any) => (
+          <Link key={category.id} href={`/dashboard/documentos-gestion/${category.id}`}>
+            <Card className="cursor-pointer hover:shadow-lg transition-all h-full">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <CardTitle className="text-lg">{category.name}</CardTitle>
+                    <CardDescription className="text-xs mt-1">{category.description}</CardDescription>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{category.count || 0} documentos</span>
-                    <span className="font-semibold">{category.pendingApprovals || 0} pendientes</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          );
-        })}
+                  {category.pendingApprovals > 0 && (
+                    <Badge variant="destructive" className="ml-2">{category.pendingApprovals}</Badge>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">{category.count || 0} docs</span>
+                  <span className="font-semibold">{category.pendingApprovals || 0} pendientes</span>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
       </div>
 
       {filteredCategories.length === 0 && (
