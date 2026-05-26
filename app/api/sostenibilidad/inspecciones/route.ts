@@ -2,14 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl) {
-      return NextResponse.json({ error: 'Missing NEXT_PUBLIC_SUPABASE_URL' }, { status: 500 });
-    }
-    if (!supabaseKey) {
-      return NextResponse.json({ error: 'Missing NEXT_PUBLIC_SUPABASE_ANON_KEY' }, { status: 500 });
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    if (!url || !key) {
+      return NextResponse.json({ error: 'Missing config' }, { status: 500 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -27,45 +24,44 @@ export async function GET(request: NextRequest) {
       table = 'inspecciones_internas';
     }
 
-    let query = `select=*`;
+    let queryParams = `select=*&limit=${limit}&offset=${offset}`;
     if (estado) {
-      query += `&estado=eq.${encodeURIComponent(estado)}`;
+      queryParams += `&estado=eq.${encodeURIComponent(estado)}`;
     }
-    query += `&limit=${limit}&offset=${offset}`;
 
-    const url = `${supabaseUrl}/rest/v1/${table}?${query}`;
-    
-    const response = await fetch(url, {
+    const response = await fetch(`${url}/rest/v1/${table}?${queryParams}`, {
       headers: {
-        'Authorization': `Bearer ${supabaseKey}`,
-        'apikey': supabaseKey,
+        'apikey': key,
+        'Authorization': `Bearer ${key}`,
         'Content-Type': 'application/json',
+        'Prefer': 'count=exact',
       },
     });
 
     if (!response.ok) {
       const text = await response.text();
-      return NextResponse.json({ error: `Supabase ${response.status}: ${text}` }, { status: 500 });
+      return NextResponse.json({ error: text }, { status: 500 });
     }
 
     const data = await response.json();
+    const total = parseInt(response.headers.get('content-range')?.split('/')[1] || String(data?.length || 0));
 
     return NextResponse.json({
-      data: Array.isArray(data) ? data : [],
-      pagination: { total: data.length || 0, limit, offset },
+      data: data || [],
+      pagination: { total, limit, offset },
     });
   } catch (error) {
-    return NextResponse.json({ error: `Error: ${error instanceof Error ? error.message : String(error)}` }, { status: 500 });
+    return NextResponse.json({ error: String(error) }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseKey) {
-      return NextResponse.json({ error: 'Missing Supabase config' }, { status: 500 });
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    if (!url || !key) {
+      return NextResponse.json({ error: 'Missing config' }, { status: 500 });
     }
 
     const body = await request.json();
@@ -80,26 +76,25 @@ export async function POST(request: NextRequest) {
       table = 'inspecciones_internas';
     }
 
-    const url = `${supabaseUrl}/rest/v1/${table}`;
-    
-    const response = await fetch(url, {
+    const response = await fetch(`${url}/rest/v1/${table}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${supabaseKey}`,
-        'apikey': supabaseKey,
+        'apikey': key,
+        'Authorization': `Bearer ${key}`,
         'Content-Type': 'application/json',
+        'Prefer': 'return=representation',
       },
-      body: JSON.stringify([data]),
+      body: JSON.stringify(data),
     });
 
     if (!response.ok) {
-      throw new Error(`Supabase returned ${response.status}`);
+      const text = await response.text();
+      return NextResponse.json({ error: text }, { status: 500 });
     }
 
     const result = await response.json();
-    return NextResponse.json(result[0] || result, { status: 201 });
+    return NextResponse.json(result, { status: 201 });
   } catch (error) {
-    console.error('Error creating inspección:', error);
-    return NextResponse.json({ error: 'Failed to create inspección' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to create' }, { status: 500 });
   }
 }

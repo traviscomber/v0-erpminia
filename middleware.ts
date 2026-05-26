@@ -78,8 +78,8 @@ export async function middleware(request: NextRequest) {
   const isAuthenticated = !!user || !!authToken;
 
   // Protected API routes - return 401 JSON for unauthenticated requests
-  if (request.nextUrl.pathname.startsWith('/api/admin') || 
-      request.nextUrl.pathname.startsWith('/api/sostenibilidad')) {
+  // Note: /api/sostenibilidad is now public since frontend needs to fetch data
+  if (request.nextUrl.pathname.startsWith('/api/admin')) {
     if (!isAuthenticated) {
       return NextResponse.json(
         { error: 'Unauthorized' },
