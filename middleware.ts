@@ -119,7 +119,7 @@ export async function middleware(request: NextRequest) {
 
   // Protected routes - setup only accessible before auth
   if (request.nextUrl.pathname === '/setup') {
-    if (user) {
+    if (isAuthenticated) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
   }
@@ -129,7 +129,7 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname === '/auth/login' ||
     request.nextUrl.pathname === '/auth/register'
   ) {
-    if (user) {
+    if (isAuthenticated) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
   }

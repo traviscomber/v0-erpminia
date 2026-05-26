@@ -87,25 +87,30 @@ export async function POST(request: NextRequest) {
 
     const response = NextResponse.json({ success: true, user: sessionData });
 
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
+
     response.cookies.set('auth_token', JSON.stringify(sessionData), {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isProduction,
       sameSite: 'lax',
+      path: '/',
       maxAge: 86400 * 7,
     });
 
     // Also set role as a non-HttpOnly cookie so JavaScript can read it
     response.cookies.set('user_role', role, {
       httpOnly: false,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isProduction,
       sameSite: 'lax',
+      path: '/',
       maxAge: 86400 * 7,
     });
 
     response.cookies.set('user_email', email, {
       httpOnly: false,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isProduction,
       sameSite: 'lax',
+      path: '/',
       maxAge: 86400 * 7,
     });
 
