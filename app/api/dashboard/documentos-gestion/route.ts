@@ -71,27 +71,49 @@ export async function GET(request: NextRequest) {
             version: a.version,
             estado: a.estado,
             createdBy: a.creador_nombre,
-            pendingBy: a.estado === 'pendiente_validador1' ? a.validador1_nombre : a.validador2_nombre,
+            pendingBy: 
+              a.estado === 'pendiente_validador1' 
+                ? a.validador1_nombre || 'Validador 1' 
+                : a.estado === 'pendiente_validador2'
+                ? a.validador2_nombre || 'Validador 2'
+                : null,
+            pendingRole:
+              a.estado === 'pendiente_validador1' 
+                ? a.validador1_rol || 'Revisor'
+                : a.estado === 'pendiente_validador2'
+                ? a.validador2_rol || 'Revisor'
+                : null,
           }))
       : [];
 
-    // Get recently created documents
+    // Get recently created documents (sorted by creation date)
     const recentDocuments = Array.isArray(approvals)
       ? approvals
           .sort((a: any, b: any) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
-          .slice(0, 10)
+          .slice(0, 5)
+          .map((a: any) => ({
+            documentId: a.documento_id,
+            nombre: a.documento_nombre,
+            version: a.version,
+            estado: a.estado,
+            creador: a.creador_nombre,
+            fechaCreacion: a.created_at,
+            validador1: a.validador1_nombre,
+          }))
       : [];
 
-    // Get expiring documents (within 30 days)
+    // Get recently updated documents (changes in last 7 days)
     const today = new Date();
-    const in30Days = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
 
     const expiringDocuments = Array.isArray(approvals)
-      ? approvals.filter((a: any) => {
-          if (!a.vencimiento) return false;
-          const expDate = new Date(a.vencimiento);
-          return expDate >= today && expDate <= in30Days;
-        })
+      ? approvals
+          .filter((a: any) => {
+            if (!a.updated_at) return false;
+            const updateDate = new Date(a.updated_at);
+            return updateDate >= sevenDaysAgo;
+          })
+          .slice(0, 3)
       : [];
 
     return NextResponse.json({
