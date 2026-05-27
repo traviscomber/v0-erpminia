@@ -210,7 +210,7 @@ export default function ProduccionPage() {
         <div className="space-y-3">
           <h2 className="text-lg font-semibold">Alertas Activas</h2>
           <div className="space-y-2">
-            {alarms.map((alert, i) => (
+            {alarms.map((alert: any, i: number) => (
               <Card key={i} className={alert.severity === 'critical' ? 'border-[var(--brand-rojo)]/50 bg-[var(--brand-rojo)]/5' : 'border-[var(--brand-naranja)]/50 bg-[var(--brand-naranja)]/5'}>
                 <CardContent className="p-3">
                   <div className="flex gap-3">
