@@ -1,22 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle } from 'lucide-react';
 
-function LoginForm() {
+export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false);
-
-  // Only render form after client-side hydration is complete
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,31 +41,8 @@ function LoginForm() {
     }
   };
 
-  // Don't render until mounted (prevents hydration mismatch)
-  if (!mounted) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <div className="w-full max-w-md">
-          <Card>
-            <CardHeader className="space-y-2">
-              <CardTitle className="text-2xl">Iniciar Sesión</CardTitle>
-              <CardDescription>n3uralia ERP - Plataforma de Gestión Minera</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="h-10 bg-muted animate-pulse rounded"></div>
-                <div className="h-10 bg-muted animate-pulse rounded"></div>
-                <div className="h-10 bg-muted animate-pulse rounded"></div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4" suppressHydrationWarning>
       <div className="w-full max-w-md">
         <Card>
           <CardHeader className="space-y-2">
@@ -79,7 +50,7 @@ function LoginForm() {
             <CardDescription>n3uralia ERP - Plataforma de Gestión Minera</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4" suppressHydrationWarning>
               {error && (
                 <div className="flex gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded">
                   <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0 mt-0.5" />
@@ -95,6 +66,7 @@ function LoginForm() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   autoComplete="off"
+                  suppressHydrationWarning
                 />
               </div>
 
@@ -107,6 +79,7 @@ function LoginForm() {
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="off"
                   required
+                  suppressHydrationWarning
                 />
               </div>
 
@@ -114,6 +87,7 @@ function LoginForm() {
                 type="submit" 
                 className="w-full"
                 disabled={isLoading}
+                suppressHydrationWarning
               >
                 {isLoading ? 'Ingresando...' : 'Iniciar Sesión'}
               </Button>
@@ -123,8 +97,4 @@ function LoginForm() {
       </div>
     </div>
   );
-}
-
-export default function LoginPage() {
-  return <LoginForm />;
 }
