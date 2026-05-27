@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import useSWR from 'swr';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { BrandCard } from '@/components/ui/brand-card';
+import { DemoBanner, DemoDataBadge } from '@/components/demo-data-badge';
+import { useProductionData } from '@/hooks/use-mock-data';
 import { 
   Activity, 
   AlertTriangle, 
@@ -34,22 +35,12 @@ import {
 } from 'recharts';
 import { CHART_COLORS_LIGHT } from '@/lib/theme-colors';
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
-
 export default function ProduccionPage() {
   const [selectedEquipment, setSelectedEquipment] = useState<any>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
   
-  // Fetch telemetry data from API
-  const { data, error, isLoading, mutate } = useSWR(
-    '/api/dashboard/produccion',
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: true,
-      refreshInterval: autoRefresh ? 30000 : 0, // 30 seconds if auto-refresh enabled
-    }
-  );
+  // Fetch telemetry data - with automatic mock fallback
+  const { data, error, isLoading, mutate, isMock } = useProductionData();
 
   // Call useEffect after all other hooks
   useEffect(() => {
@@ -105,10 +96,27 @@ export default function ProduccionPage() {
 
   return (
     <div className="space-y-6">
+      {/* Demo Banner */}
+      {isMock && <DemoBanner />}
+
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold">Producción en Tiempo Real</h1>
-        <p className="text-muted-foreground">Monitoreo integral de plantas, equipos y sensores</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Producción en Tiempo Real</h1>
+          <p className="text-muted-foreground">Monitoreo integral de plantas, equipos y sensores</p>
+        </div>
+        <div className="flex gap-2">
+          {isMock && <DemoDataBadge />}
+          <Button 
+            size="sm" 
+            variant="outline"
+            onClick={() => mutate()}
+            className="gap-2"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Actualizar
+          </Button>
+        </div>
       </div>
 
       {/* KPI Cards */}
@@ -128,8 +136,8 @@ export default function ProduccionPage() {
             <CardTitle className="text-sm font-semibold text-muted-foreground">Alarmas Activas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-[var(--brand-naranja)]">5</div>
-            <p className="text-xs text-muted-foreground mt-1">2 críticas, 3 medias</p>
+            <div className="text-3xl font-bold text-[var(--brand-naranja)]">{alarms.length}</div>
+            <p className="text-xs text-muted-foreground mt-1">{alarms.filter((a: any) => a.severity === 'critical').length} críticas</p>
           </CardContent>
         </BrandCard>
 
@@ -202,11 +210,7 @@ export default function ProduccionPage() {
         <div className="space-y-3">
           <h2 className="text-lg font-semibold">Alertas Activas</h2>
           <div className="space-y-2">
-            {[
-              { severity: 'critical', equipment: 'Motor M-7', message: 'Temperatura crítica', time: '09:15' },
-              { severity: 'warning', equipment: 'Excavadora 390', message: 'Presión anómala', time: '08:42' },
-              { severity: 'warning', equipment: 'Bomba P-4', message: 'Vibración alta', time: '08:30' },
-            ].map((alert, i) => (
+            {alarms.map((alert, i) => (
               <Card key={i} className={alert.severity === 'critical' ? 'border-[var(--brand-rojo)]/50 bg-[var(--brand-rojo)]/5' : 'border-[var(--brand-naranja)]/50 bg-[var(--brand-naranja)]/5'}>
                 <CardContent className="p-3">
                   <div className="flex gap-3">
