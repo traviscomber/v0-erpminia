@@ -142,7 +142,7 @@ export default function FlujDocumentalPage() {
             <h1 className="text-3xl font-bold text-foreground">Flujo de Aprobación de Documentos</h1>
             {(!documentos || (documentos.data && documentos.data.length === 0) || (Array.isArray(documentos) && documentos.length === 0)) && <DemoDataBadge />}
           </div>
-          <p className="text-muted-foreground">Workflow de 2 validadores: Jefe de Sostenibilidad → Gerente de Operaciones</p>
+          <p className="text-muted-foreground">Workflow de 2 validadores: Jefe de Sostenibilidad → Gerente General</p>
         </div>
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogTrigger asChild>
@@ -342,7 +342,7 @@ export default function FlujDocumentalPage() {
                       <div className="border border-white/10 rounded-lg p-4">
                         <h4 className="font-bold text-sm mb-3 flex items-center gap-2">
                           <div className="w-6 h-6 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center text-xs">2</div>
-                          Gerente de Operaciones
+                          Gerente General
                         </h4>
                         {doc.validador2_nombre ? (
                           <div className="space-y-2 text-sm">
