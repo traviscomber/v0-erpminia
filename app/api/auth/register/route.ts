@@ -9,7 +9,7 @@ import bcrypt from 'bcryptjs';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password, name, role = 'user' } = body;
+    const { email, password, name } = body;
 
     // Validate required fields
     if (!email || !password) {
@@ -72,11 +72,10 @@ export async function POST(request: NextRequest) {
         email: email.toLowerCase(),
         password_hash: hashedPassword,
         full_name: name || email.split('@')[0],
-        role: role,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
-      .select('id, email, full_name, role')
+      .select('id, email, full_name')
       .single();
 
     if (createError) {
@@ -95,7 +94,6 @@ export async function POST(request: NextRequest) {
           id: newUser.id,
           email: newUser.email,
           name: newUser.full_name,
-          role: newUser.role,
         },
       },
       { status: 201 }
