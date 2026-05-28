@@ -16,11 +16,13 @@ interface DocumentApproval {
   submitted_by: string;
   submitted_at: Date;
   approval_chain: Array<{
-    level: 'manager' | 'director' | 'compliance';
+    level: 'jefe_sostenibilidad' | 'gerente_general';
     status: 'pendiente' | 'aprobado' | 'rechazado';
     approver: string;
+    role: string;
     date?: Date;
     comments?: string;
+    signature?: string;
   }>;
 }
 
@@ -52,11 +54,15 @@ export function DocumentApprovalFlow() {
     }
   };
 
-  const handleApprove = async (docId: string, level: 'manager' | 'director' | 'compliance') => {
+  const handleApprove = async (docId: string, level: 'jefe_sostenibilidad' | 'gerente_general') => {
     try {
       const { error } = await supabase
         .from('document_approvals')
-        .update({ status: 'aprobado', approved_at: new Date() })
+        .update({ 
+          status: 'aprobado', 
+          approved_at: new Date(),
+          signature: `Firma digital - ${level === 'jefe_sostenibilidad' ? 'Jefe Depto. Sostenibilidad' : 'Gerente General'}`,
+        })
         .eq('id', docId)
         .eq('approval_level', level);
 
@@ -64,6 +70,17 @@ export function DocumentApprovalFlow() {
       alert('Documento aprobado exitosamente');
     } catch (err) {
       console.error('[v0] Error approving document:', err);
+    }
+  };
+
+  const getLevelLabel = (level: string) => {
+    switch (level) {
+      case 'jefe_sostenibilidad':
+        return 'Jefe Depto. Sostenibilidad';
+      case 'gerente_general':
+        return 'Gerente General';
+      default:
+        return level;
     }
   };
 
@@ -96,23 +113,31 @@ export function DocumentApprovalFlow() {
 
                   {/* Approval Chain */}
                   <div className="space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground mb-2">Flujo de Aprobación:</p>
                     {doc.approval_chain.map((approval, idx) => (
-                      <div key={idx} className="flex items-center justify-between text-sm bg-background p-2 rounded">
+                      <div key={idx} className="flex items-center justify-between text-sm bg-background p-2 rounded border border-border">
                         <div className="flex items-center gap-2">
                           {getStatusIcon(approval.status)}
-                          <span className="font-medium capitalize">{approval.level}</span>
-                          <span className="text-muted-foreground">({approval.approver})</span>
+                          <div>
+                            <span className="font-medium">{getLevelLabel(approval.level)}</span>
+                            <span className="text-muted-foreground ml-2">({approval.approver})</span>
+                          </div>
                         </div>
-                        {approval.status === 'pendiente' && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleApprove(doc.id, approval.level)}
-                            className="text-xs"
-                          >
-                            Aprobar
-                          </Button>
-                        )}
+                        <div className="flex items-center gap-2">
+                          {approval.signature && (
+                            <span className="text-xs text-emerald-600">Firmado</span>
+                          )}
+                          {approval.status === 'pendiente' && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleApprove(doc.id, approval.level)}
+                              className="text-xs"
+                            >
+                              Aprobar y Firmar
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>

@@ -28,7 +28,7 @@ import { AlertCircle, Loader2 } from 'lucide-react';
 const inspeccionSchema = z.object({
   numero_inspeccion: z.string().min(3, 'Mínimo 3 caracteres'),
   fecha_planificada: z.string().min(1, 'Selecciona una fecha'),
-  area_faena: z.string().min(1, 'Selecciona un área'),
+  faena: z.string().min(1, 'Selecciona una faena'),
   inspector: z.string().min(1, 'Nombre del inspector'),
   hallazgos_count: z.coerce.number().min(0, 'No puede ser negativo'),
   estado: z.enum(['planificada', 'realizada', 'cerrada']),
@@ -64,7 +64,7 @@ export function InspeccionModal({
     defaultValues: inspeccion || {
       numero_inspeccion: '',
       fecha_planificada: new Date().toISOString().split('T')[0],
-      area_faena: '',
+      faena: '',
       inspector: '',
       hallazgos_count: 0,
       estado: 'planificada',
@@ -80,7 +80,7 @@ export function InspeccionModal({
       reset({
         numero_inspeccion: '',
         fecha_planificada: new Date().toISOString().split('T')[0],
-        area_faena: '',
+        faena: '',
         inspector: '',
         hallazgos_count: 0,
         estado: 'planificada',
@@ -195,30 +195,29 @@ export function InspeccionModal({
               )}
             </div>
 
-            {/* Área/Faena */}
+            {/* Faena */}
             <div>
               <label className="text-sm font-medium mb-1 block">
-                Área/Faena *
+                Faena *
               </label>
               <Select
-                value={watch('area_faena')}
-                onValueChange={(value) => setValue('area_faena', value)}
+                value={watch('faena')}
+                onValueChange={(value) => setValue('faena', value)}
               >
-                <SelectTrigger className={errors.area_faena ? 'border-destructive' : ''}>
-                  <SelectValue placeholder="Selecciona un área" />
+                <SelectTrigger className={errors.faena ? 'border-destructive' : ''}>
+                  <SelectValue placeholder="Selecciona una faena" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Mina A">Mina A</SelectItem>
                   <SelectItem value="Mina B">Mina B</SelectItem>
                   <SelectItem value="Planta">Planta Procesamiento</SelectItem>
-                  <SelectItem value="Oficinas">Oficinas</SelectItem>
                   <SelectItem value="Laboratorio">Laboratorio</SelectItem>
                   <SelectItem value="Depósito">Depósito</SelectItem>
                 </SelectContent>
               </Select>
-              {errors.area_faena && (
+              {errors.faena && (
                 <p className="text-xs text-destructive mt-1">
-                  {errors.area_faena.message}
+                  {errors.faena.message}
                 </p>
               )}
             </div>

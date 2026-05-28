@@ -17,7 +17,7 @@ interface InspeccionExterna {
   numero_inspeccion: string;
   fecha_planificada: string;
   fecha_realizada?: string;
-  area_faena: string;
+  faena: string;
   inspector: string;
   empresa_externa: string;
   contacto_externo: string;
@@ -48,7 +48,7 @@ export default function InspeccionesExternasPage() {
       numero_inspeccion: `EXP-${new Date(m.fecha).getFullYear()}-${String(idx + 1).padStart(3, '0')}`,
       fecha_planificada: m.fecha,
       fecha_realizada: m.estado === 'completada' ? m.fecha : undefined,
-      area_faena: ['Planta general', 'Sector operaciones', 'Almacén'][idx % 3],
+      faena: ['Planta general', 'Sector operaciones', 'Almacén'][idx % 3],
       inspector: m.inspector,
       empresa_externa: m.inspector,
       contacto_externo: 'contacto@' + m.inspector.toLowerCase().replace(/\s/g, '.') + '.com',
@@ -63,7 +63,7 @@ export default function InspeccionesExternasPage() {
 
   const filteredInspecciones = displayData.filter((insp: any) =>
     insp.numero_inspeccion.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    insp.area_faena.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    insp.faena.toLowerCase().includes(searchTerm.toLowerCase()) ||
     insp.empresa_externa.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -225,7 +225,7 @@ export default function InspeccionesExternasPage() {
               <thead>
                 <tr className="border-b">
                   <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Número</th>
-                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Área</th>
+                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Faena</th>
                   <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Empresa Externa</th>
                   <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Contacto</th>
                   <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Fecha</th>
@@ -238,7 +238,7 @@ export default function InspeccionesExternasPage() {
                 {filteredInspecciones.map((insp: any) => (
                   <tr key={insp.id} className="border-b hover:bg-muted/50">
                     <td className="py-3 px-4 font-medium">{insp.numero_inspeccion}</td>
-                    <td className="py-3 px-4">{insp.area_faena}</td>
+                    <td className="py-3 px-4">{insp.faena}</td>
                     <td className="py-3 px-4">{insp.empresa_externa}</td>
                     <td className="py-3 px-4 text-sm text-muted-foreground">{insp.contacto_externo}</td>
                     <td className="py-3 px-4 text-sm">{new Date(insp.fecha_planificada).toLocaleDateString()}</td>
