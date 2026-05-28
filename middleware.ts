@@ -73,15 +73,62 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isAuthenticated = !!user;
+  // Also check for custom auth_token cookie (from our login API)
+  const authToken = request.cookies.get('auth_token')?.value;
+  let customAuthValid = false;
+  
+  if (authToken) {
+    try {
+      const sessionData = JSON.parse(authToken);
+      customAuthValid = !!(sessionData?.user?.id && sessionData?.session_token);
+    } catch {
+      customAuthValid = false;
+    }
+  }
 
-  // Protected API routes - ALL API routes require authentication except public ones
+  const isAuthenticated = !!user || customAuthValid;
+
+  // Protected API routes - Dev-friendly security
   if (request.nextUrl.pathname.startsWith('/api/')) {
-    // Explicit public routes (don't require auth)
-    const publicApiRoutes = ['/api/health', '/api/auth/login', '/api/auth/register'];
+    // Explicit public routes (don't require any auth)
+    const publicApiRoutes = ['/api/health', '/api/auth/login', '/api/auth/register', '/api/auth/logout'];
     const isPublicRoute = publicApiRoutes.some(route => request.nextUrl.pathname.startsWith(route));
     
-    if (!isPublicRoute && !isAuthenticated) {
+    // Demo mode: Allow GET requests for public read access
+    const isDemoMode = process.env.DEMO_PUBLIC_READ === 'true';
+    const isReadRequest = request.method === 'GET';
+    const isWriteRequest = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method);
+    
+    // Block dangerous debug/test endpoints in production
+    if (request.nextUrl.pathname.startsWith('/api/debug') || 
+        request.nextUrl.pathname.startsWith('/api/test-')) {
+      const devAdminKey = process.env.DEV_ADMIN_KEY;
+      const providedKey = request.headers.get('x-dev-admin-key');
+      
+      if (!devAdminKey || providedKey !== devAdminKey) {
+        return NextResponse.json(
+          { error: 'Not found' },
+          { status: 404 }
+        );
+      }
+    }
+    
+    // For write operations, require either auth OR dev write key
+    if (isWriteRequest && !isPublicRoute) {
+      const devWriteKey = process.env.DEV_WRITE_KEY;
+      const providedWriteKey = request.headers.get('x-dev-write-key');
+      const hasValidDevKey = devWriteKey && providedWriteKey === devWriteKey;
+      
+      if (!isAuthenticated && !hasValidDevKey) {
+        return NextResponse.json(
+          { error: 'Unauthorized - Write operations require authentication or dev key' },
+          { status: 401 }
+        );
+      }
+    }
+    
+    // For read operations in non-demo mode, require auth
+    if (isReadRequest && !isPublicRoute && !isDemoMode && !isAuthenticated) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -106,7 +153,7 @@ export async function middleware(request: NextRequest) {
 
   // Protected routes - setup only accessible before auth
   if (request.nextUrl.pathname === '/setup') {
-    if (user) {
+    if (isAuthenticated) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
   }
@@ -116,7 +163,7 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname === '/auth/login' ||
     request.nextUrl.pathname === '/auth/register'
   ) {
-    if (user) {
+    if (isAuthenticated) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
   }

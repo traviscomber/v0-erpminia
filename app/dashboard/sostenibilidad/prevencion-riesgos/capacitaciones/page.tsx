@@ -52,7 +52,10 @@ export default function CapacitacionesPage() {
     programa_hse: '',
     proveedor_instructor: '',
     fecha_programada: '',
+    hora_inicio: '',
+    hora_termino: '',
     duracion_horas: 0,
+    cantidad_asistentes: 0,
   });
 
   const { data: capacitaciones = [], isLoading, mutate } = useSWR('/api/sostenibilidad/capacitaciones', fetcher);
@@ -89,7 +92,10 @@ export default function CapacitacionesPage() {
           programa_hse: '',
           proveedor_instructor: '',
           fecha_programada: '',
+          hora_inicio: '',
+          hora_termino: '',
           duracion_horas: 0,
+          cantidad_asistentes: 0,
         });
         mutate();
       }
@@ -209,18 +215,58 @@ export default function CapacitacionesPage() {
                 </div>
               </div>
 
-              <div>
-                <Label htmlFor="duracion">Duración (horas)</Label>
-                <Input
-                  id="duracion"
-                  type="number"
-                  name="duracion_horas"
-                  value={formData.duracion_horas}
-                  onChange={handleInputChange}
-                  placeholder="Ej: 8"
-                  min="0"
-                  required
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="hora_inicio">Hora de Inicio</Label>
+                  <Input
+                    id="hora_inicio"
+                    type="time"
+                    name="hora_inicio"
+                    value={formData.hora_inicio}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="hora_termino">Hora de Término</Label>
+                  <Input
+                    id="hora_termino"
+                    type="time"
+                    name="hora_termino"
+                    value={formData.hora_termino}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="duracion">Duración (horas)</Label>
+                  <Input
+                    id="duracion"
+                    type="number"
+                    name="duracion_horas"
+                    value={formData.duracion_horas}
+                    onChange={handleInputChange}
+                    placeholder="Ej: 8"
+                    min="0"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="asistentes">Cantidad de Asistentes</Label>
+                  <Input
+                    id="asistentes"
+                    type="number"
+                    name="cantidad_asistentes"
+                    value={formData.cantidad_asistentes}
+                    onChange={handleInputChange}
+                    placeholder="Ej: 25"
+                    min="0"
+                    required
+                  />
+                </div>
               </div>
 
               <div className="flex gap-2 justify-end pt-4">

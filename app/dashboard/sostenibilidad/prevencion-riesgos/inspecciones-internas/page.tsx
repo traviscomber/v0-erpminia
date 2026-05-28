@@ -19,7 +19,7 @@ interface InspeccionInterna {
   numero_inspeccion: string;
   fecha_planificada: string;
   fecha_realizada?: string;
-  area_faena: string;
+  faena: string;
   inspector: string;
   hallazgos_count: number;
   estado: 'planificada' | 'realizada' | 'cerrada';
@@ -49,7 +49,7 @@ export default function InspeccionesInternasPage() {
       numero_inspeccion: `INP-${new Date(m.fecha).getFullYear()}-${String(idx + 1).padStart(3, '0')}`,
       fecha_planificada: m.fecha,
       fecha_realizada: m.estado === 'completada' ? m.fecha : undefined,
-      area_faena: ['Sector operaciones', 'Planta principal', 'Almacén', 'Sector procesamiento', 'Área administrativa', 'Sector mantenimiento', 'Higiene Industrial'][idx % 7],
+      faena: ['Sector operaciones', 'Planta principal', 'Almacén', 'Sector procesamiento', 'Área administrativa', 'Sector mantenimiento', 'Higiene Industrial'][idx % 7],
       inspector: m.inspector,
       hallazgos_count: m.hallazgos || 0,
       estado: m.estado === 'completada' ? 'realizada' : 'planificada',
@@ -62,7 +62,7 @@ export default function InspeccionesInternasPage() {
 
   const filteredInspecciones = displayData.filter((insp: any) => {
     const matchSearch = insp.numero_inspeccion.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      insp.area_faena.toLowerCase().includes(searchTerm.toLowerCase());
+      insp.faena.toLowerCase().includes(searchTerm.toLowerCase());
     const matchEstado = !estado || insp.estado === estado;
     return matchSearch && matchEstado;
   });
@@ -145,7 +145,7 @@ export default function InspeccionesInternasPage() {
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
         titulo={`Inspección ${selectedInspeccion?.numero_inspeccion}`}
-        descripcion={`Se eliminará la inspección "${selectedInspeccion?.numero_inspeccion}" del área ${selectedInspeccion?.area_faena}. Esta acción no se puede deshacer.`}
+        descripcion={`Se eliminará la inspección "${selectedInspeccion?.numero_inspeccion}" de la faena ${selectedInspeccion?.faena}. Esta acción no se puede deshacer.`}
         onConfirm={handleDelete}
       />
 
@@ -169,7 +169,7 @@ export default function InspeccionesInternasPage() {
           columns={[
             { key: 'numero_inspeccion', label: 'Número' },
             { key: 'fecha_planificada', label: 'Fecha Planificada' },
-            { key: 'area_faena', label: 'Área' },
+            { key: 'faena', label: 'Faena' },
             { key: 'inspector', label: 'Inspector' },
             { key: 'hallazgos_count', label: 'Hallazgos' },
             { key: 'estado', label: 'Estado' },
@@ -224,7 +224,7 @@ export default function InspeccionesInternasPage() {
               <thead>
                 <tr className="border-b border-white/10">
                   <th className="text-left py-3 px-4 font-medium">N° Inspección</th>
-                  <th className="text-left py-3 px-4 font-medium">Área/Faena</th>
+                  <th className="text-left py-3 px-4 font-medium">Faena</th>
                   <th className="text-left py-3 px-4 font-medium">Inspector</th>
                   <th className="text-left py-3 px-4 font-medium">Fecha Planificada</th>
                   <th className="text-left py-3 px-4 font-medium">Hallazgos</th>
@@ -236,7 +236,7 @@ export default function InspeccionesInternasPage() {
                 {filteredInspecciones.map((insp: any) => (
                   <tr key={insp.id} className="border-b border-white/10 hover:bg-white/5 transition">
                     <td className="py-3 px-4 font-medium">{insp.numero_inspeccion}</td>
-                    <td className="py-3 px-4">{insp.area_faena}</td>
+                    <td className="py-3 px-4">{insp.faena}</td>
                     <td className="py-3 px-4">{insp.inspector}</td>
                     <td className="py-3 px-4">{new Date(insp.fecha_planificada).toLocaleDateString('es-CL')}</td>
                     <td className="py-3 px-4">

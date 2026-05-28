@@ -104,14 +104,15 @@ export default function ReportesPage() {
     },
   ];
 
-  // Datos por área
-  const areaData = Object.entries(
+  // Datos por faena
+  const faenaData = Object.entries(
     inspeccionesList.reduce((acc: any, insp) => {
-      acc[insp.area_faena] = (acc[insp.area_faena] || 0) + 1;
+      const faena = insp.faena || insp.area_faena || 'Sin asignar';
+      acc[faena] = (acc[faena] || 0) + 1;
       return acc;
     }, {})
-  ).map(([area, count]) => ({
-    name: area,
+  ).map(([faena, count]) => ({
+    name: faena,
     inspecciones: count,
   }));
 
@@ -310,15 +311,15 @@ export default function ReportesPage() {
           </CardContent>
         </Card>
 
-        {/* Área Distribution */}
+        {/* Faena Distribution */}
         <Card>
           <CardHeader>
-            <CardTitle>Inspecciones por Área</CardTitle>
+            <CardTitle>Inspecciones por Faena</CardTitle>
             <CardDescription>Distribución de inspecciones por zona operativa</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={areaData} layout="vertical">
+              <BarChart data={faenaData} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis type="number" />
                 <YAxis dataKey="name" type="category" width={100} />
