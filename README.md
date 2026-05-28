@@ -1,10 +1,12 @@
-# n3uralia ERP Minería - Plataforma Integral de Gestión Operacional
+# MOTIL - Maximizando Operación Tecnología Información y Logística
+
+**Plataforma Integral de Gestión Operacional Minera**
 
 Desarrollado por **SegurIA** para **Cía. Minera La Patagua**
 
 ## Descripción General
 
-n3uralia es una plataforma ERP especializada para operaciones mineras que integra gestión de producción, mantención, bodega, compliance HSE, documentos, compras, finanzas y reportería con inteligencia artificial operacional en tiempo real.
+**MOTIL** (Maximizando Operación Tecnología Información y Logística) es una plataforma ERP especializada para operaciones mineras que integra gestión de producción, mantención, bodega, compliance HSE, documentos, compras, finanzas y reportería con inteligencia artificial operacional en tiempo real.
 
 **Status: PRODUCTION READY - Fases 0-7 Completadas**
 

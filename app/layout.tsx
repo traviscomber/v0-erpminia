@@ -12,8 +12,8 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 const _montserrat = Montserrat({ subsets: ["latin"], variable: "--font-heading" });
 
 export const metadata: Metadata = {
-  title: 'Motil - Plataforma Integral de Gestión Operacional Minera',
-  description: 'Sistema integrado de Producción, Mantención, HSE, Documentos, Compras, Finanzas y Reportes para operaciones mineras. Plataforma de gestión operacional con IA.',
+  title: 'MOTIL - Maximizando Operación Tecnología Información y Logística',
+  description: 'MOTIL (Maximizando Operación Tecnología Información y Logística): Plataforma integral de gestión operacional minera. Sistema integrado de Producción, Mantención, HSE, Documentos, Compras, Finanzas y Reportes. Todo conectado, todo visible, todo bajo control.',
   generator: 'v0.app',
   icons: {
     icon: [

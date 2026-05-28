@@ -47,7 +47,7 @@ export default function Home() {
         <div className="text-center space-y-6 mb-16">
           <div className="inline-block px-4 py-2 rounded-full bg-[var(--brand-naranja)]/10 border border-[var(--brand-naranja)]/20">
             <p className="text-sm font-semibold text-[var(--brand-naranja)]">
-              Controla tu operación minera en tiempo real
+              MOTIL: Maximizando Operación Tecnología Información y Logística
             </p>
           </div>
           <h1 className="text-5xl md:text-6xl font-bold text-foreground">
@@ -165,7 +165,7 @@ export default function Home() {
                 <ul className="text-xs space-y-1 text-muted-foreground">
                   <li className="flex gap-2">
                     <span className="text-[var(--brand-verde)]">→</span>
-                    Diagnóstico automático
+                    Diagn��stico automático
                   </li>
                   <li className="flex gap-2">
                     <span className="text-[var(--brand-verde)]">→</span>
