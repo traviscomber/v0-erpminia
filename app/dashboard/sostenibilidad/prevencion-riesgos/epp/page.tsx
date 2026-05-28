@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Search, AlertCircle, Edit, Trash2, Download, Package } from 'lucide-react';
 import useSWR from 'swr';
 import { DemoDataBadge } from '@/components/sostenibilidad/demo-data-badge';
+import { EPPUserDelivery } from '@/components/sostenibilidad/epp-user-delivery';
 import { mockEPPData, addMockDataIfEmpty } from '@/lib/mock-data-sostenibilidad';
 import {
   Dialog,
@@ -346,6 +347,15 @@ export default function EPPPage() {
           <p className="text-sm text-muted-foreground">No hay EPP vencidos en el próximo mes</p>
         </CardContent>
       </Card>
+
+      {/* EPP User Delivery Section */}
+      <div className="mt-8">
+        <div className="mb-4">
+          <h2 className="text-2xl font-bold text-foreground">Entregas por Usuario</h2>
+          <p className="text-muted-foreground">Gestiona la entrega y devolución de EPP por trabajador</p>
+        </div>
+        <EPPUserDelivery />
+      </div>
     </div>
   );
 }
