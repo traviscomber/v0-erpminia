@@ -1,115 +1,113 @@
-// Notification Service - Handles in-app and external notifications
-// Supports: In-app alerts, Slack webhooks, Email queue
-
-interface NotificationPayload {
-  type: 'nc_created' | 'nc_approved' | 'ca_assigned' | 'ca_overdue' | 'compliance_alert';
-  title: string;
+// Notification Service for Document Approvals
+export interface DocumentNotification {
+  id: string;
+  user_id: string;
+  document_id: string;
+  document_title: string;
+  approval_level: number;
+  approval_level_name: string;
+  type: 'pending' | 'approved' | 'rejected';
   message: string;
-  priority: 'low' | 'medium' | 'high' | 'critical';
-  recipient: string;
-  data?: Record<string, any>;
-  timestamp: Date;
-}
-
-interface NotificationChannel {
-  inApp: boolean;
-  slack?: string;
-  email?: string;
-  push?: boolean;
+  read: boolean;
+  created_at: string;
 }
 
 export class NotificationService {
-  private static queue: NotificationPayload[] = [];
-  private static channels: Map<string, NotificationChannel> = new Map();
+  private static instance: NotificationService;
 
-  static async send(payload: NotificationPayload, channels: NotificationChannel) {
-    this.queue.push(payload);
+  private constructor() {}
 
-    if (channels.inApp) {
-      this.sendInApp(payload);
+  static getInstance(): NotificationService {
+    if (!NotificationService.instance) {
+      NotificationService.instance = new NotificationService();
     }
-    if (channels.slack) {
-      await this.sendSlack(payload, channels.slack);
-    }
-    if (channels.email) {
-      await this.queueEmail(payload, channels.email);
-    }
-    if (channels.push) {
-      await this.sendPush(payload);
-    }
+    return NotificationService.instance;
   }
 
-  private static sendInApp(payload: NotificationPayload) {
-    // Emit event to connected clients
-    const event = new CustomEvent('notification', { detail: payload });
-    typeof window !== 'undefined' && window.dispatchEvent(event);
+  // Create notification when document is submitted for approval
+  static async notifyPendingApproval(
+    userId: string,
+    documentId: string,
+    documentTitle: string,
+    approvalLevel: number,
+    approvalLevelName: string
+  ): Promise<DocumentNotification> {
+    const notification: DocumentNotification = {
+      id: crypto.randomUUID(),
+      user_id: userId,
+      document_id: documentId,
+      document_title: documentTitle,
+      approval_level: approvalLevel,
+      approval_level_name: approvalLevelName,
+      type: 'pending',
+      message: `Documento "${documentTitle}" requiere tu aprobación (${approvalLevelName})`,
+      read: false,
+      created_at: new Date().toISOString(),
+    };
+
+    // TODO: Save to database
+    return notification;
   }
 
-  private static async sendSlack(payload: NotificationPayload, webhookUrl: string) {
-    try {
-      const message = {
-        text: payload.title,
-        blocks: [
-          {
-            type: 'header',
-            text: { type: 'plain_text', text: payload.title },
-          },
-          {
-            type: 'section',
-            text: { type: 'mrkdwn', text: payload.message },
-          },
-          {
-            type: 'context',
-            elements: [
-              { type: 'mrkdwn', text: `Priority: *${payload.priority.toUpperCase()}*` },
-            ],
-          },
-        ],
-      };
+  // Create notification when document is approved
+  static async notifyApprovalApproved(
+    userId: string,
+    documentId: string,
+    documentTitle: string,
+    approvalLevelName: string,
+    approvedBy: string
+  ): Promise<DocumentNotification> {
+    const notification: DocumentNotification = {
+      id: crypto.randomUUID(),
+      user_id: userId,
+      document_id: documentId,
+      document_title: documentTitle,
+      approval_level: 0,
+      approval_level_name: approvalLevelName,
+      type: 'approved',
+      message: `Documento "${documentTitle}" fue aprobado por ${approvedBy}`,
+      read: false,
+      created_at: new Date().toISOString(),
+    };
 
-      await fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(message),
-      });
-    } catch (error) {
-      console.error('[v0] Slack notification failed:', error);
-    }
+    // TODO: Save to database and send email
+    return notification;
   }
 
-  private static async queueEmail(payload: NotificationPayload, email: string) {
-    try {
-      await fetch('/api/sostenibilidad/notifications/email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: email,
-          subject: payload.title,
-          body: payload.message,
-          type: payload.type,
-        }),
-      });
-    } catch (error) {
-      console.error('[v0] Email queue failed:', error);
-    }
+  // Create notification when document is rejected
+  static async notifyApprovalRejected(
+    userId: string,
+    documentId: string,
+    documentTitle: string,
+    approvalLevelName: string,
+    rejectionReason: string,
+    rejectedBy: string
+  ): Promise<DocumentNotification> {
+    const notification: DocumentNotification = {
+      id: crypto.randomUUID(),
+      user_id: userId,
+      document_id: documentId,
+      document_title: documentTitle,
+      approval_level: 0,
+      approval_level_name: approvalLevelName,
+      type: 'rejected',
+      message: `Documento "${documentTitle}" fue rechazado por ${rejectedBy}: ${rejectionReason}`,
+      read: false,
+      created_at: new Date().toISOString(),
+    };
+
+    // TODO: Save to database and send email
+    return notification;
   }
 
-  private static async sendPush(payload: NotificationPayload) {
-    if ('serviceWorker' in navigator && 'PushManager' in window) {
-      const registration = await navigator.serviceWorker.ready;
-      registration.showNotification(payload.title, {
-        body: payload.message,
-        badge: '/badge.png',
-        tag: payload.type,
-      });
-    }
+  // Mark notification as read
+  static async markAsRead(notificationId: string): Promise<void> {
+    // TODO: Update in database
   }
 
-  static getQueue() {
-    return this.queue;
-  }
-
-  static clearQueue() {
-    this.queue = [];
+  // Get pending notifications for user
+  static async getPendingNotifications(userId: string): Promise<DocumentNotification[]> {
+    // TODO: Fetch from database
+    return [];
   }
 }
