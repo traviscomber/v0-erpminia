@@ -12,6 +12,7 @@ import useSWR from 'swr';
 import { DemoDataBadge } from '@/components/sostenibilidad/demo-data-badge';
 import { mockFlujDocumentalData, addMockDataIfEmpty } from '@/lib/mock-data-sostenibilidad';
 import { DocumentUpload } from '@/components/sostenibilidad/document-upload';
+import { DocumentSearch } from '@/components/documentos/document-search';
 import {
   Dialog,
   DialogContent,
