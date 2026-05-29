@@ -35,6 +35,7 @@ import {
   TreePine,
   Building2,
   FileCheck,
+  Scale,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -58,6 +59,7 @@ const rolePermissions: Record<string, string[]> = {
   'Dashboard de KPIs': ['superadmin', 'admin', 'manager'],
   'Gestión de Usuarios': ['superadmin', 'admin'],
   'Gestión de Permisos': ['superadmin', 'admin'],
+  'Módulo Legal': ['superadmin', 'admin', 'manager'],
   'Guías de Uso': ['superadmin', 'admin', 'manager', 'supervisor', 'viewer'],
   // Sostenibilidad - Transversal (all 12 modules)
   'Dashboard Sostenibilidad': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
@@ -228,6 +230,14 @@ const menuItems = [
     href: '/dashboard/admin/permissions',
     icon: Shield,
     group: 'Administración',
+  },
+  
+  // LEGAL
+  {
+    label: 'Módulo Legal',
+    href: '/dashboard/legal',
+    icon: Scale,
+    group: 'Legal',
   },
   
   // AYUDA
