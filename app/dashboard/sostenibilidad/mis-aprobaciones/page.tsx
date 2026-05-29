@@ -7,7 +7,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CheckCircle2, Clock, AlertCircle, FileText } from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -24,23 +23,14 @@ interface DocumentoAprobacion {
 }
 
 export default function MisAprobacionesPage() {
-  const { user } = useAuth();
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string>('jefe_sostenibilidad');
   const [activeTab, setActiveTab] = useState('pending');
 
   const { data: myApprovalsData, isLoading, error } = useSWR(
-    user ? `/api/sostenibilidad/documentos-flujo?role=${userRole}&status=pending` : null,
+    `/api/sostenibilidad/documentos-flujo?role=${userRole}&status=pending`,
     fetcher,
     { revalidateOnFocus: false }
   );
-
-  useEffect(() => {
-    // Determinar rol del usuario - placeholder, será reemplazado con data real
-    const roles = ['jefe_sostenibilidad', 'gerente_general'];
-    if (user) {
-      setUserRole(roles[0]); // Por ahora solo tomar el primer rol
-    }
-  }, [user]);
 
   const pendingApprovals = myApprovalsData?.data?.filter(
     (doc: any) =>

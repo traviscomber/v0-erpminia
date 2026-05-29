@@ -36,23 +36,14 @@ export class DocumentSearchService {
   ): Promise<DocumentSearchResult[]> {
     try {
       let queryBuilder = this.supabase
-        .from('document_search_index')
-        .select(`
-          document_id:id,
-          title,
-          description,
-          category,
-          document_type,
-          status:documents(status),
-          created_at:documents(created_at),
-          created_by_name:documents(created_by)
-        `)
+        .from('documents')
+        .select('id, title, description, category, document_type, status, created_at')
         .eq('organization_id', organizationId);
 
       // Apply text search
       if (query) {
         queryBuilder = queryBuilder.or(
-          `title.ilike.%${query}%,description.ilike.%${query}%,document_number.ilike.%${query}%`
+          `title.ilike.%${query}%,description.ilike.%${query}%`
         );
       }
 
@@ -74,15 +65,14 @@ export class DocumentSearchService {
         return [];
       }
 
-      return (data || []).map(doc => ({
-        id: doc.document_id,
+      return (data || []).map((doc: any) => ({
+        id: doc.id,
         title: doc.title,
         description: doc.description,
         category: doc.category,
         document_type: doc.document_type,
         status: doc.status,
         created_at: doc.created_at,
-        created_by_name: doc.created_by_name,
       }));
     } catch (err) {
       console.error('[v0] Search service error:', err);
@@ -120,7 +110,7 @@ export class DocumentSearchService {
     try {
       const { data, error } = await this.supabase
         .from('documents')
-        .select('*')
+        .select('id, title, description, category, document_type, status, created_at')
         .eq('organization_id', organizationId)
         .order('created_at', { ascending: false })
         .limit(limit);
@@ -130,7 +120,7 @@ export class DocumentSearchService {
         return [];
       }
 
-      return (data || []).map(doc => ({
+      return (data || []).map((doc: any) => ({
         id: doc.id,
         title: doc.title,
         description: doc.description,
@@ -138,7 +128,6 @@ export class DocumentSearchService {
         document_type: doc.document_type,
         status: doc.status,
         created_at: doc.created_at,
-        created_by_name: doc.created_by_name,
       }));
     } catch (err) {
       console.error('[v0] Error:', err);
