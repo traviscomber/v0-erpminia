@@ -177,6 +177,12 @@ const menuItems = [
     icon: FileCheck,
     group: 'Sostenibilidad',
   },
+  {
+    label: 'Reportería Documentos',
+    href: '/dashboard/sostenibilidad/documentos-reportes',
+    icon: BarChart3,
+    group: 'Sostenibilidad',
+  },
   
   // GESTIÓN EMPRESARIAL
   {
