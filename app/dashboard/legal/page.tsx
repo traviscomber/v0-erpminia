@@ -1,75 +1,73 @@
 'use client';
 
 import { useState } from 'react';
-import useSWR from 'swr';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { FileText, Scale, CheckCircle2, AlertCircle, Plus, Search, Download, Eye } from 'lucide-react';
-import Link from 'next/link';
-
-// Mock data for initial development
-const mockLegalDocuments = [
-  {
-    id: '1',
-    title: 'Contrato Principal La Patagua',
-    category: 'contract',
-    type: 'principal',
-    status: 'active',
-    expiry_date: '2025-12-31',
-    sernageomin_req: true,
-  },
-  {
-    id: '2',
-    title: 'Resolución SERNAGEOMIN 2024',
-    category: 'normativa',
-    type: 'regulatory',
-    status: 'active',
-    issue_date: '2024-01-15',
-    sernageomin_req: true,
-  },
-  {
-    id: '3',
-    title: 'Política de Cumplimiento SERNAGEOMIN',
-    category: 'document',
-    type: 'policy',
-    status: 'active',
-    version: 3,
-    sernageomin_req: true,
-  },
-  {
-    id: '4',
-    title: 'Contrato Servicios Terceros XYZ',
-    category: 'contract',
-    type: 'services',
-    status: 'active',
-    expiry_date: '2025-06-30',
-    sernageomin_req: false,
-  },
-  {
-    id: '5',
-    title: 'Permiso de Explotación Minera',
-    category: 'permit',
-    type: 'permit',
-    status: 'active',
-    expiry_date: '2026-03-15',
-    sernageomin_req: true,
-  },
-];
-
-const mockComplianceItems = [
-  { requirement: 'Cumplimiento SERNAGEOMIN Resolución 2024', status: 'compliant', percentage: 100 },
-  { requirement: 'Documentación de Permisos Vigentes', status: 'compliant', percentage: 100 },
-  { requirement: 'Contratos Actualizados', status: 'compliant', percentage: 95 },
-  { requirement: 'Políticas Documentadas', status: 'at_risk', percentage: 85 },
-  { requirement: 'Auditorías Completadas', status: 'pending', percentage: 60 },
-];
+import { ContractsTracker } from '@/components/legal/contracts-tracker';
 
 export default function LegalPage() {
   const [activeTab, setActiveTab] = useState('documents');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Mock legal documents
+  const mockLegalDocuments = [
+    {
+      id: '1',
+      title: 'Política Integrada de Seguridad, Salud y Ambiente',
+      description: 'Política corporativa que establece los principios de seguridad',
+      category: 'policy',
+      type: 'Policy',
+      status: 'active',
+      version: '3.2',
+    },
+    {
+      id: '2',
+      title: 'Procedimiento de Investigación de Incidentes',
+      description: 'Procedimiento estándar para investigación de incidentes de seguridad',
+      category: 'procedure',
+      type: 'Procedure',
+      status: 'active',
+      version: '2.1',
+    },
+    {
+      id: '3',
+      title: 'Protocolo de Bioseguridad y COVID-19',
+      description: 'Medidas y protocolos para prevención de enfermedades',
+      category: 'protocol',
+      type: 'Protocol',
+      status: 'active',
+      version: '1.8',
+    },
+    {
+      id: '4',
+      title: 'Estándar de Seguridad en Trabajos en Altura',
+      description: 'Requisitos de seguridad para trabajos en altura',
+      category: 'standard',
+      type: 'Standard',
+      status: 'active',
+      version: '2.5',
+    },
+    {
+      id: '5',
+      title: 'Plan de Respuesta a Emergencias y Evacuación',
+      description: 'Plan integral de respuesta a emergencias en faena minera',
+      category: 'plan',
+      type: 'Plan',
+      status: 'active',
+      version: '4.0',
+    },
+  ];
+
+  const mockComplianceItems = [
+    { requirement: 'Cumplimiento SERNAGEOMIN Resolución 2024', status: 'compliant', percentage: 100 },
+    { requirement: 'Documentación de Permisos Vigentes', status: 'compliant', percentage: 100 },
+    { requirement: 'Contratos Actualizados', status: 'compliant', percentage: 95 },
+    { requirement: 'Políticas Documentadas', status: 'at_risk', percentage: 85 },
+  ];
 
   const legalDocs = mockLegalDocuments.filter(
     doc =>
@@ -80,13 +78,14 @@ export default function LegalPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
+      case 'vigente':
         return <Badge className="bg-secondary/10 text-secondary">Activo</Badge>;
-      case 'expiring':
-        return <Badge className="bg-primary/10 text-primary">Próx. Vencer</Badge>;
-      case 'expired':
-        return <Badge className="bg-destructive/10 text-destructive">Vencido</Badge>;
       case 'pending':
-        return <Badge className="bg-muted">Pendiente</Badge>;
+      case 'pendiente':
+        return <Badge className="bg-primary/10 text-primary">Pendiente</Badge>;
+      case 'expired':
+      case 'vencido':
+        return <Badge className="bg-destructive/10 text-destructive">Vencido</Badge>;
       default:
         return <Badge>{status}</Badge>;
     }
@@ -107,21 +106,13 @@ export default function LegalPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Módulo Legal & Compliance</h1>
-          <p className="text-muted-foreground mt-2">
-            Gestión de documentos legales, contratos y cumplimiento normativo SERNAGEOMIN
-          </p>
-        </div>
-        <Button className="flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Nuevo Documento
-        </Button>
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">Módulo Legal & Compliance</h1>
+        <p className="text-muted-foreground mt-2">
+          Gestión de documentos legales, contratos y cumplimiento normativo SERNAGEOMIN
+        </p>
       </div>
 
-      {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-3">
@@ -131,7 +122,7 @@ export default function LegalPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{legalDocs.length}</div>
-            <p className="text-xs text-muted-foreground mt-1">Documentos registrados</p>
+            <p className="text-xs text-muted-foreground mt-1">Registrados en el sistema</p>
           </CardContent>
         </Card>
 
@@ -142,10 +133,8 @@ export default function LegalPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">
-              {legalDocs.filter(d => d.category === 'contract').length}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Contratos activos</p>
+            <div className="text-3xl font-bold">5</div>
+            <p className="text-xs text-muted-foreground mt-1">Activos y en seguimiento</p>
           </CardContent>
         </Card>
 
@@ -156,10 +145,8 @@ export default function LegalPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">
-              {legalDocs.filter(d => d.sernageomin_req).length}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Requerimientos aplicables</p>
+            <div className="text-3xl font-bold">4</div>
+            <p className="text-xs text-muted-foreground mt-1">Regulaciones aplicables</p>
           </CardContent>
         </Card>
 
@@ -170,13 +157,12 @@ export default function LegalPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">92%</div>
+            <div className="text-3xl font-bold">96%</div>
             <p className="text-xs text-muted-foreground mt-1">Compliance global</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="documents" className="flex items-center gap-2">
@@ -197,14 +183,15 @@ export default function LegalPage() {
           </TabsTrigger>
         </TabsList>
 
-        {/* Documentos Legales */}
-        <TabsContent value="documents" className="space-y-4">
+        <TabsContent value="documents">
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle>Documentos Legales</CardTitle>
-                  <CardDescription>Contratos, resoluciones, permisos y documentación</CardDescription>
+                  <CardDescription>
+                    Políticas, procedimientos, protocolos y planes documentados
+                  </CardDescription>
                 </div>
                 <div className="flex-1 max-w-sm ml-4">
                   <div className="relative">
@@ -228,8 +215,7 @@ export default function LegalPage() {
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate">{doc.title}</p>
                         <p className="text-xs text-muted-foreground">
-                          {doc.category} • {doc.type}
-                          {doc.sernageomin_req && ' • SERNAGEOMIN'}
+                          {doc.type} • v{doc.version}
                         </p>
                       </div>
                     </div>
@@ -249,40 +235,17 @@ export default function LegalPage() {
           </Card>
         </TabsContent>
 
-        {/* Contratos */}
         <TabsContent value="contracts">
-          <Card>
-            <CardHeader>
-              <CardTitle>Gestión de Contratos</CardTitle>
-              <CardDescription>Control de contratos proveedores, servicios y subcontratistas</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {legalDocs.filter(d => d.category === 'contract').map(doc => (
-                  <div key={doc.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Scale className="w-5 h-5 text-primary" />
-                      <div>
-                        <p className="font-medium">{doc.title}</p>
-                        <p className="text-xs text-muted-foreground">
-                          Vence: {doc.expiry_date}
-                        </p>
-                      </div>
-                    </div>
-                    {getStatusBadge(doc.status)}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <ContractsTracker />
         </TabsContent>
 
-        {/* Cumplimiento */}
         <TabsContent value="compliance">
           <Card>
             <CardHeader>
               <CardTitle>Matriz de Cumplimiento</CardTitle>
-              <CardDescription>Seguimiento de cumplimiento con normativas SERNAGEOMIN</CardDescription>
+              <CardDescription>
+                Seguimiento de cumplimiento con normativas SERNAGEOMIN
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -307,27 +270,56 @@ export default function LegalPage() {
           </Card>
         </TabsContent>
 
-        {/* Normativas */}
         <TabsContent value="normativas">
           <Card>
             <CardHeader>
               <CardTitle>Normativas SERNAGEOMIN</CardTitle>
-              <CardDescription>Requisitos regulatorios y normativas aplicables</CardDescription>
+              <CardDescription>
+                Requisitos regulatorios minería, permisos ambientales y normativas aplicables
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {legalDocs.filter(d => d.sernageomin_req).map(doc => (
-                  <div key={doc.id} className="flex items-center justify-between p-3 border border-primary/20 rounded-lg bg-primary/5">
-                    <div className="flex items-center gap-3">
-                      <AlertCircle className="w-5 h-5 text-primary" />
-                      <div>
-                        <p className="font-medium text-sm">{doc.title}</p>
-                        <p className="text-xs text-muted-foreground">Requerimiento SERNAGEOMIN</p>
-                      </div>
+                <div className="flex items-center justify-between p-3 border border-primary/20 rounded-lg bg-primary/5">
+                  <div className="flex items-center gap-3">
+                    <AlertCircle className="w-5 h-5 text-primary" />
+                    <div>
+                      <p className="font-medium text-sm">Resolución 1999 SERNAGEOMIN</p>
+                      <p className="text-xs text-muted-foreground">Seguridad minera - Vigente</p>
                     </div>
-                    {getStatusBadge(doc.status)}
                   </div>
-                ))}
+                  {getStatusBadge('active')}
+                </div>
+                <div className="flex items-center justify-between p-3 border border-primary/20 rounded-lg bg-primary/5">
+                  <div className="flex items-center gap-3">
+                    <AlertCircle className="w-5 h-5 text-primary" />
+                    <div>
+                      <p className="font-medium text-sm">Auditoría Anual SERNAGEOMIN</p>
+                      <p className="text-xs text-muted-foreground">Inspección - Vigente</p>
+                    </div>
+                  </div>
+                  {getStatusBadge('active')}
+                </div>
+                <div className="flex items-center justify-between p-3 border border-primary/20 rounded-lg bg-primary/5">
+                  <div className="flex items-center gap-3">
+                    <AlertCircle className="w-5 h-5 text-primary" />
+                    <div>
+                      <p className="font-medium text-sm">Evaluación Impacto Ambiental</p>
+                      <p className="text-xs text-muted-foreground">Ambiental - Vigente</p>
+                    </div>
+                  </div>
+                  {getStatusBadge('active')}
+                </div>
+                <div className="flex items-center justify-between p-3 border border-primary/20 rounded-lg bg-primary/5">
+                  <div className="flex items-center gap-3">
+                    <AlertCircle className="w-5 h-5 text-primary" />
+                    <div>
+                      <p className="font-medium text-sm">Certificación ISO 45001</p>
+                      <p className="text-xs text-muted-foreground">Seguridad - Vigente</p>
+                    </div>
+                  </div>
+                  {getStatusBadge('active')}
+                </div>
               </div>
             </CardContent>
           </Card>
