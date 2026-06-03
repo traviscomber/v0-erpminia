@@ -77,6 +77,7 @@ export class MTTRTrackingService {
   }
 
   static async getDashboardStats(organizationId: string) {
+    const supabase = getSupabaseClient();
     const [mttr, downtime, woCount] = await Promise.all([
       this.calculateMTTR(organizationId),
       this.calculateTotalDowntime(organizationId),
