@@ -14,6 +14,7 @@ function getSupabaseClient() {
 export class StockService {
   static async addStock(organizationId: string, partCode: string, quantity: number, binId?: string, unitCost?: number) {
     const supabase = getSupabaseClient();
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('warehouse_stock')
       .insert({
@@ -31,6 +32,7 @@ export class StockService {
 
   static async updateStock(stockId: string, updates: any) {
     const supabase = getSupabaseClient();
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('warehouse_stock')
       .update({ ...updates, updated_at: new Date().toISOString() })
@@ -42,6 +44,7 @@ export class StockService {
   }
 
   static async getStock(stockId: string) {
+    const supabase = getSupabaseClient();
     const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('warehouse_stock')
@@ -61,6 +64,7 @@ export class StockService {
   }
 
   static async getLowStockAlerts(organizationId: string) {
+    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('warehouse_stock')
       .select('*')
@@ -70,6 +74,7 @@ export class StockService {
   }
 
   static async getStockValue(organizationId: string) {
+    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('warehouse_stock')
       .select('quantity_on_hand, unit_cost')

@@ -59,6 +59,7 @@ export class MTTRTrackingService {
     notes?: string;
   }) {
     const supabase = getSupabaseClient();
+    const supabase = getSupabaseClient();
     const { error } = await supabase.from('maintenance_history').insert({
       work_order_id: data.workOrderId,
       asset_id: data.assetId,
@@ -105,6 +106,7 @@ export class MTTRTrackingService {
       dates.push(d.toISOString().split('T')[0]);
     }
 
+    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('maintenance_work_orders')
       .select('completion_date, actual_duration_hours')
@@ -113,10 +115,10 @@ export class MTTRTrackingService {
       .gte('completion_date', new Date(Date.now() - daysBack * 24 * 60 * 60 * 1000).toISOString());
 
     const trend = dates.map((date) => {
-      const dayData = data?.filter((wo) => wo.completion_date?.includes(date)) || [];
+      const dayData = data?.filter((wo: any) => wo.completion_date?.includes(date)) || [];
       const avg =
         dayData.length > 0
-          ? dayData.reduce((sum, wo) => sum + (wo.actual_duration_hours || 0), 0) / dayData.length
+          ? dayData.reduce((sum: number, wo: any) => sum + (wo.actual_duration_hours || 0), 0) / dayData.length
           : 0;
       return { date, mttr: Math.round(avg * 10) / 10 };
     });

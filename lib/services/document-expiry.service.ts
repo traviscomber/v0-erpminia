@@ -22,6 +22,7 @@ export class DocumentExpiryService {
     const thresholdDate = new Date();
     thresholdDate.setDate(thresholdDate.getDate() + daysThreshold);
 
+    const supabase = getSupabaseClient();
     const { data: documents } = await supabase
       .from('documents')
       .select('*')
@@ -51,6 +52,7 @@ export class DocumentExpiryService {
    */
   static async getExpiredDocuments(organizationId: string) {
     const supabase = getSupabaseClient();
+    const supabase = getSupabaseClient();
     const { data: documents } = await supabase
       .from('documents')
       .select('*')
@@ -69,6 +71,7 @@ export class DocumentExpiryService {
     documentId: string,
     recipientEmails: string[]
   ) {
+    const supabase = getSupabaseClient();
     const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('document_expiry_alerts')
@@ -91,6 +94,7 @@ export class DocumentExpiryService {
    * Marcar documento como expirado
    */
   static async markAsExpired(documentId: string) {
+    const supabase = getSupabaseClient();
     const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('documents')
@@ -118,6 +122,7 @@ export class DocumentExpiryService {
     documentId: string,
     renewalDays: number = 30
   ) {
+    const supabase = getSupabaseClient();
     const supabase = getSupabaseClient();
     const { data: document } = await supabase
       .from('documents')
@@ -150,6 +155,7 @@ export class DocumentExpiryService {
       const today = new Date().toISOString().split('T')[0];
 
       // 1. Marcar documentos expirados
+    const supabase = getSupabaseClient();
       const { error: expireError } = await supabase
         .from('documents')
         .update({

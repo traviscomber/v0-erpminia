@@ -14,6 +14,7 @@ function getSupabaseClient() {
 export class ReorderService {
   static async checkReorderLevels(organizationId: string) {
     const supabase = getSupabaseClient();
+    const supabase = getSupabaseClient();
     const { data: stock } = await supabase
       .from('warehouse_stock')
       .select('*')
@@ -49,6 +50,7 @@ export class ReorderService {
 
   static async getReorderAlerts(organizationId: string) {
     const supabase = getSupabaseClient();
+    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('reorder_alerts')
       .select('*, stock:warehouse_stock(*)')
@@ -59,6 +61,7 @@ export class ReorderService {
 
   static async acknowledgeAlert(alertId: string, userId: string) {
     const supabase = getSupabaseClient();
+    const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('reorder_alerts')
       .update({ status: 'acknowledged', acknowledged_by: userId, acknowledged_at: new Date().toISOString() })
@@ -67,6 +70,7 @@ export class ReorderService {
   }
 
   static async getReorderStats(organizationId: string) {
+    const supabase = getSupabaseClient();
     const { data: alerts } = await supabase
       .from('reorder_alerts')
       .select('*', { count: 'exact' })

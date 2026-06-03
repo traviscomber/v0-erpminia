@@ -21,6 +21,7 @@ export class PreventiveMaintenanceService {
     const nextDate = new Date();
     nextDate.setDate(nextDate.getDate() + data.frequencyDays);
 
+    const supabase = getSupabaseClient();
     const { data: schedule, error } = await supabase
       .from('preventive_maintenance_schedules')
       .insert({
@@ -45,6 +46,7 @@ export class PreventiveMaintenanceService {
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + days);
 
+    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('preventive_maintenance_schedules')
       .select('*, asset:maintenance_assets(asset_name, criticality)')
@@ -58,6 +60,7 @@ export class PreventiveMaintenanceService {
   }
 
   static async markAsExecuted(scheduleId: string) {
+    const supabase = getSupabaseClient();
     const { data: schedule } = await supabase
       .from('preventive_maintenance_schedules')
       .select('frequency_days')
@@ -81,6 +84,7 @@ export class PreventiveMaintenanceService {
   }
 
   static async getSchedulesForAsset(assetId: string) {
+    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('preventive_maintenance_schedules')
       .select('*')
@@ -91,6 +95,7 @@ export class PreventiveMaintenanceService {
   }
 
   static async getScheduleStats(organizationId: string) {
+    const supabase = getSupabaseClient();
     const { data: all } = await supabase
       .from('preventive_maintenance_schedules')
       .select('*', { count: 'exact' })

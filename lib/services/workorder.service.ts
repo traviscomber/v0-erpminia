@@ -28,6 +28,7 @@ export class WorkOrderService {
     const supabase = getSupabaseClient();
     const woNumber = `WO-${data.organizationId.slice(0, 4)}-${Date.now()}-${nanoid(3)}`;
     
+    const supabase = getSupabaseClient();
     const { data: wo, error } = await supabase
       .from('maintenance_work_orders')
       .insert({
@@ -52,6 +53,7 @@ export class WorkOrderService {
   }
 
   static async getWorkOrder(woId: string) {
+    const supabase = getSupabaseClient();
     const supabase = getSupabaseClient();
     const { data: wo, error } = await supabase
       .from('maintenance_work_orders')
@@ -78,6 +80,7 @@ export class WorkOrderService {
   }
 
   static async startWorkOrder(woId: string, technicianId: string) {
+    const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('maintenance_work_orders')
       .update({ status: 'in_progress', start_date: new Date().toISOString(), assigned_to: technicianId })
@@ -88,6 +91,7 @@ export class WorkOrderService {
 
   static async completeWorkOrder(woId: string, data: { actualDurationHours: number; rootCause?: string; notes?: string }) {
     const now = new Date().toISOString();
+    const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('maintenance_work_orders')
       .update({
@@ -103,6 +107,7 @@ export class WorkOrderService {
   }
 
   static async getMTTRStats(organizationId: string) {
+    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('maintenance_kpi_tracking')
       .select('*')

@@ -27,6 +27,7 @@ export class CorrectiveActionService {
   }) {
     const caNumber = await this.getNextCANumber(ncNumber);
 
+    const supabase = getSupabaseClient();
     const { data: ca, error } = await supabase
       .from('sostenibilidad_corrective_actions')
       .insert({
@@ -46,6 +47,7 @@ export class CorrectiveActionService {
   }
 
   static async getCorrectiveAction(caId: string) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('sostenibilidad_corrective_actions')
       .select(`
@@ -61,6 +63,7 @@ export class CorrectiveActionService {
   }
 
   static async listCorrectiveActions(ncId: string) {
+    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('sostenibilidad_corrective_actions')
       .select('*')
@@ -71,6 +74,7 @@ export class CorrectiveActionService {
   }
 
   static async updateCorrectiveAction(caId: string, updates: any) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('sostenibilidad_corrective_actions')
       .update({ ...updates, updated_at: new Date().toISOString() })
@@ -108,6 +112,7 @@ export class CorrectiveActionService {
     updatedBy: string;
     attachmentUrl?: string;
   }) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('sostenibilidad_ca_updates')
       .insert({
@@ -127,6 +132,7 @@ export class CorrectiveActionService {
   }
 
   static async getCAProgress(ncId: string) {
+    const supabase = getSupabaseClient();
     const { data: cas } = await supabase
       .from('sostenibilidad_corrective_actions')
       .select('status', { count: 'exact' })
@@ -160,6 +166,7 @@ export class CorrectiveActionService {
   }
 
   static async getOverdueCorrectiveActions(organizationId: string) {
+    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('sostenibilidad_corrective_actions')
       .select(`
@@ -174,6 +181,7 @@ export class CorrectiveActionService {
   }
 
   static async getCAStats(organizationId: string) {
+    const supabase = getSupabaseClient();
     const { data: all } = await supabase
       .from('sostenibilidad_corrective_actions')
       .select(`
@@ -204,6 +212,7 @@ export class CorrectiveActionService {
   }
 
   static async getTotalCASpend(ncId: string) {
+    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('sostenibilidad_corrective_actions')
       .select('estimated_cost, actual_cost')

@@ -106,6 +106,7 @@ export class DocumentService {
       const documentNumber = `DOC-${input.organizationId.slice(0, 4)}-${Date.now()}-${nanoid(4)}`;
 
       const fileName = `${input.organizationId}/${Date.now()}-${input.file.name}`;
+    const supabase = getSupabaseClient();
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('documents')
         .upload(fileName, input.file);
@@ -187,6 +188,7 @@ export class DocumentService {
 
   static async getDocument(documentId: string) {
     const supabase = getSupabaseClient();
+    const supabase = getSupabaseClient();
     const { data: document, error } = await supabase
       .from('documents')
       .select('*, document_versions(*), document_approvals(*)')
@@ -239,6 +241,7 @@ export class DocumentService {
 
   static async getPendingApprovals(userId: string) {
     const supabase = getSupabaseClient();
+    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('document_approvals')
       .select('*')
@@ -279,6 +282,7 @@ export class DocumentService {
         throw new Error('Document approval context not found');
       }
 
+    const supabase = getSupabaseClient();
       const { error: updateError } = await supabase
         .from('document_approvals')
         .update({
@@ -427,6 +431,7 @@ export class DocumentService {
       const thirtyDaysFromNow = new Date();
       thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
 
+    const supabase = getSupabaseClient();
       const { data: expiringDocs } = await supabase
         .from('documents')
         .select('id, expiry_date, organization_id')

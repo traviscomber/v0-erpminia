@@ -47,6 +47,7 @@ export class DocumentApprovalWorkflowService {
    */
   static async getWorkflowStatus(documentId: string) {
     const supabase = getSupabaseClient();
+    const supabase = getSupabaseClient();
     const { data: approvals } = await supabase
       .from('document_approvals')
       .select('*')
@@ -66,6 +67,7 @@ export class DocumentApprovalWorkflowService {
     userEmail: string,
     userName: string
   ) {
+    const supabase = getSupabaseClient();
     const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('document_approvals')
@@ -89,6 +91,7 @@ export class DocumentApprovalWorkflowService {
    */
   static async getNextApprovalLevel(documentId: string) {
     const supabase = getSupabaseClient();
+    const supabase = getSupabaseClient();
     const { data: approvals } = await supabase
       .from('document_approvals')
       .select('*')
@@ -105,6 +108,7 @@ export class DocumentApprovalWorkflowService {
    * Obtener historial de aprobaciones
    */
   static async getApprovalHistory(documentId: string) {
+    const supabase = getSupabaseClient();
     const supabase = getSupabaseClient();
     const { data: approvals } = await supabase
       .from('document_approvals')
@@ -168,6 +172,7 @@ export class DocumentApprovalWorkflowService {
     try {
       const supabase = getSupabaseClient();
       // Resetear todas las aprobaciones a pending
+    const supabase = getSupabaseClient();
       const { error } = await supabase
         .from('document_approvals')
         .update({ status: 'pending', approved_by: null, approved_at: null })

@@ -12,7 +12,9 @@ function getSupabaseClient() {
 export class NonconformanceService {
   // Auto-generate NC number: NC-{org}-{year}-{seq}
   private static async getNextNCNumber(organizationId: string): Promise<string> {
+    const supabase = getSupabaseClient();
     const year = new Date().getFullYear();
+    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('sostenibilidad_nonconformances')
       .select('nc_number')
@@ -38,8 +40,10 @@ export class NonconformanceService {
     rootCause?: string;
     impactDescription?: string;
   }) {
+    const supabase = getSupabaseClient();
     const ncNumber = await this.getNextNCNumber(organizationId);
     
+    const supabase = getSupabaseClient();
     const { data: nc, error } = await supabase
       .from('sostenibilidad_nonconformances')
       .insert({
@@ -65,6 +69,7 @@ export class NonconformanceService {
   }
 
   static async getNonconformance(ncId: string) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('sostenibilidad_nonconformances')
       .select(`
@@ -100,6 +105,7 @@ export class NonconformanceService {
   }
 
   static async updateNonconformance(ncId: string, updates: any) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('sostenibilidad_nonconformances')
       .update({ ...updates, updated_at: new Date().toISOString() })
@@ -124,6 +130,7 @@ export class NonconformanceService {
     description?: string;
     uploadedBy: string;
   }) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('sostenibilidad_nc_details')
       .insert({
@@ -141,6 +148,7 @@ export class NonconformanceService {
   }
 
   static async getNCStats(organizationId: string) {
+    const supabase = getSupabaseClient();
     const { data: all } = await supabase
       .from('sostenibilidad_nonconformances')
       .select('status', { count: 'exact' })
@@ -175,6 +183,7 @@ export class NonconformanceService {
   }
 
   static async getNCsBySeverity(organizationId: string) {
+    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('sostenibilidad_nonconformances')
       .select('severity', { count: 'exact' })
@@ -196,6 +205,7 @@ export class NonconformanceService {
   }
 
   static async getOverdueNCs(organizationId: string) {
+    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('sostenibilidad_nonconformances')
       .select('*')
