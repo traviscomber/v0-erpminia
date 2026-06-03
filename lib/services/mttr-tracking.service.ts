@@ -97,6 +97,7 @@ export class MTTRTrackingService {
   }
 
   static async getMTTRTrend(organizationId: string, daysBack: number = 30) {
+    const supabase = getSupabaseClient();
     const dates = [];
     for (let i = 0; i < daysBack; i++) {
       const d = new Date();
