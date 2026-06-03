@@ -1,9 +1,10 @@
-import { supabase } from '@/lib/db/supabase';
+import { getSupabaseClient } from '@/lib/db/supabase';
 import type { MaintenanceOrder } from '@/lib/types';
 
 export const maintenanceService = {
   // Get all maintenance orders
   async getMaintenanceOrders(siteId: string) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('maintenance_orders')
       .select('*, asset:assets(name, code), technician:users(full_name), cost_center:cost_centers(name)')
@@ -16,6 +17,7 @@ export const maintenanceService = {
 
   // Get maintenance orders by status
   async getMaintenanceOrdersByStatus(siteId: string, status: string) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('maintenance_orders')
       .select('*, asset:assets(name, code), technician:users(full_name)')
@@ -29,6 +31,7 @@ export const maintenanceService = {
 
   // Create maintenance order
   async createMaintenanceOrder(order: Omit<MaintenanceOrder, 'id' | 'created_at' | 'updated_at'>) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('maintenance_orders')
       .insert([order])
@@ -41,6 +44,7 @@ export const maintenanceService = {
 
   // Update maintenance order
   async updateMaintenanceOrder(id: string, updates: Partial<MaintenanceOrder>) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('maintenance_orders')
       .update(updates)
@@ -54,6 +58,7 @@ export const maintenanceService = {
 
   // Get maintenance order details with spare parts
   async getMaintenanceOrderDetails(orderId: string) {
+    const supabase = getSupabaseClient();
     const { data: order, error: orderError } = await supabase
       .from('maintenance_orders')
       .select('*, spare_parts:maintenance_spare_parts(*, item:inventory_items(name, sku, unit_cost))')
@@ -66,6 +71,7 @@ export const maintenanceService = {
 
   // Add spare part to maintenance order
   async addSparePart(orderId: string, itemId: string, quantity: number) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('maintenance_spare_parts')
       .insert([{ maintenance_order_id: orderId, inventory_item_id: itemId, quantity }])
@@ -78,6 +84,7 @@ export const maintenanceService = {
 
   // Calculate MTBF (Mean Time Between Failures)
   async calculateMTBF(assetId: string) {
+    const supabase = getSupabaseClient();
     const { data: orders, error } = await supabase
       .from('maintenance_orders')
       .select('scheduled_date, completion_date')
@@ -103,6 +110,7 @@ export const maintenanceService = {
 
   // Calculate MTTR (Mean Time To Repair)
   async calculateMTTR(assetId: string) {
+    const supabase = getSupabaseClient();
     const { data: orders, error } = await supabase
       .from('maintenance_orders')
       .select('scheduled_date, completion_date')
@@ -129,6 +137,7 @@ export const maintenanceService = {
 
   // Get maintenance analytics
   async getMaintenanceAnalytics(siteId: string) {
+    const supabase = getSupabaseClient();
     const { data: orders, error } = await supabase
       .from('maintenance_orders')
       .select('status, order_type, cost_center:cost_centers(name)')
@@ -160,6 +169,7 @@ export const maintenanceService = {
 
   // Delete maintenance order
   async deleteMaintenanceOrder(id: string) {
+    const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('maintenance_orders')
       .delete()

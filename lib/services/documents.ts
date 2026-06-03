@@ -1,9 +1,10 @@
-import { supabase } from '@/lib/db/supabase';
+import { getSupabaseClient } from '@/lib/db/supabase';
 import type { Document, DocumentVersion } from '@/lib/types';
 
 export const documentsService = {
   // Get all documents for a company
   async getDocuments(companyId: string) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('documents')
       .select('*')
@@ -16,6 +17,7 @@ export const documentsService = {
 
   // Get documents by category
   async getDocumentsByCategory(companyId: string, category: string) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('documents')
       .select('*')
@@ -29,6 +31,7 @@ export const documentsService = {
 
   // Get documents expiring soon
   async getExpiringDocuments(companyId: string, daysWindow: number = 30) {
+    const supabase = getSupabaseClient();
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + daysWindow);
     
@@ -47,6 +50,7 @@ export const documentsService = {
 
   // Create document
   async createDocument(document: Omit<Document, 'id' | 'created_at' | 'updated_at'>) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('documents')
       .insert([document])
@@ -59,6 +63,7 @@ export const documentsService = {
 
   // Update document
   async updateDocument(id: string, updates: Partial<Document>) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('documents')
       .update(updates)
@@ -72,6 +77,7 @@ export const documentsService = {
 
   // Get document versions
   async getDocumentVersions(documentId: string) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('document_versions')
       .select('*')
@@ -84,6 +90,7 @@ export const documentsService = {
 
   // Create document version
   async createDocumentVersion(version: Omit<DocumentVersion, 'id' | 'created_at'>) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('document_versions')
       .insert([version])
@@ -96,6 +103,7 @@ export const documentsService = {
 
   // Get document approvals
   async getDocumentApprovals(documentId: string) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('document_approvals')
       .select('*, user:users(full_name, email)')
@@ -107,6 +115,7 @@ export const documentsService = {
 
   // Update approval status
   async updateApprovalStatus(approvalId: string, status: string, comments?: string) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('document_approvals')
       .update({ status, comments })
@@ -120,6 +129,7 @@ export const documentsService = {
 
   // Delete document
   async deleteDocument(id: string) {
+    const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('documents')
       .delete()
@@ -131,6 +141,7 @@ export const documentsService = {
 
   // Get compliance report
   async getComplianceReport(companyId: string) {
+    const supabase = getSupabaseClient();
     const { data: documents, error } = await supabase
       .from('documents')
       .select('compliance_requirement, status, expiration_date')

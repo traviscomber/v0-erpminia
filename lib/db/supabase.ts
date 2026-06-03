@@ -16,7 +16,7 @@ function getClients() {
   };
 }
 
-// Export factory functions instead of global instances
+// Export factory functions
 export function getSupabaseClient() {
   return getClients().supabase;
 }
@@ -25,24 +25,11 @@ export function getSupabaseAdmin() {
   return getClients().supabaseAdmin;
 }
 
-// Deprecated: kept for backwards compatibility
-export const supabase = {
-  get default() {
-    return getSupabaseClient();
-  },
-};
-
-export const supabaseAdmin = {
-  get default() {
-    return getSupabaseAdmin();
-  },
-};
-
 // Database initialization helper
 export async function initializeDatabase() {
   try {
     // Create tables - Usuarios y Autenticación
-    await supabaseAdmin.rpc('exec_sql', {
+    await getSupabaseAdmin().rpc('exec_sql', {
       sql: `
         CREATE TABLE IF NOT EXISTS users (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

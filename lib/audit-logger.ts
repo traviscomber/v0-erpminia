@@ -77,6 +77,7 @@ export async function getDocumentAuditTrail(documentId: string) {
  */
 export async function getOrganizationAuditTrail(organizationId: string, limit: number = 100) {
   try {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('document_audit_logs')
       .select(
