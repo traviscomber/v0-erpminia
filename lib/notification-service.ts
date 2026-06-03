@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // Notification Service for Document Approvals
 export interface DocumentNotification {
   id: string;
@@ -7,6 +8,22 @@ export interface DocumentNotification {
   approval_level: number;
   approval_level_name: string;
   type: 'pending' | 'approved' | 'rejected';
+=======
+// Notification Service - Handles in-app and external notifications
+// Supports: In-app alerts, Slack webhooks, Email queue
+
+interface NotificationPayload {
+  type:
+    | 'nc_created'
+    | 'nc_approved'
+    | 'ca_assigned'
+    | 'ca_overdue'
+    | 'compliance_alert'
+    | 'document_pending_approval'
+    | 'document_approved'
+    | 'document_rejected';
+  title: string;
+>>>>>>> main
   message: string;
   read: boolean;
   created_at: string;
@@ -15,7 +32,25 @@ export interface DocumentNotification {
 export class NotificationService {
   private static instance: NotificationService;
 
+<<<<<<< HEAD
   private constructor() {}
+=======
+  private static resolveApiUrl(path: string) {
+    if (typeof window !== 'undefined') {
+      return path;
+    }
+
+    const baseUrl =
+      process.env.APP_URL ||
+      process.env.NEXT_PUBLIC_APP_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined);
+
+    return baseUrl ? new URL(path, baseUrl).toString() : null;
+  }
+
+  static async send(payload: NotificationPayload, channels: NotificationChannel) {
+    this.queue.push(payload);
+>>>>>>> main
 
   static getInstance(): NotificationService {
     if (!NotificationService.instance) {
@@ -24,6 +59,7 @@ export class NotificationService {
     return NotificationService.instance;
   }
 
+<<<<<<< HEAD
   // Create notification when document is submitted for approval
   static async notifyPendingApproval(
     userId: string,
@@ -47,6 +83,15 @@ export class NotificationService {
 
     // TODO: Save to database
     return notification;
+=======
+  private static sendInApp(payload: NotificationPayload) {
+    if (typeof window === 'undefined' || typeof CustomEvent === 'undefined') {
+      return;
+    }
+
+    const event = new CustomEvent('notification', { detail: payload });
+    window.dispatchEvent(event);
+>>>>>>> main
   }
 
   // Create notification when document is approved
@@ -74,6 +119,7 @@ export class NotificationService {
     return notification;
   }
 
+<<<<<<< HEAD
   // Create notification when document is rejected
   static async notifyApprovalRejected(
     userId: string,
@@ -98,6 +144,30 @@ export class NotificationService {
 
     // TODO: Save to database and send email
     return notification;
+=======
+  private static async queueEmail(payload: NotificationPayload, email: string) {
+    try {
+      const endpoint = this.resolveApiUrl('/api/sostenibilidad/notifications/email');
+
+      if (!endpoint) {
+        console.warn('[v0] Email queue skipped: missing APP_URL/NEXT_PUBLIC_APP_URL/VERCEL_URL');
+        return;
+      }
+
+      await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: email,
+          subject: payload.title,
+          body: payload.message,
+          type: payload.type,
+        }),
+      });
+    } catch (error) {
+      console.error('[v0] Email queue failed:', error);
+    }
+>>>>>>> main
   }
 
   // Mark notification as read
