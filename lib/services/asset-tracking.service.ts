@@ -22,7 +22,6 @@ export class AssetTrackingService {
     mtbfHours?: number;
   }) {
     const supabase = getSupabaseClient();
-    const supabase = getSupabaseClient();
     const { data: asset, error } = await supabase
       .from('maintenance_assets')
       .insert({
@@ -46,7 +45,6 @@ export class AssetTrackingService {
 
   static async getAsset(assetId: string) {
     const supabase = getSupabaseClient();
-    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('maintenance_assets')
       .select('*')
@@ -69,7 +67,6 @@ export class AssetTrackingService {
 
   static async getAssetMaintenanceHistory(assetId: string, limit: number = 10) {
     const supabase = getSupabaseClient();
-    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('maintenance_history')
       .select('*, technician:users(name, email)')
@@ -81,7 +78,6 @@ export class AssetTrackingService {
   }
 
   static async getAssetKPIs(assetId: string) {
-    const supabase = getSupabaseClient();
     const supabase = getSupabaseClient();
     const { data: history = [] } = await supabase
       .from('maintenance_history')
@@ -103,14 +99,12 @@ export class AssetTrackingService {
 
   static async updateAssetStatus(assetId: string, status: 'active' | 'inactive' | 'maintenance' | 'decommissioned') {
     const supabase = getSupabaseClient();
-    const supabase = getSupabaseClient();
     const { error } = await supabase.from('maintenance_assets').update({ status }).eq('id', assetId);
 
     if (error) throw error;
   }
 
   static async getAssetsByLocation(organizationId: string, location: string) {
-    const supabase = getSupabaseClient();
     const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('maintenance_assets')

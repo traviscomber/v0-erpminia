@@ -2,7 +2,6 @@ import { createClient } from '@supabase/supabase-js';
 import { nanoid } from 'nanoid';
 
 function getSupabaseClient() {
-  const { createClient } = require("@supabase/supabase-js");
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!supabaseUrl || !supabaseKey) throw new Error("Missing Supabase env vars");
@@ -13,7 +12,6 @@ export class QRScannerService {
   static async generateQRCode(organizationId: string, stockId: string, binId?: string) {
     const supabase = getSupabaseClient();
     const qrValue = `QR-${organizationId.slice(0, 8)}-${stockId.slice(0, 8)}-${nanoid(6)}`;
-    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('qr_codes')
       .insert({ organization_id: organizationId, qr_code_value: qrValue, stock_id: stockId, bin_id: binId })

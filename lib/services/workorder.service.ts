@@ -28,7 +28,6 @@ export class WorkOrderService {
     const supabase = getSupabaseClient();
     const woNumber = `WO-${data.organizationId.slice(0, 4)}-${Date.now()}-${nanoid(3)}`;
     
-    const supabase = getSupabaseClient();
     const { data: wo, error } = await supabase
       .from('maintenance_work_orders')
       .insert({
@@ -54,7 +53,6 @@ export class WorkOrderService {
 
   static async getWorkOrder(woId: string) {
     const supabase = getSupabaseClient();
-    const supabase = getSupabaseClient();
     const { data: wo, error } = await supabase
       .from('maintenance_work_orders')
       .select('*, asset:maintenance_assets(*), assignee:users(id, name, email)')
@@ -66,6 +64,7 @@ export class WorkOrderService {
   }
 
   static async listWorkOrders(organizationId: string, filters?: { status?: string; assetId?: string }) {
+    const supabase = getSupabaseClient();
     let query = supabase
       .from('maintenance_work_orders')
       .select('*, asset:maintenance_assets(asset_name, asset_type)')

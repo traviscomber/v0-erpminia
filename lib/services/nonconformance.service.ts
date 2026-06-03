@@ -1,8 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Use anon key for client-side (RLS will handle security)
 function getSupabaseClient() {
-  const { createClient } = require("@supabase/supabase-js");
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!supabaseUrl || !supabaseKey) throw new Error("Missing Supabase env vars");
@@ -14,7 +12,6 @@ export class NonconformanceService {
   private static async getNextNCNumber(organizationId: string): Promise<string> {
     const supabase = getSupabaseClient();
     const year = new Date().getFullYear();
-    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('sostenibilidad_nonconformances')
       .select('nc_number')
@@ -43,7 +40,6 @@ export class NonconformanceService {
     const supabase = getSupabaseClient();
     const ncNumber = await this.getNextNCNumber(organizationId);
     
-    const supabase = getSupabaseClient();
     const { data: nc, error } = await supabase
       .from('sostenibilidad_nonconformances')
       .insert({
@@ -90,6 +86,7 @@ export class NonconformanceService {
     category?: string;
     assignedTo?: string;
   }) {
+    const supabase = getSupabaseClient();
     let query = supabase
       .from('sostenibilidad_nonconformances')
       .select('*')
@@ -184,14 +181,8 @@ export class NonconformanceService {
 
   static async getNCsBySeverity(organizationId: string) {
     const supabase = getSupabaseClient();
-    const { data } = await supabase
-      .from('sostenibilidad_nonconformances')
-      .select('severity', { count: 'exact' })
-      .eq('organization_id', organizationId)
-      .neq('status', 'closed');
-
     const severities = ['critical', 'high', 'medium', 'low'];
-    const result: any = {};
+    const result: Record<string, number> = {};
     for (const sev of severities) {
       const { count } = await supabase
         .from('sostenibilidad_nonconformances')

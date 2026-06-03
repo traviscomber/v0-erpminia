@@ -14,7 +14,6 @@ function getSupabaseClient() {
 export class WarehouseService {
   static async createZone(organizationId: string, zoneCode: string, zoneName: string) {
     const supabase = getSupabaseClient();
-    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('warehouse_zones')
       .insert({ organization_id: organizationId, zone_code: zoneCode, zone_name: zoneName })
@@ -25,7 +24,6 @@ export class WarehouseService {
   }
 
   static async createRack(zoneId: string, rackCode: string, rackName: string) {
-    const supabase = getSupabaseClient();
     const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('warehouse_racks')
@@ -38,7 +36,6 @@ export class WarehouseService {
 
   static async createBin(rackId: string, binCode: string, binLocation: string) {
     const supabase = getSupabaseClient();
-    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('warehouse_bins')
       .insert({ rack_id: rackId, bin_code: binCode, bin_location: binLocation })
@@ -50,7 +47,6 @@ export class WarehouseService {
 
   static async getWarehouseStructure(organizationId: string) {
     const supabase = getSupabaseClient();
-    const supabase = getSupabaseClient();
     const { data: zones } = await supabase
       .from('warehouse_zones')
       .select('*, racks:warehouse_racks(*)')
@@ -59,7 +55,6 @@ export class WarehouseService {
   }
 
   static async getBinById(binId: string) {
-    const supabase = getSupabaseClient();
     const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('warehouse_bins')

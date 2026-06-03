@@ -59,7 +59,6 @@ export class MTTRTrackingService {
     notes?: string;
   }) {
     const supabase = getSupabaseClient();
-    const supabase = getSupabaseClient();
     const { error } = await supabase.from('maintenance_history').insert({
       work_order_id: data.workOrderId,
       asset_id: data.assetId,
@@ -106,7 +105,6 @@ export class MTTRTrackingService {
       dates.push(d.toISOString().split('T')[0]);
     }
 
-    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('maintenance_work_orders')
       .select('completion_date, actual_duration_hours')

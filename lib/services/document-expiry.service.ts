@@ -6,7 +6,6 @@
 import { createClient } from '@supabase/supabase-js';
 
 function getSupabaseClient() {
-  const { createClient } = require("@supabase/supabase-js");
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!supabaseUrl || !supabaseKey) throw new Error("Missing Supabase env vars");
@@ -22,7 +21,6 @@ export class DocumentExpiryService {
     const thresholdDate = new Date();
     thresholdDate.setDate(thresholdDate.getDate() + daysThreshold);
 
-    const supabase = getSupabaseClient();
     const { data: documents } = await supabase
       .from('documents')
       .select('*')
@@ -52,7 +50,6 @@ export class DocumentExpiryService {
    */
   static async getExpiredDocuments(organizationId: string) {
     const supabase = getSupabaseClient();
-    const supabase = getSupabaseClient();
     const { data: documents } = await supabase
       .from('documents')
       .select('*')
@@ -72,7 +69,6 @@ export class DocumentExpiryService {
     recipientEmails: string[]
   ) {
     const supabase = getSupabaseClient();
-    const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('document_expiry_alerts')
       .insert({
@@ -84,9 +80,6 @@ export class DocumentExpiryService {
 
     if (error) throw error;
 
-    // TODO: Enviar emails a recipientEmails
-    // await sendExpiryAlert(recipientEmails, document);
-
     return { success: true };
   }
 
@@ -94,7 +87,6 @@ export class DocumentExpiryService {
    * Marcar documento como expirado
    */
   static async markAsExpired(documentId: string) {
-    const supabase = getSupabaseClient();
     const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('documents')
@@ -123,7 +115,6 @@ export class DocumentExpiryService {
     renewalDays: number = 30
   ) {
     const supabase = getSupabaseClient();
-    const supabase = getSupabaseClient();
     const { data: document } = await supabase
       .from('documents')
       .select('expiry_date')
@@ -135,8 +126,6 @@ export class DocumentExpiryService {
     const renewalDate = new Date(document.expiry_date);
     renewalDate.setDate(renewalDate.getDate() - renewalDays);
 
-    // Crear evento en base de datos para recordatorio
-    // Este evento podría ser procesado por un job scheduled
     const reminder = {
       documentId,
       renewalDate: renewalDate.toISOString(),
@@ -155,7 +144,6 @@ export class DocumentExpiryService {
       const today = new Date().toISOString().split('T')[0];
 
       // 1. Marcar documentos expirados
-    const supabase = getSupabaseClient();
       const { error: expireError } = await supabase
         .from('documents')
         .update({
@@ -192,7 +180,6 @@ export class DocumentExpiryService {
           .eq('alert_sent', false)
           .single();
 
-        // Solo crear si no existe alerta no enviada
         if (!existingAlert.data) {
           await supabase.from('document_expiry_alerts').insert({
             organization_id: organizationId,
