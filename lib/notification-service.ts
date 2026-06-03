@@ -8,7 +8,7 @@ export interface DocumentNotification {
   document_title: string;
   approval_level: number;
   approval_level_name: string;
-  type: 'pending' | 'approved' | 'rejected' | 'nc_created' | 'nc_approved' | 'ca_assigned' | 'ca_overdue' | 'compliance_alert';
+  type: 'pending' | 'approved' | 'rejected' | 'nc_created' | 'nc_approved' | 'ca_assigned' | 'ca_overdue' | 'compliance_alert' | 'document_submitted' | 'document_approved' | 'document_rejected' | 'document_expiring';
   message: string;
   title?: string;
   read: boolean;

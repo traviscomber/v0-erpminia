@@ -48,29 +48,27 @@ async function getProfileRecord(userId?: string | null) {
 async function notifyDocumentOwner(
   type: 'document_approved' | 'document_rejected',
   document: DocumentRecord,
-  message: string,
-  priority: 'medium' | 'high'
+  message: string
 ) {
   const ownerProfile = await getProfileRecord(document.created_by);
+  
+  const notification = {
+    id: document.id,
+    user_id: document.created_by,
+    document_id: document.id,
+    document_title: document.title,
+    approval_level: 0,
+    approval_level_name: 'Owner Notification',
+    type: type as 'document_approved' | 'document_rejected',
+    title: type === 'document_approved' 
+      ? `Documento aprobado: ${document.title}`
+      : `Documento rechazado: ${document.title}`,
+    message,
+    read: false,
+    created_at: new Date().toISOString(),
+  };
 
-  await NotificationService.send(
-    {
-      type,
-      title:
-        type === 'document_approved'
-          ? `Documento aprobado: ${document.title}`
-          : `Documento rechazado: ${document.title}`,
-      message,
-      priority,
-      recipient: ownerProfile?.email || document.created_by,
-      data: { documentId: document.id },
-      timestamp: new Date(),
-    },
-    {
-      inApp: true,
-      email: ownerProfile?.email || undefined,
-    }
-  );
+  await NotificationService.send(notification, ['in-app', 'email']);
 }
 
 export interface DocumentUploadInput {
@@ -302,8 +300,7 @@ export class DocumentService {
         await notifyDocumentOwner(
           'document_approved',
           document,
-          `El documento ${document.title} completo su flujo de aprobacion.`,
-          'medium'
+          `El documento ${document.title} completo su flujo de aprobacion.`
         );
       } else {
         await supabase
@@ -318,24 +315,21 @@ export class DocumentService {
         if (nextPendingApproval) {
           const nextApproverProfile = await getProfileRecord(nextPendingApproval.assigned_to);
 
-          await NotificationService.send(
-            {
-              type: 'document_pending_approval',
-              title: `Nueva aprobacion pendiente: ${document.title}`,
-              message: `El documento ${document.title} requiere revision en ${nextPendingApproval.approval_level_name || `nivel ${nextPendingApproval.approval_level}`}.`,
-              priority: 'high',
-              recipient:
-                nextApproverProfile?.email ||
-                nextPendingApproval.assigned_to ||
-                documentId,
-              data: { documentId, approvalId: nextPendingApproval.id },
-              timestamp: new Date(),
-            },
-            {
-              inApp: true,
-              email: nextApproverProfile?.email || undefined,
-            }
-          );
+          const notification = {
+            id: nextPendingApproval.id,
+            user_id: nextPendingApproval.assigned_to,
+            document_id: documentId,
+            document_title: document.title,
+            approval_level: nextPendingApproval.approval_level,
+            approval_level_name: nextPendingApproval.approval_level_name || `Nivel ${nextPendingApproval.approval_level}`,
+            type: 'pending' as const,
+            title: `Nueva aprobacion pendiente: ${document.title}`,
+            message: `El documento ${document.title} requiere revision en ${nextPendingApproval.approval_level_name || `nivel ${nextPendingApproval.approval_level}`}.`,
+            read: false,
+            created_at: new Date().toISOString(),
+          };
+
+          await NotificationService.send(notification, ['in-app', 'email']);
         }
       }
 
@@ -404,8 +398,7 @@ export class DocumentService {
       await notifyDocumentOwner(
         'document_rejected',
         document,
-        `El documento ${document.title} fue rechazado. Motivo: ${rejectionReason}`,
-        'high'
+        `El documento ${document.title} fue rechazado. Motivo: ${rejectionReason}`
       );
 
       return { success: true };

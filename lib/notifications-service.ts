@@ -1,9 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Supabase credentials not configured');
+  }
+
+  return createClient(supabaseUrl, supabaseServiceKey);
+}
 
 export interface Notification {
   id: string;
@@ -27,6 +33,7 @@ export async function notifyDocumentSubmitted(
   approverIds: string[]
 ) {
   try {
+    const supabase = getSupabaseClient();
     const notifications = approverIds.map(approverId => ({
       user_id: approverId,
       type: 'document_submitted',
@@ -62,6 +69,7 @@ export async function notifyDocumentApproved(
   submittedBy: string
 ) {
   try {
+    const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('notifications')
       .insert({
@@ -95,6 +103,7 @@ export async function notifyDocumentRejected(
   reason?: string
 ) {
   try {
+    const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('notifications')
       .insert({
@@ -122,6 +131,7 @@ export async function notifyDocumentRejected(
  */
 export async function getUserNotifications(userId: string, limit = 10) {
   try {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('notifications')
       .select('*')
@@ -146,6 +156,7 @@ export async function getUserNotifications(userId: string, limit = 10) {
  */
 export async function markNotificationAsRead(notificationId: string) {
   try {
+    const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('notifications')
       .update({ read: true })
@@ -167,6 +178,7 @@ export async function markNotificationAsRead(notificationId: string) {
  */
 export async function deleteNotification(notificationId: string) {
   try {
+    const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('notifications')
       .delete()

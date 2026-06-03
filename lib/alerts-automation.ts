@@ -1,15 +1,22 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Supabase credentials not configured');
+  }
+
+  return createClient(supabaseUrl, supabaseServiceKey);
+}
 
 /**
  * Genera alertas automáticas para vencimientos de hitos
  */
 export async function generarAlertasVencimientosHitos() {
   try {
+    const supabase = getSupabaseClient();
     const { data: hitos } = await supabase
       .from('contratos_hitos')
       .select('*')
@@ -54,6 +61,7 @@ export async function generarAlertasVencimientosHitos() {
  */
 export async function generarAlertasGarantias() {
   try {
+    const supabase = getSupabaseClient();
     const { data: garantias } = await supabase
       .from('contratos_garantias')
       .select('*, contratos_hitos(*)')
@@ -99,6 +107,7 @@ export async function generarAlertasGarantias() {
  */
 export async function generarAlertasDocumentosHSE() {
   try {
+    const supabase = getSupabaseClient();
     const oneYearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
 
     const { data: documentos } = await supabase

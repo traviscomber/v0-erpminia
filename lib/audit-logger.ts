@@ -1,9 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Supabase credentials not configured');
+  }
+
+  return createClient(supabaseUrl, supabaseServiceKey);
+}
 
 export interface AuditLogEntry {
   document_id: string;
@@ -21,6 +27,7 @@ export interface AuditLogEntry {
  */
 export async function logDocumentAction(entry: AuditLogEntry) {
   try {
+    const supabase = getSupabaseClient();
     const { error } = await supabase.from('document_audit_logs').insert({
       document_id: entry.document_id,
       action: entry.action,
@@ -41,6 +48,7 @@ export async function logDocumentAction(entry: AuditLogEntry) {
  */
 export async function getDocumentAuditTrail(documentId: string) {
   try {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('document_audit_logs')
       .select(
