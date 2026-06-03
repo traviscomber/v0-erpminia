@@ -46,6 +46,7 @@ export class DocumentApprovalWorkflowService {
    * Obtener el flujo de aprobación para un documento
    */
   static async getWorkflowStatus(documentId: string) {
+    const supabase = getSupabaseClient();
     const { data: approvals } = await supabase
       .from('document_approvals')
       .select('*')
@@ -65,6 +66,7 @@ export class DocumentApprovalWorkflowService {
     userEmail: string,
     userName: string
   ) {
+    const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('document_approvals')
       .update({
@@ -86,6 +88,7 @@ export class DocumentApprovalWorkflowService {
    * Obtener el siguiente nivel de aprobación
    */
   static async getNextApprovalLevel(documentId: string) {
+    const supabase = getSupabaseClient();
     const { data: approvals } = await supabase
       .from('document_approvals')
       .select('*')
@@ -102,6 +105,7 @@ export class DocumentApprovalWorkflowService {
    * Obtener historial de aprobaciones
    */
   static async getApprovalHistory(documentId: string) {
+    const supabase = getSupabaseClient();
     const { data: approvals } = await supabase
       .from('document_approvals')
       .select('*')
@@ -162,6 +166,7 @@ export class DocumentApprovalWorkflowService {
    */
   static async restartApprovalWorkflow(documentId: string) {
     try {
+      const supabase = getSupabaseClient();
       // Resetear todas las aprobaciones a pending
       const { error } = await supabase
         .from('document_approvals')
@@ -187,6 +192,7 @@ export class DocumentApprovalWorkflowService {
    * Obtener estadísticas de aprobaciones
    */
   static async getApprovalStats(organizationId: string) {
+    const supabase = getSupabaseClient();
     const [totalDocuments, approvedCount, pendingCount, rejectedCount] = await Promise.all([
       supabase
         .from('documents')

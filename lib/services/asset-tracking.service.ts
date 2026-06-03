@@ -79,18 +79,18 @@ export class AssetTrackingService {
 
   static async getAssetKPIs(assetId: string) {
     const supabase = getSupabaseClient();
-    const { data: history } = await supabase
+    const { data: history = [] } = await supabase
       .from('maintenance_history')
       .select('labor_hours, parts_cost, labor_cost')
       .eq('asset_id', assetId);
 
-    const totalLabor = history?.reduce((sum, h) => sum + (h.labor_hours || 0), 0) || 0;
-    const totalPartsSpent = history?.reduce((sum, h) => sum + (h.parts_cost || 0), 0) || 0;
-    const totalLaborCost = history?.reduce((sum, h) => sum + (h.labor_cost || 0), 0) || 0;
+    const totalLabor = (history as any[]).reduce((sum: number, h: any) => sum + (h.labor_hours || 0), 0);
+    const totalPartsSpent = (history as any[]).reduce((sum: number, h: any) => sum + (h.parts_cost || 0), 0);
+    const totalLaborCost = (history as any[]).reduce((sum: number, h: any) => sum + (h.labor_cost || 0), 0);
     const totalCost = totalPartsSpent + totalLaborCost;
 
     return {
-      totalMaintenanceActions: history?.length || 0,
+      totalMaintenanceActions: history.length,
       totalLabor: totalLabor,
       totalCost: totalCost,
       avgCostPerMaintenance: totalCost / (history?.length || 1),
