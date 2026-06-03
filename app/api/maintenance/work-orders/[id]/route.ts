@@ -5,6 +5,10 @@ function mapWorkOrder(row: any) {
   return {
     id: row.id,
     work_order_number: row.work_order_number,
+    asset_id: row.asset_id || row.asset?.id || null,
+    asset_name: row.asset?.asset_name || null,
+    asset_code: row.asset?.asset_code || null,
+    asset_type: row.asset?.asset_type || null,
     title: row.title,
     description: row.description,
     work_type: row.work_type,
@@ -36,7 +40,7 @@ export async function GET(
   try {
     const { data, error } = await context.supabase
       .from('maintenance_work_orders')
-      .select('*')
+      .select('*, asset:maintenance_assets(id, asset_name, asset_code, asset_type)')
       .eq('id', id)
       .eq('organization_id', context.organizationId)
       .maybeSingle();

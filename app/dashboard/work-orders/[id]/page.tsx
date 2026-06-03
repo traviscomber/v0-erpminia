@@ -62,12 +62,20 @@ export default function WorkOrderDetailPage() {
                 <p className="font-medium">{workOrder.work_type || 'preventive'}</p>
               </div>
               <div>
+                <p className="text-sm text-muted-foreground">Activo</p>
+                <p className="font-medium">{workOrder.asset_name || 'Sin activo asociado'}</p>
+              </div>
+              <div>
                 <p className="text-sm text-muted-foreground">Asignado a</p>
                 <p className="font-medium">{workOrder.assigned_to_name || 'Sin asignar'}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Fecha programada</p>
                 <p className="font-medium">{workOrder.scheduled_date ? new Date(workOrder.scheduled_date).toLocaleDateString('es-CL') : 'Sin fecha'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Codigo activo</p>
+                <p className="font-medium">{workOrder.asset_code || 'No disponible'}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Horas planificadas</p>

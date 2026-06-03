@@ -5,6 +5,10 @@ function mapWorkOrder(row: any) {
   return {
     id: row.id,
     work_order_number: row.work_order_number,
+    asset_id: row.asset_id || row.asset?.id || null,
+    asset_name: row.asset?.asset_name || null,
+    asset_code: row.asset?.asset_code || null,
+    asset_type: row.asset?.asset_type || null,
     title: row.title,
     description: row.description,
     work_type: row.work_type,
@@ -30,7 +34,7 @@ export async function GET(request: NextRequest) {
   try {
     const { data, error } = await context.supabase
       .from('maintenance_work_orders')
-      .select('*')
+      .select('*, asset:maintenance_assets(id, asset_name, asset_code, asset_type)')
       .eq('organization_id', context.organizationId)
       .order('created_at', { ascending: false });
 
@@ -61,6 +65,7 @@ export async function POST(request: NextRequest) {
       .insert({
         organization_id: context.organizationId,
         work_order_number: workOrderNumber,
+        asset_id: body.assetId || body.asset_id || null,
         title: body.title,
         description: body.description || null,
         work_type: body.workType || body.work_type || 'preventive',
@@ -72,7 +77,7 @@ export async function POST(request: NextRequest) {
         created_by: context.userId,
         updated_at: new Date().toISOString(),
       })
-      .select('*')
+      .select('*, asset:maintenance_assets(id, asset_name, asset_code, asset_type)')
       .single();
 
     if (error) throw error;

@@ -14,72 +14,20 @@ interface Contract {
   status: 'active' | 'expiring' | 'expired';
   value: string;
   approvalStatus: 'pending' | 'approved' | 'rejected';
+  fileUrl?: string;
 }
 
 interface ContractsTrackerProps {
   contracts?: Contract[];
 }
 
-const defaultContracts: Contract[] = [
-  {
-    id: '1',
-    title: 'Contrato Principal de Explotación',
-    provider: 'Cía. Minera La Patagua',
-    startDate: '2023-01-15',
-    endDate: '2025-12-31',
-    status: 'active',
-    value: '$5,000,000',
-    approvalStatus: 'approved',
-  },
-  {
-    id: '2',
-    title: 'Contrato Servicios de Mantenimiento',
-    provider: 'TechMaint Solutions',
-    startDate: '2024-01-01',
-    endDate: '2025-06-30',
-    status: 'expiring',
-    value: '$850,000',
-    approvalStatus: 'approved',
-  },
-  {
-    id: '3',
-    title: 'Contrato de Suministro de Repuestos',
-    provider: 'Industrial Parts Corp',
-    startDate: '2024-03-01',
-    endDate: '2025-02-28',
-    status: 'expiring',
-    value: '$450,000',
-    approvalStatus: 'pending',
-  },
-  {
-    id: '4',
-    title: 'Contrato de Consultoría Legal',
-    provider: 'Legal Advisors & Associates',
-    startDate: '2024-06-01',
-    endDate: '2026-05-31',
-    status: 'active',
-    value: '$180,000',
-    approvalStatus: 'approved',
-  },
-  {
-    id: '5',
-    title: 'Contrato de Seguridad Industrial',
-    provider: 'SafeGuard Security',
-    startDate: '2023-12-01',
-    endDate: '2024-11-30',
-    status: 'expired',
-    value: '$320,000',
-    approvalStatus: 'rejected',
-  },
-];
-
-export function ContractsTracker({ contracts = defaultContracts }: ContractsTrackerProps) {
+export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
   const getStatusBadge = (status: 'active' | 'expiring' | 'expired') => {
     switch (status) {
       case 'active':
         return <Badge className="bg-secondary/10 text-secondary">Activo</Badge>;
       case 'expiring':
-        return <Badge className="bg-primary/10 text-primary">Próx. Vencer</Badge>;
+        return <Badge className="bg-primary/10 text-primary">Prox. vencer</Badge>;
       case 'expired':
         return <Badge className="bg-destructive/10 text-destructive">Vencido</Badge>;
     }
@@ -92,7 +40,7 @@ export function ContractsTracker({ contracts = defaultContracts }: ContractsTrac
       case 'pending':
         return <Badge className="bg-primary/10 text-primary">Pendiente</Badge>;
       case 'rejected':
-        return <Badge className="bg-destructive/10 text-destructive">Rechazado</Badge>;
+        return <Badge className="bg-destructive/10 text-destructive">Observado</Badge>;
     }
   };
 
@@ -106,12 +54,18 @@ export function ContractsTracker({ contracts = defaultContracts }: ContractsTrac
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Gestión de Contratos</CardTitle>
+        <CardTitle>Gestion de Contratos</CardTitle>
         <CardDescription>Seguimiento de contratos vigentes y vencimientos</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          {contracts.map(contract => {
+          {contracts.length === 0 && (
+            <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
+              No hay contratos cargados todavia.
+            </div>
+          )}
+
+          {contracts.map((contract) => {
             const daysLeft = daysUntilExpiry(contract.endDate);
             const isExpiring = daysLeft <= 60 && daysLeft > 0;
 
@@ -131,14 +85,12 @@ export function ContractsTracker({ contracts = defaultContracts }: ContractsTrac
                     <p className="font-medium truncate">{contract.title}</p>
                     {isExpiring && <AlertCircle className="w-4 h-4 text-primary flex-shrink-0" />}
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Proveedor: {contract.provider}
-                  </p>
+                  <p className="text-xs text-muted-foreground">Proveedor: {contract.provider}</p>
                   <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
                     <Calendar className="w-3 h-3" />
                     <span>
-                      {new Date(contract.endDate).toLocaleDateString('es-CL')} 
-                      {daysLeft > 0 && ` (${daysLeft} días)`}
+                      {new Date(contract.endDate).toLocaleDateString('es-CL')}
+                      {daysLeft > 0 && ` (${daysLeft} dias)`}
                     </span>
                   </div>
                 </div>
@@ -152,12 +104,20 @@ export function ContractsTracker({ contracts = defaultContracts }: ContractsTrac
                     </div>
                   </div>
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                      <Download className="w-4 h-4" />
-                    </Button>
+                    {contract.fileUrl && (
+                      <>
+                        <Button asChild variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <a href={contract.fileUrl} target="_blank" rel="noreferrer">
+                            <Eye className="w-4 h-4" />
+                          </a>
+                        </Button>
+                        <Button asChild variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <a href={contract.fileUrl} target="_blank" rel="noreferrer">
+                            <Download className="w-4 h-4" />
+                          </a>
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

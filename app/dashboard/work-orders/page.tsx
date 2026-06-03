@@ -136,7 +136,7 @@ export default function WorkOrdersPage() {
                       </div>
                       <h3 className="font-semibold">{wo.title}</h3>
                       <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                        <span>Mantencion</span>
+                        <span>{wo.asset_name || 'Activo no asociado'}</span>
                         <span>Asignado: {wo.assigned_to_name || 'Sin asignar'}</span>
                         <span>Vence: {wo.scheduled_date ? new Date(wo.scheduled_date).toLocaleDateString('es-CL') : 'Sin fecha'}</span>
                       </div>

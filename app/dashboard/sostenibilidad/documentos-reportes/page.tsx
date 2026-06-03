@@ -1,47 +1,207 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import useSWR from 'swr';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import {
+  Bar,
+  Cell,
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 import { AlertCircle, TrendingUp, Clock, CheckCircle2, XCircle } from 'lucide-react';
-
-// Mock data for reporting
-const mockDocumentStats = [
-  { status: 'Aprobado', count: 45, percentage: 60 },
-  { status: 'Pendiente', count: 20, percentage: 27 },
-  { status: 'Rechazado', count: 8, percentage: 11 },
-  { status: 'Borrador', count: 2, percentage: 2 },
-];
-
-const mockApprovalTimeData = [
-  { month: 'Enero', avgDays: 3.2, count: 12 },
-  { month: 'Febrero', avgDays: 2.8, count: 15 },
-  { month: 'Marzo', avgDays: 3.5, count: 18 },
-  { month: 'Abril', avgDays: 2.1, count: 20 },
-  { month: 'Mayo', avgDays: 2.9, count: 16 },
-  { month: 'Junio', avgDays: 2.5, count: 14 },
-];
-
-const mockOverdueDocuments = [
-  { id: 1, title: 'Procedimiento Seguridad en Alturas', daysOverdue: 5, approvalLevel: 2 },
-  { id: 2, title: 'Plan de Respuesta a Emergencias', daysOverdue: 2, approvalLevel: 1 },
-];
 
 const COLORS = ['#22c55e', '#f97316', '#ef4444', '#6b7280'];
 
+const fetcher = async (url: string) => {
+  const response = await fetch(url);
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new Error(payload?.error || 'Request failed');
+  }
+  return payload;
+};
+
+type DocumentStep = {
+  status?: string;
+  approvedAt?: string;
+};
+
+type DashboardDocument = {
+  id: string;
+  title: string;
+  status?: string;
+  createdAt?: string;
+  expiryDate?: string;
+  steps?: DocumentStep[];
+};
+
+function monthLabel(dateValue?: string) {
+  if (!dateValue) return 'Sin fecha';
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return 'Sin fecha';
+  return date.toLocaleDateString('es-CL', { month: 'short' }).replace('.', '');
+}
+
+function approvalDays(document: DashboardDocument) {
+  const createdAt = document.createdAt ? new Date(document.createdAt) : null;
+  const approvedAtValue = document.steps
+    ?.filter((step) => step.status === 'approved' && step.approvedAt)
+    .map((step) => new Date(step.approvedAt as string).getTime())
+    .sort((left, right) => right - left)[0];
+
+  if (!createdAt || Number.isNaN(createdAt.getTime()) || !approvedAtValue) return null;
+
+  return Math.max(
+    0,
+    Math.round((approvedAtValue - createdAt.getTime()) / (1000 * 60 * 60 * 24) * 10) / 10
+  );
+}
+
 export default function DocumentosReportesPage() {
   const [activeTab, setActiveTab] = useState('overview');
+  const { data: statsData, error: statsError } = useSWR('/api/documents/stats', fetcher, {
+    revalidateOnFocus: false,
+  });
+  const { data: documentsData, error: documentsError } = useSWR(
+    '/api/documents?limit=200',
+    fetcher,
+    { revalidateOnFocus: false }
+  );
+
+  const documents = (documentsData?.documents || []) as DashboardDocument[];
+  const totalDocuments = statsData?.total ?? documents.length;
+  const approvedDocuments = statsData?.approved ?? 0;
+  const pendingDocuments = statsData?.pending ?? 0;
+  const expiredDocuments = statsData?.expired ?? 0;
+
+  const rejectionCount = useMemo(
+    () => documents.filter((document) => document.status === 'rejected').length,
+    [documents]
+  );
+
+  const averageApprovalDays = useMemo(() => {
+    const values = documents
+      .map(approvalDays)
+      .filter((value): value is number => typeof value === 'number');
+
+    if (values.length === 0) return 0;
+    return Math.round((values.reduce((sum, value) => sum + value, 0) / values.length) * 10) / 10;
+  }, [documents]);
+
+  const documentStats = useMemo(() => {
+    const rows = [
+      {
+        status: 'Aprobado',
+        count: approvedDocuments,
+      },
+      {
+        status: 'Pendiente',
+        count: pendingDocuments,
+      },
+      {
+        status: 'Rechazado',
+        count: rejectionCount,
+      },
+      {
+        status: 'Vencido',
+        count: expiredDocuments,
+      },
+    ];
+
+    return rows.map((row) => ({
+      ...row,
+      percentage: totalDocuments ? Math.round((row.count / totalDocuments) * 100) : 0,
+    }));
+  }, [approvedDocuments, pendingDocuments, rejectionCount, expiredDocuments, totalDocuments]);
+
+  const approvalTimeline = useMemo(() => {
+    const monthMap = new Map<string, { month: string; avgDays: number; count: number; totalDays: number }>();
+
+    for (const document of documents) {
+      const month = monthLabel(document.createdAt);
+      const current = monthMap.get(month) || {
+        month,
+        avgDays: 0,
+        count: 0,
+        totalDays: 0,
+      };
+
+      const days = approvalDays(document);
+      if (typeof days === 'number') {
+        current.totalDays += days;
+        current.count += 1;
+      }
+
+      monthMap.set(month, current);
+    }
+
+    return Array.from(monthMap.values())
+      .map((item) => ({
+        month: item.month,
+        avgDays: item.count ? Math.round((item.totalDays / item.count) * 10) / 10 : 0,
+        count: item.count,
+      }))
+      .slice(-6);
+  }, [documents]);
+
+  const overdueDocuments = useMemo(() => {
+    const now = new Date();
+
+    return documents
+      .filter((document) =>
+        ['draft', 'submitted', 'under_review'].includes(String(document.status || ''))
+      )
+      .map((document) => {
+        const createdAt = document.createdAt ? new Date(document.createdAt) : null;
+        const daysOpen =
+          createdAt && !Number.isNaN(createdAt.getTime())
+            ? Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24))
+            : 0;
+
+        return {
+          id: document.id,
+          title: document.title,
+          daysOverdue: Math.max(daysOpen - 7, 0),
+          approvalLevel:
+            document.steps?.find((step) => step.status === 'pending') ? 'Pendiente' : 'En revision',
+          daysOpen,
+        };
+      })
+      .filter((document) => document.daysOverdue > 0)
+      .sort((left, right) => right.daysOverdue - left.daysOverdue)
+      .slice(0, 10);
+  }, [documents]);
+
+  const hasError = statsError || documentsError;
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Reportería de Documentos</h1>
+        <h1 className="text-3xl font-bold text-foreground">Reporteria de Documentos</h1>
         <p className="text-muted-foreground mt-2">
-          Análisis y seguimiento del flujo de aprobación de documentos
+          Analisis y seguimiento del flujo de aprobacion documental
         </p>
       </div>
+
+      {hasError && (
+        <Card className="border-destructive/30">
+          <CardContent className="pt-6 flex items-center gap-3 text-sm">
+            <AlertCircle className="w-4 h-4 text-destructive" />
+            <span>No fue posible cargar toda la reporteria documental.</span>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
@@ -52,8 +212,10 @@ export default function DocumentosReportesPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">45</div>
-            <p className="text-xs text-muted-foreground mt-1">60% del total</p>
+            <div className="text-3xl font-bold">{approvedDocuments}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {totalDocuments ? Math.round((approvedDocuments / totalDocuments) * 100) : 0}% del total
+            </p>
           </CardContent>
         </Card>
 
@@ -65,8 +227,8 @@ export default function DocumentosReportesPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">20</div>
-            <p className="text-xs text-muted-foreground mt-1">En revisión</p>
+            <div className="text-3xl font-bold">{pendingDocuments}</div>
+            <p className="text-xs text-muted-foreground mt-1">En revision</p>
           </CardContent>
         </Card>
 
@@ -78,8 +240,10 @@ export default function DocumentosReportesPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">8</div>
-            <p className="text-xs text-muted-foreground mt-1">11% del total</p>
+            <div className="text-3xl font-bold">{rejectionCount}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {totalDocuments ? Math.round((rejectionCount / totalDocuments) * 100) : 0}% del total
+            </p>
           </CardContent>
         </Card>
 
@@ -91,8 +255,8 @@ export default function DocumentosReportesPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">2.8</div>
-            <p className="text-xs text-muted-foreground mt-1">días de aprobación</p>
+            <div className="text-3xl font-bold">{averageApprovalDays}</div>
+            <p className="text-xs text-muted-foreground mt-1">dias de aprobacion</p>
           </CardContent>
         </Card>
       </div>
@@ -108,14 +272,14 @@ export default function DocumentosReportesPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
-                <CardTitle>Distribución por Estado</CardTitle>
-                <CardDescription>Documentos por estado de aprobación</CardDescription>
+                <CardTitle>Distribucion por Estado</CardTitle>
+                <CardDescription>Documentos por estado del flujo de aprobacion</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
-                      data={mockDocumentStats}
+                      data={documentStats}
                       cx="50%"
                       cy="50%"
                       labelLine={false}
@@ -123,9 +287,10 @@ export default function DocumentosReportesPage() {
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="count"
+                      nameKey="status"
                     >
-                      {mockDocumentStats.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      {documentStats.map((entry, index) => (
+                        <Cell key={`${entry.status}-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
                     <Tooltip />
@@ -137,16 +302,19 @@ export default function DocumentosReportesPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Desglose por Estado</CardTitle>
-                <CardDescription>Estadísticas detalladas</CardDescription>
+                <CardDescription>Estadisticas consolidadas del modulo</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {mockDocumentStats.map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-3 border rounded-lg">
+                  {documentStats.map((item, index) => (
+                    <div
+                      key={item.status}
+                      className="flex items-center justify-between p-3 border rounded-lg"
+                    >
                       <div className="flex items-center gap-3">
                         <div
                           className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: COLORS[idx] }}
+                          style={{ backgroundColor: COLORS[index] }}
                         />
                         <span className="font-medium text-sm">{item.status}</span>
                       </div>
@@ -165,20 +333,37 @@ export default function DocumentosReportesPage() {
         <TabsContent value="timeline">
           <Card>
             <CardHeader>
-              <CardTitle>Tiempo Promedio de Aprobación</CardTitle>
-              <CardDescription>Análisis de tendencia mensual</CardDescription>
+              <CardTitle>Tiempo Promedio de Aprobacion</CardTitle>
+              <CardDescription>Tendencia mensual segun documentos procesados</CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={mockApprovalTimeData}>
+                <LineChart data={approvalTimeline}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
-                  <YAxis yAxisId="left" label={{ value: 'Días', angle: -90, position: 'insideLeft' }} />
-                  <YAxis yAxisId="right" orientation="right" label={{ value: 'Cantidad', angle: 90, position: 'insideRight' }} />
+                  <YAxis yAxisId="left" label={{ value: 'Dias', angle: -90, position: 'insideLeft' }} />
+                  <YAxis
+                    yAxisId="right"
+                    orientation="right"
+                    label={{ value: 'Cantidad', angle: 90, position: 'insideRight' }}
+                  />
                   <Tooltip />
                   <Legend />
-                  <Line yAxisId="left" type="monotone" dataKey="avgDays" stroke="#f97316" name="Promedio (días)" strokeWidth={2} />
-                  <Bar yAxisId="right" dataKey="count" fill="#22c55e" name="Documentos procesados" opacity={0.3} />
+                  <Line
+                    yAxisId="left"
+                    type="monotone"
+                    dataKey="avgDays"
+                    stroke="#f97316"
+                    name="Promedio (dias)"
+                    strokeWidth={2}
+                  />
+                  <Bar
+                    yAxisId="right"
+                    dataKey="count"
+                    fill="#22c55e"
+                    name="Documentos procesados"
+                    opacity={0.3}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
@@ -190,22 +375,25 @@ export default function DocumentosReportesPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <AlertCircle className="w-5 h-5 text-destructive" />
-                Documentos Vencidos en Aprobación
+                Documentos Vencidos en Aprobacion
               </CardTitle>
-              <CardDescription>Documentos que exceden el tiempo máximo de revisión</CardDescription>
+              <CardDescription>
+                Documentos pendientes con mas de 7 dias abiertos en revision
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {mockOverdueDocuments.length > 0 ? (
-                  mockOverdueDocuments.map(doc => (
-                    <div key={doc.id} className="flex items-center justify-between p-3 border border-destructive/20 rounded-lg bg-destructive/5">
+                {overdueDocuments.length > 0 ? (
+                  overdueDocuments.map((doc) => (
+                    <div
+                      key={doc.id}
+                      className="flex items-center justify-between p-3 border border-destructive/20 rounded-lg bg-destructive/5"
+                    >
                       <div className="flex-1">
                         <p className="font-medium">{doc.title}</p>
-                        <p className="text-xs text-muted-foreground">
-                          En nivel {doc.approvalLevel}
-                        </p>
+                        <p className="text-xs text-muted-foreground">{doc.approvalLevel}</p>
                       </div>
-                      <Badge variant="destructive">{doc.daysOverdue} días</Badge>
+                      <Badge variant="destructive">{doc.daysOverdue} dias</Badge>
                     </div>
                   ))
                 ) : (
