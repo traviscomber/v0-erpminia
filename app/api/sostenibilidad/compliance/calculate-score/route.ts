@@ -1,5 +1,6 @@
-import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/api/guard';
+import { getSupabaseServerClient } from '@/lib/supabase-server';
 
 // Helper: Calculate compliance score (read-only)
 interface NonConformance {
@@ -10,9 +11,15 @@ interface NonConformance {
 }
 
 async function calculateComplianceScore(supabase: any, organization_id?: string) {
-  const { data: allNCs, error: ncError } = await supabase
+  let query = supabase
     .from('sostenibilidad_nonconformances')
     .select('id, status, severity, created_at');
+
+  if (organization_id) {
+    query = query.eq('organization_id', organization_id);
+  }
+
+  const { data: allNCs, error: ncError } = await query;
 
   if (ncError) throw ncError;
 
@@ -31,10 +38,14 @@ async function calculateComplianceScore(supabase: any, organization_id?: string)
 
 // GET /api/sostenibilidad/compliance/calculate-score - READ ONLY
 export async function GET(request: NextRequest) {
+  const auth = await requireAuth(request);
+  if (!auth.authorized || !auth.organizationId) {
+    return auth.response || NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const supabase = getSupabaseServerClient();
-    const { searchParams } = new URL(request.url);
-    const organization_id = searchParams.get('organization_id') || 'default';
+    const organization_id = auth.organizationId;
 
     const { totalNCs, closedNCs, openNCs, overduNCs, complianceScore } = 
       await calculateComplianceScore(supabase, organization_id);
@@ -82,10 +93,15 @@ export async function GET(request: NextRequest) {
 
 // POST /api/sostenibilidad/compliance/calculate-score - SAVE HISTORY
 export async function POST(request: NextRequest) {
+  const auth = await requireAuth(request);
+  if (!auth.authorized || !auth.organizationId) {
+    return auth.response || NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const supabase = getSupabaseServerClient();
-    const { organization_id, period } = await request.json();
-    const org = organization_id || 'default';
+    const { period } = await request.json();
+    const org = auth.organizationId;
     const p = period || getCurrentPeriod();
 
     const { totalNCs, closedNCs, openNCs, overduNCs, complianceScore } = 

@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
+import { Loader2, Upload } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Upload, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
 
 export interface DocumentUploadModalProps {
   open: boolean;
@@ -15,6 +15,9 @@ export interface DocumentUploadModalProps {
   organizationId: string;
   onSuccess?: (documentId: string) => void;
 }
+
+const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
+const ALLOWED_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'];
 
 export function DocumentUploadModal({
   open,
@@ -29,18 +32,41 @@ export function DocumentUploadModal({
   const [documentType, setDocumentType] = useState('');
   const [category, setCategory] = useState('');
 
+  const resetForm = () => {
+    setTitle('');
+    setDescription('');
+    setDocumentType('');
+    setCategory('');
+    setFile(null);
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (files && files[0]) {
-      setFile(files[0]);
+    if (!files || !files[0]) return;
+
+    const selectedFile = files[0];
+    const extension = selectedFile.name.split('.').pop()?.toLowerCase();
+
+    if (!extension || !ALLOWED_EXTENSIONS.includes(extension)) {
+      toast.error('Formato no permitido. Usa PDF, JPG, PNG, DOC o DOCX.');
+      e.target.value = '';
+      return;
     }
+
+    if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
+      toast.error('El archivo supera el limite de 50MB.');
+      e.target.value = '';
+      return;
+    }
+
+    setFile(selectedFile);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!title || !documentType || !category || !file) {
-      toast.error('Por favor completa todos los campos');
+      toast.error('Por favor completa todos los campos requeridos');
       return;
     }
 
@@ -54,6 +80,10 @@ export function DocumentUploadModal({
       formData.append('category', category);
       formData.append('file', file);
 
+      if (organizationId) {
+        formData.append('organizationId', organizationId);
+      }
+
       const response = await fetch('/api/documents', {
         method: 'POST',
         body: formData,
@@ -66,14 +96,7 @@ export function DocumentUploadModal({
 
       const result = await response.json();
       toast.success('Documento subido exitosamente');
-      
-      // Reset form
-      setTitle('');
-      setDescription('');
-      setDocumentType('');
-      setCategory('');
-      setFile(null);
-      
+      resetForm();
       onOpenChange(false);
       onSuccess?.(result.documentId);
     } catch (error) {
@@ -95,9 +118,8 @@ export function DocumentUploadModal({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Título */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Título del Documento</label>
+            <label className="text-sm font-medium text-foreground">Titulo del Documento</label>
             <Input
               placeholder="ej: Certificado de Seguridad 2026"
               value={title}
@@ -106,9 +128,8 @@ export function DocumentUploadModal({
             />
           </div>
 
-          {/* Descripción */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Descripción (opcional)</label>
+            <label className="text-sm font-medium text-foreground">Descripcion (opcional)</label>
             <Textarea
               placeholder="Detalles adicionales sobre el documento"
               value={description}
@@ -118,7 +139,6 @@ export function DocumentUploadModal({
             />
           </div>
 
-          {/* Tipo de Documento */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Tipo de Documento</label>
@@ -135,12 +155,11 @@ export function DocumentUploadModal({
               </Select>
             </div>
 
-            {/* Categoría */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Categoría</label>
+              <label className="text-sm font-medium text-foreground">Categoria</label>
               <Select value={category} onValueChange={setCategory} disabled={isLoading}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecciona categoría" />
+                  <SelectValue placeholder="Selecciona categoria" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="safety">Seguridad</SelectItem>
@@ -152,7 +171,6 @@ export function DocumentUploadModal({
             </div>
           </div>
 
-          {/* Archivo */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Archivo</label>
             <div className="border-2 border-dashed border-muted-foreground rounded-lg p-6 text-center cursor-pointer hover:border-primary transition-colors">
@@ -170,13 +188,12 @@ export function DocumentUploadModal({
                   {file ? file.name : 'Haz clic para seleccionar o arrastra un archivo'}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  PDF, JPG, PNG, DOC (Max 50MB)
+                  PDF, JPG, PNG, DOC, DOCX (Max 50MB)
                 </p>
               </label>
             </div>
           </div>
 
-          {/* Botones */}
           <div className="flex justify-end gap-3 pt-4">
             <Button
               type="button"

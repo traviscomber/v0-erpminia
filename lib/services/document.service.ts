@@ -1,10 +1,77 @@
 import { createClient } from '@supabase/supabase-js';
 import { nanoid } from 'nanoid';
+import { NotificationService } from '@/lib/notification-service';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
+
+interface ProfileRecord {
+  id: string;
+  email?: string | null;
+  full_name?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+}
+
+interface DocumentRecord {
+  id: string;
+  title: string;
+  created_by: string;
+}
+
+function getProfileDisplayName(profile?: ProfileRecord | null, fallback?: string | null) {
+  if (fallback) return fallback;
+  if (profile?.full_name) return profile.full_name;
+
+  const fullName = [profile?.first_name, profile?.last_name]
+    .filter(Boolean)
+    .join(' ')
+    .trim();
+
+  return fullName || profile?.email || 'Usuario';
+}
+
+async function getProfileRecord(userId?: string | null) {
+  if (!userId) return null;
+
+  const { data } = await supabase
+    .from('profiles')
+    .select('id, email, full_name, first_name, last_name')
+    .eq('id', userId)
+    .maybeSingle();
+
+  return (data as ProfileRecord | null) || null;
+}
+
+async function notifyDocumentOwner(
+  type: 'document_approved' | 'document_rejected',
+  document: DocumentRecord,
+  message: string,
+  priority: 'medium' | 'high'
+) {
+  const ownerProfile = await getProfileRecord(document.created_by);
+
+  await NotificationService.send(
+    {
+      type,
+      title:
+        type === 'document_approved'
+          ? `Documento aprobado: ${document.title}`
+          : `Documento rechazado: ${document.title}`,
+      message,
+      priority,
+      recipient: ownerProfile?.email || document.created_by,
+      data: { documentId: document.id },
+      timestamp: new Date(),
+    },
+    {
+      inApp: true,
+      email: ownerProfile?.email || undefined,
+    }
+  );
+}
 
 export interface DocumentUploadInput {
   organizationId: string;
@@ -27,19 +94,11 @@ export interface DocumentApprovalInput {
   levelName: string;
 }
 
-/**
- * Document Service: Gestión completa de documentos
- */
 export class DocumentService {
-  /**
-   * Upload de documento con versionado automático
-   */
   static async uploadDocument(input: DocumentUploadInput) {
     try {
-      // 1. Generar número único de documento
       const documentNumber = `DOC-${input.organizationId.slice(0, 4)}-${Date.now()}-${nanoid(4)}`;
 
-      // 2. Subir archivo a Supabase Storage
       const fileName = `${input.organizationId}/${Date.now()}-${input.file.name}`;
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('documents')
@@ -47,7 +106,6 @@ export class DocumentService {
 
       if (uploadError) throw new Error(`Upload failed: ${uploadError.message}`);
 
-      // 3. Crear registro en documents
       const documentId = nanoid();
       const { data: document, error: docError } = await supabase
         .from('documents')
@@ -75,7 +133,6 @@ export class DocumentService {
 
       if (docError) throw new Error(`Document creation failed: ${docError.message}`);
 
-      // 4. Crear version inicial
       await supabase.from('document_versions').insert({
         document_id: documentId,
         version_number: 1,
@@ -87,7 +144,6 @@ export class DocumentService {
         created_by: input.createdBy,
       });
 
-      // 5. Si tiene template, crear approvals automáticamente
       if (input.templateId) {
         const template = await supabase
           .from('document_templates')
@@ -96,8 +152,8 @@ export class DocumentService {
           .single();
 
         const requiredApprovers = template.data?.required_approvers || 1;
-        
-        for (let level = 1; level <= requiredApprovers; level++) {
+
+        for (let level = 1; level <= requiredApprovers; level += 1) {
           const roleMap = {
             1: { role: 'reviewer', name: 'Reviewer' },
             2: { role: 'validator', name: 'Validator' },
@@ -105,7 +161,7 @@ export class DocumentService {
           };
 
           const roleInfo = roleMap[level as keyof typeof roleMap];
-          
+
           await supabase.from('document_approvals').insert({
             document_id: documentId,
             approval_level: level,
@@ -123,19 +179,10 @@ export class DocumentService {
     }
   }
 
-  /**
-   * Obtener documento con todas las relaciones
-   */
   static async getDocument(documentId: string) {
     const { data: document, error } = await supabase
       .from('documents')
-      .select(`
-        *,
-        document_versions(*),
-        document_approvals(*),
-        created_by_user:users(id, email, name),
-        approved_by_user:users(id, email, name)
-      `)
+      .select('*, document_versions(*), document_approvals(*)')
       .eq('id', documentId)
       .single();
 
@@ -143,9 +190,6 @@ export class DocumentService {
     return document;
   }
 
-  /**
-   * Listar documentos con filtros
-   */
   static async listDocuments(
     organizationId: string,
     filters?: {
@@ -161,7 +205,12 @@ export class DocumentService {
       .select('*, document_approvals(*)', { count: 'exact' })
       .eq('organization_id', organizationId);
 
-    if (filters?.status) query = query.eq('status', filters.status);
+    if (filters?.status === 'pending') {
+      query = query.in('status', ['draft', 'submitted', 'under_review']);
+    } else if (filters?.status) {
+      query = query.eq('status', filters.status);
+    }
+
     if (filters?.category) query = query.eq('category', filters.category);
     if (filters?.search) {
       query = query.ilike('search_text', `%${filters.search}%`);
@@ -169,7 +218,7 @@ export class DocumentService {
 
     const limit = filters?.limit || 50;
     const offset = filters?.offset || 0;
-    
+
     query = query
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
@@ -180,19 +229,10 @@ export class DocumentService {
     return { documents: data, total: count };
   }
 
-  /**
-   * Obtener documentos pendientes de aprobación
-   */
-  static async getPendingApprovals(userId: string, organizationId: string) {
+  static async getPendingApprovals(userId: string) {
     const { data } = await supabase
       .from('document_approvals')
-      .select(`
-        *,
-        document:documents(
-          id, title, document_number, category, created_at,
-          created_by_user:users(name, email)
-        )
-      `)
+      .select('*')
       .eq('assigned_to', userId)
       .eq('status', 'pending')
       .order('created_at', { ascending: false });
@@ -200,9 +240,6 @@ export class DocumentService {
     return data || [];
   }
 
-  /**
-   * Aprobar documento (workflow: 3 niveles)
-   */
   static async approveDocument(
     documentId: string,
     approvalLevelId: string,
@@ -210,12 +247,34 @@ export class DocumentService {
     comments?: string
   ) {
     try {
-      // 1. Actualizar aprobación
+      const [approverProfile, approvalResult, documentResult] = await Promise.all([
+        getProfileRecord(approvedBy),
+        supabase
+          .from('document_approvals')
+          .select('*')
+          .eq('id', approvalLevelId)
+          .eq('document_id', documentId)
+          .maybeSingle(),
+        supabase
+          .from('documents')
+          .select('id, title, created_by')
+          .eq('id', documentId)
+          .maybeSingle(),
+      ]);
+
+      const currentApproval = approvalResult.data;
+      const document = documentResult.data as DocumentRecord | null;
+
+      if (!currentApproval || !document) {
+        throw new Error('Document approval context not found');
+      }
+
       const { error: updateError } = await supabase
         .from('document_approvals')
         .update({
           status: 'approved',
           approved_by: approvedBy,
+          approved_by_name: getProfileDisplayName(approverProfile),
           approved_at: new Date().toISOString(),
           comments,
         })
@@ -223,15 +282,13 @@ export class DocumentService {
 
       if (updateError) throw updateError;
 
-      // 2. Verificar si todas las aprobaciones están completas
       const { data: approvals } = await supabase
         .from('document_approvals')
-        .select('status')
+        .select('*')
         .eq('document_id', documentId);
 
-      const allApproved = approvals?.every((a) => a.status === 'approved');
+      const allApproved = approvals?.every((approval) => approval.status === 'approved');
 
-      // 3. Si todas aprobadas, marcar documento como approved
       if (allApproved) {
         await supabase
           .from('documents')
@@ -241,6 +298,45 @@ export class DocumentService {
             approved_by: approvedBy,
           })
           .eq('id', documentId);
+
+        await notifyDocumentOwner(
+          'document_approved',
+          document,
+          `El documento ${document.title} completo su flujo de aprobacion.`,
+          'medium'
+        );
+      } else {
+        await supabase
+          .from('documents')
+          .update({ status: 'under_review' })
+          .eq('id', documentId);
+
+        const nextPendingApproval = approvals
+          ?.filter((approval) => approval.status === 'pending')
+          .sort((left, right) => left.approval_level - right.approval_level)[0];
+
+        if (nextPendingApproval) {
+          const nextApproverProfile = await getProfileRecord(nextPendingApproval.assigned_to);
+
+          await NotificationService.send(
+            {
+              type: 'document_pending_approval',
+              title: `Nueva aprobacion pendiente: ${document.title}`,
+              message: `El documento ${document.title} requiere revision en ${nextPendingApproval.approval_level_name || `nivel ${nextPendingApproval.approval_level}`}.`,
+              priority: 'high',
+              recipient:
+                nextApproverProfile?.email ||
+                nextPendingApproval.assigned_to ||
+                documentId,
+              data: { documentId, approvalId: nextPendingApproval.id },
+              timestamp: new Date(),
+            },
+            {
+              inApp: true,
+              email: nextApproverProfile?.email || undefined,
+            }
+          );
+        }
       }
 
       return { success: true };
@@ -250,9 +346,6 @@ export class DocumentService {
     }
   }
 
-  /**
-   * Rechazar documento
-   */
   static async rejectDocument(
     documentId: string,
     approvalLevelId: string,
@@ -260,18 +353,39 @@ export class DocumentService {
     rejectionReason: string
   ) {
     try {
-      // 1. Actualizar aprobación como rechazada
+      const [rejectedByProfile, approvalResult, documentResult] = await Promise.all([
+        getProfileRecord(rejectedBy),
+        supabase
+          .from('document_approvals')
+          .select('*')
+          .eq('id', approvalLevelId)
+          .eq('document_id', documentId)
+          .maybeSingle(),
+        supabase
+          .from('documents')
+          .select('id, title, created_by')
+          .eq('id', documentId)
+          .maybeSingle(),
+      ]);
+
+      const currentApproval = approvalResult.data;
+      const document = documentResult.data as DocumentRecord | null;
+
+      if (!currentApproval || !document) {
+        throw new Error('Document rejection context not found');
+      }
+
       await supabase
         .from('document_approvals')
         .update({
           status: 'rejected',
           approved_by: rejectedBy,
+          approved_by_name: getProfileDisplayName(rejectedByProfile),
           rejection_reason: rejectionReason,
           approved_at: new Date().toISOString(),
         })
         .eq('id', approvalLevelId);
 
-      // 2. Marcar documento como rechazado
       await supabase
         .from('documents')
         .update({
@@ -281,12 +395,18 @@ export class DocumentService {
         })
         .eq('id', documentId);
 
-      // 3. Resetear todas las aprobaciones posteriores a pending
       await supabase
         .from('document_approvals')
         .update({ status: 'pending' })
         .eq('document_id', documentId)
-        .gt('id', approvalLevelId);
+        .gt('approval_level', currentApproval.approval_level);
+
+      await notifyDocumentOwner(
+        'document_rejected',
+        document,
+        `El documento ${document.title} fue rechazado. Motivo: ${rejectionReason}`,
+        'high'
+      );
 
       return { success: true };
     } catch (error) {
@@ -295,12 +415,8 @@ export class DocumentService {
     }
   }
 
-  /**
-   * Procesar expiry - marcar como expirado y crear alertas
-   */
   static async checkAndProcessExpiry(organizationId: string) {
     try {
-      // 1. Encontrar documentos a punto de expirar (30 días)
       const thirtyDaysFromNow = new Date();
       thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
 
@@ -319,7 +435,6 @@ export class DocumentService {
               (1000 * 60 * 60 * 24)
           );
 
-          // Crear alerta
           await supabase.from('document_expiry_alerts').insert({
             organization_id: organizationId,
             document_id: doc.id,
@@ -329,7 +444,6 @@ export class DocumentService {
         }
       }
 
-      // 2. Marcar documentos ya expirados
       await supabase
         .from('documents')
         .update({
@@ -347,9 +461,6 @@ export class DocumentService {
     }
   }
 
-  /**
-   * Obtener resumen de documentos para dashboard
-   */
   static async getDashboardStats(organizationId: string) {
     const [total, approved, pending, expired] = await Promise.all([
       supabase
@@ -365,7 +476,7 @@ export class DocumentService {
         .from('documents')
         .select('*', { count: 'exact', head: true })
         .eq('organization_id', organizationId)
-        .eq('status', 'submitted'),
+        .in('status', ['draft', 'submitted', 'under_review']),
       supabase
         .from('documents')
         .select('*', { count: 'exact', head: true })

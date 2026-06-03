@@ -1,23 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
+import { resolveAuthContext } from '@/lib/api/auth-session';
 
 /**
  * Guard: Require authenticated user
  * Returns 401 JSON for API routes, throws for server components
  */
 export async function requireAuth(request: NextRequest) {
-  const supabase = getSupabaseServerClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const authContext = await resolveAuthContext(request);
 
-  if (!user || error) {
+  if (!authContext?.user) {
     return {
       authorized: false,
       user: null,
+      role: null,
+      organizationId: null,
       response: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
     };
   }
 
-  return { authorized: true, user, response: null };
+  return {
+    authorized: true,
+    user: authContext.user,
+    role: authContext.role || null,
+    organizationId: authContext.organizationId || authContext.user.organization_id || null,
+    response: null,
+  };
 }
 
 /**
@@ -28,6 +36,10 @@ export async function requireAdmin(request: NextRequest) {
   const auth = await requireAuth(request);
   if (!auth.authorized || !auth.user) {
     return { authorized: false, response: auth.response };
+  }
+
+  if (auth.role === 'admin') {
+    return { authorized: true, user: auth.user, response: null };
   }
 
   const supabase = getSupabaseServerClient();

@@ -2,7 +2,15 @@
 // Supports: In-app alerts, Slack webhooks, Email queue
 
 interface NotificationPayload {
-  type: 'nc_created' | 'nc_approved' | 'ca_assigned' | 'ca_overdue' | 'compliance_alert';
+  type:
+    | 'nc_created'
+    | 'nc_approved'
+    | 'ca_assigned'
+    | 'ca_overdue'
+    | 'compliance_alert'
+    | 'document_pending_approval'
+    | 'document_approved'
+    | 'document_rejected';
   title: string;
   message: string;
   priority: 'low' | 'medium' | 'high' | 'critical';
@@ -22,6 +30,19 @@ export class NotificationService {
   private static queue: NotificationPayload[] = [];
   private static channels: Map<string, NotificationChannel> = new Map();
 
+  private static resolveApiUrl(path: string) {
+    if (typeof window !== 'undefined') {
+      return path;
+    }
+
+    const baseUrl =
+      process.env.APP_URL ||
+      process.env.NEXT_PUBLIC_APP_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined);
+
+    return baseUrl ? new URL(path, baseUrl).toString() : null;
+  }
+
   static async send(payload: NotificationPayload, channels: NotificationChannel) {
     this.queue.push(payload);
 
@@ -40,9 +61,12 @@ export class NotificationService {
   }
 
   private static sendInApp(payload: NotificationPayload) {
-    // Emit event to connected clients
+    if (typeof window === 'undefined' || typeof CustomEvent === 'undefined') {
+      return;
+    }
+
     const event = new CustomEvent('notification', { detail: payload });
-    typeof window !== 'undefined' && window.dispatchEvent(event);
+    window.dispatchEvent(event);
   }
 
   private static async sendSlack(payload: NotificationPayload, webhookUrl: string) {
@@ -79,7 +103,14 @@ export class NotificationService {
 
   private static async queueEmail(payload: NotificationPayload, email: string) {
     try {
-      await fetch('/api/sostenibilidad/notifications/email', {
+      const endpoint = this.resolveApiUrl('/api/sostenibilidad/notifications/email');
+
+      if (!endpoint) {
+        console.warn('[v0] Email queue skipped: missing APP_URL/NEXT_PUBLIC_APP_URL/VERCEL_URL');
+        return;
+      }
+
+      await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
