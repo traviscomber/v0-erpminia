@@ -1,12 +1,19 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+
+  return createClient(supabaseUrl, supabaseKey);
+}
 
 export class WarehouseService {
   static async createZone(organizationId: string, zoneCode: string, zoneName: string) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('warehouse_zones')
       .insert({ organization_id: organizationId, zone_code: zoneCode, zone_name: zoneName })
@@ -17,6 +24,7 @@ export class WarehouseService {
   }
 
   static async createRack(zoneId: string, rackCode: string, rackName: string) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('warehouse_racks')
       .insert({ zone_id: zoneId, rack_code: rackCode, rack_name: rackName })
@@ -27,6 +35,7 @@ export class WarehouseService {
   }
 
   static async createBin(rackId: string, binCode: string, binLocation: string) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('warehouse_bins')
       .insert({ rack_id: rackId, bin_code: binCode, bin_location: binLocation })
@@ -37,6 +46,7 @@ export class WarehouseService {
   }
 
   static async getWarehouseStructure(organizationId: string) {
+    const supabase = getSupabaseClient();
     const { data: zones } = await supabase
       .from('warehouse_zones')
       .select('*, racks:warehouse_racks(*)')
@@ -45,6 +55,7 @@ export class WarehouseService {
   }
 
   static async getBinById(binId: string) {
+    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('warehouse_bins')
       .select('*, rack:warehouse_racks(*)')

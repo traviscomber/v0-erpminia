@@ -2,10 +2,16 @@ import { createClient } from '@supabase/supabase-js';
 import { nanoid } from 'nanoid';
 import { NotificationService } from '@/lib/notification-service';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+
+  return createClient(supabaseUrl, supabaseKey);
+}
 
 interface ProfileRecord {
   id: string;
@@ -36,6 +42,7 @@ function getProfileDisplayName(profile?: ProfileRecord | null, fallback?: string
 async function getProfileRecord(userId?: string | null) {
   if (!userId) return null;
 
+  const supabase = getSupabaseClient();
   const { data } = await supabase
     .from('profiles')
     .select('id, email, full_name, first_name, last_name')

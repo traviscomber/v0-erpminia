@@ -21,6 +21,7 @@ export class AssetTrackingService {
     criticality: 'low' | 'medium' | 'high' | 'critical';
     mtbfHours?: number;
   }) {
+    const supabase = getSupabaseClient();
     const { data: asset, error } = await supabase
       .from('maintenance_assets')
       .insert({

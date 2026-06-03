@@ -1,8 +1,19 @@
 // FASE 1: RBAC Middleware - Protección de rutas basada en permisos
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 import RBACService from '@/lib/services/rbac.service';
+
+function getSupabaseServerClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+  
+  return createClient(supabaseUrl, supabaseKey);
+}
 
 export interface ProtectRouteOptions {
   requiredPermissions?: Array<{ resource: string; action: string }>;
@@ -41,7 +52,7 @@ export async function rbacMiddleware(
 
   try {
     // Obtener usuario autenticado
-    const supabase = await createClient();
+    const supabase = getSupabaseServerClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();

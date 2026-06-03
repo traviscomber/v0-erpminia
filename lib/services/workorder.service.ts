@@ -1,10 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 import { nanoid } from 'nanoid';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+
+  return createClient(supabaseUrl, supabaseKey);
+}
 
 export class WorkOrderService {
   static async createWorkOrder(data: {
@@ -19,6 +25,7 @@ export class WorkOrderService {
     assignedTo?: string;
     createdBy: string;
   }) {
+    const supabase = getSupabaseClient();
     const woNumber = `WO-${data.organizationId.slice(0, 4)}-${Date.now()}-${nanoid(3)}`;
     
     const { data: wo, error } = await supabase
@@ -45,6 +52,7 @@ export class WorkOrderService {
   }
 
   static async getWorkOrder(woId: string) {
+    const supabase = getSupabaseClient();
     const { data: wo, error } = await supabase
       .from('maintenance_work_orders')
       .select('*, asset:maintenance_assets(*), assignee:users(id, name, email)')

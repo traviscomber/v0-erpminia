@@ -11,6 +11,7 @@ function getSupabaseClient() {
 
 export class QRScannerService {
   static async generateQRCode(organizationId: string, stockId: string, binId?: string) {
+    const supabase = getSupabaseClient();
     const qrValue = `QR-${organizationId.slice(0, 8)}-${stockId.slice(0, 8)}-${nanoid(6)}`;
     const { data, error } = await supabase
       .from('qr_codes')

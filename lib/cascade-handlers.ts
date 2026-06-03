@@ -1,11 +1,22 @@
 // Cascade event handlers - cross-module automation
 // This file handles the events that cascade across Producción → Mantenimiento → Bodega → Finanzas → HSE
 
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@supabase/supabase-js';
+
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+  
+  return createClient(supabaseUrl, supabaseKey);
+}
 
 export const handleSensorAnomaly = async (sensorId: string, equipmentId: string, anomalyType: string, severity: 'low' | 'medium' | 'high' | 'critical') => {
   try {
-    const supabase = createClient();
+    const supabase = getSupabaseClient();
     
     // 1. Create HSE Alert
     const { data: hseAlert } = await supabase.from('hse_alerts').insert({

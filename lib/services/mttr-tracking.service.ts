@@ -10,6 +10,7 @@ function getSupabaseClient() {
 
 export class MTTRTrackingService {
   static async calculateMTTR(organizationId: string, assetId?: string) {
+    const supabase = getSupabaseClient();
     let query = supabase
       .from('maintenance_work_orders')
       .select('actual_duration_hours')

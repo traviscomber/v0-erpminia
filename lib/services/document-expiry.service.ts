@@ -18,6 +18,7 @@ export class DocumentExpiryService {
    * Obtener documentos próximos a expirar (30, 14, 7, 1 día)
    */
   static async getExpiringDocuments(organizationId: string, daysThreshold: number = 30) {
+    const supabase = getSupabaseClient();
     const thresholdDate = new Date();
     thresholdDate.setDate(thresholdDate.getDate() + daysThreshold);
 
