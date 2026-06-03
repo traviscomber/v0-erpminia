@@ -1,13 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 import { nanoid } from 'nanoid';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseKey) throw new Error("Missing Supabase env vars");
+  return createClient(supabaseUrl, supabaseKey);
+}
 
 export class QRScannerService {
   static async generateQRCode(organizationId: string, stockId: string, binId?: string) {
+    const supabase = getSupabaseClient();
     const qrValue = `QR-${organizationId.slice(0, 8)}-${stockId.slice(0, 8)}-${nanoid(6)}`;
     const { data, error } = await supabase
       .from('qr_codes')
@@ -19,6 +22,7 @@ export class QRScannerService {
   }
 
   static async scanQRCode(qrCodeValue: string, action: string, userId: string, binId?: string) {
+    const supabase = getSupabaseClient();
     const { data: qr } = await supabase.from('qr_codes').select('*').eq('qr_code_value', qrCodeValue).single();
     if (!qr) throw new Error('QR code not found');
 
@@ -41,6 +45,7 @@ export class QRScannerService {
   }
 
   static async getQRCodeData(qrCodeValue: string) {
+    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('qr_codes')
       .select('*, stock:warehouse_stock(*), bin:warehouse_bins(*)')
@@ -50,6 +55,7 @@ export class QRScannerService {
   }
 
   static async getScanHistory(qrCodeId: string) {
+    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('qr_scan_logs')
       .select('*, scanner:users(name)')

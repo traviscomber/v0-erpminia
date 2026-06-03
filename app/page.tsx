@@ -47,14 +47,14 @@ export default function Home() {
         <div className="text-center space-y-6 mb-16">
           <div className="inline-block px-4 py-2 rounded-full bg-[var(--brand-naranja)]/10 border border-[var(--brand-naranja)]/20">
             <p className="text-sm font-semibold text-[var(--brand-naranja)]">
-              MOTIL: Maximizando Operación Tecnología Información y Logística
+              Motil — Plataforma Operacional Minera
             </p>
           </div>
           <h1 className="text-5xl md:text-6xl font-bold text-foreground">
-            Motil
+            Operación Minera Conectada
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            La plataforma que conecta tus sensores, tu equipo y tu gestión. Desde el molino hasta la oficina: todo integrado, todo visible, todo bajo control.
+            Conecta producción, mantención, bodega, HSE, documentos y gerencia en un flujo trazable desde terreno hasta dirección.
           </p>
           <div className="flex gap-4 justify-center pt-4">
             <Link href="/auth/login">
@@ -77,11 +77,11 @@ export default function Home() {
           <BrandCard>
             <CardHeader>
               <Zap className="h-8 w-8 text-[var(--brand-naranja)] mb-2" />
-              <CardTitle>Seguridad Primero</CardTitle>
+              <CardTitle>Seguridad Integrada</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Alertas al instante, visibilidad total y equipos protegidos. Sin sorpresas.
+                HSE no es un apéndice. Está tejido en cada operación, cada alerta, cada documento.
               </p>
             </CardContent>
           </BrandCard>
@@ -89,11 +89,11 @@ export default function Home() {
           <BrandCard>
             <CardHeader>
               <CheckCircle2 className="h-8 w-8 text-[var(--brand-verde)] mb-2" />
-              <CardTitle>Operaciones Eficientes</CardTitle>
+              <CardTitle>Trazabilidad Total</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Menos tiempos muertos, menos papeles perdidos, más dinero en el bolsillo.
+                Desde el sensor en terreno hasta la firma de gerencia. Evento operacional → KPI.
               </p>
             </CardContent>
           </BrandCard>
@@ -101,11 +101,11 @@ export default function Home() {
           <BrandCard>
             <CardHeader>
               <BarChart3 className="h-8 w-8 text-[var(--brand-gold)] mb-2" />
-              <CardTitle>Decisiones Informadas</CardTitle>
+              <CardTitle>Datos en Vivo</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Números claros, datos reales. Decisiones inteligentes, no intuición.
+                Dashboards que respiran. MTTR, costos, disponibilidad. Decisiones en tiempo real.
               </p>
             </CardContent>
           </BrandCard>
@@ -115,12 +115,12 @@ export default function Home() {
       {/* Features Section */}
       <section id="modules" className="bg-muted/50 py-20">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">5 Módulos que Hablan Entre Sí</h2>
-            <p className="text-muted-foreground text-lg">
-              No son herramientas aisladas. Todo se comunica automáticamente, sin papeleos ni demoras.
-            </p>
-          </div>
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-bold mb-4">5 Módulos Integrados para Minería</h2>
+          <p className="text-muted-foreground text-lg">
+            Un sistema operacional minero donde cada módulo comunica automáticamente. Sin intermediarios, sin pérdida de información.
+          </p>
+        </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6">
             {/* Producción */}
@@ -269,9 +269,9 @@ export default function Home() {
       {/* Integrated Workflow Section */}
       <section className="max-w-7xl mx-auto px-4 py-20">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4">Así Funciona en la Práctica</h2>
+          <h2 className="text-4xl font-bold mb-4">El Flujo Operacional Minero</h2>
           <p className="text-muted-foreground text-lg">
-            Un sensor detecta un problema y todo se pone en movimiento automáticamente. Sin intermediarios, sin demoras.
+            Evento operacional → Alerta → Orden de trabajo → Repuestos → HSE → Evidencia → Auditoría → KPIs
           </p>
         </div>
 
@@ -371,9 +371,9 @@ export default function Home() {
       {/* Roles Section - Elegant & Sophisticated */}
       <section className="max-w-7xl mx-auto px-4 py-24">
         <div className="text-center mb-20">
-          <h2 className="text-5xl font-bold mb-6">Cada Rol en Su Lugar</h2>
+          <h2 className="text-5xl font-bold mb-6">Diseñado para Minería: 6 Roles Especializados</h2>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            No es una sola plataforma gigante. Es 6 espacios diferentes, cada uno perfecto para quién lo usa. Con permisos justos y nada de lo que no necesita.
+            La plataforma de gestión operacional minera se adapta a cada rol. Operador, Jefe Mantención, Técnico, Bodega, HSE, Gerencia. Cada uno ve exactamente lo que necesita.
           </p>
         </div>
 
@@ -499,7 +499,7 @@ export default function Home() {
       {/* Trust & Features Section */}
       <section className="max-w-7xl mx-auto px-4 py-20">
         <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold mb-4">Construido para Operaciones Mineras Complejas</h2>
+          <h2 className="text-3xl font-bold mb-4">Sistema Operacional Minero: Características Premium</h2>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
@@ -545,9 +545,9 @@ export default function Home() {
       {/* CTA Section */}
       <section className="bg-[var(--brand-naranja)] text-white py-20">
         <div className="max-w-4xl mx-auto px-4 text-center space-y-6">
-          <h2 className="text-4xl font-bold">Listo para Transformar tus Operaciones</h2>
+          <h2 className="text-4xl font-bold">Transforma tu Operación Minera</h2>
           <p className="text-lg opacity-90">
-            Accede a una demo guiada del sistema completo. Conoce cómo mantenimiento, inventario y documentos se integran en una única plataforma.
+            Accede a una demo de la plataforma de gestión operacional minera. Observa cómo producción, mantención, bodega, HSE y documentos se conectan sin fricciones.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <Link href="/dashboard">
@@ -574,10 +574,10 @@ export default function Home() {
       <footer className="border-t border-border bg-muted/30 py-8">
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
           <p className="text-sm text-muted-foreground">
-              ERP SegurIA © 2026 • Powered by <a href="https://n3uralia.com" target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline">n3uralia</a>
+              Motil — Plataforma Operacional Minera © 2026 • Powered by <a href="https://n3uralia.com" target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline">n3uralia</a>
           </p>
           <p className="text-sm text-muted-foreground">
-            Una iniciativa de <span className="font-semibold">Cía. Minera La Patagua</span>
+            Desarrollado por <span className="font-semibold">Cía. Minera La Patagua</span>
           </p>
         </div>
       </footer>

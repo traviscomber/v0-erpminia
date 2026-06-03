@@ -1,16 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
 
-let supabase: any = null;
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-const getClient = () => {
-  if (!supabase && typeof window === 'undefined') {
-    supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing Supabase environment variables');
   }
-  return supabase;
-};
+
+  return createClient(supabaseUrl, supabaseKey);
+}
 
 export class CorrectiveActionService {
   // Auto-generate CA number: CA-{nc_number}-{seq}
@@ -27,6 +26,7 @@ export class CorrectiveActionService {
   }) {
     const caNumber = await this.getNextCANumber(ncNumber);
 
+    const supabase = getSupabaseClient();
     const { data: ca, error } = await supabase
       .from('sostenibilidad_corrective_actions')
       .insert({
@@ -46,6 +46,7 @@ export class CorrectiveActionService {
   }
 
   static async getCorrectiveAction(caId: string) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('sostenibilidad_corrective_actions')
       .select(`
@@ -61,6 +62,7 @@ export class CorrectiveActionService {
   }
 
   static async listCorrectiveActions(ncId: string) {
+    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('sostenibilidad_corrective_actions')
       .select('*')
@@ -71,6 +73,7 @@ export class CorrectiveActionService {
   }
 
   static async updateCorrectiveAction(caId: string, updates: any) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('sostenibilidad_corrective_actions')
       .update({ ...updates, updated_at: new Date().toISOString() })
@@ -108,6 +111,7 @@ export class CorrectiveActionService {
     updatedBy: string;
     attachmentUrl?: string;
   }) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('sostenibilidad_ca_updates')
       .insert({
@@ -127,6 +131,7 @@ export class CorrectiveActionService {
   }
 
   static async getCAProgress(ncId: string) {
+    const supabase = getSupabaseClient();
     const { data: cas } = await supabase
       .from('sostenibilidad_corrective_actions')
       .select('status', { count: 'exact' })
@@ -160,6 +165,7 @@ export class CorrectiveActionService {
   }
 
   static async getOverdueCorrectiveActions(organizationId: string) {
+    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('sostenibilidad_corrective_actions')
       .select(`
@@ -174,6 +180,7 @@ export class CorrectiveActionService {
   }
 
   static async getCAStats(organizationId: string) {
+    const supabase = getSupabaseClient();
     const { data: all } = await supabase
       .from('sostenibilidad_corrective_actions')
       .select(`
@@ -204,6 +211,7 @@ export class CorrectiveActionService {
   }
 
   static async getTotalCASpend(ncId: string) {
+    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('sostenibilidad_corrective_actions')
       .select('estimated_cost, actual_cost')

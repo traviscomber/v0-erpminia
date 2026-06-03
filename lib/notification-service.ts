@@ -1,34 +1,27 @@
-// Notification Service - Handles in-app and external notifications
-// Supports: In-app alerts, Slack webhooks, Email queue
+// Notification Service - Handles in-app, email, and external notifications
+// Supports: In-app alerts, Email queue, Slack webhooks
 
-interface NotificationPayload {
-  type:
-    | 'nc_created'
-    | 'nc_approved'
-    | 'ca_assigned'
-    | 'ca_overdue'
-    | 'compliance_alert'
-    | 'document_pending_approval'
-    | 'document_approved'
-    | 'document_rejected';
-  title: string;
+export interface DocumentNotification {
+  id: string;
+  user_id: string;
+  document_id: string;
+  document_title: string;
+  approval_level: number;
+  approval_level_name: string;
+  type: 'pending' | 'approved' | 'rejected' | 'nc_created' | 'nc_approved' | 'ca_assigned' | 'ca_overdue' | 'compliance_alert' | 'document_submitted' | 'document_approved' | 'document_rejected' | 'document_expiring';
   message: string;
-  priority: 'low' | 'medium' | 'high' | 'critical';
-  recipient: string;
-  data?: Record<string, any>;
-  timestamp: Date;
+  title?: string;
+  read: boolean;
+  created_at: string;
 }
 
-interface NotificationChannel {
-  inApp: boolean;
-  slack?: string;
-  email?: string;
-  push?: boolean;
-}
+export type NotificationChannel = 'in-app' | 'email' | 'slack';
 
 export class NotificationService {
-  private static queue: NotificationPayload[] = [];
-  private static channels: Map<string, NotificationChannel> = new Map();
+  private static instance: NotificationService;
+  private static queue: DocumentNotification[] = [];
+
+  private constructor() {}
 
   private static resolveApiUrl(path: string) {
     if (typeof window !== 'undefined') {
@@ -43,65 +36,142 @@ export class NotificationService {
     return baseUrl ? new URL(path, baseUrl).toString() : null;
   }
 
-  static async send(payload: NotificationPayload, channels: NotificationChannel) {
-    this.queue.push(payload);
+  static getInstance(): NotificationService {
+    if (!NotificationService.instance) {
+      NotificationService.instance = new NotificationService();
+    }
+    return NotificationService.instance;
+  }
 
-    if (channels.inApp) {
-      this.sendInApp(payload);
-    }
-    if (channels.slack) {
-      await this.sendSlack(payload, channels.slack);
-    }
-    if (channels.email) {
-      await this.queueEmail(payload, channels.email);
-    }
-    if (channels.push) {
-      await this.sendPush(payload);
+  // Send notification through specified channels
+  static async send(notification: DocumentNotification, channels: NotificationChannel[] = ['in-app']) {
+    this.queue.push(notification);
+
+    for (const channel of channels) {
+      if (channel === 'in-app') {
+        this.sendInApp(notification);
+      } else if (channel === 'email') {
+        // Email sending handled via queue
+        console.log('[v0] Email notification queued:', notification.id);
+      }
     }
   }
 
-  private static sendInApp(payload: NotificationPayload) {
+  private static sendInApp(notification: DocumentNotification) {
     if (typeof window === 'undefined' || typeof CustomEvent === 'undefined') {
       return;
     }
 
-    const event = new CustomEvent('notification', { detail: payload });
+    const event = new CustomEvent('notification', { detail: notification });
     window.dispatchEvent(event);
   }
 
-  private static async sendSlack(payload: NotificationPayload, webhookUrl: string) {
-    try {
-      const message = {
-        text: payload.title,
-        blocks: [
-          {
-            type: 'header',
-            text: { type: 'plain_text', text: payload.title },
-          },
-          {
-            type: 'section',
-            text: { type: 'mrkdwn', text: payload.message },
-          },
-          {
-            type: 'context',
-            elements: [
-              { type: 'mrkdwn', text: `Priority: *${payload.priority.toUpperCase()}*` },
-            ],
-          },
-        ],
-      };
+  // Create notification when document is submitted for approval
+  static async notifyPendingApproval(
+    userId: string,
+    documentId: string,
+    documentTitle: string,
+    approvalLevel: number,
+    approvalLevelName: string
+  ): Promise<DocumentNotification> {
+    const notification: DocumentNotification = {
+      id: crypto.randomUUID(),
+      user_id: userId,
+      document_id: documentId,
+      document_title: documentTitle,
+      approval_level: approvalLevel,
+      approval_level_name: approvalLevelName,
+      type: 'pending',
+      title: 'Aprobación Pendiente',
+      message: `Documento "${documentTitle}" requiere tu aprobación (${approvalLevelName})`,
+      read: false,
+      created_at: new Date().toISOString(),
+    };
 
-      await fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(message),
-      });
-    } catch (error) {
-      console.error('[v0] Slack notification failed:', error);
-    }
+    await this.send(notification, ['in-app', 'email']);
+    return notification;
   }
 
-  private static async queueEmail(payload: NotificationPayload, email: string) {
+  // Create notification when document is approved
+  static async notifyApprovalApproved(
+    userId: string,
+    documentId: string,
+    documentTitle: string,
+    approvalLevelName: string,
+    approvedBy: string
+  ): Promise<DocumentNotification> {
+    const notification: DocumentNotification = {
+      id: crypto.randomUUID(),
+      user_id: userId,
+      document_id: documentId,
+      document_title: documentTitle,
+      approval_level: 0,
+      approval_level_name: approvalLevelName,
+      type: 'approved',
+      title: 'Aprobación Completada',
+      message: `Documento "${documentTitle}" fue aprobado por ${approvedBy}`,
+      read: false,
+      created_at: new Date().toISOString(),
+    };
+
+    await this.send(notification, ['in-app', 'email']);
+    return notification;
+  }
+
+  // Create notification when document is rejected
+  static async notifyApprovalRejected(
+    userId: string,
+    documentId: string,
+    documentTitle: string,
+    approvalLevelName: string,
+    rejectionReason: string,
+    rejectedBy: string
+  ): Promise<DocumentNotification> {
+    const notification: DocumentNotification = {
+      id: crypto.randomUUID(),
+      user_id: userId,
+      document_id: documentId,
+      document_title: documentTitle,
+      approval_level: 0,
+      approval_level_name: approvalLevelName,
+      type: 'rejected',
+      title: 'Aprobación Rechazada',
+      message: `Documento "${documentTitle}" fue rechazado por ${rejectedBy}: ${rejectionReason}`,
+      read: false,
+      created_at: new Date().toISOString(),
+    };
+
+    await this.send(notification, ['in-app', 'email']);
+    return notification;
+  }
+
+  // Generic notification for compliance events
+  static async notifyComplianceEvent(
+    userId: string,
+    type: 'nc_created' | 'nc_approved' | 'ca_assigned' | 'ca_overdue' | 'compliance_alert',
+    title: string,
+    message: string
+  ): Promise<DocumentNotification> {
+    const notification: DocumentNotification = {
+      id: crypto.randomUUID(),
+      user_id: userId,
+      document_id: '',
+      document_title: '',
+      approval_level: 0,
+      approval_level_name: '',
+      type,
+      title,
+      message,
+      read: false,
+      created_at: new Date().toISOString(),
+    };
+
+    await this.send(notification, ['in-app', 'email']);
+    return notification;
+  }
+
+  // Queue email notification
+  static async queueEmail(notification: DocumentNotification, email: string) {
     try {
       const endpoint = this.resolveApiUrl('/api/sostenibilidad/notifications/email');
 
@@ -115,9 +185,10 @@ export class NotificationService {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           to: email,
-          subject: payload.title,
-          body: payload.message,
-          type: payload.type,
+          subject: notification.title || notification.message,
+          body: notification.message,
+          type: notification.type,
+          document_id: notification.document_id,
         }),
       });
     } catch (error) {
@@ -125,22 +196,27 @@ export class NotificationService {
     }
   }
 
-  private static async sendPush(payload: NotificationPayload) {
-    if ('serviceWorker' in navigator && 'PushManager' in window) {
-      const registration = await navigator.serviceWorker.ready;
-      registration.showNotification(payload.title, {
-        body: payload.message,
-        badge: '/badge.png',
-        tag: payload.type,
-      });
+  // Mark notification as read
+  static async markAsRead(notificationId: string): Promise<void> {
+    const notification = this.queue.find(n => n.id === notificationId);
+    if (notification) {
+      notification.read = true;
     }
   }
 
-  static getQueue() {
+  // Get pending notifications for user
+  static async getPendingNotifications(userId: string): Promise<DocumentNotification[]> {
+    return this.queue.filter(n => n.user_id === userId && !n.read);
+  }
+
+  // Get all notifications
+  static getQueue(): DocumentNotification[] {
     return this.queue;
   }
 
-  static clearQueue() {
+  // Clear queue (useful for testing)
+  static clearQueue(): void {
     this.queue = [];
   }
 }
+

@@ -2,10 +2,16 @@ import { createClient } from '@supabase/supabase-js';
 import { nanoid } from 'nanoid';
 import { NotificationService } from '@/lib/notification-service';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+
+  return createClient(supabaseUrl, supabaseKey);
+}
 
 interface ProfileRecord {
   id: string;
@@ -36,6 +42,7 @@ function getProfileDisplayName(profile?: ProfileRecord | null, fallback?: string
 async function getProfileRecord(userId?: string | null) {
   if (!userId) return null;
 
+  const supabase = getSupabaseClient();
   const { data } = await supabase
     .from('profiles')
     .select('id, email, full_name, first_name, last_name')
@@ -48,29 +55,27 @@ async function getProfileRecord(userId?: string | null) {
 async function notifyDocumentOwner(
   type: 'document_approved' | 'document_rejected',
   document: DocumentRecord,
-  message: string,
-  priority: 'medium' | 'high'
+  message: string
 ) {
   const ownerProfile = await getProfileRecord(document.created_by);
+  
+  const notification = {
+    id: document.id,
+    user_id: document.created_by,
+    document_id: document.id,
+    document_title: document.title,
+    approval_level: 0,
+    approval_level_name: 'Owner Notification',
+    type: type as 'document_approved' | 'document_rejected',
+    title: type === 'document_approved' 
+      ? `Documento aprobado: ${document.title}`
+      : `Documento rechazado: ${document.title}`,
+    message,
+    read: false,
+    created_at: new Date().toISOString(),
+  };
 
-  await NotificationService.send(
-    {
-      type,
-      title:
-        type === 'document_approved'
-          ? `Documento aprobado: ${document.title}`
-          : `Documento rechazado: ${document.title}`,
-      message,
-      priority,
-      recipient: ownerProfile?.email || document.created_by,
-      data: { documentId: document.id },
-      timestamp: new Date(),
-    },
-    {
-      inApp: true,
-      email: ownerProfile?.email || undefined,
-    }
-  );
+  await NotificationService.send(notification, ['in-app', 'email']);
 }
 
 export interface DocumentUploadInput {
@@ -97,6 +102,7 @@ export interface DocumentApprovalInput {
 export class DocumentService {
   static async uploadDocument(input: DocumentUploadInput) {
     try {
+      const supabase = getSupabaseClient();
       const documentNumber = `DOC-${input.organizationId.slice(0, 4)}-${Date.now()}-${nanoid(4)}`;
 
       const fileName = `${input.organizationId}/${Date.now()}-${input.file.name}`;
@@ -180,6 +186,7 @@ export class DocumentService {
   }
 
   static async getDocument(documentId: string) {
+    const supabase = getSupabaseClient();
     const { data: document, error } = await supabase
       .from('documents')
       .select('*, document_versions(*), document_approvals(*)')
@@ -200,6 +207,7 @@ export class DocumentService {
       offset?: number;
     }
   ) {
+    const supabase = getSupabaseClient();
     let query = supabase
       .from('documents')
       .select('*, document_approvals(*)', { count: 'exact' })
@@ -230,6 +238,7 @@ export class DocumentService {
   }
 
   static async getPendingApprovals(userId: string) {
+    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('document_approvals')
       .select('*')
@@ -247,6 +256,7 @@ export class DocumentService {
     comments?: string
   ) {
     try {
+      const supabase = getSupabaseClient();
       const [approverProfile, approvalResult, documentResult] = await Promise.all([
         getProfileRecord(approvedBy),
         supabase
@@ -302,8 +312,7 @@ export class DocumentService {
         await notifyDocumentOwner(
           'document_approved',
           document,
-          `El documento ${document.title} completo su flujo de aprobacion.`,
-          'medium'
+          `El documento ${document.title} completo su flujo de aprobacion.`
         );
       } else {
         await supabase
@@ -318,24 +327,21 @@ export class DocumentService {
         if (nextPendingApproval) {
           const nextApproverProfile = await getProfileRecord(nextPendingApproval.assigned_to);
 
-          await NotificationService.send(
-            {
-              type: 'document_pending_approval',
-              title: `Nueva aprobacion pendiente: ${document.title}`,
-              message: `El documento ${document.title} requiere revision en ${nextPendingApproval.approval_level_name || `nivel ${nextPendingApproval.approval_level}`}.`,
-              priority: 'high',
-              recipient:
-                nextApproverProfile?.email ||
-                nextPendingApproval.assigned_to ||
-                documentId,
-              data: { documentId, approvalId: nextPendingApproval.id },
-              timestamp: new Date(),
-            },
-            {
-              inApp: true,
-              email: nextApproverProfile?.email || undefined,
-            }
-          );
+          const notification = {
+            id: nextPendingApproval.id,
+            user_id: nextPendingApproval.assigned_to,
+            document_id: documentId,
+            document_title: document.title,
+            approval_level: nextPendingApproval.approval_level,
+            approval_level_name: nextPendingApproval.approval_level_name || `Nivel ${nextPendingApproval.approval_level}`,
+            type: 'pending' as const,
+            title: `Nueva aprobacion pendiente: ${document.title}`,
+            message: `El documento ${document.title} requiere revision en ${nextPendingApproval.approval_level_name || `nivel ${nextPendingApproval.approval_level}`}.`,
+            read: false,
+            created_at: new Date().toISOString(),
+          };
+
+          await NotificationService.send(notification, ['in-app', 'email']);
         }
       }
 
@@ -353,6 +359,7 @@ export class DocumentService {
     rejectionReason: string
   ) {
     try {
+      const supabase = getSupabaseClient();
       const [rejectedByProfile, approvalResult, documentResult] = await Promise.all([
         getProfileRecord(rejectedBy),
         supabase
@@ -404,8 +411,7 @@ export class DocumentService {
       await notifyDocumentOwner(
         'document_rejected',
         document,
-        `El documento ${document.title} fue rechazado. Motivo: ${rejectionReason}`,
-        'high'
+        `El documento ${document.title} fue rechazado. Motivo: ${rejectionReason}`
       );
 
       return { success: true };
@@ -417,6 +423,7 @@ export class DocumentService {
 
   static async checkAndProcessExpiry(organizationId: string) {
     try {
+      const supabase = getSupabaseClient();
       const thirtyDaysFromNow = new Date();
       thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
 
@@ -462,6 +469,7 @@ export class DocumentService {
   }
 
   static async getDashboardStats(organizationId: string) {
+    const supabase = getSupabaseClient();
     const [total, approved, pending, expired] = await Promise.all([
       supabase
         .from('documents')

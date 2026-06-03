@@ -1,10 +1,16 @@
 // Event Cascade Engine - Orchestrates automation across all modules
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+
+  return createClient(supabaseUrl, supabaseKey);
+}
 
 // Event Types
 export type EventType =
@@ -31,6 +37,7 @@ export interface Event {
 export class EventCascadeEngine {
   // When sensor detects anomaly → Create alert → Suggest OT → Reserve inventory
   async handleSensorAnomaly(sensorId: string, equipmentId: string, severity: string) {
+    const supabase = getSupabaseClient();
     try {
       // 1. Create alarm in Producción
       const { data: alarm } = await supabase
@@ -89,6 +96,7 @@ export class EventCascadeEngine {
 
   // When HSE incident reported → Create investigation → Check stock → Alert HSE team
   async handleHSEIncident(incidentType: string, equipmentId: string, description: string) {
+    const supabase = getSupabaseClient();
     try {
       // 1. Create incident record
       const { data: incident } = await supabase
@@ -144,6 +152,7 @@ export class EventCascadeEngine {
 
   // When maintenance OT completed → Update availability → Update finanzas → Close alert
   async handleMaintenanceCompleted(otId: string, equipmentId: string, actualCost: number, partsCost: number) {
+    const supabase = getSupabaseClient();
     try {
       // 1. Update equipment availability
       const today = new Date().toISOString().split('T')[0];
@@ -187,6 +196,7 @@ export class EventCascadeEngine {
 
   // When equipment status changes → Update plant dashboard → Check HSE requirements
   async handleEquipmentStatusChange(equipmentId: string, newStatus: string) {
+    const supabase = getSupabaseClient();
     try {
       // 1. Update equipment status
       const { data: equipment } = await supabase
@@ -225,6 +235,7 @@ export class EventCascadeEngine {
 
   // Sync method - Process pending events
   async processPendingEvents() {
+    const supabase = getSupabaseClient();
     try {
       const { data: events } = await supabase
         .from('event_log')

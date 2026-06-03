@@ -1,9 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabaseClient() {
+  const { createClient } = require("@supabase/supabase-js");
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseKey) throw new Error("Missing Supabase env vars");
+  return createClient(supabaseUrl, supabaseKey);
+}
 
 export class PreventiveMaintenanceService {
   static async createSchedule(data: {
@@ -18,6 +21,7 @@ export class PreventiveMaintenanceService {
     const nextDate = new Date();
     nextDate.setDate(nextDate.getDate() + data.frequencyDays);
 
+    const supabase = getSupabaseClient();
     const { data: schedule, error } = await supabase
       .from('preventive_maintenance_schedules')
       .insert({
@@ -42,6 +46,7 @@ export class PreventiveMaintenanceService {
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + days);
 
+    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('preventive_maintenance_schedules')
       .select('*, asset:maintenance_assets(asset_name, criticality)')
@@ -55,6 +60,7 @@ export class PreventiveMaintenanceService {
   }
 
   static async markAsExecuted(scheduleId: string) {
+    const supabase = getSupabaseClient();
     const { data: schedule } = await supabase
       .from('preventive_maintenance_schedules')
       .select('frequency_days')
@@ -78,6 +84,7 @@ export class PreventiveMaintenanceService {
   }
 
   static async getSchedulesForAsset(assetId: string) {
+    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('preventive_maintenance_schedules')
       .select('*')
@@ -88,6 +95,7 @@ export class PreventiveMaintenanceService {
   }
 
   static async getScheduleStats(organizationId: string) {
+    const supabase = getSupabaseClient();
     const { data: all } = await supabase
       .from('preventive_maintenance_schedules')
       .select('*', { count: 'exact' })

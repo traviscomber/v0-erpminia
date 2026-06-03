@@ -1,18 +1,35 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+// Lazy-initialize Supabase clients to avoid env var errors at build time
+function getClients() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey);
+  if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceRoleKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+
+  return {
+    supabase: createClient(supabaseUrl, supabaseAnonKey),
+    supabaseAdmin: createClient(supabaseUrl, supabaseServiceRoleKey),
+  };
+}
+
+// Export factory functions
+export function getSupabaseClient() {
+  return getClients().supabase;
+}
+
+export function getSupabaseAdmin() {
+  return getClients().supabaseAdmin;
+}
 
 // Database initialization helper
 export async function initializeDatabase() {
   try {
     // Create tables - Usuarios y Autenticación
-    await supabaseAdmin.rpc('exec_sql', {
+    await getSupabaseAdmin().rpc('exec_sql', {
       sql: `
         CREATE TABLE IF NOT EXISTS users (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

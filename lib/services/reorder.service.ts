@@ -1,12 +1,19 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+
+  return createClient(supabaseUrl, supabaseKey);
+}
 
 export class ReorderService {
   static async checkReorderLevels(organizationId: string) {
+    const supabase = getSupabaseClient();
     const { data: stock } = await supabase
       .from('warehouse_stock')
       .select('*')
@@ -16,6 +23,7 @@ export class ReorderService {
     if (!stock) return [];
 
     for (const item of stock) {
+      const supabase = getSupabaseClient();
       const existing = await supabase
         .from('reorder_alerts')
         .select('*')
@@ -24,6 +32,7 @@ export class ReorderService {
         .single();
 
       if (!existing.data) {
+        const supabase = getSupabaseClient();
         await supabase.from('reorder_alerts').insert({
           organization_id: organizationId,
           stock_id: item.id,
@@ -39,6 +48,7 @@ export class ReorderService {
   }
 
   static async getReorderAlerts(organizationId: string) {
+    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('reorder_alerts')
       .select('*, stock:warehouse_stock(*)')
@@ -48,6 +58,7 @@ export class ReorderService {
   }
 
   static async acknowledgeAlert(alertId: string, userId: string) {
+    const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('reorder_alerts')
       .update({ status: 'acknowledged', acknowledged_by: userId, acknowledged_at: new Date().toISOString() })
@@ -56,6 +67,7 @@ export class ReorderService {
   }
 
   static async getReorderStats(organizationId: string) {
+    const supabase = getSupabaseClient();
     const { data: alerts } = await supabase
       .from('reorder_alerts')
       .select('*', { count: 'exact' })

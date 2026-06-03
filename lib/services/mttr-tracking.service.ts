@@ -1,12 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabaseClient() {
+  const { createClient } = require("@supabase/supabase-js");
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseKey) throw new Error("Missing Supabase env vars");
+  return createClient(supabaseUrl, supabaseKey);
+}
 
 export class MTTRTrackingService {
   static async calculateMTTR(organizationId: string, assetId?: string) {
+    const supabase = getSupabaseClient();
     let query = supabase
       .from('maintenance_work_orders')
       .select('actual_duration_hours')
@@ -20,11 +24,12 @@ export class MTTRTrackingService {
 
     if (!data || data.length === 0) return 0;
 
-    const total = data.reduce((sum, wo) => sum + (wo.actual_duration_hours || 0), 0);
+    const total = data.reduce((sum: number, wo: any) => sum + (wo.actual_duration_hours || 0), 0);
     return total / data.length;
   }
 
   static async calculateTotalDowntime(organizationId: string, assetId?: string, daysBack: number = 30) {
+    const supabase = getSupabaseClient();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - daysBack);
 
@@ -39,7 +44,7 @@ export class MTTRTrackingService {
     const { data } = await query;
 
     if (!data) return 0;
-    return data.reduce((sum, wo) => sum + (wo.down_time_hours || 0), 0);
+    return data.reduce((sum: number, wo: any) => sum + (wo.down_time_hours || 0), 0);
   }
 
   static async recordMaintenance(data: {
@@ -53,6 +58,7 @@ export class MTTRTrackingService {
     partsReplaced?: string;
     notes?: string;
   }) {
+    const supabase = getSupabaseClient();
     const { error } = await supabase.from('maintenance_history').insert({
       work_order_id: data.workOrderId,
       asset_id: data.assetId,
@@ -71,6 +77,7 @@ export class MTTRTrackingService {
   }
 
   static async getDashboardStats(organizationId: string) {
+    const supabase = getSupabaseClient();
     const [mttr, downtime, woCount] = await Promise.all([
       this.calculateMTTR(organizationId),
       this.calculateTotalDowntime(organizationId),
@@ -90,6 +97,7 @@ export class MTTRTrackingService {
   }
 
   static async getMTTRTrend(organizationId: string, daysBack: number = 30) {
+    const supabase = getSupabaseClient();
     const dates = [];
     for (let i = 0; i < daysBack; i++) {
       const d = new Date();
@@ -105,10 +113,10 @@ export class MTTRTrackingService {
       .gte('completion_date', new Date(Date.now() - daysBack * 24 * 60 * 60 * 1000).toISOString());
 
     const trend = dates.map((date) => {
-      const dayData = data?.filter((wo) => wo.completion_date?.includes(date)) || [];
+      const dayData = data?.filter((wo: any) => wo.completion_date?.includes(date)) || [];
       const avg =
         dayData.length > 0
-          ? dayData.reduce((sum, wo) => sum + (wo.actual_duration_hours || 0), 0) / dayData.length
+          ? dayData.reduce((sum: number, wo: any) => sum + (wo.actual_duration_hours || 0), 0) / dayData.length
           : 0;
       return { date, mttr: Math.round(avg * 10) / 10 };
     });

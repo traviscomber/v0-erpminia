@@ -5,10 +5,13 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabaseClient() {
+  const { createClient } = require("@supabase/supabase-js");
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseKey) throw new Error("Missing Supabase env vars");
+  return createClient(supabaseUrl, supabaseKey);
+}
 
 export interface ApprovalWorkflowStep {
   level: number;
@@ -43,6 +46,7 @@ export class DocumentApprovalWorkflowService {
    * Obtener el flujo de aprobación para un documento
    */
   static async getWorkflowStatus(documentId: string) {
+    const supabase = getSupabaseClient();
     const { data: approvals } = await supabase
       .from('document_approvals')
       .select('*')
@@ -62,6 +66,7 @@ export class DocumentApprovalWorkflowService {
     userEmail: string,
     userName: string
   ) {
+    const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('document_approvals')
       .update({
@@ -83,6 +88,7 @@ export class DocumentApprovalWorkflowService {
    * Obtener el siguiente nivel de aprobación
    */
   static async getNextApprovalLevel(documentId: string) {
+    const supabase = getSupabaseClient();
     const { data: approvals } = await supabase
       .from('document_approvals')
       .select('*')
@@ -99,13 +105,14 @@ export class DocumentApprovalWorkflowService {
    * Obtener historial de aprobaciones
    */
   static async getApprovalHistory(documentId: string) {
+    const supabase = getSupabaseClient();
     const { data: approvals } = await supabase
       .from('document_approvals')
       .select('*')
       .eq('document_id', documentId)
       .order('approval_level', { ascending: true });
 
-    return (approvals || []).map((approval) => ({
+    return (approvals || []).map((approval: any) => ({
       level: approval.approval_level,
       levelName: approval.approval_level_name,
       status: approval.status,
@@ -159,6 +166,7 @@ export class DocumentApprovalWorkflowService {
    */
   static async restartApprovalWorkflow(documentId: string) {
     try {
+      const supabase = getSupabaseClient();
       // Resetear todas las aprobaciones a pending
       const { error } = await supabase
         .from('document_approvals')
@@ -184,6 +192,7 @@ export class DocumentApprovalWorkflowService {
    * Obtener estadísticas de aprobaciones
    */
   static async getApprovalStats(organizationId: string) {
+    const supabase = getSupabaseClient();
     const [totalDocuments, approvedCount, pendingCount, rejectedCount] = await Promise.all([
       supabase
         .from('documents')

@@ -1,10 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 import { nanoid } from 'nanoid';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+
+  return createClient(supabaseUrl, supabaseKey);
+}
 
 export class WorkOrderService {
   static async createWorkOrder(data: {
@@ -19,6 +25,7 @@ export class WorkOrderService {
     assignedTo?: string;
     createdBy: string;
   }) {
+    const supabase = getSupabaseClient();
     const woNumber = `WO-${data.organizationId.slice(0, 4)}-${Date.now()}-${nanoid(3)}`;
     
     const { data: wo, error } = await supabase
@@ -45,6 +52,7 @@ export class WorkOrderService {
   }
 
   static async getWorkOrder(woId: string) {
+    const supabase = getSupabaseClient();
     const { data: wo, error } = await supabase
       .from('maintenance_work_orders')
       .select('*, asset:maintenance_assets(*), assignee:users(id, name, email)')
@@ -56,6 +64,7 @@ export class WorkOrderService {
   }
 
   static async listWorkOrders(organizationId: string, filters?: { status?: string; assetId?: string }) {
+    const supabase = getSupabaseClient();
     let query = supabase
       .from('maintenance_work_orders')
       .select('*, asset:maintenance_assets(asset_name, asset_type)')
@@ -70,6 +79,7 @@ export class WorkOrderService {
   }
 
   static async startWorkOrder(woId: string, technicianId: string) {
+    const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('maintenance_work_orders')
       .update({ status: 'in_progress', start_date: new Date().toISOString(), assigned_to: technicianId })
@@ -80,6 +90,7 @@ export class WorkOrderService {
 
   static async completeWorkOrder(woId: string, data: { actualDurationHours: number; rootCause?: string; notes?: string }) {
     const now = new Date().toISOString();
+    const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('maintenance_work_orders')
       .update({
@@ -95,6 +106,7 @@ export class WorkOrderService {
   }
 
   static async getMTTRStats(organizationId: string) {
+    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('maintenance_kpi_tracking')
       .select('*')

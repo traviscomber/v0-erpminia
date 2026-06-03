@@ -12,6 +12,7 @@ import useSWR from 'swr';
 import { DemoDataBadge } from '@/components/sostenibilidad/demo-data-badge';
 import { mockFlujDocumentalData, addMockDataIfEmpty } from '@/lib/mock-data-sostenibilidad';
 import { DocumentUpload } from '@/components/sostenibilidad/document-upload';
+import { DocumentSearch } from '@/components/documentos/document-search';
 import {
   Dialog,
   DialogContent,
@@ -24,15 +25,27 @@ import { toast } from 'sonner';
 
 interface DocumentoFlujo {
   id: string;
-  documento_id: string;
-  documento_nombre: string;
-  version: number;
-  estado: string;
-  validador1_nombre?: string;
-  validador1_accion?: string;
-  validador2_nombre?: string;
-  validador2_accion?: string;
-  creador_nombre: string;
+  title?: string;
+  documento_nombre?: string;
+  description?: string;
+  category?: string;
+  version?: number;
+  status?: string;
+  estado?: string;
+  document_approvals?: Array<{
+    id: string;
+    approval_level: number;
+    approval_level_name: string;
+    required_role: string;
+    status: string;
+    assigned_to_name?: string;
+    approved_by_name?: string;
+    comments?: string;
+    rejection_reason?: string;
+    approved_at?: string;
+  }>;
+  created_by?: string;
+  creador_nombre?: string;
   created_at: string;
 }
 
@@ -60,33 +73,45 @@ export default function FlujDocumentalPage() {
   const { data: documentos = [], mutate } = useSWR('/api/sostenibilidad/documentos-flujo', fetcher);
   const docList = addMockDataIfEmpty(documentos.data || documentos, mockFlujDocumentalData) as DocumentoFlujo[];
 
-  const filteredDocs = docList.filter((doc: any) =>
-    (doc.documento_nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doc.documento_id.toLowerCase().includes(searchTerm.toLowerCase())) &&
-    (!filterEstado || doc.estado === filterEstado)
-  );
+  const filteredDocs = docList.filter((doc: any) => {
+    const title = doc.title || doc.documento_nombre || '';
+    const id = doc.id || doc.documento_id || '';
+    const status = doc.status || doc.estado || '';
+    
+    return (
+      (title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        id.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      (!filterEstado || status === filterEstado)
+    );
+  });
 
-  // Brandbook: primary (naranja), secondary (verde), destructive (rojo), muted (gris)
   const getEstadoColor = (estado: string) => {
-    const colors: Record<string, string> = {
+    const statusMap: Record<string, string> = {
       borrador: 'bg-muted text-muted-foreground',
+      draft: 'bg-muted text-muted-foreground',
       pendiente_validador1: 'bg-primary/10 text-primary',
+      submitted: 'bg-primary/10 text-primary',
+      under_review: 'bg-primary/10 text-primary',
       aprobado_validador1: 'bg-secondary/10 text-secondary',
       pendiente_validador2: 'bg-primary/10 text-primary',
       aprobado_final: 'bg-secondary/10 text-secondary',
+      approved: 'bg-secondary/10 text-secondary',
+      rejected: 'bg-destructive/10 text-destructive',
     };
-    return colors[estado] || 'bg-muted text-muted-foreground';
+    return statusMap[estado] || 'bg-muted text-muted-foreground';
   };
 
   const getEstadoIcon = (estado: string) => {
-    switch (estado) {
-      case 'borrador':
+    const status = (estado || '').toLowerCase();
+    switch (true) {
+      case status.includes('draft') || status.includes('borrador'):
         return <FileText className="w-4 h-4" />;
-      case 'pendiente_validador1':
-      case 'pendiente_validador2':
+      case status.includes('pending') || status.includes('submitted') || status.includes('pendiente'):
         return <Clock className="w-4 h-4" />;
-      case 'aprobado_final':
+      case status.includes('approved') || status.includes('aprobado'):
         return <CheckCircle className="w-4 h-4" />;
+      case status.includes('rejected'):
+        return <AlertCircle className="w-4 h-4" />;
       default:
         return <AlertCircle className="w-4 h-4" />;
     }
@@ -142,7 +167,7 @@ export default function FlujDocumentalPage() {
             <h1 className="text-3xl font-bold text-foreground">Flujo de Aprobación de Documentos</h1>
             {(!documentos || (documentos.data && documentos.data.length === 0) || (Array.isArray(documentos) && documentos.length === 0)) && <DemoDataBadge />}
           </div>
-          <p className="text-muted-foreground">Workflow de 2 validadores: Jefe de Sostenibilidad → Gerente de Operaciones</p>
+          <p className="text-muted-foreground">Workflow de 2 validadores: Jefe de Sostenibilidad → Gerente General</p>
         </div>
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogTrigger asChild>
@@ -342,7 +367,7 @@ export default function FlujDocumentalPage() {
                       <div className="border border-white/10 rounded-lg p-4">
                         <h4 className="font-bold text-sm mb-3 flex items-center gap-2">
                           <div className="w-6 h-6 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center text-xs">2</div>
-                          Gerente de Operaciones
+                          Gerente General
                         </h4>
                         {doc.validador2_nombre ? (
                           <div className="space-y-2 text-sm">

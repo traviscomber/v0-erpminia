@@ -1,12 +1,19 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+
+  return createClient(supabaseUrl, supabaseKey);
+}
 
 export class StockService {
   static async addStock(organizationId: string, partCode: string, quantity: number, binId?: string, unitCost?: number) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('warehouse_stock')
       .insert({
@@ -23,6 +30,7 @@ export class StockService {
   }
 
   static async updateStock(stockId: string, updates: any) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('warehouse_stock')
       .update({ ...updates, updated_at: new Date().toISOString() })
@@ -34,6 +42,7 @@ export class StockService {
   }
 
   static async getStock(stockId: string) {
+    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('warehouse_stock')
       .select('*, bin:warehouse_bins(*)')
@@ -43,6 +52,7 @@ export class StockService {
   }
 
   static async listStockByOrganization(organizationId: string, filters?: { binId?: string; partCode?: string }) {
+    const supabase = getSupabaseClient();
     let query = supabase.from('warehouse_stock').select('*, bin:warehouse_bins(*)').eq('organization_id', organizationId);
     if (filters?.binId) query = query.eq('bin_id', filters.binId);
     if (filters?.partCode) query = query.eq('part_code', filters.partCode);
@@ -51,6 +61,7 @@ export class StockService {
   }
 
   static async getLowStockAlerts(organizationId: string) {
+    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('warehouse_stock')
       .select('*')
@@ -60,6 +71,7 @@ export class StockService {
   }
 
   static async getStockValue(organizationId: string) {
+    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('warehouse_stock')
       .select('quantity_on_hand, unit_cost')

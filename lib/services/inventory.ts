@@ -1,10 +1,11 @@
-import { supabase } from '@/lib/db/supabase';
+import { getSupabaseClient } from '@/lib/db/supabase';
 import { InventoryMovementType } from '@/lib/types';
 import type { InventoryItem, InventoryMovement } from '@/lib/types';
 
 export const inventoryService = {
   // Get all inventory items in a warehouse
   async getInventoryItems(warehouseId: string) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('inventory_items')
       .select('*')
@@ -17,6 +18,7 @@ export const inventoryService = {
 
   // Get items by category
   async getItemsByCategory(warehouseId: string, category: string) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('inventory_items')
       .select('*')
@@ -29,6 +31,7 @@ export const inventoryService = {
 
   // Get low stock items
   async getLowStockItems(warehouseId: string) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('inventory_items')
       .select('*')
@@ -42,6 +45,7 @@ export const inventoryService = {
 
   // Create inventory item
   async createInventoryItem(item: Omit<InventoryItem, 'id' | 'created_at' | 'updated_at'>) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('inventory_items')
       .insert([item])
@@ -54,6 +58,7 @@ export const inventoryService = {
 
   // Update inventory item
   async updateInventoryItem(id: string, updates: Partial<InventoryItem>) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('inventory_items')
       .update(updates)
@@ -67,6 +72,7 @@ export const inventoryService = {
 
   // Record stock movement (entrada/salida)
   async recordStockMovement(movement: Omit<InventoryMovement, 'id' | 'created_at'>) {
+    const supabase = getSupabaseClient();
     // First, record the movement
     const { data: moveData, error: moveError } = await supabase
       .from('stock_movements')
@@ -98,6 +104,7 @@ export const inventoryService = {
 
   // Get stock movement history
   async getStockMovementHistory(itemId: string, limit: number = 50) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('stock_movements')
       .select('*, user:users(full_name)')
@@ -111,6 +118,7 @@ export const inventoryService = {
 
   // Calculate total inventory value
   async getTotalInventoryValue(warehouseId: string) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('inventory_items')
       .select('current_stock, unit_cost')
@@ -127,6 +135,7 @@ export const inventoryService = {
 
   // Get inventory analytics
   async getInventoryAnalytics(warehouseId: string) {
+    const supabase = getSupabaseClient();
     const { data: items, error } = await supabase
       .from('inventory_items')
       .select('*')
@@ -157,6 +166,7 @@ export const inventoryService = {
 
   // Physical count (conteo físico)
   async performPhysicalCount(warehouseId: string, items: Array<{ itemId: string; countedQuantity: number }>) {
+    const supabase = getSupabaseClient();
     const results = [];
     
     for (const { itemId, countedQuantity } of items) {
@@ -195,6 +205,7 @@ export const inventoryService = {
 
   // Delete inventory item
   async deleteInventoryItem(id: string) {
+    const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('inventory_items')
       .delete()
