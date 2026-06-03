@@ -112,7 +112,7 @@ export class DocumentApprovalWorkflowService {
       .eq('document_id', documentId)
       .order('approval_level', { ascending: true });
 
-    return (approvals || []).map((approval) => ({
+    return (approvals || []).map((approval: any) => ({
       level: approval.approval_level,
       levelName: approval.approval_level_name,
       status: approval.status,

@@ -33,7 +33,7 @@ export class DocumentExpiryService {
       .order('expiry_date', { ascending: true });
 
     // Calcular días hasta expiración
-    return (documents || []).map((doc) => ({
+    return (documents || []).map((doc: any) => ({
       ...doc,
       daysUntilExpiry: Math.floor(
         (new Date(doc.expiry_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
@@ -50,6 +50,7 @@ export class DocumentExpiryService {
    * Obtener documentos vencidos
    */
   static async getExpiredDocuments(organizationId: string) {
+    const supabase = getSupabaseClient();
     const { data: documents } = await supabase
       .from('documents')
       .select('*')
@@ -68,6 +69,7 @@ export class DocumentExpiryService {
     documentId: string,
     recipientEmails: string[]
   ) {
+    const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('document_expiry_alerts')
       .insert({
