@@ -160,7 +160,7 @@ export async function validateUserOwnership(
   request: NextRequest,
   userIdFromUrl: string
 ) {
-  const supabase = await createClient();
+  const supabase = getSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -183,7 +183,7 @@ export async function validateOrganizationAccess(
   request: NextRequest,
   organizationId: string
 ) {
-  const supabase = await createClient();
+  const supabase = getSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

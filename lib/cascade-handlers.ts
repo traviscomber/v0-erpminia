@@ -49,7 +49,7 @@ export const handleSensorAnomaly = async (sensorId: string, equipmentId: string,
 
 export const handleEquipmentDowntime = async (equipmentId: string, downtimeMinutes: number) => {
   try {
-    const supabase = createClient();
+    const supabase = getSupabaseClient();
     
     // Create incident record
     const { data: incident } = await supabase.from('incidents').insert({
