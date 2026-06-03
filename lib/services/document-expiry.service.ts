@@ -91,6 +91,7 @@ export class DocumentExpiryService {
    * Marcar documento como expirado
    */
   static async markAsExpired(documentId: string) {
+    const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('documents')
       .update({
