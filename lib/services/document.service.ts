@@ -469,6 +469,7 @@ export class DocumentService {
   }
 
   static async getDashboardStats(organizationId: string) {
+    const supabase = getSupabaseClient();
     const [total, approved, pending, expired] = await Promise.all([
       supabase
         .from('documents')

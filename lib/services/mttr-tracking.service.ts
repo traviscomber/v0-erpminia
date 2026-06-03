@@ -24,11 +24,12 @@ export class MTTRTrackingService {
 
     if (!data || data.length === 0) return 0;
 
-    const total = data.reduce((sum, wo) => sum + (wo.actual_duration_hours || 0), 0);
+    const total = data.reduce((sum: number, wo: any) => sum + (wo.actual_duration_hours || 0), 0);
     return total / data.length;
   }
 
   static async calculateTotalDowntime(organizationId: string, assetId?: string, daysBack: number = 30) {
+    const supabase = getSupabaseClient();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - daysBack);
 
@@ -43,7 +44,7 @@ export class MTTRTrackingService {
     const { data } = await query;
 
     if (!data) return 0;
-    return data.reduce((sum, wo) => sum + (wo.down_time_hours || 0), 0);
+    return data.reduce((sum: number, wo: any) => sum + (wo.down_time_hours || 0), 0);
   }
 
   static async recordMaintenance(data: {
@@ -57,6 +58,7 @@ export class MTTRTrackingService {
     partsReplaced?: string;
     notes?: string;
   }) {
+    const supabase = getSupabaseClient();
     const { error } = await supabase.from('maintenance_history').insert({
       work_order_id: data.workOrderId,
       asset_id: data.assetId,
