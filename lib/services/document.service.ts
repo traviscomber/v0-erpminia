@@ -186,6 +186,7 @@ export class DocumentService {
   }
 
   static async getDocument(documentId: string) {
+    const supabase = getSupabaseClient();
     const { data: document, error } = await supabase
       .from('documents')
       .select('*, document_versions(*), document_approvals(*)')
@@ -206,6 +207,7 @@ export class DocumentService {
       offset?: number;
     }
   ) {
+    const supabase = getSupabaseClient();
     let query = supabase
       .from('documents')
       .select('*, document_approvals(*)', { count: 'exact' })
@@ -236,6 +238,7 @@ export class DocumentService {
   }
 
   static async getPendingApprovals(userId: string) {
+    const supabase = getSupabaseClient();
     const { data } = await supabase
       .from('document_approvals')
       .select('*')
@@ -253,6 +256,7 @@ export class DocumentService {
     comments?: string
   ) {
     try {
+      const supabase = getSupabaseClient();
       const [approverProfile, approvalResult, documentResult] = await Promise.all([
         getProfileRecord(approvedBy),
         supabase
@@ -355,6 +359,7 @@ export class DocumentService {
     rejectionReason: string
   ) {
     try {
+      const supabase = getSupabaseClient();
       const [rejectedByProfile, approvalResult, documentResult] = await Promise.all([
         getProfileRecord(rejectedBy),
         supabase
@@ -418,6 +423,7 @@ export class DocumentService {
 
   static async checkAndProcessExpiry(organizationId: string) {
     try {
+      const supabase = getSupabaseClient();
       const thirtyDaysFromNow = new Date();
       thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
 
