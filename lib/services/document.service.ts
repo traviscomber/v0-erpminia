@@ -102,6 +102,7 @@ export interface DocumentApprovalInput {
 export class DocumentService {
   static async uploadDocument(input: DocumentUploadInput) {
     try {
+      const supabase = getSupabaseClient();
       const documentNumber = `DOC-${input.organizationId.slice(0, 4)}-${Date.now()}-${nanoid(4)}`;
 
       const fileName = `${input.organizationId}/${Date.now()}-${input.file.name}`;

@@ -118,6 +118,7 @@ export class DocumentExpiryService {
     documentId: string,
     renewalDays: number = 30
   ) {
+    const supabase = getSupabaseClient();
     const { data: document } = await supabase
       .from('documents')
       .select('expiry_date')
@@ -145,6 +146,7 @@ export class DocumentExpiryService {
    */
   static async processDailyExpiryCheck(organizationId: string) {
     try {
+      const supabase = getSupabaseClient();
       const today = new Date().toISOString().split('T')[0];
 
       // 1. Marcar documentos expirados
