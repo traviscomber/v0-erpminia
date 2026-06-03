@@ -24,10 +24,12 @@ export function CorrectiveActionCard({ action, onUpdate }: any) {
     verified: <CheckCircle className="w-4 h-4" />,
   };
 
-  const isOverdue = new Date(action.scheduled_completion_date) < new Date();
+  const isOverdue =
+    Boolean(action.scheduled_completion_date) &&
+    new Date(action.scheduled_completion_date) < new Date();
 
   return (
-    <Card className={isOverdue && action.status !== 'completed' ? 'border-red-300' : ''}>
+    <Card className={isOverdue && !['completed', 'verified'].includes(action.status) ? 'border-red-300' : ''}>
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
           <div>
@@ -46,7 +48,7 @@ export function CorrectiveActionCard({ action, onUpdate }: any) {
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Responsible:</span>
-            <span>{action.responsible_person || 'N/A'}</span>
+            <span>{action.responsible_person_name || action.responsible_person || 'N/A'}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Target Date:</span>

@@ -8,9 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Search, AlertCircle, Edit, Trash2, Download, Package } from 'lucide-react';
 import useSWR from 'swr';
-import { DemoDataBadge } from '@/components/sostenibilidad/demo-data-badge';
 import { EPPUserDelivery } from '@/components/sostenibilidad/epp-user-delivery';
-import { mockEPPData, addMockDataIfEmpty } from '@/lib/mock-data-sostenibilidad';
 import {
   Dialog,
   DialogContent,
@@ -46,11 +44,10 @@ export default function EPPPage() {
     activo: true,
   });
 
-  const { data: epp = [], isLoading, mutate } = useSWR('/api/sostenibilidad/epp', fetcher);
+  const { data: epp, isLoading, mutate } = useSWR('/api/sostenibilidad/epp', fetcher);
 
-  const eqqData = addMockDataIfEmpty(epp.data || epp, mockEPPData);
+  const eqqData = ((epp?.data || []) as EPP[]);
   const cargos = [...new Set(eqqData.map((item: EPP) => item.cargo_puesto))];
-  const isDemo = !epp || (epp.data && epp.data.length === 0) || (Array.isArray(epp) && epp.length === 0);
 
   const filteredEPP = eqqData.filter((item: EPP) =>
     (item.elemento_epp.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -103,7 +100,6 @@ export default function EPPPage() {
         <div>
           <div className="flex items-center gap-3 mb-2">
             <h1 className="text-3xl font-bold text-foreground">Gestión de Artículos de EPP</h1>
-            {isDemo && <DemoDataBadge />}
           </div>
           <p className="text-muted-foreground">Equipos de Protección Personal por puesto de trabajo</p>
         </div>

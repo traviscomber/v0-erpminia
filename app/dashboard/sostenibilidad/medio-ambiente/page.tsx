@@ -8,8 +8,6 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Eye, Trash2 } from 'lucide-react';
 import useSWR from 'swr';
-import { DemoDataBadge } from '@/components/sostenibilidad/demo-data-badge';
-import { mockMedioAmbienteData, addMockDataIfEmpty } from '@/lib/mock-data-sostenibilidad';
 import { ConfirmDeleteDialog } from '@/components/sostenibilidad/confirm-delete-dialog';
 import { FilterPanel } from '@/components/sostenibilidad/filter-panel';
 import { ExportButtons } from '@/components/sostenibilidad/export-buttons';
@@ -58,26 +56,13 @@ export default function MedioAmbientePage() {
     cumplimiento: 'conforme' as const,
   });
 
-  const { data: registros = [], mutate } = useSWR(
+  const { data: registros, mutate } = useSWR(
     '/api/sostenibilidad/medio-ambiente',
     fetcher
   );
 
-  // Convertir mock data a formato MedioAmbienteRecord
-  const mockDataFormatted: MedioAmbienteRecord[] = (mockMedioAmbienteData || []).map((m: any, idx: number) => ({
-    id: m.id,
-    numero_registro: `MA-${new Date(m.fecha).getFullYear()}-${String(idx + 1).padStart(3, '0')}`,
-    fecha: m.fecha,
-    tipo: m.tipo,
-    descripcion: m.descripcion,
-    valor: m.valor,
-    unidad: m.unidad,
-    cumplimiento: m.cumplimiento,
-  }));
-
-  const registrosList = (registros.data || registros || []) as MedioAmbienteRecord[];
-  const displayData = registrosList.length > 0 ? registrosList : mockDataFormatted;
-  const useMockData = registrosList.length === 0;
+  const registrosList = ((registros?.data || []) as MedioAmbienteRecord[]);
+  const displayData = registrosList;
 
   const filtered = displayData.filter((r: any) => {
     const matchSearch = r.numero_registro.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -156,7 +141,6 @@ export default function MedioAmbientePage() {
         <div>
           <div className="flex items-center gap-3 mb-2">
             <h1 className="text-3xl font-bold text-foreground">Medio Ambiente</h1>
-            {useMockData && <DemoDataBadge />}
           </div>
           <p className="text-muted-foreground">Monitoreo de emisiones, residuos, agua y ruido</p>
         </div>

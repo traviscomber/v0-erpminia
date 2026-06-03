@@ -8,8 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { TrendingUp, TrendingDown, Plus, Download } from 'lucide-react';
 import useSWR from 'swr';
-import { DemoDataBadge } from '@/components/sostenibilidad/demo-data-badge';
-import { mockKPIData, addMockDataIfEmpty } from '@/lib/mock-data-sostenibilidad';
 import {
   Dialog,
   DialogContent,
@@ -42,12 +40,11 @@ export default function KPIPrevenccionPage() {
     dias_sin_accidentes: 0,
   });
 
-  const { data: kpiData = [], isLoading, mutate } = useSWR('/api/sostenibilidad/kpi', fetcher);
+  const { data: kpiData, isLoading, mutate } = useSWR('/api/sostenibilidad/kpi', fetcher);
 
-  const kpis = addMockDataIfEmpty((kpiData.data || []), mockKPIData).sort((a: KPIData, b: KPIData) => 
+  const kpis = (((kpiData?.data || []) as KPIData[])).sort((a: KPIData, b: KPIData) => 
     new Date(a.mes_ano).getTime() - new Date(b.mes_ano).getTime()
   );
-  const isDemo = !kpiData || (kpiData.data && kpiData.data.length === 0);
 
   const currentMonth = kpis[kpis.length - 1];
   const previousMonth = kpis[kpis.length - 2];
@@ -115,7 +112,6 @@ export default function KPIPrevenccionPage() {
         <div>
           <div className="flex items-center gap-3 mb-2">
             <h1 className="text-3xl font-bold text-foreground">KPIs de Prevención</h1>
-            {isDemo && <DemoDataBadge />}
           </div>
           <p className="text-muted-foreground">Indicadores de salud y seguridad ocupacional (SSO)</p>
         </div>

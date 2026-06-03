@@ -1,149 +1,142 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { mockInspections } from '@/lib/mock-data/production-data';
+import { getSustainabilityContext } from '@/lib/api/sostenibilidad-mvp';
 
-/**
- * Inspections API
- * Returns inspection data from Supabase or mock data as fallback
- * TODO: Remove mock data once Supabase schema is finalized
- */
+function resolveInspectionTable(tipo?: string | null) {
+  if (tipo === 'externas') return 'inspecciones_externas';
+  return 'inspecciones_internas';
+}
+
 export async function GET(request: NextRequest) {
+  const context = await getSustainabilityContext(request);
+  if (!context.ok) return context.response;
+
   try {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    
-    // Use mock data as fallback if no Supabase config
-    if (!url || !key) {
-      const searchParams = new URL(request.url).searchParams;
-      const tipo = searchParams.get('tipo');
-      
-      let inspections = mockInspections;
-      if (tipo) {
-        inspections = inspections.filter(i => i.tipo_inspeccion === tipo);
-      }
-      
-      return NextResponse.json({
-        data: inspections,
-        pagination: { total: inspections.length, limit: 50, offset: 0 },
-        mock: true,
-      });
-    }
+    const tipo = request.nextUrl.searchParams.get('tipo');
+    const estado = request.nextUrl.searchParams.get('estado');
+    const table = resolveInspectionTable(tipo);
 
-    const { searchParams } = new URL(request.url);
-    const tipo = searchParams.get('tipo');
-    const estado = searchParams.get('estado');
-    const limit = parseInt(searchParams.get('limit') || '50');
-    const offset = parseInt(searchParams.get('offset') || '0');
+    let query = context.supabase
+      .from(table)
+      .select('*')
+      .eq('organization_id', context.organizationId)
+      .order('fecha_planificada', { ascending: false });
 
-    let table: string;
-    if (tipo === 'externas') {
-      table = 'inspecciones_externas';
-    } else if (tipo === 'hse') {
-      table = 'hse_inspections';
-    } else {
-      table = 'inspecciones_internas';
-    }
+    if (estado) query = query.eq('estado', estado);
 
-    let queryParams = `select=*&limit=${limit}&offset=${offset}`;
-    if (estado) {
-      queryParams += `&estado=eq.${encodeURIComponent(estado)}`;
-    }
+    const { data, error } = await query;
+    if (error) throw error;
 
-    const response = await fetch(`${url}/rest/v1/${table}?${queryParams}`, {
-      headers: {
-        'apikey': key,
-        'Authorization': `Bearer ${key}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'count=exact',
-      },
-    });
-
-    if (!response.ok) {
-      // Fallback to mock data on error
-      const inspections = mockInspections;
-      return NextResponse.json({
-        data: inspections,
-        pagination: { total: inspections.length, limit, offset },
-        mock: true,
-      });
-    }
-
-    const data = await response.json();
-    const total = parseInt(response.headers.get('content-range')?.split('/')[1] || String(data?.length || 0));
-
-    return NextResponse.json({
-      data: data || [],
-      pagination: { total, limit, offset },
-    });
+    return NextResponse.json({ data: data || [] });
   } catch (error) {
-    console.error('[v0] Error fetching inspections:', error);
-    // Fallback to mock data
-    return NextResponse.json({
-      data: mockInspections,
-      pagination: { total: mockInspections.length, limit: 50, offset: 0 },
-      mock: true,
-    });
+    const message = error instanceof Error ? error.message : 'Failed to fetch inspections';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
+  const context = await getSustainabilityContext(request);
+  if (!context.ok) return context.response;
+
   try {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    
-    if (!url || !key) {
-      // Mock response when no Supabase config
-      return NextResponse.json(
-        {
-          success: true,
-          message: 'Inspection created successfully (mock)',
-          id: `insp-${Date.now()}`,
-          mock: true,
-        },
-        { status: 201 }
-      );
-    }
-
     const body = await request.json();
-    const { tipo, ...data } = body;
+    const table = resolveInspectionTable(body.tipo);
 
-    let table;
-    if (tipo === 'externas') {
-      table = 'inspecciones_externas';
-    } else if (tipo === 'hse') {
-      table = 'hse_inspections';
-    } else {
-      table = 'inspecciones_internas';
+    const payload: Record<string, unknown> = {
+      organization_id: context.organizationId,
+      numero_inspeccion: body.numero_inspeccion,
+      fecha_planificada: body.fecha_planificada,
+      fecha_realizada: body.estado === 'realizada' ? body.fecha_planificada : null,
+      faena: body.faena,
+      inspector: body.inspector,
+      hallazgos_count: Number(body.hallazgos_count || 0),
+      estado: body.estado || 'planificada',
+      created_by: context.userId,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (table === 'inspecciones_externas') {
+      payload.empresa_externa = body.empresa_externa;
+      payload.contacto_externo = body.contacto_externo;
     }
 
-    const response = await fetch(`${url}/rest/v1/${table}`, {
-      method: 'POST',
-      headers: {
-        'apikey': key,
-        'Authorization': `Bearer ${key}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=representation',
-      },
-      body: JSON.stringify(data),
-    });
+    const { data, error } = await context.supabase
+      .from(table)
+      .insert(payload)
+      .select('*')
+      .single();
 
-    if (!response.ok) {
-      const text = await response.text();
-      return NextResponse.json({ error: text }, { status: 500 });
-    }
+    if (error) throw error;
 
-    const result = await response.json();
-    return NextResponse.json(result, { status: 201 });
+    return NextResponse.json({ data }, { status: 201 });
   } catch (error) {
-    console.error('[v0] Error creating inspection:', error);
-    return NextResponse.json(
-      {
-        success: true,
-        message: 'Inspection created successfully (mock)',
-        id: `insp-${Date.now()}`,
-        mock: true,
-      },
-      { status: 201 }
-    );
+    const message = error instanceof Error ? error.message : 'Failed to create inspection';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
+export async function PUT(request: NextRequest) {
+  const context = await getSustainabilityContext(request);
+  if (!context.ok) return context.response;
+
+  try {
+    const body = await request.json();
+    const table = resolveInspectionTable(body.tipo);
+
+    const payload: Record<string, unknown> = {
+      fecha_planificada: body.fecha_planificada,
+      fecha_realizada:
+        body.estado === 'realizada' ? body.fecha_realizada || body.fecha_planificada : null,
+      faena: body.faena,
+      inspector: body.inspector,
+      hallazgos_count: Number(body.hallazgos_count || 0),
+      estado: body.estado,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (table === 'inspecciones_externas') {
+      payload.empresa_externa = body.empresa_externa;
+      payload.contacto_externo = body.contacto_externo;
+    }
+
+    const { data, error } = await context.supabase
+      .from(table)
+      .update(payload)
+      .eq('id', body.id)
+      .eq('organization_id', context.organizationId)
+      .select('*')
+      .single();
+
+    if (error) throw error;
+
+    return NextResponse.json({ data });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to update inspection';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  const context = await getSustainabilityContext(request);
+  if (!context.ok) return context.response;
+
+  try {
+    const id = request.nextUrl.searchParams.get('id');
+    const tipo = request.nextUrl.searchParams.get('tipo');
+    if (!id) {
+      return NextResponse.json({ error: 'id is required' }, { status: 400 });
+    }
+
+    const { error } = await context.supabase
+      .from(resolveInspectionTable(tipo))
+      .delete()
+      .eq('id', id)
+      .eq('organization_id', context.organizationId);
+
+    if (error) throw error;
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to delete inspection';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}

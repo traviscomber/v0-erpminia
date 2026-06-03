@@ -1,51 +1,85 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getOrganizationContext } from '@/lib/api/organization-context';
 
-export const runtime = 'nodejs';
-export const maxDuration = 60;
+function mapWorkOrder(row: any) {
+  return {
+    id: row.id,
+    work_order_number: row.work_order_number,
+    title: row.title,
+    description: row.description,
+    work_type: row.work_type,
+    status: row.status,
+    priority: row.priority,
+    assigned_to_name: row.assigned_to_name,
+    progress_percentage:
+      row.status === 'completed' ? 100 : row.status === 'in_progress' ? 50 : 0,
+    planned_duration_hours: row.planned_duration_hours,
+    actual_duration_hours: row.actual_duration_hours,
+    scheduled_date: row.scheduled_date,
+    completion_date: row.completion_date,
+    root_cause: row.root_cause,
+    preventive_actions: row.preventive_actions,
+    created_at: row.created_at,
+  };
+}
 
 export async function GET(request: NextRequest) {
+  const context = await getOrganizationContext(request);
+  if (!context.ok) return context.response;
+
   try {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    
-    if (!url || !key) {
-      return NextResponse.json({ error: 'Missing config' }, { status: 500 });
-    }
+    const { data, error } = await context.supabase
+      .from('maintenance_work_orders')
+      .select('*')
+      .eq('organization_id', context.organizationId)
+      .order('created_at', { ascending: false });
 
-    // Fetch work orders
-    const response = await fetch(
-      `${url}/rest/v1/maintenance_orders?select=*`,
-      {
-        headers: {
-          'apikey': key,
-          'Authorization': `Bearer ${key}`,
-        },
-      }
-    );
+    if (error) throw error;
 
-    if (!response.ok) {
-      return NextResponse.json({ workOrders: [] });
-    }
-
-    const workOrders = await response.json();
-    
-    // Format for frontend
-    const formatted = workOrders.map((wo: any) => ({
-      id: wo.id,
-      work_order_number: wo.order_number,
-      title: wo.title,
-      description: wo.description,
-      status: wo.status,
-      priority: wo.priority,
-      technician_name: wo.technician_name,
-      progress_percentage: wo.progress_percentage,
-      estimated_hours: wo.estimated_hours,
-      estimated_cost: wo.estimated_cost,
-      scheduled_date: wo.scheduled_date,
-    }));
-
-    return NextResponse.json({ workOrders: formatted });
+    return NextResponse.json({ workOrders: (data || []).map(mapWorkOrder) });
   } catch (error) {
-    return NextResponse.json({ workOrders: [], error: String(error) }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to fetch work orders';
+    return NextResponse.json({ workOrders: [], error: message }, { status: 500 });
+  }
+}
+
+export async function POST(request: NextRequest) {
+  const context = await getOrganizationContext(request);
+  if (!context.ok) return context.response;
+
+  try {
+    const body = await request.json();
+    const { count } = await context.supabase
+      .from('maintenance_work_orders')
+      .select('*', { head: true, count: 'exact' })
+      .eq('organization_id', context.organizationId);
+
+    const workOrderNumber = `WO-${new Date().getFullYear()}-${String((count || 0) + 1).padStart(4, '0')}`;
+
+    const { data, error } = await context.supabase
+      .from('maintenance_work_orders')
+      .insert({
+        organization_id: context.organizationId,
+        work_order_number: workOrderNumber,
+        title: body.title,
+        description: body.description || null,
+        work_type: body.workType || body.work_type || 'preventive',
+        status: 'open',
+        priority: body.priority || 'medium',
+        scheduled_date: body.scheduledDate || body.scheduled_date || null,
+        planned_duration_hours: Number(body.plannedDurationHours || body.planned_duration_hours || 0),
+        assigned_to_name: body.assignedToName || body.assigned_to_name || null,
+        created_by: context.userId,
+        updated_at: new Date().toISOString(),
+      })
+      .select('*')
+      .single();
+
+    if (error) throw error;
+
+    return NextResponse.json({ data: mapWorkOrder(data) }, { status: 201 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to create work order';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

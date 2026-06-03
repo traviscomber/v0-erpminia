@@ -1,76 +1,177 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { mockCorrectiveActions } from '@/lib/mock-data/production-data';
+import {
+  getSustainabilityContext,
+  normalizeCorrectiveActionStatus,
+  SupabaseServerClient,
+} from '@/lib/api/sostenibilidad-mvp';
 
-/**
- * Corrective Actions API
- * Returns corrective action data
- * TODO: Replace with real Supabase queries
- */
+async function getOrganizationNcIds(
+  supabase: SupabaseServerClient,
+  organizationId: string
+) {
+  const { data, error } = await supabase
+    .from('sostenibilidad_nonconformances')
+    .select('id')
+    .eq('organization_id', organizationId);
+
+  if (error) throw error;
+  return (data || []).map((row) => row.id);
+}
+
+async function validateNcBelongsToOrganization(
+  supabase: SupabaseServerClient,
+  ncId: string,
+  organizationId: string
+) {
+  const { data, error } = await supabase
+    .from('sostenibilidad_nonconformances')
+    .select('id')
+    .eq('id', ncId)
+    .eq('organization_id', organizationId)
+    .maybeSingle();
+
+  if (error) throw error;
+  return Boolean(data);
+}
+
 export async function GET(request: NextRequest) {
+  const context = await getSustainabilityContext(request);
+  if (!context.ok) return context.response;
+
   try {
     const searchParams = request.nextUrl.searchParams;
-    const nonconformanceId = searchParams.get('nonconformanceId');
-    
-    // Mock data - TODO: Replace with real API call
-    let actions = mockCorrectiveActions;
-    if (nonconformanceId) {
-      actions = actions.filter(a => a.id.includes(nonconformanceId));
+    const ncId =
+      searchParams.get('ncId') ||
+      searchParams.get('nc_id') ||
+      searchParams.get('nonconformanceId');
+
+    const ncIds = await getOrganizationNcIds(context.supabase, context.organizationId);
+    if (ncIds.length === 0) {
+      return NextResponse.json({ data: [], corrective_actions: [] });
     }
-    
-    return NextResponse.json({ corrective_actions: actions }, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-store, must-revalidate',
-      },
+
+    let query = context.supabase
+      .from('sostenibilidad_corrective_actions')
+      .select('*')
+      .in('nc_id', ncIds)
+      .order('scheduled_completion_date', { ascending: true });
+
+    if (ncId) query = query.eq('nc_id', ncId);
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    const rows = (data || []).map((row) => ({
+      ...row,
+      status: normalizeCorrectiveActionStatus(row.status),
+    }));
+
+    return NextResponse.json({
+      data: rows,
+      corrective_actions: rows,
     });
   } catch (error) {
-    console.error('[v0] Error fetching corrective actions:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch corrective actions' },
-      { status: 500 }
-    );
+    const message = error instanceof Error ? error.message : 'Failed to fetch corrective actions';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
+  const context = await getSustainabilityContext(request);
+  if (!context.ok) return context.response;
+
   try {
     const body = await request.json();
-    
-    // Mock response - TODO: Implement real POST logic
-    return NextResponse.json(
-      {
-        success: true,
-        message: 'Corrective action created successfully',
-        id: `ca-${Date.now()}`,
-      },
-      { status: 201 }
+    const ncId = body.ncId || body.nc_id;
+
+    if (!ncId) {
+      return NextResponse.json({ error: 'ncId is required' }, { status: 400 });
+    }
+
+    const belongsToOrg = await validateNcBelongsToOrganization(
+      context.supabase,
+      ncId,
+      context.organizationId
     );
+
+    if (!belongsToOrg) {
+      return NextResponse.json({ error: 'Nonconformance not found' }, { status: 404 });
+    }
+
+    const { data: existingForNc } = await context.supabase
+      .from('sostenibilidad_corrective_actions')
+      .select('id')
+      .eq('nc_id', ncId);
+
+    const caNumber = `CA-${new Date().getFullYear()}-${String((existingForNc?.length || 0) + 1).padStart(4, '0')}`;
+
+    const { data, error } = await context.supabase
+      .from('sostenibilidad_corrective_actions')
+      .insert({
+        nc_id: ncId,
+        ca_number: caNumber,
+        action_description: body.actionDescription || body.action_description,
+        responsible_person: context.userId,
+        responsible_person_name: body.responsiblePerson || context.userName || context.userEmail,
+        scheduled_completion_date:
+          body.scheduledCompletionDate || body.scheduled_completion_date,
+        status: 'planned',
+        verification_method: body.verificationMethod || body.verification_method || 'inspection',
+        estimated_cost: Number(body.estimatedCost || body.estimated_cost || 0),
+        updated_at: new Date().toISOString(),
+      })
+      .select('*')
+      .single();
+
+    if (error) throw error;
+
+    return NextResponse.json({ data, id: data.id }, { status: 201 });
   } catch (error) {
-    console.error('[v0] Error creating corrective action:', error);
-    return NextResponse.json(
-      { error: 'Failed to create corrective action' },
-      { status: 500 }
-    );
+    const message = error instanceof Error ? error.message : 'Failed to create corrective action';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
 export async function PUT(request: NextRequest) {
+  const context = await getSustainabilityContext(request);
+  if (!context.ok) return context.response;
+
   try {
     const body = await request.json();
-    
-    // Mock response - TODO: Implement real PUT logic
-    return NextResponse.json(
-      {
-        success: true,
-        message: 'Corrective action updated successfully',
-      },
-      { status: 200 }
-    );
+    if (!body.id) {
+      return NextResponse.json({ error: 'id is required' }, { status: 400 });
+    }
+
+    const { data, error } = await context.supabase
+      .from('sostenibilidad_corrective_actions')
+      .update({
+        action_description: body.action_description || body.actionDescription,
+        responsible_person_name: body.responsible_person_name || body.responsiblePerson || null,
+        scheduled_completion_date:
+          body.scheduled_completion_date || body.scheduledCompletionDate || null,
+        actual_completion_date: body.actual_completion_date || null,
+        status: body.status ? normalizeCorrectiveActionStatus(body.status) : undefined,
+        verification_method: body.verification_method || body.verificationMethod || null,
+        estimated_cost:
+          body.estimated_cost !== undefined
+            ? Number(body.estimated_cost)
+            : body.estimatedCost !== undefined
+              ? Number(body.estimatedCost)
+              : undefined,
+        actual_cost:
+          body.actual_cost !== undefined ? Number(body.actual_cost) : undefined,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', body.id)
+      .in('nc_id', await getOrganizationNcIds(context.supabase, context.organizationId))
+      .select('*')
+      .single();
+
+    if (error) throw error;
+
+    return NextResponse.json({ data });
   } catch (error) {
-    console.error('[v0] Error updating corrective action:', error);
-    return NextResponse.json(
-      { error: 'Failed to update corrective action' },
-      { status: 500 }
-    );
+    const message = error instanceof Error ? error.message : 'Failed to update corrective action';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

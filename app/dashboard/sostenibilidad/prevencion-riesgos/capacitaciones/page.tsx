@@ -7,8 +7,6 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Search, Calendar, Clock, Download, Eye, Trash2 } from 'lucide-react';
 import useSWR from 'swr';
-import { DemoDataBadge } from '@/components/sostenibilidad/demo-data-badge';
-import { mockCapacitacionesData, addMockDataIfEmpty } from '@/lib/mock-data-sostenibilidad';
 import {
   Dialog,
   DialogContent,
@@ -58,13 +56,13 @@ export default function CapacitacionesPage() {
     cantidad_asistentes: 0,
   });
 
-  const { data: capacitaciones = [], isLoading, mutate } = useSWR('/api/sostenibilidad/capacitaciones', fetcher);
+  const { data: capacitaciones, isLoading, mutate } = useSWR('/api/sostenibilidad/capacitaciones', fetcher);
+  const capacitacionesList = ((capacitaciones?.data || []) as Capacitacion[]);
 
-  const filteredCapacitaciones = addMockDataIfEmpty(capacitaciones.data || capacitaciones, mockCapacitacionesData).filter((cap: Capacitacion) =>
+  const filteredCapacitaciones = capacitacionesList.filter((cap: Capacitacion) =>
     cap.nombre_capacitacion.toLowerCase().includes(searchTerm.toLowerCase()) ||
     cap.tema.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  const isDemo = !capacitaciones || (capacitaciones.data && capacitaciones.data.length === 0) || (Array.isArray(capacitaciones) && capacitaciones.length === 0);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -117,7 +115,6 @@ export default function CapacitacionesPage() {
         <div>
           <div className="flex items-center gap-3 mb-2">
             <h1 className="text-3xl font-bold text-foreground">Gestión de Capacitaciones</h1>
-            {isDemo && <DemoDataBadge />}
           </div>
           <p className="text-muted-foreground">Registra y gestiona todas las capacitaciones del personal</p>
         </div>

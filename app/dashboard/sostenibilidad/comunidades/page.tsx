@@ -8,8 +8,6 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Eye, Trash2 } from 'lucide-react';
 import useSWR from 'swr';
-import { DemoDataBadge } from '@/components/sostenibilidad/demo-data-badge';
-import { mockComunidadesData, addMockDataIfEmpty } from '@/lib/mock-data-sostenibilidad';
 import { ConfirmDeleteDialog } from '@/components/sostenibilidad/confirm-delete-dialog';
 import { FilterPanel } from '@/components/sostenibilidad/filter-panel';
 import { ExportButtons } from '@/components/sostenibilidad/export-buttons';
@@ -57,12 +55,12 @@ export default function ComunidadesPage() {
     fecha: new Date().toISOString().split('T')[0],
   });
 
-  const { data: registros = [], mutate } = useSWR(
+  const { data: registros, mutate } = useSWR(
     '/api/sostenibilidad/comunidades',
     fetcher
   );
 
-  const registrosList = addMockDataIfEmpty(registros.data || registros, mockComunidadesData) as ComunidadRecord[];
+  const registrosList = ((registros?.data || []) as ComunidadRecord[]);
   const filtered = registrosList.filter((r: any) => {
     const matchSearch = r.numero_registro.toLowerCase().includes(searchTerm.toLowerCase()) ||
       r.stakeholder.toLowerCase().includes(searchTerm.toLowerCase());
@@ -139,7 +137,6 @@ export default function ComunidadesPage() {
         <div>
           <div className="flex items-center gap-3 mb-2">
             <h1 className="text-3xl font-bold text-foreground">Relación con Comunidades</h1>
-            {(!registros || (registros.data && registros.data.length === 0) || (Array.isArray(registros) && registros.length === 0)) && <DemoDataBadge />}
           </div>
           <p className="text-muted-foreground">Eventos, comunicaciones y compromisos con stakeholders</p>
         </div>

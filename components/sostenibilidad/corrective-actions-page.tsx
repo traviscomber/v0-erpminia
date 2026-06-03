@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -13,14 +13,18 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export function CorrectiveActionsPage() {
   const [modalOpen, setModalOpen] = useState(false);
-  const [ncId, setNcId] = useState<string | null>(null);
+  const [ncId] = useState<string | null>(null);
 
   const { data: stats } = useSWR('/api/sostenibilidad/corrective-actions/stats', fetcher);
-  const { data: actions, mutate } = useSWR(ncId ? `/api/sostenibilidad/corrective-actions?ncId=${ncId}` : null, fetcher);
+  const { data: actions, mutate } = useSWR(
+    ncId ? `/api/sostenibilidad/corrective-actions?ncId=${ncId}` : '/api/sostenibilidad/corrective-actions',
+    fetcher
+  );
 
   const inProgressCount = actions?.data?.filter((a: any) => a.status === 'in_progress').length || 0;
   const completedCount = actions?.data?.filter((a: any) => a.status === 'completed' || a.status === 'verified').length || 0;
   const overDueCount = actions?.data?.filter((a: any) => new Date(a.scheduled_completion_date) < new Date() && a.status !== 'completed').length || 0;
+  const totalActions = actions?.data?.length || 0;
 
   return (
     <div className="space-y-6 p-6">
@@ -30,11 +34,19 @@ export function CorrectiveActionsPage() {
           <h1 className="text-3xl font-bold">Corrective Actions</h1>
           <p className="text-muted-foreground">Track and manage corrective action plans</p>
         </div>
-        <Button onClick={() => setModalOpen(true)} className="bg-primary">
+        <Button onClick={() => setModalOpen(true)} className="bg-primary" variant="default">
           <Plus className="w-4 h-4 mr-2" />
           New Action
         </Button>
       </div>
+
+      {!ncId && (
+        <Card className="border-border">
+          <CardContent className="pt-6 text-sm text-muted-foreground">
+            Create new corrective actions from a selected non-conformance so the action stays linked to its finding.
+          </CardContent>
+        </Card>
+      )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-4 gap-4">
@@ -43,7 +55,7 @@ export function CorrectiveActionsPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">In Progress</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{inProgressCount}</div>
+            <div className="text-2xl font-bold">{inProgressCount || stats?.data?.in_progress || 0}</div>
           </CardContent>
         </Card>
         <Card>
@@ -51,7 +63,7 @@ export function CorrectiveActionsPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Completed</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{completedCount}</div>
+            <div className="text-2xl font-bold">{completedCount || stats?.data?.completed || 0}</div>
           </CardContent>
         </Card>
         <Card>
@@ -59,7 +71,7 @@ export function CorrectiveActionsPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Overdue</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{overDueCount}</div>
+            <div className="text-2xl font-bold text-red-600">{overDueCount || stats?.data?.overdue || 0}</div>
           </CardContent>
         </Card>
         <Card>
@@ -68,7 +80,9 @@ export function CorrectiveActionsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {actions?.data?.length ? Math.round((completedCount / actions.data.length) * 100) : 0}%
+              {totalActions
+                ? Math.round((completedCount / totalActions) * 100)
+                : stats?.data?.completionRate || 0}%
             </div>
           </CardContent>
         </Card>

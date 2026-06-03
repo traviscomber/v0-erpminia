@@ -18,12 +18,14 @@ export function CorrectiveActionModal({ open, onOpenChange, ncId, onCreate }: an
   const [loading, setLoading] = useState(false);
 
   const handleCreate = async () => {
+    if (!ncId) return;
+
     setLoading(true);
     try {
       const res = await fetch(`/api/sostenibilidad/corrective-actions?ncId=${ncId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, ncId }),
       });
       if (res.ok) {
         onCreate();
@@ -42,6 +44,11 @@ export function CorrectiveActionModal({ open, onOpenChange, ncId, onCreate }: an
           <DialogTitle>Create Corrective Action</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
+          {!ncId && (
+            <p className="text-sm text-muted-foreground">
+              Select a non-conformance first to create a corrective action.
+            </p>
+          )}
           <div>
             <Label>Action Description</Label>
             <Textarea
@@ -80,7 +87,7 @@ export function CorrectiveActionModal({ open, onOpenChange, ncId, onCreate }: an
               </SelectContent>
             </Select>
           </div>
-          <Button onClick={handleCreate} disabled={loading} className="w-full">
+          <Button onClick={handleCreate} disabled={loading || !ncId} className="w-full">
             {loading ? 'Creating...' : 'Create Action'}
           </Button>
         </div>

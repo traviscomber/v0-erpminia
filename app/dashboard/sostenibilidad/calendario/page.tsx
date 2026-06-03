@@ -8,8 +8,6 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Plus, ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, MapPin, Users, Trash2 } from 'lucide-react';
 import useSWR from 'swr';
-import { DemoDataBadge } from '@/components/sostenibilidad/demo-data-badge';
-import { mockCalendarioData, addMockDataIfEmpty } from '@/lib/mock-data-sostenibilidad';
 import {
   Dialog,
   DialogContent,
@@ -56,8 +54,8 @@ export default function CalendarioSostenibilidadPage() {
     estado: 'programado',
   });
 
-  const { data: events = [], mutate } = useSWR('/api/sostenibilidad/calendario', fetcher);
-  const eventList = addMockDataIfEmpty(events.data || events, mockCalendarioData) as CalendarEvent[];
+  const { data: events, mutate } = useSWR('/api/sostenibilidad/calendario', fetcher);
+  const eventList = ((events?.data || []) as CalendarEvent[]);
 
   const getDaysInMonth = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -145,7 +143,6 @@ export default function CalendarioSostenibilidadPage() {
         <div>
           <div className="flex items-center gap-3 mb-2">
             <h1 className="text-3xl font-bold text-foreground">Calendario de Eventos - Sostenibilidad</h1>
-            {(!events || (events.data && events.data.length === 0) || (Array.isArray(events) && events.length === 0)) && <DemoDataBadge />}
           </div>
           <p className="text-muted-foreground">Centraliza inspecciones, capacitaciones, auditorías y tareas</p>
         </div>

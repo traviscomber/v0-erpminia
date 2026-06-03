@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS stock_movements (
     to_bin_id UUID REFERENCES warehouse_bins(id) ON DELETE SET NULL,
     reference_doc TEXT,  -- PO number, WO number, etc
     reference_id UUID,
-    performed_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    performed_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     reason TEXT,
     notes TEXT,
     created_at TIMESTAMP DEFAULT NOW(),
@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS qr_codes (
 CREATE TABLE IF NOT EXISTS qr_scan_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     qr_code_id UUID NOT NULL REFERENCES qr_codes(id) ON DELETE CASCADE,
-    scanned_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    scanned_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     action TEXT,  -- view, count, transfer, inspect
     bin_id_before UUID REFERENCES warehouse_bins(id),
     bin_id_after UUID REFERENCES warehouse_bins(id),
@@ -110,9 +110,9 @@ CREATE TABLE IF NOT EXISTS stock_transfers (
     stock_id UUID NOT NULL REFERENCES warehouse_stock(id) ON DELETE CASCADE,
     quantity INTEGER NOT NULL,
     status TEXT DEFAULT 'pending',  -- pending, in_transit, completed, cancelled
-    requested_by UUID REFERENCES users(id) ON DELETE SET NULL,
-    approved_by UUID REFERENCES users(id) ON DELETE SET NULL,
-    completed_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    requested_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    approved_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    completed_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     requested_at TIMESTAMP DEFAULT NOW(),
     approved_at TIMESTAMP,
     completed_at TIMESTAMP,
@@ -129,7 +129,7 @@ CREATE TABLE IF NOT EXISTS reorder_alerts (
     threshold_value INTEGER,
     current_value INTEGER,
     status TEXT DEFAULT 'active',  -- active, acknowledged, resolved
-    acknowledged_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    acknowledged_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     acknowledged_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT NOW()
 );
@@ -141,7 +141,7 @@ CREATE TABLE IF NOT EXISTS inventory_counts (
     count_number TEXT NOT NULL,
     count_date DATE,
     zone_id UUID REFERENCES warehouse_zones(id) ON DELETE SET NULL,
-    initiated_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    initiated_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     variance_found BOOLEAN DEFAULT FALSE,
     variance_percentage NUMERIC,
     status TEXT DEFAULT 'in_progress',  -- in_progress, completed, reconciled
@@ -153,7 +153,7 @@ CREATE TABLE IF NOT EXISTS inventory_count_details (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     count_id UUID NOT NULL REFERENCES inventory_counts(id) ON DELETE CASCADE,
     stock_id UUID NOT NULL REFERENCES warehouse_stock(id) ON DELETE CASCADE,
-    counted_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    counted_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     system_quantity INTEGER,
     physical_quantity INTEGER,
     variance INTEGER GENERATED ALWAYS AS (physical_quantity - system_quantity) STORED,

@@ -1,31 +1,51 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSustainabilityContext } from '@/lib/api/sostenibilidad-mvp';
 
-function getSupabaseClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !supabaseServiceKey) {
-    throw new Error('Supabase credentials not configured');
-  }
-
-  return createClient(supabaseUrl, supabaseServiceKey);
+function buildApprovalChain(documentId: string) {
+  return [
+    {
+      document_id: documentId,
+      approval_level: 1,
+      approval_level_name: 'Jefe de Sostenibilidad',
+      required_role: 'jefe_sostenibilidad',
+      status: 'pending',
+    },
+    {
+      document_id: documentId,
+      approval_level: 2,
+      approval_level_name: 'Gerente General',
+      required_role: 'gerente_general',
+      status: 'pending',
+    },
+  ];
 }
 
-// GET: Fetch documents for current user's organization with approval status
 export async function GET(request: NextRequest) {
-  try {
-    const supabase = getSupabaseClient();
-    const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get('organization_id');
-    const status = searchParams.get('status');
-    const userId = searchParams.get('user_id');
+  const context = await getSustainabilityContext(request);
+  if (!context.ok) return context.response;
 
-    let query = supabase
+  try {
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get('status');
+    const mineOnly =
+      searchParams.get('mine') === 'true' || searchParams.get('user_id') === context.userId;
+
+    let query = context.supabase
       .from('documents')
       .select(
         `
-        *,
+        id,
+        title,
+        description,
+        category,
+        document_type,
+        status,
+        current_file_url,
+        file_size_mb,
+        file_mime_type,
+        created_by,
+        created_at,
+        updated_at,
         document_approvals (
           id,
           approval_level,
@@ -39,148 +59,107 @@ export async function GET(request: NextRequest) {
           comments,
           rejection_reason,
           approved_at
-        ),
-        created_by_user:users(id, email, full_name),
-        submitted_by_user:users(id, email, full_name),
-        approved_by_user:users(id, email, full_name)
+        )
       `
       )
+      .eq('organization_id', context.organizationId)
       .order('created_at', { ascending: false });
-
-    if (organizationId) {
-      query = query.eq('organization_id', organizationId);
-    }
 
     if (status) {
       query = query.eq('status', status);
     }
 
-    if (userId) {
-      query = query.or(`created_by.eq.${userId},submitted_by.eq.${userId}`);
+    if (mineOnly) {
+      query = query.or(`created_by.eq.${context.userId},submitted_by.eq.${context.userId}`);
     }
 
     const { data, error } = await query;
+    if (error) throw error;
 
-    if (error) {
-      console.error('[v0] Error fetching documents:', error);
-      return NextResponse.json(
-        { error: 'Failed to fetch documents' },
-        { status: 500 }
-      );
-    }
+    const mapped = (data || []).map((doc: any) => ({
+      ...doc,
+      documento_nombre: doc.title,
+      descripcion: doc.description,
+      archivo_url: doc.current_file_url,
+      estado: doc.status,
+      creador_nombre: context.userName || context.userEmail || context.userId,
+    }));
 
-    return NextResponse.json({ success: true, data });
+    return NextResponse.json({ success: true, data: mapped });
   } catch (error) {
-    console.error('[v0] Error in GET /api/sostenibilidad/documentos-flujo:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    const message = error instanceof Error ? error.message : 'Failed to fetch documents';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
-// POST: Create new document with initial status='draft'
 export async function POST(request: NextRequest) {
-  try {
-    const supabase = getSupabaseClient();
-    const body = await request.json();
-    const {
-      organization_id,
-      title,
-      description,
-      category,
-      document_type,
-      created_by,
-      file_url,
-      file_size_mb,
-      file_mime_type,
-    } = body;
+  const context = await getSustainabilityContext(request);
+  if (!context.ok) return context.response;
 
-    // Validaciones
-    if (!organization_id || !title || !category || !created_by) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
+  try {
+    const body = await request.json();
+    const title = String(body.title || body.documento_nombre || '').trim();
+    const description = String(body.description || body.descripcion || '').trim();
+    const category = String(body.category || 'sostenibilidad').trim();
+    const documentType = String(body.document_type || 'document').trim();
+    const fileUrl = String(body.file_url || body.archivo_url || '').trim();
+    const fileSizeMb = body.file_size_mb ?? null;
+    const fileMimeType = body.file_mime_type ?? null;
+
+    if (!title) {
+      return NextResponse.json({ error: 'title is required' }, { status: 400 });
     }
 
-    // Crear documento
-    const { data: document, error: docError } = await supabase
+    const { data: document, error: documentError } = await context.supabase
       .from('documents')
       .insert({
-        organization_id,
+        organization_id: context.organizationId,
         title,
-        description,
+        description: description || null,
         category,
-        document_type: document_type || 'document',
+        document_type: documentType,
         status: 'draft',
-        created_by,
-        current_file_url: file_url,
-        file_size_mb,
-        file_mime_type,
+        created_by: context.userId,
+        submitted_by: context.userId,
+        current_file_url: fileUrl || null,
+        file_size_mb: fileSizeMb,
+        file_mime_type: fileMimeType,
+        updated_at: new Date().toISOString(),
       })
-      .select()
+      .select('id, title, description, category, document_type, status, current_file_url, created_by, created_at, updated_at')
       .single();
 
-    if (docError) {
-      console.error('[v0] Error creating document:', docError);
-      return NextResponse.json(
-        { error: 'Failed to create document' },
-        { status: 500 }
-      );
-    }
+    if (documentError) throw documentError;
 
-    // Crear approval chain inicial (2 niveles: Jefe + Gerente)
-    const approvals = [
-      {
-        document_id: document.id,
-        approval_level: 1,
-        approval_level_name: 'Jefe de Sostenibilidad',
-        required_role: 'jefe_sostenibilidad',
-        status: 'pending',
-      },
-      {
-        document_id: document.id,
-        approval_level: 2,
-        approval_level_name: 'Gerente General',
-        required_role: 'gerente_general',
-        status: 'pending',
-      },
-    ];
-
-    const { error: appError } = await supabase
+    const { error: approvalError } = await context.supabase
       .from('document_approvals')
-      .insert(approvals);
+      .insert(buildApprovalChain(document.id));
 
-    if (appError) {
-      console.error('[v0] Error creating approvals:', appError);
-      return NextResponse.json(
-        { error: 'Failed to create approval chain' },
-        { status: 500 }
-      );
-    }
+    if (approvalError) throw approvalError;
 
-    // Log audit
-    await supabase.from('document_audit_logs').insert({
+    await context.supabase.from('document_audit_logs').insert({
       document_id: document.id,
       action: 'created',
-      user_id: created_by,
-      details: `Document created: ${title}`,
+      user_id: context.userId,
+      details: `Documento creado: ${title}`,
     });
 
     return NextResponse.json(
       {
         success: true,
         message: 'Document created successfully',
-        data: document,
+        data: {
+          ...document,
+          documento_nombre: document.title,
+          descripcion: document.description,
+          archivo_url: document.current_file_url,
+          estado: document.status,
+        },
       },
       { status: 201 }
     );
   } catch (error) {
-    console.error('[v0] Error in POST /api/sostenibilidad/documentos-flujo:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    const message = error instanceof Error ? error.message : 'Failed to create document';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

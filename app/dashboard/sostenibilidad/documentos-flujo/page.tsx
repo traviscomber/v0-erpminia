@@ -9,8 +9,6 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Search, FileText, CheckCircle, Clock, AlertCircle, MessageSquare, Download, Eye } from 'lucide-react';
 import useSWR from 'swr';
-import { DemoDataBadge } from '@/components/sostenibilidad/demo-data-badge';
-import { mockFlujDocumentalData, addMockDataIfEmpty } from '@/lib/mock-data-sostenibilidad';
 import { DocumentUpload } from '@/components/sostenibilidad/document-upload';
 import { DocumentSearch } from '@/components/documentos/document-search';
 import {
@@ -70,8 +68,8 @@ export default function FlujDocumentalPage() {
     archivo_url: '',
   });
 
-  const { data: documentos = [], mutate } = useSWR('/api/sostenibilidad/documentos-flujo', fetcher);
-  const docList = addMockDataIfEmpty(documentos.data || documentos, mockFlujDocumentalData) as DocumentoFlujo[];
+  const { data: documentos, mutate } = useSWR('/api/sostenibilidad/documentos-flujo', fetcher);
+  const docList = ((documentos?.data || []) as DocumentoFlujo[]);
 
   const filteredDocs = docList.filter((doc: any) => {
     const title = doc.title || doc.documento_nombre || '';
@@ -165,7 +163,6 @@ export default function FlujDocumentalPage() {
         <div>
           <div className="flex items-center gap-3 mb-2">
             <h1 className="text-3xl font-bold text-foreground">Flujo de Aprobación de Documentos</h1>
-            {(!documentos || (documentos.data && documentos.data.length === 0) || (Array.isArray(documentos) && documentos.length === 0)) && <DemoDataBadge />}
           </div>
           <p className="text-muted-foreground">Workflow de 2 validadores: Jefe de Sostenibilidad → Gerente General</p>
         </div>

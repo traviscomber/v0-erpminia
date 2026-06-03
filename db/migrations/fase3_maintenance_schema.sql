@@ -44,9 +44,9 @@ CREATE TABLE IF NOT EXISTS maintenance_work_orders (
     down_time_hours NUMERIC,
     
     -- Assignment & Execution
-    assigned_to UUID REFERENCES users(id) ON DELETE SET NULL,
+    assigned_to UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     assigned_to_name TEXT,
-    created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    created_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     
     -- MTTR Tracking (Mean Time To Repair)
     mttr_deviation NUMERIC,  -- actual - planned
@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS preventive_maintenance_schedules (
 CREATE TABLE IF NOT EXISTS technician_skills (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     skill_name TEXT NOT NULL,  -- hydraulics, electrics, welding, etc
     proficiency_level TEXT DEFAULT 'intermediate',  -- beginner, intermediate, expert
     certification_date DATE,
@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS maintenance_history (
     work_order_id UUID NOT NULL REFERENCES maintenance_work_orders(id) ON DELETE CASCADE,
     asset_id UUID NOT NULL REFERENCES maintenance_assets(id) ON DELETE CASCADE,
     maintenance_type TEXT,
-    performed_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    performed_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     performed_by_name TEXT,
     start_time TIMESTAMP,
     end_time TIMESTAMP,
@@ -162,7 +162,7 @@ CREATE TABLE IF NOT EXISTS pre_work_safety_checklists (
     confined_space_checked BOOLEAN,
     hot_work_permit BOOLEAN,
     supervisor_approval BOOLEAN,
-    completed_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    completed_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     completed_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT NOW()
 );

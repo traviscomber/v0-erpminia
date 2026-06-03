@@ -5,12 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, AlertCircle, CheckCircle, Clock, Eye, Download, Trash2, Loader2 } from 'lucide-react';
+import { Plus, Search, AlertCircle, CheckCircle, Clock, Eye, Download, Trash2 } from 'lucide-react';
 import useSWR from 'swr';
 import { InspeccionExternaModal } from '@/components/sostenibilidad/inspeccion-externa-modal';
 import { ConfirmDeleteDialog } from '@/components/sostenibilidad/confirm-delete-dialog';
-import { DemoDataBadge } from '@/components/sostenibilidad/demo-data-badge';
-import { mockInspeccionesData } from '@/lib/mock-data-sostenibilidad';
 
 interface InspeccionExterna {
   id: string;
@@ -26,7 +24,7 @@ interface InspeccionExterna {
   reporte_url?: string;
 }
 
-const fetcher = (url: string) => fetch(url).then(r => r.json());
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 export default function InspeccionesExternasPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -40,31 +38,13 @@ export default function InspeccionesExternasPage() {
     fetcher
   );
 
-  // Convertir mock data a formato InspeccionExterna
-  const mockDataFormatted: InspeccionExterna[] = (mockInspeccionesData || [])
-    .filter((m: any) => m.tipo === 'externa')
-    .map((m: any, idx: number) => ({
-      id: m.id,
-      numero_inspeccion: `EXP-${new Date(m.fecha).getFullYear()}-${String(idx + 1).padStart(3, '0')}`,
-      fecha_planificada: m.fecha,
-      fecha_realizada: m.estado === 'completada' ? m.fecha : undefined,
-      faena: ['Planta general', 'Sector operaciones', 'Almacén'][idx % 3],
-      inspector: m.inspector,
-      empresa_externa: m.inspector,
-      contacto_externo: 'contacto@' + m.inspector.toLowerCase().replace(/\s/g, '.') + '.com',
-      hallazgos_count: m.hallazgos || 0,
-      estado: m.estado === 'completada' ? 'realizada' : 'planificada',
-      reporte_url: m.estado === 'completada' ? `/reportes/externa-${m.id}.pdf` : undefined,
-    }));
-
   const inspeccionesList = (inspecciones.data || inspecciones || []) as InspeccionExterna[];
-  const displayData = inspeccionesList.length > 0 ? inspeccionesList : mockDataFormatted;
-  const useMockData = inspeccionesList.length === 0;
 
-  const filteredInspecciones = displayData.filter((insp: any) =>
-    insp.numero_inspeccion.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    insp.faena.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    insp.empresa_externa.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredInspecciones = inspeccionesList.filter(
+    (insp) =>
+      insp.numero_inspeccion.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      insp.faena.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      insp.empresa_externa.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleDelete = async () => {
@@ -113,14 +93,14 @@ export default function InspeccionesExternasPage() {
 
   return (
     <div className="min-h-screen bg-background p-6">
-      {/* Header */}
       <div className="mb-8 flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-foreground mb-2">Inspecciones Externas</h1>
-          <p className="text-muted-foreground">Registro de auditorías y fiscalizaciones de organismos externos</p>
-          {useMockData && <DemoDataBadge />}
+          <p className="text-muted-foreground">
+            Registro de auditorias y fiscalizaciones de organismos externos
+          </p>
         </div>
-        <Button 
+        <Button
           className="bg-primary hover:bg-primary/90"
           onClick={() => {
             setSelectedInspeccion(null);
@@ -128,11 +108,10 @@ export default function InspeccionesExternasPage() {
           }}
         >
           <Plus className="w-4 h-4 mr-2" />
-          Nueva Inspección
+          Nueva Inspeccion
         </Button>
       </div>
 
-      {/* Modales */}
       <InspeccionExternaModal
         open={modalOpen}
         onOpenChange={setModalOpen}
@@ -143,15 +122,14 @@ export default function InspeccionesExternasPage() {
       <ConfirmDeleteDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
-        titulo={`Inspección ${selectedInspeccion?.numero_inspeccion}`}
-        descripcion={`Se eliminará la inspección "${selectedInspeccion?.numero_inspeccion}" de ${selectedInspeccion?.empresa_externa}. Esta acción no se puede deshacer.`}
+        titulo={`Inspeccion ${selectedInspeccion?.numero_inspeccion}`}
+        descripcion={`Se eliminara la inspeccion "${selectedInspeccion?.numero_inspeccion}" de ${selectedInspeccion?.empresa_externa}. Esta accion no se puede deshacer.`}
         onConfirm={handleDelete}
       />
 
-      {/* Search */}
       <div className="mb-6 flex gap-2">
         <Input
-          placeholder="Buscar por número, área o empresa..."
+          placeholder="Buscar por numero, area o empresa..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="flex-1"
@@ -161,7 +139,6 @@ export default function InspeccionesExternasPage() {
         </Button>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
         <Card>
           <CardHeader className="pb-2">
@@ -177,7 +154,7 @@ export default function InspeccionesExternasPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary">
-              {filteredInspecciones.filter(i => i.estado === 'planificada').length}
+              {filteredInspecciones.filter((i) => i.estado === 'planificada').length}
             </div>
           </CardContent>
         </Card>
@@ -187,7 +164,7 @@ export default function InspeccionesExternasPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-secondary">
-              {filteredInspecciones.filter(i => i.estado === 'realizada').length}
+              {filteredInspecciones.filter((i) => i.estado === 'realizada').length}
             </div>
           </CardContent>
         </Card>
@@ -197,7 +174,7 @@ export default function InspeccionesExternasPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-muted-foreground">
-              {filteredInspecciones.filter(i => i.estado === 'cerrada').length}
+              {filteredInspecciones.filter((i) => i.estado === 'cerrada').length}
             </div>
           </CardContent>
         </Card>
@@ -213,7 +190,6 @@ export default function InspeccionesExternasPage() {
         </Card>
       </div>
 
-      {/* Table */}
       <Card>
         <CardHeader>
           <CardTitle>Listado de Inspecciones</CardTitle>
@@ -224,7 +200,7 @@ export default function InspeccionesExternasPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Número</th>
+                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Numero</th>
                   <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Faena</th>
                   <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Empresa Externa</th>
                   <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Contacto</th>
@@ -235,13 +211,15 @@ export default function InspeccionesExternasPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredInspecciones.map((insp: any) => (
+                {filteredInspecciones.map((insp) => (
                   <tr key={insp.id} className="border-b hover:bg-muted/50">
                     <td className="py-3 px-4 font-medium">{insp.numero_inspeccion}</td>
                     <td className="py-3 px-4">{insp.faena}</td>
                     <td className="py-3 px-4">{insp.empresa_externa}</td>
                     <td className="py-3 px-4 text-sm text-muted-foreground">{insp.contacto_externo}</td>
-                    <td className="py-3 px-4 text-sm">{new Date(insp.fecha_planificada).toLocaleDateString()}</td>
+                    <td className="py-3 px-4 text-sm">
+                      {new Date(insp.fecha_planificada).toLocaleDateString('es-CL')}
+                    </td>
                     <td className="py-3 px-4">
                       <Badge variant="outline">{insp.hallazgos_count}</Badge>
                     </td>
@@ -252,22 +230,14 @@ export default function InspeccionesExternasPage() {
                       </div>
                     </td>
                     <td className="py-3 px-4 text-right space-x-1">
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleEditClick(insp)}
-                      >
+                      <Button variant="ghost" size="sm" onClick={() => handleEditClick(insp)}>
                         <Eye className="w-4 h-4" />
                       </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        disabled={isLoading}
-                      >
+                      <Button variant="ghost" size="sm" disabled={isLoading}>
                         <Download className="w-4 h-4" />
                       </Button>
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         size="sm"
                         onClick={() => handleDeleteClick(insp)}
                         disabled={isLoading}
