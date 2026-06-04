@@ -1,203 +1,250 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { BrandCard } from '@/components/ui/brand-card';
-import { DemoBanner, DemoDataBadge } from '@/components/demo-data-badge';
 import { useProductionData } from '@/hooks/use-mock-data';
-import { 
-  Activity, 
-  AlertTriangle, 
-  Zap, 
-  TrendingUp, 
-  Clock, 
-  Gauge,
+import {
+  Activity,
   AlertCircle,
+  AlertTriangle,
   CheckCircle2,
-  XCircle,
   RefreshCw,
+  XCircle,
 } from 'lucide-react';
 import {
-  LineChart,
+  CartesianGrid,
+  Legend,
   Line,
-  AreaChart,
-  Area,
-  BarChart,
-  Bar,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
 } from 'recharts';
 import { CHART_COLORS_LIGHT } from '@/lib/theme-colors';
 
-export default function ProduccionPage() {
-  const [selectedEquipment, setSelectedEquipment] = useState<any>(null);
-  const [autoRefresh, setAutoRefresh] = useState(true);
-  
-  // Fetch telemetry data - with automatic mock fallback
-  const { data, error, isLoading, mutate, isMock } = useProductionData();
+function formatMetric(value?: number | null, suffix = '') {
+  if (typeof value !== 'number' || Number.isNaN(value)) return '--';
+  return `${Math.round(value * 10) / 10}${suffix}`;
+}
 
-  // Call useEffect after all other hooks
-  useEffect(() => {
-    if (data?.equipment && data.equipment.length > 0 && !selectedEquipment) {
-      setSelectedEquipment(data.equipment[0]);
-    }
-  }, [data?.equipment, selectedEquipment]);
+function getStatusColor(status: string) {
+  switch (status) {
+    case 'operational':
+      return 'bg-[var(--brand-verde)]/20 text-[var(--brand-verde)]';
+    case 'warning':
+      return 'bg-[var(--secondary)]/20 text-[var(--secondary)]';
+    case 'maintenance':
+      return 'bg-[var(--secondary)]/20 text-[var(--secondary)]';
+    case 'offline':
+      return 'bg-[var(--brand-rojo)]/20 text-[var(--brand-rojo)]';
+    default:
+      return 'bg-muted/20 text-gray-700';
+  }
+}
+
+function getStatusIcon(status: string) {
+  switch (status) {
+    case 'operational':
+      return <CheckCircle2 className="h-4 w-4" />;
+    case 'warning':
+      return <AlertTriangle className="h-4 w-4" />;
+    case 'offline':
+      return <XCircle className="h-4 w-4" />;
+    default:
+      return <Activity className="h-4 w-4" />;
+  }
+}
+
+function getSourceLabel(source?: string) {
+  if (source === 'production') return 'Produccion';
+  if (source === 'maintenance') return 'Mantencion';
+  return 'Operacion';
+}
+
+export default function ProduccionPage() {
+  const { data, error, isLoading, mutate } = useProductionData();
 
   const equipment = data?.equipment || [];
-  const sensors = data?.sensors || [];
   const readings = data?.readings || [];
   const alarms = data?.alarms || [];
+  const summary = data?.summary || {};
 
-  // Format sensor data for the chart - convert readings to chart format
-  const sensorData = (readings || []).map((reading: any) => ({
-    timestamp: reading.timestamp || new Date().toLocaleTimeString(),
-    temp: reading.temperature || 0,
-    pressure: reading.pressure || 0,
-    vibration: reading.vibration || 0,
-  })).slice(-20); // Show last 20 readings
+  const sensorData = readings.map((reading: any) => ({
+    timestamp: reading.timestamp
+      ? new Date(reading.timestamp).toLocaleTimeString('es-CL', {
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      : new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }),
+    temp: reading.temperature ?? null,
+    pressure: reading.pressure ?? null,
+    vibration: reading.vibration ?? null,
+  }));
 
-  // Early returns AFTER all hooks
-  if (error) return <div className="text-red-500">Error loading telemetry data</div>;
-  if (isLoading) return <div className="text-gray-500">Loading telemetry...</div>;
+  if (error) {
+    return (
+      <div className="space-y-4">
+        <div>
+          <h1 className="text-3xl font-bold">Produccion en Tiempo Real</h1>
+          <p className="text-muted-foreground">Monitoreo operacional conectado a datos reales</p>
+        </div>
+        <Card className="border-destructive/30">
+          <CardContent className="pt-6 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 text-sm">
+              <AlertCircle className="h-4 w-4 text-destructive" />
+              <span>No fue posible cargar el modulo de produccion.</span>
+            </div>
+            <Button variant="outline" onClick={() => mutate()}>
+              Reintentar
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'operational':
-        return 'bg-[var(--brand-verde)]/20 text-[var(--brand-verde)]';
-      case 'warning':
-        return 'bg-[var(--secondary)]/20 text-[var(--secondary)]';
-      case 'maintenance':
-        return 'bg-[var(--secondary)]/20 text-[var(--secondary)]';
-      case 'offline':
-        return 'bg-[var(--brand-rojo)]/20 text-[var(--brand-rojo)]';
-      default:
-        return 'bg-muted/20 text-gray-700';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'operational':
-        return <CheckCircle2 className="h-4 w-4" />;
-      case 'warning':
-        return <AlertTriangle className="h-4 w-4" />;
-      case 'offline':
-        return <XCircle className="h-4 w-4" />;
-      default:
-        return <Activity className="h-4 w-4" />;
-    }
-  };
+  if (isLoading) {
+    return <div className="text-gray-500">Cargando telemetria operacional...</div>;
+  }
 
   return (
     <div className="space-y-6">
-      {/* Demo Banner */}
-      {isMock && <DemoBanner />}
-
-      {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Producción en Tiempo Real</h1>
-          <p className="text-muted-foreground">Monitoreo integral de plantas, equipos y sensores</p>
+          <h1 className="text-3xl font-bold">Produccion en Tiempo Real</h1>
+          <p className="text-muted-foreground">
+            Monitoreo integral de equipos operacionales, alertas y tendencias de sensores
+          </p>
         </div>
         <div className="flex gap-2">
-          {isMock && <DemoDataBadge />}
-          <Button 
-            size="sm" 
-            variant="outline"
-            onClick={() => mutate()}
-            className="gap-2"
-          >
+          <Button size="sm" variant="outline" onClick={() => mutate()} className="gap-2">
             <RefreshCw className="h-4 w-4" />
             Actualizar
           </Button>
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <BrandCard>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-muted-foreground">Equipos Operacionales</CardTitle>
+            <CardTitle className="text-sm font-semibold text-muted-foreground">
+              Equipos Operacionales
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">38/42</div>
-            <p className="text-xs text-muted-foreground mt-1">90.5% disponibilidad</p>
+            <div className="text-3xl font-bold">
+              {summary.operational_equipment || 0}/{summary.total_equipment || 0}
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {formatMetric(summary.availability_percentage, '%')} disponibilidad promedio
+            </p>
           </CardContent>
         </BrandCard>
 
         <BrandCard>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-muted-foreground">Alarmas Activas</CardTitle>
+            <CardTitle className="text-sm font-semibold text-muted-foreground">
+              Alarmas Activas
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-[var(--brand-naranja)]">{alarms.length}</div>
-            <p className="text-xs text-muted-foreground mt-1">{alarms.filter((a: any) => a.severity === 'critical').length} críticas</p>
+            <div className="text-3xl font-bold text-[var(--brand-naranja)]">
+              {summary.active_alarms || 0}
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {summary.critical_alarms || 0} criticas
+            </p>
           </CardContent>
         </BrandCard>
 
         <BrandCard>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-muted-foreground">Producción Hoy</CardTitle>
+            <CardTitle className="text-sm font-semibold text-muted-foreground">
+              Produccion Hoy
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">2,847 t</div>
-            <p className="text-xs text-muted-foreground mt-1">92% de meta</p>
+            <div className="text-3xl font-bold">{summary.production_today ?? '--'}</div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {summary.production_target_percentage != null
+                ? `${summary.production_target_percentage}% de meta`
+                : 'Sin meta configurada'}
+            </p>
           </CardContent>
         </BrandCard>
 
         <BrandCard>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-muted-foreground">Downtime Acumulado</CardTitle>
+            <CardTitle className="text-sm font-semibold text-muted-foreground">
+              Downtime Acumulado
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">145 min</div>
-            <p className="text-xs text-muted-foreground mt-1">3.2% del día</p>
+            <div className="text-3xl font-bold">{summary.downtime_minutes || 0} min</div>
+            <p className="mt-1 text-xs text-muted-foreground">Consolidado desde detenciones y OT</p>
           </CardContent>
         </BrandCard>
       </div>
 
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Equipment List */}
-        <div className="lg:col-span-2 space-y-3">
-          <h2 className="text-lg font-semibold">Equipos en Operación</h2>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="space-y-3 lg:col-span-2">
+          <h2 className="text-lg font-semibold">Equipos en Operacion</h2>
+          {equipment.length === 0 && (
+            <Card>
+              <CardContent className="p-6 text-muted-foreground">
+                No hay equipos o activos disponibles todavia para mostrar en produccion.
+              </CardContent>
+            </Card>
+          )}
+
           {equipment.map((eq: any) => (
-            <Card key={eq.id} className="cursor-pointer hover:shadow-md transition-shadow">
+            <Card key={eq.id} className="transition-shadow hover:shadow-md">
               <CardContent className="p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
+                    <div className="mb-2 flex items-center gap-3">
                       <h3 className="font-semibold">{eq.name}</h3>
                       <Badge className={getStatusColor(eq.status)}>
                         <span className="mr-1">{getStatusIcon(eq.status)}</span>
                         {eq.status}
                       </Badge>
+                      <Badge variant="outline">{getSourceLabel(eq.source)}</Badge>
                     </div>
-                    <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div className="grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
                       <div>
                         <p className="text-xs text-muted-foreground">Disponibilidad</p>
-                        <p className="font-semibold">{eq.availability}%</p>
+                        <p className="font-semibold">{formatMetric(eq.availability, '%')}</p>
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground">Temperatura</p>
-                        <p className="font-semibold">{eq.temperature}°C</p>
+                        <p className="font-semibold">{formatMetric(eq.temperature, ' C')}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-muted-foreground">Presión</p>
-                        <p className="font-semibold">{eq.pressure} bar</p>
+                        <p className="text-xs text-muted-foreground">Presion</p>
+                        <p className="font-semibold">{formatMetric(eq.pressure, ' bar')}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">Vibracion</p>
+                        <p className="font-semibold">{formatMetric(eq.vibration, ' mm/s')}</p>
                       </div>
                     </div>
+                    {(eq.type || eq.location || eq.criticality) && (
+                      <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                        {eq.type && <span>Tipo: {eq.type}</span>}
+                        {eq.location && <span>Ubicacion: {eq.location}</span>}
+                        {eq.criticality && <span>Criticidad: {eq.criticality}</span>}
+                      </div>
+                    )}
                   </div>
                   {eq.alarms > 0 && (
-                    <div className="bg-[var(--brand-naranja)]/20 text-[var(--brand-naranja)] px-3 py-2 rounded-lg text-center">
-                      <AlertCircle className="h-5 w-5 mx-auto mb-1" />
-                      <p className="text-xs font-semibold">{eq.alarms} alerta{eq.alarms > 1 ? 's' : ''}</p>
+                    <div className="rounded-lg bg-[var(--brand-naranja)]/20 px-3 py-2 text-center text-[var(--brand-naranja)]">
+                      <AlertCircle className="mx-auto mb-1 h-5 w-5" />
+                      <p className="text-xs font-semibold">
+                        {eq.alarms} alerta{eq.alarms > 1 ? 's' : ''}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -206,23 +253,36 @@ export default function ProduccionPage() {
           ))}
         </div>
 
-        {/* Alarms Panel */}
         <div className="space-y-3">
           <h2 className="text-lg font-semibold">Alertas Activas</h2>
           <div className="space-y-2">
-            {alarms.map((alert: any, i: number) => (
-              <Card key={i} className={alert.severity === 'critical' ? 'border-[var(--brand-rojo)]/50 bg-[var(--brand-rojo)]/5' : 'border-[var(--brand-naranja)]/50 bg-[var(--brand-naranja)]/5'}>
+            {alarms.length === 0 && (
+              <Card>
+                <CardContent className="p-4 text-sm text-muted-foreground">
+                  No hay alertas operacionales activas.
+                </CardContent>
+              </Card>
+            )}
+            {alarms.map((alert: any, index: number) => (
+              <Card
+                key={alert.id || index}
+                className={
+                  alert.severity === 'critical'
+                    ? 'border-[var(--brand-rojo)]/50 bg-[var(--brand-rojo)]/5'
+                    : 'border-[var(--brand-naranja)]/50 bg-[var(--brand-naranja)]/5'
+                }
+              >
                 <CardContent className="p-3">
                   <div className="flex gap-3">
                     {alert.severity === 'critical' ? (
-                      <AlertTriangle className="h-5 w-5 text-[var(--brand-rojo)] flex-shrink-0 mt-0.5" />
+                      <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-[var(--brand-rojo)]" />
                     ) : (
-                      <AlertCircle className="h-5 w-5 text-[var(--brand-naranja)] flex-shrink-0 mt-0.5" />
+                      <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-[var(--brand-naranja)]" />
                     )}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm">{alert.equipment}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold">{alert.equipment}</p>
                       <p className="text-xs text-muted-foreground">{alert.message}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{alert.time}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{alert.time}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -232,25 +292,35 @@ export default function ProduccionPage() {
         </div>
       </div>
 
-      {/* Sensor Trends */}
       <Card>
         <CardHeader>
-          <CardTitle>Tendencias de Sensores (Últimas 2h)</CardTitle>
-          <CardDescription>Temperatura, Presión y Vibración</CardDescription>
+          <CardTitle>Tendencias de Sensores</CardTitle>
+          <CardDescription>Temperatura, presion y vibracion segun lecturas disponibles</CardDescription>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={sensorData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="timestamp" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="temp" stroke={CHART_COLORS_LIGHT[0]} name="Temp (°C)" />
-              <Line type="monotone" dataKey="pressure" stroke={CHART_COLORS_LIGHT[1]} name="Presión (bar)" />
-              <Line type="monotone" dataKey="vibration" stroke={CHART_COLORS_LIGHT[2]} name="Vibración (mm/s)" />
-            </LineChart>
-          </ResponsiveContainer>
+          {sensorData.length === 0 ? (
+            <div className="py-8 text-center text-muted-foreground">
+              No hay lecturas de sensores disponibles todavia.
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={sensorData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="timestamp" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="temp" stroke={CHART_COLORS_LIGHT[0]} name="Temp (C)" />
+                <Line type="monotone" dataKey="pressure" stroke={CHART_COLORS_LIGHT[1]} name="Presion (bar)" />
+                <Line
+                  type="monotone"
+                  dataKey="vibration"
+                  stroke={CHART_COLORS_LIGHT[2]}
+                  name="Vibracion (mm/s)"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
         </CardContent>
       </Card>
     </div>

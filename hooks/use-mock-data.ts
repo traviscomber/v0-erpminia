@@ -1,16 +1,12 @@
-/**
- * Hook for fetching data with mock fallback
- * Automatically falls back to mock data when API is unavailable
- */
-
 'use client';
 
 import useSWR from 'swr';
-import { 
-  getMockProductionData,
-  getMockNonconformanceData,
-  getMockDashboardData,
-} from '@/lib/mock-data/production-data';
+import { getMockDashboardData, getMockNonconformanceData } from '@/lib/mock-data/production-data';
+
+/**
+ * Shared SWR hooks for MVP modules.
+ * Some modules still keep mock fallback while they are being migrated.
+ */
 
 const fetcher = async (url: string) => {
   const response = await fetch(url);
@@ -21,36 +17,27 @@ const fetcher = async (url: string) => {
 };
 
 /**
- * Hook para datos de producción
- * Returns: { data, error, isLoading, mutate }
- * - Automatically provides mock data if API fails
+ * Hook para datos de produccion.
+ * Este modulo ya consume datos reales y no usa fallback mock.
  */
 export function useProductionData() {
-  const { data, error, isLoading, mutate } = useSWR(
-    '/api/dashboard/produccion',
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: true,
-      refreshInterval: 30000, // 30 seconds
-      onError: () => {
-        // Silently fall back to mock - component will show demo badge
-      },
-    }
-  );
+  const { data, error, isLoading, mutate } = useSWR('/api/dashboard/produccion', fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+    refreshInterval: 30000,
+  });
 
   return {
-    data: data || getMockProductionData(),
+    data,
     error,
-    isLoading: isLoading && !data,
+    isLoading,
     mutate,
-    isMock: !data && !error,
+    isMock: false,
   };
 }
 
 /**
- * Hook para datos de no conformidades
- * Returns: { data, error, isLoading, mutate }
+ * Hook para datos de no conformidades.
  */
 export function useNonconformanceData(organizationId?: string) {
   const { data, error, isLoading, mutate } = useSWR(
@@ -59,7 +46,7 @@ export function useNonconformanceData(organizationId?: string) {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: true,
-      refreshInterval: 0, // No auto-refresh unless explicitly called
+      refreshInterval: 0,
     }
   );
 
@@ -73,19 +60,14 @@ export function useNonconformanceData(organizationId?: string) {
 }
 
 /**
- * Hook para datos del dashboard
- * Returns: { data, error, isLoading }
+ * Hook para datos del dashboard.
  */
 export function useDashboardData() {
-  const { data, error, isLoading } = useSWR(
-    '/api/dashboard',
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: true,
-      refreshInterval: 60000, // 60 seconds
-    }
-  );
+  const { data, error, isLoading } = useSWR('/api/dashboard', fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+    refreshInterval: 60000,
+  });
 
   return {
     data: data || getMockDashboardData(),
@@ -96,18 +78,14 @@ export function useDashboardData() {
 }
 
 /**
- * Hook para inspecciones
+ * Hook para inspecciones.
  */
 export function useInspections(tipo?: string) {
   const query = tipo ? `?tipo=${tipo}` : '';
-  const { data, error, isLoading, mutate } = useSWR(
-    `/api/sostenibilidad/inspecciones${query}`,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: true,
-    }
-  );
+  const { data, error, isLoading, mutate } = useSWR(`/api/sostenibilidad/inspecciones${query}`, fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+  });
 
   return {
     data: data?.data || [],
@@ -119,18 +97,14 @@ export function useInspections(tipo?: string) {
 }
 
 /**
- * Hook para acciones correctivas
+ * Hook para acciones correctivas.
  */
 export function useCorrectiveActions(nonconformanceId?: string) {
   const query = nonconformanceId ? `?nonconformanceId=${nonconformanceId}` : '';
-  const { data, error, isLoading, mutate } = useSWR(
-    `/api/sostenibilidad/corrective-actions${query}`,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: true,
-    }
-  );
+  const { data, error, isLoading, mutate } = useSWR(`/api/sostenibilidad/corrective-actions${query}`, fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+  });
 
   return {
     data: data?.corrective_actions || [],
