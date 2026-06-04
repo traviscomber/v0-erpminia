@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, Users, Clock, CheckCircle2 } from 'lucide-react';
+import { Calendar, Users, Clock } from 'lucide-react';
 
 interface HSECapacitacion {
   id: string;
@@ -24,8 +24,7 @@ const estadoColores = {
 export function HSECapacitacionesCard({ capacitaciones }: { capacitaciones: HSECapacitacion[] }) {
   const proximas = capacitaciones.filter((c) => {
     const fecha = new Date(c.fecha_programada);
-    const hoy = new Date();
-    return fecha >= hoy && c.estado === 'programada';
+    return fecha >= new Date() && c.estado === 'programada';
   });
 
   const proxima = proximas.length > 0 ? proximas[0] : null;
@@ -41,10 +40,10 @@ export function HSECapacitacionesCard({ capacitaciones }: { capacitaciones: HSEC
       </CardHeader>
       <CardContent className="space-y-4">
         {proxima && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <p className="text-sm font-semibold text-blue-900 mb-1">Próxima Capacitación</p>
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+            <p className="mb-1 text-sm font-semibold text-blue-900">Proxima capacitacion</p>
             <p className="text-sm font-bold text-blue-800">{proxima.nombre}</p>
-            <p className="text-xs text-blue-700 mt-1">
+            <p className="mt-1 text-xs text-blue-700">
               {new Date(proxima.fecha_programada).toLocaleDateString('es-CL', {
                 weekday: 'long',
                 day: 'numeric',
@@ -56,10 +55,10 @@ export function HSECapacitacionesCard({ capacitaciones }: { capacitaciones: HSEC
 
         <div className="space-y-2">
           {capacitaciones.slice(0, 5).map((cap) => (
-            <div key={cap.id} className="border rounded-lg p-3 space-y-2">
+            <div key={cap.id} className="space-y-2 rounded-lg border p-3">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h4 className="font-semibold text-sm">{cap.nombre}</h4>
+                  <h4 className="text-sm font-semibold">{cap.nombre}</h4>
                   <p className="text-xs text-muted-foreground">{cap.proveedor || 'Interno'}</p>
                 </div>
                 <Badge className={estadoColores[cap.estado]}>{cap.estado}</Badge>

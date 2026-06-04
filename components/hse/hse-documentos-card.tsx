@@ -33,8 +33,8 @@ export function HSEDocumentosCard({ documentos, faena }: { documentos: HSEDocume
   const documentosVencidos = documentos.filter((d) => {
     const actualizado = new Date(d.fecha_actualizacion);
     const hoy = new Date();
-    const diasDesdeActualiz = Math.floor((hoy.getTime() - actualizado.getTime()) / (1000 * 60 * 60 * 24));
-    return diasDesdeActualiz > 365;
+    const diasDesdeActualizacion = Math.floor((hoy.getTime() - actualizado.getTime()) / (1000 * 60 * 60 * 24));
+    return diasDesdeActualizacion > 365;
   });
 
   return (
@@ -50,25 +50,25 @@ export function HSEDocumentosCard({ documentos, faena }: { documentos: HSEDocume
       </CardHeader>
       <CardContent className="space-y-4">
         {documentosVencidos.length > 0 && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex gap-2">
-            <AlertTriangle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
+          <div className="flex gap-2 rounded-lg border border-red-200 bg-red-50 p-3">
+            <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-600" />
             <div>
-              <p className="text-sm font-semibold text-red-800">{documentosVencidos.length} documento(s) requiere(n) actualización</p>
-              <p className="text-xs text-red-600">Última actualización fue más de 1 año atrás</p>
+              <p className="text-sm font-semibold text-red-800">{documentosVencidos.length} documento(s) requiere(n) actualizacion</p>
+              <p className="text-xs text-red-600">Ultima actualizacion hace mas de 1 ano</p>
             </div>
           </div>
         )}
 
         <div className="space-y-2">
           {documentos.map((doc) => (
-            <div key={doc.id} className="border rounded-lg p-3 space-y-2 hover:bg-muted/50 transition">
+            <div key={doc.id} className="space-y-2 rounded-lg border p-3 transition hover:bg-muted/50">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h4 className="font-semibold text-sm">{doc.nombre}</h4>
+                  <h4 className="text-sm font-semibold">{doc.nombre}</h4>
                   <p className="text-xs text-muted-foreground">v{doc.version}</p>
                 </div>
                 <div className="flex gap-1">
-                  <Badge className={tipoColores[doc.tipo as keyof typeof tipoColores]}>{doc.tipo}</Badge>
+                  <Badge className={tipoColores[doc.tipo as keyof typeof tipoColores] || tipoColores.procedimiento}>{doc.tipo}</Badge>
                   <Badge className={estadoColores[doc.estado]}>{doc.estado}</Badge>
                 </div>
               </div>
@@ -77,12 +77,12 @@ export function HSEDocumentosCard({ documentos, faena }: { documentos: HSEDocume
                 Actualizado: {new Date(doc.fecha_actualizacion).toLocaleDateString('es-CL')}
               </p>
 
-              {doc.descripcion && <p className="text-xs text-muted-foreground line-clamp-2">{doc.descripcion}</p>}
+              {doc.descripcion && <p className="line-clamp-2 text-xs text-muted-foreground">{doc.descripcion}</p>}
 
               {doc.url_documento && (
                 <div className="pt-2">
                   <Button size="sm" variant="outline" className="w-full">
-                    <Download className="h-3 w-3 mr-1" />
+                    <Download className="mr-1 h-3 w-3" />
                     Descargar
                   </Button>
                 </div>
