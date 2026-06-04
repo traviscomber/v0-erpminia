@@ -8,10 +8,8 @@ import {
   TrendingDown,
   Calendar,
   Search,
-  Download,
-  Filter,
-  Eye,
   RefreshCw,
+  AlertCircle,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -23,10 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { BrandCard } from '@/components/ui/brand-card';
-import { StatusBadge } from '@/components/status-badge';
-import { AuditTrail } from '@/components/audit-trail';
-import { exportToCSV } from '@/lib/export-utils';
 import {
   PieChart,
   Pie,
@@ -38,27 +32,31 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  LineChart,
-  Line,
 } from 'recharts';
-import { CHART_COLORS_LIGHT } from '@/lib/theme-colors';
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = async (url: string) => {
+  const response = await fetch(url);
+  const payload = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(payload?.error || 'No fue posible cargar finanzas');
+  }
+
+  return payload;
+};
 
 export default function FinanzasPage() {
-  // Call all hooks at the top level
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedPeriod, setSelectedPeriod] = useState('monthly');
 
-  // Fetch financial data from API
   const { data, error, isLoading, mutate } = useSWR(
     `/api/dashboard/finanzas?period=${selectedPeriod}`,
     fetcher,
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: true,
-      refreshInterval: 300000, // 5 minutes
+      refreshInterval: 300000,
     }
   );
 
@@ -66,19 +64,42 @@ export default function FinanzasPage() {
   const expenses = data?.expenses || [];
   const budgetVsActual = data?.budgetVsActual || [];
   const forecast = data?.forecast || [];
-  const departmentSpend = data?.departmentSpend || [];
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('es-CL', {
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat('es-CL', {
       style: 'currency',
       currency: 'CLP',
       minimumFractionDigits: 0,
     }).format(value);
-  };
 
-  // Early returns AFTER all hooks
-  if (error) return <div className="text-red-500">Error loading financial data</div>;
-  if (isLoading) return <div className="text-gray-500">Loading financial reports...</div>;
+  if (error) {
+    return (
+      <div className="space-y-4">
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight">Finanzas</h1>
+          <p className="mt-3 text-muted-foreground">
+            Gestion de facturas, pagos y compromisos financieros operacionales.
+          </p>
+        </div>
+
+        <Card className="border-destructive/30">
+          <CardContent className="flex items-center justify-between gap-4 pt-6">
+            <div className="flex items-center gap-3 text-sm">
+              <AlertCircle className="h-4 w-4 text-destructive" />
+              <span>{error.message}</span>
+            </div>
+            <Button variant="outline" onClick={() => mutate()}>
+              Reintentar
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return <div className="text-muted-foreground">Cargando finanzas...</div>;
+  }
 
   const filteredFinances = expenses.filter(
     (finance: any) =>
@@ -104,7 +125,7 @@ export default function FinanzasPage() {
     { name: 'Vencida', value: overdueAmount },
   ];
 
-  const COLORS = ['#10b981', '#f59e0b', '#ef4444'];
+  const colors = ['#10b981', '#f59e0b', '#ef4444'];
 
   const statusConfig = {
     Pagada: 'bg-[var(--brand-verde)]/10 text-[var(--brand-verde)] border-[var(--brand-verde)]/30',
@@ -114,23 +135,35 @@ export default function FinanzasPage() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
       <div className="pb-4">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
             <h1 className="text-4xl font-bold tracking-tight">Finanzas</h1>
             <p className="text-muted-foreground mt-3">
-              Gestión de Facturas, Pagos y Reportes Financieros
+              Gestion de facturas, pagos y compromisos financieros operacionales.
             </p>
           </div>
-          <Button onClick={() => alert('Crear nueva factura próximamente')}>Crear Factura</Button>
+          <div className="flex gap-2">
+            <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+              <SelectTrigger className="w-40 bg-input">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="monthly">Mensual</SelectItem>
+                <SelectItem value="quarterly">Trimestral</SelectItem>
+                <SelectItem value="annual">Anual</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button variant="outline" onClick={() => mutate()} className="gap-2">
+              <RefreshCw className="h-4 w-4" />
+              Actualizar
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="border-border overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-chart-1/10 to-transparent rounded-full -mr-12 -mt-12" />
           <CardHeader className="pb-3 relative z-10">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -150,7 +183,6 @@ export default function FinanzasPage() {
         </Card>
 
         <Card className="border-border bg-[var(--brand-verde)]/5 overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-green-500/10 to-transparent rounded-full -mr-12 -mt-12" />
           <CardHeader className="pb-3 relative z-10">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -168,7 +200,6 @@ export default function FinanzasPage() {
         </Card>
 
         <Card className="border-border bg-[var(--secondary)]/5 overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-yellow-500/10 to-transparent rounded-full -mr-12 -mt-12" />
           <CardHeader className="pb-3 relative z-10">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground">Pendiente</CardTitle>
@@ -177,13 +208,12 @@ export default function FinanzasPage() {
           <CardContent className="relative z-10">
             <div className="text-2xl font-bold text-[var(--secondary)]">{formatCurrency(pendingAmount)}</div>
             <p className="text-xs text-muted-foreground mt-2">
-              {filteredFinances.filter((f: any) => f.status === 'Pendiente').length} en trámite
+              {filteredFinances.filter((f: any) => f.status === 'Pendiente').length} en tramite
             </p>
           </CardContent>
         </Card>
 
         <Card className="border-border bg-[var(--brand-rojo)]/5 overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-red-500/10 to-transparent rounded-full -mr-12 -mt-12" />
           <CardHeader className="pb-3 relative z-10">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -201,12 +231,68 @@ export default function FinanzasPage() {
         </Card>
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Pie Chart */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="border-border">
           <CardHeader>
-            <CardTitle>Distribución de Pagos</CardTitle>
+            <CardTitle>Presupuesto Consolidado</CardTitle>
+            <CardDescription>Centros de costo cargados en la organizacion</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between rounded-lg border border-border p-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Presupuesto anual</p>
+                <p className="text-xl font-bold">{formatCurrency(Number(budget.annual || 0))}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-muted-foreground">Ejecutado</p>
+                <p className="text-xl font-bold">{formatCurrency(Number(budget.used || 0))}</p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {budgetVsActual.slice(0, 4).map((item: any) => (
+                <div key={item.name} className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2 text-sm">
+                  <span>{item.name}</span>
+                  <span className="text-muted-foreground">
+                    {formatCurrency(Number(item.actual || 0))} / {formatCurrency(Number(item.budget || 0))}
+                  </span>
+                </div>
+              ))}
+              {budgetVsActual.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  Aun no hay centros de costo con presupuesto cargado.
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border">
+          <CardHeader>
+            <CardTitle>Proyeccion de Flujo</CardTitle>
+            <CardDescription>Compromisos agrupados por periodo de vencimiento</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {forecast.slice(0, 6).map((item: any) => (
+              <div key={item.period} className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2 text-sm">
+                <span className="uppercase">{item.period}</span>
+                <span className="text-muted-foreground">
+                  Pendiente {formatCurrency(Number(item.pending || 0))}
+                </span>
+              </div>
+            ))}
+            {forecast.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                No hay proyecciones disponibles para el periodo seleccionado.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="border-border">
+          <CardHeader>
+            <CardTitle>Distribucion de Pagos</CardTitle>
             <CardDescription>Estado actual de facturas</CardDescription>
           </CardHeader>
           <CardContent>
@@ -222,7 +308,7 @@ export default function FinanzasPage() {
                   dataKey="value"
                 >
                   {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index]} />
+                    <Cell key={`cell-${index}`} fill={colors[index]} />
                   ))}
                 </Pie>
                 <Tooltip formatter={(value) => formatCurrency(value as number)} />
@@ -231,10 +317,7 @@ export default function FinanzasPage() {
             <div className="grid grid-cols-3 gap-2 mt-6 pt-4 border-t border-border">
               {pieData.map((item, idx) => (
                 <div key={item.name} className="text-center">
-                  <div
-                    className="w-2 h-2 rounded-full mx-auto mb-2"
-                    style={{ backgroundColor: COLORS[idx] }}
-                  />
+                  <div className="w-2 h-2 rounded-full mx-auto mb-2" style={{ backgroundColor: colors[idx] }} />
                   <p className="text-xs font-medium text-muted-foreground">{item.name}</p>
                   <p className="text-sm font-bold">{formatCurrency(item.value)}</p>
                 </div>
@@ -243,10 +326,9 @@ export default function FinanzasPage() {
           </CardContent>
         </Card>
 
-        {/* Bar Chart */}
         <Card className="border-border lg:col-span-2">
           <CardHeader>
-            <CardTitle>Análisis por Proveedor</CardTitle>
+            <CardTitle>Analisis por Proveedor</CardTitle>
             <CardDescription>Montos adeudados por vendedor</CardDescription>
           </CardHeader>
           <CardContent>
@@ -274,13 +356,12 @@ export default function FinanzasPage() {
         </Card>
       </div>
 
-      {/* Table Section */}
       <Card className="border-border">
         <CardHeader className="pb-4">
           <div className="flex flex-col md:flex-row md:items-center gap-4">
             <div className="flex-1">
               <CardTitle>Listado de Facturas</CardTitle>
-              <CardDescription>Gestión detallada de transacciones</CardDescription>
+              <CardDescription>Gestion detallada de transacciones</CardDescription>
             </div>
             <div className="flex gap-2">
               <div className="relative flex-1 md:flex-initial md:w-64">
@@ -344,12 +425,19 @@ export default function FinanzasPage() {
                       </div>
                     </td>
                     <td className="py-3 px-4">
-                      <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity" disabled>
                         Ver
                       </Button>
                     </td>
                   </tr>
                 ))}
+                {filteredFinances.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="py-8 px-4 text-center text-muted-foreground">
+                      No hay facturas para los filtros actuales.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
