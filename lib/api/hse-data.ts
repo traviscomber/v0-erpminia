@@ -213,7 +213,7 @@ function buildKpiSeries(incidents: any[]) {
     return monthKey(date.toISOString());
   });
 
-  return seriesKeys.map((key) => {
+  return seriesKeys.map((key: any) => {
     const monthStart = new Date(`${key}-01T00:00:00`);
     const monthEnd = endOfMonth(monthStart);
     const monthIncidents = incidents.filter((incident) => monthKey(incident.date_reported) === key);
@@ -357,7 +357,7 @@ export async function getHseModuleData(
 
   const kpis = buildKpiSeries(incidents);
   const currentMonthKey = monthKey(now.toISOString());
-  const incidentsThisMonth = incidents.filter((incident) => monthKey(incident.date_reported) === currentMonthKey);
+  const incidentsThisMonth = incidents.filter((incident: any) => monthKey(incident.date_reported) === currentMonthKey);
   const openCorrectiveActions = correctiveActionsRaw.filter((row: any) =>
     !['completed', 'verified', 'closed', 'cerrada'].includes(normalizeText(row.status))
   );
@@ -366,18 +366,18 @@ export async function getHseModuleData(
   const documentCompliance =
     documents.length > 0
       ? Math.round(
-          (documents.filter((doc) => doc.estado === 'vigente').length / documents.length) * 100
+          (documents.filter((doc: any) => doc.estado === 'vigente').length / documents.length) * 100
         )
       : 100;
   const trainingCompliance =
     trainings.length > 0
       ? Math.round(
-          (trainings.filter((training) => training.estado === 'realizada').length / trainings.length) * 100
+          (trainings.filter((training: any) => training.estado === 'realizada').length / trainings.length) * 100
         )
       : 100;
   const eppCompliance =
     epp.length > 0
-      ? Math.round((epp.filter((item) => item.activo).length / epp.length) * 100)
+      ? Math.round((epp.filter((item: any) => item.activo).length / epp.length) * 100)
       : 100;
   const riskItems = riskMatrixRaw.filter((row: any) => normalizeText(row.status) !== 'mitigado');
   const riskCompliance =
@@ -414,14 +414,14 @@ export async function getHseModuleData(
         dueDate: row.deadline,
       })),
     ...documents
-      .filter((doc) => {
+      .filter((doc: any) => {
         const days = Math.floor(
           (Date.now() - new Date(doc.fecha_actualizacion).getTime()) / (1000 * 60 * 60 * 24)
         );
         return days > 300;
       })
       .slice(0, 4)
-      .map((doc) => ({
+      .map((doc: any) => ({
         id: doc.id,
         name: doc.nombre,
         count: 1,
@@ -478,7 +478,7 @@ export async function getHseModuleData(
             id: 'documentos',
             name: 'Documentos y Evidencia',
             requirements: documents.length,
-            incidents: documents.filter((doc) => doc.estado !== 'vigente').length,
+            incidents: documents.filter((doc: any) => doc.estado !== 'vigente').length,
             compliance: documentCompliance,
           },
           {
@@ -519,7 +519,7 @@ export async function getHseModuleData(
     summary: {
       complianceScore,
       incidentsThisMonth: incidentsThisMonth.length,
-      openInvestigations: incidents.filter((incident) => incident.status === 'investigating').length,
+      openInvestigations: incidents.filter((incident: any) => incident.status === 'investigating').length,
       dueRequirements: dueRequirements.length,
       openCorrectiveActions: openCorrectiveActions.length,
       closedCorrectiveActions,
@@ -531,7 +531,7 @@ export async function getHseModuleData(
     frameworks: frameworkCards,
     requirementsDueData: dueRequirements,
     complianceByArea,
-    complianceByFramework: frameworkCards.map((framework) => ({
+    complianceByFramework: frameworkCards.map((framework: any) => ({
       name: framework.name,
       compliance: framework.compliance,
     })),

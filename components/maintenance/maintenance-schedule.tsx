@@ -11,7 +11,7 @@ interface Schedule {
   taskName: string;
   nextScheduledDate: string;
   priority: 'low' | 'medium' | 'high';
-  daysUntil: number;
+  daysUntil?: number;
 }
 
 interface MaintenanceScheduleProps {
@@ -25,7 +25,10 @@ const priorityColors = {
   high: 'bg-yellow-500/20 text-yellow-700',
 };
 
-const getUrgency = (daysUntil: number) => {
+const getUrgency = (daysUntil: number | undefined) => {
+  if (daysUntil === undefined || daysUntil === null) {
+    return { color: 'text-muted-foreground', label: 'Schedule pending' };
+  }
   if (daysUntil <= 0) return { color: 'text-destructive', label: 'Overdue' };
   if (daysUntil <= 1) return { color: 'text-yellow-700', label: 'Today' };
   if (daysUntil <= 3) return { color: 'text-yellow-600', label: 'Soon' };
@@ -63,7 +66,7 @@ export function MaintenanceSchedule({ schedules, onMarkComplete }: MaintenanceSc
                   </div>
                   <Button
                     size="sm"
-                    variant={schedule.daysUntil <= 0 ? 'default' : 'outline'}
+                    variant={(schedule.daysUntil ?? 999) <= 0 ? 'default' : 'outline'}
                     onClick={() => onMarkComplete?.(schedule.id)}
                   >
                     Complete

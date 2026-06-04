@@ -451,7 +451,7 @@ export async function GET(request: NextRequest) {
       }
     );
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch production data';
+    const message = error instanceof Error ? error.message : 'No se pudieron obtener datos de producción';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

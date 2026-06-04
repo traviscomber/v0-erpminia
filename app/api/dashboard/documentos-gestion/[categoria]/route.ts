@@ -88,7 +88,7 @@ export async function GET(
   } catch (error) {
     console.error('[v0] Error fetching categoria documents:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch documents' },
+      { error: 'No se pudieron obtener los documentos' },
       { status: 500 }
     );
   }

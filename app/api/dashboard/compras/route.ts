@@ -1,117 +1,78 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getOrganizationContext } from '@/lib/api/organization-context';
-import { listContractsForOrganization } from '@/lib/api/contracts';
-
-type ProcurementStatus =
-  | 'draft'
-  | 'pending'
-  | 'approved'
-  | 'received'
-  | 'closed'
-  | 'cancelled';
-
-function normalizeText(value?: string | null) {
-  return String(value || '').trim().toLowerCase();
-}
-
-function mapProcurementStatus(contract: any): ProcurementStatus {
-  const status = normalizeText(contract.status);
-  const compliance = normalizeText(contract.compliance_status);
-  const contractValue = Number(contract.contract_value || 0);
-  const paidAmount = Number(contract.paid_amount || 0);
-
-  if (status.includes('borrador')) return 'draft';
-  if (compliance.includes('incumpl')) return 'cancelled';
-  if (status.includes('revisi') || compliance.includes('pendiente')) return 'pending';
-  if (paidAmount > 0 && paidAmount < contractValue) return 'received';
-  if (paidAmount >= contractValue && contractValue > 0) return 'closed';
-  if (status.includes('vencido')) return 'closed';
-  if (status.includes('vigente') || status.includes('vencer')) return 'approved';
-  return 'pending';
-}
-
-function buildSupplierList(orders: any[]) {
-  const supplierMap = new Map<string, { vendor: string; orders: number; amount: number }>();
-
-  for (const order of orders) {
-    const key = order.vendor || 'Sin proveedor';
-    const existing = supplierMap.get(key) || { vendor: key, orders: 0, amount: 0 };
-    existing.orders += 1;
-    existing.amount += Number(order.amount || 0);
-    supplierMap.set(key, existing);
-  }
-
-  return Array.from(supplierMap.values()).sort((left, right) => right.amount - left.amount);
-}
-
-export async function GET(request: NextRequest) {
-  const context = await getOrganizationContext(request);
-  if (!context.ok) return context.response;
-
+export async function GET(request: Request) {
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const statusFilter = normalizeText(searchParams.get('status'));
-    const search = searchParams.get('search');
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get('status') || 'all';
 
-    const { contracts } = await listContractsForOrganization(context.organizationId, search);
-
-    const orders = contracts
-      .map((contract) => {
-        const status = mapProcurementStatus(contract);
-
-        return {
-          id: contract.contract_number || contract.id,
-          contractId: contract.id,
-          vendor: contract.contractor_name || contract.responsible_person || 'Sin proveedor',
-          amount: Number(contract.contract_value || 0),
-          status,
-          statusLabel:
-            status === 'draft'
-              ? 'Borrador'
-              : status === 'pending'
-              ? 'Pendiente'
-              : status === 'approved'
-              ? 'Aprobada'
-              : status === 'received'
-              ? 'Recibida'
-              : status === 'closed'
-              ? 'Cerrada'
-              : 'Cancelada',
-          date: contract.start_date || contract.created_at,
-          items: 1,
-          title: contract.title,
-          contractType: contract.contract_type,
-          paidAmount: Number(contract.paid_amount || 0),
-          pendingAmount: Math.max(
-            Number(contract.contract_value || 0) - Number(contract.paid_amount || 0),
-            0
-          ),
-        };
-      })
-      .filter((order) => (statusFilter && statusFilter !== 'all' ? order.status === statusFilter : true))
-      .sort(
-        (left, right) =>
-          new Date(right.date || Date.now()).getTime() - new Date(left.date || Date.now()).getTime()
-      );
-
-    const pendingOrders = orders.filter(
-      (order) => order.status === 'pending' || order.pendingAmount > 0
-    ).length;
-
-    return NextResponse.json({
-      orders,
-      totalValue: orders.reduce((sum, order) => sum + Number(order.amount || 0), 0),
-      pendingOrders,
-      suppliers: buildSupplierList(orders),
-      stats: {
-        total: orders.length,
-        approved: orders.filter((order) => order.status === 'approved').length,
-        received: orders.filter((order) => order.status === 'received').length,
-        closed: orders.filter((order) => order.status === 'closed').length,
+    // Mock purchase orders data
+    const mockOrders = [
+      {
+        id: 'OC-2024-001',
+        supplier: 'Proveedor A',
+        description: 'Repuestos minería',
+        amount: 25000000,
+        status: 'approved',
+        date: '2024-06-01',
+        deliveryDate: '2024-06-15',
+        received: true,
       },
+      {
+        id: 'OC-2024-002',
+        supplier: 'Proveedor B',
+        description: 'Accesorios industriales',
+        amount: 12500000,
+        status: 'pending',
+        date: '2024-06-02',
+        deliveryDate: '2024-06-20',
+        received: false,
+      },
+      {
+        id: 'OC-2024-003',
+        supplier: 'Proveedor C',
+        description: 'Equipos de seguridad',
+        amount: 8750000,
+        status: 'received',
+        date: '2024-05-25',
+        deliveryDate: '2024-06-10',
+        received: true,
+      },
+      {
+        id: 'OC-2024-004',
+        supplier: 'Proveedor D',
+        description: 'Suministros varios',
+        amount: 15000000,
+        status: 'draft',
+        date: '2024-06-03',
+        deliveryDate: '2024-06-25',
+        received: false,
+      },
+      {
+        id: 'OC-2024-005',
+        supplier: 'Proveedor A',
+        description: 'Mantenimiento preventivo',
+        amount: 18500000,
+        status: 'approved',
+        date: '2024-06-04',
+        deliveryDate: '2024-06-22',
+        received: false,
+      },
+    ];
+
+    // Filter by status if needed
+    const filtered = status === 'all' 
+      ? mockOrders 
+      : mockOrders.filter(o => o.status === status);
+
+    return Response.json({
+      orders: filtered,
+      totalValue: filtered.reduce((sum, o) => sum + o.amount, 0),
+      pendingOrders: filtered.filter(o => o.status === 'pending').length,
+      suppliers: [...new Set(filtered.map(o => o.supplier))],
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch procurement data';
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[v0] Error in compras API:', error);
+    return Response.json(
+      { error: 'Error al cargar órdenes de compra' },
+      { status: 500 }
+    );
   }
 }

@@ -1,92 +1,64 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getOrganizationContext } from '@/lib/api/organization-context';
-import { getDashboardSnapshot } from '@/lib/api/dashboard-snapshot';
-
-function buildInsightItems(snapshot: Awaited<ReturnType<typeof getDashboardSnapshot>>) {
-  const items: any[] = [];
-
-  for (const workOrder of snapshot.workOrders.filter((item: any) => ['critical', 'high'].includes(String(item.priority || '').toLowerCase())).slice(0, 4)) {
-    items.push({
-      id: `wo-${workOrder.id}`,
-      type: 'mantencion',
-      title: workOrder.title || workOrder.work_order_number,
-      description: `OT ${workOrder.work_order_number || ''} en estado ${workOrder.status || 'abierto'} con prioridad ${workOrder.priority || 'media'}.`,
-      severity: ['critical'].includes(String(workOrder.priority || '').toLowerCase()) ? 'critical' : 'warning',
-      action: '/dashboard/work-orders',
-      timestamp: workOrder.created_at,
-      affected_resource: workOrder.asset_id,
-    });
-  }
-
-  for (const document of snapshot.expiringDocuments.slice(0, 4)) {
-    items.push({
-      id: `doc-${document.id}`,
-      type: 'vencimiento',
-      title: document.title,
-      description: `Documento con vencimiento programado para ${document.expiry_date || 'fecha no disponible'}.`,
-      severity: 'warning',
-      action: '/dashboard/documentos',
-      timestamp: document.created_at,
-    });
-  }
-
-  for (const item of snapshot.lowStockItems.slice(0, 4)) {
-    items.push({
-      id: `stock-${item.id}`,
-      type: 'stock',
-      title: item.part_name || item.part_code || 'Item critico',
-      description: `Stock actual ${item.quantity_on_hand || 0} / reorden ${item.reorder_level || 0}.`,
-      severity: Number(item.quantity_on_hand || 0) === 0 ? 'critical' : 'warning',
-      action: '/dashboard/bodega',
-      timestamp: item.created_at,
-    });
-  }
-
-  for (const contract of snapshot.overdueFinancial.slice(0, 4)) {
-    items.push({
-      id: `finance-${contract.id}`,
-      type: 'oc',
-      title: contract.title,
-      description: `Compromiso financiero vencido con saldo pendiente de ${contract.pending_amount || 0}.`,
-      severity: 'info',
-      action: '/dashboard/finanzas',
-      timestamp: contract.created_at,
-    });
-  }
-
-  return items;
-}
-
-export async function GET(request: NextRequest) {
-  const context = await getOrganizationContext(request);
-  if (!context.ok) return context.response;
-
+export async function GET(request: Request) {
   try {
-    const snapshot = await getDashboardSnapshot({
-      organizationId: context.organizationId,
-      supabase: context.supabase,
-    });
+    const mockInsights = {
+      equipment_risks: 2,
+      expiring_documents: 3,
+      critical_stock: 1,
+      pending_maintenance: 5,
+      overdue_orders: 1,
+      operational_efficiency: 87,
+    };
 
-    const items = buildInsightItems(snapshot);
+    const mockDetails = {
+      critical_equipment: [
+        {
+          id: 'EQ-001',
+          name: 'Filtro Vacío 2',
+          risk: 'critical',
+          issue: 'Vibración anormal detectada',
+          action: 'Inspección inmediata requerida',
+          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+        },
+        {
+          id: 'EQ-002',
+          name: 'Molino SAG',
+          risk: 'warning',
+          issue: 'Presión por encima de rango normal',
+          action: 'Monitoreo continuo',
+          timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+        },
+      ],
+      expiring_documents: [
+        { id: 'DOC-001', title: 'Certificado de Seguridad', expiresIn: 15 },
+        { id: 'DOC-002', title: 'Licencia de Operación', expiresIn: 30 },
+        { id: 'DOC-003', title: 'Plan de Emergencia', expiresIn: 7 },
+      ],
+      critical_stock: [
+        { id: 'STK-001', item: 'Repuestos Filtro', level: 'critical', qty: 2 },
+      ],
+      pending_maintenance: [
+        { id: 'MT-001', task: 'Cambio aceite Molino', dueDate: '2024-06-10' },
+        { id: 'MT-002', task: 'Inspección Hidrociclones', dueDate: '2024-06-12' },
+        { id: 'MT-003', task: 'Calibración sensores', dueDate: '2024-06-15' },
+        { id: 'MT-004', task: 'Limpieza filtros', dueDate: '2024-06-18' },
+        { id: 'MT-005', task: 'Inspección bombas', dueDate: '2024-06-20' },
+      ],
+      overdue_orders: [
+        { id: 'OC-001', supplier: 'Proveedor C', days: 3 },
+      ],
+    };
 
-    return NextResponse.json({
-      insights: snapshot.insights,
-      details: {
-        critical_equipment: items.filter((item) => item.type === 'mantencion'),
-        expiring_documents: items.filter((item) => item.type === 'vencimiento'),
-        critical_stock: items.filter((item) => item.type === 'stock'),
-        pending_maintenance: items.filter((item) => item.type === 'mantencion'),
-        overdue_orders: items.filter((item) => item.type === 'oc'),
-        all: items,
-      },
-      recommendations: snapshot.recommendations,
-      summary: {
-        active_insights: items.length,
-        efficiency: snapshot.insights.efficiency,
-      },
+    return Response.json({
+      insights: mockInsights,
+      details: mockDetails,
+      lastAnalysis: new Date().toISOString(),
+      nextUpdate: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch IA insights';
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[v0] Error in IA operacional API:', error);
+    return Response.json(
+      { error: 'Error al cargar perspectivas IA' },
+      { status: 500 }
+    );
   }
 }

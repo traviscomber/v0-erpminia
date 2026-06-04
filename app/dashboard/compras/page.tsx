@@ -69,13 +69,14 @@ export default function ComprasPage() {
       minimumFractionDigits: 0,
     }).format(value);
 
+  // Early returns AFTER all hooks
   if (error) {
     return (
       <div className="space-y-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Compras</h1>
           <p className="mt-2 text-muted-foreground">
-            Gestion operacional de ordenes de compra y proveedores.
+            Gestión operacional de órdenes de compra y proveedores.
           </p>
         </div>
 
@@ -83,7 +84,7 @@ export default function ComprasPage() {
           <CardContent className="flex items-center justify-between gap-4 pt-6">
             <div className="flex items-center gap-3 text-sm">
               <AlertCircle className="h-4 w-4 text-destructive" />
-              <span>{error.message}</span>
+              <span>Error al cargar órdenes de compra</span>
             </div>
             <Button variant="outline" onClick={() => mutate()}>
               Reintentar
@@ -93,10 +94,7 @@ export default function ComprasPage() {
       </div>
     );
   }
-
-  if (isLoading) {
-    return <div className="text-muted-foreground">Cargando compras...</div>;
-  }
+  if (isLoading) return <div className="text-gray-500">Cargando datos de compras...</div>;
 
   return (
     <div className="space-y-6">

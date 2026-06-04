@@ -262,6 +262,8 @@ export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     'Core': true,
+    'Operaciones': true,
+    'Sostenibilidad': true,
   });
   const [isMounted, setIsMounted] = useState(false);
 

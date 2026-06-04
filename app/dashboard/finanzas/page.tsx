@@ -72,13 +72,14 @@ export default function FinanzasPage() {
       minimumFractionDigits: 0,
     }).format(value);
 
+  // Early returns AFTER all hooks
   if (error) {
     return (
       <div className="space-y-4">
         <div>
           <h1 className="text-4xl font-bold tracking-tight">Finanzas</h1>
           <p className="mt-3 text-muted-foreground">
-            Gestion de facturas, pagos y compromisos financieros operacionales.
+            Gestión de facturas, pagos y compromisos financieros operacionales.
           </p>
         </div>
 
@@ -86,7 +87,7 @@ export default function FinanzasPage() {
           <CardContent className="flex items-center justify-between gap-4 pt-6">
             <div className="flex items-center gap-3 text-sm">
               <AlertCircle className="h-4 w-4 text-destructive" />
-              <span>{error.message}</span>
+              <span>Error al cargar datos financieros</span>
             </div>
             <Button variant="outline" onClick={() => mutate()}>
               Reintentar
@@ -96,10 +97,7 @@ export default function FinanzasPage() {
       </div>
     );
   }
-
-  if (isLoading) {
-    return <div className="text-muted-foreground">Cargando finanzas...</div>;
-  }
+  if (isLoading) return <div className="text-gray-500">Cargando reportes financieros...</div>;
 
   const filteredFinances = expenses.filter(
     (finance: any) =>
