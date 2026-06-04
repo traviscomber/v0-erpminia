@@ -35,8 +35,8 @@ export default function CategoryDetailPage() {
     { revalidateOnFocus: false, refreshInterval: 300000 }
   );
 
-  if (error) return <div className="text-red-500">Error loading documents</div>;
-  if (isLoading) return <div className="text-gray-500">Loading...</div>;
+  if (error) return <div className="text-red-500">Error al cargar documentos</div>;
+  if (isLoading) return <div className="text-gray-500">Cargando...</div>;
 
   const stats = data?.stats || { total: 0, aprobados: 0, pendientes: 0, rechazados: 0 };
   const docs = data?.documents || { aprobados: [], pendientes: [], rechazados: [] };

@@ -96,7 +96,7 @@ export default function FinanzasPage() {
       </div>
     );
   }
-  if (isLoading) return <div className="text-gray-500">Loading financial reports...</div>;
+  if (isLoading) return <div className="text-gray-500">Cargando reportes financieros...</div>;
 
   const filteredFinances = expenses.filter(
     (finance: any) =>

@@ -71,7 +71,7 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error('[v0] Error in compras API:', error);
     return Response.json(
-      { error: 'Error loading purchase orders' },
+      { error: 'Error al cargar órdenes de compra' },
       { status: 500 }
     );
   }

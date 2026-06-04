@@ -66,8 +66,8 @@ export default function ComprasPage() {
   };
 
   // Early returns AFTER all hooks
-  if (error) return <div className="text-red-500">Error loading purchase orders</div>;
-  if (isLoading) return <div className="text-gray-500">Loading procurement data...</div>;
+  if (error) return <div className="text-red-500">Error al cargar órdenes de compra</div>;
+  if (isLoading) return <div className="text-gray-500">Cargando datos de compras...</div>;
 
   return (
     <div className="space-y-6">

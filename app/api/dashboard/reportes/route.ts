@@ -83,7 +83,7 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error('[v0] Error in reportes API:', error);
     return Response.json(
-      { error: 'Error loading report data' },
+      { error: 'Error al cargar datos de reportes' },
       { status: 500 }
     );
   }

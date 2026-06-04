@@ -43,7 +43,7 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error('[v0] Error in KPI dashboard API:', error);
     return Response.json(
-      { error: 'Error loading KPI data' },
+      { error: 'Error al cargar datos KPI' },
       { status: 500 }
     );
   }

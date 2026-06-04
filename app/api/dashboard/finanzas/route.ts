@@ -80,7 +80,7 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error('[v0] Error in finanzas API:', error);
     return Response.json(
-      { error: 'Error loading financial data' },
+      { error: 'Error al cargar datos financieros' },
       { status: 500 }
     );
   }

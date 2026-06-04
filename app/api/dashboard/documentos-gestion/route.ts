@@ -130,7 +130,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('[v0] Error fetching documentos-gestion data:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch documents' },
+      { error: 'No se pudieron obtener los documentos' },
       { status: 500 }
     );
   }

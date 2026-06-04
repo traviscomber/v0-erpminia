@@ -57,7 +57,7 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error('[v0] Error in IA operacional API:', error);
     return Response.json(
-      { error: 'Error loading IA insights' },
+      { error: 'Error al cargar perspectivas IA' },
       { status: 500 }
     );
   }

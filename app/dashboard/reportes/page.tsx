@@ -75,8 +75,8 @@ export default function ReportesPage() {
   ];
 
   // Early returns AFTER all hooks
-  if (error) return <div className="text-red-500">Error loading report data</div>;
-  if (isLoading) return <div className="text-gray-500">Generating report...</div>;
+  if (error) return <div className="text-red-500">Error al cargar datos de reportes</div>;
+  if (isLoading) return <div className="text-gray-500">Generando reporte...</div>;
 
   // Safe data extraction with defaults
   const chartData = data?.chartData || [];

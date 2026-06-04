@@ -48,8 +48,8 @@ export default function KPIDashboardPage() {
     }
   );
 
-  if (error) return <div className="text-red-500">Error loading KPI data</div>;
-  if (isLoading) return <div className="text-gray-500">Loading KPI dashboard...</div>;
+  if (error) return <div className="text-red-500">Error al cargar datos KPI</div>;
+  if (isLoading) return <div className="text-gray-500">Cargando panel KPI...</div>;
 
   const kpisData = data?.kpis || {};
   const trendData = data?.trendData || [];

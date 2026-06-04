@@ -54,8 +54,8 @@ export default function HSEPage() {
     }
   );
 
-  if (error) return <div className="text-red-500">Error loading HSE data</div>;
-  if (isLoading) return <div className="text-gray-500">Loading HSE compliance data...</div>;
+  if (error) return <div className="text-red-500">Error al cargar datos HSE</div>;
+  if (isLoading) return <div className="text-gray-500">Cargando datos de cumplimiento HSE...</div>;
 
   const frameworks = data?.frameworks || [];
   const incidents = data?.incidents || [];

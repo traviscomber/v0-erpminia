@@ -41,8 +41,8 @@ export default function DocumentosGestionPage() {
     );
   }, [categories, searchTerm]);
 
-  if (error) return <div className="text-red-500">Error loading documents</div>;
-  if (isLoading) return <div className="text-gray-500">Loading document management...</div>;
+  if (error) return <div className="text-red-500">Error al cargar documentos</div>;
+  if (isLoading) return <div className="text-gray-500">Cargando gestión de documentos...</div>;
 
   const getEstadoBadge = (estado: string) => {
     switch (estado) {

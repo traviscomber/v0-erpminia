@@ -49,8 +49,8 @@ export default function IAOperacionalPage() {
     }
   );
 
-  if (error) return <div className="text-red-500">Error loading IA insights</div>;
-  if (isLoading) return <div className="text-gray-500">Loading operational intelligence...</div>;
+  if (error) return <div className="text-red-500">Error al cargar perspectivas IA</div>;
+  if (isLoading) return <div className="text-gray-500">Cargando inteligencia operacional...</div>;
 
   // Extract insights object (not an array)
   const insightsData = data?.insights || {};
