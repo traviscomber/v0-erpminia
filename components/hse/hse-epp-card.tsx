@@ -28,28 +28,28 @@ export function HSEEPPCard({ entregas, cargo }: { entregas: HSEEPPEntrega[]; car
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Shield className="h-5 w-5" />
-          EPP - Equipos Protección Personal
+          EPP - Equipos de Proteccion Personal
         </CardTitle>
-        <CardDescription>{entregas.length} entregas registradas {cargo ? `(${cargo})` : ''}</CardDescription>
+        <CardDescription>{entregas.length} registros {cargo ? `(${cargo})` : ''}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {pendingDevoluciones.length > 0 && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+          <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3">
             <p className="text-sm font-semibold text-yellow-900">
-              {pendingDevoluciones.length} devolución(es) pendiente(s)
+              {pendingDevoluciones.length} devolucion(es) pendiente(s)
             </p>
-            <p className="text-xs text-yellow-700 mt-1">
-              Personal debe devolver equipo antiguo para recibir reemplazo
+            <p className="mt-1 text-xs text-yellow-700">
+              Hay entregas que todavia no cierran su devolucion anterior.
             </p>
           </div>
         )}
 
-        <div className="space-y-2 max-h-64 overflow-y-auto">
+        <div className="max-h-64 space-y-2 overflow-y-auto">
           {entregas.slice(0, 8).map((entrega) => (
-            <div key={entrega.id} className="border rounded-lg p-3">
-              <div className="flex items-start justify-between mb-2">
+            <div key={entrega.id} className="rounded-lg border p-3">
+              <div className="mb-2 flex items-start justify-between">
                 <div className="flex-1">
-                  <p className="font-semibold text-sm">{entrega.personal_nombre}</p>
+                  <p className="text-sm font-semibold">{entrega.personal_nombre}</p>
                   <p className="text-sm text-muted-foreground">{entrega.epp_elemento}</p>
                 </div>
                 <Badge className={estadoColores[entrega.estado_anterior]}>
@@ -59,11 +59,11 @@ export function HSEEPPCard({ entregas, cargo }: { entregas: HSEEPPEntrega[]; car
 
               <div className="flex items-center justify-between text-xs">
                 <p className="text-muted-foreground">
-                  Entregado: {new Date(entrega.fecha_entrega).toLocaleDateString('es-CL')}
+                  Actualizado: {new Date(entrega.fecha_entrega).toLocaleDateString('es-CL')}
                 </p>
                 {entrega.devolucion_requerida && !entrega.fecha_devolucion && (
-                  <Badge variant="outline" className="bg-red-50 text-red-700 border-red-300">
-                    Pendiente devolución
+                  <Badge variant="outline" className="border-red-300 bg-red-50 text-red-700">
+                    Pendiente devolucion
                   </Badge>
                 )}
               </div>
@@ -72,8 +72,8 @@ export function HSEEPPCard({ entregas, cargo }: { entregas: HSEEPPEntrega[]; car
         </div>
 
         <Button className="w-full" size="sm" variant="outline">
-          <Plus className="h-3 w-3 mr-1" />
-          Nueva Entrega EPP
+          <Plus className="mr-1 h-3 w-3" />
+          Nuevo registro EPP
         </Button>
       </CardContent>
     </Card>
