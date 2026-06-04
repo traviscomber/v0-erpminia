@@ -482,7 +482,7 @@ export default function LegalPage() {
                       <li key={item.id}>
                         {item.title}
                         {item.expiry_date
-                          ? ` · ${new Date(item.expiry_date).toLocaleDateString('es-CL')}`
+                          ? ` - ${new Date(item.expiry_date).toLocaleDateString('es-CL')}`
                           : ''}
                       </li>
                     ))}
@@ -537,3 +537,4 @@ export default function LegalPage() {
     </div>
   );
 }
+

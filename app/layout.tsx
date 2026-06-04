@@ -12,8 +12,9 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 const _montserrat = Montserrat({ subsets: ["latin"], variable: "--font-heading" });
 
 export const metadata: Metadata = {
-  title: 'MOTIL - Maximizando Operación Tecnología Información y Logística',
-  description: 'MOTIL (Maximizando Operación Tecnología Información y Logística): Plataforma integral de gestión operacional minera. Sistema integrado de Producción, Mantención, HSE, Documentos, Compras, Finanzas y Reportes. Todo conectado, todo visible, todo bajo control.',
+  title: 'Motil — Plataforma Operacional Minera',
+  description:
+    'Plataforma operacional minera para conectar produccion, mantencion, bodega, HSE, documentos y gerencia con trazabilidad operacional y KPIs en tiempo real.',
   generator: 'v0.app',
   icons: {
     icon: [
@@ -40,7 +41,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="es" className="dark" suppressHydrationWarning>
       <head />
       <body className="font-sans antialiased bg-background text-foreground">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} forcedTheme="dark">

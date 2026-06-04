@@ -96,9 +96,7 @@ export default function RegisterPage() {
         <Card className="border-border">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl">Crear Cuenta</CardTitle>
-            <CardDescription>
-              n3uralia ERP - Plataforma de Gestión Minera
-            </CardDescription>
+            <CardDescription>Motil — Plataforma Operacional Minera</CardDescription>
           </CardHeader>
           <CardContent>
             {success ? (
@@ -206,7 +204,7 @@ export default function RegisterPage() {
 
             <div className="mt-6 pt-6 border-t border-border">
               <p className="text-xs text-muted-foreground text-center pt-4">
-                Powered by <a href="https://n3uralia.com" target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline">n3uralia</a>
+                Desarrollado con <a href="https://n3uralia.com" target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline">n3uralia</a>
               </p>
             </div>
           </CardContent>

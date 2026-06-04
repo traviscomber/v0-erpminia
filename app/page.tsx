@@ -165,7 +165,7 @@ export default function Home() {
                 <ul className="text-xs space-y-1 text-muted-foreground">
                   <li className="flex gap-2">
                     <span className="text-[var(--brand-verde)]">→</span>
-                    Diagn��stico automático
+                    Diagnostico automatico
                   </li>
                   <li className="flex gap-2">
                     <span className="text-[var(--brand-verde)]">→</span>
@@ -201,7 +201,7 @@ export default function Home() {
                   </li>
                   <li className="flex gap-2">
                     <span className="text-[var(--brand-verde)]">→</span>
-                    Stock alerts
+                    Alertas de stock
                   </li>
                 </ul>
               </CardContent>
@@ -574,7 +574,7 @@ export default function Home() {
       <footer className="border-t border-border bg-muted/30 py-8">
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
           <p className="text-sm text-muted-foreground">
-              Motil — Plataforma Operacional Minera © 2026 • Powered by <a href="https://n3uralia.com" target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline">n3uralia</a>
+              Motil — Plataforma Operacional Minera © 2026 • Desarrollado con <a href="https://n3uralia.com" target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline">n3uralia</a>
           </p>
           <p className="text-sm text-muted-foreground">
             Desarrollado por <span className="font-semibold">Cía. Minera La Patagua</span>
