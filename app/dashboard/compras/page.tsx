@@ -39,7 +39,6 @@ const statusConfig: Record<string, { color: string; label: string }> = {
 export default function ComprasPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
-  const [statusFilter] = useState('all');
 
   const { data, error, isLoading, mutate } = useSWR('/api/dashboard/compras', fetcher, {
     revalidateOnFocus: false,
