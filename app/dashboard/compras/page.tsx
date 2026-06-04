@@ -69,7 +69,6 @@ export default function ComprasPage() {
       minimumFractionDigits: 0,
     }).format(value);
 
-<<<<<<< HEAD
   // Early returns AFTER all hooks
   if (error) {
     return (
@@ -96,11 +95,6 @@ export default function ComprasPage() {
     );
   }
   if (isLoading) return <div className="text-gray-500">Cargando datos de compras...</div>;
-
-  if (isLoading) {
-    return <div className="text-muted-foreground">Cargando compras...</div>;
-  }
->>>>>>> main
 
   return (
     <div className="space-y-6">

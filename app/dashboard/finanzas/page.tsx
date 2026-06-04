@@ -72,7 +72,6 @@ export default function FinanzasPage() {
       minimumFractionDigits: 0,
     }).format(value);
 
-<<<<<<< HEAD
   // Early returns AFTER all hooks
   if (error) {
     return (
@@ -99,11 +98,6 @@ export default function FinanzasPage() {
     );
   }
   if (isLoading) return <div className="text-gray-500">Cargando reportes financieros...</div>;
-
-  if (isLoading) {
-    return <div className="text-muted-foreground">Cargando finanzas...</div>;
-  }
->>>>>>> main
 
   const filteredFinances = expenses.filter(
     (finance: any) =>
