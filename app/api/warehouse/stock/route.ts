@@ -36,8 +36,8 @@ async function getOrganizationBins(supabase: any, organizationId: string) {
   const racksById = new Map((racks || []).map((rack: any) => [rack.id, rack]));
 
   return (bins || []).map((bin: any) => {
-    const rack = racksById.get(bin.rack_id);
-    const zone = rack ? zonesById.get(rack.zone_id) : null;
+    const rack = racksById.get(bin.rack_id) as any;
+    const zone = (rack ? zonesById.get(rack.zone_id) : null) as any;
 
     return {
       ...bin,

@@ -131,7 +131,7 @@ async function querySensorReadings(
   if (!context.ok || sensorIds.length === 0) return [] as any[];
 
   const byTimestamp = await safeQuery(
-    () =>
+    async () =>
       context.supabase
         .from('sensor_readings')
         .select('*')
@@ -143,8 +143,8 @@ async function querySensorReadings(
 
   if (byTimestamp.length > 0) return byTimestamp;
 
-  return safeQuery(
-    () =>
+  return await safeQuery(
+    async () =>
       context.supabase
         .from('sensor_readings')
         .select('*')
@@ -201,11 +201,11 @@ export async function GET(request: NextRequest) {
   try {
     const [productionEquipment, maintenanceAssets, workOrders, detenciones] = await Promise.all([
       safeQuery(
-        () => context.supabase.from('equipment').select('*').order('name', { ascending: true }),
+        async () => context.supabase.from('equipment').select('*').order('name', { ascending: true }),
         [] as any[]
       ),
       safeQuery(
-        () =>
+        async () =>
           context.supabase
             .from('maintenance_assets')
             .select('*')
@@ -214,7 +214,7 @@ export async function GET(request: NextRequest) {
         [] as any[]
       ),
       safeQuery(
-        () =>
+        async () =>
           context.supabase
             .from('maintenance_work_orders')
             .select('*')
@@ -224,7 +224,7 @@ export async function GET(request: NextRequest) {
         [] as any[]
       ),
       safeQuery(
-        () =>
+        async () =>
           context.supabase
             .from('detenciones')
             .select('*')
@@ -239,7 +239,7 @@ export async function GET(request: NextRequest) {
     const [sensors, rawReadings, rawAlarms, availabilityRows] = await Promise.all([
       productionEquipmentIds.length > 0
         ? safeQuery(
-            () =>
+            async () =>
               context.supabase
                 .from('sensors')
                 .select('*')
@@ -251,7 +251,7 @@ export async function GET(request: NextRequest) {
       productionEquipmentIds.length > 0
         ? Promise.resolve([] as any[]) // populated below after sensors resolve
         : safeQuery(
-            () =>
+            async () =>
               context.supabase
                 .from('sensor_readings')
                 .select('*')
@@ -261,7 +261,7 @@ export async function GET(request: NextRequest) {
           ),
       productionEquipmentIds.length > 0
         ? safeQuery(
-            () =>
+            async () =>
               context.supabase
                 .from('alarms')
                 .select('*')
@@ -271,7 +271,7 @@ export async function GET(request: NextRequest) {
             [] as any[]
           )
         : safeQuery(
-            () =>
+            async () =>
               context.supabase
                 .from('alarms')
                 .select('*')
@@ -281,7 +281,7 @@ export async function GET(request: NextRequest) {
           ),
       productionEquipmentIds.length > 0
         ? safeQuery(
-            () =>
+            async () =>
               context.supabase
                 .from('equipment_availability')
                 .select('*')
