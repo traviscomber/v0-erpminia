@@ -77,7 +77,25 @@ export default function FinanzasPage() {
   };
 
   // Early returns AFTER all hooks
-  if (error) return <div className="text-red-500">Error loading financial data</div>;
+  if (error) {
+    return (
+      <div className="space-y-4">
+        <div className="pb-4">
+          <h1 className="text-4xl font-bold tracking-tight">Finanzas</h1>
+          <p className="text-muted-foreground mt-3">Gestión de Facturas, Pagos y Reportes Financieros</p>
+        </div>
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-4">
+              <div className="text-red-600 font-semibold">Error al cargar datos</div>
+              <div className="text-red-600 text-sm">No se pudo conectar con la base de datos. Intenta de nuevo.</div>
+              <Button onClick={() => mutate()} size="sm" className="ml-auto">Reintentar</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
   if (isLoading) return <div className="text-gray-500">Loading financial reports...</div>;
 
   const filteredFinances = expenses.filter(
