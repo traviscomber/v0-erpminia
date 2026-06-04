@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const data = await getHseModuleData(context.organizationId, context.supabase);
 
     const capacitaciones = estado
-      ? data.trainings.filter((training) => training.estado === estado)
+      ? data.trainings.filter((training: any) => training.estado === estado)
       : data.trainings;
 
     return NextResponse.json({

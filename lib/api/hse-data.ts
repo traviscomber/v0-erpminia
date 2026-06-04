@@ -357,7 +357,7 @@ export async function getHseModuleData(
 
   const kpis = buildKpiSeries(incidents);
   const currentMonthKey = monthKey(now.toISOString());
-  const incidentsThisMonth = incidents.filter((incident) => monthKey(incident.date_reported) === currentMonthKey);
+  const incidentsThisMonth = incidents.filter((incident: any) => monthKey(incident.date_reported) === currentMonthKey);
   const openCorrectiveActions = correctiveActionsRaw.filter((row: any) =>
     !['completed', 'verified', 'closed', 'cerrada'].includes(normalizeText(row.status))
   );
@@ -366,13 +366,13 @@ export async function getHseModuleData(
   const documentCompliance =
     documents.length > 0
       ? Math.round(
-          (documents.filter((doc) => doc.estado === 'vigente').length / documents.length) * 100
+          (documents.filter((doc: any) => doc.estado === 'vigente').length / documents.length) * 100
         )
       : 100;
   const trainingCompliance =
     trainings.length > 0
       ? Math.round(
-          (trainings.filter((training) => training.estado === 'realizada').length / trainings.length) * 100
+          (trainings.filter((training: any) => training.estado === 'realizada').length / trainings.length) * 100
         )
       : 100;
   const eppCompliance =
