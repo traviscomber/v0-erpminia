@@ -20,28 +20,21 @@ import {
   Plus,
   Trash2,
   Clock,
-  AlertCircle,
   CheckCircle2,
   Lock,
-  Unlock,
-  Download,
 } from 'lucide-react';
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = async (url: string) => {
+  const response = await fetch(url);
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Error cargando datos');
+  }
+  return data;
+};
 
-const MODULES = [
-  'produccion',
-  'mantenimiento',
-  'bodega',
-  'hse',
-  'documentos',
-  'compras',
-  'finanzas',
-  'reportes',
-];
-
+const MODULES = ['produccion', 'mantenimiento', 'bodega', 'hse', 'documentos', 'compras', 'finanzas', 'reportes'];
 const ACTIONS = ['view', 'create', 'edit', 'delete', 'export', 'approve', 'admin'];
-
 const MINING_ROLES = [
   { id: 'admin', label: 'Administrator', description: 'Full system access' },
   { id: 'manager', label: 'Manager', description: 'Operational management' },
@@ -57,14 +50,13 @@ export default function PermissionsPage() {
   const [selectedModule, setSelectedModule] = useState<string>(MODULES[0]);
   const [selectedActions, setSelectedActions] = useState<string[]>([]);
   const [tempDays, setTempDays] = useState<number>(0);
+  const [submitting, setSubmitting] = useState(false);
 
-  // Fetch users
-  const { data: usersData } = useSWR('/api/admin/users', fetcher, {
+  const { data: usersData, error: usersError } = useSWR('/api/admin/users', fetcher, {
     revalidateOnFocus: false,
   });
 
-  // Fetch user permissions
-  const { data: permissionsData, mutate: mutatePermissions } = useSWR(
+  const { data: permissionsData, mutate: mutatePermissions, error: permissionsError } = useSWR(
     selectedUser ? `/api/admin/permissions?user_id=${selectedUser}` : null,
     fetcher,
     { revalidateOnFocus: false }
@@ -73,28 +65,36 @@ export default function PermissionsPage() {
   const handleGrantPermission = async () => {
     if (!selectedUser || !selectedActions.length) return;
 
+    setSubmitting(true);
     const expiresAt = tempDays > 0 ? new Date(Date.now() + tempDays * 24 * 60 * 60 * 1000) : null;
 
-    for (const action of selectedActions) {
-      const response = await fetch('/api/admin/permissions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: selectedUser,
-          role: selectedRole,
-          module: selectedModule,
-          action,
-          expires_at: expiresAt?.toISOString(),
-        }),
-      });
+    try {
+      for (const action of selectedActions) {
+        const response = await fetch('/api/admin/permissions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: selectedUser,
+            role: selectedRole,
+            module: selectedModule,
+            action,
+            expires_at: expiresAt?.toISOString(),
+          }),
+        });
 
-      if (!response.ok) {
-        console.error('Failed to grant permission');
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error || 'No se pudo otorgar el permiso');
+        }
       }
-    }
 
-    setSelectedActions([]);
-    mutatePermissions();
+      setSelectedActions([]);
+      await mutatePermissions();
+    } catch (error) {
+      console.error('[v0] Error granting permission:', error);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleRevokePermission = async (permissionId: string) => {
@@ -105,7 +105,7 @@ export default function PermissionsPage() {
     });
 
     if (response.ok) {
-      mutatePermissions();
+      await mutatePermissions();
     }
   };
 
@@ -115,22 +115,21 @@ export default function PermissionsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Gestión de Permisos</h1>
-        <p className="text-muted-foreground mt-2">Asignar permisos granulares a usuarios por módulo</p>
+        <h1 className="text-3xl font-bold">Gestion de permisos</h1>
+        <p className="mt-2 text-muted-foreground">Asignacion granular por usuario, modulo y accion.</p>
       </div>
 
-      {/* Permission Grant Panel */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5" />
-            Otorgar Nuevo Permiso
+            Otorgar nuevo permiso
           </CardTitle>
-          <CardDescription>Asignar permisos específicos a un usuario</CardDescription>
+          <CardDescription>Asigna permisos especificos para una operacion o flujo puntual.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* User Selection */}
+          {usersError ? <p className="text-sm text-red-500">No se pudieron cargar los usuarios.</p> : null}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <label className="text-sm font-medium">Usuario</label>
               <Select value={selectedUser} onValueChange={setSelectedUser}>
@@ -147,15 +146,14 @@ export default function PermissionsPage() {
               </Select>
             </div>
 
-            {/* Role Selection */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Rol</label>
+              <label className="text-sm font-medium">Rol de referencia</label>
               <Select value={selectedRole} onValueChange={setSelectedRole}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {MINING_ROLES.map((role: any) => (
+                  {MINING_ROLES.map((role) => (
                     <SelectItem key={role.id} value={role.id}>
                       {role.label}
                     </SelectItem>
@@ -164,26 +162,24 @@ export default function PermissionsPage() {
               </Select>
             </div>
 
-            {/* Module Selection */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Módulo</label>
+              <label className="text-sm font-medium">Modulo</label>
               <Select value={selectedModule} onValueChange={setSelectedModule}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {MODULES.map((mod: any) => (
-                    <SelectItem key={mod} value={mod}>
-                      {mod.charAt(0).toUpperCase() + mod.slice(1)}
+                  {MODULES.map((module) => (
+                    <SelectItem key={module} value={module}>
+                      {module.charAt(0).toUpperCase() + module.slice(1)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Temporary Permission */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Temporal (días, 0 = permanente)</label>
+              <label className="text-sm font-medium">Temporal (dias, 0 = permanente)</label>
               <Input
                 type="number"
                 min="0"
@@ -195,11 +191,10 @@ export default function PermissionsPage() {
             </div>
           </div>
 
-          {/* Actions Checkboxes */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Acciones</label>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {ACTIONS.map((action: any) => (
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+              {ACTIONS.map((action) => (
                 <div key={action} className="flex items-center space-x-2">
                   <Checkbox
                     id={action}
@@ -208,11 +203,11 @@ export default function PermissionsPage() {
                       setSelectedActions(
                         checked
                           ? [...selectedActions, action]
-                          : selectedActions.filter((a: any) => a !== action)
+                          : selectedActions.filter((item) => item !== action)
                       );
                     }}
                   />
-                  <label htmlFor={action} className="text-sm font-medium cursor-pointer">
+                  <label htmlFor={action} className="cursor-pointer text-sm font-medium">
                     {action}
                   </label>
                 </div>
@@ -220,48 +215,48 @@ export default function PermissionsPage() {
             </div>
           </div>
 
-          <Button onClick={handleGrantPermission} className="w-full">
-            <Plus className="h-4 w-4 mr-2" />
-            Otorgar Permiso
+          <Button onClick={handleGrantPermission} className="w-full" disabled={submitting || !selectedUser || selectedActions.length === 0}>
+            <Plus className="mr-2 h-4 w-4" />
+            {submitting ? 'Otorgando...' : 'Otorgar permiso'}
           </Button>
         </CardContent>
       </Card>
 
-      {/* Current Permissions Table */}
       {selectedUser && (
         <Card>
           <CardHeader>
-            <CardTitle>Permisos Actuales del Usuario</CardTitle>
-            <CardDescription>Permisos activos asignados</CardDescription>
+            <CardTitle>Permisos actuales del usuario</CardTitle>
+            <CardDescription>Permisos individuales activos en la organizacion.</CardDescription>
           </CardHeader>
           <CardContent>
+            {permissionsError ? <p className="mb-4 text-sm text-red-500">No se pudieron cargar los permisos.</p> : null}
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="border-b">
                   <tr>
-                    <th className="text-left py-2 px-4">Módulo</th>
-                    <th className="text-left py-2 px-4">Acción</th>
-                    <th className="text-left py-2 px-4">Estado</th>
-                    <th className="text-left py-2 px-4">Vencimiento</th>
-                    <th className="text-left py-2 px-4">Acciones</th>
+                    <th className="px-4 py-2 text-left">Modulo</th>
+                    <th className="px-4 py-2 text-left">Accion</th>
+                    <th className="px-4 py-2 text-left">Estado</th>
+                    <th className="px-4 py-2 text-left">Vencimiento</th>
+                    <th className="px-4 py-2 text-left">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {userPermissions.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="text-center py-4 text-muted-foreground">
+                      <td colSpan={5} className="py-4 text-center text-muted-foreground">
                         No hay permisos asignados
                       </td>
                     </tr>
                   ) : (
-                    userPermissions.map((perm: any) => (
-                      <tr key={perm.id} className="border-b hover:bg-muted/50">
-                        <td className="py-2 px-4">
-                          <Badge variant="outline">{perm.module}</Badge>
+                    userPermissions.map((permission: any) => (
+                      <tr key={permission.id} className="border-b hover:bg-muted/50">
+                        <td className="px-4 py-2">
+                          <Badge variant="outline">{permission.module}</Badge>
                         </td>
-                        <td className="py-2 px-4">{perm.action}</td>
-                        <td className="py-2 px-4">
-                          {perm.is_active ? (
+                        <td className="px-4 py-2">{permission.action}</td>
+                        <td className="px-4 py-2">
+                          {permission.is_active ? (
                             <Badge variant="default" className="gap-1">
                               <CheckCircle2 className="h-3 w-3" />
                               Activo
@@ -273,22 +268,18 @@ export default function PermissionsPage() {
                             </Badge>
                           )}
                         </td>
-                        <td className="py-2 px-4">
-                          {perm.expires_at ? (
+                        <td className="px-4 py-2">
+                          {permission.expires_at ? (
                             <div className="flex items-center gap-1 text-xs">
                               <Clock className="h-3 w-3" />
-                              {new Date(perm.expires_at).toLocaleDateString()}
+                              {new Date(permission.expires_at).toLocaleDateString('es-CL')}
                             </div>
                           ) : (
                             <span className="text-muted-foreground">Permanente</span>
                           )}
                         </td>
-                        <td className="py-2 px-4">
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleRevokePermission(perm.id)}
-                          >
+                        <td className="px-4 py-2">
+                          <Button size="sm" variant="destructive" onClick={() => handleRevokePermission(permission.id)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </td>
@@ -302,14 +293,13 @@ export default function PermissionsPage() {
         </Card>
       )}
 
-      {/* Role Descriptions */}
       <Card>
         <CardHeader>
-          <CardTitle>Roles Disponibles para Minería</CardTitle>
+          <CardTitle>Roles disponibles</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {MINING_ROLES.map((role: any) => (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {MINING_ROLES.map((role) => (
               <BrandCard key={role.id} className="p-4">
                 <div className="font-semibold">{role.label}</div>
                 <div className="text-sm text-muted-foreground">{role.description}</div>

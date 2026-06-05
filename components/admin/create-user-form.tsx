@@ -28,10 +28,10 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
   const [success, setSuccess] = useState(false);
 
   const validatePassword = (pwd: string) => {
-    if (pwd.length < 8) return 'Mínimo 8 caracteres';
-    if (!/[A-Z]/.test(pwd)) return 'Debe contener mayúscula';
-    if (!/[0-9]/.test(pwd)) return 'Debe contener número';
-    if (!/[!@#$%^&*]/.test(pwd)) return 'Debe contener símbolo (!@#$%^&*)';
+    if (pwd.length < 8) return 'Minimo 8 caracteres';
+    if (!/[A-Z]/.test(pwd)) return 'Debe contener mayuscula';
+    if (!/[0-9]/.test(pwd)) return 'Debe contener numero';
+    if (!/[!@#$%^&*]/.test(pwd)) return 'Debe contener simbolo (!@#$%^&*)';
     return null;
   };
 
@@ -40,7 +40,6 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
     setError(null);
     setSuccess(false);
 
-    // Validations
     if (!email || !password || !fullName) {
       setError('Todos los campos son obligatorios');
       return;
@@ -48,7 +47,7 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
 
     const passwordError = validatePassword(password);
     if (passwordError) {
-      setError(`Contraseña débil: ${passwordError}`);
+      setError(`Contrasena debil: ${passwordError}`);
       return;
     }
 
@@ -77,7 +76,7 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
       setTimeout(() => {
         setSuccess(false);
         onUserCreated?.();
-      }, 2000);
+      }, 1500);
     } catch (err) {
       setError('Error al crear usuario. Intenta de nuevo.');
       console.error('[v0] Error:', err);
@@ -89,22 +88,20 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Crear Nuevo Usuario</CardTitle>
-        <CardDescription>
-          Agrega un nuevo usuario al sistema y asigna un rol
-        </CardDescription>
+        <CardTitle>Crear nuevo usuario</CardTitle>
+        <CardDescription>Agrega un usuario del equipo y asigna su rol operativo.</CardDescription>
       </CardHeader>
       <CardContent>
         {success ? (
-          <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div className="flex items-center gap-3 rounded-lg border border-green-200 bg-green-50 p-4">
             <CheckCircle2 className="h-5 w-5 text-green-600" />
             <p className="text-sm text-green-800">Usuario creado exitosamente</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
+                <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600" />
                 <p className="text-sm text-red-800">{error}</p>
               </div>
             )}
@@ -112,11 +109,11 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label htmlFor="fullName" className="text-sm font-medium">
-                  Nombre Completo
+                  Nombre completo
                 </label>
                 <Input
                   id="fullName"
-                  placeholder="Juan Pérez"
+                  placeholder="Juan Perez"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   disabled={loading}
@@ -143,19 +140,19 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label htmlFor="password" className="text-sm font-medium">
-                  Contraseña
+                  Contrasena
                 </label>
                 <Input
                   id="password"
                   type="password"
-                  placeholder="••••••••"
+                  placeholder="********"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={loading}
                   required
                 />
                 <p className="text-xs text-muted-foreground">
-                  Min 8 carac, mayúscula, número, símbolo
+                  Min 8 caracteres, mayuscula, numero y simbolo.
                 </p>
               </div>
 
@@ -168,9 +165,9 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {ROLES.map(r => (
-                      <SelectItem key={r} value={r}>
-                        {r}
+                    {ROLES.map((item) => (
+                      <SelectItem key={item} value={item}>
+                        {item}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -179,7 +176,7 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Creando usuario...' : 'Crear Usuario'}
+              {loading ? 'Creando usuario...' : 'Crear usuario'}
             </Button>
           </form>
         )}

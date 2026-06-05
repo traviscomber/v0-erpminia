@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -47,11 +47,10 @@ export function UsersList() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [selectedRole, setSelectedRole] = useState<UserRole | ''>('');
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    fetchUsers();
+    void fetchUsers();
   }, []);
 
   const fetchUsers = async () => {
@@ -76,7 +75,7 @@ export function UsersList() {
       });
 
       if (res.ok) {
-        setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
+        setUsers(users.map((user) => (user.id === userId ? { ...user, role: newRole } : user)));
         setEditingId(null);
       }
     } catch (error) {
@@ -85,7 +84,7 @@ export function UsersList() {
   };
 
   const handleDeleteUser = async (userId: string) => {
-    if (!confirm('¿Estás seguro de que deseas eliminar este usuario?')) return;
+    if (!confirm('Estas seguro de que deseas eliminar este usuario?')) return;
 
     try {
       const res = await fetch('/api/admin/users', {
@@ -95,16 +94,16 @@ export function UsersList() {
       });
 
       if (res.ok) {
-        setUsers(users.filter(u => u.id !== userId));
+        setUsers(users.filter((user) => user.id !== userId));
       }
     } catch (error) {
       console.error('[v0] Error deleting user:', error);
     }
   };
 
-  const filteredUsers = users.filter(u =>
-    u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    u.full_name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUsers = users.filter((user) =>
+    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.full_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
@@ -120,7 +119,7 @@ export function UsersList() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Gestionar Usuarios</CardTitle>
+        <CardTitle>Gestionar usuarios</CardTitle>
         <CardDescription>
           {users.length} usuario{users.length !== 1 ? 's' : ''} registrado{users.length !== 1 ? 's' : ''}
         </CardDescription>
@@ -141,7 +140,7 @@ export function UsersList() {
                 <TableHead>Nombre</TableHead>
                 <TableHead>Rol</TableHead>
                 <TableHead>Estado</TableHead>
-                <TableHead>Último Acceso</TableHead>
+                <TableHead>Ultimo acceso</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
@@ -157,7 +156,7 @@ export function UsersList() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {ROLES.map(role => (
+                          {ROLES.map((role) => (
                             <SelectItem key={role} value={role}>
                               {role}
                             </SelectItem>
@@ -165,9 +164,7 @@ export function UsersList() {
                         </SelectContent>
                       </Select>
                     ) : (
-                      <Badge className={roleColors[user.role]}>
-                        {user.role}
-                      </Badge>
+                      <Badge className={roleColors[user.role]}>{user.role}</Badge>
                     )}
                   </TableCell>
                   <TableCell>
@@ -182,11 +179,9 @@ export function UsersList() {
                     )}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {user.last_sign_in_at
-                      ? new Date(user.last_sign_in_at).toLocaleDateString('es-CL')
-                      : 'Nunca'}
+                    {user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleDateString('es-CL') : 'Nunca'}
                   </TableCell>
-                  <TableCell className="text-right space-x-2">
+                  <TableCell className="space-x-2 text-right">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -198,7 +193,7 @@ export function UsersList() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      className="text-red-600 hover:bg-red-50 hover:text-red-700"
                       onClick={() => handleDeleteUser(user.id)}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -211,7 +206,7 @@ export function UsersList() {
         </div>
 
         {filteredUsers.length === 0 && (
-          <div className="text-center py-8 text-muted-foreground">
+          <div className="py-8 text-center text-muted-foreground">
             {searchTerm ? 'No se encontraron usuarios.' : 'No hay usuarios registrados.'}
           </div>
         )}
