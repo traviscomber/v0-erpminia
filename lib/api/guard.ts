@@ -35,11 +35,11 @@ export async function requireAuth(request: NextRequest) {
 export async function requireAdmin(request: NextRequest) {
   const auth = await requireAuth(request);
   if (!auth.authorized || !auth.user) {
-    return { authorized: false, response: auth.response };
+    return { authorized: false, user: null, organizationId: null, response: auth.response };
   }
 
   if (auth.role === 'admin') {
-    return { authorized: true, user: auth.user, response: null };
+    return { authorized: true, user: auth.user, organizationId: auth.organizationId, response: null };
   }
 
   const supabase = getSupabaseServerClient();
@@ -52,11 +52,13 @@ export async function requireAdmin(request: NextRequest) {
   if (userData?.role !== 'admin') {
     return {
       authorized: false,
+      user: null,
+      organizationId: null,
       response: NextResponse.json({ error: 'Forbidden: Admin required' }, { status: 403 }),
     };
   }
 
-  return { authorized: true, user: auth.user, response: null };
+  return { authorized: true, user: auth.user, organizationId: auth.organizationId, response: null };
 }
 
 /**
