@@ -45,17 +45,16 @@ interface WorkOrderListProps {
 export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
   const [orders, setOrders] = useState<WorkOrder[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedOrder, setSelectedOrder] = useState<WorkOrder | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await fetch(
-          `/api/v1/maintenance-orders${
-            filters?.status ? `?status=${filters.status}` : ''
-          }${filters?.priority ? `&priority=${filters.priority}` : ''}`
-        );
+        const params = new URLSearchParams();
+        if (filters?.status) params.set('status', filters.status);
+        if (filters?.priority) params.set('priority', filters.priority);
+
+        const response = await fetch(`/api/v1/maintenance-orders${params.toString() ? `?${params.toString()}` : ''}`);
         const { data } = await response.json();
         setOrders((data || []).slice(0, limit));
       } catch (err) {

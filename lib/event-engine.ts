@@ -1,9 +1,10 @@
 // Event Cascade Engine - Orchestrates automation across all modules
 import { createClient } from '@supabase/supabase-js';
+import { normalizeMaintenancePriority, resolveMaintenanceOrganizationId } from '@/lib/maintenance/work-order-compat';
 
 function getSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
     throw new Error('Missing Supabase environment variables');
@@ -75,16 +76,23 @@ export class EventCascadeEngine {
 
       // 4. Suggest corrective OT (notify maintenance team)
       if (equipment) {
-        await supabase.from('maintenance_orders').insert({
-          equipment_id: equipmentId,
-          order_type: 'correctiva',
-          status: 'pendiente',
-          priority: severity === 'critical' ? 'critica_seguridad' : 'alta',
-          title: `Corrective: ${equipment.name} - Sensor Anomaly`,
-          description: `Automatic OT from sensor anomaly detection`,
-          scheduled_date: new Date().toISOString(),
-          created_at: new Date().toISOString(),
-        });
+        const organizationId = await resolveMaintenanceOrganizationId(supabase, equipmentId);
+
+        if (organizationId) {
+          await supabase.from('maintenance_work_orders').insert({
+            organization_id: organizationId,
+            asset_id: equipmentId,
+            work_order_number: `AUTO-WO-${Date.now()}`,
+            work_type: 'corrective',
+            status: 'open',
+            priority: normalizeMaintenancePriority(severity === 'critical' ? 'critical' : 'high'),
+            title: `Corrective: ${equipment.name} - Sensor Anomaly`,
+            description: 'Automatic OT from sensor anomaly detection',
+            scheduled_date: new Date().toISOString().split('T')[0],
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+        }
       }
 
       return { success: true, alarm_id: alarm.id };
