@@ -4,14 +4,13 @@ import Link from 'next/link';
 import Script from 'next/script';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BrandCard } from '@/components/ui/brand-card';
 import { Zap, Map, CheckCircle2, BarChart3, HelpCircle, ArrowRight, FileText, Package, Wrench, Shield, Cpu, FolderOpen } from 'lucide-react';
 import { organizationSchema, productSchema, faqSchema } from '@/lib/schema-markup';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
-      {/* JSON-LD Schema Markup - Lightweight SEO boost */}
+    <div className="min-h-screen bg-background">
+      {/* JSON-LD Schema Markup */}
       <Script
         id="organization-schema"
         type="application/ld+json"
@@ -30,12 +29,13 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema[0]) }}
         strategy="afterInteractive"
       />
+
       {/* Navigation */}
       <nav className="border-b border-border sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="font-bold text-xl text-[var(--brand-naranja)]">Motil</div>
+          <div className="font-bold text-xl text-[var(--brand-cobre)]">Motil</div>
           <Link href="/auth/login">
-            <Button className="bg-[var(--brand-naranja)] hover:bg-[var(--brand-naranja)]/90">
+            <Button className="bg-[var(--brand-cobre)] hover:bg-[var(--brand-cobre)]/90">
               Iniciar Sesión
             </Button>
           </Link>
@@ -43,542 +43,200 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-4 py-16 md:py-24">
+      <section className="max-w-7xl mx-auto px-4 py-16 md:py-32">
         <div className="text-center space-y-6 mb-16">
-          <div className="inline-block px-4 py-2 rounded-full bg-[var(--brand-naranja)]/10 border border-[var(--brand-naranja)]/20">
-            <p className="text-sm font-semibold text-[var(--brand-naranja)]">
-              Motil — Plataforma Operacional Minera
+          <div className="inline-block px-4 py-2 rounded-sm bg-[var(--brand-cobre)]/10 border border-[var(--brand-cobre)]/20">
+            <p className="text-sm font-semibold text-[var(--brand-cobre)] tracking-wide">
+              SISTEMA OPERACIONAL MINERO
             </p>
           </div>
-          <h1 className="text-5xl md:text-6xl font-bold text-foreground">
-            Operación Minera Conectada
+          <h1 className="text-6xl md:text-7xl font-bold text-foreground leading-tight">
+            Control Operacional Minero en Tiempo Real
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Conecta producción, mantención, bodega, HSE, documentos y gerencia en un flujo trazable desde terreno hasta dirección.
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            Motil conecta sensores, mantención, bodega, HSE y documentos en un flujo único: desde la alerta en terreno hasta el cierre auditado.
           </p>
-          <div className="flex gap-4 justify-center pt-4">
+          <div className="flex gap-4 justify-center pt-8">
             <Link href="/auth/login">
-              <Button size="lg" className="gap-2 bg-[var(--brand-naranja)] hover:bg-[var(--brand-naranja)]/90">
+              <Button size="lg" className="gap-2 bg-[var(--brand-cobre)] hover:bg-[var(--brand-cobre)]/90 text-base px-8">
                 Solicitar Demo
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
             <Link href="#modules">
-              <Button size="lg" variant="outline" className="gap-2">
-                <HelpCircle className="h-4 w-4" />
+              <Button size="lg" variant="outline" className="gap-2 text-base px-8">
                 Ver Módulos
               </Button>
             </Link>
           </div>
         </div>
-
-        {/* Core Values */}
-        <div className="grid md:grid-cols-3 gap-6 mb-20">
-          <BrandCard>
-            <CardHeader>
-              <Zap className="h-8 w-8 text-[var(--brand-naranja)] mb-2" />
-              <CardTitle>Seguridad Integrada</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                HSE no es un apéndice. Está tejido en cada operación, cada alerta, cada documento.
-              </p>
-            </CardContent>
-          </BrandCard>
-
-          <BrandCard>
-            <CardHeader>
-              <CheckCircle2 className="h-8 w-8 text-[var(--brand-verde)] mb-2" />
-              <CardTitle>Trazabilidad Total</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Desde el sensor en terreno hasta la firma de gerencia. Evento operacional → KPI.
-              </p>
-            </CardContent>
-          </BrandCard>
-
-          <BrandCard>
-            <CardHeader>
-              <BarChart3 className="h-8 w-8 text-[var(--brand-gold)] mb-2" />
-              <CardTitle>Datos en Vivo</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Dashboards que respiran. MTTR, costos, disponibilidad. Decisiones en tiempo real.
-              </p>
-            </CardContent>
-          </BrandCard>
-        </div>
       </section>
 
-      {/* Features Section */}
-      <section id="modules" className="bg-muted/50 py-20">
-        <div className="max-w-7xl mx-auto px-4">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4">5 Módulos Integrados para Minería</h2>
-          <p className="text-muted-foreground text-lg">
-            Un sistema operacional minero donde cada módulo comunica automáticamente. Sin intermediarios, sin pérdida de información.
+      {/* Problem Section */}
+      <section className="max-w-7xl mx-auto px-4 py-16 border-t border-border">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold text-foreground mb-4">
+            El Problema: Información Fragmentada en Faena
+          </h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Sensores dispersos. Órdenes de trabajo perdidas. Repuestos no localizados. HSE desconectado. Auditoría imposible.
           </p>
         </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6">
-            {/* Producción */}
-            <Card className="border-l-4 border-l-[var(--brand-naranja)]">
-              <CardHeader>
-                <Zap className="h-8 w-8 text-[var(--brand-naranja)] mb-2" />
-                <CardTitle className="text-base">Producción</CardTitle>
-                <CardDescription>Lo que está pasando ahora</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-xs">
-                  Ves todo en vivo: equipos, sensores, alertas. Sin retrasos, sin filtros.
-                </p>
-                <ul className="text-xs space-y-1 text-muted-foreground">
-                  <li className="flex gap-2">
-                    <span className="text-[var(--brand-naranja)]">→</span>
-                    Sensores & Telemetría
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-[var(--brand-naranja)]">→</span>
-                    Alarmas en vivo
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-[var(--brand-naranja)]">→</span>
-                    KPIs de equipos
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* Mantención */}
-            <Card className="border-l-4 border-l-[var(--brand-verde)]">
-              <CardHeader>
-                <Wrench className="h-8 w-8 text-[var(--brand-verde)] mb-2" />
-                <CardTitle className="text-base">Mantención</CardTitle>
-                <CardDescription>Sin improvisaciones</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-xs">
-                  Las reparaciones se crean automáticas, bien organizadas, y todos saben qué hacer.
-                </p>
-                <ul className="text-xs space-y-1 text-muted-foreground">
-                  <li className="flex gap-2">
-                    <span className="text-[var(--brand-verde)]">→</span>
-                    Diagnostico automatico
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-[var(--brand-verde)]">→</span>
-                    OT paralelas
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-[var(--brand-verde)]">→</span>
-                    MTTR tracking
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* Bodega */}
-            <Card className="border-l-4 border-l-[var(--brand-verde)]">
-              <CardHeader>
-                <Package className="h-8 w-8 text-[var(--brand-verde)] mb-2" />
-                <CardTitle className="text-base">Bodega</CardTitle>
-                <CardDescription>Nada se pierde</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-xs">
-                  Todo trackeado, nada perdido. Sabes dónde está cada pieza y cuándo la necesitas.
-                </p>
-                <ul className="text-xs space-y-1 text-muted-foreground">
-                  <li className="flex gap-2">
-                    <span className="text-[var(--brand-verde)]">→</span>
-                    Códigos QR
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-[var(--brand-verde)]">→</span>
-                    FIFO automático
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-[var(--brand-verde)]">→</span>
-                    Alertas de stock
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* HSE & Compliance */}
-            <Card className="border-l-4 border-l-[var(--brand-rojo)]">
-              <CardHeader>
-                <Shield className="h-8 w-8 text-[var(--brand-rojo)] mb-2" />
-                <CardTitle className="text-base">HSE</CardTitle>
-                <CardDescription>Seguridad integrada</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-xs">
-                  Cumples normas sin sacrificar velocidad. Todo documentado, nada ad-hoc.
-                </p>
-                <ul className="text-xs space-y-1 text-muted-foreground">
-                  <li className="flex gap-2">
-                    <span className="text-[var(--brand-rojo)]">→</span>
-                    Matriz de riesgos
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-[var(--brand-rojo)]">→</span>
-                    Incidentes & RCA
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-[var(--brand-rojo)]">→</span>
-                    Auditorías
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* Gestión Documental */}
-            <Card className="border-l-4 border-l-[var(--brand-gold)]">
-              <CardHeader>
-                <FolderOpen className="h-8 w-8 text-[var(--brand-gold)] mb-2" />
-                <CardTitle className="text-base">Documentos</CardTitle>
-                <CardDescription>Todo en su lugar</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-xs">
-                  Ningún contrato, procedimiento o reporte se pierde. Todo versionado y trazable.
-                </p>
-                <ul className="text-xs space-y-1 text-muted-foreground">
-                  <li className="flex gap-2">
-                    <span className="text-[var(--brand-gold)]">→</span>
-                    Contratos & OC
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-[var(--brand-gold)]">→</span>
-                    Procedimientos
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-[var(--brand-gold)]">→</span>
-                    Versionado
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Integrated Workflow Section */}
-      <section className="max-w-7xl mx-auto px-4 py-20">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4">El Flujo Operacional Minero</h2>
-          <p className="text-muted-foreground text-lg">
-            Evento operacional → Alerta → Orden de trabajo → Repuestos → HSE → Evidencia → Auditoría → KPIs
-          </p>
-        </div>
-
-        <div className="space-y-4 max-w-4xl mx-auto">
-          {/* Producción */}
-          <div className="bg-background rounded-lg border border-[var(--brand-naranja)]/20 p-6">
-            <div className="flex gap-4 mb-4">
-              <div className="flex-shrink-0">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--brand-naranja)] text-white font-bold text-sm">1</div>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg text-[var(--brand-naranja)]">1. El Sensor ve el Problema</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  La excavadora vibra más de lo normal. El sensor lo detecta, el sistema lo ve. Fin del misterio.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Mantención */}
-          <div className="bg-background rounded-lg border border-[var(--brand-verde)]/20 p-6 ml-8">
-            <div className="flex gap-4 mb-4">
-              <div className="flex-shrink-0">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--brand-verde)] text-white font-bold text-sm">2</div>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg text-[var(--brand-verde)]">2. Se Crea una Orden de Trabajo Automáticamente</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Sin esperar a que el jefe la cree. Los técnicos la ven en sus tablets. Saben qué hacer y cómo hacerlo.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Bodega */}
-          <div className="bg-background rounded-lg border border-[var(--brand-verde)]/20 p-6 ml-16">
-            <div className="flex gap-4 mb-4">
-              <div className="flex-shrink-0">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--brand-verde)] text-white font-bold text-sm">3</div>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg text-[var(--brand-verde)]">3. Bodega Reserva las Piezas</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Sin que nadie lo pida. El sistema sabe qué se va a necesitar y las aparta automáticamente.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* HSE */}
-          <div className="bg-background rounded-lg border border-[var(--brand-rojo)]/20 p-6 ml-24">
-            <div className="flex gap-4 mb-4">
-              <div className="flex-shrink-0">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--brand-rojo)] text-white font-bold text-sm">4</div>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg text-[var(--brand-rojo)]">4. HSE Se Activa Automáticamente</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Se genera el reporte, se activan los checklists de seguridad. Cumples normativas sin hacer nada extra.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Documentos */}
-          <div className="bg-background rounded-lg border border-[var(--brand-gold)]/20 p-6 ml-32">
-            <div className="flex gap-4 mb-4">
-              <div className="flex-shrink-0">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--brand-gold)] text-white font-bold text-sm">5</div>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg text-[var(--brand-gold)]">5. Todo Queda Registrado</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  La orden cierra con fotos y firmas. Todo guardado, nada se pierde. Auditoría lista para inspectores.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Results */}
-          <div className="bg-[var(--brand-naranja)]/5 rounded-lg border border-[var(--brand-naranja)]/30 p-6 mt-8">
-            <div className="flex gap-4">
-              <div className="flex-shrink-0">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--brand-naranja)] text-white font-bold text-sm">✓</div>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg">El Resultado: Dashboard en Tiempo Real</h3>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Gerencia ve el MTTR, el costo, si vuelve a pasar lo mismo. Sin llamadas, sin reportes manuales, sin esperas. Solo números reales.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Roles Section - Elegant & Sophisticated */}
-      <section className="max-w-7xl mx-auto px-4 py-24">
-        <div className="text-center mb-20">
-          <h2 className="text-5xl font-bold mb-6">Diseñado para Minería: 6 Roles Especializados</h2>
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            La plataforma de gestión operacional minera se adapta a cada rol. Operador, Jefe Mantención, Técnico, Bodega, HSE, Gerencia. Cada uno ve exactamente lo que necesita.
-          </p>
-        </div>
-
-        {/* Roles Grid - Clean & Minimal */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-5 gap-4">
           {[
-            {
-              role: 'Operador de Producción',
-              icon: '⚙️',
-              accentColor: 'border-t-2 border-t-[var(--brand-naranja)]',
-              badgeBg: 'bg-[var(--brand-naranja)]/10 text-[var(--brand-naranja)]',
-              badge: '4 módulos',
-              description: 'Tu dashboard es simple: ¿Qué está pasando ahora? ¿Hay algo raro? Eso es todo lo que ves.',
-              modules: ['Producción', 'Alertas'],
-              tasks: ['Monitorear', 'Alertas', 'Reportar fallas', 'Datos en vivo']
-            },
-            {
-              role: 'Jefe de Mantención',
-              icon: '👷',
-              accentColor: 'border-t-2 border-t-[var(--brand-verde)]',
-              badgeBg: 'bg-[var(--brand-verde)]/10 text-[var(--brand-verde)]',
-              badge: 'Control total',
-              description: 'Ves el árbol completo: qué se rompió, quién lo va a reparar, dónde está, cuánto cuesta.',
-              modules: ['Mantención', 'OT', 'Bodega', '+2'],
-              tasks: ['Crear OT', 'Asignar técnicos', 'Resolver bloqueos', 'Ver MTTR']
-            },
-            {
-              role: 'Técnico de Campo',
-              icon: '🔧',
-              accentColor: 'border-t-2 border-t-[var(--brand-rojo)]',
-              badgeBg: 'bg-[var(--brand-rojo)]/10 text-[var(--brand-rojo)]',
-              badge: 'Móvil-first',
-              description: 'La orden te llega al celular. Sabes qué arreglar, con qué materiales, y las fotos de evidencia.',
-              modules: ['OT', 'Checklist', 'QR', 'Evidencia'],
-              tasks: ['Recibir OT', 'Checklist móvil', 'Escanear', 'Adjuntar fotos']
-            },
-            {
-              role: 'Responsable Bodega',
-              icon: '📦',
-              accentColor: 'border-t-2 border-t-[var(--brand-verde)]',
-              badgeBg: 'bg-[var(--brand-verde)]/10 text-[var(--brand-verde)]',
-              badge: 'Stock en vivo',
-              description: 'Todo trackeado por QR. Sabes qué tienes, qué falta, y cuándo se acabará. Sin sorpresas.',
-              modules: ['Bodega', 'Stock', 'Reórdenes', 'QR'],
-              tasks: ['Recibir', 'Gestionar', 'Escanear', 'Alertas auto']
-            },
-            {
-              role: 'Oficial HSE',
-              icon: '✅',
-              accentColor: 'border-t-2 border-t-[var(--brand-rojo)]',
-              badgeBg: 'bg-[var(--brand-rojo)]/10 text-[var(--brand-rojo)]',
-              badge: 'Auditoría automática',
-              description: 'Cada incidente documentado, cada orden cerrada con evidencia. Los inspectores ven todo lo que piden.',
-              modules: ['HSE', 'Documentos', 'Auditoría', 'Reportes'],
-              tasks: ['Auditar', 'Revisar docs', 'Checklists', 'Reportes']
-            },
-            {
-              role: 'Supervisor/Gerencia',
-              icon: '📊',
-              accentColor: 'border-t-2 border-t-[var(--brand-naranja)]',
-              badgeBg: 'bg-[var(--brand-naranja)]/15 text-[var(--brand-naranja)] font-semibold',
-              badge: 'El panel de control',
-              description: 'Un dashboard con lo que importa: costos, disponibilidad, patrones de fallas, tendencias. Decisiones basadas en datos.',
-              modules: ['Todos', 'los', 'módulos'],
-              tasks: ['KPIs', 'Costos', 'Tendencias', 'ROI']
-            },
+            { icon: Cpu, label: 'Sensores Aislados', desc: 'Sin integración' },
+            { icon: Wrench, label: 'Órdenes Manuales', desc: 'Sin trazabilidad' },
+            { icon: Package, label: 'Bodega Ciega', desc: 'Stock descontrolado' },
+            { icon: Shield, label: 'HSE Tardío', desc: 'Respuesta lenta' },
+            { icon: FileText, label: 'Sin Auditoría', desc: 'Cumplimiento manual' },
           ].map((item, i) => (
-            <div
-              key={i}
-              className={`${item.accentColor} rounded-xl bg-card/50 backdrop-blur-sm border border-border/40 p-6 hover:border-border/60 hover:bg-card/70 transition-all duration-300 group hover:shadow-md`}
-            >
-              <div className="flex justify-between items-start mb-4">
-                <span className="text-4xl group-hover:scale-110 transition-transform duration-300">{item.icon}</span>
-                <span className={`${item.badgeBg} text-xs font-semibold px-3 py-1 rounded-lg`}>
-                  {item.badge}
-                </span>
-              </div>
-
-              <h3 className="text-lg font-bold mb-1.5 text-foreground">{item.role}</h3>
-              <p className="text-sm text-muted-foreground mb-5">{item.description}</p>
-
-              <div className="space-y-4">
-                <div>
-                  <p className="text-xs font-bold text-muted-foreground/70 uppercase tracking-wide mb-2">Acceso a</p>
-                  <div className="flex flex-wrap gap-2">
-                    {item.modules.map((mod, j) => (
-                      <span
-                        key={j}
-                        className="text-xs px-2.5 py-1 rounded-md bg-muted/60 border border-border/30 text-foreground/80 font-medium"
-                      >
-                        {mod}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="border-t border-border/20 pt-4">
-                  <p className="text-xs font-bold text-muted-foreground/70 uppercase tracking-wide mb-2">Funciones</p>
-                  <ul className="space-y-1.5">
-                    {item.tasks.map((task, j) => (
-                      <li key={j} className="flex gap-2.5 text-sm">
-                        <span className="text-muted-foreground/40 font-light">−</span>
-                        <span className="text-foreground/80">{task}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
+            <Card key={i} className="border-border bg-card/50 hover:bg-card/80 transition-colors">
+              <CardContent className="pt-6 text-center">
+                <item.icon className="h-8 w-8 text-[var(--brand-cobre)] mx-auto mb-3" />
+                <p className="font-semibold text-sm text-foreground">{item.label}</p>
+                <p className="text-xs text-muted-foreground mt-1">{item.desc}</p>
+              </CardContent>
+            </Card>
           ))}
         </div>
+      </section>
 
-        <div className="mt-16 text-center">
-          <Link href="/dashboard/roles">
-            <Button size="lg" className="gap-2 bg-[var(--brand-naranja)] hover:bg-[var(--brand-naranja)]/90 text-white shadow-sm">
-              Ver Matriz de Permisos Detallada
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </Link>
+      {/* Operational Flow */}
+      <section className="max-w-7xl mx-auto px-4 py-16 border-t border-border">
+        <h2 className="text-4xl font-bold text-foreground mb-12 text-center">
+          Flujo Operacional Integrado
+        </h2>
+        <div className="grid md:grid-cols-11 gap-2 items-center">
+          {[
+            { step: '1', label: 'Alerta', icon: Zap },
+            { step: '→', label: '', icon: ArrowRight },
+            { step: '2', label: 'OT Auto', icon: Wrench },
+            { step: '→', label: '', icon: ArrowRight },
+            { step: '3', label: 'Repuesto', icon: Package },
+            { step: '→', label: '', icon: ArrowRight },
+            { step: '4', label: 'HSE', icon: Shield },
+            { step: '→', label: '', icon: ArrowRight },
+            { step: '5', label: 'Evidencia', icon: FileText },
+            { step: '→', label: '', icon: ArrowRight },
+            { step: '6', label: 'KPI', icon: BarChart3 },
+          ].map((item, i) => (
+            item.step === '→' ? (
+              <div key={i} className="text-[var(--brand-cobre)] h-5">
+                <item.icon className="h-5 w-5" />
+              </div>
+            ) : (
+              <div key={i} className="text-center">
+                <div className="bg-[var(--brand-cobre)]/10 border border-[var(--brand-cobre)]/30 rounded-sm px-2 py-1 mb-2">
+                  <p className="text-xs font-bold text-[var(--brand-cobre)]">{item.step}</p>
+                </div>
+                {item.label && (
+                  <p className="text-xs font-semibold text-foreground">{item.label}</p>
+                )}
+              </div>
+            )
+          ))}
         </div>
       </section>
 
-      {/* Trust & Features Section */}
-      <section className="max-w-7xl mx-auto px-4 py-20">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold mb-4">Sistema Operacional Minero: Características Premium</h2>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-8">
-          <div className="space-y-2">
-            <h3 className="font-semibold flex items-center gap-2">📡 Monitoreo 24/7</h3>
-            <p className="text-sm text-muted-foreground">Sensores en vivo, alarmas automáticas, detección temprana de anomalías antes de que causen paradas costosas.</p>
-          </div>
-          <div className="space-y-2">
-            <h3 className="font-semibold flex items-center gap-2">🔒 Auditoría Completa</h3>
-            <p className="text-sm text-muted-foreground">Historial inmutable de cada evento, quién hizo qué, cuándo. Trazabilidad legal para cumplimiento regulatorio.</p>
-          </div>
-          <div className="space-y-2">
-            <h3 className="font-semibold flex items-center gap-2">📱 Acceso Móvil</h3>
-            <p className="text-sm text-muted-foreground">Técnicos en el campo con tablets/móvil. Trabajo offline sincronizado automáticamente. Cero downtime.</p>
-          </div>
-          <div className="space-y-2">
-            <h3 className="font-semibold flex items-center gap-2">🎯 Trazabilidad QR</h3>
-            <p className="text-sm text-muted-foreground">Escanea equipos, piezas, ubicaciones. Sabe exactamente dónde está cada asset y su histórico completo.</p>
-          </div>
-          <div className="space-y-2">
-            <h3 className="font-semibold flex items-center gap-2">⏱️ Reportes en Vivo</h3>
-            <p className="text-sm text-muted-foreground">Dashboards actualizados cada minuto. MTTR, costos, stock, KPIs de seguridad. Decisiones informadas en tiempo real.</p>
-          </div>
-          <div className="space-y-2">
-            <h3 className="font-semibold flex items-center gap-2">🔗 Integración Total</h3>
-            <p className="text-sm text-muted-foreground">Todos los módulos se comunican automáticamente. De sensor a decisión ejecutiva, sin intervención manual. Un único fuente de verdad.</p>
-          </div>
-          <div className="space-y-2">
-            <h3 className="font-semibold flex items-center gap-2">🛡️ HSE First</h3>
-            <p className="text-sm text-muted-foreground">Alertas de riesgo, checklists de seguridad obligatorios, cumplimiento normativo automático integrado.</p>
-          </div>
-          <div className="space-y-2">
-            <h3 className="font-semibold flex items-center gap-2">📊 Analytics Avanzado</h3>
-            <p className="text-sm text-muted-foreground">Identifica patrones de fallas, optimiza frecuencia de mantención preventiva, calcula ROI por activo.</p>
-          </div>
-          <div className="space-y-2">
-            <h3 className="font-semibold flex items-center gap-2">⚡ Automatización Inteligente</h3>
-            <p className="text-sm text-muted-foreground">OT automáticas, reservas de stock, alertas, RCA sugeridos. Reduce trabajo manual, acelera tiempo de respuesta.</p>
-          </div>
+      {/* Modules */}
+      <section id="modules" className="max-w-7xl mx-auto px-4 py-16 border-t border-border">
+        <h2 className="text-4xl font-bold text-foreground mb-12 text-center">
+          Módulos Operacionales
+        </h2>
+        <div className="grid md:grid-cols-5 gap-6">
+          {[
+            { icon: BarChart3, name: 'Producción', desc: 'KPIs en tiempo real, sensores integrados' },
+            { icon: Wrench, name: 'Mantención', desc: 'Órdenes de trabajo, preventivo, MTTR' },
+            { icon: Package, name: 'Bodega', desc: 'Stock, reorden automático, trazabilidad' },
+            { icon: Shield, name: 'HSE', desc: 'Incidentes, auditoría, cumplimiento' },
+            { icon: FileText, name: 'Documentos', desc: 'Contratos, normativas, evidencia auditada' },
+          ].map((mod, i) => (
+            <Card key={i} className="border-border bg-card">
+              <CardHeader>
+                <mod.icon className="h-8 w-8 text-[var(--brand-cobre)] mb-3" />
+                <CardTitle>{mod.name}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">{mod.desc}</p>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="bg-[var(--brand-naranja)] text-white py-20">
-        <div className="max-w-4xl mx-auto px-4 text-center space-y-6">
-          <h2 className="text-4xl font-bold">Transforma tu Operación Minera</h2>
-          <p className="text-lg opacity-90">
-            Accede a una demo de la plataforma de gestión operacional minera. Observa cómo producción, mantención, bodega, HSE y documentos se conectan sin fricciones.
-          </p>
-          <div className="flex gap-4 justify-center flex-wrap">
-            <Link href="/dashboard">
-              <Button size="lg" className="bg-white text-[var(--brand-naranja)] hover:bg-muted/50 gap-2">
-                Ir al Sistema
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-            <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10 gap-2" asChild>
-              <Link href="/dashboard/roles">
-                Ver Roles y Permisos
-              </Link>
-            </Button>
-            <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10 gap-2" asChild>
-              <Link href="/dashboard/guias">
-                Documentación
-              </Link>
-            </Button>
-          </div>
+      {/* Roles */}
+      <section className="max-w-7xl mx-auto px-4 py-16 border-t border-border">
+        <h2 className="text-4xl font-bold text-foreground mb-12 text-center">
+          Para Cada Rol
+        </h2>
+        <div className="grid md:grid-cols-3 gap-6">
+          {[
+            { role: 'Operador Terreno', items: ['Alertas en tiempo real', 'Checklists HSE', 'Órdenes de trabajo'] },
+            { role: 'Técnico / Jefe Mantención', items: ['MTTR optimizado', 'Stock de repuestos', 'Preventivo planificado'] },
+            { role: 'Gerencia', items: ['Dashboard KPI', 'Auditoría trazable', 'Disponibilidad de equipo'] },
+          ].map((section, i) => (
+            <Card key={i} className="border-border bg-card">
+              <CardHeader>
+                <CardTitle>{section.role}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {section.items.map((item, j) => (
+                    <li key={j} className="flex gap-2 text-sm text-muted-foreground">
+                      <CheckCircle2 className="h-4 w-4 text-[var(--brand-cobre)] flex-shrink-0 mt-0.5" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          ))}
         </div>
+      </section>
+
+      {/* Executive Benefits */}
+      <section className="max-w-7xl mx-auto px-4 py-16 border-t border-border">
+        <h2 className="text-4xl font-bold text-foreground mb-12 text-center">
+          Beneficios Ejecutivos
+        </h2>
+        <div className="grid md:grid-cols-4 gap-6">
+          {[
+            { metric: '+15%', label: 'Disponibilidad de Equipos' },
+            { metric: '-40%', label: 'MTTR Promedio' },
+            { metric: '-25%', label: 'Costos de Mantención' },
+            { metric: '100%', label: 'Trazabilidad Auditada' },
+          ].map((item, i) => (
+            <Card key={i} className="border-border bg-card text-center">
+              <CardContent className="pt-8 pb-8">
+                <p className="text-4xl font-bold text-[var(--brand-cobre)] mb-2">{item.metric}</p>
+                <p className="text-sm text-muted-foreground">{item.label}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA Final */}
+      <section className="max-w-7xl mx-auto px-4 py-20 border-t border-border text-center">
+        <h2 className="text-4xl font-bold text-foreground mb-6">
+          Listo para Transformar tu Operación
+        </h2>
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+          Conecta todos los sistemas de tu faena. Obtén visibilidad total. Optimiza disponibilidad y costos.
+        </p>
+        <Link href="/auth/login">
+          <Button size="lg" className="gap-2 bg-[var(--brand-cobre)] hover:bg-[var(--brand-cobre)]/90 text-base px-8">
+            Solicitar Demo
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </Link>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border bg-muted/30 py-8">
-        <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
-          <p className="text-sm text-muted-foreground">
-              Motil — Plataforma Operacional Minera © 2026 • Desarrollado con <a href="https://n3uralia.com" target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline">n3uralia</a>
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Desarrollado por <span className="font-semibold">Cía. Minera La Patagua</span>
-          </p>
+      <footer className="border-t border-border bg-card/30 mt-20">
+        <div className="max-w-7xl mx-auto px-4 py-12 text-center text-sm text-muted-foreground">
+          <p>Motil © 2026 • Powered by n3uralia</p>
         </div>
       </footer>
     </div>
