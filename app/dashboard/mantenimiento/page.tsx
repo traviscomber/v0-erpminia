@@ -48,7 +48,7 @@ export default function MaintenanceDashboard() {
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold text-foreground mb-2">Mantenimiento</h1>
-          <p className="text-muted-foreground">Work orders, assets, preventive maintenance & KPIs</p>
+          <p className="text-muted-foreground">Órdenes de trabajo, activos, mantenimiento preventivo y KPIs</p>
         </div>
         <Button
           className="bg-primary hover:bg-primary/90"
@@ -58,7 +58,7 @@ export default function MaintenanceDashboard() {
           }}
         >
           <Plus className="w-4 h-4 mr-2" />
-          New Work Order
+          Nueva Orden de Trabajo
         </Button>
       </div>
 
@@ -240,7 +240,7 @@ export default function MaintenanceDashboard() {
                 setShowWorkOrderForm(false);
               }}
             >
-              Cancel
+              Cancelar
             </Button>
           </div>
         </div>
