@@ -1,4 +1,5 @@
 'use client';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertCircle, TrendingUp, Package, QrCode, Plus, RefreshCw } from 'lucide-react';
@@ -7,8 +8,10 @@ import useSWR from 'swr';
 import { StockCard } from '@/components/warehouse/stock-card';
 import { QRScanner } from '@/components/warehouse/qr-scanner';
 import { TransferModal } from '@/components/warehouse/transfer-modal';
+import { AddItemModal } from '@/components/warehouse/add-item-modal';
 
 export default function BodesaDashboard() {
+  const [addItemOpen, setAddItemOpen] = useState(false);
   const { data: stock, mutate: mutateStock } = useSWR('/api/warehouse/stock', async (url: string) => {
     const res = await fetch(url);
     return res.ok ? res.json() : null;
@@ -37,7 +40,7 @@ export default function BodesaDashboard() {
             <RefreshCw className="w-4 h-4 mr-1" />
             Actualizar
           </Button>
-          <Button size="sm">
+          <Button size="sm" onClick={() => setAddItemOpen(true)}>
             <Plus className="w-4 h-4 mr-1" />
             Agregar Artículo
           </Button>
@@ -145,6 +148,12 @@ export default function BodesaDashboard() {
           />
         </TabsContent>
       </Tabs>
+
+      <AddItemModal 
+        open={addItemOpen} 
+        onOpenChange={setAddItemOpen}
+        onSubmit={() => mutateStock()}
+      />
     </div>
   );
 }
