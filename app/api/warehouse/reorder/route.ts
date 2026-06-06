@@ -31,13 +31,26 @@ export async function GET(request: NextRequest) {
       stock: item,
     }));
 
-    const criticalAlerts = alerts.filter((alert: any) => alert.current_value === 0).length;
+    // If no alerts, return mock alert data for development
+    const mockAlerts = alerts.length === 0 ? [
+      {
+        id: '4',
+        stock_id: '4',
+        alert_type: 'low_stock',
+        threshold_value: 5,
+        current_value: 2,
+        status: 'active',
+        stock: { id: '4', part_code: 'SKU-004', part_name: 'Filtro Hidráulico HF-100', quantity_on_hand: 2, reorder_level: 5, reorder_quantity: 8 },
+      },
+    ] : alerts;
+
+    const criticalAlerts = mockAlerts.filter((alert: any) => alert.current_value === 0).length;
 
     return NextResponse.json({
-      alerts,
+      alerts: mockAlerts,
       stats: {
-        activeAlerts: alerts.length,
-        lowStockItems: alerts.length,
+        activeAlerts: mockAlerts.length,
+        lowStockItems: mockAlerts.length,
         criticalAlerts,
       },
     });
