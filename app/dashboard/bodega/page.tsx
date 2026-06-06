@@ -1,7 +1,7 @@
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertCircle, TrendingUp, Package, QrCode, Plus, Refresh2 } from 'lucide-react';
+import { AlertCircle, TrendingUp, Package, QrCode, Plus, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import useSWR from 'swr';
 import { StockCard } from '@/components/warehouse/stock-card';
@@ -34,7 +34,7 @@ export default function BodesaDashboard() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => mutateStock()}>
-            <Refresh2 className="w-4 h-4 mr-1" />
+            <RefreshCw className="w-4 h-4 mr-1" />
             Actualizar
           </Button>
           <Button size="sm">
