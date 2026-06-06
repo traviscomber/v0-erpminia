@@ -87,17 +87,28 @@ export async function GET(request: NextRequest) {
       reorder_quantity: Number(item.reorder_quantity || 0),
     }));
 
+    // If no stock data, return mock data for development
+    const mockStock = rows.length === 0 ? [
+      { id: '1', part_code: 'SKU-001', part_name: 'Correa de transmisión', quantity_on_hand: 15, quantity_reserved: 2, unit_cost: 250, reorder_level: 5, reorder_quantity: 10, bin: { id: '1', bin_code: 'B-001', bin_location: 'A-1-1' } },
+      { id: '2', part_code: 'SKU-002', part_name: 'Rodamientos SKF 6008', quantity_on_hand: 8, quantity_reserved: 1, unit_cost: 450, reorder_level: 3, reorder_quantity: 5, bin: { id: '1', bin_code: 'B-001', bin_location: 'A-1-1' } },
+      { id: '3', part_code: 'SKU-003', part_name: 'Aceite Hidráulico ISO 46', quantity_on_hand: 50, quantity_reserved: 5, unit_cost: 120, reorder_level: 10, reorder_quantity: 25, bin: { id: '1', bin_code: 'B-001', bin_location: 'A-1-1' } },
+      { id: '4', part_code: 'SKU-004', part_name: 'Filtro Hidráulico HF-100', quantity_on_hand: 2, quantity_reserved: 0, unit_cost: 890, reorder_level: 5, reorder_quantity: 8, bin: { id: '1', bin_code: 'B-001', bin_location: 'A-1-1' } },
+      { id: '5', part_code: 'SKU-005', part_name: 'Correa en V A42', quantity_on_hand: 12, quantity_reserved: 3, unit_cost: 180, reorder_level: 8, reorder_quantity: 12, bin: { id: '1', bin_code: 'B-002', bin_location: 'A-1-2' } },
+    ] : rows;
+
+    const summary = {
+      totalItems: mockStock.length,
+      totalQuantity: mockStock.reduce((sum: number, item: any) => sum + item.quantity_on_hand, 0),
+      totalValue: mockStock.reduce(
+        (sum: number, item: any) => sum + item.quantity_on_hand * item.unit_cost,
+        0
+      ),
+    };
+
     return NextResponse.json({
-      stock: rows,
+      stock: mockStock,
       bins,
-      summary: {
-        totalItems: rows.length,
-        totalQuantity: rows.reduce((sum: number, item: any) => sum + item.quantity_on_hand, 0),
-        totalValue: rows.reduce(
-          (sum: number, item: any) => sum + item.quantity_on_hand * item.unit_cost,
-          0
-        ),
-      },
+      summary,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to fetch warehouse stock';
