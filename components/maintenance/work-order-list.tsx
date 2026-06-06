@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { updateMaintenanceOrder } from '@/app/actions/db-actions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,21 +16,20 @@ import { Clock, User, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 interface WorkOrder {
   id: string;
-  order_number: string;
+  work_order_number: string;
   title: string;
   description?: string;
   status: string;
   priority: string;
-  maintenance_type: string;
+  work_type: string;
   progress_percentage: number;
-  estimated_hours: number;
-  actual_hours?: number;
-  estimated_cost: number;
-  actual_cost?: number;
-  technician_name?: string;
+  planned_duration_hours: number;
+  actual_duration_hours?: number;
+  assigned_to_name?: string;
   created_at: string;
-  start_date?: string;
+  scheduled_date?: string;
   completion_date?: string;
+  asset_name?: string;
 }
 
 interface WorkOrderListProps {
@@ -50,13 +48,10 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const params = new URLSearchParams();
-        if (filters?.status) params.set('status', filters.status);
-        if (filters?.priority) params.set('priority', filters.priority);
-
-        const response = await fetch(`/api/v1/maintenance-orders${params.toString() ? `?${params.toString()}` : ''}`);
-        const { data } = await response.json();
-        setOrders((data || []).slice(0, limit));
+        const response = await fetch('/api/maintenance/work-orders');
+        if (!response.ok) throw new Error('Failed to fetch work orders');
+        const { workOrders } = await response.json();
+        setOrders((workOrders || []).slice(0, limit));
       } catch (err) {
         console.error('[v0] Error fetching work orders:', err);
       } finally {
@@ -65,13 +60,19 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
     };
 
     fetchOrders();
-  }, [filters, limit]);
+  }, [limit]);
 
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
     setUpdatingId(orderId);
     try {
-      await updateMaintenanceOrder(orderId, { status: newStatus });
-      setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+      const res = await fetch(`/api/maintenance/work-orders/${orderId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (!res.ok) throw new Error('Failed to update work order');
+      const { data } = await res.json();
+      setOrders(orders.map(o => o.id === orderId ? data : o));
     } catch (err) {
       console.error('[v0] Error updating order:', err);
     } finally {
@@ -121,7 +122,7 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <CardTitle className="text-base">{order.order_number}</CardTitle>
+                  <CardTitle className="text-base">{order.work_order_number}</CardTitle>
                   {getStatusBadge(order.status)}
                 </div>
                 <CardDescription>{order.title}</CardDescription>
@@ -145,7 +146,7 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
                 <p className="text-muted-foreground text-xs">Tipo</p>
-                <p className="font-semibold capitalize">{order.maintenance_type}</p>
+                <p className="font-semibold capitalize">{order.work_type}</p>
               </div>
               <div>
                 <p className="text-muted-foreground text-xs flex items-center gap-1">
