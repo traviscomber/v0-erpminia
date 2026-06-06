@@ -118,11 +118,12 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { organizationId, supabase } = await getOrganizationContext(request);
-    if (!organizationId || !supabase) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const context = await getOrganizationContext(request);
+    if (!context.ok) {
+      return context.response;
     }
 
+    const { organizationId, supabase } = context;
     const body = await request.json();
     const { part_code, part_name, quantity_on_hand, reorder_level, reorder_quantity, unit_cost } = body;
 
