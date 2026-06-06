@@ -1,7 +1,8 @@
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertCircle, TrendingUp, Package, QrCode } from 'lucide-react';
+import { AlertCircle, TrendingUp, Package, QrCode, Plus, Refresh2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import useSWR from 'swr';
 import { StockCard } from '@/components/warehouse/stock-card';
 import { QRScanner } from '@/components/warehouse/qr-scanner';
@@ -29,7 +30,17 @@ export default function BodesaDashboard() {
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold text-foreground mb-2">Bodega/Inventario</h1>
-          <p className="text-muted-foreground">Stock management, QR scanning, reorder alerts</p>
+          <p className="text-muted-foreground">Gestión de stock, escaneo QR, alertas de reorden</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => mutateStock()}>
+            <Refresh2 className="w-4 h-4 mr-1" />
+            Actualizar
+          </Button>
+          <Button size="sm">
+            <Plus className="w-4 h-4 mr-1" />
+            Agregar Artículo
+          </Button>
         </div>
       </div>
 
@@ -38,7 +49,7 @@ export default function BodesaDashboard() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <Package className="w-4 h-4" />
-              Total Items
+              Total Artículos
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -50,7 +61,7 @@ export default function BodesaDashboard() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <AlertCircle className="w-4 h-4" />
-              Low Stock
+              Stock Bajo
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -62,7 +73,7 @@ export default function BodesaDashboard() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <TrendingUp className="w-4 h-4" />
-              Total Value
+              Valor Total
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -74,7 +85,7 @@ export default function BodesaDashboard() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <QrCode className="w-4 h-4" />
-              Alerts
+              Alertas
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -85,10 +96,10 @@ export default function BodesaDashboard() {
 
       <Tabs defaultValue="stock" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="stock">All Stock</TabsTrigger>
-          <TabsTrigger value="alerts">Low Stock ({stats.lowStockItems})</TabsTrigger>
-          <TabsTrigger value="scanner">QR Scanner</TabsTrigger>
-          <TabsTrigger value="transfer">Transfer</TabsTrigger>
+          <TabsTrigger value="stock">Todo Stock</TabsTrigger>
+          <TabsTrigger value="alerts">Stock Bajo ({stats.lowStockItems})</TabsTrigger>
+          <TabsTrigger value="scanner">Escanear QR</TabsTrigger>
+          <TabsTrigger value="transfer">Transferencias</TabsTrigger>
         </TabsList>
 
         <TabsContent value="stock">
