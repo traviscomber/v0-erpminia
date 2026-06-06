@@ -1,4 +1,4 @@
-import { getSupabaseServerClient } from '@/lib/supabase-server';
+﻿import { getSupabaseServerClient } from '@/lib/supabase-server';
 
 type ContractStatus =
   | 'Borrador'
@@ -354,3 +354,4 @@ export async function getLegalComplianceOverview(organizationId: string) {
     expiring_documents: expiringDocuments.slice(0, 10),
   };
 }
+
