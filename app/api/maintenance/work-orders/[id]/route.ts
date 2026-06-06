@@ -57,3 +57,67 @@ export async function GET(
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const context = await getOrganizationContext(request);
+  if (!context.ok) return context.response;
+
+  const { id } = await params;
+
+  try {
+    const body = await request.json();
+    const { status, assigned_to_name, actual_duration_hours, root_cause, actual_cost } = body;
+
+    const updateData: any = {};
+    if (status) updateData.status = status;
+    if (assigned_to_name) updateData.assigned_to_name = assigned_to_name;
+    if (actual_duration_hours !== undefined) updateData.actual_duration_hours = actual_duration_hours;
+    if (root_cause) updateData.root_cause = root_cause;
+    if (actual_cost !== undefined) updateData.actual_cost = actual_cost;
+    if (status === 'completed') updateData.completion_date = new Date().toISOString();
+    updateData.updated_at = new Date().toISOString();
+
+    const { data, error } = await context.supabase
+      .from('maintenance_work_orders')
+      .update(updateData)
+      .eq('id', id)
+      .eq('organization_id', context.organizationId)
+      .select('*, asset:maintenance_assets(id, asset_name, asset_code, asset_type)')
+      .single();
+
+    if (error) throw error;
+    if (!data) return NextResponse.json({ error: 'Work order not found' }, { status: 404 });
+
+    return NextResponse.json({ data: mapWorkOrder(data) });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to update work order';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const context = await getOrganizationContext(request);
+  if (!context.ok) return context.response;
+
+  const { id } = await params;
+
+  try {
+    const { error } = await context.supabase
+      .from('maintenance_work_orders')
+      .delete()
+      .eq('id', id)
+      .eq('organization_id', context.organizationId);
+
+    if (error) throw error;
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to delete work order';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}

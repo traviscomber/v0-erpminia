@@ -32,6 +32,10 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.title) {
+      toast.error('Title is required');
+      return;
+    }
     setLoading(true);
 
     try {
@@ -39,18 +43,27 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...formData,
-          assetId,
+          title: formData.title,
+          description: formData.description,
+          workType: formData.workType,
+          priority: formData.priority,
           plannedDurationHours: parseFloat(formData.plannedDurationHours.toString()),
+          scheduledDate: formData.scheduledDate,
+          assetId,
         }),
       });
 
-      if (!res.ok) throw new Error('Failed to create work order');
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || 'Failed to create work order');
+      }
 
-      toast.success('Work order created successfully');
+      const { data } = await res.json();
+      toast.success(`Work order ${data.work_order_number} created successfully`);
       onSuccess?.();
+      setFormData({ title: '', description: '', workType: 'corrective', priority: 'medium', plannedDurationHours: 1, scheduledDate: '' });
     } catch (error) {
-      toast.error('Error creating work order');
+      toast.error(error instanceof Error ? error.message : 'Error creating work order');
     } finally {
       setLoading(false);
     }
