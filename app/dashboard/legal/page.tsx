@@ -17,6 +17,8 @@ import {
   Search,
 } from 'lucide-react';
 import { ContractsTracker } from '@/components/legal/contracts-tracker';
+import { AddDocumentModal } from '@/components/legal/add-document-modal';
+import { AddContractModal } from '@/components/legal/add-contract-modal';
 
 const fetcher = async (url: string) => {
   const response = await fetch(url);
@@ -139,6 +141,28 @@ export default function LegalPage() {
     fetcher,
     { revalidateOnFocus: false }
   );
+
+  const handleAddDocument = async (doc: any) => {
+    const res = await fetch('/api/legal/documentos', {
+      method: 'POST',
+      body: JSON.stringify(doc),
+    });
+    if (res.ok) {
+      await mutateDocuments();
+      await mutateCompliance();
+    }
+  };
+
+  const handleAddContract = async (contract: any) => {
+    const res = await fetch('/api/legal/contratos', {
+      method: 'POST',
+      body: JSON.stringify(contract),
+    });
+    if (res.ok) {
+      await mutateContracts();
+      await mutateCompliance();
+    }
+  };
 
   const legalDocs = (documentData?.documents || []) as LegalDocument[];
   const contracts = (contractData?.contracts || []) as LegalContract[];
@@ -360,15 +384,18 @@ export default function LegalPage() {
                     Politicas, procedimientos, protocolos y respaldo regulatorio
                   </CardDescription>
                 </div>
-                <div className="flex-1 max-w-sm">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Buscar documentos..."
-                      value={searchQuery}
-                      onChange={(event) => setSearchQuery(event.target.value)}
-                      className="pl-10"
-                    />
+                <div className="flex gap-2 items-center">
+                  <AddDocumentModal onSubmit={handleAddDocument} />
+                  <div className="flex-1 max-w-sm">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Buscar documentos..."
+                        value={searchQuery}
+                        onChange={(event) => setSearchQuery(event.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -431,6 +458,9 @@ export default function LegalPage() {
         </TabsContent>
 
         <TabsContent value="contracts">
+          <div className="flex justify-end mb-4">
+            <AddContractModal onSubmit={handleAddContract} />
+          </div>
           <ContractsTracker contracts={trackerContracts} />
         </TabsContent>
 
