@@ -35,7 +35,7 @@ export const handleSensorAnomaly = async (sensorId: string, equipmentId: string,
 
       if (organizationId) {
         const workOrderNumber = `AUTO-WO-${Date.now()}`;
-        const result = await supabase
+        const { data, error } = await supabase
           .from('maintenance_work_orders')
           .insert({
             organization_id: organizationId,
@@ -53,7 +53,13 @@ export const handleSensorAnomaly = async (sensorId: string, equipmentId: string,
           .select()
           .single();
 
-        maintenanceOrder = result.data;
+        if (error) {
+          throw error;
+        }
+
+        maintenanceOrder = data;
+      } else {
+        throw new Error('Unable to resolve organization for automatic maintenance order');
       }
 
       return { maintenanceOrder, hseAlert };

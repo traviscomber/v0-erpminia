@@ -79,7 +79,7 @@ export class EventCascadeEngine {
         const organizationId = await resolveMaintenanceOrganizationId(supabase, equipmentId);
 
         if (organizationId) {
-          await supabase.from('maintenance_work_orders').insert({
+          const { error } = await supabase.from('maintenance_work_orders').insert({
             organization_id: organizationId,
             asset_id: equipmentId,
             work_order_number: `AUTO-WO-${Date.now()}`,
@@ -92,6 +92,12 @@ export class EventCascadeEngine {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           });
+
+          if (error) {
+            throw error;
+          }
+        } else {
+          throw new Error('Unable to resolve organization for automatic maintenance order');
         }
       }
 

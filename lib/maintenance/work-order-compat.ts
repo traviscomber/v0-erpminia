@@ -1,3 +1,16 @@
+import { cookies } from 'next/headers';
+
+type AuthCookiePayload = {
+  user?: {
+    id?: string;
+    email?: string;
+    full_name?: string;
+    organization_id?: string;
+  };
+  role?: string;
+  session_token?: string;
+};
+
 export function normalizeMaintenanceStatus(status?: string | null) {
   switch (String(status || '').trim().toLowerCase()) {
     case 'pendiente':
@@ -137,17 +150,30 @@ export async function resolveMaintenanceOrganizationId(
     }
   }
 
-  const { data: org } = await supabase
-    .from('organizations')
-    .select('id')
-    .order('created_at', { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  return org?.id || null;
+  return null;
 }
 
-export function buildMaintenanceWorkOrderPayload(input: Record<string, any>) {
+export async function getMaintenanceActionAuthContext() {
+  const cookieStore = await cookies();
+  const raw = cookieStore.get('auth_token')?.value;
+
+  if (!raw) {
+    return { organizationId: null, userId: null, role: null };
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as AuthCookiePayload;
+    return {
+      organizationId: parsed.user?.organization_id || null,
+      userId: parsed.user?.id || null,
+      role: parsed.role || null,
+    };
+  } catch {
+    return { organizationId: null, userId: null, role: null };
+  }
+}
+
+export function buildCreateMaintenanceWorkOrderPayload(input: Record<string, any>) {
   const assetId =
     input.asset_id ||
     input.assetId ||
@@ -177,4 +203,57 @@ export function buildMaintenanceWorkOrderPayload(input: Record<string, any>) {
     preventive_actions: input.preventive_actions || null,
     updated_at: new Date().toISOString(),
   };
+}
+
+export function buildUpdateMaintenanceWorkOrderPayload(input: Record<string, any>) {
+  const payload: Record<string, any> = {
+    updated_at: new Date().toISOString(),
+  };
+
+  if ('asset_id' in input || 'assetId' in input || 'vehicle_id' in input || 'equipment_id' in input) {
+    payload.asset_id =
+      input.asset_id ??
+      input.assetId ??
+      input.vehicle_id ??
+      input.equipment_id ??
+      null;
+  }
+
+  if ('work_order_number' in input || 'order_number' in input) {
+    payload.work_order_number = input.work_order_number ?? input.order_number ?? null;
+  }
+
+  if ('title' in input) payload.title = input.title;
+  if ('description' in input || 'issue_description' in input) {
+    payload.description = input.description ?? input.issue_description ?? null;
+  }
+  if ('work_type' in input || 'workType' in input || 'maintenance_type' in input || 'order_type' in input) {
+    payload.work_type = normalizeMaintenanceType(
+      input.work_type || input.workType || input.maintenance_type || input.order_type
+    );
+  }
+  if ('status' in input) payload.status = normalizeMaintenanceStatus(input.status);
+  if ('priority' in input) payload.priority = normalizeMaintenancePriority(input.priority);
+  if ('scheduled_date' in input || 'scheduledDate' in input) {
+    payload.scheduled_date = input.scheduled_date ?? input.scheduledDate ?? null;
+  }
+  if ('start_date' in input) payload.start_date = input.start_date ?? null;
+  if ('completion_date' in input) payload.completion_date = input.completion_date ?? null;
+  if ('planned_duration_hours' in input || 'plannedDurationHours' in input || 'estimated_hours' in input) {
+    payload.planned_duration_hours =
+      input.planned_duration_hours ??
+      input.plannedDurationHours ??
+      input.estimated_hours ??
+      null;
+  }
+  if ('actual_duration_hours' in input || 'actual_hours' in input) {
+    payload.actual_duration_hours = input.actual_duration_hours ?? input.actual_hours ?? null;
+  }
+  if ('assigned_to_name' in input || 'technician_name' in input) {
+    payload.assigned_to_name = input.assigned_to_name ?? input.technician_name ?? null;
+  }
+  if ('root_cause' in input) payload.root_cause = input.root_cause ?? null;
+  if ('preventive_actions' in input) payload.preventive_actions = input.preventive_actions ?? null;
+
+  return payload;
 }
