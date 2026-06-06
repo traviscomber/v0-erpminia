@@ -82,14 +82,16 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'pendiente':
-        return <Badge className="bg-yellow-600/10 text-yellow-700">Pendiente</Badge>;
-      case 'en_progreso':
-        return <Badge className="bg-blue-600/10 text-blue-700">En Progreso</Badge>;
-      case 'completada':
-        return <Badge className="bg-green-600/10 text-green-700">Completada</Badge>;
-      case 'cancelada':
-        return <Badge className="bg-gray-600/10 text-gray-700">Cancelada</Badge>;
+      case 'open':
+        return <Badge className="bg-blue-600/10 text-blue-700">Abierto</Badge>;
+      case 'assigned':
+        return <Badge className="bg-yellow-600/10 text-yellow-700">Asignado</Badge>;
+      case 'in_progress':
+        return <Badge className="bg-purple-600/10 text-purple-700">En Progreso</Badge>;
+      case 'completed':
+        return <Badge className="bg-green-600/10 text-green-700">Completado</Badge>;
+      case 'closed':
+        return <Badge className="bg-gray-600/10 text-gray-700">Cerrado</Badge>;
       default:
         return <Badge>{status}</Badge>;
     }
@@ -154,22 +156,20 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
                   Horas
                 </p>
                 <p className="font-semibold">
-                  {order.actual_hours || '-'} / {order.estimated_hours}h
+                  {order.actual_duration_hours || '-'} / {order.planned_duration_hours}h
                 </p>
               </div>
               <div>
-                <p className="text-muted-foreground text-xs">Costo</p>
-                <p className="font-semibold">
-                  ${order.actual_cost?.toLocaleString() || order.estimated_cost.toLocaleString()}
-                </p>
+                <p className="text-muted-foreground text-xs">Estado</p>
+                <p className="font-semibold capitalize">{order.status}</p>
               </div>
-              {order.technician_name && (
+              {order.assigned_to_name && (
                 <div>
                   <p className="text-muted-foreground text-xs flex items-center gap-1">
                     <User className="h-3 w-3" />
                     Técnico
                   </p>
-                  <p className="font-semibold">{order.technician_name}</p>
+                  <p className="font-semibold">{order.assigned_to_name}</p>
                 </div>
               )}
             </div>
@@ -185,10 +185,11 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pendiente">Pendiente</SelectItem>
-                  <SelectItem value="en_progreso">En Progreso</SelectItem>
-                  <SelectItem value="completada">Completada</SelectItem>
-                  <SelectItem value="cancelada">Cancelada</SelectItem>
+                  <SelectItem value="open">Abierto</SelectItem>
+                  <SelectItem value="assigned">Asignado</SelectItem>
+                  <SelectItem value="in_progress">En Progreso</SelectItem>
+                  <SelectItem value="completed">Completado</SelectItem>
+                  <SelectItem value="closed">Cerrado</SelectItem>
                 </SelectContent>
               </Select>
               {updatingId === order.id && (
