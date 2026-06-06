@@ -115,3 +115,45 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
+
+export async function POST(request: NextRequest) {
+  try {
+    const { organizationId, supabase } = await getOrganizationContext(request);
+    if (!organizationId || !supabase) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { part_code, part_name, quantity_on_hand, reorder_level, reorder_quantity, unit_cost } = body;
+
+    // Get first bin for new items (or create default)
+    const { data: bins } = await supabase
+      .from('warehouse_bins')
+      .select('id')
+      .limit(1);
+
+    const bin_id = bins?.[0]?.id || null;
+
+    const { data: newItem, error } = await supabase
+      .from('warehouse_stock')
+      .insert({
+        organization_id: organizationId,
+        part_code,
+        part_name,
+        quantity_on_hand: quantity_on_hand || 0,
+        reorder_level: reorder_level || 0,
+        reorder_quantity: reorder_quantity || 0,
+        unit_cost: unit_cost || 0,
+        bin_id,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return NextResponse.json(newItem, { status: 201 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to add warehouse stock';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
