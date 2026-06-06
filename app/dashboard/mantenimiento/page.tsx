@@ -68,7 +68,7 @@ export default function MaintenanceDashboard() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <Clock className="w-4 h-4" />
-              Avg MTTR
+              MTTR Promedio
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -80,7 +80,7 @@ export default function MaintenanceDashboard() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <AlertCircle className="w-4 h-4" />
-              Downtime (30d)
+              Tiempo Inactivo (30d)
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -92,7 +92,7 @@ export default function MaintenanceDashboard() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <TrendingUp className="w-4 h-4" />
-              Availability
+              Disponibilidad
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -104,7 +104,7 @@ export default function MaintenanceDashboard() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <Wrench className="w-4 h-4" />
-              Completed WOs
+              OTs Completadas
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -116,18 +116,18 @@ export default function MaintenanceDashboard() {
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="work-orders">Work Orders ({woList.length})</TabsTrigger>
-          <TabsTrigger value="schedule">Preventive ({schedulesList.length})</TabsTrigger>
-          <TabsTrigger value="assets">Assets ({assetsList.length})</TabsTrigger>
+          <TabsTrigger value="overview">Resumen</TabsTrigger>
+          <TabsTrigger value="work-orders">Órdenes de Trabajo ({woList.length})</TabsTrigger>
+          <TabsTrigger value="schedule">Preventivo ({schedulesList.length})</TabsTrigger>
+          <TabsTrigger value="assets">Activos ({assetsList.length})</TabsTrigger>
         </TabsList>
 
-        {/* Overview Tab */}
+        {/* Pestaña Resumen */}
         <TabsContent value="overview" className="space-y-4">
           <div className="grid md:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Due Maintenance</CardTitle>
+                <CardTitle className="text-lg">Mantenimiento Vencido</CardTitle>
               </CardHeader>
               <CardContent>
                 <MaintenanceSchedule schedules={schedulesList.slice(0, 5)} />
@@ -136,7 +136,7 @@ export default function MaintenanceDashboard() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Critical Assets</CardTitle>
+                <CardTitle className="text-lg">Activos Críticos</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 {assetsList
@@ -145,7 +145,7 @@ export default function MaintenanceDashboard() {
                   .map((asset: any) => (
                     <div key={asset.id} className="flex justify-between items-center p-2 bg-muted rounded">
                       <span className="font-semibold text-sm">{asset.asset_name}</span>
-                      <span className="text-xs text-destructive">CRITICAL</span>
+                      <span className="text-xs text-destructive">CRÍTICO</span>
                     </div>
                   ))}
               </CardContent>
@@ -153,13 +153,13 @@ export default function MaintenanceDashboard() {
           </div>
         </TabsContent>
 
-        {/* Work Orders Tab */}
+        {/* Pestaña Órdenes de Trabajo */}
         <TabsContent value="work-orders" className="space-y-4">
           <div className="grid grid-cols-1 gap-4">
             {woList.length === 0 ? (
               <Card>
                 <CardContent className="py-8 text-center text-muted-foreground">
-                  No work orders yet
+                  Sin órdenes de trabajo aún
                 </CardContent>
               </Card>
             ) : (
