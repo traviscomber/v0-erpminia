@@ -243,7 +243,7 @@ const menuItems = [
     label: 'Módulo Legal',
     href: '/dashboard/legal',
     icon: Scale,
-    group: 'Legal',
+    group: 'Gestión Empresarial',
   },
   
   // AYUDA
