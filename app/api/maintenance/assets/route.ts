@@ -4,16 +4,17 @@ import { getOrganizationContext } from '@/lib/api/organization-context';
 function mapAsset(asset: any) {
   return {
     id: asset.id,
-    asset_code: asset.asset_code,
-    asset_name: asset.asset_name,
-    asset_type: asset.asset_type,
+    assetCode: asset.asset_code,
+    assetName: asset.asset_name,
+    assetType: asset.asset_type,
     location: asset.location,
     status: asset.status,
     manufacturer: asset.manufacturer,
     model: asset.model,
-    serial_number: asset.serial_number,
+    serialNumber: asset.serial_number,
     criticality: asset.criticality,
-    mtbf_hours: asset.mtbf_hours,
+    mtbfHours: asset.mtbf_hours,
+    acquisitionCost: asset.acquisition_cost || 0,
   };
 }
 
