@@ -1,3 +1,5 @@
+// DEPRECATED: Use WorkOrderForm instead
+// This component uses outdated server actions and data structure
 'use client';
 
 import { useState } from 'react';
