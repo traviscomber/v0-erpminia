@@ -51,31 +51,31 @@ export function AssetCard({ asset, onCreateWorkOrder, onViewHistory }: AssetCard
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <p className="text-muted-foreground">Type</p>
+            <p className="text-muted-foreground">Tipo</p>
             <p className="font-semibold">{asset.assetType}</p>
           </div>
           <div>
-            <p className="text-muted-foreground">Location</p>
+            <p className="text-muted-foreground">Ubicación</p>
             <p className="font-semibold">{asset.location}</p>
           </div>
           <div>
-            <p className="text-muted-foreground">Status</p>
+            <p className="text-muted-foreground">Estado</p>
             <Badge className={statusColors[asset.status]}>
               {asset.status.charAt(0).toUpperCase() + asset.status.slice(1)}
             </Badge>
           </div>
           <div>
-            <p className="text-muted-foreground">Cost</p>
+            <p className="text-muted-foreground">Costo</p>
             <p className="font-semibold">${asset.acquisitionCost.toLocaleString()}</p>
           </div>
         </div>
 
         <div className="flex gap-2">
           <Button size="sm" onClick={() => onCreateWorkOrder?.(asset.id)}>
-            Create WO
+            Crear OT
           </Button>
           <Button size="sm" variant="outline" onClick={() => onViewHistory?.(asset.id)}>
-            History
+            Historial
           </Button>
         </div>
       </CardContent>
