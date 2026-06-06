@@ -2,10 +2,11 @@
 // This file handles the events that cascade across Producción → Mantenimiento → Bodega → Finanzas → HSE
 
 import { createClient } from '@supabase/supabase-js';
+import { normalizeMaintenancePriority, resolveMaintenanceOrganizationId } from '@/lib/maintenance/work-order-compat';
 
 function getSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   
   if (!supabaseUrl || !supabaseKey) {
     throw new Error('Missing Supabase environment variables');
@@ -29,13 +30,37 @@ export const handleSensorAnomaly = async (sensorId: string, equipmentId: string,
 
     // 2. Create Maintenance Order if critical
     if (severity === 'critical' || severity === 'high') {
-      const { data: maintenanceOrder } = await supabase.from('maintenance_orders').insert({
-        asset_id: equipmentId,
-        order_type: 'correctiva',
-        status: 'pendiente',
-        priority: severity === 'critical' ? 'critica_seguridad' : 'alta',
-        issue_description: `Sensor detected: ${anomalyType}`,
-      }).select().single();
+      const organizationId = await resolveMaintenanceOrganizationId(supabase, equipmentId);
+      let maintenanceOrder = null;
+
+      if (organizationId) {
+        const workOrderNumber = `AUTO-WO-${Date.now()}`;
+        const { data, error } = await supabase
+          .from('maintenance_work_orders')
+          .insert({
+            organization_id: organizationId,
+            asset_id: equipmentId,
+            work_order_number: workOrderNumber,
+            title: `Alerta automatica: ${anomalyType}`,
+            description: `Sensor detected: ${anomalyType}`,
+            work_type: 'corrective',
+            status: 'open',
+            priority: normalizeMaintenancePriority(severity === 'critical' ? 'critical' : 'high'),
+            scheduled_date: new Date().toISOString().split('T')[0],
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
+
+        if (error) {
+          throw error;
+        }
+
+        maintenanceOrder = data;
+      } else {
+        throw new Error('Unable to resolve organization for automatic maintenance order');
+      }
 
       return { maintenanceOrder, hseAlert };
     }

@@ -15,6 +15,7 @@ import { MaintenanceSchedule } from '@/components/maintenance/maintenance-schedu
 export default function MaintenanceDashboard() {
   const [showWorkOrderForm, setShowWorkOrderForm] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  const [selectedAssetId, setSelectedAssetId] = useState<string | undefined>(undefined);
 
   const { data: mttrStats } = useSWR('/api/maintenance/mttr', async (url: string) => {
     const res = await fetch(url);
@@ -49,7 +50,13 @@ export default function MaintenanceDashboard() {
           <h1 className="text-3xl font-bold text-foreground mb-2">Mantenimiento</h1>
           <p className="text-muted-foreground">Work orders, assets, preventive maintenance & KPIs</p>
         </div>
-        <Button className="bg-primary hover:bg-primary/90" onClick={() => setShowWorkOrderForm(true)}>
+        <Button
+          className="bg-primary hover:bg-primary/90"
+          onClick={() => {
+            setSelectedAssetId(undefined);
+            setShowWorkOrderForm(true);
+          }}
+        >
           <Plus className="w-4 h-4 mr-2" />
           New Work Order
         </Button>
@@ -202,7 +209,10 @@ export default function MaintenanceDashboard() {
                 <AssetCard
                   key={asset.id}
                   asset={asset}
-                  onCreateWorkOrder={() => setShowWorkOrderForm(true)}
+                  onCreateWorkOrder={(assetId) => {
+                    setSelectedAssetId(assetId);
+                    setShowWorkOrderForm(true);
+                  }}
                 />
               ))
             )}
@@ -215,7 +225,9 @@ export default function MaintenanceDashboard() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-background rounded-lg p-6 max-w-md w-full mx-4">
             <WorkOrderForm
+              assetId={selectedAssetId}
               onSuccess={() => {
+                setSelectedAssetId(undefined);
                 setShowWorkOrderForm(false);
                 toast.success('Work order created');
               }}
@@ -223,7 +235,10 @@ export default function MaintenanceDashboard() {
             <Button
               variant="outline"
               className="w-full mt-4"
-              onClick={() => setShowWorkOrderForm(false)}
+              onClick={() => {
+                setSelectedAssetId(undefined);
+                setShowWorkOrderForm(false);
+              }}
             >
               Cancel
             </Button>

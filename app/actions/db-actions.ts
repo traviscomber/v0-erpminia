@@ -1,6 +1,13 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import {
+  buildCreateMaintenanceWorkOrderPayload,
+  buildUpdateMaintenanceWorkOrderPayload,
+  getMaintenanceActionAuthContext,
+  mapMaintenanceWorkOrderToLegacy,
+  resolveMaintenanceOrganizationId,
+} from '@/lib/maintenance/work-order-compat';
 import { revalidateTag } from 'next/cache';
 
 // Wear Parts (Bodega) Actions
@@ -68,13 +75,19 @@ export async function updateWearPart(
 // Maintenance Orders Actions
 export async function getMaintenanceOrders() {
   const supabase = await createClient();
+  const auth = await getMaintenanceActionAuthContext();
+  if (!auth.organizationId) {
+    throw new Error('Unauthorized maintenance access');
+  }
+
   const { data, error } = await supabase
-    .from('maintenance_orders')
-    .select('*')
+    .from('maintenance_work_orders')
+    .select('*, asset:maintenance_assets(id, asset_name, asset_code, asset_type)')
+    .eq('organization_id', auth.organizationId)
     .order('created_at', { ascending: false });
   
   if (error) throw new Error(error.message);
-  return data;
+  return (data || []).map(mapMaintenanceWorkOrderToLegacy);
 }
 
 export async function createMaintenanceOrder(orderData: {
@@ -90,15 +103,47 @@ export async function createMaintenanceOrder(orderData: {
   estimated_cost?: number;
 }) {
   const supabase = await createClient();
+  const payload = buildCreateMaintenanceWorkOrderPayload(orderData);
+  const auth = await getMaintenanceActionAuthContext();
+  if (!auth.organizationId) {
+    throw new Error('Unauthorized maintenance access');
+  }
+
+  const assetOrganizationId = await resolveMaintenanceOrganizationId(supabase, payload.asset_id);
+  const organizationId = assetOrganizationId || auth.organizationId;
+
+  if (assetOrganizationId && assetOrganizationId !== auth.organizationId) {
+    throw new Error('Asset does not belong to the current organization');
+  }
+
+  if (!organizationId) {
+    throw new Error('Unable to resolve organization for maintenance order. Select an asset first.');
+  }
+
+  if (!payload.work_order_number) {
+    const { count } = await supabase
+      .from('maintenance_work_orders')
+      .select('*', { head: true, count: 'exact' })
+      .eq('organization_id', organizationId);
+
+    payload.work_order_number = `MO-${new Date().getFullYear()}-${String((count || 0) + 1).padStart(4, '0')}`;
+  }
+
   const { data, error } = await supabase
-    .from('maintenance_orders')
-    .insert([orderData])
-    .select()
+    .from('maintenance_work_orders')
+    .insert([
+      {
+        organization_id: organizationId,
+        created_by: auth.userId || null,
+        ...payload,
+      },
+    ])
+    .select('*, asset:maintenance_assets(id, asset_name, asset_code, asset_type)')
     .single();
   
   if (error) throw new Error(error.message);
   revalidateTag('maintenance-orders', 'max');
-  return data;
+  return mapMaintenanceWorkOrderToLegacy(data);
 }
 
 export async function updateMaintenanceOrder(
@@ -117,16 +162,23 @@ export async function updateMaintenanceOrder(
   }
 ) {
   const supabase = await createClient();
+  const auth = await getMaintenanceActionAuthContext();
+  if (!auth.organizationId) {
+    throw new Error('Unauthorized maintenance access');
+  }
+
+  const payload = buildUpdateMaintenanceWorkOrderPayload(updates);
   const { data, error } = await supabase
-    .from('maintenance_orders')
-    .update(updates)
+    .from('maintenance_work_orders')
+    .update(payload)
     .eq('id', id)
-    .select()
+    .eq('organization_id', auth.organizationId)
+    .select('*, asset:maintenance_assets(id, asset_name, asset_code, asset_type)')
     .single();
   
   if (error) throw new Error(error.message);
   revalidateTag('maintenance-orders', 'max');
-  return data;
+  return mapMaintenanceWorkOrderToLegacy(data);
 }
 
 // Equipment Readings (Producción)
