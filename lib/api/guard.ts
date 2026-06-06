@@ -32,7 +32,9 @@ export async function requireAuth(request: NextRequest) {
  * Guard: Require admin role
  * Checks auth + admin role from database
  */
-export async function requireAdmin(request: NextRequest) {
+export async function requireAdmin(
+  request: NextRequest
+): Promise<{ authorized: boolean; user: any; organizationId: string | null; response: any }> {
   const auth = await requireAuth(request);
   if (!auth.authorized || !auth.user) {
     return { authorized: false, user: null, organizationId: null, response: auth.response };
