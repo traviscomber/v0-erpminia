@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getOrganizationContext } from '@/lib/auth/org-context';
+import { getOrganizationContext } from '@/lib/api/organization-context';
 
 export async function POST(request: NextRequest) {
   const context = await getOrganizationContext(request);
