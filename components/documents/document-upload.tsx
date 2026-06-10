@@ -104,6 +104,7 @@ const DOCUMENT_TYPES_BY_MODULE: Record<string, string[]> = {
     'Reglamento Ingreso Personas y Vehículos',
     'Reglamento Interno (DS 44)',
     'Reglamento Interno Acuíferos',
+    'Reglamento interno de acuñadura',
     'Reglamento Interno Explosivos',
     'Reglamento Interno Fortificación',
     'Reglamento interno de fortificación',
