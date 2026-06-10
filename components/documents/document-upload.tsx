@@ -518,7 +518,7 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
         )}
 
         {/* Error State */}
-        {uploadStatus === 'error' && uploadStatus !== 'duplicate' && (
+        {uploadStatus === 'error' && (
           <div className="rounded-md bg-destructive/10 border-2 border-destructive/30 p-3 flex gap-2">
             <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0" />
             <p className="text-sm text-destructive">{errorMessage}</p>
