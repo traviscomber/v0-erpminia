@@ -11,96 +11,77 @@ import { cn } from '@/lib/utils';
 // Tipos de documentos por módulo
 const DOCUMENT_TYPES_BY_MODULE: Record<string, string[]> = {
   prevención: [
-    // Certificados
-    'Certificado de Afiliación',
-    'Certificado de Cotizaciones',
+    'Acta de Entrega',
+    'Anexo Contrato',
+    'Carnet de Identidad',
     'Certificado de Accidentabilidad',
+    'Certificado de Afiliación',
     'Certificado de Afiliación Actualizado',
-    
-    // Exámenes
-    'Examen Organizacional',
-    'Examen Pre-ocupacional',
-    'Examen Ocupacional',
-    'Examen Periódico',
-    
-    // Contratos
+    'Certificado de Cotizaciones',
+    'Comprobante de Recepción',
     'Contrato de Trabajo',
     'Contrato Laboral',
-    'Anexo Contrato',
-    
-    // Reglamentos y Políticas
-    'Reglamento Interno (DS 44)',
-    'Política SST',
-    'Política de Riesgos',
-    'Reglamento Entrega EPP',
-    
-    // RRHH y Recursos
-    'RROHH y Comprobantes de Recepción',
-    'Matriz IPER (Identificación de Peligros)',
-    'Matriz MIPER',
-    
-    // Evaluaciones y RIL
+    'Documentos de Cumplimiento Regulatorio',
+    'Examen Ocupacional',
+    'Examen Organizacional',
+    'Examen Periódico',
+    'Examen Pre-ocupacional',
+    'Informe de Accidentalidad',
     'IRL (Índice de Riesgo Laboral)',
-    'RIL (Evaluación de Riesgos)',
-    'OPR (Orden de Preparación/Riesgos)',
-    
-    // Licencias y Documentos de Identidad
     'Licencia de Conducción',
     'Licencia de Izamiento',
-    'Carnet de Identidad',
-    
-    // Documentos Administrativos
-    'Acta de Entrega',
-    'Recepción Firmada',
-    'Comprobante de Recepción',
-    
-    // Procedimientos
+    'Matriz IPER (Identificación de Peligros)',
+    'Matriz MIPER',
+    'OPR (Orden de Preparación/Riesgos)',
+    'Política de Riesgos',
+    'Política SST',
+    'Procedimiento Caso Accidentario',
     'Procedimiento de Trabajo',
     'Procedimiento de Trabajo Crítico',
     'Procedimiento en caso de Accidente',
-    'Procedimiento Caso Accidentario',
-    
-    // Otros Documentos
-    'SGSST (Sistema de Gestión de Seguridad)',
     'Programa de Capacitación HSE',
+    'Recepción Firmada',
     'Registro Entrega EPP',
-    'Informe de Accidentalidad',
-    'Documentos de Cumplimiento Regulatorio',
-  ],
+    'Reglamento Entrega EPP',
+    'Reglamento Interno (DS 44)',
+    'RIL (Evaluación de Riesgos)',
+    'RROHH y Comprobantes de Recepción',
+    'SGSST (Sistema de Gestión de Seguridad)',
+  ].sort(),
   mantenimiento: [
-    'Manual de Procedimiento',
-    'Protocolo de Mantenimiento',
     'Checklist de Inspección',
-    'Registro de Trabajos',
+    'Manual de Procedimiento',
     'Procedimiento de Emergencia',
-  ],
+    'Protocolo de Mantenimiento',
+    'Registro de Trabajos',
+  ].sort(),
   finanzas: [
-    'Política Financiera',
-    'Procedimiento de Presupuesto',
     'Instructivo de Compras',
     'Política de Gastos',
+    'Política Financiera',
     'Procedimiento de Facturación',
-  ],
+    'Procedimiento de Presupuesto',
+  ].sort(),
   bodega: [
-    'Procedimiento de Almacenamiento',
     'Checklist de Inventario',
     'Política de Rotación',
+    'Procedimiento de Almacenamiento',
     'Procedimiento de Devoluciones',
-  ],
+  ].sort(),
   hse: [
-    'Política HSE',
-    'Procedimiento de Seguridad',
     'Matriz de Riesgos',
     'Plan de Emergencia',
+    'Política HSE',
+    'Procedimiento de Seguridad',
     'Protocolo de Salud',
-  ],
+  ].sort(),
   legal: [
     'Contrato',
-    'Política Corporativa',
-    'Términos y Condiciones',
     'Documento de Compliance',
+    'Política Corporativa',
     'Regulación Interna',
-  ],
+    'Términos y Condiciones',
+  ].sort(),
 };
 
 interface DocumentUploadProps {
