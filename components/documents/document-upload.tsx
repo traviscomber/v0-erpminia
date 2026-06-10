@@ -53,6 +53,7 @@ const DOCUMENT_TYPES_BY_MODULE: Record<string, string[]> = {
     'Evaluación Procedimiento Perforación Máquina Iviana',
     'Evaluación Procedimiento Trabajos con Soldadura',
     'Evaluación Procedimiento Trabajos con Soldadura y Ascenso',
+    'Evaluación Procedimiento Trabajos con Soldadura y Oxicorte',
     'Evaluación Procedimiento Trabajos en Altura',
     'Evaluación Procedimiento Trabajos en Ambientes Confinados',
     'Evaluación Procedimiento Transporte, Almacenamiento y Manejo de Explosivos',
