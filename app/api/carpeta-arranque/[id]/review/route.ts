@@ -33,6 +33,20 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return NextResponse.json({ error: 'Carpeta no encontrada' }, { status: 404 });
   }
 
+  // Enforce review sequencing: L2 only after L1 approved
+  if (level === 2 && carpeta.status !== 'en_revision_l2') {
+    return NextResponse.json(
+      { error: 'La revision Nivel 2 solo puede realizarse despues de que el Nivel 1 apruebe todos los documentos' },
+      { status: 409 }
+    );
+  }
+  if (level === 1 && !['en_revision_l1', 'rechazado'].includes(carpeta.status)) {
+    return NextResponse.json(
+      { error: 'La carpeta no esta en estado de revision Nivel 1' },
+      { status: 409 }
+    );
+  }
+
   // Validate: no_cumple reviews must have observaciones
   for (const r of reviews) {
     if (r.status === 'no_cumple' && !r.observaciones?.trim()) {

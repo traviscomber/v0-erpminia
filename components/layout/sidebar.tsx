@@ -69,6 +69,7 @@ const rolePermissions: Record<string, string[]> = {
   'Artículos EPP': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor', 'Bodega-Supervisor'],
   'KPI Prevención': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor', 'manager'],
   'Inspecciones': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
+  'Carpeta de Arranque': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
   'Calendario': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor', 'manager', 'supervisor'],
   'Medio Ambiente': ['superadmin', 'admin', 'Sostenibilidad-Supervisor'],
   'Comunidades': ['superadmin', 'admin', 'Sostenibilidad-Supervisor'],
@@ -178,6 +179,12 @@ const menuItems = [
     label: 'Inspecciones',
     href: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones-internas',
     icon: ClipboardCheck,
+    group: 'Sostenibilidad',
+  },
+  {
+    label: 'Carpeta de Arranque',
+    href: '/dashboard/sostenibilidad/prevencion-riesgos/carpeta-arranque',
+    icon: FolderOpen,
     group: 'Sostenibilidad',
   },
   {
