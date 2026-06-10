@@ -1,14 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { Document, Page, pdfjs } from 'react-pdf';
-import 'react-pdf/dist/Page/AnnotationLayer.css';
-import 'react-pdf/dist/Page/TextLayer.css';
-import { ChevronLeft, ChevronRight, Loader2, Download } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Loader2, Download, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
-// Set up PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
 interface PDFViewerProps {
   fileUrl: string;
@@ -18,23 +12,18 @@ interface PDFViewerProps {
 }
 
 export function PDFViewer({ fileUrl, fileName, fileType, maxHeight = 'max-h-96' }: PDFViewerProps) {
-  const [numPages, setNumPages] = useState<number>(0);
-  const [pageNumber, setPageNumber] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const handleDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
-    setNumPages(numPages);
-    setIsLoading(false);
-  };
+  useEffect(() => {
+    setIsLoading(true);
+    setError(null);
+    // Simulate loading - the iframe will handle its own loading
+    const timer = setTimeout(() => setIsLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, [fileUrl]);
 
-  const handleDocumentLoadError = (error: Error) => {
-    console.error('Error loading document:', error);
-    setError('No se pudo cargar el documento. Tipo de archivo no soportado.');
-    setIsLoading(false);
-  };
-
-  // For DOCX files, show a message that they need to be converted or downloaded
+  // For DOCX files, show download link
   if (fileType === 'docx' || fileType === 'doc' || fileName.endsWith('.docx') || fileName.endsWith('.doc')) {
     return (
       <div className="flex flex-col items-center justify-center h-48 bg-muted rounded-lg border border-dashed p-4">
@@ -56,15 +45,22 @@ export function PDFViewer({ fileUrl, fileName, fileType, maxHeight = 'max-h-96' 
   if (error) {
     return (
       <div className="flex items-center justify-center h-48 bg-muted rounded-lg border border-dashed p-4">
-        <div className="text-center text-sm text-destructive">
-          <p>{error}</p>
+        <div className="text-center space-y-2">
+          <AlertCircle className="h-5 w-5 text-destructive mx-auto" />
+          <p className="text-sm text-destructive">{error}</p>
+          <Button variant="outline" size="sm" asChild>
+            <a href={fileUrl} download={fileName} target="_blank" rel="noopener noreferrer">
+              <Download className="h-4 w-4 mr-2" />
+              Descargar documento
+            </a>
+          </Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-2">
+    <div className={`space-y-2 ${maxHeight}`}>
       {isLoading && (
         <div className="flex items-center justify-center h-48 bg-muted rounded border">
           <div className="flex flex-col items-center gap-2">
@@ -75,37 +71,12 @@ export function PDFViewer({ fileUrl, fileName, fileType, maxHeight = 'max-h-96' 
       )}
 
       {!isLoading && (
-        <>
-          <div className={`overflow-auto bg-white rounded border ${maxHeight} flex items-start justify-center`}>
-            <Document file={fileUrl} onLoadSuccess={handleDocumentLoadSuccess} onLoadError={handleDocumentLoadError}>
-              <Page pageNumber={pageNumber} scale={1.0} />
-            </Document>
-          </div>
-
-          {numPages > 1 && (
-            <div className="flex items-center justify-between gap-2 px-2 py-1 bg-muted/50 rounded">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setPageNumber(Math.max(1, pageNumber - 1))}
-                disabled={pageNumber <= 1}
-              >
-                <ChevronLeft className="h-3 w-3" />
-              </Button>
-              <span className="text-xs text-muted-foreground">
-                Página {pageNumber} de {numPages}
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setPageNumber(Math.min(numPages, pageNumber + 1))}
-                disabled={pageNumber >= numPages}
-              >
-                <ChevronRight className="h-3 w-3" />
-              </Button>
-            </div>
-          )}
-        </>
+        <iframe
+          src={`https://docs.google.com/gview?url=${encodeURIComponent(fileUrl)}&embedded=true`}
+          className={`w-full rounded border border-muted bg-white ${maxHeight}`}
+          onError={() => setError('No se pudo cargar la vista previa del documento')}
+          title={fileName}
+        />
       )}
     </div>
   );
