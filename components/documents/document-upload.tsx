@@ -36,7 +36,7 @@ const DOCUMENT_TYPES_BY_MODULE: Record<string, string[]> = {
     'Evaluación Operación Camión Tolva',
     'Evaluación Operación DTM',
     'Evaluación Operación DUMPER',
-    'Evaluación Operación Sandiag',
+    'Evaluación Operación Sondaje',
     'Evaluación Operación y Limpieza Máquinas de Maestreo',
     'Evaluación Procedimiento Cambio y Reposición EPP',
     'Evaluación Procedimiento Chancador Interior de Operación',
