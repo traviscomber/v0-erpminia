@@ -1,43 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { resolveAuthContext } from '@/lib/api/auth-session';
+import { getSupabaseServerClient } from '@/lib/supabase-server';
 
 export const dynamic = 'force-dynamic';
 
+const BUCKET = 'module-documents';
+
+const allowedTypes = [
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+];
+
 export async function POST(request: NextRequest) {
   try {
-    // Get auth token from header
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
+    // Authenticate using the app's custom cookie session
+    const auth = await resolveAuthContext(request);
+    if (!auth) {
       return NextResponse.json(
-        { error: 'No authentication token' },
-        { status: 401 }
-      );
-    }
-
-    const token = authHeader.slice(7);
-
-    // Create authenticated Supabase client
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        global: {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      }
-    );
-
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Invalid or expired token' },
+        { error: 'No autenticado. Inicia sesión nuevamente.' },
         { status: 401 }
       );
     }
@@ -58,43 +41,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify user has uploader access to this module
-    const { data: moduleAccess, error: accessError } = await supabase
-      .from('user_module_access')
-      .select('role')
-      .eq('user_id', user.id)
-      .eq('module_id', module)
-      .eq('status', 'active')
-      .maybeSingle();
-
-    if (accessError || !moduleAccess) {
-      console.error('[v0] Upload access denied:', {
-        userId: user.id,
-        module,
-      });
-      return NextResponse.json(
-        { error: `No tienes permiso para subir documentos en "${module}"` },
-        { status: 403 }
-      );
-    }
-
-    // Verify user has uploader or admin role
-    if (!['uploader', 'admin'].includes(moduleAccess.role)) {
-      return NextResponse.json(
-        { error: 'No tienes rol de cargador en este módulo' },
-        { status: 403 }
-      );
-    }
-
-    // Validar tipo de archivo
-    const allowedTypes = [
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    ];
-
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
         { error: 'Tipo de archivo no permitido' },
@@ -102,7 +48,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validar tamaño
     if (file.size > 50 * 1024 * 1024) {
       return NextResponse.json(
         { error: 'El archivo no debe superar 50MB' },
@@ -110,19 +55,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Obtener extensión del archivo
+    const supabase = getSupabaseServerClient();
+
     const ext = file.name.split('.').pop() || 'bin';
     const fileType = ext.toLowerCase();
 
-    // Crear nombre único para el archivo
     const timestamp = Date.now();
     const sanitizedName = file.name.replace(/[^a-z0-9.]/gi, '_').toLowerCase();
-    const filePath = `module-documents/${module}/${category}/${timestamp}_${sanitizedName}`;
+    const filePath = `${module}/${category}/${timestamp}_${sanitizedName}`;
 
-    // Subir a Supabase Storage
     const buffer = await file.arrayBuffer();
     const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('documents')
+      .from(BUCKET)
       .upload(filePath, buffer, {
         contentType: file.type,
         cacheControl: '3600',
@@ -137,12 +81,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Obtener URL pública
-    const { data: publicUrlData } = supabase.storage
-      .from('documents')
-      .getPublicUrl(uploadData.path);
-
-    // Crear registro en la base de datos
     const { data: document, error: dbError } = await supabase
       .from('module_documents')
       .insert([
@@ -151,24 +89,22 @@ export async function POST(request: NextRequest) {
           category,
           document_name: file.name,
           document_type: fileType,
-          document_type_category: documentType,
+          document_type_category: documentType || null,
           file_path: uploadData.path,
           file_size_bytes: file.size,
-          file_url: publicUrlData.publicUrl,
-          description,
+          description: description || null,
           valid_from: validFrom || null,
           valid_until: validUntil || null,
           status: 'draft',
-          uploaded_by: user.id,
+          uploaded_by: auth.user.id,
         },
       ])
       .select()
       .single();
 
     if (dbError) {
-      // Si falla la BD, eliminar el archivo de storage
-      await supabase.storage.from('documents').remove([uploadData.path]);
-
+      // Roll back the stored file if the DB insert fails
+      await supabase.storage.from(BUCKET).remove([uploadData.path]);
       console.error('[v0] Database error:', dbError);
       return NextResponse.json(
         { error: `Error al crear registro: ${dbError.message}` },
@@ -179,7 +115,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       documentId: document.id,
       fileName: file.name,
-      fileUrl: publicUrlData.publicUrl,
       message: 'Documento cargado exitosamente',
     });
   } catch (error) {
