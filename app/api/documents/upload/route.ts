@@ -60,9 +60,19 @@ export async function POST(request: NextRequest) {
     const ext = file.name.split('.').pop() || 'bin';
     const fileType = ext.toLowerCase();
 
+    // Sanitize path segments: remove accents, then strip any char that isn't alphanumeric, dash or dot
+    const sanitizePathSegment = (s: string) =>
+      s
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')   // strip diacritics (é → e, etc.)
+        .replace(/[^a-z0-9.\-]/gi, '_')    // replace remaining special chars
+        .toLowerCase();
+
     const timestamp = Date.now();
-    const sanitizedName = file.name.replace(/[^a-z0-9.]/gi, '_').toLowerCase();
-    const filePath = `${module}/${category}/${timestamp}_${sanitizedName}`;
+    const sanitizedModule   = sanitizePathSegment(module);
+    const sanitizedCategory = sanitizePathSegment(category);
+    const sanitizedName     = sanitizePathSegment(file.name);
+    const filePath = `${sanitizedModule}/${sanitizedCategory}/${timestamp}_${sanitizedName}`;
 
     const buffer = await file.arrayBuffer();
     const { data: uploadData, error: uploadError } = await supabase.storage

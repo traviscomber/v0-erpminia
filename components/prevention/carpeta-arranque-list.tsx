@@ -1,229 +1,462 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, AlertCircle, Clock, Download, Eye, Trash2 } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from '@/components/ui/dialog';
+import {
+  CheckCircle2, AlertCircle, Clock, CircleDot,
+  ChevronDown, ChevronUp, Download, Send, Loader2, FileText,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const mockCarpetas = [
-  {
-    id: '1',
-    empresa: 'Empresa A - Sofia Sabines',
-    fecha_creacion: '2024-06-01',
-    estado: 'pendiente',
-    documentos_cargados: 12,
-    documentos_totales: 19,
-    revisor1: 'Dennyse',
-    revisor1_status: 'pendiente',
-    revisor2: 'Javier Vargas',
-    revisor2_status: null,
-  },
-  {
-    id: '2',
-    empresa: 'Empresa B - Felipe Mora',
-    fecha_creacion: '2024-05-28',
-    estado: 'en-revision-2',
-    documentos_cargados: 19,
-    documentos_totales: 19,
-    revisor1: 'Dennyse',
-    revisor1_status: 'aprobado',
-    revisor2: 'Javier Vargas',
-    revisor2_status: 'en-revision',
-  },
-  {
-    id: '3',
-    empresa: 'Empresa C - Rodrigo Mazzarella',
-    fecha_creacion: '2024-05-20',
-    estado: 'aprobado',
-    documentos_cargados: 19,
-    documentos_totales: 19,
-    revisor1: 'Dennyse',
-    revisor1_status: 'aprobado',
-    revisor2: 'Gonzalo Canales',
-    revisor2_status: 'aprobado',
-  },
-  {
-    id: '4',
-    empresa: 'Empresa D - Modelos Toledo',
-    fecha_creacion: '2024-05-15',
-    estado: 'rechazado',
-    documentos_cargados: 15,
-    documentos_totales: 19,
-    revisor1: 'Dennyse',
-    revisor1_status: 'rechazado',
-    revisor2: null,
-    revisor2_status: null,
-    observaciones: 'Faltan certificados de afiliación actualizados',
-  },
-];
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-function getEstadoBadge(estado: string) {
-  const statusConfig: Record<string, { icon: React.ReactNode; label: string; variant: any; color: string }> = {
-    pendiente: {
-      icon: <Clock className="h-3 w-3" />,
-      label: 'Pendiente',
-      variant: 'secondary',
-      color: 'text-orange-600',
-    },
-    'en-revision-1': {
-      icon: <Clock className="h-3 w-3" />,
-      label: 'Revisión Nivel 1',
-      variant: 'secondary',
-      color: 'text-blue-600',
-    },
-    'en-revision-2': {
-      icon: <Clock className="h-3 w-3" />,
-      label: 'Revisión Nivel 2',
-      variant: 'secondary',
-      color: 'text-blue-600',
-    },
-    aprobado: {
-      icon: <CheckCircle className="h-3 w-3" />,
-      label: 'Aprobado',
-      variant: 'default',
-      color: 'text-green-600',
-    },
-    rechazado: {
-      icon: <AlertCircle className="h-3 w-3" />,
-      label: 'Rechazado',
-      variant: 'destructive',
-      color: 'text-red-600',
-    },
-  };
+interface DocSlot {
+  id: string;
+  slot_index: number;
+  documento_nombre: string;
+  file_name: string | null;
+  file_path: string | null;
+  file_size_bytes: number | null;
+  uploaded_at: string | null;
+  l1_status: 'cumple' | 'no_cumple' | null;
+  l1_observaciones: string | null;
+  l1_reviewed_at: string | null;
+  l2_status: 'cumple' | 'no_cumple' | null;
+  l2_observaciones: string | null;
+  l2_reviewed_at: string | null;
+}
 
-  const config = statusConfig[estado] || statusConfig.pendiente;
+interface Carpeta {
+  id: string;
+  empresa_nombre: string;
+  empresa_rut: string | null;
+  contacto_email: string;
+  status: string;
+  revisor_l1_nombre: string | null;
+  revisor_l1_status: 'cumple' | 'no_cumple' | null;
+  revisor_l1_fecha: string | null;
+  revisor_l2_nombre: string | null;
+  revisor_l2_status: 'cumple' | 'no_cumple' | null;
+  revisor_l2_fecha: string | null;
+  submitted_at: string | null;
+  created_at: string;
+  carpeta_documentos: DocSlot[];
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const STATUS_CONFIG: Record<string, { label: string; icon: React.ReactNode; className: string }> = {
+  pendiente:       { label: 'Pendiente',       icon: <Clock className="h-3 w-3" />,       className: 'bg-orange-500/10 text-orange-500 border-orange-500/20' },
+  en_revision_l1:  { label: 'Revision L1',     icon: <CircleDot className="h-3 w-3" />,   className: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },
+  en_revision_l2:  { label: 'Revision L2',     icon: <CircleDot className="h-3 w-3" />,   className: 'bg-purple-500/10 text-purple-500 border-purple-500/20' },
+  aprobado:        { label: 'Aprobado',         icon: <CheckCircle2 className="h-3 w-3" />, className: 'bg-green-500/10 text-green-500 border-green-500/20' },
+  rechazado:       { label: 'Rechazado',        icon: <AlertCircle className="h-3 w-3" />, className: 'bg-red-500/10 text-red-500 border-red-500/20' },
+};
+
+function StatusBadge({ status }: { status: string }) {
+  const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.pendiente;
   return (
-    <Badge variant={config.variant} className="gap-1">
-      {config.icon}
-      {config.label}
-    </Badge>
+    <span className={cn('inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border', cfg.className)}>
+      {cfg.icon}{cfg.label}
+    </span>
   );
 }
 
-export default function CarpetaArranqueList({ status }: { status: string }) {
-  const filteredCarpetas = mockCarpetas.filter(c => {
-    if (status === 'todas') return true;
-    if (status === 'en-revision') return ['en-revision-1', 'en-revision-2'].includes(c.estado);
-    return c.estado === status;
-  });
+// Two colored dots representing L1 and L2 review status per document
+function ReviewDots({ l1, l2 }: { l1: DocSlot['l1_status']; l2: DocSlot['l2_status'] }) {
+  const dotColor = (s: typeof l1) =>
+    s === 'cumple' ? 'bg-green-500' : s === 'no_cumple' ? 'bg-red-500' : 'bg-yellow-400/70';
+  return (
+    <div className="flex items-center gap-1" title={`L1: ${l1 ?? 'pendiente'} | L2: ${l2 ?? 'pendiente'}`}>
+      <span className={cn('h-2.5 w-2.5 rounded-full', dotColor(l1))} />
+      <span className={cn('h-2.5 w-2.5 rounded-full', dotColor(l2))} />
+    </div>
+  );
+}
+
+// ─── Review modal ─────────────────────────────────────────────────────────────
+
+interface ReviewState {
+  slot_index: number;
+  status: 'cumple' | 'no_cumple' | null;
+  observaciones: string;
+}
+
+function ReviewModal({
+  carpeta,
+  level,
+  onClose,
+  onSaved,
+}: {
+  carpeta: Carpeta;
+  level: 1 | 2;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const uploadedDocs = carpeta.carpeta_documentos.filter(d => d.file_name);
+  const [reviews, setReviews] = useState<ReviewState[]>(
+    uploadedDocs.map(d => ({
+      slot_index: d.slot_index,
+      status: level === 1 ? d.l1_status : d.l2_status,
+      observaciones: (level === 1 ? d.l1_observaciones : d.l2_observaciones) ?? '',
+    }))
+  );
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const setReview = (slotIndex: number, update: Partial<ReviewState>) => {
+    setReviews(prev => prev.map(r => r.slot_index === slotIndex ? { ...r, ...update } : r));
+  };
+
+  const handleSave = async () => {
+    for (const r of reviews) {
+      if (r.status === 'no_cumple' && !r.observaciones.trim()) {
+        setError(`El documento ${r.slot_index} requiere una observacion al marcar "No Cumple"`);
+        return;
+      }
+    }
+    const filledReviews = reviews.filter(r => r.status !== null);
+    if (filledReviews.length === 0) {
+      setError('Debes revisar al menos un documento');
+      return;
+    }
+    setSaving(true);
+    setError('');
+    try {
+      const res = await fetch(`/api/carpeta-arranque/${carpeta.id}/review`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ level, reviews: filledReviews }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Error al guardar');
+      onSaved();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error desconocido');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
-    <div className="grid gap-4">
-      {filteredCarpetas.length === 0 ? (
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">No hay carpetas en este estado</p>
-          </CardContent>
-        </Card>
-      ) : (
-        filteredCarpetas.map(carpeta => (
-          <Card key={carpeta.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="pt-6">
-              <div className="space-y-4">
-                {/* Header */}
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-semibold text-base">{carpeta.empresa}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Creado: {new Date(carpeta.fecha_creacion).toLocaleDateString('es-CL')}
-                    </p>
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle>
+            Revision Nivel {level} — {carpeta.empresa_nombre}
+          </DialogTitle>
+          <p className="text-sm text-muted-foreground">
+            Marca cada documento como <strong>Cumple</strong> o <strong>No Cumple</strong>.
+            Las observaciones son obligatorias al rechazar.
+          </p>
+        </DialogHeader>
+
+        <div className="overflow-y-auto flex-1 space-y-3 py-2 pr-1">
+          {uploadedDocs.map(doc => {
+            const rev = reviews.find(r => r.slot_index === doc.slot_index)!;
+            return (
+              <div key={doc.slot_index} className={cn(
+                'border rounded-lg p-3 space-y-2 transition-colors',
+                rev.status === 'cumple' && 'border-green-500/40 bg-green-500/5',
+                rev.status === 'no_cumple' && 'border-red-500/40 bg-red-500/5',
+              )}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-2 min-w-0">
+                    <FileText className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium leading-snug">
+                        {doc.slot_index}. {doc.documento_nombre}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{doc.file_name}</p>
+                    </div>
                   </div>
-                  {getEstadoBadge(carpeta.estado)}
+                  <div className="flex gap-2 flex-shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setReview(doc.slot_index, { status: 'cumple', observaciones: '' })}
+                      className={cn(
+                        'px-3 py-1.5 rounded-md text-xs font-semibold border transition-all',
+                        rev.status === 'cumple'
+                          ? 'bg-green-500 text-white border-green-500'
+                          : 'border-border hover:border-green-500 hover:text-green-500'
+                      )}
+                    >
+                      Cumple
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setReview(doc.slot_index, { status: 'no_cumple' })}
+                      className={cn(
+                        'px-3 py-1.5 rounded-md text-xs font-semibold border transition-all',
+                        rev.status === 'no_cumple'
+                          ? 'bg-red-500 text-white border-red-500'
+                          : 'border-border hover:border-red-500 hover:text-red-500'
+                      )}
+                    >
+                      No Cumple
+                    </button>
+                  </div>
+                </div>
+                {rev.status === 'no_cumple' && (
+                  <Textarea
+                    placeholder="Observacion obligatoria (ej: Falta firma en el documento)"
+                    value={rev.observaciones}
+                    onChange={e => setReview(doc.slot_index, { observaciones: e.target.value })}
+                    className="text-sm border-red-500/40 focus:border-red-500"
+                    rows={2}
+                  />
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {error && (
+          <p className="text-sm text-destructive flex items-center gap-2">
+            <AlertCircle className="h-4 w-4" />{error}
+          </p>
+        )}
+
+        <DialogFooter className="pt-2 border-t">
+          <Button variant="outline" onClick={onClose} disabled={saving}>Cancelar</Button>
+          <Button onClick={handleSave} disabled={saving} className="gap-2">
+            {saving ? <><Loader2 className="h-4 w-4 animate-spin" />Guardando...</> : <><Send className="h-4 w-4" />Guardar revision</>}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ─── Main list ────────────────────────────────────────────────────────────────
+
+export default function CarpetaArranqueList({ status }: { status: string }) {
+  const [carpetas, setCarpetas] = useState<Carpeta[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [reviewing, setReviewing] = useState<{ carpeta: Carpeta; level: 1 | 2 } | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/carpeta-arranque', { credentials: 'include' });
+      if (!res.ok) return;
+      const data = await res.json();
+      setCarpetas(data.carpetas ?? []);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const filtered = carpetas.filter(c => {
+    if (status === 'todas') return true;
+    if (status === 'en-revision') return ['en_revision_l1', 'en_revision_l2'].includes(c.status);
+    return c.status === status;
+  });
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12 gap-3 text-muted-foreground">
+        <Loader2 className="h-5 w-5 animate-spin" />
+        <span>Cargando carpetas...</span>
+      </div>
+    );
+  }
+
+  if (filtered.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <p className="text-muted-foreground">No hay carpetas en este estado.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <>
+      <div className="space-y-3">
+        {filtered.map(carpeta => {
+          const docs = carpeta.carpeta_documentos ?? [];
+          const uploadedDocs = docs.filter(d => d.file_name);
+          const isExpanded = expanded === carpeta.id;
+          const totalDocs = 19;
+
+          return (
+            <Card key={carpeta.id} className="overflow-hidden">
+              <CardContent className="p-0">
+                {/* Header row */}
+                <div className="p-4 flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <h3 className="font-semibold text-base truncate">{carpeta.empresa_nombre}</h3>
+                      <StatusBadge status={carpeta.status} />
+                    </div>
+                    <div className="flex items-center gap-4 mt-1 flex-wrap">
+                      {carpeta.empresa_rut && (
+                        <span className="text-xs text-muted-foreground">RUT: {carpeta.empresa_rut}</span>
+                      )}
+                      <span className="text-xs text-muted-foreground">{carpeta.contacto_email}</span>
+                      <span className="text-xs text-muted-foreground">
+                        Creada: {new Date(carpeta.created_at).toLocaleDateString('es-CL')}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setExpanded(isExpanded ? null : carpeta.id)}
+                    className="flex-shrink-0 p-1.5 rounded-md hover:bg-muted transition-colors"
+                  >
+                    {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </button>
                 </div>
 
-                {/* Progress */}
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Documentos cargados</span>
-                    <span className="font-semibold">
-                      {carpeta.documentos_cargados}/{carpeta.documentos_totales}
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-blue-600 h-2 rounded-full transition-all"
-                      style={{
-                        width: `${(carpeta.documentos_cargados / carpeta.documentos_totales) * 100}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* Review Status */}
-                <div className="grid grid-cols-2 gap-4 p-3 bg-muted rounded-lg">
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Revisión Nivel 1</p>
-                    <div className="flex items-center gap-2">
-                      <div className={cn(
-                        'h-3 w-3 rounded-full',
-                        carpeta.revisor1_status === 'aprobado' ? 'bg-green-500' :
-                        carpeta.revisor1_status === 'rechazado' ? 'bg-red-500' :
-                        'bg-yellow-500'
-                      )} />
-                      <span className="text-sm font-medium">{carpeta.revisor1}</span>
-                      <Badge variant="outline" className="text-xs">
-                        {carpeta.revisor1_status === 'aprobado' ? '✓ Aprobado' :
-                         carpeta.revisor1_status === 'rechazado' ? '✗ Rechazado' :
-                         'Pendiente'}
-                      </Badge>
+                {/* Progress + reviewer dots */}
+                <div className="px-4 pb-3 space-y-3">
+                  {/* Doc progress bar */}
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Documentos cargados</span>
+                      <span className="font-semibold tabular-nums">{uploadedDocs.length}/{totalDocs}</span>
+                    </div>
+                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-primary rounded-full transition-all"
+                        style={{ width: `${(uploadedDocs.length / totalDocs) * 100}%` }}
+                      />
                     </div>
                   </div>
 
-                  {carpeta.revisor2 && (
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1">Revisión Nivel 2</p>
-                      <div className="flex items-center gap-2">
-                        <div className={cn(
-                          'h-3 w-3 rounded-full',
-                          carpeta.revisor2_status === 'aprobado' ? 'bg-green-500' :
-                          carpeta.revisor2_status === 'rechazado' ? 'bg-red-500' :
-                          carpeta.revisor2_status === 'en-revision' ? 'bg-yellow-500' :
-                          'bg-gray-300'
-                        )} />
-                        <span className="text-sm font-medium">{carpeta.revisor2}</span>
-                        <Badge variant="outline" className="text-xs">
-                          {carpeta.revisor2_status === 'aprobado' ? '✓ Aprobado' :
-                           carpeta.revisor2_status === 'rechazado' ? '✗ Rechazado' :
-                           carpeta.revisor2_status === 'en-revision' ? 'En revisión' :
-                           'Pendiente'}
-                        </Badge>
+                  {/* L1 / L2 reviewer status */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
+                      <span className={cn(
+                        'h-2.5 w-2.5 rounded-full flex-shrink-0',
+                        carpeta.revisor_l1_status === 'cumple' && 'bg-green-500',
+                        carpeta.revisor_l1_status === 'no_cumple' && 'bg-red-500',
+                        !carpeta.revisor_l1_status && 'bg-yellow-400/70',
+                      )} />
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium truncate">
+                          {carpeta.revisor_l1_nombre ?? 'Dennyse'} — L1
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {carpeta.revisor_l1_status === 'cumple' ? 'Cumple' :
+                           carpeta.revisor_l1_status === 'no_cumple' ? 'No Cumple' : 'Pendiente'}
+                        </p>
                       </div>
                     </div>
-                  )}
+                    <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
+                      <span className={cn(
+                        'h-2.5 w-2.5 rounded-full flex-shrink-0',
+                        carpeta.revisor_l2_status === 'cumple' && 'bg-green-500',
+                        carpeta.revisor_l2_status === 'no_cumple' && 'bg-red-500',
+                        !carpeta.revisor_l2_status && 'bg-yellow-400/70',
+                      )} />
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium truncate">
+                          {carpeta.revisor_l2_nombre ?? 'Javier / Gonzalo'} — L2
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {carpeta.revisor_l2_status === 'cumple' ? 'Cumple' :
+                           carpeta.revisor_l2_status === 'no_cumple' ? 'No Cumple' : 'Pendiente'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action buttons */}
+                  <div className="flex gap-2 flex-wrap">
+                    {carpeta.status === 'en_revision_l1' && (
+                      <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => setReviewing({ carpeta, level: 1 })}>
+                        <CircleDot className="h-3.5 w-3.5" />Revisar (L1)
+                      </Button>
+                    )}
+                    {carpeta.status === 'en_revision_l2' && (
+                      <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => setReviewing({ carpeta, level: 2 })}>
+                        <CircleDot className="h-3.5 w-3.5" />Revisar (L2)
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
-                {/* Observaciones */}
-                {carpeta.observaciones && (
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-xs font-semibold text-red-600 mb-1">Observaciones:</p>
-                    <p className="text-sm text-red-700">{carpeta.observaciones}</p>
+                {/* Expanded: document grid */}
+                {isExpanded && (
+                  <div className="border-t mx-0 px-4 pb-4 pt-3 space-y-1.5">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Documentos</p>
+                    {docs
+                      .sort((a, b) => a.slot_index - b.slot_index)
+                      .map(doc => (
+                        <div key={doc.slot_index} className={cn(
+                          'flex items-center justify-between gap-3 p-2 rounded-md border text-sm',
+                          !doc.file_name && 'bg-muted/30 border-dashed',
+                          doc.file_name && 'border-border',
+                        )}>
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <ReviewDots l1={doc.l1_status} l2={doc.l2_status} />
+                            <span className="text-xs text-muted-foreground flex-shrink-0 tabular-nums w-5">{doc.slot_index}.</span>
+                            <div className="min-w-0">
+                              <p className="text-xs font-medium leading-tight truncate">{doc.documento_nombre}</p>
+                              {doc.file_name && (
+                                <p className="text-xs text-muted-foreground truncate">{doc.file_name}</p>
+                              )}
+                              {/* Show observations if any */}
+                              {doc.l1_observaciones && (
+                                <p className="text-xs text-red-500 mt-0.5">L1: {doc.l1_observaciones}</p>
+                              )}
+                              {doc.l2_observaciones && (
+                                <p className="text-xs text-red-500 mt-0.5">L2: {doc.l2_observaciones}</p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            {doc.file_name ? (
+                              <Badge variant="secondary" className="text-xs">Cargado</Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-xs text-muted-foreground">Pendiente</Badge>
+                            )}
+                            {doc.file_path && (
+                              <button
+                                className="text-muted-foreground hover:text-primary transition-colors"
+                                title="Descargar"
+                                onClick={async () => {
+                                  const res = await fetch(`/api/carpeta-arranque/${carpeta.id}/download?slot=${doc.slot_index}`, { credentials: 'include' });
+                                  if (res.ok) {
+                                    const { url } = await res.json();
+                                    window.open(url, '_blank');
+                                  }
+                                }}
+                              >
+                                <Download className="h-3.5 w-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
 
-                {/* Actions */}
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Eye className="h-4 w-4" />
-                    Ver Detalles
-                  </Button>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Download className="h-4 w-4" />
-                    Descargar
-                  </Button>
-                  {['pendiente', 'en-revision-1'].includes(carpeta.estado) && (
-                    <Button variant="ghost" size="sm" className="gap-2 text-red-600 hover:text-red-700">
-                      <Trash2 className="h-4 w-4" />
-                      Eliminar
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))
+      {reviewing && (
+        <ReviewModal
+          carpeta={reviewing.carpeta}
+          level={reviewing.level}
+          onClose={() => setReviewing(null)}
+          onSaved={() => { setReviewing(null); load(); }}
+        />
       )}
-    </div>
+    </>
   );
 }

@@ -1,45 +1,69 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Plus, FileText, CheckCircle, AlertCircle, Clock } from 'lucide-react';
+import { Plus, FileText, CheckCircle2, AlertCircle, Clock, CircleDot } from 'lucide-react';
 import CarpetaArranqueForm from '@/components/prevention/carpeta-arranque-form';
 import CarpetaArranqueList from '@/components/prevention/carpeta-arranque-list';
+
+interface Stats {
+  total: number;
+  pendientes: number;
+  en_revision: number;
+  aprobadas: number;
+  rechazadas: number;
+}
 
 export default function CarpetaArranquePage() {
   const [showNewForm, setShowNewForm] = useState(false);
   const [activeTab, setActiveTab] = useState('mis-carpetas');
+  const [stats, setStats] = useState<Stats>({ total: 0, pendientes: 0, en_revision: 0, aprobadas: 0, rechazadas: 0 });
+  const [listKey, setListKey] = useState(0);
 
-  const stats = {
-    total: 8,
-    pendientes: 3,
-    aprobadas: 4,
-    rechazadas: 1,
+  const fetchStats = useCallback(async () => {
+    const res = await fetch('/api/carpeta-arranque', { credentials: 'include' });
+    if (!res.ok) return;
+    const data = await res.json();
+    const carpetas: Array<{ status: string }> = data.carpetas ?? [];
+    setStats({
+      total: carpetas.length,
+      pendientes: carpetas.filter(c => c.status === 'pendiente').length,
+      en_revision: carpetas.filter(c => ['en_revision_l1', 'en_revision_l2'].includes(c.status)).length,
+      aprobadas: carpetas.filter(c => c.status === 'aprobado').length,
+      rechazadas: carpetas.filter(c => c.status === 'rechazado').length,
+    });
+  }, []);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats, listKey]);
+
+  const handleFormSuccess = () => {
+    setShowNewForm(false);
+    setListKey(k => k + 1);
+    setActiveTab('mis-carpetas');
   };
 
   return (
     <div className="space-y-6 p-6">
-      {/* Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Carpeta de Arranque</h1>
         <p className="text-muted-foreground">
-          Sistema de validación de documentos para empresas contratistas
+          Sistema de validacion de documentos para empresas contratistas (EECC)
         </p>
       </div>
 
-      {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Carpetas</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.total}</div>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -48,22 +72,31 @@ export default function CarpetaArranquePage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{stats.pendientes}</div>
+            <div className="text-2xl font-bold text-orange-500">{stats.pendientes}</div>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-500" />
+              <CircleDot className="h-4 w-4 text-blue-500" />
+              En Revision
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-500">{stats.en_revision}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-green-500" />
               Aprobadas
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats.aprobadas}</div>
+            <div className="text-2xl font-bold text-green-500">{stats.aprobadas}</div>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -72,95 +105,93 @@ export default function CarpetaArranquePage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{stats.rechazadas}</div>
+            <div className="text-2xl font-bold text-red-500">{stats.rechazadas}</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="mis-carpetas">Mis Carpetas</TabsTrigger>
-          <TabsTrigger value="en-revision">En Revisión</TabsTrigger>
-          <TabsTrigger value="documentos-std">Documentos Estándar</TabsTrigger>
+          <TabsTrigger value="en-revision" className="gap-2">
+            En Revision
+            {stats.en_revision > 0 && (
+              <span className="rounded-full bg-blue-500 text-white text-xs font-bold px-1.5 py-0.5 leading-none">
+                {stats.en_revision}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="documentos-std">Documentos Requeridos</TabsTrigger>
         </TabsList>
 
-        {/* Tab: Mis Carpetas */}
         <TabsContent value="mis-carpetas" className="space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-lg font-semibold">Mis Carpetas de Arranque</h2>
-            <Button
-              onClick={() => setShowNewForm(!showNewForm)}
-              className="gap-2"
-            >
+            <h2 className="text-lg font-semibold">Carpetas de Arranque</h2>
+            <Button onClick={() => setShowNewForm(!showNewForm)} className="gap-2">
               <Plus className="h-4 w-4" />
               Nueva Carpeta
             </Button>
           </div>
-
           {showNewForm && (
             <Card>
               <CardHeader>
                 <CardTitle>Crear Nueva Carpeta de Arranque</CardTitle>
                 <CardDescription>
-                  Selecciona tu empresa y comienza a cargar los documentos requeridos
+                  Ingresa los datos de la empresa contratista y carga los 19 documentos requeridos.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <CarpetaArranqueForm onSuccess={() => {
-                  setShowNewForm(false);
-                }} />
+                <CarpetaArranqueForm onSuccess={handleFormSuccess} />
               </CardContent>
             </Card>
           )}
-
-          <CarpetaArranqueList status="todas" />
+          <CarpetaArranqueList key={listKey} status="todas" />
         </TabsContent>
 
-        {/* Tab: En Revisión */}
         <TabsContent value="en-revision" className="space-y-4">
-          <h2 className="text-lg font-semibold">Carpetas en Revisión</h2>
-          <p className="text-sm text-muted-foreground">
-            Documentos pendientes de validación por los revisores asignados
-          </p>
-          <CarpetaArranqueList status="en-revision" />
+          <div>
+            <h2 className="text-lg font-semibold">Carpetas en Revision</h2>
+            <p className="text-sm text-muted-foreground">
+              Documentos pendientes de validacion por los revisores asignados.
+            </p>
+          </div>
+          <CarpetaArranqueList key={"rev-" + listKey} status="en-revision" />
         </TabsContent>
 
-        {/* Tab: Documentos Estándar */}
         <TabsContent value="documentos-std" className="space-y-4">
-          <h2 className="text-lg font-semibold">Documentos Requeridos</h2>
+          <h2 className="text-lg font-semibold">Documentos Requeridos por la EECC</h2>
           <Card>
             <CardHeader>
               <CardTitle className="text-base">19 Documentos Obligatorios</CardTitle>
               <CardDescription>
-                Estos son los documentos que debe cargar toda empresa contratista
+                Toda empresa contratista debe cargar estos documentos en su carpeta de arranque.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
                 {[
-                  'Certificado de afiliación y cotización a Organismo Administrador',
-                  'Certificado de Accidentabilidad (últimos 2 años)',
+                  'Certificado de afiliacion y cotizacion a Organismo Administrador',
+                  'Certificado de Accidentabilidad (ultimos 2 anos)',
                   'Reglamento interno de orden, higiene y seguridad',
                   'Copia IRL de todos sus colaboradores',
                   'Contratos de trabajos de su personal',
                   'Registro de entrega de EPP',
                   'Registro interno de la empresa contratista',
-                  'Recepción firmada del Sistema de Gestión y Seguridad en el Trabajo',
-                  'Exámenes pre-ocupacionales (últimos 3 años)',
-                  'Exámenes ocupacionales (agentes como ruido, sílice)',
-                  'Documentación de trabajadores extranjeros',
+                  'Recepcion firmada del Sistema de Gestion y Seguridad en el Trabajo',
+                  'Examenes pre-ocupacionales (ultimos 3 anos)',
+                  'Examenes ocupacionales (agentes como ruido, silice)',
+                  'Documentacion de trabajadores extranjeros',
                   'Procedimientos de trabajos actualizados con NRCT',
                   'Procedimiento en caso de accidente',
-                  'Política de empresa contratista en control de riesgos',
+                  'Politica de empresa contratista en control de riesgos',
                   'Copia carnet de identidad de todos los colaboradores',
-                  'Licencias de conducción vigentes',
-                  'Recepción de conductores por reglamento interno',
-                  'Programa de supervisión a cargo personal',
-                  'Matriz de Identificación de Peligros (MIPER)',
+                  'Licencias de conduccion vigentes',
+                  'Recepcion de conductores por reglamento interno',
+                  'Programa de supervision a cargo personal',
+                  'Matriz de Identificacion de Peligros (MIPER)',
                 ].map((doc, idx) => (
-                  <div key={idx} className="flex items-start gap-3 p-3 border rounded">
-                    <FileText className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                  <div key={idx} className="flex items-start gap-3 p-3 border rounded-md">
+                    <FileText className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                     <span className="text-sm">{idx + 1}. {doc}</span>
                   </div>
                 ))}
