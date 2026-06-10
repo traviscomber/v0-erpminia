@@ -223,8 +223,10 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           className={cn(
-            'relative border-2 border-dashed rounded-lg p-8 transition-colors cursor-pointer',
-            file ? 'border-green-500 bg-green-50' : 'border-border hover:border-primary/50'
+            'relative border-2 border-dashed rounded-lg p-8 transition-all cursor-pointer',
+            file 
+              ? 'border-green-500 bg-green-50/50 dark:bg-green-950/30' 
+              : 'border-primary/30 hover:border-primary/70 hover:bg-primary/5 dark:border-primary/40'
           )}
         >
           {uploadStatus === 'success' ? (
@@ -247,19 +249,19 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
                 className="hidden"
                 id="file-input"
               />
-              <label htmlFor="file-input" className="cursor-pointer space-y-2 text-center">
+              <label htmlFor="file-input" className="cursor-pointer space-y-3 text-center">
                 {file ? (
                   <>
                     <div className="flex items-center justify-center gap-2">
-                      <CheckCircle2 className="h-8 w-8 text-green-600" />
-                      <span className="text-sm font-semibold">{file.name}</span>
+                      <CheckCircle2 className="h-8 w-8 text-green-600 flex-shrink-0" />
+                      <span className="text-sm font-semibold text-foreground">{file.name}</span>
                       <button
                         type="button"
                         onClick={(e) => {
                           e.preventDefault();
                           setFile(null);
                         }}
-                        className="ml-2"
+                        className="ml-2 p-1 hover:bg-destructive/10 rounded transition-colors"
                       >
                         <X className="h-4 w-4 text-destructive" />
                       </button>
@@ -267,10 +269,10 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
                   </>
                 ) : (
                   <>
-                    <Upload className="mx-auto h-12 w-12 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-semibold">Arrastra el archivo aquí o haz clic para seleccionar</p>
-                      <p className="text-xs text-muted-foreground">PDF, Word (.doc, .docx), Excel (.xls, .xlsx) | Máx 50MB</p>
+                    <Upload className="mx-auto h-10 w-10 text-primary/70" />
+                    <div className="space-y-1">
+                      <p className="text-sm font-semibold text-foreground">Arrastra el archivo aquí o haz clic para seleccionar</p>
+                      <p className="text-xs text-muted-foreground">Formatos: PDF, Word (.doc, .docx), Excel (.xls, .xlsx) | Máx 50MB</p>
                     </div>
                   </>
                 )}
@@ -281,25 +283,27 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
 
         {/* Document Type Selector */}
         {file && uploadStatus === 'idle' && (
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Tipo de Documento *</label>
+          <div className="space-y-3">
+            <label className="text-sm font-semibold text-foreground">Tipo de Documento *</label>
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setShowDropdown(!showDropdown)}
                 className={cn(
-                  'w-full px-3 py-2 rounded-md border transition-colors text-left flex items-center justify-between',
-                  documentType ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
+                  'w-full px-4 py-3 rounded-md border-2 transition-all text-left flex items-center justify-between font-medium',
+                  documentType 
+                    ? 'border-primary bg-primary/10 text-foreground' 
+                    : 'border-border hover:border-primary/60 text-muted-foreground hover:text-foreground'
                 )}
               >
-                <span className={documentType ? 'text-foreground font-medium' : 'text-muted-foreground'}>
+                <span>
                   {documentType || 'Selecciona un tipo de documento'}
                 </span>
-                <ChevronDown className={cn('h-4 w-4 transition-transform', showDropdown && 'transform rotate-180')} />
+                <ChevronDown className={cn('h-5 w-5 transition-transform flex-shrink-0', showDropdown && 'transform rotate-180')} />
               </button>
 
               {showDropdown && (
-                <div className="absolute top-full left-0 right-0 mt-1 border border-border rounded-md bg-background shadow-lg z-50 max-h-48 overflow-y-auto">
+                <div className="absolute top-full left-0 right-0 mt-2 border-2 border-primary/30 rounded-md bg-background shadow-xl z-50 max-h-56 overflow-y-auto">
                   {availableTypes.map((type) => (
                     <button
                       key={type}
@@ -309,8 +313,8 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
                         setShowDropdown(false);
                       }}
                       className={cn(
-                        'w-full px-3 py-2 text-left text-sm hover:bg-primary/10 transition-colors',
-                        documentType === type && 'bg-primary/20 font-medium'
+                        'w-full px-4 py-3 text-left text-sm font-medium hover:bg-primary/20 transition-colors border-b border-border/50 last:border-b-0',
+                        documentType === type && 'bg-primary/30 text-primary-foreground'
                       )}
                     >
                       {type}
@@ -325,30 +329,33 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
         {/* Metadata Form */}
         {file && uploadStatus === 'idle' && (
           <>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Descripción</label>
+            <div className="space-y-3">
+              <label className="text-sm font-semibold text-foreground">Descripción</label>
               <Textarea
                 placeholder="Descripción del documento (opcional)"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                className="border-primary/30 focus:border-primary/70"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Válido desde</label>
+              <div className="space-y-3">
+                <label className="text-sm font-semibold text-foreground">Válido desde</label>
                 <Input
                   type="date"
                   value={formData.validFrom}
                   onChange={(e) => setFormData({ ...formData, validFrom: e.target.value })}
+                  className="border-primary/30 focus:border-primary/70"
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Válido hasta</label>
+              <div className="space-y-3">
+                <label className="text-sm font-semibold text-foreground">Válido hasta</label>
                 <Input
                   type="date"
                   value={formData.validUntil}
                   onChange={(e) => setFormData({ ...formData, validUntil: e.target.value })}
+                  className="border-primary/30 focus:border-primary/70"
                 />
               </div>
             </div>
