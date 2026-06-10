@@ -10,6 +10,7 @@ export async function DELETE(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
     const { searchParams } = new URL(request.url);
+    const documentId = searchParams.get('id');
 
     if (!documentId) {
       return NextResponse.json(
