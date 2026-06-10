@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Loader2, Download, AlertCircle } from 'lucide-react';
+import { Loader2, Download, AlertCircle, FileText, FileSpreadsheet, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface PDFViewerProps {
@@ -15,36 +15,27 @@ export function PDFViewer({ fileUrl, fileName, fileType, maxHeight = 'max-h-96' 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    setIsLoading(true);
-    setError(null);
-    // Simulate loading - the iframe will handle its own loading
-    const timer = setTimeout(() => setIsLoading(false), 500);
-    return () => clearTimeout(timer);
-  }, [fileUrl]);
+  // Determine actual file type from fileName if not provided
+  const getFileType = () => {
+    if (fileType) return fileType.toLowerCase();
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    return ext || '';
+  };
 
-  // For DOCX files, show download link
-  if (fileType === 'docx' || fileType === 'doc' || fileName.endsWith('.docx') || fileName.endsWith('.doc')) {
-    return (
-      <div className="flex flex-col items-center justify-center h-48 bg-muted rounded-lg border border-dashed p-4">
-        <div className="text-center space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Los documentos Word (.docx) no se pueden previsualizar en el navegador.
-          </p>
-          <Button variant="outline" size="sm" asChild>
-            <a href={fileUrl} download={fileName} target="_blank" rel="noopener noreferrer">
-              <Download className="h-4 w-4 mr-2" />
-              Descargar documento
-            </a>
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  const actualFileType = getFileType();
+  const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(actualFileType);
+  const isPdf = actualFileType === 'pdf';
+  const isWord = ['doc', 'docx'].includes(actualFileType);
+  const isExcel = ['xls', 'xlsx', 'csv'].includes(actualFileType);
+
+  useEffect(() => {
+    setIsLoading(false);
+    setError(null);
+  }, [fileUrl]);
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-48 bg-muted rounded-lg border border-dashed p-4">
+      <div className={`flex items-center justify-center bg-muted rounded-lg border border-dashed p-4 ${maxHeight}`}>
         <div className="text-center space-y-2">
           <AlertCircle className="h-5 w-5 text-destructive mx-auto" />
           <p className="text-sm text-destructive">{error}</p>
@@ -59,25 +50,103 @@ export function PDFViewer({ fileUrl, fileName, fileType, maxHeight = 'max-h-96' 
     );
   }
 
-  return (
-    <div className={`space-y-2 ${maxHeight}`}>
-      {isLoading && (
-        <div className="flex items-center justify-center h-48 bg-muted rounded border">
-          <div className="flex flex-col items-center gap-2">
-            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-            <p className="text-xs text-muted-foreground">Cargando documento...</p>
-          </div>
-        </div>
-      )}
-
-      {!isLoading && (
-        <iframe
-          src={`https://docs.google.com/gview?url=${encodeURIComponent(fileUrl)}&embedded=true`}
-          className={`w-full rounded border border-muted bg-white ${maxHeight}`}
-          onError={() => setError('No se pudo cargar la vista previa del documento')}
-          title={fileName}
+  // Imagen - mostrar preview inline
+  if (isImage) {
+    return (
+      <div className={`bg-muted rounded-lg border overflow-hidden flex items-center justify-center ${maxHeight}`}>
+        <img
+          src={fileUrl}
+          alt={fileName}
+          className="w-full h-full object-contain"
+          onLoad={() => setIsLoading(false)}
+          onError={() => {
+            setIsLoading(false);
+            setError('No se pudo cargar la imagen');
+          }}
         />
-      )}
+      </div>
+    );
+  }
+
+  // PDF - usar objeto nativo del navegador
+  if (isPdf) {
+    return (
+      <div className={`space-y-2 ${maxHeight}`}>
+        {isLoading && (
+          <div className="flex items-center justify-center h-48 bg-muted rounded border">
+            <div className="flex flex-col items-center gap-2">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              <p className="text-xs text-muted-foreground">Cargando PDF...</p>
+            </div>
+          </div>
+        )}
+        <object
+          data={`${fileUrl}#toolbar=1&navpanes=0&scrollbar=1`}
+          type="application/pdf"
+          className={`w-full rounded border border-muted bg-white ${maxHeight}`}
+          onLoad={() => setIsLoading(false)}
+        >
+          <div className="flex flex-col items-center justify-center h-48 bg-muted p-4">
+            <FileText className="h-8 w-8 text-muted-foreground mb-2" />
+            <p className="text-sm text-muted-foreground mb-3">No se puede previsualizar el PDF en este navegador</p>
+            <Button variant="outline" size="sm" asChild>
+              <a href={fileUrl} download={fileName} target="_blank" rel="noopener noreferrer">
+                <Download className="h-4 w-4 mr-2" />
+                Descargar PDF
+              </a>
+            </Button>
+          </div>
+        </object>
+      </div>
+    );
+  }
+
+  // Word - mostrar icono + opción de descargar
+  if (isWord) {
+    return (
+      <div className={`flex flex-col items-center justify-center bg-muted rounded-lg border border-dashed p-6 ${maxHeight}`}>
+        <FileText className="h-12 w-12 text-muted-foreground mb-3" />
+        <p className="text-sm font-medium text-foreground mb-1">Documento Word</p>
+        <p className="text-xs text-muted-foreground mb-3">No se puede previsualizar en el navegador</p>
+        <Button variant="outline" size="sm" asChild>
+          <a href={fileUrl} download={fileName} target="_blank" rel="noopener noreferrer">
+            <Download className="h-4 w-4 mr-2" />
+            Descargar {actualFileType.toUpperCase()}
+          </a>
+        </Button>
+      </div>
+    );
+  }
+
+  // Excel - mostrar icono + opción de descargar
+  if (isExcel) {
+    return (
+      <div className={`flex flex-col items-center justify-center bg-muted rounded-lg border border-dashed p-6 ${maxHeight}`}>
+        <FileSpreadsheet className="h-12 w-12 text-muted-foreground mb-3" />
+        <p className="text-sm font-medium text-foreground mb-1">Documento Excel</p>
+        <p className="text-xs text-muted-foreground mb-3">No se puede previsualizar en el navegador</p>
+        <Button variant="outline" size="sm" asChild>
+          <a href={fileUrl} download={fileName} target="_blank" rel="noopener noreferrer">
+            <Download className="h-4 w-4 mr-2" />
+            Descargar {actualFileType.toUpperCase()}
+          </a>
+        </Button>
+      </div>
+    );
+  }
+
+  // Archivo desconocido
+  return (
+    <div className={`flex flex-col items-center justify-center bg-muted rounded-lg border border-dashed p-6 ${maxHeight}`}>
+      <FileText className="h-12 w-12 text-muted-foreground mb-3" />
+      <p className="text-sm font-medium text-foreground mb-1">Archivo: {actualFileType.toUpperCase() || 'Desconocido'}</p>
+      <p className="text-xs text-muted-foreground mb-3">Tipo de archivo no soportado para vista previa</p>
+      <Button variant="outline" size="sm" asChild>
+        <a href={fileUrl} download={fileName} target="_blank" rel="noopener noreferrer">
+          <Download className="h-4 w-4 mr-2" />
+          Descargar archivo
+        </a>
+      </Button>
     </div>
   );
 }
