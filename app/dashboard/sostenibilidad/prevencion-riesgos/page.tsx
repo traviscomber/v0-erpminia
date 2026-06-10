@@ -13,7 +13,9 @@ import {
   AlertTriangle,
   FileText,
   ArrowRight,
-  Calendar
+  Calendar,
+  FolderOpen,
+  CheckSquare
 } from "lucide-react";
 
 // Brandbook: only primary (naranja), secondary (verde), destructive (rojo), muted (gris)
@@ -71,6 +73,15 @@ const modules = [
     stats: { proximas: 2, aprobadas: 15, observaciones: 3 },
     color: "text-destructive",
     bgColor: "bg-destructive/10",
+  },
+  {
+    title: "Carpeta de Arranque",
+    description: "Validacion de documentos de empresas contratistas y subcontratistas",
+    href: "/dashboard/sostenibilidad/prevencion-riesgos/carpeta-arranque",
+    icon: FolderOpen,
+    stats: { carpetas: 8, pendientes: 3, aprobadas: 4 },
+    color: "text-primary",
+    bgColor: "bg-primary/10",
   },
 ];
 
