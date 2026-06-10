@@ -61,6 +61,7 @@ const DOCUMENT_TYPES_BY_MODULE: Record<string, string[]> = {
     'Evaluación Regulamiento Estudios',
     'Evaluación Regulamiento Fortificación',
     'Evaluación reglamento acuñadura',
+    'Evaluación reglamento interno de explosivos',
     'Evaluación reglamento tránsito interior mina',
     'Evaluación Regulamiento Transporte y Conducción',
     'Evaluación reglamento transporte y conducción',
