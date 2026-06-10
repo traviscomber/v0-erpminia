@@ -374,7 +374,7 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
                 className={cn(
                   'w-full px-4 py-3 rounded-md border-2 transition-all text-left flex items-center justify-between font-medium',
                   documentType 
-                    ? 'border-primary bg-primary/10 text-foreground' 
+                    ? 'border-green-500 bg-green-500/20 text-green-700 dark:text-green-300 dark:bg-green-950/40' 
                     : 'border-border hover:border-primary/60 text-muted-foreground hover:text-foreground'
                 )}
               >
@@ -396,7 +396,7 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
                       }}
                       className={cn(
                         'w-full px-4 py-3 text-left text-sm font-medium hover:bg-primary/20 transition-colors border-b border-border/50 last:border-b-0',
-                        documentType === type && 'bg-primary/30 text-primary-foreground'
+                        documentType === type && 'bg-green-500/30 text-green-700 dark:text-green-300 dark:bg-green-950/50 font-semibold'
                       )}
                     >
                       {type}
