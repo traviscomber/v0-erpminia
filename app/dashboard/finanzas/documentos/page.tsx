@@ -30,7 +30,9 @@ export default function DocumentosFinanzasPage() {
   const loadDocuments = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/documents/list?module=finanzas&category=documentos');
+      const response = await fetch('/api/documents/list?module=finanzas&category=documentos', {
+        credentials: 'include',
+      });
       const data = await response.json();
       if (Array.isArray(data)) {
         setDocuments(data);
@@ -58,6 +60,7 @@ export default function DocumentosFinanzasPage() {
     try {
       const response = await fetch(`/api/documents/delete?id=${documentId}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
       if (response.ok) {
         setDocuments(documents.filter(d => d.id !== documentId));
@@ -89,6 +92,7 @@ export default function DocumentosFinanzasPage() {
           observations,
           reviewLevel: 'L1',
         }),
+        credentials: 'include',
       });
       if (response.ok) {
         await loadDocuments();
@@ -109,6 +113,7 @@ export default function DocumentosFinanzasPage() {
           observations,
           reviewLevel: 'L1',
         }),
+        credentials: 'include',
       });
       if (response.ok) {
         await loadDocuments();

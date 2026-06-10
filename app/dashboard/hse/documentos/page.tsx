@@ -30,7 +30,9 @@ export default function DocumentosHSEPage() {
   const loadDocuments = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/documents/list?module=hse&category=documentos');
+      const response = await fetch('/api/documents/list?module=hse&category=documentos', {
+        credentials: 'include',
+      });
       const data = await response.json();
       if (Array.isArray(data)) {
         setDocuments(data);
@@ -58,6 +60,7 @@ export default function DocumentosHSEPage() {
     try {
       const response = await fetch(`/api/documents/delete?id=${documentId}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
       if (response.ok) {
         setDocuments(documents.filter(d => d.id !== documentId));

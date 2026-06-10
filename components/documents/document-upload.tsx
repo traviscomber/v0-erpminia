@@ -187,6 +187,7 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
       const response = await fetch('/api/documents/upload', {
         method: 'POST',
         body: uploadFormData,
+        credentials: 'include',
       });
 
       if (!response.ok) {
