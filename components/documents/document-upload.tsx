@@ -11,24 +11,59 @@ import { cn } from '@/lib/utils';
 // Tipos de documentos por módulo
 const DOCUMENT_TYPES_BY_MODULE: Record<string, string[]> = {
   prevención: [
+    // Certificados
     'Certificado de Afiliación',
+    'Certificado de Cotizaciones',
     'Certificado de Accidentabilidad',
+    'Certificado de Afiliación Actualizado',
+    
+    // Exámenes
+    'Examen Organizacional',
+    'Examen Pre-ocupacional',
+    'Examen Ocupacional',
+    'Examen Periódico',
+    
+    // Contratos
+    'Contrato de Trabajo',
+    'Contrato Laboral',
+    'Anexo Contrato',
+    
+    // Reglamentos y Políticas
     'Reglamento Interno (DS 44)',
-    'IRL (Índice de Riesgo Laboral)',
-    'Contratos de Trabajo',
-    'Registro Entrega EPP',
-    'Reglamento Entrega EPP',
-    'SGSST (Sistema de Gestión de Seguridad)',
-    'Procedimientos de Trabajo Críticos',
-    'Exámenes Pre-ocupacionales',
-    'Exámenes Ocupacionales',
-    'Licencias de Conducción',
-    'Licencias de Izamiento',
-    'Matriz MIPER (Identificación de Peligros)',
-    'Procedimiento en caso de Accidente',
+    'Política SST',
     'Política de Riesgos',
+    'Reglamento Entrega EPP',
+    
+    // RRHH y Recursos
+    'RROHH y Comprobantes de Recepción',
+    'Matriz IPER (Identificación de Peligros)',
+    'Matriz MIPER',
+    
+    // Evaluaciones y RIL
+    'IRL (Índice de Riesgo Laboral)',
+    'RIL (Evaluación de Riesgos)',
+    'OPR (Orden de Preparación/Riesgos)',
+    
+    // Licencias
+    'Licencia de Conducción',
+    'Licencia de Izamiento',
+    
+    // Documentos Administrativos
+    'Acta de Entrega',
+    'Recepción Firmada',
+    'Comprobante de Recepción',
+    
+    // Procedimientos
+    'Procedimiento de Trabajo',
+    'Procedimiento de Trabajo Crítico',
+    'Procedimiento en caso de Accidente',
+    'Procedimiento Caso Accidentario',
+    
+    // Otros Documentos
+    'SGSST (Sistema de Gestión de Seguridad)',
     'Programa de Capacitación HSE',
-    'Certificados de Afiliación Actualizado',
+    'Registro Entrega EPP',
+    'Informe de Accidentalidad',
     'Documentos de Cumplimiento Regulatorio',
   ],
   mantenimiento: [
