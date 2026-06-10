@@ -99,6 +99,7 @@ const DOCUMENT_TYPES_BY_MODULE: Record<string, string[]> = {
     'Registro Maestro Control Evaluaciones',
     'Registro Maestro EPP por Cargo',
     'Reglamento Contraseñas',
+    'Reglamento Contratistas',
     'Reglamento Entrega EPP',
     'Reglamento Ingreso Personas y Vehículos',
     'Reglamento Interno (DS 44)',
