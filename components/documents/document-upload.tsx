@@ -174,10 +174,11 @@ interface DocumentUploadProps {
 export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: DocumentUploadProps) {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error' | 'duplicate'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [documentType, setDocumentType] = useState<string>('');
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isDuplicateConfirmed, setIsDuplicateConfirmed] = useState(false);
   const [formData, setFormData] = useState({
     description: '',
     validFrom: '',
@@ -280,6 +281,7 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
       uploadFormData.append('description', formData.description);
       uploadFormData.append('validFrom', formData.validFrom);
       uploadFormData.append('validUntil', formData.validUntil);
+      uploadFormData.append('bypassDuplicate', isDuplicateConfirmed ? 'true' : 'false');
 
       const response = await fetch('/api/documents/upload', {
         method: 'POST',
@@ -287,13 +289,23 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
         credentials: 'include',
       });
 
+      const responseData = await response.json();
+
       if (!response.ok) {
-        throw new Error(await response.text());
+        // Check if it's a duplicate error (409 status) and not already confirmed
+        if (response.status === 409 && responseData.isDuplicate && !isDuplicateConfirmed) {
+          setErrorMessage(responseData.error);
+          setUploadStatus('duplicate');
+          setIsUploading(false);
+          return;
+        }
+        throw new Error(responseData.error || 'Error desconocido al cargar el archivo');
       }
 
-      const { documentId } = await response.json();
+      const { documentId } = responseData;
 
       setUploadStatus('success');
+      setIsDuplicateConfirmed(false);
       setTimeout(() => {
         if (onUploadSuccess) {
           onUploadSuccess(documentId, file.name);
@@ -308,7 +320,7 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
       setUploadStatus('error');
       setIsUploading(false);
     }
-  }, [file, module, category, documentType, formData, onUploadSuccess]);
+  }, [file, module, category, documentType, formData, isDuplicateConfirmed, onUploadSuccess]);
 
   return (
     <Card className="w-full p-6">
@@ -464,6 +476,58 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
           <div className="flex items-center justify-center gap-2 py-4">
             <Loader className="h-5 w-5 animate-spin" />
             <span className="text-sm font-medium">Cargando documento...</span>
+          </div>
+        )}
+
+        {/* Duplicate Warning */}
+        {uploadStatus === 'duplicate' && (
+          <div className="rounded-md bg-yellow-500/10 border-2 border-yellow-500/30 p-4 flex gap-3">
+            <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-1 space-y-3">
+              <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">{errorMessage}</p>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setUploadStatus('idle');
+                    setFile(null);
+                    setErrorMessage('');
+                  }}
+                  className="text-yellow-700 dark:text-yellow-300 border-yellow-500/30 hover:bg-yellow-500/20"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => {
+                    setUploadStatus('idle');
+                    setIsDuplicateConfirmed(true);
+                  }}
+                  className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                >
+                  Continuar de todas formas
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Error State */}
+        {uploadStatus === 'error' && uploadStatus !== 'duplicate' && (
+          <div className="rounded-md bg-destructive/10 border-2 border-destructive/30 p-3 flex gap-2">
+            <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0" />
+            <p className="text-sm text-destructive">{errorMessage}</p>
+          </div>
+        )}
+
+        {/* Success State */}
+        {uploadStatus === 'success' && (
+          <div className="rounded-md bg-green-500/10 border-2 border-green-500/30 p-3 flex gap-2">
+            <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
+            <p className="text-sm text-green-700 dark:text-green-300 font-medium">Documento cargado exitosamente</p>
           </div>
         )}
 

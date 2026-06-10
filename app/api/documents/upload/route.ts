@@ -33,6 +33,7 @@ export async function POST(request: NextRequest) {
     const description = formData.get('description') as string;
     const validFrom = formData.get('validFrom') as string;
     const validUntil = formData.get('validUntil') as string;
+    const bypassDuplicate = formData.get('bypassDuplicate') === 'true';
 
     if (!file || !module || !category) {
       return NextResponse.json(
@@ -59,6 +60,33 @@ export async function POST(request: NextRequest) {
 
     const ext = file.name.split('.').pop() || 'bin';
     const fileType = ext.toLowerCase();
+
+    // Check for duplicate documents by name in the same module and category (unless bypass flag is set)
+    if (!bypassDuplicate) {
+      const { data: existingDocs, error: searchError } = await supabase
+        .from('module_documents')
+        .select('id, document_name, status')
+        .eq('module', module)
+        .eq('category', category)
+        .eq('document_name', file.name)
+        .eq('status', 'draft')
+        .limit(1);
+
+      if (searchError) {
+        console.error('[v0] Duplicate check error:', searchError);
+      }
+
+      if (existingDocs && existingDocs.length > 0) {
+        return NextResponse.json(
+          { 
+            error: `El documento "${file.name}" ya ha sido subido en esta categoría. Por favor, revisa si el archivo es duplicado.`,
+            isDuplicate: true,
+            existingDocument: existingDocs[0],
+          },
+          { status: 409 }
+        );
+      }
+    }
 
     // Sanitize path segments: remove accents, then strip any char that isn't alphanumeric, dash or dot
     const sanitizePathSegment = (s: string) =>
