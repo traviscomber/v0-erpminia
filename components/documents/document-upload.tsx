@@ -164,6 +164,20 @@ const DOCUMENT_TYPES_BY_MODULE: Record<string, string[]> = {
     'Regulación Interna',
     'Términos y Condiciones',
   ].sort(),
+  compras: [
+    'Cotización',
+    'Orden de Compra',
+    'Factura',
+    'Nota de Crédito',
+    'Contrato de Proveedor',
+    'Evaluación de Proveedor',
+    'Acuerdo de Confidencialidad',
+    'Especificaciones Técnicas',
+    'Recepción de Mercadería',
+    'Devolución de Mercadería',
+    'Análisis de Precios',
+    'Solicitud de Compra',
+  ].sort(),
 };
 
 interface DocumentUploadProps {
