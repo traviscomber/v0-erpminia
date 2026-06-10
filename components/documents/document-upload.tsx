@@ -22,6 +22,7 @@ const DOCUMENT_TYPES_BY_MODULE: Record<string, string[]> = {
     'Contrato de Trabajo',
     'Contrato Laboral',
     'Documentos de Cumplimiento Regulatorio',
+    'Evaluación de Procedimiento',
     'Examen Ocupacional',
     'Examen Organizacional',
     'Examen Periódico',
