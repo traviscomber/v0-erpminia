@@ -202,7 +202,7 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
   });
   const dragRef = useRef<HTMLDivElement>(null);
 
-  const availableTypes = DOCUMENT_TYPES_BY_MODULE[module] || [];
+  const availableTypes = DOCUMENT_TYPES_BY_MODULE[module.toLowerCase()] || [];
 
   const acceptedTypes = {
     'application/pdf': ['.pdf'],
