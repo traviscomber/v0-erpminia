@@ -15,7 +15,7 @@ interface DocumentStats {
   rechazados: number;
 }
 
-export default function DocumentosHSEPage() {
+export default function DocumentosLegalPage() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<any>(null);
@@ -30,7 +30,7 @@ export default function DocumentosHSEPage() {
   const loadDocuments = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/documents/list?module=hse&category=documentos');
+      const response = await fetch('/api/documents/list?module=legal&category=documentos');
       const data = await response.json();
       if (Array.isArray(data)) {
         setDocuments(data);
@@ -117,9 +117,9 @@ export default function DocumentosHSEPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Documentos HSE</h1>
+        <h1 className="text-3xl font-bold">Documentos Legal</h1>
         <p className="text-muted-foreground mt-2">
-          Gestión de documentos de Higiene, Seguridad y Ambiente
+          Gestión de contratos, políticas y documentos legales
         </p>
       </div>
 
@@ -219,12 +219,12 @@ export default function DocumentosHSEPage() {
             <CardHeader>
               <CardTitle>Subir Nuevo Documento</CardTitle>
               <CardDescription>
-                Sube documentos de Higiene, Seguridad y Ambiente
+                Sube contratos, políticas y documentos legales
               </CardDescription>
             </CardHeader>
             <CardContent>
               <DocumentUpload 
-                module="hse"
+                module="legal"
                 category="documentos"
                 onUploadSuccess={loadDocuments}
               />
