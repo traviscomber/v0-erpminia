@@ -44,14 +44,10 @@ const DOCUMENT_TYPES_BY_MODULE: Record<string, string[]> = {
     'RIL (Evaluación de Riesgos)',
     'OPR (Orden de Preparación/Riesgos)',
     
-    // Licencias
+    // Licencias y Documentos de Identidad
     'Licencia de Conducción',
     'Licencia de Izamiento',
-    
-    // Documentos de Identidad
-    'Carnet de Identidad (CI)',
-    'DNI (Documento Nacional de Identidad)',
-    'Cédula de Identidad',
+    'Carnet de Identidad',
     
     // Documentos Administrativos
     'Acta de Entrega',
