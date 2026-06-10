@@ -85,7 +85,7 @@ export function IncidentsDashboard() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Open Incidents</CardTitle>
+            <CardTitle className="text-sm font-medium">Incidentes Abiertos</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">{stats.open}</div>
@@ -94,7 +94,7 @@ export function IncidentsDashboard() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Investigating</CardTitle>
+            <CardTitle className="text-sm font-medium">En Investigación</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">{stats.investigating}</div>
@@ -103,7 +103,7 @@ export function IncidentsDashboard() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Resolved</CardTitle>
+            <CardTitle className="text-sm font-medium">Resueltos</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{stats.resolved}</div>
@@ -113,13 +113,13 @@ export function IncidentsDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent Incidents</CardTitle>
+          <CardTitle>Incidentes Recientes</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-muted-foreground">Loading...</p>
+            <p className="text-muted-foreground">Cargando...</p>
           ) : incidents.length === 0 ? (
-            <p className="text-muted-foreground text-sm">No incidents reported.</p>
+            <p className="text-muted-foreground text-sm">Sin incidentes reportados.</p>
           ) : (
             <div className="space-y-3">
               {incidents.slice(0, 5).map(incident => (
@@ -128,7 +128,7 @@ export function IncidentsDashboard() {
                     {getStatusIcon(incident.status)}
                     <div>
                       <p className="font-semibold text-sm">{incident.description}</p>
-                      <p className="text-xs text-muted-foreground">Asset: {incident.asset_id}</p>
+                      <p className="text-xs text-muted-foreground">Equipo: {incident.asset_id}</p>
                     </div>
                   </div>
                   <Badge className={getSeverityColor(incident.severity)}>
@@ -143,18 +143,18 @@ export function IncidentsDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Open Investigations</CardTitle>
+          <CardTitle>Investigaciones Abiertas</CardTitle>
         </CardHeader>
         <CardContent>
           {investigations.filter(i => i.status !== 'verified').length === 0 ? (
-            <p className="text-muted-foreground text-sm">All investigations verified.</p>
+            <p className="text-muted-foreground text-sm">Todas las investigaciones verificadas.</p>
           ) : (
             <div className="space-y-3">
               {investigations.filter(i => i.status !== 'verified').slice(0, 3).map(inv => (
                 <div key={inv.id} className="p-2 border rounded">
-                  <p className="font-semibold text-sm">Root Cause: {inv.root_cause}</p>
-                  <p className="text-xs text-muted-foreground mt-1">Actions: {inv.corrective_actions}</p>
-                  <p className="text-xs text-blue-600 mt-1">Target: {new Date(inv.target_date).toLocaleDateString()}</p>
+                  <p className="font-semibold text-sm">Causa Raíz: {inv.root_cause}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Acciones: {inv.corrective_actions}</p>
+                  <p className="text-xs text-blue-600 mt-1">Meta: {new Date(inv.target_date).toLocaleDateString('es-CL')}</p>
                 </div>
               ))}
             </div>

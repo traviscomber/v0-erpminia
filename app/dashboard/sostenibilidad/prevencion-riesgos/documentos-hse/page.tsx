@@ -27,13 +27,15 @@ export default function DocumentosHSEPage() {
     rechazados: 0,
   });
 
+  // Cargar documentos al abrir la página
   const loadDocuments = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/documents/list?module=hse&category=documentos');
+      const response = await fetch('/api/documents/list?module=prevencion&category=documentos-hse');
       const data = await response.json();
       if (Array.isArray(data)) {
         setDocuments(data);
+        // Calcular estadísticas
         setStats({
           total: data.length,
           vigentes: data.filter((d: Document) => d.status === 'active').length,
@@ -116,13 +118,15 @@ export default function DocumentosHSEPage() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div>
         <h1 className="text-3xl font-bold">Documentos HSE</h1>
         <p className="text-muted-foreground mt-2">
-          Gestión de documentos de Higiene, Seguridad y Ambiente
+          Gestión de políticas, procedimientos, instructivos y programas de seguridad
         </p>
       </div>
 
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-3">
@@ -177,6 +181,7 @@ export default function DocumentosHSEPage() {
         </Card>
       </div>
 
+      {/* Tabs */}
       <Tabs defaultValue="all" className="space-y-4">
         <TabsList>
           <TabsTrigger value="all">Todos</TabsTrigger>
@@ -185,6 +190,7 @@ export default function DocumentosHSEPage() {
           <TabsTrigger value="upload">Subir Documentos</TabsTrigger>
         </TabsList>
 
+        {/* All Documents Tab */}
         <TabsContent value="all" className="space-y-4">
           <DocumentList
             documents={documents}
@@ -194,6 +200,7 @@ export default function DocumentosHSEPage() {
           />
         </TabsContent>
 
+        {/* Vigentes Tab */}
         <TabsContent value="vigentes" className="space-y-4">
           <DocumentList
             documents={documents.filter(d => d.status === 'active')}
@@ -203,6 +210,7 @@ export default function DocumentosHSEPage() {
           />
         </TabsContent>
 
+        {/* En Revisión Tab */}
         <TabsContent value="revision" className="space-y-4">
           <DocumentList
             documents={documents.filter(d => 
@@ -214,18 +222,19 @@ export default function DocumentosHSEPage() {
           />
         </TabsContent>
 
+        {/* Upload Tab */}
         <TabsContent value="upload" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Subir Nuevo Documento</CardTitle>
               <CardDescription>
-                Sube documentos de Higiene, Seguridad y Ambiente
+                Sube documentos HSE (políticas, procedimientos, instructivos, programas)
               </CardDescription>
             </CardHeader>
             <CardContent>
               <DocumentUpload 
-                module="hse"
-                category="documentos"
+                module="prevencion"
+                category="documentos-hse"
                 onUploadSuccess={loadDocuments}
               />
             </CardContent>
@@ -233,6 +242,7 @@ export default function DocumentosHSEPage() {
         </TabsContent>
       </Tabs>
 
+      {/* Review Modal */}
       <DocumentReviewModal
         document={selectedDoc}
         isOpen={reviewOpen}

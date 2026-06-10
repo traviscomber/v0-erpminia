@@ -1,3 +1,24 @@
+# Document Management System - Quick Integration Guide
+
+**Copy/Paste Template for Any Module**
+
+---
+
+## Step 1: Create Folder Structure
+
+```bash
+mkdir -p /app/dashboard/MODULE/documentos
+# Examples:
+# - /app/dashboard/sostenibilidad/mantenimiento/documentos
+# - /app/dashboard/finanzas/documentos
+# - /app/dashboard/hse/documentos
+```
+
+## Step 2: Copy Page Template
+
+Create `page.tsx` with this template (replace `MODULO` and `modulo` with your module name):
+
+```tsx
 'use client';
 
 import { useState } from 'react';
@@ -15,7 +36,7 @@ interface DocumentStats {
   rechazados: number;
 }
 
-export default function DocumentosHSEPage() {
+export default function DocumentosMODULOPage() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<any>(null);
@@ -27,10 +48,11 @@ export default function DocumentosHSEPage() {
     rechazados: 0,
   });
 
+  // Cargar documentos
   const loadDocuments = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/documents/list?module=hse&category=documentos');
+      const response = await fetch('/api/documents/list?module=modulo&category=documentos');
       const data = await response.json();
       if (Array.isArray(data)) {
         setDocuments(data);
@@ -86,9 +108,7 @@ export default function DocumentosHSEPage() {
           reviewLevel: 'L1',
         }),
       });
-      if (response.ok) {
-        await loadDocuments();
-      }
+      if (response.ok) await loadDocuments();
     } catch (error) {
       console.error('Error aprobando documento:', error);
     }
@@ -106,9 +126,7 @@ export default function DocumentosHSEPage() {
           reviewLevel: 'L1',
         }),
       });
-      if (response.ok) {
-        await loadDocuments();
-      }
+      if (response.ok) await loadDocuments();
     } catch (error) {
       console.error('Error rechazando documento:', error);
     }
@@ -117,12 +135,11 @@ export default function DocumentosHSEPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Documentos HSE</h1>
-        <p className="text-muted-foreground mt-2">
-          Gestión de documentos de Higiene, Seguridad y Ambiente
-        </p>
+        <h1 className="text-3xl font-bold">Documentos MODULO</h1>
+        <p className="text-muted-foreground mt-2">Gestión de documentos y procedimientos</p>
       </div>
 
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-3">
@@ -177,6 +194,7 @@ export default function DocumentosHSEPage() {
         </Card>
       </div>
 
+      {/* Tabs */}
       <Tabs defaultValue="all" className="space-y-4">
         <TabsList>
           <TabsTrigger value="all">Todos</TabsTrigger>
@@ -185,7 +203,7 @@ export default function DocumentosHSEPage() {
           <TabsTrigger value="upload">Subir Documentos</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="all" className="space-y-4">
+        <TabsContent value="all">
           <DocumentList
             documents={documents}
             isLoading={loading}
@@ -194,7 +212,7 @@ export default function DocumentosHSEPage() {
           />
         </TabsContent>
 
-        <TabsContent value="vigentes" className="space-y-4">
+        <TabsContent value="vigentes">
           <DocumentList
             documents={documents.filter(d => d.status === 'active')}
             isLoading={loading}
@@ -203,7 +221,7 @@ export default function DocumentosHSEPage() {
           />
         </TabsContent>
 
-        <TabsContent value="revision" className="space-y-4">
+        <TabsContent value="revision">
           <DocumentList
             documents={documents.filter(d => 
               d.status === 'pending_l1' || d.status === 'pending_l2'
@@ -214,17 +232,15 @@ export default function DocumentosHSEPage() {
           />
         </TabsContent>
 
-        <TabsContent value="upload" className="space-y-4">
+        <TabsContent value="upload">
           <Card>
             <CardHeader>
               <CardTitle>Subir Nuevo Documento</CardTitle>
-              <CardDescription>
-                Sube documentos de Higiene, Seguridad y Ambiente
-              </CardDescription>
+              <CardDescription>Sube un nuevo documento en este módulo</CardDescription>
             </CardHeader>
             <CardContent>
               <DocumentUpload 
-                module="hse"
+                module="modulo"
                 category="documentos"
                 onUploadSuccess={loadDocuments}
               />
@@ -233,6 +249,7 @@ export default function DocumentosHSEPage() {
         </TabsContent>
       </Tabs>
 
+      {/* Review Modal */}
       <DocumentReviewModal
         document={selectedDoc}
         isOpen={reviewOpen}
@@ -247,3 +264,104 @@ export default function DocumentosHSEPage() {
     </div>
   );
 }
+```
+
+## Step 3: Replace Placeholders
+
+Find and replace:
+- `MODULO` → Your module display name (e.g., "Mantenimiento")
+- `modulo` → Your module identifier (e.g., "mantenimiento")
+
+## Step 4: Add to Navigation
+
+Update the module's main page (`page.tsx`) to add a link to documentos:
+
+```tsx
+{
+  title: "Documentos MODULO",
+  description: "Gestión de documentos y procedimientos",
+  href: "/dashboard/MODULE/documentos",
+  icon: FileText,
+  // ... other config
+}
+```
+
+## Step 5: Test
+
+1. Navigate to the new documentos page
+2. Click "Subir Documentos" tab
+3. Upload a test file (PDF, DOCX, or XLSX)
+4. Verify file appears in list
+5. Click review button
+6. Test approve/reject workflow
+
+---
+
+## Modules to Integrate
+
+- ✅ Prevención (Done: `/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse`)
+- [ ] Mantenimiento
+- [ ] Finanzas
+- [ ] HSE
+- [ ] Bodega
+- [ ] Legal
+- [ ] Others...
+
+---
+
+## File Structure After Integration
+
+```
+/app/dashboard/MODULE/
+├── page.tsx (main module page)
+├── layout.tsx (if needed)
+└── documentos/
+    └── page.tsx (NEW - document management)
+```
+
+---
+
+## Customization
+
+### Change Module Name
+Replace `modulo` with your module's lowercase identifier everywhere
+
+### Change Category
+Change `category="documentos"` to `category="procedures"`, `category="contracts"`, etc.
+
+### Change Display Title
+Customize the `<h1>` and CardDescription text
+
+### Add More Stats
+Add more cards based on your needs:
+```tsx
+{
+  label: 'Por Expirar',
+  count: documents.filter(d => d.daysUntilExpiry <= 30).length,
+  color: 'text-orange-500',
+  icon: AlertTriangle,
+}
+```
+
+---
+
+## Troubleshooting
+
+**Files not appearing:**
+- Check API at `/api/documents/list?module=YOUR_MODULE`
+- Verify module name matches exactly
+- Check database for records
+
+**Upload not working:**
+- Check file type (PDF, DOCX, XLSX only)
+- Check file size (<50MB)
+- Check browser console for errors
+
+**Compile errors:**
+- Ensure all imports are correct
+- Check for typos in module names
+- Clear node_modules and reinstall
+
+---
+
+**Ready to integrate into your module!** Copy/paste, replace placeholders, and test. 🚀
