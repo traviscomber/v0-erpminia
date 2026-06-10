@@ -103,7 +103,6 @@ const DOCUMENT_TYPES_BY_MODULE: Record<string, string[]> = {
     'Reglamento Contratistas',
     'Reglamento Entrega EPP',
     'Reglamento Ingreso Personas y Vehículos',
-    'Reglamento ingreso de explosivos',
     'Reglamento Interno (DS 44)',
     'Reglamento Interno Acuíferos',
     'Reglamento interno de acuñadura',
