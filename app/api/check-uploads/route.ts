@@ -18,15 +18,8 @@ export async function GET() {
       return NextResponse.json({ error: allError.message }, { status: 500 });
     }
 
-    // Get unique modules
-    const { data: modules, error: modulesError } = await supabase
-      .from('module_documents')
-      .select('module')
-      .distinct();
-
-    if (modulesError) {
-      console.error('[v0] Error getting modules:', modulesError);
-    }
+    // Get unique modules from documents
+    const uniqueModules = [...new Set(allDocuments?.map((d) => d.module).filter(Boolean) || [])];
 
     // Count by module
     const byModule: Record<string, number> = {};
@@ -60,7 +53,7 @@ export async function GET() {
       total_documents: allDocuments?.length || 0,
       status_breakdown: statusBreakdown,
       documents_by_module: byModule,
-      all_modules: modules?.map((m) => m.module) || [],
+      all_modules: uniqueModules,
       sample_documents: allDocuments?.slice(0, 10).map((d) => ({
         name: d.document_name,
         module: d.module,
