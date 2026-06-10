@@ -46,6 +46,7 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file') as File;
     const module = formData.get('module') as string;
     const category = formData.get('category') as string;
+    const documentType = formData.get('documentType') as string;
     const description = formData.get('description') as string;
     const validFrom = formData.get('validFrom') as string;
     const validUntil = formData.get('validUntil') as string;
@@ -150,6 +151,7 @@ export async function POST(request: NextRequest) {
           category,
           document_name: file.name,
           document_type: fileType,
+          document_type_category: documentType,
           file_path: uploadData.path,
           file_size_bytes: file.size,
           file_url: publicUrlData.publicUrl,
