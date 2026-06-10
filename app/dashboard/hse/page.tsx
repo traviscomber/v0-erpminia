@@ -34,9 +34,9 @@ export default function HSEPage() {
           <div className="space-y-2 mt-4">
             <div className="flex justify-between items-center">
               <span className="text-sm">Incident Response Time (avg)</span>
-              <span className="text-sm font-semibold">2.3 hours</span>
+              <span className="text-sm font-semibold">{'2.3 hours'}</span>
             </div>
-            <div className="text-xs text-muted-foreground">Target: <2 hours</div>
+            <div className="text-xs text-muted-foreground">{'Target: <2 hours'}</div>
           </div>
 
           <div className="space-y-2 mt-4">
