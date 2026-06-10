@@ -24,5 +24,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   if (error) return NextResponse.json({ error: error.message }, { status: 404 });
 
-  return NextResponse.json({ carpeta });
+  // Normalise shape: expose documentos as top-level array for component convenience
+  const { carpeta_documentos: documentos, ...rest } = carpeta as typeof carpeta & { carpeta_documentos: unknown[] };
+  return NextResponse.json({ carpeta: rest, documentos: documentos ?? [] });
 }
