@@ -1,12 +1,71 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
-import { Upload, Loader, CheckCircle2, AlertCircle, X } from 'lucide-react';
+import { Upload, Loader, CheckCircle2, AlertCircle, X, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
+
+// Tipos de documentos por módulo
+const DOCUMENT_TYPES_BY_MODULE: Record<string, string[]> = {
+  prevención: [
+    'Certificado de Afiliación',
+    'Certificado de Accidentabilidad',
+    'Reglamento Interno (DS 44)',
+    'IRL (Índice de Riesgo Laboral)',
+    'Contratos de Trabajo',
+    'Registro Entrega EPP',
+    'Reglamento Entrega EPP',
+    'SGSST (Sistema de Gestión de Seguridad)',
+    'Procedimientos de Trabajo Críticos',
+    'Exámenes Pre-ocupacionales',
+    'Exámenes Ocupacionales',
+    'Licencias de Conducción',
+    'Licencias de Izamiento',
+    'Matriz MIPER (Identificación de Peligros)',
+    'Procedimiento en caso de Accidente',
+    'Política de Riesgos',
+    'Programa de Capacitación HSE',
+    'Certificados de Afiliación Actualizado',
+    'Documentos de Cumplimiento Regulatorio',
+  ],
+  mantenimiento: [
+    'Manual de Procedimiento',
+    'Protocolo de Mantenimiento',
+    'Checklist de Inspección',
+    'Registro de Trabajos',
+    'Procedimiento de Emergencia',
+  ],
+  finanzas: [
+    'Política Financiera',
+    'Procedimiento de Presupuesto',
+    'Instructivo de Compras',
+    'Política de Gastos',
+    'Procedimiento de Facturación',
+  ],
+  bodega: [
+    'Procedimiento de Almacenamiento',
+    'Checklist de Inventario',
+    'Política de Rotación',
+    'Procedimiento de Devoluciones',
+  ],
+  hse: [
+    'Política HSE',
+    'Procedimiento de Seguridad',
+    'Matriz de Riesgos',
+    'Plan de Emergencia',
+    'Protocolo de Salud',
+  ],
+  legal: [
+    'Contrato',
+    'Política Corporativa',
+    'Términos y Condiciones',
+    'Documento de Compliance',
+    'Regulación Interna',
+  ],
+};
 
 interface DocumentUploadProps {
   module: string; // 'prevención', 'mantenimiento', 'finanzas', etc
@@ -20,12 +79,16 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [documentType, setDocumentType] = useState<string>('');
+  const [showDropdown, setShowDropdown] = useState(false);
   const [formData, setFormData] = useState({
     description: '',
     validFrom: '',
     validUntil: '',
   });
   const dragRef = useRef<HTMLDivElement>(null);
+
+  const availableTypes = DOCUMENT_TYPES_BY_MODULE[module] || [];
 
   const acceptedTypes = {
     'application/pdf': ['.pdf'],
@@ -101,6 +164,12 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
       return;
     }
 
+    if (!documentType) {
+      setErrorMessage('Selecciona el tipo de documento');
+      setUploadStatus('error');
+      return;
+    }
+
     setIsUploading(true);
     setUploadStatus('uploading');
     setErrorMessage('');
@@ -110,6 +179,7 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
       uploadFormData.append('file', file);
       uploadFormData.append('module', module);
       uploadFormData.append('category', category);
+      uploadFormData.append('documentType', documentType);
       uploadFormData.append('description', formData.description);
       uploadFormData.append('validFrom', formData.validFrom);
       uploadFormData.append('validUntil', formData.validUntil);
@@ -131,6 +201,7 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
           onUploadSuccess(documentId, file.name);
         }
         setFile(null);
+        setDocumentType('');
         setFormData({ description: '', validFrom: '', validUntil: '' });
       }, 2000);
     } catch (err) {
@@ -139,7 +210,7 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
       setUploadStatus('error');
       setIsUploading(false);
     }
-  }, [file, module, category, formData, onUploadSuccess]);
+  }, [file, module, category, documentType, formData, onUploadSuccess]);
 
   return (
     <Card className="w-full p-6">
@@ -206,6 +277,49 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
             </>
           )}
         </div>
+
+        {/* Document Type Selector */}
+        {file && uploadStatus === 'idle' && (
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Tipo de Documento *</label>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowDropdown(!showDropdown)}
+                className={cn(
+                  'w-full px-3 py-2 rounded-md border transition-colors text-left flex items-center justify-between',
+                  documentType ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
+                )}
+              >
+                <span className={documentType ? 'text-foreground font-medium' : 'text-muted-foreground'}>
+                  {documentType || 'Selecciona un tipo de documento'}
+                </span>
+                <ChevronDown className={cn('h-4 w-4 transition-transform', showDropdown && 'transform rotate-180')} />
+              </button>
+
+              {showDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-1 border border-border rounded-md bg-background shadow-lg z-50 max-h-48 overflow-y-auto">
+                  {availableTypes.map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => {
+                        setDocumentType(type);
+                        setShowDropdown(false);
+                      }}
+                      className={cn(
+                        'w-full px-3 py-2 text-left text-sm hover:bg-primary/10 transition-colors',
+                        documentType === type && 'bg-primary/20 font-medium'
+                      )}
+                    >
+                      {type}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Metadata Form */}
         {file && uploadStatus === 'idle' && (
