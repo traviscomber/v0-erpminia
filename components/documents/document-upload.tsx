@@ -33,6 +33,7 @@ const DOCUMENT_TYPES_BY_MODULE: Record<string, string[]> = {
     'Evaluación de Procedimiento',
     'Evaluación de Procedimiento de Emergencia Incendio',
     'Evaluación procedimiento operación cargador frontal',
+    'Evaluación procedimiento operación camión Tolva',
     'Evaluación procedimiento operación DTM',
     'Evaluación procedimiento de emergencia en caso de accidente o enfermedad grave',
     'Evaluación Operación Chancado',
