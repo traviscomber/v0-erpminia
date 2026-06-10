@@ -77,8 +77,14 @@ export default function DocumentosDashboard() {
     await Promise.all([mutateDocuments(), mutateApprovals(), mutateStats()]);
   };
 
-  const handleViewDocument = (document: Document) => {
-    setSelectedDocument(document);
+  const handleViewDocument = (document: Document | string) => {
+    if (typeof document === 'string') {
+      // Si es solo un ID, buscar el documento en la lista
+      const doc = documents.find((d: any) => d.id === document);
+      if (doc) setSelectedDocument(doc);
+    } else {
+      setSelectedDocument(document);
+    }
     setViewerOpen(true);
   };
 
@@ -205,8 +211,6 @@ export default function DocumentosDashboard() {
             documents={documents}
             isLoading={docsLoading}
             onView={handleViewDocument}
-            onSearch={setSearchQuery}
-            onStatusFilter={(status) => setStatusFilter(status || '')}
           />
         </TabsContent>
 
