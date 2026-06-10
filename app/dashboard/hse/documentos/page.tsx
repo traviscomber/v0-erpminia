@@ -185,11 +185,11 @@ export default function DocumentosHSEPage() {
       </div>
 
       <Tabs defaultValue="all" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="all">Todos</TabsTrigger>
-          <TabsTrigger value="vigentes">Vigentes</TabsTrigger>
-          <TabsTrigger value="revision">En Revisión</TabsTrigger>
-          <TabsTrigger value="upload">Subir Documentos</TabsTrigger>
+        <TabsList className="bg-muted/60 border-b-2 border-border p-1">
+          <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Todos</TabsTrigger>
+          <TabsTrigger value="vigentes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Vigentes</TabsTrigger>
+          <TabsTrigger value="revision" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">En Revisión</TabsTrigger>
+          <TabsTrigger value="upload" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Subir Documentos</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
