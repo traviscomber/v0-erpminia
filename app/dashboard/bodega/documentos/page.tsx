@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DocumentUpload } from '@/components/documents/document-upload';
@@ -49,6 +49,10 @@ export default function DocumentosBodegaPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadDocuments();
+  }, []);
 
   const handleDelete = async (documentId: string) => {
     try {

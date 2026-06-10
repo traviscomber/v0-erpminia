@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DocumentUpload } from '@/components/documents/document-upload';
@@ -31,11 +31,10 @@ export default function DocumentosHSEPage() {
   const loadDocuments = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/documents/list?module=prevencion&category=documentos-hse');
+      const response = await fetch('/api/documents/list?module=prevención&category=documentos-hse');
       const data = await response.json();
       if (Array.isArray(data)) {
         setDocuments(data);
-        // Calcular estadísticas
         setStats({
           total: data.length,
           vigentes: data.filter((d: Document) => d.status === 'active').length,
@@ -51,6 +50,10 @@ export default function DocumentosHSEPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadDocuments();
+  }, []);
 
   const handleDelete = async (documentId: string) => {
     try {
