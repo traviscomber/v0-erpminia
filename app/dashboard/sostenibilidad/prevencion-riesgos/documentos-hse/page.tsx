@@ -241,7 +241,7 @@ export default function DocumentosHSEPage() {
             </CardHeader>
             <CardContent>
               <DocumentUpload 
-                module="prevencion"
+                module="prevención"
                 category="documentos-hse"
                 onUploadSuccess={loadDocuments}
               />
