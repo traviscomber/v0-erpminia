@@ -1,43 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { resolveAuthContext } from '@/lib/api/auth-session';
+import { getSupabaseServerClient } from '@/lib/supabase-server';
 
 export const dynamic = 'force-dynamic';
 
+const BUCKET = 'module-documents';
+
 export async function GET(request: NextRequest) {
   try {
-    // Get auth token from header
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
+    const auth = await resolveAuthContext(request);
+    if (!auth) {
       return NextResponse.json(
-        { error: 'No authentication token' },
-        { status: 401 }
-      );
-    }
-
-    const token = authHeader.slice(7);
-
-    // Create authenticated Supabase client
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        global: {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      }
-    );
-
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Invalid or expired token' },
+        { error: 'No autenticado. Inicia sesión nuevamente.' },
         { status: 401 }
       );
     }
@@ -48,7 +22,6 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
     const search = searchParams.get('search');
 
-    // Validate module parameter
     if (!module) {
       return NextResponse.json(
         { error: 'El parámetro "module" es requerido' },
@@ -56,30 +29,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Verify user has access to this module
-    const { data: moduleAccess, error: accessError } = await supabase
-      .from('user_module_access')
-      .select('role')
-      .eq('user_id', user.id)
-      .eq('module_id', module)
-      .eq('status', 'active')
-      .maybeSingle();
+    const supabase = getSupabaseServerClient();
 
-    if (accessError || !moduleAccess) {
-      console.error('[v0] Module access denied:', {
-        userId: user.id,
-        module,
-        error: accessError,
-      });
-      return NextResponse.json(
-        {
-          error: `No tienes acceso al módulo "${module}"`,
-        },
-        { status: 403 }
-      );
-    }
-
-    // Build query - RLS will automatically filter based on user's role
     let query = supabase
       .from('module_documents')
       .select('*')
@@ -109,11 +60,21 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({
-      documents: data || [],
-      count: data?.length || 0,
-      userRole: moduleAccess.role,
-    });
+    // Generate signed download URLs for the private bucket
+    const documents = await Promise.all(
+      (data || []).map(async (doc) => {
+        let file_url: string | null = null;
+        if (doc.file_path) {
+          const { data: signed } = await supabase.storage
+            .from(BUCKET)
+            .createSignedUrl(doc.file_path, 60 * 60);
+          file_url = signed?.signedUrl || null;
+        }
+        return { ...doc, file_url };
+      })
+    );
+
+    return NextResponse.json(documents);
   } catch (error) {
     console.error('[v0] API error:', error);
     return NextResponse.json(
