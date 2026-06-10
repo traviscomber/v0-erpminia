@@ -5,10 +5,43 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
+    // Get auth token from header
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: 'No authentication token' },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.slice(7);
+
+    // Create authenticated Supabase client
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      }
     );
+
+    // Get authenticated user
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Invalid or expired token' },
+        { status: 401 }
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const module = formData.get('module') as string;
@@ -21,6 +54,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Faltan parámetros requeridos' },
         { status: 400 }
+      );
+    }
+
+    // Verify user has uploader access to this module
+    const { data: moduleAccess, error: accessError } = await supabase
+      .from('user_module_access')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('module_id', module)
+      .eq('status', 'active')
+      .maybeSingle();
+
+    if (accessError || !moduleAccess) {
+      console.error('[v0] Upload access denied:', {
+        userId: user.id,
+        module,
+      });
+      return NextResponse.json(
+        { error: `No tienes permiso para subir documentos en "${module}"` },
+        { status: 403 }
+      );
+    }
+
+    // Verify user has uploader or admin role
+    if (!['uploader', 'admin'].includes(moduleAccess.role)) {
+      return NextResponse.json(
+        { error: 'No tienes rol de cargador en este módulo' },
+        { status: 403 }
       );
     }
 
@@ -68,6 +129,7 @@ export async function POST(request: NextRequest) {
       });
 
     if (uploadError) {
+      console.error('[v0] Storage error:', uploadError);
       return NextResponse.json(
         { error: `Error al subir archivo: ${uploadError.message}` },
         { status: 500 }
@@ -94,8 +156,8 @@ export async function POST(request: NextRequest) {
           description,
           valid_from: validFrom || null,
           valid_until: validUntil || null,
-          status: 'draft', // Por defecto en borrador para revisión
-          uploaded_by: 'system', // TODO: Obtener del usuario autenticado
+          status: 'draft',
+          uploaded_by: user.id,
         },
       ])
       .select()
@@ -105,6 +167,7 @@ export async function POST(request: NextRequest) {
       // Si falla la BD, eliminar el archivo de storage
       await supabase.storage.from('documents').remove([uploadData.path]);
 
+      console.error('[v0] Database error:', dbError);
       return NextResponse.json(
         { error: `Error al crear registro: ${dbError.message}` },
         { status: 500 }
@@ -118,7 +181,7 @@ export async function POST(request: NextRequest) {
       message: 'Documento cargado exitosamente',
     });
   } catch (error) {
-    console.error('Upload error:', error);
+    console.error('[v0] Upload error:', error);
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }
