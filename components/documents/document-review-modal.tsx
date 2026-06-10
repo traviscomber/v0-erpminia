@@ -117,15 +117,25 @@ export function DocumentReviewModal({
 
           {/* Document Preview */}
           {document.file_url && (
-            <div className="space-y-2">
-              <label className="text-sm font-semibold">Vista Previa del Documento</label>
-              <PDFViewer
-                fileUrl={document.file_url}
-                fileName={document.document_name}
-                fileType={document.document_type}
-                maxHeight="max-h-[400px]"
-              />
-            </div>
+            <>
+              {(() => {
+                const preview = (
+                  <PDFViewer
+                    fileUrl={document.file_url}
+                    fileName={document.document_name}
+                    fileType={document.document_type}
+                    maxHeight="max-h-[400px]"
+                  />
+                );
+                // Solo mostrar la sección si hay contenido para previsualizar
+                return preview ? (
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold">Vista Previa del Documento</label>
+                    {preview}
+                  </div>
+                ) : null;
+              })()}
+            </>
           )}
 
           {/* Previous Observations (if exists) */}

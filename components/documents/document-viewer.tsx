@@ -14,6 +14,7 @@ interface PDFViewerProps {
 export function PDFViewer({ fileUrl, fileName, fileType, maxHeight = 'max-h-96' }: PDFViewerProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [canPreview, setCanPreview] = useState(true);
 
   // Determine actual file type from fileName if not provided
   const getFileType = () => {
@@ -25,29 +26,15 @@ export function PDFViewer({ fileUrl, fileName, fileType, maxHeight = 'max-h-96' 
   const actualFileType = getFileType();
   const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(actualFileType);
   const isPdf = actualFileType === 'pdf';
-  const isWord = ['doc', 'docx'].includes(actualFileType);
-  const isExcel = ['xls', 'xlsx', 'csv'].includes(actualFileType);
 
   useEffect(() => {
     setIsLoading(false);
     setError(null);
   }, [fileUrl]);
 
-  if (error) {
-    return (
-      <div className={`flex items-center justify-center bg-muted rounded-lg border border-dashed p-4 ${maxHeight}`}>
-        <div className="text-center space-y-2">
-          <AlertCircle className="h-5 w-5 text-destructive mx-auto" />
-          <p className="text-sm text-destructive">{error}</p>
-          <Button variant="outline" size="sm" asChild>
-            <a href={fileUrl} download={fileName} target="_blank" rel="noopener noreferrer">
-              <Download className="h-4 w-4 mr-2" />
-              Descargar documento
-            </a>
-          </Button>
-        </div>
-      </div>
-    );
+  if (error || !canPreview) {
+    // Si no se puede previsualizar, retornar null para no mostrar nada
+    return null;
   }
 
   // Imagen - mostrar preview inline
@@ -61,7 +48,7 @@ export function PDFViewer({ fileUrl, fileName, fileType, maxHeight = 'max-h-96' 
           onLoad={() => setIsLoading(false)}
           onError={() => {
             setIsLoading(false);
-            setError('No se pudo cargar la imagen');
+            setCanPreview(false);
           }}
         />
       </div>
@@ -85,70 +72,19 @@ export function PDFViewer({ fileUrl, fileName, fileType, maxHeight = 'max-h-96' 
           type="application/pdf"
           className={`w-full rounded border border-muted bg-white ${maxHeight}`}
           onLoad={() => setIsLoading(false)}
+          onError={() => {
+            setIsLoading(false);
+            setCanPreview(false);
+          }}
         >
-          <div className="flex flex-col items-center justify-center h-48 bg-muted p-4">
-            <FileText className="h-8 w-8 text-muted-foreground mb-2" />
-            <p className="text-sm text-muted-foreground mb-3">No se puede previsualizar el PDF en este navegador</p>
-            <Button variant="outline" size="sm" asChild>
-              <a href={fileUrl} download={fileName} target="_blank" rel="noopener noreferrer">
-                <Download className="h-4 w-4 mr-2" />
-                Descargar PDF
-              </a>
-            </Button>
-          </div>
+          <div />
         </object>
       </div>
     );
   }
 
-  // Word - mostrar icono + opción de descargar
-  if (isWord) {
-    return (
-      <div className={`flex flex-col items-center justify-center bg-muted rounded-lg border border-dashed p-6 ${maxHeight}`}>
-        <FileText className="h-12 w-12 text-muted-foreground mb-3" />
-        <p className="text-sm font-medium text-foreground mb-1">Documento Word</p>
-        <p className="text-xs text-muted-foreground mb-3">No se puede previsualizar en el navegador</p>
-        <Button variant="outline" size="sm" asChild>
-          <a href={fileUrl} download={fileName} target="_blank" rel="noopener noreferrer">
-            <Download className="h-4 w-4 mr-2" />
-            Descargar {actualFileType.toUpperCase()}
-          </a>
-        </Button>
-      </div>
-    );
-  }
-
-  // Excel - mostrar icono + opción de descargar
-  if (isExcel) {
-    return (
-      <div className={`flex flex-col items-center justify-center bg-muted rounded-lg border border-dashed p-6 ${maxHeight}`}>
-        <FileSpreadsheet className="h-12 w-12 text-muted-foreground mb-3" />
-        <p className="text-sm font-medium text-foreground mb-1">Documento Excel</p>
-        <p className="text-xs text-muted-foreground mb-3">No se puede previsualizar en el navegador</p>
-        <Button variant="outline" size="sm" asChild>
-          <a href={fileUrl} download={fileName} target="_blank" rel="noopener noreferrer">
-            <Download className="h-4 w-4 mr-2" />
-            Descargar {actualFileType.toUpperCase()}
-          </a>
-        </Button>
-      </div>
-    );
-  }
-
-  // Archivo desconocido
-  return (
-    <div className={`flex flex-col items-center justify-center bg-muted rounded-lg border border-dashed p-6 ${maxHeight}`}>
-      <FileText className="h-12 w-12 text-muted-foreground mb-3" />
-      <p className="text-sm font-medium text-foreground mb-1">Archivo: {actualFileType.toUpperCase() || 'Desconocido'}</p>
-      <p className="text-xs text-muted-foreground mb-3">Tipo de archivo no soportado para vista previa</p>
-      <Button variant="outline" size="sm" asChild>
-        <a href={fileUrl} download={fileName} target="_blank" rel="noopener noreferrer">
-          <Download className="h-4 w-4 mr-2" />
-          Descargar archivo
-        </a>
-      </Button>
-    </div>
-  );
+  // Para otros tipos (Word, Excel, etc), no mostrar preview
+  return null;
 }
 
 // Keep the old DocumentViewer component for backwards compatibility in other places
