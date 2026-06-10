@@ -48,6 +48,11 @@ const DOCUMENT_TYPES_BY_MODULE: Record<string, string[]> = {
     'Licencia de Conducción',
     'Licencia de Izamiento',
     
+    // Documentos de Identidad
+    'Carnet de Identidad (CI)',
+    'DNI (Documento Nacional de Identidad)',
+    'Cédula de Identidad',
+    
     // Documentos Administrativos
     'Acta de Entrega',
     'Recepción Firmada',
