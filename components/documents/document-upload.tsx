@@ -14,7 +14,7 @@ const DOCUMENT_TYPES_BY_MODULE: Record<string, string[]> = {
     'Acta de Entrega',
     'Anexo Contrato',
     'Anexo Reglamento Interno Acuíferos',
-    'Asistencia a Capacitación Manual de Comunicación Radiada',
+    'Asistencia a Capacitación Manual de Comunicación Radial',
     'Autorización ABREN',
     'Autorización Rescatador',
     'Autorizaciones Especiales',
