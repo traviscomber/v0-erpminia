@@ -424,7 +424,17 @@ export default function CarpetaArranqueList({ status }: { status: string }) {
                               <Badge variant="outline" className="text-xs text-muted-foreground">Pendiente</Badge>
                             )}
                             {doc.file_path && (
-                              <button className="text-muted-foreground hover:text-primary transition-colors" title="Descargar">
+                              <button
+                                className="text-muted-foreground hover:text-primary transition-colors"
+                                title="Descargar"
+                                onClick={async () => {
+                                  const res = await fetch(`/api/carpeta-arranque/${carpeta.id}/download?slot=${doc.slot_index}`, { credentials: 'include' });
+                                  if (res.ok) {
+                                    const { url } = await res.json();
+                                    window.open(url, '_blank');
+                                  }
+                                }}
+                              >
                                 <Download className="h-3.5 w-3.5" />
                               </button>
                             )}
