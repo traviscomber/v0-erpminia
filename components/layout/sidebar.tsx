@@ -36,6 +36,7 @@ import {
   Building2,
   FileCheck,
   Scale,
+  File,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -72,6 +73,14 @@ const rolePermissions: Record<string, string[]> = {
   'Medio Ambiente': ['superadmin', 'admin', 'Sostenibilidad-Supervisor'],
   'Comunidades': ['superadmin', 'admin', 'Sostenibilidad-Supervisor'],
   'Flujo Documental': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'manager'],
+  // Documentos por módulo
+  'Documentos Mantenimiento': ['superadmin', 'admin', 'Operaciones-Supervisor'],
+  'Documentos Bodega': ['superadmin', 'admin', 'Bodega-Supervisor'],
+  'Documentos Compras': ['superadmin', 'admin', 'Compras-Supervisor'],
+  'Documentos Finanzas': ['superadmin', 'admin', 'Finanzas-Supervisor'],
+  'Documentos HSE': ['superadmin', 'admin', 'HSE-Supervisor', 'Sostenibilidad-Supervisor'],
+  'Documentos Legal': ['superadmin', 'admin', 'manager'],
+  'Documentos Prevención': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
 };
 
 const menuItems = [
@@ -104,6 +113,12 @@ const menuItems = [
     group: 'Operaciones',
   },
   {
+    label: 'Documentos Mantenimiento',
+    href: '/dashboard/mantenimiento/documentos',
+    icon: File,
+    group: 'Operaciones',
+  },
+  {
     label: 'Órdenes de Trabajo',
     href: '/dashboard/work-orders',
     icon: Plus,
@@ -113,6 +128,12 @@ const menuItems = [
     label: 'Bodega & Inventario',
     href: '/dashboard/bodega',
     icon: Boxes,
+    group: 'Operaciones',
+  },
+  {
+    label: 'Documentos Bodega',
+    href: '/dashboard/bodega/documentos',
+    icon: File,
     group: 'Operaciones',
   },
   
@@ -127,6 +148,12 @@ const menuItems = [
     label: 'Prevención de Riesgos',
     href: '/dashboard/sostenibilidad/prevencion-riesgos',
     icon: Shield,
+    group: 'Sostenibilidad',
+  },
+  {
+    label: 'Documentos Prevención',
+    href: '/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse',
+    icon: File,
     group: 'Sostenibilidad',
   },
   {
@@ -192,9 +219,21 @@ const menuItems = [
     group: 'Gestión Empresarial',
   },
   {
+    label: 'Documentos Compras',
+    href: '/dashboard/compras/documentos',
+    icon: File,
+    group: 'Gestión Empresarial',
+  },
+  {
     label: 'Finanzas & Presupuesto',
     href: '/dashboard/finanzas',
     icon: DollarSign,
+    group: 'Gestión Empresarial',
+  },
+  {
+    label: 'Documentos Finanzas',
+    href: '/dashboard/finanzas/documentos',
+    icon: File,
     group: 'Gestión Empresarial',
   },
   {
@@ -209,41 +248,31 @@ const menuItems = [
     icon: BarChart3,
     group: 'Gestión Empresarial',
   },
-  
-  // INTELIGENCIA ARTIFICIAL
-  {
-    label: 'IA Operacional Minera',
-    href: '/dashboard/ia-operacional',
-    icon: Cpu,
-    group: 'Inteligencia Artificial',
-  },
-  {
-    label: 'Dashboard de KPIs',
-    href: '/dashboard/kpi-dashboard',
-    icon: BarChart3,
-    group: 'Inteligencia Artificial',
-  },
-  
-  // ADMINISTRACIÓN DEL SISTEMA
-  {
-    label: 'Gestión de Usuarios',
-    href: '/dashboard/admin/users',
-    icon: Users,
-    group: 'Administración',
-  },
-  {
-    label: 'Gestión de Permisos',
-    href: '/dashboard/admin/permissions',
-    icon: Shield,
-    group: 'Administración',
-  },
-  
-  // LEGAL
   {
     label: 'Módulo Legal',
     href: '/dashboard/legal',
     icon: Scale,
     group: 'Gestión Empresarial',
+  },
+  {
+    label: 'Documentos Legal',
+    href: '/dashboard/legal/documentos',
+    icon: File,
+    group: 'Gestión Empresarial',
+  },
+  
+  // HSE
+  {
+    label: 'HSE',
+    href: '/dashboard/hse',
+    icon: Shield,
+    group: 'HSE',
+  },
+  {
+    label: 'Documentos HSE',
+    href: '/dashboard/hse/documentos',
+    icon: File,
+    group: 'HSE',
   },
   
   // AYUDA
@@ -264,6 +293,8 @@ export function Sidebar() {
     'Core': true,
     'Operaciones': true,
     'Sostenibilidad': true,
+    'Gestión Empresarial': false,
+    'HSE': false,
   });
   const [isMounted, setIsMounted] = useState(false);
 
@@ -351,7 +382,7 @@ export function Sidebar() {
         {/* Navigation Menu - v7 Sistema Completo 5 Módulos */}
         <nav className="flex-1 px-4 py-6 overflow-y-auto">
           <div className="space-y-2">
-            {['Core', 'Operaciones', 'Sostenibilidad', 'Gestión Empresarial', 'Inteligencia Artificial', 'Administración', 'Ayuda'].map((group) => {
+            {['Core', 'Operaciones', 'Sostenibilidad', 'Gestión Empresarial', 'HSE', 'Inteligencia Artificial', 'Administración', 'Ayuda'].map((group) => {
               const groupItems = filteredMenuItems.filter((item) => item.group === group);
               if (groupItems.length === 0) return null;
               const isExpanded = expandedGroups[group] ?? false;
