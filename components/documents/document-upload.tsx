@@ -107,6 +107,7 @@ const DOCUMENT_TYPES_BY_MODULE: Record<string, string[]> = {
     'Reglamento Interno Fortificación',
     'Reglamento interno de fortificación',
     'Reglamento Interno Transporte de Personal',
+    'Reglamento interno de transporte y conducción',
     'Reglamento Tránsito Interior Mina',
     'RIL (Evaluación de Riesgos)',
     'RROHH y Comprobantes de Recepción',
