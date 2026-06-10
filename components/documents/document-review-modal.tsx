@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Loader2 } from 'lucide-react';
+import { PDFViewer } from './document-viewer';
 
 interface Document {
   id: string;
@@ -17,6 +18,7 @@ interface Document {
   uploaded_at: string;
   uploaded_by: string;
   l1_observations?: string;
+  file_url?: string;
 }
 
 interface DocumentReviewModalProps {
@@ -80,7 +82,7 @@ export function DocumentReviewModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Revisar Documento</DialogTitle>
         </DialogHeader>
@@ -112,6 +114,19 @@ export function DocumentReviewModal({
               )}
             </div>
           </div>
+
+          {/* Document Preview */}
+          {document.file_url && (
+            <div className="space-y-2">
+              <label className="text-sm font-semibold">Vista Previa del Documento</label>
+              <PDFViewer
+                fileUrl={document.file_url}
+                fileName={document.document_name}
+                fileType={document.document_type}
+                maxHeight="max-h-[400px]"
+              />
+            </div>
+          )}
 
           {/* Previous Observations (if exists) */}
           {document.l1_observations && reviewLevel === 'L2' && (
