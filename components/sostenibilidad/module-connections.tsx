@@ -13,7 +13,7 @@ interface ConnectionFlow {
 
 export function SustainabilityModuleConnections() {
   const modules = [
-    { name: 'Inspecciones', path: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones-internas' },
+    { name: 'Inspecciones', path: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones' },
     { name: 'No-Conformidades', path: '/dashboard/sostenibilidad/no-conformidades' },
     { name: 'Acciones Correctivas', path: '/dashboard/sostenibilidad' },
     { name: 'Documentos HSE', path: '/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse' },

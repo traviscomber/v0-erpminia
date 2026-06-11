@@ -47,9 +47,9 @@ const modules = [
     bgColor: 'bg-secondary/10',
   },
   {
-    title: 'Inspecciones Internas',
+    title: 'Inspecciones',
     description: 'Planificación, ejecución y seguimiento de inspecciones de seguridad',
-    href: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones-internas',
+    href: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones',
     icon: ClipboardCheck,
     color: 'text-muted-foreground',
     bgColor: 'bg-muted',

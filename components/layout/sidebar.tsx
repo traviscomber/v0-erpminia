@@ -177,7 +177,7 @@ const menuItems = [
   },
   {
     label: 'Inspecciones',
-    href: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones-internas',
+    href: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones',
     icon: ClipboardCheck,
     group: 'Sostenibilidad',
   },
