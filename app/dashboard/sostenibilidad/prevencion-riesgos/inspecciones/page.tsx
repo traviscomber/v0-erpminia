@@ -13,6 +13,7 @@ import { ExportButtons } from '@/components/sostenibilidad/export-buttons';
 
 interface InspeccionInterna {
   id: string;
+  tipo: 'internas' | 'externas';
   numero_inspeccion: string;
   fecha_planificada: string;
   fecha_realizada?: string;
