@@ -10,10 +10,8 @@ import {
   Leaf,
   Users,
   Target,
-  AlertCircle,
   CheckCircle,
   Clock,
-  TrendingUp,
   Calendar,
   FileText,
 } from 'lucide-react';
@@ -27,8 +25,6 @@ interface PillarData {
   bgClass: string;
   borderClass: string;
   modules: Module[];
-  kpis: KPI[];
-  alerts: Alert[];
 }
 
 interface Module {
@@ -36,17 +32,6 @@ interface Module {
   path: string;
   count: number;
   status: 'pending' | 'active' | 'completed';
-}
-
-interface KPI {
-  label: string;
-  value: string | number;
-  trend?: 'up' | 'down' | 'stable';
-}
-
-interface Alert {
-  type: 'warning' | 'error' | 'info';
-  message: string;
 }
 
 export default function SostenibilidadDashboard() {
@@ -78,15 +63,6 @@ export default function SostenibilidadDashboard() {
         { name: 'Artículos EPP', path: '/dashboard/sostenibilidad/prevencion-riesgos/epp', count: 0, status: 'pending' },
         { name: 'KPI Prevención', path: '/dashboard/sostenibilidad/prevencion-riesgos/kpi', count: 0, status: 'active' },
       ],
-      kpis: [
-        { label: 'Días sin accidentes', value: 145, trend: 'up' },
-        { label: 'Tasa frecuencia', value: '2.3%', trend: 'down' },
-        { label: 'Capacitaciones mes', value: 3, trend: 'stable' },
-      ],
-      alerts: [
-        { type: 'warning', message: '2 EPP requieren renovación' },
-        { type: 'info', message: 'Capacitación ACHS próxima semana' },
-      ],
     },
     {
       title: 'Medio Ambiente',
@@ -98,14 +74,6 @@ export default function SostenibilidadDashboard() {
         { name: 'Monitoreos', path: '/dashboard/sostenibilidad/medio-ambiente', count: 0, status: 'active' },
         { name: 'Permisos', path: '/dashboard/sostenibilidad/medio-ambiente', count: 0, status: 'active' },
         { name: 'Planes Acción', path: '/dashboard/sostenibilidad/medio-ambiente', count: 0, status: 'pending' },
-      ],
-      kpis: [
-        { label: 'Emisiones (ton CO2)', value: '1,245', trend: 'down' },
-        { label: 'Consumo agua (m³)', value: '8,500', trend: 'stable' },
-        { label: 'Residuos reciclados %', value: '65%', trend: 'up' },
-      ],
-      alerts: [
-        { type: 'info', message: 'Reporte ambiental mensual debido' },
       ],
     },
     {
@@ -119,12 +87,6 @@ export default function SostenibilidadDashboard() {
         { name: 'Compromisos', path: '/dashboard/sostenibilidad/comunidades', count: 0, status: 'active' },
         { name: 'Licencia Social', path: '/dashboard/sostenibilidad/comunidades', count: 0, status: 'active' },
       ],
-      kpis: [
-        { label: 'Comunidades activas', value: 4, trend: 'stable' },
-        { label: 'Compromisos cumplidos %', value: '92%', trend: 'up' },
-        { label: 'Reuniones realizadas', value: 12, trend: 'up' },
-      ],
-      alerts: [],
     },
     {
       title: 'Proyectos Sostenibilidad',
@@ -136,14 +98,6 @@ export default function SostenibilidadDashboard() {
         { name: 'Iniciativas', path: '/dashboard/sostenibilidad/reportes', count: 0, status: 'active' },
         { name: 'Presupuesto', path: '/dashboard/sostenibilidad/reportes', count: 0, status: 'active' },
         { name: 'ROI Tracking', path: '/dashboard/sostenibilidad/reportes', count: 0, status: 'pending' },
-      ],
-      kpis: [
-        { label: 'Proyectos activos', value: 6, trend: 'stable' },
-        { label: 'Presupuesto utilizado %', value: '72%', trend: 'up' },
-        { label: 'Proyectos completados', value: 3, trend: 'up' },
-      ],
-      alerts: [
-        { type: 'warning', message: 'Proyecto fotovoltaico requiere revisión' },
       ],
     },
   ];
@@ -211,37 +165,11 @@ export default function SostenibilidadDashboard() {
                 </div>
               </div>
 
-              {/* KPIs */}
+              {/* KPIs - sin datos reales aún */}
               <div className="pt-4 border-t border-border">
-                <h3 className="text-sm font-semibold mb-3 text-foreground">KPIs Principales</h3>
-                <div className="grid grid-cols-1 gap-2">
-                  {pillar.kpis.map((kpi, kidx) => (
-                    <div key={kidx} className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">{kpi.label}</span>
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold">{kpi.value}</span>
-                        {kpi.trend === 'up' && <TrendingUp className="w-4 h-4 text-secondary" />}
-                        {kpi.trend === 'down' && <TrendingUp className="w-4 h-4 text-destructive rotate-180" />}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <h3 className="text-sm font-semibold mb-2 text-foreground">KPIs Principales</h3>
+                <p className="text-xs text-muted-foreground">Sin datos disponibles</p>
               </div>
-
-              {/* Alerts */}
-              {pillar.alerts.length > 0 && (
-                <div className="pt-4 border-t border-border">
-                  <h3 className="text-sm font-semibold mb-3 text-foreground">Alertas</h3>
-                  <div className="space-y-2">
-                    {pillar.alerts.map((alert, aidx) => (
-                      <div key={aidx} className="flex items-start gap-2 p-2 rounded bg-muted">
-                        <AlertCircle className={`w-4 h-4 mt-0.5 flex-shrink-0 ${alert.type === 'error' ? 'text-destructive' : alert.type === 'warning' ? 'text-primary' : 'text-muted-foreground'}`} />
-                        <p className="text-xs text-muted-foreground">{alert.message}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </CardContent>
           </Card>
         ))}
