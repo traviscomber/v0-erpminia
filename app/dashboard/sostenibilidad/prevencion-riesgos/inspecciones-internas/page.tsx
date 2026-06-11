@@ -96,9 +96,9 @@ export default function InspeccionesInternasPage() {
     <div className="min-h-screen bg-background p-6">
       <div className="mb-8 flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Inspecciones Internas</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Inspecciones</h1>
           <p className="text-muted-foreground">
-            Registro y seguimiento de inspecciones operacionales internas
+            Registro y seguimiento de inspecciones operacionales
           </p>
         </div>
         <Button
@@ -253,7 +253,7 @@ export default function InspeccionesInternasPage() {
             </table>
             {filteredInspecciones.length === 0 && (
               <div className="py-8 text-center text-muted-foreground">
-                No hay inspecciones internas registradas
+                No hay inspecciones registradas
               </div>
             )}
           </div>
