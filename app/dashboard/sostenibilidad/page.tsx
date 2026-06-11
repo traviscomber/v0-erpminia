@@ -51,10 +51,38 @@ interface Alert {
 
 export default function SostenibilidadDashboard() {
   const [loading, setLoading] = useState(true);
+  const [moduleCounts, setModuleCounts] = useState<Record<string, number>>({
+    'documentos-hse': 24,
+    'capacitaciones': 8,
+    'epp': 15,
+    'kpi': 12,
+  });
 
   useEffect(() => {
-    setLoading(false);
+    fetchModuleCounts();
   }, []);
+
+  const fetchModuleCounts = async () => {
+    try {
+      const categories = ['documentos-hse', 'capacitaciones', 'epp', 'kpi'];
+      const counts: Record<string, number> = {};
+
+      for (const category of categories) {
+        const response = await fetch(
+          `/api/documents/list?module=prevención&category=${category}`,
+          { credentials: 'include' }
+        );
+        const data = await response.json();
+        counts[category] = Array.isArray(data) ? data.length : 0;
+      }
+
+      setModuleCounts(counts);
+    } catch (error) {
+      console.error('[v0] Error fetching module counts:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Brandbook: 4 colors only - primary (naranja), secondary (verde), destructive (rojo), muted (gris)
   const pillars: PillarData[] = [
@@ -65,10 +93,10 @@ export default function SostenibilidadDashboard() {
       bgClass: 'bg-primary/10',
       borderClass: 'border-l-primary',
       modules: [
-        { name: 'Documentos HSE', path: '/dashboard/sostenibilidad/prevencion-riesgos/documentos', count: 24, status: 'active' },
-        { name: 'Capacitaciones', path: '/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones', count: 8, status: 'active' },
-        { name: 'Artículos EPP', path: '/dashboard/sostenibilidad/prevencion-riesgos/epp', count: 15, status: 'pending' },
-        { name: 'KPI Prevención', path: '/dashboard/sostenibilidad/prevencion-riesgos/kpi', count: 12, status: 'active' },
+        { name: 'Documentos HSE', path: '/dashboard/sostenibilidad/prevencion-riesgos/documentos', count: moduleCounts['documentos-hse'], status: 'active' },
+        { name: 'Capacitaciones', path: '/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones', count: moduleCounts['capacitaciones'], status: 'active' },
+        { name: 'Artículos EPP', path: '/dashboard/sostenibilidad/prevencion-riesgos/epp', count: moduleCounts['epp'], status: 'pending' },
+        { name: 'KPI Prevención', path: '/dashboard/sostenibilidad/prevencion-riesgos/kpi', count: moduleCounts['kpi'], status: 'active' },
       ],
       kpis: [
         { label: 'Días sin accidentes', value: 145, trend: 'up' },
