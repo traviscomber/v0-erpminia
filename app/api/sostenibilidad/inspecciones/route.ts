@@ -27,73 +27,13 @@ export async function GET(request: NextRequest) {
     
     if (error) {
       console.error('[v0] Error fetching inspecciones:', error);
-      
-      // Return mock data on error instead of failing
-      const mockData = [
-        {
-          id: 'INS-001',
-          numero_inspeccion: 'INS-2024-001',
-          fecha_planificada: '2024-06-05',
-          fecha_realizada: '2024-06-05',
-          faena: 'Faena Norte',
-          inspector: 'Juan García',
-          hallazgos_count: 2,
-          estado: 'cerrada',
-          reporte_url: '/reportes/ins-001.pdf',
-        },
-        {
-          id: 'INS-002',
-          numero_inspeccion: 'INS-2024-002',
-          fecha_planificada: '2024-06-08',
-          fecha_realizada: '2024-06-07',
-          faena: 'Faena Sur',
-          inspector: 'María López',
-          hallazgos_count: 0,
-          estado: 'realizada',
-          reporte_url: '/reportes/ins-002.pdf',
-        },
-        {
-          id: 'INS-003',
-          numero_inspeccion: 'INS-2024-003',
-          fecha_planificada: '2024-06-10',
-          faena: 'Faena Central',
-          inspector: 'Pedro Rodríguez',
-          hallazgos_count: 0,
-          estado: 'planificada',
-        },
-      ];
-      
-      return NextResponse.json({ data: mockData });
+      return NextResponse.json({ data: [] });
     }
 
     return NextResponse.json({ data: data || [] });
   } catch (error) {
     console.error('[v0] Error in inspecciones GET:', error);
-    
-    // Return mock data on any error
-    const mockData = [
-      {
-        id: 'INS-001',
-        numero_inspeccion: 'INS-2024-001',
-        fecha_planificada: '2024-06-05',
-        fecha_realizada: '2024-06-05',
-        faena: 'Faena Norte',
-        inspector: 'Juan García',
-        hallazgos_count: 2,
-        estado: 'cerrada',
-      },
-      {
-        id: 'INS-002',
-        numero_inspeccion: 'INS-2024-002',
-        fecha_planificada: '2024-06-08',
-        faena: 'Faena Sur',
-        inspector: 'María López',
-        hallazgos_count: 0,
-        estado: 'planificada',
-      },
-    ];
-    
-    return NextResponse.json({ data: mockData });
+    return NextResponse.json({ data: [] });
   }
 }
 
