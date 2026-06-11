@@ -51,40 +51,20 @@ interface Alert {
 
 export default function SostenibilidadDashboard() {
   const [loading, setLoading] = useState(true);
-  const [moduleCounts, setModuleCounts] = useState<Record<string, number>>({
-    'documentos-hse': 24,
-    'capacitaciones': 8,
-    'epp': 15,
-    'kpi': 12,
-  });
+  const [docCount, setDocCount] = useState(0);
 
   useEffect(() => {
-    fetchModuleCounts();
+    fetch('/api/documents/list?module=prevenci%C3%B3n&category=documentos-hse', {
+      credentials: 'include',
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data)) setDocCount(data.length);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
-  const fetchModuleCounts = async () => {
-    try {
-      const categories = ['documentos-hse', 'capacitaciones', 'epp', 'kpi'];
-      const counts: Record<string, number> = {};
-
-      for (const category of categories) {
-        const response = await fetch(
-          `/api/documents/list?module=prevención&category=${category}`,
-          { credentials: 'include' }
-        );
-        const data = await response.json();
-        counts[category] = Array.isArray(data) ? data.length : 0;
-      }
-
-      setModuleCounts(counts);
-    } catch (error) {
-      console.error('[v0] Error fetching module counts:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Brandbook: 4 colors only - primary (naranja), secondary (verde), destructive (rojo), muted (gris)
   const pillars: PillarData[] = [
     {
       title: 'Prevención de Riesgos',
@@ -93,10 +73,10 @@ export default function SostenibilidadDashboard() {
       bgClass: 'bg-primary/10',
       borderClass: 'border-l-primary',
       modules: [
-        { name: 'Documentos HSE', path: '/dashboard/sostenibilidad/prevencion-riesgos/documentos', count: moduleCounts['documentos-hse'], status: 'active' },
-        { name: 'Capacitaciones', path: '/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones', count: moduleCounts['capacitaciones'], status: 'active' },
-        { name: 'Artículos EPP', path: '/dashboard/sostenibilidad/prevencion-riesgos/epp', count: moduleCounts['epp'], status: 'pending' },
-        { name: 'KPI Prevención', path: '/dashboard/sostenibilidad/prevencion-riesgos/kpi', count: moduleCounts['kpi'], status: 'active' },
+        { name: 'Documentos HSE', path: '/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse', count: docCount, status: 'active' },
+        { name: 'Capacitaciones', path: '/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones', count: 0, status: 'active' },
+        { name: 'Artículos EPP', path: '/dashboard/sostenibilidad/prevencion-riesgos/epp', count: 0, status: 'pending' },
+        { name: 'KPI Prevención', path: '/dashboard/sostenibilidad/prevencion-riesgos/kpi', count: 0, status: 'active' },
       ],
       kpis: [
         { label: 'Días sin accidentes', value: 145, trend: 'up' },
@@ -115,9 +95,9 @@ export default function SostenibilidadDashboard() {
       bgClass: 'bg-secondary/10',
       borderClass: 'border-l-secondary',
       modules: [
-        { name: 'Monitoreos', path: '/dashboard/sostenibilidad/medio-ambiente/monitoreos', count: 12, status: 'active' },
-        { name: 'Permisos', path: '/dashboard/sostenibilidad/medio-ambiente/permisos', count: 5, status: 'active' },
-        { name: 'Planes Acción', path: '/dashboard/sostenibilidad/medio-ambiente/planes-accion', count: 3, status: 'pending' },
+        { name: 'Monitoreos', path: '/dashboard/sostenibilidad/medio-ambiente', count: 0, status: 'active' },
+        { name: 'Permisos', path: '/dashboard/sostenibilidad/medio-ambiente', count: 0, status: 'active' },
+        { name: 'Planes Acción', path: '/dashboard/sostenibilidad/medio-ambiente', count: 0, status: 'pending' },
       ],
       kpis: [
         { label: 'Emisiones (ton CO2)', value: '1,245', trend: 'down' },
@@ -135,9 +115,9 @@ export default function SostenibilidadDashboard() {
       bgClass: 'bg-muted',
       borderClass: 'border-l-muted-foreground',
       modules: [
-        { name: 'Stakeholders', path: '/dashboard/sostenibilidad/comunidades/stakeholders', count: 18, status: 'active' },
-        { name: 'Compromisos', path: '/dashboard/sostenibilidad/comunidades/compromisos', count: 7, status: 'active' },
-        { name: 'Licencia Social', path: '/dashboard/sostenibilidad/comunidades/licencia-social', count: 2, status: 'active' },
+        { name: 'Stakeholders', path: '/dashboard/sostenibilidad/comunidades', count: 0, status: 'active' },
+        { name: 'Compromisos', path: '/dashboard/sostenibilidad/comunidades', count: 0, status: 'active' },
+        { name: 'Licencia Social', path: '/dashboard/sostenibilidad/comunidades', count: 0, status: 'active' },
       ],
       kpis: [
         { label: 'Comunidades activas', value: 4, trend: 'stable' },
@@ -153,9 +133,9 @@ export default function SostenibilidadDashboard() {
       bgClass: 'bg-destructive/10',
       borderClass: 'border-l-destructive',
       modules: [
-        { name: 'Iniciativas', path: '/dashboard/sostenibilidad/proyectos/iniciativas', count: 6, status: 'active' },
-        { name: 'Presupuesto', path: '/dashboard/sostenibilidad/proyectos/presupuesto', count: 1, status: 'active' },
-        { name: 'ROI Tracking', path: '/dashboard/sostenibilidad/proyectos/roi', count: 6, status: 'pending' },
+        { name: 'Iniciativas', path: '/dashboard/sostenibilidad/reportes', count: 0, status: 'active' },
+        { name: 'Presupuesto', path: '/dashboard/sostenibilidad/reportes', count: 0, status: 'active' },
+        { name: 'ROI Tracking', path: '/dashboard/sostenibilidad/reportes', count: 0, status: 'pending' },
       ],
       kpis: [
         { label: 'Proyectos activos', value: 6, trend: 'stable' },
