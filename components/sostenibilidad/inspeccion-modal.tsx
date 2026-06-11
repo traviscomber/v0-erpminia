@@ -26,6 +26,7 @@ import { AlertCircle, Loader2 } from 'lucide-react';
 
 // Validación
 const inspeccionSchema = z.object({
+  tipo: z.enum(['internas', 'externas']),
   numero_inspeccion: z.string().min(3, 'Mínimo 3 caracteres'),
   fecha_planificada: z.string().min(1, 'Selecciona una fecha'),
   faena: z.string().min(1, 'Selecciona una faena'),
@@ -62,6 +63,7 @@ export function InspeccionModal({
   } = useForm<InspeccionFormData>({
     resolver: zodResolver(inspeccionSchema),
     defaultValues: inspeccion || {
+      tipo: 'internas',
       numero_inspeccion: '',
       fecha_planificada: new Date().toISOString().split('T')[0],
       faena: '',
@@ -72,12 +74,14 @@ export function InspeccionModal({
   });
 
   const estado = watch('estado');
+  const tipo = watch('tipo');
 
   useEffect(() => {
     if (open && inspeccion) {
       reset(inspeccion);
     } else if (open) {
       reset({
+        tipo: 'internas',
         numero_inspeccion: '',
         fecha_planificada: new Date().toISOString().split('T')[0],
         faena: '',
@@ -94,13 +98,13 @@ export function InspeccionModal({
 
     try {
       const url = inspeccion?.id
-        ? `/api/sostenibilidad/inspecciones?id=${inspeccion.id}&tipo=internas`
+        ? `/api/sostenibilidad/inspecciones?id=${inspeccion.id}&tipo=${data.tipo}`
         : '/api/sostenibilidad/inspecciones';
 
       const method = inspeccion?.id ? 'PUT' : 'POST';
       const body = inspeccion?.id
-        ? { id: inspeccion.id, tipo: 'internas', ...data }
-        : { tipo: 'internas', ...data };
+        ? { id: inspeccion.id, ...data }
+        : { ...data };
 
       const response = await fetch(url, {
         method,
@@ -145,8 +149,8 @@ export function InspeccionModal({
           </DialogTitle>
           <DialogDescription>
             {inspeccion?.id
-              ? 'Modifica los detalles de la inspección interna'
-              : 'Registra una nueva inspección interna'}
+              ? 'Modifica los detalles de la inspección'
+              : 'Registra una nueva inspección'}
           </DialogDescription>
         </DialogHeader>
 
@@ -157,6 +161,27 @@ export function InspeccionModal({
               <p className="text-sm text-destructive">{error}</p>
             </div>
           )}
+
+          {/* Tipo de Inspección */}
+          <div>
+            <label className="text-sm font-medium mb-1 block">
+              Tipo de Inspección *
+            </label>
+            <Select value={tipo} onValueChange={(value) => setValue('tipo', value as any)} disabled={!!inspeccion?.id}>
+              <SelectTrigger className={errors.tipo ? 'border-destructive' : ''}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="internas">Interna</SelectItem>
+                <SelectItem value="externas">Externa</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.tipo && (
+              <p className="text-xs text-destructive mt-1">
+                {errors.tipo.message}
+              </p>
+            )}
+          </div>
 
           {/* Número de Inspección */}
           <div>
