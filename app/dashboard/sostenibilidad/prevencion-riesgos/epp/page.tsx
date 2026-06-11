@@ -35,6 +35,7 @@ export default function EPPPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCargo, setSelectedCargo] = useState<string>('');
   const [isOpen, setIsOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     cargo_puesto: '',
     elemento_epp: '',
@@ -43,6 +44,18 @@ export default function EPPPage() {
     frecuencia_reemplazo: 'semestral',
     activo: true,
   });
+
+  const resetForm = () => {
+    setEditingId(null);
+    setFormData({
+      cargo_puesto: '',
+      elemento_epp: '',
+      cantidad_elemento: 1,
+      marca_modelo: '',
+      frecuencia_reemplazo: 'semestral',
+      activo: true,
+    });
+  };
 
   const { data: epp, isLoading, mutate } = useSWR('/api/sostenibilidad/epp', fetcher);
 
@@ -66,30 +79,57 @@ export default function EPPPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/sostenibilidad/epp', {
-        method: 'POST',
+      const url = editingId
+        ? `/api/sostenibilidad/epp?id=${editingId}`
+        : '/api/sostenibilidad/epp';
+      const method = editingId ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
       if (response.ok) {
-        toast.success('EPP registrado correctamente');
+        toast.success(editingId ? 'EPP actualizado correctamente' : 'EPP registrado correctamente');
         setIsOpen(false);
-        setFormData({
-          cargo_puesto: '',
-          elemento_epp: '',
-          cantidad_elemento: 1,
-          marca_modelo: '',
-          frecuencia_reemplazo: 'semestral',
-          activo: true,
-        });
+        resetForm();
         mutate();
       } else {
-        toast.error('Error al registrar EPP');
+        toast.error(editingId ? 'Error al actualizar EPP' : 'Error al registrar EPP');
       }
     } catch (error) {
-      console.error('[v0] Error creating EPP:', error);
-      toast.error('Error al registrar EPP');
+      console.error('[v0] Error saving EPP:', error);
+      toast.error('Error al guardar EPP');
+    }
+  };
+
+  const handleEdit = (item: EPP) => {
+    setEditingId(item.id);
+    setFormData({
+      cargo_puesto: item.cargo_puesto,
+      elemento_epp: item.elemento_epp,
+      cantidad_elemento: item.cantidad_elemento,
+      marca_modelo: item.marca_modelo || '',
+      frecuencia_reemplazo: item.frecuencia_reemplazo,
+      activo: item.activo,
+    });
+    setIsOpen(true);
+  };
+
+  const handleDelete = async (id: string, nombre: string) => {
+    if (!confirm(`¿Eliminar "${nombre}"?`)) return;
+    try {
+      const response = await fetch(`/api/sostenibilidad/epp?id=${id}`, { method: 'DELETE' });
+      if (response.ok) {
+        toast.success('EPP eliminado correctamente');
+        mutate();
+      } else {
+        toast.error('Error al eliminar EPP');
+      }
+    } catch (error) {
+      console.error('[v0] Error deleting EPP:', error);
+      toast.error('Error al eliminar EPP');
     }
   };
 
@@ -103,7 +143,7 @@ export default function EPPPage() {
           </div>
           <p className="text-muted-foreground">Equipos de Protección Personal por puesto de trabajo</p>
         </div>
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild>
             <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
               <Plus className="w-4 h-4 mr-2" />
@@ -112,9 +152,9 @@ export default function EPPPage() {
           </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Registrar Nuevo EPP</DialogTitle>
+              <DialogTitle>{editingId ? 'Editar EPP' : 'Registrar Nuevo EPP'}</DialogTitle>
               <DialogDescription>
-                Agrega un nuevo equipo de protección personal
+                {editingId ? 'Modifica los datos del equipo de protección personal' : 'Agrega un nuevo equipo de protección personal'}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -200,7 +240,7 @@ export default function EPPPage() {
                   type="submit"
                   className="bg-primary text-primary-foreground hover:bg-primary/90"
                 >
-                  Crear EPP
+                  {editingId ? 'Guardar Cambios' : 'Crear EPP'}
                 </Button>
               </div>
             </form>
@@ -311,13 +351,23 @@ export default function EPPPage() {
                       </td>
                       <td className="py-3 px-4 text-right">
                         <div className="flex justify-end gap-2">
-                          <Button variant="ghost" size="sm" title="Editar">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            title="Editar"
+                            onClick={() => handleEdit(item)}
+                          >
                             <Edit className="w-4 h-4" />
                           </Button>
                           <Button variant="ghost" size="sm" title="Historial">
                             <Download className="w-4 h-4" />
                           </Button>
-                          <Button variant="ghost" size="sm" title="Eliminar">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            title="Eliminar"
+                            onClick={() => handleDelete(item.id, item.elemento_epp)}
+                          >
                             <Trash2 className="w-4 h-4 text-destructive" />
                           </Button>
                         </div>
