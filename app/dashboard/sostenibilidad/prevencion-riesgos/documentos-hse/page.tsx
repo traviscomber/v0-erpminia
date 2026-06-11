@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { DocumentUpload } from '@/components/documents/document-upload';
 import { DocumentList, Document } from '@/components/documents/document-list';
 import { DocumentReviewModal } from '@/components/documents/document-review-modal';
+import { AdvancedDocumentSearch } from '@/components/documents/advanced-search';
 import { FileText, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
 
 interface DocumentStats {
@@ -190,22 +191,17 @@ export default function DocumentosHSEPage() {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="all" className="space-y-4">
+      <Tabs defaultValue="search" className="space-y-4">
         <TabsList className="bg-muted/60 border-b-2 border-border p-1">
-          <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Todos</TabsTrigger>
+          <TabsTrigger value="search" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Búsqueda Avanzada</TabsTrigger>
           <TabsTrigger value="vigentes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Vigentes</TabsTrigger>
           <TabsTrigger value="revision" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">En Revisión</TabsTrigger>
           <TabsTrigger value="upload" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Subir Documentos</TabsTrigger>
         </TabsList>
 
-        {/* All Documents Tab */}
-        <TabsContent value="all" className="space-y-4">
-          <DocumentList
-            documents={documents}
-            isLoading={loading}
-            onView={handleView}
-            onDelete={handleDelete}
-          />
+        {/* Advanced Search Tab */}
+        <TabsContent value="search" className="space-y-4">
+          <AdvancedDocumentSearch />
         </TabsContent>
 
         {/* Vigentes Tab */}

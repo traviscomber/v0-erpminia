@@ -1,0 +1,83 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+import { z } from 'zod';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+const bulkUpdateSchema = z.object({
+  documentIds: z.array(z.string().uuid()),
+  tagsToAdd: z.array(z.string()).optional().default([]),
+  tagsToRemove: z.array(z.string()).optional().default([]),
+  module: z.string().default('prevención'),
+});
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { documentIds, tagsToAdd, tagsToRemove, module } = bulkUpdateSchema.parse(body);
+
+    if (documentIds.length === 0) {
+      return NextResponse.json({ error: 'No documents selected' }, { status: 400 });
+    }
+
+    if (tagsToAdd.length === 0 && tagsToRemove.length === 0) {
+      return NextResponse.json({ error: 'No tags to update' }, { status: 400 });
+    }
+
+    // Get current documents
+    const { data: docs, error: fetchError } = await supabase
+      .from('module_documents')
+      .select('id, tags')
+      .in('id', documentIds)
+      .eq('module', module);
+
+    if (fetchError) throw fetchError;
+
+    // Update each document
+    const updates = (docs || []).map((doc: any) => {
+      let updatedTags = Array.isArray(doc.tags) ? [...doc.tags] : [];
+
+      // Remove tags
+      updatedTags = updatedTags.filter((tag: string) => !tagsToRemove.includes(tag));
+
+      // Add tags (avoid duplicates)
+      tagsToAdd.forEach((tag) => {
+        if (!updatedTags.includes(tag)) {
+          updatedTags.push(tag);
+        }
+      });
+
+      return {
+        id: doc.id,
+        tags: updatedTags,
+        updated_at: new Date().toISOString(),
+      };
+    });
+
+    // Batch update
+    const { error: updateError } = await supabase
+      .from('module_documents')
+      .upsert(updates, { onConflict: 'id' });
+
+    if (updateError) throw updateError;
+
+    return NextResponse.json(
+      {
+        success: true,
+        updated: updates.length,
+        tagsAdded: tagsToAdd,
+        tagsRemoved: tagsToRemove,
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error('[v0] Bulk update tags error:', error);
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: 'Invalid parameters', details: error.errors }, { status: 400 });
+    }
+    return NextResponse.json({ error: 'Bulk update failed' }, { status: 500 });
+  }
+}
