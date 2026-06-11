@@ -49,11 +49,15 @@ export async function POST(request: NextRequest) {
       .select('*')
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.log('[v0] Supabase insert error:', JSON.stringify(error));
+      throw error;
+    }
 
     return NextResponse.json({ data }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to create capacitacion';
+    console.log('[v0] POST capacitacion catch error:', message, JSON.stringify(error));
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
