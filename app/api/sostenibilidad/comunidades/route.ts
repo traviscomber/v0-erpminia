@@ -54,6 +54,7 @@ export async function POST(request: NextRequest) {
         responsable:         body.responsable || null,
         observaciones:       body.observaciones || null,
         prioridad:           body.prioridad || 'media',
+        tipo_documento:      body.tipo_documento || null,
         created_by:          context.userId,
         updated_at:          new Date().toISOString(),
       })
