@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { listDocumentsForOrganization } from '@/lib/api/documents';
 import { getSustainabilityContext } from '@/lib/api/sostenibilidad-mvp';
 
 function buildApprovalChain(documentId: string) {
@@ -27,65 +28,29 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
-    const mineOnly =
-      searchParams.get('mine') === 'true' || searchParams.get('user_id') === context.userId;
+    const search = searchParams.get('search');
+    const limit = Number(searchParams.get('limit') || '50');
+    const offset = Number(searchParams.get('offset') || '0');
 
-    let query = context.supabase
-      .from('documents')
-      .select(
-        `
-        id,
-        title,
-        description,
-        category,
-        document_type,
-        status,
-        current_file_url,
-        file_size_mb,
-        file_mime_type,
-        created_by,
-        created_at,
-        updated_at,
-        document_approvals (
-          id,
-          approval_level,
-          approval_level_name,
-          required_role,
-          status,
-          assigned_to,
-          assigned_to_name,
-          approved_by,
-          approved_by_name,
-          comments,
-          rejection_reason,
-          approved_at
-        )
-      `
-      )
-      .eq('organization_id', context.organizationId)
-      .order('created_at', { ascending: false });
+    const result = await listDocumentsForOrganization(context.organizationId, {
+      status,
+      category: 'sostenibilidad',
+      search,
+      limit,
+      offset,
+    });
 
-    if (status) {
-      query = query.eq('status', status);
-    }
-
-    if (mineOnly) {
-      query = query.or(`created_by.eq.${context.userId},submitted_by.eq.${context.userId}`);
-    }
-
-    const { data, error } = await query;
-    if (error) throw error;
-
-    const mapped = (data || []).map((doc: any) => ({
+    const mapped = (result.documents || []).map((doc: any) => ({
       ...doc,
       documento_nombre: doc.title,
       descripcion: doc.description,
-      archivo_url: doc.current_file_url,
+      archivo_url: doc.fileUrl,
       estado: doc.status,
       creador_nombre: context.userName || context.userEmail || context.userId,
+      document_approvals: doc.steps || [],
     }));
 
-    return NextResponse.json({ success: true, data: mapped });
+    return NextResponse.json({ success: true, data: mapped, total: result.total });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to fetch documents';
     return NextResponse.json({ error: message }, { status: 500 });
@@ -101,7 +66,7 @@ export async function POST(request: NextRequest) {
     const title = String(body.title || body.documento_nombre || '').trim();
     const description = String(body.description || body.descripcion || '').trim();
     const category = String(body.category || 'sostenibilidad').trim();
-    const documentType = String(body.document_type || 'document').trim();
+    const documentType = String(body.document_type || body.documentType || 'document').trim();
     const fileUrl = String(body.file_url || body.archivo_url || '').trim();
     const fileSizeMb = body.file_size_mb ?? null;
     const fileMimeType = body.file_mime_type ?? null;
@@ -126,7 +91,9 @@ export async function POST(request: NextRequest) {
         file_mime_type: fileMimeType,
         updated_at: new Date().toISOString(),
       })
-      .select('id, title, description, category, document_type, status, current_file_url, created_by, created_at, updated_at')
+      .select(
+        'id, title, description, category, document_type, status, current_file_url, created_by, created_at, updated_at'
+      )
       .single();
 
     if (documentError) throw documentError;
@@ -154,6 +121,7 @@ export async function POST(request: NextRequest) {
           descripcion: document.description,
           archivo_url: document.current_file_url,
           estado: document.status,
+          creador_nombre: context.userName || context.userEmail || context.userId,
         },
       },
       { status: 201 }
