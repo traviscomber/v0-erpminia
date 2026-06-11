@@ -37,13 +37,14 @@ export default function DocumentosHSEPage() {
       const data = await response.json();
       if (Array.isArray(data)) {
         setDocuments(data);
+        console.log('[v0] Documents loaded:', data.slice(0, 3).map(d => ({ id: d.id, status: d.status })));
         setStats({
           total: data.length,
-          vigentes: data.filter((d: Document) => d.status === 'active').length,
+          vigentes: data.filter((d: Document) => d.status === 'aprobado').length,
           en_revision: data.filter((d: Document) => 
-            d.status === 'pending_l1' || d.status === 'pending_l2'
+            d.status === 'en_revision_l1' || d.status === 'en_revision_l2' || d.status === 'pending_l1' || d.status === 'pending_l2'
           ).length,
-          rechazados: data.filter((d: Document) => d.status === 'rejected').length,
+          rechazados: data.filter((d: Document) => d.status === 'rechazado' || d.status === 'rejected').length,
         });
       }
     } catch (error) {
@@ -200,7 +201,7 @@ export default function DocumentosHSEPage() {
         {/* Vigentes Tab */}
         <TabsContent value="vigentes" className="space-y-4">
           <DocumentList
-            documents={documents.filter(d => d.status === 'active')}
+            documents={documents.filter(d => d.status === 'aprobado')}
             isLoading={loading}
             onView={handleView}
             onDelete={handleDelete}
@@ -211,7 +212,7 @@ export default function DocumentosHSEPage() {
         <TabsContent value="revision" className="space-y-4">
           <DocumentList
             documents={documents.filter(d => 
-              d.status === 'pending_l1' || d.status === 'pending_l2'
+              d.status === 'en_revision_l1' || d.status === 'en_revision_l2' || d.status === 'pending_l1' || d.status === 'pending_l2'
             )}
             isLoading={loading}
             onView={handleView}
