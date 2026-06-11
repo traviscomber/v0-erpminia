@@ -77,11 +77,21 @@ export function DocumentList({
 }: DocumentListProps) {
   const [search, setSearch] = useState('');
   const [activeTag, setActiveTag] = useState<string>('');
+  const [activeType, setActiveType] = useState<string>('');
   const [deletingId, setDeletingId] = useState<string>('');
 
   const allTags = Array.from(
     new Set(documents.flatMap((d) => d.tags || []))
   ).sort();
+
+  // Build sorted list of unique document types with counts
+  const allTypes = Array.from(
+    documents.reduce((acc, doc) => {
+      const type = doc.document_type_category || doc.category || '';
+      if (type) acc.set(type, (acc.get(type) || 0) + 1);
+      return acc;
+    }, new Map<string, number>())
+  ).sort((a, b) => b[1] - a[1]);
 
   const filtered = documents.filter((doc) => {
     const name = (doc.document_name || doc.title || '').toLowerCase();
@@ -98,7 +108,10 @@ export function DocumentList({
 
     const matchesTag = !activeTag || (doc.tags || []).includes(activeTag);
 
-    return matchesSearch && matchesTag;
+    const matchesType = !activeType ||
+      (doc.document_type_category || doc.category || '') === activeType;
+
+    return matchesSearch && matchesTag && matchesType;
   });
 
   const formatFileSize = (bytes?: number) => {
@@ -162,6 +175,38 @@ export function DocumentList({
             )}
           </div>
 
+          {/* Type filter chips */}
+          {allTypes.length > 0 && (
+            <div className="flex flex-wrap gap-2 items-center">
+              <span className="text-xs text-muted-foreground flex-shrink-0">Tipo:</span>
+              <button
+                onClick={() => setActiveType('')}
+                className={cn(
+                  'px-2.5 py-1 rounded-full text-xs font-medium border transition-colors',
+                  !activeType
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-muted/50 text-muted-foreground border-border hover:border-primary/50'
+                )}
+              >
+                Todos ({documents.length})
+              </button>
+              {allTypes.map(([type, count]) => (
+                <button
+                  key={type}
+                  onClick={() => setActiveType(activeType === type ? '' : type)}
+                  className={cn(
+                    'px-2.5 py-1 rounded-full text-xs font-medium border transition-colors',
+                    activeType === type
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-muted/50 text-muted-foreground border-border hover:border-primary/50'
+                  )}
+                >
+                  {type} ({count})
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Tag filter chips */}
           {allTags.length > 0 && (
             <div className="flex flex-wrap gap-2 items-center">
@@ -186,11 +231,20 @@ export function DocumentList({
           )}
 
           {/* Results count when filtering */}
-          {(search || activeTag) && (
+          {(search || activeTag || activeType) && (
             <p className="text-xs text-muted-foreground">
               {filtered.length} resultado{filtered.length !== 1 ? 's' : ''}
+              {activeType && <span> en &quot;{activeType}&quot;</span>}
               {search && <span> para &quot;{search}&quot;</span>}
               {activeTag && <span> con tag &quot;{activeTag}&quot;</span>}
+              {(search || activeTag || activeType) && (
+                <button
+                  onClick={() => { setSearch(''); setActiveTag(''); setActiveType(''); }}
+                  className="ml-2 text-primary hover:underline"
+                >
+                  Limpiar
+                </button>
+              )}
             </p>
           )}
         </div>
@@ -201,11 +255,11 @@ export function DocumentList({
         <Card className="p-12 text-center border-dashed">
           <FileText className="mx-auto h-10 w-10 text-muted-foreground/40 mb-3" />
           <p className="text-sm font-medium text-muted-foreground">
-            {search || activeTag ? 'Sin resultados para esta búsqueda' : 'No hay documentos'}
+            {search || activeTag || activeType ? 'Sin resultados para esta búsqueda' : 'No hay documentos'}
           </p>
-          {(search || activeTag) && (
+          {(search || activeTag || activeType) && (
             <button
-              onClick={() => { setSearch(''); setActiveTag(''); }}
+              onClick={() => { setSearch(''); setActiveTag(''); setActiveType(''); }}
               className="mt-2 text-xs text-primary hover:underline"
             >
               Limpiar filtros
