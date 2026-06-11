@@ -28,7 +28,7 @@ import { toast } from 'sonner';
 interface Capacitacion {
   id: string;
   nombre_capacitacion: string;
-  tipo: 'ACHS' | 'OTEC' | 'inducción' | 'específica';
+  tipo: 'ACHS' | 'OTEC' | 'Inducción' | 'Específica' | 'Charla de Seguridad' | 'Simulacro' | 'Curso E-Learning' | 'Taller Práctico' | 'Certificación' | 'Reentrenamiento' | 'Legal/Normativa' | 'Liderazgo y Gestión';
   tema: string;
   programa_hse: string;
   proveedor_instructor: string;
@@ -177,10 +177,18 @@ export default function CapacitacionesPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="ACHS">ACHS</SelectItem>
-                      <SelectItem value="OTEC">OTEC</SelectItem>
-                      <SelectItem value="inducción">Inducción</SelectItem>
-                      <SelectItem value="específica">Específica</SelectItem>
+                  <SelectItem value="ACHS">ACHS</SelectItem>
+                  <SelectItem value="OTEC">OTEC</SelectItem>
+                  <SelectItem value="Inducción">Inducción</SelectItem>
+                  <SelectItem value="Específica">Específica</SelectItem>
+                  <SelectItem value="Charla de Seguridad">Charla de Seguridad</SelectItem>
+                  <SelectItem value="Simulacro">Simulacro</SelectItem>
+                  <SelectItem value="Curso E-Learning">Curso E-Learning</SelectItem>
+                  <SelectItem value="Taller Práctico">Taller Práctico</SelectItem>
+                  <SelectItem value="Certificación">Certificación</SelectItem>
+                  <SelectItem value="Reentrenamiento">Reentrenamiento</SelectItem>
+                  <SelectItem value="Legal/Normativa">Legal / Normativa</SelectItem>
+                  <SelectItem value="Liderazgo y Gestión">Liderazgo y Gestión</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
