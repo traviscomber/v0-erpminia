@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   Shield,
@@ -12,8 +11,6 @@ import {
   Target,
   CheckCircle,
   Clock,
-  Calendar,
-  FileText,
 } from 'lucide-react';
 import { SustainabilityWorkflowDiagram } from '@/components/sostenibilidad/sustainability-workflow-diagram';
 import { SustainabilityModuleConnections } from '@/components/sostenibilidad/module-connections';
@@ -110,22 +107,6 @@ export default function SostenibilidadDashboard() {
         <p className="text-muted-foreground">
           Gestión integrada de Prevención de Riesgos, Medio Ambiente, Comunidades y Proyectos
         </p>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="flex gap-4 mb-8 flex-wrap">
-        <Link href="/dashboard/sostenibilidad/calendario">
-          <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-            <Calendar className="w-4 h-4 mr-2" />
-            Calendario de Eventos
-          </Button>
-        </Link>
-        <Link href="/dashboard/sostenibilidad/documentos-flujo">
-          <Button variant="outline">
-            <FileText className="w-4 h-4 mr-2" />
-            Flujo Documental
-          </Button>
-        </Link>
       </div>
 
       {/* 4 Pillar Cards */}
