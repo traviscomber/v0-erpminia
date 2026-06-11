@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { FileText, Download, Eye, Trash2, CheckCircle2, AlertCircle, Clock, Search, Hash, Tag, X } from 'lucide-react';
+import { FileText, Download, Eye, Trash2, CheckCircle2, AlertCircle, Clock, Search, Hash, Tag, X, ChevronDown, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -78,6 +78,7 @@ export function DocumentList({
   const [search, setSearch] = useState('');
   const [activeTag, setActiveTag] = useState<string>('');
   const [activeType, setActiveType] = useState<string>('');
+  const [showFilters, setShowFilters] = useState(false);
   const [deletingId, setDeletingId] = useState<string>('');
 
   const allTags = Array.from(
@@ -156,77 +157,116 @@ export function DocumentList({
     <div className="space-y-4">
       {showSearch && (
         <div className="space-y-3">
-          {/* Search input */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-            <Input
-              placeholder="Buscar por nombre, código (ej: DPRMA-007), tipo de documento..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 pr-9"
-            />
-            {search && (
-              <button
-                onClick={() => setSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
+          {/* Search + filter toggle row */}
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <Input
+                placeholder="Buscar por nombre, código (ej: DPRMA-007), tipo de documento..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9 pr-9"
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+            <button
+              onClick={() => setShowFilters((v) => !v)}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-2 rounded-md border text-sm font-medium transition-colors',
+                showFilters || activeType || activeTag
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-muted/50 text-muted-foreground border-border hover:border-primary/50'
+              )}
+            >
+              <Filter className="h-4 w-4" />
+              Filtrar
+              {(activeType || activeTag) && (
+                <span className="ml-0.5 bg-primary-foreground text-primary rounded-full w-4 h-4 text-[10px] flex items-center justify-center font-bold">
+                  {[activeType, activeTag].filter(Boolean).length}
+                </span>
+              )}
+              <ChevronDown className={cn('h-3.5 w-3.5 transition-transform', showFilters && 'rotate-180')} />
+            </button>
           </div>
 
-          {/* Type filter chips */}
-          {allTypes.length > 0 && (
-            <div className="flex flex-wrap gap-2 items-center">
-              <span className="text-xs text-muted-foreground flex-shrink-0">Tipo:</span>
-              <button
-                onClick={() => setActiveType('')}
-                className={cn(
-                  'px-2.5 py-1 rounded-full text-xs font-medium border transition-colors',
-                  !activeType
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-muted/50 text-muted-foreground border-border hover:border-primary/50'
-                )}
-              >
-                Todos ({documents.length})
-              </button>
-              {allTypes.map(([type, count]) => (
-                <button
-                  key={type}
-                  onClick={() => setActiveType(activeType === type ? '' : type)}
-                  className={cn(
-                    'px-2.5 py-1 rounded-full text-xs font-medium border transition-colors',
-                    activeType === type
-                      ? 'bg-primary text-primary-foreground border-primary'
-                      : 'bg-muted/50 text-muted-foreground border-border hover:border-primary/50'
-                  )}
-                >
-                  {type} ({count})
-                </button>
-              ))}
-            </div>
-          )}
+          {/* Collapsible filter panel */}
+          {showFilters && (
+            <div className="border border-border rounded-lg p-3 space-y-3 bg-muted/20">
+              {/* Type filter */}
+              {allTypes.length > 0 && (
+                <div className="space-y-1.5">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Tipo de documento</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    <button
+                      onClick={() => setActiveType('')}
+                      className={cn(
+                        'px-2.5 py-1 rounded-full text-xs font-medium border transition-colors',
+                        !activeType
+                          ? 'bg-primary text-primary-foreground border-primary'
+                          : 'bg-muted/50 text-muted-foreground border-border hover:border-primary/50'
+                      )}
+                    >
+                      Todos ({documents.length})
+                    </button>
+                    {allTypes.map(([type, count]) => (
+                      <button
+                        key={type}
+                        onClick={() => setActiveType(activeType === type ? '' : type)}
+                        className={cn(
+                          'px-2.5 py-1 rounded-full text-xs font-medium border transition-colors',
+                          activeType === type
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'bg-muted/50 text-muted-foreground border-border hover:border-primary/50'
+                        )}
+                      >
+                        {type} ({count})
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-          {/* Tag filter chips */}
-          {allTags.length > 0 && (
-            <div className="flex flex-wrap gap-2 items-center">
-              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                <Tag className="h-3 w-3" /> Tags:
-              </span>
-              {allTags.map((tag) => (
+              {/* Tag filter */}
+              {allTags.length > 0 && (
+                <div className="space-y-1.5">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+                    <Tag className="h-3 w-3" /> Tags
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {allTags.map((tag) => (
+                      <button
+                        key={tag}
+                        onClick={() => setActiveTag(activeTag === tag ? '' : tag)}
+                        className={cn(
+                          'px-2.5 py-1 rounded-full text-xs font-medium border transition-colors',
+                          activeTag === tag
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'bg-muted/50 text-muted-foreground border-border hover:border-primary/50'
+                        )}
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Clear filters */}
+              {(activeType || activeTag) && (
                 <button
-                  key={tag}
-                  onClick={() => setActiveTag(activeTag === tag ? '' : tag)}
-                  className={cn(
-                    'px-2.5 py-1 rounded-full text-xs font-medium border transition-colors',
-                    activeTag === tag
-                      ? 'bg-primary text-primary-foreground border-primary'
-                      : 'bg-muted/50 text-muted-foreground border-border hover:border-primary/50'
-                  )}
+                  onClick={() => { setActiveType(''); setActiveTag(''); }}
+                  className="text-xs text-primary hover:underline"
                 >
-                  {tag}
+                  Limpiar filtros
                 </button>
-              ))}
+              )}
             </div>
           )}
 
