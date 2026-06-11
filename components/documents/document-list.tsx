@@ -1,28 +1,33 @@
 'use client';
 
 import { useState } from 'react';
-import { FileText, Download, Eye, Trash2, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
+import { FileText, Download, Eye, Trash2, CheckCircle2, AlertCircle, Clock, Search, Hash, Tag, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
-// Exportar interfaz para compatibilidad
 export interface Document {
   id: string;
   document_name?: string;
   document_type?: string;
+  document_type_category?: string;
+  document_code?: string;
+  tags?: string[];
   file_size_bytes?: number;
   uploaded_by?: string;
   uploaded_at?: string;
   valid_until?: string;
-  status?: 'draft' | 'pending_l1' | 'pending_l2' | 'active' | 'rejected' | 'pending' | 'approved' | string;
+  valid_from?: string;
+  status?: string;
   l1_observations?: string;
   l2_observations?: string;
   is_expired?: boolean;
   file_url?: string;
-  // Legacy fields para compatibilidad
+  description?: string;
+  version?: number;
+  // Legacy fields
   title?: string;
   documentNumber?: string;
   documentType?: string;
@@ -31,6 +36,8 @@ export interface Document {
   createdByUser?: { name: string };
   expiryDate?: string;
   daysUntilExpiry?: number;
+  // Allow any additional fields from legacy systems
+  [key: string]: any;
 }
 
 interface DocumentListProps {
@@ -38,14 +45,27 @@ interface DocumentListProps {
   isLoading?: boolean;
   onDelete?: (documentId: string) => Promise<void>;
   onView?: (document: Document | string) => void;
+  showSearch?: boolean;
 }
 
-const statusConfig: Record<string, any> = {
-  draft: { label: 'Borrador', icon: Clock, color: 'bg-gray-100 text-gray-800' },
-  pending_l1: { label: 'Revisión L1', icon: Clock, color: 'bg-blue-100 text-blue-800' },
-  pending_l2: { label: 'Revisión L2', icon: Clock, color: 'bg-yellow-100 text-yellow-800' },
-  active: { label: 'Aprobado', icon: CheckCircle2, color: 'bg-green-100 text-green-800' },
-  rejected: { label: 'Rechazado', icon: AlertCircle, color: 'bg-red-100 text-red-800' },
+const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
+  draft:          { label: 'Borrador',    color: 'bg-muted text-muted-foreground border border-border',             icon: Clock },
+  pending_l1:     { label: 'Revisión L1', color: 'bg-blue-500/10 text-blue-400 border border-blue-500/30',         icon: Clock },
+  pending_l2:     { label: 'Revisión L2', color: 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/30',   icon: Clock },
+  en_revision_l1: { label: 'Revisión L1', color: 'bg-blue-500/10 text-blue-400 border border-blue-500/30',         icon: Clock },
+  en_revision_l2: { label: 'Revisión L2', color: 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/30',   icon: Clock },
+  active:         { label: 'Vigente',     color: 'bg-green-500/10 text-green-400 border border-green-500/30',      icon: CheckCircle2 },
+  aprobado:       { label: 'Vigente',     color: 'bg-green-500/10 text-green-400 border border-green-500/30',      icon: CheckCircle2 },
+  rejected:       { label: 'Rechazado',   color: 'bg-red-500/10 text-red-400 border border-red-500/30',            icon: AlertCircle },
+  rechazado:      { label: 'Rechazado',   color: 'bg-red-500/10 text-red-400 border border-red-500/30',            icon: AlertCircle },
+};
+
+const typeColors: Record<string, string> = {
+  pdf:  'bg-red-500/10 text-red-400 border-red-500/30',
+  docx: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
+  doc:  'bg-blue-500/10 text-blue-400 border-blue-500/30',
+  xlsx: 'bg-green-500/10 text-green-400 border-green-500/30',
+  xls:  'bg-green-500/10 text-green-400 border-green-500/30',
 };
 
 export function DocumentList({
@@ -53,165 +73,250 @@ export function DocumentList({
   isLoading = false,
   onDelete,
   onView,
+  showSearch = true,
 }: DocumentListProps) {
   const [search, setSearch] = useState('');
-  const [filterStatus, setFilterStatus] = useState<string>('');
+  const [activeTag, setActiveTag] = useState<string>('');
   const [deletingId, setDeletingId] = useState<string>('');
 
+  const allTags = Array.from(
+    new Set(documents.flatMap((d) => d.tags || []))
+  ).sort();
+
   const filtered = documents.filter((doc) => {
-    const searchTerm = doc.document_name || doc.title || '';
-    const matchesSearch = searchTerm.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = !filterStatus || doc.status === filterStatus;
-    return matchesSearch && matchesStatus;
+    const name = (doc.document_name || doc.title || '').toLowerCase();
+    const code = (doc.document_code || '').toLowerCase();
+    const category = (doc.document_type_category || doc.category || '').toLowerCase();
+    const desc = (doc.description || '').toLowerCase();
+    const term = search.toLowerCase();
+
+    const matchesSearch = !term ||
+      name.includes(term) ||
+      code.includes(term) ||
+      category.includes(term) ||
+      desc.includes(term);
+
+    const matchesTag = !activeTag || (doc.tags || []).includes(activeTag);
+
+    return matchesSearch && matchesTag;
   });
 
   const formatFileSize = (bytes?: number) => {
-    if (!bytes || bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+    if (!bytes) return '';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   const formatDate = (date?: string) => {
-    if (!date) return '';
+    if (!date) return null;
     return new Date(date).toLocaleDateString('es-CL', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+      day: '2-digit', month: 'short', year: 'numeric',
     });
-  };
-
-  const getFileIcon = (type?: string) => {
-    const icons: Record<string, string> = {
-      pdf: '📄',
-      docx: '📝',
-      doc: '📝',
-      xlsx: '📊',
-      xls: '📊',
-    };
-    return icons[type || ''] || '📎';
   };
 
   const handleDelete = async (id: string) => {
     if (!onDelete) return;
     setDeletingId(id);
-    try {
-      await onDelete(id);
-    } finally {
-      setDeletingId('');
-    }
+    try { await onDelete(id); } finally { setDeletingId(''); }
   };
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <p className="text-sm text-muted-foreground">Cargando documentos...</p>
+      <div className="space-y-3">
+        {[...Array(4)].map((_, i) => (
+          <Card key={i} className="p-4 animate-pulse">
+            <div className="flex gap-3">
+              <div className="h-10 w-10 rounded-lg bg-muted" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 w-2/3 rounded bg-muted" />
+                <div className="h-3 w-1/3 rounded bg-muted" />
+              </div>
+            </div>
+          </Card>
+        ))}
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      {/* Search and Filter */}
-      <div className="flex gap-3">
-        <Input
-          placeholder="Buscar documentos..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="flex-1"
-        />
-        <select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-          className="px-3 py-2 rounded-md border border-input text-sm bg-background"
-        >
-          <option value="">Todos los estados</option>
-          {Object.entries(statusConfig).map(([key, config]) => (
-            <option key={key} value={key}>
-              {config.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      {showSearch && (
+        <div className="space-y-3">
+          {/* Search input */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <Input
+              placeholder="Buscar por nombre, código (ej: DPRMA-007), tipo de documento..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 pr-9"
+            />
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
 
-      {/* Documents List */}
+          {/* Tag filter chips */}
+          {allTags.length > 0 && (
+            <div className="flex flex-wrap gap-2 items-center">
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <Tag className="h-3 w-3" /> Tags:
+              </span>
+              {allTags.map((tag) => (
+                <button
+                  key={tag}
+                  onClick={() => setActiveTag(activeTag === tag ? '' : tag)}
+                  className={cn(
+                    'px-2.5 py-1 rounded-full text-xs font-medium border transition-colors',
+                    activeTag === tag
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-muted/50 text-muted-foreground border-border hover:border-primary/50'
+                  )}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Results count when filtering */}
+          {(search || activeTag) && (
+            <p className="text-xs text-muted-foreground">
+              {filtered.length} resultado{filtered.length !== 1 ? 's' : ''}
+              {search && <span> para &quot;{search}&quot;</span>}
+              {activeTag && <span> con tag &quot;{activeTag}&quot;</span>}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Empty state */}
       {filtered.length === 0 ? (
-        <Card className="p-8 text-center">
-          <FileText className="mx-auto h-12 w-12 text-muted-foreground/50 mb-3" />
-          <p className="text-sm text-muted-foreground">No hay documentos</p>
+        <Card className="p-12 text-center border-dashed">
+          <FileText className="mx-auto h-10 w-10 text-muted-foreground/40 mb-3" />
+          <p className="text-sm font-medium text-muted-foreground">
+            {search || activeTag ? 'Sin resultados para esta búsqueda' : 'No hay documentos'}
+          </p>
+          {(search || activeTag) && (
+            <button
+              onClick={() => { setSearch(''); setActiveTag(''); }}
+              className="mt-2 text-xs text-primary hover:underline"
+            >
+              Limpiar filtros
+            </button>
+          )}
         </Card>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {filtered.map((doc) => {
-            const status = statusConfig[doc.status || 'draft'];
-            const StatusIcon = status.icon;
+            const statusKey = doc.status || 'draft';
+            const statusCfg = statusConfig[statusKey] || statusConfig.draft;
+            const StatusIcon = statusCfg.icon;
             const displayName = doc.document_name || doc.title || 'Sin nombre';
-            const displayType = doc.document_type || doc.documentType || 'unknown';
+            const docType = (doc.document_type || '').toLowerCase();
+            const typeLabel = docType.toUpperCase() || 'FILE';
+            const typeColor = typeColors[docType] || 'bg-muted text-muted-foreground border-border';
+            const uploadDate = formatDate(doc.uploaded_at || doc.createdAt);
+            const validUntil = formatDate(doc.valid_until || doc.expiryDate);
 
             return (
-              <Card key={doc.id} className="p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-start gap-3 flex-1 min-w-0">
-                    {/* File Icon */}
-                    <div className="text-2xl mt-1">{getFileIcon(displayType)}</div>
+              <Card key={doc.id} className="p-4 hover:bg-muted/20 transition-colors">
+                <div className="flex items-start gap-3">
+                  {/* File type badge */}
+                  <div className={cn(
+                    'flex-shrink-0 h-10 w-10 rounded-lg flex items-center justify-center text-xs font-bold border',
+                    typeColor
+                  )}>
+                    {typeLabel}
+                  </div>
 
-                    {/* File Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <h3 className="font-semibold text-sm truncate">{displayName}</h3>
-                        <Badge variant="secondary" className="text-xs">
-                          {displayType.toUpperCase()}
-                        </Badge>
-                        <Badge className={cn('text-xs', status.color)}>
-                          <StatusIcon className="h-3 w-3 mr-1" />
-                          {status.label}
-                        </Badge>
-                        {doc.is_expired && (
-                          <Badge variant="destructive" className="text-xs">
-                            Vencido
-                          </Badge>
-                        )}
-                      </div>
+                  {/* Main info */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground leading-tight mb-1.5">
+                      {displayName}
+                    </p>
 
-                      <div className="text-xs text-muted-foreground space-y-1">
-                        {doc.file_size_bytes && <p>Tamaño: {formatFileSize(doc.file_size_bytes)}</p>}
-                        <p>Cargado: {formatDate(doc.uploaded_at || doc.createdAt)}</p>
-                        {(doc.valid_until || doc.expiryDate) && (
-                          <p className={cn(
-                            doc.is_expired ? 'text-destructive' : 'text-foreground'
-                          )}>
-                            Válido hasta: {formatDate(doc.valid_until || doc.expiryDate)}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Observations */}
-                      {(doc.l1_observations || doc.l2_observations) && (
-                        <div className="mt-2 p-2 bg-yellow-50 rounded text-xs">
-                          <p className="font-semibold text-yellow-900">Observaciones:</p>
-                          <p className="text-yellow-800">
-                            {doc.l1_observations || doc.l2_observations}
-                          </p>
-                        </div>
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      {/* Document code */}
+                      {doc.document_code && (
+                        <span className="inline-flex items-center gap-1 text-xs font-mono text-primary bg-primary/10 border border-primary/20 rounded px-2 py-0.5">
+                          <Hash className="h-3 w-3" />
+                          {doc.document_code}
+                        </span>
+                      )}
+                      {/* Type category */}
+                      {doc.document_type_category && (
+                        <span className="text-xs text-muted-foreground truncate max-w-[300px]">
+                          {doc.document_type_category}
+                        </span>
                       )}
                     </div>
+
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                      {/* Status */}
+                      <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium', statusCfg.color)}>
+                        <StatusIcon className="h-3 w-3" />
+                        {statusCfg.label}
+                      </span>
+                      {doc.version && doc.version > 1 && (
+                        <span>v{doc.version}</span>
+                      )}
+                      {doc.file_size_bytes && (
+                        <span>{formatFileSize(doc.file_size_bytes)}</span>
+                      )}
+                      {uploadDate && <span>{uploadDate}</span>}
+                      {validUntil && (
+                        <span className={cn(doc.is_expired ? 'text-red-400' : '')}>
+                          Válido hasta {validUntil}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Tags */}
+                    {doc.tags && doc.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {doc.tags.map((tag) => (
+                          <button
+                            key={tag}
+                            onClick={() => setActiveTag(activeTag === tag ? '' : tag)}
+                            className={cn(
+                              'text-xs px-2 py-0.5 rounded-full border transition-colors',
+                              activeTag === tag
+                                ? 'bg-primary/20 text-primary border-primary/40'
+                                : 'bg-muted/50 text-muted-foreground border-border hover:border-primary/30'
+                            )}
+                          >
+                            {tag}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Observations */}
+                    {(doc.l1_observations || doc.l2_observations) && (
+                      <div className="mt-2 p-2 bg-yellow-500/10 border border-yellow-500/20 rounded text-xs text-yellow-300">
+                        <span className="font-medium">Obs: </span>
+                        {doc.l1_observations || doc.l2_observations}
+                      </div>
+                    )}
                   </div>
 
                   {/* Actions */}
-                  <div className="flex gap-2 flex-shrink-0">
+                  <div className="flex gap-1 flex-shrink-0">
                     {onView && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => onView(doc)}
-                      >
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => onView(doc)}>
                         <Eye className="h-4 w-4" />
                       </Button>
                     )}
                     {doc.file_url && (
-                      <Button size="sm" variant="ghost" asChild>
-                        <a href={doc.file_url} download>
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0" asChild>
+                        <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
                           <Download className="h-4 w-4" />
                         </a>
                       </Button>
@@ -220,9 +325,9 @@ export function DocumentList({
                       <Button
                         size="sm"
                         variant="ghost"
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
                         onClick={() => handleDelete(doc.id)}
                         disabled={deletingId === doc.id}
-                        className="text-destructive hover:text-destructive"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

@@ -27,7 +27,6 @@ export default function DocumentosHSEPage() {
     rechazados: 0,
   });
 
-  // Cargar documentos al abrir la página
   const loadDocuments = async () => {
     setLoading(true);
     try {
@@ -37,14 +36,18 @@ export default function DocumentosHSEPage() {
       const data = await response.json();
       if (Array.isArray(data)) {
         setDocuments(data);
-        console.log('[v0] Documents loaded:', data.slice(0, 3).map(d => ({ id: d.id, status: d.status })));
         setStats({
           total: data.length,
-          vigentes: data.filter((d: Document) => d.status === 'aprobado').length,
-          en_revision: data.filter((d: Document) => 
-            d.status === 'en_revision_l1' || d.status === 'en_revision_l2' || d.status === 'pending_l1' || d.status === 'pending_l2'
+          vigentes: data.filter((d: Document) =>
+            d.status === 'aprobado' || d.status === 'active'
           ).length,
-          rechazados: data.filter((d: Document) => d.status === 'rechazado' || d.status === 'rejected').length,
+          en_revision: data.filter((d: Document) =>
+            d.status === 'en_revision_l1' || d.status === 'en_revision_l2' ||
+            d.status === 'pending_l1' || d.status === 'pending_l2'
+          ).length,
+          rechazados: data.filter((d: Document) =>
+            d.status === 'rechazado' || d.status === 'rejected'
+          ).length,
         });
       }
     } catch (error) {
@@ -65,7 +68,6 @@ export default function DocumentosHSEPage() {
         credentials: 'include',
       });
       if (response.ok) {
-        setDocuments(documents.filter(d => d.id !== documentId));
         await loadDocuments();
       }
     } catch (error) {
@@ -88,17 +90,10 @@ export default function DocumentosHSEPage() {
       const response = await fetch('/api/documents/review', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          documentId,
-          action: 'approve',
-          observations,
-          reviewLevel: 'L1',
-        }),
+        body: JSON.stringify({ documentId, action: 'approve', observations, reviewLevel: 'L1' }),
         credentials: 'include',
       });
-      if (response.ok) {
-        await loadDocuments();
-      }
+      if (response.ok) await loadDocuments();
     } catch (error) {
       console.error('Error aprobando documento:', error);
     }
@@ -109,21 +104,29 @@ export default function DocumentosHSEPage() {
       const response = await fetch('/api/documents/review', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          documentId,
-          action: 'reject',
-          observations,
-          reviewLevel: 'L1',
-        }),
+        body: JSON.stringify({ documentId, action: 'reject', observations, reviewLevel: 'L1' }),
         credentials: 'include',
       });
-      if (response.ok) {
-        await loadDocuments();
-      }
+      if (response.ok) await loadDocuments();
     } catch (error) {
       console.error('Error rechazando documento:', error);
     }
   };
+
+  // Draft docs are loaded but not yet reviewed — show them in main tab
+  const draftDocs = documents.filter(d =>
+    d.status === 'draft' || !d.status
+  );
+  const vigentesDocs = documents.filter(d =>
+    d.status === 'aprobado' || d.status === 'active'
+  );
+  const revisionDocs = documents.filter(d =>
+    d.status === 'en_revision_l1' || d.status === 'en_revision_l2' ||
+    d.status === 'pending_l1' || d.status === 'pending_l2'
+  );
+
+  // Default tab: show where documents actually are
+  const defaultTab = vigentesDocs.length > 0 ? 'vigentes' : draftDocs.length > 0 ? 'todos' : 'todos';
 
   return (
     <div className="space-y-6">
@@ -136,9 +139,9 @@ export default function DocumentosHSEPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center justify-between">
               <span>Total</span>
               <FileText className="h-4 w-4 text-muted-foreground" />
@@ -146,12 +149,12 @@ export default function DocumentosHSEPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{stats.total}</p>
-            <p className="text-xs text-muted-foreground">documentos</p>
+            <p className="text-xs text-muted-foreground">documentos cargados</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center justify-between">
               <span>Vigentes</span>
               <CheckCircle2 className="h-4 w-4 text-green-500" />
@@ -164,7 +167,7 @@ export default function DocumentosHSEPage() {
         </Card>
 
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center justify-between">
               <span>En Revisión</span>
               <Clock className="h-4 w-4 text-yellow-500" />
@@ -177,7 +180,7 @@ export default function DocumentosHSEPage() {
         </Card>
 
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center justify-between">
               <span>Rechazados</span>
               <AlertCircle className="h-4 w-4 text-red-500" />
@@ -191,46 +194,66 @@ export default function DocumentosHSEPage() {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="vigentes" className="space-y-4">
-        <TabsList className="bg-muted/60 border-b-2 border-border p-1">
-          <TabsTrigger value="vigentes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Vigentes</TabsTrigger>
-          <TabsTrigger value="revision" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">En Revisión</TabsTrigger>
-          <TabsTrigger value="upload" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Subir Documentos</TabsTrigger>
+      <Tabs defaultValue={defaultTab} className="space-y-4">
+        <TabsList className="bg-muted/60 p-1">
+          <TabsTrigger value="todos" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
+            Todos ({documents.length})
+          </TabsTrigger>
+          <TabsTrigger value="vigentes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
+            Vigentes ({vigentesDocs.length})
+          </TabsTrigger>
+          <TabsTrigger value="revision" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
+            En Revisión ({revisionDocs.length})
+          </TabsTrigger>
+          <TabsTrigger value="upload" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
+            Subir
+          </TabsTrigger>
         </TabsList>
 
-        {/* Vigentes Tab */}
+        {/* Todos — búsqueda inteligente en todos los documentos */}
+        <TabsContent value="todos" className="space-y-4">
+          <DocumentList
+            documents={documents}
+            isLoading={loading}
+            onView={handleView}
+            onDelete={handleDelete}
+            showSearch={true}
+          />
+        </TabsContent>
+
+        {/* Vigentes */}
         <TabsContent value="vigentes" className="space-y-4">
           <DocumentList
-            documents={documents.filter(d => d.status === 'aprobado')}
+            documents={vigentesDocs}
             isLoading={loading}
             onView={handleView}
             onDelete={handleDelete}
+            showSearch={true}
           />
         </TabsContent>
 
-        {/* En Revisión Tab */}
+        {/* En Revisión */}
         <TabsContent value="revision" className="space-y-4">
           <DocumentList
-            documents={documents.filter(d => 
-              d.status === 'en_revision_l1' || d.status === 'en_revision_l2' || d.status === 'pending_l1' || d.status === 'pending_l2'
-            )}
+            documents={revisionDocs}
             isLoading={loading}
             onView={handleView}
             onDelete={handleDelete}
+            showSearch={false}
           />
         </TabsContent>
 
-        {/* Upload Tab */}
+        {/* Upload */}
         <TabsContent value="upload" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Subir Nuevo Documento</CardTitle>
               <CardDescription>
-                Sube documentos HSE (políticas, procedimientos, instructivos, programas)
+                Sube documentos HSE: políticas, procedimientos, instructivos, programas de seguridad
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <DocumentUpload 
+              <DocumentUpload
                 module="prevención"
                 category="documentos-hse"
                 onUploadSuccess={loadDocuments}
@@ -244,10 +267,7 @@ export default function DocumentosHSEPage() {
       <DocumentReviewModal
         document={selectedDoc}
         isOpen={reviewOpen}
-        onClose={() => {
-          setReviewOpen(false);
-          setSelectedDoc(null);
-        }}
+        onClose={() => { setReviewOpen(false); setSelectedDoc(null); }}
         onApprove={handleApprove}
         onReject={handleReject}
         reviewLevel="L1"
