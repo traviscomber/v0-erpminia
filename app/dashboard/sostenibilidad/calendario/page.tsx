@@ -40,7 +40,7 @@ interface CalendarEvent {
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
 export default function CalendarioSostenibilidadPage() {
-  const [currentDate, setCurrentDate] = useState(new Date(2024, 4)); // May 2024
+  const [currentDate, setCurrentDate] = useState(new Date(2026, 4)); // May 2026
   const [viewMode, setViewMode] = useState<'mes' | 'semana' | 'lista'>('mes');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
