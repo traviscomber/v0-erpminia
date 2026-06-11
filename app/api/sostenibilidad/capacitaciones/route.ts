@@ -42,6 +42,7 @@ export async function POST(request: NextRequest) {
         hora_termino: body.hora_termino || null,
         duracion_horas: Number(body.duracion_horas || 0),
         cantidad_asistentes: Number(body.cantidad_asistentes || 0),
+        faenas_cargos: body.faenas_cargos || [],
         estado: body.estado || 'planificada',
         created_by: context.userId,
         updated_at: new Date().toISOString(),
@@ -49,15 +50,11 @@ export async function POST(request: NextRequest) {
       .select('*')
       .single();
 
-    if (error) {
-      console.log('[v0] Supabase insert error:', JSON.stringify(error));
-      throw error;
-    }
+    if (error) throw error;
 
     return NextResponse.json({ data }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to create capacitacion';
-    console.log('[v0] POST capacitacion catch error:', message, JSON.stringify(error));
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
