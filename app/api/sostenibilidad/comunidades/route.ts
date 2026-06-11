@@ -37,15 +37,25 @@ export async function POST(request: NextRequest) {
     const { data, error } = await context.supabase
       .from('sostenibilidad_comunidades')
       .insert({
-        organization_id: context.organizationId,
-        numero_registro: numeroRegistro,
-        fecha: body.fecha || new Date().toISOString().split('T')[0],
-        tipo: body.tipo,
-        descripcion: body.descripcion,
-        stakeholder: body.stakeholder,
-        estado: body.estado || 'pendiente',
-        created_by: context.userId,
-        updated_at: new Date().toISOString(),
+        organization_id:     context.organizationId,
+        numero_registro:     numeroRegistro,
+        fecha:               body.fecha || new Date().toISOString().split('T')[0],
+        tipo:                body.tipo,
+        descripcion:         body.descripcion,
+        stakeholder:         body.stakeholder,
+        estado:              body.estado || 'pendiente',
+        tipo_stakeholder:    body.tipo_stakeholder || 'comunidad',
+        ubicacion:           body.ubicacion || null,
+        contacto_persona:    body.contacto_persona || null,
+        contacto_email:      body.contacto_email || null,
+        contacto_telefono:   body.contacto_telefono || null,
+        impactado_por:       body.impactado_por || null,
+        fecha_seguimiento:   body.fecha_seguimiento || null,
+        responsable:         body.responsable || null,
+        observaciones:       body.observaciones || null,
+        prioridad:           body.prioridad || 'media',
+        created_by:          context.userId,
+        updated_at:          new Date().toISOString(),
       })
       .select('*')
       .single();
