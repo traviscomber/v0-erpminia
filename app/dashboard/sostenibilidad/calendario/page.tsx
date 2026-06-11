@@ -309,9 +309,9 @@ export default function CalendarioPage() {
                     <div key={d} className="text-center text-xs font-semibold text-muted-foreground py-2">{d}</div>
                   ))}
                 </div>
-                <div className="grid grid-cols-7 gap-px bg-border rounded-lg overflow-hidden">
+                <div className="grid grid-cols-7 border border-border rounded-lg overflow-hidden">
                   {Array.from({ length: firstDay }).map((_, i) => (
-                    <div key={`e${i}`} className="bg-card min-h-20" />
+                    <div key={`e${i}`} className="bg-card border-border border-r border-b min-h-[88px]" />
                   ))}
                   {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(day => {
                     const dayEvts = getEventsForDay(day);
@@ -321,8 +321,8 @@ export default function CalendarioPage() {
                     const isSel = selectedDay === day;
                     return (
                       <div key={day} onClick={() => setSelectedDay(isSel ? null : day)}
-                        className={`bg-card min-h-20 p-1.5 cursor-pointer transition-colors hover:bg-accent/5
-                          ${isSel ? 'ring-2 ring-inset ring-primary' : ''}`}>
+                        className={`bg-card border-border border-r border-b min-h-[88px] p-1.5 cursor-pointer transition-colors hover:bg-accent/5
+                          ${isSel ? 'bg-primary/5' : ''}`}>
                         <div className={`text-xs font-semibold mb-1 w-5 h-5 flex items-center justify-center rounded-full
                           ${isToday ? 'bg-primary text-primary-foreground' : 'text-foreground'}`}>
                           {day}
