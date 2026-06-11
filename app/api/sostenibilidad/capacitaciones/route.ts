@@ -59,3 +59,30 @@ export async function POST(request: NextRequest) {
   }
 }
 
+export async function DELETE(request: NextRequest) {
+  const context = await getSustainabilityContext(request);
+  if (!context.ok) return context.response;
+
+  try {
+    const { searchParams } = new URL(request.url);
+    const capacitacionId = searchParams.get('id');
+
+    if (!capacitacionId) {
+      return NextResponse.json({ error: 'ID requerido' }, { status: 400 });
+    }
+
+    const { error } = await context.supabase
+      .from('sostenibilidad_capacitaciones')
+      .delete()
+      .eq('id', capacitacionId)
+      .eq('organization_id', context.organizationId);
+
+    if (error) throw error;
+
+    return NextResponse.json({ success: true }, { status: 200 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to delete capacitacion';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+

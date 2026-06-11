@@ -96,9 +96,33 @@ export default function CapacitacionesPage() {
           cantidad_asistentes: 0,
         });
         mutate();
+        toast.success('Capacitación creada exitosamente');
+      } else {
+        toast.error('Error al crear capacitación');
       }
     } catch (error) {
       console.error('[v0] Error creating capacitacion:', error);
+      toast.error('Error al crear capacitación');
+    }
+  };
+
+  const handleDelete = async (id: string, nombre: string) => {
+    if (!confirm(`¿Eliminar capacitación "${nombre}"?`)) return;
+    
+    try {
+      const response = await fetch(`/api/sostenibilidad/capacitaciones?id=${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        mutate();
+        toast.success('Capacitación eliminada exitosamente');
+      } else {
+        toast.error('Error al eliminar capacitación');
+      }
+    } catch (error) {
+      console.error('[v0] Error deleting capacitacion:', error);
+      toast.error('Error al eliminar capacitación');
     }
   };
 
@@ -395,7 +419,12 @@ export default function CapacitacionesPage() {
                           <Button variant="ghost" size="sm" title="Descargar">
                             <Download className="w-4 h-4" />
                           </Button>
-                          <Button variant="ghost" size="sm" title="Eliminar">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            title="Eliminar"
+                            onClick={() => handleDelete(cap.id, cap.nombre_capacitacion)}
+                          >
                             <Trash2 className="w-4 h-4 text-destructive" />
                           </Button>
                         </div>
