@@ -315,9 +315,9 @@ export default function LegalPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Modulo Legal y Compliance</h1>
+        <h1 className="text-3xl font-bold text-foreground">Módulo Legal y Compliance</h1>
         <p className="text-muted-foreground mt-2">
-          Gestion de documentos legales, contratos y cumplimiento normativo minero
+          Gestión de documentos legales, contratos y cumplimiento normativo minero
         </p>
       </div>
 
@@ -354,7 +354,7 @@ export default function LegalPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{normativas.length}</div>
-            <p className="text-xs text-muted-foreground mt-1">Requisitos visibles del modulo</p>
+            <p className="text-xs text-muted-foreground mt-1">Requisitos visibles del módulo</p>
           </CardContent>
         </Card>
 
@@ -421,7 +421,7 @@ export default function LegalPage() {
                 <div>
                   <CardTitle>Documentos Legales</CardTitle>
                   <CardDescription>
-                    Politicas, procedimientos, protocolos y respaldo regulatorio
+                    Políticas, procedimientos, protocolos y respaldo regulatorio
                   </CardDescription>
                 </div>
                 <div className="flex gap-2 items-center">
@@ -571,7 +571,7 @@ export default function LegalPage() {
             <CardHeader>
               <CardTitle>Normativas y Respaldo Regulatorio</CardTitle>
               <CardDescription>
-                Documentacion regulatoria visible para auditoria y seguimiento
+                Documentación regulatoria visible para auditoría y seguimiento
               </CardDescription>
             </CardHeader>
             <CardContent>

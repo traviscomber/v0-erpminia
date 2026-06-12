@@ -105,15 +105,15 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
         <DialogHeader>
           <DialogTitle>Nuevo Documento Legal</DialogTitle>
           <DialogDescription>
-            Carga politicas, reglamentos, informes o respaldos regulatorios para el modulo Legal.
+            Carga políticas, reglamentos, informes o respaldos regulatorios para el módulo Legal.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Titulo</label>
+            <label className="text-sm font-medium text-foreground">Título</label>
             <Input
-              placeholder="Ej: Politica de Cumplimiento Contractual"
+              placeholder="Ej: Política de Cumplimiento Contractual"
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               disabled={isLoading}
@@ -121,9 +121,9 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Descripcion</label>
+            <label className="text-sm font-medium text-foreground">Descripción</label>
             <Textarea
-              placeholder="Contexto breve del documento y su aplicacion"
+              placeholder="Contexto breve del documento y su aplicación"
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               disabled={isLoading}
@@ -139,7 +139,7 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
                   <SelectValue placeholder="Seleccionar" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="policy">Politica</SelectItem>
+                  <SelectItem value="policy">Política</SelectItem>
                   <SelectItem value="procedure">Procedimiento</SelectItem>
                   <SelectItem value="regulation">Reglamento</SelectItem>
                   <SelectItem value="report">Informe</SelectItem>
@@ -149,7 +149,7 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Categoria</label>
+            <label className="text-sm font-medium text-foreground">Categoría</label>
               <Select value={category} onValueChange={setCategory} disabled={isLoading}>
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar" />
@@ -189,7 +189,7 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
                   {file ? file.name : 'Haz clic para seleccionar el archivo'}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  PDF, JPG, PNG, DOC o DOCX, maximo 50MB
+                  PDF, JPG, PNG, DOC o DOCX, máximo 50MB
                 </p>
               </label>
             </div>
