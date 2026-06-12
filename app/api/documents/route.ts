@@ -35,67 +35,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error('[v0] Error fetching documents:', error);
-    
-    // Return mock data on error instead of failing
-    const mockDocuments = [
-      {
-        id: 'DOC-001',
-        title: 'Procedimiento de Seguridad en Altura',
-        status: 'approved',
-        category: 'Procedimientos',
-        createdAt: '2024-05-01T10:00:00Z',
-        expiryDate: '2025-05-01T23:59:59Z',
-        steps: [
-          { status: 'approved', approvedAt: '2024-05-05T10:00:00Z' },
-        ],
-      },
-      {
-        id: 'DOC-002',
-        title: 'Manual de Equipos de Protección',
-        status: 'approved',
-        category: 'Manuales',
-        createdAt: '2024-04-15T10:00:00Z',
-        expiryDate: '2025-04-15T23:59:59Z',
-        steps: [
-          { status: 'approved', approvedAt: '2024-04-18T10:00:00Z' },
-        ],
-      },
-      {
-        id: 'DOC-003',
-        title: 'Política de Medio Ambiente',
-        status: 'pending',
-        category: 'Políticas',
-        createdAt: '2024-06-01T10:00:00Z',
-        steps: [
-          { status: 'review', approvedAt: '2024-06-02T10:00:00Z' },
-        ],
-      },
-      {
-        id: 'DOC-004',
-        title: 'Checklist Inspección Diaria',
-        status: 'approved',
-        category: 'Checklist',
-        createdAt: '2024-03-20T10:00:00Z',
-        expiryDate: '2025-03-20T23:59:59Z',
-        steps: [
-          { status: 'approved', approvedAt: '2024-03-22T10:00:00Z' },
-        ],
-      },
-      {
-        id: 'DOC-005',
-        title: 'Procedimiento Manejo de Residuos',
-        status: 'approved',
-        category: 'Procedimientos',
-        createdAt: '2024-02-10T10:00:00Z',
-        expiryDate: '2025-02-10T23:59:59Z',
-        steps: [
-          { status: 'approved', approvedAt: '2024-02-14T10:00:00Z' },
-        ],
-      },
-    ];
-    
-    return NextResponse.json({ documents: mockDocuments, total: mockDocuments.length });
+    const message = error instanceof Error ? error.message : 'Error interno del servidor';
+    console.error('[v0] Error fetching documents:', message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 

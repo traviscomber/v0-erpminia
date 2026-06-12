@@ -1,4 +1,5 @@
 'use client';
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,16 +7,29 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 
+type CorrectiveActionFormValues = {
+  actionDescription: string;
+  responsiblePerson: string;
+  scheduledCompletionDate: string;
+  verificationMethod: string;
+  estimatedCost: string | number;
+};
+
 interface CorrectiveActionModalProps {
   ncNumber: string;
-  onSubmit?: (data: any) => void;
+  onSubmit?: (data: CorrectiveActionFormValues) => Promise<void> | void;
   onCancel?: () => void;
-  initialData?: any;
+  initialData?: Partial<Record<string, string>>;
 }
 
-export function CorrectiveActionModal({ ncNumber, onSubmit, onCancel, initialData }: CorrectiveActionModalProps) {
+export function CorrectiveActionModal({
+  ncNumber,
+  onSubmit,
+  onCancel,
+  initialData,
+}: CorrectiveActionModalProps) {
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CorrectiveActionFormValues>({
     actionDescription: initialData?.action_description || '',
     responsiblePerson: initialData?.responsible_person || '',
     scheduledCompletionDate: initialData?.scheduled_completion_date || '',
@@ -23,44 +37,45 @@ export function CorrectiveActionModal({ ncNumber, onSubmit, onCancel, initialDat
     estimatedCost: initialData?.estimated_cost || '',
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
+
     try {
       await onSubmit?.(formData);
-      toast.success('Corrective action created');
-    } catch (error) {
-      toast.error('Failed to create corrective action');
+      toast.success('Acción correctiva creada correctamente');
+    } catch {
+      toast.error('No fue posible crear la acción correctiva');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <Card className="w-full max-w-xl">
         <CardHeader>
-          <CardTitle>Create Corrective Action</CardTitle>
-          <p className="text-sm text-muted-foreground mt-1">NC: {ncNumber}</p>
+          <CardTitle>Nueva acción correctiva</CardTitle>
+          <p className="mt-1 text-sm text-muted-foreground">NC: {ncNumber}</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label>Action Description</Label>
+              <Label>Descripción de la acción</Label>
               <textarea
-                placeholder="What action will be taken to correct this?"
+                placeholder="¿Qué se hará para corregir esta no conformidad?"
                 value={formData.actionDescription}
                 onChange={(e) => setFormData({ ...formData, actionDescription: e.target.value })}
-                className="w-full p-2 border rounded text-sm"
+                className="w-full rounded border p-2 text-sm"
                 rows={3}
                 required
               />
             </div>
 
             <div>
-              <Label>Responsible Person</Label>
+              <Label>Responsable</Label>
               <Input
-                placeholder="Name or email"
+                placeholder="Nombre o correo"
                 value={formData.responsiblePerson}
                 onChange={(e) => setFormData({ ...formData, responsiblePerson: e.target.value })}
               />
@@ -68,32 +83,34 @@ export function CorrectiveActionModal({ ncNumber, onSubmit, onCancel, initialDat
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Scheduled Completion Date</Label>
+                <Label>Fecha compromiso</Label>
                 <Input
                   type="date"
                   value={formData.scheduledCompletionDate}
-                  onChange={(e) => setFormData({ ...formData, scheduledCompletionDate: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, scheduledCompletionDate: e.target.value })
+                  }
                   required
                 />
               </div>
 
               <div>
-                <Label>Verification Method</Label>
+                <Label>Método de verificación</Label>
                 <select
                   value={formData.verificationMethod}
                   onChange={(e) => setFormData({ ...formData, verificationMethod: e.target.value })}
-                  className="w-full p-2 border rounded text-sm"
+                  className="w-full rounded border p-2 text-sm"
                 >
-                  <option value="inspection">Inspection</option>
-                  <option value="measurement">Measurement</option>
-                  <option value="audit">Audit</option>
-                  <option value="documentation">Documentation</option>
+                  <option value="inspection">Inspección</option>
+                  <option value="measurement">Medición</option>
+                  <option value="audit">Auditoría</option>
+                  <option value="documentation">Documentación</option>
                 </select>
               </div>
             </div>
 
             <div>
-              <Label>Estimated Cost</Label>
+              <Label>Costo estimado</Label>
               <Input
                 type="number"
                 placeholder="0.00"
@@ -104,10 +121,10 @@ export function CorrectiveActionModal({ ncNumber, onSubmit, onCancel, initialDat
 
             <div className="flex gap-2 pt-4">
               <Button type="submit" disabled={loading} className="flex-1">
-                {loading ? 'Creating...' : 'Create Action'}
+                {loading ? 'Creando...' : 'Crear acción'}
               </Button>
               <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
-                Cancel
+                Cancelar
               </Button>
             </div>
           </form>

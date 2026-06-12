@@ -1,52 +1,59 @@
-'use client';
+﻿'use client';
 
-import { useState, useEffect } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useEffect, useMemo, useState } from 'react';
+import { AlertCircle, CheckCircle2, Clock, FileText, Upload } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { DocumentUpload } from '@/components/documents/document-upload';
-import { DocumentList, Document } from '@/components/documents/document-list';
-import { DocumentReviewModal } from '@/components/documents/document-review-modal';
-import { FileText, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { DocumentUploadForm } from '@/components/legal/document-upload-form';
+import { Document, DocumentList } from '@/components/documents/document-list';
 
-interface DocumentStats {
-  total: number;
-  vigentes: number;
-  en_revision: number;
-  rechazados: number;
-}
+type LegalDocumentResponse = {
+  documents?: Array<
+    Document & {
+      file_url?: string;
+      uploaded_at?: string;
+      valid_until?: string;
+      file_size_bytes?: number;
+    }
+  >;
+  total?: number;
+};
+
+const fetcher = async (url: string) => {
+  const response = await fetch(url, { credentials: 'include' });
+  const payload = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(payload?.error || 'Request failed');
+  }
+
+  return payload as LegalDocumentResponse;
+};
 
 export default function DocumentosLegalPage() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedDoc, setSelectedDoc] = useState<any>(null);
-  const [reviewOpen, setReviewOpen] = useState(false);
-  const [stats, setStats] = useState<DocumentStats>({
-    total: 0,
-    vigentes: 0,
-    en_revision: 0,
-    rechazados: 0,
-  });
+  const [activeTab, setActiveTab] = useState('all');
+  const [error, setError] = useState<string | null>(null);
 
   const loadDocuments = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const response = await fetch('/api/documents/list?module=legal&category=documentos', {
-        credentials: 'include',
-      });
-      const data = await response.json();
-      if (Array.isArray(data)) {
-        setDocuments(data);
-        setStats({
-          total: data.length,
-          vigentes: data.filter((d: Document) => d.status === 'active').length,
-          en_revision: data.filter((d: Document) => 
-            d.status === 'pending_l1' || d.status === 'pending_l2'
-          ).length,
-          rechazados: data.filter((d: Document) => d.status === 'rejected').length,
-        });
-      }
-    } catch (error) {
-      console.error('Error cargando documentos:', error);
+      const data = await fetcher('/api/legal/documentos');
+      setDocuments(
+        (data.documents || []).map((doc) => ({
+          ...doc,
+          file_url: doc.file_url || doc.fileUrl,
+          uploaded_at: doc.uploaded_at || doc.createdAt,
+          valid_until: doc.valid_until || doc.expiryDate,
+          file_size_bytes: doc.file_size_bytes,
+        }))
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error cargando documentos');
     } finally {
       setLoading(false);
     }
@@ -56,83 +63,67 @@ export default function DocumentosLegalPage() {
     loadDocuments();
   }, []);
 
-  const handleDelete = async (documentId: string) => {
-    try {
-      const response = await fetch(`/api/documents/delete?id=${documentId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
-      if (response.ok) {
-        setDocuments(documents.filter(d => d.id !== documentId));
-        await loadDocuments();
-      }
-    } catch (error) {
-      console.error('Error eliminando documento:', error);
-    }
-  };
+  const stats = useMemo(() => {
+    const active = documents.filter((doc) =>
+      ['active', 'approved'].includes(String(doc.status || '').toLowerCase())
+    ).length;
+    const review = documents.filter((doc) =>
+      ['draft', 'pending', 'pending_l1', 'pending_l2', 'submitted', 'under_review'].includes(
+        String(doc.status || '').toLowerCase()
+      )
+    ).length;
+    const rejected = documents.filter(
+      (doc) => String(doc.status || '').toLowerCase() === 'rejected'
+    ).length;
 
-  const handleView = (document: Document | string) => {
-    if (typeof document === 'string') {
-      const doc = documents.find(d => d.id === document);
-      if (doc) setSelectedDoc(doc);
-    } else {
-      setSelectedDoc(document);
-    }
-    setReviewOpen(true);
-  };
+    return {
+      total: documents.length,
+      active,
+      review,
+      rejected,
+    };
+  }, [documents]);
 
-  const handleApprove = async (documentId: string, observations?: string) => {
-    try {
-      const response = await fetch('/api/documents/review', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          documentId,
-          action: 'approve',
-          observations,
-          reviewLevel: 'L1',
-        }),
-        credentials: 'include',
-      });
-      if (response.ok) {
-        await loadDocuments();
-      }
-    } catch (error) {
-      console.error('Error aprobando documento:', error);
+  const filteredDocuments = useMemo(() => {
+    switch (activeTab) {
+      case 'active':
+        return documents.filter((doc) =>
+          ['active', 'approved'].includes(String(doc.status || '').toLowerCase())
+        );
+      case 'review':
+        return documents.filter((doc) =>
+          ['draft', 'pending', 'pending_l1', 'pending_l2', 'submitted', 'under_review'].includes(
+            String(doc.status || '').toLowerCase()
+          )
+        );
+      case 'all':
+      default:
+        return documents;
     }
-  };
-
-  const handleReject = async (documentId: string, observations: string) => {
-    try {
-      const response = await fetch('/api/documents/review', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          documentId,
-          action: 'reject',
-          observations,
-          reviewLevel: 'L1',
-        }),
-        credentials: 'include',
-      });
-      if (response.ok) {
-        await loadDocuments();
-      }
-    } catch (error) {
-      console.error('Error rechazando documento:', error);
-    }
-  };
+  }, [activeTab, documents]);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Documentos Legal</h1>
-        <p className="text-muted-foreground mt-2">
-          Gestión de contratos, políticas y documentos legales
-        </p>
+    <div className="min-h-screen bg-background p-6 space-y-6">
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h1 className="text-4xl font-bold text-foreground mb-2">Documentos Legal</h1>
+          <p className="max-w-2xl text-muted-foreground">
+            Documentos reales cargados para el modulo legal, con archivos, vencimientos y respaldo
+            documental.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Badge variant="outline">Total {stats.total}</Badge>
+            <Badge variant="outline">Activos {stats.active}</Badge>
+            <Badge variant="outline">En revision {stats.review}</Badge>
+            <Badge variant="outline">Rechazados {stats.rejected}</Badge>
+          </div>
+        </div>
+        <Button variant="outline" onClick={loadDocuments} disabled={loading} className="w-fit">
+          {loading ? 'Actualizando...' : 'Actualizar'}
+        </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center justify-between">
@@ -142,33 +133,33 @@ export default function DocumentosLegalPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{stats.total}</p>
-            <p className="text-xs text-muted-foreground">documentos</p>
+            <p className="text-xs text-muted-foreground">documentos reales</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center justify-between">
-              <span>Vigentes</span>
+              <span>Activos</span>
               <CheckCircle2 className="h-4 w-4 text-green-500" />
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-green-500">{stats.vigentes}</p>
-            <p className="text-xs text-muted-foreground">aprobados</p>
+            <p className="text-2xl font-bold text-green-500">{stats.active}</p>
+            <p className="text-xs text-muted-foreground">vigentes o aprobados</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center justify-between">
-              <span>En Revisión</span>
+              <span>En Revision</span>
               <Clock className="h-4 w-4 text-yellow-500" />
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-yellow-500">{stats.en_revision}</p>
-            <p className="text-xs text-muted-foreground">esperando aprobación</p>
+            <p className="text-2xl font-bold text-yellow-500">{stats.review}</p>
+            <p className="text-xs text-muted-foreground">pendientes de validacion</p>
           </CardContent>
         </Card>
 
@@ -180,79 +171,60 @@ export default function DocumentosLegalPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-red-500">{stats.rechazados}</p>
-            <p className="text-xs text-muted-foreground">pendientes de corrección</p>
+            <p className="text-2xl font-bold text-red-500">{stats.rejected}</p>
+            <p className="text-xs text-muted-foreground">requieren correccion</p>
           </CardContent>
         </Card>
       </div>
 
-      <Tabs defaultValue="all" className="space-y-4">
-        <TabsList className="bg-muted/60 border-b-2 border-border p-1">
-          <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Todos</TabsTrigger>
-          <TabsTrigger value="vigentes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Vigentes</TabsTrigger>
-          <TabsTrigger value="revision" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">En Revisión</TabsTrigger>
-          <TabsTrigger value="upload" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Subir Documentos</TabsTrigger>
+      {error && (
+        <Card className="border-destructive/30">
+          <CardContent className="flex items-center justify-between gap-4 pt-6">
+            <div className="flex items-center gap-3 text-sm">
+              <AlertCircle className="h-4 w-4 text-destructive" />
+              <span>{error}</span>
+            </div>
+            <Button variant="outline" onClick={loadDocuments}>
+              Reintentar
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="all">Todos</TabsTrigger>
+          <TabsTrigger value="active">Activos</TabsTrigger>
+          <TabsTrigger value="review">En Revision</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
-          <DocumentList
-            documents={documents}
-            isLoading={loading}
-            onView={handleView}
-            onDelete={handleDelete}
-          />
+          <DocumentList documents={filteredDocuments} isLoading={loading} />
         </TabsContent>
 
-        <TabsContent value="vigentes" className="space-y-4">
-          <DocumentList
-            documents={documents.filter(d => d.status === 'active')}
-            isLoading={loading}
-            onView={handleView}
-            onDelete={handleDelete}
-          />
+        <TabsContent value="active" className="space-y-4">
+          <DocumentList documents={filteredDocuments} isLoading={loading} />
         </TabsContent>
 
-        <TabsContent value="revision" className="space-y-4">
-          <DocumentList
-            documents={documents.filter(d => 
-              d.status === 'pending_l1' || d.status === 'pending_l2'
-            )}
-            isLoading={loading}
-            onView={handleView}
-            onDelete={handleDelete}
-          />
-        </TabsContent>
-
-        <TabsContent value="upload" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Subir Nuevo Documento</CardTitle>
-              <CardDescription>
-                Sube contratos, políticas y documentos legales
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <DocumentUpload 
-                module="legal"
-                category="documentos"
-                onUploadSuccess={loadDocuments}
-              />
-            </CardContent>
-          </Card>
+        <TabsContent value="review" className="space-y-4">
+          <DocumentList documents={filteredDocuments} isLoading={loading} />
         </TabsContent>
       </Tabs>
 
-      <DocumentReviewModal
-        document={selectedDoc}
-        isOpen={reviewOpen}
-        onClose={() => {
-          setReviewOpen(false);
-          setSelectedDoc(null);
-        }}
-        onApprove={handleApprove}
-        onReject={handleReject}
-        reviewLevel="L1"
-      />
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Upload className="h-5 w-5" />
+            Cargar Documento Legal
+          </CardTitle>
+          <CardDescription>
+            Sube nuevos respaldos, politicas, reglamentos o documentos contractuales.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <DocumentUploadForm onSuccess={loadDocuments} />
+        </CardContent>
+      </Card>
     </div>
   );
 }

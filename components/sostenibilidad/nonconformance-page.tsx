@@ -10,15 +10,17 @@ import { NonconformanceForm } from './nonconformance-form';
 import { NonconformanceTable } from './nonconformance-table';
 
 interface NCPageProps {
-  organizationId: string;
+  organizationId?: string;
 }
 
 export function NoncConformancePage({ organizationId }: NCPageProps) {
   const [showForm, setShowForm] = useState(false);
   const [filterStatus, setFilterStatus] = useState('');
 
+  const requestSuffix = organizationId ? `?orgId=${organizationId}` : '';
+
   const { data: stats } = useSWR(
-    `/api/sostenibilidad/nonconformances/stats?orgId=${organizationId}`,
+    `/api/sostenibilidad/nonconformances/stats${requestSuffix}`,
     async (url) => {
       const res = await fetch(url);
       return res.json().then((r) => r.data);
@@ -26,7 +28,7 @@ export function NoncConformancePage({ organizationId }: NCPageProps) {
   );
 
   const { data: ncs } = useSWR(
-    `/api/sostenibilidad/nonconformances?orgId=${organizationId}&status=${filterStatus}`,
+    `/api/sostenibilidad/nonconformances${requestSuffix}${filterStatus ? `${requestSuffix ? '&' : '?'}status=${filterStatus}` : ''}`,
     async (url) => {
       const res = await fetch(url);
       return res.json().then((r) => r.data);

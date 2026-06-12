@@ -55,3 +55,62 @@ export async function POST(request: NextRequest) {
   }
 }
 
+export async function PUT(request: NextRequest) {
+  const context = await getSustainabilityContext(request);
+  if (!context.ok) return context.response;
+
+  try {
+    const body = await request.json();
+    if (!body.id) {
+      return NextResponse.json({ error: 'id is required' }, { status: 400 });
+    }
+
+    const { data, error } = await context.supabase
+      .from('sostenibilidad_kpis')
+      .update({
+        mes_ano: body.mes_ano,
+        tasa_accidentabilidad: Number(body.tasa_accidentabilidad || 0),
+        tasa_frecuencia: Number(body.tasa_frecuencia || 0),
+        tasa_gravedad: Number(body.tasa_gravedad || 0),
+        dias_sin_accidentes: Number(body.dias_sin_accidentes || 0),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', body.id)
+      .eq('organization_id', context.organizationId)
+      .select('*')
+      .single();
+
+    if (error) throw error;
+
+    return NextResponse.json({ data });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to update KPI';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  const context = await getSustainabilityContext(request);
+  if (!context.ok) return context.response;
+
+  try {
+    const id = request.nextUrl.searchParams.get('id');
+    if (!id) {
+      return NextResponse.json({ error: 'id is required' }, { status: 400 });
+    }
+
+    const { error } = await context.supabase
+      .from('sostenibilidad_kpis')
+      .delete()
+      .eq('id', id)
+      .eq('organization_id', context.organizationId);
+
+    if (error) throw error;
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to delete KPI';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+

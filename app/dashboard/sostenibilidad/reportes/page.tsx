@@ -1,7 +1,8 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -17,7 +18,22 @@ import useSWR from 'swr';
 import { ExportButtons } from '@/components/sostenibilidad/export-buttons';
 import { SustainabilityKPIDashboard } from '@/components/sostenibilidad/kpi-dashboard';
 
-const fetcher = (url: string) => fetch(url).then(r => r.json());
+interface InspectionRecord {
+  fecha_planificada?: string | null;
+  hallazgos_count?: number | null;
+  estado?: 'planificada' | 'realizada' | 'cerrada' | string | null;
+  faena?: string | null;
+  area_faena?: string | null;
+}
+
+interface InspectionResponse {
+  data?: InspectionRecord[];
+}
+
+const fetcher = async (url: string): Promise<InspectionResponse> => {
+  const response = await fetch(url);
+  return response.json();
+};
 
 interface ReportData {
   periodo: string;
@@ -36,30 +52,34 @@ export default function ReportesPage() {
   const [periodoTipo, setPeriodoTipo] = useState('mes');
   const [anio, setAnio] = useState(new Date().getFullYear().toString());
 
-  const { data: inspecciones = [] } = useSWR(
+  const { data: inspeccionesInternas } = useSWR(
     '/api/sostenibilidad/inspecciones?tipo=internas',
     fetcher
   );
+  const { data: inspeccionesExternas } = useSWR(
+    '/api/sostenibilidad/inspecciones?tipo=externas',
+    fetcher
+  );
 
-  const inspeccionesList = (inspecciones.data || []) as any[];
+  const inspeccionesList = [...(inspeccionesInternas?.data || []), ...(inspeccionesExternas?.data || [])];
 
-  // Agrupar datos por período
+  // Agrupar datos por perÃ­odo
   const generateReportData = () => {
     const reportData: ReportData[] = [];
     
     if (periodoTipo === 'mes') {
       const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
       for (let i = 0; i < meses.length; i++) {
-        const mesInspecciones = inspeccionesList.filter((insp: any) => {
-          const date = new Date(insp.fecha_planificada);
+        const mesInspecciones = inspeccionesList.filter((insp) => {
+          const date = new Date(insp.fecha_planificada || '');
           return date.getMonth() === i && date.getFullYear().toString() === anio;
         });
         
         reportData.push({
           periodo: meses[i],
           inspecciones: mesInspecciones.length,
-          hallazgos: mesInspecciones.reduce((sum, i) => sum + (i.hallazgos_count || 0), 0),
-          cumplimiento: mesInspecciones.filter(i => i.estado === 'realizada').length,
+          hallazgos: mesInspecciones.reduce((sum, i) => sum + Number(i.hallazgos_count || 0), 0),
+          cumplimiento: mesInspecciones.filter((i) => i.estado === 'realizada').length,
         });
       }
     } else if (periodoTipo === 'trimestre') {
@@ -68,8 +88,8 @@ export default function ReportesPage() {
       
       trimestres.forEach((trim, idx) => {
         const [start, end] = mesRanges[idx];
-        const trimInspecciones = inspeccionesList.filter((insp: any) => {
-          const date = new Date(insp.fecha_planificada);
+        const trimInspecciones = inspeccionesList.filter((insp) => {
+          const date = new Date(insp.fecha_planificada || '');
           const month = date.getMonth();
           return month >= start && month <= end && date.getFullYear().toString() === anio;
         });
@@ -77,8 +97,8 @@ export default function ReportesPage() {
         reportData.push({
           periodo: trim,
           inspecciones: trimInspecciones.length,
-          hallazgos: trimInspecciones.reduce((sum, i) => sum + (i.hallazgos_count || 0), 0),
-          cumplimiento: trimInspecciones.filter(i => i.estado === 'realizada').length,
+          hallazgos: trimInspecciones.reduce((sum, i) => sum + Number(i.hallazgos_count || 0), 0),
+          cumplimiento: trimInspecciones.filter((i) => i.estado === 'realizada').length,
         });
       });
     }
@@ -92,42 +112,52 @@ export default function ReportesPage() {
   const estadoData = [
     {
       name: 'Planificadas',
-      value: inspeccionesList.filter(i => i.estado === 'planificada').length,
+      value: inspeccionesList.filter((i) => i.estado === 'planificada').length,
     },
     {
       name: 'Realizadas',
-      value: inspeccionesList.filter(i => i.estado === 'realizada').length,
+      value: inspeccionesList.filter((i) => i.estado === 'realizada').length,
     },
     {
       name: 'Cerradas',
-      value: inspeccionesList.filter(i => i.estado === 'cerrada').length,
+      value: inspeccionesList.filter((i) => i.estado === 'cerrada').length,
     },
   ];
 
   // Datos por faena
-  const faenaData = Object.entries(
-    inspeccionesList.reduce((acc: any, insp) => {
+  const faenaTotals = inspeccionesList.reduce<Record<string, number>>((acc, insp) => {
       const faena = insp.faena || insp.area_faena || 'Sin asignar';
       acc[faena] = (acc[faena] || 0) + 1;
       return acc;
-    }, {})
-  ).map(([faena, count]) => ({
+    }, {});
+
+  const faenaData = Object.entries(faenaTotals).map(([faena, count]) => ({
     name: faena,
     inspecciones: count,
   }));
 
   return (
     <div className="min-h-screen bg-background p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Reportes de Sostenibilidad</h1>
-        <p className="text-muted-foreground">Análisis comparativo por período de inspecciones, hallazgos y KPIs</p>
+      <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <h1 className="mb-2 text-4xl font-bold text-foreground">Reportes de Sostenibilidad</h1>
+          <p className="max-w-2xl text-muted-foreground">
+            Analisis comparativo por periodo de inspecciones, hallazgos y KPIs.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Badge variant="outline">Inspecciones {inspeccionesList.length}</Badge>
+            <Badge variant="outline">Periodo {periodoTipo}</Badge>
+            <Badge variant="outline">Año {anio}</Badge>
+          </div>
+        </div>
       </div>
+
 
       {/* Tabs for different views */}
       <Tabs defaultValue="kpi" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="kpi">Dashboard KPI</TabsTrigger>
-          <TabsTrigger value="detailed">Análisis Detallado</TabsTrigger>
+          <TabsTrigger value="detailed">AnÃ¡lisis Detallado</TabsTrigger>
         </TabsList>
 
         {/* KPI Dashboard Tab */}
@@ -137,15 +167,15 @@ export default function ReportesPage() {
 
         {/* Detailed Analysis Tab */}
         <TabsContent value="detailed" className="space-y-6">
-      {/* Controles de período */}
+      {/* Controles de perÃ­odo */}
       <Card className="mb-8">
         <CardHeader>
-          <CardTitle>Configurar Período</CardTitle>
+            <CardTitle>Configurar PerÃ­odo</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex gap-4 items-end">
             <div className="flex-1">
-              <label className="block text-sm font-medium mb-2">Tipo de Período</label>
+              <label className="block text-sm font-medium mb-2">Tipo de PerÃ­odo</label>
               <Select value={periodoTipo} onValueChange={setPeriodoTipo}>
                 <SelectTrigger>
                   <SelectValue />
@@ -157,7 +187,7 @@ export default function ReportesPage() {
               </Select>
             </div>
             <div className="flex-1">
-              <label className="block text-sm font-medium mb-2">Año</label>
+              <label className="block text-sm font-medium mb-2">AÃ±o</label>
               <Input
                 type="number"
                 value={anio}
@@ -171,7 +201,7 @@ export default function ReportesPage() {
                 data={reportData}
                 fileName={`Reporte_${periodoTipo}_${anio}`}
                 columns={[
-                  { key: 'periodo', label: 'Período' },
+                  { key: 'periodo', label: 'PerÃ­odo' },
                   { key: 'inspecciones', label: 'Inspecciones' },
                   { key: 'hallazgos', label: 'Hallazgos' },
                   { key: 'cumplimiento', label: 'Cumplimiento' },
@@ -226,13 +256,13 @@ export default function ReportesPage() {
         </Card>
       </div>
 
-      {/* Gráficos */}
+      {/* GrÃ¡ficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Gráfico de Línea - Tendencia */}
+        {/* GrÃ¡fico de LÃ­nea - Tendencia */}
         <Card>
           <CardHeader>
-            <CardTitle>Tendencia de Inspecciones</CardTitle>
-            <CardDescription>Inspecciones por {periodoTipo === 'mes' ? 'mes' : 'trimestre'}</CardDescription>
+            <CardTitle>Tendencia de Inspecciones HSE</CardTitle>
+            <CardDescription>Inspecciones internas y externas por {periodoTipo === 'mes' ? 'mes' : 'trimestre'}</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -259,10 +289,10 @@ export default function ReportesPage() {
           </CardContent>
         </Card>
 
-        {/* Gráfico de Barras - Hallazgos */}
+        {/* GrÃ¡fico de Barras - Hallazgos */}
         <Card>
           <CardHeader>
-            <CardTitle>Hallazgos por Período</CardTitle>
+            <CardTitle>Hallazgos por PerÃ­odo</CardTitle>
             <CardDescription>Cantidad de hallazgos encontrados</CardDescription>
           </CardHeader>
           <CardContent>
@@ -285,7 +315,7 @@ export default function ReportesPage() {
         {/* Estado Distribution */}
         <Card>
           <CardHeader>
-            <CardTitle>Distribución por Estado</CardTitle>
+            <CardTitle>DistribuciÃ³n por Estado</CardTitle>
             <CardDescription>Total de inspecciones por estado</CardDescription>
           </CardHeader>
           <CardContent>
@@ -315,7 +345,7 @@ export default function ReportesPage() {
         <Card>
           <CardHeader>
             <CardTitle>Inspecciones por Faena</CardTitle>
-            <CardDescription>Distribución de inspecciones por zona operativa</CardDescription>
+            <CardDescription>DistribuciÃ³n de inspecciones por zona operativa</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>

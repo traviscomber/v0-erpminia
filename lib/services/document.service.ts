@@ -58,7 +58,7 @@ async function notifyDocumentOwner(
   message: string
 ) {
   const ownerProfile = await getProfileRecord(document.created_by);
-  
+
   const notification = {
     id: document.id,
     user_id: document.created_by,
@@ -75,7 +75,11 @@ async function notifyDocumentOwner(
     created_at: new Date().toISOString(),
   };
 
-  await NotificationService.send(notification, ['in-app', 'email']);
+  await NotificationService.send(notification, ['in-app']);
+
+  if (ownerProfile?.email) {
+    await NotificationService.queueEmail(notification, ownerProfile.email);
+  }
 }
 
 export interface DocumentUploadInput {
