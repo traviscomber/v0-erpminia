@@ -117,7 +117,7 @@ export async function createMaintenanceOrder(orderData: {
   }
 
   if (!organizationId) {
-    throw new Error('Unable to resolve organization for maintenance order. Select an asset first.');
+    throw new Error('No se pudo resolver la organización para la orden de mantenimiento. Selecciona primero un activo.');
   }
 
   if (!payload.work_order_number) {

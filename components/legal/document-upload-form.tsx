@@ -17,7 +17,7 @@ export function DocumentUploadForm() {
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) {
-      toast({ title: 'Error', description: 'Select a file' });
+      toast({ title: 'Error', description: 'Selecciona un archivo' });
       return;
     }
 
@@ -34,25 +34,25 @@ export function DocumentUploadForm() {
         body: formData,
       });
 
-      if (!res.ok) throw new Error('Upload failed');
-      const data = await res.json();
-      toast({ title: 'Success', description: `Document uploaded: ${file.name}` });
+      if (!res.ok) throw new Error('La carga falló');
+      await res.json();
+      toast({ title: 'Éxito', description: `Documento cargado: ${file.name}` });
       setFile(null);
     } catch (err) {
-      toast({ title: 'Error', description: err instanceof Error ? err.message : 'Upload failed' });
+      toast({ title: 'Error', description: err instanceof Error ? err.message : 'La carga falló' });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleUpload} className="space-y-4 p-4 border rounded-lg">
+    <form onSubmit={handleUpload} className="space-y-4 rounded-lg border p-4">
       <div>
-        <label className="text-sm font-medium">Select Document</label>
+        <label className="text-sm font-medium">Seleccionar documento</label>
         <Input type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} accept=".pdf,.doc,.docx,.xls" />
       </div>
       <div>
-        <label className="text-sm font-medium">Document Type</label>
+        <label className="text-sm font-medium">Tipo de documento</label>
         <Select value={docType} onValueChange={setDocType}>
           <SelectTrigger>
             <SelectValue />
@@ -66,21 +66,21 @@ export function DocumentUploadForm() {
         </Select>
       </div>
       <div>
-        <label className="text-sm font-medium">Category</label>
+        <label className="text-sm font-medium">Categoría</label>
         <Select value={category} onValueChange={setCategory}>
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="legal">Legal</SelectItem>
-            <SelectItem value="compliance">Compliance</SelectItem>
+            <SelectItem value="compliance">Cumplimiento</SelectItem>
             <SelectItem value="operacional">Operacional</SelectItem>
           </SelectContent>
         </Select>
       </div>
       <Button type="submit" disabled={loading} className="gap-2">
         <Upload className="h-4 w-4" />
-        {loading ? 'Uploading...' : 'Upload'}
+        {loading ? 'Cargando...' : 'Cargar'}
       </Button>
     </form>
   );
