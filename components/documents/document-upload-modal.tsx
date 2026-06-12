@@ -91,17 +91,17 @@ export function DocumentUploadModal({
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Upload failed');
+        throw new Error(error.error || 'La carga falló');
       }
 
       const result = await response.json();
-      toast.success('Documento subido exitosamente');
+      toast.success('Documento cargado correctamente');
       resetForm();
       onOpenChange(false);
       onSuccess?.(result.documentId);
     } catch (error) {
       console.error('[DocumentUploadModal] Error:', error);
-      toast.error(error instanceof Error ? error.message : 'Error al subir documento');
+      toast.error(error instanceof Error ? error.message : 'Error al cargar documento');
     } finally {
       setIsLoading(false);
     }
@@ -111,15 +111,15 @@ export function DocumentUploadModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Subir Documento</DialogTitle>
+          <DialogTitle>Cargar documento</DialogTitle>
           <DialogDescription>
-            Completa los detalles del documento y selecciona el archivo
+            Completa los detalles del documento y selecciona el archivo.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Titulo del Documento</label>
+            <label className="text-sm font-medium text-foreground">Título del documento</label>
             <Input
               placeholder="ej: Certificado de Seguridad 2026"
               value={title}
@@ -129,7 +129,7 @@ export function DocumentUploadModal({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Descripcion (opcional)</label>
+            <label className="text-sm font-medium text-foreground">Descripción (opcional)</label>
             <Textarea
               placeholder="Detalles adicionales sobre el documento"
               value={description}
@@ -141,7 +141,7 @@ export function DocumentUploadModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Tipo de Documento</label>
+            <label className="text-sm font-medium text-foreground">Tipo de documento</label>
               <Select value={documentType} onValueChange={setDocumentType} disabled={isLoading}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecciona tipo" />
@@ -156,10 +156,10 @@ export function DocumentUploadModal({
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Categoria</label>
+            <label className="text-sm font-medium text-foreground">Categoría</label>
               <Select value={category} onValueChange={setCategory} disabled={isLoading}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecciona categoria" />
+                  <SelectValue placeholder="Selecciona categoría" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="safety">Seguridad</SelectItem>
@@ -188,7 +188,7 @@ export function DocumentUploadModal({
                   {file ? file.name : 'Haz clic para seleccionar o arrastra un archivo'}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  PDF, JPG, PNG, DOC, DOCX (Max 50MB)
+                  PDF, JPG, PNG, DOC, DOCX (máx. 50MB)
                 </p>
               </label>
             </div>
@@ -211,12 +211,12 @@ export function DocumentUploadModal({
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Subiendo...
+                  Cargando...
                 </>
               ) : (
                 <>
                   <Upload className="w-4 h-4 mr-2" />
-                  Subir Documento
+                  Cargar documento
                 </>
               )}
             </Button>

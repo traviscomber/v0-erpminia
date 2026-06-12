@@ -92,7 +92,9 @@ export default function ContratosReportesPage() {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <p className="text-center text-muted-foreground py-8">Sin datos disponibles</p>
+                <p className="text-center text-muted-foreground py-8">
+                  No hay datos suficientes para mostrar este reporte.
+                </p>
               )}
             </CardContent>
           </Card>
@@ -157,7 +159,9 @@ export default function ContratosReportesPage() {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <p className="text-center text-muted-foreground py-8">Sin datos de regalías</p>
+                <p className="text-center text-muted-foreground py-8">
+                  No hay datos de regalías para el periodo seleccionado.
+                </p>
               )}
             </CardContent>
           </Card>

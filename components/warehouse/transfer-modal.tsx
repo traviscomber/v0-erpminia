@@ -53,10 +53,10 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
 
       const result = await response.json();
       if (!response.ok) {
-        throw new Error(result.error || 'Transfer failed');
+        throw new Error(result.error || 'La transferencia falló');
       }
 
-      toast.success('Transfer completed');
+      toast.success('Transferencia completada');
       setFormData({
         stockId: '',
         toBinId: '',
@@ -65,7 +65,7 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
       });
       onTransfer?.(result);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Transfer failed');
+      toast.error(error instanceof Error ? error.message : 'La transferencia falló');
     } finally {
       setSubmitting(false);
     }
@@ -74,7 +74,7 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Transfer Stock</CardTitle>
+        <CardTitle>Transferir stock</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -115,7 +115,7 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
             </Select>
           </div>
           <div>
-            <Label>Quantity</Label>
+            <Label>Cantidad</Label>
             <Input
               type="number"
               min="1"
@@ -125,7 +125,7 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
             />
           </div>
           <div>
-            <Label>Reason</Label>
+            <Label>Motivo</Label>
             <textarea
               value={formData.reason}
               onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
@@ -142,7 +142,7 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
               !formData.quantity
             }
           >
-            {submitting ? 'Transferring...' : 'Confirm Transfer'}
+            {submitting ? 'Transfiriendo...' : 'Confirmar transferencia'}
           </Button>
         </form>
       </CardContent>
