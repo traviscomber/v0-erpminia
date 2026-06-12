@@ -237,7 +237,7 @@ export default function SostenibilidadDashboard() {
 
       <div className="mb-12 grid grid-cols-1 gap-6 lg:grid-cols-2">
         {pillars.map((pillar) => (
-          <Card key={pillar.title} className={`rounded-xl border-l-4 shadow-none ${pillar.borderClass}`}>
+          <Card key={pillar.title} className={`rounded-xl border shadow-none ${pillar.borderClass}`}>
             <CardHeader>
               <div className="mb-4 flex items-center gap-3">
                 <div className={`rounded-lg p-3 ${pillar.bgClass}`}>

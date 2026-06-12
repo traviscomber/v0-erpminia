@@ -262,7 +262,7 @@ export default function KPIPrevenccionPage() {
           </Card>
 
           {/* Días sin Accidentes */}
-          <Card className="border-l-4 border-l-secondary">
+          <Card className="rounded-xl border border-secondary/20 shadow-none">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Días sin Accidentes</CardTitle>
             </CardHeader>

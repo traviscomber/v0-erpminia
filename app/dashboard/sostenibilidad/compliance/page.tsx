@@ -13,18 +13,18 @@ export default function CompliancePage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Compliance Management</h1>
-          <p className="text-muted-foreground">ISO 45001 & SERNAGEOMIN Compliance</p>
+          <h1 className="text-3xl font-bold">Gestion de cumplimiento</h1>
+          <p className="text-muted-foreground">ISO 45001 y SERNAGEOMIN</p>
         </div>
-        <Button onClick={() => setAuditOpen(true)}>Start Audit</Button>
+        <Button onClick={() => setAuditOpen(true)}>Iniciar auditoria</Button>
       </div>
 
       <Tabs defaultValue="calendar" className="w-full">
         <TabsList>
-          <TabsTrigger value="calendar">Calendar</TabsTrigger>
-          <TabsTrigger value="audits">Audit History</TabsTrigger>
-          <TabsTrigger value="checklists">Checklists</TabsTrigger>
-          <TabsTrigger value="reports">Reports</TabsTrigger>
+          <TabsTrigger value="calendar">Calendario</TabsTrigger>
+          <TabsTrigger value="audits">Historial</TabsTrigger>
+          <TabsTrigger value="checklists">Listas</TabsTrigger>
+          <TabsTrigger value="reports">Reportes</TabsTrigger>
         </TabsList>
 
         <TabsContent value="calendar" className="space-y-4">
@@ -32,15 +32,15 @@ export default function CompliancePage() {
         </TabsContent>
 
         <TabsContent value="audits">
-          <div className="text-muted-foreground">Audit history coming soon...</div>
+          <div className="text-muted-foreground">Historial de auditorias proximamente...</div>
         </TabsContent>
 
         <TabsContent value="checklists">
-          <div className="text-muted-foreground">Checklists coming soon...</div>
+          <div className="text-muted-foreground">Listas de verificacion proximamente...</div>
         </TabsContent>
 
         <TabsContent value="reports">
-          <div className="text-muted-foreground">Reports coming soon...</div>
+          <div className="text-muted-foreground">Reportes proximamente...</div>
         </TabsContent>
       </Tabs>
 

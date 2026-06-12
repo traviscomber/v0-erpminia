@@ -47,7 +47,7 @@ interface DocumentoFlujo {
   created_at: string;
 }
 
-const fetcher = (url: string) => fetch(url).then(r => r.json());
+const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then(r => r.json());
 
 const estadoSteps = [
   'borrador',
@@ -255,7 +255,7 @@ export default function FlujDocumentalPage() {
       </div>
 
       {/* Workflow Diagram */}
-      <Card className="mb-8">
+      <Card className="mb-8 rounded-xl border shadow-none">
         <CardHeader>
           <CardTitle className="text-sm">Fases de Aprobación</CardTitle>
         </CardHeader>
@@ -310,7 +310,7 @@ export default function FlujDocumentalPage() {
               <p className="text-muted-foreground text-center py-8">No hay documentos</p>
             ) : (
               filteredDocs.map((doc: any) => (
-                <Card key={doc.id} className="border-l-4 border-l-[var(--brand-naranja)]">
+                <Card key={doc.id} className="rounded-xl border border-border shadow-none">
                   <CardHeader>
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
@@ -338,7 +338,7 @@ export default function FlujDocumentalPage() {
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {/* Validador 1 */}
-                      <div className="border border-white/10 rounded-lg p-4">
+                      <div className="rounded-xl border border-border p-4 shadow-none">
                         <h4 className="font-bold text-sm mb-3 flex items-center gap-2">
                           <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs">1</div>
                           Jefe de Sostenibilidad
@@ -361,7 +361,7 @@ export default function FlujDocumentalPage() {
                       </div>
 
                       {/* Validador 2 */}
-                      <div className="border border-white/10 rounded-lg p-4">
+                      <div className="rounded-xl border border-border p-4 shadow-none">
                         <h4 className="font-bold text-sm mb-3 flex items-center gap-2">
                           <div className="w-6 h-6 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center text-xs">2</div>
                           Gerente General

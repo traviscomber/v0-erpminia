@@ -19,7 +19,7 @@ export function NonconformanceCard({ nc, onViewDetails, onCreateCA, severityColo
     Math.round((nc.corrective_actions.filter((ca: any) => ca.status === 'verified').length / nc.corrective_actions.length) * 100) : 0;
 
   return (
-    <Card className="p-4 hover:shadow-lg transition-shadow">
+    <Card className="p-4 rounded-xl border shadow-none transition-shadow">
       <div className="flex justify-between items-start mb-3">
         <div className="flex-1">
           <div className="font-mono text-sm text-muted-foreground">{nc.nc_number}</div>

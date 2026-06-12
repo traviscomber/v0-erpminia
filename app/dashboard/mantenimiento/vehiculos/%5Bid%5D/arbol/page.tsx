@@ -179,7 +179,7 @@ function ComponentNode({ component, onSelectPart }: { component: ComponentNode; 
   );
 }
 
-export default function VehicleFaultTreePage({ params }: { params: { id: string } }) {
+export default function VehicleFaultTreePage() {
   const [selectedParts, setSelectedParts] = useState<any[]>([]);
 
   const handleSelectPart = (part: any) => {

@@ -243,7 +243,7 @@ export default function CalendarioPage() {
           { label: 'Prioridad alta',  value: stats.alta,      color: 'text-red-400'    },
           { label: 'Vencidos',        value: stats.overdue,   color: 'text-red-400'    },
         ].map(s => (
-          <Card key={s.label} className="py-3">
+          <Card key={s.label} className="rounded-xl border shadow-none py-3">
             <CardContent className="px-4 py-0 text-center">
               <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
               <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
@@ -288,7 +288,7 @@ export default function CalendarioPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Calendar grid */}
           <div className="lg:col-span-2">
-            <Card>
+            <Card className="rounded-xl border shadow-none">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -402,7 +402,7 @@ export default function CalendarioPage() {
 
       {/* ── List view ────────────────────────────────────────────────────── */}
       {view === 'lista' && (
-        <Card>
+        <Card className="rounded-xl border shadow-none">
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Todos los eventos ({filteredEvents.length})</CardTitle>
           </CardHeader>
@@ -457,7 +457,7 @@ function EventCard({
   );
 
   return (
-    <div className="border border-border rounded-lg p-4 hover:bg-accent/5 transition-colors">
+    <div className="rounded-xl border border-border p-4 shadow-none hover:bg-accent/5 transition-colors">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 flex-1 min-w-0">
           <div className={`mt-0.5 p-2 rounded-md shrink-0 ${cfg.color}`}>

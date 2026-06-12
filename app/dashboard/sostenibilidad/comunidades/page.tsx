@@ -46,6 +46,25 @@ type Comunidad = {
   prioridad: 'alta' | 'media' | 'baja';
 };
 
+type ComunidadForm = {
+  tipo: Comunidad['tipo'];
+  descripcion: string;
+  stakeholder: string;
+  estado: Comunidad['estado'];
+  tipo_stakeholder: Comunidad['tipo_stakeholder'];
+  ubicacion: string;
+  contacto_persona: string;
+  contacto_email: string;
+  contacto_telefono: string;
+  impactado_por: string;
+  fecha_seguimiento: string;
+  responsable: string;
+  observaciones: string;
+  tipo_documento: string;
+  prioridad: Comunidad['prioridad'];
+  fecha: string;
+};
+
 type ApiResponse = {
   data?: Comunidad[];
 };
@@ -81,7 +100,7 @@ const DOCUMENT_TYPES = {
   otro: 'Otro',
 } as const;
 
-const BLANK_FORM = {
+const BLANK_FORM: ComunidadForm = {
   tipo: 'Evento',
   descripcion: '',
   stakeholder: '',
@@ -98,7 +117,7 @@ const BLANK_FORM = {
   tipo_documento: '',
   prioridad: 'media',
   fecha: new Date().toISOString().split('T')[0],
-} as const;
+};
 
 const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((r) => r.json());
 
@@ -107,7 +126,7 @@ export default function ComunidadesPage() {
   const [filterStakeholder, setFilterStakeholder] = useState('todos');
   const [filterStatus, setFilterStatus] = useState('todos');
   const [search, setSearch] = useState('');
-  const [formData, setFormData] = useState({ ...BLANK_FORM });
+  const [formData, setFormData] = useState<ComunidadForm>({ ...BLANK_FORM });
 
   const { data: res, mutate } = useSWR<ApiResponse>('/api/sostenibilidad/comunidades', fetcher);
   const allRecords = res?.data ?? [];

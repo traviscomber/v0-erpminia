@@ -49,7 +49,7 @@ export function NonconformanceForm({ orgId, onClose, onSuccess }: Nonconformance
     <Dialog open onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Nueva No-Conformidad</DialogTitle>
+          <DialogTitle>Nueva no conformidad</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -58,9 +58,9 @@ export function NonconformanceForm({ orgId, onClose, onSuccess }: Nonconformance
             name="title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Título</FormLabel>
+                <FormLabel>Titulo</FormLabel>
                 <FormControl>
-                  <Input placeholder="Título de la NC" {...field} />
+                  <Input placeholder="Titulo de la NC" {...field} />
                 </FormControl>
               </FormItem>
             )}
@@ -71,9 +71,9 @@ export function NonconformanceForm({ orgId, onClose, onSuccess }: Nonconformance
             name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Descripción</FormLabel>
+                <FormLabel>Descripcion</FormLabel>
                 <FormControl>
-                  <Textarea placeholder="Detalles de la no-conformidad" {...field} />
+                  <Textarea placeholder="Detalles de la no conformidad" {...field} />
                 </FormControl>
               </FormItem>
             )}
@@ -93,7 +93,7 @@ export function NonconformanceForm({ orgId, onClose, onSuccess }: Nonconformance
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="critical">Crítica</SelectItem>
+                      <SelectItem value="critical">Critica</SelectItem>
                       <SelectItem value="high">Alta</SelectItem>
                       <SelectItem value="medium">Media</SelectItem>
                       <SelectItem value="low">Baja</SelectItem>
@@ -122,7 +122,7 @@ export function NonconformanceForm({ orgId, onClose, onSuccess }: Nonconformance
               Cancelar
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Creando...' : 'Crear NC'}
+              {loading ? 'Creando...' : 'Crear no conformidad'}
             </Button>
           </div>
         </form>

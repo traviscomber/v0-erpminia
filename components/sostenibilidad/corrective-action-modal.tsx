@@ -39,34 +39,34 @@ export function CorrectiveActionModal({ open, onOpenChange, ncId, onCreate }: an
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Create Corrective Action</DialogTitle>
+          <DialogTitle>Crear accion correctiva</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           {!ncId && (
             <p className="text-sm text-muted-foreground">
-              Select a non-conformance first to create a corrective action.
+              Selecciona primero una no conformidad para crear la accion correctiva.
             </p>
           )}
           <div>
-            <Label>Action Description</Label>
+            <Label>Descripcion de la accion</Label>
             <Textarea
-              placeholder="Describe the action to be taken..."
+              placeholder="Describe la accion que se ejecutara..."
               value={data.actionDescription}
               onChange={(e) => setData({ ...data, actionDescription: e.target.value })}
             />
           </div>
           <div>
-            <Label>Responsible Person</Label>
+            <Label>Responsable</Label>
             <Input
-              placeholder="Name or ID"
+              placeholder="Nombre o ID"
               value={data.responsiblePerson}
               onChange={(e) => setData({ ...data, responsiblePerson: e.target.value })}
             />
           </div>
           <div>
-            <Label>Target Completion Date</Label>
+            <Label>Fecha objetivo de cierre</Label>
             <Input
               type="date"
               value={data.scheduledCompletionDate}
@@ -74,21 +74,21 @@ export function CorrectiveActionModal({ open, onOpenChange, ncId, onCreate }: an
             />
           </div>
           <div>
-            <Label>Verification Method</Label>
+            <Label>Metodo de verificacion</Label>
             <Select value={data.verificationMethod} onValueChange={(val) => setData({ ...data, verificationMethod: val })}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="inspection">Inspection</SelectItem>
-                <SelectItem value="testing">Testing</SelectItem>
-                <SelectItem value="audit">Audit</SelectItem>
-                <SelectItem value="review">Document Review</SelectItem>
+                <SelectItem value="inspection">Inspeccion</SelectItem>
+                <SelectItem value="testing">Prueba</SelectItem>
+                <SelectItem value="audit">Auditoria</SelectItem>
+                <SelectItem value="review">Revision documental</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <Button onClick={handleCreate} disabled={loading || !ncId} className="w-full">
-            {loading ? 'Creating...' : 'Create Action'}
+            {loading ? 'Creando...' : 'Crear accion'}
           </Button>
         </div>
       </DialogContent>

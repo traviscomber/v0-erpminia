@@ -40,15 +40,15 @@ export function CorrectiveActionModal({ ncNumber, onSubmit, onCancel, initialDat
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <Card className="w-full max-w-xl">
         <CardHeader>
-          <CardTitle>Create Corrective Action</CardTitle>
+          <CardTitle>Crear accion correctiva</CardTitle>
           <p className="text-sm text-muted-foreground mt-1">NC: {ncNumber}</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label>Action Description</Label>
+              <Label>Descripcion de la accion</Label>
               <textarea
-                placeholder="What action will be taken to correct this?"
+                placeholder="Que accion se ejecutara para corregir esto?"
                 value={formData.actionDescription}
                 onChange={(e) => setFormData({ ...formData, actionDescription: e.target.value })}
                 className="w-full p-2 border rounded text-sm"
@@ -58,9 +58,9 @@ export function CorrectiveActionModal({ ncNumber, onSubmit, onCancel, initialDat
             </div>
 
             <div>
-              <Label>Responsible Person</Label>
+              <Label>Responsable</Label>
               <Input
-                placeholder="Name or email"
+                placeholder="Nombre o correo"
                 value={formData.responsiblePerson}
                 onChange={(e) => setFormData({ ...formData, responsiblePerson: e.target.value })}
               />
@@ -68,7 +68,7 @@ export function CorrectiveActionModal({ ncNumber, onSubmit, onCancel, initialDat
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Scheduled Completion Date</Label>
+                <Label>Fecha objetivo de cierre</Label>
                 <Input
                   type="date"
                   value={formData.scheduledCompletionDate}
@@ -78,22 +78,22 @@ export function CorrectiveActionModal({ ncNumber, onSubmit, onCancel, initialDat
               </div>
 
               <div>
-                <Label>Verification Method</Label>
+                <Label>Metodo de verificacion</Label>
                 <select
                   value={formData.verificationMethod}
                   onChange={(e) => setFormData({ ...formData, verificationMethod: e.target.value })}
                   className="w-full p-2 border rounded text-sm"
                 >
-                  <option value="inspection">Inspection</option>
-                  <option value="measurement">Measurement</option>
-                  <option value="audit">Audit</option>
-                  <option value="documentation">Documentation</option>
+                  <option value="inspection">Inspeccion</option>
+                  <option value="measurement">Medicion</option>
+                  <option value="audit">Auditoria</option>
+                  <option value="documentation">Documentacion</option>
                 </select>
               </div>
             </div>
 
             <div>
-              <Label>Estimated Cost</Label>
+              <Label>Costo estimado</Label>
               <Input
                 type="number"
                 placeholder="0.00"
@@ -104,10 +104,10 @@ export function CorrectiveActionModal({ ncNumber, onSubmit, onCancel, initialDat
 
             <div className="flex gap-2 pt-4">
               <Button type="submit" disabled={loading} className="flex-1">
-                {loading ? 'Creating...' : 'Create Action'}
+                {loading ? 'Creando...' : 'Crear accion'}
               </Button>
               <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
-                Cancel
+                Cancelar
               </Button>
             </div>
           </form>

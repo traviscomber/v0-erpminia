@@ -48,10 +48,10 @@ export function SustainabilityKPIDashboard() {
     <div className="space-y-6">
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* Compliance Score */}
+        {/* Puntaje de cumplimiento */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold">Compliance Score</CardTitle>
+            <CardTitle className="text-sm font-semibold">Puntaje de cumplimiento</CardTitle>
           </CardHeader>
           <CardContent>
             <div className={`text-3xl font-bold ${getComplianceColor(overview.compliance_score)}`}>
@@ -77,17 +77,17 @@ export function SustainabilityKPIDashboard() {
           </CardContent>
         </Card>
 
-        {/* CAs Vencidas */}
+        {/* Acciones vencidas */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold">CAs Vencidas</CardTitle>
+            <CardTitle className="text-sm font-semibold">Acciones vencidas</CardTitle>
           </CardHeader>
           <CardContent>
             <div className={`text-3xl font-bold ${overview.overdue_cas > 0 ? 'text-destructive' : 'text-secondary'}`}>
               {overview.overdue_cas}
             </div>
             <div className="mt-2 text-xs text-muted-foreground">
-              Requiere acción inmediata
+              Requiere accion inmediata
             </div>
           </CardContent>
         </Card>
@@ -95,7 +95,7 @@ export function SustainabilityKPIDashboard() {
         {/* Cierre Rate */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold">Tasa Cierre</CardTitle>
+            <CardTitle className="text-sm font-semibold">Tasa de cierre</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-secondary">
@@ -114,8 +114,8 @@ export function SustainabilityKPIDashboard() {
       {/* Trends Chart */}
       <Card>
         <CardHeader>
-          <CardTitle>Tendencia de Compliance Score</CardTitle>
-          <CardDescription>Últimos 12 meses</CardDescription>
+          <CardTitle>Tendencia de Puntaje de cumplimiento</CardTitle>
+          <CardDescription>Ultimos 12 meses</CardDescription>
         </CardHeader>
         <CardContent>
           {trends && trends.length > 0 ? (
@@ -150,7 +150,7 @@ export function SustainabilityKPIDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardHeader>
-            <CardTitle>Distribución de NCs por Estado</CardTitle>
+            <CardTitle>Distribucion de NC por estado</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
@@ -180,8 +180,8 @@ export function SustainabilityKPIDashboard() {
         {/* Top Risks */}
         <Card>
           <CardHeader>
-            <CardTitle>Top Riesgos Abiertos</CardTitle>
-            <CardDescription>NCs por cerrar</CardDescription>
+            <CardTitle>Principales riesgos abiertos</CardTitle>
+            <CardDescription>No conformidades por cerrar</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
@@ -196,7 +196,7 @@ export function SustainabilityKPIDashboard() {
                     <Badge
                       variant="outline"
                       className={
-                        risk.severity === 'crítica'
+                        risk.severity === 'critica'
                           ? 'bg-destructive/10'
                           : 'bg-primary/10'
                       }

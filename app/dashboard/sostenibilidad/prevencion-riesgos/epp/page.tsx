@@ -382,7 +382,7 @@ export default function EPPPage() {
       </Card>
 
       {/* Alerts about expiring EPP */}
-      <Card className="mt-6 border-l-4 border-l-primary">
+      <Card className="mt-6 rounded-xl border border-primary/20 shadow-none">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <AlertCircle className="w-5 h-5 text-primary" />

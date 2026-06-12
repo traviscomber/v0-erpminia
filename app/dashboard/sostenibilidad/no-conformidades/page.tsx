@@ -41,7 +41,7 @@ export default function NonconformanceDashboard() {
       
       await mutateNCs();
       setShowForm(false);
-      toast.success('Non-conformance created successfully');
+      toast.success('No conformidad creada correctamente');
     } catch (error) {
       toast.error('Failed to create non-conformance');
       throw error;
@@ -73,11 +73,11 @@ export default function NonconformanceDashboard() {
     <div className="space-y-6">
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Non-Conformance Management</h1>
-          <p className="text-muted-foreground">Track, manage, and close non-conformances with corrective actions</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Gestion de no conformidades</h1>
+          <p className="text-muted-foreground">Seguimiento, control y cierre de no conformidades con acciones correctivas</p>
         </div>
         <Button onClick={() => setShowForm(!showForm)} className="bg-primary">
-          {showForm ? 'Cancel' : 'Report NC'}
+          {showForm ? 'Cancelar' : 'Reportar NC'}
         </Button>
       </div>
 
@@ -88,12 +88,12 @@ export default function NonconformanceDashboard() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <AlertCircle className="w-4 h-4" />
-              Open NCs
+              No conformidades abiertas
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{stats.open || 0}</p>
-            <p className="text-xs text-muted-foreground mt-1">Active issues</p>
+            <p className="text-xs text-muted-foreground mt-1">Casos activos</p>
           </CardContent>
         </Card>
 
@@ -101,12 +101,12 @@ export default function NonconformanceDashboard() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <Clock className="w-4 h-4" />
-              In Progress
+              En progreso
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{inProgressNCs.length}</p>
-            <p className="text-xs text-muted-foreground mt-1">Being addressed</p>
+            <p className="text-xs text-muted-foreground mt-1">En tratamiento</p>
           </CardContent>
         </Card>
 
@@ -114,12 +114,12 @@ export default function NonconformanceDashboard() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <CheckCircle className="w-4 h-4" />
-              Closed
+              Cerradas
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-secondary">{stats.closed || 0}</p>
-            <p className="text-xs text-muted-foreground mt-1">Resolved</p>
+            <p className="text-xs text-muted-foreground mt-1">Resueltas</p>
           </CardContent>
         </Card>
 
@@ -127,12 +127,12 @@ export default function NonconformanceDashboard() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <TrendingUp className="w-4 h-4" />
-              Compliance
+              Cumplimiento
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-primary">{report.compliance_score || 0}%</p>
-            <p className="text-xs text-muted-foreground mt-1">Overall score</p>
+            <p className="text-xs text-muted-foreground mt-1">Puntaje global</p>
           </CardContent>
         </Card>
       </div>
@@ -142,7 +142,7 @@ export default function NonconformanceDashboard() {
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 text-destructive">
               <AlertCircle className="w-5 h-5" />
-              <span className="font-medium">{stats.overdue} overdue non-conformances</span>
+              <span className="font-medium">{stats.overdue} no conformidades vencidas</span>
             </div>
           </CardContent>
         </Card>
@@ -150,17 +150,17 @@ export default function NonconformanceDashboard() {
 
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="open">Active NCs ({stats.open || 0})</TabsTrigger>
-          <TabsTrigger value="all">All NCs</TabsTrigger>
-          <TabsTrigger value="severity">By Severity</TabsTrigger>
+          <TabsTrigger value="overview">Resumen</TabsTrigger>
+          <TabsTrigger value="open">NC activas ({stats.open || 0})</TabsTrigger>
+          <TabsTrigger value="all">Todas</TabsTrigger>
+          <TabsTrigger value="severity">Por severidad</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
           <div className="grid md:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
-                <CardTitle>Recent Open NCs</CardTitle>
+                <CardTitle>NC abiertas recientes</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {openNCs.slice(0, 5).map((nc: any) => (
@@ -176,13 +176,13 @@ export default function NonconformanceDashboard() {
                     onViewDetails={() => setSelectedNC(nc)}
                   />
                 ))}
-                {openNCs.length === 0 && <p className="text-sm text-muted-foreground">No open non-conformances</p>}
+                {openNCs.length === 0 && <p className="text-sm text-muted-foreground">No hay no conformidades abiertas</p>}
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Severity Distribution</CardTitle>
+                <CardTitle>Distribucion por severidad</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 {['critical', 'high', 'medium', 'low'].map((sev: any) => (
@@ -196,11 +196,11 @@ export default function NonconformanceDashboard() {
           </div>
         </TabsContent>
 
-        <TabsContent value="open">
+          <TabsContent value="open">
           <Card>
             <CardHeader>
-              <CardTitle>Active Non-Conformances</CardTitle>
-              <CardDescription>Open and in-progress issues</CardDescription>
+              <CardTitle>No conformidades activas</CardTitle>
+              <CardDescription>Casos abiertos y en curso</CardDescription>
             </CardHeader>
             <CardContent>
               <NonconformanceTable
@@ -218,8 +218,8 @@ export default function NonconformanceDashboard() {
         <TabsContent value="all">
           <Card>
             <CardHeader>
-              <CardTitle>All Non-Conformances</CardTitle>
-              <CardDescription>Complete history of non-conformances</CardDescription>
+              <CardTitle>Todas las no conformidades</CardTitle>
+              <CardDescription>Historial completo de casos registrados</CardDescription>
             </CardHeader>
             <CardContent>
               <NonconformanceTable
@@ -241,8 +241,8 @@ export default function NonconformanceDashboard() {
               return (
                 <Card key={sev}>
                   <CardHeader>
-                    <CardTitle className="text-base capitalize">{sev} Severity</CardTitle>
-                    <CardDescription>{filtered.length} active</CardDescription>
+                    <CardTitle className="text-base capitalize">{sev} severidad</CardTitle>
+                    <CardDescription>{filtered.length} activas</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-2">
                     {filtered.slice(0, 5).map((nc: any) => (
@@ -271,24 +271,24 @@ export default function NonconformanceDashboard() {
                 <CardTitle>{selectedNC.title}</CardTitle>
                 <CardDescription className="font-mono text-xs mt-1">{selectedNC.nc_number}</CardDescription>
               </div>
-              <Button variant="outline" onClick={() => setSelectedNC(null)}>
-                Close
+                <Button variant="outline" onClick={() => setSelectedNC(null)}>
+                Cerrar
               </Button>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Description</p>
+                <p className="text-sm font-medium text-muted-foreground">Descripcion</p>
                 <p className="text-sm">{selectedNC.description}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Root Cause</p>
-                <p className="text-sm">{selectedNC.root_cause || 'Not specified'}</p>
+                <p className="text-sm font-medium text-muted-foreground">Causa raiz</p>
+                <p className="text-sm">{selectedNC.root_cause || 'No especificada'}</p>
               </div>
             </div>
             <Button onClick={() => setShowCAModal(true)} className="w-full">
-              Create Corrective Action
+              Crear accion correctiva
             </Button>
           </CardContent>
         </Card>

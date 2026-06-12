@@ -31,19 +31,19 @@ export function CorrectiveActionsPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Corrective Actions</h1>
-          <p className="text-muted-foreground">Track and manage corrective action plans</p>
+          <h1 className="text-3xl font-bold">Acciones correctivas</h1>
+          <p className="text-muted-foreground">Seguimiento y gestion de planes correctivos</p>
         </div>
         <Button onClick={() => setModalOpen(true)} className="bg-primary" variant="default">
           <Plus className="w-4 h-4 mr-2" />
-          New Action
+          Nueva accion
         </Button>
       </div>
 
       {!ncId && (
         <Card className="border-border">
           <CardContent className="pt-6 text-sm text-muted-foreground">
-            Create new corrective actions from a selected non-conformance so the action stays linked to its finding.
+            Crea acciones correctivas desde una no conformidad seleccionada para mantener el vinculo con su hallazgo.
           </CardContent>
         </Card>
       )}
@@ -52,7 +52,7 @@ export function CorrectiveActionsPage() {
       <div className="grid grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">In Progress</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">En progreso</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{inProgressCount || stats?.data?.in_progress || 0}</div>
@@ -60,7 +60,7 @@ export function CorrectiveActionsPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Completed</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Completadas</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{completedCount || stats?.data?.completed || 0}</div>
@@ -68,7 +68,7 @@ export function CorrectiveActionsPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Overdue</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Vencidas</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">{overDueCount || stats?.data?.overdue || 0}</div>
@@ -76,7 +76,7 @@ export function CorrectiveActionsPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Completion Rate</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Tasa de cierre</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -91,9 +91,9 @@ export function CorrectiveActionsPage() {
       {/* Tabs */}
       <Tabs defaultValue="active" className="w-full">
         <TabsList>
-          <TabsTrigger value="active">Active</TabsTrigger>
-          <TabsTrigger value="completed">Completed</TabsTrigger>
-          <TabsTrigger value="overdue">Overdue</TabsTrigger>
+          <TabsTrigger value="active">Activas</TabsTrigger>
+          <TabsTrigger value="completed">Completadas</TabsTrigger>
+          <TabsTrigger value="overdue">Vencidas</TabsTrigger>
         </TabsList>
 
         <TabsContent value="active" className="space-y-4">

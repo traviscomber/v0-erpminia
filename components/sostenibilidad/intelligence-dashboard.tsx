@@ -46,7 +46,7 @@ export function IntelligenceDashboard({
         <Alert className="border-destructive bg-destructive/5">
           <AlertTriangle className="h-4 w-4 text-destructive" />
           <AlertDescription>
-            <strong>Risk Patterns Detected:</strong> {patterns.length} pattern(s) identified
+            <strong>Patrones de riesgo detectados:</strong> {patterns.length} patron(es) identificados
           </AlertDescription>
         </Alert>
       )}
@@ -57,7 +57,7 @@ export function IntelligenceDashboard({
           {patterns.slice(0, 4).map((pattern, idx) => (
             <Card key={idx}>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium">{pattern.pattern}</CardTitle>
+              <CardTitle className="text-sm font-medium">{pattern.pattern}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -85,11 +85,11 @@ export function IntelligenceDashboard({
       {showRecommendations && recommendations.length > 0 && (
         <Card className="border-primary/20 bg-primary/5">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2">
               <Brain className="h-5 w-5" />
-              Smart Recommendations
+              Recomendaciones inteligentes
             </CardTitle>
-            <CardDescription>AI-powered insights for improving compliance</CardDescription>
+            <CardDescription>Hallazgos guiados por IA para mejorar el cumplimiento</CardDescription>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
@@ -110,8 +110,8 @@ export function IntelligenceDashboard({
           {/* NC Trend */}
           <Card>
             <CardHeader>
-              <CardTitle>NC Trend (30 days)</CardTitle>
-              <CardDescription>{trends.total} non-conformances created</CardDescription>
+              <CardTitle>Tendencia de NC (30 dias)</CardTitle>
+              <CardDescription>{trends.total} no conformidades creadas</CardDescription>
             </CardHeader>
             <CardContent>
               {trendChartData.length > 0 ? (
@@ -131,7 +131,7 @@ export function IntelligenceDashboard({
                 </ResponsiveContainer>
               ) : (
                 <p className="text-sm text-muted-foreground text-center py-8">
-                  No data for the selected period
+                  No hay datos para el periodo seleccionado
                 </p>
               )}
             </CardContent>
@@ -140,8 +140,8 @@ export function IntelligenceDashboard({
           {/* Severity Distribution */}
           <Card>
             <CardHeader>
-              <CardTitle>Severity Distribution</CardTitle>
-              <CardDescription>NCs by severity level</CardDescription>
+              <CardTitle>Distribucion por severidad</CardTitle>
+              <CardDescription>NC por nivel de severidad</CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -162,7 +162,7 @@ export function IntelligenceDashboard({
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total NCs (30d)</CardTitle>
+            <CardTitle className="text-sm font-medium">Total NC (30 dias)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{trends.total}</div>
@@ -170,7 +170,7 @@ export function IntelligenceDashboard({
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Avg Closure Time</CardTitle>
+            <CardTitle className="text-sm font-medium">Tiempo promedio de cierre</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{trends.averageClosureTime} days</div>
@@ -178,7 +178,7 @@ export function IntelligenceDashboard({
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Risk Patterns</CardTitle>
+            <CardTitle className="text-sm font-medium">Patrones de riesgo</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-destructive">{patterns.length}</div>
@@ -186,7 +186,7 @@ export function IntelligenceDashboard({
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Action Items</CardTitle>
+            <CardTitle className="text-sm font-medium">Acciones</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary">{recommendations.length}</div>

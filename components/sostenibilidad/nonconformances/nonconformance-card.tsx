@@ -65,18 +65,18 @@ export function NonconformanceCard({
       </CardHeader>
 
       <CardContent className="space-y-3">
-        <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="grid grid-cols-2 gap-3 text-sm">
           <div>
-            <p className="text-muted-foreground text-xs">Category</p>
+            <p className="text-muted-foreground text-xs">Categoria</p>
             <p className="font-medium capitalize">{category}</p>
           </div>
           <div>
-            <p className="text-muted-foreground text-xs">Discovered</p>
+            <p className="text-muted-foreground text-xs">Detectada</p>
             <p className="font-medium text-xs">{new Date(discoveredDate).toLocaleDateString()}</p>
           </div>
           {targetClosureDate && (
             <div>
-              <p className="text-muted-foreground text-xs">Target Closure</p>
+              <p className="text-muted-foreground text-xs">Cierre objetivo</p>
               <p className={`font-medium text-xs ${isOverdue && status !== 'closed' ? 'text-destructive' : ''}`}>
                 {new Date(targetClosureDate).toLocaleDateString()}
               </p>
@@ -84,7 +84,7 @@ export function NonconformanceCard({
           )}
           {assignedTo && (
             <div>
-              <p className="text-muted-foreground text-xs">Assigned To</p>
+              <p className="text-muted-foreground text-xs">Asignada a</p>
               <p className="font-medium text-xs truncate">{assignedTo}</p>
             </div>
           )}
@@ -92,7 +92,7 @@ export function NonconformanceCard({
 
         {onViewDetails && (
           <button onClick={onViewDetails} className="w-full text-sm text-primary hover:underline pt-2 border-t">
-            View Details & Corrective Actions
+            Ver detalles y acciones correctivas
           </button>
         )}
       </CardContent>

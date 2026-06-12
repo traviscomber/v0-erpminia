@@ -21,7 +21,7 @@ export default function AuditModal({ open, onOpenChange }: { open: boolean; onOp
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>ISO 45001 Audit Session</DialogTitle>
+          <DialogTitle>Sesion de auditoria ISO 45001</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 max-h-[60vh] overflow-y-auto">
@@ -32,7 +32,7 @@ export default function AuditModal({ open, onOpenChange }: { open: boolean; onOp
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="space-y-2">
-                  {['Compliant', 'Non-Compliant', 'Partial', 'N/A'].map((option) => (
+                  {['Cumple', 'No cumple', 'Parcial', 'No aplica'].map((option) => (
                     <div key={option} className="flex items-center gap-2">
                       <Checkbox
                         id={`${q.id}-${option}`}
@@ -45,7 +45,7 @@ export default function AuditModal({ open, onOpenChange }: { open: boolean; onOp
                     </div>
                   ))}
                 </div>
-                <Textarea placeholder="Comments..." className="text-sm" />
+                <Textarea placeholder="Observaciones..." className="text-sm" />
               </CardContent>
             </Card>
           ))}
@@ -53,10 +53,10 @@ export default function AuditModal({ open, onOpenChange }: { open: boolean; onOp
 
         <div className="flex gap-2 justify-end">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            Cancelar
           </Button>
           <Button onClick={() => onOpenChange(false)}>
-            Complete Audit
+            Completar auditoria
           </Button>
         </div>
       </DialogContent>
