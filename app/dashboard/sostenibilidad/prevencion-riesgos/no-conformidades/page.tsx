@@ -3,7 +3,6 @@
 import { NoncConformancePage } from '@/components/sostenibilidad/nonconformance-page';
 
 export default function NoConformidadesPage() {
-  // TODO: Get orgId from user session
   const orgId = 'default-org';
 
   return (
