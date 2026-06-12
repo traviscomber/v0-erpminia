@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/api/guard';
 import { listDocumentsForOrganization } from '@/lib/api/documents';
-
-const MOCK_DOCUMENTS = [
-  { id: '1', title: 'Política de Seguridad', category: 'regulatory', status: 'approved', description: 'Política corporativa de seguridad e higiene ocupacional' },
-  { id: '2', title: 'Manual de Procedimientos', category: 'compliance', status: 'approved', description: 'Manual de procedimientos operacionales' },
-  { id: '3', title: 'Reglamento Ambiental', category: 'regulatory', status: 'approved', description: 'Cumplimiento de normas ambientales mineras' },
-];
+import { DocumentService } from '@/lib/services/document.service';
+import { getSupabaseServerClient } from '@/lib/supabase-server';
 
 export async function GET(request: NextRequest) {
   const auth = await requireAuth(request);
@@ -16,38 +12,24 @@ export async function GET(request: NextRequest) {
 
   try {
     const searchParams = new URL(request.url).searchParams;
-    try {
-      const result = await listDocumentsForOrganization(auth.organizationId, {
-        status: searchParams.get('status'),
-        category: searchParams.get('category'),
-        search: searchParams.get('search'),
-        limit: Number(searchParams.get('limit') || '50'),
-        offset: Number(searchParams.get('offset') || '0'),
-      });
+    const result = await listDocumentsForOrganization(auth.organizationId, {
+      status: searchParams.get('status'),
+      category: searchParams.get('category') || undefined,
+      search: searchParams.get('search'),
+      limit: Number(searchParams.get('limit') || '50'),
+      offset: Number(searchParams.get('offset') || '0'),
+    });
 
-      const requestedCategory = searchParams.get('category');
-      const documents = requestedCategory
-        ? result.documents
-        : result.documents.filter((document: any) =>
-            ['compliance', 'regulatory'].includes(document.category)
-          );
+    const legalCategories = new Set(['compliance', 'regulatory', 'legal']);
+    const requestedCategory = searchParams.get('category');
+    const documents = requestedCategory
+      ? result.documents
+      : result.documents.filter((document: any) => legalCategories.has(String(document.category || '').toLowerCase()));
 
-      return NextResponse.json({
-        documents,
-        total: requestedCategory ? result.total : documents.length,
-      });
-    } catch {
-      // Fallback to mock data if query fails
-      const requestedCategory = searchParams.get('category');
-      const documents = requestedCategory
-        ? MOCK_DOCUMENTS
-        : MOCK_DOCUMENTS.filter((doc) => ['compliance', 'regulatory'].includes(doc.category));
-
-      return NextResponse.json({
-        documents,
-        total: documents.length,
-      });
-    }
+    return NextResponse.json({
+      documents,
+      total: requestedCategory ? result.total : documents.length,
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to fetch legal documents';
     return NextResponse.json({ error: message }, { status: 500 });
@@ -56,19 +38,66 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const auth = await requireAuth(request);
-  if (!auth.authorized || !auth.organizationId) {
+  if (!auth.authorized || !auth.organizationId || !auth.user) {
     return auth.response || NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
+    const contentType = request.headers.get('content-type') || '';
+    const supabase = getSupabaseServerClient();
+
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await request.formData();
+      const file = formData.get('file');
+      const title = String(formData.get('title') || '').trim() || String((file as File | null)?.name || '').trim();
+      const description = String(formData.get('description') || '').trim() || undefined;
+      const documentType = String(formData.get('documentType') || formData.get('category') || 'legal').trim();
+      const category = String(formData.get('category') || 'legal').trim();
+
+      if (!(file instanceof File)) {
+        return NextResponse.json({ error: 'file is required' }, { status: 400 });
+      }
+
+      const uploaded = await DocumentService.uploadDocument({
+        organizationId: auth.organizationId,
+        createdBy: auth.user.id,
+        title: title || file.name,
+        description,
+        documentType,
+        category,
+        file,
+      });
+
+      return NextResponse.json(uploaded, { status: 201 });
+    }
+
     const body = await request.json();
-    // In production, this would save to Supabase
-    const newDoc = {
-      id: Math.random().toString(36).substr(2, 9),
-      ...body,
-      status: 'pending',
-    };
-    return NextResponse.json(newDoc, { status: 201 });
+    const title = String(body.title || '').trim();
+    if (!title) {
+      return NextResponse.json({ error: 'title is required' }, { status: 400 });
+    }
+
+    const category = String(body.category || 'legal').trim();
+    const documentType = String(body.documentType || category || 'legal').trim();
+    const { data, error } = await supabase
+      .from('documents')
+      .insert({
+        organization_id: auth.organizationId,
+        title,
+        description: String(body.description || '').trim() || null,
+        document_type: documentType,
+        category,
+        status: 'draft',
+        created_by: auth.user.id,
+        search_text: `${title} ${body.description || ''} ${category} ${documentType}`.trim(),
+        updated_at: new Date().toISOString(),
+      })
+      .select('*')
+      .single();
+
+    if (error) throw error;
+
+    return NextResponse.json({ document: data }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to create document';
     return NextResponse.json({ error: message }, { status: 500 });

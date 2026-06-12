@@ -143,9 +143,29 @@ export default function LegalPage() {
   );
 
   const handleAddDocument = async (doc: any) => {
+    const hasFile = doc?.file instanceof File;
+    let body: BodyInit;
+    let headers: HeadersInit | undefined;
+
+    if (hasFile) {
+      const formData = new FormData();
+      Object.entries(doc).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          formData.append(key, value instanceof File ? value : String(value));
+        }
+      });
+      body = formData;
+      headers = undefined;
+    } else {
+      body = JSON.stringify(doc);
+      headers = { 'Content-Type': 'application/json' };
+    }
+
     const res = await fetch('/api/legal/documentos', {
       method: 'POST',
-      body: JSON.stringify(doc),
+      headers,
+      credentials: 'include',
+      body,
     });
     if (res.ok) {
       await mutateDocuments();
@@ -154,9 +174,29 @@ export default function LegalPage() {
   };
 
   const handleAddContract = async (contract: any) => {
+    const hasFile = contract?.file instanceof File;
+    let body: BodyInit;
+    let headers: HeadersInit | undefined;
+
+    if (hasFile) {
+      const formData = new FormData();
+      Object.entries(contract).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          formData.append(key, value instanceof File ? value : String(value));
+        }
+      });
+      body = formData;
+      headers = undefined;
+    } else {
+      body = JSON.stringify(contract);
+      headers = { 'Content-Type': 'application/json' };
+    }
+
     const res = await fetch('/api/legal/contratos', {
       method: 'POST',
-      body: JSON.stringify(contract),
+      headers,
+      credentials: 'include',
+      body,
     });
     if (res.ok) {
       await mutateContracts();

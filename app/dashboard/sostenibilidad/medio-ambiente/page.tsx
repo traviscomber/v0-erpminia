@@ -36,10 +36,10 @@ interface MedioAmbienteRecord {
   descripcion: string;
   valor: string;
   unidad: string;
-  cumplimiento: 'conforme' | 'no_conforme' | 'en_revisin';
+  cumplimiento: 'conforme' | 'no_conforme' | 'en_revision';
 }
 
-const fetcher = (url: string) => fetch(url).then(r => r.json());
+const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then(r => r.json());
 
 export default function MedioAmbientePage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -53,7 +53,7 @@ export default function MedioAmbientePage() {
     descripcion: '',
     valor: '',
     unidad: 'kg',
-    cumplimiento: 'conforme' as 'conforme' | 'no_conforme',
+    cumplimiento: 'conforme' as 'conforme' | 'no_conforme' | 'en_revision',
   });
 
   const { data: registros, mutate } = useSWR(
@@ -132,7 +132,7 @@ export default function MedioAmbientePage() {
   const cumplimientoColor = {
     conforme: 'bg-secondary/10 text-secondary',
     no_conforme: 'bg-destructive/10 text-destructive',
-    en_revisin: 'bg-primary/10 text-primary',
+    en_revision: 'bg-primary/10 text-primary',
   };
 
   return (
@@ -219,7 +219,7 @@ export default function MedioAmbientePage() {
                   <SelectContent>
                     <SelectItem value="conforme">Conforme</SelectItem>
                     <SelectItem value="no_conforme">No Conforme</SelectItem>
-                    <SelectItem value="en_revisin">En Revisión</SelectItem>
+                    <SelectItem value="en_revision">En Revisión</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

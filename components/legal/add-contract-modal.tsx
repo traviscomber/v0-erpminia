@@ -1,10 +1,10 @@
 'use client';
+
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Plus } from 'lucide-react';
 
 interface AddContractModalProps {
@@ -14,9 +14,10 @@ interface AddContractModalProps {
 export function AddContractModal({ onSubmit }: AddContractModalProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({ 
-    title: '', 
-    contractor_name: '', 
+  const [file, setFile] = useState<File | null>(null);
+  const [formData, setFormData] = useState({
+    title: '',
+    contractor_name: '',
     start_date: '',
     end_date: '',
     contract_value: '',
@@ -26,11 +27,23 @@ export function AddContractModal({ onSubmit }: AddContractModalProps) {
     e.preventDefault();
     setLoading(true);
     try {
-      await onSubmit({
-        ...formData,
-        contract_value: formData.contract_value ? parseInt(formData.contract_value) : 0,
-      });
+      if (file) {
+        const payload = new FormData();
+        payload.append('title', formData.title);
+        payload.append('contractorName', formData.contractor_name);
+        payload.append('startDate', formData.start_date);
+        payload.append('endDate', formData.end_date);
+        payload.append('contractValue', formData.contract_value);
+        payload.append('file', file);
+        await onSubmit(Object.fromEntries(payload.entries()));
+      } else {
+        await onSubmit({
+          ...formData,
+          contract_value: formData.contract_value ? parseInt(formData.contract_value, 10) : 0,
+        });
+      }
       setFormData({ title: '', contractor_name: '', start_date: '', end_date: '', contract_value: '' });
+      setFile(null);
       setOpen(false);
     } finally {
       setLoading(false);
@@ -72,6 +85,10 @@ export function AddContractModal({ onSubmit }: AddContractModalProps) {
           <div className="space-y-2">
             <Label htmlFor="value">Monto (USD)</Label>
             <Input id="value" type="number" placeholder="0" value={formData.contract_value} onChange={(e) => setFormData({ ...formData, contract_value: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="file">Archivo opcional</Label>
+            <Input id="file" type="file" accept=".pdf,.doc,.docx" onChange={(e) => setFile(e.target.files?.[0] || null)} />
           </div>
           <div className="flex gap-2 justify-end">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>

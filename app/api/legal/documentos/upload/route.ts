@@ -1,51 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getOrganizationContext } from '@/lib/api/organization-context';
+import { requireAuth } from '@/lib/api/guard';
+import { DocumentService } from '@/lib/services/document.service';
 
 export async function POST(request: NextRequest) {
-  const context = await getOrganizationContext(request);
-  if (!context.ok) return context.response;
+  const auth = await requireAuth(request);
+  if (!auth.authorized || !auth.organizationId || !auth.user) {
+    return auth.response || NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
   try {
     const formData = await request.formData();
-    const file = formData.get('file') as File;
-    const documentType = formData.get('documentType') as string;
-    const category = formData.get('category') as string;
-    const expiryDate = formData.get('expiryDate') as string;
+    const file = formData.get('file');
 
-    if (!file) {
+    if (!(file instanceof File)) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    const fileName = `${context.organizationId}/${Date.now()}-${file.name}`;
-    const buffer = await file.arrayBuffer();
+    const title = String(formData.get('title') || file.name).trim();
+    const description = String(formData.get('description') || '').trim() || undefined;
+    const documentType = String(formData.get('documentType') || formData.get('category') || 'legal').trim();
+    const category = String(formData.get('category') || 'legal').trim();
+    const expiryDate = String(formData.get('expiryDate') || '').trim();
 
-    // Store file path in database
-    const { data, error } = await context.supabase
-      .from('legal_documents')
-      .insert({
-        organization_id: context.organizationId,
-        document_name: file.name,
-        document_type: documentType,
-        category: category,
-        file_path: fileName,
-        file_size: file.size,
-        expiry_date: expiryDate,
-        compliance_level: 'required',
-        status: 'active',
-        uploaded_by: context.userId,
-        uploaded_at: new Date().toISOString(),
-      })
-      .select('id, document_name, file_path, uploaded_at')
-      .single();
-
-    if (error) throw error;
-
-    return NextResponse.json({
-      success: true,
-      document_id: data.id,
-      file_url: fileName,
-      message: 'Document uploaded successfully',
+    const uploaded = await DocumentService.uploadDocument({
+      organizationId: auth.organizationId,
+      createdBy: auth.user.id,
+      title,
+      description,
+      documentType,
+      category,
+      file,
+      expiryDate: expiryDate ? new Date(expiryDate) : undefined,
     });
+
+    return NextResponse.json(uploaded, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Upload failed';
     return NextResponse.json({ error: message }, { status: 500 });
