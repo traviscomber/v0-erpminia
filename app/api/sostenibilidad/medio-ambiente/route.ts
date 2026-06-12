@@ -60,41 +60,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function PUT(request: NextRequest) {
-  const context = await getSustainabilityContext(request);
-  if (!context.ok) return context.response;
-
-  try {
-    const body = await request.json();
-    const id = body.id;
-    if (!id) {
-      return NextResponse.json({ error: 'id is required' }, { status: 400 });
-    }
-
-    const { data, error } = await context.supabase
-      .from('sostenibilidad_medio_ambiente')
-      .update({
-        tipo: body.tipo,
-        descripcion: body.descripcion,
-        valor: String(body.valor || ''),
-        unidad: body.unidad,
-        cumplimiento: body.cumplimiento || 'conforme',
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', id)
-      .eq('organization_id', context.organizationId)
-      .select('*')
-      .single();
-
-    if (error) throw error;
-
-    return NextResponse.json({ data });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to update medio ambiente record';
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
-}
-
 export async function DELETE(request: NextRequest) {
   const context = await getSustainabilityContext(request);
   if (!context.ok) return context.response;

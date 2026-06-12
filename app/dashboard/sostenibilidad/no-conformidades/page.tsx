@@ -1,189 +1,138 @@
-﻿'use client';
-
+'use client';
 import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { AlertCircle, CheckCircle, Clock, TrendingUp } from 'lucide-react';
 import useSWR from 'swr';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { NonconformanceForm } from '@/components/sostenibilidad/nonconformances/nonconformance-form';
 import { NonconformanceCard } from '@/components/sostenibilidad/nonconformances/nonconformance-card';
 import { CorrectiveActionModal } from '@/components/sostenibilidad/nonconformances/corrective-action-modal';
 import { NonconformanceTable } from '@/components/sostenibilidad/nonconformances/nonconformance-table';
 
-const fetcher = async (url: string) => {
-  const res = await fetch(url);
-  const data = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(data?.error || 'Request failed');
-  return data;
-};
-
-type Nonconformance = {
-  id: string;
-  nc_number: string;
-  title: string;
-  description?: string | null;
-  category?: string | null;
-  severity?: string | null;
-  status?: string | null;
-  discovered_date?: string | null;
-  target_closure_date?: string | null;
-  root_cause?: string | null;
-};
-
-type CorrectiveAction = {
-  id: string;
-  nc_id?: string | null;
-  ca_number?: string | null;
-  action_description?: string | null;
-  responsible_person_name?: string | null;
-  scheduled_completion_date?: string | null;
-  actual_completion_date?: string | null;
-  status?: string | null;
-  verification_method?: string | null;
-};
-
-type ComplianceReport = {
-  compliance_score?: number;
-  overdue_actions?: number;
-  by_severity?: Record<string, number>;
-};
-
 export default function NonconformanceDashboard() {
   const [showForm, setShowForm] = useState(false);
   const [showCAModal, setShowCAModal] = useState(false);
-  const [selectedNC, setSelectedNC] = useState<Nonconformance | null>(null);
+  const [selectedNC, setSelectedNC] = useState<any>(null);
 
-  const { data: ncData, mutate: mutateNCs } = useSWR('/api/sostenibilidad/nonconformances', fetcher);
-  const { data: caData, mutate: mutateCAs } = useSWR('/api/sostenibilidad/corrective-actions', fetcher);
-  const { data: reportData } = useSWR('/api/sostenibilidad/compliance-report', fetcher);
+  const { data: ncData, mutate: mutateNCs } = useSWR('/api/sostenibilidad/nonconformances', async (url: string) => {
+    const res = await fetch(url);
+    return res.ok ? res.json() : null;
+  });
 
-  const ncs = (ncData?.nonconformances || ncData?.data || []) as Nonconformance[];
+  const { data: reportData } = useSWR('/api/sostenibilidad/compliance-report', async (url: string) => {
+    const res = await fetch(url);
+    return res.ok ? res.json() : null;
+  });
+
+  const ncs = ncData?.nonconformances || [];
   const stats = ncData?.stats || {};
-  const correctiveActions = (caData?.corrective_actions || caData?.data || []) as CorrectiveAction[];
-  const report = (reportData || {}) as ComplianceReport;
+  const report = reportData || {};
 
-  const handleCreateNC = async (formData: Record<string, unknown>) => {
+  const handleCreateNC = async (formData: any) => {
     try {
       const res = await fetch('/api/sostenibilidad/nonconformances', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-      if (!res.ok) throw new Error('No se pudo crear la NC');
-
+      if (!res.ok) throw new Error('Failed to create NC');
+      
       await mutateNCs();
       setShowForm(false);
-      toast.success('No conformidad creada correctamente');
+      toast.success('Non-conformance created successfully');
     } catch (error) {
-      toast.error('No fue posible crear la no conformidad');
+      toast.error('Failed to create non-conformance');
       throw error;
     }
   };
 
-  const handleCreateCA = async (caData: Record<string, unknown>) => {
-    if (!selectedNC) {
-      return;
-    }
-
+  const handleCreateCA = async (caData: any) => {
     try {
       const res = await fetch('/api/sostenibilidad/corrective-actions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...caData, ncId: selectedNC.id }),
       });
-      if (!res.ok) throw new Error('No se pudo crear la acción correctiva');
-
-      await mutateCAs();
+      if (!res.ok) throw new Error('Failed to create CA');
+      
       setShowCAModal(false);
-      toast.success('Acción correctiva creada correctamente');
+      toast.success('Corrective action created successfully');
     } catch (error) {
-      toast.error('No fue posible crear la acción correctiva');
+      toast.error('Failed to create corrective action');
       throw error;
     }
   };
 
-  const openNCs = ncs.filter((nc) => nc.status === 'open');
-  const inProgressNCs = ncs.filter((nc) => nc.status === 'in_progress');
-  const closedNCs = ncs.filter((nc) => nc.status === 'closed');
-  const activeCAs = correctiveActions.filter((action) => action.status !== 'completed' && action.status !== 'verified');
+  const openNCs = ncs.filter((nc: any) => nc.status === 'open');
+  const inProgressNCs = ncs.filter((nc: any) => nc.status === 'in_progress');
   const overdueCAs = report.overdue_actions || 0;
 
   return (
-    <div className="min-h-screen bg-background p-6 space-y-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div className="space-y-6">
+      <div className="flex justify-between items-start">
         <div>
-          <h1 className="mb-2 text-4xl font-bold text-foreground">Gestión de no conformidades</h1>
-          <p className="max-w-2xl text-muted-foreground">
-            Seguimiento, cierre y trazabilidad de acciones correctivas con datos reales del módulo.
-          </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Badge variant="outline">Abiertas {stats.open || 0}</Badge>
-            <Badge variant="outline">En progreso {inProgressNCs.length}</Badge>
-            <Badge variant="outline">Cerradas {closedNCs.length || stats.closed || 0}</Badge>
-            <Badge className="bg-secondary/10 text-secondary border-secondary/30">
-              CA activas {activeCAs.length}
-            </Badge>
-          </div>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Non-Conformance Management</h1>
+          <p className="text-muted-foreground">Track, manage, and close non-conformances with corrective actions</p>
         </div>
-        <Button onClick={() => setShowForm((value) => !value)} className="bg-primary">
-          {showForm ? 'Cancelar' : 'Registrar NC'}
+        <Button onClick={() => setShowForm(!showForm)} className="bg-primary">
+          {showForm ? 'Cancel' : 'Report NC'}
         </Button>
       </div>
 
       {showForm && <NonconformanceForm onSubmit={handleCreateNC} />}
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <AlertCircle className="h-4 w-4" />
-              Abiertas
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <AlertCircle className="w-4 h-4" />
+              Open NCs
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{stats.open || 0}</p>
-            <p className="mt-1 text-xs text-muted-foreground">Casos activos</p>
+            <p className="text-xs text-muted-foreground mt-1">Active issues</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <Clock className="h-4 w-4" />
-              En progreso
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              In Progress
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{inProgressNCs.length}</p>
-            <p className="mt-1 text-xs text-muted-foreground">En atención</p>
+            <p className="text-xs text-muted-foreground mt-1">Being addressed</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <CheckCircle className="h-4 w-4" />
-              Cerradas
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <CheckCircle className="w-4 h-4" />
+              Closed
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-secondary">{closedNCs.length || stats.closed || 0}</p>
-            <p className="mt-1 text-xs text-muted-foreground">Resueltas</p>
+            <p className="text-2xl font-bold text-secondary">{stats.closed || 0}</p>
+            <p className="text-xs text-muted-foreground mt-1">Resolved</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <TrendingUp className="h-4 w-4" />
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <TrendingUp className="w-4 h-4" />
               Compliance
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-primary">{report.compliance_score || 0}%</p>
-            <p className="mt-1 text-xs text-muted-foreground">Score general</p>
+            <p className="text-xs text-muted-foreground mt-1">Overall score</p>
           </CardContent>
         </Card>
       </div>
@@ -192,8 +141,8 @@ export default function NonconformanceDashboard() {
         <Card className="border-destructive/50 bg-destructive/5">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 text-destructive">
-              <AlertCircle className="h-5 w-5" />
-              <span className="font-medium">{stats.overdue} no conformidades vencidas</span>
+              <AlertCircle className="w-5 h-5" />
+              <span className="font-medium">{stats.overdue} overdue non-conformances</span>
             </div>
           </CardContent>
         </Card>
@@ -201,49 +150,45 @@ export default function NonconformanceDashboard() {
 
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="overview">Resumen</TabsTrigger>
-          <TabsTrigger value="open">NC activas ({stats.open || 0})</TabsTrigger>
-          <TabsTrigger value="all">Todas</TabsTrigger>
-          <TabsTrigger value="severity">Por severidad</TabsTrigger>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="open">Active NCs ({stats.open || 0})</TabsTrigger>
+          <TabsTrigger value="all">All NCs</TabsTrigger>
+          <TabsTrigger value="severity">By Severity</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid md:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
-                <CardTitle>NC abiertas recientes</CardTitle>
+                <CardTitle>Recent Open NCs</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {openNCs.slice(0, 5).map((nc) => (
+                {openNCs.slice(0, 5).map((nc: any) => (
                   <NonconformanceCard
                     key={nc.id}
                     ncNumber={nc.nc_number}
                     title={nc.title}
-                    category={nc.category || 'safety'}
-                    severity={nc.severity || 'medium'}
-                    status={nc.status || 'open'}
-                    discoveredDate={nc.discovered_date || new Date().toISOString()}
-                    targetClosureDate={nc.target_closure_date || undefined}
+                    category={nc.category}
+                    severity={nc.severity}
+                    status={nc.status}
+                    discoveredDate={nc.discovered_date}
+                    targetClosureDate={nc.target_closure_date}
                     onViewDetails={() => setSelectedNC(nc)}
                   />
                 ))}
-                {openNCs.length === 0 && (
-                  <p className="text-sm text-muted-foreground">No hay no conformidades abiertas</p>
-                )}
+                {openNCs.length === 0 && <p className="text-sm text-muted-foreground">No open non-conformances</p>}
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Distribución por severidad</CardTitle>
+                <CardTitle>Severity Distribution</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {['critical', 'high', 'medium', 'low'].map((sev) => (
+                {['critical', 'high', 'medium', 'low'].map((sev: any) => (
                   <div key={sev} className="flex justify-between text-sm">
                     <span className="capitalize">{sev}</span>
-                    <span className="font-medium">
-                      {report.by_severity?.[sev] || ncs.filter((nc) => nc.severity === sev).length}
-                    </span>
+                    <span className="font-medium">{report.by_severity?.[sev] || 0}</span>
                   </div>
                 ))}
               </CardContent>
@@ -254,8 +199,8 @@ export default function NonconformanceDashboard() {
         <TabsContent value="open">
           <Card>
             <CardHeader>
-              <CardTitle>No conformidades activas</CardTitle>
-              <CardDescription>Casos abiertos y en progreso</CardDescription>
+              <CardTitle>Active Non-Conformances</CardTitle>
+              <CardDescription>Open and in-progress issues</CardDescription>
             </CardHeader>
             <CardContent>
               <NonconformanceTable
@@ -273,8 +218,8 @@ export default function NonconformanceDashboard() {
         <TabsContent value="all">
           <Card>
             <CardHeader>
-              <CardTitle>Todas las no conformidades</CardTitle>
-              <CardDescription>Historial completo de no conformidades</CardDescription>
+              <CardTitle>All Non-Conformances</CardTitle>
+              <CardDescription>Complete history of non-conformances</CardDescription>
             </CardHeader>
             <CardContent>
               <NonconformanceTable
@@ -290,23 +235,23 @@ export default function NonconformanceDashboard() {
         </TabsContent>
 
         <TabsContent value="severity">
-          <div className="grid gap-4 md:grid-cols-2">
-            {['critical', 'high', 'medium', 'low'].map((sev) => {
-              const filtered = ncs.filter((nc) => nc.severity === sev && nc.status !== 'closed');
+          <div className="grid md:grid-cols-2 gap-4">
+            {['critical', 'high', 'medium', 'low'].map((sev: any) => {
+              const filtered = ncs.filter((nc: any) => nc.severity === sev && nc.status !== 'closed');
               return (
                 <Card key={sev}>
                   <CardHeader>
-                    <CardTitle className="text-base capitalize">Severidad {sev}</CardTitle>
-                    <CardDescription>{filtered.length} activas</CardDescription>
+                    <CardTitle className="text-base capitalize">{sev} Severity</CardTitle>
+                    <CardDescription>{filtered.length} active</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    {filtered.slice(0, 5).map((nc) => (
+                    {filtered.slice(0, 5).map((nc: any) => (
                       <button
                         key={nc.id}
                         onClick={() => setSelectedNC(nc)}
-                        className="w-full rounded p-2 text-left text-sm transition-colors hover:bg-muted"
+                        className="w-full text-left text-sm p-2 rounded hover:bg-muted transition-colors"
                       >
-                        <p className="truncate font-medium">{nc.title}</p>
+                        <p className="font-medium truncate">{nc.title}</p>
                         <p className="text-xs text-muted-foreground">{nc.nc_number}</p>
                       </button>
                     ))}
@@ -321,52 +266,30 @@ export default function NonconformanceDashboard() {
       {selectedNC && !showCAModal && (
         <Card className="border-primary/20">
           <CardHeader>
-            <div className="flex items-start justify-between">
+            <div className="flex justify-between items-start">
               <div>
                 <CardTitle>{selectedNC.title}</CardTitle>
-                <CardDescription className="mt-1 font-mono text-xs">{selectedNC.nc_number}</CardDescription>
+                <CardDescription className="font-mono text-xs mt-1">{selectedNC.nc_number}</CardDescription>
               </div>
               <Button variant="outline" onClick={() => setSelectedNC(null)}>
-                Cerrar
+                Close
               </Button>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Descripción</p>
+                <p className="text-sm font-medium text-muted-foreground">Description</p>
                 <p className="text-sm">{selectedNC.description}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Causa raíz</p>
-                <p className="text-sm">{selectedNC.root_cause || 'No especificada'}</p>
+                <p className="text-sm font-medium text-muted-foreground">Root Cause</p>
+                <p className="text-sm">{selectedNC.root_cause || 'Not specified'}</p>
               </div>
             </div>
             <Button onClick={() => setShowCAModal(true)} className="w-full">
-              Crear acción correctiva
+              Create Corrective Action
             </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {activeCAs.length > 0 && (
-        <Card className="border-border/60">
-          <CardHeader>
-            <CardTitle className="text-base">Acciones correctivas activas</CardTitle>
-            <CardDescription>Seguimiento de acciones abiertas o en progreso</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {activeCAs.slice(0, 5).map((action) => (
-              <div key={action.id} className="flex items-center justify-between gap-4 rounded-lg border p-3">
-                <div>
-                  <p className="font-medium">{action.ca_number || 'Acción correctiva'}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {action.action_description || 'Sin descripción'}
-                  </p>
-                </div>
-                <Badge variant="outline">{action.status}</Badge>
-              </div>
-            ))}
           </CardContent>
         </Card>
       )}

@@ -1,76 +1,62 @@
-﻿'use client';
+'use client';
 
 import useSWR from 'swr';
 import { AlertCircle, Calendar, CheckCircle2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
-type ComplianceEvent = {
-  id: string;
-  title: string;
-  due_date: string;
-  status: 'pending' | 'completed' | 'overdue';
-};
-
-type EventsResponse = {
-  data?: ComplianceEvent[];
-  stats?: {
-    total?: number;
-    pending?: number;
-    completed?: number;
-    overdue?: number;
-  };
-};
-
-type ScoreResponse = {
-  compliance_score?: number;
-};
-
-const fetcher = async <T,>(url: string): Promise<T> => {
+const fetcher = async (url: string) => {
   const response = await fetch(url);
-  const data = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(data?.error || 'Request failed');
-  return data;
+  if (!response.ok) throw new Error('Request failed');
+  return response.json();
 };
 
 export default function ComplianceCalendar() {
-  const { data: eventsData } = useSWR<EventsResponse>('/api/sostenibilidad/compliance-events?limit=10', fetcher);
-  const { data: scoreData } = useSWR<ScoreResponse>('/api/sostenibilidad/compliance/calculate-score', fetcher);
+  const { data: eventsData } = useSWR('/api/sostenibilidad/compliance-events?limit=10', fetcher);
+  const { data: scoreData } = useSWR(
+    '/api/sostenibilidad/compliance/calculate-score',
+    fetcher
+  );
 
   const events = eventsData?.data || [];
-  const eventStats = eventsData?.stats || { total: 0, pending: 0, completed: 0, overdue: 0 };
+  const eventStats = eventsData?.stats || {
+    total: 0,
+    pending: 0,
+    completed: 0,
+    overdue: 0,
+  };
   const complianceScore = scoreData?.compliance_score || 0;
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Próximos eventos</CardTitle>
+            <CardTitle className="text-sm font-medium">Upcoming Events</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{eventStats.pending || 0}</div>
-            <p className="text-xs text-muted-foreground">Pendientes y próximos.</p>
+            <div className="text-2xl font-bold">{eventStats.pending}</div>
+            <p className="text-xs text-muted-foreground">Pendientes y próximos</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Score de compliance</CardTitle>
+            <CardTitle className="text-sm font-medium">Compliance Score</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{complianceScore}%</div>
-            <p className="text-xs text-green-600">Actualizado desde no conformidades.</p>
+            <p className="text-xs text-green-600">Actualizado desde no conformidades</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Vencidos</CardTitle>
+            <CardTitle className="text-sm font-medium">Overdue</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{eventStats.overdue || 0}</div>
-            <p className="text-xs text-muted-foreground">Acciones requeridas.</p>
+            <div className="text-2xl font-bold text-red-600">{eventStats.overdue}</div>
+            <p className="text-xs text-muted-foreground">Acciones requeridas</p>
           </CardContent>
         </Card>
       </div>
@@ -79,7 +65,7 @@ export default function ComplianceCalendar() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            Próximos eventos de compliance
+            Upcoming Compliance Events
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -89,13 +75,15 @@ export default function ComplianceCalendar() {
                 No hay eventos de compliance registrados todavía.
               </div>
             ) : (
-              events.map((event) => (
-                <div key={event.id} className="flex items-start gap-3 rounded-lg border p-3">
+              events.map((event: any) => (
+                <div key={event.id} className="flex items-start gap-3 p-3 border rounded-lg">
                   {event.status === 'completed' ? (
-                    <CheckCircle2 className="mt-0.5 h-5 w-5 text-green-600" />
+                    <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5" />
                   ) : (
                     <AlertCircle
-                      className={`mt-0.5 h-5 w-5 ${event.status === 'overdue' ? 'text-red-600' : 'text-yellow-600'}`}
+                      className={`h-5 w-5 mt-0.5 ${
+                        event.status === 'overdue' ? 'text-red-600' : 'text-yellow-600'
+                      }`}
                     />
                   )}
                   <div className="flex-1">
@@ -105,11 +93,7 @@ export default function ComplianceCalendar() {
                     </p>
                   </div>
                   <Badge variant={event.status === 'completed' ? 'secondary' : 'default'}>
-                    {event.status === 'completed'
-                      ? 'Completado'
-                      : event.status === 'overdue'
-                        ? 'Vencido'
-                        : 'Pendiente'}
+                    {event.status}
                   </Badge>
                 </div>
               ))

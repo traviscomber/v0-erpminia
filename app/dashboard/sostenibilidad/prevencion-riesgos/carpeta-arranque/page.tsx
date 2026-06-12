@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Plus, FileText, CheckCircle2, AlertCircle, Clock, CircleDot } from 'lucide-react';
 import CarpetaArranqueForm from '@/components/prevention/carpeta-arranque-form';
 import CarpetaArranqueList from '@/components/prevention/carpeta-arranque-list';
@@ -48,30 +47,16 @@ export default function CarpetaArranquePage() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6 space-y-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h1 className="mb-2 text-4xl font-bold text-foreground">Carpeta de Arranque</h1>
-          <p className="max-w-2xl text-muted-foreground">
-            Sistema de validación de documentos para empresas contratistas (EECC).
-          </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Badge variant="outline">Total {stats.total}</Badge>
-            <Badge variant="outline">Pendientes {stats.pendientes}</Badge>
-            <Badge variant="outline">En revisión {stats.en_revision}</Badge>
-            <Badge className="bg-secondary/10 text-secondary border-secondary/30">
-              Aprobadas {stats.aprobadas}
-            </Badge>
-          </div>
-        </div>
-        <Button onClick={() => setShowNewForm(true)} className="bg-primary text-primary-foreground hover:bg-primary/90">
-          <Plus className="mr-2 h-4 w-4" />
-          Nueva carpeta
-        </Button>
+    <div className="space-y-6 p-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Carpeta de Arranque</h1>
+        <p className="text-muted-foreground">
+          Sistema de validacion de documentos para empresas contratistas (EECC)
+        </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-        <Card className="rounded-xl shadow-none">
+        <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total</CardTitle>
           </CardHeader>
@@ -79,7 +64,7 @@ export default function CarpetaArranquePage() {
             <div className="text-2xl font-bold">{stats.total}</div>
           </CardContent>
         </Card>
-        <Card className="rounded-xl shadow-none">
+        <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Clock className="h-4 w-4 text-orange-500" />
@@ -90,7 +75,7 @@ export default function CarpetaArranquePage() {
             <div className="text-2xl font-bold text-orange-500">{stats.pendientes}</div>
           </CardContent>
         </Card>
-        <Card className="rounded-xl shadow-none">
+        <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <CircleDot className="h-4 w-4 text-blue-500" />
@@ -101,7 +86,7 @@ export default function CarpetaArranquePage() {
             <div className="text-2xl font-bold text-blue-500">{stats.en_revision}</div>
           </CardContent>
         </Card>
-        <Card className="rounded-xl shadow-none">
+        <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 text-green-500" />
@@ -112,7 +97,7 @@ export default function CarpetaArranquePage() {
             <div className="text-2xl font-bold text-green-500">{stats.aprobadas}</div>
           </CardContent>
         </Card>
-        <Card className="rounded-xl shadow-none">
+        <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-red-500" />
@@ -125,12 +110,10 @@ export default function CarpetaArranquePage() {
         </Card>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 rounded-xl bg-muted/60 p-1">
-          <TabsTrigger value="mis-carpetas" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-            Mis Carpetas
-          </TabsTrigger>
-          <TabsTrigger value="en-revision" className="gap-2 font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="mis-carpetas">Mis Carpetas</TabsTrigger>
+          <TabsTrigger value="en-revision" className="gap-2">
             En Revision
             {stats.en_revision > 0 && (
               <span className="rounded-full bg-blue-500 text-white text-xs font-bold px-1.5 py-0.5 leading-none">
@@ -138,21 +121,19 @@ export default function CarpetaArranquePage() {
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="documentos-std" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-            Documentos Requeridos
-          </TabsTrigger>
+          <TabsTrigger value="documentos-std">Documentos Requeridos</TabsTrigger>
         </TabsList>
 
         <TabsContent value="mis-carpetas" className="space-y-4">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-lg font-semibold text-foreground">Carpetas de Arranque</h2>
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg font-semibold">Carpetas de Arranque</h2>
             <Button onClick={() => setShowNewForm(!showNewForm)} className="gap-2">
               <Plus className="h-4 w-4" />
               Nueva Carpeta
             </Button>
           </div>
           {showNewForm && (
-            <Card className="rounded-xl shadow-none">
+            <Card>
               <CardHeader>
                 <CardTitle>Crear Nueva Carpeta de Arranque</CardTitle>
                 <CardDescription>
@@ -169,7 +150,7 @@ export default function CarpetaArranquePage() {
 
         <TabsContent value="en-revision" className="space-y-4">
           <div>
-            <h2 className="text-lg font-semibold text-foreground">Carpetas en Revision</h2>
+            <h2 className="text-lg font-semibold">Carpetas en Revision</h2>
             <p className="text-sm text-muted-foreground">
               Documentos pendientes de validacion por los revisores asignados.
             </p>
@@ -178,8 +159,8 @@ export default function CarpetaArranquePage() {
         </TabsContent>
 
         <TabsContent value="documentos-std" className="space-y-4">
-          <h2 className="text-lg font-semibold text-foreground">Documentos Requeridos por la EECC</h2>
-          <Card className="rounded-xl shadow-none">
+          <h2 className="text-lg font-semibold">Documentos Requeridos por la EECC</h2>
+          <Card>
             <CardHeader>
               <CardTitle className="text-base">19 Documentos Obligatorios</CardTitle>
               <CardDescription>

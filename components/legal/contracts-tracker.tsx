@@ -53,19 +53,11 @@ export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
 
   return (
     <Card>
-      <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <CardTitle>Gestion de Contratos</CardTitle>
-          <CardDescription>Seguimiento de contratos vigentes y vencimientos</CardDescription>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Badge variant="outline">{contracts.length} contratos</Badge>
-          <Badge className="bg-secondary/10 text-secondary">
-            {contracts.filter((contract) => contract.status === 'active').length} activos
-          </Badge>
-        </div>
+      <CardHeader>
+        <CardTitle>Gestion de Contratos</CardTitle>
+        <CardDescription>Seguimiento de contratos vigentes y vencimientos</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent>
         <div className="space-y-3">
           {contracts.length === 0 && (
             <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
@@ -80,7 +72,7 @@ export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
             return (
               <div
                 key={contract.id}
-                className={`flex items-center justify-between rounded-xl border p-4 transition ${
+                className={`flex items-center justify-between p-4 border rounded-lg ${
                   contract.status === 'expired'
                     ? 'border-destructive/20 bg-destructive/5'
                     : isExpiring

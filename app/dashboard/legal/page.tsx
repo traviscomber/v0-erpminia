@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import Link from 'next/link';
 import useSWR from 'swr';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -248,8 +247,6 @@ export default function LegalPage() {
     [compliance.summary]
   );
 
-  const recentDocuments = useMemo(() => legalDocs.slice(0, 3), [legalDocs]);
-
   const trackerContracts = useMemo(
     () =>
       contracts.slice(0, 8).map((contract) => ({
@@ -276,31 +273,12 @@ export default function LegalPage() {
   const hasError = documentsError || contractsError || complianceError;
 
   return (
-    <div className="min-h-screen bg-background p-6 space-y-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h1 className="text-4xl font-bold text-foreground mb-2">Modulo Legal y Compliance</h1>
-          <p className="text-muted-foreground max-w-2xl">
-            Gestion de documentos legales, contratos y cumplimiento normativo minero.
-          </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Badge variant="outline">Documentos {documentCount}</Badge>
-            <Badge variant="outline">Contratos {activeContracts}</Badge>
-            <Badge variant="outline">Normativas {normativas.length}</Badge>
-            <Badge className="bg-secondary/10 text-secondary border-secondary/30">
-              {compliancePercent}% cumplimiento
-            </Badge>
-          </div>
-        </div>
-
-        <div className="flex gap-3 flex-wrap">
-          <Button asChild variant="outline">
-            <Link href="/dashboard/legal/documentos">Ver documentos</Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/dashboard/legal/contratos">Ver contratos</Link>
-          </Button>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">Modulo Legal y Compliance</h1>
+        <p className="text-muted-foreground mt-2">
+          Gestion de documentos legales, contratos y cumplimiento normativo minero
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -354,44 +332,6 @@ export default function LegalPage() {
           </CardContent>
         </Card>
       </div>
-
-      <Card>
-        <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <CardTitle>Documentos recientes</CardTitle>
-            <CardDescription>Vista rapida de los ultimos archivos cargados en Legal</CardDescription>
-          </div>
-          <Button asChild variant="outline" className="w-fit">
-            <Link href="/dashboard/legal/documentos">Ver todos los documentos</Link>
-          </Button>
-        </CardHeader>
-        <CardContent>
-          {recentDocuments.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
-              Todavia no hay documentos cargados en Legal.
-            </div>
-          ) : (
-            <div className="grid gap-3 md:grid-cols-3">
-              {recentDocuments.map((doc) => (
-                <div key={doc.id} className="rounded-lg border p-4 transition hover:bg-muted/40">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate font-medium">{doc.title}</p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {(doc.documentType || 'Documento').replace(/_/g, ' ')}
-                      </p>
-                    </div>
-                    {getStatusBadge(doc.status)}
-                  </div>
-                  <p className="mt-3 text-sm text-muted-foreground">
-                    {doc.description || 'Sin descripcion'}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
       {hasError && (
         <Card className="border-destructive/30">

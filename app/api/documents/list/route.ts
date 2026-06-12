@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const auth = await resolveAuthContext(request);
     if (!auth) {
       return NextResponse.json(
-        { error: 'No autenticado. Inicia sesion nuevamente.' },
+        { error: 'No autenticado. Inicia sesión nuevamente.' },
         { status: 401 }
       );
     }
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     if (!module) {
       return NextResponse.json(
-        { error: 'El parametro "module" es requerido' },
+        { error: 'El parámetro "module" es requerido' },
         { status: 400 }
       );
     }
@@ -53,12 +53,14 @@ export async function GET(request: NextRequest) {
     const { data, error } = await query;
 
     if (error) {
+      console.error('[v0] Query error:', error);
       return NextResponse.json(
         { error: `Error al obtener documentos: ${error.message}` },
         { status: 500 }
       );
     }
 
+    // Generate signed download URLs for the private bucket
     const documents = await Promise.all(
       (data || []).map(async (doc) => {
         let file_url: string | null = null;
@@ -74,7 +76,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(documents);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Error interno del servidor';
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[v0] API error:', error);
+    return NextResponse.json(
+      { error: 'Error interno del servidor' },
+      { status: 500 }
+    );
   }
 }

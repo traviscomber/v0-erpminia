@@ -1,12 +1,12 @@
-﻿'use client';
+'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { TrendingUp, TrendingDown, Plus, Download, Pencil, Trash2 } from 'lucide-react';
+import { TrendingUp, TrendingDown, Plus, Download } from 'lucide-react';
 import useSWR from 'swr';
 import {
   Dialog,
@@ -14,6 +14,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog';
 import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
@@ -31,9 +32,6 @@ const fetcher = (url: string) => fetch(url).then(r => r.json());
 
 export default function KPIPrevenccionPage() {
   const [isOpen, setIsOpen] = useState(false);
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const [selectedKpi, setSelectedKpi] = useState<KPIData | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [formData, setFormData] = useState({
     mes_ano: new Date().toISOString().split('T')[0],
     tasa_accidentabilidad: 0,
@@ -64,50 +62,32 @@ export default function KPIPrevenccionPage() {
     }));
   };
 
-  useEffect(() => {
-    if (!isOpen) return;
-    if (selectedKpi) {
-      setFormData({
-        mes_ano: selectedKpi.mes_ano,
-        tasa_accidentabilidad: selectedKpi.tasa_accidentabilidad,
-        tasa_frecuencia: selectedKpi.tasa_frecuencia,
-        tasa_gravedad: selectedKpi.tasa_gravedad,
-        dias_sin_accidentes: selectedKpi.dias_sin_accidentes,
-      });
-    }
-  }, [isOpen, selectedKpi]);
-
-  const resetForm = () => {
-    setSelectedKpi(null);
-    setFormData({
-      mes_ano: new Date().toISOString().split('T')[0],
-      tasa_accidentabilidad: 0,
-      tasa_frecuencia: 0,
-      tasa_gravedad: 0,
-      dias_sin_accidentes: 0,
-    });
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const response = await fetch('/api/sostenibilidad/kpi', {
-        method: selectedKpi ? 'PUT' : 'POST',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(selectedKpi ? { ...formData, id: selectedKpi.id } : formData),
+        body: JSON.stringify(formData),
       });
 
       if (response.ok) {
-        toast.success(selectedKpi ? 'KPI actualizado correctamente' : 'KPI registrado correctamente');
+        toast.success('KPI registrado correctamente');
         setIsOpen(false);
-        resetForm();
+        setFormData({
+          mes_ano: new Date().toISOString().split('T')[0],
+          tasa_accidentabilidad: 0,
+          tasa_frecuencia: 0,
+          tasa_gravedad: 0,
+          dias_sin_accidentes: 0,
+        });
         mutate();
       } else {
-        toast.error(selectedKpi ? 'Error al actualizar KPI' : 'Error al registrar KPI');
+        toast.error('Error al registrar KPI');
       }
     } catch (error) {
       console.error('[v0] Error creating KPI:', error);
-      toast.error(selectedKpi ? 'Error al actualizar KPI' : 'Error al registrar KPI');
+      toast.error('Error al registrar KPI');
     }
   };
 
@@ -127,44 +107,31 @@ export default function KPIPrevenccionPage() {
 
   return (
     <div className="min-h-screen bg-background p-6">
-      <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      {/* Header */}
+      <div className="mb-8 flex justify-between items-start">
         <div>
-          <h1 className="mb-2 text-4xl font-bold text-foreground">KPIs de Prevención</h1>
-          <p className="max-w-2xl text-muted-foreground">
-            Indicadores de salud y seguridad ocupacional (SSO).
-          </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Badge variant="outline">Registros {kpis.length}</Badge>
-            <Badge variant="outline">Último período {latestKpi?.mes_ano || 'Sin dato'}</Badge>
-            <Badge className="bg-secondary/10 text-secondary border-secondary/30">
-              Días sin accidentes {latestKpi?.dias_sin_accidentes ?? 0}
-            </Badge>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-3xl font-bold text-foreground">KPIs de Prevención</h1>
           </div>
+          <p className="text-muted-foreground">Indicadores de salud y seguridad ocupacional (SSO)</p>
         </div>
-        <Dialog open={isOpen} onOpenChange={(open) => {
-          setIsOpen(open);
-          if (!open) resetForm();
-        }}>
-          <Button
-            className="bg-primary text-primary-foreground hover:bg-primary/90"
-            onClick={() => {
-              resetForm();
-              setIsOpen(true);
-            }}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Agregar Mes
-          </Button>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+              <Plus className="w-4 h-4 mr-2" />
+              Agregar Mes
+            </Button>
+          </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>{selectedKpi ? 'Editar KPI Mensual' : 'Registrar KPI Mensual'}</DialogTitle>
+              <DialogTitle>Registrar KPI Mensual</DialogTitle>
               <DialogDescription>
-                {selectedKpi ? 'Actualiza los indicadores de seguridad para el perÃ­odo' : 'Ingresa los indicadores de seguridad para el perÃ­odo'}
+                Ingresa los indicadores de seguridad para el período
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="mes_ano">Mes/AÃ±o</Label>
+                <Label htmlFor="mes_ano">Mes/Año</Label>
                 <Input
                   id="mes_ano"
                   type="date"
@@ -214,7 +181,7 @@ export default function KPIPrevenccionPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="dias">DÃ­as sin Accidentes</Label>
+                <Label htmlFor="dias">Días sin Accidentes</Label>
                 <Input
                   id="dias"
                   type="number"
@@ -237,7 +204,7 @@ export default function KPIPrevenccionPage() {
                   type="submit"
                   className="bg-primary text-primary-foreground hover:bg-primary/90"
                 >
-                  {selectedKpi ? 'Actualizar KPI' : 'Registrar KPI'}
+                  Registrar KPI
                 </Button>
               </div>
             </form>
@@ -247,16 +214,7 @@ export default function KPIPrevenccionPage() {
 
       {/* Current Month KPIs */}
       {currentMonth && (
-        <div className="space-y-4 mb-8">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-lg font-semibold text-foreground">Resumen mensual</h2>
-              <p className="text-sm text-muted-foreground">Lectura rápida del período más reciente</p>
-            </div>
-            <Badge variant="outline">{currentMonth.mes_ano}</Badge>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {/* Tasa Accidentabilidad */}
           <Card>
             <CardHeader className="pb-2">
@@ -288,7 +246,7 @@ export default function KPIPrevenccionPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{currentMonth.tasa_frecuencia?.toFixed(2) || 'N/A'}</div>
-              <p className="text-xs text-muted-foreground mt-2">Accidentes por millÃ³n horas trabajadas</p>
+              <p className="text-xs text-muted-foreground mt-2">Accidentes por millón horas trabajadas</p>
             </CardContent>
           </Card>
 
@@ -299,21 +257,20 @@ export default function KPIPrevenccionPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{currentMonth.tasa_gravedad?.toFixed(2) || 'N/A'}</div>
-              <p className="text-xs text-muted-foreground mt-2">DÃ­as perdidos por accidente</p>
+              <p className="text-xs text-muted-foreground mt-2">Días perdidos por accidente</p>
             </CardContent>
           </Card>
 
-          {/* DÃ­as sin Accidentes */}
-          <Card className="rounded-xl shadow-none">
+          {/* Días sin Accidentes */}
+          <Card className="border-l-4 border-l-secondary">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">DÃ­as sin Accidentes</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Días sin Accidentes</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-secondary">{currentMonth.dias_sin_accidentes || 0}</div>
               <p className="text-xs text-muted-foreground mt-2">Jornadas sin incidentes</p>
             </CardContent>
           </Card>
-          </div>
         </div>
       )}
 
@@ -321,11 +278,11 @@ export default function KPIPrevenccionPage() {
       <Card className="mb-8">
         <CardHeader>
           <CardTitle>Tendencia de Indicadores (12 meses)</CardTitle>
-          <CardDescription>EvoluciÃ³n de tasas de accidentabilidad, frecuencia y gravedad</CardDescription>
+          <CardDescription>Evolución de tasas de accidentabilidad, frecuencia y gravedad</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <p className="text-muted-foreground">Cargando grÃ¡fico...</p>
+            <p className="text-muted-foreground">Cargando gráfico...</p>
           ) : chartData.length === 0 ? (
             <p className="text-muted-foreground text-center py-12">No hay datos de KPI disponibles</p>
           ) : (
@@ -350,8 +307,8 @@ export default function KPIPrevenccionPage() {
       {/* Historical Data Table */}
       <Card>
         <CardHeader>
-          <CardTitle>HistÃ³rico de KPIs</CardTitle>
-          <CardDescription>Registro mensual de indicadores de prevenciÃ³n</CardDescription>
+          <CardTitle>Histórico de KPIs</CardTitle>
+          <CardDescription>Registro mensual de indicadores de prevención</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -363,11 +320,11 @@ export default function KPIPrevenccionPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="text-left py-3 px-4 font-medium">PerÃ­odo</th>
+                    <th className="text-left py-3 px-4 font-medium">Período</th>
                     <th className="text-center py-3 px-4 font-medium">Accidentabilidad %</th>
                     <th className="text-center py-3 px-4 font-medium">Tasa Frecuencia</th>
                     <th className="text-center py-3 px-4 font-medium">Tasa Gravedad</th>
-                    <th className="text-center py-3 px-4 font-medium">DÃ­as sin Accidentes</th>
+                    <th className="text-center py-3 px-4 font-medium">Días sin Accidentes</th>
                     <th className="text-right py-3 px-4 font-medium">Acciones</th>
                   </tr>
                 </thead>
@@ -384,31 +341,9 @@ export default function KPIPrevenccionPage() {
                         <Badge variant="outline">{kpi.dias_sin_accidentes}</Badge>
                       </td>
                       <td className="py-3 px-4 text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedKpi(kpi);
-                              setIsOpen(true);
-                            }}
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedKpi(kpi);
-                              setDeleteOpen(true);
-                            }}
-                          >
-                            <Trash2 className="w-4 h-4 text-destructive" />
-                          </Button>
-                          <Button variant="ghost" size="sm" title="Descargar">
-                            <Download className="w-4 h-4" />
-                          </Button>
-                        </div>
+                        <Button variant="ghost" size="sm">
+                          <Download className="w-4 h-4" />
+                        </Button>
                       </td>
                     </tr>
                   ))}
@@ -418,42 +353,6 @@ export default function KPIPrevenccionPage() {
           )}
         </CardContent>
       </Card>
-
-      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Eliminar KPI</DialogTitle>
-            <DialogDescription>
-              Se eliminarÃ¡ el KPI de {selectedKpi ? new Date(selectedKpi.mes_ano).toLocaleDateString('es-CL', { month: 'long', year: 'numeric' }) : 'este perÃ­odo'}.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setDeleteOpen(false)}>Cancelar</Button>
-            <Button
-              variant="destructive"
-              disabled={isDeleting}
-              onClick={async () => {
-                if (!selectedKpi?.id) return;
-                setIsDeleting(true);
-                try {
-                  const response = await fetch(`/api/sostenibilidad/kpi?id=${selectedKpi.id}`, { method: 'DELETE' });
-                  if (!response.ok) throw new Error('Error');
-                  toast.success('KPI eliminado');
-                  await mutate();
-                  setDeleteOpen(false);
-                  setSelectedKpi(null);
-                } catch {
-                  toast.error('No se pudo eliminar el KPI');
-                } finally {
-                  setIsDeleting(false);
-                }
-              }}
-            >
-              Eliminar
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

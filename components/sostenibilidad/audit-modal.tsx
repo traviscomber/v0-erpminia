@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,60 +8,44 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
-type AuditQuestion = {
-  id: string;
-  number: string;
-  question: string;
-};
-
-const questions: AuditQuestion[] = [
-  { id: '1', number: '4.1', question: '¿Existe compromiso de liderazgo para seguridad y salud ocupacional?' },
-  { id: '2', number: '4.2', question: '¿Existen políticas documentadas y vigentes?' },
-  { id: '3', number: '4.3', question: '¿Está definido el proceso de identificación de peligros?' },
-];
-
-const options = ['Cumple', 'No cumple', 'Parcial', 'N/A'] as const;
-
-export default function AuditModal({
-  open,
-  onOpenChange,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
+export default function AuditModal({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const [responses, setResponses] = useState<Record<string, string>>({});
+
+  const questions = [
+    { id: '1', number: '4.1', question: 'Leadership commitment to OH&S?' },
+    { id: '2', number: '4.2', question: 'Documented policies in place?' },
+    { id: '3', number: '4.3', question: 'Hazard identification process?' },
+  ];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Sesión de auditoría ISO 45001</DialogTitle>
+          <DialogTitle>ISO 45001 Audit Session</DialogTitle>
         </DialogHeader>
 
-        <div className="max-h-[60vh] space-y-4 overflow-y-auto">
-          {questions.map((question) => (
-            <Card key={question.id}>
+        <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+          {questions.map((q) => (
+            <Card key={q.id}>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm">
-                  {question.number} - {question.question}
-                </CardTitle>
+                <CardTitle className="text-sm">{q.number} - {q.question}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="space-y-2">
-                  {options.map((option) => (
+                  {['Compliant', 'Non-Compliant', 'Partial', 'N/A'].map((option) => (
                     <div key={option} className="flex items-center gap-2">
                       <Checkbox
-                        id={`${question.id}-${option}`}
-                        checked={responses[question.id] === option}
-                        onCheckedChange={() => setResponses({ ...responses, [question.id]: option })}
+                        id={`${q.id}-${option}`}
+                        checked={responses[q.id] === option}
+                        onCheckedChange={() => setResponses({ ...responses, [q.id]: option })}
                       />
-                      <Label htmlFor={`${question.id}-${option}`} className="cursor-pointer text-sm">
+                      <Label htmlFor={`${q.id}-${option}`} className="text-sm cursor-pointer">
                         {option}
                       </Label>
                     </div>
                   ))}
                 </div>
-                <Textarea placeholder="Comentarios adicionales..." className="text-sm" />
+                <Textarea placeholder="Comments..." className="text-sm" />
               </CardContent>
             </Card>
           ))}
@@ -69,9 +53,11 @@ export default function AuditModal({
 
         <div className="flex gap-2 justify-end">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancelar
+            Cancel
           </Button>
-          <Button onClick={() => onOpenChange(false)}>Cerrar auditoría</Button>
+          <Button onClick={() => onOpenChange(false)}>
+            Complete Audit
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

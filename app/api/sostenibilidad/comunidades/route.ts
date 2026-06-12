@@ -70,40 +70,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function PUT(request: NextRequest) {
-  const context = await getSustainabilityContext(request);
-  if (!context.ok) return context.response;
-
-  try {
-    const body = await request.json();
-    if (!body.id) {
-      return NextResponse.json({ error: 'id is required' }, { status: 400 });
-    }
-
-    const { data, error } = await context.supabase
-      .from('sostenibilidad_comunidades')
-      .update({
-        fecha: body.fecha || new Date().toISOString().split('T')[0],
-        tipo: body.tipo,
-        descripcion: body.descripcion,
-        stakeholder: body.stakeholder,
-        estado: body.estado || 'pendiente',
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', body.id)
-      .eq('organization_id', context.organizationId)
-      .select('*')
-      .single();
-
-    if (error) throw error;
-
-    return NextResponse.json({ data });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to update community record';
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
-}
-
 export async function DELETE(request: NextRequest) {
   const context = await getSustainabilityContext(request);
   if (!context.ok) return context.response;

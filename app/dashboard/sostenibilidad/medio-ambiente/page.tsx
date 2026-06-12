@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   Select,
@@ -35,34 +36,10 @@ interface MedioAmbienteRecord {
   descripcion: string;
   valor: string;
   unidad: string;
-  cumplimiento: 'conforme' | 'no_conforme' | 'en_revision';
+  cumplimiento: 'conforme' | 'no_conforme' | 'en_revisin';
 }
 
-type MedioAmbienteResponse = {
-  data?: MedioAmbienteRecord[];
-};
-
-const fetcher = async (url: string): Promise<MedioAmbienteResponse> => {
-  const response = await fetch(url);
-  const data = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(data?.error || 'No se pudo cargar el módulo ambiental');
-  return data;
-};
-
-function normalizeCumplimiento(value?: string | null) {
-  const status = String(value || '').toLowerCase();
-  return status;
-}
-
-function getDefaultFormData() {
-  return {
-    tipo: 'emisiones' as const,
-    descripcion: '',
-    valor: '',
-    unidad: 'kg',
-    cumplimiento: 'conforme' as const,
-  };
-}
+const fetcher = (url: string) => fetch(url).then(r => r.json());
 
 export default function MedioAmbientePage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -71,36 +48,23 @@ export default function MedioAmbientePage() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selected, setSelected] = useState<MedioAmbienteRecord | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState(getDefaultFormData());
+  const [formData, setFormData] = useState({
+    tipo: 'emisiones' as 'emisiones' | 'residuos' | 'agua' | 'ruido',
+    descripcion: '',
+    valor: '',
+    unidad: 'kg',
+    cumplimiento: 'conforme' as 'conforme' | 'no_conforme',
+  });
 
-  const { data: registros, mutate } = useSWR<MedioAmbienteResponse>(
+  const { data: registros, mutate } = useSWR(
     '/api/sostenibilidad/medio-ambiente',
     fetcher
   );
 
-  const registrosList = (registros?.data || []).map((record) => ({
-    ...record,
-    cumplimiento: normalizeCumplimiento(record.cumplimiento) as MedioAmbienteRecord['cumplimiento'],
-  })) as MedioAmbienteRecord[];
+  const registrosList = ((registros?.data || []) as MedioAmbienteRecord[]);
   const displayData = registrosList;
 
-  useEffect(() => {
-    if (!modalOpen) return;
-
-    if (selected) {
-      setFormData({
-        tipo: selected.tipo,
-        descripcion: selected.descripcion,
-        valor: selected.valor,
-        unidad: selected.unidad,
-        cumplimiento: normalizeCumplimiento(selected.cumplimiento) as typeof formData.cumplimiento,
-      });
-    } else {
-      setFormData(getDefaultFormData());
-    }
-  }, [modalOpen, selected]);
-
-  const filtered = displayData.filter((r) => {
+  const filtered = displayData.filter((r: any) => {
     const matchSearch = r.numero_registro.toLowerCase().includes(searchTerm.toLowerCase()) ||
       r.descripcion.toLowerCase().includes(searchTerm.toLowerCase());
     const matchTipo = !tipo || r.tipo === tipo;
@@ -133,23 +97,28 @@ export default function MedioAmbientePage() {
     e.preventDefault();
     try {
       const response = await fetch('/api/sostenibilidad/medio-ambiente', {
-        method: selected ? 'PUT' : 'POST',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(selected ? { ...formData, id: selected.id } : formData),
+        body: JSON.stringify(formData),
       });
 
       if (response.ok) {
-        toast.success(selected ? 'Registro actualizado correctamente' : 'Registro creado correctamente');
+        toast.success('Registro creado correctamente');
         setModalOpen(false);
-        setSelected(null);
-        setFormData(getDefaultFormData());
+        setFormData({
+          tipo: 'emisiones',
+          descripcion: '',
+          valor: '',
+          unidad: 'kg',
+          cumplimiento: 'conforme',
+        });
         mutate();
       } else {
-        toast.error(selected ? 'Error al actualizar registro' : 'Error al crear registro');
+        toast.error('Error al crear registro');
       }
     } catch (error) {
       console.error('[v0] Error creating registro:', error);
-      toast.error(selected ? 'Error al actualizar registro' : 'Error al crear registro');
+      toast.error('Error al crear registro');
     }
   };
 
@@ -163,44 +132,28 @@ export default function MedioAmbientePage() {
   const cumplimientoColor = {
     conforme: 'bg-secondary/10 text-secondary',
     no_conforme: 'bg-destructive/10 text-destructive',
-    en_revision: 'bg-primary/10 text-primary',
+    en_revisin: 'bg-primary/10 text-primary',
   };
 
   return (
     <div className="min-h-screen bg-background p-6">
-      <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div className="mb-8 flex justify-between items-start">
         <div>
-          <h1 className="mb-2 text-4xl font-bold text-foreground">Medio Ambiente</h1>
-          <p className="max-w-2xl text-muted-foreground">
-            Monitoreo de emisiones, residuos, agua y ruido.
-          </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Badge variant="outline">Registros {stats.total}</Badge>
-            <Badge variant="outline">Conformes {stats.conforme}</Badge>
-            <Badge variant="outline">En revisión {stats.review}</Badge>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-3xl font-bold text-foreground">Medio Ambiente</h1>
           </div>
+          <p className="text-muted-foreground">Monitoreo de emisiones, residuos, agua y ruido</p>
         </div>
-        <Dialog open={modalOpen} onOpenChange={(open) => {
-          setModalOpen(open);
-          if (!open) {
-            setSelected(null);
-            setFormData(getDefaultFormData());
-          }
-        }}>
-          <Button
-            onClick={() => {
-              setSelected(null);
-              setFormData(getDefaultFormData());
-              setModalOpen(true);
-            }}
-            className="bg-primary text-primary-foreground hover:bg-primary/90"
-          >
+        <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
               <Plus className="w-4 h-4 mr-2" />
               Nuevo Registro
-          </Button>
+            </Button>
+          </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>{selected ? 'Editar Registro Ambiental' : 'Nuevo Registro Ambiental'}</DialogTitle>
+              <DialogTitle>Nuevo Registro Ambiental</DialogTitle>
               <DialogDescription>
                 Registra datos de emisiones, residuos, agua o ruido
               </DialogDescription>
@@ -208,12 +161,7 @@ export default function MedioAmbientePage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <Label htmlFor="tipo">Tipo</Label>
-                <Select
-                  value={formData.tipo}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, tipo: value as MedioAmbienteRecord['tipo'] }))
-                  }
-                >
+                <Select value={formData.tipo} onValueChange={(value) => setFormData(prev => ({ ...prev, tipo: value as any }))}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -264,22 +212,14 @@ export default function MedioAmbientePage() {
               </div>
               <div>
                 <Label htmlFor="cumplimiento">Cumplimiento</Label>
-                <Select
-                  value={formData.cumplimiento}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      cumplimiento: normalizeCumplimiento(value) as typeof formData.cumplimiento,
-                    }))
-                  }
-                >
+                <Select value={formData.cumplimiento} onValueChange={(value) => setFormData(prev => ({ ...prev, cumplimiento: value as any }))}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="conforme">Conforme</SelectItem>
                     <SelectItem value="no_conforme">No Conforme</SelectItem>
-                    <SelectItem value="en_revision">En Revisión</SelectItem>
+                    <SelectItem value="en_revisin">En Revisión</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -295,7 +235,7 @@ export default function MedioAmbientePage() {
                   type="submit"
                   className="bg-primary text-primary-foreground hover:bg-primary/90"
                 >
-                  {selected ? 'Actualizar Registro' : 'Crear Registro'}
+                  Crear Registro
                 </Button>
               </div>
             </form>
@@ -365,14 +305,14 @@ export default function MedioAmbientePage() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((r) => (
+                {filtered.map((r: any) => (
                   <tr key={r.id} className="border-b hover:bg-muted/50">
                     <td className="py-3 px-4 font-medium">{r.numero_registro}</td>
                     <td className="py-3 px-4"><Badge>{tipoLabels[r.tipo as keyof typeof tipoLabels]}</Badge></td>
                     <td className="py-3 px-4 text-sm">{r.descripcion}</td>
                     <td className="py-3 px-4 text-sm font-medium">{r.valor} {r.unidad}</td>
                     <td className="py-3 px-4">
-                      <Badge className={cumplimientoColor[normalizeCumplimiento(r.cumplimiento) as keyof typeof cumplimientoColor]}>
+                      <Badge className={cumplimientoColor[r.cumplimiento as keyof typeof cumplimientoColor]}>
                         {r.cumplimiento}
                       </Badge>
                     </td>
