@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { AlertCircle, CheckCircle2, Send, X } from 'lucide-react';
@@ -84,11 +84,11 @@ export function DocumentReviewModal({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Revisar Documento</DialogTitle>
+          <DialogTitle>Revisar documento</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Document Info */}
+          {/* Información del documento */}
           <div className="space-y-3 p-4 bg-muted rounded-lg">
             <h3 className="font-semibold">{document.document_name}</h3>
             <div className="grid grid-cols-2 gap-2 text-sm">
@@ -115,7 +115,7 @@ export function DocumentReviewModal({
             </div>
           </div>
 
-          {/* Document Preview */}
+          {/* Vista previa */}
           {document.file_url && (
             <>
               {(() => {
@@ -130,7 +130,7 @@ export function DocumentReviewModal({
                 // Solo mostrar la sección si hay contenido para previsualizar
                 return preview ? (
                   <div className="space-y-2">
-                    <label className="text-sm font-semibold">Vista Previa del Documento</label>
+                    <label className="text-sm font-semibold">Vista previa del documento</label>
                     {preview}
                   </div>
                 ) : null;
@@ -138,7 +138,7 @@ export function DocumentReviewModal({
             </>
           )}
 
-          {/* Previous Observations (if exists) */}
+          {/* Observaciones previas (if exists) */}
           {document.l1_observations && reviewLevel === 'L2' && (
             <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
               <div className="flex gap-2">
@@ -151,7 +151,7 @@ export function DocumentReviewModal({
             </div>
           )}
 
-          {/* Review Form */}
+          {/* Formulario de revisión */}
           <div className="space-y-3">
             <label className="text-sm font-semibold">
               Observaciones de Revisión {reviewLevel}
@@ -225,3 +225,7 @@ export function DocumentReviewModal({
     </Dialog>
   );
 }
+
+
+
+

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import {
@@ -44,7 +44,7 @@ interface Document {
   created_at: string;
 }
 
-interface SearchResults {
+interface SearchResultados {
   data: Document[];
   pagination: {
     page: number;
@@ -65,7 +65,7 @@ export function AdvancedDocumentSearch() {
     pageSize: 50,
   });
 
-  const [results, setResults] = useState<SearchResults | null>(null);
+  const [Resultados, setResultados] = useState<SearchResultados | null>(null);
   const [availableTags, setAvailableTags] = useState<{ systemTags: Record<string, string[]>; userTags: string[] }>({
     systemTags: {},
     userTags: [],
@@ -75,9 +75,9 @@ export function AdvancedDocumentSearch() {
   const [selectedDocs, setSelectedDocs] = useState<Set<string>>(new Set());
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
-  // Fetch available tags on mount
+  // Fetch available Etiquetas on mount
   useEffect(() => {
-    const fetchTags = async () => {
+    const fetchEtiquetas = async () => {
       try {
         const res = await fetch('/api/documents/tags?module=prevención');
         const data = await res.json();
@@ -102,13 +102,13 @@ export function AdvancedDocumentSearch() {
       });
 
       if (!res.ok) {
-        throw new Error(`Search failed: ${res.status}`);
+        throw new Error(`La búsqueda falló: ${res.status}`);
       }
 
-      const data: SearchResults = await res.json();
-      setResults(data);
+      const data: SearchResultados = await res.json();
+      setResultados(data);
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Search failed';
+      const errorMsg = err instanceof Error ? err.message : 'La búsqueda falló';
       setError(errorMsg);
       console.error('[v0] Search error:', err);
     } finally {
@@ -158,7 +158,7 @@ export function AdvancedDocumentSearch() {
 
   const handleBulkExport = async () => {
     if (selectedDocs.size === 0) {
-      alert('No documents selected');
+      alert('No hay documentos seleccionados');
       return;
     }
 
@@ -178,7 +178,7 @@ export function AdvancedDocumentSearch() {
         credentials: 'include',
       });
 
-      if (!res.ok) throw new Error('Export failed');
+      if (!res.ok) throw new Error('La exportación falló');
 
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
@@ -191,7 +191,7 @@ export function AdvancedDocumentSearch() {
       document.body.removeChild(a);
     } catch (err) {
       console.error('[v0] Export error:', err);
-      alert('Export failed');
+      alert('La exportación falló');
     }
   };
 
@@ -205,7 +205,7 @@ export function AdvancedDocumentSearch() {
 
   return (
     <div className="space-y-6">
-      {/* Search Bar */}
+      {/* Barra de búsqueda */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -213,11 +213,11 @@ export function AdvancedDocumentSearch() {
             Búsqueda Avanzada de Documentos
           </CardTitle>
           <CardDescription>
-            Busca por nombre, descripción o palabras clave. Filtra por tags, estado y validez.
+            Busca por nombre, descripción o palabras clave. Filtra por tags, estado y Vigencia.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Query Input */}
+          {/* Consulta */}
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
@@ -235,7 +235,7 @@ export function AdvancedDocumentSearch() {
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2">
                   <Filter className="h-4 w-4" />
-                  Tags {filters.tags.length > 0 && `(${filters.tags.length})`}
+                  Etiquetas {filters.tags.length > 0 && `(${filters.tags.length})`}
                   <ChevronDown className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -264,7 +264,7 @@ export function AdvancedDocumentSearch() {
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2">
                   <Clock className="h-4 w-4" />
-                  Validez
+                  Vigencia
                   <ChevronDown className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -313,12 +313,12 @@ export function AdvancedDocumentSearch() {
                   })
                 }
               >
-                Limpiar Filtros
+                Limpiar filtros
               </Button>
             )}
           </div>
 
-          {/* Active Tags */}
+          {/* Active Etiquetas */}
           {filters.tags.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {filters.tags.map((tag) => (
@@ -336,7 +336,7 @@ export function AdvancedDocumentSearch() {
         </CardContent>
       </Card>
 
-      {/* Results */}
+      {/* Resultados */}
       {error && (
         <Card className="border-destructive">
           <CardContent className="pt-6">
@@ -356,12 +356,12 @@ export function AdvancedDocumentSearch() {
         </Card>
       )}
 
-      {results && !loading && (
+      {Resultados && !loading && (
         <Card>
           <CardHeader>
             <CardTitle>
-              {results.pagination.total} documento{results.pagination.total !== 1 ? 's' : ''} encontrado
-              {results.pagination.total !== 1 ? 's' : ''}
+              {Resultados.pagination.total} documento{Resultados.pagination.total !== 1 ? 's' : ''} encontrado
+              {Resultados.pagination.total !== 1 ? 's' : ''}
             </CardTitle>
             {selectedDocs.size > 0 && (
               <div className="flex gap-2 mt-4">
@@ -377,13 +377,13 @@ export function AdvancedDocumentSearch() {
             )}
           </CardHeader>
           <CardContent>
-            {results.data.length === 0 ? (
+            {Resultados.data.length === 0 ? (
               <p className="text-center text-muted-foreground py-8">
                 No hay documentos que coincidan con tus criterios
               </p>
             ) : (
               <div className="space-y-3">
-                {results.data.map((doc) => (
+                {Resultados.data.map((doc) => (
                   <div
                     key={doc.id}
                     className="flex items-start gap-3 p-3 border rounded-lg hover:bg-muted cursor-pointer"
@@ -431,7 +431,7 @@ export function AdvancedDocumentSearch() {
             )}
 
             {/* Pagination */}
-            {results.pagination.totalPages > 1 && (
+            {Resultados.pagination.totalPages > 1 && (
               <div className="flex justify-center gap-2 mt-4">
                 <Button
                   variant="outline"
@@ -443,7 +443,7 @@ export function AdvancedDocumentSearch() {
                 </Button>
                 <div className="flex items-center gap-2">
                   <span className="text-sm">
-                    Página {results.pagination.page} de {results.pagination.totalPages}
+                    página {Resultados.pagination.page} de {Resultados.pagination.totalPages}
                   </span>
                 </div>
                 <Button
@@ -452,10 +452,10 @@ export function AdvancedDocumentSearch() {
                   onClick={() =>
                     setFilters((p) => ({
                       ...p,
-                      page: Math.min(results.pagination.totalPages, p.page + 1),
+                      page: Math.min(Resultados.pagination.totalPages, p.page + 1),
                     }))
                   }
-                  disabled={filters.page === results.pagination.totalPages}
+                  disabled={filters.page === Resultados.pagination.totalPages}
                 >
                   Siguiente
                 </Button>
@@ -467,3 +467,6 @@ export function AdvancedDocumentSearch() {
     </div>
   );
 }
+
+
+

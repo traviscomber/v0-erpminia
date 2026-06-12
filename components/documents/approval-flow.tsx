@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,7 +18,7 @@ interface DocumentApproval {
   approval_chain: Array<{
     level: 'jefe_sostenibilidad' | 'gerente_general';
     status: 'pendiente' | 'aprobado' | 'rechazado';
-    approver: string;
+    Aprobador: string;
     role: string;
     date?: Date;
     comments?: string;
@@ -67,7 +67,7 @@ export function DocumentApprovalFlow() {
         .eq('approval_level', level);
 
       if (error) throw error;
-      alert('Documento aprobado exitosamente');
+      alert('Documento aprobado correctamente');
     } catch (err) {
       console.error('[v0] Error approving document:', err);
     }
@@ -93,7 +93,7 @@ export function DocumentApprovalFlow() {
         </CardHeader>
         <CardContent className="space-y-4">
           {documents.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">No hay documentos pendientes de aprobación</p>
+            <p className="text-muted-foreground text-center py-8">No hay documentos pendientes de Aprobación</p>
           ) : (
             <div className="space-y-3">
               {documents.map((doc) => (
@@ -120,7 +120,7 @@ export function DocumentApprovalFlow() {
                           {getStatusIcon(approval.status)}
                           <div>
                             <span className="font-medium">{getLevelLabel(approval.level)}</span>
-                            <span className="text-muted-foreground ml-2">({approval.approver})</span>
+                            <span className="text-muted-foreground ml-2">({approval.Aprobador})</span>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -134,7 +134,7 @@ export function DocumentApprovalFlow() {
                               onClick={() => handleApprove(doc.id, approval.level)}
                               className="text-xs"
                             >
-                              Aprobar y Firmar
+                              Aprobar y firmar
                             </Button>
                           )}
                         </div>
@@ -150,3 +150,5 @@ export function DocumentApprovalFlow() {
     </div>
   );
 }
+
+
