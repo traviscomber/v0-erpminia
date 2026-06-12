@@ -1,18 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { BarChart3, Download, Plus, Search, TrendingUp } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Download, BarChart3, TrendingUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 
 export default function ReportesPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const reports = [
     { id: 'RPT-OPE-2024-04', title: 'Reporte Operacional Abril 2024', type: 'Operacional', date: '2024-04-30', author: 'Gerencia Operaciones', pages: 45, size: '2.3 MB' },
-    { id: 'RPT-CUMP-Q1-2024', title: 'Reporte Cumplimiento Q1 2024', type: 'Cumplimiento', date: '2024-04-01', author: 'HSE & Compliance', pages: 28, size: '1.8 MB' },
+    { id: 'RPT-CUMP-Q1-2024', title: 'Reporte Cumplimiento Q1 2024', type: 'Cumplimiento', date: '2024-04-01', author: 'HSE y Cumplimiento', pages: 28, size: '1.8 MB' },
     { id: 'RPT-FIN-MAR-2024', title: 'Reporte Financiero Marzo 2024', type: 'Financiero', date: '2024-04-15', author: 'Finanzas', pages: 35, size: '3.1 MB' },
     { id: 'RPT-MANT-2024-Q1', title: 'Reporte Mantenimiento Q1 2024', type: 'Mantenimiento', date: '2024-04-05', author: 'Equipo Mantenimiento', pages: 52, size: '2.7 MB' },
   ];
@@ -20,8 +20,10 @@ export default function ReportesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Reportes & Análisis</h1>
-        <p className="text-muted-foreground">Reportes operacionales, de cumplimiento y análisis estratégicos</p>
+        <h1 className="text-3xl font-bold">Reportes y Análisis</h1>
+        <p className="text-muted-foreground">
+          Reportes operacionales, de cumplimiento y análisis estratégicos
+        </p>
       </div>
 
       <div className="grid grid-cols-4 gap-4">
@@ -61,7 +63,7 @@ export default function ReportesPage() {
 
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
+          <div className="flex items-center justify-between">
             <div>
               <CardTitle>Reportes y Análisis</CardTitle>
               <CardDescription>Reportes operacionales, financieros y de cumplimiento</CardDescription>
@@ -89,8 +91,11 @@ export default function ReportesPage() {
 
             <div className="space-y-3">
               {reports.map((report: any) => (
-                <div key={report.id} className="flex items-center justify-between border rounded-lg p-4 hover:bg-accent transition-colors">
-                  <div className="flex items-center gap-4 flex-1">
+                <div
+                  key={report.id}
+                  className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-accent"
+                >
+                  <div className="flex flex-1 items-center gap-4">
                     {report.type === 'Financiero' ? (
                       <BarChart3 className="h-5 w-5 text-emerald-600" />
                     ) : (
@@ -108,7 +113,9 @@ export default function ReportesPage() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="ghost" size="sm">Ver</Button>
+                    <Button variant="ghost" size="sm">
+                      Ver
+                    </Button>
                     <Button variant="ghost" size="sm" className="gap-2">
                       <Download className="h-3 w-3" />
                     </Button>

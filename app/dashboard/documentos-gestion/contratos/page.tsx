@@ -662,7 +662,7 @@ export default function ContratosPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Compliance</label>
+                    <label className="block text-sm font-medium mb-2">Cumplimiento</label>
                     <select
                       value={formState.complianceStatus}
                       onChange={(e) => updateField('complianceStatus', e.target.value)}
@@ -676,7 +676,7 @@ export default function ContratosPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Notas de Compliance</label>
+                  <label className="block text-sm font-medium mb-2">Notas de cumplimiento</label>
                   <Input
                     value={formState.complianceNotes}
                     onChange={(e) => updateField('complianceNotes', e.target.value)}
