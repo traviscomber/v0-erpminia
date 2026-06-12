@@ -41,7 +41,7 @@ const DashboardCard = memo(function DashboardCard({
               ) : (
                 <TrendingDown className="h-3 w-3 text-destructive" />
               )}
-              <span>{trend.value}% vs last period</span>
+              <span>{trend.value}% vs periodo anterior</span>
             </>
           ) : (
             <p>{description}</p>

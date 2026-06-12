@@ -79,13 +79,13 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label>Stock Item</Label>
+            <Label>Stock</Label>
             <Select
               value={formData.stockId}
               onValueChange={(value) => setFormData({ ...formData, stockId: value })}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select stock item" />
+                <SelectValue placeholder="Selecciona un insumo" />
               </SelectTrigger>
               <SelectContent>
                 {stockList.map((item: any) => (
@@ -97,13 +97,13 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
             </Select>
           </div>
           <div>
-            <Label>Destination Bin</Label>
+            <Label>Destino</Label>
             <Select
               value={formData.toBinId}
               onValueChange={(value) => setFormData({ ...formData, toBinId: value })}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select destination bin" />
+                <SelectValue placeholder="Selecciona un bin de destino" />
               </SelectTrigger>
               <SelectContent>
                 {bins.map((bin: any) => (

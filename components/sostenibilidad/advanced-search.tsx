@@ -13,7 +13,7 @@ interface AdvancedSearchProps {
 }
 
 export function AdvancedSearch({
-  placeholder = 'Search...',
+  placeholder = 'Buscar...',
   onSearch,
   debounceMs = 500,
   onClear,
