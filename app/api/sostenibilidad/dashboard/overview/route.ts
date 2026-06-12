@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
       .eq('report_period', period)
       .order('created_at', { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
     // 2. No-Conformidades
     const { data: ncStats } = await supabase.rpc('get_nc_stats', {
@@ -44,9 +44,9 @@ export async function GET(request: NextRequest) {
       .limit(5);
 
     // 6. Inspecciones completadas
-    const { data: inspectionsCount } = await supabase
+    const { count: inspectionsCompleted = 0 } = await supabase
       .from('inspecciones_internas')
-      .select('id', { count: 'exact' })
+      .select('id', { count: 'exact', head: true })
       .eq('estado', 'completada');
 
     return NextResponse.json({
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
       ca_stats: caStats?.[0] || {},
       trends: trends || [],
       top_risks: topRisks || [],
-      inspections_completed: inspectionsCount || 0,
+      inspections_completed: inspectionsCompleted,
       generated_at: new Date().toISOString(),
     });
   } catch (error) {
