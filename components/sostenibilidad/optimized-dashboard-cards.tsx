@@ -1,8 +1,8 @@
-'use client';
+﻿'use client';
 
 import React, { memo } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp, TrendingDown, AlertCircle, CheckCircle } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 
 interface DashboardCardProps {
   title: string;
@@ -26,15 +26,15 @@ const DashboardCard = memo(function DashboardCard({
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
         {isLoading ? (
-          <div className="h-4 w-4 bg-muted animate-pulse rounded" />
+          <div className="h-4 w-4 animate-pulse rounded bg-muted" />
         ) : (
           <div className="text-muted-foreground">{icon}</div>
         )}
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{isLoading ? '-' : value}</div>
-        <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-          {trend && (
+        <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+          {trend ? (
             <>
               {trend.direction === 'up' ? (
                 <TrendingUp className="h-3 w-3 text-secondary" />
@@ -43,8 +43,9 @@ const DashboardCard = memo(function DashboardCard({
               )}
               <span>{trend.value}% vs last period</span>
             </>
+          ) : (
+            <p>{description}</p>
           )}
-          {!trend && <p>{description}</p>}
         </div>
       </CardContent>
     </Card>
@@ -69,11 +70,7 @@ export const OptimizedDashboardCards = memo(function OptimizedDashboardCards({
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {data.map((card, index) => (
-        <DashboardCard
-          key={`${card.title}-${index}`}
-          {...card}
-          isLoading={isLoading}
-        />
+        <DashboardCard key={`${card.title}-${index}`} {...card} isLoading={isLoading} />
       ))}
     </div>
   );

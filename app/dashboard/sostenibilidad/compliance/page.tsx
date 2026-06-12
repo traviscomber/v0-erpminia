@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import ComplianceCalendar from '@/components/sostenibilidad/compliance-calendar';
@@ -11,12 +11,12 @@ export default function CompliancePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-3xl font-bold">Gestion de cumplimiento</h1>
+          <h1 className="text-3xl font-bold">Gestión de cumplimiento</h1>
           <p className="text-muted-foreground">ISO 45001 y SERNAGEOMIN</p>
         </div>
-        <Button onClick={() => setAuditOpen(true)}>Iniciar auditoria</Button>
+        <Button onClick={() => setAuditOpen(true)}>Iniciar auditoría</Button>
       </div>
 
       <Tabs defaultValue="calendar" className="w-full">
@@ -32,15 +32,21 @@ export default function CompliancePage() {
         </TabsContent>
 
         <TabsContent value="audits">
-          <div className="text-muted-foreground">Historial de auditorias proximamente...</div>
+          <div className="rounded-lg border border-border bg-muted/20 p-4 text-sm text-muted-foreground">
+            Historial de auditorías consolidado en la siguiente entrega.
+          </div>
         </TabsContent>
 
         <TabsContent value="checklists">
-          <div className="text-muted-foreground">Listas de verificacion proximamente...</div>
+          <div className="rounded-lg border border-border bg-muted/20 p-4 text-sm text-muted-foreground">
+            Listas de verificación consolidadas en la siguiente entrega.
+          </div>
         </TabsContent>
 
         <TabsContent value="reports">
-          <div className="text-muted-foreground">Reportes proximamente...</div>
+          <div className="rounded-lg border border-border bg-muted/20 p-4 text-sm text-muted-foreground">
+            Reportes de cumplimiento consolidados en la siguiente entrega.
+          </div>
         </TabsContent>
       </Tabs>
 
