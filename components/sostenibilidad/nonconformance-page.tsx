@@ -43,7 +43,7 @@ export function NoncConformancePage({ organizationId }: NCPageProps) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">No-Conformidades</h1>
+        <h1 className="text-3xl font-bold">No conformidades</h1>
         <Button onClick={() => setShowForm(true)} className="gap-2">
           <Plus className="w-4 h-4" />
           Nueva NC
@@ -81,10 +81,10 @@ export function NoncConformancePage({ organizationId }: NCPageProps) {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Compliance</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground">Cumplimiento</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-600">{stats?.complianceScore || 0}%</div>
+            <div className="text-3xl font-bold text-green-600">{stats?.CumplimientoScore || 0}%</div>
           </CardContent>
         </Card>
       </div>

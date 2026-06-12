@@ -43,7 +43,7 @@ export default function ReportesPage() {
 
   const inspeccionesList = (inspecciones.data || []) as any[];
 
-  // Agrupar datos por período
+  // Agrupar datos por Periodo
   const generateReportData = () => {
     const reportData: ReportData[] = [];
     
@@ -120,14 +120,14 @@ export default function ReportesPage() {
     <div className="min-h-screen bg-background p-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-foreground mb-2">Reportes de Sostenibilidad</h1>
-        <p className="text-muted-foreground">Análisis comparativo por período de inspecciones, hallazgos y KPIs</p>
+        <p className="text-muted-foreground">Analisis comparativo por Periodo de inspecciones, hallazgos y KPIs</p>
       </div>
 
       {/* Tabs for different views */}
       <Tabs defaultValue="kpi" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="kpi">Dashboard KPI</TabsTrigger>
-          <TabsTrigger value="detailed">Análisis Detallado</TabsTrigger>
+          <TabsTrigger value="kpi">Panel KPI</TabsTrigger>
+          <TabsTrigger value="detailed">Analisis Detallado</TabsTrigger>
         </TabsList>
 
         {/* KPI Dashboard Tab */}
@@ -137,15 +137,15 @@ export default function ReportesPage() {
 
         {/* Detailed Analysis Tab */}
         <TabsContent value="detailed" className="space-y-6">
-      {/* Controles de período */}
+      {/* Controles de Periodo */}
       <Card className="mb-8">
         <CardHeader>
-          <CardTitle>Configurar Período</CardTitle>
+          <CardTitle>Configurar periodo</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex gap-4 items-end">
             <div className="flex-1">
-              <label className="block text-sm font-medium mb-2">Tipo de Período</label>
+              <label className="block text-sm font-medium mb-2">Tipo de periodo</label>
               <Select value={periodoTipo} onValueChange={setPeriodoTipo}>
                 <SelectTrigger>
                   <SelectValue />
@@ -157,7 +157,7 @@ export default function ReportesPage() {
               </Select>
             </div>
             <div className="flex-1">
-              <label className="block text-sm font-medium mb-2">Año</label>
+              <label className="block text-sm font-medium mb-2">Ano</label>
               <Input
                 type="number"
                 value={anio}
@@ -171,7 +171,7 @@ export default function ReportesPage() {
                 data={reportData}
                 fileName={`Reporte_${periodoTipo}_${anio}`}
                 columns={[
-                  { key: 'periodo', label: 'Período' },
+                  { key: 'periodo', label: 'Periodo' },
                   { key: 'inspecciones', label: 'Inspecciones' },
                   { key: 'hallazgos', label: 'Hallazgos' },
                   { key: 'cumplimiento', label: 'Cumplimiento' },
@@ -226,9 +226,9 @@ export default function ReportesPage() {
         </Card>
       </div>
 
-      {/* Gráficos */}
+      {/* Graficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Gráfico de Línea - Tendencia */}
+        {/* Grafico de linea - tendencia */}
         <Card>
           <CardHeader>
             <CardTitle>Tendencia de Inspecciones</CardTitle>
@@ -259,10 +259,10 @@ export default function ReportesPage() {
           </CardContent>
         </Card>
 
-        {/* Gráfico de Barras - Hallazgos */}
+        {/* GrÃ¡fico de Barras - Hallazgos */}
         <Card>
           <CardHeader>
-            <CardTitle>Hallazgos por Período</CardTitle>
+            <CardTitle>Hallazgos por Periodo</CardTitle>
             <CardDescription>Cantidad de hallazgos encontrados</CardDescription>
           </CardHeader>
           <CardContent>
@@ -285,7 +285,7 @@ export default function ReportesPage() {
         {/* Estado Distribution */}
         <Card>
           <CardHeader>
-            <CardTitle>Distribución por Estado</CardTitle>
+            <CardTitle>DistribuciÃ³n por Estado</CardTitle>
             <CardDescription>Total de inspecciones por estado</CardDescription>
           </CardHeader>
           <CardContent>
@@ -315,7 +315,7 @@ export default function ReportesPage() {
         <Card>
           <CardHeader>
             <CardTitle>Inspecciones por Faena</CardTitle>
-            <CardDescription>Distribución de inspecciones por zona operativa</CardDescription>
+            <CardDescription>DistribuciÃ³n de inspecciones por zona operativa</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
