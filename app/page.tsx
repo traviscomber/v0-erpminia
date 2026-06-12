@@ -54,7 +54,7 @@ export default function Home() {
             Control Operacional Minero en Tiempo Real
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Motil conecta sensores, mantención, bodega, HSE y documentos en un flujo único: desde la alerta en terreno hasta el cierre auditado.
+            Conecta producción, mantención, bodega, HSE, documentos y gerencia en un flujo trazable desde terreno hasta dirección.
           </p>
           <div className="flex gap-4 justify-center pt-8">
             <Link href="/auth/login">
@@ -107,6 +107,9 @@ export default function Home() {
         <h2 className="text-4xl font-bold text-foreground mb-12 text-center">
           Flujo Operacional Integrado
         </h2>
+        <p className="text-center text-muted-foreground max-w-4xl mx-auto mb-8">
+          Evento operacional → Alerta → Orden de trabajo → Repuestos → HSE → Evidencia → Auditoría → KPIs
+        </p>
         <div className="grid md:grid-cols-11 gap-2 items-center">
           {[
             { step: '1', label: 'Alerta', icon: Zap },

@@ -7,7 +7,7 @@ export const organizationSchema = {
   name: 'Motil',
   url: 'https://motil.app',
   logo: 'https://motil.app/logo.png',
-  description: 'Plataforma integral de gestión operacional minera. ERP para producción, mantención, HSE, bodega y documentos.',
+  description: 'Plataforma operacional minera para producción, mantención, HSE, bodega, documentos y trazabilidad.',
   sameAs: [
     'https://www.linkedin.com/company/motil',
     'https://twitter.com/motil',
@@ -26,8 +26,8 @@ export const organizationSchema = {
 export const productSchema = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
-  name: 'Motil - ERP Minería',
-  description: 'Sistema integral de gestión operacional para operaciones mineras en Chile. Módulos integrados: Producción, Mantención, HSE, Bodega, Reportes.',
+  name: 'Motil - Plataforma Operacional Minera',
+  description: 'Sistema integral de gestión operacional para operaciones mineras en Chile. Módulos integrados: Producción, Mantención, HSE, Bodega, Documentos y KPIs.',
   url: 'https://motil.app',
   applicationCategory: 'BusinessApplication',
   operatingSystem: 'Web-based',
@@ -54,11 +54,11 @@ export const productSchema = {
 export const localBusinessSchema = (region: string) => ({
   '@context': 'https://schema.org',
   '@type': 'LocalBusiness',
-  name: `Motil - ERP Minería ${region}`,
+  name: `Motil - Plataforma Operacional Minera ${region}`,
   description: `Soluciones de gestión operacional para minería en ${region}, Chile`,
   url: `https://motil.app/mineria/${region.toLowerCase()}`,
   areaServed: region,
-  serviceType: 'ERP Software for Mining',
+  serviceType: 'Mining Operations Platform',
   image: 'https://motil.app/logo.png',
 });
 
