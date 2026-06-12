@@ -26,13 +26,13 @@ export default function VehiclesPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Gestión de Vehículos</h1>
         <p className="mt-2 text-muted-foreground">
-          Administra vehículos y árbol de fallas para diagnóstico de mantenimiento.
+          Administra vehiculos y arbol de fallas para diagnostico de mantenimiento.
         </p>
         <div className="mt-4 rounded-lg border border-[var(--secondary)]/30 bg-[var(--secondary)]/5 p-4 dark:border-blue-800 dark:bg-blue-950">
           <p className="text-sm text-blue-900 dark:text-blue-100">
-            <strong>Cómo funciona:</strong> cada vehículo tiene un árbol jerárquico de componentes
-            con modos de falla, síntomas y piezas asociadas. Usa &quot;Ver Árbol de Fallas&quot; para
-            diagnosticar problemas y crear órdenes de trabajo.
+            <strong>Como funciona:</strong> cada vehiculo tiene un arbol jerarquico de componentes
+            con modos de falla, sintomas y piezas asociadas. Usa &quot;Ver Arbol de Fallas&quot; para
+            diagnosticar problemas y crear ordenes de trabajo.
           </p>
         </div>
       </div>
@@ -44,21 +44,21 @@ export default function VehiclesPage() {
               <Wrench className="h-4 w-4" />
             </div>
             <div>
-              <p className="text-sm font-medium">Alta de vehículos</p>
-              <p className="text-xs text-muted-foreground">Flujo de carga en consolidación</p>
+              <p className="text-sm font-medium">Alta de vehiculos</p>
+              <p className="text-xs text-muted-foreground">Flujo de carga en consolidacion</p>
             </div>
           </div>
           <Button className="gap-2 bg-[var(--brand-naranja)] hover:bg-[var(--brand-naranja)]/90" disabled>
             <Plus className="h-4 w-4" />
-            Crear nuevo vehículo
+            Crear nuevo vehiculo
           </Button>
         </div>
       </BrandCard>
 
       <Card>
         <CardHeader>
-          <CardTitle>Vehículos en sistema</CardTitle>
-          <CardDescription>{vehicles.length} vehículos registrados</CardDescription>
+          <CardTitle>Vehiculos en sistema</CardTitle>
+          <CardDescription>{vehicles.length} vehiculos registrados</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -75,7 +75,7 @@ export default function VehiclesPage() {
                   <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground md:grid-cols-4">
                     <div>
                       <span className="font-medium text-foreground">{vehicle.code}</span>
-                      <p>Código</p>
+                      <p>Codigo</p>
                     </div>
                     <div>
                       <span className="font-medium text-foreground">{vehicle.model}</span>
@@ -83,7 +83,7 @@ export default function VehiclesPage() {
                     </div>
                     <div>
                       <span className="font-medium text-foreground">{vehicle.year}</span>
-                      <p>Año</p>
+                      <p>Ano</p>
                     </div>
                     <div>
                       <span className="font-medium text-foreground">{vehicle.site}</span>
@@ -93,7 +93,7 @@ export default function VehiclesPage() {
                 </div>
                 <Link href={`/dashboard/mantenimiento/vehiculos/${vehicle.id}/arbol`}>
                   <Button variant="outline" className="ml-4 gap-2">
-                    Ver Árbol de Fallas
+                    Ver Arbol de Fallas
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </Link>
