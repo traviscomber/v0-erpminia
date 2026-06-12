@@ -47,7 +47,7 @@ export default function Home() {
         <div className="text-center space-y-6 mb-16">
           <div className="inline-block px-4 py-2 rounded-sm bg-[var(--brand-cobre)]/10 border border-[var(--brand-cobre)]/20">
             <p className="text-sm font-semibold text-[var(--brand-cobre)] tracking-wide">
-              SISTEMA OPERACIONAL MINERO
+              PLATAFORMA OPERACIONAL MINERA
             </p>
           </div>
           <h1 className="text-6xl md:text-7xl font-bold text-foreground leading-tight">
@@ -65,7 +65,7 @@ export default function Home() {
             </Link>
             <Link href="#modules">
               <Button size="lg" variant="outline" className="gap-2 text-base px-8">
-                Ver Módulos
+                Explorar Módulos
               </Button>
             </Link>
           </div>
@@ -226,7 +226,7 @@ export default function Home() {
           Listo para Transformar tu Operación
         </h2>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-          Conecta todos los sistemas de tu faena. Obtén visibilidad total. Optimiza disponibilidad y costos.
+          Conecta producción, mantención, bodega, HSE, documentos y gerencia en una sola plataforma trazable.
         </p>
         <Link href="/auth/login">
           <Button size="lg" className="gap-2 bg-[var(--brand-cobre)] hover:bg-[var(--brand-cobre)]/90 text-base px-8">
@@ -239,7 +239,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-border bg-card/30 mt-20">
         <div className="max-w-7xl mx-auto px-4 py-12 text-center text-sm text-muted-foreground">
-          <p>Motil © 2026 • Powered by n3uralia</p>
+          <p>Motil © 2026 • n3uralia</p>
         </div>
       </footer>
     </div>
