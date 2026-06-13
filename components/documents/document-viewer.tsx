@@ -132,7 +132,7 @@ export function DocumentViewer({ open, onOpenChange, document }: DocumentViewerP
     const labels: { [key: string]: string } = {
       draft: 'Borrador',
       submitted: 'Enviado',
-      under_review: 'En Revisión',
+      under_review: 'En revisión',
       approved: 'Aprobado',
       rejected: 'Rechazado',
       expired: 'Vencido',
@@ -199,7 +199,7 @@ export function DocumentViewer({ open, onOpenChange, document }: DocumentViewerP
                 <Button variant="outline" size="sm" asChild>
                   <a href={document.fileUrl} target="_blank" rel="noopener noreferrer">
                     <Download className="w-4 h-4 mr-2" />
-                    Descargar Archivo
+                    Descargar archivo
                   </a>
                 </Button>
               )}
