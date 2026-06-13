@@ -558,7 +558,7 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
             type="submit"
             disabled={!file || isUploading || uploadStatus === 'success'}
           >
-            {uploadStatus === 'success' ? 'Completado' : uploadStatus === 'uploading' ? 'Cargando...' : 'Cargar Documento'}
+            {uploadStatus === 'success' ? 'Completado' : uploadStatus === 'uploading' ? 'Cargando...' : 'Cargar documento'}
           </Button>
         </div>
       </form>
