@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,8 +32,8 @@ interface EPPUserDeliveryProps {
 }
 
 export function EPPUserDelivery({
-  users = generateMockUsers(),
-  deliveries = generateMockDeliveries(),
+  users = [],
+  deliveries = [],
   onUserSelect = () => {},
   onAddDelivery = () => {},
 }: EPPUserDeliveryProps) {
@@ -45,16 +45,15 @@ export function EPPUserDelivery({
     onUserSelect(userId);
   };
 
-  const filteredUsers = users.filter(user =>
+  const filteredUsers = users.filter((user) =>
     user.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.cargo.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const selectedUser = users.find(u => u.id === selectedUserId);
-  const userDeliveries = deliveries.filter(d => d.userId === selectedUserId);
-
-  const activeDeliveries = userDeliveries.filter(d => d.estado !== 'devuelto');
-  const returnedDeliveries = userDeliveries.filter(d => d.estado === 'devuelto');
+  const selectedUser = users.find((u) => u.id === selectedUserId);
+  const userDeliveries = deliveries.filter((d) => d.userId === selectedUserId);
+  const activeDeliveries = userDeliveries.filter((d) => d.estado !== 'devuelto');
+  const returnedDeliveries = userDeliveries.filter((d) => d.estado === 'devuelto');
 
   const getStateColor = (estado: string) => {
     switch (estado) {
@@ -84,7 +83,6 @@ export function EPPUserDelivery({
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
-      {/* Users Panel */}
       <Card className="lg:col-span-1">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -94,20 +92,20 @@ export function EPPUserDelivery({
           <CardDescription>Selecciona un usuario para ver su historial de EPP</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="relative">
-            <Input
-              placeholder="Buscar usuario..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-muted"
-            />
-          </div>
+          <Input
+            placeholder="Buscar usuario..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="bg-muted"
+          />
 
           <div className="space-y-2 max-h-96 overflow-y-auto">
             {filteredUsers.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">No hay usuarios</p>
+              <p className="text-sm text-muted-foreground text-center py-4">
+                No hay usuarios disponibles para entrega de EPP
+              </p>
             ) : (
-              filteredUsers.map(user => (
+              filteredUsers.map((user) => (
                 <button
                   key={user.id}
                   onClick={() => handleUserSelect(user.id)}
@@ -129,7 +127,6 @@ export function EPPUserDelivery({
         </CardContent>
       </Card>
 
-      {/* User EPP Details */}
       <Card className="lg:col-span-2">
         <CardHeader>
           <div className="flex items-start justify-between">
@@ -144,7 +141,7 @@ export function EPPUserDelivery({
                 </CardDescription>
               )}
             </div>
-            <Button size="sm" className="gap-2">
+            <Button size="sm" className="gap-2" disabled>
               <Plus className="w-4 h-4" />
               Entregar EPP
             </Button>
@@ -154,12 +151,14 @@ export function EPPUserDelivery({
           {!selectedUser ? (
             <p className="text-muted-foreground text-center py-8">Selecciona un usuario</p>
           ) : userDeliveries.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">
-              No hay entregas registradas para este usuario
-            </p>
+            <div className="text-center py-8 space-y-2">
+              <p className="text-muted-foreground">No hay entregas registradas para este usuario</p>
+              <p className="text-xs text-muted-foreground">
+                Conecta esta sección a la tabla real de entregas cuando esté disponible.
+              </p>
+            </div>
           ) : (
             <>
-              {/* Active Deliveries */}
               {activeDeliveries.length > 0 && (
                 <div>
                   <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
@@ -167,7 +166,7 @@ export function EPPUserDelivery({
                     EPP Activos ({activeDeliveries.length})
                   </h3>
                   <div className="space-y-2">
-                    {activeDeliveries.map(delivery => (
+                    {activeDeliveries.map((delivery) => (
                       <div
                         key={delivery.id}
                         className="p-3 bg-muted/50 rounded-lg border border-border hover:border-primary/30 transition-colors"
@@ -176,10 +175,7 @@ export function EPPUserDelivery({
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
                               <span className="font-medium text-sm">{delivery.elemento_epp}</span>
-                              <Badge
-                                variant="outline"
-                                className={`text-xs gap-1 ${getStateColor(delivery.estado)}`}
-                              >
+                              <Badge variant="outline" className={`text-xs gap-1 ${getStateColor(delivery.estado)}`}>
                                 {getStateIcon(delivery.estado)}
                                 {delivery.estado}
                               </Badge>
@@ -192,9 +188,7 @@ export function EPPUserDelivery({
                               </div>
                             </div>
                           </div>
-                          <Badge className="bg-primary/20 text-primary">
-                            {delivery.cantidad}x
-                          </Badge>
+                          <Badge className="bg-primary/20 text-primary">{delivery.cantidad}x</Badge>
                         </div>
                       </div>
                     ))}
@@ -202,7 +196,6 @@ export function EPPUserDelivery({
                 </div>
               )}
 
-              {/* Returned Deliveries */}
               {returnedDeliveries.length > 0 && (
                 <div>
                   <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
@@ -210,7 +203,7 @@ export function EPPUserDelivery({
                     Devueltos ({returnedDeliveries.length})
                   </h3>
                   <div className="space-y-2">
-                    {returnedDeliveries.map(delivery => (
+                    {returnedDeliveries.map((delivery) => (
                       <div
                         key={delivery.id}
                         className="p-3 bg-muted/30 rounded-lg border border-border opacity-75"
@@ -221,13 +214,9 @@ export function EPPUserDelivery({
                               <span className="font-medium text-sm line-through">{delivery.elemento_epp}</span>
                               <Badge variant="outline" className="text-xs">Devuelto</Badge>
                             </div>
-                            <div className="text-xs text-muted-foreground">
-                              {delivery.marca_modelo}
-                            </div>
+                            <div className="text-xs text-muted-foreground">{delivery.marca_modelo}</div>
                           </div>
-                          <Badge variant="outline" className="text-gray-500">
-                            {delivery.cantidad}x
-                          </Badge>
+                          <Badge variant="outline" className="text-gray-500">{delivery.cantidad}x</Badge>
                         </div>
                       </div>
                     ))}
@@ -240,74 +229,4 @@ export function EPPUserDelivery({
       </Card>
     </div>
   );
-}
-
-// Mock data generators
-function generateMockUsers(): User[] {
-  return [
-    { id: 'user-1', nombre: 'Juan García', cargo: 'Operario Producción', activo: true },
-    { id: 'user-2', nombre: 'María López', cargo: 'Supervisor HSE', activo: true },
-    { id: 'user-3', nombre: 'Pedro Morales', cargo: 'Técnico Mantenimiento', activo: true },
-    { id: 'user-4', nombre: 'Ana Rodríguez', cargo: 'Operaria Bodega', activo: true },
-    { id: 'user-5', nombre: 'Carlos Soto', cargo: 'Operario Producción', activo: false },
-  ];
-}
-
-function generateMockDeliveries(): UserEPPDelivery[] {
-  return [
-    {
-      id: 'del-1',
-      userId: 'user-1',
-      elemento_epp: 'Casco de Seguridad',
-      cantidad: 1,
-      fecha_entrega: '2024-01-15',
-      estado: 'nuevo',
-      marca_modelo: 'MSA V-Guard',
-    },
-    {
-      id: 'del-2',
-      userId: 'user-1',
-      elemento_epp: 'Guantes de Nitrilo',
-      cantidad: 10,
-      fecha_entrega: '2024-01-20',
-      estado: 'nuevo',
-      marca_modelo: 'Ansell',
-    },
-    {
-      id: 'del-3',
-      userId: 'user-1',
-      elemento_epp: 'Botas de Seguridad',
-      cantidad: 1,
-      fecha_entrega: '2023-12-01',
-      estado: 'usado',
-      marca_modelo: 'Caterpillar',
-    },
-    {
-      id: 'del-4',
-      userId: 'user-2',
-      elemento_epp: 'Chaleco Reflectante',
-      cantidad: 2,
-      fecha_entrega: '2024-01-10',
-      estado: 'nuevo',
-      marca_modelo: 'Workwear Pro',
-    },
-    {
-      id: 'del-5',
-      userId: 'user-2',
-      elemento_epp: 'Casco de Seguridad',
-      cantidad: 1,
-      fecha_entrega: '2023-06-15',
-      estado: 'devuelto',
-      marca_modelo: 'MSA V-Guard',
-    },
-    {
-      id: 'del-6',
-      userId: 'user-3',
-      elemento_epp: 'Gafas de Protección',
-      cantidad: 2,
-      fecha_entrega: '2024-01-18',
-      estado: 'nuevo',
-      marca_modelo: 'Uvex',
-    },
-  ];
 }

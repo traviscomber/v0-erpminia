@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -30,7 +30,7 @@ export default function DocumentosMantenimientoPage() {
   const loadDocuments = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/documents/listmodule=mantenimiento&category=documentos', {
+      const response = await fetch('/api/documents/list?module=mantenimiento&category=documentos', {
         credentials: 'include',
       });
       const data = await response.json();
@@ -58,7 +58,7 @@ export default function DocumentosMantenimientoPage() {
 
   const handleDelete = async (documentId: string) => {
     try {
-      const response = await fetch(`/api/documents/deleteid=${documentId}`, {
+      const response = await fetch(`/api/documents/delete?id=${documentId}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -128,7 +128,7 @@ export default function DocumentosMantenimientoPage() {
       <div>
         <h1 className="text-3xl font-bold">Documentos Mantenimiento</h1>
         <p className="text-muted-foreground mt-2">
-          Gestión de manuales, procedimientos e instructivos de mantenimiento
+          GestiÃ³n de manuales, procedimientos e instructivos de mantenimiento
         </p>
       </div>
 
@@ -162,13 +162,13 @@ export default function DocumentosMantenimientoPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center justify-between">
-              <span>En Revisión</span>
+              <span>En RevisiÃ³n</span>
               <Clock className="h-4 w-4 text-yellow-500" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-yellow-500">{stats.en_revision}</p>
-            <p className="text-xs text-muted-foreground">esperando aprobación</p>
+            <p className="text-xs text-muted-foreground">esperando aprobaciÃ³n</p>
           </CardContent>
         </Card>
 
@@ -181,7 +181,7 @@ export default function DocumentosMantenimientoPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-red-500">{stats.rechazados}</p>
-            <p className="text-xs text-muted-foreground">pendientes de corrección</p>
+            <p className="text-xs text-muted-foreground">pendientes de correcciÃ³n</p>
           </CardContent>
         </Card>
       </div>
@@ -190,7 +190,7 @@ export default function DocumentosMantenimientoPage() {
         <TabsList className="bg-muted/60 border-b-2 border-border p-1">
           <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Todos</TabsTrigger>
           <TabsTrigger value="vigentes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Vigentes</TabsTrigger>
-          <TabsTrigger value="revision" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">En Revisión</TabsTrigger>
+          <TabsTrigger value="revision" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">En RevisiÃ³n</TabsTrigger>
           <TabsTrigger value="upload" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Subir Documentos</TabsTrigger>
         </TabsList>
 
@@ -256,3 +256,4 @@ export default function DocumentosMantenimientoPage() {
     </div>
   );
 }
+

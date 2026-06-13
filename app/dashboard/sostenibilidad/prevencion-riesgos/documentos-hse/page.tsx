@@ -30,26 +30,24 @@ export default function DocumentosHSEPage() {
   const loadDocuments = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/documents/listmodule=prevención&category=documentos-hse', {
+      const response = await fetch('/api/documents/list?module=prevenci%C3%B3n&category=documentos-hse', {
         credentials: 'include',
       });
       const data = await response.json();
-      if (Array.isArray(data)) {
-        setDocuments(data);
-        setStats({
-          total: data.length,
-          vigentes: data.filter((d: Document) =>
-            d.status === 'aprobado' || d.status === 'active'
-          ).length,
-          en_revision: data.filter((d: Document) =>
-            d.status === 'en_revision_l1' || d.status === 'en_revision_l2' ||
-            d.status === 'pending_l1' || d.status === 'pending_l2'
-          ).length,
-          rechazados: data.filter((d: Document) =>
-            d.status === 'rechazado' || d.status === 'rejected'
-          ).length,
-        });
-      }
+      const docs = Array.isArray(data?.documents) ? data.documents : Array.isArray(data) ? data : [];
+
+      setDocuments(docs);
+      setStats({
+        total: docs.length,
+        vigentes: docs.filter((d: Document) => d.status === 'aprobado' || d.status === 'active').length,
+        en_revision: docs.filter((d: Document) =>
+          d.status === 'en_revision_l1' ||
+          d.status === 'en_revision_l2' ||
+          d.status === 'pending_l1' ||
+          d.status === 'pending_l2'
+        ).length,
+        rechazados: docs.filter((d: Document) => d.status === 'rechazado' || d.status === 'rejected').length,
+      });
     } catch (error) {
       console.error('Error cargando documentos:', error);
     } finally {
@@ -63,7 +61,7 @@ export default function DocumentosHSEPage() {
 
   const handleDelete = async (documentId: string) => {
     try {
-      const response = await fetch(`/api/documents/deleteid=${documentId}`, {
+      const response = await fetch(`/api/documents/delete?id=${documentId}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -275,3 +273,4 @@ export default function DocumentosHSEPage() {
     </div>
   );
 }
+

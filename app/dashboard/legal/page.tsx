@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
@@ -125,14 +125,17 @@ function formatContractValue(value: number, currency: string) {
 export default function LegalPage() {
   const [activeTab, setActiveTab] = useState('documents');
   const [searchQuery, setSearchQuery] = useState('');
+  const searchParam = searchQuery.trim()
+    ? `?search=${encodeURIComponent(searchQuery.trim())}`
+    : '';
 
   const { data: documentData, error: documentsError, mutate: mutateDocuments } = useSWR(
-    `/api/legal/documentossearch=${encodeURIComponent(searchQuery)}`,
+    `/api/legal/documentos${searchParam}`,
     fetcher,
     { revalidateOnFocus: false }
   );
   const { data: contractData, error: contractsError, mutate: mutateContracts } = useSWR(
-    `/api/legal/contratossearch=${encodeURIComponent(searchQuery)}`,
+    `/api/legal/contratos${searchParam}`,
     fetcher,
     { revalidateOnFocus: false }
   );
@@ -204,8 +207,8 @@ export default function LegalPage() {
     }
   };
 
-  const legalDocs = (documentData.documents || []) as LegalDocument[];
-  const contracts = (contractData.contracts || []) as LegalContract[];
+  const legalDocs = (documentData?.documents || []) as LegalDocument[];
+  const contracts = (contractData?.contracts || []) as LegalContract[];
   const compliance = (complianceData || {}) as CompliancePayload;
 
   const documentCount = documentData?.total ?? legalDocs.length;
@@ -240,10 +243,10 @@ export default function LegalPage() {
       {
         requirement: 'Contratos vigentes',
         percentage:
-          compliance.summary.total_contracts
+          compliance.summary?.total_contracts
             ? Math.round(
-                ((compliance.summary.active_contracts || 0) /
-                  Math.max(compliance.summary.total_contracts, 1)) *
+                ((compliance.summary?.active_contracts || 0) /
+                  Math.max(compliance.summary?.total_contracts || 1, 1)) *
                   100
               )
             : 100,
@@ -251,11 +254,11 @@ export default function LegalPage() {
       {
         requirement: 'Contratos con respaldo documental',
         percentage:
-          compliance.summary.total_contracts
+          compliance.summary?.total_contracts
             ? Math.round(
-                (((compliance.summary.total_contracts || 0) -
-                  (compliance.summary.contracts_missing_file || 0)) /
-                  Math.max(compliance.summary.total_contracts, 1)) *
+                (((compliance.summary?.total_contracts || 0) -
+                  (compliance.summary?.contracts_missing_file || 0)) /
+                  Math.max(compliance.summary?.total_contracts || 1, 1)) *
                   100
               )
             : 100,
@@ -263,10 +266,10 @@ export default function LegalPage() {
       {
         requirement: 'Documentos legales aprobados',
         percentage:
-          compliance.summary.legal_documents
+          compliance.summary?.legal_documents
             ? Math.round(
-                ((compliance.summary.approved_documents || 0) /
-                  Math.max(compliance.summary.legal_documents, 1)) *
+                ((compliance.summary?.approved_documents || 0) /
+                  Math.max(compliance.summary?.legal_documents || 1, 1)) *
                   100
               )
             : 100,
@@ -274,11 +277,11 @@ export default function LegalPage() {
       {
         requirement: 'Documentos sin vencimiento inmediato',
         percentage:
-          compliance.summary.legal_documents
+          compliance.summary?.legal_documents
             ? Math.round(
-                (((compliance.summary.legal_documents || 0) -
-                  (compliance.summary.expiring_documents || 0)) /
-                  Math.max(compliance.summary.legal_documents, 1)) *
+                (((compliance.summary?.legal_documents || 0) -
+                  (compliance.summary?.expiring_documents || 0)) /
+                  Math.max(compliance.summary?.legal_documents || 1, 1)) *
                   100
               )
             : 100,
@@ -607,4 +610,5 @@ export default function LegalPage() {
     </div>
   );
 }
+
 

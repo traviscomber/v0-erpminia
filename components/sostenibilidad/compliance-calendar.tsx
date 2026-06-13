@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import useSWR from 'swr';
 import { AlertCircle, Calendar, CheckCircle2 } from 'lucide-react';
@@ -12,27 +12,24 @@ const fetcher = async (url: string) => {
 };
 
 export default function ComplianceCalendar() {
-  const { data: eventsData } = useSWR('/api/sostenibilidad/compliance-eventslimit=10', fetcher);
-  const { data: scoreData } = useSWR(
-    '/api/sostenibilidad/compliance/calculate-score',
-    fetcher
-  );
+  const { data: eventsData } = useSWR('/api/sostenibilidad/compliance-events?limit=10', fetcher);
+  const { data: scoreData } = useSWR('/api/sostenibilidad/compliance/calculate-score', fetcher);
 
-  const events = eventsData.data || [];
-  const eventStats = eventsData.stats || {
+  const events = eventsData?.data || [];
+  const eventStats = eventsData?.stats || {
     total: 0,
     pending: 0,
     completed: 0,
     overdue: 0,
   };
-  const complianceScore = scoreData.compliance_score || 0;
+  const complianceScore = scoreData?.compliance_score || 0;
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Proximos eventos</CardTitle>
+            <CardTitle className="text-sm font-medium">Próximos eventos</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{eventStats.pending}</div>
@@ -65,7 +62,7 @@ export default function ComplianceCalendar() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            Proximos eventos de cumplimiento
+            Próximos eventos de cumplimiento
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -81,9 +78,7 @@ export default function ComplianceCalendar() {
                     <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5" />
                   ) : (
                     <AlertCircle
-                      className={`h-5 w-5 mt-0.5 ${
-                        event.status === 'overdue' ? 'text-red-600' : 'text-yellow-600'
-                      }`}
+                      className={`h-5 w-5 mt-0.5 ${event.status === 'overdue' ? 'text-red-600' : 'text-yellow-600'}`}
                     />
                   )}
                   <div className="flex-1">

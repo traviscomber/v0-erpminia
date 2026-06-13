@@ -110,7 +110,7 @@ export default function CapacitacionesPage() {
     if (!confirm(`¿Eliminar capacitación "${nombre}"`)) return;
     
     try {
-      const response = await fetch(`/api/sostenibilidad/capacitacionesid=${id}`, {
+      const response = await fetch(`/api/sostenibilidad/capacitaciones?id=${id}`, {
         method: 'DELETE',
       });
 
@@ -448,3 +448,4 @@ export default function CapacitacionesPage() {
     </div>
   );
 }
+

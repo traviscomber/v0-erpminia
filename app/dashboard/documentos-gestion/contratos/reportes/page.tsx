@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import useSWR from 'swr';
@@ -15,7 +15,7 @@ const COLORS = ['#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 export default function ContratosReportesPage() {
   const [periodo, setPeriodo] = useState('mes'); // mes, trimestre, anual
 
-  const { data: reportData } = useSWR(`/api/contratos/reportesperiodo=${periodo}`, fetcher, {
+  const { data: reportData } = useSWR(`/api/contratos/reportes?periodo=${periodo}`, fetcher, {
     revalidateOnFocus: false,
     refreshInterval: 300000, // 5 minutos
   });
@@ -104,7 +104,7 @@ export default function ContratosReportesPage() {
         <TabsContent value="garantias" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Estado de Garantías Retendidas</CardTitle>
+              <CardTitle>Estado de Garantías Retenidas</CardTitle>
             </CardHeader>
             <CardContent>
               {garantiasActivas.length > 0 ? (
@@ -159,8 +159,8 @@ export default function ContratosReportesPage() {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <p className="text-center text-muted-foreground py-8">
-                  No hay datos de regalías para el periodo seleccionado.
+                  <p className="text-center text-muted-foreground py-8">
+                    No hay datos de regalías para el período seleccionado.
                 </p>
               )}
             </CardContent>
@@ -189,3 +189,5 @@ export default function ContratosReportesPage() {
     </div>
   );
 }
+
+

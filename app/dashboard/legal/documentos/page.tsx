@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -30,19 +30,20 @@ export default function DocumentosLegalPage() {
   const loadDocuments = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/documents/listmodule=legal&category=documentos', {
+      const response = await fetch('/api/legal/documentos?category=documentos', {
         credentials: 'include',
       });
       const data = await response.json();
-      if (Array.isArray(data)) {
-        setDocuments(data);
+      const docs = Array.isArray(data?.documents) ? data.documents : [];
+      if (docs.length >= 0) {
+        setDocuments(docs);
         setStats({
-          total: data.length,
-          vigentes: data.filter((d: Document) => d.status === 'active').length,
-          en_revision: data.filter((d: Document) => 
+          total: data?.total ?? docs.length,
+          vigentes: docs.filter((d: Document) => d.status === 'active').length,
+          en_revision: docs.filter((d: Document) => 
             d.status === 'pending_l1' || d.status === 'pending_l2'
           ).length,
-          rechazados: data.filter((d: Document) => d.status === 'rejected').length,
+          rechazados: docs.filter((d: Document) => d.status === 'rejected').length,
         });
       }
     } catch (error) {
@@ -58,7 +59,7 @@ export default function DocumentosLegalPage() {
 
   const handleDelete = async (documentId: string) => {
     try {
-      const response = await fetch(`/api/documents/deleteid=${documentId}`, {
+      const response = await fetch(`/api/documents/delete?id=${documentId}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -256,3 +257,4 @@ export default function DocumentosLegalPage() {
     </div>
   );
 }
+

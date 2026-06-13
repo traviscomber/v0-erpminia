@@ -15,6 +15,12 @@ export default function NonconformanceDashboard() {
   const [showForm, setShowForm] = useState(false);
   const [showCAModal, setShowCAModal] = useState(false);
   const [selectedNC, setSelectedNC] = useState<any>(null);
+  const severityColors = {
+    critical: 'bg-destructive/20 text-destructive',
+    high: 'bg-orange-100 text-orange-800',
+    medium: 'bg-yellow-100 text-yellow-800',
+    low: 'bg-blue-100 text-blue-800',
+  };
 
   const { data: ncData, mutate: mutateNCs } = useSWR('/api/sostenibilidad/nonconformances', async (url: string) => {
     const res = await fetch(url);
@@ -26,8 +32,8 @@ export default function NonconformanceDashboard() {
     return res.ok ? res.json() : null;
   });
 
-  const ncs = ncData.nonconformances || [];
-  const stats = ncData.stats || {};
+  const ncs = Array.isArray(ncData?.nonconformances) ? ncData.nonconformances : [];
+  const stats = ncData?.stats || {};
   const report = reportData || {};
 
   const handleCreateNC = async (formData: any) => {
@@ -49,6 +55,7 @@ export default function NonconformanceDashboard() {
   };
 
   const handleCreateCA = async (caData: any) => {
+    if (!selectedNC?.id) return;
     try {
       const res = await fetch('/api/sostenibilidad/corrective-actions', {
         method: 'POST',
@@ -166,14 +173,17 @@ export default function NonconformanceDashboard() {
                 {openNCs.slice(0, 5).map((nc: any) => (
                   <NonconformanceCard
                     key={nc.id}
-                    ncNumber={nc.nc_number}
-                    title={nc.title}
-                    category={nc.category}
-                    severity={nc.severity}
-                    status={nc.status}
-                    discoveredDate={nc.discovered_date}
-                    targetClosureDate={nc.target_closure_date}
-                    onViewDetails={() => setSelectedNC(nc)}
+                    nc={nc}
+                    onViewDetails={(id) => {
+                      const currentNC = ncs.find((item: any) => item.id === id) || nc;
+                      setSelectedNC(currentNC);
+                    }}
+                    onCreateCA={(id) => {
+                      const currentNC = ncs.find((item: any) => item.id === id) || nc;
+                      setSelectedNC(currentNC);
+                      setShowCAModal(true);
+                    }}
+                    severityColors={severityColors}
                   />
                 ))}
                 {openNCs.length === 0 && <p className="text-sm text-muted-foreground">No hay no conformidades abiertas</p>}
@@ -188,7 +198,7 @@ export default function NonconformanceDashboard() {
                 {['critical', 'high', 'medium', 'low'].map((sev: any) => (
                   <div key={sev} className="flex justify-between text-sm">
                     <span className="capitalize">{sev}</span>
-                    <span className="font-medium">{report.by_severity[sev] || 0}</span>
+                    <span className="font-medium">{report.by_severity?.[sev] || 0}</span>
                   </div>
                 ))}
               </CardContent>

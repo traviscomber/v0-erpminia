@@ -63,7 +63,7 @@ export default function ContratosPage() {
     refreshInterval: 60000,
   });
 
-  const contracts = data.contracts || [];
+  const contracts = data?.contracts || [];
 
   const filteredContracts = useMemo(() => {
     const searchLower = searchTerm.toLowerCase();

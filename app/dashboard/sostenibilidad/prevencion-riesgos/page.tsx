@@ -89,7 +89,7 @@ const modules = [
 ];
 
 export default function PrevencionRiesgosPage() {
-  const { data: documentosData } = useSWR<ListResponse>('/api/documents/listmodule=prevenci%C3%B3n&category=documentos-hse', fetcher);
+  const { data: documentosData } = useSWR<ListResponse>('/api/documents/list?module=prevenci%C3%B3n&category=documentos-hse', fetcher);
   const { data: capacitacionesData } = useSWR<ListResponse>('/api/sostenibilidad/capacitaciones', fetcher);
   const { data: eppData } = useSWR<ListResponse>('/api/sostenibilidad/epp', fetcher);
   const { data: inspeccionesData } = useSWR<ListResponse>('/api/sostenibilidad/inspecciones', fetcher);

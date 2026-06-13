@@ -30,6 +30,12 @@ interface EPP {
 }
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
+const authFetcher = async (url: string) => {
+  const response = await fetch(url, { credentials: 'include' });
+  const data = await response.json();
+  if (!response.ok) return null;
+  return data;
+};
 
 export default function EPPPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -58,8 +64,17 @@ export default function EPPPage() {
   };
 
   const { data: epp, isLoading, mutate } = useSWR('/api/sostenibilidad/epp', fetcher);
+  const { data: usersData } = useSWR('/api/admin/users', authFetcher);
 
   const eppData = ((epp?.data || []) as EPP[]);
+  const users = Array.isArray(usersData?.users)
+    ? usersData.users.map((user: any) => ({
+        id: user.id,
+        nombre: user.full_name || user.nombre || user.email,
+        cargo: user.role || 'Usuario',
+        activo: user.active ?? true,
+      }))
+    : [];
   const cargos = [...new Set(eppData.map((item: EPP) => item.cargo_puesto))];
 
   const filteredEPP = eppData.filter((item: EPP) =>
@@ -407,7 +422,7 @@ export default function EPPPage() {
           <h2 className="text-2xl font-bold text-foreground">Entregas por Usuario</h2>
           <p className="text-muted-foreground">Gestiona la entrega y devolución de EPP por trabajador</p>
         </div>
-        <EPPUserDelivery />
+        <EPPUserDelivery users={users} deliveries={[]} />
       </div>
     </div>
   );

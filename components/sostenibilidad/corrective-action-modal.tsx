@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -22,13 +22,14 @@ export function CorrectiveActionModal({ open, onOpenChange, ncId, onCreate }: an
 
     setLoading(true);
     try {
-      const res = await fetch(`/api/sostenibilidad/corrective-actionsncId=${ncId}`, {
+      const res = await fetch(`/api/sostenibilidad/corrective-actions?ncId=${ncId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...data, ncId }),
       });
+
       if (res.ok) {
-        onCreate();
+        onCreate?.();
         onOpenChange(false);
         setData({ actionDescription: '', responsiblePerson: '', scheduledCompletionDate: '', verificationMethod: '' });
       }
@@ -39,16 +40,18 @@ export function CorrectiveActionModal({ open, onOpenChange, ncId, onCreate }: an
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-        <DialogTitle>Crear acción correctiva</DialogTitle>
+          <DialogTitle>Crear acción correctiva</DialogTitle>
         </DialogHeader>
+
         <div className="space-y-4">
           {!ncId && (
             <p className="text-sm text-muted-foreground">
               Selecciona primero una no conformidad para crear la acción correctiva.
             </p>
           )}
+
           <div>
             <Label>Descripción de la acción</Label>
             <Textarea
@@ -57,6 +60,7 @@ export function CorrectiveActionModal({ open, onOpenChange, ncId, onCreate }: an
               onChange={(e) => setData({ ...data, actionDescription: e.target.value })}
             />
           </div>
+
           <div>
             <Label>Responsable</Label>
             <Input
@@ -65,6 +69,7 @@ export function CorrectiveActionModal({ open, onOpenChange, ncId, onCreate }: an
               onChange={(e) => setData({ ...data, responsiblePerson: e.target.value })}
             />
           </div>
+
           <div>
             <Label>Fecha objetivo de cierre</Label>
             <Input
@@ -73,6 +78,7 @@ export function CorrectiveActionModal({ open, onOpenChange, ncId, onCreate }: an
               onChange={(e) => setData({ ...data, scheduledCompletionDate: e.target.value })}
             />
           </div>
+
           <div>
             <Label>Método de verificación</Label>
             <Select value={data.verificationMethod} onValueChange={(val) => setData({ ...data, verificationMethod: val })}>
@@ -87,6 +93,7 @@ export function CorrectiveActionModal({ open, onOpenChange, ncId, onCreate }: an
               </SelectContent>
             </Select>
           </div>
+
           <Button onClick={handleCreate} disabled={loading || !ncId} className="w-full">
             {loading ? 'Creando...' : 'Crear acción'}
           </Button>

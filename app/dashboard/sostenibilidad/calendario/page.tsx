@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 
-// ─── Types ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 interface CalendarEvent {
   id: string;
   titulo: string;
@@ -37,15 +37,15 @@ interface CalendarEvent {
   prioridad: 'alta' | 'media' | 'baja';
 }
 
-// ─── Config ────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const EVENT_TYPES: Record<string, { label: string; color: string; dot: string; icon: React.ElementType }> = {
-  inspeccion_interna: { label: 'Inspección Interna',  color: 'bg-blue-500/15 text-blue-400 border-blue-500/30',  dot: 'bg-blue-400',  icon: ClipboardCheck },
-  inspeccion_externa: { label: 'Inspección Externa',  color: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30',  dot: 'bg-cyan-400',  icon: ClipboardCheck },
-  capacitacion:  { label: 'Capacitación',  color: 'bg-green-500/15 text-green-400 border-green-500/30',  dot: 'bg-green-400',  icon: GraduationCap  },
-  auditoria:  { label: 'Auditoría',  color: 'bg-purple-500/15 text-purple-400 border-purple-500/30', dot: 'bg-purple-400', icon: ShieldAlert   },
+  inspeccion_interna: { label: 'InspecciÃ³n Interna',  color: 'bg-blue-500/15 text-blue-400 border-blue-500/30',  dot: 'bg-blue-400',  icon: ClipboardCheck },
+  inspeccion_externa: { label: 'InspecciÃ³n Externa',  color: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30',  dot: 'bg-cyan-400',  icon: ClipboardCheck },
+  capacitacion:  { label: 'CapacitaciÃ³n',  color: 'bg-green-500/15 text-green-400 border-green-500/30',  dot: 'bg-green-400',  icon: GraduationCap  },
+  auditoria:  { label: 'AuditorÃ­a',  color: 'bg-purple-500/15 text-purple-400 border-purple-500/30', dot: 'bg-purple-400', icon: ShieldAlert   },
   monitoreo:  { label: 'Monitoreo Ambiental', color: 'bg-teal-500/15 text-teal-400 border-teal-500/30',  dot: 'bg-teal-400',  icon: Leaf           },
   legal:  { label: 'Vencimiento Legal',  color: 'bg-red-500/15 text-red-400 border-red-500/30',  dot: 'bg-red-400',  icon: Gavel          },
-  reunion:  { label: 'Reunión',  color: 'bg-amber-500/15 text-amber-400 border-amber-500/30', dot: 'bg-amber-400',  icon: Coffee         },
+  reunion:  { label: 'ReuniÃ³n',  color: 'bg-amber-500/15 text-amber-400 border-amber-500/30', dot: 'bg-amber-400',  icon: Coffee         },
   tarea:  { label: 'Tarea',  color: 'bg-slate-500/15 text-slate-400 border-slate-500/30', dot: 'bg-slate-400',  icon: BarChart2      },
 };
 
@@ -62,7 +62,7 @@ const STATUS_BADGE: Record<string, string> = {
   cancelado:  'bg-slate-500/15 text-slate-400',
 };
 
-const WEEKDAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+const WEEKDAYS = ['Lun', 'Mar', 'MiÃ©', 'Jue', 'Vie', 'SÃ¡b', 'Dom'];
 
 const BLANK_FORM = {
   titulo: '', tipo_evento: 'inspeccion_interna',
@@ -73,7 +73,7 @@ const BLANK_FORM = {
 
 const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then(r => r.json());
 
-// ─── Page ──────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function CalendarioPage() {
   const today = new Date();
   const [currentDate, setCurrentDate] = useState(new Date(today.getFullYear(), today.getMonth()));
@@ -141,8 +141,8 @@ export default function CalendarioPage() {
   };
 
   const handleDelete = async (id: string, titulo: string) => {
-    if (!confirm(`¿Eliminar "${titulo}"`)) return;
-    const r = await fetch(`/api/sostenibilidad/calendarioid=${id}`, { method: 'DELETE', credentials: 'include' });
+    if (!confirm(`Â¿Eliminar "${titulo}"`)) return;
+    const r = await fetch(`/api/sostenibilidad/calendario?id=${id}`, { method: 'DELETE', credentials: 'include' });
     if (r.ok) { toast.success('Evento eliminado'); mutate(); }
     else toast.error('Error al eliminar evento');
   };
@@ -153,7 +153,7 @@ export default function CalendarioPage() {
     setIsOpen(true);
   };
 
-  // ── Render ──────────────────────────────────────────────────────────────
+  // â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   return (
     <div className="min-h-screen bg-background p-6 space-y-6">
 
@@ -161,7 +161,7 @@ export default function CalendarioPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Calendario de Sostenibilidad</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Inspecciones, auditorías, capacitaciones y vencimientos legales</p>
+          <p className="text-sm text-muted-foreground mt-0.5">Inspecciones, auditorÃ­as, capacitaciones y vencimientos legales</p>
         </div>
         <Dialog open={isOpen} onOpenChange={o => { setIsOpen(o); if (!o) setFormData({ ...BLANK_FORM }); }}>
           <DialogTrigger asChild>
@@ -177,8 +177,8 @@ export default function CalendarioPage() {
             <form onSubmit={handleSubmit} className="space-y-4 mt-2">
               <div className="grid grid-cols-2 gap-3">
                 <div className="col-span-2">
-                  <Label htmlFor="titulo">Título *</Label>
-                  <Input id="titulo" name="titulo" value={formData.titulo} onChange={handleInput} placeholder="Ej: Inspección EPP sector norte" required />
+                  <Label htmlFor="titulo">TÃ­tulo *</Label>
+                  <Input id="titulo" name="titulo" value={formData.titulo} onChange={handleInput} placeholder="Ej: InspecciÃ³n EPP sector norte" required />
                 </div>
                 <div>
                   <Label>Tipo de Evento</Label>
@@ -207,11 +207,11 @@ export default function CalendarioPage() {
                   <Input id="fecha_inicio" type="date" name="fecha_inicio" value={formData.fecha_inicio} onChange={handleInput} required />
                 </div>
                 <div>
-                  <Label htmlFor="fecha_fin">Próxima fecha</Label>
+                  <Label htmlFor="fecha_fin">PrÃ³xima fecha</Label>
                   <Input id="fecha_fin" type="date" name="fecha_fin" value={formData.fecha_fin} onChange={handleInput} />
                 </div>
                 <div>
-                  <Label htmlFor="ubicacion">Ubicación</Label>
+                  <Label htmlFor="ubicacion">UbicaciÃ³n</Label>
                   <Input id="ubicacion" name="ubicacion" value={formData.ubicacion} onChange={handleInput} placeholder="Sector / Sala" />
                 </div>
                 <div>
@@ -219,7 +219,7 @@ export default function CalendarioPage() {
                   <Input id="responsable" name="responsable" value={formData.responsable} onChange={handleInput} placeholder="Nombre responsable" />
                 </div>
                 <div className="col-span-2">
-                  <Label htmlFor="descripcion">Descripción</Label>
+                  <Label htmlFor="descripcion">DescripciÃ³n</Label>
                   <textarea id="descripcion" name="descripcion" value={formData.descripcion} onChange={handleInput}
                     className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm resize-none" rows={3}
                     placeholder="Detalles del evento..." />
@@ -239,7 +239,7 @@ export default function CalendarioPage() {
         {[
           { label: 'Total eventos',  value: stats.total,  color: 'text-foreground' },
           { label: 'Este mes',  value: stats.thisMonth, color: 'text-blue-400'   },
-          { label: 'Próximos 7 días', value: stats.upcoming7, color: 'text-amber-400'  },
+          { label: 'PrÃ³ximos 7 dÃ­as', value: stats.upcoming7, color: 'text-amber-400'  },
           { label: 'Prioridad alta',  value: stats.alta,  color: 'text-red-400'    },
           { label: 'Vencidos',  value: stats.overdue,  color: 'text-red-400'    },
         ].map(s => (
@@ -283,7 +283,7 @@ export default function CalendarioPage() {
         </div>
       </div>
 
-      {/* ── Month view ───────────────────────────────────────────────────── */}
+      {/* â”€â”€ Month view â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {view === 'mes' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Calendar grid */}
@@ -366,7 +366,7 @@ export default function CalendarioPage() {
                     {selectedDay ? (
                       <>{selectedDay} de {currentDate.toLocaleDateString('es-CL', { month: 'long' })}</>
                     ) : (
-                      <><AlertTriangle className="w-4 h-4 text-amber-400" />Próximos eventos</>
+                      <><AlertTriangle className="w-4 h-4 text-amber-400" />PrÃ³ximos eventos</>
                     )}
                   </CardTitle>
                   <div className="flex items-center gap-1">
@@ -400,7 +400,7 @@ export default function CalendarioPage() {
         </div>
       )}
 
-      {/* ── List view ────────────────────────────────────────────────────── */}
+      {/* â”€â”€ List view â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {view === 'lista' && (
         <Card className="rounded-xl border shadow-none">
           <CardHeader className="pb-3">
@@ -424,7 +424,7 @@ export default function CalendarioPage() {
   );
 }
 
-// ─── EventCard ──────────────────────────────────────────────────────────────
+// â”€â”€â”€ EventCard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function EventCard({
   event, onDelete, compact = false, expanded = false,
 }: {
@@ -488,3 +488,4 @@ function EventCard({
     </div>
   );
 }
+
