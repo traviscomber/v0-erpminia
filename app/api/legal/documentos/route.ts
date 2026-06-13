@@ -49,7 +49,8 @@ export async function POST(request: NextRequest) {
     if (contentType.includes('multipart/form-data')) {
       const formData = await request.formData();
       const file = formData.get('file');
-      const title = String(formData.get('title') || '').trim() || String((file as File | null)?.name || '').trim();
+      const fileName = file instanceof File ? file.name : '';
+      const title = String(formData.get('title') || '').trim() || String(fileName || '').trim();
       const description = String(formData.get('description') || '').trim() || undefined;
       const documentType = String(formData.get('documentType') || formData.get('category') || 'legal').trim();
       const category = String(formData.get('category') || 'legal').trim();
@@ -103,3 +104,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
+

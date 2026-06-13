@@ -8,6 +8,12 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { stock_id, quantity, reason, reference_doc, reference_id } = body;
+    const { data: authData } = await context.supabase.auth.getUser();
+    const userId = authData.user?.id;
+
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     // Get current stock
     const { data: stock, error: stockError } = await context.supabase
@@ -31,7 +37,7 @@ export async function POST(request: NextRequest) {
         movement_type: quantity < 0 ? 'issue' : 'receipt',
         reference_doc,
         reference_id,
-        performed_by: (await context.supabase.auth.getUser()).data.user?.id,
+        performed_by: userId,
         organization_id: context.organizationId,
       })
       .select()

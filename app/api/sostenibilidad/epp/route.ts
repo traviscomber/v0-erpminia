@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ data: data || [] });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch EPP';
+    const message = error instanceof Error ? error.message : 'No se pudieron cargar los EPP';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to create EPP';
+    const message = error instanceof Error ? error.message : 'No se pudo crear el EPP';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -84,7 +84,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ data });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to update EPP';
+    const message = error instanceof Error ? error.message : 'No se pudo actualizar el EPP';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -108,7 +108,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to delete EPP';
+    const message = error instanceof Error ? error.message : 'No se pudo eliminar el EPP';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

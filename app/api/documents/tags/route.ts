@@ -1,23 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 // Predefined system tags
 const SYSTEM_TAGS = {
-  'Tipo': ['Certificado', 'Reglamento', 'Procedimiento', 'Instructivo', 'Formulario', 'Guía', 'Estándar'],
-  'Riesgo': ['Bajo', 'Medio', 'Alto', 'Crítico'],
-  'Validez': ['Vigente', 'Próximo a Vencer', 'Vencido'],
-  'Versión': ['v1.0', 'v1.1', 'v2.0', 'v2.1'],
-  'Audiencia': ['Gerencia', 'Supervisores', 'Operarios', 'Todo el Personal'],
+  Tipo: ['Certificado', 'Reglamento', 'Procedimiento', 'Instructivo', 'Formulario', 'Guía', 'Estándar'],
+  Riesgo: ['Bajo', 'Medio', 'Alto', 'Crítico'],
+  Validez: ['Vigente', 'Próximo a Vencer', 'Vencido'],
+  Versión: ['v1.0', 'v1.1', 'v2.0', 'v2.1'],
+  Audiencia: ['Gerencia', 'Supervisores', 'Operarios', 'Todo el Personal'],
 };
 
 export async function GET(req: NextRequest) {
   try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const module = req.nextUrl.searchParams.get('module') || 'prevención';
+
+    if (!supabaseUrl || !supabaseServiceRoleKey) {
+      return NextResponse.json(
+        {
+          systemTags: SYSTEM_TAGS,
+          userTags: [],
+          module,
+        },
+        { status: 200 }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
     // Get unique tags from database
     const { data: docs, error } = await supabase
@@ -46,6 +56,6 @@ export async function GET(req: NextRequest) {
     );
   } catch (error) {
     console.error('[v0] Get tags error:', error);
-    return NextResponse.json({ error: 'Failed to fetch tags' }, { status: 500 });
+    return NextResponse.json({ error: 'No se pudieron cargar los tags' }, { status: 500 });
   }
 }

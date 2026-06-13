@@ -15,7 +15,7 @@ export default function MisAprobacionesPage() {
     fetcher
   );
 
-  const pendingApprovals = docData?.data?.filter(
+  const pendingApprovals = docData.data.filter(
     (doc: any) => doc.status === 'pending' || doc.status === 'submitted' || doc.status === 'under_review'
   ) || [];
 

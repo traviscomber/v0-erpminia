@@ -11,8 +11,8 @@ interface FilterConfig {
   id: string;
   label: string;
   type: 'text' | 'select' | 'date' | 'number';
-  placeholder?: string;
-  options?: { value: string; label: string }[];
+  placeholder: string;
+  options: { value: string; label: string }[];
 }
 
 interface AdvancedFilterProps {
@@ -61,7 +61,7 @@ export function AdvancedFilter({ filters, onFilterChange }: AdvancedFilterProps)
                         <SelectValue placeholder={filter.placeholder} />
                       </SelectTrigger>
                       <SelectContent>
-                        {filter.options?.map((opt) => (
+                        {filter.options.map((opt) => (
                           <SelectItem key={opt.value} value={opt.value}>
                             {opt.label}
                           </SelectItem>

@@ -39,7 +39,7 @@ const fetcher = async (url: string) => {
   const payload = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(payload?.error || 'No fue posible cargar finanzas');
+    throw new Error(payload.error || 'No fue posible cargar finanzas');
   }
 
   return payload;
@@ -51,7 +51,7 @@ export default function FinanzasPage() {
   const [selectedPeriod, setSelectedPeriod] = useState('monthly');
 
   const { data, error, isLoading, mutate } = useSWR(
-    `/api/dashboard/finanzas?period=${selectedPeriod}`,
+    `/api/dashboard/finanzasperiod=${selectedPeriod}`,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -60,14 +60,14 @@ export default function FinanzasPage() {
     }
   );
 
-  const budget = data?.budget || { total: 0, spent: 0, remaining: 0 };
-  const expenses = data?.expenses || [];
-  const budgetVsActual = data?.budgetVsActual || [
+  const budget = data.budget || { total: 0, spent: 0, remaining: 0 };
+  const expenses = data.expenses || [];
+  const budgetVsActual = data.budgetVsActual || [
     { month: 'Ene', budget: 2000000, actual: 1800000 },
     { month: 'Feb', budget: 2200000, actual: 2100000 },
     { month: 'Mar', budget: 1900000, actual: 2050000 },
   ];
-  const forecast = data?.forecast || [
+  const forecast = data.forecast || [
     { month: 'Jul', projected: 2150000 },
     { month: 'Aug', projected: 2200000 },
   ];
@@ -108,8 +108,8 @@ export default function FinanzasPage() {
 
   const filteredFinances = expenses.filter(
     (finance: any) =>
-      (finance.vendor?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        finance.id?.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      (finance.vendor.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        finance.id.toLowerCase().includes(searchTerm.toLowerCase())) &&
       (statusFilter === 'all' || finance.status === statusFilter)
   );
 

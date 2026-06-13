@@ -17,7 +17,7 @@ interface ConfirmDeleteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   titulo: string;
-  descripcion?: string;
+  descripcion: string;
   onConfirm: () => Promise<void>;
 }
 
@@ -60,7 +60,7 @@ export function ConfirmDeleteDialog({
           <div className="flex items-start gap-3">
             <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
             <div>
-              <AlertDialogTitle>Eliminar {titulo}?</AlertDialogTitle>
+              <AlertDialogTitle>Eliminar {titulo}</AlertDialogTitle>
               <AlertDialogDescription>
                 {descripcion ||
                   'Esta acción no se puede deshacer. El registro será eliminado permanentemente.'}

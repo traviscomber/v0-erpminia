@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ data: data || [] });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch capacitaciones';
+    const message = error instanceof Error ? error.message : 'No se pudieron cargar las capacitaciones';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to create capacitacion';
+    const message = error instanceof Error ? error.message : 'No se pudo crear la capacitacin';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -81,7 +81,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to delete capacitacion';
+    const message = error instanceof Error ? error.message : 'No se pudo eliminar la capacitacin';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

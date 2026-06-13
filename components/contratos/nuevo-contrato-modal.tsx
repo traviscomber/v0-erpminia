@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Plus, X, Loader2 } from 'lucide-react';
 
 interface NuevoContratoModalProps {
-  onSuccess?: () => void;
+  onSuccess: () => void;
 }
 
 export function NuevoContratoModal({ onSuccess }: NuevoContratoModalProps) {
@@ -66,7 +66,7 @@ export function NuevoContratoModal({ onSuccess }: NuevoContratoModalProps) {
         estado: 'activo',
       });
       setOpen(false);
-      onSuccess?.();
+      onSuccess();
     } catch (err) {
       setError((err as Error).message);
       console.error('[v0] Error creating contract:', err);

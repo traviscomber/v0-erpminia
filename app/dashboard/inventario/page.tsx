@@ -19,17 +19,17 @@ import { Progress } from '@/components/ui/progress';
 
 type InventoryItem = {
   id: string;
-  part_code?: string;
-  part_name?: string;
-  part_category?: string;
+  part_code: string;
+  part_name: string;
+  part_category: string;
   quantity_on_hand: number;
   quantity_available: number;
   reorder_level: number;
   reorder_quantity: number;
   unit_cost: number;
-  bin?: {
-    bin_code?: string;
-    bin_location?: string;
+  bin: {
+    bin_code: string;
+    bin_location: string;
   } | null;
 };
 
@@ -38,7 +38,7 @@ const fetcher = async (url: string) => {
   const payload = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(payload?.error || 'Request failed');
+    throw new Error(payload.error || 'Request failed');
   }
 
   return payload;
@@ -56,7 +56,7 @@ export default function InventarioPage() {
     revalidateOnFocus: false,
   });
 
-  const stockList = ((data?.stock || []) as InventoryItem[]).map((item) => ({
+  const stockList = ((data.stock || []) as InventoryItem[]).map((item) => ({
     ...item,
     quantity_on_hand: Number(item.quantity_on_hand || 0),
     quantity_available: Number(item.quantity_available || 0),

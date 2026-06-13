@@ -12,9 +12,9 @@ interface Asset {
   name: string;
   code: string;
   type: string;
-  model?: string;
-  manufacturer?: string;
-  purchase_date?: string;
+  model: string;
+  manufacturer: string;
+  purchase_date: string;
   last_maintenance?: string;
   maintenance_hours?: number;
   status: string;
@@ -79,7 +79,7 @@ export function AssetManagement() {
     }
   };
 
-  const getDaysToNextMaintenance = (lastMaintenance?: string, hoursUsed?: number) => {
+  const getDaysToNextMaintenance = (lastMaintenance: string, hoursUsed: number) => {
     if (!lastMaintenance) return null;
 
     const last = new Date(lastMaintenance);
@@ -133,7 +133,7 @@ export function AssetManagement() {
           <CardContent>
             <div className="text-3xl font-bold text-yellow-600">
               {assets.filter(a => {
-                const next = getDaysToNextMaintenance(a.last_maintenance, a.maintenance_hours);
+                const next = getDaysToNextMaintenance(a.last_maintenance || '', a.maintenance_hours || 0);
                 return next?.urgent;
               }).length}
             </div>
@@ -145,7 +145,7 @@ export function AssetManagement() {
       {/* Assets List */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {assets.map((asset) => {
-          const maintenance = getDaysToNextMaintenance(asset.last_maintenance, asset.maintenance_hours);
+          const maintenance = getDaysToNextMaintenance(asset.last_maintenance || '', asset.maintenance_hours || 0);
           return (
             <Card key={asset.id} className={`border-border ${maintenance?.urgent ? 'bg-yellow-500/5' : ''}`}>
               <CardHeader className="pb-3">
@@ -186,7 +186,7 @@ export function AssetManagement() {
                       Última Mantención
                     </p>
                     <p className="font-medium">
-                      {asset.last_maintenance 
+                      {asset.last_maintenance
                         ? new Date(asset.last_maintenance).toLocaleDateString('es-CL')
                         : 'Sin registro'}
                     </p>

@@ -6,10 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Search, X } from 'lucide-react';
 
 interface AdvancedSearchProps {
-  placeholder?: string;
+  placeholder: string;
   onSearch: (query: string) => void;
-  debounceMs?: number;
-  onClear?: () => void;
+  debounceMs: number;
+  onClear: () => void;
 }
 
 export function AdvancedSearch({
@@ -46,7 +46,7 @@ export function AdvancedSearch({
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
-    onClear?.();
+    onClear();
     onSearch('');
     setIsSearching(false);
   }, [onSearch, onClear]);

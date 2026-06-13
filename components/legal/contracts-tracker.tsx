@@ -14,11 +14,11 @@ interface Contract {
   status: 'active' | 'expiring' | 'expired';
   value: string;
   approvalStatus: 'pending' | 'approved' | 'rejected';
-  fileUrl?: string;
+  fileUrl: string;
 }
 
 interface ContractsTrackerProps {
-  contracts?: Contract[];
+  contracts: Contract[];
 }
 
 export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
@@ -27,7 +27,7 @@ export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
       case 'active':
         return <Badge className="bg-secondary/10 text-secondary">Activo</Badge>;
       case 'expiring':
-        return <Badge className="bg-primary/10 text-primary">Prox. vencer</Badge>;
+        return <Badge className="bg-primary/10 text-primary">Próx. vencer</Badge>;
       case 'expired':
         return <Badge className="bg-destructive/10 text-destructive">Vencido</Badge>;
     }
@@ -54,14 +54,14 @@ export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Gestion de Contratos</CardTitle>
+        <CardTitle>Gestión de Contratos</CardTitle>
         <CardDescription>Seguimiento de contratos vigentes y vencimientos</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
           {contracts.length === 0 && (
             <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
-              No hay contratos cargados todavia.
+              No hay contratos cargados todavía.
             </div>
           )}
 
@@ -90,7 +90,7 @@ export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
                     <Calendar className="w-3 h-3" />
                     <span>
                       {new Date(contract.endDate).toLocaleDateString('es-CL')}
-                      {daysLeft > 0 && ` (${daysLeft} dias)`}
+                      {daysLeft > 0 && ` (${daysLeft} días)`}
                     </span>
                   </div>
                 </div>

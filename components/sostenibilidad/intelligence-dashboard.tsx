@@ -10,8 +10,8 @@ import { detectRiskPatterns, generateRecommendations, analyzeTrends, predictClos
 
 interface IntelligenceDashboardProps {
   ncs: any[];
-  showRecommendations?: boolean;
-  showTrends?: boolean;
+  showRecommendations: boolean;
+  showTrends: boolean;
 }
 
 export function IntelligenceDashboard({
@@ -22,7 +22,7 @@ export function IntelligenceDashboard({
   const patterns = useMemo(() => detectRiskPatterns(ncs), [ncs]);
   const recommendations = useMemo(() => generateRecommendations(ncs), [ncs]);
   const trends = useMemo(() => analyzeTrends(ncs), [ncs]);
-  
+
   const trendChartData = useMemo(() => {
     return Object.entries(trends.byDay || {}).map(([day, count]) => ({
       day,
@@ -32,10 +32,10 @@ export function IntelligenceDashboard({
 
   const severityData = useMemo(() => {
     return [
-      { name: 'Low', value: trends.bySeverity?.low || 0 },
-      { name: 'Medium', value: trends.bySeverity?.medium || 0 },
-      { name: 'High', value: trends.bySeverity?.high || 0 },
-      { name: 'Critical', value: trends.bySeverity?.critical || 0 },
+      { name: 'Low', value: trends.bySeverity.low || 0 },
+      { name: 'Medium', value: trends.bySeverity.medium || 0 },
+      { name: 'High', value: trends.bySeverity.high || 0 },
+      { name: 'Critical', value: trends.bySeverity.critical || 0 },
     ];
   }, [trends]);
 
@@ -67,8 +67,8 @@ export function IntelligenceDashboard({
                       pattern.severity > 70
                         ? 'destructive'
                         : pattern.severity > 40
-                        ? 'default'
-                        : 'secondary'
+                          ? 'default'
+                          : 'secondary'
                     }
                   >
                     {pattern.severity.toFixed(0)}%
@@ -110,7 +110,7 @@ export function IntelligenceDashboard({
           {/* NC Trend */}
           <Card>
             <CardHeader>
-              <CardTitle>Tendencia de NC (30 dias)</CardTitle>
+              <CardTitle>Tendencia de NC (30 días)</CardTitle>
               <CardDescription>{trends.total} no conformidades creadas</CardDescription>
             </CardHeader>
             <CardContent>
@@ -162,7 +162,7 @@ export function IntelligenceDashboard({
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total NC (30 dias)</CardTitle>
+            <CardTitle className="text-sm font-medium">Total NC (30 días)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{trends.total}</div>

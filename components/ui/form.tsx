@@ -108,7 +108,7 @@ function FormControl({ ...props }: React.ComponentProps<typeof Slot>) {
   const { error, formItemId, formDescriptionId, formMessageId } = useFormField()
 
   return (
-    <Slot
+      <Slot
       data-slot="form-control"
       id={formItemId}
       aria-describedby={
@@ -137,7 +137,7 @@ function FormDescription({ className, ...props }: React.ComponentProps<'p'>) {
 
 function FormMessage({ className, ...props }: React.ComponentProps<'p'>) {
   const { error, formMessageId } = useFormField()
-  const body = error ? String(error?.message ?? '') : props.children
+  const body = error ? String(error.message || '') : props.children
 
   if (!body) {
     return null

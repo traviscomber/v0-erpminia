@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSustainabilityContext } from '@/lib/api/sostenibilidad-mvp';
 
-function resolveInspectionTable(tipo?: string | null) {
+function resolveInspectionTable(tipo: string | null) {
   if (tipo === 'externas') return 'inspecciones_externas';
   return 'inspecciones_internas';
 }
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to create inspection';
+    const message = error instanceof Error ? error.message : 'No se pudo crear la inspeccin';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -114,7 +114,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ data });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to update inspection';
+    const message = error instanceof Error ? error.message : 'No se pudo actualizar la inspeccin';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -140,7 +140,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to delete inspection';
+    const message = error instanceof Error ? error.message : 'No se pudo eliminar la inspeccin';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

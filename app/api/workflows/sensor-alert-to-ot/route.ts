@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     const po_number = `WO-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
     const { data: workOrder } = await context.supabase.from('maintenance_work_orders').insert([{organization_id: context.organizationId, work_order_number: po_number, asset_id, title: `Alert: ${alert_type}`, work_type: 'predictive', priority: 'high', status: 'open', created_at: new Date().toISOString()}]).select('*').single();
 
-    return NextResponse.json({ workflow_complete: true, alert_id: alert?.id, work_order_number: workOrder?.work_order_number });
+    return NextResponse.json({ workflow_complete: true, alert_id: alert.id, work_order_number: workOrder.work_order_number });
   } catch (error) {
     return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }

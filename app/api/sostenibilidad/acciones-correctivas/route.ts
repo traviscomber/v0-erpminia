@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching CAs:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch corrective actions' },
+      { error: 'No se pudieron cargar las acciones correctivas' },
       { status: 500 }
     );
   }
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
       {
         titulo: `Acción Correctiva: ${newCANumber}`,
         descripcion: body.action_description,
-        tipo_evento: 'accion_correctiva',
+        tipo_evento: 'acción_correctiva',
         fecha_inicio: new Date(body.scheduled_completion_date).toISOString(),
         fecha_fin: new Date(body.scheduled_completion_date).toISOString(),
         estado: 'pendiente',
@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error creating CA:', error);
     return NextResponse.json(
-      { error: 'Failed to create corrective action' },
+      { error: 'No se pudo crear la acción correctiva' },
       { status: 500 }
     );
   }

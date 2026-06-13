@@ -18,26 +18,26 @@ interface WorkOrder {
   id: string;
   work_order_number: string;
   title: string;
-  description?: string;
+  description: string;
   status: string;
   priority: string;
   work_type: string;
   progress_percentage: number;
   planned_duration_hours: number;
-  actual_duration_hours?: number;
-  assigned_to_name?: string;
+  actual_duration_hours: number;
+  assigned_to_name: string;
   created_at: string;
-  scheduled_date?: string;
-  completion_date?: string;
-  asset_name?: string;
+  scheduled_date: string;
+  completion_date: string;
+  asset_name: string;
 }
 
 interface WorkOrderListProps {
-  filters?: {
-    status?: string;
-    priority?: string;
+  filters: {
+    status: string;
+    priority: string;
   };
-  limit?: number;
+  limit: number;
 }
 
 export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {

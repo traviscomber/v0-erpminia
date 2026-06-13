@@ -13,7 +13,7 @@ interface KPISeguridadProps {
   dias_sin_accidentes: number;
 }
 
-export function HSEKPIsSeguridad({ kpis, meta_iirl = 1.0 }: { kpis: KPISeguridadProps[]; meta_iirl?: number }) {
+export function HSEKPIsSeguridad({ kpis, meta_iirl = 1.0 }: { kpis: KPISeguridadProps[]; meta_iirl: number }) {
   const ultimoMes = kpis[kpis.length - 1] || {};
   const mesPrevio = kpis[kpis.length - 2] || {};
 
@@ -40,7 +40,7 @@ export function HSEKPIsSeguridad({ kpis, meta_iirl = 1.0 }: { kpis: KPISeguridad
           <div className="rounded bg-blue-50 p-3">
             <p className="mb-1 text-xs text-muted-foreground">IIRL (indice)</p>
             <div className="flex items-end justify-between">
-              <p className="text-lg font-bold">{ultimoMes.iirl?.toFixed(2) || '-'}</p>
+              <p className="text-lg font-bold">{ultimoMes.iirl.toFixed(2) || '-'}</p>
               <div className={`flex items-center gap-1 text-xs ${esBien ? 'text-green-600' : 'text-red-600'}`}>
                 {esBien ? <TrendingDown className="h-3 w-3" /> : <TrendingUp className="h-3 w-3" />}
                 {Math.abs(cambioIirl).toFixed(2)}
@@ -50,7 +50,7 @@ export function HSEKPIsSeguridad({ kpis, meta_iirl = 1.0 }: { kpis: KPISeguridad
 
           <div className="rounded bg-orange-50 p-3">
             <p className="mb-1 text-xs text-muted-foreground">ODI (indice)</p>
-            <p className="text-lg font-bold">{ultimoMes.odi?.toFixed(2) || '-'}</p>
+            <p className="text-lg font-bold">{ultimoMes.odi.toFixed(2) || '-'}</p>
           </div>
 
           <div className="rounded bg-green-50 p-3">
@@ -60,7 +60,7 @@ export function HSEKPIsSeguridad({ kpis, meta_iirl = 1.0 }: { kpis: KPISeguridad
 
           <div className="rounded bg-purple-50 p-3">
             <p className="mb-1 text-xs text-muted-foreground">Tasa frecuencia</p>
-            <p className="text-lg font-bold">{ultimoMes.tasa_frecuencia?.toFixed(1) || '-'}</p>
+            <p className="text-lg font-bold">{ultimoMes.tasa_frecuencia.toFixed(1) || '-'}</p>
           </div>
         </div>
 

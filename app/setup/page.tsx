@@ -22,7 +22,7 @@ export default async function SetupPage() {
     .eq('id', user.id)
     .single();
 
-  if (userData?.role !== 'admin') {
+  if (!userData || userData.role !== 'admin') {
     redirect('/');
   }
 

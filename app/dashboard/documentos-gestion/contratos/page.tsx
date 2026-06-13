@@ -63,18 +63,18 @@ export default function ContratosPage() {
     refreshInterval: 60000,
   });
 
-  const contracts = data?.contracts || [];
+  const contracts = data.contracts || [];
 
   const filteredContracts = useMemo(() => {
     const searchLower = searchTerm.toLowerCase();
     return contracts.filter((contract: any) => {
       if (!searchLower) return true;
       return (
-        contract.title?.toLowerCase().includes(searchLower) ||
-        contract.contract_number?.toLowerCase().includes(searchLower) ||
-        contract.description?.toLowerCase().includes(searchLower) ||
-        contract.responsible_person?.toLowerCase().includes(searchLower) ||
-        contract.contractor_name?.toLowerCase().includes(searchLower)
+        contract.title.toLowerCase().includes(searchLower) ||
+        contract.contract_number.toLowerCase().includes(searchLower) ||
+        contract.description.toLowerCase().includes(searchLower) ||
+        contract.responsible_person.toLowerCase().includes(searchLower) ||
+        contract.contractor_name.toLowerCase().includes(searchLower)
       );
     });
   }, [contracts, searchTerm]);
@@ -687,12 +687,12 @@ export default function ContratosPage() {
 
                 <div>
                   <label className="block text-sm font-medium mb-2">Documento Legal</label>
-                  <Input
-                    type="file"
-                    accept=".pdf,.doc,.docx"
-                    onChange={(e) => setContractFile(e.target.files?.[0] || null)}
-                    className="bg-white/5 border-white/10"
-                  />
+                    <Input
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      onChange={(e) => setContractFile(e.target.files?.[0] || null)}
+                      className="bg-white/5 border-white/10"
+                    />
                   <p className="text-xs text-muted-foreground mt-2">
                     PDF, DOC o DOCX. Máximo 50MB.
                   </p>
@@ -723,3 +723,5 @@ export default function ContratosPage() {
     </div>
   );
 }
+
+

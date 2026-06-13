@@ -11,7 +11,7 @@ interface HSEEPPEntrega {
   fecha_entrega: string;
   estado_anterior: 'nuevo' | 'usado' | 'descarte';
   devolucion_requerida: boolean;
-  fecha_devolucion?: string;
+  fecha_devolucion: string;
 }
 
 const estadoColores = {
@@ -20,7 +20,7 @@ const estadoColores = {
   descarte: 'bg-red-100 text-red-800',
 };
 
-export function HSEEPPCard({ entregas, cargo }: { entregas: HSEEPPEntrega[]; cargo?: string }) {
+export function HSEEPPCard({ entregas, cargo }: { entregas: HSEEPPEntrega[]; cargo: string }) {
   const pendingDevoluciones = entregas.filter((e) => e.devolucion_requerida && !e.fecha_devolucion);
 
   return (

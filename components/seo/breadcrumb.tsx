@@ -5,7 +5,7 @@ import { breadcrumbSchema } from '@/lib/schema-markup';
 
 interface BreadcrumbItem {
   name: string;
-  url?: string;
+  url: string;
 }
 
 interface BreadcrumbProps {

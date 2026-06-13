@@ -21,12 +21,12 @@ export default function HSEEPPPage() {
   const [cargo, setCargo] = useState('');
 
   const { data, error, isLoading } = useSWR(
-    `/api/hse/epp${cargo ? `?cargo=${encodeURIComponent(cargo)}` : ''}`,
+    `/api/hse/epp${cargo ? `cargo=${encodeURIComponent(cargo)}` : ''}`,
     fetcher,
     { revalidateOnFocus: false, refreshInterval: 300000 }
   );
 
-  const entregas = data?.entregas || [];
+  const entregas = data.entregas || [];
 
   const filtradas = useMemo(
     () =>

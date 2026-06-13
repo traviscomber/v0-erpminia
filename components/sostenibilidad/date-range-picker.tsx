@@ -5,11 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Calendar } from 'lucide-react';
 
 interface DateRangePickerProps {
-  startDate?: string;
-  endDate?: string;
-  onStartDateChange?: (date: string) => void;
-  onEndDateChange?: (date: string) => void;
-  onReset?: () => void;
+  startDate: string;
+  endDate: string;
+  onStartDateChange: (date: string) => void;
+  onEndDateChange: (date: string) => void;
+  onReset: () => void;
 }
 
 export function DateRangePicker({
@@ -32,7 +32,7 @@ export function DateRangePicker({
             <Input
               type="date"
               value={startDate || ''}
-              onChange={(e) => onStartDateChange?.(e.target.value)}
+              onChange={(e) => onStartDateChange(e.target.value)}
               className="pl-9"
             />
           </div>
@@ -44,7 +44,7 @@ export function DateRangePicker({
             <Input
               type="date"
               value={endDate || ''}
-              onChange={(e) => onEndDateChange?.(e.target.value)}
+              onChange={(e) => onEndDateChange(e.target.value)}
               className="pl-9"
             />
           </div>

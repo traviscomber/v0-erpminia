@@ -15,8 +15,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 
 interface WorkOrderFormProps {
-  assetId?: string;
-  onSuccess?: () => void;
+  assetId: string;
+  onSuccess: () => void;
 }
 
 export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
@@ -60,7 +60,7 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
 
       const { data } = await res.json();
       toast.success(`Work order ${data.work_order_number} created successfully`);
-      onSuccess?.();
+      onSuccess();
       setFormData({ title: '', description: '', workType: 'corrective', priority: 'medium', plannedDurationHours: 1, scheduledDate: '' });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Error creating work order');

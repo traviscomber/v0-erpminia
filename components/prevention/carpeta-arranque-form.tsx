@@ -8,7 +8,7 @@ import { Upload, File, X, CheckCircle2, AlertCircle, Loader2, Send } from 'lucid
 import { cn } from '@/lib/utils';
 
 interface CarpetaArranqueFormProps {
-  onSuccess?: () => void;
+  onSuccess: () => void;
 }
 
 const DOCUMENTOS_REQUERIDOS = [
@@ -38,7 +38,7 @@ type SlotStatus = 'idle' | 'uploading' | 'done' | 'error';
 interface SlotState {
   file: File | null;
   status: SlotStatus;
-  errorMsg?: string;
+  errorMsg: string;
 }
 
 export default function CarpetaArranqueForm({ onSuccess }: CarpetaArranqueFormProps) {
@@ -47,7 +47,7 @@ export default function CarpetaArranqueForm({ onSuccess }: CarpetaArranqueFormPr
   const [contactoEmail, setContactoEmail] = useState('');
   const [carpetaId, setCarpetaId] = useState<string | null>(null);
   const [slots, setSlots] = useState<SlotState[]>(
-    DOCUMENTOS_REQUERIDOS.map(() => ({ file: null, status: 'idle' }))
+    DOCUMENTOS_REQUERIDOS.map(() => ({ file: null, status: 'idle', errorMsg: '' }))
   );
   const [creating, setCreating] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -71,7 +71,7 @@ export default function CarpetaArranqueForm({ onSuccess }: CarpetaArranqueFormPr
         body: JSON.stringify({ empresa_nombre: empresaNombre, empresa_rut: empresaRut, contacto_email: contactoEmail }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Error al crear carpeta');
+      if (!res.ok) throw new Error(data.error ? data.error : 'Error al crear carpeta');
       setCarpetaId(data.carpeta.id);
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'Error desconocido');
@@ -85,7 +85,7 @@ export default function CarpetaArranqueForm({ onSuccess }: CarpetaArranqueFormPr
     async (slotIndex: number, file: File) => {
       if (!carpetaId) return;
 
-      setSlots(prev => prev.map((s, i) => i === slotIndex ? { ...s, file, status: 'uploading', errorMsg: undefined } : s));
+      setSlots(prev => prev.map((s, i) => i === slotIndex ? { ...s, file, status: 'uploading', errorMsg: '' } : s));
 
       const fd = new FormData();
       fd.append('file', file);
@@ -98,7 +98,7 @@ export default function CarpetaArranqueForm({ onSuccess }: CarpetaArranqueFormPr
           body: fd,
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error ?? 'Error al subir');
+        if (!res.ok) throw new Error(data.error ? data.error : 'Error al subir');
         setSlots(prev => prev.map((s, i) => i === slotIndex ? { ...s, status: 'done' } : s));
       } catch (err) {
         setSlots(prev => prev.map((s, i) =>
@@ -110,7 +110,7 @@ export default function CarpetaArranqueForm({ onSuccess }: CarpetaArranqueFormPr
   );
 
   const handleRemove = (slotIndex: number) => {
-    setSlots(prev => prev.map((s, i) => i === slotIndex ? { file: null, status: 'idle' } : s));
+    setSlots(prev => prev.map((s, i) => i === slotIndex ? { file: null, status: 'idle', errorMsg: '' } : s));
   };
 
   // Step 3: submit carpeta for review → triggers email notifications
@@ -124,7 +124,7 @@ export default function CarpetaArranqueForm({ onSuccess }: CarpetaArranqueFormPr
         credentials: 'include',
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Error al enviar');
+      if (!res.ok) throw new Error(data.error ? data.error : 'Error al enviar');
       setSubmitted(true);
       setTimeout(() => onSuccess?.(), 1500);
     } catch (err) {
@@ -276,7 +276,12 @@ export default function CarpetaArranqueForm({ onSuccess }: CarpetaArranqueFormPr
                     type="file"
                     accept=".pdf,.doc,.docx,.xls,.xlsx"
                     className="hidden"
-                    onChange={e => e.target.files?.[0] && handleFileSelect(idx, e.target.files[0])}
+                    onChange={e => {
+                      const selected = e.target.files?.[0];
+                      if (selected) {
+                        handleFileSelect(idx, selected);
+                      }
+                    }}
                   />
                 </label>
               )}
@@ -284,16 +289,16 @@ export default function CarpetaArranqueForm({ onSuccess }: CarpetaArranqueFormPr
               {slot.status === 'uploading' && (
                 <div className="flex items-center gap-2 text-xs text-primary">
                   <Loader2 className="h-3 w-3 animate-spin" />
-                  Subiendo {slot.file?.name}...
+                  Subiendo {slot.file?.name || 'archivo'}...
                 </div>
               )}
 
               {slot.status === 'done' && (
                 <div className="flex items-center gap-2 text-xs text-green-600">
                   <File className="h-3 w-3 flex-shrink-0" />
-                  <span className="truncate">{slot.file?.name}</span>
+                  <span className="truncate">{slot.file?.name || 'archivo'}</span>
                   <span className="flex-shrink-0 text-muted-foreground">
-                    ({((slot.file?.size ?? 0) / 1024).toFixed(0)} KB)
+                    ({((slot.file?.size || 0) / 1024).toFixed(0)} KB)
                   </span>
                 </div>
               )}
@@ -307,7 +312,12 @@ export default function CarpetaArranqueForm({ onSuccess }: CarpetaArranqueFormPr
                       type="file"
                       accept=".pdf,.doc,.docx,.xls,.xlsx"
                       className="hidden"
-                      onChange={e => e.target.files?.[0] && handleFileSelect(idx, e.target.files[0])}
+                      onChange={e => {
+                        const selected = e.target.files?.[0];
+                        if (selected) {
+                          handleFileSelect(idx, selected);
+                        }
+                      }}
                     />
                   </label>
                 </div>
@@ -332,7 +342,7 @@ export default function CarpetaArranqueForm({ onSuccess }: CarpetaArranqueFormPr
           >
             {submitting
               ? <><Loader2 className="h-4 w-4 animate-spin" />Enviando...</>
-              : <><Send className="h-4 w-4" />Enviar para revision ({uploadedCount} docs)</>}
+              : <><Send className="h-4 w-4" />Enviar para revisión ({uploadedCount} docs)</>}
           </Button>
           <Button type="button" variant="outline" onClick={() => onSuccess?.()}>
             Guardar y cerrar

@@ -2,11 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 const bulkUpdateSchema = z.object({
   documentIds: z.array(z.string().uuid()),
   tagsToAdd: z.array(z.string()).optional().default([]),
@@ -16,15 +11,22 @@ const bulkUpdateSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!supabaseUrl || !supabaseServiceRoleKey) {
+      return NextResponse.json({ error: 'Configuración de Supabase no disponible' }, { status: 503 });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
     const body = await req.json();
     const { documentIds, tagsToAdd, tagsToRemove, module } = bulkUpdateSchema.parse(body);
 
     if (documentIds.length === 0) {
-      return NextResponse.json({ error: 'No documents selected' }, { status: 400 });
+      return NextResponse.json({ error: 'No hay documentos seleccionados' }, { status: 400 });
     }
 
     if (tagsToAdd.length === 0 && tagsToRemove.length === 0) {
-      return NextResponse.json({ error: 'No tags to update' }, { status: 400 });
+      return NextResponse.json({ error: 'No hay tags para actualizar' }, { status: 400 });
     }
 
     // Get current documents
@@ -76,8 +78,8 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error('[v0] Bulk update tags error:', error);
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Invalid parameters', details: error.errors }, { status: 400 });
+      return NextResponse.json({ error: 'Parámetros inválidos', details: error.errors }, { status: 400 });
     }
-    return NextResponse.json({ error: 'Bulk update failed' }, { status: 500 });
+    return NextResponse.json({ error: 'La actualización masiva falló' }, { status: 500 });
   }
 }

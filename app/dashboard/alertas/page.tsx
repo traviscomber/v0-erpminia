@@ -34,7 +34,7 @@ type Alert = {
   timestamp: string;
   read: boolean;
   actionRequired: boolean;
-  actionUrl?: string;
+  actionUrl: string;
 };
 
 const fetcher = async (url: string) => {
@@ -42,7 +42,7 @@ const fetcher = async (url: string) => {
   const payload = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(payload?.error || 'Request failed');
+    throw new Error(payload.error || 'Request failed');
   }
 
   return payload;
@@ -105,7 +105,7 @@ export default function AlertasPage() {
   });
 
   useEffect(() => {
-    setAlerts((data?.alerts || []) as Alert[]);
+    setAlerts((data.alerts || []) as Alert[]);
   }, [data]);
 
   useEffect(() => {

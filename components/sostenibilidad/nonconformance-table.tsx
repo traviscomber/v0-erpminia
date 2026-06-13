@@ -26,7 +26,7 @@ export function NonconformanceTable({ data, severityColors }: NonconformanceTabl
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data?.map((nc) => {
+          {data.map((nc) => {
             const isOverdue = new Date(nc.due_date) < new Date();
             return (
               <TableRow key={nc.id}>
@@ -43,7 +43,7 @@ export function NonconformanceTable({ data, severityColors }: NonconformanceTabl
                 <TableCell className={isOverdue ? 'text-red-600 font-semibold' : ''}>
                   {new Date(nc.due_date).toLocaleDateString()}
                 </TableCell>
-                <TableCell>{nc.corrective_actions?.length || 0} CAs</TableCell>
+                <TableCell>{nc.corrective_actions.length || 0} CAs</TableCell>
                 <TableCell className="flex gap-1">
                   <Button variant="ghost" size="sm">
                     <Eye className="w-4 h-4" />

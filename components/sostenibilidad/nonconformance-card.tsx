@@ -15,8 +15,9 @@ interface NonconformanceCardProps {
 
 export function NonconformanceCard({ nc, onViewDetails, onCreateCA, severityColors }: NonconformanceCardProps) {
   const isOverdue = new Date(nc.due_date) < new Date();
-  const caProgress = nc.corrective_actions?.length ? 
-    Math.round((nc.corrective_actions.filter((ca: any) => ca.status === 'verified').length / nc.corrective_actions.length) * 100) : 0;
+  const caProgress = nc.corrective_actions.length
+    ? Math.round((nc.corrective_actions.filter((ca: any) => ca.status === 'verified').length / nc.corrective_actions.length) * 100)
+    : 0;
 
   return (
     <Card className="p-4 rounded-xl border shadow-none transition-shadow">
@@ -44,7 +45,7 @@ export function NonconformanceCard({ nc, onViewDetails, onCreateCA, severityColo
         </div>
       </div>
 
-      {nc.corrective_actions?.length > 0 && (
+      {nc.corrective_actions.length > 0 && (
         <div className="mb-4">
           <div className="flex justify-between text-xs mb-1">
             <span>Acciones ({nc.corrective_actions.length})</span>

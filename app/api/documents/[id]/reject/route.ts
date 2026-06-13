@@ -47,7 +47,7 @@ export async function POST(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to reject document';
+    const message = error instanceof Error ? error.message : 'No se pudo rechazar el documento';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

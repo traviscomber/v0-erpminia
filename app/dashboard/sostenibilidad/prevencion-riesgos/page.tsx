@@ -11,17 +11,17 @@ const fetcher = async (url: string) => {
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data?.error || 'No se pudo obtener la información');
+    throw new Error(data.error || 'No se pudo obtener la información');
   }
 
   return data;
 };
 
 type ListResponse = {
-  data?: unknown[];
-  total?: number;
-  items?: unknown[];
-  count?: number;
+  data: unknown[];
+  total: number;
+  items: unknown[];
+  count: number;
 };
 
 const normalizeCount = (payload: ListResponse | unknown): number => {
@@ -89,7 +89,7 @@ const modules = [
 ];
 
 export default function PrevencionRiesgosPage() {
-  const { data: documentosData } = useSWR<ListResponse>('/api/documents/list?module=prevenci%C3%B3n&category=documentos-hse', fetcher);
+  const { data: documentosData } = useSWR<ListResponse>('/api/documents/listmodule=prevenci%C3%B3n&category=documentos-hse', fetcher);
   const { data: capacitacionesData } = useSWR<ListResponse>('/api/sostenibilidad/capacitaciones', fetcher);
   const { data: eppData } = useSWR<ListResponse>('/api/sostenibilidad/epp', fetcher);
   const { data: inspeccionesData } = useSWR<ListResponse>('/api/sostenibilidad/inspecciones', fetcher);
@@ -144,13 +144,13 @@ export default function PrevencionRiesgosPage() {
           const Icon = module.icon;
           const count =
             module.title === 'Documentos HSE'
-              ? documentCount
+               documentCount
               : module.title === 'Capacitaciones'
-                ? trainingCount
+                 trainingCount
                 : module.title === 'Artículos EPP'
-                  ? eppCount
+                   eppCount
                   : module.title === 'Inspecciones'
-                    ? inspectionCount
+                     inspectionCount
                     : Math.max(documentCount, trainingCount, eppCount, inspectionCount);
 
           return (

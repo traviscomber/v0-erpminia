@@ -27,8 +27,8 @@ interface User {
   full_name: string;
   role: UserRole;
   created_at: string;
-  email_confirmed_at?: string;
-  last_sign_in_at?: string;
+  email_confirmed_at: string;
+  last_sign_in_at: string;
 }
 
 const ROLES: UserRole[] = ['superadmin', 'admin', 'manager', 'technician', 'warehouse_staff', 'finance_officer', 'viewer'];
@@ -84,7 +84,7 @@ export function UsersList() {
   };
 
   const handleDeleteUser = async (userId: string) => {
-    if (!confirm('Estas seguro de que deseas eliminar este usuario?')) return;
+    if (!confirm('Estas seguro de que deseas eliminar este usuario')) return;
 
     try {
       const res = await fetch('/api/admin/users', {

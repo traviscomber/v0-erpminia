@@ -11,13 +11,13 @@ interface StockItem {
   id: string;
   part_code: string;
   part_name: string;
-  description?: string;
+  description: string;
   stock_current: number;
   stock_min: number;
   unit_cost: number;
-  supplier?: string;
-  lead_time_days?: number;
-  is_critical?: boolean;
+  supplier: string;
+  lead_time_days: number;
+  is_critical: boolean;
 }
 
 interface StockLevelAlerts {

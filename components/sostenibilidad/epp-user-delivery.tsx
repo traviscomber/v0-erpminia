@@ -34,15 +34,15 @@ interface EPPUserDeliveryProps {
 export function EPPUserDelivery({
   users = generateMockUsers(),
   deliveries = generateMockDeliveries(),
-  onUserSelect,
-  onAddDelivery,
+  onUserSelect = () => {},
+  onAddDelivery = () => {},
 }: EPPUserDeliveryProps) {
   const [selectedUserId, setSelectedUserId] = useState<string>(users[0]?.id || '');
   const [searchTerm, setSearchTerm] = useState('');
 
   const handleUserSelect = (userId: string) => {
     setSelectedUserId(userId);
-    onUserSelect?.(userId);
+    onUserSelect(userId);
   };
 
   const filteredUsers = users.filter(user =>

@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { useState } from 'react';
-import { Bar, Cell, CartesianGrid, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, Cell, CartesianGrid, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import useSWR from 'swr';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,7 @@ const fetcher = async (url: string) => {
   const payload = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(payload?.error || 'No se pudo obtener la información');
+    throw new Error(payload.error || 'No se pudo obtener la información');
   }
 
   return payload;
@@ -38,7 +38,7 @@ export default function ReportesPage() {
   const [periodoTipo, setPeriodoTipo] = useState('mes');
   const [anio, setAnio] = useState(new Date().getFullYear().toString());
 
-  const { data: inspecciones = [] } = useSWR('/api/sostenibilidad/inspecciones?tipo=internas', fetcher);
+  const { data: inspecciones = [] } = useSWR('/api/sostenibilidad/inspeccionestipo=internas', fetcher);
 
   const inspeccionesList = (inspecciones.data || []) as any[];
 

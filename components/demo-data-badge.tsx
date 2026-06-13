@@ -7,8 +7,8 @@ import { AlertCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 interface DemoDataBadgeProps {
-  show?: boolean;
-  message?: string;
+  show: boolean;
+  message: string;
 }
 
 export function DemoDataBadge({ show = true, message = 'Datos de demostración' }: DemoDataBadgeProps) {

@@ -10,62 +10,62 @@ import { cn } from '@/lib/utils';
 
 export interface Document {
   id: string;
-  document_name?: string;
-  document_type?: string;
-  document_type_category?: string;
-  document_code?: string;
-  tags?: string[];
-  file_size_bytes?: number;
-  uploaded_by?: string;
-  uploaded_at?: string;
-  valid_until?: string;
-  valid_from?: string;
-  status?: string;
-  l1_observations?: string;
-  l2_observations?: string;
-  is_expired?: boolean;
-  file_url?: string;
-  description?: string;
-  version?: number;
+  document_name: string;
+  document_type: string;
+  document_type_category: string;
+  document_code: string;
+  tags: string[];
+  file_size_bytes: number;
+  uploaded_by: string;
+  uploaded_at: string;
+  valid_until: string;
+  valid_from: string;
+  status: string;
+  l1_observations: string;
+  l2_observations: string;
+  is_expired: boolean;
+  file_url: string;
+  description: string;
+  version: number;
   // Legacy fields
-  title?: string;
-  documentNumber?: string;
-  documentType?: string;
-  category?: string;
-  createdAt?: string;
-  createdByUser?: { name: string };
-  expiryDate?: string;
-  daysUntilExpiry?: number;
+  title: string;
+  documentNumber: string;
+  documentType: string;
+  category: string;
+  createdAt: string;
+  createdByUser: { name: string };
+  expiryDate: string;
+  daysUntilExpiry: number;
   // Allow any additional fields from legacy systems
   [key: string]: any;
 }
 
 interface DocumentListProps {
   documents: Document[];
-  isLoading?: boolean;
+  isLoading: boolean;
   onDelete?: (documentId: string) => Promise<void>;
-  onView?: (document: Document | string) => void;
+  onView: (document: Document | string) => void;
   showSearch?: boolean;
 }
 
 const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
-  draft:          { label: 'Borrador',    color: 'bg-muted text-muted-foreground border border-border',             icon: Clock },
-  pending_l1:     { label: 'Revisión L1', color: 'bg-blue-500/10 text-blue-400 border border-blue-500/30',         icon: Clock },
-  pending_l2:     { label: 'Revisión L2', color: 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/30',   icon: Clock },
-  en_revision_l1: { label: 'Revisión L1', color: 'bg-blue-500/10 text-blue-400 border border-blue-500/30',         icon: Clock },
-  en_revision_l2: { label: 'Revisión L2', color: 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/30',   icon: Clock },
-  active:         { label: 'Vigente',     color: 'bg-green-500/10 text-green-400 border border-green-500/30',      icon: CheckCircle2 },
-  aprobado:       { label: 'Vigente',     color: 'bg-green-500/10 text-green-400 border border-green-500/30',      icon: CheckCircle2 },
-  rejected:       { label: 'Rechazado',   color: 'bg-red-500/10 text-red-400 border border-red-500/30',            icon: AlertCircle },
-  rechazado:      { label: 'Rechazado',   color: 'bg-red-500/10 text-red-400 border border-red-500/30',            icon: AlertCircle },
+  draft: { label: 'Borrador', color: 'bg-muted text-muted-foreground border border-border', icon: Clock },
+  pending_l1:  { label: 'Revisión L1', color: 'bg-blue-500/10 text-blue-400 border border-blue-500/30',  icon: Clock },
+  pending_l2:  { label: 'Revisión L2', color: 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/30',  icon: Clock },
+  en_revision_l1: { label: 'Revisión L1', color: 'bg-blue-500/10 text-blue-400 border border-blue-500/30',  icon: Clock },
+  en_revision_l2: { label: 'Revisión L2', color: 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/30',  icon: Clock },
+  active: { label: 'Vigente', color: 'bg-green-500/10 text-green-400 border border-green-500/30', icon: CheckCircle2 },
+  aprobado: { label: 'Vigente', color: 'bg-green-500/10 text-green-400 border border-green-500/30', icon: CheckCircle2 },
+  rejected: { label: 'Rechazado', color: 'bg-red-500/10 text-red-400 border border-red-500/30', icon: AlertCircle },
+  rechazado: { label: 'Rechazado', color: 'bg-red-500/10 text-red-400 border border-red-500/30', icon: AlertCircle },
 };
 
 const typeColors: Record<string, string> = {
-  pdf:  'bg-red-500/10 text-red-400 border-red-500/30',
+  pdf: 'bg-red-500/10 text-red-400 border-red-500/30',
   docx: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
-  doc:  'bg-blue-500/10 text-blue-400 border-blue-500/30',
+  doc: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
   xlsx: 'bg-green-500/10 text-green-400 border-green-500/30',
-  xls:  'bg-green-500/10 text-green-400 border-green-500/30',
+  xls: 'bg-green-500/10 text-green-400 border-green-500/30',
 };
 
 export function DocumentList({
@@ -115,14 +115,14 @@ export function DocumentList({
     return matchesSearch && matchesTag && matchesType;
   });
 
-  const formatFileSize = (bytes?: number) => {
+  const formatFileSize = (bytes: number) => {
     if (!bytes) return '';
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
-  const formatDate = (date?: string) => {
+  const formatDate = (date: string) => {
     if (!date) return null;
     return new Date(date).toLocaleDateString('es-CL', {
       day: '2-digit', month: 'short', year: 'numeric',

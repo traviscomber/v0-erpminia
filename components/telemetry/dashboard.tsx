@@ -38,8 +38,8 @@ export function TelemetryDashboard({ equipmentId, equipmentName }: TelemetryDash
     .slice(-20);
 
   const lastReading = readings[0];
-  const isWarning = lastReading?.status === 'warning';
-  const isCritical = lastReading?.status === 'critical';
+  const isWarning = lastReading.status === 'warning';
+  const isCritical = lastReading.status === 'critical';
 
   return (
     <div className="space-y-6">

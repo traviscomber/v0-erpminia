@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     const alerts: any[] = [];
 
     // Agregar NCs vencidas
-    overdueNCs?.forEach((nc) => {
+    (overdueNCs || []).forEach((nc) => {
       const daysOverdue = calculateDaysOverdue(nc.target_closure_date);
       alerts.push({
         id: nc.id,
@@ -48,9 +48,9 @@ export async function GET(request: NextRequest) {
     });
 
     // Agregar CAs vencidas
-    overdueCAs?.forEach((ca: any) => {
+    (overdueCAs || []).forEach((ca: any) => {
       const daysOverdue = calculateDaysOverdue(ca.scheduled_completion_date);
-      const ncData = ca.sostenibilidad_nonconformances?.[0] || { severity: 'media', nc_number: 'N/A' };
+      const ncData = ca.sostenibilidad_nonconformances[0] || { severity: 'media', nc_number: 'N/A' };
       alerts.push({
         id: ca.id,
         type: 'ca_overdue',
@@ -90,7 +90,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching overdue alerts:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch alerts' },
+      { error: 'No se pudieron cargar las alertas' },
       { status: 500 }
     );
   }
@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error resolving alert:', error);
     return NextResponse.json(
-      { error: 'Failed to resolve alert' },
+      { error: 'No se pudo resolver la alerta' },
       { status: 500 }
     );
   }

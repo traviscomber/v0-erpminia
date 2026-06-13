@@ -6,13 +6,13 @@ export const dynamic = 'force-dynamic';
 
 const BUCKET = 'module-documents';
 
-// GET /api/carpeta-arranque/[id]/download?slot=<slot_index>
+// GET /api/carpeta-arranque/[id]/downloadslot=<slot_index>
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await resolveAuthContext(request);
   if (!auth) return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
 
   const { id: carpetaId } = await params;
-  const slotIndex = parseInt(request.nextUrl.searchParams.get('slot') ?? '0', 10);
+  const slotIndex = parseInt(request.nextUrl.searchParams.get('slot') || '0', 10);
 
   if (!slotIndex) {
     return NextResponse.json({ error: 'slot es requerido' }, { status: 400 });
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     .eq('slot_index', slotIndex)
     .maybeSingle();
 
-  if (error || !doc?.file_path) {
+  if (error || !doc || !doc.file_path) {
     return NextResponse.json({ error: 'Documento no encontrado' }, { status: 404 });
   }
 
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     .from(BUCKET)
     .createSignedUrl(doc.file_path, 300); // 5-minute signed URL
 
-  if (signError || !signedData?.signedUrl) {
+  if (signError || !signedData.signedUrl) {
     return NextResponse.json({ error: 'Error al generar URL de descarga' }, { status: 500 });
   }
 

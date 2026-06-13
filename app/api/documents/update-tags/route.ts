@@ -2,11 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 const updateDocumentTagsSchema = z.object({
   documentId: z.string().uuid(),
   tags: z.array(z.string()),
@@ -16,6 +11,13 @@ const updateDocumentTagsSchema = z.object({
 
 export async function PUT(req: NextRequest) {
   try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!supabaseUrl || !supabaseServiceRoleKey) {
+      return NextResponse.json({ error: 'Configuración de Supabase no disponible' }, { status: 503 });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
     const body = await req.json();
     const { documentId, tags, searchKeywords, module } = updateDocumentTagsSchema.parse(body);
 
@@ -43,8 +45,8 @@ export async function PUT(req: NextRequest) {
   } catch (error) {
     console.error('[v0] Update document tags error:', error);
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Invalid parameters', details: error.errors }, { status: 400 });
+      return NextResponse.json({ error: 'Parámetros inválidos', details: error.errors }, { status: 400 });
     }
-    return NextResponse.json({ error: 'Update failed' }, { status: 500 });
+    return NextResponse.json({ error: 'La actualización falló' }, { status: 500 });
   }
 }

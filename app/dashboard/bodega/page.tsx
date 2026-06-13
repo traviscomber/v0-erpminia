@@ -22,9 +22,9 @@ export default function BodesaDashboard() {
     return res.ok ? res.json() : null;
   });
 
-  const stockList = stock?.stock || [];
-  const alerts = reorder?.alerts || [];
-  const stats = reorder?.stats || {};
+  const stockList = stock.stock || [];
+  const alerts = reorder.alerts || [];
+  const stats = reorder.stats || {};
 
   const totalValue = stockList.reduce((sum: number, s: any) => sum + ((s.quantity_on_hand || 0) * (s.unit_cost || 0)), 0);
 
@@ -116,7 +116,7 @@ export default function BodesaDashboard() {
                 quantityAvailable={item.quantity_available}
                 reorderLevel={item.reorder_level}
                 unitCost={item.unit_cost}
-                binLocation={item.bin?.bin_location || 'N/A'}
+                binLocation={item.bin.bin_location || 'N/A'}
               />
             ))}
           </div>
@@ -127,7 +127,7 @@ export default function BodesaDashboard() {
             {alerts.map((alert: any) => (
               <Card key={alert.id} className="border-destructive/50 bg-destructive/5">
                 <CardContent className="pt-6">
-                  <p><strong>{alert.stock?.part_name}</strong> ({alert.stock?.part_code})</p>
+                  <p><strong>{alert.stock.part_name}</strong> ({alert.stock.part_code})</p>
                   <p className="text-sm text-muted-foreground">Level: {alert.current_value} / {alert.threshold_value}</p>
                 </CardContent>
               </Card>

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
@@ -120,7 +120,7 @@ export function InspeccionModal({
       const successMessage = inspeccion?.id
         ? 'Inspección actualizada correctamente'
         : 'Inspección creada correctamente';
-      
+
       toast.success(successMessage, {
         description: `Número: ${data.numero_inspeccion}`,
       });

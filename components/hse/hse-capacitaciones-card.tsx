@@ -9,10 +9,10 @@ interface HSECapacitacion {
   tipo: string;
   fecha_programada: string;
   duracion_horas: number;
-  proveedor?: string;
+  proveedor: string;
   estado: 'programada' | 'realizada' | 'cancelada';
-  asistentes_count?: number;
-  cargos_aplica?: string;
+  asistentes_count: number;
+  cargos_aplica: string;
 }
 
 const estadoColores = {

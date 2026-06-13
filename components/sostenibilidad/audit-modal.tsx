@@ -12,9 +12,9 @@ export default function AuditModal({ open, onOpenChange }: { open: boolean; onOp
   const [responses, setResponses] = useState<Record<string, string>>({});
 
   const questions = [
-    { id: '1', number: '4.1', question: 'Leadership commitment to OH&S?' },
-    { id: '2', number: '4.2', question: 'Documented policies in place?' },
-    { id: '3', number: '4.3', question: 'Hazard identification process?' },
+    { id: '1', number: '4.1', question: 'Leadership commitment to OH&S' },
+    { id: '2', number: '4.2', question: 'Documented policies in place' },
+    { id: '3', number: '4.3', question: 'Hazard identification process' },
   ];
 
   return (

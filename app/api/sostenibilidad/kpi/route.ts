@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ data: data || [] });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch KPIs';
+    const message = error instanceof Error ? error.message : 'No se pudieron cargar los KPIs';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to save KPI';
+    const message = error instanceof Error ? error.message : 'No se pudo guardar el KPI';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

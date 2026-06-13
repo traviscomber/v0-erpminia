@@ -17,7 +17,7 @@ interface ApprovalRequest {
   document_id: string;
   approval_level: number;
   action: 'approve' | 'reject';
-  comments?: string;
+  comments: string;
   user_id: string;
   user_role: string;
 }
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     if (updateError) {
       console.error('[v0] Error updating approval:', updateError);
       return NextResponse.json(
-        { error: 'Failed to update approval' },
+        { error: 'No se pudo actualizar approval' },
         { status: 500 }
       );
     }

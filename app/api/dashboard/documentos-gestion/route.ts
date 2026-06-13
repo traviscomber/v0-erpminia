@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const fetcher = (url: string, options?: RequestInit) =>
+const fetcher = (url: string, options: RequestInit) =>
   fetch(url, options).then((res) => res.json());
 
 export async function GET(request: NextRequest) {
@@ -14,10 +14,10 @@ export async function GET(request: NextRequest) {
 
     // Fetch approval flow data (flujo_aprobacion_documentos_sostenibilidad)
     const [approvalsRes, docAuditRes] = await Promise.all([
-      fetch(`${url}/rest/v1/flujo_aprobacion_documentos_sostenibilidad?select=*`, {
+      fetch(`${url}/rest/v1/flujo_aprobacion_documentos_sostenibilidadselect=*`, {
         headers: { apikey: key, Authorization: `Bearer ${key}` },
       }),
-      fetch(`${url}/rest/v1/auditoria_documentos_sostenibilidad?select=*`, {
+      fetch(`${url}/rest/v1/auditoria_documentos_sostenibilidadselect=*`, {
         headers: { apikey: key, Authorization: `Bearer ${key}` },
       }),
     ]);
@@ -71,17 +71,17 @@ export async function GET(request: NextRequest) {
             version: a.version,
             estado: a.estado,
             createdBy: a.creador_nombre,
-            pendingBy: 
-              a.estado === 'pendiente_validador1' 
-                ? a.validador1_nombre || 'Validador 1' 
+            pendingBy:
+              a.estado === 'pendiente_validador1'
+                ? a.validador1_nombre || 'Validador 1'
                 : a.estado === 'pendiente_validador2'
-                ? a.validador2_nombre || 'Validador 2'
+                  ? a.validador2_nombre || 'Validador 2'
                 : null,
             pendingRole:
-              a.estado === 'pendiente_validador1' 
+              a.estado === 'pendiente_validador1'
                 ? a.validador1_rol || 'Revisor'
                 : a.estado === 'pendiente_validador2'
-                ? a.validador2_rol || 'Revisor'
+                  ? a.validador2_rol || 'Revisor'
                 : null,
           }))
       : [];

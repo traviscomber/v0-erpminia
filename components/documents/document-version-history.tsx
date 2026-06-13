@@ -13,13 +13,13 @@ interface Version {
   author: string;
   status: 'draft' | 'pending' | 'approved' | 'archived';
   changes: string;
-  size?: string;
+  size: string;
 }
 
 interface DocumentVersionHistoryProps {
   versions: Version[];
-  onRestore?: (version: number) => void;
-  onDownload?: (version: number) => void;
+  onRestore: (version: number) => void;
+  onDownload: (version: number) => void;
 }
 
 export function DocumentVersionHistory({ versions, onRestore, onDownload }: DocumentVersionHistoryProps) {
@@ -43,9 +43,9 @@ export function DocumentVersionHistory({ versions, onRestore, onDownload }: Docu
                       version.status === 'approved'
                         ? 'default'
                         : version.status === 'pending'
-                        ? 'secondary'
+                          ? 'secondary'
                         : version.status === 'archived'
-                        ? 'outline'
+                          ? 'outline'
                         : 'secondary'
                     }
                     className="text-xs"

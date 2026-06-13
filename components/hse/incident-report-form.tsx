@@ -16,7 +16,7 @@ import {
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 
 interface IncidentReportFormProps {
-  onSuccess?: () => void;
+  onSuccess: () => void;
 }
 
 export function IncidentReportForm({ onSuccess }: IncidentReportFormProps) {
@@ -57,7 +57,7 @@ export function IncidentReportForm({ onSuccess }: IncidentReportFormProps) {
           date_occurred: new Date().toISOString().split('T')[0],
           reported_by: '',
         });
-        onSuccess?.();
+        onSuccess();
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error reporting incident');

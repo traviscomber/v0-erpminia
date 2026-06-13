@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     }
 
     const response = await fetch(
-      `${url}/rest/v1/risk_matrix?${queryParams}&order=risk_level.desc`,
+      `${url}/rest/v1/risk_matrix${queryParams}&order=risk_level.desc`,
       {
         headers: {
           'apikey': key,

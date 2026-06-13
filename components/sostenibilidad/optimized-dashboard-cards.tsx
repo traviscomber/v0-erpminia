@@ -9,8 +9,8 @@ interface DashboardCardProps {
   value: string | number;
   description: string;
   icon: React.ReactNode;
-  trend?: { direction: 'up' | 'down'; value: number };
-  isLoading?: boolean;
+  trend: { direction: 'up' | 'down'; value: number };
+  isLoading: boolean;
 }
 
 const DashboardCard = memo(function DashboardCard({
@@ -58,9 +58,9 @@ interface DashboardCardsProps {
     value: string | number;
     description: string;
     icon: React.ReactNode;
-    trend?: { direction: 'up' | 'down'; value: number };
+    trend: { direction: 'up' | 'down'; value: number };
   }>;
-  isLoading?: boolean;
+  isLoading: boolean;
 }
 
 export const OptimizedDashboardCards = memo(function OptimizedDashboardCards({

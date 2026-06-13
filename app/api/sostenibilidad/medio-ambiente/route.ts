@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ data: data || [] });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch medio ambiente records';
+    const message = error instanceof Error ? error.message : 'No se pudieron cargar los registros de medio ambiente';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to create medio ambiente record';
+    const message = error instanceof Error ? error.message : 'No se pudo crear el registro de medio ambiente';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -80,7 +80,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to delete medio ambiente record';
+    const message = error instanceof Error ? error.message : 'No se pudo eliminar el registro de medio ambiente';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

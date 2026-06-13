@@ -38,9 +38,9 @@ export default function MaintenanceDashboard() {
   });
 
   const stats = mttrStats || {};
-  const schedulesList = schedules?.schedules || [];
-  const assetsList = assets?.assets || [];
-  const woList = workOrders?.workOrders || [];
+  const schedulesList = schedules.schedules || [];
+  const assetsList = assets.assets || [];
+  const woList = workOrders.workOrders || [];
 
   return (
     <div className="space-y-6">
@@ -72,7 +72,7 @@ export default function MaintenanceDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-foreground">{stats.averageMTTR?.toFixed(1) || '-'} hrs</p>
+            <p className="text-2xl font-bold text-foreground">{stats.averageMTTR.toFixed(1) || '-'} hrs</p>
           </CardContent>
         </Card>
 
@@ -84,7 +84,7 @@ export default function MaintenanceDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-destructive">{stats.totalDowntime30d?.toFixed(1) || '-'} hrs</p>
+            <p className="text-2xl font-bold text-destructive">{stats.totalDowntime30d.toFixed(1) || '-'} hrs</p>
           </CardContent>
         </Card>
 
@@ -96,7 +96,7 @@ export default function MaintenanceDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-secondary">{stats.availability?.toFixed(1) || '-'}%</p>
+            <p className="text-2xl font-bold text-secondary">{stats.availability.toFixed(1) || '-'}%</p>
           </CardContent>
         </Card>
 
@@ -225,7 +225,7 @@ export default function MaintenanceDashboard() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-background rounded-lg p-6 max-w-md w-full mx-4">
             <WorkOrderForm
-              assetId={selectedAssetId}
+              assetId={selectedAssetId || ''}
               onSuccess={() => {
                 setSelectedAssetId(undefined);
                 setShowWorkOrderForm(false);

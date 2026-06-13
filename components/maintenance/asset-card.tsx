@@ -17,7 +17,7 @@ interface Asset {
 
 interface AssetCardProps {
   asset: Asset;
-  onCreateWorkOrder?: (assetId: string) => void;
+  onCreateWorkOrder: (assetId: string) => void;
   onViewHistory?: (assetId: string) => void;
 }
 
@@ -71,7 +71,7 @@ export function AssetCard({ asset, onCreateWorkOrder, onViewHistory }: AssetCard
         </div>
 
         <div className="flex gap-2">
-          <Button size="sm" onClick={() => onCreateWorkOrder?.(asset.id)}>
+          <Button size="sm" onClick={() => onCreateWorkOrder(asset.id)}>
             Crear OT
           </Button>
           <Button size="sm" variant="outline" onClick={() => onViewHistory?.(asset.id)}>

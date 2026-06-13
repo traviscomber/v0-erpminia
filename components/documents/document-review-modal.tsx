@@ -14,19 +14,19 @@ interface Document {
   document_name: string;
   document_type: string;
   status: string;
-  valid_until?: string;
+  valid_until: string;
   uploaded_at: string;
   uploaded_by: string;
-  l1_observations?: string;
-  file_url?: string;
+  l1_observations: string;
+  file_url: string;
 }
 
 interface DocumentReviewModalProps {
   document: Document | null;
   isOpen: boolean;
   onClose: () => void;
-  onApprove?: (documentId: string, observations?: string) => Promise<void>;
-  onReject?: (documentId: string, observations: string) => Promise<void>;
+  onApprove: (documentId: string, observations: string) => Promise<void>;
+  onReject: (documentId: string, observations: string) => Promise<void>;
   reviewLevel: 'L1' | 'L2';
 }
 
@@ -48,7 +48,7 @@ export function DocumentReviewModal({
     setAction('approve');
     setIsSubmitting(true);
     try {
-      await onApprove?.(document.id, observations);
+      await onApprove(document.id, observations);
       setObservations('');
       onClose();
     } finally {
@@ -65,7 +65,7 @@ export function DocumentReviewModal({
     setAction('reject');
     setIsSubmitting(true);
     try {
-      await onReject?.(document.id, observations);
+      await onReject(document.id, observations);
       setObservations('');
       onClose();
     } finally {

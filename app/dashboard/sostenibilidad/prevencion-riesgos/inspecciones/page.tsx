@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -110,7 +110,7 @@ export default function InspeccionesInternasPage() {
           }}
         >
           <Plus className="w-4 h-4 mr-2" />
-          Nueva Inspeccion
+          Nueva Inspección
         </Button>
       </div>
 
@@ -124,8 +124,8 @@ export default function InspeccionesInternasPage() {
       <ConfirmDeleteDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
-        titulo={`Inspeccion ${selectedInspeccion?.numero_inspeccion}`}
-        descripcion={`Se eliminara la inspeccion "${selectedInspeccion?.numero_inspeccion}" de la faena ${selectedInspeccion?.faena}. Esta accion no se puede deshacer.`}
+        titulo={`Inspección ${selectedInspeccion?.numero_inspeccion}`}
+        descripcion={`Se eliminará la inspección "${selectedInspeccion?.numero_inspeccion}" de la faena ${selectedInspeccion?.faena}. Esta acción no se puede deshacer.`}
         onConfirm={handleDelete}
       />
 

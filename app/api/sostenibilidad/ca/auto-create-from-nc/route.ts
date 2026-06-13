@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
     if (caError) {
       console.error('Error creating CA:', caError);
       return NextResponse.json(
-        { error: 'Failed to create corrective action' },
+        { error: 'No se pudo crear la accin correctiva' },
         { status: 500 }
       );
     }
@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error auto-creating CA:', error);
     return NextResponse.json(
-      { error: 'Failed to auto-create corrective action' },
+      { error: 'No se pudo crear automticamente la accin correctiva' },
       { status: 500 }
     );
   }

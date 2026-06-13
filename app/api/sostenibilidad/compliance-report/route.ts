@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to build compliance report';
+    const message = error instanceof Error ? error.message : 'No se pudo generar el reporte de cumplimiento';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

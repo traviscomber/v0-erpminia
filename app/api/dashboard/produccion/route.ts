@@ -3,28 +3,28 @@ import { getOrganizationContext } from '@/lib/api/organization-context';
 
 type SensorLike = {
   id: string;
-  equipment_id?: string | null;
-  sensor_type?: string | null;
-  unit?: string | null;
-  name?: string | null;
+  equipment_id: string | null;
+  sensor_type: string | null;
+  unit: string | null;
+  name: string | null;
 };
 
 type ReadingLike = {
   id: string;
-  sensor_id?: string | null;
-  equipment_id?: string | null;
-  timestamp?: string | null;
-  created_at?: string | null;
-  received_at?: string | null;
-  value?: number | string | null;
-  temperature?: number | string | null;
-  pressure?: number | string | null;
-  vibration?: number | string | null;
+  sensor_id: string | null;
+  equipment_id: string | null;
+  timestamp: string | null;
+  created_at: string | null;
+  received_at: string | null;
+  value: number | string | null;
+  temperature: number | string | null;
+  pressure: number | string | null;
+  vibration: number | string | null;
 };
 
 type ChartReading = {
   id: string;
-  equipment_id?: string | null;
+  equipment_id: string | null;
   timestamp: string;
   temperature: number | null;
   pressure: number | null;
@@ -36,7 +36,7 @@ function toNumber(value: unknown) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function normalizeEquipmentStatus(status?: string | null) {
+function normalizeEquipmentStatus(status: string | null) {
   const value = String(status || '').trim().toLowerCase();
 
   if (
@@ -70,7 +70,7 @@ function normalizeEquipmentStatus(status?: string | null) {
   return 'warning';
 }
 
-function normalizeAlarmSeverity(severity?: string | null) {
+function normalizeAlarmSeverity(severity: string | null) {
   const value = String(severity || '').toLowerCase();
   if (value.includes('crit')) return 'critical';
   if (value.includes('high') || value.includes('alta')) return 'critical';
@@ -79,20 +79,20 @@ function normalizeAlarmSeverity(severity?: string | null) {
   return 'warning';
 }
 
-function isActiveAlarm(status?: string | null) {
+function isActiveAlarm(status: string | null) {
   const value = String(status || '').toLowerCase();
   if (!value) return true;
   return !['resolved', 'resuelta', 'cerrada', 'closed'].includes(value);
 }
 
-function safeTime(value?: string | null) {
+function safeTime(value: string | null) {
   if (!value) return '';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return String(value);
   return date.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
 }
 
-function safeBucket(value?: string | null) {
+function safeBucket(value: string | null) {
   const date = value ? new Date(value) : new Date();
   if (Number.isNaN(date.getTime())) return new Date().toISOString().slice(0, 16);
   return new Date(
@@ -104,7 +104,7 @@ function safeBucket(value?: string | null) {
   ).toISOString();
 }
 
-function deriveAvailabilityFromStatus(status?: string | null, fallbackOpenIssues = 0) {
+function deriveAvailabilityFromStatus(status: string | null, fallbackOpenIssues = 0) {
   const normalized = normalizeEquipmentStatus(status);
 
   if (normalized === 'offline') return 0;
@@ -367,7 +367,7 @@ export async function GET(request: NextRequest) {
           ? 'warning'
           : baseStatus;
       const availability =
-        toNumber(availabilityRow?.availability_percentage) ??
+        toNumber(availabilityRow.availability_percentage) ??
         deriveAvailabilityFromStatus(item.status, activeWorkOrders.length + activeAlarms.length);
 
       return {
@@ -407,7 +407,7 @@ export async function GET(request: NextRequest) {
               id: item.id,
               severity: item.priority === 'critical' ? 'critical' : 'warning',
               equipment:
-                maintenanceAssets.find((asset) => asset.id === item.asset_id)?.asset_name || 'Equipo',
+                maintenanceAssets.find((asset) => asset.id === item.asset_id).asset_name || 'Equipo',
               message: item.title,
               time: safeTime(item.created_at),
               description: item.description || 'Orden prioritaria en curso',

@@ -26,7 +26,7 @@ export default function CarpetaArranquePage() {
     const res = await fetch('/api/carpeta-arranque', { credentials: 'include' });
     if (!res.ok) return;
     const data = await res.json();
-    const carpetas: Array<{ status: string }> = data.carpetas ?? [];
+    const carpetas: Array<{ status: string }> = data.carpetas || [];
     setStats({
       total: carpetas.length,
       pendientes: carpetas.filter(c => c.status === 'pendiente').length,

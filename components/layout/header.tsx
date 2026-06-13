@@ -44,7 +44,7 @@ export function Header() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-[200px]">
               <div className="px-2 py-1.5">
-                <p className="text-sm font-medium truncate">{user?.name || user?.email || 'Usuario'}</p>
+                <p className="text-sm font-medium truncate">{user.name || user.email || 'Usuario'}</p>
                 <p className="text-xs text-muted-foreground capitalize">{role || 'Sin rol'}</p>
               </div>
               <DropdownMenuSeparator />

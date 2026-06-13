@@ -19,13 +19,13 @@ export async function GET() {
     }
 
     // Get unique modules from documents
-    const uniqueModules = [...new Set(allDocuments?.map((d) => d.module).filter(Boolean) || [])];
+    const uniqueModules = [...new Set(allDocuments.map((d) => d.module).filter(Boolean) || [])];
 
     // Count by module
     const byModule: Record<string, number> = {};
     const documentsByModule: Record<string, any[]> = {};
     
-    allDocuments?.forEach((doc) => {
+    allDocuments.forEach((doc) => {
       const mod = doc.module || 'sin_modulo';
       byModule[mod] = (byModule[mod] || 0) + 1;
       if (!documentsByModule[mod]) {
@@ -41,20 +41,20 @@ export async function GET() {
 
     // Status breakdown for all documents
     const statusBreakdown = {
-      total: allDocuments?.length || 0,
-      draft: allDocuments?.filter((d) => d.status === 'draft').length || 0,
-      en_revision_l1: allDocuments?.filter((d) => d.status === 'en_revision_l1').length || 0,
-      en_revision_l2: allDocuments?.filter((d) => d.status === 'en_revision_l2').length || 0,
-      aprobado: allDocuments?.filter((d) => d.status === 'aprobado').length || 0,
-      rechazado: allDocuments?.filter((d) => d.status === 'rechazado').length || 0,
+      total: allDocuments.length || 0,
+      draft: allDocuments.filter((d) => d.status === 'draft').length || 0,
+      en_revision_l1: allDocuments.filter((d) => d.status === 'en_revision_l1').length || 0,
+      en_revision_l2: allDocuments.filter((d) => d.status === 'en_revision_l2').length || 0,
+      aprobado: allDocuments.filter((d) => d.status === 'aprobado').length || 0,
+      rechazado: allDocuments.filter((d) => d.status === 'rechazado').length || 0,
     };
 
     return NextResponse.json({
-      total_documents: allDocuments?.length || 0,
+      total_documents: allDocuments.length || 0,
       status_breakdown: statusBreakdown,
       documents_by_module: byModule,
       all_modules: uniqueModules,
-      sample_documents: allDocuments?.slice(0, 10).map((d) => ({
+      sample_documents: allDocuments.slice(0, 10).map((d) => ({
         name: d.document_name,
         module: d.module,
         status: d.status,

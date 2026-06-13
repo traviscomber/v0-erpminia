@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error auto-creating NCs:', error);
     return NextResponse.json(
-      { error: 'Failed to auto-create no-conformidades' },
+      { error: 'No se pudieron crear automticamente las no conformidades' },
       { status: 500 }
     );
   }

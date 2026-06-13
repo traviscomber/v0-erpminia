@@ -27,13 +27,13 @@ export interface ProtectRouteOptions {
  * Uso en route.ts:
  * 
  * export async function GET(request: NextRequest) {
- *   const auth = await rbacMiddleware(request, {
- *     requiredPermissions: [{ resource: 'documents', action: 'read' }],
- *     requiresAuth: true,
+ * ? const auth = await rbacMiddleware(request, {
+ * ? requiredPermissions: [{ resource: 'documents', action: 'read' }],
+ * ? requiresAuth: true,
  *   });
  * 
- *   if (!auth.isAuthorized) {
- *     return NextResponse.json({ error: auth.error }, { status: auth.statusCode });
+ * ? if (!auth.isAuthorized) {
+ * return NextResponse.json({ error: auth.error }, { status: auth.statusCode });
  *   }
  * 
  *   // Tu lógica aquí...

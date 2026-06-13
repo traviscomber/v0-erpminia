@@ -16,7 +16,7 @@ const statusConfig: Record<StatusType, { color: string; label: string }> = {
   shipped: { color: 'bg-primary/10 text-primary', label: 'Enviado' },
 };
 
-export function StatusBadge({ status, label }: { status: StatusType; label?: string }) {
+export function StatusBadge({ status, label }: { status: StatusType; label: string }) {
   const config = statusConfig[status];
   return (
     <Badge className={config.color}>

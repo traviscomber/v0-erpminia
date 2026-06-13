@@ -88,7 +88,12 @@ export function AddContractModal({ onSubmit }: AddContractModalProps) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="file">Archivo opcional</Label>
-            <Input id="file" type="file" accept=".pdf,.doc,.docx" onChange={(e) => setFile(e.target.files?.[0] || null)} />
+            <Input
+              id="file"
+              type="file"
+              accept=".pdf,.doc,.docx"
+              onChange={(e) => setFile(e.target.files?.[0] || null)}
+            />
           </div>
           <div className="flex gap-2 justify-end">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>

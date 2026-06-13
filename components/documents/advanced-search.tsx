@@ -79,14 +79,14 @@ export function AdvancedDocumentSearch() {
   useEffect(() => {
     const fetchEtiquetas = async () => {
       try {
-        const res = await fetch('/api/documents/tags?module=prevención');
+        const res = await fetch('/api/documents/tagsmodule=prevención');
         const data = await res.json();
         setAvailableTags(data);
       } catch (err) {
         console.error('[v0] Error fetching tags:', err);
       }
     };
-    fetchTags();
+    fetchEtiquetas();
   }, []);
 
   // Debounced search (built-in, no lodash)
@@ -168,6 +168,7 @@ export function AdvancedDocumentSearch() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           format: 'csv',
+          documentIds: Array.from(selectedDocs),
           filters: {
             module: 'prevención',
             tags: filters.tags,

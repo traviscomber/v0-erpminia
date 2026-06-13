@@ -30,8 +30,8 @@ export default function ComprasPage() {
           const { purchase_orders } = await res.json();
           setOrders(purchase_orders || []);
           setStats({
-            pending: purchase_orders?.filter((o: any) => o.status === 'pending').length || 0,
-            received: purchase_orders?.filter((o: any) => o.status === 'received').length || 0,
+            pending: purchase_orders.filter((o: any) => o.status === 'pending').length || 0,
+            received: purchase_orders.filter((o: any) => o.status === 'received').length || 0,
           });
         }
       } catch (err) {

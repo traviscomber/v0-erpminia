@@ -153,7 +153,7 @@ export default function DashboardPage() {
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-[var(--brand-naranja)]" />
-            ¿Necesitas ayuda?
+            ¿Necesitas ayuda
           </CardTitle>
         </CardHeader>
         <CardContent>

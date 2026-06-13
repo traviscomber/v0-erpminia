@@ -20,16 +20,16 @@ type AlertItem = {
   timestamp: string;
   read: boolean;
   actionRequired: boolean;
-  actionUrl?: string;
+  actionUrl: string;
 };
 
-function safeDate(value?: string | null) {
+function safeDate(value: string | null) {
   if (!value) return new Date().toISOString();
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString();
 }
 
-function daysOverdue(value?: string | null) {
+function daysOverdue(value: string | null) {
   if (!value) return 0;
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return 0;
@@ -39,7 +39,7 @@ function daysOverdue(value?: string | null) {
   );
 }
 
-function severityFromPriority(priority?: string | null): AlertSeverity {
+function severityFromPriority(priority: string | null): AlertSeverity {
   const normalized = String(priority || '').toLowerCase();
   if (normalized.includes('crit')) return 'critica';
   if (normalized.includes('high') || normalized.includes('alta')) return 'alta';
@@ -146,7 +146,7 @@ export async function GET(request: NextRequest) {
               const nc = Array.isArray(item.nonconformance)
                 ? item.nonconformance[0]
                 : item.nonconformance;
-              return nc?.organization_id === context.organizationId;
+              return nc.organization_id === context.organizationId;
             });
           },
           [] as any[]
@@ -222,7 +222,7 @@ export async function GET(request: NextRequest) {
         title: `${severity === 'critica' ? 'Orden critica' : 'Orden prioritaria'} - ${workOrder.title}`,
         description:
           workOrder.description ||
-          `OT ${workOrder.work_order_number || ''} asociada a ${workOrder.asset?.asset_name || 'equipo operativo'}.`,
+          `OT ${workOrder.work_order_number || ''} asociada a ${workOrder.asset.asset_name || 'equipo operativo'}.`,
         severity,
         type: 'mantenimiento',
         timestamp: safeDate(workOrder.created_at || workOrder.scheduled_date),
@@ -238,7 +238,7 @@ export async function GET(request: NextRequest) {
       alerts.push({
         id: `stock-${stock.id}`,
         title: `${current === 0 ? 'Stock agotado' : 'Stock bajo'} - ${stock.part_name || stock.part_code}`,
-        description: `${stock.part_code || 'Item'} en ${stock.bin?.bin_code || stock.bin?.bin_location || 'bodega'} con ${current} unidad(es). Nivel de reorden: ${reorder}.`,
+        description: `${stock.part_code || 'Item'} en ${stock.bin.bin_code || stock.bin.bin_location || 'bodega'} con ${current} unidad(es). Nivel de reorden: ${reorder}.`,
         severity: current === 0 ? 'critica' : 'alta',
         type: 'inventario',
         timestamp: new Date().toISOString(),
@@ -269,8 +269,8 @@ export async function GET(request: NextRequest) {
       alerts.push({
         id: `ca-${ca.id}`,
         title: `Accion correctiva vencida - ${ca.ca_number || ca.action_description}`,
-        description: `${ca.action_description}. Relacionada a ${nc?.title || 'no conformidad'} y vencida hace ${overdueDays} dia${overdueDays === 1 ? '' : 's'}.`,
-        severity: severityFromDays(overdueDays, severityFromPriority(nc?.severity)),
+        description: `${ca.action_description}. Relacionada a ${nc.title || 'no conformidad'} y vencida hace ${overdueDays} dia${overdueDays === 1 ? '' : 's'}.`,
+        severity: severityFromDays(overdueDays, severityFromPriority(nc.severity)),
         type: 'sostenibilidad',
         timestamp: safeDate(ca.scheduled_completion_date),
         read: false,

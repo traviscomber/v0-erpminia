@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       stock_movements: movements || [],
       incidents: incidents || [],
-      total_records: (movements?.length || 0) + (incidents?.length || 0),
+      total_records: (movements.length || 0) + ((incidents || []).length || 0),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to fetch audit log';

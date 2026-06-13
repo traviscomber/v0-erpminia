@@ -12,13 +12,13 @@ import {
 import { X } from 'lucide-react';
 
 interface FilterPanelProps {
-  searchTerm?: string;
-  onSearchChange?: (value: string) => void;
-  estado?: string;
-  onEstadoChange?: (value: string) => void;
+  searchTerm: string;
+  onSearchChange: (value: string) => void;
+  estado: string;
+  onEstadoChange: (value: string) => void;
   inspector?: string;
   onInspectorChange?: (value: string) => void;
-  onReset?: () => void;
+  onReset: () => void;
   inspectores?: string[];
 }
 

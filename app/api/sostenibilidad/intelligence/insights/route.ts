@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
         trends,
         predictions,
         summary: {
-          totalNCs: ncs?.length || 0,
+          totalNCs: ncs.length || 0,
           openNCs: openNCs.length,
           riskPatternsCount: patterns.length,
           actionItemsCount: recommendations.length,
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('[v0] Intelligence API error:', error);
     return NextResponse.json(
-      { error: 'Failed to generate insights' },
+      { error: 'No se pudieron generar las alertas' },
       { status: 500 }
     );
   }

@@ -10,8 +10,8 @@ interface HSEDocumento {
   version: string;
   fecha_actualizacion: string;
   estado: 'vigente' | 'en_revision' | 'obsoleto';
-  descripcion?: string;
-  url_documento?: string;
+  descripcion: string;
+  url_documento: string;
 }
 
 const tipoColores = {
@@ -29,7 +29,7 @@ const estadoColores = {
   obsoleto: 'bg-red-100 text-red-800',
 };
 
-export function HSEDocumentosCard({ documentos, faena }: { documentos: HSEDocumento[]; faena?: string }) {
+export function HSEDocumentosCard({ documentos, faena }: { documentos: HSEDocumento[]; faena: string }) {
   const documentosVencidos = documentos.filter((d) => {
     const actualizado = new Date(d.fecha_actualizacion);
     const hoy = new Date();

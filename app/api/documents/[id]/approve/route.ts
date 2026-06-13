@@ -44,7 +44,7 @@ export async function POST(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to approve document';
+    const message = error instanceof Error ? error.message : 'No se pudo aprobar el documento';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -51,10 +51,10 @@ export default function KPIDashboardPage() {
   if (error) return <div className="text-red-500">Error al cargar datos KPI</div>;
   if (isLoading) return <div className="text-gray-500">Cargando panel KPI...</div>;
 
-  const kpisData = data?.kpis || {};
-  const trendData = data?.trendData || [];
-  const alertDistribution = data?.alertsDistribution || [];
-  const recommendations = data?.recommendations || [];
+  const kpisData = data.kpis || {};
+  const trendData = data.trendData || [];
+  const alertDistribution = data.alertsDistribution || [];
+  const recommendations = data.recommendations || [];
 
   // Transform KPI object into array of KPI cards
   const kpis = [

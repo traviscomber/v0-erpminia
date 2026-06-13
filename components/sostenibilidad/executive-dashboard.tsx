@@ -6,7 +6,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { Download, TrendingUp } from 'lucide-react';
 
 interface ExecutiveDashboardProps {
-  period?: string;
+  period: string;
 }
 
 export function ExecutiveDashboard({ period = 'Ultimo mes' }: ExecutiveDashboardProps) {
@@ -21,7 +21,7 @@ export function ExecutiveDashboard({ period = 'Ultimo mes' }: ExecutiveDashboard
   const metricsData = [
     { name: 'Puntaje de cumplimiento', value: '87%', trend: '+5%', color: 'text-green-600' },
     { name: 'Tasa de cierre NC', value: '84%', trend: '+8%', color: 'text-green-600' },
-    { name: 'Tiempo promedio de cierre', value: '7 dias', trend: '-40%', color: 'text-green-600' },
+    { name: 'Tiempo promedio de cierre', value: '7 días', trend: '-40%', color: 'text-green-600' },
     { name: 'Eficiencia operativa', value: '82%', trend: '+15%', color: 'text-green-600' },
   ];
 
@@ -54,7 +54,7 @@ export function ExecutiveDashboard({ period = 'Ultimo mes' }: ExecutiveDashboard
 
       <Card className="rounded-xl shadow-none">
         <CardHeader>
-          <CardTitle>Analisis de tendencia - {period}</CardTitle>
+          <CardTitle>Análisis de tendencia - {period}</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -65,7 +65,7 @@ export function ExecutiveDashboard({ period = 'Ultimo mes' }: ExecutiveDashboard
               <Tooltip />
               <Legend />
               <Line type="monotone" dataKey="compliance" stroke="#10b981" name="Cumplimiento %" />
-              <Line type="monotone" dataKey="closure" stroke="#3b82f6" name="Dias de cierre" />
+              <Line type="monotone" dataKey="closure" stroke="#3b82f6" name="Días de cierre" />
               <Line type="monotone" dataKey="efficiency" stroke="#f59e0b" name="Eficiencia %" />
             </LineChart>
           </ResponsiveContainer>

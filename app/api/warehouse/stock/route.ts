@@ -41,13 +41,13 @@ async function getOrganizationBins(supabase: any, organizationId: string) {
 
     return {
       ...bin,
-      rack_code: rack?.rack_code || null,
-      rack_name: rack?.rack_name || null,
-      zone_code: zone?.zone_code || null,
-      zone_name: zone?.zone_name || null,
+      rack_code: rack.rack_code || null,
+      rack_name: rack.rack_name || null,
+      zone_code: zone.zone_code || null,
+      zone_name: zone.zone_name || null,
       label:
         bin.bin_location ||
-        [zone?.zone_code, rack?.rack_code, bin.bin_code].filter(Boolean).join('-'),
+        [zone.zone_code, rack.rack_code, bin.bin_code].filter(Boolean).join('-'),
     };
   });
 }

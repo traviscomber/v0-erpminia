@@ -15,7 +15,7 @@ import type { UserRole } from '@/lib/rbac';
 const ROLES: UserRole[] = ['admin', 'manager', 'technician', 'warehouse_staff', 'finance_officer', 'viewer'];
 
 interface CreateUserFormProps {
-  onUserCreated?: () => void;
+  onUserCreated: () => void;
 }
 
 export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
@@ -75,7 +75,7 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
 
       setTimeout(() => {
         setSuccess(false);
-        onUserCreated?.();
+        onUserCreated();
       }, 1500);
     } catch (err) {
       setError('Error al crear usuario. Intenta de nuevo.');

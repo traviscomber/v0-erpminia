@@ -183,7 +183,7 @@ const DOCUMENT_TYPES_BY_MODULE: Record<string, string[]> = {
 interface DocumentUploadProps {
   module: string; // 'prevención', 'mantenimiento', 'finanzas', etc
   category: string; // 'arranque', 'procedimientos', 'políticas', etc
-  onUploadSuccess?: (documentId: string, fileName: string) => void;
+  onUploadSuccess: (documentId: string, fileName: string) => void;
   onCancel?: () => void;
 }
 
@@ -357,7 +357,9 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
           {uploadStatus === 'success' ? (
             <div className="text-center space-y-2">
               <CheckCircle2 className="mx-auto h-12 w-12 text-green-600" />
-              <p className="text-sm font-semibold text-green-700">{file?.name} cargado correctamente</p>
+              <p className="text-sm font-semibold text-green-700">
+                {file?.name || 'Archivo'} cargado correctamente
+              </p>
             </div>
           ) : uploadStatus === 'error' ? (
             <div className="text-center space-y-2">

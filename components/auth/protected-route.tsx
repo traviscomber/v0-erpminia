@@ -8,8 +8,8 @@ import { AlertCircle } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: UserRole | UserRole[];
-  requiredPermission?: {
+  requiredRole: UserRole | UserRole[];
+  requiredPermission: {
     module: string;
     permission: Permission;
   };

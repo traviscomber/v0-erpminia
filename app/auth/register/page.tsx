@@ -195,7 +195,7 @@ export default function RegisterPage() {
 
             <div className="mt-6 text-center text-sm">
               <p className="text-muted-foreground">
-                ¿Ya tienes cuenta?{' '}
+                ¿Ya tienes cuenta{' '}
                 <Link href="/auth/login" className="text-sidebar-primary hover:underline font-semibold">
                   Inicia sesión aquí
                 </Link>

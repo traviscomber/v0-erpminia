@@ -22,7 +22,7 @@ interface Document {
   category: 'Contratos' | 'Adquisiciones' | 'Procedimientos' | 'Seguridad' | 'Reportes';
   current_version: number;
   status: 'vigente' | 'vencido' | 'archivado';
-  expiration_date?: Date;
+  expiration_date: Date;
   versions: DocumentVersion[];
   last_modified: Date;
   owner: string;

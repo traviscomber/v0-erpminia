@@ -25,7 +25,7 @@ const fetcher = async (url: string) => {
   const payload = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(payload?.error || 'Request failed');
+    throw new Error(payload.error || 'La solicitud falló');
   }
 
   return payload;
@@ -34,45 +34,45 @@ const fetcher = async (url: string) => {
 type LegalDocument = {
   id: string;
   title: string;
-  description?: string;
-  category?: string;
-  documentType?: string;
-  status?: string;
-  fileUrl?: string;
+  description: string;
+  category: string;
+  documentType: string;
+  status: string;
+  fileUrl: string;
 };
 
 type LegalContract = {
   id: string;
   title: string;
-  contractor_name?: string;
-  start_date?: string;
-  end_date?: string;
-  status?: string;
-  contract_value?: number;
-  currency?: string;
-  compliance_status?: string;
-  file_url?: string;
+  contractor_name: string;
+  start_date: string;
+  end_date: string;
+  status: string;
+  contract_value: number;
+  currency: string;
+  compliance_status: string;
+  file_url: string;
 };
 
 type CompliancePayload = {
-  summary?: {
-    total_contracts?: number;
-    active_contracts?: number;
-    contracts_pending_review?: number;
-    contracts_missing_file?: number;
-    expiring_contracts?: number;
-    expired_contracts?: number;
-    legal_documents?: number;
-    expiring_documents?: number;
-    approved_documents?: number;
+  summary: {
+    total_contracts: number;
+    active_contracts: number;
+    contracts_pending_review: number;
+    contracts_missing_file: number;
+    expiring_contracts: number;
+    expired_contracts: number;
+    legal_documents: number;
+    expiring_documents: number;
+    approved_documents: number;
   };
-  contracts_pending_review?: Array<{ id: string; title: string }>;
-  contracts_missing_file?: Array<{ id: string; title: string }>;
-  expiring_contracts?: Array<{ id: string; title: string; days_until_expiry?: number }>;
-  expiring_documents?: Array<{ id: string; title: string; expiry_date?: string }>;
+  contracts_pending_review: Array<{ id: string; title: string }>;
+  contracts_missing_file: Array<{ id: string; title: string }>;
+  expiring_contracts: Array<{ id: string; title: string; days_until_expiry: number }>;
+  expiring_documents: Array<{ id: string; title: string; expiry_date: string }>;
 };
 
-function getStatusBadge(status?: string) {
+function getStatusBadge(status: string) {
   switch (status) {
     case 'active':
     case 'vigente':
@@ -99,7 +99,7 @@ function getComplianceTone(value: number) {
   return 'bg-destructive/10 text-destructive';
 }
 
-function mapContractStatus(status?: string): 'active' | 'expiring' | 'expired' {
+function mapContractStatus(status: string): 'active' | 'expiring' | 'expired' {
   const value = String(status || '').toLowerCase();
   if (value.includes('vencido')) return 'expired';
   if (value.includes('por vencer') || value.includes('revision') || value.includes('revisi'))
@@ -107,13 +107,13 @@ function mapContractStatus(status?: string): 'active' | 'expiring' | 'expired' {
   return 'active';
 }
 
-function mapApprovalStatus(status?: string): 'pending' | 'approved' | 'rejected' {
+function mapApprovalStatus(status: string): 'pending' | 'approved' | 'rejected' {
   if (status === 'Pendiente') return 'pending';
   if (status === 'Incumplimiento') return 'rejected';
   return 'approved';
 }
 
-function formatContractValue(value?: number, currency?: string) {
+function formatContractValue(value: number, currency: string) {
   if (!value) return '-';
   return new Intl.NumberFormat('es-CL', {
     style: 'currency',
@@ -127,12 +127,12 @@ export default function LegalPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const { data: documentData, error: documentsError, mutate: mutateDocuments } = useSWR(
-    `/api/legal/documentos?search=${encodeURIComponent(searchQuery)}`,
+    `/api/legal/documentossearch=${encodeURIComponent(searchQuery)}`,
     fetcher,
     { revalidateOnFocus: false }
   );
   const { data: contractData, error: contractsError, mutate: mutateContracts } = useSWR(
-    `/api/legal/contratos?search=${encodeURIComponent(searchQuery)}`,
+    `/api/legal/contratossearch=${encodeURIComponent(searchQuery)}`,
     fetcher,
     { revalidateOnFocus: false }
   );
@@ -143,7 +143,7 @@ export default function LegalPage() {
   );
 
   const handleAddDocument = async (doc: any) => {
-    const hasFile = doc?.file instanceof File;
+    const hasFile = doc.file instanceof File;
     let body: BodyInit;
     let headers: HeadersInit | undefined;
 
@@ -174,7 +174,7 @@ export default function LegalPage() {
   };
 
   const handleAddContract = async (contract: any) => {
-    const hasFile = contract?.file instanceof File;
+    const hasFile = contract.file instanceof File;
     let body: BodyInit;
     let headers: HeadersInit | undefined;
 
@@ -204,8 +204,8 @@ export default function LegalPage() {
     }
   };
 
-  const legalDocs = (documentData?.documents || []) as LegalDocument[];
-  const contracts = (contractData?.contracts || []) as LegalContract[];
+  const legalDocs = (documentData.documents || []) as LegalDocument[];
+  const contracts = (contractData.contracts || []) as LegalContract[];
   const compliance = (complianceData || {}) as CompliancePayload;
 
   const documentCount = documentData?.total ?? legalDocs.length;
@@ -240,7 +240,7 @@ export default function LegalPage() {
       {
         requirement: 'Contratos vigentes',
         percentage:
-          compliance.summary?.total_contracts
+          compliance.summary.total_contracts
             ? Math.round(
                 ((compliance.summary.active_contracts || 0) /
                   Math.max(compliance.summary.total_contracts, 1)) *
@@ -251,7 +251,7 @@ export default function LegalPage() {
       {
         requirement: 'Contratos con respaldo documental',
         percentage:
-          compliance.summary?.total_contracts
+          compliance.summary.total_contracts
             ? Math.round(
                 (((compliance.summary.total_contracts || 0) -
                   (compliance.summary.contracts_missing_file || 0)) /
@@ -263,7 +263,7 @@ export default function LegalPage() {
       {
         requirement: 'Documentos legales aprobados',
         percentage:
-          compliance.summary?.legal_documents
+          compliance.summary.legal_documents
             ? Math.round(
                 ((compliance.summary.approved_documents || 0) /
                   Math.max(compliance.summary.legal_documents, 1)) *
@@ -274,7 +274,7 @@ export default function LegalPage() {
       {
         requirement: 'Documentos sin vencimiento inmediato',
         percentage:
-          compliance.summary?.legal_documents
+          compliance.summary.legal_documents
             ? Math.round(
                 (((compliance.summary.legal_documents || 0) -
                   (compliance.summary.expiring_documents || 0)) /
@@ -378,7 +378,7 @@ export default function LegalPage() {
           <CardContent className="pt-6 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 text-sm">
               <AlertCircle className="h-4 w-4 text-destructive" />
-              <span>No fue posible cargar una parte del modulo legal.</span>
+              <span>No fue posible cargar una parte del módulo legal.</span>
             </div>
             <Button
               variant="outline"
@@ -444,7 +444,7 @@ export default function LegalPage() {
               <div className="space-y-3">
                 {legalDocs.length === 0 && (
                   <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
-                    No hay documentos legales cargados todavia.
+                    No hay documentos legales cargados todavía.
                   </div>
                 )}
 
@@ -459,7 +459,7 @@ export default function LegalPage() {
                         <p className="font-medium truncate">{doc.title}</p>
                         <p className="text-xs text-muted-foreground truncate">
                           {(doc.documentType || 'Documento').replace(/_/g, ' ')} -{' '}
-                          {doc.description || 'Sin descripcion'}
+                          {doc.description || 'Sin descripción'}
                         </p>
                       </div>
                     </div>
@@ -509,7 +509,7 @@ export default function LegalPage() {
             <CardHeader>
               <CardTitle>Matriz de Cumplimiento</CardTitle>
               <CardDescription>
-                Seguimiento de respaldo contractual y documental del modulo legal
+                Seguimiento de respaldo contractual y documental del módulo legal
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -540,7 +540,7 @@ export default function LegalPage() {
                       <li key={item.id}>{item.title}</li>
                     ))}
                     {(compliance.contracts_pending_review || []).length === 0 && (
-                      <li>No hay contratos pendientes de revision.</li>
+                      <li>No hay contratos pendientes de revisión.</li>
                     )}
                   </ul>
                 </div>
@@ -578,7 +578,7 @@ export default function LegalPage() {
               <div className="space-y-3">
                 {normativas.length === 0 && (
                   <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
-                    No hay normativas registradas todavia.
+                    No hay normativas registradas todavía.
                   </div>
                 )}
 

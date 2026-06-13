@@ -16,8 +16,8 @@ interface WebhookConfig {
 
 interface WebhookNotificationProps {
   webhooks: WebhookConfig[];
-  onEdit?: (webhook: WebhookConfig) => void;
-  onDelete?: (webhook_id: string) => void;
+  onEdit: (webhook: WebhookConfig) => void;
+  onDelete: (webhook_id: string) => void;
 }
 
 export function WebhookNotification({ webhooks, onEdit, onDelete }: WebhookNotificationProps) {

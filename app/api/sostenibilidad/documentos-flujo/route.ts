@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ success: true, data: mapped });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch documents';
+    const message = error instanceof Error ? error.message : 'No se pudieron cargar los documentos';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -159,7 +159,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to create document';
+    const message = error instanceof Error ? error.message : 'No se pudo crear el documento';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

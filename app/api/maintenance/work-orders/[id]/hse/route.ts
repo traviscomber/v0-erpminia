@@ -29,10 +29,10 @@ export async function GET(
 
     return NextResponse.json({
       checklist: {
-        ppe_required: requirements?.ppe_required?.split(',') || [],
-        hazards: requirements?.hazards?.split(',') || [],
-        training_required: requirements?.training_required?.split(',') || [],
-        inspection_frequency: requirements?.inspection_frequency,
+        ppe_required: requirements.ppe_required.split(',') || [],
+        hazards: requirements.hazards.split(',') || [],
+        training_required: requirements.training_required.split(',') || [],
+        inspection_frequency: requirements.inspection_frequency,
       },
     });
   } catch (error) {
@@ -52,6 +52,12 @@ export async function POST(
   try {
     const body = await request.json();
     const { incident_type, severity, description, findings } = body;
+    const { data: authData } = await context.supabase.auth.getUser();
+    const userId = authData.user?.id;
+
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     // Get OT
     const { data: ot } = await context.supabase
@@ -73,7 +79,7 @@ export async function POST(
         date_occurred: new Date().toISOString(),
         date_reported: new Date().toISOString(),
         status: 'open',
-        reported_by: (await context.supabase.auth.getUser()).data.user?.id,
+        reported_by: userId,
       })
       .select()
       .single();
@@ -86,7 +92,7 @@ export async function POST(
         incident_id: incident.id,
         investigation_notes: findings,
         status: 'open',
-        investigated_by: (await context.supabase.auth.getUser()).data.user?.id,
+        investigated_by: userId,
       });
     }
 

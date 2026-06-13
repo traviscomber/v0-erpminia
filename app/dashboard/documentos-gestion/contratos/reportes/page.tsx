@@ -15,7 +15,7 @@ const COLORS = ['#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 export default function ContratosReportesPage() {
   const [periodo, setPeriodo] = useState('mes'); // mes, trimestre, anual
 
-  const { data: reportData } = useSWR(`/api/contratos/reportes?periodo=${periodo}`, fetcher, {
+  const { data: reportData } = useSWR(`/api/contratos/reportesperiodo=${periodo}`, fetcher, {
     revalidateOnFocus: false,
     refreshInterval: 300000, // 5 minutos
   });

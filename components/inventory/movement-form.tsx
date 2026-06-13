@@ -12,16 +12,16 @@ interface InventoryMovement {
   part_id: string;
   movement_type: 'entrada' | 'salida';
   quantity: number;
-  reason?: string;
-  batch?: string;
-  location?: string;
+  reason: string;
+  batch: string;
+  location: string;
 }
 
 interface InventoryMovementFormProps {
   partId: string;
   partName: string;
   currentStock: number;
-  onSuccess?: () => void;
+  onSuccess: () => void;
 }
 
 export function InventoryMovementForm({
@@ -76,7 +76,7 @@ export function InventoryMovementForm({
         batch: '',
         location: '',
       });
-      onSuccess?.();
+      onSuccess();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error registrando movimiento');
     } finally {

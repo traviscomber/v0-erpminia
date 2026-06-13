@@ -6,7 +6,7 @@ import {
   normalizeNcStatus,
 } from '@/lib/api/sostenibilidad-mvp';
 
-function buildStats(rows: Array<{ status?: string | null; target_closure_date?: string | null }>) {
+function buildStats(rows: Array<{ status: string | null; target_closure_date: string | null }>) {
   const normalized = rows.map((row) => ({
     ...row,
     status: normalizeNcStatus(row.status),
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
       stats: buildStats(rows),
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch nonconformances';
+    const message = error instanceof Error ? error.message : 'No se pudieron cargar las no conformidades';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data, id: data.id }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to create nonconformance';
+    const message = error instanceof Error ? error.message : 'No se pudo crear la no conformidad';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -140,7 +140,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ data });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to update nonconformance';
+    const message = error instanceof Error ? error.message : 'No se pudo actualizar la no conformidad';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

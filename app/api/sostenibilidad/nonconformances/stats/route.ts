@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
       data: { open, inProgress, closed, overdue, complianceScore, total: rows.length },
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch nonconformance stats';
+    const message = error instanceof Error ? error.message : 'No se pudieron cargar las estadsticas de no conformidades';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

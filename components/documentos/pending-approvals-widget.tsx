@@ -12,17 +12,17 @@ interface DocumentApproval {
   title: string;
   status: string;
   approval_level_name: string;
-  submitted_at?: string;
+  submitted_at: string;
 }
 
 export function PendingApprovalsWidget() {
   const { data: pendingData, isLoading } = useSWR(
-    '/api/sostenibilidad/documentos-flujo?status=pending&limit=5',
+    '/api/sostenibilidad/documentos-flujostatus=pending&limit=5',
     fetcher,
     { revalidateOnFocus: false }
   );
 
-  const pendingCount = pendingData?.data?.length || 0;
+  const pendingCount = pendingData.data.length || 0;
 
   return (
     <Card>
@@ -48,7 +48,7 @@ export function PendingApprovalsWidget() {
               <Badge variant="outline">Pendiente</Badge>
             </div>
             <div className="space-y-2 max-h-48 overflow-y-auto">
-              {pendingData?.data?.map((doc: DocumentApproval) => (
+              {pendingData.data.map((doc: DocumentApproval) => (
                 <div key={doc.id} className="text-xs p-2 rounded border border-border/50">
                   <p className="font-medium truncate">{doc.title}</p>
                   <p className="text-muted-foreground text-xs">{doc.approval_level_name}</p>

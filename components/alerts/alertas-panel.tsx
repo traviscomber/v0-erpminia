@@ -7,10 +7,10 @@ interface ContratoAlerta {
   id: string;
   tipo: string;
   titulo: string;
-  descripcion?: string;
+  descripcion: string;
   severidad: 'baja' | 'media' | 'alta' | 'critica';
   fecha_alerta: string;
-  fecha_vencimiento?: string;
+  fecha_vencimiento: string;
   estado: 'activa' | 'resuelta' | 'ignorada';
   leida: boolean;
 }

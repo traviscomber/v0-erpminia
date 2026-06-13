@@ -6,8 +6,8 @@ import { AlertCircle } from 'lucide-react';
 
 interface NonconformanceTableProps {
   data: any[];
-  onRowClick?: (nc: any) => void;
-  onEdit?: (nc: any) => void;
+  onRowClick: (nc: any) => void;
+  onEdit: (nc: any) => void;
 }
 
 export function NonconformanceTable({ data, onRowClick, onEdit }: NonconformanceTableProps) {
@@ -62,11 +62,11 @@ export function NonconformanceTable({ data, onRowClick, onEdit }: Nonconformance
               </TableCell>
               <TableCell>
                 <div className="flex gap-1">
-                  <Button size="sm" variant="ghost" onClick={() => onRowClick?.(nc)} className="text-xs">
+                  <Button size="sm" variant="ghost" onClick={() => onRowClick(nc)} className="text-xs">
                     View
                   </Button>
                   {nc.status !== 'closed' && (
-                    <Button size="sm" variant="outline" onClick={() => onEdit?.(nc)} className="text-xs">
+                    <Button size="sm" variant="outline" onClick={() => onEdit(nc)} className="text-xs">
                       Edit
                     </Button>
                   )}

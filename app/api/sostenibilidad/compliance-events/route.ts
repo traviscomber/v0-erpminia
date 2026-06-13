@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/api/guard';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 
-function normalizeEventStatus(dueDate: string, status?: string | null) {
+function normalizeEventStatus(dueDate: string, status: string | null) {
   if (status === 'completed') return 'completed';
   return new Date(dueDate).getTime() < Date.now() ? 'overdue' : 'pending';
 }
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch compliance events';
+    const message = error instanceof Error ? error.message : 'No se pudieron cargar los eventos de cumplimiento';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to create compliance event';
+    const message = error instanceof Error ? error.message : 'No se pudo crear el evento de cumplimiento';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

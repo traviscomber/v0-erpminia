@@ -9,7 +9,7 @@ interface ProductionAlert {
   severity: 'critical' | 'warning' | 'info';
   equipment: string;
   timestamp: Date;
-  action_needed?: string;
+  action_needed: string;
 }
 
 interface AlertsListProps {

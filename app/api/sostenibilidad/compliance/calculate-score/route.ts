@@ -10,7 +10,7 @@ interface NonConformance {
   created_at: string;
 }
 
-async function calculateComplianceScore(supabase: any, organization_id?: string) {
+async function calculateComplianceScore(supabase: any, organization_id: string) {
   let query = supabase
     .from('sostenibilidad_nonconformances')
     .select('id, status, severity, created_at');
@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error calculating compliance score:', error);
     return NextResponse.json(
-      { error: 'Failed to calculate compliance score' },
+      { error: 'No se pudo calcular el puntaje de cumplimiento' },
       { status: 500 }
     );
   }
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error in compliance score calculation:', error);
     return NextResponse.json(
-      { error: 'Failed to calculate compliance score' },
+      { error: 'No se pudo calcular el puntaje de cumplimiento' },
       { status: 500 }
     );
   }

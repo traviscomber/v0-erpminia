@@ -10,9 +10,9 @@ interface NonconformanceCardProps {
   severity: string;
   status: string;
   discoveredDate: string;
-  targetClosureDate?: string;
+  targetClosureDate: string;
   assignedTo?: string;
-  onViewDetails?: () => void;
+  onViewDetails: () => void;
 }
 
 export function NonconformanceCard({

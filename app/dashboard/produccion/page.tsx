@@ -25,7 +25,7 @@ import {
 } from 'recharts';
 import { CHART_COLORS_LIGHT } from '@/lib/theme-colors';
 
-function formatMetric(value?: number | null, suffix = '') {
+function formatMetric(value: number | null, suffix = '') {
   if (typeof value !== 'number' || Number.isNaN(value)) return '--';
   return `${Math.round(value * 10) / 10}${suffix}`;
 }
@@ -58,7 +58,7 @@ function getStatusIcon(status: string) {
   }
 }
 
-function getSourceLabel(source?: string) {
+function getSourceLabel(source: string) {
   if (source === 'production') return 'Produccion';
   if (source === 'maintenance') return 'Mantencion';
   return 'Operacion';
@@ -67,10 +67,10 @@ function getSourceLabel(source?: string) {
 export default function ProduccionPage() {
   const { data, error, isLoading, mutate } = useProductionData();
 
-  const equipment = data?.equipment || [];
-  const readings = data?.readings || [];
-  const alarms = data?.alarms || [];
-  const summary = data?.summary || {};
+  const equipment = data.equipment || [];
+  const readings = data.readings || [];
+  const alarms = data.alarms || [];
+  const summary = data.summary || {};
 
   const sensorData = readings.map((reading: any) => ({
     timestamp: reading.timestamp

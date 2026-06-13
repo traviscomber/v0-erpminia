@@ -59,10 +59,10 @@ export default function EPPPage() {
 
   const { data: epp, isLoading, mutate } = useSWR('/api/sostenibilidad/epp', fetcher);
 
-  const eqqData = ((epp?.data || []) as EPP[]);
-  const cargos = [...new Set(eqqData.map((item: EPP) => item.cargo_puesto))];
+  const eppData = ((epp?.data || []) as EPP[]);
+  const cargos = [...new Set(eppData.map((item: EPP) => item.cargo_puesto))];
 
-  const filteredEPP = eqqData.filter((item: EPP) =>
+  const filteredEPP = eppData.filter((item: EPP) =>
     (item.elemento_epp.toLowerCase().includes(searchTerm.toLowerCase()) ||
      item.cargo_puesto.toLowerCase().includes(searchTerm.toLowerCase())) &&
     (!selectedCargo || item.cargo_puesto === selectedCargo)
@@ -72,7 +72,12 @@ export default function EPPPage() {
     const { name, value, type } = e.target as any;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : name === 'cantidad_elemento' ? parseInt(value) || 1 : value,
+      [name]:
+        type === 'checkbox'
+          ? (e.target as HTMLInputElement).checked
+          : name === 'cantidad_elemento'
+            ? parseInt(value) || 1
+            : value,
     }));
   };
 
@@ -118,7 +123,7 @@ export default function EPPPage() {
   };
 
   const handleDelete = async (id: string, nombre: string) => {
-    if (!confirm(`¿Eliminar "${nombre}"?`)) return;
+    if (!confirm(`¿Eliminar "${nombre}"`)) return;
     try {
       const response = await fetch(`/api/sostenibilidad/epp?id=${id}`, { method: 'DELETE' });
       if (response.ok) {
@@ -154,7 +159,9 @@ export default function EPPPage() {
             <DialogHeader>
               <DialogTitle>{editingId ? 'Editar EPP' : 'Registrar Nuevo EPP'}</DialogTitle>
               <DialogDescription>
-                {editingId ? 'Modifica los datos del equipo de protección personal' : 'Agrega un nuevo equipo de protección personal'}
+                {editingId
+                  ? 'Modifica los datos del equipo de protección personal'
+                  : 'Agrega un nuevo equipo de protección personal'}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -278,7 +285,7 @@ export default function EPPPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Total EPP Activo</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{eqqData.filter((e: EPP) => e.activo).length}</div>
+            <div className="text-2xl font-bold">{eppData.filter((e: EPP) => e.activo).length}</div>
             <p className="text-xs text-muted-foreground">Artículos vigentes</p>
           </CardContent>
         </Card>
@@ -296,7 +303,7 @@ export default function EPPPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Elementos Únicos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{[...new Set(eqqData.map((e: EPP) => e.elemento_epp))].length}</div>
+            <div className="text-2xl font-bold">{[...new Set(eppData.map((e: EPP) => e.elemento_epp))].length}</div>
             <p className="text-xs text-muted-foreground">Tipos distintos</p>
           </CardContent>
         </Card>
@@ -324,7 +331,7 @@ export default function EPPPage() {
                     <th className="text-left py-3 px-4 font-medium">Marca/Modelo</th>
                     <th className="text-left py-3 px-4 font-medium">Frecuencia Reemplazo</th>
                     <th className="text-left py-3 px-4 font-medium">Estado</th>
-                    <th className="text-right py-3 px-4 font-medium">Acciones</th>
+                    <th className="text-right py-3 px-4 font-medium">Accines</th>
                   </tr>
                 </thead>
                 <tbody>

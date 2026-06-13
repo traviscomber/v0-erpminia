@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
       queryParams += `&estado=eq.${encodeURIComponent(estado)}`;
     }
 
-    const response = await fetch(`${url}/rest/v1/${table}?${queryParams}`, {
+    const response = await fetch(`${url}/rest/v1/${table}${queryParams}`, {
       headers: {
         'apikey': key,
         'Authorization': `Bearer ${key}`,

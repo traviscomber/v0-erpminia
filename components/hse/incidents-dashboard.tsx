@@ -41,9 +41,9 @@ export function IncidentsDashboard() {
           const { data: inc } = await incidentsRes.json();
           setIncidents(inc || []);
           setStats({
-            open: inc?.filter((i: any) => i.status === 'open').length || 0,
-            investigating: inc?.filter((i: any) => i.status === 'investigating').length || 0,
-            resolved: inc?.filter((i: any) => i.status === 'resolved').length || 0,
+            open: inc.filter((i: any) => i.status === 'open').length || 0,
+            investigating: inc.filter((i: any) => i.status === 'investigating').length || 0,
+            resolved: inc.filter((i: any) => i.status === 'resolved').length || 0,
           });
         }
 

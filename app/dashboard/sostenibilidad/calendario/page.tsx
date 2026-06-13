@@ -29,24 +29,24 @@ interface CalendarEvent {
   titulo: string;
   tipo_evento: string;
   fecha_inicio: string;
-  fecha_fin?: string | null;
-  ubicacion?: string;
-  descripcion?: string;
-  responsable?: string;
+  fecha_fin: string | null;
+  ubicacion: string;
+  descripcion: string;
+  responsable: string;
   estado: 'programado' | 'completado' | 'cancelado' | 'en_progreso';
   prioridad: 'alta' | 'media' | 'baja';
 }
 
 // ─── Config ────────────────────────────────────────────────────────────────
 const EVENT_TYPES: Record<string, { label: string; color: string; dot: string; icon: React.ElementType }> = {
-  inspeccion_interna: { label: 'Inspección Interna',  color: 'bg-blue-500/15 text-blue-400 border-blue-500/30',     dot: 'bg-blue-400',    icon: ClipboardCheck },
-  inspeccion_externa: { label: 'Inspección Externa',  color: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30',     dot: 'bg-cyan-400',    icon: ClipboardCheck },
-  capacitacion:       { label: 'Capacitación',        color: 'bg-green-500/15 text-green-400 border-green-500/30',  dot: 'bg-green-400',   icon: GraduationCap  },
-  auditoria:          { label: 'Auditoría',            color: 'bg-purple-500/15 text-purple-400 border-purple-500/30', dot: 'bg-purple-400', icon: ShieldAlert   },
-  monitoreo:          { label: 'Monitoreo Ambiental', color: 'bg-teal-500/15 text-teal-400 border-teal-500/30',     dot: 'bg-teal-400',    icon: Leaf           },
-  legal:              { label: 'Vencimiento Legal',   color: 'bg-red-500/15 text-red-400 border-red-500/30',        dot: 'bg-red-400',     icon: Gavel          },
-  reunion:            { label: 'Reunión',              color: 'bg-amber-500/15 text-amber-400 border-amber-500/30', dot: 'bg-amber-400',   icon: Coffee         },
-  tarea:              { label: 'Tarea',                color: 'bg-slate-500/15 text-slate-400 border-slate-500/30', dot: 'bg-slate-400',   icon: BarChart2      },
+  inspeccion_interna: { label: 'Inspección Interna',  color: 'bg-blue-500/15 text-blue-400 border-blue-500/30',  dot: 'bg-blue-400',  icon: ClipboardCheck },
+  inspeccion_externa: { label: 'Inspección Externa',  color: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30',  dot: 'bg-cyan-400',  icon: ClipboardCheck },
+  capacitacion:  { label: 'Capacitación',  color: 'bg-green-500/15 text-green-400 border-green-500/30',  dot: 'bg-green-400',  icon: GraduationCap  },
+  auditoria:  { label: 'Auditoría',  color: 'bg-purple-500/15 text-purple-400 border-purple-500/30', dot: 'bg-purple-400', icon: ShieldAlert   },
+  monitoreo:  { label: 'Monitoreo Ambiental', color: 'bg-teal-500/15 text-teal-400 border-teal-500/30',  dot: 'bg-teal-400',  icon: Leaf           },
+  legal:  { label: 'Vencimiento Legal',  color: 'bg-red-500/15 text-red-400 border-red-500/30',  dot: 'bg-red-400',  icon: Gavel          },
+  reunion:  { label: 'Reunión',  color: 'bg-amber-500/15 text-amber-400 border-amber-500/30', dot: 'bg-amber-400',  icon: Coffee         },
+  tarea:  { label: 'Tarea',  color: 'bg-slate-500/15 text-slate-400 border-slate-500/30', dot: 'bg-slate-400',  icon: BarChart2      },
 };
 
 const PRIORITY_BADGE: Record<string, string> = {
@@ -59,7 +59,7 @@ const STATUS_BADGE: Record<string, string> = {
   programado:  'bg-blue-500/15 text-blue-400',
   en_progreso: 'bg-amber-500/15 text-amber-400',
   completado:  'bg-green-500/15 text-green-400',
-  cancelado:   'bg-slate-500/15 text-slate-400',
+  cancelado:  'bg-slate-500/15 text-slate-400',
 };
 
 const WEEKDAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
@@ -85,7 +85,7 @@ export default function CalendarioPage() {
   const [formData, setFormData]       = useState({ ...BLANK_FORM });
 
   const { data: res, mutate } = useSWR('/api/sostenibilidad/calendario', fetcher);
-  const allEvents: CalendarEvent[] = res?.data ?? [];
+  const allEvents: CalendarEvent[] = res?.data || [];
 
   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
   const firstDayRaw = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
@@ -101,7 +101,7 @@ export default function CalendarioPage() {
     .filter(e => filterType === 'todos' || e.tipo_evento === filterType)
     .filter(e => !search ||
       e.titulo.toLowerCase().includes(search.toLowerCase()) ||
-      (e.responsable ?? '').toLowerCase().includes(search.toLowerCase()))
+      (e.responsable || '').toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => new Date(a.fecha_inicio).getTime() - new Date(b.fecha_inicio).getTime()),
   [allEvents, filterType, search]);
 
@@ -112,15 +112,15 @@ export default function CalendarioPage() {
   const stats = useMemo(() => {
     const now = new Date(); now.setHours(0, 0, 0, 0);
     return {
-      total:      allEvents.length,
-      thisMonth:  eventsThisMonth.length,
-      upcoming7:  allEvents.filter(e => {
+      total: allEvents.length,
+      thisMonth: eventsThisMonth.length,
+      upcoming7: allEvents.filter(e => {
         const d = new Date(e.fecha_inicio + 'T12:00:00'); d.setHours(0, 0, 0, 0);
         const diff = (d.getTime() - now.getTime()) / 86400000;
         return diff >= 0 && diff <= 7 && e.estado === 'programado';
       }).length,
-      alta:       allEvents.filter(e => e.prioridad === 'alta' && e.estado === 'programado').length,
-      overdue:    allEvents.filter(e => {
+      alta:  allEvents.filter(e => e.prioridad === 'alta' && e.estado === 'programado').length,
+      overdue:  allEvents.filter(e => {
         const d = new Date(e.fecha_inicio + 'T12:00:00'); d.setHours(0, 0, 0, 0);
         return d < now && e.estado === 'programado';
       }).length,
@@ -137,14 +137,14 @@ export default function CalendarioPage() {
       credentials: 'include', body: JSON.stringify(formData),
     });
     if (r.ok) { toast.success('Evento creado'); setIsOpen(false); setFormData({ ...BLANK_FORM }); mutate(); }
-    else        toast.error('Error al crear evento');
+    else toast.error('Error al crear evento');
   };
 
   const handleDelete = async (id: string, titulo: string) => {
-    if (!confirm(`¿Eliminar "${titulo}"?`)) return;
-    const r = await fetch(`/api/sostenibilidad/calendario?id=${id}`, { method: 'DELETE', credentials: 'include' });
+    if (!confirm(`¿Eliminar "${titulo}"`)) return;
+    const r = await fetch(`/api/sostenibilidad/calendarioid=${id}`, { method: 'DELETE', credentials: 'include' });
     if (r.ok) { toast.success('Evento eliminado'); mutate(); }
-    else        toast.error('Error al eliminar evento');
+    else toast.error('Error al eliminar evento');
   };
 
   const openOnDay = (day: number) => {
@@ -237,11 +237,11 @@ export default function CalendarioPage() {
       {/* Stats bar */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         {[
-          { label: 'Total eventos',   value: stats.total,     color: 'text-foreground' },
-          { label: 'Este mes',        value: stats.thisMonth, color: 'text-blue-400'   },
+          { label: 'Total eventos',  value: stats.total,  color: 'text-foreground' },
+          { label: 'Este mes',  value: stats.thisMonth, color: 'text-blue-400'   },
           { label: 'Próximos 7 días', value: stats.upcoming7, color: 'text-amber-400'  },
-          { label: 'Prioridad alta',  value: stats.alta,      color: 'text-red-400'    },
-          { label: 'Vencidos',        value: stats.overdue,   color: 'text-red-400'    },
+          { label: 'Prioridad alta',  value: stats.alta,  color: 'text-red-400'    },
+          { label: 'Vencidos',  value: stats.overdue,  color: 'text-red-400'    },
         ].map(s => (
           <Card key={s.label} className="rounded-xl border shadow-none py-3">
             <CardContent className="px-4 py-0 text-center">
@@ -329,7 +329,7 @@ export default function CalendarioPage() {
                         </div>
                         <div className="space-y-0.5">
                           {dayEvts.slice(0, 3).map(evt => {
-                            const cfg = EVENT_TYPES[evt.tipo_evento] ?? EVENT_TYPES.tarea;
+                            const cfg = EVENT_TYPES[evt.tipo_evento] || EVENT_TYPES.tarea;
                             return (
                               <div key={evt.id} className={`text-[10px] leading-tight px-1.5 py-0.5 rounded truncate border ${cfg.color}`}>
                                 {evt.titulo}
@@ -433,7 +433,7 @@ function EventCard({
   compact?: boolean;
   expanded?: boolean;
 }) {
-  const cfg  = EVENT_TYPES[event.tipo_evento] ?? EVENT_TYPES.tarea;
+  const cfg = EVENT_TYPES[event.tipo_evento] || EVENT_TYPES.tarea;
   const Icon = cfg.icon;
   const dateStr = new Date(event.fecha_inicio + 'T12:00:00').toLocaleDateString('es-CL', {
     day: 'numeric', month: 'short', year: compact ? undefined : 'numeric',
@@ -468,7 +468,7 @@ function EventCard({
               <h3 className="font-semibold text-sm">{event.titulo}</h3>
               <Badge className={`text-[10px] px-1.5 py-0 h-4 border ${cfg.color}`}>{cfg.label}</Badge>
               <Badge className={`text-[10px] px-1.5 py-0 h-4 ${PRIORITY_BADGE[event.prioridad]}`}>{event.prioridad}</Badge>
-              <Badge className={`text-[10px] px-1.5 py-0 h-4 ${STATUS_BADGE[event.estado] ?? ''}`}>{event.estado.replace('_', ' ')}</Badge>
+              <Badge className={`text-[10px] px-1.5 py-0 h-4 ${STATUS_BADGE[event.estado] || ''}`}>{event.estado.replace('_', ' ')}</Badge>
             </div>
             {event.descripcion && (
               <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{event.descripcion}</p>
@@ -476,7 +476,7 @@ function EventCard({
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
               <span className="flex items-center gap-1"><CalendarIcon className="w-3 h-3" />{dateStr}</span>
               {event.ubicacion  && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{event.ubicacion}</span>}
-              {event.responsable && <span className="flex items-center gap-1"><Users  className="w-3 h-3" />{event.responsable}</span>}
+              {event.responsable && <span className="flex items-center gap-1"><Users className="w-3 h-3" />{event.responsable}</span>}
             </div>
           </div>
         </div>

@@ -2,7 +2,7 @@ import React from 'react'
 import { cn } from '@/lib/utils'
 
 interface BrandBadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  type?: 'preventive' | 'corrective' | 'predictive' | 'critical' | 'success' | 'warning'
+  type: 'preventive' | 'corrective' | 'predictive' | 'critical' | 'success' | 'warning'
 }
 
 export const BrandBadge = React.forwardRef<HTMLSpanElement, BrandBadgeProps>(

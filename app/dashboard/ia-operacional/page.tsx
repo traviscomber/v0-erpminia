@@ -15,9 +15,9 @@ interface AIInsight {
   description: string;
   severity: 'critical' | 'warning' | 'info';
   icon: React.ReactNode;
-  action?: string;
+  action: string;
   timestamp: Date;
-  affected_resource?: string;
+  affected_resource: string;
 }
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -53,8 +53,8 @@ export default function IAOperacionalPage() {
   if (isLoading) return <div className="text-gray-500">Cargando inteligencia operacional...</div>;
 
   // Extract insights object (not an array)
-  const insightsData = data?.insights || {};
-  const detailsData = data?.details || {};
+  const insightsData = data.insights || {};
+  const detailsData = data.details || {};
 
   // Get counts from insights
   const criticalCount = insightsData.equipment_risks || 0;
@@ -148,7 +148,7 @@ export default function IAOperacionalPage() {
                       </AlertDescription>
                       <div className="flex items-center gap-2">
                         <Badge variant="outline" className="text-xs">
-                          {item.status?.toUpperCase() || 'CRÍTICO'}
+                          {item.status.toUpperCase() || 'CRÍTICO'}
                         </Badge>
                         {item.action && (
                           <button className="text-xs font-semibold hover:underline">

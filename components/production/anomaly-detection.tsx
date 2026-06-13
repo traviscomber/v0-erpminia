@@ -89,13 +89,13 @@ export function AnomalyDetection({ sensor_data, parameter_name, alert_threshold 
                 }}
               />
               <ReferenceLine 
-                y={sensor_data[0]?.expected_range_max} 
+                y={sensor_data[0].expected_range_max} 
                 stroke="#fca5a5" 
                 strokeDasharray="5 5" 
                 name="Límite Superior"
               />
               <ReferenceLine 
-                y={sensor_data[0]?.expected_range_min} 
+                y={sensor_data[0].expected_range_min} 
                 stroke="#fca5a5" 
                 strokeDasharray="5 5" 
                 name="Límite Inferior"

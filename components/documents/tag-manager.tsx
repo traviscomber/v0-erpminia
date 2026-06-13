@@ -24,7 +24,7 @@ interface TagManagerProps {
   documentId: string;
   documentName: string;
   currentTags: string[];
-  onTagsUpdated?: (tags: string[]) => void;
+  onTagsUpdated: (tags: string[]) => void;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -50,7 +50,7 @@ export function TagManager({
   useEffect(() => {
     const fetchTags = async () => {
       try {
-        const res = await fetch('/api/documents/tags?module=prevención');
+        const res = await fetch('/api/documents/tagsmodule=prevención');
         const data = await res.json();
         setAvailableTags(data);
       } catch (err) {
@@ -71,7 +71,7 @@ export function TagManager({
   const handleCreateTag = () => {
     if (!newTag.trim()) return;
     if (tags.includes(newTag)) {
-      toast.error('Tag already exists');
+      toast.error('El tag ya existe');
       return;
     }
     setTags([...tags, newTag]);
@@ -99,14 +99,14 @@ export function TagManager({
 
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error || 'Update failed');
+        throw new Error(err.error || 'La actualización falló');
       }
 
-      toast.success('Tags updated successfully');
-      onTagsUpdated?.(tags);
+      toast.success('Tags actualizados correctamente');
+      onTagsUpdated(tags);
       onOpenChange(false);
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Update failed';
+      const errorMsg = err instanceof Error ? err.message : 'La actualización falló';
       setError(errorMsg);
       console.error('[v0] Update tags error:', err);
     } finally {
@@ -118,7 +118,7 @@ export function TagManager({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Gestionar Tags</DialogTitle>
+          <DialogTitle>Gestionar tags</DialogTitle>
           <DialogDescription>{documentName}</DialogDescription>
         </DialogHeader>
 
@@ -132,7 +132,7 @@ export function TagManager({
 
           {/* Current Tags */}
           <div>
-            <label className="text-sm font-medium mb-2 block">Tags Seleccionados</label>
+            <label className="text-sm font-medium mb-2 block">Tags seleccionados</label>
             <div className="flex flex-wrap gap-2">
               {tags.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Sin tags asignados</p>
@@ -154,12 +154,12 @@ export function TagManager({
 
           {/* Add Tags from System */}
           <div>
-            <label className="text-sm font-medium mb-2 block">Agregar Tags del Sistema</label>
+            <label className="text-sm font-medium mb-2 block">Agregar tags del sistema</label>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="w-full gap-2">
                   <Plus className="h-4 w-4" />
-                  Seleccionar Tags
+                  Seleccionar tags
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56">
@@ -185,7 +185,7 @@ export function TagManager({
 
           {/* Create Custom Tag */}
           <div>
-            <label className="text-sm font-medium mb-2 block">Crear Tag Personalizado</label>
+            <label className="text-sm font-medium mb-2 block">Crear tag personalizado</label>
             <div className="flex gap-2">
               <Input
                 placeholder="Nuevo tag..."
@@ -207,7 +207,7 @@ export function TagManager({
               className="gap-2"
             >
               <Save className="h-4 w-4" />
-              {loading ? 'Guardando...' : 'Guardar Tags'}
+              {loading ? 'Guardando...' : 'Guardar tags'}
             </Button>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar

@@ -15,7 +15,7 @@ import useSWR from 'swr';
 import { toast } from 'sonner';
 
 interface TransferModalProps {
-  onTransfer?: (data: any) => void;
+  onTransfer: (data: any) => void;
 }
 
 export function TransferModal({ onTransfer }: TransferModalProps) {
@@ -32,8 +32,8 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
     return res.ok ? res.json() : null;
   });
 
-  const stockList = data?.stock || [];
-  const bins = data?.bins || [];
+  const stockList = data.stock || [];
+  const bins = data.bins || [];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,7 +63,7 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
         quantity: '',
         reason: '',
       });
-      onTransfer?.(result);
+      onTransfer(result);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'La transferencia falló');
     } finally {

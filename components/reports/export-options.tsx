@@ -12,7 +12,7 @@ import {
 interface ExportOptionsProps {
   data: any[];
   filename: string;
-  formats?: Array<'csv' | 'excel' | 'pdf' | 'json'>;
+  formats: Array<'csv' | 'excel' | 'pdf' | 'json'>;
 }
 
 export function ExportOptions({

@@ -29,10 +29,10 @@ export default function HSEKPIsPage() {
     return <div className="text-gray-500">Cargando KPIs HSE...</div>;
   }
 
-  const kpis = data?.kpis || [];
+  const kpis = data.kpis || [];
   const ultimoMes = kpis[kpis.length - 1] || {};
   const mesPrevio = kpis[kpis.length - 2] || {};
-  const metaIirl = data?.meta_iirl || 1;
+  const metaIirl = data.meta_iirl || 1;
 
   const cambioIirl = (ultimoMes.iirl || 0) - (mesPrevio.iirl || 0);
   const cumpleMeta = (ultimoMes.iirl || 0) <= metaIirl;
@@ -48,7 +48,7 @@ export default function HSEKPIsPage() {
         <Alert className="border-[var(--brand-rojo)]/30 bg-[var(--brand-rojo)]/5">
           <AlertTriangle className="h-4 w-4 text-[var(--brand-rojo)]" />
           <AlertDescription className="text-[var(--brand-rojo)]">
-            IIRL por encima de la meta (Actual: {ultimoMes.iirl?.toFixed?.(2) ?? ultimoMes.iirl ?? 0}, Meta: {metaIirl})
+            IIRL por encima de la meta (Actual: {ultimoMes.iirl?.toFixed(2) || ultimoMes.iirl || 0}, Meta: {metaIirl})
           </AlertDescription>
         </Alert>
       )}
@@ -65,7 +65,11 @@ export default function HSEKPIsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{ultimoMes.tasa_accidentabilidad?.toFixed?.(1) ?? ultimoMes.tasa_accidentabilidad ?? 0}</div>
+            <div className="text-3xl font-bold">
+              {typeof ultimoMes.tasa_accidentabilidad === 'number'
+                ? ultimoMes.tasa_accidentabilidad.toFixed(1)
+                : ultimoMes.tasa_accidentabilidad ?? 0}
+            </div>
             <p className="mt-1 text-xs text-muted-foreground">Mes actual</p>
           </CardContent>
         </Card>
@@ -85,7 +89,11 @@ export default function HSEKPIsPage() {
             <CardTitle className="text-sm text-muted-foreground">Tasa de gravedad</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{ultimoMes.tasa_gravedad?.toFixed?.(2) ?? ultimoMes.tasa_gravedad ?? 0}</div>
+            <div className="text-3xl font-bold">
+              {typeof ultimoMes.tasa_gravedad === 'number'
+                ? ultimoMes.tasa_gravedad.toFixed(2)
+                : ultimoMes.tasa_gravedad ?? 0}
+            </div>
             <p className="mt-1 text-xs text-muted-foreground">Severidad promedio de incidentes</p>
           </CardContent>
         </Card>
@@ -101,7 +109,10 @@ export default function HSEKPIsPage() {
               <div key={idx} className="flex items-center justify-between rounded bg-muted p-3">
                 <div>
                   <p className="font-semibold">{mes.mes}</p>
-                  <p className="text-xs text-muted-foreground">IIRL: {mes.iirl?.toFixed?.(2) ?? mes.iirl ?? 0} | ODI: {mes.odi?.toFixed?.(2) ?? mes.odi ?? 0}</p>
+                  <p className="text-xs text-muted-foreground">
+                    IIRL: {typeof mes.iirl === 'number' ? mes.iirl.toFixed(2) : mes.iirl ?? 0} | ODI:{' '}
+                    {typeof mes.odi === 'number' ? mes.odi.toFixed(2) : mes.odi ?? 0}
+                  </p>
                 </div>
                 <div className="text-right">
                   {mes.iirl <= metaIirl ? (

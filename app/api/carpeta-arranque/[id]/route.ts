@@ -26,5 +26,5 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   // Normalise shape: expose documentos as top-level array for component convenience
   const { carpeta_documentos: documentos, ...rest } = carpeta as typeof carpeta & { carpeta_documentos: unknown[] };
-  return NextResponse.json({ carpeta: rest, documentos: documentos ?? [] });
+  return NextResponse.json({ carpeta: rest, documentos });
 }

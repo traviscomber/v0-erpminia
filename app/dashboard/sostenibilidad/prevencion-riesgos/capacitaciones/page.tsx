@@ -57,7 +57,7 @@ export default function CapacitacionesPage() {
   });
 
   const { data: capacitaciones, isLoading, mutate } = useSWR('/api/sostenibilidad/capacitaciones', fetcher);
-  const capacitacionesList = ((capacitaciones?.data || []) as Capacitacion[]);
+  const capacitacionesList = ((capacitaciones.data || []) as Capacitacion[]);
 
   const filteredCapacitaciones = capacitacionesList.filter((cap: Capacitacion) =>
     cap.nombre_capacitacion.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -107,10 +107,10 @@ export default function CapacitacionesPage() {
   };
 
   const handleDelete = async (id: string, nombre: string) => {
-    if (!confirm(`¿Eliminar capacitación "${nombre}"?`)) return;
+    if (!confirm(`¿Eliminar capacitación "${nombre}"`)) return;
     
     try {
-      const response = await fetch(`/api/sostenibilidad/capacitaciones?id=${id}`, {
+      const response = await fetch(`/api/sostenibilidad/capacitacionesid=${id}`, {
         method: 'DELETE',
       });
 
@@ -388,7 +388,7 @@ export default function CapacitacionesPage() {
                     <th className="text-left py-3 px-4 font-medium">Fecha</th>
                     <th className="text-left py-3 px-4 font-medium">Duración</th>
                     <th className="text-left py-3 px-4 font-medium">Estado</th>
-                    <th className="text-right py-3 px-4 font-medium">Acciones</th>
+                    <th className="text-right py-3 px-4 font-medium">Accines</th>
                   </tr>
                 </thead>
                 <tbody>

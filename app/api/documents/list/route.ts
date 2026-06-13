@@ -64,12 +64,12 @@ export async function GET(request: NextRequest) {
     const documents = await Promise.all(
       (data || []).map(async (doc) => {
         let file_url: string | null = null;
-        if (doc.file_path) {
-          const { data: signed } = await supabase.storage
+          if (doc.file_path) {
+            const { data: signed } = await supabase.storage
             .from(BUCKET)
             .createSignedUrl(doc.file_path, 60 * 60);
           file_url = signed?.signedUrl || null;
-        }
+          }
         return { ...doc, file_url };
       })
     );

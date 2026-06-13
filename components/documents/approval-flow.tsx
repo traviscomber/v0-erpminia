@@ -20,9 +20,9 @@ interface DocumentApproval {
     status: 'pendiente' | 'aprobado' | 'rechazado';
     Aprobador: string;
     role: string;
-    date?: Date;
-    comments?: string;
-    signature?: string;
+    date: Date;
+    comments: string;
+    signature: string;
   }>;
 }
 

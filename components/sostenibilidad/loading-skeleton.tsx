@@ -3,7 +3,7 @@
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface LoadingSkeletonProps {
-  rows?: number;
+  rows: number;
 }
 
 export function LoadingSkeleton({ rows = 5 }: LoadingSkeletonProps) {

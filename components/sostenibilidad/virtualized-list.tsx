@@ -6,9 +6,9 @@ interface VirtualizedListProps<T> {
   items: T[];
   renderItem: (item: T, index: number) => React.ReactNode;
   itemHeight: number;
-  containerHeight?: number;
-  overscan?: number;
-  getKey?: (item: T, index: number) => string | number;
+  containerHeight: number;
+  overscan: number;
+  getKey: (item: T, index: number) => string | number;
 }
 
 export function VirtualizedList<T>({

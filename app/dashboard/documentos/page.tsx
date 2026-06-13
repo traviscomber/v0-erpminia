@@ -23,7 +23,7 @@ interface PendingApproval {
     documentType: string;
     category: string;
     createdAt: string;
-    createdByUser?: { name: string; email: string };
+    createdByUser: { name: string; email: string };
   };
 }
 
@@ -55,7 +55,7 @@ export default function DocumentosDashboard() {
   }
 
   const documentsEndpoint = documentsParams.toString()
-    ? `/api/documents?${documentsParams.toString()}`
+    ? `/api/documents${documentsParams.toString()}`
     : '/api/documents';
 
   const {
@@ -69,8 +69,8 @@ export default function DocumentosDashboard() {
   );
   const { data: statsData, mutate: mutateStats } = useSWR('/api/documents/stats', fetcher);
 
-  const documents = documentsData?.documents || [];
-  const pendingApprovals = approvalsData?.approvals || [];
+  const documents = documentsData.documents || [];
+  const pendingApprovals = approvalsData.approvals || [];
   const stats = statsData || { total: 0, approved: 0, pending: 0, expired: 0 };
 
   const refreshAll = async () => {
@@ -245,7 +245,7 @@ export default function DocumentosDashboard() {
                             status: 'pending',
                             createdAt: approval.document.createdAt,
                             createdByUser: approval.document.createdByUser,
-                          });
+                          } as unknown as Document);
                           setViewerOpen(true);
                         }}
                       >
@@ -290,3 +290,4 @@ export default function DocumentosDashboard() {
     </div>
   );
 }
+

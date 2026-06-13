@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button';
 interface PDFViewerProps {
   fileUrl: string;
   fileName: string;
-  fileType?: string;
-  maxHeight?: string;
+  fileType: string;
+  maxHeight: string;
 }
 
 export function PDFViewer({ fileUrl, fileName, fileType, maxHeight = 'max-h-96' }: PDFViewerProps) {
@@ -19,7 +19,7 @@ export function PDFViewer({ fileUrl, fileName, fileType, maxHeight = 'max-h-96' 
   // Determine actual file type from fileName if not provided
   const getFileType = () => {
     if (fileType) return fileType.toLowerCase();
-    const ext = fileName.split('.').pop()?.toLowerCase();
+    const ext = fileName.split('.').pop()?.toLowerCase() || '';
     return ext || '';
   };
 
@@ -91,17 +91,17 @@ export function PDFViewer({ fileUrl, fileName, fileType, maxHeight = 'max-h-96' 
 export interface DocumentViewerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  document?: {
+  document: {
     id: string;
     title: string;
     documentNumber: string;
     documentType: string;
     category: string;
     status: string;
-    fileUrl?: string;
-    fileSize?: number;
+    fileUrl: string;
+    fileSize: number;
     createdAt: string;
-    createdByUser?: { name: string; email: string };
+    createdByUser: { name: string; email: string };
   };
 }
 
@@ -170,9 +170,9 @@ export function DocumentViewer({ open, onOpenChange, document }: DocumentViewerP
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground">Creado por</p>
               <p className="text-sm font-medium">
-                {document.createdByUser?.name || 'Desconocido'}
+                {document.createdByUser.name || 'Desconocido'}
               </p>
-              <p className="text-xs text-muted-foreground">{document.createdByUser?.email}</p>
+              <p className="text-xs text-muted-foreground">{document.createdByUser.email}</p>
             </div>
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground">Fecha de creación</p>

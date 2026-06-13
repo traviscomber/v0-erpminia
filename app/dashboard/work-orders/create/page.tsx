@@ -14,12 +14,12 @@ type MaintenanceAsset = {
   id: string;
   asset_code: string;
   asset_name: string;
-  asset_type?: string;
-  status?: string;
-  location?: string;
-  manufacturer?: string;
-  model?: string;
-  criticality?: string;
+  asset_type: string;
+  status: string;
+  location: string;
+  manufacturer: string;
+  model: string;
+  criticality: string;
 };
 
 type ComponentTemplate = {
@@ -73,14 +73,18 @@ const fetcher = async (url: string) => {
   const payload = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(payload?.error || 'Request failed');
+    throw new Error(payload.error || 'Request failed');
   }
 
   return payload;
 };
 
-function resolveAssetTemplate(asset?: MaintenanceAsset | null) {
-  const haystack = `${asset?.asset_type || ''} ${asset?.asset_name || ''}`.toLowerCase();
+function resolveAssetTemplate(asset: MaintenanceAsset | null) {
+  if (!asset) {
+    return COMPONENT_TEMPLATES.generic;
+  }
+
+  const haystack = `${asset.asset_type || ''} ${asset.asset_name || ''}`.toLowerCase();
 
   if (haystack.includes('excav')) return COMPONENT_TEMPLATES.excavator;
   if (haystack.includes('pump') || haystack.includes('bomba')) return COMPONENT_TEMPLATES.pump;
@@ -106,10 +110,10 @@ export default function CreateWorkOrderPage() {
     revalidateOnFocus: false,
   });
 
-  const assets = (data?.assets || []) as MaintenanceAsset[];
-  const selectedAsset = assets.find((asset) => asset.id === selectedAssetId);
+  const assets = (data.assets || []) as MaintenanceAsset[];
+  const selectedAsset = assets.find((asset) => asset.id === selectedAssetId) ?? null;
   const availableComponents = useMemo(
-    () => resolveAssetTemplate(selectedAsset),
+    () => resolveAssetTemplate(selectedAsset ?? null),
     [selectedAsset]
   );
   const selectedComponentsData = availableComponents.filter((component) =>
@@ -330,8 +334,8 @@ export default function CreateWorkOrderPage() {
             </div>
             <div className="p-3 bg-muted rounded-lg space-y-2 text-sm">
               <p className="font-semibold">Resumen</p>
-              <p>Activo: {selectedAsset?.asset_name}</p>
-              <p>Codigo: {selectedAsset?.asset_code}</p>
+              <p>Activo: {selectedAsset?.asset_name || '-'}</p>
+              <p>Codigo: {selectedAsset?.asset_code || '-'}</p>
               <p>Componentes: {selectedComponents.length}</p>
               <p>Tiempo total: {totalHours}h</p>
             </div>

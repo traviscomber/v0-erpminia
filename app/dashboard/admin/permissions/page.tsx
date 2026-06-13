@@ -78,7 +78,7 @@ export default function PermissionsPage() {
             role: selectedRole,
             module: selectedModule,
             action,
-            expires_at: expiresAt?.toISOString(),
+            expires_at: expiresAt?.toISOString() || null,
           }),
         });
 
@@ -109,8 +109,8 @@ export default function PermissionsPage() {
     }
   };
 
-  const userPermissions = permissionsData?.permissions || [];
-  const users = usersData?.users || [];
+  const userPermissions = permissionsData.permissions || [];
+  const users = usersData.users || [];
 
   return (
     <div className="space-y-6">

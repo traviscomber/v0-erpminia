@@ -52,15 +52,15 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       period,
       overview: {
-        compliance_score: complianceData?.compliance_score || 0,
-        total_ncs: complianceData?.total_ncs || 0,
-        open_ncs: complianceData?.open_ncs || 0,
-        closed_ncs: complianceData?.closed_ncs || 0,
-        overdue_cas: complianceData?.overdue_cas || 0,
-        trend: complianceData?.trend || 'stable',
+        compliance_score: complianceData.compliance_score || 0,
+        total_ncs: complianceData.total_ncs || 0,
+        open_ncs: complianceData.open_ncs || 0,
+        closed_ncs: complianceData.closed_ncs || 0,
+        overdue_cas: complianceData.overdue_cas || 0,
+        trend: complianceData.trend || 'stable',
       },
-      nc_stats: ncStats?.[0] || {},
-      ca_stats: caStats?.[0] || {},
+      nc_stats: ncStats[0] || {},
+      ca_stats: caStats[0] || {},
       trends: trends || [],
       top_risks: topRisks || [],
       inspections_completed: inspectionsCompleted,
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching dashboard overview:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch dashboard data' },
+      { error: 'No se pudieron cargar los datos del dashboard' },
       { status: 500 }
     );
   }

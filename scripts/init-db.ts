@@ -28,7 +28,7 @@ async function runMigrations() {
     const filePath = path.join(migrationsDir, file);
     const sql = fs.readFileSync(filePath, 'utf-8');
 
-    console.log(`▶️  Applying: ${file}`);
+    console.log(`▶️ ? Applying: ${file}`);
     
     try {
       // Execute SQL using Supabase admin client
@@ -47,14 +47,14 @@ async function runMigrations() {
             await supabase.rpc('exec_sql', { sql: statement.trim() }).throwOnError();
           } catch (err) {
             // Some statements may fail (like IF NOT EXISTS), that's OK
-            console.log(`   ⚠️  Statement encountered issue (may be OK): ${statement.substring(0, 50)}...`);
+            console.log(`   ⚠️ ? Statement encountered issue (may be OK): ${statement.substring(0, 50)}...`);
           }
         }
       }
 
       console.log(`✅ ${file} applied successfully\n`);
     } catch (error) {
-      console.warn(`⚠️  ${file} encountered warnings (may be OK)\n`);
+      console.warn(`⚠️ ? ${file} encountered warnings (may be OK)\n`);
     }
   }
 

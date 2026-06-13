@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
@@ -122,7 +122,7 @@ export function InspeccionExternaModal({
       const successMessage = inspeccion?.id
         ? 'Inspección externa actualizada correctamente'
         : 'Inspección externa creada correctamente';
-      
+
       toast.success(successMessage, {
         description: `Auditoría: ${data.numero_inspeccion} - ${data.empresa_externa}`,
       });

@@ -22,7 +22,7 @@ export function CorrectiveActionModal({ open, onOpenChange, ncId, onCreate }: an
 
     setLoading(true);
     try {
-      const res = await fetch(`/api/sostenibilidad/corrective-actions?ncId=${ncId}`, {
+      const res = await fetch(`/api/sostenibilidad/corrective-actionsncId=${ncId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...data, ncId }),
@@ -41,18 +41,18 @@ export function CorrectiveActionModal({ open, onOpenChange, ncId, onCreate }: an
     <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Crear accion correctiva</DialogTitle>
+        <DialogTitle>Crear acción correctiva</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           {!ncId && (
             <p className="text-sm text-muted-foreground">
-              Selecciona primero una no conformidad para crear la accion correctiva.
+              Selecciona primero una no conformidad para crear la acción correctiva.
             </p>
           )}
           <div>
-            <Label>Descripcion de la accion</Label>
+            <Label>Descripción de la acción</Label>
             <Textarea
-              placeholder="Describe la accion que se ejecutara..."
+              placeholder="Describe la acción que se ejecutará..."
               value={data.actionDescription}
               onChange={(e) => setData({ ...data, actionDescription: e.target.value })}
             />
@@ -74,21 +74,21 @@ export function CorrectiveActionModal({ open, onOpenChange, ncId, onCreate }: an
             />
           </div>
           <div>
-            <Label>Metodo de verificacion</Label>
+            <Label>Método de verificación</Label>
             <Select value={data.verificationMethod} onValueChange={(val) => setData({ ...data, verificationMethod: val })}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="inspection">Inspeccion</SelectItem>
+                <SelectItem value="inspection">Inspección</SelectItem>
                 <SelectItem value="testing">Prueba</SelectItem>
-                <SelectItem value="audit">Auditoria</SelectItem>
-                <SelectItem value="review">Revision documental</SelectItem>
+                <SelectItem value="audit">Auditoría</SelectItem>
+                <SelectItem value="review">Revisión documental</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <Button onClick={handleCreate} disabled={loading || !ncId} className="w-full">
-            {loading ? 'Creando...' : 'Crear accion'}
+            {loading ? 'Creando...' : 'Crear acción'}
           </Button>
         </div>
       </DialogContent>

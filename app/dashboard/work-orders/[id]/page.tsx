@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 
 export default function WorkOrderDetailPage() {
   const params = useParams<{ id: string }>();
-  const id = params?.id;
+  const id = params.id;
 
   const { data } = useSWR(
     id ? `/api/maintenance/work-orders/${id}` : null,
@@ -19,14 +19,14 @@ export default function WorkOrderDetailPage() {
     }
   );
 
-  const workOrder = data?.data;
+  const workOrder = data.data;
 
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-bold">{workOrder?.work_order_number || 'Orden de trabajo'}</h1>
-          <p className="text-muted-foreground">{workOrder?.title || 'Cargando detalle de mantencion'}</p>
+          <h1 className="text-3xl font-bold">{workOrder.work_order_number || 'Orden de trabajo'}</h1>
+          <p className="text-muted-foreground">{workOrder.title || 'Cargando detalle de mantencion'}</p>
         </div>
         <Link href="/dashboard/work-orders">
           <Button variant="outline">Volver</Button>

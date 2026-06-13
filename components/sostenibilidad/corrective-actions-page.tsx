@@ -21,10 +21,10 @@ export function CorrectiveActionsPage() {
     fetcher
   );
 
-  const inProgressCount = actions?.data?.filter((a: any) => a.status === 'in_progress').length || 0;
-  const completedCount = actions?.data?.filter((a: any) => a.status === 'completed' || a.status === 'verified').length || 0;
-  const overDueCount = actions?.data?.filter((a: any) => new Date(a.scheduled_completion_date) < new Date() && a.status !== 'completed').length || 0;
-  const totalActions = actions?.data?.length || 0;
+  const inProgressCount = actions.data.filter((a: any) => a.status === 'in_progress').length || 0;
+  const completedCount = actions.data.filter((a: any) => a.status === 'completed' || a.status === 'verified').length || 0;
+  const overDueCount = actions.data.filter((a: any) => new Date(a.scheduled_completion_date) < new Date() && a.status !== 'completed').length || 0;
+  const totalActions = actions.data.length || 0;
 
   return (
     <div className="space-y-6 p-6">
@@ -36,14 +36,14 @@ export function CorrectiveActionsPage() {
         </div>
         <Button onClick={() => setModalOpen(true)} className="bg-primary" variant="default">
           <Plus className="w-4 h-4 mr-2" />
-          Nueva accion
+          Nueva acción
         </Button>
       </div>
 
       {!ncId && (
         <Card className="border-border">
           <CardContent className="pt-6 text-sm text-muted-foreground">
-            Crea acciones correctivas desde una no conformidad seleccionada para mantener el vinculo con su hallazgo.
+            Crea acciones correctivas desde una no conformidad seleccionada para mantener el vínculo con su hallazgo.
           </CardContent>
         </Card>
       )}
@@ -55,7 +55,7 @@ export function CorrectiveActionsPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">En progreso</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{inProgressCount || stats?.data?.in_progress || 0}</div>
+            <div className="text-2xl font-bold">{inProgressCount || stats.data.in_progress || 0}</div>
           </CardContent>
         </Card>
         <Card>
@@ -63,7 +63,7 @@ export function CorrectiveActionsPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Completadas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{completedCount || stats?.data?.completed || 0}</div>
+            <div className="text-2xl font-bold">{completedCount || stats.data.completed || 0}</div>
           </CardContent>
         </Card>
         <Card>
@@ -71,7 +71,7 @@ export function CorrectiveActionsPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Vencidas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{overDueCount || stats?.data?.overdue || 0}</div>
+            <div className="text-2xl font-bold text-red-600">{overDueCount || stats.data.overdue || 0}</div>
           </CardContent>
         </Card>
         <Card>
@@ -80,9 +80,7 @@ export function CorrectiveActionsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {totalActions
-                ? Math.round((completedCount / totalActions) * 100)
-                : stats?.data?.completionRate || 0}%
+              {totalActions ? Math.round((completedCount / totalActions) * 100) : stats?.data?.completionRate || 0}%
             </div>
           </CardContent>
         </Card>
@@ -98,8 +96,8 @@ export function CorrectiveActionsPage() {
 
         <TabsContent value="active" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {actions?.data
-              ?.filter((a: any) => ['planned', 'in_progress'].includes(a.status))
+            {actions.data
+              .filter((a: any) => ['planned', 'in_progress'].includes(a.status))
               .map((action: any) => (
                 <CorrectiveActionCard key={action.id} action={action} onUpdate={() => mutate()} />
               ))}
@@ -108,8 +106,8 @@ export function CorrectiveActionsPage() {
 
         <TabsContent value="completed" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {actions?.data
-              ?.filter((a: any) => ['completed', 'verified'].includes(a.status))
+            {actions.data
+              .filter((a: any) => ['completed', 'verified'].includes(a.status))
               .map((action: any) => (
                 <CorrectiveActionCard key={action.id} action={action} onUpdate={() => mutate()} />
               ))}
@@ -118,8 +116,8 @@ export function CorrectiveActionsPage() {
 
         <TabsContent value="overdue" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {actions?.data
-              ?.filter((a: any) => new Date(a.scheduled_completion_date) < new Date() && a.status !== 'completed')
+            {actions.data
+              .filter((a: any) => new Date(a.scheduled_completion_date) < new Date() && a.status !== 'completed')
               .map((action: any) => (
                 <CorrectiveActionCard key={action.id} action={action} onUpdate={() => mutate()} />
               ))}

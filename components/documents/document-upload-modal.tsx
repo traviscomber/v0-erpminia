@@ -13,7 +13,7 @@ export interface DocumentUploadModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   organizationId: string;
-  onSuccess?: (documentId: string) => void;
+  onSuccess: (documentId: string) => void;
 }
 
 const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
@@ -45,7 +45,7 @@ export function DocumentUploadModal({
     if (!files || !files[0]) return;
 
     const selectedFile = files[0];
-    const extension = selectedFile.name.split('.').pop()?.toLowerCase();
+    const extension = selectedFile.name.split('.').pop()?.toLowerCase() || '';
 
     if (!extension || !ALLOWED_EXTENSIONS.includes(extension)) {
       toast.error('Formato no permitido. Usa PDF, JPG, PNG, DOC o DOCX.');
@@ -98,7 +98,7 @@ export function DocumentUploadModal({
       toast.success('Documento cargado correctamente');
       resetForm();
       onOpenChange(false);
-      onSuccess?.(result.documentId);
+      onSuccess(result.documentId);
     } catch (error) {
       console.error('[DocumentUploadModal] Error:', error);
       toast.error(error instanceof Error ? error.message : 'Error al cargar documento');

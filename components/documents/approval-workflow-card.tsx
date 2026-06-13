@@ -13,19 +13,19 @@ export interface ApprovalStep {
   level: number;
   levelName: string;
   status: 'pending' | 'approved' | 'rejected' | 'skipped';
-  assignedToName?: string;
-  approvedByName?: string;
-  comments?: string;
-  rejectionReason?: string;
-  approvedAt?: string;
+  assignedToName: string;
+  approvedByName: string;
+  comments: string;
+  rejectionReason: string;
+  approvedAt: string;
 }
 
 export interface ApprovalWorkflowCardProps {
   documentId: string;
   steps: ApprovalStep[];
-  currentUserCanApprove?: boolean;
-  onApprove?: (stepId: string, comments: string) => Promise<void>;
-  onReject?: (stepId: string, reason: string) => Promise<void>;
+  currentUserCanApprove: boolean;
+  onApprove: (stepId: string, comments: string) => Promise<void>;
+  onReject: (stepId: string, reason: string) => Promise<void>;
   isLoading?: boolean;
 }
 

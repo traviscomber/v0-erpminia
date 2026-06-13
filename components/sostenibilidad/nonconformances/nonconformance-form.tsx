@@ -7,30 +7,30 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 
 interface NonconformanceFormProps {
-  onSubmit?: (data: any) => void;
+  onSubmit: (data: any) => void;
   initialData?: any;
 }
 
-export function NonconformanceForm({ onSubmit, initialData }: NonconformanceFormProps) {
+export function NonconformanceForm({ onSubmit, initialData = {} }: NonconformanceFormProps) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    title: initialData?.title || '',
-    description: initialData?.description || '',
-    category: initialData?.category || 'safety',
-    severity: initialData?.severity || 'medium',
-    source: initialData?.source || 'internal_audit',
-    discoveredDate: initialData?.discovered_date || new Date().toISOString().split('T')[0],
-    targetClosureDate: initialData?.target_closure_date || '',
-    rootCause: initialData?.root_cause || '',
-    impactDescription: initialData?.impact_description || '',
+    title: initialData.title || '',
+    description: initialData.description || '',
+    category: initialData.category || 'safety',
+    severity: initialData.severity || 'medium',
+    source: initialData.source || 'internal_audit',
+    discoveredDate: initialData.discovered_date || new Date().toISOString().split('T')[0],
+    targetClosureDate: initialData.target_closure_date || '',
+    rootCause: initialData.root_cause || '',
+    impactDescription: initialData.impact_description || '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await onSubmit?.(formData);
-      toast.success('No conformidad guardada correctamente');
+      await onSubmit(formData);
+            toast.success('No conformidad guardada correctamente');
     } catch (error) {
       toast.error('No se pudo guardar la no conformidad');
     } finally {
@@ -46,9 +46,9 @@ export function NonconformanceForm({ onSubmit, initialData }: NonconformanceForm
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label>Titulo</Label>
+            <Label>Título</Label>
             <Input
-              placeholder="Titulo de la no conformidad"
+              placeholder="Título de la no conformidad"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               required
@@ -56,9 +56,9 @@ export function NonconformanceForm({ onSubmit, initialData }: NonconformanceForm
           </div>
 
           <div>
-            <Label>Descripcion</Label>
+            <Label>Descripción</Label>
             <textarea
-              placeholder="Descripcion detallada del hallazgo"
+              placeholder="Descripción detallada del hallazgo"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               className="w-full rounded border p-2 text-sm"
@@ -68,7 +68,7 @@ export function NonconformanceForm({ onSubmit, initialData }: NonconformanceForm
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label>Categoria</Label>
+              <Label>Categoría</Label>
               <select
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
@@ -77,8 +77,8 @@ export function NonconformanceForm({ onSubmit, initialData }: NonconformanceForm
                 <option value="safety">Seguridad</option>
                 <option value="environmental">Ambiental</option>
                 <option value="health">Salud</option>
-                <option value="documentation">Documentacion</option>
-                <option value="training">Capacitacion</option>
+                <option value="documentation">Documentación</option>
+                <option value="training">Capacitación</option>
               </select>
             </div>
 
@@ -89,7 +89,7 @@ export function NonconformanceForm({ onSubmit, initialData }: NonconformanceForm
                 onChange={(e) => setFormData({ ...formData, severity: e.target.value })}
                 className="w-full rounded border p-2 text-sm"
               >
-                <option value="critical">Critica</option>
+                <option value="critical">Crítica</option>
                 <option value="high">Alta</option>
                 <option value="medium">Media</option>
                 <option value="low">Baja</option>
@@ -105,8 +105,8 @@ export function NonconformanceForm({ onSubmit, initialData }: NonconformanceForm
                 onChange={(e) => setFormData({ ...formData, source: e.target.value })}
                 className="w-full rounded border p-2 text-sm"
               >
-                <option value="internal_audit">Auditoria interna</option>
-                <option value="external_audit">Auditoria externa</option>
+                <option value="internal_audit">Auditoría interna</option>
+                <option value="external_audit">Auditoría externa</option>
                 <option value="incident">Incidente</option>
                 <option value="regulatory">Regulatorio</option>
                 <option value="customer">Cliente</option>
@@ -114,7 +114,7 @@ export function NonconformanceForm({ onSubmit, initialData }: NonconformanceForm
             </div>
 
             <div>
-              <Label>Fecha de deteccion</Label>
+              <Label>Fecha de detección</Label>
               <Input
                 type="date"
                 value={formData.discoveredDate}
@@ -125,9 +125,9 @@ export function NonconformanceForm({ onSubmit, initialData }: NonconformanceForm
           </div>
 
           <div>
-            <Label>Causa raiz</Label>
+            <Label>Causa raíz</Label>
             <textarea
-              placeholder="Analisis de causa raiz"
+              placeholder="Análisis de causa raíz"
               value={formData.rootCause}
               onChange={(e) => setFormData({ ...formData, rootCause: e.target.value })}
               className="w-full rounded border p-2 text-sm"

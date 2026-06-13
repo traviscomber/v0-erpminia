@@ -3,10 +3,10 @@
 import { AlertCircle, FileX } from 'lucide-react';
 
 interface EmptyStateProps {
-  icon?: React.ReactNode;
+  icon: React.ReactNode;
   title: string;
-  description?: string;
-  action?: React.ReactNode;
+  description: string;
+  action: React.ReactNode;
 }
 
 export function EmptyState({

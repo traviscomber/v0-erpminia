@@ -34,15 +34,15 @@ type Comunidad = {
   stakeholder: string;
   estado: 'Pendiente' | 'Completado' | 'En Progreso';
   tipo_stakeholder: 'indigena' | 'comunidad' | 'gobierno' | 'ong' | 'vecino';
-  ubicacion?: string;
-  contacto_persona?: string;
-  contacto_email?: string;
-  contacto_telefono?: string;
-  impactado_por?: string;
-  fecha_seguimiento?: string;
-  responsable?: string;
-  observaciones?: string;
-  tipo_documento?: string;
+  ubicacion: string;
+  contacto_persona: string;
+  contacto_email: string;
+  contacto_telefono: string;
+  impactado_por: string;
+  fecha_seguimiento: string;
+  responsable: string;
+  observaciones: string;
+  tipo_documento: string;
   prioridad: 'alta' | 'media' | 'baja';
 };
 
@@ -66,7 +66,7 @@ type ComunidadForm = {
 };
 
 type ApiResponse = {
-  data?: Comunidad[];
+  data: Comunidad[];
 };
 
 const STAKEHOLDER_TYPES = {
@@ -129,7 +129,7 @@ export default function ComunidadesPage() {
   const [formData, setFormData] = useState<ComunidadForm>({ ...BLANK_FORM });
 
   const { data: res, mutate } = useSWR<ApiResponse>('/api/sostenibilidad/comunidades', fetcher);
-  const allRecords = res?.data ?? [];
+  const allRecords = res?.data || [];
 
   const filteredRecords = useMemo(() => {
     return allRecords
@@ -183,8 +183,8 @@ export default function ComunidadesPage() {
   };
 
   const handleDelete = async (id: string, numero: string) => {
-    if (!confirm(`¿Eliminar "${numero}"?`)) return;
-    const response = await fetch(`/api/sostenibilidad/comunidades?id=${id}`, {
+    if (!confirm(`¿Eliminar "${numero}"`)) return;
+    const response = await fetch(`/api/sostenibilidad/comunidadesid=${id}`, {
       method: 'DELETE',
       credentials: 'include',
     });

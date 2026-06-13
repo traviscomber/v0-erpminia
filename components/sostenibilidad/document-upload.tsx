@@ -8,9 +8,9 @@ import { Upload, X, FileText, Loader } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface DocumentUploadProps {
-  onUploadSuccess?: (fileUrl: string, fileName: string) => void;
-  maxSizeMB?: number;
-  acceptedTypes?: string[];
+  onUploadSuccess: (fileUrl: string, fileName: string) => void;
+  maxSizeMB: number;
+  acceptedTypes: string[];
 }
 
 export function DocumentUpload({ 
@@ -42,7 +42,7 @@ export function DocumentUpload({
     }
 
     // Check file type
-    const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+    const fileExtension = '.' + (file.name.split('.').pop()?.toLowerCase() || '');
     if (!acceptedTypes.includes(fileExtension)) {
       toast.error(`Tipo de archivo no permitido. Formatos válidos: ${acceptedTypes.join(', ')}`);
       return false;

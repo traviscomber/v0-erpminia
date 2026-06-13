@@ -28,12 +28,12 @@ export default function HSECapacitacionesPage() {
   const [estado, setEstado] = useState('');
 
   const { data, error, isLoading } = useSWR(
-    `/api/hse/capacitaciones${estado ? `?estado=${encodeURIComponent(estado)}` : ''}`,
+    `/api/hse/capacitaciones${estado ? `estado=${encodeURIComponent(estado)}` : ''}`,
     fetcher,
     { revalidateOnFocus: false, refreshInterval: 300000 }
   );
 
-  const capacitaciones = data?.capacitaciones || [];
+  const capacitaciones = data.capacitaciones || [];
   const filtradas = useMemo(
     () =>
       capacitaciones.filter((c: any) =>

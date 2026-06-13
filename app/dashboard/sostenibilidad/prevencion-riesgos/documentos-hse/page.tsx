@@ -30,7 +30,7 @@ export default function DocumentosHSEPage() {
   const loadDocuments = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/documents/list?module=prevención&category=documentos-hse', {
+      const response = await fetch('/api/documents/listmodule=prevención&category=documentos-hse', {
         credentials: 'include',
       });
       const data = await response.json();
@@ -63,7 +63,7 @@ export default function DocumentosHSEPage() {
 
   const handleDelete = async (documentId: string) => {
     try {
-      const response = await fetch(`/api/documents/delete?id=${documentId}`, {
+      const response = await fetch(`/api/documents/deleteid=${documentId}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -85,7 +85,7 @@ export default function DocumentosHSEPage() {
     setReviewOpen(true);
   };
 
-  const handleApprove = async (documentId: string, observations?: string) => {
+  const handleApprove = async (documentId: string, observations: string) => {
     try {
       const response = await fetch('/api/documents/review', {
         method: 'POST',

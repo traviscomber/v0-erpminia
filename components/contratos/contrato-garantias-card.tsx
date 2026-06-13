@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle, Clock, CheckCircle2 } from 'lucide-react';
+import { AlertTriangle, Clock } from 'lucide-react';
 
 interface ContratoGarantia {
   id: string;
@@ -10,8 +10,8 @@ interface ContratoGarantia {
   monto_retenido: number;
   fecha_vencimiento: string;
   estado: 'retenida' | 'devuelta' | 'vencida';
-  fecha_devolucion?: string;
-  notas?: string;
+  fecha_devolucion: string;
+  notas: string;
 }
 
 export function ContratoGarantiasCard({ garantias }: { garantias: ContratoGarantia[] }) {

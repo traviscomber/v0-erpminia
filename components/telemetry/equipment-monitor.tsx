@@ -13,7 +13,7 @@ interface EquipmentStatus {
   status: 'operational' | 'warning' | 'critical' | 'offline';
   availability: number;
   activeAlarms: number;
-  lastReading?: {
+  lastReading: {
     value: number;
     unit: string;
     timestamp: string;

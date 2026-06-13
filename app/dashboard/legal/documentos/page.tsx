@@ -30,7 +30,7 @@ export default function DocumentosLegalPage() {
   const loadDocuments = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/documents/list?module=legal&category=documentos', {
+      const response = await fetch('/api/documents/listmodule=legal&category=documentos', {
         credentials: 'include',
       });
       const data = await response.json();
@@ -58,7 +58,7 @@ export default function DocumentosLegalPage() {
 
   const handleDelete = async (documentId: string) => {
     try {
-      const response = await fetch(`/api/documents/delete?id=${documentId}`, {
+      const response = await fetch(`/api/documents/deleteid=${documentId}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -81,7 +81,7 @@ export default function DocumentosLegalPage() {
     setReviewOpen(true);
   };
 
-  const handleApprove = async (documentId: string, observations?: string) => {
+  const handleApprove = async (documentId: string, observations: string) => {
     try {
       const response = await fetch('/api/documents/review', {
         method: 'POST',

@@ -61,7 +61,7 @@ function DropdownMenuGroup({
 
 function DropdownMenuItem({
   className,
-  inset,
+  inset = false,
   variant = 'default',
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Item> & {
@@ -145,7 +145,7 @@ function DropdownMenuRadioItem({
 
 function DropdownMenuLabel({
   className,
-  inset,
+  inset = false,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Label> & {
   inset?: boolean
@@ -200,7 +200,7 @@ function DropdownMenuSub({
 
 function DropdownMenuSubTrigger({
   className,
-  inset,
+  inset = false,
   children,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.SubTrigger> & {

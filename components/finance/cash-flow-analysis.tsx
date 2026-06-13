@@ -8,7 +8,7 @@ interface CashFlowData {
   inflow: number;
   outflow: number;
   net: number;
-  forecast?: number;
+  forecast: number;
 }
 
 interface CashFlowProps {

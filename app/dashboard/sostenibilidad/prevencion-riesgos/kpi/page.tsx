@@ -42,14 +42,14 @@ export default function KPIPrevenccionPage() {
 
   const { data: kpiData, isLoading, mutate } = useSWR('/api/sostenibilidad/kpi', fetcher);
 
-  const kpis = (((kpiData?.data || []) as KPIData[])).sort((a: KPIData, b: KPIData) => 
+  const kpis = (((kpiData.data || []) as KPIData[])).sort((a: KPIData, b: KPIData) =>
     new Date(a.mes_ano).getTime() - new Date(b.mes_ano).getTime()
   );
 
   const currentMonth = kpis[kpis.length - 1];
   const previousMonth = kpis[kpis.length - 2];
 
-  const calculateTrend = (current?: number, previous?: number) => {
+  const calculateTrend = (current: number, previous: number) => {
     if (!current || !previous) return null;
     return current < previous ? 'down' : current > previous ? 'up' : 'stable';
   };
@@ -92,7 +92,7 @@ export default function KPIPrevenccionPage() {
   };
 
   // Brandbook: secondary=verde (good), destructive=rojo (bad), muted=gris (neutral)
-  const getTrendColor = (trend?: string | null) => {
+  const getTrendColor = (trend: string | null) => {
     if (trend === 'down') return 'text-secondary';
     if (trend === 'up') return 'text-destructive';
     return 'text-muted-foreground';
@@ -221,15 +221,15 @@ export default function KPIPrevenccionPage() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Tasa Accidentabilidad</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{currentMonth.tasa_accidentabilidad?.toFixed(2) || 'N/A'}%</div>
+              <div className="text-2xl font-bold">{currentMonth.tasa_accidentabilidad.toFixed(2) || 'N/A'}%</div>
               <div className="flex items-center gap-1 mt-2">
-                {calculateTrend(currentMonth.tasa_accidentabilidad, previousMonth?.tasa_accidentabilidad) === 'down' && (
+                {calculateTrend(currentMonth.tasa_accidentabilidad, previousMonth.tasa_accidentabilidad) === 'down' && (
                   <>
                     <TrendingDown className={getTrendColor('down')} />
                     <p className="text-xs text-secondary">Mejorando</p>
                   </>
                 )}
-                {calculateTrend(currentMonth.tasa_accidentabilidad, previousMonth?.tasa_accidentabilidad) === 'up' && (
+                {calculateTrend(currentMonth.tasa_accidentabilidad, previousMonth.tasa_accidentabilidad) === 'up' && (
                   <>
                     <TrendingUp className={getTrendColor('up')} />
                     <p className="text-xs text-destructive">Aumentando</p>
@@ -245,7 +245,7 @@ export default function KPIPrevenccionPage() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Tasa Frecuencia</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{currentMonth.tasa_frecuencia?.toFixed(2) || 'N/A'}</div>
+              <div className="text-2xl font-bold">{currentMonth.tasa_frecuencia.toFixed(2) || 'N/A'}</div>
               <p className="text-xs text-muted-foreground mt-2">Accidentes por millón horas trabajadas</p>
             </CardContent>
           </Card>
@@ -256,7 +256,7 @@ export default function KPIPrevenccionPage() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Tasa Gravedad</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{currentMonth.tasa_gravedad?.toFixed(2) || 'N/A'}</div>
+              <div className="text-2xl font-bold">{currentMonth.tasa_gravedad.toFixed(2) || 'N/A'}</div>
               <p className="text-xs text-muted-foreground mt-2">Días perdidos por accidente</p>
             </CardContent>
           </Card>
@@ -291,7 +291,7 @@ export default function KPIPrevenccionPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="mes" stroke="hsl(var(--muted-foreground))" />
                 <YAxis stroke="hsl(var(--muted-foreground))" />
-                <Tooltip 
+                <Tooltip
                   contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
                 />
                 <Legend />
@@ -334,9 +334,9 @@ export default function KPIPrevenccionPage() {
                       <td className="py-3 px-4 font-medium">
                         {new Date(kpi.mes_ano).toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })}
                       </td>
-                      <td className="py-3 px-4 text-center">{kpi.tasa_accidentabilidad?.toFixed(2)}%</td>
-                      <td className="py-3 px-4 text-center">{kpi.tasa_frecuencia?.toFixed(2)}</td>
-                      <td className="py-3 px-4 text-center">{kpi.tasa_gravedad?.toFixed(2)}</td>
+                      <td className="py-3 px-4 text-center">{kpi.tasa_accidentabilidad.toFixed(2)}%</td>
+                      <td className="py-3 px-4 text-center">{kpi.tasa_frecuencia.toFixed(2)}</td>
+                      <td className="py-3 px-4 text-center">{kpi.tasa_gravedad.toFixed(2)}</td>
                       <td className="py-3 px-4 text-center">
                         <Badge variant="outline">{kpi.dias_sin_accidentes}</Badge>
                       </td>

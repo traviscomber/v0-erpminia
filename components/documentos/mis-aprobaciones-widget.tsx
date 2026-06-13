@@ -28,7 +28,7 @@ export function MisAprobacionesWidget() {
       try {
         const res = await fetch('/api/auth/session');
         const data = await res.json();
-        setUserRole(data?.user?.role);
+        setUserRole(data.user.role);
       } catch (err) {
         console.log('[v0] Error fetching user role');
       }
@@ -38,7 +38,7 @@ export function MisAprobacionesWidget() {
 
   // Fetch pending approvals based on user role
   const { data: pendingDocs, isLoading, error } = useSWR(
-    userRole ? `/api/sostenibilidad/documentos-flujo?role=${userRole}&status=pending` : null,
+    userRole ? `/api/sostenibilidad/documentos-flujorole=${userRole}&status=pending` : null,
     async (url) => {
       const res = await fetch(url);
       if (!res.ok) throw new Error('Failed to fetch');
@@ -47,7 +47,7 @@ export function MisAprobacionesWidget() {
     { revalidateOnFocus: false, dedupingInterval: 60000 }
   );
 
-  const approvals = (pendingDocs?.data || []) as PendingApproval[];
+  const approvals = (pendingDocs.data || []) as PendingApproval[];
   const criticalCount = approvals.filter(a => a.days_pending > 7).length;
   const normalCount = approvals.filter(a => a.days_pending <= 7).length;
 
@@ -98,7 +98,7 @@ export function MisAprobacionesWidget() {
               .map(approval => (
                 <Link
                   key={approval.id}
-                  href={`/dashboard/sostenibilidad/documentos-flujo?doc=${approval.document_id}`}
+                  href={`/dashboard/sostenibilidad/documentos-flujodoc=${approval.document_id}`}
                 >
                   <div className="p-3 rounded-lg border border-destructive/30 bg-destructive/5 hover:bg-destructive/10 cursor-pointer transition">
                     <div className="flex items-start justify-between gap-2">
@@ -126,7 +126,7 @@ export function MisAprobacionesWidget() {
               .map(approval => (
                 <Link
                   key={approval.id}
-                  href={`/dashboard/sostenibilidad/documentos-flujo?doc=${approval.document_id}`}
+                  href={`/dashboard/sostenibilidad/documentos-flujodoc=${approval.document_id}`}
                 >
                   <div className="p-3 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 cursor-pointer transition">
                     <div className="flex items-start justify-between gap-2">

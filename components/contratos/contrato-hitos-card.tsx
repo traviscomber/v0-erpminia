@@ -11,9 +11,9 @@ interface ContratoHito {
   monto_neto: number;
   monto_anticipo: number;
   fecha_programada: string;
-  fecha_real?: string;
+  fecha_real: string;
   estado: 'pendiente' | 'parcial' | 'pagado';
-  descripcion?: string;
+  descripcion: string;
 }
 
 const statusColors = {

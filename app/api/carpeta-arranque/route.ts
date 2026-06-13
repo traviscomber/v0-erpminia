@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  return NextResponse.json({ carpetas: carpetas ?? [] });
+  return NextResponse.json({ carpetas });
 }
 
 // POST /api/carpeta-arranque  — create a new carpeta + pre-seed 19 document slots

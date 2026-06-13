@@ -6,11 +6,11 @@ import { Badge } from '@/components/ui/badge';
 import { Eye, User, Clock } from 'lucide-react';
 
 interface AuditInfo {
-  created_by?: string;
-  created_at?: string;
-  modified_by?: string;
-  modified_at?: string;
-  deleted_at?: string;
+  created_by: string;
+  created_at: string;
+  modified_by: string;
+  modified_at: string;
+  deleted_at: string;
 }
 
 export function AuditTrail({ info }: { info: AuditInfo }) {

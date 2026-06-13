@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching NCs:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch no-conformidades' },
+      { error: 'No se pudieron cargar no-conformidades' },
       { status: 500 }
     );
   }
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error creating NC:', error);
     return NextResponse.json(
-      { error: 'Failed to create no-conformidad' },
+      { error: 'No se pudo crear no-conformidad' },
       { status: 500 }
     );
   }

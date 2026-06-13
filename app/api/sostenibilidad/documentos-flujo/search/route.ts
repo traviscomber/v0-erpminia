@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: documents || [],
-      count: documents?.length || 0,
+      count: documents.length || 0,
       query: {
         q: query,
         category,

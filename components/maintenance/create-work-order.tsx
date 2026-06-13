@@ -20,7 +20,7 @@ import { AlertCircle, CheckCircle2 } from 'lucide-react';
 interface CreateWorkOrderProps {
   equipmentId: string;
   equipmentName: string;
-  onSuccess?: () => void;
+  onSuccess: () => void;
 }
 
 export function CreateWorkOrder({ equipmentId, equipmentName, onSuccess }: CreateWorkOrderProps) {
@@ -49,6 +49,7 @@ export function CreateWorkOrder({ equipmentId, equipmentName, onSuccess }: Creat
       const result = await createMaintenanceOrder({
         ...formData,
         vehicle_id: equipmentId,
+        assigned_to: '',
       });
 
       if (result) {
@@ -63,7 +64,7 @@ export function CreateWorkOrder({ equipmentId, equipmentName, onSuccess }: Creat
           estimated_hours: 0,
           estimated_cost: 0,
         });
-        onSuccess?.();
+        onSuccess();
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error creating work order');

@@ -16,12 +16,12 @@ export function SustainabilityModuleConnections() {
     { name: 'Acciones Correctivas', path: '/dashboard/sostenibilidad' },
     { name: 'Documentos HSE', path: '/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse' },
     { name: 'Inspecciones', path: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones' },
-    { name: 'No-Conformidades', path: '/dashboard/sostenibilidad/no-conformidades' },
+    { name: 'No Conformidades', path: '/dashboard/sostenibilidad/no-conformidades' },
   ];
 
   const connections: ConnectionFlow[] = [
-    { from: 'Inspecciones', to: 'No-Conformidades', action: 'Genera NC desde hallazgos de inspección' },
-    { from: 'No-Conformidades', to: 'Acciones Correctivas', action: 'Activa acciones cuando la NC es aprobada' },
+    { from: 'Inspecciones', to: 'No Conformidades', action: 'Genera NC desde hallazgos de inspección' },
+    { from: 'No Conformidades', to: 'Acciones Correctivas', action: 'Activa acciones cuando la NC es aprobada' },
     { from: 'Acciones Correctivas', to: 'Documentos HSE', action: 'Vincula evidencia y planes de acción' },
     { from: 'Todas las áreas', to: 'Calendario', action: 'Sincroniza eventos y hitos del área' },
   ];

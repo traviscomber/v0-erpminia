@@ -62,9 +62,9 @@ function SidebarProvider({
   children,
   ...props
 }: React.ComponentProps<'div'> & {
-  defaultOpen?: boolean
-  open?: boolean
-  onOpenChange?: (open: boolean) => void
+  defaultOpen: boolean
+  open: boolean
+  onOpenChange: (open: boolean) => void
 }) {
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
@@ -159,9 +159,9 @@ function Sidebar({
   children,
   ...props
 }: React.ComponentProps<'div'> & {
-  side?: 'left' | 'right'
-  variant?: 'sidebar' | 'floating' | 'inset'
-  collapsible?: 'offcanvas' | 'icon' | 'none'
+  side: 'left' | 'right'
+  variant: 'sidebar' | 'floating' | 'inset'
+  collapsible: 'offcanvas' | 'icon' | 'none'
 }) {
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
 
@@ -397,7 +397,7 @@ function SidebarGroupLabel({
   className,
   asChild = false,
   ...props
-}: React.ComponentProps<'div'> & { asChild?: boolean }) {
+}: React.ComponentProps<'div'> & { asChild: boolean }) {
   const Comp = asChild ? Slot : 'div'
 
   return (
@@ -418,7 +418,7 @@ function SidebarGroupAction({
   className,
   asChild = false,
   ...props
-}: React.ComponentProps<'button'> & { asChild?: boolean }) {
+}: React.ComponentProps<'button'> & { asChild: boolean }) {
   const Comp = asChild ? Slot : 'button'
 
   return (
@@ -504,9 +504,9 @@ function SidebarMenuButton({
   className,
   ...props
 }: React.ComponentProps<'button'> & {
-  asChild?: boolean
-  isActive?: boolean
-  tooltip?: string | React.ComponentProps<typeof TooltipContent>
+  asChild: boolean
+  isActive: boolean
+  tooltip: string | React.ComponentProps<typeof TooltipContent>
 } & VariantProps<typeof sidebarMenuButtonVariants>) {
   const Comp = asChild ? Slot : 'button'
   const { isMobile, state } = useSidebar()
@@ -551,8 +551,8 @@ function SidebarMenuAction({
   showOnHover = false,
   ...props
 }: React.ComponentProps<'button'> & {
-  asChild?: boolean
-  showOnHover?: boolean
+  asChild: boolean
+  showOnHover: boolean
 }) {
   const Comp = asChild ? Slot : 'button'
 
@@ -604,7 +604,7 @@ function SidebarMenuSkeleton({
   showIcon = false,
   ...props
 }: React.ComponentProps<'div'> & {
-  showIcon?: boolean
+  showIcon: boolean
 }) {
   // Random width between 50 to 90%.
   const width = React.useMemo(() => {
@@ -673,9 +673,9 @@ function SidebarMenuSubButton({
   className,
   ...props
 }: React.ComponentProps<'a'> & {
-  asChild?: boolean
-  size?: 'sm' | 'md'
-  isActive?: boolean
+  asChild: boolean
+  size: 'sm' | 'md'
+  isActive: boolean
 }) {
   const Comp = asChild ? Slot : 'a'
 

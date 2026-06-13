@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     if (status) queryParams += `&status=eq.${status}`;
 
     const response = await fetch(
-      `${url}/rest/v1/incidents?${queryParams}&order=date_reported.desc`,
+      `${url}/rest/v1/incidents${queryParams}&order=date_reported.desc`,
       {
         headers: {
           'apikey': key,

@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ approvals });
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : 'Failed to fetch pending approvals';
+      error instanceof Error ? error.message : 'No se pudieron cargar las aprobaciones pendientes';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

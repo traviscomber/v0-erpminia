@@ -7,25 +7,25 @@ import { Badge } from '@/components/ui/badge';
 
 const fetcher = async (url: string) => {
   const response = await fetch(url);
-  if (!response.ok) throw new Error('Request failed');
+  if (!response.ok) throw new Error('La solicitud falló');
   return response.json();
 };
 
 export default function ComplianceCalendar() {
-  const { data: eventsData } = useSWR('/api/sostenibilidad/compliance-events?limit=10', fetcher);
+  const { data: eventsData } = useSWR('/api/sostenibilidad/compliance-eventslimit=10', fetcher);
   const { data: scoreData } = useSWR(
     '/api/sostenibilidad/compliance/calculate-score',
     fetcher
   );
 
-  const events = eventsData?.data || [];
-  const eventStats = eventsData?.stats || {
+  const events = eventsData.data || [];
+  const eventStats = eventsData.stats || {
     total: 0,
     pending: 0,
     completed: 0,
     overdue: 0,
   };
-  const complianceScore = scoreData?.compliance_score || 0;
+  const complianceScore = scoreData.compliance_score || 0;
 
   return (
     <div className="space-y-4">

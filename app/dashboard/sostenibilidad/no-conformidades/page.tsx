@@ -26,8 +26,8 @@ export default function NonconformanceDashboard() {
     return res.ok ? res.json() : null;
   });
 
-  const ncs = ncData?.nonconformances || [];
-  const stats = ncData?.stats || {};
+  const ncs = ncData.nonconformances || [];
+  const stats = ncData.stats || {};
   const report = reportData || {};
 
   const handleCreateNC = async (formData: any) => {
@@ -37,13 +37,13 @@ export default function NonconformanceDashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-      if (!res.ok) throw new Error('Failed to create NC');
+      if (!res.ok) throw new Error('No se pudo crear la no conformidad');
       
       await mutateNCs();
       setShowForm(false);
       toast.success('No conformidad creada correctamente');
     } catch (error) {
-      toast.error('Failed to create non-conformance');
+      toast.error('No se pudo crear la no conformidad');
       throw error;
     }
   };
@@ -55,12 +55,12 @@ export default function NonconformanceDashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...caData, ncId: selectedNC.id }),
       });
-      if (!res.ok) throw new Error('Failed to create CA');
+      if (!res.ok) throw new Error('No se pudo crear la accin correctiva');
       
       setShowCAModal(false);
       toast.success('Corrective action created successfully');
     } catch (error) {
-      toast.error('Failed to create corrective action');
+      toast.error('No se pudo crear la accin correctiva');
       throw error;
     }
   };
@@ -188,7 +188,7 @@ export default function NonconformanceDashboard() {
                 {['critical', 'high', 'medium', 'low'].map((sev: any) => (
                   <div key={sev} className="flex justify-between text-sm">
                     <span className="capitalize">{sev}</span>
-                    <span className="font-medium">{report.by_severity?.[sev] || 0}</span>
+                    <span className="font-medium">{report.by_severity[sev] || 0}</span>
                   </div>
                 ))}
               </CardContent>
@@ -288,7 +288,7 @@ export default function NonconformanceDashboard() {
               </div>
             </div>
             <Button onClick={() => setShowCAModal(true)} className="w-full">
-              Crear accion correctiva
+              Crear accin correctiva
             </Button>
           </CardContent>
         </Card>

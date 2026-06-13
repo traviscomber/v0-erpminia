@@ -30,12 +30,12 @@ export function InventoryDashboard() {
         
         if (stockRes.ok) {
           const { stock_items } = await stockRes.json();
-          setStock(stock_items?.slice(0, 10) || []);
+          setStock(stock_items.slice(0, 10) || []);
         }
         
         if (alertsRes.ok) {
           const { alerts: alertData } = await alertsRes.json();
-          setAlerts(alertData?.length || 0);
+          setAlerts(alertData.length || 0);
         }
       } catch (err) {
         console.error('[v0] Inventory fetch:', err);

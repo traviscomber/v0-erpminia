@@ -5,7 +5,7 @@ import { getSupabaseServerClient } from '@/lib/supabase-server';
 export const dynamic = 'force-dynamic';
 
 // POST /api/carpeta-arranque/[id]/review
-// Body: { level: 1 | 2, reviews: [{ slot_index, status: 'cumple'|'no_cumple', observaciones? }] }
+// Body: { level: 1 | 2, reviews: [{ slot_index, status: 'cumple'|'no_cumple', observaciones }] }
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await resolveAuthContext(request);
   if (!auth) return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
@@ -14,10 +14,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const body = await request.json();
   const { level, reviews } = body as {
     level: 1 | 2;
-    reviews: Array<{ slot_index: number; status: 'cumple' | 'no_cumple'; observaciones?: string }>;
+    reviews: Array<{ slot_index: number; status: 'cumple' | 'no_cumple'; observaciones: string }>;
   };
 
-  if (!level || !reviews?.length) {
+  if (!level || !reviews.length) {
     return NextResponse.json({ error: 'Faltan parametros: level y reviews' }, { status: 400 });
   }
 
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   // Validate: no_cumple reviews must have observaciones
   for (const r of reviews) {
-    if (r.status === 'no_cumple' && !r.observaciones?.trim()) {
+    if (r.status === 'no_cumple' && !r.observaciones.trim()) {
       return NextResponse.json(
         { error: `El documento en slot ${r.slot_index} requiere una observacion cuando se marca "No Cumple"` },
         { status: 400 }
@@ -83,14 +83,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     .select('l1_status, l2_status, file_name')
     .eq('carpeta_id', carpetaId);
 
-  const uploadedDocs = allDocs?.filter(d => d.file_name) ?? [];
+  const uploadedDocs = (allDocs || []).filter(d => d.file_name);
   const anyL1NoCumple = uploadedDocs.some(d => d.l1_status === 'no_cumple');
   const allL1Done = uploadedDocs.every(d => d.l1_status !== null);
   const anyL2NoCumple = uploadedDocs.some(d => d.l2_status === 'no_cumple');
   const allL2Done = uploadedDocs.every(d => d.l2_status !== null);
 
   let newCarpetaStatus = carpeta.status;
-  const revisorNombre = auth.user.full_name ?? auth.user.email ?? 'Revisor';
+  const revisorNombre = auth.user.full_name || auth.user.email || 'Revisor';
 
   if (level === 1) {
     const update: Record<string, unknown> = {
@@ -140,7 +140,7 @@ Revisor: ${revisorNombre} (Nivel ${level})
     `.trim();
 
     await fetch(
-      `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/api/sostenibilidad/notifications/email`,
+      `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/sostenibilidad/notifications/email`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

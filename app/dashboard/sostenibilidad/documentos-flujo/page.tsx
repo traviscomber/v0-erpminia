@@ -23,27 +23,27 @@ import { toast } from 'sonner';
 
 interface DocumentoFlujo {
   id: string;
-  title?: string;
-  documento_nombre?: string;
-  description?: string;
-  category?: string;
-  version?: number;
-  status?: string;
-  estado?: string;
-  document_approvals?: Array<{
+  title: string;
+  documento_nombre: string;
+  description: string;
+  category: string;
+  version: number;
+  status: string;
+  estado: string;
+  document_approvals: Array<{
     id: string;
     approval_level: number;
     approval_level_name: string;
     required_role: string;
     status: string;
-    assigned_to_name?: string;
-    approved_by_name?: string;
-    comments?: string;
-    rejection_reason?: string;
-    approved_at?: string;
+    assigned_to_name: string;
+    approved_by_name: string;
+    comments: string;
+    rejection_reason: string;
+    approved_at: string;
   }>;
-  created_by?: string;
-  creador_nombre?: string;
+  created_by: string;
+  creador_nombre: string;
   created_at: string;
 }
 
@@ -69,7 +69,7 @@ export default function FlujDocumentalPage() {
   });
 
   const { data: documentos, mutate } = useSWR('/api/sostenibilidad/documentos-flujo', fetcher);
-  const docList = ((documentos?.data || []) as DocumentoFlujo[]);
+  const docList = ((documentos.data || []) as DocumentoFlujo[]);
 
   const filteredDocs = docList.filter((doc: any) => {
     const title = doc.title || doc.documento_nombre || '';
@@ -351,7 +351,7 @@ export default function FlujDocumentalPage() {
                             <p className="text-muted-foreground">
                               <span className="font-medium">Acción:</span>
                               <Badge className="ml-2" variant="outline">
-                                {doc.validador1_accion || 'Pendiente'}
+                                {doc.validador1_accin || 'Pendiente'}
                               </Badge>
                             </p>
                           </div>
@@ -374,7 +374,7 @@ export default function FlujDocumentalPage() {
                             <p className="text-muted-foreground">
                               <span className="font-medium">Acción:</span>
                               <Badge className="ml-2" variant="outline">
-                                {doc.validador2_accion || 'Pendiente'}
+                                {doc.validador2_accin || 'Pendiente'}
                               </Badge>
                             </p>
                           </div>

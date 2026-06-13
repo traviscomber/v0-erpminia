@@ -9,7 +9,7 @@ interface BudgetTrackerProps {
   budget: number;
   spent: number;
   forecast: number;
-  currency?: string;
+  currency: string;
 }
 
 export function BudgetTracker({

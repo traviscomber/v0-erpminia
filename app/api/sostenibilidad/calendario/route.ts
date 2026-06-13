@@ -1,36 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSustainabilityContext } from '@/lib/api/sostenibilidad-mvp';
 
-function mapCalendarStatus(status?: string | null) {
-  if (status === 'completed')   return 'completado';
-  if (status === 'cancelled')   return 'cancelado';
+function mapCalendarStatus(status: string | null) {
+  if (status === 'completed') return 'completado';
+  if (status === 'cancelled') return 'cancelado';
   if (status === 'in_progress') return 'en_progreso';
   return 'programado';
 }
 
-function mapEventType(eventType?: string | null) {
+function mapEventType(eventType: string | null) {
   switch (eventType) {
-    case 'inspection':  return 'inspeccion_interna';
-    case 'training':    return 'capacitacion';
-    case 'audit':       return 'auditoria';
-    case 'monitoring':  return 'monitoreo';
-    case 'legal':       return 'legal';
-    case 'meeting':     return 'reunion';
-    case 'tarea':       return 'tarea';
-    default:            return 'tarea';
+    case 'inspection': return 'inspeccion_interna';
+    case 'training': return 'capacitacion';
+    case 'audit': return 'auditoria';
+    case 'monitoring': return 'monitoreo';
+    case 'legal': return 'legal';
+    case 'meeting': return 'reunion';
+    case 'tarea': return 'tarea';
+    default: return 'tarea';
   }
 }
 
-function mapRequestType(tipo?: string | null) {
+function mapRequestType(tipo: string | null) {
   switch (tipo) {
     case 'inspeccion_interna':
     case 'inspeccion_externa': return 'inspection';
-    case 'capacitacion':       return 'training';
-    case 'auditoria':          return 'audit';
-    case 'monitoreo':          return 'monitoring';
-    case 'legal':              return 'legal';
-    case 'reunion':            return 'meeting';
-    default:                   return 'report';
+    case 'capacitacion': return 'training';
+    case 'auditoria': return 'audit';
+    case 'monitoreo': return 'monitoring';
+    case 'legal': return 'legal';
+    case 'reunion': return 'meeting';
+    default: return 'report';
   }
 }
 
@@ -48,21 +48,21 @@ export async function GET(request: NextRequest) {
     if (error) throw error;
 
     const rows = (data || []).map((event) => ({
-      id:           event.id,
-      titulo:       event.title,
-      tipo_evento:  mapEventType(event.event_type),
+      id: event.id,
+      titulo: event.title,
+      tipo_evento: mapEventType(event.event_type),
       fecha_inicio: event.due_date,
-      fecha_fin:    event.next_date || null,
-      ubicacion:    event.location || '',
-      descripcion:  event.description || '',
-      responsable:  event.responsible_person_name || '',
-      estado:       mapCalendarStatus(event.status),
-      prioridad:    event.priority || 'media',
+      fecha_fin: event.next_date || null,
+      ubicacion: event.location || '',
+      descripcion: event.description || '',
+      responsable: event.responsible_person_name || '',
+      estado: mapCalendarStatus(event.status),
+      prioridad: event.priority || 'media',
     }));
 
     return NextResponse.json({ data: rows });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch calendar events';
+    const message = error instanceof Error ? error.message : 'No se pudieron cargar los eventos del calendario';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
         responsible_person_id: context.userId,
         responsible_person_name:
           String(body.responsable || '').trim() || context.userName || null,
-        priority:    body.prioridad ?? 'media',
+        priority: body.prioridad || 'media',
         updated_at: new Date().toISOString(),
       })
       .select('*')
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to create calendar event';
+    const message = error instanceof Error ? error.message : 'No se pudo crear el evento del calendario';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -134,7 +134,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to delete event';
+    const message = error instanceof Error ? error.message : 'No se pudo eliminar el evento';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

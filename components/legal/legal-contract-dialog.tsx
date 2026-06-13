@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 interface LegalContractDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess?: () => void;
+  onSuccess: () => void;
 }
 
 const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
@@ -55,7 +55,7 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
     const selectedFile = event.target.files?.[0];
     if (!selectedFile) return;
 
-    const extension = selectedFile.name.split('.').pop()?.toLowerCase();
+    const extension = selectedFile.name.split('.').pop()?.toLowerCase() || '';
     if (!extension || !ALLOWED_EXTENSIONS.includes(extension)) {
       toast.error('Formato no permitido. Usa PDF, DOC o DOCX.');
       event.target.value = '';
@@ -106,13 +106,13 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
 
       const payload = await response.json().catch(() => null);
       if (!response.ok) {
-        throw new Error(payload?.error || 'No fue posible crear el contrato');
+        throw new Error(payload.error || 'No fue posible crear el contrato');
       }
 
       toast.success('Contrato creado');
       resetForm();
       onOpenChange(false);
-      onSuccess?.();
+      onSuccess();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Error al crear contrato');
     } finally {

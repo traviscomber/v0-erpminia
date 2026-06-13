@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
       corrective_actions: rows,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch corrective actions';
+    const message = error instanceof Error ? error.message : 'No se pudieron cargar las acciones correctivas';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
       .select('id')
       .eq('nc_id', ncId);
 
-    const caNumber = `CA-${new Date().getFullYear()}-${String((existingForNc?.length || 0) + 1).padStart(4, '0')}`;
+    const caNumber = `CA-${new Date().getFullYear()}-${String(((existingForNc || []).length || 0) + 1).padStart(4, '0')}`;
 
     const { data, error } = await context.supabase
       .from('sostenibilidad_corrective_actions')
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data, id: data.id }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to create corrective action';
+    const message = error instanceof Error ? error.message : 'No se pudo crear la acción correctiva';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -171,7 +171,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ data });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to update corrective action';
+    const message = error instanceof Error ? error.message : 'No se pudo actualizar la acción correctiva';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

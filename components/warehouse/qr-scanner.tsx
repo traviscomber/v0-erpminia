@@ -22,7 +22,7 @@ export function QRScanner({ onScan }: QRScannerProps) {
 
     setScanning(true);
     try {
-      const res = await fetch(`/api/warehouse/qr?value=${qrValue}`);
+      const res = await fetch(`/api/warehouse/qrvalue=${qrValue}`);
       if (!res.ok) throw new Error('QR not found');
       
       const data = await res.json();
@@ -52,9 +52,9 @@ export function QRScanner({ onScan }: QRScannerProps) {
 
         {scanResult && (
           <div className="p-4 bg-muted rounded space-y-2">
-            <p><strong>Part:</strong> {scanResult.stock?.part_name}</p>
-            <p><strong>Location:</strong> {scanResult.bin?.bin_location}</p>
-            <p><strong>Quantity:</strong> {scanResult.stock?.quantity_on_hand}</p>
+            <p><strong>Part:</strong> {scanResult.stock.part_name}</p>
+            <p><strong>Location:</strong> {scanResult.bin.bin_location}</p>
+            <p><strong>Quantity:</strong> {scanResult.stock.quantity_on_hand}</p>
           </div>
         )}
       </CardContent>

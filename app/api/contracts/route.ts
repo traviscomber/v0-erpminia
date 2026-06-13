@@ -11,7 +11,7 @@ function sanitizeFileName(fileName: string) {
 }
 
 async function uploadContractFile(organizationId: string, file: File) {
-  const fileExtension = file.name.split('.').pop()?.toLowerCase();
+  const fileExtension = file.name.split('.').pop()?.toLowerCase() || '';
   if (!fileExtension || !ALLOWED_EXTENSIONS.includes(fileExtension)) {
     throw new Error('Tipo de archivo no permitido. Usa PDF, DOC o DOCX.');
   }

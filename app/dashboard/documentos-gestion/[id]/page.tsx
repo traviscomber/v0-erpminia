@@ -38,8 +38,8 @@ export default function CategoryDetailPage() {
   if (error) return <div className="text-red-500">Error al cargar documentos</div>;
   if (isLoading) return <div className="text-gray-500">Cargando...</div>;
 
-  const stats = data?.stats || { total: 0, aprobados: 0, pendientes: 0, rechazados: 0 };
-  const docs = data?.documents || { aprobados: [], pendientes: [], rechazados: [] };
+  const stats = data.stats || { total: 0, aprobados: 0, pendientes: 0, rechazados: 0 };
+  const docs = data.documents || { aprobados: [], pendientes: [], rechazados: [] };
 
   const getStatusBadge = (estado: string) => {
     if (estado === 'aprobado') return <Badge className="bg-[var(--brand-verde)]">✓ Aprobado</Badge>;
@@ -56,12 +56,12 @@ export default function CategoryDetailPage() {
           {getStatusBadge(doc.estado)}
         </div>
         <p className="text-sm text-muted-foreground">ID: {doc.documentId} • v{doc.version}</p>
-        {doc.validador1?.nombre && (
+        {doc.validador1.nombre && (
           <p className="text-xs text-muted-foreground mt-1">
             Validador 1: {doc.validador1.nombre} ({doc.validador1.rol})
           </p>
         )}
-        {doc.validador2?.nombre && (
+        {doc.validador2.nombre && (
           <p className="text-xs text-muted-foreground">
             Validador 2: {doc.validador2.nombre} ({doc.validador2.rol})
           </p>
@@ -121,7 +121,7 @@ export default function CategoryDetailPage() {
             </TabsList>
 
             <TabsContent value="aprobados" className="space-y-3 mt-4">
-              {docs.aprobados?.length ? (
+              {docs.aprobados.length ? (
                 docs.aprobados.map((doc: any) => <DocumentRow key={doc.id} doc={doc} />)
               ) : (
                 <p className="text-muted-foreground text-center py-8">No hay documentos aprobados</p>
@@ -129,7 +129,7 @@ export default function CategoryDetailPage() {
             </TabsContent>
 
             <TabsContent value="pendientes" className="space-y-3 mt-4">
-              {docs.pendientes?.length ? (
+              {docs.pendientes.length ? (
                 docs.pendientes.map((doc: any) => <DocumentRow key={doc.id} doc={doc} />)
               ) : (
                 <p className="text-muted-foreground text-center py-8">No hay documentos pendientes</p>
@@ -137,7 +137,7 @@ export default function CategoryDetailPage() {
             </TabsContent>
 
             <TabsContent value="rechazados" className="space-y-3 mt-4">
-              {docs.rechazados?.length ? (
+              {docs.rechazados.length ? (
                 docs.rechazados.map((doc: any) => <DocumentRow key={doc.id} doc={doc} />)
               ) : (
                 <p className="text-muted-foreground text-center py-8">No hay documentos rechazados</p>

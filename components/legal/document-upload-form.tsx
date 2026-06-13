@@ -49,7 +49,11 @@ export function DocumentUploadForm() {
     <form onSubmit={handleUpload} className="space-y-4 rounded-lg border p-4">
       <div>
         <label className="text-sm font-medium">Seleccionar documento</label>
-        <Input type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} accept=".pdf,.doc,.docx,.xls" />
+        <Input
+          type="file"
+          onChange={(e) => setFile(e.target.files?.[0] || null)}
+          accept=".pdf,.doc,.docx,.xls"
+        />
       </div>
       <div>
         <label className="text-sm font-medium">Tipo de documento</label>

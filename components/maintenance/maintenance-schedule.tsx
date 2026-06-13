@@ -11,7 +11,7 @@ interface Schedule {
   taskName: string;
   nextScheduledDate: string;
   priority: 'low' | 'medium' | 'high';
-  daysUntil?: number;
+  daysUntil: number;
 }
 
 interface MaintenanceScheduleProps {

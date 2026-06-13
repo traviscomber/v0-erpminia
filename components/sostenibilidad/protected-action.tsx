@@ -9,8 +9,8 @@ interface ProtectedActionProps {
   permission: Permission;
   userRole: Role;
   children: ReactNode;
-  fallback?: ReactNode;
-  action?: () => void;
+  fallback: ReactNode;
+  action: () => void;
 }
 
 export function ProtectedAction({

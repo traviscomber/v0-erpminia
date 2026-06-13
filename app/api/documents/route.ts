@@ -7,8 +7,8 @@ const ALLOWED_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'];
 const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
 
 function hasAllowedExtension(fileName: string) {
-  const extension = fileName.split('.').pop()?.toLowerCase();
-  return extension ? ALLOWED_EXTENSIONS.includes(extension) : false;
+  const extension = fileName.split('.').pop()?.toLowerCase() || '';
+  return ALLOWED_EXTENSIONS.includes(extension) ? true : false;
 }
 
 export async function GET(request: NextRequest) {

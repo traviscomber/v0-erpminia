@@ -25,13 +25,13 @@ export async function getWearParts() {
 export async function createWearPart(partData: {
   part_code: string;
   part_name: string;
-  description?: string;
+  description: string;
   unit_cost: number;
   stock_min: number;
   stock_current: number;
-  supplier?: string;
-  lead_time_days?: number;
-  is_critical?: boolean;
+  supplier: string;
+  lead_time_days: number;
+  is_critical: boolean;
 }) {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -47,17 +47,17 @@ export async function createWearPart(partData: {
 
 export async function updateWearPart(
   id: string,
-  updates: {
-    part_code?: string;
-    part_name?: string;
-    description?: string;
-    unit_cost?: number;
-    stock_min?: number;
-    stock_current?: number;
-    supplier?: string;
-    lead_time_days?: number;
-    is_critical?: boolean;
-  }
+  updates: Partial<{
+    part_code: string;
+    part_name: string;
+    description: string;
+    unit_cost: number;
+    stock_min: number;
+    stock_current: number;
+    supplier: string;
+    lead_time_days: number;
+    is_critical: boolean;
+  }>
 ) {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -93,14 +93,14 @@ export async function getMaintenanceOrders() {
 export async function createMaintenanceOrder(orderData: {
   order_number: string;
   title: string;
-  description?: string;
+  description: string;
   vehicle_id: string;
-  assigned_to?: string;
+  assigned_to: string;
   maintenance_type: string;
   priority: string;
   status: string;
-  estimated_hours?: number;
-  estimated_cost?: number;
+  estimated_hours: number;
+  estimated_cost: number;
 }) {
   const supabase = await createClient();
   const payload = buildCreateMaintenanceWorkOrderPayload(orderData);
@@ -149,16 +149,16 @@ export async function createMaintenanceOrder(orderData: {
 export async function updateMaintenanceOrder(
   id: string,
   updates: {
-    order_number?: string;
-    title?: string;
-    description?: string;
-    vehicle_id?: string;
-    assigned_to?: string;
-    maintenance_type?: string;
-    priority?: string;
-    status?: string;
-    estimated_hours?: number;
-    estimated_cost?: number;
+    order_number: string;
+    title: string;
+    description: string;
+    vehicle_id: string;
+    assigned_to: string;
+    maintenance_type: string;
+    priority: string;
+    status: string;
+    estimated_hours: number;
+    estimated_cost: number;
   }
 ) {
   const supabase = await createClient();
@@ -197,7 +197,7 @@ export async function getSensorReadings(equipmentId: string) {
 
 export async function createAlarm(alarmData: {
   equipment_id: string;
-  sensor_id?: string;
+  sensor_id: string;
   severity: string;
   message: string;
   alarm_type: string;

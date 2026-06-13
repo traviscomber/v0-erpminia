@@ -36,7 +36,7 @@ interface MedioAmbienteRecord {
   descripcion: string;
   valor: string;
   unidad: string;
-  cumplimiento: 'conforme' | 'no_conforme' | 'en_revision';
+  cumplimiento: 'conforme' | 'no_conforme' | 'en_revisin';
 }
 
 const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then(r => r.json());
@@ -53,7 +53,7 @@ export default function MedioAmbientePage() {
     descripcion: '',
     valor: '',
     unidad: 'kg',
-    cumplimiento: 'conforme' as 'conforme' | 'no_conforme' | 'en_revision',
+    cumplimiento: 'conforme' as 'conforme' | 'no_conforme' | 'en_revisin',
   });
 
   const { data: registros, mutate } = useSWR(
@@ -61,7 +61,7 @@ export default function MedioAmbientePage() {
     fetcher
   );
 
-  const registrosList = ((registros?.data || []) as MedioAmbienteRecord[]);
+  const registrosList = ((registros.data || []) as MedioAmbienteRecord[]);
   const displayData = registrosList;
 
   const filtered = displayData.filter((r: any) => {
@@ -75,7 +75,7 @@ export default function MedioAmbientePage() {
     if (!selected?.id) return;
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/sostenibilidad/medio-ambiente?id=${selected.id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/sostenibilidad/medio-ambienteid=${selected.id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Error');
       toast.success('Registro eliminado');
       await mutate();
@@ -132,7 +132,7 @@ export default function MedioAmbientePage() {
   const cumplimientoColor = {
     conforme: 'bg-secondary/10 text-secondary',
     no_conforme: 'bg-destructive/10 text-destructive',
-    en_revision: 'bg-primary/10 text-primary',
+    en_revisin: 'bg-primary/10 text-primary',
   };
 
   return (
@@ -219,7 +219,7 @@ export default function MedioAmbientePage() {
                   <SelectContent>
                     <SelectItem value="conforme">Conforme</SelectItem>
                     <SelectItem value="no_conforme">No Conforme</SelectItem>
-                    <SelectItem value="en_revision">En Revisión</SelectItem>
+                    <SelectItem value="en_revisin">En Revisión</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -301,7 +301,7 @@ export default function MedioAmbientePage() {
                   <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Valor</th>
                   <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Cumplimiento</th>
                   <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Fecha</th>
-                  <th className="text-right py-3 px-4">Acciones</th>
+                  <th className="text-right py-3 px-4">Accines</th>
                 </tr>
               </thead>
               <tbody>
@@ -339,7 +339,7 @@ export default function MedioAmbientePage() {
       <ConfirmDeleteDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
-        titulo={`Registro ${selected?.numero_registro}`}
+        titulo={`Registro ${selected?.numero_registro || ''}`}
         descripcion="Se eliminará este registro permanentemente."
         onConfirm={handleDelete}
       />

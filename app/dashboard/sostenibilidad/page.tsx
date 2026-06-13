@@ -15,7 +15,7 @@ const fetcher = async (url: string) => {
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data?.error || 'No se pudo obtener la información');
+    throw new Error(data.error || 'No se pudo obtener la información');
   }
 
   return data;
@@ -31,37 +31,37 @@ type OverviewResponse = {
     overdue_cas: number;
     trend: 'mejorando' | 'empeorando' | 'stable';
   };
-  nc_stats?: {
-    critical?: number;
-    high?: number;
-    medium?: number;
-    low?: number;
+  nc_stats: {
+    critical: number;
+    high: number;
+    medium: number;
+    low: number;
   };
-  ca_stats?: {
-    total?: number;
-    planned?: number;
-    in_progress?: number;
-    completed?: number;
-    overdue?: number;
-    completionRate?: number;
+  ca_stats: {
+    total: number;
+    planned: number;
+    in_progress: number;
+    completed: number;
+    overdue: number;
+    completionRate: number;
   };
-  trends?: Array<{ report_period: string; compliance_score: number }>;
-  top_risks?: Array<{
+  trends: Array<{ report_period: string; compliance_score: number }>;
+  top_risks: Array<{
     id: string;
-    nc_number?: string | null;
-    title?: string | null;
-    severity?: string | null;
-    status?: string | null;
+    nc_number: string | null;
+    title: string | null;
+    severity: string | null;
+    status: string | null;
   }>;
-  inspections_completed?: number;
-  generated_at?: string;
+  inspections_completed: number;
+  generated_at: string;
 };
 
 type ListResponse = {
-  data?: unknown[];
-  total?: number;
-  items?: unknown[];
-  count?: number;
+  data: unknown[];
+  total: number;
+  items: unknown[];
+  count: number;
 };
 
 type ModuleItem = {
@@ -84,7 +84,7 @@ const normalizeCount = (payload: ListResponse | unknown): number => {
   if (!payload) return 0;
   if (Array.isArray(payload)) return payload.length;
   if (typeof payload === 'object') {
-    const typed = payload as ListResponse & { data?: unknown[]; items?: unknown[] };
+    const typed = payload as ListResponse & { data: unknown[]; items: unknown[] };
     if (Array.isArray(typed.data)) return typed.data.length;
     if (Array.isArray(typed.items)) return typed.items.length;
     if (typeof typed.total === 'number') return typed.total;
@@ -122,7 +122,7 @@ export default function SostenibilidadDashboard() {
   const { data: medioAmbienteData } = useSWR<ListResponse>('/api/sostenibilidad/medio-ambiente', fetcher);
   const { data: comunidadesData } = useSWR<ListResponse>('/api/sostenibilidad/comunidades', fetcher);
 
-  const overview = overviewData ?? emptyOverview;
+  const overview = overviewData || emptyOverview;
   const docCount = normalizeCount(documentosData);
   const capCount = normalizeCount(capacitacionesData);
   const eppCount = normalizeCount(eppData);
@@ -132,8 +132,8 @@ export default function SostenibilidadDashboard() {
   const complianceScore = overview.overview.compliance_score;
   const openNcs = overview.overview.open_ncs;
   const overdueCas = overview.overview.overdue_cas;
-  const totalActions = overview.ca_stats?.total ?? 0;
-  const completionRate = overview.ca_stats?.completionRate ?? 0;
+  const totalActions = overview.ca_stats.total || 0;
+  const completionRate = overview.ca_stats.completionRate || 0;
 
   const pillars = useMemo<PillarCard[]>(() => {
     const makeStatus = (count: number): ModuleItem['status'] => {

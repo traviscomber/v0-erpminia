@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     return NextResponse.json(
-      { error: 'Failed to queue email', details: String(error) },
+      { error: 'No se pudo encolar el correo', details: String(error) },
       { status: 500 }
     );
   }
