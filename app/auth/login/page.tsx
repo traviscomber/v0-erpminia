@@ -46,7 +46,7 @@ export default function LoginPage() {
         <Card>
           <CardHeader className="space-y-2">
             <CardTitle className="text-2xl">Iniciar Sesión</CardTitle>
-            <CardDescription>Motil ? Plataforma Operacional Minera</CardDescription>
+            <CardDescription>Motil — Plataforma Operacional Minera</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4" suppressHydrationWarning>
