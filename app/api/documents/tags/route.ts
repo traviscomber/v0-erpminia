@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+// Prevent static generation - this route needs runtime env vars
+export const dynamic = 'force-dynamic';
+
 // Predefined system tags
 const SYSTEM_TAGS = {
   Tipo: ['Certificado', 'Reglamento', 'Procedimiento', 'Instructivo', 'Formulario', 'Guía', 'Estándar'],

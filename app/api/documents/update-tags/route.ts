@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 
+// Prevent static generation - this route needs runtime env vars
+export const dynamic = 'force-dynamic';
+
 const updateDocumentTagsSchema = z.object({
   documentId: z.string().uuid(),
   tags: z.array(z.string()),

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 
+// Prevent static generation - this route needs runtime env vars
+export const dynamic = 'force-dynamic';
+
 const bulkUpdateSchema = z.object({
   documentIds: z.array(z.string().uuid()),
   tagsToAdd: z.array(z.string()).optional().default([]),
