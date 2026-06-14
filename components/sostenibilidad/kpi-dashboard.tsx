@@ -6,7 +6,8 @@ import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, L
 import { TrendingUp, TrendingDown, Target, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 import useSWR from 'swr';
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = (url: string) =>
+  fetch(url, { credentials: 'include' }).then((res) => res.json());
 
 export function SustainabilityKPIDashboard() {
   const { data: dashboardData, isLoading } = useSWR(
@@ -26,9 +27,11 @@ export function SustainabilityKPIDashboard() {
     );
   }
 
-  if (!dashboardData) return null;
+  if (!dashboardData || !dashboardData.overview) return null;
 
-  const { overview, trends, top_risks } = dashboardData;
+  const overview = dashboardData.overview ?? {};
+  const trends = dashboardData.trends ?? [];
+  const top_risks = dashboardData.top_risks ?? [];
 
   const getComplianceColor = (score: number) => {
     if (score >= 85) return 'text-secondary';

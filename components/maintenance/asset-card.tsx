@@ -43,7 +43,7 @@ export function AssetCard({ asset, onCreateWorkOrder, onViewHistory }: AssetCard
             <CardTitle>{asset.assetName}</CardTitle>
             <CardDescription>{asset.assetCode}</CardDescription>
           </div>
-          <Badge className={criticalityColors[asset.criticality]}>
+          <Badge className={criticalityColors[asset.criticality] ?? 'bg-muted/20 text-muted-foreground'}>
             {asset.criticality.charAt(0).toUpperCase() + asset.criticality.slice(1)}
           </Badge>
         </div>
@@ -60,13 +60,13 @@ export function AssetCard({ asset, onCreateWorkOrder, onViewHistory }: AssetCard
           </div>
           <div>
             <p className="text-muted-foreground">Estado</p>
-            <Badge className={statusColors[asset.status]}>
-              {asset.status.charAt(0).toUpperCase() + asset.status.slice(1)}
+            <Badge className={statusColors[asset.status] ?? 'bg-muted/20 text-muted-foreground'}>
+              {(asset.status ?? 'unknown').charAt(0).toUpperCase() + (asset.status ?? 'unknown').slice(1)}
             </Badge>
           </div>
           <div>
             <p className="text-muted-foreground">Costo</p>
-            <p className="font-semibold">${asset.acquisitionCost.toLocaleString()}</p>
+            <p className="font-semibold">${(asset.acquisitionCost ?? 0).toLocaleString()}</p>
           </div>
         </div>
 
