@@ -16,7 +16,7 @@ export default function LoginPage() {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
-    
+
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -28,15 +28,14 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        // Hard redirect to dashboard - ensures cookies are sent
         window.location.href = '/dashboard';
         return;
       }
 
       setError(data.error || 'Credenciales inválidas');
       setIsLoading(false);
-    } catch (err) {
-      setError('Error al iniciar sesión');
+    } catch {
+      setError('Error al iniciar sesi?n');
       setIsLoading(false);
     }
   };
@@ -47,7 +46,7 @@ export default function LoginPage() {
         <Card>
           <CardHeader className="space-y-2">
             <CardTitle className="text-2xl">Iniciar Sesión</CardTitle>
-            <CardDescription>Motil — Plataforma Operacional Minera</CardDescription>
+            <CardDescription>Motil ? Plataforma Operacional Minera</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4" suppressHydrationWarning>
@@ -57,7 +56,7 @@ export default function LoginPage() {
                   <p className="text-sm text-destructive">{error}</p>
                 </div>
               )}
-              
+
               <div className="space-y-2">
                 <label className="text-sm font-medium">Correo Electrónico</label>
                 <Input
@@ -83,8 +82,8 @@ export default function LoginPage() {
                 />
               </div>
 
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full"
                 disabled={isLoading}
                 suppressHydrationWarning
