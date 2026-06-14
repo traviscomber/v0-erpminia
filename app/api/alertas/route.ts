@@ -222,7 +222,7 @@ export async function GET(request: NextRequest) {
         title: `${severity === 'critica' ? 'Orden critica' : 'Orden prioritaria'} - ${workOrder.title}`,
         description:
           workOrder.description ||
-          `OT ${workOrder.work_order_number || ''} asociada a ${workOrder.asset.asset_name || 'equipo operativo'}.`,
+          `OT ${workOrder.work_order_number || ''} asociada a ${workOrder.asset?.asset_name || 'equipo operativo'}.`,
         severity,
         type: 'mantenimiento',
         timestamp: safeDate(workOrder.created_at || workOrder.scheduled_date),
@@ -238,7 +238,7 @@ export async function GET(request: NextRequest) {
       alerts.push({
         id: `stock-${stock.id}`,
         title: `${current === 0 ? 'Stock agotado' : 'Stock bajo'} - ${stock.part_name || stock.part_code}`,
-        description: `${stock.part_code || 'Item'} en ${stock.bin.bin_code || stock.bin.bin_location || 'bodega'} con ${current} unidad(es). Nivel de reorden: ${reorder}.`,
+        description: `${stock.part_code || 'Item'} en ${stock.bin?.bin_code || stock.bin?.bin_location || 'bodega'} con ${current} unidad(es). Nivel de reorden: ${reorder}.`,
         severity: current === 0 ? 'critica' : 'alta',
         type: 'inventario',
         timestamp: new Date().toISOString(),

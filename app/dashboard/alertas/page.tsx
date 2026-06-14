@@ -105,7 +105,7 @@ export default function AlertasPage() {
   });
 
   useEffect(() => {
-    setAlerts((data.alerts || []) as Alert[]);
+    setAlerts((data?.alerts || []) as Alert[]);
   }, [data]);
 
   useEffect(() => {
