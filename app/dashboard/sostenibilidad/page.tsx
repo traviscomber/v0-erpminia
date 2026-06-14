@@ -117,18 +117,18 @@ export default function SostenibilidadDashboard() {
   const { data: medioAmbienteData } = useSWR<ListResponse>('/api/sostenibilidad/medio-ambiente', fetcher);
   const { data: comunidadesData } = useSWR<ListResponse>('/api/sostenibilidad/comunidades', fetcher);
 
-  const overview = overviewData || emptyOverview;
+  const overview = (overviewData?.overview ? overviewData : null) || emptyOverview;
   const docCount = normalizeCount(documentosData);
   const capCount = normalizeCount(capacitacionesData);
   const eppCount = normalizeCount(eppData);
   const inspeccionesCount = normalizeCount(inspeccionesData) || overview.inspections_completed || 0;
   const ambienteCount = normalizeCount(medioAmbienteData);
   const comunidadesCount = normalizeCount(comunidadesData);
-  const complianceScore = overview.overview.compliance_score;
-  const openNcs = overview.overview.open_ncs;
-  const overdueCas = overview.overview.overdue_cas;
-  const totalActions = overview.ca_stats.total || 0;
-  const completionRate = overview.ca_stats.completionRate || 0;
+  const complianceScore = overview.overview?.compliance_score ?? 0;
+  const openNcs = overview.overview?.open_ncs ?? 0;
+  const overdueCas = overview.overview?.overdue_cas ?? 0;
+  const totalActions = overview.ca_stats?.total || 0;
+  const completionRate = overview.ca_stats?.completionRate || 0;
 
   const pillars = useMemo<PillarCard[]>(() => {
     const makeStatus = (count: number): ModuleItem['status'] => {
