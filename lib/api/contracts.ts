@@ -1,4 +1,4 @@
-﻿import { getSupabaseServerClient } from '@/lib/supabase-server';
+import { getSupabaseServerClient } from '@/lib/supabase-server';
 
 type ContractStatus =
   | 'Borrador'

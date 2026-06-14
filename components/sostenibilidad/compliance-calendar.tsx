@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import useSWR from 'swr';
 import { AlertCircle, Calendar, CheckCircle2 } from 'lucide-react';
