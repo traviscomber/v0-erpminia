@@ -60,10 +60,10 @@ export default function FinanzasPage() {
     }
   );
 
-  const budget = data.budget || { total: 0, spent: 0, remaining: 0 };
-  const expenses = data.expenses || [];
-  const budgetVsActual = data.budgetVsActual || [];
-  const forecast = data.forecast || [];
+  const budget = data?.budget || { total: 0, spent: 0, remaining: 0 };
+  const expenses = data?.expenses || [];
+  const budgetVsActual = data?.budgetVsActual || [];
+  const forecast = data?.forecast || [];
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('es-CL', {

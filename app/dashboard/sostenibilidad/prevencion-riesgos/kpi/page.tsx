@@ -42,7 +42,7 @@ export default function KPIPrevenccionPage() {
 
   const { data: kpiData, isLoading, mutate } = useSWR('/api/sostenibilidad/kpi', fetcher);
 
-  const kpis = (((kpiData.data || []) as KPIData[])).sort((a: KPIData, b: KPIData) =>
+  const kpis = (((kpiData?.data || []) as KPIData[])).sort((a: KPIData, b: KPIData) =>
     new Date(a.mes_ano).getTime() - new Date(b.mes_ano).getTime()
   );
 

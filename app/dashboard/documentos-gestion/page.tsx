@@ -26,11 +26,11 @@ export default function DocumentosGestionPage() {
   );
 
   // Extract data safely
-  const categories = data.categories || [];
-  const pendingApprovals = data.pendingApprovals || [];
-  const recentDocuments = data.recentDocuments || [];
-  const expiringDocuments = data.expiringDocuments || [];
-  const stats = data.stats || { total: 0, pending: 0, expiring: 0 };
+  const categories = data?.categories || [];
+  const pendingApprovals = data?.pendingApprovals || [];
+  const recentDocuments = data?.recentDocuments || [];
+  const expiringDocuments = data?.expiringDocuments || [];
+  const stats = data?.stats || { total: 0, pending: 0, expiring: 0 };
 
   // Filter categories based on search
   const filteredCategories = useMemo(() => {
