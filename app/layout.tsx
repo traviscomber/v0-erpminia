@@ -47,7 +47,8 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} forcedTheme="dark">
           {children}
           <Toaster position="top-right" />
-          {process.env.NODE_ENV === 'production' && <Analytics />}
+          {/* Analytics disabled in dev mode - causes script tag error. Re-enable for production. */}
+          {/* {process.env.NODE_ENV === 'production' && <Analytics />} */}
         </ThemeProvider>
       </body>
     </html>
