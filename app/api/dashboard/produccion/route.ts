@@ -367,7 +367,7 @@ export async function GET(request: NextRequest) {
           ? 'warning'
           : baseStatus;
       const availability =
-        toNumber(availabilityRow.availability_percentage) ??
+        toNumber(availabilityRow?.availability_percentage) ??
         deriveAvailabilityFromStatus(item.status, activeWorkOrders.length + activeAlarms.length);
 
       return {
@@ -407,7 +407,7 @@ export async function GET(request: NextRequest) {
               id: item.id,
               severity: item.priority === 'critical' ? 'critical' : 'warning',
               equipment:
-                maintenanceAssets.find((asset) => asset.id === item.asset_id).asset_name || 'Equipo',
+                maintenanceAssets.find((asset) => asset.id === item.asset_id)?.asset_name || 'Equipo',
               message: item.title,
               time: safeTime(item.created_at),
               description: item.description || 'Orden prioritaria en curso',
