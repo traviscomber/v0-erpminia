@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import useSWR from 'swr';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,7 +24,7 @@ export default function MisAprobacionesPage() {
       <div>
         <h1 className="text-3xl font-bold text-foreground">Mis Aprobaciones</h1>
         <p className="text-muted-foreground mt-2">
-          Documentos pendientes de tu aprobaciÃ³n en el flujo de sostenibilidad
+          Documentos pendientes de tu aprobación en el flujo de sostenibilidad
         </p>
       </div>
 
@@ -60,7 +60,7 @@ export default function MisAprobacionesPage() {
       <Card>
         <CardHeader>
           <CardTitle>Documentos Pendientes</CardTitle>
-          <CardDescription>Esperando tu revisiÃ³n y aprobaciÃ³n</CardDescription>
+          <CardDescription>Esperando tu revisión y aprobación</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -94,4 +94,5 @@ export default function MisAprobacionesPage() {
     </div>
   );
 }
+
 

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
@@ -174,7 +174,7 @@ export default function DocumentosReportesPage() {
           title: document.title,
           daysOverdue: Math.max(daysOpen - 7, 0),
           approvalLevel:
-            document.steps.find((step) => step.status === 'pending') ? 'Pendiente' : 'En revisiÃ³n',
+            document.steps.find((step) => step.status === 'pending') ? 'Pendiente' : 'En revisión',
           daysOpen,
         };
       })
@@ -188,9 +188,9 @@ export default function DocumentosReportesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">ReporterÃ­a de Documentos</h1>
+        <h1 className="text-3xl font-bold text-foreground">Reportería de Documentos</h1>
         <p className="text-muted-foreground mt-2">
-          AnÃ¡lisis y seguimiento del flujo de aprobaciÃ³n documental
+          AnÃ¡lisis y seguimiento del flujo de aprobación documental
         </p>
       </div>
 
@@ -198,7 +198,7 @@ export default function DocumentosReportesPage() {
         <Card className="border-destructive/30">
           <CardContent className="pt-6 flex items-center gap-3 text-sm">
             <AlertCircle className="w-4 h-4 text-destructive" />
-            <span>No fue posible cargar toda la reporterÃ­a documental.</span>
+            <span>No fue posible cargar toda la reportería documental.</span>
           </CardContent>
         </Card>
       )}
@@ -228,7 +228,7 @@ export default function DocumentosReportesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{pendingDocuments}</div>
-            <p className="text-xs text-muted-foreground mt-1">En revisiÃ³n</p>
+            <p className="text-xs text-muted-foreground mt-1">En revisión</p>
           </CardContent>
         </Card>
 
@@ -264,7 +264,7 @@ export default function DocumentosReportesPage() {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="overview">Resumen</TabsTrigger>
-              <TabsTrigger value="timeline">LÃ­nea de tiempo</TabsTrigger>
+              <TabsTrigger value="timeline">Línea de tiempo</TabsTrigger>
               <TabsTrigger value="overdue">Vencidos</TabsTrigger>
         </TabsList>
 
@@ -272,8 +272,8 @@ export default function DocumentosReportesPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
-                <CardTitle>DistribuciÃ³n por Estado</CardTitle>
-                <CardDescription>Documentos por estado del flujo de aprobaciÃ³n</CardDescription>
+                <CardTitle>Distribución por Estado</CardTitle>
+                <CardDescription>Documentos por estado del flujo de aprobación</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
@@ -302,7 +302,7 @@ export default function DocumentosReportesPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Desglose por Estado</CardTitle>
-                <CardDescription>EstadÃ­sticas consolidadas del mÃ³dulo</CardDescription>
+                <CardDescription>Estadísticas consolidadas del módulo</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -333,15 +333,15 @@ export default function DocumentosReportesPage() {
         <TabsContent value="timeline">
           <Card>
             <CardHeader>
-              <CardTitle>Tiempo Promedio de AprobaciÃ³n</CardTitle>
-              <CardDescription>Tendencia mensual segÃºn documentos procesados</CardDescription>
+              <CardTitle>Tiempo Promedio de Aprobación</CardTitle>
+              <CardDescription>Tendencia mensual según documentos procesados</CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={400}>
                 <LineChart data={approvalTimeline}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
-                  <YAxis yAxisId="left" label={{ value: 'DÃ­as', angle: -90, position: 'insideLeft' }} />
+                  <YAxis yAxisId="left" label={{ value: 'Días', angle: -90, position: 'insideLeft' }} />
                   <YAxis
                     yAxisId="right"
                     orientation="right"
@@ -354,7 +354,7 @@ export default function DocumentosReportesPage() {
                     type="monotone"
                     dataKey="avgDays"
                     stroke="#f97316"
-                    name="Promedio (dÃ­as)"
+                    name="Promedio (días)"
                     strokeWidth={2}
                   />
                   <Bar
@@ -375,10 +375,10 @@ export default function DocumentosReportesPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <AlertCircle className="w-5 h-5 text-destructive" />
-                Documentos Vencidos en AprobaciÃ³n
+                Documentos Vencidos en Aprobación
               </CardTitle>
               <CardDescription>
-                Documentos pendientes con mÃ¡s de 7 dÃ­as abiertos en revisiÃ³n
+                Documentos pendientes con más de 7 días abiertos en revisión
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -410,4 +410,5 @@ export default function DocumentosReportesPage() {
     </div>
   );
 }
+
 

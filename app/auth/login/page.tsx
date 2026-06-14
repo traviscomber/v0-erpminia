@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -35,7 +35,7 @@ export default function LoginPage() {
       setError(data.error || 'Credenciales inválidas');
       setIsLoading(false);
     } catch {
-      setError('Error al iniciar sesi?n');
+      setError('Error al iniciar sesión');
       setIsLoading(false);
     }
   };

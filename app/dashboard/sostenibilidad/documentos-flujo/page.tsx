@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -162,9 +162,9 @@ export default function FlujDocumentalPage() {
       <div className="mb-8 flex justify-between items-start">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-3xl font-bold text-foreground">Flujo de AprobaciÃ³n de Documentos</h1>
+            <h1 className="text-3xl font-bold text-foreground">Flujo de Aprobación de Documentos</h1>
           </div>
-          <p className="text-muted-foreground">Workflow de 2 validadores: Jefe de Sostenibilidad â†’ Gerente General</p>
+          <p className="text-muted-foreground">Workflow de 2 validadores: Jefe de Sostenibilidad → Gerente General</p>
         </div>
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogTrigger asChild>
@@ -177,7 +177,7 @@ export default function FlujDocumentalPage() {
             <DialogHeader>
               <DialogTitle>Nuevo Documento</DialogTitle>
               <DialogDescription>
-                Sube un documento y completa sus detalles para el flujo de aprobaciÃ³n
+                Sube un documento y completa sus detalles para el flujo de aprobación
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-6">
@@ -207,20 +207,20 @@ export default function FlujDocumentalPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="descripcion">DescripciÃ³n</Label>
+                    <Label htmlFor="descripcion">Descripción</Label>
                     <textarea
                       id="descripcion"
                       name="descripcion"
                       value={formData.descripcion}
                       onChange={handleInputChange}
-                      placeholder="DescripciÃ³n del documento"
+                      placeholder="Descripción del documento"
                       className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm"
                       rows={3}
                     />
                   </div>
                   {formData.archivo_url && (
                     <div className="bg-secondary/10 border border-secondary rounded-md p-3">
-                      <p className="text-sm text-secondary">âœ“ Documento cargado correctamente</p>
+                      <p className="text-sm text-secondary">✓ Documento cargado correctamente</p>
                       <p className="text-xs text-muted-foreground mt-1">{formData.archivo_url.split('/').pop()}</p>
                     </div>
                   )}
@@ -257,7 +257,7 @@ export default function FlujDocumentalPage() {
       {/* Workflow Diagram */}
       <Card className="mb-8 rounded-xl border shadow-none">
         <CardHeader>
-          <CardTitle className="text-sm">Fases de AprobaciÃ³n</CardTitle>
+          <CardTitle className="text-sm">Fases de Aprobación</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-3 overflow-x-auto pb-4">
@@ -349,14 +349,14 @@ export default function FlujDocumentalPage() {
                               <span className="font-medium">Revisor:</span> {doc.validador1_nombre}
                             </p>
                             <p className="text-muted-foreground">
-                              <span className="font-medium">AcciÃ³n:</span>
+                              <span className="font-medium">Acción:</span>
                               <Badge className="ml-2" variant="outline">
                                 {doc.validador1_accin || 'Pendiente'}
                               </Badge>
                             </p>
                           </div>
                         ) : (
-                          <p className="text-muted-foreground text-sm italic">Pendiente de revisiÃ³n</p>
+                          <p className="text-muted-foreground text-sm italic">Pendiente de revisión</p>
                         )}
                       </div>
 
@@ -372,14 +372,14 @@ export default function FlujDocumentalPage() {
                               <span className="font-medium">Revisor:</span> {doc.validador2_nombre}
                             </p>
                             <p className="text-muted-foreground">
-                              <span className="font-medium">AcciÃ³n:</span>
+                              <span className="font-medium">Acción:</span>
                               <Badge className="ml-2" variant="outline">
                                 {doc.validador2_accin || 'Pendiente'}
                               </Badge>
                             </p>
                           </div>
                         ) : (
-                          <p className="text-muted-foreground text-sm italic">Pendiente de revisiÃ³n V1</p>
+                          <p className="text-muted-foreground text-sm italic">Pendiente de revisión V1</p>
                         )}
                       </div>
                     </div>
@@ -399,4 +399,5 @@ export default function FlujDocumentalPage() {
     </div>
   );
 }
+
 
