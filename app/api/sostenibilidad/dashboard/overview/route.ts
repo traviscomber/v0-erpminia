@@ -49,21 +49,24 @@ export async function GET(request: NextRequest) {
       .select('id', { count: 'exact', head: true })
       .eq('estado', 'completada');
 
+    const nc = (ncStats as any)?.[0] ?? {};
+    const ca = (caStats as any)?.[0] ?? {};
+
     return NextResponse.json({
       period,
       overview: {
-        compliance_score: complianceData.compliance_score || 0,
-        total_ncs: complianceData.total_ncs || 0,
-        open_ncs: complianceData.open_ncs || 0,
-        closed_ncs: complianceData.closed_ncs || 0,
-        overdue_cas: complianceData.overdue_cas || 0,
-        trend: complianceData.trend || 'stable',
+        compliance_score: complianceData?.compliance_score ?? 0,
+        total_ncs: complianceData?.total_ncs ?? nc.total ?? 0,
+        open_ncs: complianceData?.open_ncs ?? nc.open ?? 0,
+        closed_ncs: complianceData?.closed_ncs ?? nc.closed ?? 0,
+        overdue_cas: complianceData?.overdue_cas ?? ca.overdue ?? 0,
+        trend: complianceData?.trend ?? 'stable',
       },
-      nc_stats: ncStats[0] || {},
-      ca_stats: caStats[0] || {},
-      trends: trends || [],
-      top_risks: topRisks || [],
-      inspections_completed: inspectionsCompleted,
+      nc_stats: nc,
+      ca_stats: ca,
+      trends: trends ?? [],
+      top_risks: topRisks ?? [],
+      inspections_completed: inspectionsCompleted ?? 0,
       generated_at: new Date().toISOString(),
     });
   } catch (error) {
