@@ -41,7 +41,7 @@ export function MisAprobacionesWidget() {
     userRole ? `/api/sostenibilidad/documentos-flujorole=${userRole}&status=pending` : null,
     async (url) => {
       const res = await fetch(url);
-      if (!res.ok) throw new Error('Failed to fetch');
+      if (!res.ok) return;
       return res.json();
     },
     { revalidateOnFocus: false, dedupingInterval: 60000 }

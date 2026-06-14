@@ -73,7 +73,7 @@ const fetcher = async (url: string) => {
   const payload = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(payload.error || 'Request failed');
+    return null;
   }
 
   return payload;

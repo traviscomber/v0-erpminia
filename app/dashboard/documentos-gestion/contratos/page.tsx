@@ -23,7 +23,7 @@ import { Badge } from '@/components/ui/badge';
 
 const fetcher = async (url: string) => {
   const response = await fetch(url);
-  if (!response.ok) throw new Error('Request failed');
+  if (!response.ok) return null;
   return response.json();
 };
 

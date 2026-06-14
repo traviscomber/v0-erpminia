@@ -27,7 +27,7 @@ const fetcher = async (url: string) => {
   const response = await fetch(url);
   const payload = await response.json().catch(() => null);
   if (!response.ok) {
-    throw new Error(payload.error || 'La solicitud fallÃ³');
+    return null;
   }
   return payload;
 };

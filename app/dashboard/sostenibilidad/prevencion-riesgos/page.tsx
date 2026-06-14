@@ -11,7 +11,7 @@ const fetcher = async (url: string) => {
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.error || 'No se pudo obtener la información');
+    return null;
   }
 
   return data;

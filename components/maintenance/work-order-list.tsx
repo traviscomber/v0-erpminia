@@ -130,7 +130,7 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
                 <CardDescription>{order.title}</CardDescription>
               </div>
               <div className={`text-sm font-semibold ${getPriorityColor(order.priority)}`}>
-                {order.priority === 'critica_seguridad' ? '🔴 CRÍTICA SEGURIDAD' : order.priority.toUpperCase()}
+                {order.priority === 'critica_seguridad' ? 'CRITICA SEGURIDAD' : (order.priority ?? 'sin prioridad').toUpperCase()}
               </div>
             </div>
           </CardHeader>

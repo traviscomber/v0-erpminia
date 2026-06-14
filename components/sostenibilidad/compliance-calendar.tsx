@@ -6,8 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
 const fetcher = async (url: string) => {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error('La solicitud falló');
+  const response = await fetch(url, { credentials: 'include' });
+  if (!response.ok) return null;
   return response.json();
 };
 

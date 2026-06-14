@@ -15,7 +15,7 @@ const fetcher = async (url: string) => {
   const payload = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(payload.error || 'No se pudo obtener la información');
+    return null;
   }
 
   return payload;
