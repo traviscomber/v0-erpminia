@@ -10,7 +10,7 @@ import { HSEKPIsSeguridad } from '@/components/hse/hse-kpis-seguridad';
 const fetcher = async (url: string) => {
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error('No se pudieron cargar los KPIs HSE');
+    return null;
   }
   return response.json();
 };

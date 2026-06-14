@@ -11,7 +11,7 @@ import { Shield, Plus, Search, Check } from 'lucide-react';
 const fetcher = async (url: string) => {
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error('No se pudo cargar EPP');
+    return null;
   }
   return response.json();
 };

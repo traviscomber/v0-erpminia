@@ -12,13 +12,8 @@ import { SustainabilityWorkflowDiagram } from '@/components/sostenibilidad/susta
 
 const fetcher = async (url: string) => {
   const response = await fetch(url, { credentials: 'include' });
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.error || 'No se pudo obtener la información');
-  }
-
-  return data;
+  if (!response.ok) return null;
+  return response.json();
 };
 
 type OverviewResponse = {
