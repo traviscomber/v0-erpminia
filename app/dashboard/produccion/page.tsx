@@ -67,10 +67,10 @@ function getSourceLabel(source: string) {
 export default function ProduccionPage() {
   const { data, error, isLoading, mutate } = useProductionData();
 
-  const equipment = data.equipment || [];
-  const readings = data.readings || [];
-  const alarms = data.alarms || [];
-  const summary = data.summary || {};
+  const equipment = data?.equipment || [];
+  const readings = data?.readings || [];
+  const alarms = data?.alarms || [];
+  const summary = data?.summary || {};
 
   const sensorData = readings.map((reading: any) => ({
     timestamp: reading.timestamp

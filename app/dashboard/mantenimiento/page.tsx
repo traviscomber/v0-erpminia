@@ -38,9 +38,9 @@ export default function MaintenanceDashboard() {
   });
 
   const stats = mttrStats || {};
-  const schedulesList = schedules.schedules || [];
-  const assetsList = assets.assets || [];
-  const woList = workOrders.workOrders || [];
+  const schedulesList = schedules?.schedules || [];
+  const assetsList = assets?.assets || [];
+  const woList = workOrders?.workOrders || [];
 
   return (
     <div className="space-y-6">
