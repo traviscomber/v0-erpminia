@@ -29,10 +29,10 @@ export default function HSEKPIsPage() {
     return <div className="text-gray-500">Cargando KPIs HSE...</div>;
   }
 
-  const kpis = data.kpis || [];
+  const kpis = data?.kpis || [];
   const ultimoMes = kpis[kpis.length - 1] || {};
   const mesPrevio = kpis[kpis.length - 2] || {};
-  const metaIirl = data.meta_iirl || 1;
+  const metaIirl = data?.meta_iirl || 1;
 
   const cambioIirl = (ultimoMes.iirl || 0) - (mesPrevio.iirl || 0);
   const cumpleMeta = (ultimoMes.iirl || 0) <= metaIirl;

@@ -13,7 +13,7 @@ export default function WorkOrdersPage() {
     return res.ok ? res.json() : null;
   });
 
-  const workOrders = data.workOrders || [];
+  const workOrders = data?.workOrders || [];
 
   const getStatusColor = (status: string) => {
     switch (status) {

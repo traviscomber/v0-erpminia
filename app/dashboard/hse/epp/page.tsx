@@ -26,7 +26,7 @@ export default function HSEEPPPage() {
     { revalidateOnFocus: false, refreshInterval: 300000 }
   );
 
-  const entregas = data.entregas || [];
+  const entregas = data?.entregas || [];
 
   const filtradas = useMemo(
     () =>

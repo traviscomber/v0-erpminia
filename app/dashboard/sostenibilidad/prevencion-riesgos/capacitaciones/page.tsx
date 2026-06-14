@@ -57,7 +57,7 @@ export default function CapacitacionesPage() {
   });
 
   const { data: capacitaciones, isLoading, mutate } = useSWR('/api/sostenibilidad/capacitaciones', fetcher);
-  const capacitacionesList = ((capacitaciones.data || []) as Capacitacion[]);
+  const capacitacionesList = ((capacitaciones?.data || []) as Capacitacion[]);
 
   const filteredCapacitaciones = capacitacionesList.filter((cap: Capacitacion) =>
     cap.nombre_capacitacion.toLowerCase().includes(searchTerm.toLowerCase()) ||

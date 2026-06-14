@@ -53,8 +53,8 @@ export default function IAOperacionalPage() {
   if (isLoading) return <div className="text-gray-500">Cargando inteligencia operacional...</div>;
 
   // Extract insights object (not an array)
-  const insightsData = data.insights || {};
-  const detailsData = data.details || {};
+  const insightsData = data?.insights || {};
+  const detailsData = data?.details || {};
 
   // Get counts from insights
   const criticalCount = insightsData.equipment_risks || 0;

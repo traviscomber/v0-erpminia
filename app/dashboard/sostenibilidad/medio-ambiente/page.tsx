@@ -61,7 +61,7 @@ export default function MedioAmbientePage() {
     fetcher
   );
 
-  const registrosList = ((registros.data || []) as MedioAmbienteRecord[]);
+  const registrosList = ((registros?.data || []) as MedioAmbienteRecord[]);
   const displayData = registrosList;
 
   const filtered = displayData.filter((r: any) => {

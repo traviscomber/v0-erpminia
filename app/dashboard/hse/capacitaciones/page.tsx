@@ -33,7 +33,7 @@ export default function HSECapacitacionesPage() {
     { revalidateOnFocus: false, refreshInterval: 300000 }
   );
 
-  const capacitaciones = data.capacitaciones || [];
+  const capacitaciones = data?.capacitaciones || [];
   const filtradas = useMemo(
     () =>
       capacitaciones.filter((c: any) =>

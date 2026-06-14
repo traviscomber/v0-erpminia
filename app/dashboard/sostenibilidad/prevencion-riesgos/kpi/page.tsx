@@ -221,7 +221,7 @@ export default function KPIPrevenccionPage() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Tasa Accidentabilidad</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{currentMonth.tasa_accidentabilidad.toFixed(2) || 'N/A'}%</div>
+              <div className="text-2xl font-bold">{currentMonth?.tasa_accidentabilidad?.toFixed(2) || 'N/A'}%</div>
               <div className="flex items-center gap-1 mt-2">
                 {calculateTrend(currentMonth.tasa_accidentabilidad, previousMonth.tasa_accidentabilidad) === 'down' && (
                   <>
@@ -245,7 +245,7 @@ export default function KPIPrevenccionPage() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Tasa Frecuencia</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{currentMonth.tasa_frecuencia.toFixed(2) || 'N/A'}</div>
+              <div className="text-2xl font-bold">{currentMonth?.tasa_frecuencia?.toFixed(2) || 'N/A'}</div>
               <p className="text-xs text-muted-foreground mt-2">Accidentes por millón horas trabajadas</p>
             </CardContent>
           </Card>
@@ -256,7 +256,7 @@ export default function KPIPrevenccionPage() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Tasa Gravedad</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{currentMonth.tasa_gravedad.toFixed(2) || 'N/A'}</div>
+              <div className="text-2xl font-bold">{currentMonth?.tasa_gravedad?.toFixed(2) || 'N/A'}</div>
               <p className="text-xs text-muted-foreground mt-2">Días perdidos por accidente</p>
             </CardContent>
           </Card>
@@ -334,9 +334,9 @@ export default function KPIPrevenccionPage() {
                       <td className="py-3 px-4 font-medium">
                         {new Date(kpi.mes_ano).toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })}
                       </td>
-                      <td className="py-3 px-4 text-center">{kpi.tasa_accidentabilidad.toFixed(2)}%</td>
-                      <td className="py-3 px-4 text-center">{kpi.tasa_frecuencia.toFixed(2)}</td>
-                      <td className="py-3 px-4 text-center">{kpi.tasa_gravedad.toFixed(2)}</td>
+                      <td className="py-3 px-4 text-center">{kpi?.tasa_accidentabilidad?.toFixed(2)}%</td>
+                      <td className="py-3 px-4 text-center">{kpi?.tasa_frecuencia?.toFixed(2)}</td>
+                      <td className="py-3 px-4 text-center">{kpi?.tasa_gravedad?.toFixed(2)}</td>
                       <td className="py-3 px-4 text-center">
                         <Badge variant="outline">{kpi.dias_sin_accidentes}</Badge>
                       </td>

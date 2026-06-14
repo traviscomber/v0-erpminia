@@ -22,9 +22,9 @@ export default function BodesaDashboard() {
     return res.ok ? res.json() : null;
   });
 
-  const stockList = stock.stock || [];
-  const alerts = reorder.alerts || [];
-  const stats = reorder.stats || {};
+  const stockList = stock?.stock || [];
+  const alerts = reorder?.alerts || [];
+  const stats = reorder?.stats || {};
 
   const totalValue = stockList.reduce((sum: number, s: any) => sum + ((s.quantity_on_hand || 0) * (s.unit_cost || 0)), 0);
 

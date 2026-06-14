@@ -72,7 +72,7 @@ export default function MaintenanceDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-foreground">{stats.averageMTTR.toFixed(1) || '-'} hrs</p>
+            <p className="text-2xl font-bold text-foreground">{stats.averageMTTR?.toFixed(1) ?? '--'} hrs</p>
           </CardContent>
         </Card>
 
@@ -84,7 +84,7 @@ export default function MaintenanceDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-destructive">{stats.totalDowntime30d.toFixed(1) || '-'} hrs</p>
+            <p className="text-2xl font-bold text-destructive">{stats.totalDowntime30d?.toFixed(1) ?? '--'} hrs</p>
           </CardContent>
         </Card>
 
@@ -96,7 +96,7 @@ export default function MaintenanceDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-secondary">{stats.availability.toFixed(1) || '-'}%</p>
+            <p className="text-2xl font-bold text-secondary">{stats.availability?.toFixed(1) ?? '--'}%</p>
           </CardContent>
         </Card>
 

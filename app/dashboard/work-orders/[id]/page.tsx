@@ -19,7 +19,7 @@ export default function WorkOrderDetailPage() {
     }
   );
 
-  const workOrder = data.data;
+  const workOrder = data?.data;
 
   return (
     <div className="space-y-6">

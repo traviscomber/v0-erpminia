@@ -91,7 +91,7 @@ export default function ComprasPage() {
                     <p className="text-xs text-muted-foreground">{po.vendor_name} - {po.item_code} (Qty: {po.quantity})</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold">${po.total_amount.toFixed(2)}</span>
+                    <span className="text-sm font-semibold">${po?.total_amount?.toFixed(2)}</span>
                     <Badge variant={po.status === 'received' ? 'outline' : 'secondary'}>
                       {po.status}
                     </Badge>
