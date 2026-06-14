@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import useSWR from 'swr';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

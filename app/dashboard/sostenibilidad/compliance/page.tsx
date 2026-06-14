@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import ComplianceCalendar from '@/components/sostenibilidad/compliance-calendar';
