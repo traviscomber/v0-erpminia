@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -10,6 +10,9 @@ import { Plus } from 'lucide-react';
 interface AddContractModalProps {
   onSubmit: (contract: any) => Promise<void>;
 }
+
+const ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx'];
+const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
 
 export function AddContractModal({ onSubmit }: AddContractModalProps) {
   const [open, setOpen] = useState(false);
@@ -23,25 +26,38 @@ export function AddContractModal({ onSubmit }: AddContractModalProps) {
     contract_value: '',
   });
 
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0] || null;
+    if (!selectedFile) {
+      setFile(null);
+      return;
+    }
+
+    const extension = selectedFile.name.split('.').pop()?.toLowerCase() || '';
+    if (!ALLOWED_EXTENSIONS.includes(extension)) {
+      event.target.value = '';
+      setFile(null);
+      return;
+    }
+
+    if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
+      event.target.value = '';
+      setFile(null);
+      return;
+    }
+
+    setFile(selectedFile);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      if (file) {
-        const payload = new FormData();
-        payload.append('title', formData.title);
-        payload.append('contractorName', formData.contractor_name);
-        payload.append('startDate', formData.start_date);
-        payload.append('endDate', formData.end_date);
-        payload.append('contractValue', formData.contract_value);
-        payload.append('file', file);
-        await onSubmit(Object.fromEntries(payload.entries()));
-      } else {
-        await onSubmit({
-          ...formData,
-          contract_value: formData.contract_value ? parseInt(formData.contract_value, 10) : 0,
-        });
-      }
+      await onSubmit({
+        ...formData,
+        contract_value: formData.contract_value ? parseInt(formData.contract_value, 10) : 0,
+        file,
+      });
       setFormData({ title: '', contractor_name: '', start_date: '', end_date: '', contract_value: '' });
       setFile(null);
       setOpen(false);
@@ -61,30 +77,60 @@ export function AddContractModal({ onSubmit }: AddContractModalProps) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Agregar Contrato</DialogTitle>
-          <DialogDescription>Registra un nuevo contrato comercial</DialogDescription>
+          <DialogDescription>Registra un nuevo contrato comercial.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="title">Título del Contrato</Label>
-            <Input id="title" placeholder="Ej: Contrato Proveedor" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} required />
+            <Input
+              id="title"
+              placeholder="Ej: Contrato Proveedor"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              required
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="contractor">Contratista/Proveedor</Label>
-            <Input id="contractor" placeholder="Nombre" value={formData.contractor_name} onChange={(e) => setFormData({ ...formData, contractor_name: e.target.value })} required />
+            <Input
+              id="contractor"
+              placeholder="Nombre"
+              value={formData.contractor_name}
+              onChange={(e) => setFormData({ ...formData, contractor_name: e.target.value })}
+              required
+            />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="start">Fecha Inicio</Label>
-              <Input id="start" type="date" value={formData.start_date} onChange={(e) => setFormData({ ...formData, start_date: e.target.value })} required />
+              <Input
+                id="start"
+                type="date"
+                value={formData.start_date}
+                onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                required
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="end">Fecha Término</Label>
-              <Input id="end" type="date" value={formData.end_date} onChange={(e) => setFormData({ ...formData, end_date: e.target.value })} required />
+              <Input
+                id="end"
+                type="date"
+                value={formData.end_date}
+                onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                required
+              />
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="value">Monto (USD)</Label>
-            <Input id="value" type="number" placeholder="0" value={formData.contract_value} onChange={(e) => setFormData({ ...formData, contract_value: e.target.value })} />
+            <Label htmlFor="value">Monto (CLP)</Label>
+            <Input
+              id="value"
+              type="number"
+              placeholder="0"
+              value={formData.contract_value}
+              onChange={(e) => setFormData({ ...formData, contract_value: e.target.value })}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="file">Archivo opcional</Label>
@@ -92,16 +138,20 @@ export function AddContractModal({ onSubmit }: AddContractModalProps) {
               id="file"
               type="file"
               accept=".pdf,.doc,.docx"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
+              onChange={handleFileChange}
             />
+            <p className="text-xs text-muted-foreground">PDF, DOC o DOCX. Máximo 50MB.</p>
           </div>
           <div className="flex gap-2 justify-end">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-            <Button type="submit" disabled={loading}>{loading ? 'Guardando...' : 'Guardar'}</Button>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? 'Guardando...' : 'Guardar'}
+            </Button>
           </div>
         </form>
       </DialogContent>
     </Dialog>
   );
 }
-

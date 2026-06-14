@@ -1,11 +1,10 @@
 'use client';
 
 import useSWR from 'swr';
-import { getMockDashboardData, getMockNonconformanceData } from '@/lib/mock-data/production-data';
 
 /**
  * Shared SWR hooks for MVP modules.
- * Some modules still keep mock fallback while they are being migrated.
+ * Sustainability hooks now prefer real API payloads and only expose empty states.
  */
 
 const fetcher = async (url: string) => {
@@ -51,11 +50,23 @@ export function useNonconformanceData(organizationId?: string) {
   );
 
   return {
-    data: data || getMockNonconformanceData(),
+    data:
+      data || {
+        nonconformances: [],
+        corrective_actions: [],
+        inspections: [],
+        compliance_stats: {
+          total: 0,
+          open: 0,
+          in_progress: 0,
+          closed: 0,
+          overdue: 0,
+        },
+      },
     error,
     isLoading: isLoading && !data,
     mutate,
-    isMock: !data && !error,
+    isMock: false,
   };
 }
 
@@ -63,17 +74,34 @@ export function useNonconformanceData(organizationId?: string) {
  * Hook para datos del dashboard.
  */
 export function useDashboardData() {
-  const { data, error, isLoading } = useSWR('/api/dashboard', fetcher, {
+  const { data, error, isLoading } = useSWR('/api/sostenibilidad/dashboard/overview', fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: true,
     refreshInterval: 60000,
   });
 
   return {
-    data: data || getMockDashboardData(),
+    data:
+      data || {
+        period: '',
+        overview: {
+          compliance_score: 0,
+          total_ncs: 0,
+          open_ncs: 0,
+          closed_ncs: 0,
+          overdue_cas: 0,
+          trend: 'stable',
+        },
+        nc_stats: { critical: 0, high: 0, medium: 0, low: 0 },
+        ca_stats: { total: 0, planned: 0, in_progress: 0, completed: 0, overdue: 0, completionRate: 0 },
+        trends: [],
+        top_risks: [],
+        inspections_completed: 0,
+        generated_at: '',
+      },
     error,
     isLoading: isLoading && !data,
-    isMock: !data && !error,
+    isMock: false,
   };
 }
 

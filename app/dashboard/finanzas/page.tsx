@@ -51,7 +51,7 @@ export default function FinanzasPage() {
   const [selectedPeriod, setSelectedPeriod] = useState('monthly');
 
   const { data, error, isLoading, mutate } = useSWR(
-    `/api/dashboard/finanzasperiod=${selectedPeriod}`,
+    `/api/dashboard/finanzas?period=${selectedPeriod}`,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -62,15 +62,8 @@ export default function FinanzasPage() {
 
   const budget = data.budget || { total: 0, spent: 0, remaining: 0 };
   const expenses = data.expenses || [];
-  const budgetVsActual = data.budgetVsActual || [
-    { month: 'Ene', budget: 2000000, actual: 1800000 },
-    { month: 'Feb', budget: 2200000, actual: 2100000 },
-    { month: 'Mar', budget: 1900000, actual: 2050000 },
-  ];
-  const forecast = data.forecast || [
-    { month: 'Jul', projected: 2150000 },
-    { month: 'Aug', projected: 2200000 },
-  ];
+  const budgetVsActual = data.budgetVsActual || [];
+  const forecast = data.forecast || [];
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('es-CL', {
@@ -106,23 +99,30 @@ export default function FinanzasPage() {
   }
   if (isLoading) return <div className="text-gray-500">Cargando reportes financieros...</div>;
 
-  const filteredFinances = expenses.filter(
-    (finance: any) =>
-      (finance.vendor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        finance.id.toLowerCase().includes(searchTerm.toLowerCase())) &&
-      (statusFilter === 'all' || finance.status === statusFilter)
-  );
+  const filteredFinances = expenses.filter((finance: any) => {
+    const vendor = String(finance.vendor || finance.vendor_name || finance.supplier || '');
+    const id = String(finance.id || finance.invoice || '');
+    const status = String(finance.status || '').toLowerCase();
+    return (
+      (vendor.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        id.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      (statusFilter === 'all' || status === statusFilter)
+    );
+  });
 
-  const totalAmount = filteredFinances.reduce((sum: number, f: any) => sum + (f.amount || 0), 0);
+  const totalAmount = filteredFinances.reduce(
+    (sum: number, f: any) => sum + Number(f.amount || f.total_amount || 0),
+    0
+  );
   const paidAmount = filteredFinances
-    .filter((f: any) => f.status === 'Pagada')
-    .reduce((sum: number, f: any) => sum + (f.amount || 0), 0);
+    .filter((f: any) => String(f.status || '').toLowerCase() === 'pagada')
+    .reduce((sum: number, f: any) => sum + Number(f.amount || f.total_amount || 0), 0);
   const pendingAmount = filteredFinances
-    .filter((f: any) => f.status === 'Pendiente')
-    .reduce((sum: number, f: any) => sum + (f.amount || 0), 0);
+    .filter((f: any) => String(f.status || '').toLowerCase() === 'pendiente')
+    .reduce((sum: number, f: any) => sum + Number(f.amount || f.total_amount || 0), 0);
   const overdueAmount = filteredFinances
-    .filter((f: any) => f.status === 'Vencida')
-    .reduce((sum: number, f: any) => sum + (f.amount || 0), 0);
+    .filter((f: any) => String(f.status || '').toLowerCase() === 'vencida')
+    .reduce((sum: number, f: any) => sum + Number(f.amount || f.total_amount || 0), 0);
 
   const pieData = [
     { name: 'Pagada', value: paidAmount },
@@ -246,17 +246,17 @@ export default function FinanzasPage() {
             <div className="flex items-center justify-between rounded-lg border border-border p-4">
               <div>
                 <p className="text-sm text-muted-foreground">Presupuesto anual</p>
-                <p className="text-xl font-bold">{formatCurrency(Number(budget.annual || 0))}</p>
+                <p className="text-xl font-bold">{formatCurrency(Number(budget.total || 0))}</p>
               </div>
               <div className="text-right">
                 <p className="text-sm text-muted-foreground">Ejecutado</p>
-                <p className="text-xl font-bold">{formatCurrency(Number(budget.used || 0))}</p>
+                <p className="text-xl font-bold">{formatCurrency(Number(budget.spent || 0))}</p>
               </div>
             </div>
             <div className="space-y-2">
               {budgetVsActual.slice(0, 4).map((item: any) => (
-                <div key={item.name} className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2 text-sm">
-                  <span>{item.name}</span>
+                <div key={item.month} className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2 text-sm">
+                  <span>{item.month}</span>
                   <span className="text-muted-foreground">
                     {formatCurrency(Number(item.actual || 0))} / {formatCurrency(Number(item.budget || 0))}
                   </span>

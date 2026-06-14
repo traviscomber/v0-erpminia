@@ -1,48 +1,92 @@
-export async function GET(request: Request) {
+import { NextRequest, NextResponse } from 'next/server';
+import { getOrganizationContext } from '@/lib/api/organization-context';
+import { getDashboardSnapshot } from '@/lib/api/dashboard-snapshot';
+
+function averageHours(rows: any[]) {
+  const values = rows
+    .map((row) => {
+      const start = new Date(row.created_at || row.createdAt || row.start_time || row.startDate || 0).getTime();
+      const end = new Date(row.completion_date || row.completed_at || row.closed_at || row.end_time || row.endDate || 0).getTime();
+      if (!start || !end || Number.isNaN(start) || Number.isNaN(end) || end <= start) return null;
+      return (end - start) / (1000 * 60 * 60);
+    })
+    .filter((value): value is number => typeof value === 'number' && Number.isFinite(value));
+
+  if (values.length === 0) return 0;
+  return Number((values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(1));
+}
+
+export async function GET(request: NextRequest) {
+  const context = await getOrganizationContext(request);
+  if (!context.ok) return context.response;
+
   try {
-    const mockKPIs = {
-      operating_equipment: 4,
-      mtbf_hours: 1250,
-      mttr_hours: 2.3,
-      availability_percent: 98.5,
-      incidents_this_month: 1,
-      pending_maintenance: 3,
-      stock_turnover: 4.8,
-      budget_variance: -2.3,
-    };
+    const [snapshot, incidentsResult] = await Promise.all([
+      getDashboardSnapshot({ organizationId: context.organizationId, supabase: context.supabase }),
+      context.supabase
+        .from('incidents')
+        .select('id, date_reported')
+        .eq('organization_id', context.organizationId)
+        .order('date_reported', { ascending: false })
+        .limit(100),
+    ]);
 
-    const trendData = [
-      { month: 'Ene', availability: 96.5, mtbf: 1100, incidents: 4 },
-      { month: 'Feb', availability: 97.2, mtbf: 1150, incidents: 3 },
-      { month: 'Mar', availability: 97.8, mtbf: 1200, incidents: 2 },
-      { month: 'Abr', availability: 98.1, mtbf: 1220, incidents: 2 },
-      { month: 'May', availability: 98.3, mtbf: 1240, incidents: 1 },
-      { month: 'Jun', availability: 98.5, mtbf: 1250, incidents: 1 },
-    ];
+    const incidents = incidentsResult.data || [];
+    const completedWorkOrders = snapshot.workOrders.filter((item: any) => {
+      const status = String(item.status || '').toLowerCase();
+      return ['completed', 'closed', 'done', 'finalizado', 'cerrado', 'resuelto'].includes(status);
+    });
 
-    const alertsDistribution = [
-      { name: 'Críticos', value: 2, color: '#ef4444' },
-      { name: 'Warnings', value: 5, color: '#f97316' },
-      { name: 'Info', value: 8, color: '#22c55e' },
-    ];
+    const latestIncidentDate = incidents[0]?.date_reported;
+    const daysNoIncidents = latestIncidentDate
+      ? Math.max(0, Math.floor((Date.now() - new Date(latestIncidentDate).getTime()) / (1000 * 60 * 60 * 24)))
+      : snapshot.daysNoIncidents;
 
-    const recommendations = [
-      'Aumentar frecuencia de inspecciones preventivas en Filtro 2',
-      'Revisar calibración de sensores de vibración',
-      'Implementar programa de rotación de equipos críticos',
-      'Actualizar planes de mantenimiento basado en análisis FMEA',
-    ];
+    const budgetAnnual = snapshot.costCenters.reduce(
+      (sum: number, item: any) => sum + Number(item.budget_annual || 0),
+      0
+    );
+    const budgetUsed = snapshot.costCenters.reduce(
+      (sum: number, item: any) => sum + Number(item.budget_used || 0),
+      0
+    );
+    const budgetVariance = budgetAnnual > 0 ? Number((((budgetUsed - budgetAnnual) / budgetAnnual) * 100).toFixed(1)) : 0;
 
-    return Response.json({
-      kpis: mockKPIs,
-      trendData,
-      alertsDistribution,
-      recommendations,
+    const mttrHours = averageHours(completedWorkOrders);
+    const availabilityPercent = snapshot.assets.length > 0
+      ? Number(((snapshot.operationalEquipment / snapshot.assets.length) * 100).toFixed(1))
+      : 100;
+
+    return NextResponse.json({
+      kpis: {
+        operating_equipment: snapshot.operationalEquipment,
+        mtbf_hours: snapshot.mtbfHours,
+        mttr_hours: mttrHours,
+        availability_percent: availabilityPercent,
+        incidents_this_month: incidents.filter((item: any) => {
+          const reported = new Date(item.date_reported || 0).getTime();
+          const monthStart = new Date();
+          monthStart.setDate(1);
+          monthStart.setHours(0, 0, 0, 0);
+          return reported >= monthStart.getTime();
+        }).length,
+        pending_maintenance: snapshot.summary.overdueWorkOrders + snapshot.summary.preventiveOrders,
+        critical_stock_items: snapshot.lowStockItems.length,
+        valid_documents_pct: snapshot.validDocumentsPct,
+        days_no_incidents: daysNoIncidents,
+        on_time_purchase_orders_pct: snapshot.onTimePurchaseOrdersPct,
+        operational_costs_monthly: snapshot.operationalCostsMonthly,
+        active_alerts: snapshot.summary.activeAlerts,
+        budget_variance: budgetVariance,
+      },
+      trendData: snapshot.trendData,
+      alertsDistribution: snapshot.alertsDistribution,
+      recommendations: snapshot.recommendations.map((item: any) => item.description),
       lastUpdated: new Date().toISOString(),
     });
   } catch (error) {
     console.error('[v0] Error in KPI dashboard API:', error);
-    return Response.json(
+    return NextResponse.json(
       { error: 'Error al cargar datos KPI' },
       { status: 500 }
     );

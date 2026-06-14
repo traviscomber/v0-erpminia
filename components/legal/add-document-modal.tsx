@@ -13,27 +13,46 @@ interface AddDocumentModalProps {
   onSubmit: (doc: any) => Promise<void>;
 }
 
+const ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx', 'xls', 'xlsx'];
+const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
+
 export function AddDocumentModal({ onSubmit }: AddDocumentModalProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({ title: '', description: '', category: 'regulatory' });
 
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0] || null;
+    if (!selectedFile) {
+      setFile(null);
+      return;
+    }
+
+    const extension = selectedFile.name.split('.').pop()?.toLowerCase() || '';
+    if (!ALLOWED_EXTENSIONS.includes(extension)) {
+      event.target.value = '';
+      setFile(null);
+      return;
+    }
+
+    if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
+      event.target.value = '';
+      setFile(null);
+      return;
+    }
+
+    setFile(selectedFile);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      if (file) {
-        const payload = new FormData();
-        payload.append('title', formData.title);
-        payload.append('description', formData.description);
-        payload.append('category', formData.category);
-        payload.append('documentType', formData.category);
-        payload.append('file', file);
-        await onSubmit(Object.fromEntries(payload.entries()));
-      } else {
-        await onSubmit(formData);
-      }
+      await onSubmit({
+        ...formData,
+        file,
+      });
       setFormData({ title: '', description: '', category: 'regulatory' });
       setFile(null);
       setOpen(false);
@@ -53,7 +72,7 @@ export function AddDocumentModal({ onSubmit }: AddDocumentModalProps) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Agregar Documento Legal</DialogTitle>
-          <DialogDescription>Registra un nuevo documento legal o normativo</DialogDescription>
+          <DialogDescription>Registra un nuevo documento legal o normativo.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -94,8 +113,9 @@ export function AddDocumentModal({ onSubmit }: AddDocumentModalProps) {
               id="file"
               type="file"
               accept=".pdf,.doc,.docx,.xls,.xlsx"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
+              onChange={handleFileChange}
             />
+            <p className="text-xs text-muted-foreground">PDF, DOC, DOCX, XLS o XLSX. Máximo 50MB.</p>
           </div>
           <div className="flex gap-2 justify-end">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>

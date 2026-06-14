@@ -12,24 +12,20 @@ export async function GET(request: NextRequest) {
     const stats = await DocumentService.getDashboardStats(auth.organizationId);
     return NextResponse.json(stats);
   } catch (error) {
-    console.error('[v0] Error fetching document stats:', error);
-    
-    // Return fallback mock data on error
-    const mockStats = {
-      totalDocuments: 48,
-      approved: 42,
-      pending: 4,
-      rejected: 2,
-      avgApprovalDays: 3.5,
-      pendingByCategory: {
-        Procedimientos: 2,
-        Manuales: 1,
-        Políticas: 1,
+    return NextResponse.json(
+      {
+        stats: {
+          totalDocuments: 0,
+          approved: 0,
+          pending: 0,
+          rejected: 0,
+          avgApprovalDays: 0,
+          pendingByCategory: {},
+          overdue: 0,
+          expiringIn30Days: 0,
+        },
       },
-      overdue: 0,
-      expiringIn30Days: 5,
-    };
-    
-    return NextResponse.json({ stats: mockStats });
+      { status: 500 }
+    );
   }
 }
