@@ -28,10 +28,11 @@ export default function ComprasPage() {
         const res = await fetch('/api/compras/purchase-orders');
         if (res.ok) {
           const { purchase_orders } = await res.json();
-          setOrders(purchase_orders || []);
+          const ordersList = Array.isArray(purchase_orders) ? purchase_orders : [];
+          setOrders(ordersList);
           setStats({
-            pending: purchase_orders.filter((o: any) => o.status === 'pending').length || 0,
-            received: purchase_orders.filter((o: any) => o.status === 'received').length || 0,
+            pending: ordersList.filter((o: any) => o.status === 'pending').length,
+            received: ordersList.filter((o: any) => o.status === 'received').length,
           });
         }
       } catch (err) {
@@ -47,14 +48,16 @@ export default function ComprasPage() {
   return (
     <div className="space-y-4 p-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Compras (Purchasing)</h1>
-        <p className="text-muted-foreground">Purchase orders, vendor management, and procurement tracking</p>
+        <h1 className="text-3xl font-bold tracking-tight">Compras</h1>
+        <p className="text-muted-foreground">
+          Gestión de órdenes de compra, proveedores y trazabilidad de abastecimiento
+        </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Pending Orders</CardTitle>
+            <CardTitle className="text-sm font-medium">Órdenes Pendientes</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">{stats.pending}</div>
@@ -63,7 +66,7 @@ export default function ComprasPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Received</CardTitle>
+            <CardTitle className="text-sm font-medium">Recibidas</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{stats.received}</div>
@@ -75,20 +78,22 @@ export default function ComprasPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent Purchase Orders</CardTitle>
+          <CardTitle>Órdenes de Compra Recientes</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-muted-foreground text-sm">Loading...</p>
+            <p className="text-muted-foreground text-sm">Cargando...</p>
           ) : orders.length === 0 ? (
-            <p className="text-muted-foreground text-sm">No purchase orders yet.</p>
+            <p className="text-muted-foreground text-sm">Aún no hay órdenes de compra.</p>
           ) : (
             <div className="space-y-3">
               {orders.slice(0, 5).map(po => (
                 <div key={po.id} className="flex items-center justify-between p-2 border rounded">
                   <div>
                     <p className="font-semibold text-sm">{po.po_number}</p>
-                    <p className="text-xs text-muted-foreground">{po.vendor_name} - {po.item_code} (Qty: {po.quantity})</p>
+                    <p className="text-xs text-muted-foreground">
+                      {po.vendor_name} - {po.item_code} (Cant.: {po.quantity})
+                    </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold">${po?.total_amount?.toFixed(2)}</span>
