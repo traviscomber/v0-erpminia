@@ -15,13 +15,20 @@ export function FinanzasDashboard() {
   const balance = ingresos - egresos;
 
   // Agrupar por fecha para gráfico
-  const byDate = {};
-  movements.forEach(m => {
-    if (!byDate[m.date]) byDate[m.date] = { date: m.date, ingresos: 0, egresos: 0 };
-    if (m.type === 'ingreso') byDate[m.date].ingresos += m.amount;
-    else byDate[m.date].egresos += m.amount;
-  });
-  const chartData = Object.values(byDate);
+  const chartData = movements.reduce((acc: any[], m: any) => {
+    const existing = acc.find((x: any) => x.date === m.date);
+    if (existing) {
+      if (m.type === 'ingreso') existing.ingresos += m.amount;
+      else existing.egresos += m.amount;
+    } else {
+      acc.push({
+        date: m.date,
+        ingresos: m.type === 'ingreso' ? m.amount : 0,
+        egresos: m.type === 'egreso' ? m.amount : 0,
+      });
+    }
+    return acc;
+  }, []);
 
   return (
     <div className="space-y-6">
