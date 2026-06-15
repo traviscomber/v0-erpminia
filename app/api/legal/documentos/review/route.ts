@@ -57,5 +57,34 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  // Send email notification about the review
+  try {
+    const emailRes = await fetch(
+      new URL('/api/legal/notifications/email', request.url),
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': request.headers.get('cookie') || '',
+        },
+        body: JSON.stringify({
+          docId,
+          documentTitle: data.document_name,
+          reviewLevel: level,
+          status,
+          observations,
+          recipientEmail: auth.user.email,
+        }),
+      }
+    );
+
+    if (!emailRes.ok) {
+      console.warn('[v0] Email notification failed:', await emailRes.text());
+    }
+  } catch (emailError) {
+    console.warn('[v0] Error sending email notification:', emailError);
+    // Don't fail the review if email fails
+  }
+
   return NextResponse.json({ document: data }, { status: 200 });
 }
