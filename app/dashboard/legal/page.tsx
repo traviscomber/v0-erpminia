@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { ContractsTracker } from '@/components/legal/contracts-tracker';
 import { AddDocumentModal } from '@/components/legal/add-document-modal';
+import { DocumentReviewModal } from '@/components/legal/document-review-modal';
 import { AddContractModal } from '@/components/legal/add-contract-modal';
 
 const fetcher = async (url: string) => {
@@ -123,32 +124,66 @@ export default function LegalPage() {
   const [activeTab, setActiveTab] = useState('documents');
   const [searchQuery, setSearchQuery] = useState('');
   const [loadingDocId, setLoadingDocId] = useState<string | null>(null);
+  const [reviewingDoc, setReviewingDoc] = useState<LegalDocument | null>(null);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
 
   const handleOpenDoc = async (doc: LegalDocument, download = false) => {
-    if (loadingDocId === doc.id) return;
-    setLoadingDocId(doc.id);
+    if (download) {
+      // Download behavior
+      if (loadingDocId === doc.id) return;
+      setLoadingDocId(doc.id);
+      try {
+        let url = doc.fileUrl;
+        if (!url) {
+          const res = await fetch(`/api/legal/documentos/download?id=${doc.id}`, {
+            credentials: 'include',
+          });
+          const json = await res.json();
+          url = json.url ?? null;
+        }
+        if (url) {
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = doc.title || 'documento';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }
+      } finally {
+        setLoadingDocId(null);
+      }
+    } else {
+      // Preview behavior - open review modal
+      setReviewingDoc(doc);
+      setReviewModalOpen(true);
+    }
+  };
+
+  const handleDocumentReview = async (
+    docId: string,
+    level: 'L1' | 'L2',
+    status: 'cumple' | 'no_cumple' | null,
+    observations: string
+  ) => {
     try {
-      // Use existing fileUrl if available
-      let url = doc.fileUrl;
-      if (!url) {
-        const res = await fetch(`/api/legal/documentos/download?id=${doc.id}`, {
-          credentials: 'include',
-        });
-        const json = await res.json();
-        url = json.url ?? null;
+      const res = await fetch('/api/legal/documentos/review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ docId, level, status, observations }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Error en la revisión');
       }
-      if (url) {
-        const a = document.createElement('a');
-        a.href = url;
-        a.target = '_blank';
-        a.rel = 'noreferrer';
-        if (download) a.download = doc.title || 'documento';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      }
-    } finally {
-      setLoadingDocId(null);
+
+      // Refresh the documents list
+      await mutateDocuments();
+      setReviewingDoc(null);
+    } catch (error) {
+      console.error('Error reviewing document:', error);
+      alert(`Error: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   };
   const searchParam = searchQuery.trim()
@@ -584,6 +619,17 @@ export default function LegalPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <DocumentReviewModal
+        open={reviewModalOpen}
+        document={reviewingDoc}
+        level="L1"
+        onClose={() => {
+          setReviewModalOpen(false);
+          setReviewingDoc(null);
+        }}
+        onReview={handleDocumentReview}
+      />
     </div>
   );
 }
