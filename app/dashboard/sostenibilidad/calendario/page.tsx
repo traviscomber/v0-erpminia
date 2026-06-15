@@ -161,7 +161,7 @@ export default function CalendarioPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Calendario de Sostenibilidad</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Inspecciones, auditorÃ­as, capacitaciones y vencimientos legales</p>
+          <p className="text-sm text-muted-foreground mt-0.5">Inspecciones, auditorías, capacitaciones y vencimientos legales</p>
         </div>
         <Dialog open={isOpen} onOpenChange={o => { setIsOpen(o); if (!o) setFormData({ ...BLANK_FORM }); }}>
           <DialogTrigger asChild>
@@ -178,7 +178,7 @@ export default function CalendarioPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="col-span-2">
                   <Label htmlFor="titulo">Título *</Label>
-                  <Input id="titulo" name="titulo" value={formData.titulo} onChange={handleInput} placeholder="Ej: InspecciÃ³n EPP sector norte" required />
+                  <Input id="titulo" name="titulo" value={formData.titulo} onChange={handleInput} placeholder="Ej: Inspección EPP sector norte" required />
                 </div>
                 <div>
                   <Label>Tipo de Evento</Label>

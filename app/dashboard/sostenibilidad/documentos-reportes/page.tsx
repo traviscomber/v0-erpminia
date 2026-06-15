@@ -190,7 +190,7 @@ export default function DocumentosReportesPage() {
       <div>
         <h1 className="text-3xl font-bold text-foreground">Reportería de Documentos</h1>
         <p className="text-muted-foreground mt-2">
-          AnÃ¡lisis y seguimiento del flujo de aprobación documental
+          Análisis y seguimiento del flujo de aprobación documental
         </p>
       </div>
 
@@ -393,7 +393,7 @@ export default function DocumentosReportesPage() {
                         <p className="font-medium">{doc.title}</p>
                         <p className="text-xs text-muted-foreground">{doc.approvalLevel}</p>
                       </div>
-                      <Badge variant="destructive">{doc.daysOverdue} dÃ­as</Badge>
+                      <Badge variant="destructive">{doc.daysOverdue} días</Badge>
                     </div>
                   ))
                 ) : (

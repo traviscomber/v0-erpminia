@@ -128,7 +128,7 @@ export default function DocumentosFinanzasPage() {
       <div>
         <h1 className="text-3xl font-bold">Documentos Finanzas</h1>
         <p className="text-muted-foreground mt-2">
-          Gestión de polÃ­ticas, procedimientos e instructivos financieros
+          Gestión de políticas, procedimientos e instructivos financieros
         </p>
       </div>
 

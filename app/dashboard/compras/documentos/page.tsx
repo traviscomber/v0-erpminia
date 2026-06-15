@@ -128,7 +128,7 @@ export default function ComprasDocumentosPage() {
       <div>
         <h1 className="text-3xl font-bold">Documentos Compras</h1>
         <p className="text-muted-foreground mt-2">
-          Gestión de Ã³rdenes de compra, contratos, facturas y documentos de proveedores
+          Gestión de órdenes de compra, contratos, facturas y documentos de proveedores
         </p>
       </div>
 
