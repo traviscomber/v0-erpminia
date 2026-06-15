@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
 
       if (!fileUrl && doc.file_path) {
         const { data: signedData } = await supabase.storage
-          .from('documents')
+          .from('module-documents')
           .createSignedUrl(doc.file_path, 3600);
         fileUrl = signedData?.signedUrl ?? null;
       }

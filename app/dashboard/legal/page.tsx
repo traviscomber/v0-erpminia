@@ -34,7 +34,8 @@ type LegalDocument = {
   category: string;
   documentType: string;
   status: string;
-  fileUrl: string;
+  fileUrl: string | null;
+  filePath: string | null;
 };
 
 type LegalContract = {
@@ -121,6 +122,35 @@ function formatContractValue(value: number, currency: string) {
 export default function LegalPage() {
   const [activeTab, setActiveTab] = useState('documents');
   const [searchQuery, setSearchQuery] = useState('');
+  const [loadingDocId, setLoadingDocId] = useState<string | null>(null);
+
+  const handleOpenDoc = async (doc: LegalDocument, download = false) => {
+    if (loadingDocId === doc.id) return;
+    setLoadingDocId(doc.id);
+    try {
+      // Use existing fileUrl if available
+      let url = doc.fileUrl;
+      if (!url) {
+        const res = await fetch(`/api/legal/documentos/download?id=${doc.id}`, {
+          credentials: 'include',
+        });
+        const json = await res.json();
+        url = json.url ?? null;
+      }
+      if (url) {
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        a.rel = 'noreferrer';
+        if (download) a.download = doc.title || 'documento';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+    } finally {
+      setLoadingDocId(null);
+    }
+  };
   const searchParam = searchQuery.trim()
     ? `?search=${encodeURIComponent(searchQuery.trim())}`
     : '';
@@ -464,29 +494,30 @@ export default function LegalPage() {
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       {getStatusBadge(doc.status)}
-                      {doc.fileUrl && (
+                      {(doc.fileUrl || doc.filePath) && (
                         <>
                           <Button
-                            asChild
                             variant="ghost"
                             size="sm"
                             className="h-8 w-8 p-0"
+                            disabled={loadingDocId === doc.id}
+                            onClick={() => handleOpenDoc(doc, false)}
+                            title="Vista previa"
                           >
-                            <a href={doc.fileUrl} target="_blank" rel="noreferrer">
-                              <Eye className="w-4 h-4" />
-                            </a>
+                            <Eye className="w-4 h-4" />
                           </Button>
                           <Button
-                            asChild
                             variant="ghost"
                             size="sm"
                             className="h-8 w-8 p-0"
+                            disabled={loadingDocId === doc.id}
+                            onClick={() => handleOpenDoc(doc, true)}
+                            title="Descargar"
                           >
-                            <a href={doc.fileUrl} target="_blank" rel="noreferrer">
-                              <Download className="w-4 h-4" />
-                            </a>
+                            <Download className="w-4 h-4" />
                           </Button>
                         </>
+                      )}
                       )}
                     </div>
                   </div>
