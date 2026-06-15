@@ -105,7 +105,7 @@ const menuItems = [
     label: 'Producción',
     href: '/dashboard/produccion',
     icon: Zap,
-    group: 'Operaciones',
+    group: 'Producción',
   },
   {
     label: 'Mantención',
@@ -298,6 +298,7 @@ export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     'Core': true,
+    'Producción': true,
     'Operaciones': true,
     'Mantención': false,
     'Bodega & Inventario': false,
@@ -391,7 +392,7 @@ export function Sidebar() {
         {/* Navigation Menu - v7 Sistema Completo 5 Módulos */}
         <nav className="flex-1 px-4 py-6 overflow-y-auto">
           <div className="space-y-2">
-            {['Core', 'Operaciones', 'Mantención', 'Bodega & Inventario', 'Sostenibilidad', 'Finanzas', 'Legal', 'Inteligencia Artificial', 'Administración', 'Ayuda'].map((group) => {
+            {['Core', 'Producción', 'Operaciones', 'Mantención', 'Bodega & Inventario', 'Sostenibilidad', 'Finanzas', 'Legal', 'Inteligencia Artificial', 'Administración', 'Ayuda'].map((group) => {
               const groupItems = filteredMenuItems.filter((item) => item.group === group);
               if (groupItems.length === 0) return null;
               const isExpanded = expandedGroups[group] ?? false;
