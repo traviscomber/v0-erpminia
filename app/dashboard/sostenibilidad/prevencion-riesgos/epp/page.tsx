@@ -25,6 +25,7 @@ interface EPP {
   elemento_epp: string;
   cantidad_elemento: number;
   marca_modelo: string;
+  ficha_tecnica_url?: string | null;
   frecuencia_reemplazo: string;
   activo: boolean;
 }
@@ -47,6 +48,7 @@ export default function EPPPage() {
     elemento_epp: '',
     cantidad_elemento: 1,
     marca_modelo: '',
+    ficha_tecnica_url: '',
     frecuencia_reemplazo: 'semestral',
     activo: true,
   });
@@ -58,6 +60,7 @@ export default function EPPPage() {
       elemento_epp: '',
       cantidad_elemento: 1,
       marca_modelo: '',
+      ficha_tecnica_url: '',
       frecuencia_reemplazo: 'semestral',
       activo: true,
     });
@@ -131,6 +134,7 @@ export default function EPPPage() {
       elemento_epp: item.elemento_epp,
       cantidad_elemento: item.cantidad_elemento,
       marca_modelo: item.marca_modelo || '',
+      ficha_tecnica_url: item.ficha_tecnica_url || '',
       frecuencia_reemplazo: item.frecuencia_reemplazo,
       activo: item.activo,
     });
@@ -223,6 +227,19 @@ export default function EPPPage() {
                   onChange={handleInputChange}
                   placeholder="Ej: MSA V-Guard"
                 />
+              </div>
+              <div>
+                <Label htmlFor="ficha_tecnica_url">Ficha técnica / documento</Label>
+                <Input
+                  id="ficha_tecnica_url"
+                  name="ficha_tecnica_url"
+                  value={formData.ficha_tecnica_url}
+                  onChange={handleInputChange}
+                  placeholder="Ej: /documentos/epp/casco-seguridad.pdf o https://..."
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Enlace opcional a la ficha técnica, catálogo o documento interno.
+                </p>
               </div>
               <div>
                 <Label htmlFor="frecuencia">Frecuencia de Reemplazo</Label>
@@ -344,9 +361,10 @@ export default function EPPPage() {
                     <th className="text-left py-3 px-4 font-medium">Elemento EPP</th>
                     <th className="text-left py-3 px-4 font-medium">Cantidad</th>
                     <th className="text-left py-3 px-4 font-medium">Marca/Modelo</th>
+                    <th className="text-left py-3 px-4 font-medium">Ficha técnica</th>
                     <th className="text-left py-3 px-4 font-medium">Frecuencia Reemplazo</th>
                     <th className="text-left py-3 px-4 font-medium">Estado</th>
-                    <th className="text-right py-3 px-4 font-medium">Accines</th>
+                    <th className="text-right py-3 px-4 font-medium">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -363,6 +381,20 @@ export default function EPPPage() {
                         <Badge variant="outline">{item.cantidad_elemento}</Badge>
                       </td>
                       <td className="py-3 px-4 text-muted-foreground text-sm">{item.marca_modelo || '-'}</td>
+                      <td className="py-3 px-4 text-sm">
+                        {item.ficha_tecnica_url ? (
+                          <a
+                            href={item.ficha_tecnica_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-primary underline underline-offset-4 hover:opacity-80"
+                          >
+                            Ver ficha técnica
+                          </a>
+                        ) : (
+                          <span className="text-muted-foreground">Sin enlace</span>
+                        )}
+                      </td>
                       <td className="py-3 px-4">
                         <Badge variant="secondary">{item.frecuencia_reemplazo}</Badge>
                       </td>
