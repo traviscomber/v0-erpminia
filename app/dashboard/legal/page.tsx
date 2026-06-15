@@ -21,13 +21,9 @@ import { AddDocumentModal } from '@/components/legal/add-document-modal';
 import { AddContractModal } from '@/components/legal/add-contract-modal';
 
 const fetcher = async (url: string) => {
-  const response = await fetch(url);
+  const response = await fetch(url, { credentials: 'include' });
   const payload = await response.json().catch(() => null);
-
-  if (!response.ok) {
-    return null;
-  }
-
+  if (!response.ok) return null;
   return payload;
 };
 
