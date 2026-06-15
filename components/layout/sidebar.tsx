@@ -111,13 +111,13 @@ const menuItems = [
     label: 'Mantención',
     href: '/dashboard/mantenimiento',
     icon: Wrench,
-    group: 'Operaciones',
+    group: 'Mantención',
   },
   {
     label: 'Documentos Mantenimiento',
     href: '/dashboard/mantenimiento/documentos',
     icon: File,
-    group: 'Operaciones',
+    group: 'Mantención',
   },
   {
     label: 'Órdenes de Trabajo',
@@ -129,13 +129,13 @@ const menuItems = [
     label: 'Bodega & Inventario',
     href: '/dashboard/bodega',
     icon: Boxes,
-    group: 'Operaciones',
+    group: 'Bodega & Inventario',
   },
   {
     label: 'Documentos Bodega',
     href: '/dashboard/bodega/documentos',
     icon: File,
-    group: 'Operaciones',
+    group: 'Bodega & Inventario',
   },
   
   // SOSTENIBILIDAD - Transversal (4 Pilares, 12 Módulos)
@@ -299,10 +299,11 @@ export function Sidebar() {
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     'Core': true,
     'Operaciones': true,
+    'Mantención': false,
+    'Bodega & Inventario': false,
     'Sostenibilidad': true,
     'Finanzas': false,
     'Legal': false,
-    'HSE': false,
   });
   const [isMounted, setIsMounted] = useState(false);
 
@@ -390,7 +391,7 @@ export function Sidebar() {
         {/* Navigation Menu - v7 Sistema Completo 5 Módulos */}
         <nav className="flex-1 px-4 py-6 overflow-y-auto">
           <div className="space-y-2">
-            {['Core', 'Operaciones', 'Sostenibilidad', 'Finanzas', 'Legal', 'Inteligencia Artificial', 'Administración', 'Ayuda'].map((group) => {
+            {['Core', 'Operaciones', 'Mantención', 'Bodega & Inventario', 'Sostenibilidad', 'Finanzas', 'Legal', 'Inteligencia Artificial', 'Administración', 'Ayuda'].map((group) => {
               const groupItems = filteredMenuItems.filter((item) => item.group === group);
               if (groupItems.length === 0) return null;
               const isExpanded = expandedGroups[group] ?? false;
