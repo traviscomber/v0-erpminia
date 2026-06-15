@@ -15,6 +15,8 @@ export interface DocumentReviewModalProps {
   document: {
     id: string;
     title: string;
+    description?: string;
+    documentType?: string;
     fileUrl: string | null;
     status: string;
     l1_status?: string;
