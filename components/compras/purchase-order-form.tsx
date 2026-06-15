@@ -39,7 +39,7 @@ export function PurchaseOrderForm() {
       }
     } catch (err) {
       console.error('[v0] PO form error:', err);
-      setError((err as Error).message);
+      setError('No se pudo crear la orden de compra');
     } finally {
       setLoading(false);
     }

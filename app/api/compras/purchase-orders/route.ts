@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
       suppliers: [...new Set(purchaseOrders.map((order: any) => order.vendor_name).filter(Boolean))],
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch purchase orders';
+    const message = error instanceof Error ? error.message : 'No se pudieron cargar las órdenes de compra';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
 
     if (!vendorName || !itemCode || !deliveryDate) {
       return NextResponse.json(
-        { error: 'vendor_name, item_code and delivery_date are required' },
+        { error: 'vendor_name, item_code y delivery_date son obligatorios' },
         { status: 400 }
       );
     }
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
       },
     }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to create purchase order';
+    const message = error instanceof Error ? error.message : 'No se pudo crear la orden de compra';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

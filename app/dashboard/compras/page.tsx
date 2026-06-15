@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { PurchaseOrderForm } from '@/components/compras/purchase-order-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp } from 'lucide-react';
 
 interface PO {
   id: string;
