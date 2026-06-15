@@ -218,54 +218,54 @@ const menuItems = [
     group: 'Sostenibilidad',
   },
   
-  // GESTIÓN EMPRESARIAL
+  // FINANZAS
   {
     label: 'Compras & OCs',
     href: '/dashboard/compras',
     icon: ShoppingCart,
-    group: 'Gestión Empresarial',
+    group: 'Finanzas',
   },
   {
     label: 'Documentos Compras',
     href: '/dashboard/compras/documentos',
     icon: File,
-    group: 'Gestión Empresarial',
+    group: 'Finanzas',
   },
   {
     label: 'Finanzas & Presupuesto',
     href: '/dashboard/finanzas',
     icon: DollarSign,
-    group: 'Gestión Empresarial',
+    group: 'Finanzas',
   },
   {
     label: 'Documentos Finanzas',
     href: '/dashboard/finanzas/documentos',
     icon: File,
-    group: 'Gestión Empresarial',
+    group: 'Finanzas',
   },
   {
     label: 'Gestión Documental',
     href: '/dashboard/documentos-gestion',
     icon: FolderOpen,
-    group: 'Gestión Empresarial',
+    group: 'Finanzas',
   },
   {
     label: 'Reportes & Análisis',
     href: '/dashboard/reportes',
     icon: BarChart3,
-    group: 'Gestión Empresarial',
+    group: 'Finanzas',
   },
   {
     label: 'Módulo Legal',
     href: '/dashboard/legal',
     icon: Scale,
-    group: 'Gestión Empresarial',
+    group: 'Legal',
   },
   {
     label: 'Documentos Legal',
     href: '/dashboard/legal/documentos',
     icon: File,
-    group: 'Gestión Empresarial',
+    group: 'Legal',
   },
   
   // HSE
@@ -300,7 +300,8 @@ export function Sidebar() {
     'Core': true,
     'Operaciones': true,
     'Sostenibilidad': true,
-    'Gestión Empresarial': false,
+    'Finanzas': false,
+    'Legal': false,
     'HSE': false,
   });
   const [isMounted, setIsMounted] = useState(false);
@@ -389,7 +390,7 @@ export function Sidebar() {
         {/* Navigation Menu - v7 Sistema Completo 5 Módulos */}
         <nav className="flex-1 px-4 py-6 overflow-y-auto">
           <div className="space-y-2">
-            {['Core', 'Operaciones', 'Sostenibilidad', 'Gestión Empresarial', 'HSE', 'Inteligencia Artificial', 'Administración', 'Ayuda'].map((group) => {
+            {['Core', 'Operaciones', 'Sostenibilidad', 'Finanzas', 'Legal', 'HSE', 'Inteligencia Artificial', 'Administración', 'Ayuda'].map((group) => {
               const groupItems = filteredMenuItems.filter((item) => item.group === group);
               if (groupItems.length === 0) return null;
               const isExpanded = expandedGroups[group] ?? false;
