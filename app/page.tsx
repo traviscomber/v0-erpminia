@@ -39,15 +39,15 @@ export default function Home() {
 
       <section className="max-w-7xl mx-auto px-4 py-16 border-t border-border">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-foreground mb-4">El Problema: Informaci?n Fragmentada en Faena</h2>
+          <h2 className="text-4xl font-bold text-foreground mb-4">El Problema: Información Fragmentada en Faena</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">Sensores dispersos. Órdenes de trabajo perdidas. Repuestos no localizados. HSE desconectado. Auditoría imposible.</p>
         </div>
         <div className="grid md:grid-cols-5 gap-4">
           {[
-            { icon: Cpu, label: 'Sensores Aislados', desc: 'Sin integraci?n' },
+            { icon: Cpu, label: 'Sensores Aislados', desc: 'Sin integración' },
             { icon: Wrench, label: 'Órdenes Manuales', desc: 'Sin trazabilidad' },
             { icon: Package, label: 'Bodega Ciega', desc: 'Stock descontrolado' },
-            { icon: Shield, label: 'HSE Tard?o', desc: 'Respuesta lenta' },
+            { icon: Shield, label: 'HSE Tardío', desc: 'Respuesta lenta' },
             { icon: FileText, label: 'Sin Auditoría', desc: 'Cumplimiento manual' },
           ].map((item, i) => (
             <Card key={i} className="border-border bg-card/50 hover:bg-card/80 transition-colors">
