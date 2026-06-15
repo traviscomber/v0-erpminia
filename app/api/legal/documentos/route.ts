@@ -66,12 +66,48 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
-
   const auth = await resolveAuthContext(request);
   if (!auth) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
+  const contentType = request.headers.get('content-type') || '';
+
+  // If it's FormData with a file, delegate to the standard upload endpoint
+  if (contentType.includes('multipart/form-data')) {
+    const formData = await request.formData();
+    const file = formData.get('file') as File | null;
+    
+    if (file) {
+      // Forward to the documents/upload endpoint with module='legal'
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+      uploadFormData.append('module', 'legal');
+      uploadFormData.append('category', formData.get('category') || 'legal');
+      uploadFormData.append('documentType', formData.get('documentType') || 'legal');
+      uploadFormData.append('description', formData.get('description') || '');
+      
+      const uploadRes = await fetch(
+        new URL('/api/documents/upload', request.url),
+        {
+          method: 'POST',
+          headers: {
+            'Cookie': request.headers.get('cookie') || '',
+          },
+          body: uploadFormData,
+        }
+      );
+      
+      const uploadData = await uploadRes.json();
+      if (!uploadRes.ok) {
+        return NextResponse.json(uploadData, { status: uploadRes.status });
+      }
+      
+      return NextResponse.json({ document: uploadData }, { status: 201 });
+    }
+  }
+
+  // Otherwise, handle as JSON metadata-only request
   const body = await request.json();
   const { title, category, documentType, description } = body;
 

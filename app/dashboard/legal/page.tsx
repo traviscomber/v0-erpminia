@@ -518,7 +518,6 @@ export default function LegalPage() {
                           </Button>
                         </>
                       )}
-                      )}
                     </div>
                   </div>
                 ))}
