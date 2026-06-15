@@ -1,120 +1,110 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/api/guard';
+import { listDocumentsForOrganization } from '@/lib/api/documents';
 
-const fetcher = (url: string, options: RequestInit) =>
-  fetch(url, options).then((res) => res.json());
+const CATEGORY_DEFINITIONS = [
+  {
+    id: 'seguridad',
+    name: 'Documentos de Seguridad',
+    description: 'Protocolos, procedimientos, reportes y evidencias de seguridad',
+    keywords: ['seguridad', 'hse', 'safety', 'prevencion', 'prevención', 'riesgo'],
+  },
+  {
+    id: 'ambiental',
+    name: 'Documentos Ambientales',
+    description: 'Impacto ambiental, residuos, monitoreo y cumplimiento ambiental',
+    keywords: ['ambiental', 'medio ambiente', 'medioambiente', 'residuos', 'impacto'],
+  },
+  {
+    id: 'operacional',
+    name: 'Documentos Operacionales',
+    description: 'Procedimientos, instructivos, planes y control operativo',
+    keywords: ['operacional', 'operaciones', 'operativo', 'procedimiento', 'instructivo', 'plan'],
+  },
+  {
+    id: 'laboral',
+    name: 'Documentos Laborales',
+    description: 'Reglamentos, permisos, capacitaciones y relaciones laborales',
+    keywords: ['laboral', 'rrhh', 'capacitacion', 'capacitación', 'permiso', 'contrato'],
+  },
+];
+
+function normalizeText(value: unknown) {
+  return String(value || '').toLowerCase();
+}
+
+function matchesCategory(document: any, keywords: string[]) {
+  const haystack = [
+    document.category,
+    document.documentType,
+    document.title,
+    document.description,
+    document.documentNumber,
+  ]
+    .map(normalizeText)
+    .join(' ');
+
+  return keywords.some((keyword) => haystack.includes(keyword));
+}
 
 export async function GET(request: NextRequest) {
+  const auth = await requireAuth(request);
+  if (!auth.authorized || !auth.organizationId) {
+    return auth.response || NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const result = await listDocumentsForOrganization(auth.organizationId, {
+      limit: 250,
+    });
 
-    if (!url || !key) {
-      return NextResponse.json({ error: 'Missing Supabase config' }, { status: 500 });
-    }
+    const documents = Array.isArray(result.documents) ? result.documents : [];
 
-    // Fetch approval flow data (flujo_aprobacion_documentos_sostenibilidad)
-    const [approvalsRes, docAuditRes] = await Promise.all([
-      fetch(`${url}/rest/v1/flujo_aprobacion_documentos_sostenibilidadselect=*`, {
-        headers: { apikey: key, Authorization: `Bearer ${key}` },
-      }),
-      fetch(`${url}/rest/v1/auditoria_documentos_sostenibilidadselect=*`, {
-        headers: { apikey: key, Authorization: `Bearer ${key}` },
-      }),
-    ]);
+    const categories = CATEGORY_DEFINITIONS.map((definition) => {
+      const matchedDocuments = documents.filter((document) => matchesCategory(document, definition.keywords));
+      return {
+        id: definition.id,
+        name: definition.name,
+        description: definition.description,
+        count: matchedDocuments.length,
+        pendingApprovals: matchedDocuments.filter((document: any) =>
+          ['draft', 'submitted', 'under_review'].includes(String(document.status || '').toLowerCase())
+        ).length,
+      };
+    });
 
-    const approvals = await approvalsRes.json();
-    const auditLog = await docAuditRes.json();
+    const pendingApprovals = documents.flatMap((document: any) => {
+      const steps = Array.isArray(document.steps) ? document.steps : [];
+      return steps
+        .filter((step: any) => String(step.status || '').toLowerCase() === 'pending')
+        .map((step: any) => ({
+          id: `${document.id}-${step.id}`,
+          documentId: document.id,
+          nombre: document.title,
+          version: document.documentNumber || 'v1',
+          estado: 'pendiente_validador1',
+          createdBy: document.createdByUser?.name || 'Desconocido',
+          pendingBy: step.assignedToName || step.levelName || 'Revisor',
+          pendingRole: step.levelName || 'Revisor',
+        }));
+    });
 
-    // Organize by category
-    const categories = [
-      {
-        id: 'seguridad',
-        name: 'Documentos de Seguridad',
-        description: 'MSDS, protocolos y reportes de seguridad',
-        count: 52,
-        pendingApprovals: 3,
-      },
-      {
-        id: 'ambiental',
-        name: 'Documentos Ambientales',
-        description: 'Impacto ambiental, gestión de residuos',
-        count: 28,
-        pendingApprovals: 2,
-      },
-      {
-        id: 'operacional',
-        name: 'Documentos Operacionales',
-        description: 'Procedimientos, instructivos, planes',
-        count: 45,
-        pendingApprovals: 5,
-      },
-      {
-        id: 'laboral',
-        name: 'Documentos Laborales',
-        description: 'Reglamentos, permisos, capacitaciones',
-        count: 31,
-        pendingApprovals: 1,
-      },
-    ];
+    const recentDocuments = [...documents]
+      .sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+      .slice(0, 5)
+      .map((document: any) => ({
+        documentId: document.documentNumber || document.id,
+        nombre: document.title,
+        version: document.documentNumber || 'v1',
+        estado: document.status,
+        creador: document.createdByUser?.name || 'Desconocido',
+        fechaCreacion: document.createdAt,
+        validador1: document.steps?.[0]?.assignedToName || null,
+      }));
 
-    // Get pending approvals from the approval flow table
-    const pendingApprovals = Array.isArray(approvals)
-      ? approvals
-          .filter(
-            (a: any) =>
-              a.estado === 'pendiente_validador1' || a.estado === 'pendiente_validador2'
-          )
-          .map((a: any) => ({
-            id: a.id,
-            documentId: a.documento_id,
-            nombre: a.documento_nombre,
-            version: a.version,
-            estado: a.estado,
-            createdBy: a.creador_nombre,
-            pendingBy:
-              a.estado === 'pendiente_validador1'
-                ? a.validador1_nombre || 'Validador 1'
-                : a.estado === 'pendiente_validador2'
-                  ? a.validador2_nombre || 'Validador 2'
-                : null,
-            pendingRole:
-              a.estado === 'pendiente_validador1'
-                ? a.validador1_rol || 'Revisor'
-                : a.estado === 'pendiente_validador2'
-                  ? a.validador2_rol || 'Revisor'
-                : null,
-          }))
-      : [];
-
-    // Get recently created documents (sorted by creation date)
-    const recentDocuments = Array.isArray(approvals)
-      ? approvals
-          .sort((a: any, b: any) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
-          .slice(0, 5)
-          .map((a: any) => ({
-            documentId: a.documento_id,
-            nombre: a.documento_nombre,
-            version: a.version,
-            estado: a.estado,
-            creador: a.creador_nombre,
-            fechaCreacion: a.created_at,
-            validador1: a.validador1_nombre,
-          }))
-      : [];
-
-    // Get recently updated documents (changes in last 7 days)
-    const today = new Date();
-    const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-
-    const expiringDocuments = Array.isArray(approvals)
-      ? approvals
-          .filter((a: any) => {
-            if (!a.updated_at) return false;
-            const updateDate = new Date(a.updated_at);
-            return updateDate >= sevenDaysAgo;
-          })
-          .slice(0, 3)
-      : [];
+    const expiringDocuments = documents
+      .filter((document: any) => typeof document.daysUntilExpiry === 'number' && document.daysUntilExpiry <= 7)
+      .slice(0, 5);
 
     return NextResponse.json({
       categories,
@@ -122,16 +112,13 @@ export async function GET(request: NextRequest) {
       recentDocuments,
       expiringDocuments,
       stats: {
-        total: categories.reduce((sum, cat) => sum + cat.count, 0),
-        pending: categories.reduce((sum, cat) => sum + cat.pendingApprovals, 0),
+        total: documents.length,
+        pending: pendingApprovals.length,
         expiring: expiringDocuments.length,
       },
     });
   } catch (error) {
     console.error('[v0] Error fetching documentos-gestion data:', error);
-    return NextResponse.json(
-      { error: 'No se pudieron obtener los documentos' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'No se pudieron obtener los documentos' }, { status: 500 });
   }
 }

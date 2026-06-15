@@ -20,7 +20,7 @@ export function AddDocumentModal({ onSubmit }: AddDocumentModalProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
-  const [formData, setFormData] = useState({ title: '', description: '', category: 'regulatory' });
+  const [formData, setFormData] = useState({ title: '', description: '', category: 'compliance' });
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0] || null;
@@ -53,7 +53,7 @@ export function AddDocumentModal({ onSubmit }: AddDocumentModalProps) {
         ...formData,
         file,
       });
-      setFormData({ title: '', description: '', category: 'regulatory' });
+      setFormData({ title: '', description: '', category: 'compliance' });
       setFile(null);
       setOpen(false);
     } finally {
@@ -79,7 +79,7 @@ export function AddDocumentModal({ onSubmit }: AddDocumentModalProps) {
             <Label htmlFor="title">Título</Label>
             <Input
               id="title"
-              placeholder="Ej: Política de Seguridad"
+              placeholder="Ej: Política de Cumplimiento Contractual"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               required
@@ -92,8 +92,16 @@ export function AddDocumentModal({ onSubmit }: AddDocumentModalProps) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="regulatory">Normativo</SelectItem>
                 <SelectItem value="compliance">Cumplimiento</SelectItem>
+                <SelectItem value="regulatory">Regulatorio</SelectItem>
+                <SelectItem value="legal">Legal General</SelectItem>
+                <SelectItem value="contracts">Contratos</SelectItem>
+                <SelectItem value="policies">Políticas</SelectItem>
+                <SelectItem value="regulations">Reglamentos</SelectItem>
+                <SelectItem value="permits">Permisos</SelectItem>
+                <SelectItem value="reports">Informes</SelectItem>
+                <SelectItem value="agreements">Acuerdos</SelectItem>
+                <SelectItem value="audit">Auditorías</SelectItem>
               </SelectContent>
             </Select>
           </div>

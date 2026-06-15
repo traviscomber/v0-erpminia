@@ -49,7 +49,7 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
     }
 
     if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
-      toast.error('El archivo excede el limite de 50MB.');
+      toast.error('El archivo excede el límite de 50MB.');
       event.target.value = '';
       return;
     }
@@ -61,7 +61,7 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
     event.preventDefault();
 
     if (!title || !documentType || !category || !file) {
-      toast.error('Completa titulo, tipo, categoria y archivo.');
+      toast.error('Completa título, tipo, categoría y archivo.');
       return;
     }
 
@@ -105,7 +105,7 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
         <DialogHeader>
           <DialogTitle>Nuevo Documento Legal</DialogTitle>
           <DialogDescription>
-            Carga políticas, reglamentos, informes o respaldos regulatorios para el módulo Legal.
+            Carga políticas, reglamentos, contratos o respaldos regulatorios para el módulo Legal.
           </DialogDescription>
         </DialogHeader>
 
@@ -144,12 +144,16 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
                   <SelectItem value="regulation">Reglamento</SelectItem>
                   <SelectItem value="report">Informe</SelectItem>
                   <SelectItem value="contract">Contrato</SelectItem>
+                  <SelectItem value="agreement">Acuerdo</SelectItem>
+                  <SelectItem value="permit">Permiso</SelectItem>
+                  <SelectItem value="annex">Anexo</SelectItem>
+                  <SelectItem value="memo">Memorando</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Categoría</label>
+              <label className="text-sm font-medium text-foreground">Categoría</label>
               <Select value={category} onValueChange={setCategory} disabled={isLoading}>
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar" />
@@ -157,6 +161,14 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
                 <SelectContent>
                   <SelectItem value="compliance">Cumplimiento</SelectItem>
                   <SelectItem value="regulatory">Regulatorio</SelectItem>
+                  <SelectItem value="legal">Legal General</SelectItem>
+                  <SelectItem value="contracts">Contratos</SelectItem>
+                  <SelectItem value="policies">Políticas</SelectItem>
+                  <SelectItem value="regulations">Reglamentos</SelectItem>
+                  <SelectItem value="permits">Permisos</SelectItem>
+                  <SelectItem value="reports">Informes</SelectItem>
+                  <SelectItem value="agreements">Acuerdos</SelectItem>
+                  <SelectItem value="audit">Auditorías</SelectItem>
                 </SelectContent>
               </Select>
             </div>

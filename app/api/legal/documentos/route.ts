@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       offset: Number(searchParams.get('offset') || '0'),
     });
 
-    const legalCategories = new Set(['compliance', 'regulatory', 'legal']);
+    const legalCategories = new Set(['compliance', 'regulatory', 'legal', 'documentos']);
     const requestedCategory = searchParams.get('category');
     const documents = requestedCategory
       ? result.documents

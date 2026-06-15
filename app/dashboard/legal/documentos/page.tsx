@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -30,22 +30,20 @@ export default function DocumentosLegalPage() {
   const loadDocuments = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/legal/documentos?category=documentos', {
+      const response = await fetch('/api/legal/documentos', {
         credentials: 'include',
       });
       const data = await response.json();
       const docs = Array.isArray(data?.documents) ? data.documents : [];
-      if (docs.length >= 0) {
-        setDocuments(docs);
-        setStats({
-          total: data?.total ?? docs.length,
-          vigentes: docs.filter((d: Document) => d.status === 'active').length,
-          en_revision: docs.filter((d: Document) => 
-            d.status === 'pending_l1' || d.status === 'pending_l2'
-          ).length,
-          rechazados: docs.filter((d: Document) => d.status === 'rejected').length,
-        });
-      }
+      setDocuments(docs);
+      setStats({
+        total: data?.total ?? docs.length,
+        vigentes: docs.filter((d: Document) => d.status === 'active').length,
+        en_revision: docs.filter((d: Document) =>
+          d.status === 'pending_l1' || d.status === 'pending_l2'
+        ).length,
+        rechazados: docs.filter((d: Document) => d.status === 'rejected').length,
+      });
     } catch (error) {
       console.error('Error cargando documentos:', error);
     } finally {
@@ -215,7 +213,7 @@ export default function DocumentosLegalPage() {
 
         <TabsContent value="revision" className="space-y-4">
           <DocumentList
-            documents={documents.filter(d => 
+            documents={documents.filter(d =>
               d.status === 'pending_l1' || d.status === 'pending_l2'
             )}
             isLoading={loading}
@@ -257,4 +255,3 @@ export default function DocumentosLegalPage() {
     </div>
   );
 }
-

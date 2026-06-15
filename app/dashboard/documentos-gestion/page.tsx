@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useMemo } from 'react';
 import useSWR from 'swr';
@@ -14,30 +14,27 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 export default function DocumentosGestionPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Fetch documents from API
   const { data, error, isLoading } = useSWR(
     '/api/dashboard/documentos-gestion',
     fetcher,
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: true,
-      refreshInterval: 300000, // 5 minutes
+      refreshInterval: 300000,
     }
   );
 
-  // Extract data safely
   const categories = data?.categories || [];
   const pendingApprovals = data?.pendingApprovals || [];
   const recentDocuments = data?.recentDocuments || [];
   const expiringDocuments = data?.expiringDocuments || [];
   const stats = data?.stats || { total: 0, pending: 0, expiring: 0 };
 
-  // Filter categories based on search
   const filteredCategories = useMemo(() => {
     if (!searchTerm) return categories;
     return categories.filter((cat: any) =>
-      cat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      cat.description.toLowerCase().includes(searchTerm.toLowerCase())
+      String(cat.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      String(cat.description || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [categories, searchTerm]);
 
@@ -47,11 +44,17 @@ export default function DocumentosGestionPage() {
   const getEstadoBadge = (estado: string) => {
     switch (estado) {
       case 'aprobado':
+      case 'active':
+      case 'approved':
         return <Badge className="bg-[var(--brand-verde)] gap-1"><CheckCircle className="h-3 w-3" /> Aprobado</Badge>;
       case 'pendiente_validador1':
       case 'pendiente_validador2':
+      case 'draft':
+      case 'submitted':
+      case 'under_review':
         return <Badge className="bg-[var(--secondary)] gap-1"><Clock className="h-3 w-3" /> Pendiente</Badge>;
       case 'rechazado':
+      case 'rejected':
         return <Badge className="bg-[var(--brand-rojo)] gap-1"><XCircle className="h-3 w-3" /> Rechazado</Badge>;
       default:
         return <Badge variant="outline">{estado}</Badge>;
@@ -60,7 +63,6 @@ export default function DocumentosGestionPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Gestión Documental</h1>
@@ -70,11 +72,10 @@ export default function DocumentosGestionPage() {
         </div>
         <Button className="gap-2 bg-[var(--brand-naranja)] hover:bg-[var(--brand-naranja)]/90">
           <Plus className="h-4 w-4" />
-          Cargar Documento
+          Nuevo Documento
         </Button>
       </div>
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-3">
@@ -117,7 +118,6 @@ export default function DocumentosGestionPage() {
         </Card>
       </div>
 
-      {/* Pending Approvals Section */}
       {pendingApprovals.length > 0 && (
         <Card className="border-[var(--secondary)]/30 bg-[var(--secondary)]/5">
           <CardHeader>
@@ -144,7 +144,6 @@ export default function DocumentosGestionPage() {
         </Card>
       )}
 
-      {/* Recent Documents */}
       {recentDocuments.length > 0 && (
         <Card>
           <CardHeader>
@@ -173,7 +172,6 @@ export default function DocumentosGestionPage() {
         </Card>
       )}
 
-      {/* Search */}
       <Card>
         <CardHeader>
           <CardTitle>Buscar Categorías</CardTitle>
@@ -191,7 +189,6 @@ export default function DocumentosGestionPage() {
         </CardContent>
       </Card>
 
-      {/* Categories Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredCategories.map((category: any) => (
           <Link key={category.id} href={`/dashboard/documentos-gestion/${category.id}`}>

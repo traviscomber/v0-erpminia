@@ -1,36 +1,78 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Download, FileText } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Download, FileText, Search } from 'lucide-react';
+
+interface PurchaseOrder {
+  id: string;
+  po_number: string;
+  vendor_name: string;
+  item_code: string;
+  status: string;
+  total_amount: number;
+  delivery_date: string;
+  quantity: number;
+}
 
 export default function AdquisicionesPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [orders, setOrders] = useState<PurchaseOrder[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const adquisicionesDocs = [
-    { id: 'RFQ-001', type: 'RFQ', title: 'Cotización Bombas Hidráulicas', vendor: 'Hidra Minería', date: '2024-04-15', status: 'Enviado', amount: '$125,000' },
-    { id: 'OC-2024-045', type: 'OC', title: 'OC Repuestos Chancadora', vendor: 'Industrial Parts', date: '2024-04-10', status: 'Aprobado', amount: '$85,500' },
-    { id: 'REQ-2024-112', type: 'Requisición', title: 'Solicitud Cable Eléctrico', vendor: 'Penco', date: '2024-04-12', status: 'Pendiente', amount: '$42,300' },
-    { id: 'RFQ-002', type: 'RFQ', title: 'Servicio Mantención Equipos', vendor: 'Mantec Chile', date: '2024-04-08', status: 'Cotizado', amount: '$210,000' },
-  ];
+  useEffect(() => {
+    const loadOrders = async () => {
+      try {
+        const response = await fetch('/api/compras/purchase-orders', { credentials: 'include' });
+        const data = await response.json();
+        const purchaseOrders = Array.isArray(data?.purchase_orders) ? data.purchase_orders : [];
+        setOrders(purchaseOrders);
+      } catch (error) {
+        console.error('[v0] Error loading purchase orders:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadOrders();
+  }, []);
+
+  const filteredOrders = useMemo(() => {
+    const term = searchTerm.toLowerCase();
+    if (!term) return orders;
+    return orders.filter((order) =>
+      [order.po_number, order.vendor_name, order.item_code, order.status]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(term))
+    );
+  }, [orders, searchTerm]);
+
+  const totals = useMemo(() => {
+    return {
+      total: orders.length,
+      open: orders.filter((order) => String(order.status || '').toLowerCase() !== 'received').length,
+      approved: orders.filter((order) => String(order.status || '').toLowerCase() === 'received').length,
+      amount: orders.reduce((sum, order) => sum + Number(order.total_amount || 0), 0),
+    };
+  }, [orders]);
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Adquisiciones</h1>
-        <p className="text-muted-foreground">Gestiona RFQs, órdenes de compra y requisiciones</p>
+        <p className="text-muted-foreground">Gestiona órdenes de compra y trazabilidad de abastecimiento</p>
       </div>
 
       <div className="grid grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Total Documentos</CardTitle>
+            <CardTitle className="text-sm">Total Órdenes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">24</div>
+            <div className="text-2xl font-bold">{totals.total}</div>
           </CardContent>
         </Card>
         <Card>
@@ -38,38 +80,35 @@ export default function AdquisicionesPage() {
             <CardTitle className="text-sm">Órdenes Abiertas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">3</div>
+            <div className="text-2xl font-bold text-orange-600">{totals.open}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Aprobadas Mes</CardTitle>
+            <CardTitle className="text-sm">Recibidas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-[var(--brand-verde)]">12</div>
+            <div className="text-2xl font-bold text-[var(--brand-verde)]">{totals.approved}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Inversión Total</CardTitle>
+            <CardTitle className="text-sm">Monto Total</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$2.3M</div>
+            <div className="text-2xl font-bold">${totals.amount.toLocaleString('es-CL')}</div>
           </CardContent>
         </Card>
       </div>
 
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center gap-4">
             <div>
-              <CardTitle>Documentos de Procuración</CardTitle>
-              <CardDescription>RFQs, órdenes de compra y requisiciones</CardDescription>
+              <CardTitle>Órdenes de Compra Reales</CardTitle>
+              <CardDescription>La creación de OC se gestiona desde el módulo Compras</CardDescription>
             </div>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              Nuevo Documento
-            </Button>
+            <div className="text-sm text-muted-foreground">Vista de solo lectura</div>
           </div>
         </CardHeader>
         <CardContent>
@@ -87,33 +126,41 @@ export default function AdquisicionesPage() {
               </Button>
             </div>
 
-            <div className="space-y-3">
-              {adquisicionesDocs.map((doc: any) => (
-                <div key={doc.id} className="flex items-center justify-between border rounded-lg p-4 hover:bg-accent transition-colors">
-                  <div className="flex items-center gap-4 flex-1">
-                    <FileText className="h-5 w-5 text-muted-foreground" />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold">{doc.id}</span>
-                        <Badge variant="outline">{doc.type}</Badge>
-                        <Badge className={doc.status === 'Aprobado' ? 'bg-[var(--brand-verde)]' : doc.status === 'Pendiente' ? 'bg-[var(--secondary)]' : 'bg-[var(--secondary)]'}>
-                          {doc.status}
-                        </Badge>
+            {loading ? (
+              <p className="text-sm text-muted-foreground">Cargando órdenes de compra...</p>
+            ) : filteredOrders.length === 0 ? (
+              <div className="rounded-lg border border-dashed p-6 text-center text-muted-foreground">
+                No hay órdenes de compra que coincidan con la búsqueda.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filteredOrders.map((order) => (
+                  <div key={order.id} className="flex items-center justify-between border rounded-lg p-4 hover:bg-accent transition-colors">
+                    <div className="flex items-center gap-4 flex-1">
+                      <FileText className="h-5 w-5 text-muted-foreground" />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold">{order.po_number}</span>
+                          <Badge variant="outline">OC</Badge>
+                          <Badge className={String(order.status || '').toLowerCase() === 'received' ? 'bg-[var(--brand-verde)]' : 'bg-[var(--secondary)]'}>
+                            {order.status}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{order.vendor_name} · {order.item_code}</p>
+                        <p className="text-xs text-muted-foreground">Entrega: {order.delivery_date || 'Sin fecha'} · Cantidad: {order.quantity || 0}</p>
                       </div>
-                      <p className="text-sm text-muted-foreground">{doc.title}</p>
-                      <p className="text-xs text-muted-foreground">{doc.vendor} • {doc.date}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold">${Number(order.total_amount || 0).toLocaleString('es-CL')}</p>
+                      <Button variant="ghost" size="sm" className="gap-2 mt-1">
+                        <Download className="h-3 w-3" />
+                        Descargar
+                      </Button>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold">{doc.amount}</p>
-                    <Button variant="ghost" size="sm" className="gap-2 mt-1">
-                      <Download className="h-3 w-3" />
-                      Descargar
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
