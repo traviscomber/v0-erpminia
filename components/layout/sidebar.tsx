@@ -396,6 +396,16 @@ export function Sidebar() {
               const groupItems = filteredMenuItems.filter((item) => item.group === group);
               if (groupItems.length === 0) return null;
               const isExpanded = expandedGroups[group] ?? false;
+              const sortedGroupItems = [...groupItems].sort((a, b) => {
+                const aDashboard = a.label.toLowerCase().startsWith('dashboard');
+                const bDashboard = b.label.toLowerCase().startsWith('dashboard');
+
+                if (aDashboard !== bDashboard) {
+                  return aDashboard ? -1 : 1;
+                }
+
+                return a.label.localeCompare(b.label, 'es');
+              });
 
               return (
                 <div key={group}>
@@ -415,7 +425,7 @@ export function Sidebar() {
                     "space-y-1 overflow-hidden transition-all duration-200",
                     isExpanded ? "max-h-[500px] opacity-100 mt-1" : "max-h-0 opacity-0"
                   )}>
-                    {groupItems.map((item) => {
+                    {sortedGroupItems.map((item) => {
                       const Icon = item.icon;
                       const isActive = pathname === item.href;
 
