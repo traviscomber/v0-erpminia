@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2, XCircle, Loader2, Download, ExternalLink } from 'lucide-react';
 
 type ReviewLevel = 'L1' | 'L2';
 type ReviewStatus = 'cumple' | 'no_cumple' | null;
@@ -83,31 +83,47 @@ export function DocumentReviewModal({
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto space-y-4 py-4">
-          {/* Document Preview */}
-          {document.fileUrl ? (
-            <div className="border rounded-lg p-4 bg-muted/50 space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium">Vista previa del documento</p>
+          {/* Document Info Card */}
+          <div className="border rounded-lg p-4 bg-muted/50 space-y-3">
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">Documento</p>
+              <p className="text-base font-semibold">{document.title}</p>
+              {document.description && (
+                <p className="text-sm text-muted-foreground">{document.description}</p>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <p className="text-muted-foreground">Tipo</p>
+                <p className="font-medium">{document.documentType || 'Legal'}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Estado</p>
+                <p className="font-medium capitalize">{document.status || 'pendiente'}</p>
+              </div>
+            </div>
+            {document.fileUrl && (
+              <div className="flex gap-2 pt-2">
                 <a
                   href={document.fileUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-sm text-primary hover:underline"
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm rounded bg-primary text-primary-foreground hover:bg-primary/90"
                 >
-                  Abrir en nueva pestaña ↗
+                  <ExternalLink className="w-4 h-4" />
+                  Ver documento
+                </a>
+                <a
+                  href={document.fileUrl}
+                  download={document.title}
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm rounded bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                >
+                  <Download className="w-4 h-4" />
+                  Descargar
                 </a>
               </div>
-              <iframe
-                src={`https://docs.google.com/gview?url=${encodeURIComponent(document.fileUrl)}&embedded=true`}
-                className="w-full h-96 rounded border"
-                title={document.title}
-              />
-            </div>
-          ) : (
-            <div className="border border-dashed rounded-lg p-8 text-center text-muted-foreground">
-              <p className="text-sm">No hay vista previa disponible para este documento</p>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Previous Review (if exists) */}
           {hasBeenReviewed && currentStatusData.observations && (
