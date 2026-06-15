@@ -1,32 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { createServerClient } from '@supabase/ssr';
-
-function createClient() {
-  const cookieStore = cookies();
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() { return cookieStore.getAll(); },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch {}
-        },
-      },
-    }
-  );
-}
+import { createClient } from '@/lib/supabase/server';
+import { resolveAuthContext } from '@/lib/api/auth-session';
 
 export async function GET(request: NextRequest) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) {
+  const auth = await resolveAuthContext(request);
+  if (!auth) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
@@ -55,10 +35,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Generate signed URLs for each document that has a file_path
   const documents = await Promise.all(
     (data || []).map(async (doc) => {
-      let fileUrl: string | null = (doc as any).file_url ?? null;
+      let fileUrl: string | null = doc.file_url ?? null;
 
       if (!fileUrl && doc.file_path) {
         const { data: signedData } = await supabase.storage
@@ -86,10 +65,10 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) {
+  const auth = await resolveAuthContext(request);
+  if (!auth) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
@@ -105,9 +84,10 @@ export async function POST(request: NextRequest) {
     .insert({
       document_name: title,
       document_type: documentType || category || 'legal',
+      description: description || null,
       module: 'legal',
       status: 'draft',
-      uploaded_by: user.id,
+      uploaded_by: auth.user.id,
     })
     .select()
     .single();
