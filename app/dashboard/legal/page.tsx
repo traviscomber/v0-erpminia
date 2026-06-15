@@ -318,7 +318,7 @@ export default function LegalPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Módulo Legal y Compliance</h1>
+        <h1 className="text-3xl font-bold text-foreground">Módulo Legal</h1>
         <p className="text-muted-foreground mt-2">
           Gestión de documentos legales, contratos y cumplimiento normativo minero
         </p>
@@ -543,7 +543,7 @@ export default function LegalPage() {
                       <li key={item.id}>{item.title}</li>
                     ))}
                     {(compliance.contracts_pending_review || []).length === 0 && (
-                      <li>No hay contratos pendientes de revisión.</li>
+                      <li>No hay contratos pendientes de revisiÃ³n.</li>
                     )}
                   </ul>
                 </div>
@@ -574,7 +574,7 @@ export default function LegalPage() {
             <CardHeader>
               <CardTitle>Normativas y Respaldo Regulatorio</CardTitle>
               <CardDescription>
-                Documentación regulatoria visible para auditoría y seguimiento
+                DocumentaciÃ³n regulatoria visible para auditorÃ­a y seguimiento
               </CardDescription>
             </CardHeader>
             <CardContent>

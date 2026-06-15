@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -125,7 +125,7 @@ export default function DocumentosLegalPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Documentos Legal</h1>
+        <h1 className="text-3xl font-bold">Documentos Legales</h1>
         <p className="text-muted-foreground mt-2">
           Gestión de contratos, políticas y documentos legales
         </p>
@@ -227,7 +227,7 @@ export default function DocumentosLegalPage() {
             <CardHeader>
               <CardTitle>Subir Nuevo Documento</CardTitle>
               <CardDescription>
-                Sube contratos, políticas y documentos legales
+                Sube contratos, políticas y Documentos Legaleses
               </CardDescription>
             </CardHeader>
             <CardContent>
