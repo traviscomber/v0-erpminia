@@ -85,24 +85,27 @@ export function DocumentReviewModal({
         <div className="flex-1 overflow-y-auto space-y-4 py-4">
           {/* Document Preview */}
           {document.fileUrl ? (
-            <div className="border rounded-lg p-4 bg-muted/50">
+            <div className="border rounded-lg p-4 bg-muted/50 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium">Vista previa del documento</p>
+                <a
+                  href={document.fileUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-sm text-primary hover:underline"
+                >
+                  Abrir en nueva pestaña ↗
+                </a>
+              </div>
               <iframe
-                src={document.fileUrl}
-                className="w-full h-96 rounded"
+                src={`https://docs.google.com/gview?url=${encodeURIComponent(document.fileUrl)}&embedded=true`}
+                className="w-full h-96 rounded border"
                 title={document.title}
               />
-              <a
-                href={document.fileUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="text-sm text-primary hover:underline mt-2 block"
-              >
-                Abrir en nueva pestaña
-              </a>
             </div>
           ) : (
             <div className="border border-dashed rounded-lg p-8 text-center text-muted-foreground">
-              No hay vista previa disponible
+              <p className="text-sm">No hay vista previa disponible para este documento</p>
             </div>
           )}
 
