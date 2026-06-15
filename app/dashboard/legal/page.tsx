@@ -332,13 +332,6 @@ export default function LegalPage() {
     [contracts]
   );
 
-  const normativas = useMemo(() => {
-    const filtered = legalDocs.filter((doc) =>
-      ['regulatory', 'compliance'].includes(String(doc.category || '').toLowerCase())
-    );
-    return filtered.length > 0 ? filtered : legalDocs.slice(0, 8);
-  }, [legalDocs]);
-
   const hasError = documentsError || contractsError || complianceError;
 
   return (
@@ -378,12 +371,12 @@ export default function LegalPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Normativas Aplicables
+              Documentos Legales
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{normativas.length}</div>
-            <p className="text-xs text-muted-foreground mt-1">Requisitos visibles del módulo</p>
+            <div className="text-3xl font-bold">{documentCount}</div>
+            <p className="text-xs text-muted-foreground mt-1">Total cargados</p>
           </CardContent>
         </Card>
 
@@ -424,7 +417,7 @@ export default function LegalPage() {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="documents" className="flex items-center gap-2">
             <FileText className="w-4 h-4" />
             <span className="hidden sm:inline">Documentos</span>
@@ -436,10 +429,6 @@ export default function LegalPage() {
           <TabsTrigger value="compliance" className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4" />
             <span className="hidden sm:inline">Cumplimiento</span>
-          </TabsTrigger>
-          <TabsTrigger value="normativas" className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4" />
-            <span className="hidden sm:inline">Normativas</span>
           </TabsTrigger>
         </TabsList>
 
@@ -590,44 +579,6 @@ export default function LegalPage() {
                     )}
                   </ul>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="normativas">
-          <Card>
-            <CardHeader>
-              <CardTitle>Normativas y Respaldo Regulatorio</CardTitle>
-              <CardDescription>
-                DocumentaciÃ³n regulatoria visible para auditorÃ­a y seguimiento
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {normativas.length === 0 && (
-                  <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
-                    No hay normativas registradas todavía.
-                  </div>
-                )}
-
-                {normativas.map((doc) => (
-                  <div
-                    key={doc.id}
-                    className="flex items-center justify-between p-3 border border-primary/20 rounded-lg bg-primary/5"
-                  >
-                    <div className="flex items-center gap-3">
-                      <AlertCircle className="w-5 h-5 text-primary" />
-                      <div>
-                        <p className="font-medium text-sm">{doc.title}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {(doc.category || 'regulatory').replace(/_/g, ' ')}
-                        </p>
-                      </div>
-                    </div>
-                    {getStatusBadge(doc.status)}
-                  </div>
-                ))}
               </div>
             </CardContent>
           </Card>
