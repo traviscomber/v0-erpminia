@@ -63,21 +63,21 @@ export default function Home() {
 
       <section className="max-w-7xl mx-auto px-4 py-16 border-t border-border">
         <h2 className="text-4xl font-bold text-foreground mb-12 text-center">Flujo Operacional Integrado</h2>
-        <p className="text-center text-muted-foreground max-w-4xl mx-auto mb-8">Evento operacional ? Alerta ? Orden de trabajo ? Repuestos ? HSE ? Evidencia ? Auditoría ? KPIs</p>
+        <p className="text-center text-muted-foreground max-w-4xl mx-auto mb-8">Evento operacional → Alerta → Orden de trabajo → Repuestos → HSE → Evidencia → Auditoría → KPIs</p>
         <div className="grid md:grid-cols-11 gap-2 items-center">
           {[
             { step: '1', label: 'Alerta', icon: Zap },
-            { step: '?', label: '', icon: ArrowRight },
+            { step: 'arrow', label: '', icon: ArrowRight },
             { step: '2', label: 'OT Auto', icon: Wrench },
-            { step: '?', label: '', icon: ArrowRight },
+            { step: 'arrow', label: '', icon: ArrowRight },
             { step: '3', label: 'Repuesto', icon: Package },
-            { step: '?', label: '', icon: ArrowRight },
+            { step: 'arrow', label: '', icon: ArrowRight },
             { step: '4', label: 'HSE', icon: Shield },
-            { step: '?', label: '', icon: ArrowRight },
+            { step: 'arrow', label: '', icon: ArrowRight },
             { step: '5', label: 'Evidencia', icon: FileText },
-            { step: '?', label: '', icon: ArrowRight },
+            { step: 'arrow', label: '', icon: ArrowRight },
             { step: '6', label: 'KPI', icon: BarChart3 },
-          ].map((item, i) => item.step === '?' ? (
+          ].map((item, i) => item.step === 'arrow' ? (
             <div key={i} className="text-[var(--brand-cobre)] h-5"><item.icon className="h-5 w-5" /></div>
           ) : (
             <div key={i} className="text-center">
@@ -94,10 +94,10 @@ export default function Home() {
         <h2 className="text-4xl font-bold text-foreground mb-12 text-center">Módulos Operacionales</h2>
         <div className="grid md:grid-cols-5 gap-6">
           {[
-            { icon: BarChart3, name: 'Producci?n', desc: 'KPIs en tiempo real, sensores integrados' },
-            { icon: Wrench, name: 'Mantenci?n', desc: 'Órdenes de trabajo, preventivo, MTTR' },
-            { icon: Package, name: 'Bodega', desc: 'Stock, reorden autom?tico, trazabilidad' },
-            { icon: Shield, name: 'HSE', desc: 'Incidentes, auditor?a, cumplimiento' },
+            { icon: BarChart3, name: 'Producción', desc: 'KPIs en tiempo real, sensores integrados' },
+            { icon: Wrench, name: 'Mantención', desc: 'Órdenes de trabajo, preventivo, MTTR' },
+            { icon: Package, name: 'Bodega', desc: 'Stock, reorden automático, trazabilidad' },
+            { icon: Shield, name: 'HSE', desc: 'Incidentes, auditoría, cumplimiento' },
             { icon: FileText, name: 'Documentos', desc: 'Contratos, normativas, evidencia auditada' },
           ].map((mod, i) => (
             <Card key={i} className="border-border bg-card">
@@ -118,7 +118,7 @@ export default function Home() {
         <div className="grid md:grid-cols-3 gap-6">
           {[
             { role: 'Operador Terreno', items: ['Alertas en tiempo real', 'Checklists HSE', 'Órdenes de trabajo'] },
-            { role: 'Técnico / Jefe Mantenci?n', items: ['MTTR optimizado', 'Stock de repuestos', 'Preventivo planificado'] },
+            { role: 'Técnico / Jefe Mantención', items: ['MTTR optimizado', 'Stock de repuestos', 'Preventivo planificado'] },
             { role: 'Gerencia', items: ['Dashboard KPI', 'Auditoría trazable', 'Disponibilidad de equipo'] },
           ].map((section, i) => (
             <Card key={i} className="border-border bg-card">
@@ -146,7 +146,7 @@ export default function Home() {
           {[
             { metric: '+15%', label: 'Disponibilidad de Equipos' },
             { metric: '-40%', label: 'MTTR Promedio' },
-            { metric: '-25%', label: 'Costos de Mantenci?n' },
+            { metric: '-25%', label: 'Costos de Mantención' },
             { metric: '100%', label: 'Trazabilidad Auditada' },
           ].map((item, i) => (
             <Card key={i} className="border-border bg-card text-center">
@@ -167,7 +167,7 @@ export default function Home() {
 
       <footer className="border-t border-border bg-card/30 mt-20">
         <div className="max-w-7xl mx-auto px-4 py-12 text-center text-sm text-muted-foreground">
-          <p>Motil ? 2026 ? n3uralia</p>
+          <p>Motil © 2026 · n3uralia</p>
         </div>
       </footer>
     </div>
