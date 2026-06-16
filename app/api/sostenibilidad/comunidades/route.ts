@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { buildOrgSequence, getSustainabilityContext } from '@/lib/api/sostenibilidad-mvp';
 
