@@ -6,7 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { DocumentUpload } from '@/components/documents/document-upload';
 import { DocumentList, Document } from '@/components/documents/document-list';
 import { DocumentReviewModal } from '@/components/documents/document-review-modal';
-import { FileText, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
+import { BodegaImportXls } from '@/components/bodega/bodega-import-xls';
+import { FileText, CheckCircle2, AlertCircle, Clock, Upload } from 'lucide-react';
 
 interface DocumentStats {
   total: number;
@@ -190,8 +191,9 @@ export default function DocumentosBodegaPage() {
         <TabsList className="bg-muted/60 border-b-2 border-border p-1">
           <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Todos</TabsTrigger>
           <TabsTrigger value="vigentes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Vigentes</TabsTrigger>
-          <TabsTrigger value="revision" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">En RevisiÃ³n</TabsTrigger>
+          <TabsTrigger value="revision" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">En Revisión</TabsTrigger>
           <TabsTrigger value="upload" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Subir Documentos</TabsTrigger>
+          <TabsTrigger value="import" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Importar Inventario</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
@@ -239,6 +241,10 @@ export default function DocumentosBodegaPage() {
               />
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="import" className="space-y-4">
+          <BodegaImportXls />
         </TabsContent>
       </Tabs>
 
