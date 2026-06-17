@@ -91,20 +91,16 @@ export async function POST(request: NextRequest) {
       if (!codigo || !nombre) continue;
 
       data.push({
-        codigo: codigo,
-        name: nombre,
         sku: codigo,
+        name: nombre,
+        codigo,
         familia,
         sub_familia: subFamilia,
         equipo,
         category: familia || 'General',
         cost_center_id: costCenterId || null,
         quantity: 0,
-        description: `${familia} ${subFamilia} ${equipo}`.trim(),
-        location: '',
         unit_cost: 0,
-        min_stock: 5,
-        max_stock: 500,
       });
     }
 
@@ -147,11 +143,7 @@ export async function POST(request: NextRequest) {
           category: d.category,
           cost_center_id: d.cost_center_id,
           quantity: d.quantity,
-          description: d.description,
-          location: d.location,
           unit_cost: d.unit_cost,
-          min_stock: d.min_stock,
-          max_stock: d.max_stock,
         })),
         { onConflict: 'sku' }
       );
