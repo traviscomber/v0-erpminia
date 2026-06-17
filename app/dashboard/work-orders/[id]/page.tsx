@@ -14,7 +14,7 @@ export default function WorkOrderDetailPage() {
   const { data } = useSWR(
     id ? `/api/maintenance/work-orders/${id}` : null,
     async (url: string) => {
-      const res = await fetch(url);
+      const res = await fetch(url, { credentials: 'include' });
       return res.ok ? res.json() : null;
     }
   );

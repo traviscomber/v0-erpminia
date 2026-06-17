@@ -24,7 +24,7 @@ import { AlertCircle, TrendingUp, Clock, CheckCircle2, XCircle } from 'lucide-re
 const COLORS = ['#22c55e', '#f97316', '#ef4444', '#6b7280'];
 
 const fetcher = async (url: string) => {
-  const response = await fetch(url);
+  const response = await fetch(url, { credentials: 'include' });
   const payload = await response.json().catch(() => null);
   if (!response.ok) {
     return null;

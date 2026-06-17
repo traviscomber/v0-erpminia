@@ -34,7 +34,7 @@ type InventoryItem = {
 };
 
 const fetcher = async (url: string) => {
-  const response = await fetch(url);
+  const response = await fetch(url, { credentials: 'include' });
   const payload = await response.json().catch(() => null);
 
   if (!response.ok) {

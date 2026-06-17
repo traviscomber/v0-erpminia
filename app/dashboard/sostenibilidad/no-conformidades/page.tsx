@@ -23,12 +23,12 @@ export default function NonconformanceDashboard() {
   };
 
   const { data: ncData, mutate: mutateNCs } = useSWR('/api/sostenibilidad/nonconformances', async (url: string) => {
-    const res = await fetch(url);
+    const res = await fetch(url, { credentials: 'include' });
     return res.ok ? res.json() : null;
   });
 
   const { data: reportData } = useSWR('/api/sostenibilidad/compliance-report', async (url: string) => {
-    const res = await fetch(url);
+    const res = await fetch(url, { credentials: 'include' });
     return res.ok ? res.json() : null;
   });
 
@@ -41,6 +41,7 @@ export default function NonconformanceDashboard() {
       const res = await fetch('/api/sostenibilidad/nonconformances', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(formData),
       });
       if (!res.ok) throw new Error('No se pudo crear la no conformidad');
@@ -60,6 +61,7 @@ export default function NonconformanceDashboard() {
       const res = await fetch('/api/sostenibilidad/corrective-actions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ ...caData, ncId: selectedNC.id }),
       });
       if (!res.ok) throw new Error('No se pudo crear la acción correctiva');

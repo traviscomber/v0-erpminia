@@ -20,7 +20,7 @@ interface AIInsight {
   affected_resource: string;
 }
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
 
 const severityConfig = {
   critical: { color: 'destructive', bgColor: 'bg-[var(--brand-rojo)]/5 border-[var(--brand-rojo)]/30' },

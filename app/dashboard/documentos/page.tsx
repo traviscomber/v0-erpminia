@@ -28,7 +28,7 @@ interface PendingApproval {
 }
 
 const fetcher = async (url: string) => {
-  const response = await fetch(url);
+  const response = await fetch(url, { credentials: 'include' });
   if (!response.ok) {
     return null;
   }
@@ -97,6 +97,7 @@ export default function DocumentosDashboard() {
     const response = await fetch(`/api/documents/${documentId}/approve`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ approvalId, comments }),
     });
 
@@ -112,6 +113,7 @@ export default function DocumentosDashboard() {
     const response = await fetch(`/api/documents/${documentId}/reject`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ approvalId, reason }),
     });
 

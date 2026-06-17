@@ -9,7 +9,7 @@ import { Plus, Clock, CheckCircle2, AlertCircle, Edit, Eye, Wrench, Filter } fro
 
 export default function WorkOrdersPage() {
   const { data } = useSWR('/api/maintenance/work-orders', async (url: string) => {
-    const res = await fetch(url);
+    const res = await fetch(url, { credentials: 'include' });
     return res.ok ? res.json() : null;
   });
 

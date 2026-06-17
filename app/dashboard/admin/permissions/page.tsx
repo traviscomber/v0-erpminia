@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 
 const fetcher = async (url: string) => {
-  const response = await fetch(url);
+  const response = await fetch(url, { credentials: 'include' });
   const data = await response.json();
   if (!response.ok) {
     return null;
@@ -73,6 +73,7 @@ export default function PermissionsPage() {
         const response = await fetch('/api/admin/permissions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({
             user_id: selectedUser,
             role: selectedRole,
@@ -101,6 +102,7 @@ export default function PermissionsPage() {
     const response = await fetch('/api/admin/permissions', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ permission_id: permissionId }),
     });
 
