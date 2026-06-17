@@ -177,8 +177,8 @@ export default function CalendarioPage() {
             <form onSubmit={handleSubmit} className="space-y-4 mt-2">
               <div className="grid grid-cols-2 gap-3">
                 <div className="col-span-2">
-                  <Label htmlFor="titulo">TÃ­tulo *</Label>
-                  <Input id="titulo" name="titulo" value={formData.titulo} onChange={handleInput} placeholder="Ej: InspecciÃ³n EPP sector norte" required />
+                  <Label htmlFor="titulo">Título *</Label>
+                  <Input id="titulo" name="titulo" value={formData.titulo} onChange={handleInput} placeholder="Ej: Inspección EPP sector norte" required />
                 </div>
                 <div>
                   <Label>Tipo de Evento</Label>
@@ -211,7 +211,7 @@ export default function CalendarioPage() {
                   <Input id="fecha_fin" type="date" name="fecha_fin" value={formData.fecha_fin} onChange={handleInput} />
                 </div>
                 <div>
-                  <Label htmlFor="ubicacion">UbicaciÃ³n</Label>
+                  <Label htmlFor="ubicacion">Ubicación</Label>
                   <Input id="ubicacion" name="ubicacion" value={formData.ubicacion} onChange={handleInput} placeholder="Sector / Sala" />
                 </div>
                 <div>
@@ -219,7 +219,7 @@ export default function CalendarioPage() {
                   <Input id="responsable" name="responsable" value={formData.responsable} onChange={handleInput} placeholder="Nombre responsable" />
                 </div>
                 <div className="col-span-2">
-                  <Label htmlFor="descripcion">DescripciÃ³n</Label>
+                  <Label htmlFor="descripcion">Descripción</Label>
                   <textarea id="descripcion" name="descripcion" value={formData.descripcion} onChange={handleInput}
                     className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm resize-none" rows={3}
                     placeholder="Detalles del evento..." />

@@ -207,13 +207,13 @@ export default function FlujDocumentalPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="descripcion">DescripciÃ³n</Label>
+                    <Label htmlFor="descripcion">Descripción</Label>
                     <textarea
                       id="descripcion"
                       name="descripcion"
                       value={formData.descripcion}
                       onChange={handleInputChange}
-                      placeholder="DescripciÃ³n del documento"
+                      placeholder="Descripción del documento"
                       className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm"
                       rows={3}
                     />
@@ -356,7 +356,7 @@ export default function FlujDocumentalPage() {
                             </p>
                           </div>
                         ) : (
-                          <p className="text-muted-foreground text-sm italic">Pendiente de revisiÃ³n</p>
+                          <p className="text-muted-foreground text-sm italic">Pendiente de revisión</p>
                         )}
                       </div>
 
@@ -379,7 +379,7 @@ export default function FlujDocumentalPage() {
                             </p>
                           </div>
                         ) : (
-                          <p className="text-muted-foreground text-sm italic">Pendiente de revisiÃ³n V1</p>
+                          <p className="text-muted-foreground text-sm italic">Pendiente de revisión V1</p>
                         )}
                       </div>
                     </div>

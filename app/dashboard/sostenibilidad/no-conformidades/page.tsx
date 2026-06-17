@@ -62,12 +62,12 @@ export default function NonconformanceDashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...caData, ncId: selectedNC.id }),
       });
-      if (!res.ok) throw new Error('No se pudo crear la accin correctiva');
+      if (!res.ok) throw new Error('No se pudo crear la acción correctiva');
       
       setShowCAModal(false);
       toast.success('Corrective action created successfully');
     } catch (error) {
-      toast.error('No se pudo crear la accin correctiva');
+      toast.error('No se pudo crear la acción correctiva');
       throw error;
     }
   };
@@ -293,12 +293,12 @@ export default function NonconformanceDashboard() {
                 <p className="text-sm">{selectedNC.description}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Causa raiz</p>
+                <p className="text-sm font-medium text-muted-foreground">Causa raíz</p>
                 <p className="text-sm">{selectedNC.root_cause || 'No especificada'}</p>
               </div>
             </div>
             <Button onClick={() => setShowCAModal(true)} className="w-full">
-              Crear accin correctiva
+              Crear acción correctiva
             </Button>
           </CardContent>
         </Card>

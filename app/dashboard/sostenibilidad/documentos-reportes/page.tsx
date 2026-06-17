@@ -174,7 +174,7 @@ export default function DocumentosReportesPage() {
           title: document.title,
           daysOverdue: Math.max(daysOpen - 7, 0),
           approvalLevel:
-            document.steps.find((step) => step.status === 'pending') ? 'Pendiente' : 'En revisiÃ³n',
+            document.steps.find((step) => step.status === 'pending') ? 'Pendiente' : 'En revisión',
           daysOpen,
         };
       })
@@ -188,7 +188,7 @@ export default function DocumentosReportesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">ReporterÃ­a de Documentos</h1>
+        <h1 className="text-3xl font-bold text-foreground">Reportería de Documentos</h1>
         <p className="text-muted-foreground mt-2">
           AnÃ¡lisis y seguimiento del flujo de aprobaciÃ³n documental
         </p>
@@ -228,7 +228,7 @@ export default function DocumentosReportesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{pendingDocuments}</div>
-            <p className="text-xs text-muted-foreground mt-1">En revisiÃ³n</p>
+            <p className="text-xs text-muted-foreground mt-1">En revisión</p>
           </CardContent>
         </Card>
 
@@ -264,7 +264,7 @@ export default function DocumentosReportesPage() {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="overview">Resumen</TabsTrigger>
-              <TabsTrigger value="timeline">LÃ­nea de tiempo</TabsTrigger>
+              <TabsTrigger value="timeline">Línea de tiempo</TabsTrigger>
               <TabsTrigger value="overdue">Vencidos</TabsTrigger>
         </TabsList>
 
@@ -333,7 +333,7 @@ export default function DocumentosReportesPage() {
         <TabsContent value="timeline">
           <Card>
             <CardHeader>
-              <CardTitle>Tiempo Promedio de AprobaciÃ³n</CardTitle>
+              <CardTitle>Tiempo Promedio de Aprobación</CardTitle>
               <CardDescription>Tendencia mensual segÃºn documentos procesados</CardDescription>
             </CardHeader>
             <CardContent>
@@ -378,7 +378,7 @@ export default function DocumentosReportesPage() {
                 Documentos Vencidos en AprobaciÃ³n
               </CardTitle>
               <CardDescription>
-                Documentos pendientes con mÃ¡s de 7 dÃ­as abiertos en revisiÃ³n
+                Documentos pendientes con más de 7 días abiertos en revisión
               </CardDescription>
             </CardHeader>
             <CardContent>
