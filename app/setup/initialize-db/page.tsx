@@ -32,7 +32,7 @@ export default function InitializeDBPage() {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`Error HTTP: estado ${response.status}`);
       }
 
       const data = await response.json();
@@ -65,7 +65,7 @@ export default function InitializeDBPage() {
             </p>
           </div>
 
-          {/* Status Messages */}
+          {/* Mensajes de estado */}
           {status === 'success' && (
             <div className="flex gap-3 p-4 bg-[var(--brand-verde)]/10 rounded-lg border border-green-500/30">
               <CheckCircle2 className="h-5 w-5 text-[var(--brand-verde)] flex-shrink-0 mt-0.5" />
@@ -86,7 +86,7 @@ export default function InitializeDBPage() {
             </div>
           )}
 
-          {/* Input Section */}
+          {/* Seccion de entrada */}
           <div className="space-y-3">
             <label className="text-sm font-medium">Token de Administrador</label>
             <Input
@@ -102,7 +102,7 @@ export default function InitializeDBPage() {
             </p>
           </div>
 
-          {/* Button */}
+          {/* Boton */}
           <Button
             onClick={handleInitialize}
             disabled={isLoading || !adminToken.trim()}
@@ -119,7 +119,7 @@ export default function InitializeDBPage() {
             )}
           </Button>
 
-          {/* Info Box */}
+          {/* Caja informativa */}
           <div className="bg-[var(--secondary)]/10 p-4 rounded-lg border border-[var(--secondary)]/20/30">
             <p className="text-xs text-[var(--secondary)]">
               <strong>Nota:</strong> Esta operación es segura y solo puede ejecutarse una vez con el token correcto. Las tablas existentes no serán borradas.

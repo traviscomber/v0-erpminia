@@ -35,7 +35,7 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title) {
-      toast.error('Title is required');
+      toast.error('Titulo es obligatorio');
       return;
     }
     setLoading(true);
@@ -59,15 +59,15 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
 
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.error || 'Failed to create work order');
+        throw new Error(error.error || 'No se pudo crear la orden de trabajo');
       }
 
       const { data } = await res.json();
-      toast.success(`Work order ${data.work_order_number} created successfully`);
+      toast.success(`Orden de trabajo ${data.work_order_number} creada correctamente`);
       onSuccess();
       setFormData({ title: '', description: '', workType: 'corrective', priority: 'medium', plannedDurationHours: 1, scheduledDate: '', costCenterId: '' });
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Error creating work order');
+      toast.error(error instanceof Error ? error.message : 'Error al crear la orden de trabajo');
     } finally {
       setLoading(false);
     }
@@ -76,12 +76,12 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Create Work Order</CardTitle>
+        <CardTitle>Crear orden de trabajo</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="title">Titulo</Label>
             <Input
               id="title"
               value={formData.title}
@@ -91,7 +91,7 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
           </div>
 
           <div>
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">Descripcion</Label>
             <textarea
               id="description"
               value={formData.description}
@@ -112,30 +112,30 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="workType">Work Type</Label>
+              <Label htmlFor="workType">Tipo de trabajo</Label>
               <Select value={formData.workType} onValueChange={(v) => setFormData({ ...formData, workType: v })}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="corrective">Corrective</SelectItem>
-                  <SelectItem value="preventive">Preventive</SelectItem>
-                  <SelectItem value="predictive">Predictive</SelectItem>
+                  <SelectItem value="corrective">Correctivo</SelectItem>
+                  <SelectItem value="preventive">Preventivo</SelectItem>
+                  <SelectItem value="predictive">Predictivo</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div>
-              <Label htmlFor="priority">Priority</Label>
+              <Label htmlFor="priority">Prioridad</Label>
               <Select value={formData.priority} onValueChange={(v) => setFormData({ ...formData, priority: v })}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="critical">Critical</SelectItem>
+                  <SelectItem value="low">Baja</SelectItem>
+                  <SelectItem value="medium">Media</SelectItem>
+                  <SelectItem value="high">Alta</SelectItem>
+                  <SelectItem value="critical">Critica</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -143,7 +143,7 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="plannedDuration">Planned Duration (hours)</Label>
+              <Label htmlFor="plannedDuration">Duracion planificada (hours)</Label>
               <Input
                 id="plannedDuration"
                 type="number"
@@ -155,7 +155,7 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
             </div>
 
             <div>
-              <Label htmlFor="scheduledDate">Scheduled Date</Label>
+              <Label htmlFor="scheduledDate">Fecha programada</Label>
               <Input
                 id="scheduledDate"
                 type="date"
@@ -166,7 +166,7 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
           </div>
 
           <Button type="submit" disabled={loading} className="w-full">
-            {loading ? 'Creating...' : 'Create Work Order'}
+            {loading ? 'Creando...' : 'Crear orden de trabajo'}
           </Button>
         </form>
       </CardContent>

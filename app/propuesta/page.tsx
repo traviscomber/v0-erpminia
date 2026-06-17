@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,7 +19,7 @@ export default function ProposalPage() {
       });
       
       if (!response.ok) {
-        throw new Error('Failed to generate PDF');
+        throw new Error('No se pudo generar el PDF');
       }
 
       const blob = await response.blob();
@@ -33,7 +33,7 @@ export default function ProposalPage() {
       document.body.removeChild(a);
     } catch (error) {
       console.error('[v0] Error downloading PDF:', error);
-      alert('Error al descargar el PDF. Intenta con Print → Save as PDF');
+      alert('Error al descargar el PDF. Intenta con Imprimir y guardar como PDF');
     }
   };
 
@@ -56,7 +56,7 @@ export default function ProposalPage() {
         {/* Header */}
         <div className="mb-12 text-center border-b pb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">n3uralia ERP</h1>
-          <p className="text-xl text-gray-600 mb-4">Plataforma de Gestión Operacional para Minería</p>
+          <p className="text-xl text-gray-600 mb-4">Plataforma de GestiÃ³n Operacional para MinerÃ­a</p>
           <p className="text-sm text-gray-500">Propuesta Comercial - Desarrollo y SaaS</p>
         </div>
 
@@ -64,15 +64,15 @@ export default function ProposalPage() {
         <section className="mb-8">
           <h2 className="text-2xl font-bold mb-4 text-gray-900">Resumen Ejecutivo</h2>
           <p className="text-gray-700 mb-4">
-            Propuesta integral para desarrollar e implementar n3uralia ERP, una plataforma web enterprise para gestión operacional en empresas mineras chilenas. El proyecto incluye 5 módulos operacionales, autenticación avanzada, compliance regulatorio (SERNAGEOMIN), y 1 año de soporte SaaS.
+            Propuesta integral para desarrollar e implementar n3uralia ERP, una plataforma web enterprise para gestiÃ³n operacional en empresas mineras chilenas. El proyecto incluye 5 mÃ³dulos operacionales, autenticaciÃ³n avanzada, compliance regulatorio (SERNAGEOMIN), y 1 aÃ±o de soporte SaaS.
           </p>
           <div className="grid grid-cols-3 gap-4 mt-6">
             <div className="p-4 bg-muted/5 rounded-lg">
-              <p className="text-sm text-gray-600">Duración Desarrollo</p>
+              <p className="text-sm text-gray-600">DuraciÃ³n Desarrollo</p>
               <p className="text-2xl font-bold text-gray-900">7 Meses</p>
             </div>
             <div className="p-4 bg-muted/5 rounded-lg">
-              <p className="text-sm text-gray-600">Inversión Base</p>
+              <p className="text-sm text-gray-600">InversiÃ³n Base</p>
               <p className="text-2xl font-bold text-gray-900">CLP 25M</p>
             </div>
             <div className="p-4 bg-muted/5 rounded-lg">
@@ -107,7 +107,7 @@ export default function ProposalPage() {
           </div>
 
           <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-3 text-foreground">Fase 2: SaaS - Soporte y Operación (Año 1)</h3>
+            <h3 className="text-lg font-semibold mb-3 text-foreground">Fase 2: SaaS - Soporte y OperaciÃ³n (AÃ±o 1)</h3>
             <table className="w-full text-sm">
               <tbody className="divide-y">
                 <tr>
@@ -131,7 +131,7 @@ export default function ProposalPage() {
           </div>
 
           <div className="p-4 bg-[var(--secondary)]/5 border border-[var(--secondary)]/30 rounded-lg">
-            <p className="font-semibold text-gray-900 mb-1">Inversión Total Año 1 (Desarrollo + SaaS)</p>
+            <p className="font-semibold text-gray-900 mb-1">InversiÃ³n Total AÃ±o 1 (Desarrollo + SaaS)</p>
             <p className="text-2xl font-bold text-[var(--secondary)]">CLP 44,030,000 (con IVA)</p>
           </div>
         </section>
@@ -142,7 +142,7 @@ export default function ProposalPage() {
           
           <div className="space-y-4">
             <div className="border rounded-lg p-4">
-              <h3 className="font-semibold text-gray-900 mb-2">Opción 1: Por Hitos (RECOMENDADO)</h3>
+              <h3 className="font-semibold text-gray-900 mb-2">OpciÃ³n 1: Por Hitos (RECOMENDADO)</h3>
               <p className="text-sm text-gray-600 mb-3">Riesgo compartido, pagos conforme avanzamos en el proyecto</p>
               <table className="w-full text-sm">
                 <tbody className="divide-y">
@@ -171,14 +171,14 @@ export default function ProposalPage() {
             </div>
 
             <div className="border rounded-lg p-4">
-              <h3 className="font-semibold text-gray-900 mb-2">Opción 2: Mensual</h3>
+              <h3 className="font-semibold text-gray-900 mb-2">OpciÃ³n 2: Mensual</h3>
               <p className="text-sm text-gray-600">12 cuotas mensuales iguales</p>
-              <p className="mt-2 font-semibold">CLP 4,246,429 × 12 meses</p>
+              <p className="mt-2 font-semibold">CLP 4,246,429 Ã— 12 meses</p>
             </div>
 
             <div className="border rounded-lg p-4">
-              <h3 className="font-semibold text-gray-900 mb-2">Opción 3: Pago Único</h3>
-              <p className="text-sm text-gray-600">Descuento implícito en el total</p>
+              <h3 className="font-semibold text-gray-900 mb-2">OpciÃ³n 3: Pago Ãšnico</h3>
+              <p className="text-sm text-gray-600">Descuento implÃ­cito en el total</p>
               <p className="mt-2 font-semibold">CLP 29,750,000 en kickoff</p>
             </div>
           </div>
@@ -189,35 +189,35 @@ export default function ProposalPage() {
           <h2 className="text-2xl font-bold mb-4 text-gray-900">Incluido en CLP 25M</h2>
           <ul className="space-y-2 text-gray-700">
             <li className="flex gap-3">
-              <span className="text-[var(--brand-verde)] font-bold">✓</span>
-              <span>5 módulos operacionales completos (Producción, Mantención, Bodega, HSE, Documentos)</span>
+              <span className="text-[var(--brand-verde)] font-bold">âœ“</span>
+              <span>5 mÃ³dulos operacionales completos (ProducciÃ³n, MantenciÃ³n, Bodega, HSE, Documentos)</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-[var(--brand-verde)] font-bold">✓</span>
+              <span className="text-[var(--brand-verde)] font-bold">âœ“</span>
               <span>15+ endpoints API documentados y testeados</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-[var(--brand-verde)] font-bold">✓</span>
-              <span>Autenticación avanzada con RBAC (6 roles definidos)</span>
+              <span className="text-[var(--brand-verde)] font-bold">âœ“</span>
+              <span>AutenticaciÃ³n avanzada con RBAC (6 roles definidos)</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-[var(--brand-verde)] font-bold">✓</span>
+              <span className="text-[var(--brand-verde)] font-bold">âœ“</span>
               <span>Testing automatizado (80%+ code coverage)</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-[var(--brand-verde)] font-bold">✓</span>
-              <span>Documentación técnica y guía de usuario completa</span>
+              <span className="text-[var(--brand-verde)] font-bold">âœ“</span>
+              <span>DocumentaciÃ³n tÃ©cnica y guÃ­a de usuario completa</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-[var(--brand-verde)] font-bold">✓</span>
-              <span>2 semanas de capacitación a equipo cliente</span>
+              <span className="text-[var(--brand-verde)] font-bold">âœ“</span>
+              <span>2 semanas de capacitaciÃ³n a equipo cliente</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-[var(--brand-verde)] font-bold">✓</span>
+              <span className="text-[var(--brand-verde)] font-bold">âœ“</span>
               <span>1 mes de soporte post-launch sin costo</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-[var(--brand-verde)] font-bold">✓</span>
+              <span className="text-[var(--brand-verde)] font-bold">âœ“</span>
               <span>Compliance SERNAGEOMIN integrado</span>
             </li>
           </ul>
@@ -228,36 +228,36 @@ export default function ProposalPage() {
           <h2 className="text-2xl font-bold mb-4 text-gray-900">Incluido en CLP 1M/Mes (SaaS)</h2>
           <ul className="space-y-2 text-gray-700">
             <li className="flex gap-3">
-              <span className="text-[var(--brand-verde)] font-bold">✓</span>
+              <span className="text-[var(--brand-verde)] font-bold">âœ“</span>
               <span>Hosting Vercel con infraestructura global</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-[var(--brand-verde)] font-bold">✓</span>
+              <span className="text-[var(--brand-verde)] font-bold">âœ“</span>
               <span>Database PostgreSQL (Supabase) con backups diarios</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-[var(--brand-verde)] font-bold">✓</span>
+              <span className="text-[var(--brand-verde)] font-bold">âœ“</span>
               <span>SSL/TLS, seguridad OWASP Top 10</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-[var(--brand-verde)] font-bold">✓</span>
-              <span>Monitoreo 24/7 con alertas automáticas</span>
+              <span className="text-[var(--brand-verde)] font-bold">âœ“</span>
+              <span>Monitoreo 24/7 con alertas automÃ¡ticas</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-[var(--brand-verde)] font-bold">✓</span>
-              <span>{'Soporte técnico (<24h respuesta en horas hábiles)'}</span>
+              <span className="text-[var(--brand-verde)] font-bold">âœ“</span>
+              <span>{'Soporte tÃ©cnico (<24h respuesta en horas hÃ¡biles)'}</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-[var(--brand-verde)] font-bold">✓</span>
+              <span className="text-[var(--brand-verde)] font-bold">âœ“</span>
               <span>SLA 99.9% de disponibilidad</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-[var(--brand-verde)] font-bold">✓</span>
+              <span className="text-[var(--brand-verde)] font-bold">âœ“</span>
               <span>Parches de seguridad y actualizaciones</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-[var(--brand-verde)] font-bold">✓</span>
-              <span>{'Recuperación ante desastres (RTO <4h)'}</span>
+              <span className="text-[var(--brand-verde)] font-bold">âœ“</span>
+              <span>{'RecuperaciÃ³n ante desastres (RTO <4h)'}</span>
             </li>
           </ul>
         </section>
@@ -271,7 +271,7 @@ export default function ProposalPage() {
               <span className="font-semibold">Sprint 1</span>
             </div>
             <div className="flex justify-between py-2 border-b">
-              <span>Semanas 3-4: Autenticación y RBAC</span>
+              <span>Semanas 3-4: AutenticaciÃ³n y RBAC</span>
               <span className="font-semibold">Sprint 2</span>
             </div>
             <div className="flex justify-between py-2 border-b">
@@ -279,23 +279,23 @@ export default function ProposalPage() {
               <span className="font-semibold">Sprint 3</span>
             </div>
             <div className="flex justify-between py-2 border-b">
-              <span>Semanas 7-10: Módulo Producción</span>
+              <span>Semanas 7-10: MÃ³dulo ProducciÃ³n</span>
               <span className="font-semibold">Sprint 4-5</span>
             </div>
             <div className="flex justify-between py-2 border-b">
-              <span>Semanas 11-13: Módulo Mantención</span>
+              <span>Semanas 11-13: MÃ³dulo MantenciÃ³n</span>
               <span className="font-semibold">Sprint 6</span>
             </div>
             <div className="flex justify-between py-2 border-b">
-              <span>Semanas 14-16: Módulo Bodega</span>
+              <span>Semanas 14-16: MÃ³dulo Bodega</span>
               <span className="font-semibold">Sprint 7</span>
             </div>
             <div className="flex justify-between py-2 border-b">
-              <span>Semanas 17-18: Módulo HSE</span>
+              <span>Semanas 17-18: MÃ³dulo HSE</span>
               <span className="font-semibold">Sprint 8</span>
             </div>
             <div className="flex justify-between py-2 border-b">
-              <span>Semanas 19-21: Módulo Documentos</span>
+              <span>Semanas 19-21: MÃ³dulo Documentos</span>
               <span className="font-semibold">Sprint 9</span>
             </div>
             <div className="flex justify-between py-2 border-b">
@@ -303,7 +303,7 @@ export default function ProposalPage() {
               <span className="font-semibold">Sprint 10</span>
             </div>
             <div className="flex justify-between py-2 border-b">
-              <span>Semanas 24-25: Documentación y Training</span>
+              <span>Semanas 24-25: DocumentaciÃ³n y Training</span>
               <span className="font-semibold">Sprint 11</span>
             </div>
             <div className="flex justify-between py-2 border-b">
@@ -319,11 +319,11 @@ export default function ProposalPage() {
           <div className="space-y-3">
             <div className="border rounded p-3">
               <p className="font-semibold">Tech Lead / Arquitecto</p>
-              <p className="text-sm text-gray-600">Diseño, decisiones técnicas, quality assurance</p>
+              <p className="text-sm text-gray-600">DiseÃ±o, decisiones tÃ©cnicas, quality assurance</p>
             </div>
             <div className="border rounded p-3">
               <p className="font-semibold">2 Backend Engineers</p>
-              <p className="text-sm text-gray-600">APIs, base de datos, integración de módulos</p>
+              <p className="text-sm text-gray-600">APIs, base de datos, integraciÃ³n de mÃ³dulos</p>
             </div>
             <div className="border rounded p-3">
               <p className="font-semibold">Frontend Engineer</p>
@@ -335,7 +335,7 @@ export default function ProposalPage() {
             </div>
             <div className="border rounded p-3">
               <p className="font-semibold">Project Manager (0.5 FTE)</p>
-              <p className="text-sm text-gray-600">Coordinación, seguimiento, comunicación</p>
+              <p className="text-sm text-gray-600">CoordinaciÃ³n, seguimiento, comunicaciÃ³n</p>
             </div>
           </div>
           <p className="text-sm text-gray-500 mt-4">Total: 5.5 FTE dedicados al proyecto</p>
@@ -343,11 +343,11 @@ export default function ProposalPage() {
 
         {/* Financial Projections */}
         <section className="mb-8">
-          <h2 className="text-2xl font-bold mb-4 text-gray-900">Proyección Financiera</h2>
+          <h2 className="text-2xl font-bold mb-4 text-gray-900">ProyecciÃ³n Financiera</h2>
           <table className="w-full text-sm">
             <thead className="bg-muted/50">
               <tr>
-                <th className="py-2 px-2 text-left">Período</th>
+                <th className="py-2 px-2 text-left">PerÃ­odo</th>
                 <th className="py-2 px-2 text-right">Ingresos</th>
                 <th className="py-2 px-2 text-right">Costos</th>
                 <th className="py-2 px-2 text-right">Margen</th>
@@ -367,19 +367,19 @@ export default function ProposalPage() {
                 <td className="py-2 px-2 text-right">64%</td>
               </tr>
               <tr className="bg-muted/5 font-semibold">
-                <td className="py-2 px-2">Año 1 Completo</td>
+                <td className="py-2 px-2">AÃ±o 1 Completo</td>
                 <td className="py-2 px-2 text-right">CLP 34.75M</td>
                 <td className="py-2 px-2 text-right">CLP 31.55M</td>
                 <td className="py-2 px-2 text-right">9%</td>
               </tr>
               <tr>
-                <td className="py-2 px-2">Año 2 (SaaS)</td>
+                <td className="py-2 px-2">AÃ±o 2 (SaaS)</td>
                 <td className="py-2 px-2 text-right">CLP 12M</td>
                 <td className="py-2 px-2 text-right">CLP 3.8M</td>
                 <td className="py-2 px-2 text-right">68%</td>
               </tr>
               <tr>
-                <td className="py-2 px-2">Año 3 (SaaS)</td>
+                <td className="py-2 px-2">AÃ±o 3 (SaaS)</td>
                 <td className="py-2 px-2 text-right">CLP 12M</td>
                 <td className="py-2 px-2 text-right">CLP 4.2M</td>
                 <td className="py-2 px-2 text-right">65%</td>
@@ -391,24 +391,24 @@ export default function ProposalPage() {
 
         {/* Terms and Conditions */}
         <section className="mb-8">
-          <h2 className="text-2xl font-bold mb-4 text-gray-900">Términos y Condiciones</h2>
+          <h2 className="text-2xl font-bold mb-4 text-gray-900">TÃ©rminos y Condiciones</h2>
           <ul className="space-y-2 text-sm text-gray-700">
-            <li><strong>Validez:</strong> Esta propuesta es válida hasta el 23 de Mayo de 2026</li>
+            <li><strong>Validez:</strong> Esta propuesta es vÃ¡lida hasta el 23 de Mayo de 2026</li>
             <li><strong>Moneda:</strong> Todos los valores en CLP (Pesos Chilenos)</li>
-            <li><strong>IVA:</strong> No incluido en los precios base (se añade 19%)</li>
-            <li><strong>Garantía:</strong> 1 año de soporte incluido post-launch</li>
+            <li><strong>IVA:</strong> No incluido en los precios base (se aÃ±ade 19%)</li>
+            <li><strong>GarantÃ­a:</strong> 1 aÃ±o de soporte incluido post-launch</li>
             <li><strong>SLA:</strong> 99.9% de disponibilidad comprometida</li>
-            <li><strong>Propiedad Intelectual:</strong> Código y documentación son propiedad del cliente</li>
-            <li><strong>Inicio:</strong> Sujeto a firma de contrato y confirmación de presupuesto</li>
+            <li><strong>Propiedad Intelectual:</strong> CÃ³digo y documentaciÃ³n son propiedad del cliente</li>
+            <li><strong>Inicio:</strong> Sujeto a firma de contrato y confirmaciÃ³n de presupuesto</li>
           </ul>
         </section>
 
         {/* Contact */}
         <section className="text-center border-t pt-8">
           <h3 className="text-lg font-bold text-gray-900 mb-2">n3uralia</h3>
-          <p className="text-gray-600">Soluciones Tecnológicas para Minería</p>
+          <p className="text-gray-600">Soluciones TecnolÃ³gicas para MinerÃ­a</p>
           <p className="text-gray-500 text-sm mt-4">
-            Para más información o consultas, contacta con nuestro equipo
+            Para mÃ¡s informaciÃ³n o consultas, contacta con nuestro equipo
           </p>
           <p className="text-gray-500 text-sm mt-2">
             Email: contacto@n3uralia.com | Web: n3uralia.com
@@ -434,3 +434,4 @@ export default function ProposalPage() {
     </div>
   );
 }
+

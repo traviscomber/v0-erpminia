@@ -49,7 +49,7 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
     const fetchOrders = async () => {
       try {
         const response = await fetch('/api/maintenance/work-orders', { credentials: 'include' });
-        if (!response.ok) throw new Error('Failed to fetch work orders');
+        if (!response.ok) throw new Error('No se pudieron cargar las ordenes de trabajo');
         const { workOrders } = await response.json();
         setOrders((workOrders || []).slice(0, limit));
       } catch (err) {
@@ -71,7 +71,7 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
         credentials: 'include',
         body: JSON.stringify({ status: newStatus }),
       });
-      if (!res.ok) throw new Error('Failed to update work order');
+      if (!res.ok) throw new Error('No se pudo actualizar la orden de trabajo');
       const { data } = await res.json();
       setOrders(orders.map(o => o.id === orderId ? data : o));
     } catch (err) {

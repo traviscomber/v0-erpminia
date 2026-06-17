@@ -45,13 +45,13 @@ export function BodegaInventoryImportComponent() {
         });
 
         if (!response.ok) {
-          throw new Error('Failed to load cost centers');
+          throw new Error('No se pudieron cargar los centros de costos');
         }
 
         const data = await response.json();
         setCostCenters(Array.isArray(data) ? data : []);
       } catch (error) {
-        console.error('Error loading cost centers:', error);
+        console.error('Error al cargar los centros de costos:', error);
       }
     };
 
@@ -62,8 +62,8 @@ export function BodegaInventoryImportComponent() {
     if (!isValidFile(file)) {
       setResult({
         success: false,
-        message: 'Only CSV, XLS or XLSX files are accepted',
-        error: 'Invalid file type',
+        message: 'Solo se aceptan archivos CSV, XLS o XLSX',
+        error: 'Tipo de archivo no valido',
       });
       return;
     }
@@ -95,14 +95,14 @@ export function BodegaInventoryImportComponent() {
       } else {
         setResult({
           success: false,
-          message: 'Failed to import inventory',
-          error: data.error || 'Unknown error',
+          message: 'No se pudo importar el inventario',
+          error: data.error || 'Error desconocido',
         });
       }
     } catch (error) {
       setResult({
         success: false,
-        message: 'Error uploading file',
+        message: 'Error al subir el archivo',
         error: String(error),
       });
     } finally {
