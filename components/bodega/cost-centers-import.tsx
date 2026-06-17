@@ -39,6 +39,7 @@ export function CostCentersImportComponent() {
 
       const response = await fetch('/api/bodega/import-cost-centers', {
         method: 'POST',
+        credentials: 'include',
         body: formData,
       });
 

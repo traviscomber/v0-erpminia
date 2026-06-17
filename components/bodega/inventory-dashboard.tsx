@@ -24,8 +24,8 @@ export function InventoryDashboard() {
     const fetchInventory = async () => {
       try {
         const [stockRes, alertsRes] = await Promise.all([
-          fetch('/api/bodega/stock'),
-          fetch('/api/bodega/alerts')
+          fetch('/api/bodega/stock', { credentials: 'include' }),
+          fetch('/api/bodega/alerts', { credentials: 'include' })
         ]);
         
         if (stockRes.ok) {

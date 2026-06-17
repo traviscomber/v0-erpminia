@@ -48,7 +48,7 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await fetch('/api/maintenance/work-orders');
+        const response = await fetch('/api/maintenance/work-orders', { credentials: 'include' });
         if (!response.ok) throw new Error('Failed to fetch work orders');
         const { workOrders } = await response.json();
         setOrders((workOrders || []).slice(0, limit));
@@ -68,6 +68,7 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
       const res = await fetch(`/api/maintenance/work-orders/${orderId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ status: newStatus }),
       });
       if (!res.ok) throw new Error('Failed to update work order');

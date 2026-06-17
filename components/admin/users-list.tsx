@@ -56,7 +56,7 @@ export function UsersList() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/admin/users');
+      const res = await fetch('/api/admin/users', { credentials: 'include' });
       const data = await res.json();
       setUsers(data.users || []);
     } catch (error) {
@@ -71,6 +71,7 @@ export function UsersList() {
       const res = await fetch('/api/admin/users', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ userId, role: newRole }),
       });
 
@@ -90,6 +91,7 @@ export function UsersList() {
       const res = await fetch('/api/admin/users', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ userId }),
       });
 
