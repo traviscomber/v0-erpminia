@@ -92,11 +92,11 @@ export function ExportReportForm() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Exportar reporte</CardTitle>
-      </CardHeader>
-      <CardContent>
+      <Card>
+        <CardHeader>
+          <CardTitle>Exportar reporte</CardTitle>
+        </CardHeader>
+        <CardContent>
         {error && (
           <div className="mb-4 flex gap-2 rounded border border-red-200 bg-red-50 p-3">
             <AlertCircle className="h-5 w-5 flex-shrink-0 text-red-600" />
@@ -112,9 +112,9 @@ export function ExportReportForm() {
               onChange={(e) => setReportType(e.target.value as ReportType)}
               className="w-full rounded border p-2 text-sm"
             >
-              <option value="maintenance">Maintenance Work Orders</option>
-              <option value="hse">HSE Incidents & Investigations</option>
-              <option value="audit">Audit Trail & Compliance</option>
+              <option value="maintenance">Órdenes de trabajo de mantención</option>
+              <option value="hse">Incidentes e investigaciones HSE</option>
+              <option value="audit">Trazabilidad y cumplimiento</option>
             </select>
           </div>
 
@@ -146,7 +146,7 @@ export function ExportReportForm() {
           </Button>
 
           <p className="text-xs text-muted-foreground">
-            El archivo incluye resumen y detalle en formato CSV para auditoria y analisis.
+            El archivo incluye resumen y detalle en formato CSV para auditoría y análisis.
           </p>
         </div>
       </CardContent>
