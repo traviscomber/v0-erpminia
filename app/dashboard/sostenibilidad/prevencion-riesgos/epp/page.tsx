@@ -30,7 +30,7 @@ interface EPP {
   activo: boolean;
 }
 
-const fetcher = (url: string) => fetch(url).then(r => r.json());
+const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then(r => r.json());
 const authFetcher = async (url: string) => {
   const response = await fetch(url, { credentials: 'include' });
   const data = await response.json();
@@ -144,7 +144,10 @@ export default function EPPPage() {
   const handleDelete = async (id: string, nombre: string) => {
     if (!confirm(`¿Eliminar "${nombre}"`)) return;
     try {
-      const response = await fetch(`/api/sostenibilidad/epp?id=${id}`, { method: 'DELETE' });
+      const response = await fetch(`/api/sostenibilidad/epp?id=${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
       if (response.ok) {
         toast.success('EPP eliminado correctamente');
         mutate();

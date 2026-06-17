@@ -38,7 +38,7 @@ interface Capacitacion {
   estado: 'planificada' | 'realizada' | 'cancelada';
 }
 
-const fetcher = (url: string) => fetch(url).then(r => r.json());
+const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then(r => r.json());
 
 export default function CapacitacionesPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -78,6 +78,7 @@ export default function CapacitacionesPage() {
       const response = await fetch('/api/sostenibilidad/capacitaciones', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(formData),
       });
 
@@ -112,6 +113,7 @@ export default function CapacitacionesPage() {
     try {
       const response = await fetch(`/api/sostenibilidad/capacitaciones?id=${id}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
 
       if (response.ok) {

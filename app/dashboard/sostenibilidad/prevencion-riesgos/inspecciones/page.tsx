@@ -24,7 +24,7 @@ interface InspeccionInterna {
   reporte_url?: string;
 }
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((r) => r.json());
 
 export default function InspeccionesInternasPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -56,7 +56,7 @@ export default function InspeccionesInternasPage() {
     try {
       const response = await fetch(
         `/api/sostenibilidad/inspecciones?id=${selectedInspeccion.id}&tipo=internas`,
-        { method: 'DELETE' }
+        { method: 'DELETE', credentials: 'include' }
       );
 
       if (!response.ok) throw new Error('Error al eliminar');
