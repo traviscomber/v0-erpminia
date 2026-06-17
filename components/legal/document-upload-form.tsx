@@ -17,7 +17,7 @@ export function DocumentUploadForm() {
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) {
-      toast({ title: 'Error', description: 'Selecciona un archivo' });
+      toast({ title: 'Error', description: 'Selecciona un archivo.' });
       return;
     }
 
