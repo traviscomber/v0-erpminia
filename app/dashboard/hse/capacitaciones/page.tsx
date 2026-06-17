@@ -10,7 +10,7 @@ import { Calendar, Plus, Search, Users, Clock } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const fetcher = async (url: string) => {
-  const response = await fetch(url);
+  const response = await fetch(url, { credentials: 'include' });
   if (!response.ok) {
     return null;
   }
@@ -28,7 +28,7 @@ export default function HSECapacitacionesPage() {
   const [estado, setEstado] = useState('');
 
   const { data, error, isLoading } = useSWR(
-    `/api/hse/capacitaciones${estado ? `estado=${encodeURIComponent(estado)}` : ''}`,
+    `/api/hse/capacitaciones${estado ? `?estado=${encodeURIComponent(estado)}` : ''}`,
     fetcher,
     { revalidateOnFocus: false, refreshInterval: 300000 }
   );

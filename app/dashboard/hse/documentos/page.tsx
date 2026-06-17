@@ -39,9 +39,7 @@ export default function DocumentosHSEPage() {
         setStats({
           total: data.length,
           vigentes: data.filter((d: Document) => d.status === 'active').length,
-          en_revision: data.filter((d: Document) => 
-            d.status === 'pending_l1' || d.status === 'pending_l2'
-          ).length,
+          en_revision: data.filter((d: Document) => d.status === 'pending_l1' || d.status === 'pending_l2').length,
           rechazados: data.filter((d: Document) => d.status === 'rejected').length,
         });
       }
@@ -63,7 +61,7 @@ export default function DocumentosHSEPage() {
         credentials: 'include',
       });
       if (response.ok) {
-        setDocuments(documents.filter(d => d.id !== documentId));
+        setDocuments(documents.filter((d) => d.id !== documentId));
         await loadDocuments();
       }
     } catch (error) {
@@ -73,7 +71,7 @@ export default function DocumentosHSEPage() {
 
   const handleView = (document: Document | string) => {
     if (typeof document === 'string') {
-      const doc = documents.find(d => d.id === document);
+      const doc = documents.find((d) => d.id === document);
       if (doc) setSelectedDoc(doc);
     } else {
       setSelectedDoc(document);
@@ -92,6 +90,7 @@ export default function DocumentosHSEPage() {
           observations,
           reviewLevel: 'L1',
         }),
+        credentials: 'include',
       });
       if (response.ok) {
         await loadDocuments();
@@ -112,6 +111,7 @@ export default function DocumentosHSEPage() {
           observations,
           reviewLevel: 'L1',
         }),
+        credentials: 'include',
       });
       if (response.ok) {
         await loadDocuments();
@@ -126,14 +126,14 @@ export default function DocumentosHSEPage() {
       <div>
         <h1 className="text-3xl font-bold">Documentos HSE</h1>
         <p className="text-muted-foreground mt-2">
-          GestiÃ³n de documentos de Higiene, Seguridad y Ambiente
+          Gestión de documentos de Higiene, Seguridad y Ambiente
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between text-sm font-medium">
               <span>Total</span>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardTitle>
@@ -146,7 +146,7 @@ export default function DocumentosHSEPage() {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between text-sm font-medium">
               <span>Vigentes</span>
               <CheckCircle2 className="h-4 w-4 text-green-500" />
             </CardTitle>
@@ -159,51 +159,54 @@ export default function DocumentosHSEPage() {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center justify-between">
-              <span>En RevisiÃ³n</span>
+            <CardTitle className="flex items-center justify-between text-sm font-medium">
+              <span>En Revisión</span>
               <Clock className="h-4 w-4 text-yellow-500" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-yellow-500">{stats.en_revision}</p>
-            <p className="text-xs text-muted-foreground">esperando aprobaciÃ³n</p>
+            <p className="text-xs text-muted-foreground">esperando aprobación</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between text-sm font-medium">
               <span>Rechazados</span>
               <AlertCircle className="h-4 w-4 text-red-500" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-red-500">{stats.rechazados}</p>
-            <p className="text-xs text-muted-foreground">pendientes de correcciÃ³n</p>
+            <p className="text-xs text-muted-foreground">pendientes de corrección</p>
           </CardContent>
         </Card>
       </div>
 
       <Tabs defaultValue="all" className="space-y-4">
         <TabsList className="bg-muted/60 border-b-2 border-border p-1">
-          <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Todos</TabsTrigger>
-          <TabsTrigger value="vigentes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Vigentes</TabsTrigger>
-          <TabsTrigger value="revision" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">En RevisiÃ³n</TabsTrigger>
-          <TabsTrigger value="upload" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Subir Documentos</TabsTrigger>
+          <TabsTrigger value="all" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            Todos
+          </TabsTrigger>
+          <TabsTrigger value="vigentes" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            Vigentes
+          </TabsTrigger>
+          <TabsTrigger value="revision" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            En Revisión
+          </TabsTrigger>
+          <TabsTrigger value="upload" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            Subir Documentos
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
-          <DocumentList
-            documents={documents}
-            isLoading={loading}
-            onView={handleView}
-            onDelete={handleDelete}
-          />
+          <DocumentList documents={documents} isLoading={loading} onView={handleView} onDelete={handleDelete} />
         </TabsContent>
 
         <TabsContent value="vigentes" className="space-y-4">
           <DocumentList
-            documents={documents.filter(d => d.status === 'active')}
+            documents={documents.filter((d) => d.status === 'active')}
             isLoading={loading}
             onView={handleView}
             onDelete={handleDelete}
@@ -212,9 +215,7 @@ export default function DocumentosHSEPage() {
 
         <TabsContent value="revision" className="space-y-4">
           <DocumentList
-            documents={documents.filter(d => 
-              d.status === 'pending_l1' || d.status === 'pending_l2'
-            )}
+            documents={documents.filter((d) => d.status === 'pending_l1' || d.status === 'pending_l2')}
             isLoading={loading}
             onView={handleView}
             onDelete={handleDelete}
@@ -225,16 +226,10 @@ export default function DocumentosHSEPage() {
           <Card>
             <CardHeader>
               <CardTitle>Subir Nuevo Documento</CardTitle>
-              <CardDescription>
-                Sube documentos de Higiene, Seguridad y Ambiente
-              </CardDescription>
+              <CardDescription>Sube documentos de Higiene, Seguridad y Ambiente</CardDescription>
             </CardHeader>
             <CardContent>
-              <DocumentUpload 
-                module="hse"
-                category="documentos"
-                onUploadSuccess={loadDocuments}
-              />
+              <DocumentUpload module="hse" category="documentos" onUploadSuccess={loadDocuments} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -254,4 +249,3 @@ export default function DocumentosHSEPage() {
     </div>
   );
 }
-
