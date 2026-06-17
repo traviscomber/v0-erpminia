@@ -31,6 +31,7 @@ export function DocumentUploadForm() {
 
       const res = await fetch('/api/legal/documentos/upload', {
         method: 'POST',
+        credentials: 'include',
         body: formData,
       });
 

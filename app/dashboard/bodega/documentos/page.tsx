@@ -85,13 +85,13 @@ export default function DocumentosBodegaPage() {
       const response = await fetch('/api/documents/review', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           documentId,
           action: 'approve',
           observations,
           reviewLevel: 'L1',
         }),
-        credentials: 'include',
       });
       if (response.ok) {
         await loadDocuments();
@@ -106,13 +106,13 @@ export default function DocumentosBodegaPage() {
       const response = await fetch('/api/documents/review', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           documentId,
           action: 'reject',
           observations,
           reviewLevel: 'L1',
         }),
-        credentials: 'include',
       });
       if (response.ok) {
         await loadDocuments();

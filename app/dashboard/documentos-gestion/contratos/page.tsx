@@ -109,6 +109,7 @@ export default function ContratosPage() {
 
       const response = await fetch('/api/contracts', {
         method: 'POST',
+        credentials: 'include',
         body: payload,
       });
 

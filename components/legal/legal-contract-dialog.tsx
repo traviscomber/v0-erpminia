@@ -101,6 +101,7 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
 
       const response = await fetch('/api/contracts', {
         method: 'POST',
+        credentials: 'include',
         body: formData,
       });
 
