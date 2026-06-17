@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
                    '*';
 
     const response = await fetch(
-      `${url}/rest/v1/${table}select=${select}`,
+      `${url}/rest/v1/${table}?select=${select}`,
       {
         headers: {
           'apikey': key,
