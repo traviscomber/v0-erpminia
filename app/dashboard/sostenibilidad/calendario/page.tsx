@@ -85,7 +85,7 @@ export default function CalendarioPage() {
   const [formData, setFormData]       = useState({ ...BLANK_FORM });
 
   const { data: res, mutate } = useSWR('/api/sostenibilidad/calendario', fetcher);
-  const allEvents: CalendarEvent[] = res?.data || [];
+  const allEvents: CalendarEvent[] = res.data || [];
 
   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
   const firstDayRaw = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
@@ -142,7 +142,7 @@ export default function CalendarioPage() {
 
   const handleDelete = async (id: string, titulo: string) => {
     if (!confirm(`Â¿Eliminar "${titulo}"`)) return;
-    const r = await fetch(`/api/sostenibilidad/calendario?id=${id}`, { method: 'DELETE', credentials: 'include' });
+    const r = await fetch(`/api/sostenibilidad/calendarioid=${id}`, { method: 'DELETE', credentials: 'include' });
     if (r.ok) { toast.success('Evento eliminado'); mutate(); }
     else toast.error('Error al eliminar evento');
   };
@@ -390,9 +390,15 @@ export default function CalendarioPage() {
                     : eventsThisMonth.filter(e => e.estado === 'programado').slice(0, 8);
                   if (list.length === 0)
                     return <p className="text-sm text-muted-foreground text-center py-8">Sin eventos</p>;
-                  return list.map(evt => (
-                    <EventCard key={evt.id} event={evt} onDelete={handleDelete} compact={!selectedDay} />
-                  ));
+                    return list.map(evt => (
+                      <EventCard
+                        key={evt.id}
+                        event={evt}
+                        onDelete={handleDelete}
+                        compact={!selectedDay}
+                        expanded={false}
+                      />
+                    ));
                 })()}
               </CardContent>
             </Card>
@@ -414,7 +420,7 @@ export default function CalendarioPage() {
               </div>
             ) : (
               <div className="space-y-2">
-                {filteredEvents.map(evt => <EventCard key={evt.id} event={evt} onDelete={handleDelete} expanded />)}
+                {filteredEvents.map(evt => <EventCard key={evt.id} event={evt} onDelete={handleDelete} compact={false} expanded />)}
               </div>
             )}
           </CardContent>
@@ -430,8 +436,8 @@ function EventCard({
 }: {
   event: CalendarEvent;
   onDelete: (id: string, titulo: string) => void;
-  compact?: boolean;
-  expanded?: boolean;
+  compact: boolean;
+  expanded: boolean;
 }) {
   const cfg = EVENT_TYPES[event.tipo_evento] || EVENT_TYPES.tarea;
   const Icon = cfg.icon;

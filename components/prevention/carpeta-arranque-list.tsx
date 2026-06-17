@@ -210,7 +210,7 @@ function ReviewModal({
         <DialogFooter className="pt-2 border-t">
           <Button variant="outline" onClick={onClose} disabled={saving}>Cancelar</Button>
           <Button onClick={handleSave} disabled={saving} className="gap-2">
-            {saving ? <><Loader2 className="h-4 w-4 animate-spin" />Guardando...</> : <><Send className="h-4 w-4" />Guardar revision</>}
+            {saving ? <><Loader2 className="h-4 w-4 animate-spin" />Guardando...</> : <><Send className="h-4 w-4" />Guardar revisión</>}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -321,8 +321,8 @@ export default function CarpetaArranqueList({ status }: { status: string }) {
                           {carpeta.revisor_l1_nombre || 'Dennyse'} ÃÂ¢ÃÂÃÂ L1
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {carpeta.revisor_l1_status === 'cumple' ? 'Cumple' :
-                           carpeta.revisor_l1_status === 'no_cumple' ? 'No Cumple' : 'Pendiente'}
+                           {carpeta.revisor_l1_status === 'cumple' ? 'Cumple' :
+                            carpeta.revisor_l1_status === 'no_cumple' ? 'No Cumple' : 'Pendiente'}
                         </p>
                       </div>
                     </div>
@@ -338,8 +338,8 @@ export default function CarpetaArranqueList({ status }: { status: string }) {
                           {carpeta.revisor_l2_nombre || 'Javier / Gonzalo'}  L2
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {carpeta.revisor_l2_status === 'cumple' ? 'Cumple' :
-                           carpeta.revisor_l2_status === 'no_cumple' ? 'No Cumple' : 'Pendiente'}
+                           {carpeta.revisor_l2_status === 'cumple' ? 'Cumple' :
+                            carpeta.revisor_l2_status === 'no_cumple' ? 'No Cumple' : 'Pendiente'}
                         </p>
                       </div>
                     </div>
@@ -398,7 +398,7 @@ export default function CarpetaArranqueList({ status }: { status: string }) {
                                 className="text-muted-foreground hover:text-primary transition-colors"
                                 title="Descargar"
                                 onClick={async () => {
-                                  const res = await fetch(`/api/carpeta-arranque/${carpeta.id}/download?slot=${doc.slot_index}`, { credentials: 'include' });
+                                  const res = await fetch(`/api/carpeta-arranque/${carpeta.id}/downloadslot=${doc.slot_index}`, { credentials: 'include' });
                                   if (res.ok) {
                                     const { url } = await res.json();
                                     window.open(url, '_blank');

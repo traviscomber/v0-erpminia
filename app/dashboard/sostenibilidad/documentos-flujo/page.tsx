@@ -69,7 +69,7 @@ export default function FlujDocumentalPage() {
   });
 
   const { data: documentos, mutate } = useSWR('/api/sostenibilidad/documentos-flujo', fetcher);
-  const docList = Array.isArray(documentos?.data) ? (documentos.data as DocumentoFlujo[]) : [];
+  const docList = Array.isArray(documentos.data) ? (documentos.data as DocumentoFlujo[]) : [];
 
   const filteredDocs = docList.filter((doc: any) => {
     const title = doc.title || doc.documento_nombre || '';
@@ -367,7 +367,7 @@ export default function FlujDocumentalPage() {
                           <div className="w-6 h-6 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center text-xs">2</div>
                           Gerente General
                         </h4>
-                        {doc.validador2_nombre ? (
+                          {doc.validador2_nombre ? (
                           <div className="space-y-2 text-sm">
                             <p className="text-muted-foreground">
                               <span className="font-medium">Revisor:</span> {doc.validador2_nombre}

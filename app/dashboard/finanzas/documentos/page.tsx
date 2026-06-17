@@ -30,7 +30,7 @@ export default function DocumentosFinanzasPage() {
   const loadDocuments = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/documents/list?module=finanzas&category=documentos', {
+      const response = await fetch('/api/documents/listmodule=finanzas&category=documentos', {
         credentials: 'include',
       });
       const data = await response.json();
@@ -58,7 +58,7 @@ export default function DocumentosFinanzasPage() {
 
   const handleDelete = async (documentId: string) => {
     try {
-      const response = await fetch(`/api/documents/delete?id=${documentId}`, {
+      const response = await fetch(`/api/documents/deleteid=${documentId}`, {
         method: 'DELETE',
         credentials: 'include',
       });
