@@ -96,6 +96,7 @@ function typeLabel(type: AlertType) {
 export default function AlertasPage() {
   const router = useRouter();
   const [filter, setFilter] = useState<'todos' | 'no-leidas' | 'criticas' | 'accion'>('todos');
+  const [searchTerm, setSearchTerm] = useState('');
   const [archivedCount, setArchivedCount] = useState(0);
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -117,12 +118,14 @@ export default function AlertasPage() {
   const filteredAlerts = useMemo(
     () =>
       alerts.filter((alert) => {
+        const haystack = `${alert.title} ${alert.description} ${alert.type} ${alert.severity}`.toLowerCase();
+        if (searchTerm && !haystack.includes(searchTerm.toLowerCase())) return false;
         if (filter === 'no-leidas') return !alert.read;
         if (filter === 'criticas') return alert.severity === 'critica';
         if (filter === 'accion') return alert.actionRequired;
         return true;
       }),
-    [alerts, filter]
+    [alerts, filter, searchTerm]
   );
 
   const unreadCount = alerts.filter((alert) => !alert.read).length;
@@ -267,6 +270,24 @@ export default function AlertasPage() {
           onClick={() => setFilter('accion')}
         >
           Requieren Accion ({actionCount})
+        </Button>
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-[1fr_auto]">
+        <input
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Buscar por título, descripción, tipo o severidad..."
+          className="h-10 rounded-md border border-border bg-background px-3 text-sm outline-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+        />
+        <Button
+          variant="outline"
+          onClick={() => {
+            setSearchTerm('');
+            setFilter('todos');
+          }}
+        >
+          Limpiar filtros
         </Button>
       </div>
 
