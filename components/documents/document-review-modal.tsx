@@ -1,12 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { AlertCircle, CheckCircle2, Send, X } from 'lucide-react';
+import { AlertCircle, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Loader2 } from 'lucide-react';
 import { PDFViewer } from './document-viewer';
 
 interface Document {
@@ -59,7 +58,7 @@ export function DocumentReviewModal({
 
   const handleReject = async () => {
     if (!observations.trim()) {
-      alert('Debes ingresar observaciones para rechazar');
+      alert('Debes ingresar observaciones para rechazar.');
       return;
     }
     setAction('reject');
@@ -88,8 +87,7 @@ export function DocumentReviewModal({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Información del documento */}
-          <div className="space-y-3 p-4 bg-muted rounded-lg">
+          <div className="space-y-3 rounded-lg bg-muted p-4">
             <h3 className="font-semibold">{document.document_name}</h3>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div>
@@ -115,52 +113,37 @@ export function DocumentReviewModal({
             </div>
           </div>
 
-          {/* Vista previa */}
           {document.file_url && (
-            <>
-              {(() => {
-                const preview = (
-                  <PDFViewer
-                    fileUrl={document.file_url}
-                    fileName={document.document_name}
-                    fileType={document.document_type}
-                    maxHeight="max-h-[400px]"
-                  />
-                );
-                // Solo mostrar la sección si hay contenido para previsualizar
-                return preview ? (
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold">Vista previa del documento</label>
-                    {preview}
-                  </div>
-                ) : null;
-              })()}
-            </>
+            <div className="space-y-2">
+              <label className="text-sm font-semibold">Vista previa del documento</label>
+              <PDFViewer
+                fileUrl={document.file_url}
+                fileName={document.document_name}
+                fileType={document.document_type}
+                maxHeight="max-h-[400px]"
+              />
+            </div>
           )}
 
-          {/* Observaciones previas (if exists) */}
           {document.l1_observations && reviewLevel === 'L2' && (
-            <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+            <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
               <div className="flex gap-2">
-                <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0" />
+                <AlertCircle className="h-5 w-5 flex-shrink-0 text-yellow-600" />
                 <div>
-                  <h4 className="font-semibold text-yellow-900">Observaciones L1 (Dennyse):</h4>
-                  <p className="text-sm text-yellow-800 mt-1">{document.l1_observations}</p>
+                  <h4 className="font-semibold text-yellow-900">Observaciones L1</h4>
+                  <p className="mt-1 text-sm text-yellow-800">{document.l1_observations}</p>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Formulario de revisión */}
           <div className="space-y-3">
-            <label className="text-sm font-semibold">
-              Observaciones de Revisión {reviewLevel}
-            </label>
+            <label className="text-sm font-semibold">Observaciones de revisión {reviewLevel}</label>
             <Textarea
               placeholder={
                 reviewLevel === 'L1'
-                  ? 'Ingresa observaciones (opcional para aprobación)'
-                  : 'Ingresa observaciones o retroalimentación'
+                  ? 'Ingresa observaciones opcionales para la aprobación.'
+                  : 'Ingresa observaciones o retroalimentación.'
               }
               value={observations}
               onChange={(e) => setObservations(e.target.value)}
@@ -169,52 +152,37 @@ export function DocumentReviewModal({
             />
             <p className="text-xs text-muted-foreground">
               {reviewLevel === 'L1'
-                ? 'Si apruebas sin observaciones, el documento pasa directamente a L2'
-                : 'Las observaciones serán notificadas al responsable'}
+                ? 'Si apruebas sin observaciones, el documento pasa directamente a L2.'
+                : 'Las observaciones serán notificadas al responsable.'}
             </p>
           </div>
 
-          {/* Actions */}
-          <div className="flex gap-2 justify-end">
-            <Button
-              variant="outline"
-              onClick={handleClose}
-              disabled={isSubmitting}
-            >
-              <X className="h-4 w-4 mr-2" />
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={handleClose} disabled={isSubmitting}>
               Cerrar
             </Button>
-
-            <Button
-              variant="destructive"
-              onClick={handleReject}
-              disabled={isSubmitting}
-            >
+            <Button variant="destructive" onClick={handleReject} disabled={isSubmitting}>
               {action === 'reject' && isSubmitting ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Rechazando...
                 </>
               ) : (
                 <>
-                  <X className="h-4 w-4 mr-2" />
+                  <XCircle className="mr-2 h-4 w-4" />
                   Rechazar
                 </>
               )}
             </Button>
-
-            <Button
-              onClick={handleApprove}
-              disabled={isSubmitting}
-            >
+            <Button onClick={handleApprove} disabled={isSubmitting}>
               {action === 'approve' && isSubmitting ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Aprobando...
                 </>
               ) : (
                 <>
-                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  <CheckCircle2 className="mr-2 h-4 w-4" />
                   Aprobar
                 </>
               )}
@@ -225,4 +193,3 @@ export function DocumentReviewModal({
     </Dialog>
   );
 }
-
