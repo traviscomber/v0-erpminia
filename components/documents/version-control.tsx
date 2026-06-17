@@ -43,7 +43,7 @@ export function DocumentVersionControl() {
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>Versionado de Documentos</CardTitle>
+          <CardTitle>Versionado de documentos</CardTitle>
           <CardDescription>Historial completo de cambios y aprobaciones</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
