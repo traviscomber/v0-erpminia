@@ -6,6 +6,7 @@ import { useBodegaInventory, useBodegaCategories } from '@/hooks/use-module-apis
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RefreshCw, AlertTriangle, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CategoryFilter } from './category-filter';
 
 export function BodegaDashboard() {
   const [page, setPage] = useState(0);
@@ -127,30 +128,16 @@ export function BodegaDashboard() {
 
             {/* Category filter */}
             {categories.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={category === '' ? 'default' : 'outline'}
-                  onClick={() => {
-                    setCategory('');
+              <div>
+                <p className="text-sm font-medium text-foreground mb-2">Categoría</p>
+                <CategoryFilter
+                  categories={categories}
+                  selectedCategory={category}
+                  onCategoryChange={(newCategory) => {
+                    setCategory(newCategory);
                     setPage(0);
                   }}
-                  className="text-sm"
-                >
-                  Todas
-                </Button>
-                {categories.map(cat => (
-                  <Button
-                    key={cat}
-                    variant={category === cat ? 'default' : 'outline'}
-                    onClick={() => {
-                      setCategory(cat);
-                      setPage(0);
-                    }}
-                    className="text-sm"
-                  >
-                    {cat}
-                  </Button>
-                ))}
+                />
               </div>
             )}
           </div>
