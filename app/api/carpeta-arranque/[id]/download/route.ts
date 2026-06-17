@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 const BUCKET = 'module-documents';
 
-// GET /api/carpeta-arranque/[id]/downloadslot=<slot_index>
+// GET /api/carpeta-arranque/[id]/download?slot=<slot_index>
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await resolveAuthContext(request);
   if (!auth) return NextResponse.json({ error: 'No autenticado' }, { status: 401 });

@@ -19,6 +19,19 @@ interface PendingApproval {
   days_pending: number;
 }
 
+interface DocumentApprovalStep {
+  approval_level_name: string;
+  required_role: string;
+  status: string;
+  approval_level: number;
+}
+
+interface PendingDocument {
+  id: string;
+  title: string;
+  document_approvals?: DocumentApprovalStep[];
+}
+
 export function MisAprobacionesWidget() {
   const [userRole, setUserRole] = useState<string | null>(null);
 
@@ -36,9 +49,9 @@ export function MisAprobacionesWidget() {
     getRole();
   }, []);
 
-  // Fetch pending approvals based on user role
+  // Fetch pending approvals and filter them by the active role on the client.
   const { data: pendingDocs, isLoading, error } = useSWR(
-    userRole ? `/api/sostenibilidad/documentos-flujorole=${userRole}&status=pending` : null,
+    '/api/sostenibilidad/documentos-flujo?status=pending',
     async (url) => {
       const res = await fetch(url, { credentials: 'include' });
       if (!res.ok) return;
@@ -47,7 +60,31 @@ export function MisAprobacionesWidget() {
     { revalidateOnFocus: false, dedupingInterval: 60000 }
   );
 
-  const approvals = (pendingDocs.data || []) as PendingApproval[];
+  const pendingDocuments = ((pendingDocs?.data || []) as PendingDocument[]).filter((doc) =>
+    userRole
+      ? doc.document_approvals?.some(
+          (approval) => approval.status === 'pending' && approval.required_role === userRole
+        )
+      : true
+  );
+
+  const approvals = pendingDocuments.flatMap((doc) =>
+    (doc.document_approvals || [])
+      .filter((approval) => approval.status === 'pending' && (!userRole || approval.required_role === userRole))
+      .map(
+        (approval) =>
+          ({
+            id: `${doc.id}-${approval.approval_level}`,
+            title: doc.title,
+            document_id: doc.id,
+            approval_level_name: approval.approval_level_name,
+            approval_level: approval.approval_level,
+            status: approval.status,
+            submitted_at: '',
+            days_pending: 0,
+          }) as PendingApproval
+      )
+  );
   const criticalCount = approvals.filter(a => a.days_pending > 7).length;
   const normalCount = approvals.filter(a => a.days_pending <= 7).length;
 
@@ -98,7 +135,7 @@ export function MisAprobacionesWidget() {
               .map(approval => (
                 <Link
                   key={approval.id}
-                  href={`/dashboard/sostenibilidad/documentos-flujodoc=${approval.document_id}`}
+                  href="/dashboard/sostenibilidad/documentos-flujo"
                 >
                   <div className="p-3 rounded-lg border border-destructive/30 bg-destructive/5 hover:bg-destructive/10 cursor-pointer transition">
                     <div className="flex items-start justify-between gap-2">
@@ -126,7 +163,7 @@ export function MisAprobacionesWidget() {
               .map(approval => (
                 <Link
                   key={approval.id}
-                  href={`/dashboard/sostenibilidad/documentos-flujodoc=${approval.document_id}`}
+                  href="/dashboard/sostenibilidad/documentos-flujo"
                 >
                   <div className="p-3 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 cursor-pointer transition">
                     <div className="flex items-start justify-between gap-2">

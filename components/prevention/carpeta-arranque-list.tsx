@@ -398,7 +398,7 @@ export default function CarpetaArranqueList({ status }: { status: string }) {
                                 className="text-muted-foreground hover:text-primary transition-colors"
                                 title="Descargar"
                                 onClick={async () => {
-                                  const res = await fetch(`/api/carpeta-arranque/${carpeta.id}/downloadslot=${doc.slot_index}`, { credentials: 'include' });
+                                  const res = await fetch(`/api/carpeta-arranque/${carpeta.id}/download?slot=${doc.slot_index}`, { credentials: 'include' });
                                   if (res.ok) {
                                     const { url } = await res.json();
                                     window.open(url, '_blank');
