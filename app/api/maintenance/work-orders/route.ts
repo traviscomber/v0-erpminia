@@ -17,6 +17,7 @@ function mapWorkOrder(row: any) {
     status: row.status,
     priority: row.priority,
     assigned_to_name: row.assigned_to_name,
+    cost_center_id: row.cost_center_id || null,
     progress_percentage:
       row.status === 'completed' ? 100 : row.status === 'in_progress' ? 50 : 0,
     planned_duration_hours: row.planned_duration_hours,
@@ -76,6 +77,7 @@ export async function POST(request: NextRequest) {
         scheduled_date: body.scheduledDate || body.scheduled_date || null,
         planned_duration_hours: Number(body.plannedDurationHours || body.planned_duration_hours || 0),
         assigned_to_name: body.assignedToName || body.assigned_to_name || null,
+        cost_center_id: body.costCenterId || body.cost_center_id || null,
         created_by: context.userId,
         updated_at: new Date().toISOString(),
       })
