@@ -13,7 +13,7 @@ export default function BodegaImportPage() {
       <div className="space-y-2">
         <h1 className="text-3xl font-bold text-foreground">Importar Datos de Bodega</h1>
         <p className="text-muted-foreground">
-          Importa centros de costos e inventario en formato CSV
+          Importa centros de costos e inventario en formato CSV, XLS o XLSX
         </p>
       </div>
 

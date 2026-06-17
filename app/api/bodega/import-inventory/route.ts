@@ -1,7 +1,57 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
+import * as XLSX from 'xlsx';
 import { getOrganizationContext } from '@/lib/api/organization-context';
+
+function normalizeHeader(value: string) {
+  return value
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
+
+function parseCSVRows(text: string) {
+  const lines = text.split('\n').filter(line => line.trim());
+  const headers = lines[0].split(';').map(normalizeHeader);
+  return lines.slice(1).map(line => {
+    const values = line.split(';').map(v => v.trim());
+    const record: Record<string, string> = {};
+    headers.forEach((header, index) => {
+      record[header] = values[index] || '';
+    });
+    return record;
+  });
+}
+
+async function parseWorkbookRows(file: File, text: string) {
+  const lowerName = file.name.toLowerCase();
+  if (!lowerName.endsWith('.xlsx') && !lowerName.endsWith('.xls')) {
+    return parseCSVRows(text);
+  }
+
+  const workbook = XLSX.read(Buffer.from(await file.arrayBuffer()), {
+    type: 'buffer',
+    cellDates: true,
+  });
+  const sheetName =
+    workbook.SheetNames.find((entry) => normalizeHeader(entry).includes('productos')) ||
+    workbook.SheetNames[0];
+  const sheet = workbook.Sheets[sheetName];
+  const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, defval: '', raw: true });
+  if (!rows.length) return [];
+
+  const headers = (rows[0] as unknown[]).map((header) => normalizeHeader(String(header ?? '')));
+  return rows.slice(1).map((row) => {
+    const values = row as unknown[];
+    const record: Record<string, unknown> = {};
+    headers.forEach((header, index) => {
+      record[header] = values[index] ?? '';
+    });
+    return record;
+  });
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,56 +71,40 @@ export async function POST(request: NextRequest) {
 
     // Read file content
     const text = await file.text();
-    const lines = text.split('\n').filter(line => line.trim());
+    const rows = await parseWorkbookRows(file, text);
 
-    if (lines.length < 1) {
+    if (rows.length < 1) {
       return NextResponse.json(
         { error: 'File is empty' },
         { status: 400 }
       );
     }
 
-    // Parse CSV (use semicolon delimiter)
     const data: any[] = [];
-    const normalizeHeader = (value: string) =>
-      value.trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-    const headers = lines[0].split(';').map(normalizeHeader);
+    for (const row of rows) {
+      const codigo = String(row['codigo'] || '').trim();
+      const familia = String(row['familia'] || '').trim();
+      const subFamilia = String(row['sub-familia'] || row['subfamilia'] || '').trim();
+      const equipo = String(row['equipo'] || '').trim();
+      const nombre = String(row['producto'] || familia || codigo).trim();
 
-    // Find column indices
-    const codigoIdx = headers.findIndex(h => h.includes('codigo'));
-    const familiaIdx = headers.findIndex(h => h.includes('familia'));
-    const subFamiliaIdx = headers.findIndex(h => h.includes('sub-familia') || h.includes('subfamilia'));
-    const equipoIdx = headers.findIndex(h => h.includes('equipo'));
-    const productoIdx = headers.findIndex(h => h.includes('producto'));
-
-    // Parse rows
-    for (let i = 1; i < lines.length; i++) {
-      const values = lines[i].split(';').map(v => v.trim());
-
-      if (values.length < 2 || !values[codigoIdx]) continue;
-
-      const codigo = values[codigoIdx];
-      const nombre = values[productoIdx] || values[familiaIdx] || '';
-
-      if (!nombre) continue;
+      if (!codigo || !nombre) continue;
 
       data.push({
         codigo: codigo,
         name: nombre,
         sku: codigo,
-        familia: values[familiaIdx] || '',
-        sub_familia: values[subFamiliaIdx] || '',
-        equipo: values[equipoIdx] || '',
-        category: values[familiaIdx] || 'General',
+        familia,
+        sub_familia: subFamilia,
+        equipo,
+        category: familia || 'General',
         cost_center_id: costCenterId || null,
         quantity: 0,
-        description: `${values[familiaIdx] || ''} ${values[subFamiliaIdx] || ''} ${values[equipoIdx] || ''}`.trim(),
+        description: `${familia} ${subFamilia} ${equipo}`.trim(),
         location: '',
         unit_cost: 0,
         min_stock: 5,
         max_stock: 500,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
       });
     }
 

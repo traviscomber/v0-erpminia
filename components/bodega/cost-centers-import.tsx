@@ -2,9 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import { Upload, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 
 interface ImportResult {
@@ -20,11 +18,13 @@ export function CostCentersImportComponent() {
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const isValidFile = (file: File) => /\.(csv|xls|xlsx)$/i.test(file.name);
+
   const handleFile = async (file: File) => {
-    if (!file.name.endsWith('.csv')) {
+    if (!isValidFile(file)) {
       setResult({
         success: false,
-        message: 'Only CSV files are accepted',
+        message: 'Only CSV, XLS or XLSX files are accepted',
         error: 'Invalid file type',
       });
       return;
@@ -97,11 +97,10 @@ export function CostCentersImportComponent() {
             Importar Centros de Costos
           </CardTitle>
           <CardDescription>
-            Sube tu archivo CSV con la estructura de centros de costos (minas y áreas)
+            Sube tu archivo CSV, XLS o XLSX con la estructura de centros de costos (minas y áreas)
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Drag and drop zone */}
           <div
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
@@ -119,13 +118,13 @@ export function CostCentersImportComponent() {
               Arrastra tu archivo o haz clic para seleccionar
             </p>
             <p className="text-sm text-muted-foreground mt-1">
-              Formato: CSV (separado por punto y coma)
+              Formato: CSV, XLS o XLSX
             </p>
 
             <input
               ref={fileInputRef}
               type="file"
-              accept=".csv"
+              accept=".csv,.xls,.xlsx"
               onChange={(e) => {
                 if (e.target.files?.[0]) {
                   handleFile(e.target.files[0]);
@@ -135,7 +134,6 @@ export function CostCentersImportComponent() {
             />
           </div>
 
-          {/* Format info */}
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
@@ -145,12 +143,11 @@ export function CostCentersImportComponent() {
                 CÓDIGO REC ELEC | NOMBRE | RUTA COMPLETA | CREADOR POR | FECHA DE CREACIÓN | NOTAS
               </div>
               <p className="text-xs text-muted-foreground mt-2">
-                La RUTA COMPLETA debe usar " &gt; " para indicar la jerarquía (ej: Mina Peumo &gt; Perforación)
+                La RUTA COMPLETA debe usar " &gt; " para indicar la jerarquía.
               </p>
             </AlertDescription>
           </Alert>
 
-          {/* Results */}
           {result && (
             <Alert className={result.success ? 'border-green-500' : 'border-red-500'}>
               {result.success ? (
@@ -174,7 +171,6 @@ export function CostCentersImportComponent() {
             </Alert>
           )}
 
-          {/* Loading state */}
           {isLoading && (
             <div className="flex items-center justify-center gap-2 p-4 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />

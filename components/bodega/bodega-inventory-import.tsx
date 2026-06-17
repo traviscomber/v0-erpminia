@@ -35,7 +35,8 @@ export function BodegaInventoryImportComponent() {
   const [selectedCostCenter, setSelectedCostCenter] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load cost centers
+  const isValidFile = (file: File) => /\.(csv|xls|xlsx)$/i.test(file.name);
+
   useEffect(() => {
     const loadCostCenters = async () => {
       try {
@@ -58,10 +59,10 @@ export function BodegaInventoryImportComponent() {
   }, []);
 
   const handleFile = async (file: File) => {
-    if (!file.name.endsWith('.csv')) {
+    if (!isValidFile(file)) {
       setResult({
         success: false,
-        message: 'Only CSV files are accepted',
+        message: 'Only CSV, XLS or XLSX files are accepted',
         error: 'Invalid file type',
       });
       return;
@@ -137,11 +138,10 @@ export function BodegaInventoryImportComponent() {
             Importar Inventario Bodega
           </CardTitle>
           <CardDescription>
-            Sube tu archivo CSV con el inventario de bodega (código, familia, producto, etc.)
+            Sube tu archivo CSV, XLS o XLSX con el inventario de bodega (código, familia, producto, etc.)
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Cost center selector */}
           <div>
             <label className="text-sm font-medium mb-2 block">
               Centro de Costos (Opcional)
@@ -169,7 +169,6 @@ export function BodegaInventoryImportComponent() {
             </p>
           </div>
 
-          {/* Drag and drop zone */}
           <div
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
@@ -187,13 +186,13 @@ export function BodegaInventoryImportComponent() {
               Arrastra tu archivo o haz clic para seleccionar
             </p>
             <p className="text-sm text-muted-foreground mt-1">
-              Formato: CSV (separado por punto y coma)
+              Formato: CSV, XLS o XLSX
             </p>
 
             <input
               ref={fileInputRef}
               type="file"
-              accept=".csv"
+              accept=".csv,.xls,.xlsx"
               onChange={(e) => {
                 if (e.target.files?.[0]) {
                   handleFile(e.target.files[0]);
@@ -203,7 +202,6 @@ export function BodegaInventoryImportComponent() {
             />
           </div>
 
-          {/* Format info */}
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
@@ -218,7 +216,6 @@ export function BodegaInventoryImportComponent() {
             </AlertDescription>
           </Alert>
 
-          {/* Results */}
           {result && (
             <Alert className={result.success ? 'border-green-500' : 'border-red-500'}>
               {result.success ? (
@@ -242,7 +239,6 @@ export function BodegaInventoryImportComponent() {
             </Alert>
           )}
 
-          {/* Loading state */}
           {isLoading && (
             <div className="flex items-center justify-center gap-2 p-4 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
