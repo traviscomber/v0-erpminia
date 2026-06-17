@@ -20,6 +20,7 @@ export function ExportReportForm() {
       const res = await fetch('/api/reportes/export', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ report_type: reportType, start_date: startDate, end_date: endDate }),
       });
 

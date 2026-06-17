@@ -34,6 +34,7 @@ export function NonconformanceForm({ orgId, onClose, onSuccess }: Nonconformance
       const res = await fetch('/api/sostenibilidad/nonconformances', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ ...data, organizationId: orgId }),
       });
 

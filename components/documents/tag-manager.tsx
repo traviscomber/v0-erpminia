@@ -49,7 +49,9 @@ export function TagManager({
   useEffect(() => {
     const fetchTags = async () => {
       try {
-        const res = await fetch('/api/documents/tags?module=prevenci%C3%B3n');
+        const res = await fetch('/api/documents/tags?module=prevenci%C3%B3n', {
+          credentials: 'include',
+        });
         const data = await res.json();
         setAvailableTags(data);
       } catch (err) {
