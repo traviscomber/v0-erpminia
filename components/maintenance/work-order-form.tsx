@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CostCenterSelect } from '@/components/common/cost-center-select';
 import { toast } from 'sonner';
 
 interface WorkOrderFormProps {
@@ -28,6 +29,7 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
     priority: 'medium',
     plannedDurationHours: 1,
     scheduledDate: '',
+    costCenterId: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -49,6 +51,7 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
           priority: formData.priority,
           plannedDurationHours: parseFloat(formData.plannedDurationHours.toString()),
           scheduledDate: formData.scheduledDate,
+          costCenterId: formData.costCenterId,
           assetId,
         }),
       });
@@ -61,7 +64,7 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
       const { data } = await res.json();
       toast.success(`Work order ${data.work_order_number} created successfully`);
       onSuccess();
-      setFormData({ title: '', description: '', workType: 'corrective', priority: 'medium', plannedDurationHours: 1, scheduledDate: '' });
+      setFormData({ title: '', description: '', workType: 'corrective', priority: 'medium', plannedDurationHours: 1, scheduledDate: '', costCenterId: '' });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Error creating work order');
     } finally {
@@ -94,6 +97,15 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               className="w-full p-2 border rounded"
               rows={3}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="costCenter">Centro de Costos</Label>
+            <CostCenterSelect
+              value={formData.costCenterId}
+              onValueChange={(id) => setFormData({ ...formData, costCenterId: id })}
+              placeholder="Seleccionar centro de costos..."
             />
           </div>
 
