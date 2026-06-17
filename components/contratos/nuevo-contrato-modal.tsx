@@ -27,7 +27,7 @@ export function NuevoContratoModal({ onSuccess }: NuevoContratoModalProps) {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -70,7 +70,7 @@ export function NuevoContratoModal({ onSuccess }: NuevoContratoModalProps) {
       onSuccess();
     } catch (err) {
       setError((err as Error).message);
-      console.error('[v0] Error creating contract:', err);
+      console.error('[v0] Error creando contrato:', err);
     } finally {
       setLoading(false);
     }
@@ -78,51 +78,44 @@ export function NuevoContratoModal({ onSuccess }: NuevoContratoModalProps) {
 
   if (!open) {
     return (
-      <Button 
-        size="sm" 
-        className="gap-2 bg-orange-600 hover:bg-orange-700"
-        onClick={() => setOpen(true)}
-      >
+      <Button size="sm" className="gap-2 bg-orange-600 hover:bg-orange-700" onClick={() => setOpen(true)}>
         <Plus className="h-4 w-4" />
-        Nuevo Contrato
+        Nuevo contrato
       </Button>
     );
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-slate-900 rounded-lg shadow-lg max-w-md w-full p-6 space-y-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-md space-y-4 rounded-lg bg-white p-6 shadow-lg dark:bg-slate-900">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Crear Nuevo Contrato</h2>
-          <button
-            onClick={() => setOpen(false)}
-            className="p-1 hover:bg-gray-100 dark:hover:bg-slate-800 rounded"
-          >
+          <h2 className="text-lg font-semibold">Crear nuevo contrato</h2>
+          <button onClick={() => setOpen(false)} className="rounded p-1 hover:bg-gray-100 dark:hover:bg-slate-800">
             <X className="h-5 w-5" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded text-sm">
+            <div className="rounded bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
               {error}
             </div>
           )}
 
           <div>
-            <Label htmlFor="contratista">Contratista/Prestador *</Label>
+            <Label htmlFor="contratista">Contratista o prestador *</Label>
             <Input
               id="contratista"
               name="contratista"
               value={formData.contratista}
               onChange={handleChange}
-              placeholder="Nombre empresa/persona"
+              placeholder="Nombre de empresa o persona"
               required
             />
           </div>
 
           <div>
-            <Label htmlFor="nombreContrato">Nombre Contrato *</Label>
+            <Label htmlFor="nombreContrato">Nombre del contrato *</Label>
             <Input
               id="nombreContrato"
               name="nombreContrato"
@@ -134,7 +127,7 @@ export function NuevoContratoModal({ onSuccess }: NuevoContratoModalProps) {
           </div>
 
           <div>
-            <Label htmlFor="monto">Monto Total CLP *</Label>
+            <Label htmlFor="monto">Monto total CLP *</Label>
             <Input
               id="monto"
               name="monto"
@@ -148,7 +141,7 @@ export function NuevoContratoModal({ onSuccess }: NuevoContratoModalProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="fechaInicio">Fecha Inicio *</Label>
+              <Label htmlFor="fechaInicio">Fecha de inicio *</Label>
               <Input
                 id="fechaInicio"
                 name="fechaInicio"
@@ -159,7 +152,7 @@ export function NuevoContratoModal({ onSuccess }: NuevoContratoModalProps) {
               />
             </div>
             <div>
-              <Label htmlFor="fechaFin">Fecha Fin *</Label>
+              <Label htmlFor="fechaFin">Fecha de fin *</Label>
               <Input
                 id="fechaFin"
                 name="fechaFin"
@@ -179,9 +172,9 @@ export function NuevoContratoModal({ onSuccess }: NuevoContratoModalProps) {
                 name="proyecto"
                 value={formData.proyecto}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-md bg-white dark:bg-slate-800 dark:border-slate-700"
+                className="w-full rounded-md border bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-800"
               >
-                <option value="flujo_electrico">Flujo Eléctrico</option>
+                <option value="flujo_electrico">Flujo eléctrico</option>
                 <option value="bodega">Bodega</option>
                 <option value="quimica">Química</option>
                 <option value="molino">Molino</option>
@@ -194,7 +187,7 @@ export function NuevoContratoModal({ onSuccess }: NuevoContratoModalProps) {
                 name="propiedad"
                 value={formData.propiedad}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-md bg-white dark:bg-slate-800 dark:border-slate-700"
+                className="w-full rounded-md border bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-800"
               >
                 <option value="1">Propiedad 1</option>
                 <option value="2">Propiedad 2</option>
@@ -210,7 +203,7 @@ export function NuevoContratoModal({ onSuccess }: NuevoContratoModalProps) {
               name="estado"
               value={formData.estado}
               onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-md bg-white dark:bg-slate-800 dark:border-slate-700"
+              className="w-full rounded-md border bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-800"
             >
               <option value="activo">Activo</option>
               <option value="pendiente">Pendiente</option>
@@ -219,26 +212,17 @@ export function NuevoContratoModal({ onSuccess }: NuevoContratoModalProps) {
           </div>
 
           <div className="flex gap-2 pt-4">
-            <Button
-              type="submit"
-              disabled={loading}
-              className="flex-1 bg-orange-600 hover:bg-orange-700"
-            >
+            <Button type="submit" disabled={loading} className="flex-1 bg-orange-600 hover:bg-orange-700">
               {loading ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Creando...
                 </>
               ) : (
-                'Crear Contrato'
+                'Crear contrato'
               )}
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-              disabled={loading}
-            >
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={loading}>
               Cancelar
             </Button>
           </div>

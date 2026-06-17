@@ -65,13 +65,13 @@ export function AddDocumentModal({ onSubmit }: AddDocumentModalProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button size="sm" className="gap-2">
-          <Plus className="w-4 h-4" />
-          Nuevo Documento
+          <Plus className="h-4 w-4" />
+          Nuevo documento
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Agregar Documento Legal</DialogTitle>
+          <DialogTitle>Agregar documento legal</DialogTitle>
           <DialogDescription>Registra un nuevo documento legal o normativo.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -94,7 +94,7 @@ export function AddDocumentModal({ onSubmit }: AddDocumentModalProps) {
               <SelectContent>
                 <SelectItem value="compliance">Cumplimiento</SelectItem>
                 <SelectItem value="regulatory">Regulatorio</SelectItem>
-                <SelectItem value="legal">Legal General</SelectItem>
+                <SelectItem value="legal">Legal general</SelectItem>
                 <SelectItem value="contracts">Contratos</SelectItem>
                 <SelectItem value="policies">Políticas</SelectItem>
                 <SelectItem value="regulations">Reglamentos</SelectItem>
@@ -123,9 +123,9 @@ export function AddDocumentModal({ onSubmit }: AddDocumentModalProps) {
               accept=".pdf,.doc,.docx,.xls,.xlsx"
               onChange={handleFileChange}
             />
-            <p className="text-xs text-muted-foreground">PDF, DOC, DOCX, XLS o XLSX. Máximo 50MB.</p>
+            <p className="text-xs text-muted-foreground">PDF, DOC, DOCX, XLS o XLSX. Máximo 50 MB.</p>
           </div>
-          <div className="flex gap-2 justify-end">
+          <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancelar
             </Button>
