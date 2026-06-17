@@ -1,7 +1,5 @@
-'use client';
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CostCentersImportComponent } from '@/components/bodega/cost-centers-import';
 import { BodegaInventoryImportComponent } from '@/components/bodega/bodega-inventory-import';
 import { Building2, Package } from 'lucide-react';
@@ -9,7 +7,6 @@ import { Building2, Package } from 'lucide-react';
 export default function BodegaImportPage() {
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="space-y-2">
         <h1 className="text-3xl font-bold text-foreground">Importar Datos de Bodega</h1>
         <p className="text-muted-foreground">
@@ -17,7 +14,6 @@ export default function BodegaImportPage() {
         </p>
       </div>
 
-      {/* Import Tabs */}
       <Tabs defaultValue="cost-centers" className="w-full">
         <TabsList className="grid w-full grid-cols-2 gap-4">
           <TabsTrigger value="cost-centers" className="flex items-center gap-2">
@@ -32,8 +28,7 @@ export default function BodegaImportPage() {
 
         <TabsContent value="cost-centers" className="space-y-4 mt-6">
           <CostCentersImportComponent />
-          
-          {/* Info cards */}
+
           <div className="grid md:grid-cols-2 gap-4">
             <Card className="border-blue-200 bg-blue-50/50">
               <CardHeader>
@@ -61,7 +56,7 @@ export default function BodegaImportPage() {
                   <div>Mina Peumo</div>
                   <div className="ml-3">→ Perforación</div>
                   <div className="ml-3">→ Tronadura</div>
-                  <div className="ml-3">→ Carguo</div>
+                  <div className="ml-3">→ Carguío</div>
                   <div>Planta</div>
                   <div className="ml-3">→ Chancado</div>
                   <div className="ml-3">→ Molienda</div>
@@ -74,7 +69,6 @@ export default function BodegaImportPage() {
         <TabsContent value="inventory" className="space-y-4 mt-6">
           <BodegaInventoryImportComponent />
 
-          {/* Info cards */}
           <div className="grid md:grid-cols-2 gap-4">
             <Card className="border-blue-200 bg-blue-50/50">
               <CardHeader>

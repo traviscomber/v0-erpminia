@@ -138,7 +138,7 @@ export function BodegaInventoryImportComponent() {
             Importar Inventario Bodega
           </CardTitle>
           <CardDescription>
-            Sube tu archivo CSV, XLS o XLSX con el inventario de bodega (código, familia, producto, etc.)
+            Sube tu archivo CSV, XLS o XLSX con el inventario de bodega (código, familia, sub-familia, equipo y producto)
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
