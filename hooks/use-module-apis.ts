@@ -46,6 +46,18 @@ export function useBodegaInventory(page: number = 0, pageSize: number = 50, sear
   };
 }
 
+export function useBodegaCategories() {
+  const { data, error, isLoading } = useSWR(
+    '/api/bodega/inventory?categories=true',
+    fetcher,
+  );
+  return {
+    categories: (data?.categories || []) as string[],
+    error,
+    isLoading,
+  };
+}
+
 export function useFinanzasMovements() {
   const { data, error, isLoading, mutate } = useSWR('/api/finanzas/movements', fetcher);
   return { movements: (data?.movements || []) as Movement[], error, isLoading, mutate };

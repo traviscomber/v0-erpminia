@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useBodegaInventory } from '@/hooks/use-module-apis';
+import { useBodegaInventory, useBodegaCategories } from '@/hooks/use-module-apis';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RefreshCw, AlertTriangle, Search, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -14,17 +14,9 @@ export function BodegaDashboard() {
   const [category, setCategory] = useState('');
 
   const { inventory, pagination, isLoading, error, mutate } = useBodegaInventory(page, pageSize, search, category);
+  const { categories } = useBodegaCategories();
 
   if (error) return <div className="text-destructive font-semibold text-lg">Error cargando inventario</div>;
-
-  // Get all unique categories for filter
-  const categories = useMemo(() => {
-    const cats = new Set<string>();
-    inventory.forEach(item => {
-      if (item.category) cats.add(item.category);
-    });
-    return Array.from(cats).sort();
-  }, [inventory]);
 
   // Calculate metrics
   const lowStock = inventory.filter(item => item.quantity <= item.min_stock);
