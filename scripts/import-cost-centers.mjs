@@ -53,6 +53,28 @@ function fixText(s) {
   return result;
 }
 
+function parseDate(dateStr) {
+  // Parse DD-MM-YYYY HH:MM format from CSV
+  // Return ISO string or null if invalid
+  if (!dateStr || dateStr.trim() === '' || dateStr === '---') return null;
+  
+  const match = dateStr.match(/^(\d{1,2})-(\d{1,2})-(\d{4})\s+(\d{1,2}):(\d{2})$/);
+  if (!match) return null;
+  
+  const [, day, month, year, hours, minutes] = match.map(m => parseInt(m || 0, 10));
+  
+  // Validate date ranges
+  if (month < 1 || month > 12 || day < 1 || day > 31 || hours > 23 || minutes > 59) {
+    return null;
+  }
+  
+  const date = new Date(year, month - 1, day, hours, minutes, 0);
+  // Verify the date is valid
+  if (isNaN(date.getTime())) return null;
+  
+  return date.toISOString();
+}
+
 async function run() {
   const supabaseUrl = (process.env.SUPABASE_URL || '').replace(/['"]/g, '');
   const supabaseKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').replace(/['"]/g, '');
@@ -94,20 +116,32 @@ async function run() {
     console.log(`\n📥 Importando ${records.length} centros de costos...\n`);
 
     // Reconstruct and prepare records
-    const reconstructed = records.map((r) => {
-      // Headers are corrupted, find them by position
-      // Expected order: CREADOR POR, C?DIGO REC ELEC, DISCONTINUADO, FECHA CREACIÓN, FECHA MODIFICACIÓN, MODIFICADO POR, NOMBRE, NOTAS, RUTA COMPLETA
-      const headers = Object.keys(r);
-      return {
-        organization_id,
-        code: fixText(r[headers[1]] || ''), // CÓDIGO REC ELEC (col 2)
-        name: fixText(r[headers[6]] || ''), // NOMBRE (col 7)
-        description: fixText(r[headers[7]] || ''), // NOTAS (col 8) -> description
-        status: (r[headers[2]] || 'No').toLowerCase() === 'si' ? 'inactive' : 'active', // DISCONTINUADO (col 3)
-        created_at: r[headers[3]] || new Date().toISOString(), // FECHA CREACIÓN (col 4)
-        updated_at: r[headers[4]] || new Date().toISOString(), // FECHA MODIFICACIÓN (col 5)
-      };
-    });
+    const reconstructed = records
+      .map((r) => {
+        // Headers are corrupted, find them by position
+        // Expected order: CREADOR POR, C?DIGO REC ELEC, DISCONTINUADO, FECHA CREACIÓN, FECHA MODIFICACIÓN, MODIFICADO POR, NOMBRE, NOTAS, RUTA COMPLETA
+        const headers = Object.keys(r);
+        const createdAt = parseDate(r[headers[3]]) || new Date().toISOString();
+        const updatedAt = parseDate(r[headers[4]]) || new Date().toISOString();
+        
+        // If code (col 2) is empty, use name (col 7) as code
+        let code = fixText(r[headers[1]] || '').trim();
+        const name = fixText(r[headers[6]] || '').trim();
+        if (!code && name) {
+          code = name;
+        }
+        
+        return {
+          organization_id,
+          code, // Use name as code if original code is empty
+          name,
+          description: fixText(r[headers[7]] || ''), // NOTAS (col 8)
+          status: (r[headers[2]] || 'No').toLowerCase() === 'si' ? 'inactive' : 'active',
+          created_at: createdAt,
+          updated_at: updatedAt,
+        };
+      })
+      .filter(r => r.name && r.code); // Only include records with both name and code
 
     // Delete existing via REST API directly
     const deleteRes = await fetch(`${supabaseUrl}/rest/v1/cost_centers?id=gt.-1`, {
