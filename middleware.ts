@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { verifyAuthCookieValue } from '@/lib/auth-cookie';
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
@@ -75,16 +76,8 @@ export async function middleware(request: NextRequest) {
 
   // Also check for custom auth_token cookie (from our login API)
   const authToken = request.cookies.get('auth_token')?.value;
-  let customAuthValid = false;
-  
-  if (authToken) {
-    try {
-      const sessionData = JSON.parse(authToken);
-      customAuthValid = !!(sessionData?.user?.id && sessionData?.session_token);
-    } catch {
-      customAuthValid = false;
-    }
-  }
+  const customSession = await verifyAuthCookieValue(authToken);
+  const customAuthValid = !!customSession?.user?.id && !!customSession?.session_token;
 
   const isAuthenticated = !!user || customAuthValid;
 

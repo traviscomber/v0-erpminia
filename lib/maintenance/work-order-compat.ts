@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import { verifyAuthCookieValue } from '@/lib/auth-cookie';
 
 type AuthCookiePayload = {
   user?: {
@@ -162,7 +163,10 @@ export async function getMaintenanceActionAuthContext() {
   }
 
   try {
-    const parsed = JSON.parse(raw) as AuthCookiePayload;
+    const parsed = await verifyAuthCookieValue(raw);
+    if (!parsed) {
+      return { organizationId: null, userId: null, role: null };
+    }
     return {
       organizationId: parsed.user?.organization_id || null,
       userId: parsed.user?.id || null,
