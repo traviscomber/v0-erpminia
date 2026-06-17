@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { CostCenterSelect } from '@/components/common/cost-center-select';
 
 export interface DocumentUploadModalProps {
   open: boolean;
@@ -31,12 +32,14 @@ export function DocumentUploadModal({
   const [description, setDescription] = useState('');
   const [documentType, setDocumentType] = useState('');
   const [category, setCategory] = useState('');
+  const [costCenterId, setCostCenterId] = useState('');
 
   const resetForm = () => {
     setTitle('');
     setDescription('');
     setDocumentType('');
     setCategory('');
+    setCostCenterId('');
     setFile(null);
   };
 
@@ -79,6 +82,9 @@ export function DocumentUploadModal({
       formData.append('documentType', documentType);
       formData.append('category', category);
       formData.append('file', file);
+      if (costCenterId) {
+        formData.append('costCenterId', costCenterId);
+      }
 
       if (organizationId) {
         formData.append('organizationId', organizationId);
@@ -169,6 +175,15 @@ export function DocumentUploadModal({
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Centro de Costos (opcional)</label>
+            <CostCenterSelect
+              value={costCenterId}
+              onValueChange={setCostCenterId}
+              placeholder="Selecciona centro de costos..."
+            />
           </div>
 
           <div className="space-y-2">
