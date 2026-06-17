@@ -207,7 +207,7 @@ export default function CalendarioPage() {
                   <Input id="fecha_inicio" type="date" name="fecha_inicio" value={formData.fecha_inicio} onChange={handleInput} required />
                 </div>
                 <div>
-                  <Label htmlFor="fecha_fin">PrÃ³xima fecha</Label>
+                  <Label htmlFor="fecha_fin">Próxima fecha</Label>
                   <Input id="fecha_fin" type="date" name="fecha_fin" value={formData.fecha_fin} onChange={handleInput} />
                 </div>
                 <div>
@@ -239,7 +239,7 @@ export default function CalendarioPage() {
         {[
           { label: 'Total eventos',  value: stats.total,  color: 'text-foreground' },
           { label: 'Este mes',  value: stats.thisMonth, color: 'text-blue-400'   },
-          { label: 'PrÃ³ximos 7 dÃ­as', value: stats.upcoming7, color: 'text-amber-400'  },
+          { label: 'Próximos 7 días', value: stats.upcoming7, color: 'text-amber-400'  },
           { label: 'Prioridad alta',  value: stats.alta,  color: 'text-red-400'    },
           { label: 'Vencidos',  value: stats.overdue,  color: 'text-red-400'    },
         ].map(s => (
@@ -366,7 +366,7 @@ export default function CalendarioPage() {
                     {selectedDay ? (
                       <>{selectedDay} de {currentDate.toLocaleDateString('es-CL', { month: 'long' })}</>
                     ) : (
-                      <><AlertTriangle className="w-4 h-4 text-amber-400" />PrÃ³ximos eventos</>
+                      <><AlertTriangle className="w-4 h-4 text-amber-400" />Próximos eventos</>
                     )}
                   </CardTitle>
                   <div className="flex items-center gap-1">

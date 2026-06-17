@@ -184,7 +184,7 @@ export default function ComunidadesPage() {
 
   const handleDelete = async (id: string, numero: string) => {
     if (!confirm(`¿Eliminar "${numero}"`)) return;
-    const response = await fetch(`/api/sostenibilidad/comunidadesid=${id}`, {
+    const response = await fetch(`/api/sostenibilidad/comunidades?id=${id}`, {
       method: 'DELETE',
       credentials: 'include',
     });

@@ -162,7 +162,7 @@ export default function FlujDocumentalPage() {
       <div className="mb-8 flex justify-between items-start">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-3xl font-bold text-foreground">Flujo de AprobaciÃ³n de Documentos</h1>
+            <h1 className="text-3xl font-bold text-foreground">Flujo de Aprobación de Documentos</h1>
           </div>
           <p className="text-muted-foreground">Workflow de 2 validadores: Jefe de Sostenibilidad â†’ Gerente General</p>
         </div>
@@ -257,7 +257,7 @@ export default function FlujDocumentalPage() {
       {/* Workflow Diagram */}
       <Card className="mb-8 rounded-xl border shadow-none">
         <CardHeader>
-          <CardTitle className="text-sm">Fases de AprobaciÃ³n</CardTitle>
+          <CardTitle className="text-sm">Fases de Aprobación</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-3 overflow-x-auto pb-4">
