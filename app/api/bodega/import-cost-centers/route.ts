@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import XLSX from 'xlsx';
+import { read, utils } from 'xlsx';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 
 type ImportedCostCenter = {
@@ -67,7 +67,7 @@ async function parseWorkbookRows(file: File, text: string) {
     });
   }
 
-  const workbook = XLSX.read(Buffer.from(await file.arrayBuffer()), {
+  const workbook = read(Buffer.from(await file.arrayBuffer()), {
     type: 'buffer',
     cellDates: true,
   });
@@ -75,7 +75,7 @@ async function parseWorkbookRows(file: File, text: string) {
     workbook.SheetNames.find((entry) => normalizeHeader(entry).includes('centros de costos')) ||
     workbook.SheetNames[0];
   const sheet = workbook.Sheets[sheetName];
-  const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, defval: '', raw: true });
+  const rows = utils.sheet_to_json<unknown[]>(sheet, { header: 1, defval: '', raw: true });
   if (!rows.length) return [];
 
   const headers = (rows[0] as unknown[]).map((header) => normalizeHeader(String(header ?? '')));

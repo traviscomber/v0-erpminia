@@ -1,4 +1,4 @@
 declare module 'xlsx' {
-  const XLSX: any;
-  export default XLSX;
+  export const read: any;
+  export const utils: any;
 }
