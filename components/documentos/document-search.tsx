@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Search, X, Loader2 } from 'lucide-react';
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
 
 interface SearchResult {
   id: string;
@@ -29,7 +29,7 @@ export function DocumentSearch({ onResultsChange, placeholder = 'Buscar document
   const [showResults, setShowResults] = useState(false);
 
   const { data: searchData, isLoading } = useSWR(
-    searchTerm ? `/api/sostenibilidad/documentos-flujo/searchq=${encodeURIComponent(searchTerm)}&category=${category}&status=${status}` : null,
+    searchTerm ? `/api/sostenibilidad/documentos-flujo/search?q=${encodeURIComponent(searchTerm)}&category=${category}&status=${status}` : null,
     fetcher,
     { revalidateOnFocus: false, dedupingInterval: 500 }
   );

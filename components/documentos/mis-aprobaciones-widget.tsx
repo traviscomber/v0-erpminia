@@ -26,7 +26,7 @@ export function MisAprobacionesWidget() {
   useEffect(() => {
     const getRole = async () => {
       try {
-        const res = await fetch('/api/auth/session');
+        const res = await fetch('/api/auth/session', { credentials: 'include' });
         const data = await res.json();
         setUserRole(data.user.role);
       } catch (err) {
@@ -40,7 +40,7 @@ export function MisAprobacionesWidget() {
   const { data: pendingDocs, isLoading, error } = useSWR(
     userRole ? `/api/sostenibilidad/documentos-flujorole=${userRole}&status=pending` : null,
     async (url) => {
-      const res = await fetch(url);
+      const res = await fetch(url, { credentials: 'include' });
       if (!res.ok) return;
       return res.json();
     },

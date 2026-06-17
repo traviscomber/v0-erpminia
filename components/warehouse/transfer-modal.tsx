@@ -28,7 +28,7 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
   });
 
   const { data } = useSWR('/api/warehouse/stock', async (url: string) => {
-    const res = await fetch(url);
+    const res = await fetch(url, { credentials: 'include' });
     return res.ok ? res.json() : null;
   });
 
@@ -43,6 +43,7 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
       const response = await fetch('/api/warehouse/transfer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           stockId: formData.stockId,
           toBinId: formData.toBinId,

@@ -9,7 +9,7 @@ import useSWR from 'swr';
 import { CorrectiveActionCard } from '@/components/sostenibilidad/corrective-action-card';
 import { CorrectiveActionModal } from '@/components/sostenibilidad/corrective-action-modal';
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
 
 export function CorrectiveActionsPage() {
   const [modalOpen, setModalOpen] = useState(false);
