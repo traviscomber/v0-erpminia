@@ -324,7 +324,7 @@ export default function CreateWorkOrderPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Descripcion</label>
+              <label className="text-sm font-medium">Descripción</label>
               <textarea
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}

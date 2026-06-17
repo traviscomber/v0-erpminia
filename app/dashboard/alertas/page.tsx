@@ -376,7 +376,7 @@ export default function AlertasPage() {
 
                 <div>
                   <p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">
-                    Descripcion
+                    Descripción
                   </p>
                   <p className="text-sm text-foreground">{selectedAlert.description}</p>
                 </div>
