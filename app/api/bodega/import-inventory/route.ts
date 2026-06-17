@@ -36,7 +36,7 @@ async function parseWorkbookRows(file: File, text: string) {
     cellDates: true,
   });
   const sheetName =
-    workbook.SheetNames.find((entry) => normalizeHeader(entry).includes('productos')) ||
+    workbook.SheetNames.find((entry: string) => normalizeHeader(entry).includes('productos')) ||
     workbook.SheetNames[0];
   const sheet = workbook.Sheets[sheetName];
   const rows = utils.sheet_to_json<unknown[]>(sheet, { header: 1, defval: '', raw: true });
