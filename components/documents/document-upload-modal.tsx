@@ -57,7 +57,7 @@ export function DocumentUploadModal({
     }
 
     if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
-      toast.error('El archivo supera el limite de 50MB.');
+      toast.error('El archivo supera el límite de 50 MB.');
       e.target.value = '';
       return;
     }
@@ -69,7 +69,7 @@ export function DocumentUploadModal({
     e.preventDefault();
 
     if (!title || !documentType || !category || !file) {
-      toast.error('Por favor completa todos los campos requeridos');
+      toast.error('Completa todos los campos obligatorios.');
       return;
     }
 
@@ -107,7 +107,7 @@ export function DocumentUploadModal({
       onSuccess(result.documentId);
     } catch (error) {
       console.error('[DocumentUploadModal] Error:', error);
-      toast.error(error instanceof Error ? error.message : 'Error al cargar documento');
+      toast.error(error instanceof Error ? error.message : 'Error al cargar el documento');
     } finally {
       setIsLoading(false);
     }
@@ -127,7 +127,7 @@ export function DocumentUploadModal({
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Título del documento</label>
             <Input
-              placeholder="ej: Certificado de Seguridad 2026"
+              placeholder="Ej: Certificado de seguridad 2026"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               disabled={isLoading}
@@ -147,10 +147,10 @@ export function DocumentUploadModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Tipo de documento</label>
+              <label className="text-sm font-medium text-foreground">Tipo de documento</label>
               <Select value={documentType} onValueChange={setDocumentType} disabled={isLoading}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecciona tipo" />
+                  <SelectValue placeholder="Selecciona un tipo" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="permit">Permiso</SelectItem>
@@ -162,10 +162,10 @@ export function DocumentUploadModal({
             </div>
 
             <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Categoría</label>
+              <label className="text-sm font-medium text-foreground">Categoría</label>
               <Select value={category} onValueChange={setCategory} disabled={isLoading}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecciona categoría" />
+                  <SelectValue placeholder="Selecciona una categoría" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="safety">Seguridad</SelectItem>
@@ -178,17 +178,17 @@ export function DocumentUploadModal({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Centro de Costos (opcional)</label>
+            <label className="text-sm font-medium text-foreground">Centro de costos (opcional)</label>
             <CostCenterSelect
               value={costCenterId}
               onValueChange={setCostCenterId}
-              placeholder="Selecciona centro de costos..."
+              placeholder="Selecciona un centro de costos..."
             />
           </div>
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Archivo</label>
-            <div className="border-2 border-dashed border-muted-foreground rounded-lg p-6 text-center cursor-pointer hover:border-primary transition-colors">
+            <div className="cursor-pointer rounded-lg border-2 border-dashed border-muted-foreground p-6 text-center transition-colors hover:border-primary">
               <input
                 type="file"
                 onChange={handleFileChange}
@@ -197,13 +197,13 @@ export function DocumentUploadModal({
                 id="file-upload"
                 accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
               />
-              <label htmlFor="file-upload" className="cursor-pointer block">
-                <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+              <label htmlFor="file-upload" className="block cursor-pointer">
+                <Upload className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
                 <p className="text-sm font-medium text-foreground">
                   {file ? file.name : 'Haz clic para seleccionar o arrastra un archivo'}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  PDF, JPG, PNG, DOC, DOCX (máx. 50MB)
+                <p className="mt-1 text-xs text-muted-foreground">
+                  PDF, JPG, PNG, DOC y DOCX, máximo 50 MB.
                 </p>
               </label>
             </div>
@@ -225,12 +225,12 @@ export function DocumentUploadModal({
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Cargando...
                 </>
               ) : (
                 <>
-                  <Upload className="w-4 h-4 mr-2" />
+                  <Upload className="mr-2 h-4 w-4" />
                   Cargar documento
                 </>
               )}

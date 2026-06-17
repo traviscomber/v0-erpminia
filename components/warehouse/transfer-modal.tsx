@@ -1,4 +1,5 @@
 'use client';
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -130,7 +131,7 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
             <textarea
               value={formData.reason}
               onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-              className="w-full p-2 border rounded"
+              className="w-full rounded border border-input bg-background p-2 text-foreground"
             />
           </div>
           <Button
