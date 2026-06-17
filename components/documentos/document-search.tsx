@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import useSWR from 'swr';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -34,7 +34,13 @@ export function DocumentSearch({ onResultsChange, placeholder = 'Buscar document
     { revalidateOnFocus: false, dedupingInterval: 500 }
   );
 
-  const results = searchData.data || [];
+  const results = searchData?.data || [];
+
+  useEffect(() => {
+    if (searchTerm) {
+      onResultsChange(results);
+    }
+  }, [onResultsChange, results, searchTerm]);
 
   const handleSearch = useCallback((value: string) => {
     setSearchTerm(value);

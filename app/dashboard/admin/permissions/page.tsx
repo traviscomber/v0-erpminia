@@ -111,8 +111,9 @@ export default function PermissionsPage() {
     }
   };
 
-  const userPermissions = permissionsData.permissions || [];
-  const users = usersData.users || [];
+  const userPermissions = permissionsData?.permissions ?? [];
+  const users = usersData?.users ?? [];
+  const selectedRoleLabel = MINING_ROLES.find((role) => role.id === selectedRole)?.label || selectedRole;
 
   return (
     <div className="space-y-6">
@@ -152,7 +153,7 @@ export default function PermissionsPage() {
               <label className="text-sm font-medium">Rol de referencia</label>
               <Select value={selectedRole} onValueChange={setSelectedRole}>
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder={selectedRoleLabel} />
                 </SelectTrigger>
                 <SelectContent>
                   {MINING_ROLES.map((role) => (
@@ -168,7 +169,7 @@ export default function PermissionsPage() {
               <label className="text-sm font-medium">Modulo</label>
               <Select value={selectedModule} onValueChange={setSelectedModule}>
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder={selectedModule.charAt(0).toUpperCase() + selectedModule.slice(1)} />
                 </SelectTrigger>
                 <SelectContent>
                   {MODULES.map((module) => (
