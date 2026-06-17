@@ -80,6 +80,7 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
 
       const response = await fetch('/api/legal/documentos', {
         method: 'POST',
+        credentials: 'include',
         body: formData,
       });
 

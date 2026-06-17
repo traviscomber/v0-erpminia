@@ -39,6 +39,7 @@ export function NuevoContratoModal({ onSuccess }: NuevoContratoModalProps) {
       const response = await fetch('/api/contratos/nuevo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           contractor_name: formData.contratista,
           contract_name: formData.nombreContrato,

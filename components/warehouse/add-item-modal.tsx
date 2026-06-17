@@ -32,6 +32,7 @@ export function AddItemModal({ open, onOpenChange, onSubmit }: AddItemModalProps
       const res = await fetch('/api/warehouse/stock', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           part_code: formData.part_code,
           part_name: formData.part_name,

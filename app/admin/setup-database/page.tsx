@@ -17,6 +17,7 @@ export default function SetupPage() {
     try {
       const response = await fetch('/api/admin/setup-profiles', {
         method: 'POST',
+        credentials: 'include',
       });
 
       const data = await response.json();
@@ -30,6 +31,7 @@ export default function SetupPage() {
       // Sync existing users
       const syncResponse = await fetch('/api/admin/sync-existing-users', {
         method: 'POST',
+        credentials: 'include',
       });
 
       const syncData = await syncResponse.json();
