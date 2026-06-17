@@ -28,7 +28,7 @@ interface KPIData {
   dias_sin_accidentes: number;
 }
 
-const fetcher = (url: string) => fetch(url).then(r => r.json());
+const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then(r => r.json());
 
 export default function KPIPrevenccionPage() {
   const [isOpen, setIsOpen] = useState(false);
@@ -68,6 +68,7 @@ export default function KPIPrevenccionPage() {
       const response = await fetch('/api/sostenibilidad/kpi', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(formData),
       });
 

@@ -135,6 +135,7 @@ export default function FlujDocumentalPage() {
       const response = await fetch('/api/sostenibilidad/documentos-flujo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(formData),
       });
 
