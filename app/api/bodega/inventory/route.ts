@@ -12,16 +12,51 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { data, error } = await supabase
+  // Get pagination parameters from query string
+  const { searchParams } = new URL(request.url);
+  const page = parseInt(searchParams.get('page') || '0', 10);
+  const pageSize = parseInt(searchParams.get('pageSize') || '50', 10);
+  const search = searchParams.get('search') || '';
+  const category = searchParams.get('category') || '';
+
+  // Validate pagination parameters
+  const validPageSize = Math.min(Math.max(pageSize, 10), 500);
+  const validPage = Math.max(page, 0);
+  const offset = validPage * validPageSize;
+
+  // Build query with filters
+  let query = supabase
     .from('bodega_inventory')
-    .select('*')
-    .order('sku');
+    .select('*', { count: 'exact' });
+
+  // Apply search filter
+  if (search) {
+    query = query.or(`sku.ilike.%${search}%,name.ilike.%${search}%,category.ilike.%${search}%`);
+  }
+
+  // Apply category filter
+  if (category) {
+    query = query.eq('category', category);
+  }
+
+  // Apply pagination and sorting
+  const { data, error, count } = await query
+    .order('sku')
+    .range(offset, offset + validPageSize - 1);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ inventory: data });
+  return NextResponse.json({
+    inventory: data || [],
+    pagination: {
+      page: validPage,
+      pageSize: validPageSize,
+      total: count || 0,
+      totalPages: Math.ceil((count || 0) / validPageSize)
+    }
+  });
 }
 
 export async function POST(request: NextRequest) {
