@@ -139,7 +139,7 @@ export default function LegalPage() {
             credentials: 'include',
           });
           const json = await res.json();
-          url = json.url ?? null;
+          url = json.url || null;
         }
         if (url) {
           const a = document.createElement('a');
@@ -593,7 +593,7 @@ export default function LegalPage() {
                       <li key={item.id}>{item.title}</li>
                     ))}
                     {(compliance.contracts_pending_review || []).length === 0 && (
-                      <li>No hay contratos pendientes de revisiÃ³n.</li>
+                      <li>No hay contratos pendientes de revisión.</li>
                     )}
                   </ul>
                 </div>

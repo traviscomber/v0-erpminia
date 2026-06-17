@@ -190,7 +190,7 @@ export default function DocumentosReportesPage() {
       <div>
         <h1 className="text-3xl font-bold text-foreground">Reportería de Documentos</h1>
         <p className="text-muted-foreground mt-2">
-          AnÃ¡lisis y seguimiento del flujo de aprobaciÃ³n documental
+          Análisis y seguimiento del flujo de aprobación documental
         </p>
       </div>
 
@@ -198,7 +198,7 @@ export default function DocumentosReportesPage() {
         <Card className="border-destructive/30">
           <CardContent className="pt-6 flex items-center gap-3 text-sm">
             <AlertCircle className="w-4 h-4 text-destructive" />
-            <span>No fue posible cargar toda la reporterÃ­a documental.</span>
+            <span>No fue posible cargar toda la reportería documental.</span>
           </CardContent>
         </Card>
       )}
@@ -256,7 +256,7 @@ export default function DocumentosReportesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{averageApprovalDays}</div>
-            <p className="text-xs text-muted-foreground mt-1">das de aprobacin</p>
+            <p className="text-xs text-muted-foreground mt-1">d?as de aprobaci?n</p>
           </CardContent>
         </Card>
       </div>
@@ -272,8 +272,8 @@ export default function DocumentosReportesPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
-                <CardTitle>DistribuciÃ³n por Estado</CardTitle>
-                <CardDescription>Documentos por estado del flujo de aprobaciÃ³n</CardDescription>
+                <CardTitle>Distribución por Estado</CardTitle>
+                <CardDescription>Documentos por estado del flujo de aprobación</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
@@ -302,7 +302,7 @@ export default function DocumentosReportesPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Desglose por Estado</CardTitle>
-                <CardDescription>EstadÃ­sticas consolidadas del mÃ³dulo</CardDescription>
+                <CardDescription>Estadísticas consolidadas del módulo</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -334,14 +334,14 @@ export default function DocumentosReportesPage() {
           <Card>
             <CardHeader>
               <CardTitle>Tiempo Promedio de Aprobación</CardTitle>
-              <CardDescription>Tendencia mensual segÃºn documentos procesados</CardDescription>
+              <CardDescription>Tendencia mensual según documentos procesados</CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={400}>
                 <LineChart data={approvalTimeline}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
-                  <YAxis yAxisId="left" label={{ value: 'DÃ­as', angle: -90, position: 'insideLeft' }} />
+                  <YAxis yAxisId="left" label={{ value: 'Días', angle: -90, position: 'insideLeft' }} />
                   <YAxis
                     yAxisId="right"
                     orientation="right"
@@ -354,7 +354,7 @@ export default function DocumentosReportesPage() {
                     type="monotone"
                     dataKey="avgDays"
                     stroke="#f97316"
-                    name="Promedio (dÃ­as)"
+                    name="Promedio (días)"
                     strokeWidth={2}
                   />
                   <Bar
@@ -393,7 +393,7 @@ export default function DocumentosReportesPage() {
                         <p className="font-medium">{doc.title}</p>
                         <p className="text-xs text-muted-foreground">{doc.approvalLevel}</p>
                       </div>
-                      <Badge variant="destructive">{doc.daysOverdue} dÃ­as</Badge>
+                      <Badge variant="destructive">{doc.daysOverdue} días</Badge>
                     </div>
                   ))
                 ) : (
