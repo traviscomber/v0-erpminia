@@ -370,7 +370,7 @@ export default function AlertasPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Titulo</p>
+                  <p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Título</p>
                   <p className="font-semibold text-foreground">{selectedAlert.title}</p>
                 </div>
 
