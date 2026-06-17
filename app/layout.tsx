@@ -7,9 +7,9 @@ import { ThemeProvider } from 'next-themes'
 import { Toaster } from 'sonner'
 import './globals.css'
 
-const _geist = Geist({ subsets: ["latin"] });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
-const _montserrat = Montserrat({ subsets: ["latin"], variable: "--font-heading" });
+const _geist = Geist({ subsets: ["latin", "latin-ext"] });
+const _geistMono = Geist_Mono({ subsets: ["latin", "latin-ext"] });
+const _montserrat = Montserrat({ subsets: ["latin", "latin-ext"], variable: "--font-heading" });
 
 export const metadata: Metadata = {
   title: 'Motil — Plataforma Operacional Minera',
@@ -42,7 +42,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className="dark" suppressHydrationWarning>
-      <head />
+      <head>
+        <meta charSet="utf-8" />
+      </head>
       <body className="font-sans antialiased bg-background text-foreground">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} forcedTheme="dark">
           {children}
