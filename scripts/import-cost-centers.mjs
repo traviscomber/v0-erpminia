@@ -75,6 +75,15 @@ async function run() {
     }
     const organization_id = orgs[0].id;
     console.log(`📦 Usando organización: ${organization_id}\n`);
+    
+    // Wait for schema cache to refresh
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Create a fresh client to ensure schema cache is loaded
+    const supabase2 = createClient(supabaseUrl, supabaseKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+    
     // Read and parse CSV
     const content = fs.readFileSync('scripts/centros-fixed.csv', 'utf-8');
     // Remove BOM if present
@@ -100,19 +109,35 @@ async function run() {
       };
     });
 
-    // Delete existing (clean slate)
-    const { error: delError } = await supabase.from('cost_centers').delete().gte('id', 0);
-    if (delError) console.warn('⚠️  Advertencia al limpiar:', delError.message);
+    // Delete existing via REST API directly
+    const deleteRes = await fetch(`${supabaseUrl}/rest/v1/cost_centers?id=gt.-1`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${supabaseKey}`,
+        'apikey': supabaseKey,
+      },
+    });
+    if (!deleteRes.ok) console.warn('⚠️  Advertencia al limpiar:', await deleteRes.text());
 
-    // Insert in batches
+    // Insert in batches via REST API
     const batchSize = 100;
     let inserted = 0;
     for (let i = 0; i < reconstructed.length; i += batchSize) {
       const batch = reconstructed.slice(i, i + batchSize);
-      const { error, count } = await supabase.from('cost_centers').insert(batch, { count: 'exact' });
+      const insertRes = await fetch(`${supabaseUrl}/rest/v1/cost_centers`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseKey}`,
+          'apikey': supabaseKey,
+          'Prefer': 'return=minimal',
+        },
+        body: JSON.stringify(batch),
+      });
       
-      if (error) {
-        console.error(`❌ Error en batch ${i}-${i + batch.length}:`, error.message);
+      if (!insertRes.ok) {
+        const error = await insertRes.text();
+        console.error(`❌ Error en batch ${i}-${i + batch.length}:`, error);
       } else {
         inserted += batch.length;
         console.log(`✅ Batch ${Math.floor(i / batchSize) + 1}: ${batch.length} filas insertadas`);
@@ -122,7 +147,7 @@ async function run() {
     console.log(`\n✨ Total importado: ${inserted} centros de costos`);
 
     // Verify
-    const { data: sample } = await supabase
+    const { data: sample } = await supabase2
       .from('cost_centers')
       .select('code, name')
       .limit(5);
@@ -130,7 +155,7 @@ async function run() {
     sample?.forEach((r) => console.log(`  ${r.code} | ${r.name}`));
 
     // Check for corruption
-    const { count: corrupted } = await supabase
+    const { count: corrupted } = await supabase2
       .from('cost_centers')
       .select('*', { count: 'exact', head: true })
       .or(`name.ilike.%${R}%,full_path.ilike.%${R}%`);
