@@ -3,13 +3,15 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'bcrypt';
+import { buildAuthCookiePayload, createAuthCookieValue } from '@/lib/auth-cookie';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { email, password } = body;
+    const normalizedEmail = String(email || '').trim().toLowerCase();
 
-    if (!email || !password) {
+    if (!normalizedEmail || !password) {
       return NextResponse.json({ error: 'Email and password required' }, { status: 400 });
     }
 
@@ -28,7 +30,7 @@ export async function POST(request: NextRequest) {
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('id, email, full_name, password_hash, organization_id')
-      .eq('email', email);
+      .eq('email', normalizedEmail);
 
     if (profileError) {
       console.error('[v0] Database error:', profileError);
@@ -36,14 +38,14 @@ export async function POST(request: NextRequest) {
     }
 
     if (!profileData || profileData.length === 0) {
-      console.log('[v0] User not found:', email);
+      console.log('[v0] User not found:', normalizedEmail);
       return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
     }
 
     const profile = profileData[0];
 
     if (!profile.password_hash) {
-      console.error('[v0] No password hash for user:', email);
+      console.error('[v0] No password hash for user:', normalizedEmail);
       return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
     }
 
@@ -57,11 +59,11 @@ export async function POST(request: NextRequest) {
     }
 
     if (!passwordMatch) {
-      console.log('[v0] Password mismatch for:', email);
+      console.log('[v0] Password mismatch for:', normalizedEmail);
       return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
     }
 
-    console.log('[v0] Password matched for:', email);
+    console.log('[v0] Password matched for:', normalizedEmail);
 
     // Query user role
     const { data: roleData, error: roleError } = await supabase
@@ -90,8 +92,15 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({ success: true, user: sessionData });
 
     const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
+    const authCookieValue = await createAuthCookieValue(
+      buildAuthCookiePayload({
+        user: sessionData.user,
+        role,
+        sessionToken: sessionData.session_token,
+      })
+    );
 
-    response.cookies.set('auth_token', JSON.stringify(sessionData), {
+    response.cookies.set('auth_token', authCookieValue, {
       httpOnly: true,
       secure: isProduction,
       sameSite: 'lax',
@@ -108,7 +117,7 @@ export async function POST(request: NextRequest) {
       maxAge: 86400 * 7,
     });
 
-    response.cookies.set('user_email', email, {
+    response.cookies.set('user_email', normalizedEmail, {
       httpOnly: false,
       secure: isProduction,
       sameSite: 'lax',
@@ -116,7 +125,7 @@ export async function POST(request: NextRequest) {
       maxAge: 86400 * 7,
     });
 
-    console.log('[v0] Login successful:', { email, role });
+    console.log('[v0] Login successful:', { email: normalizedEmail, role });
     return response;
   } catch (error) {
     console.error('[v0] Login error:', error instanceof Error ? error.message : String(error));
