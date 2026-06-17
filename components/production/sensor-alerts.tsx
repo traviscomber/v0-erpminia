@@ -22,7 +22,7 @@ export function SensorAlerts() {
   useEffect(() => {
     const fetchSensors = async () => {
       try {
-        const res = await fetch('/api/production/sensorsasset_id=SIM-001');
+        const res = await fetch('/api/production/sensors?asset_id=SIM-001');
         if (res.ok) {
           const { sensor_data } = await res.json();
           setSensors([sensor_data]);

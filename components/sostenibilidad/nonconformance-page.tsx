@@ -18,17 +18,17 @@ export function NoncConformancePage({ organizationId }: NCPageProps) {
   const [filterStatus, setFilterStatus] = useState('');
 
   const { data: stats } = useSWR(
-    `/api/sostenibilidad/nonconformances/statsorgId=${organizationId}`,
+    `/api/sostenibilidad/nonconformances/stats?orgId=${organizationId}`,
     async (url) => {
-      const res = await fetch(url);
+      const res = await fetch(url, { credentials: 'include' });
       return res.json().then((r) => r.data);
     }
   );
 
   const { data: ncs } = useSWR(
-    `/api/sostenibilidad/nonconformancesorgId=${organizationId}&status=${filterStatus}`,
+    `/api/sostenibilidad/nonconformances?orgId=${organizationId}&status=${filterStatus}`,
     async (url) => {
-      const res = await fetch(url);
+      const res = await fetch(url, { credentials: 'include' });
       return res.json().then((r) => r.data);
     }
   );
@@ -57,7 +57,7 @@ export function NoncConformancePage({ organizationId }: NCPageProps) {
             <CardTitle className="text-sm text-muted-foreground">Abiertas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{stats.open || 0}</div>
+            <div className="text-3xl font-bold">{stats?.open || 0}</div>
           </CardContent>
         </Card>
 
@@ -66,7 +66,7 @@ export function NoncConformancePage({ organizationId }: NCPageProps) {
             <CardTitle className="text-sm text-muted-foreground">Vencidas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-red-600">{stats.overdue || 0}</div>
+            <div className="text-3xl font-bold text-red-600">{stats?.overdue || 0}</div>
           </CardContent>
         </Card>
 
@@ -75,7 +75,7 @@ export function NoncConformancePage({ organizationId }: NCPageProps) {
             <CardTitle className="text-sm text-muted-foreground">En Progreso</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{stats.inProgress || 0}</div>
+            <div className="text-3xl font-bold">{stats?.inProgress || 0}</div>
           </CardContent>
         </Card>
 
@@ -84,7 +84,7 @@ export function NoncConformancePage({ organizationId }: NCPageProps) {
             <CardTitle className="text-sm text-muted-foreground">Cumplimiento</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-600">{stats.CumplimientoScore || 0}%</div>
+            <div className="text-3xl font-bold text-green-600">{stats?.CumplimientoScore || 0}%</div>
           </CardContent>
         </Card>
       </div>

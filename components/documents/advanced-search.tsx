@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import {
   Search,
   Filter,
-  X,
   ChevronDown,
   Download,
   AlertCircle,
@@ -28,11 +27,9 @@ interface SearchFilters {
   status: string | null;
   category: string | null;
   expiryFilter: 'all' | 'active' | 'expiring_30_days' | 'expired';
-  page: number;
-  pageSize: number;
 }
 
-interface Document {
+interface DocumentItem {
   id: string;
   document_name: string;
   category: string;
@@ -44,15 +41,13 @@ interface Document {
   created_at: string;
 }
 
-interface SearchResultados {
-  data: Document[];
-  pagination: {
-    page: number;
-    pageSize: number;
-    total: number;
-    totalPages: number;
-  };
-}
+type AvailableTags = { systemTags: Record<string, string[]>; userTags: string[] };
+
+const fetcher = async (url: string) => {
+  const response = await fetch(url, { credentials: 'include' });
+  if (!response.ok) return null;
+  return response.json();
+};
 
 export function AdvancedDocumentSearch() {
   const [filters, setFilters] = useState<SearchFilters>({
@@ -61,12 +56,9 @@ export function AdvancedDocumentSearch() {
     status: null,
     category: null,
     expiryFilter: 'all',
-    page: 1,
-    pageSize: 50,
   });
-
-  const [Resultados, setResultados] = useState<SearchResultados | null>(null);
-  const [availableTags, setAvailableTags] = useState<{ systemTags: Record<string, string[]>; userTags: string[] }>({
+  const [documents, setDocuments] = useState<DocumentItem[]>([]);
+  const [availableTags, setAvailableTags] = useState<AvailableTags>({
     systemTags: {},
     userTags: [],
   });
@@ -75,85 +67,67 @@ export function AdvancedDocumentSearch() {
   const [selectedDocs, setSelectedDocs] = useState<Set<string>>(new Set());
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
-  // Fetch available Etiquetas on mount
   useEffect(() => {
-    const fetchEtiquetas = async () => {
+    const loadData = async () => {
       try {
-        const res = await fetch('/api/documents/tagsmodule=prevención');
-        const data = await res.json();
-        setAvailableTags(data);
+        const [docs, tags] = await Promise.all([
+          fetcher('/api/documents/list?module=prevenci%C3%B3n&category=documentos-hse'),
+          fetcher('/api/documents/tags?module=prevenci%C3%B3n'),
+        ]);
+
+        setDocuments(Array.isArray(docs) ? docs : []);
+        setAvailableTags(tags || { systemTags: {}, userTags: [] });
       } catch (err) {
-        console.error('[v0] Error fetching tags:', err);
+        console.error('[v0] Error loading advanced search data:', err);
       }
     };
-    fetchEtiquetas();
+
+    loadData();
   }, []);
 
-  // Debounced search (built-in, no lodash)
-  const performSearch = useCallback(async (searchFilters: SearchFilters) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch('/api/documents/search-advanced', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(searchFilters),
-        credentials: 'include',
-      });
+  const filteredDocuments = useMemo(() => {
+    const query = filters.query.trim().toLowerCase();
 
-      if (!res.ok) {
-        throw new Error(`La búsqueda falló: ${res.status}`);
-      }
+    return documents.filter((doc) => {
+      const textMatch =
+        !query ||
+        doc.document_name.toLowerCase().includes(query) ||
+        doc.category.toLowerCase().includes(query) ||
+        (doc.tags || []).some((tag) => tag.toLowerCase().includes(query));
 
-      const data: SearchResultados = await res.json();
-      setResultados(data);
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'La búsqueda falló';
-      setError(errorMsg);
-      console.error('[v0] Search error:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      const tagMatch =
+        filters.tags.length === 0 || filters.tags.every((tag) => doc.tags?.includes(tag));
+      const statusMatch = !filters.status || doc.status === filters.status;
+      const categoryMatch = !filters.category || doc.category === filters.category;
 
-  // Trigger search when filters change with debounce
-  useEffect(() => {
-    if (debounceTimer.current) {
-      clearTimeout(debounceTimer.current);
-    }
-    debounceTimer.current = setTimeout(() => {
-      performSearch(filters);
-    }, 300);
+      const expiryMatch =
+        filters.expiryFilter === 'all' ||
+        (filters.expiryFilter === 'active' && doc.expiryStatus === 'active') ||
+        (filters.expiryFilter === 'expiring_30_days' && doc.expiryStatus === 'expiring_soon') ||
+        (filters.expiryFilter === 'expired' && doc.expiryStatus === 'expired');
 
-    return () => {
-      if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    };
-  }, [filters, performSearch]);
+      return textMatch && tagMatch && statusMatch && categoryMatch && expiryMatch;
+    });
+  }, [documents, filters]);
 
-  const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFilters((prev) => ({ ...prev, query: e.target.value, page: 1 }));
-  };
+  const pagedDocuments = useMemo(() => {
+    const pageSize = 50;
+    const page = 1;
+    return filteredDocuments.slice((page - 1) * pageSize, page * pageSize);
+  }, [filteredDocuments]);
 
   const handleTagToggle = (tag: string) => {
     setFilters((prev) => ({
       ...prev,
       tags: prev.tags.includes(tag) ? prev.tags.filter((t) => t !== tag) : [...prev.tags, tag],
-      page: 1,
     }));
   };
 
-  const handleExpiryFilterChange = (filter: SearchFilters['expiryFilter']) => {
-    setFilters((prev) => ({ ...prev, expiryFilter: filter, page: 1 }));
-  };
-
   const handleDocumentToggle = (docId: string) => {
-    const newSelected = new Set(selectedDocs);
-    if (newSelected.has(docId)) {
-      newSelected.delete(docId);
-    } else {
-      newSelected.add(docId);
-    }
-    setSelectedDocs(newSelected);
+    const next = new Set(selectedDocs);
+    if (next.has(docId)) next.delete(docId);
+    else next.add(docId);
+    setSelectedDocs(next);
   };
 
   const handleBulkExport = async () => {
@@ -185,7 +159,7 @@ export function AdvancedDocumentSearch() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `documentos_hse_${new Date().toISOString().split('T')[0]}.csv`;
+      a.download = `documentos_${new Date().toISOString().split('T')[0]}.csv`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -197,16 +171,13 @@ export function AdvancedDocumentSearch() {
   };
 
   const getExpiryIcon = (expiryStatus: string) => {
-    if (expiryStatus === 'active')
-      return <CheckCircle2 className="h-4 w-4 text-green-500" />;
-    if (expiryStatus === 'expiring_soon')
-      return <AlertCircle className="h-4 w-4 text-yellow-500" />;
-    return <X className="h-4 w-4 text-red-500" />;
+    if (expiryStatus === 'active') return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+    if (expiryStatus === 'expiring_soon') return <AlertCircle className="h-4 w-4 text-yellow-500" />;
+    return <Clock className="h-4 w-4 text-red-500" />;
   };
 
   return (
     <div className="space-y-6">
-      {/* Barra de búsqueda */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -214,24 +185,27 @@ export function AdvancedDocumentSearch() {
             Búsqueda Avanzada de Documentos
           </CardTitle>
           <CardDescription>
-            Busca por nombre, descripción o palabras clave. Filtra por tags, estado y Vigencia.
+            Busca por nombre, descripción o palabras clave. Filtra por tags, estado y vigencia.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Consulta */}
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Buscar documentos..."
               value={filters.query}
-              onChange={handleQueryChange}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (debounceTimer.current) clearTimeout(debounceTimer.current);
+                debounceTimer.current = setTimeout(() => {
+                  setFilters((prev) => ({ ...prev, query: value }));
+                }, 250);
+              }}
               className="pl-10"
             />
           </div>
 
-          {/* Filters */}
           <div className="flex flex-wrap gap-2">
-            {/* Tag Filter */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2">
@@ -260,7 +234,6 @@ export function AdvancedDocumentSearch() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Expiry Filter */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2">
@@ -270,34 +243,23 @@ export function AdvancedDocumentSearch() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuCheckboxItem
-                  checked={filters.expiryFilter === 'all'}
-                  onCheckedChange={() => handleExpiryFilterChange('all')}
-                >
-                  Todos
-                </DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem
-                  checked={filters.expiryFilter === 'active'}
-                  onCheckedChange={() => handleExpiryFilterChange('active')}
-                >
-                  Vigentes
-                </DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem
-                  checked={filters.expiryFilter === 'expiring_30_days'}
-                  onCheckedChange={() => handleExpiryFilterChange('expiring_30_days')}
-                >
-                  Próximos a Vencer
-                </DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem
-                  checked={filters.expiryFilter === 'expired'}
-                  onCheckedChange={() => handleExpiryFilterChange('expired')}
-                >
-                  Vencidos
-                </DropdownMenuCheckboxItem>
+                {[
+                  ['all', 'Todos'],
+                  ['active', 'Vigentes'],
+                  ['expiring_30_days', 'Próximos a Vencer'],
+                  ['expired', 'Vencidos'],
+                ].map(([value, label]) => (
+                  <DropdownMenuCheckboxItem
+                    key={value}
+                    checked={filters.expiryFilter === value}
+                    onCheckedChange={() => setFilters((prev) => ({ ...prev, expiryFilter: value as SearchFilters['expiryFilter'] }))}
+                  >
+                    {label}
+                  </DropdownMenuCheckboxItem>
+                ))}
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Clear Filters */}
             {(filters.query || filters.tags.length > 0) && (
               <Button
                 variant="ghost"
@@ -309,8 +271,6 @@ export function AdvancedDocumentSearch() {
                     status: null,
                     category: null,
                     expiryFilter: 'all',
-                    page: 1,
-                    pageSize: 50,
                   })
                 }
               >
@@ -319,7 +279,6 @@ export function AdvancedDocumentSearch() {
             )}
           </div>
 
-          {/* Active Etiquetas */}
           {filters.tags.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {filters.tags.map((tag) => (
@@ -337,7 +296,6 @@ export function AdvancedDocumentSearch() {
         </CardContent>
       </Card>
 
-      {/* Resultados */}
       {error && (
         <Card className="border-destructive">
           <CardContent className="pt-6">
@@ -357,115 +315,73 @@ export function AdvancedDocumentSearch() {
         </Card>
       )}
 
-      {Resultados && !loading && (
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              {Resultados.pagination.total} documento{Resultados.pagination.total !== 1 ? 's' : ''} encontrado
-              {Resultados.pagination.total !== 1 ? 's' : ''}
-            </CardTitle>
-            {selectedDocs.size > 0 && (
-              <div className="flex gap-2 mt-4">
-                <Button
-                  size="sm"
-                  onClick={handleBulkExport}
-                  className="gap-2"
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {filteredDocuments.length} documento{filteredDocuments.length !== 1 ? 's' : ''} encontrado{filteredDocuments.length !== 1 ? 's' : ''}
+          </CardTitle>
+          {selectedDocs.size > 0 && (
+            <div className="mt-4 flex gap-2">
+              <Button size="sm" onClick={handleBulkExport} className="gap-2">
+                <Download className="h-4 w-4" />
+                Exportar Seleccionados ({selectedDocs.size})
+              </Button>
+            </div>
+          )}
+        </CardHeader>
+        <CardContent>
+          {pagedDocuments.length === 0 ? (
+            <p className="py-8 text-center text-muted-foreground">
+              No hay documentos que coincidan con tus criterios
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {pagedDocuments.map((doc) => (
+                <div
+                  key={doc.id}
+                  className="flex cursor-pointer items-start gap-3 rounded-lg border p-3 hover:bg-muted"
+                  onClick={() => handleDocumentToggle(doc.id)}
                 >
-                  <Download className="h-4 w-4" />
-                  Exportar Seleccionados ({selectedDocs.size})
-                </Button>
-              </div>
-            )}
-          </CardHeader>
-          <CardContent>
-            {Resultados.data.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">
-                No hay documentos que coincidan con tus criterios
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {Resultados.data.map((doc) => (
-                  <div
-                    key={doc.id}
-                    className="flex items-start gap-3 p-3 border rounded-lg hover:bg-muted cursor-pointer"
-                    onClick={() => handleDocumentToggle(doc.id)}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedDocs.has(doc.id)}
-                      onChange={() => handleDocumentToggle(doc.id)}
-                      className="mt-1"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-sm truncate">{doc.document_name}</h4>
-                      <p className="text-xs text-muted-foreground mb-2">
-                        {doc.category} • v{doc.id.slice(0, 8)}
-                      </p>
-                      {doc.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mb-2">
-                          {doc.tags.slice(0, 3).map((tag) => (
-                            <Badge key={tag} variant="outline" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
-                          {doc.tags.length > 3 && (
-                            <Badge variant="outline" className="text-xs">
-                              +{doc.tags.length - 3}
-                            </Badge>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {getExpiryIcon(doc.expiryStatus)}
-                      {doc.daysUntilExpiry !== null && (
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          {doc.daysUntilExpiry > 0
-                            ? `${doc.daysUntilExpiry}d`
-                            : 'Vencido'}
-                        </span>
-                      )}
-                    </div>
+                  <input
+                    type="checkbox"
+                    checked={selectedDocs.has(doc.id)}
+                    onChange={() => handleDocumentToggle(doc.id)}
+                    className="mt-1"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <h4 className="truncate text-sm font-medium">{doc.document_name}</h4>
+                    <p className="mb-2 text-xs text-muted-foreground">
+                      {doc.category} • v{doc.id.slice(0, 8)}
+                    </p>
+                    {doc.tags.length > 0 && (
+                      <div className="mb-2 flex flex-wrap gap-1">
+                        {doc.tags.slice(0, 3).map((tag) => (
+                          <Badge key={tag} variant="outline" className="text-xs">
+                            {tag}
+                          </Badge>
+                        ))}
+                        {doc.tags.length > 3 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{doc.tags.length - 3}
+                          </Badge>
+                        )}
+                      </div>
+                    )}
                   </div>
-                ))}
-              </div>
-            )}
-
-            {/* Pagination */}
-            {Resultados.pagination.totalPages > 1 && (
-              <div className="flex justify-center gap-2 mt-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setFilters((p) => ({ ...p, page: Math.max(1, p.page - 1) }))}
-                  disabled={filters.page === 1}
-                >
-                  Anterior
-                </Button>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">
-                    página {Resultados.pagination.page} de {Resultados.pagination.totalPages}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {getExpiryIcon(doc.expiryStatus)}
+                    {doc.daysUntilExpiry !== null && (
+                      <span className="whitespace-nowrap text-xs text-muted-foreground">
+                        {doc.daysUntilExpiry > 0 ? `${doc.daysUntilExpiry}d` : 'Vencido'}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    setFilters((p) => ({
-                      ...p,
-                      page: Math.min(Resultados.pagination.totalPages, p.page + 1),
-                    }))
-                  }
-                  disabled={filters.page === Resultados.pagination.totalPages}
-                >
-                  Siguiente
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
-

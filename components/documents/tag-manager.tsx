@@ -46,11 +46,10 @@ export function TagManager({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch available tags
   useEffect(() => {
     const fetchTags = async () => {
       try {
-        const res = await fetch('/api/documents/tagsmodule=prevención');
+        const res = await fetch('/api/documents/tags?module=prevenci%C3%B3n');
         const data = await res.json();
         setAvailableTags(data);
       } catch (err) {
@@ -61,20 +60,17 @@ export function TagManager({
   }, []);
 
   const handleAddTag = (tag: string) => {
-    if (tags.includes(tag)) {
-      setTags(tags.filter((t) => t !== tag));
-    } else {
-      setTags([...tags, tag]);
-    }
+    setTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
   };
 
   const handleCreateTag = () => {
-    if (!newTag.trim()) return;
-    if (tags.includes(newTag)) {
+    const value = newTag.trim();
+    if (!value) return;
+    if (tags.includes(value)) {
       toast.error('El tag ya existe');
       return;
     }
-    setTags([...tags, newTag]);
+    setTags([...tags, value]);
     setNewTag('');
   };
 
@@ -124,15 +120,14 @@ export function TagManager({
 
         <div className="space-y-4">
           {error && (
-            <div className="flex gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-destructive text-sm">
-              <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+            <div className="flex gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+              <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
               {error}
             </div>
           )}
 
-          {/* Current Tags */}
           <div>
-            <label className="text-sm font-medium mb-2 block">Tags seleccionados</label>
+            <label className="mb-2 block text-sm font-medium">Tags seleccionados</label>
             <div className="flex flex-wrap gap-2">
               {tags.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Sin tags asignados</p>
@@ -152,9 +147,8 @@ export function TagManager({
             </div>
           </div>
 
-          {/* Add Tags from System */}
           <div>
-            <label className="text-sm font-medium mb-2 block">Agregar tags del sistema</label>
+            <label className="mb-2 block text-sm font-medium">Agregar tags del sistema</label>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="w-full gap-2">
@@ -183,15 +177,14 @@ export function TagManager({
             </DropdownMenu>
           </div>
 
-          {/* Create Custom Tag */}
           <div>
-            <label className="text-sm font-medium mb-2 block">Crear tag personalizado</label>
+            <label className="mb-2 block text-sm font-medium">Crear tag personalizado</label>
             <div className="flex gap-2">
               <Input
                 placeholder="Nuevo tag..."
                 value={newTag}
                 onChange={(e) => setNewTag(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleCreateTag()}
+                onKeyDown={(e) => e.key === 'Enter' && handleCreateTag()}
               />
               <Button onClick={handleCreateTag} size="sm">
                 <Plus className="h-4 w-4" />
@@ -199,7 +192,6 @@ export function TagManager({
             </div>
           </div>
 
-          {/* Save */}
           <div className="flex gap-2 pt-4">
             <Button
               onClick={handleSave}

@@ -56,7 +56,7 @@ export default function InventarioPage() {
     revalidateOnFocus: false,
   });
 
-  const stockList = ((data.stock || []) as InventoryItem[]).map((item) => ({
+  const stockList = (((data?.stock || []) as InventoryItem[])).map((item) => ({
     ...item,
     quantity_on_hand: Number(item.quantity_on_hand || 0),
     quantity_available: Number(item.quantity_available || 0),

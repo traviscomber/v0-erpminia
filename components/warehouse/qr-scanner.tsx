@@ -22,7 +22,7 @@ export function QRScanner({ onScan }: QRScannerProps) {
 
     setScanning(true);
     try {
-      const res = await fetch(`/api/warehouse/qrvalue=${qrValue}`);
+      const res = await fetch(`/api/warehouse/qr?value=${encodeURIComponent(qrValue)}`);
       if (!res.ok) throw new Error('QR not found');
       
       const data = await res.json();
