@@ -54,6 +54,7 @@ const rolePermissions: Record<string, string[]> = {
   'Mantención por Centro de Costo': ['superadmin', 'admin', 'Operaciones-Supervisor'],
   'Órdenes de Trabajo': ['superadmin', 'admin', 'Operaciones-Supervisor'],
   'Bodega & Inventario': ['superadmin', 'admin', 'Bodega-Supervisor'],
+  'Importar Datos': ['superadmin', 'admin', 'Bodega-Supervisor'],
   'Gestión Documental': ['superadmin', 'admin', 'manager'],
   'Compras & OCs': ['superadmin', 'admin', 'Compras-Supervisor'],
   'Finanzas & Presupuesto': ['superadmin', 'admin', 'Finanzas-Supervisor'],
@@ -143,6 +144,12 @@ const menuItems = [
     label: 'Bodega & Inventario',
     href: '/dashboard/bodega',
     icon: Boxes,
+    group: 'Bodega & Inventario',
+  },
+  {
+    label: 'Importar Datos',
+    href: '/dashboard/bodega/importar-datos',
+    icon: FileText,
     group: 'Bodega & Inventario',
   },
   {
