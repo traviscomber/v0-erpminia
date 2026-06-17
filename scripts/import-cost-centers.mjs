@@ -21,35 +21,77 @@ function parseCSV(content) {
   return records;
 }
 
-// Spanish word map: corrupt -> correct
+// Spanish word map: corrupt form (with U+FFFD) -> correct form
+// Each key uses R for the replacement char position. Sorted longest-first at apply time.
 const spanishWordMap = {
-  'C\ufffdigo': 'Código',
-  'codigo': 'Código',
-  'C\ufffdDIGO': 'CÓDIGO',
-  'ruta': 'Ruta',
-  'completa': 'Completa',
-  'Ot\ufffdorla': 'Otárola',
-  'Ot\ufffdrola': 'Otárola',
-  'Mina': 'Mina',
-  'M\ufffdquina': 'Máquina',
-  'maquina': 'Máquina',
-  'Creaci\ufffd': 'Creación',
-  'creacion': 'Creación',
-  'Modificaci\ufffd': 'Modificación',
-  'modificacion': 'Modificación',
+  // -ción words (ó)
+  [`Administraci${R}n`]: 'Administración',
+  [`Ampliaci${R}n`]: 'Ampliación',
+  [`Construcci${R}n`]: 'Construcción',
+  [`Contenci${R}n`]: 'Contención',
+  [`CREACI${R}N`]: 'CREACIÓN',
+  [`Creaci${R}n`]: 'Creación',
+  [`Ejecuci${R}n`]: 'Ejecución',
+  [`Exploraci${R}n`]: 'Exploración',
+  [`Explotaci${R}n`]: 'Explotación',
+  [`Flotaci${R}n`]: 'Flotación',
+  [`Fortificaci${R}n`]: 'Fortificación',
+  [`MODIFICACI${R}N`]: 'MODIFICACIÓN',
+  [`Modificaci${R}n`]: 'Modificación',
+  [`Mantenci${R}n`]: 'Mantención',
+  [`Perforaci${R}n`]: 'Perforación',
+  [`Planificaci${R}n`]: 'Planificación',
+  [`Prevenci${R}n`]: 'Prevención',
+  [`Recepci${R}n`]: 'Recepción',
+  [`Recuperaci${R}n`]: 'Recuperación',
+  [`Reforestaci${R}n`]: 'Reforestación',
+  [`Remodelaci${R}n`]: 'Remodelación',
+  [`Supervisi${R}n`]: 'Supervisión',
+  [`Ventilaci${R}n`]: 'Ventilación',
+  // CÓDIGO header (Ó)
+  [`C${R}DIGO`]: 'CÓDIGO',
+  [`C${R}digo`]: 'Código',
+  // á words
+  [`M${R}quina`]: 'Máquina',
+  [`Mec${R}nica`]: 'Mecánica',
+  [`Mec${R}nico`]: 'Mecánico',
+  [`Gr${R}a`]: 'Grúa',
+  [`Port${R}til`]: 'Portátil',
+  [`Telesc${R}picos`]: 'Telescópicos',
+  // í words
+  [`Geolog${R}a`]: 'Geología',
+  [`Ingenier${R}a`]: 'Ingeniería',
+  [`Topograf${R}a`]: 'Topografía',
+  [`Ra${R}z`]: 'Raíz',
+  [`Cicl${R}stica`]: 'Ciclística',
+  [`Patag${R}ita`]: 'Patagüita',
+  [`K${R}a`]: 'Kía',
+  // é / ó proper nouns and others
+  [`Cami${R}n`]: 'Camión',
+  [`Cargu${R}o`]: 'Cargüío',
+  [`Electr${R}genos`]: 'Electrógenos',
+  [`Fot${R}n`]: 'Fotón',
+  [`Positr${R}n`]: 'Positrón',
+  [`Aum${R}n`]: 'Aumán',
+  [`Ot${R}rola`]: 'Otárola',
+  [`F${R}tbol`]: 'Fútbol',
+  [`Hu${R}spedes`]: 'Huéspedes',
+  [`A${R}o`]: 'Año',
+  [`Ba${R}os`]: 'Baños',
+  [`Desag${R}e`]: 'Desagüe',
+  // N° (degree/ordinal sign) - e.g. "N°63", "N°42"
+  [`N${R}`]: 'N°',
 };
+
+// Build a sorted list (longest key first) so larger patterns match before sub-patterns
+const sortedEntries = Object.entries(spanishWordMap).sort((a, b) => b[0].length - a[0].length);
 
 function fixText(s) {
   if (!s) return s;
   let result = s;
-  
-  // Dictionary replacements
-  for (const [corrupt, correct] of Object.entries(spanishWordMap)) {
-    const regex = new RegExp(corrupt, 'gi');
-    result = result.replace(regex, correct);
+  for (const [corrupt, correct] of sortedEntries) {
+    result = result.split(corrupt).join(correct);
   }
-  
-  // Remaining U+FFFD to ? for manual review
   return result;
 }
 
@@ -143,15 +185,17 @@ async function run() {
       })
       .filter(r => r.name && r.code); // Only include records with both name and code
 
-    // Delete existing via REST API directly
-    const deleteRes = await fetch(`${supabaseUrl}/rest/v1/cost_centers?id=gt.-1`, {
+    // Delete existing rows for this organization (id is UUID, use organization_id filter)
+    const deleteRes = await fetch(`${supabaseUrl}/rest/v1/cost_centers?organization_id=eq.${organization_id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${supabaseKey}`,
         'apikey': supabaseKey,
+        'Prefer': 'return=minimal',
       },
     });
     if (!deleteRes.ok) console.warn('⚠️  Advertencia al limpiar:', await deleteRes.text());
+    else console.log('🗑️  Datos previos eliminados\n');
 
     // Insert in batches via REST API
     const batchSize = 100;
@@ -192,7 +236,7 @@ async function run() {
     const { count: corrupted } = await supabase2
       .from('cost_centers')
       .select('*', { count: 'exact', head: true })
-      .or(`name.ilike.%${R}%,full_path.ilike.%${R}%`);
+      .or(`name.ilike.%${R}%,code.ilike.%${R}%,description.ilike.%${R}%`);
     console.log(`\n⚠️  Filas con caracteres corruptos restantes: ${corrupted || 0}`);
 
   } catch (error) {
