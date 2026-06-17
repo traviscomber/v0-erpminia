@@ -1,21 +1,12 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getOrganizationContext } from '@/lib/api/organization-context';
 
 export async function POST(request: NextRequest) {
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseKey) {
-      return NextResponse.json(
-        { error: 'Missing Supabase configuration' },
-        { status: 500 }
-      );
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const context = await getOrganizationContext(request);
+    if (!context.ok) return context.response;
 
     const formData = await request.formData();
     const file = formData.get('file') as File;
@@ -41,10 +32,12 @@ export async function POST(request: NextRequest) {
 
     // Parse CSV (use semicolon delimiter)
     const data: any[] = [];
-    const headers = lines[0].split(';').map(h => h.trim().toLowerCase());
+    const normalizeHeader = (value: string) =>
+      value.trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    const headers = lines[0].split(';').map(normalizeHeader);
 
     // Find column indices
-    const codigoIdx = headers.findIndex(h => h.includes('código') || h.includes('codigo'));
+    const codigoIdx = headers.findIndex(h => h.includes('codigo'));
     const familiaIdx = headers.findIndex(h => h.includes('familia'));
     const subFamiliaIdx = headers.findIndex(h => h.includes('sub-familia') || h.includes('subfamilia'));
     const equipoIdx = headers.findIndex(h => h.includes('equipo'));
@@ -88,8 +81,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (costCenterId) {
+      const { data: selectedCostCenter, error: costCenterError } = await context.supabase
+        .from('cost_centers')
+        .select('id')
+        .eq('id', costCenterId)
+        .eq('organization_id', context.organizationId)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (costCenterError) throw costCenterError;
+      if (!selectedCostCenter) {
+        return NextResponse.json(
+          { error: 'Invalid cost center selected for this organization' },
+          { status: 400 }
+        );
+      }
+    }
+
     // Insert into bodega_inventory
-    const { error: insertError, data: insertedData } = await supabase
+    const { error: insertError } = await context.supabase
       .from('bodega_inventory')
       .upsert(
         data.map(d => ({

@@ -2,9 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -13,7 +11,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Upload, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
 
 interface ImportResult {
   success: boolean;
@@ -22,15 +19,19 @@ interface ImportResult {
   error?: string;
 }
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
+type CostCenterOption = {
+  id: string;
+  code: string;
+  name: string;
+};
+
+const NONE_VALUE = '__no_cost_center__';
 
 export function BodegaInventoryImportComponent() {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [dragActive, setDragActive] = useState(false);
-  const [costCenters, setCostCenters] = useState<Array<{ id: string; nombre: string }>>([]);
+  const [costCenters, setCostCenters] = useState<CostCenterOption[]>([]);
   const [selectedCostCenter, setSelectedCostCenter] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -38,15 +39,16 @@ export function BodegaInventoryImportComponent() {
   useEffect(() => {
     const loadCostCenters = async () => {
       try {
-        const { data } = await supabase
-          .from('cost_centers')
-          .select('id, nombre')
-          .eq('nivel', 1)
-          .order('nombre');
+        const response = await fetch('/api/cost-centers', {
+          credentials: 'include',
+        });
 
-        if (data) {
-          setCostCenters(data);
+        if (!response.ok) {
+          throw new Error('Failed to load cost centers');
         }
+
+        const data = await response.json();
+        setCostCenters(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error('Error loading cost centers:', error);
       }
@@ -144,15 +146,20 @@ export function BodegaInventoryImportComponent() {
             <label className="text-sm font-medium mb-2 block">
               Centro de Costos (Opcional)
             </label>
-            <Select value={selectedCostCenter} onValueChange={setSelectedCostCenter}>
+            <Select
+              value={selectedCostCenter || NONE_VALUE}
+              onValueChange={(value) => {
+                setSelectedCostCenter(value === NONE_VALUE ? '' : value);
+              }}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Selecciona un centro de costos" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No asignar</SelectItem>
+                <SelectItem value={NONE_VALUE}>No asignar</SelectItem>
                 {costCenters.map((cc) => (
                   <SelectItem key={cc.id} value={cc.id}>
-                    {cc.nombre}
+                    {cc.code} - {cc.name}
                   </SelectItem>
                 ))}
               </SelectContent>
