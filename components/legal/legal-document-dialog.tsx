@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import type { ChangeEvent, FormEvent } from 'react';
+import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { Loader2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -49,7 +48,7 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
     }
 
     if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
-      toast.error('El archivo excede el límite de 50MB.');
+      toast.error('El archivo supera el límite de 50 MB.');
       event.target.value = '';
       return;
     }
@@ -86,7 +85,7 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
 
       const payload = await response.json().catch(() => null);
       if (!response.ok) {
-        throw new Error(payload.error || 'No fue posible crear el documento');
+        throw new Error(payload?.error || 'No fue posible crear el documento');
       }
 
       toast.success('Documento legal creado');
@@ -104,7 +103,7 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Nuevo Documento Legal</DialogTitle>
+          <DialogTitle>Nuevo documento legal</DialogTitle>
           <DialogDescription>
             Carga políticas, reglamentos, contratos o respaldos regulatorios para el módulo Legal.
           </DialogDescription>
@@ -162,7 +161,7 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
                 <SelectContent>
                   <SelectItem value="compliance">Cumplimiento</SelectItem>
                   <SelectItem value="regulatory">Regulatorio</SelectItem>
-                  <SelectItem value="legal">Legal General</SelectItem>
+                  <SelectItem value="legal">Legal general</SelectItem>
                   <SelectItem value="contracts">Contratos</SelectItem>
                   <SelectItem value="policies">Políticas</SelectItem>
                   <SelectItem value="regulations">Reglamentos</SelectItem>
@@ -196,13 +195,13 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
                 disabled={isLoading}
                 accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
               />
-              <label htmlFor="legal-document-file" className="cursor-pointer block">
+              <label htmlFor="legal-document-file" className="block cursor-pointer">
                 <Upload className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
                 <p className="text-sm font-medium text-foreground">
                   {file ? file.name : 'Haz clic para seleccionar el archivo'}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  PDF, JPG, PNG, DOC o DOCX, máximo 50MB
+                  PDF, JPG, PNG, DOC o DOCX, máximo 50 MB.
                 </p>
               </label>
             </div>
@@ -221,7 +220,7 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
               ) : (
                 <>
                   <Upload className="mr-2 h-4 w-4" />
-                  Crear Documento
+                  Crear documento
                 </>
               )}
             </Button>

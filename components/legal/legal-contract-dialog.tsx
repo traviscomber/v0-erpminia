@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import type { ChangeEvent, FormEvent } from 'react';
+import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { Loader2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -26,7 +25,7 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
   const [description, setDescription] = useState('');
   const [contractNumber, setContractNumber] = useState('');
   const [contractType, setContractType] = useState('Servicios');
-  const [status, setStatus] = useState('En Revisión');
+  const [status, setStatus] = useState('En revisión');
   const [contractValue, setContractValue] = useState('');
   const [currency, setCurrency] = useState('CLP');
   const [startDate, setStartDate] = useState('');
@@ -40,7 +39,7 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
     setDescription('');
     setContractNumber('');
     setContractType('Servicios');
-    setStatus('En Revisión');
+    setStatus('En revisión');
     setContractValue('');
     setCurrency('CLP');
     setStartDate('');
@@ -63,7 +62,7 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
     }
 
     if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
-      toast.error('El archivo excede el limite de 50MB.');
+      toast.error('El archivo supera el límite de 50 MB.');
       event.target.value = '';
       return;
     }
@@ -107,7 +106,7 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
 
       const payload = await response.json().catch(() => null);
       if (!response.ok) {
-        throw new Error(payload.error || 'No fue posible crear el contrato');
+        throw new Error(payload?.error || 'No fue posible crear el contrato');
       }
 
       toast.success('Contrato creado');
@@ -125,7 +124,7 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Nuevo Contrato Legal</DialogTitle>
+          <DialogTitle>Nuevo contrato legal</DialogTitle>
           <DialogDescription>
             Registra contratos, subcontratos o anexos con respaldo documental y archivo adjunto.
           </DialogDescription>
@@ -136,7 +135,7 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
             <div className="space-y-2 md:col-span-2">
               <label className="text-sm font-medium text-foreground">Título</label>
               <Input
-                placeholder="Ej: Contrato Principal Operaciones La Patagua 2026"
+                placeholder="Ej: Contrato principal Operaciones La Patagua 2026"
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
                 disabled={isLoading}
@@ -144,7 +143,7 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Numero de contrato</label>
+              <label className="text-sm font-medium text-foreground">Número de contrato</label>
               <Input
                 placeholder="CNT-2026-001"
                 value={contractNumber}
@@ -197,10 +196,10 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
                   <SelectValue placeholder="Seleccionar" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="En Revisión">En Revisión</SelectItem>
+                  <SelectItem value="En revisión">En revisión</SelectItem>
                   <SelectItem value="Vigente">Vigente</SelectItem>
                   <SelectItem value="Borrador">Borrador</SelectItem>
-                  <SelectItem value="Por Vencer">Por Vencer</SelectItem>
+                  <SelectItem value="Por vencer">Por vencer</SelectItem>
                   <SelectItem value="Vencido">Vencido</SelectItem>
                 </SelectContent>
               </Select>
@@ -233,7 +232,7 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Fecha inicio</label>
+              <label className="text-sm font-medium text-foreground">Fecha de inicio</label>
               <Input
                 type="date"
                 value={startDate}
@@ -243,7 +242,7 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Fecha término</label>
+              <label className="text-sm font-medium text-foreground">Fecha de término</label>
               <Input
                 type="date"
                 value={endDate}
@@ -288,13 +287,13 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
                 disabled={isLoading}
                 accept=".pdf,.doc,.docx"
               />
-              <label htmlFor="legal-contract-file" className="cursor-pointer block">
+              <label htmlFor="legal-contract-file" className="block cursor-pointer">
                 <Upload className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
                 <p className="text-sm font-medium text-foreground">
                   {file ? file.name : 'Haz clic para adjuntar el contrato'}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  PDF, DOC o DOCX, máximo 50MB
+                  PDF, DOC o DOCX, máximo 50 MB.
                 </p>
               </label>
             </div>
@@ -313,7 +312,7 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
               ) : (
                 <>
                   <Upload className="mr-2 h-4 w-4" />
-                  Crear Contrato
+                  Crear contrato
                 </>
               )}
             </Button>
