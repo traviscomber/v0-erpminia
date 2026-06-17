@@ -136,6 +136,7 @@ export async function POST(request: NextRequest) {
         const parentRouteKey = routeSegments.slice(0, -1).join('\\');
 
         return {
+          sourceCode: String(row['codigo rec elec'] || '').trim(),
           nameValue,
           routeValue,
           routeSegments,
@@ -163,17 +164,22 @@ export async function POST(request: NextRequest) {
     const payload: ImportedCostCenter[] = parsed.map((row) => {
       const parentCode = row.parentRouteKey ? routeCodeMap.get(row.parentRouteKey) : undefined;
       const derived = splitName(row.nameValue, parentCode);
-      routeCodeMap.set(row.routeValue, derived.code);
+      const code = row.sourceCode || derived.code;
+      routeCodeMap.set(row.routeValue, code);
 
       const descriptionParts = [
         `Ruta completa: ${row.routeValue}`,
+        row.sourceCode ? `Código REC ELEC: ${row.sourceCode}` : '',
         row.creator ? `Creador: ${row.creator}` : '',
         row.modifiedBy ? `Modificado por: ${row.modifiedBy}` : '',
+        row.createdAt ? `Fecha creación: ${row.createdAt}` : '',
+        row.updatedAt ? `Fecha modificación: ${row.updatedAt}` : '',
+        `Descontinuado: ${row.discontinued ? 'Sí' : 'No'}`,
         row.notes ? `Notas: ${row.notes}` : '',
       ].filter(Boolean);
 
       return {
-        code: derived.code,
+        code,
         name: derived.name,
         description: descriptionParts.join(' | ') || null,
         status: row.discontinued ? 'inactive' : 'active',
