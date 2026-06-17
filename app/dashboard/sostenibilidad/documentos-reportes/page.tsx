@@ -375,7 +375,7 @@ export default function DocumentosReportesPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <AlertCircle className="w-5 h-5 text-destructive" />
-                Documentos Vencidos en AprobaciÃ³n
+                Documentos Vencidos en Aprobación
               </CardTitle>
               <CardDescription>
                 Documentos pendientes con más de 7 días abiertos en revisión

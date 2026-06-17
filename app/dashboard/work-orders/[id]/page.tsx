@@ -92,7 +92,7 @@ export default function WorkOrderDetailPage() {
               <p className="text-sm">{workOrder.description || 'Sin descripcion adicional.'}</p>
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <p className="text-sm text-muted-foreground">Causa raiz</p>
+                  <p className="text-sm text-muted-foreground">Causa raíz</p>
                   <p className="font-medium">{workOrder.root_cause || 'No registrada'}</p>
                 </div>
                 <div>
