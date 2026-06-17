@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
         table = 'hse_master_documents';
     }
 
-    let queryParams = `select=*&limit=${limit}&offset=${offset}`;
+    let queryParams = `?select=*&limit=${limit}&offset=${offset}`;
     if (estado) {
       queryParams += `&estado=eq.${encodeURIComponent(estado)}`;
     }
