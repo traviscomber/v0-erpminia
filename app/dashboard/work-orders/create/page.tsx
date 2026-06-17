@@ -69,7 +69,7 @@ const COMPONENT_TEMPLATES: Record<string, ComponentTemplate[]> = {
 };
 
 const fetcher = async (url: string) => {
-  const response = await fetch(url);
+  const response = await fetch(url, { credentials: 'include' });
   const payload = await response.json().catch(() => null);
 
   if (!response.ok) {
@@ -143,6 +143,7 @@ export default function CreateWorkOrderPage() {
       const response = await fetch('/api/maintenance/work-orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           assetId: selectedAsset.id,
           title: `${selectedAsset.asset_name} - ${selectedComponentsData.map((component) => component.name).join(', ')}`,

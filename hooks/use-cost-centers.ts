@@ -16,7 +16,7 @@ export function useCostCenters() {
   useEffect(() => {
     const fetchCostCenters = async () => {
       try {
-        const res = await fetch('/api/cost-centers');
+        const res = await fetch('/api/cost-centers', { credentials: 'include' });
         if (!res.ok) throw new Error('Failed to fetch cost centers');
         const data = await res.json();
         setCostCenters(data);

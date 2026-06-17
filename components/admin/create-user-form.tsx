@@ -57,6 +57,7 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
       const res = await fetch('/api/admin/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email, password, full_name: fullName, role }),
       });
 

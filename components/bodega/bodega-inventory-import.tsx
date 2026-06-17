@@ -80,6 +80,7 @@ export function BodegaInventoryImportComponent() {
 
       const response = await fetch('/api/bodega/import-inventory', {
         method: 'POST',
+        credentials: 'include',
         body: formData,
       });
 
