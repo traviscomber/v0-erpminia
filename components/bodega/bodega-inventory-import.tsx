@@ -139,7 +139,7 @@ export function BodegaInventoryImportComponent() {
             Importar Inventario Bodega
           </CardTitle>
           <CardDescription>
-            Sube tu archivo CSV, XLS o XLSX con el inventario de bodega (código, familia, sub-familia, equipo y producto)
+            Sube tu archivo CSV, XLS o XLSX con el inventario de bodega (código, familia, subfamilia, equipo y producto)
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -166,7 +166,7 @@ export function BodegaInventoryImportComponent() {
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground mt-1">
-              Si no seleccionas, los items se importarán sin asignar a un centro
+              Si no seleccionas, los ítems se importarán sin asignar a un centro
             </p>
           </div>
 

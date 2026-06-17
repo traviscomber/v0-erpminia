@@ -110,9 +110,9 @@ export function ExportReportForm() {
             <select
               value={reportType}
               onChange={(e) => setReportType(e.target.value as ReportType)}
-              className="w-full rounded border p-2 text-sm"
+              className="w-full rounded border border-border bg-background p-2 text-sm text-foreground"
             >
-              <option value="mantencion">Ordenes de trabajo de mantencion</option>
+              <option value="mantencion">Órdenes de trabajo de mantención</option>
               <option value="hse">Incidentes e investigaciones HSE</option>
               <option value="auditoria">Trazabilidad y cumplimiento</option>
             </select>
@@ -125,7 +125,7 @@ export function ExportReportForm() {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full rounded border p-2 text-sm"
+                className="w-full rounded border border-border bg-background p-2 text-sm text-foreground"
               />
             </div>
 
@@ -135,7 +135,7 @@ export function ExportReportForm() {
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full rounded border p-2 text-sm"
+                className="w-full rounded border border-border bg-background p-2 text-sm text-foreground"
               />
             </div>
           </div>
@@ -146,7 +146,7 @@ export function ExportReportForm() {
           </Button>
 
           <p className="text-xs text-muted-foreground">
-            El archivo incluye resumen y detalle en formato CSV para auditoria y analisis.
+            El archivo incluye resumen y detalle en formato CSV para auditoría y análisis.
           </p>
         </div>
       </CardContent>

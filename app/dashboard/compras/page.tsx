@@ -10,7 +10,7 @@ export default function ComprasPage() {
       <div>
         <h1 className="text-3xl font-bold">Compras</h1>
         <p className="mt-2 text-muted-foreground">
-          Crea, revisa y sigue ordenes de compra con trazabilidad operativa.
+          Crea, revisa y sigue órdenes de compra con trazabilidad operativa.
         </p>
       </div>
 
@@ -20,13 +20,13 @@ export default function ComprasPage() {
           <CardHeader>
             <CardTitle>Flujo de compras</CardTitle>
             <CardDescription>
-              El formulario crea ordenes en borrador y la lista muestra el estado operativo.
+              El formulario crea órdenes en borrador y la lista muestra el estado operativo.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <p>1. Ingresar proveedor, item y cantidad.</p>
+            <p>1. Ingresar proveedor, ítem y cantidad.</p>
             <p>2. Revisar el total generado antes de enviar.</p>
-            <p>3. Buscar ordenes por numero, proveedor o item.</p>
+            <p>3. Buscar órdenes por número, proveedor o ítem.</p>
             <p>4. Descargar el detalle cuando se necesite respaldo.</p>
           </CardContent>
         </Card>
