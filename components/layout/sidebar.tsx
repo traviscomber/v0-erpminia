@@ -48,8 +48,10 @@ import { useAuth } from '@/hooks/use-auth';
 const rolePermissions: Record<string, string[]> = {
   'Dashboard': ['superadmin', 'admin', 'manager', 'supervisor', 'viewer'],
   'Alertas': ['superadmin', 'admin', 'manager', 'supervisor'],
+  'Centros de Costos': ['superadmin', 'admin', 'manager', 'Operaciones-Supervisor', 'Finanzas-Supervisor'],
   'Producción': ['superadmin', 'admin', 'Operaciones-Supervisor'],
   'Mantención': ['superadmin', 'admin', 'Operaciones-Supervisor'],
+  'Mantención por Centro de Costo': ['superadmin', 'admin', 'Operaciones-Supervisor'],
   'Órdenes de Trabajo': ['superadmin', 'admin', 'Operaciones-Supervisor'],
   'Bodega & Inventario': ['superadmin', 'admin', 'Bodega-Supervisor'],
   'Gestión Documental': ['superadmin', 'admin', 'manager'],
@@ -99,6 +101,12 @@ const menuItems = [
     badge: 3,
     group: 'Core',
   },
+  {
+    label: 'Centros de Costos',
+    href: '/dashboard/centros-costos',
+    icon: Building2,
+    group: 'Core',
+  },
   
   // OPERACIONES - Depto. Operaciones
   {
@@ -110,6 +118,12 @@ const menuItems = [
   {
     label: 'Mantención',
     href: '/dashboard/mantenimiento',
+    icon: Wrench,
+    group: 'Mantención',
+  },
+  {
+    label: 'Mantención por Centro de Costo',
+    href: '/dashboard/mantenimiento/centro-costo',
     icon: Wrench,
     group: 'Mantención',
   },
