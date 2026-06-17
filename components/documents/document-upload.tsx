@@ -59,12 +59,12 @@ const DOCUMENT_TYPES_BY_MODULE: Record<string, string[]> = {
     'Evaluación Procedimiento Transporte, Almacenamiento y Manejo de Explosivos',
     'Evaluación Procedimiento Uso de Herramientas Eléctricas, Manuales y Neumáticas',
     'Evaluación Procedimiento Uso Protecciones Respiratorias y Gafas',
-    'Evaluación Regulamiento Estudios',
-    'Evaluación Regulamiento Fortificación',
+    'Evaluación Reglamento Estudios',
+    'Evaluación Reglamento Fortificación',
     'Evaluación reglamento acuñadura',
     'Evaluación reglamento interno de explosivos',
     'Evaluación reglamento tránsito interior mina',
-    'Evaluación Regulamiento Transporte y Conducción',
+    'Evaluación Reglamento Transporte y Conducción',
     'Evaluación reglamento transporte y conducción',
     'Examen Ocupacional',
     'Examen Organizacional',
@@ -252,7 +252,7 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
 
     const maxSize = 50 * 1024 * 1024;
     if (selectedFile.size > maxSize) {
-      setErrorMessage('El archivo no debe superar 50MB');
+      setErrorMessage('El archivo no debe superar 50 MB');
       setUploadStatus('error');
       setTimeout(() => setUploadStatus('idle'), 5000);
       return;
@@ -411,7 +411,7 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
         {/* Document Type Selector */}
         {file && uploadStatus === 'idle' && (
           <div className="space-y-3">
-            <label className="text-sm font-semibold text-foreground">Tipo de Documento *</label>
+            <label className="text-sm font-semibold text-foreground">Tipo de documento *</label>
             <div className="relative">
               <button
                 type="button"
