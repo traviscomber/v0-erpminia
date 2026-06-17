@@ -48,7 +48,7 @@ export function ExportButtons({ data, fileName, columns }: ExportButtonsProps) {
       table.style.borderCollapse = 'collapse';
       table.style.marginTop = '20px';
 
-      // Headers
+      // Encabezados
       const thead = document.createElement('thead');
       const headerRow = document.createElement('tr');
       columns.forEach((col) => {
@@ -64,7 +64,7 @@ export function ExportButtons({ data, fileName, columns }: ExportButtonsProps) {
       thead.appendChild(headerRow);
       table.appendChild(thead);
 
-      // Rows
+      // Filas
       const tbody = document.createElement('tbody');
       data.forEach((row) => {
         const tr = document.createElement('tr');
