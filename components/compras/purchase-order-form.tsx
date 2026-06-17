@@ -27,6 +27,7 @@ export function PurchaseOrderForm() {
       const res = await fetch('/api/compras/purchase-orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(formData),
       });
 
