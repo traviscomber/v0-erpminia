@@ -19,17 +19,22 @@ import { Progress } from '@/components/ui/progress';
 
 type InventoryItem = {
   id: string;
-  part_code: string;
-  part_name: string;
-  part_category: string;
-  quantity_on_hand: number;
-  quantity_available: number;
-  reorder_level: number;
-  reorder_quantity: number;
-  unit_cost: number;
-  bin: {
-    bin_code: string;
-    bin_location: string;
+  sku?: string;
+  name?: string;
+  category?: string;
+  quantity?: number;
+  min_stock?: number;
+  quantity_on_hand?: number;
+  quantity_available?: number;
+  reorder_level?: number;
+  reorder_quantity?: number;
+  unit_cost?: number;
+  part_code?: string;
+  part_name?: string;
+  part_category?: string;
+  bin?: {
+    bin_code: string | null;
+    bin_location: string | null;
   } | null;
 };
 
@@ -45,7 +50,15 @@ const fetcher = async (url: string) => {
 };
 
 function categoryForItem(item: InventoryItem) {
-  return item.part_category || 'General';
+  return item.category || item.part_category || 'General';
+}
+
+function itemName(item: InventoryItem) {
+  return item.name || item.part_name || 'Sin nombre';
+}
+
+function itemCode(item: InventoryItem) {
+  return item.sku || item.part_code || item.id;
 }
 
 export default function InventarioPage() {
@@ -56,11 +69,11 @@ export default function InventarioPage() {
     revalidateOnFocus: false,
   });
 
-  const stockList = (((data?.stock || []) as InventoryItem[])).map((item) => ({
+  const stockList = (((data?.items || data?.stock || []) as InventoryItem[])).map((item) => ({
     ...item,
-    quantity_on_hand: Number(item.quantity_on_hand || 0),
-    quantity_available: Number(item.quantity_available || 0),
-    reorder_level: Number(item.reorder_level || 0),
+    quantity_on_hand: Number(item.quantity_on_hand ?? item.quantity ?? 0),
+    quantity_available: Number(item.quantity_available ?? item.quantity_on_hand ?? item.quantity ?? 0),
+    reorder_level: Number(item.reorder_level ?? item.min_stock ?? 0),
     reorder_quantity: Number(item.reorder_quantity || 0),
     unit_cost: Number(item.unit_cost || 0),
   }));
@@ -69,10 +82,11 @@ export default function InventarioPage() {
     () =>
       stockList.filter((item) => {
         const category = categoryForItem(item);
+        const query = searchTerm.toLowerCase();
         return (
-          (item.part_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (item.part_code || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-          category.toLowerCase().includes(searchTerm.toLowerCase())
+          itemName(item).toLowerCase().includes(query) ||
+          itemCode(item).toLowerCase().includes(query) ||
+          category.toLowerCase().includes(query)
         );
       }),
     [searchTerm, stockList]
@@ -120,6 +134,11 @@ export default function InventarioPage() {
 
   const abc = abcAnalysis();
   const abcA = abc.filter((item) => item.abcCategory === 'A').length;
+  const selectedQuantityOnHand = Number(selectedItem?.quantity_on_hand || 0);
+  const selectedUnitCost = Number(selectedItem?.unit_cost || 0);
+  const selectedReorderLevel = Number(selectedItem?.reorder_level || 0);
+  const selectedReorderQuantity = Number(selectedItem?.reorder_quantity || 0);
+  const selectedQuantityAvailable = Number(selectedItem?.quantity_available || 0);
 
   if (error) {
     return (
@@ -251,10 +270,8 @@ export default function InventarioPage() {
                     <TableRow key={item.id} className="border-border hover:bg-muted/50">
                       <TableCell>
                         <div>
-                          <p className="font-medium">{item.part_name || 'Sin nombre'}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {item.part_code || item.id}
-                          </p>
+                          <p className="font-medium">{itemName(item)}</p>
+                          <p className="text-xs text-muted-foreground">{itemCode(item)}</p>
                         </div>
                       </TableCell>
                       <TableCell>{category}</TableCell>
@@ -277,9 +294,7 @@ export default function InventarioPage() {
                           </p>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right">
-                        {formatCurrency(item.unit_cost)}
-                      </TableCell>
+                      <TableCell className="text-right">{formatCurrency(Number(item.unit_cost || 0))}</TableCell>
                       <TableCell className="text-right font-medium">
                         {formatCurrency(totalValue)}
                       </TableCell>
@@ -309,7 +324,7 @@ export default function InventarioPage() {
         <Card className="border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div>
-              <CardTitle>Detalle: {selectedItem.part_name || selectedItem.part_code}</CardTitle>
+              <CardTitle>Detalle: {itemName(selectedItem)}</CardTitle>
               <CardDescription>Información operativa del ítem seleccionado</CardDescription>
             </div>
             <Button variant="ghost" size="sm" onClick={() => setSelectedItem(null)}>
@@ -320,7 +335,7 @@ export default function InventarioPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-muted-foreground">Código</p>
-                <p className="font-semibold">{selectedItem.part_code || selectedItem.id}</p>
+                <p className="font-semibold">{itemCode(selectedItem)}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Categoría</p>
@@ -328,28 +343,28 @@ export default function InventarioPage() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Cantidad en stock</p>
-                <p className="font-semibold">{selectedItem.quantity_on_hand} u.</p>
+                <p className="font-semibold">{selectedQuantityOnHand} u.</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Disponible</p>
-                <p className="font-semibold">{selectedItem.quantity_available} u.</p>
+                <p className="font-semibold">{selectedQuantityAvailable} u.</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Nivel mínimo</p>
-                <p className="font-semibold">{selectedItem.reorder_level} u.</p>
+                <p className="font-semibold">{selectedReorderLevel} u.</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Cantidad de reorden</p>
-                <p className="font-semibold">{selectedItem.reorder_quantity} u.</p>
+                <p className="font-semibold">{selectedReorderQuantity} u.</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Valor unitario</p>
-                <p className="font-semibold">{formatCurrency(selectedItem.unit_cost)}</p>
+                <p className="font-semibold">{formatCurrency(selectedUnitCost)}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Valor total</p>
                 <p className="font-semibold">
-                  {formatCurrency(selectedItem.quantity_on_hand * selectedItem.unit_cost)}
+                  {formatCurrency(selectedQuantityOnHand * selectedUnitCost)}
                 </p>
               </div>
               <div className="col-span-2">
@@ -364,12 +379,12 @@ export default function InventarioPage() {
               <div className="mb-2">
                 <p className="mb-2 text-sm text-muted-foreground">Estado del stock</p>
                 <Progress
-                  value={getStockPercentage(selectedItem.quantity_on_hand, selectedItem.reorder_level)}
+                  value={getStockPercentage(selectedQuantityOnHand, selectedReorderLevel)}
                   className="h-2"
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                {selectedItem.quantity_on_hand <= selectedItem.reorder_level ? (
+                {selectedQuantityOnHand <= selectedReorderLevel ? (
                   <span className="font-medium text-[var(--secondary)]">
                     Alerta: stock por debajo del nivel mínimo
                   </span>

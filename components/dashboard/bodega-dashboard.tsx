@@ -19,21 +19,21 @@ export function BodegaDashboard() {
 
   if (error) return <div className="text-destructive font-semibold text-lg">Error cargando inventario</div>;
 
-  // Calculate metrics
-  const lowStock = inventory.filter(item => item.quantity <= item.min_stock);
-  const totalValue = inventory.reduce((sum, item) => sum + (item.quantity * (item.unit_cost || 0)), 0);
+  const lowStock = inventory.filter((item) => item.quantity <= item.min_stock);
+  const totalValue = inventory.reduce((sum, item) => sum + item.quantity * (item.unit_cost || 0), 0);
 
   return (
     <div className="space-y-6 p-6 bg-background min-h-screen">
-      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-4xl font-bold text-foreground">Bodega</h1>
-          <p className="text-muted-foreground text-lg mt-1">Gestión de {pagination.total.toLocaleString()} artículos</p>
+          <p className="text-muted-foreground text-lg mt-1">
+            Gestión de {pagination.total.toLocaleString()} artículos
+          </p>
         </div>
-        <Button 
-          size="lg" 
-          onClick={() => mutate()} 
+        <Button
+          size="lg"
+          onClick={() => mutate()}
           className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
           disabled={isLoading}
         >
@@ -42,7 +42,6 @@ export function BodegaDashboard() {
         </Button>
       </div>
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="bg-card border-2 border-border">
           <CardHeader className="pb-3">
@@ -75,7 +74,6 @@ export function BodegaDashboard() {
         </Card>
       </div>
 
-      {/* Alerts if low stock */}
       {lowStock.length > 0 && (
         <Card className="border-2 border-destructive bg-destructive/5">
           <CardHeader>
@@ -86,12 +84,12 @@ export function BodegaDashboard() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {lowStock.slice(0, 6).map(item => (
+              {lowStock.slice(0, 6).map((item) => (
                 <div key={item.id} className="bg-background p-3 rounded-lg border border-border">
                   <div className="font-semibold text-foreground text-sm">{item.sku}</div>
                   <div className="text-sm text-muted-foreground">{item.name?.substring(0, 30)}</div>
                   <div className="text-xs text-destructive mt-2">
-                    Stock: <span className="font-bold">{item.quantity}</span> (Mín: {item.min_stock})
+                    Stock: <span className="font-bold">{item.quantity}</span> (Min: {item.min_stock})
                   </div>
                 </div>
               ))}
@@ -105,14 +103,12 @@ export function BodegaDashboard() {
         </Card>
       )}
 
-      {/* Search and Filters */}
       <Card className="bg-card border-2 border-border">
         <CardHeader>
           <CardTitle className="text-foreground">Filtros y Búsqueda</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {/* Search box */}
             <div className="relative">
               <Search className="absolute left-3 top-3 w-5 h-5 text-muted-foreground" />
               <Input
@@ -126,7 +122,6 @@ export function BodegaDashboard() {
               />
             </div>
 
-            {/* Category filter */}
             {categories.length > 0 && (
               <div>
                 <p className="text-sm font-medium text-foreground mb-2">Categoría</p>
@@ -144,7 +139,6 @@ export function BodegaDashboard() {
         </CardContent>
       </Card>
 
-      {/* Inventory Table */}
       <Card className="bg-card border-2 border-border">
         <CardHeader>
           <CardTitle className="text-foreground">
@@ -179,8 +173,8 @@ export function BodegaDashboard() {
                   </tr>
                 ) : (
                   inventory.map((item, idx) => (
-                    <tr 
-                      key={item.id} 
+                    <tr
+                      key={item.id}
                       className={`border-b border-border hover:bg-muted transition-colors ${
                         idx % 2 === 0 ? 'bg-background' : 'bg-muted/30'
                       } ${item.quantity <= item.min_stock ? 'bg-destructive/10' : ''}`}
@@ -205,7 +199,6 @@ export function BodegaDashboard() {
             </table>
           </div>
 
-          {/* Pagination Controls */}
           {pagination.totalPages > 1 && (
             <div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
               <div className="text-sm text-muted-foreground">
@@ -213,7 +206,6 @@ export function BodegaDashboard() {
               </div>
 
               <div className="flex items-center gap-2">
-                {/* Page size selector */}
                 <select
                   value={pageSize}
                   onChange={(e) => {
@@ -229,7 +221,6 @@ export function BodegaDashboard() {
                   <option value={500}>500 por página</option>
                 </select>
 
-                {/* Navigation buttons */}
                 <Button
                   variant="outline"
                   size="sm"
