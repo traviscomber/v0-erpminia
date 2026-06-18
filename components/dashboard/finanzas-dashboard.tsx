@@ -1,17 +1,27 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useFinanzasMovements } from '@/hooks/use-module-apis';
+import { useCostCenters } from '@/hooks/use-cost-centers';
+import { CostCenterSelect } from '@/components/common/cost-center-select';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, TrendingUp, TrendingDown } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
 
 export function FinanzasDashboard() {
+  const [selectedCostCenterId, setSelectedCostCenterId] = useState<string>('');
   const { movements, isLoading, error, mutate } = useFinanzasMovements();
+  const { costCenters } = useCostCenters();
 
   if (error) return <div className="text-red-500">Error cargando movimientos</div>;
   if (isLoading) return <div>Cargando...</div>;
 
-  const ingresos = movements.filter(m => m.type === 'ingreso').reduce((sum, m) => sum + m.amount, 0);
-  const egresos = movements.filter(m => m.type === 'egreso').reduce((sum, m) => sum + m.amount, 0);
+  // Filter movements by cost center if selected
+  const filteredMovements = selectedCostCenterId
+    ? movements.filter(m => (m as any).cost_center_id === selectedCostCenterId)
+    : movements;
+
+  const ingresos = filteredMovements.filter(m => m.type === 'ingreso').reduce((sum, m) => sum + m.amount, 0);
+  const egresos = filteredMovements.filter(m => m.type === 'egreso').reduce((sum, m) => sum + m.amount, 0);
   const balance = ingresos - egresos;
 
   // Agrupar por fecha para gráfico
@@ -22,7 +32,7 @@ export function FinanzasDashboard() {
     egresos: number;
   }
   const chartData: ChartDataPoint[] = [];
-  movements.forEach((m) => {
+  filteredMovements.forEach((m) => {
     const existing = chartData.find((x) => x.date === m.date);
     if (existing) {
       if (m.type === 'ingreso') existing.ingresos += m.amount;
@@ -47,6 +57,15 @@ export function FinanzasDashboard() {
           <RefreshCw className="w-4 h-4" />
           Actualizar
         </Button>
+      </div>
+
+      <div className="max-w-xs">
+        <label className="text-sm font-medium mb-2 block">Filtrar por Centro de Costos</label>
+        <CostCenterSelect
+          value={selectedCostCenterId}
+          onValueChange={setSelectedCostCenterId}
+          placeholder="Todos los centros"
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -114,7 +133,7 @@ export function FinanzasDashboard() {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            {movements.slice(0, 10).map(m => (
+            {filteredMovements.slice(0, 10).map(m => (
               <div key={m.id} className="flex justify-between text-sm border-b pb-2">
                 <div>
                   <div className="font-semibold">{m.description}</div>
