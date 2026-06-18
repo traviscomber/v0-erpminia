@@ -183,7 +183,7 @@ export default function CarpetaArranquePage() {
                   'Documentacion de trabajadores extranjeros',
                   'Procedimientos de trabajos actualizados con NRCT',
                   'Procedimiento en caso de accidente',
-                  'Politica de empresa contratista en control de riesgos',
+                  'Política de empresa contratista en control de riesgos',
                   'Copia carnet de identidad de todos los colaboradores',
                   'Licencias de conduccion vigentes',
                   'Recepcion de conductores por reglamento interno',

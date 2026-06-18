@@ -474,7 +474,7 @@ export default function LegalPage() {
                 <div>
                   <CardTitle>Documentos Legales</CardTitle>
                   <CardDescription>
-                    Politicas, procedimientos, protocolos y respaldo regulatorio
+                    Políticas, procedimientos, protocolos y respaldo regulatorio
                   </CardDescription>
                 </div>
                 <div className="flex gap-2 items-center">

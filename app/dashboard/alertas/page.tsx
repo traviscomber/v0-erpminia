@@ -52,7 +52,7 @@ const severityConfig = {
   critica: {
     color: 'bg-destructive/10 text-destructive border-destructive/20',
     icon: AlertTriangle,
-    label: 'Critica',
+    label: 'Crítica',
   },
   alta: {
     color: 'bg-primary/10 text-primary border-primary/20',
@@ -81,7 +81,7 @@ function typeLabel(type: AlertType) {
     case 'documento':
       return 'Documentos';
     case 'mantenimiento':
-      return 'Mantencion';
+      return 'Mantención';
     case 'inventario':
       return 'Bodega';
     case 'sostenibilidad':
@@ -89,7 +89,7 @@ function typeLabel(type: AlertType) {
     case 'contrato':
       return 'Legal';
     default:
-      return 'Modulo';
+      return 'Módulo';
   }
 }
 
@@ -165,7 +165,7 @@ export default function AlertasPage() {
         <div>
           <h1 className="text-4xl font-bold tracking-tight">Centro de Alertas</h1>
           <p className="mt-3 text-muted-foreground">
-            Consolidacion operativa de documentos, mantencion, bodega y sostenibilidad.
+            Consolidación operativa de documentos, mantención, bodega y sostenibilidad.
           </p>
         </div>
 
@@ -194,7 +194,7 @@ export default function AlertasPage() {
         <div>
           <h1 className="text-4xl font-bold tracking-tight">Centro de Alertas</h1>
           <p className="mt-3 text-muted-foreground">
-            Consolidacion operativa de documentos, mantencion, bodega y sostenibilidad.
+            Consolidación operativa de documentos, mantención, bodega y sostenibilidad.
           </p>
         </div>
         <Button variant="outline" onClick={() => mutate()} className="gap-2">
@@ -218,18 +218,18 @@ export default function AlertasPage() {
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm font-medium">
               <AlertTriangle className="h-4 w-4 text-destructive" />
-              Criticas
+              Críticas
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-destructive">{criticalCount}</div>
-            <p className="mt-1 text-xs text-muted-foreground">accion inmediata</p>
+            <p className="mt-1 text-xs text-muted-foreground">acción inmediata</p>
           </CardContent>
         </Card>
 
         <Card className="border-border bg-primary/5">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Requieren Accion</CardTitle>
+            <CardTitle className="text-sm font-medium">Requieren Acción</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-primary">{actionCount}</div>
@@ -243,7 +243,7 @@ export default function AlertasPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-secondary">{archivedCount}</div>
-            <p className="mt-1 text-xs text-muted-foreground">resueltas en sesion</p>
+            <p className="mt-1 text-xs text-muted-foreground">resueltas en sesión</p>
           </CardContent>
         </Card>
       </div>
@@ -256,20 +256,20 @@ export default function AlertasPage() {
           variant={filter === 'no-leidas' ? 'default' : 'ghost'}
           onClick={() => setFilter('no-leidas')}
         >
-          No leidas ({unreadCount})
+          No leídas ({unreadCount})
         </Button>
         <Button
           variant={filter === 'criticas' ? 'default' : 'ghost'}
           onClick={() => setFilter('criticas')}
           className="text-destructive"
         >
-          Criticas ({criticalCount})
+          Críticas ({criticalCount})
         </Button>
         <Button
           variant={filter === 'accion' ? 'default' : 'ghost'}
           onClick={() => setFilter('accion')}
         >
-          Requieren Accion ({actionCount})
+          Requieren Acción ({actionCount})
         </Button>
       </div>
 
@@ -297,7 +297,7 @@ export default function AlertasPage() {
             <Card className="border-border">
               <CardContent className="py-12 text-center">
                 <CheckCircle2 className="mx-auto mb-4 h-12 w-12 text-secondary opacity-50" />
-                <p className="text-muted-foreground">No hay alertas en esta categoria.</p>
+                <p className="text-muted-foreground">No hay alertas en esta categoría.</p>
               </CardContent>
             </Card>
           ) : (
@@ -337,7 +337,7 @@ export default function AlertasPage() {
                                 {formatTime(alert.timestamp)}
                               </span>
                               {alert.actionRequired && (
-                                <Badge variant="destructive">Requiere Accion</Badge>
+                                <Badge variant="destructive">Requiere Acción</Badge>
                               )}
                             </div>
                           </div>

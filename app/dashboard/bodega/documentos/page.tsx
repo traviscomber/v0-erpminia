@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { DocumentUpload } from '@/components/documents/document-upload';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DocumentList, Document } from '@/components/documents/document-list';
 import { DocumentReviewModal } from '@/components/documents/document-review-modal';
+import { DocumentUpload } from '@/components/documents/document-upload';
 import { BodegaImportXls } from '@/components/bodega/bodega-import-xls';
 import { FileText, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
 
@@ -229,11 +229,14 @@ export default function DocumentosBodegaPage() {
         <TabsContent value="upload" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Subir Nuevo Documento</CardTitle>
-              <CardDescription>Sube procedimientos e instructivos de bodega</CardDescription>
+              <CardTitle>Subir Documento Nuevo</CardTitle>
             </CardHeader>
             <CardContent>
-              <DocumentUpload module="bodega" category="documentos" onUploadSuccess={loadDocuments} />
+              <DocumentUpload
+                module="bodega"
+                category="documentos"
+                onUploadSuccess={() => loadDocuments()}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -246,10 +249,7 @@ export default function DocumentosBodegaPage() {
       <DocumentReviewModal
         document={selectedDoc}
         isOpen={reviewOpen}
-        onClose={() => {
-          setReviewOpen(false);
-          setSelectedDoc(null);
-        }}
+        onClose={() => setReviewOpen(false)}
         onApprove={handleApprove}
         onReject={handleReject}
         reviewLevel="L1"
