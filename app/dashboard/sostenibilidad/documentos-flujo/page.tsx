@@ -69,7 +69,7 @@ export default function FlujDocumentalPage() {
   });
 
   const { data: documentos, mutate } = useSWR('/api/sostenibilidad/documentos-flujo', fetcher);
-  const docList = Array.isArray(documentos.data) ? (documentos.data as DocumentoFlujo[]) : [];
+  const docList = Array.isArray(documentos?.data) ? (documentos.data as DocumentoFlujo[]) : [];
 
   const filteredDocs = docList.filter((doc: any) => {
     const title = doc.title || doc.documento_nombre || '';
