@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,6 +32,16 @@ interface User {
 }
 
 const ROLES: UserRole[] = ['superadmin', 'admin', 'manager', 'technician', 'warehouse_staff', 'finance_officer', 'viewer'];
+
+const ROLE_LABELS: Record<UserRole, string> = {
+  superadmin: 'Súperadministrador',
+  admin: 'Administrador',
+  manager: 'Gerente',
+  technician: 'Técnico',
+  warehouse_staff: 'Personal de bodega',
+  finance_officer: 'Responsable de finanzas',
+  viewer: 'Solo lectura',
+};
 
 const roleColors = {
   superadmin: 'bg-red-200 text-red-900',
@@ -85,7 +95,7 @@ export function UsersList() {
   };
 
   const handleDeleteUser = async (userId: string) => {
-    if (!confirm('Estas seguro de que deseas eliminar este usuario')) return;
+    if (!confirm('¿Estás seguro de que deseas eliminar este usuario?')) return;
 
     try {
       const res = await fetch('/api/admin/users', {
@@ -128,7 +138,7 @@ export function UsersList() {
       </CardHeader>
       <CardContent className="space-y-4">
         <Input
-          placeholder="Buscar por email o nombre..."
+          placeholder="Buscar por correo o nombre..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="max-w-md"
@@ -138,11 +148,11 @@ export function UsersList() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Email</TableHead>
+                <TableHead>Correo electrónico</TableHead>
                 <TableHead>Nombre</TableHead>
                 <TableHead>Rol</TableHead>
                 <TableHead>Estado</TableHead>
-                <TableHead>Ultimo acceso</TableHead>
+                <TableHead>Último acceso</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
@@ -160,13 +170,13 @@ export function UsersList() {
                         <SelectContent>
                           {ROLES.map((role) => (
                             <SelectItem key={role} value={role}>
-                              {role}
+                              {ROLE_LABELS[role]}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     ) : (
-                      <Badge className={roleColors[user.role]}>{user.role}</Badge>
+                      <Badge className={roleColors[user.role]}>{ROLE_LABELS[user.role]}</Badge>
                     )}
                   </TableCell>
                   <TableCell>
@@ -216,3 +226,4 @@ export function UsersList() {
     </Card>
   );
 }
+

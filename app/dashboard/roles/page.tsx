@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,13 +11,13 @@ const MODULES = ['compras', 'bodega', 'finanzas', 'mantenimiento', 'documentos']
 const PERMISSIONS: Permission[] = ['create', 'read', 'update', 'delete', 'approve', 'export'];
 
 const ROLE_LABELS: Record<UserRole, string> = {
-  superadmin: 'Superadmin',
-  admin: 'Admin',
-  manager: 'Manager',
-  technician: 'Technician',
-  warehouse_staff: 'Warehouse',
-  finance_officer: 'Finance',
-  viewer: 'Viewer',
+  superadmin: 'Súperadministrador',
+  admin: 'Administrador',
+  manager: 'Gerente',
+  technician: 'Técnico',
+  warehouse_staff: 'Bodega',
+  finance_officer: 'Finanzas',
+  viewer: 'Solo lectura',
 };
 
 export default function RolesPage() {
@@ -152,3 +152,4 @@ export default function RolesPage() {
     </div>
   );
 }
+

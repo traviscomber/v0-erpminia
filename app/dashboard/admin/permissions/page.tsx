@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import useSWR from 'swr';
@@ -35,6 +35,15 @@ const fetcher = async (url: string) => {
 
 const MODULES = ['produccion', 'mantenimiento', 'bodega', 'hse', 'documentos', 'compras', 'finanzas', 'reportes'];
 const ACTIONS = ['view', 'create', 'edit', 'delete', 'export', 'approve', 'admin'];
+const ACTION_LABELS: Record<string, string> = {
+  view: 'Ver',
+  create: 'Crear',
+  edit: 'Editar',
+  delete: 'Eliminar',
+  export: 'Exportar',
+  approve: 'Aprobar',
+  admin: 'Administrar',
+};
 const MINING_ROLES = [
   { id: 'admin', label: 'Administrador', description: 'Acceso total al sistema' },
   { id: 'manager', label: 'Gerente', description: 'Gestión operativa' },
@@ -194,11 +203,11 @@ export default function PermissionsPage() {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Acciones</label>
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-              {ACTIONS.map((action) => (
-                <div key={action} className="flex items-center space-x-2">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Acciones</label>
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                {ACTIONS.map((action) => (
+                  <div key={action} className="flex items-center space-x-2">
                   <Checkbox
                     id={action}
                     checked={selectedActions.includes(action)}
@@ -211,7 +220,7 @@ export default function PermissionsPage() {
                     }}
                   />
                   <label htmlFor={action} className="cursor-pointer text-sm font-medium">
-                    {action}
+                    {ACTION_LABELS[action] || action}
                   </label>
                 </div>
               ))}
@@ -257,7 +266,7 @@ export default function PermissionsPage() {
                         <td className="px-4 py-2">
                           <Badge variant="outline">{permission.module}</Badge>
                         </td>
-                        <td className="px-4 py-2">{permission.action}</td>
+                        <td className="px-4 py-2">{ACTION_LABELS[permission.action] || permission.action}</td>
                         <td className="px-4 py-2">
                           {permission.is_active ? (
                             <Badge variant="default" className="gap-1">
@@ -314,3 +323,4 @@ export default function PermissionsPage() {
     </div>
   );
 }
+
