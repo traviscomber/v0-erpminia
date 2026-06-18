@@ -49,28 +49,28 @@ const rolePermissions: Record<string, string[]> = {
   'Dashboard': ['superadmin', 'admin', 'manager', 'supervisor', 'viewer'],
   'Alertas': ['superadmin', 'admin', 'manager', 'supervisor'],
   'Centros de Costos': ['superadmin', 'admin', 'manager', 'Operaciones-Supervisor', 'Finanzas-Supervisor'],
-  'Producción': ['superadmin', 'admin', 'Operaciones-Supervisor'],
-  'Mantención': ['superadmin', 'admin', 'Operaciones-Supervisor'],
-  'Mantención por Centro de Costo': ['superadmin', 'admin', 'Operaciones-Supervisor'],
-  'Órdenes de Trabajo': ['superadmin', 'admin', 'Operaciones-Supervisor'],
+  'Producci\u00f3n': ['superadmin', 'admin', 'Operaciones-Supervisor'],
+  'Mantenci\u00f3n por Centro de Costo': ['superadmin', 'admin', 'Operaciones-Supervisor'],
+  'Mantenci\u00f3n': ['superadmin', 'admin', 'Operaciones-Supervisor'],
+  '\u00d3rdenes de Trabajo': ['superadmin', 'admin', 'Operaciones-Supervisor'],
   'Bodega & Inventario': ['superadmin', 'admin', 'Bodega-Supervisor'],
   'Importar Datos': ['superadmin', 'admin', 'Bodega-Supervisor'],
-  'Gestión Documental': ['superadmin', 'admin', 'manager'],
+  'Gesti\u00f3n Documental': ['superadmin', 'admin', 'manager'],
   'Compras & OCs': ['superadmin', 'admin', 'Compras-Supervisor'],
   'Finanzas & Presupuesto': ['superadmin', 'admin', 'Finanzas-Supervisor'],
-  'Reportes & Análisis': ['superadmin', 'admin', 'manager', 'supervisor'],
+  'Reportes & An\u00e1lisis': ['superadmin', 'admin', 'manager', 'supervisor'],
   'IA Operacional Minera': ['superadmin', 'admin'],
   'Dashboard de KPIs': ['superadmin', 'admin', 'manager'],
-  'Gestión de Usuarios': ['superadmin', 'admin'],
-  'Gestión de Permisos': ['superadmin', 'admin'],
-  'Módulo Legal': ['superadmin', 'admin', 'manager'],
-  'Guías de Uso': ['superadmin', 'admin', 'manager', 'supervisor', 'viewer'],
+  'Gesti\u00f3n de Usuarios': ['superadmin', 'admin'],
+  'Gesti\u00f3n de Permisos': ['superadmin', 'admin'],
+  'M\u00f3dulo Legal': ['superadmin', 'admin', 'manager'],
+  'Gu\u00edas de Uso': ['superadmin', 'admin', 'manager', 'supervisor', 'viewer'],
   // Sostenibilidad - Transversal (all 12 modules)
   'Dashboard Sostenibilidad': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
-  'Prevención de Riesgos': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
+  'Prevenci\u00f3n de Riesgos': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
   'Capacitaciones': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor', 'manager'],
-  'Artículos EPP': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor', 'Bodega-Supervisor'],
-  'KPI Prevención': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor', 'manager'],
+  'Art\u00edculos EPP': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor', 'Bodega-Supervisor'],
+  'KPI Prevenci\u00f3n': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor', 'manager'],
   'Inspecciones': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
   'Carpeta de Arranque': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
   'Calendario': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor', 'manager', 'supervisor'],
@@ -84,7 +84,7 @@ const rolePermissions: Record<string, string[]> = {
   'Documentos Finanzas': ['superadmin', 'admin', 'Finanzas-Supervisor'],
   'Documentos HSE': ['superadmin', 'admin', 'HSE-Supervisor', 'Sostenibilidad-Supervisor'],
   'Documentos Legal': ['superadmin', 'admin', 'manager'],
-  'Documentos Prevención': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
+  'Documentos Prevenci\u00f3n': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
 };
 
 const menuItems = [
@@ -111,31 +111,31 @@ const menuItems = [
   
   // OPERACIONES - Depto. Operaciones
   {
-    label: 'Producción',
+    label: 'Producci\u00f3n',
     href: '/dashboard/produccion',
     icon: Zap,
-    group: 'Producción',
+    group: 'Producci\u00f3n',
   },
   {
-    label: 'Mantención',
+    label: 'Mantenci\u00f3n',
     href: '/dashboard/mantenimiento',
     icon: Wrench,
-    group: 'Mantención',
+    group: 'Mantenci\u00f3n',
   },
   {
-    label: 'Mantención por Centro de Costo',
+    label: 'Mantenci\u00f3n',
     href: '/dashboard/mantenimiento/centro-costo',
     icon: Wrench,
-    group: 'Mantención',
+    group: 'Mantenci\u00f3n',
   },
   {
     label: 'Documentos Mantenimiento',
     href: '/dashboard/mantenimiento/documentos',
     icon: File,
-    group: 'Mantención',
+    group: 'Mantenci\u00f3n',
   },
   {
-    label: 'Órdenes de Trabajo',
+    label: '\u00d3rdenes de Trabajo',
     href: '/dashboard/work-orders',
     icon: Plus,
     group: 'Operaciones',
@@ -167,13 +167,13 @@ const menuItems = [
     group: 'Sostenibilidad',
   },
   {
-    label: 'Prevención de Riesgos',
+    label: 'Prevenci\u00f3n de Riesgos',
     href: '/dashboard/sostenibilidad/prevencion-riesgos',
     icon: Shield,
     group: 'Sostenibilidad',
   },
   {
-    label: 'Documentos Prevención',
+    label: 'Documentos Prevenci\u00f3n',
     href: '/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse',
     icon: File,
     group: 'Sostenibilidad',
@@ -185,13 +185,13 @@ const menuItems = [
     group: 'Sostenibilidad',
   },
   {
-    label: 'Artículos EPP',
+    label: 'Art\u00edculos EPP',
     href: '/dashboard/sostenibilidad/prevencion-riesgos/epp',
     icon: HardHat,
     group: 'Sostenibilidad',
   },
   {
-    label: 'KPI Prevención',
+    label: 'KPI Prevenci\u00f3n',
     href: '/dashboard/sostenibilidad/prevencion-riesgos/kpi',
     icon: Activity,
     group: 'Sostenibilidad',
@@ -233,7 +233,7 @@ const menuItems = [
     group: 'Sostenibilidad',
   },
   {
-    label: 'Reportería Documentos',
+    label: 'Reporter\u00eda Documentos',
     href: '/dashboard/sostenibilidad/documentos-reportes',
     icon: BarChart3,
     group: 'Sostenibilidad',
@@ -265,19 +265,19 @@ const menuItems = [
     group: 'Finanzas',
   },
   {
-    label: 'Gestión Documental',
+    label: 'Gesti\u00f3n Documental',
     href: '/dashboard/documentos-gestion',
     icon: FolderOpen,
     group: 'Finanzas',
   },
   {
-    label: 'Reportes & Análisis',
+    label: 'Reportes & An\u00e1lisis',
     href: '/dashboard/reportes',
     icon: BarChart3,
     group: 'Finanzas',
   },
   {
-    label: 'Módulo Legal',
+    label: 'M\u00f3dulo Legal',
     href: '/dashboard/legal',
     icon: Scale,
     group: 'Legal',
@@ -305,7 +305,7 @@ const menuItems = [
   
   // AYUDA
   {
-    label: 'Guías de Uso',
+    label: 'Gu\u00edas de Uso',
     href: '/dashboard/guias',
     icon: HelpCircle,
     group: 'Ayuda',
@@ -319,9 +319,9 @@ export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     'Core': true,
-    'Producción': true,
+    'Producci\u00f3n': true,
     'Operaciones': true,
-    'Mantención': false,
+    'Mantenci\u00f3n': false,
     'Bodega & Inventario': false,
     'Sostenibilidad': true,
     'Finanzas': false,
@@ -413,10 +413,10 @@ export function Sidebar() {
         {/* Navigation Menu - v7 Sistema Completo 5 Módulos */}
         <nav className="flex-1 px-4 py-6 overflow-y-auto">
           <div className="space-y-2">
-            {['Core', 'Producción', 'Operaciones', 'Mantención', 'Bodega & Inventario', 'Sostenibilidad', 'Finanzas', 'Legal', 'Inteligencia Artificial', 'Administración', 'Ayuda'].map((group) => {
+            {['Core', 'Producci\u00f3n', 'Operaciones', 'Mantenci\u00f3n', 'Bodega & Inventario', 'Sostenibilidad', 'Finanzas', 'Legal', 'Inteligencia Artificial', 'Administración', 'Ayuda'].map((group) => {
               const groupItems = filteredMenuItems.filter((item) => item.group === group);
               if (groupItems.length === 0) return null;
-              const isExpanded = expandedGroups[group] ?? false;
+              const isExpanded = expandedGroups[group] !== false;
               const sortedGroupItems = [...groupItems].sort((a, b) => {
                 const aDashboard = a.label.toLowerCase().startsWith('dashboard');
                 const bDashboard = b.label.toLowerCase().startsWith('dashboard');

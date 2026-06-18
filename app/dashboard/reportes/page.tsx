@@ -8,7 +8,9 @@ export default function ReportesPage() {
     <div className="space-y-4 p-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Reportes</h1>
-        <p className="text-muted-foreground">Informes de cumplimiento, trazabilidad y exportación de datos para la operación.</p>
+        <p className="text-muted-foreground">
+          Informes de cumplimiento, trazabilidad y exportación de datos para la operación.
+        </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -47,22 +49,28 @@ export default function ReportesPage() {
 
       <Card>
         <CardHeader>
-        <CardTitle>Descripción de reportes</CardTitle>
+          <CardTitle>Descripción de reportes</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div>
             <p className="font-semibold text-sm">Órdenes de trabajo de mantención</p>
-            <p className="text-xs text-muted-foreground">Registros completos con MTTR, estado, técnico y repuestos utilizados.</p>
+            <p className="text-xs text-muted-foreground">
+              Registros completos con MTTR, estado, técnico y repuestos utilizados.
+            </p>
           </div>
 
           <div>
             <p className="font-semibold text-sm">Incidentes e investigaciones HSE</p>
-            <p className="text-xs text-muted-foreground">Incidentes de seguridad, análisis de causa raíz, acciones correctivas y estado RCA.</p>
+            <p className="text-xs text-muted-foreground">
+              Incidentes de seguridad, análisis de causa raíz, acciones correctivas y estado RCA.
+            </p>
           </div>
 
           <div>
             <p className="font-semibold text-sm">Trazabilidad y cumplimiento</p>
-            <p className="text-xs text-muted-foreground">Bitácora completa de movimientos y transacciones con usuario, fecha y organización.</p>
+            <p className="text-xs text-muted-foreground">
+              Bitácora completa de movimientos y transacciones con usuario, fecha y organización.
+            </p>
           </div>
         </CardContent>
       </Card>

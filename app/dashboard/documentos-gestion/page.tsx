@@ -206,7 +206,7 @@ export default function DocumentosGestionPage() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">{category.count || 0} docs</span>
+                  <span className="text-muted-foreground">{category.count || 0} documentos</span>
                   <span className="font-semibold">{category.pendingApprovals || 0} pendientes</span>
                 </div>
               </CardContent>

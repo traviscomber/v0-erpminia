@@ -55,7 +55,7 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
 
       const result = await response.json();
       if (!response.ok) {
-        throw new Error(result.error || 'La transferencia fallo');
+        throw new Error(result.error || 'La transferencia falló');
       }
 
       toast.success('Transferencia completada');
@@ -67,7 +67,7 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
       });
       onTransfer(result);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'La transferencia fallo');
+      toast.error(error instanceof Error ? error.message : 'La transferencia falló');
     } finally {
       setSubmitting(false);
     }
@@ -105,7 +105,7 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
               onValueChange={(value) => setFormData({ ...formData, toBinId: value })}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Selecciona un bin de destino" />
+                <SelectValue placeholder="Selecciona una ubicación de destino" />
               </SelectTrigger>
               <SelectContent>
                 {bins.map((bin: any) => (

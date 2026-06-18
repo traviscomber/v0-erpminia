@@ -118,10 +118,16 @@ export function ExportReportForm() {
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Selecciona un tipo de reporte" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="mantencion">Órdenes de trabajo de mantención</SelectItem>
-                <SelectItem value="hse">Incidentes e investigaciones HSE</SelectItem>
-                <SelectItem value="auditoria">Trazabilidad y cumplimiento</SelectItem>
+                            <SelectContent className="border-white/10 bg-zinc-950 text-zinc-100 shadow-xl dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-100">
+                <SelectItem value="mantencion" className="data-[highlighted]:bg-orange-500/20 data-[highlighted]:text-white">
+                  Órdenes de trabajo de mantención
+                </SelectItem>
+                <SelectItem value="hse" className="data-[highlighted]:bg-orange-500/20 data-[highlighted]:text-white">
+                  Incidentes e investigaciones HSE
+                </SelectItem>
+                <SelectItem value="auditoria" className="data-[highlighted]:bg-orange-500/20 data-[highlighted]:text-white">
+                  Trazabilidad y cumplimiento
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>

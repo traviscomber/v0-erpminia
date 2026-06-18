@@ -23,7 +23,7 @@ export default function SetupPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create profiles table');
+        throw new Error(data.error || 'No se pudo crear la tabla profiles');
       }
 
       setStep('syncing');
@@ -37,14 +37,14 @@ export default function SetupPage() {
       const syncData = await syncResponse.json();
 
       if (!syncResponse.ok) {
-        throw new Error(syncData.error || 'Failed to sync users');
+        throw new Error(syncData.error || 'No se pudieron sincronizar los usuarios');
       }
 
       setResult(syncData);
       setStep('complete');
     } catch (err) {
       console.error('[v0] Setup error:', err);
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(err instanceof Error ? err.message : 'Error desconocido');
       setStep('error');
     }
   };
@@ -53,9 +53,9 @@ export default function SetupPage() {
     <div className="min-h-screen bg-gradient-to-br from-background to-muted p-4 flex items-center justify-center">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Setup de Bases de Datos</CardTitle>
+          <CardTitle>Configuración de base de datos</CardTitle>
           <CardDescription>
-            Crear tabla profiles y sincronizar usuarios
+            Crear la tabla profiles y sincronizar usuarios
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -68,7 +68,7 @@ export default function SetupPage() {
                 onClick={handleSetupProfiles}
                 className="w-full"
               >
-                Iniciar Setup
+                Iniciar configuración
               </Button>
             </div>
           )}
@@ -87,7 +87,7 @@ export default function SetupPage() {
               <div className="flex items-start gap-3 p-3 bg-[var(--brand-verde)]/5 border border-[var(--brand-verde)]/30 rounded-lg">
                 <CheckCircle2 className="h-5 w-5 text-[var(--brand-verde)] flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-semibold text-green-900">Setup Completado</p>
+                  <p className="font-semibold text-green-900">Configuración completada</p>
                   <p className="text-sm text-[var(--brand-verde)] mt-1">
                     {result.synced} usuarios sincronizados
                   </p>
@@ -119,7 +119,7 @@ export default function SetupPage() {
               <div className="flex items-start gap-3 p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
                 <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-semibold text-destructive">Error en Setup</p>
+                  <p className="font-semibold text-destructive">Error en la configuraci?n</p>
                   <p className="text-sm text-destructive/80 mt-1">{error}</p>
                 </div>
               </div>
