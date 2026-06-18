@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 const guides = [
   {
     title: 'Mantenimiento y OT',
-    description: 'Crea y sigue ordenes de trabajo, partes y asignacion de tecnicos.',
+    description: 'Crea y sigue órdenes de trabajo, partes y asignación de técnicos.',
     href: '/dashboard/work-orders/create',
   },
   {
@@ -22,7 +22,7 @@ const guides = [
   },
   {
     title: 'Reportes',
-    description: 'Exporta informacion de mantenimiento, HSE y auditoria.',
+    description: 'Exporta información de mantenimiento, HSE y auditoría.',
     href: '/dashboard/reportes',
   },
   {
@@ -41,9 +41,9 @@ export default function GuidesPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-4xl font-bold">Centro de Guias</h1>
+        <h1 className="text-4xl font-bold">Centro de Guías</h1>
         <p className="mt-2 text-muted-foreground">
-          Accesos rapidos para aprender y operar los modulos clave del MVP.
+          Accesos rápidos para aprender y operar los módulos clave del MVP.
         </p>
       </div>
 
@@ -56,7 +56,7 @@ export default function GuidesPage() {
             </CardHeader>
             <CardContent>
               <Button asChild variant="outline">
-                <Link href={guide.href}>Abrir modulo</Link>
+                <Link href={guide.href}>Abrir módulo</Link>
               </Button>
             </CardContent>
           </Card>
@@ -65,13 +65,13 @@ export default function GuidesPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Como usar estas guias</CardTitle>
+          <CardTitle>Cómo usar estas guías</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-muted-foreground">
-          <p>1. Entra al modulo que quieres operar.</p>
+          <p>1. Entra al módulo que quieres operar.</p>
           <p>2. Usa la busqueda y los filtros antes de crear un nuevo registro.</p>
           <p>3. Revisa pendientes y alertas antes de cerrar una tarea.</p>
-          <p>4. Si un flujo depende de otro modulo, vuelve aqui y sigue el acceso directo.</p>
+          <p>4. Si un flujo depende de otro módulo, vuelve aquí y sigue el acceso directo.</p>
         </CardContent>
       </Card>
     </div>
