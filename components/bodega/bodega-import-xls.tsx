@@ -42,8 +42,8 @@ export function BodegaImportXls() {
       // Subir a Supabase Storage
       const timestamp = Date.now();
       const fileName = `bodega-import-${timestamp}-${file.name}`;
-      
-      const { data, error } = await supabase.storage
+
+      const { error } = await supabase.storage
         .from('documents')
         .upload(`bodega-imports/${fileName}`, file);
 
@@ -52,7 +52,7 @@ export function BodegaImportXls() {
       }
 
       // Obtener URL pública
-      const { data: urlData } = supabase.storage
+      supabase.storage
         .from('documents')
         .getPublicUrl(`bodega-imports/${fileName}`);
 

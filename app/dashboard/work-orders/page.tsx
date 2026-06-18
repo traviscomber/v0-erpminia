@@ -47,12 +47,12 @@ export default function WorkOrdersPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Ordenes de Trabajo</h1>
-          <p className="text-muted-foreground">Gestion de mantenimiento y seguimiento operativo</p>
+          <h1 className="text-3xl font-bold">Órdenes de Trabajo</h1>
+          <p className="text-muted-foreground">Gestión de mantenimiento y seguimiento operativo</p>
         </div>
         <Link href="/dashboard/work-orders/create">
           <Button className="gap-2">
-            <Plus className="w-4 h-4" /> Crear Nueva Orden
+            <Plus className="w-4 h-4" /> Crear nueva orden
           </Button>
         </Link>
       </div>
@@ -86,7 +86,7 @@ export default function WorkOrdersPage() {
           <CardContent className="pt-6">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Criticas</p>
+                <p className="text-sm text-muted-foreground">Críticas</p>
                 <p className="text-3xl font-bold text-destructive mt-2">{critical}</p>
               </div>
               <AlertCircle className="h-8 w-8 text-destructive opacity-60" />
@@ -115,13 +115,13 @@ export default function WorkOrdersPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Ordenes Activas</CardTitle>
+        <CardTitle>Órdenes activas</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             {workOrders.length === 0 && (
               <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
-                No hay ordenes de trabajo registradas todavia
+                No hay órdenes de trabajo registradas todavía
               </div>
             )}
             {workOrders.map((wo: any) => (

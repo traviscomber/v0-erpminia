@@ -24,8 +24,8 @@ export function CostCentersImportComponent() {
     if (!isValidFile(file)) {
       setResult({
         success: false,
-        message: 'Only CSV, XLS or XLSX files are accepted',
-        error: 'Invalid file type',
+        message: 'Solo se aceptan archivos CSV, XLS o XLSX',
+        error: 'Tipo de archivo no válido',
       });
       return;
     }
@@ -54,14 +54,14 @@ export function CostCentersImportComponent() {
       } else {
         setResult({
           success: false,
-          message: 'Failed to import cost centers',
-          error: data.error || 'Unknown error',
+          message: 'No se pudieron importar los centros de costos',
+          error: data.error || 'Error desconocido',
         });
       }
     } catch (error) {
       setResult({
         success: false,
-        message: 'Error uploading file',
+        message: 'Error al subir el archivo',
         error: String(error),
       });
     } finally {

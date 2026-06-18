@@ -4,6 +4,13 @@ import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Download } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 type ReportType = 'mantencion' | 'hse' | 'auditoria';
 
@@ -107,15 +114,16 @@ export function ExportReportForm() {
         <div className="space-y-4">
           <div>
             <label className="text-sm font-semibold">Tipo de reporte</label>
-            <select
-              value={reportType}
-              onChange={(e) => setReportType(e.target.value as ReportType)}
-              className="w-full rounded border border-border bg-background p-2 text-sm text-foreground"
-            >
-              <option value="mantencion">Órdenes de trabajo de mantención</option>
-              <option value="hse">Incidentes e investigaciones HSE</option>
-              <option value="auditoria">Trazabilidad y cumplimiento</option>
-            </select>
+            <Select value={reportType} onValueChange={(value) => setReportType(value as ReportType)}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Selecciona un tipo de reporte" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="mantencion">Órdenes de trabajo de mantención</SelectItem>
+                <SelectItem value="hse">Incidentes e investigaciones HSE</SelectItem>
+                <SelectItem value="auditoria">Trazabilidad y cumplimiento</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

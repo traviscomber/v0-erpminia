@@ -57,7 +57,7 @@ export function DocumentUploadModal({
     }
 
     if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
-      toast.error('El archivo supera el limite de 50 MB.');
+      toast.error('El archivo supera el límite de 50 MB.');
       e.target.value = '';
       return;
     }
@@ -125,7 +125,7 @@ export function DocumentUploadModal({
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Titulo del documento</label>
+            <label className="text-sm font-medium text-foreground">Título del documento</label>
             <Input
               placeholder="Ej: Certificado de seguridad 2026"
               value={title}
@@ -135,7 +135,7 @@ export function DocumentUploadModal({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Descripcion (opcional)</label>
+            <label className="text-sm font-medium text-foreground">Descripción (opcional)</label>
             <Textarea
               placeholder="Detalles adicionales sobre el documento"
               value={description}
@@ -162,10 +162,10 @@ export function DocumentUploadModal({
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Categoria</label>
+              <label className="text-sm font-medium text-foreground">Categoría</label>
               <Select value={category} onValueChange={setCategory} disabled={isLoading}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecciona una categoria" />
+                  <SelectValue placeholder="Selecciona una categoría" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="safety">Seguridad</SelectItem>
@@ -203,7 +203,7 @@ export function DocumentUploadModal({
                   {file ? file.name : 'Haz clic para seleccionar o arrastra un archivo'}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  PDF, JPG, PNG, DOC y DOCX, maximo 50 MB.
+                  PDF, JPG, PNG, DOC y DOCX, máximo 50 MB.
                 </p>
               </label>
             </div>

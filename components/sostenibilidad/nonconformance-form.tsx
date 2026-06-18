@@ -59,9 +59,9 @@ export function NonconformanceForm({ orgId, onClose, onSuccess }: Nonconformance
             name="title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Titulo</FormLabel>
+                <FormLabel>Título</FormLabel>
                 <FormControl>
-                  <Input placeholder="Titulo de la NC" {...field} />
+                  <Input placeholder="Título de la NC" {...field} />
                 </FormControl>
               </FormItem>
             )}
@@ -72,7 +72,7 @@ export function NonconformanceForm({ orgId, onClose, onSuccess }: Nonconformance
             name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Descripcion</FormLabel>
+                <FormLabel>Descripción</FormLabel>
                 <FormControl>
                   <Textarea placeholder="Detalles de la no conformidad" {...field} />
                 </FormControl>
@@ -94,7 +94,7 @@ export function NonconformanceForm({ orgId, onClose, onSuccess }: Nonconformance
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="critical">Critica</SelectItem>
+                      <SelectItem value="critical">Crítica</SelectItem>
                       <SelectItem value="high">Alta</SelectItem>
                       <SelectItem value="medium">Media</SelectItem>
                       <SelectItem value="low">Baja</SelectItem>

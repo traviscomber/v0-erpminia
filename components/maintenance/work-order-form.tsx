@@ -35,7 +35,7 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title) {
-      toast.error('Titulo es obligatorio');
+      toast.error('El título es obligatorio');
       return;
     }
     setLoading(true);
@@ -81,7 +81,7 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="title">Titulo</Label>
+            <Label htmlFor="title">Título</Label>
             <Input
               id="title"
               value={formData.title}
@@ -91,7 +91,7 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
           </div>
 
           <div>
-            <Label htmlFor="description">Descripcion</Label>
+            <Label htmlFor="description">Descripción</Label>
             <textarea
               id="description"
               value={formData.description}
@@ -135,7 +135,7 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
                   <SelectItem value="low">Baja</SelectItem>
                   <SelectItem value="medium">Media</SelectItem>
                   <SelectItem value="high">Alta</SelectItem>
-                  <SelectItem value="critical">Critica</SelectItem>
+                  <SelectItem value="critical">Crítica</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -143,7 +143,7 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="plannedDuration">Duracion planificada (hours)</Label>
+              <Label htmlFor="plannedDuration">Duración planificada (horas)</Label>
               <Input
                 id="plannedDuration"
                 type="number"

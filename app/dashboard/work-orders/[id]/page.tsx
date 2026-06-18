@@ -26,7 +26,7 @@ export default function WorkOrderDetailPage() {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-3xl font-bold">{workOrder.work_order_number || 'Orden de trabajo'}</h1>
-          <p className="text-muted-foreground">{workOrder.title || 'Cargando detalle de mantencion'}</p>
+          <p className="text-muted-foreground">{workOrder.title || 'Cargando detalle de mantención'}</p>
         </div>
         <Link href="/dashboard/work-orders">
           <Button variant="outline">Volver</Button>
@@ -86,7 +86,7 @@ export default function WorkOrderDetailPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Descripcion</CardTitle>
+              <CardTitle>Descripción</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm">{workOrder.description || 'Sin descripcion adicional.'}</p>

@@ -81,7 +81,7 @@ export function AddContractModal({ onSubmit }: AddContractModalProps) {
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Titulo del contrato</Label>
+            <Label htmlFor="title">Título del contrato</Label>
             <Input
               id="title"
               placeholder="Ej: Contrato proveedor"
@@ -140,7 +140,7 @@ export function AddContractModal({ onSubmit }: AddContractModalProps) {
               accept=".pdf,.doc,.docx"
               onChange={handleFileChange}
             />
-            <p className="text-xs text-muted-foreground">PDF, DOC o DOCX. Maximo 50 MB.</p>
+            <p className="text-xs text-muted-foreground">PDF, DOC o DOCX. Máximo 50 MB.</p>
           </div>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>

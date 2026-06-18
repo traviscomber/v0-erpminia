@@ -63,7 +63,7 @@ export function BodegaInventoryImportComponent() {
       setResult({
         success: false,
         message: 'Solo se aceptan archivos CSV, XLS o XLSX',
-        error: 'Tipo de archivo no valido',
+        error: 'Tipo de archivo no válido',
       });
       return;
     }
@@ -230,7 +230,7 @@ export function BodegaInventoryImportComponent() {
                 </p>
                 {result.imported && (
                   <p className="text-sm mt-1">
-                    {result.imported} items de inventario importados
+                    {result.imported} centros de costos importados
                   </p>
                 )}
                 {result.error && (
