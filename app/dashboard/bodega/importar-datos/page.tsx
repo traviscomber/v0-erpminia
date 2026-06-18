@@ -8,9 +8,9 @@ export default function BodegaImportPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold text-foreground">Importar Datos de Bodega</h1>
+        <h1 className="text-3xl font-bold text-foreground">Importar datos de bodega</h1>
         <p className="text-muted-foreground">
-          Importa centros de costos e inventario en formato CSV, XLS o XLSX
+          Importa centros de costos e inventario en formato CSV, XLS o XLSX.
         </p>
       </div>
 
@@ -18,7 +18,7 @@ export default function BodegaImportPage() {
         <TabsList className="grid w-full grid-cols-2 gap-4">
           <TabsTrigger value="cost-centers" className="flex items-center gap-2">
             <Building2 className="h-4 w-4" />
-            Centros de Costos
+            Centros de costos
           </TabsTrigger>
           <TabsTrigger value="inventory" className="flex items-center gap-2">
             <Package className="h-4 w-4" />
@@ -26,17 +26,17 @@ export default function BodegaImportPage() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="cost-centers" className="space-y-4 mt-6">
+        <TabsContent value="cost-centers" className="mt-6 space-y-4">
           <CostCentersImportComponent />
 
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid gap-4 md:grid-cols-2">
             <Card className="border-blue-200 bg-blue-50/50">
               <CardHeader>
-                <CardTitle className="text-base">¿Por qué Centros de Costos?</CardTitle>
+                <CardTitle className="text-base">¿Por qué centros de costos?</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 <p>Los centros de costos permiten:</p>
-                <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                <ul className="list-inside list-disc space-y-1 text-muted-foreground">
                   <li>Organizar por minas (Peumo, Don Jaime, etc.)</li>
                   <li>Agrupar por áreas operacionales</li>
                   <li>Asignar presupuestos y costos</li>
@@ -48,11 +48,11 @@ export default function BodegaImportPage() {
 
             <Card className="border-green-200 bg-green-50/50">
               <CardHeader>
-                <CardTitle className="text-base">Estructura Jerárquica</CardTitle>
+                <CardTitle className="text-base">Estructura jerárquica</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 <p>Los centros de costos forman una jerarquía:</p>
-                <div className="font-mono text-xs space-y-1 text-muted-foreground bg-white p-2 rounded">
+                <div className="space-y-1 rounded bg-white p-2 font-mono text-xs text-muted-foreground">
                   <div>Mina Peumo</div>
                   <div className="ml-3">→ Perforación</div>
                   <div className="ml-3">→ Tronadura</div>
@@ -66,17 +66,17 @@ export default function BodegaImportPage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="inventory" className="space-y-4 mt-6">
+        <TabsContent value="inventory" className="mt-6 space-y-4">
           <BodegaInventoryImportComponent />
 
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid gap-4 md:grid-cols-2">
             <Card className="border-blue-200 bg-blue-50/50">
               <CardHeader>
-                <CardTitle className="text-base">Estructura del Inventario</CardTitle>
+                <CardTitle className="text-base">Estructura del inventario</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 <p>El inventario se organiza en categorías:</p>
-                <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                <ul className="list-inside list-disc space-y-1 text-muted-foreground">
                   <li>Acero (tuberías, pletinas, ángulos, etc.)</li>
                   <li>Bola (acero para molienda)</li>
                   <li>Bomba (repuestos para bombas)</li>
@@ -91,7 +91,7 @@ export default function BodegaImportPage() {
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 <p>El inventario se integra con:</p>
-                <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                <ul className="list-inside list-disc space-y-1 text-muted-foreground">
                   <li>Órdenes de mantenimiento</li>
                   <li>Requisiciones de compra</li>
                   <li>Control de stock</li>

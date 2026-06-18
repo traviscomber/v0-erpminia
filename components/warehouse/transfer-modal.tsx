@@ -55,7 +55,7 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
 
       const result = await response.json();
       if (!response.ok) {
-        throw new Error(result.error || 'La transferencia falló');
+        throw new Error(result.error || 'La transferencia fallo');
       }
 
       toast.success('Transferencia completada');
@@ -67,7 +67,7 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
       });
       onTransfer(result);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'La transferencia falló');
+      toast.error(error instanceof Error ? error.message : 'La transferencia fallo');
     } finally {
       setSubmitting(false);
     }
@@ -137,12 +137,7 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
           <Button
             type="submit"
             className="w-full"
-            disabled={
-              submitting ||
-              !formData.stockId ||
-              !formData.toBinId ||
-              !formData.quantity
-            }
+            disabled={submitting || !formData.stockId || !formData.toBinId || !formData.quantity}
           >
             {submitting ? 'Transfiriendo...' : 'Confirmar transferencia'}
           </Button>

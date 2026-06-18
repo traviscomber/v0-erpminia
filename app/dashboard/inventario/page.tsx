@@ -127,7 +127,7 @@ export default function InventarioPage() {
         <div>
           <h1 className="text-4xl font-bold tracking-tight">Control de Inventario</h1>
           <p className="mt-3 text-muted-foreground">
-            Análisis consolidado de valuación, rotación, ABC y alertas de reorden.
+            Análisis consolidado de valorización, rotación, ABC y alertas de reorden.
           </p>
         </div>
 
@@ -156,7 +156,7 @@ export default function InventarioPage() {
         <div>
           <h1 className="text-4xl font-bold tracking-tight">Control de Inventario</h1>
           <p className="mt-3 text-muted-foreground">
-            Análisis consolidado de valuación, rotación, ABC y alertas de reorden.
+            Análisis consolidado de valorización, rotación, ABC y alertas de reorden.
           </p>
         </div>
         <Button variant="outline" onClick={() => mutate()} className="gap-2">
@@ -168,7 +168,7 @@ export default function InventarioPage() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <Card className="border-border">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Valor Total Inventario</CardTitle>
+            <CardTitle className="text-sm font-medium">Valor total de inventario</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(getTotalInventoryValue())}</div>
@@ -190,7 +190,7 @@ export default function InventarioPage() {
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm font-medium">
               <AlertCircle className="h-4 w-4 text-[var(--secondary)]" />
-              Stock Bajo
+              Stock bajo
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -237,8 +237,8 @@ export default function InventarioPage() {
                   <TableHead className="font-semibold">Artículo</TableHead>
                   <TableHead className="font-semibold">Categoría</TableHead>
                   <TableHead className="text-center font-semibold">Stock</TableHead>
-                  <TableHead className="text-right font-semibold">Valor Unitario</TableHead>
-                  <TableHead className="text-right font-semibold">Valor Total</TableHead>
+                  <TableHead className="text-right font-semibold">Valor unitario</TableHead>
+                  <TableHead className="text-right font-semibold">Valor total</TableHead>
                   <TableHead className="text-right font-semibold">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
@@ -362,7 +362,7 @@ export default function InventarioPage() {
 
             <div className="border-t border-border pt-4">
               <div className="mb-2">
-                <p className="mb-2 text-sm text-muted-foreground">Estado del Stock</p>
+                <p className="mb-2 text-sm text-muted-foreground">Estado del stock</p>
                 <Progress
                   value={getStockPercentage(selectedItem.quantity_on_hand, selectedItem.reorder_level)}
                   className="h-2"
