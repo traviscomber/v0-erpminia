@@ -24,6 +24,19 @@ export default function ComplianceCalendar() {
   };
   const complianceScore = scoreData?.compliance_score || 0;
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'Completado';
+      case 'overdue':
+        return 'Vencido';
+      case 'pending':
+        return 'Pendiente';
+      default:
+        return status;
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-3 gap-4">
@@ -69,7 +82,7 @@ export default function ComplianceCalendar() {
           <div className="space-y-3">
             {events.length === 0 ? (
               <div className="text-sm text-muted-foreground">
-                No hay eventos de compliance registrados todavía.
+                No hay eventos de cumplimiento registrados todavía.
               </div>
             ) : (
               events.map((event: any) => (
@@ -88,7 +101,7 @@ export default function ComplianceCalendar() {
                     </p>
                   </div>
                   <Badge variant={event.status === 'completed' ? 'secondary' : 'default'}>
-                    {event.status}
+                    {getStatusLabel(event.status)}
                   </Badge>
                 </div>
               ))

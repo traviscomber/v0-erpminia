@@ -51,28 +51,28 @@ export default function IAOperacionalPage() {
 
   const alerts = [
     ...(details.critical_equipment || []).map((item) => ({
-      title: item.name || item.title || 'Equipo critico',
-      description: item.description || item.issue || 'Requiere atencion inmediata',
+      title: item.name || item.title || 'Equipo crítico',
+      description: item.description || item.issue || 'Requiere atención inmediata',
       action: item.action || 'Revisar detalle',
       status: item.status || 'critical',
       type: 'riesgo' as const,
     })),
     ...(details.expiring_documents || []).map((item) => ({
       title: item.title || 'Documento por vencer',
-      description: `Vence en ${item.expiresIn ?? 0} dia(s).`,
+      description: `Vence en ${item.expiresIn ?? 0} día(s).`,
       action: 'Ir a documentos',
       status: 'warning',
       type: 'vencimiento' as const,
     })),
     ...(details.critical_stock || []).map((item) => ({
-      title: item.item || 'Stock critico',
+      title: item.item || 'Stock crítico',
       description: `Disponibles: ${item.qty ?? 0}`,
       action: 'Ir a bodega',
       status: item.level || 'warning',
       type: 'stock' as const,
     })),
     ...(details.pending_maintenance || []).map((item) => ({
-      title: item.task || 'Mantencion pendiente',
+      title: item.task || 'Mantención pendiente',
       description: item.dueDate ? `Vence el ${new Date(item.dueDate).toLocaleDateString('es-CL')}` : 'Sin fecha definida',
       action: 'Ir a OT',
       status: 'warning',
@@ -80,7 +80,7 @@ export default function IAOperacionalPage() {
     })),
     ...(details.overdue_orders || []).map((item) => ({
       title: item.supplier || 'Orden vencida',
-      description: `${item.days ?? 0} dia(s) de atraso`,
+      description: `${item.days ?? 0} día(s) de atraso`,
       action: 'Ir a compras',
       status: 'warning',
       type: 'oc' as const,
@@ -88,7 +88,7 @@ export default function IAOperacionalPage() {
   ];
 
   if (error) {
-    return <div className="text-red-500">Error al cargar perspectivas IA</div>;
+    return <div className="text-red-500">Error al cargar perspectivas de IA</div>;
   }
 
   if (isLoading) {
@@ -113,11 +113,11 @@ export default function IAOperacionalPage() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Alertas criticas</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Alertas críticas</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-[var(--brand-rojo)]">{stats.critical}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Requieren atencion inmediata</p>
+            <p className="mt-1 text-xs text-muted-foreground">Requieren atención inmediata</p>
           </CardContent>
         </Card>
 
@@ -137,7 +137,7 @@ export default function IAOperacionalPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-[var(--brand-verde)]">{stats.efficiency}%</div>
-            <p className="mt-1 text-xs text-muted-foreground">Operacion normal</p>
+            <p className="mt-1 text-xs text-muted-foreground">Operación normal</p>
           </CardContent>
         </Card>
 
@@ -156,11 +156,11 @@ export default function IAOperacionalPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Insights actuales</CardTitle>
+          <CardTitle>Hallazgos actuales</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {alerts.length === 0 ? (
-            <p className="py-4 text-center text-muted-foreground">No hay insights disponibles</p>
+            <p className="py-4 text-center text-muted-foreground">No hay hallazgos disponibles</p>
           ) : (
             alerts.slice(0, 8).map((item, index) => (
               <Alert key={`${item.title}-${index}`} className="border-border/60">
