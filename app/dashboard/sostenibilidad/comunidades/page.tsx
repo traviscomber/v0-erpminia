@@ -183,7 +183,7 @@ export default function ComunidadesPage() {
   };
 
   const handleDelete = async (id: string, numero: string) => {
-    if (!confirm(`¿Eliminar "${numero}"`)) return;
+    if (!confirm(`¿Eliminar "${numero}"?`)) return;
     const response = await fetch(`/api/sostenibilidad/comunidades?id=${id}`, {
       method: 'DELETE',
       credentials: 'include',
@@ -333,7 +333,7 @@ export default function ComunidadesPage() {
                 </div>
 
                 <div>
-                  <Label>Tipo de Documento</Label>
+                  <Label>Tipo de documento</Label>
                   <Select
                     value={formData.tipo_documento}
                     onValueChange={(value) => setFormData((current) => ({ ...current, tipo_documento: value }))}
@@ -367,7 +367,7 @@ export default function ComunidadesPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="contacto_telefono">Teléfono Contacto</Label>
+                  <Label htmlFor="contacto_telefono">Teléfono de contacto</Label>
                   <Input id="contacto_telefono" name="contacto_telefono" value={formData.contacto_telefono} onChange={handleInput} placeholder="+56 9..." />
                 </div>
 

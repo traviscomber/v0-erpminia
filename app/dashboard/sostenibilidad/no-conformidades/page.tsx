@@ -67,7 +67,7 @@ export default function NonconformanceDashboard() {
       if (!res.ok) throw new Error('No se pudo crear la acción correctiva');
       
       setShowCAModal(false);
-      toast.success('Corrective action created successfully');
+      toast.success('Acción correctiva creada correctamente');
     } catch (error) {
       toast.error('No se pudo crear la acción correctiva');
       throw error;
@@ -82,7 +82,7 @@ export default function NonconformanceDashboard() {
     <div className="space-y-6">
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Gestion de no conformidades</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Gestión de no conformidades</h1>
           <p className="text-muted-foreground">Seguimiento, control y cierre de no conformidades con acciones correctivas</p>
         </div>
         <Button onClick={() => setShowForm(!showForm)} className="bg-primary">

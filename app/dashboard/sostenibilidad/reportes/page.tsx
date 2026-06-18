@@ -129,7 +129,7 @@ export default function ReportesPage() {
       <Tabs defaultValue="kpi" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="kpi">Panel KPI</TabsTrigger>
-          <TabsTrigger value="detailed">Análisis Detallado</TabsTrigger>
+          <TabsTrigger value="detailed">Análisis detallado</TabsTrigger>
         </TabsList>
 
         <TabsContent value="kpi" className="space-y-6">
