@@ -17,7 +17,7 @@ export function DocumentUploadForm() {
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) {
-      toast({ title: 'Error', description: 'Selecciona un archivo.' });
+      toast({ title: 'Error', description: 'Selecciona un archivo' });
       return;
     }
 
@@ -31,7 +31,6 @@ export function DocumentUploadForm() {
 
       const res = await fetch('/api/legal/documentos/upload', {
         method: 'POST',
-        credentials: 'include',
         body: formData,
       });
 

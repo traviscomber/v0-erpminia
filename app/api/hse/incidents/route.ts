@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     const severity = request.nextUrl.searchParams.get('severity');
     const status = request.nextUrl.searchParams.get('status');
     
-    let queryParams = '?select=*';
+    let queryParams = 'select=*';
     if (severity) queryParams += `&severity=eq.${severity}`;
     if (status) queryParams += `&status=eq.${status}`;
 

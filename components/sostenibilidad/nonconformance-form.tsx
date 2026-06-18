@@ -34,7 +34,6 @@ export function NonconformanceForm({ orgId, onClose, onSuccess }: Nonconformance
       const res = await fetch('/api/sostenibilidad/nonconformances', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ ...data, organizationId: orgId }),
       });
 
@@ -59,9 +58,9 @@ export function NonconformanceForm({ orgId, onClose, onSuccess }: Nonconformance
             name="title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Título</FormLabel>
+                <FormLabel>Titulo</FormLabel>
                 <FormControl>
-                  <Input placeholder="Título de la NC" {...field} />
+                  <Input placeholder="Titulo de la NC" {...field} />
                 </FormControl>
               </FormItem>
             )}
@@ -72,7 +71,7 @@ export function NonconformanceForm({ orgId, onClose, onSuccess }: Nonconformance
             name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Descripción</FormLabel>
+                <FormLabel>Descripcion</FormLabel>
                 <FormControl>
                   <Textarea placeholder="Detalles de la no conformidad" {...field} />
                 </FormControl>
@@ -94,7 +93,7 @@ export function NonconformanceForm({ orgId, onClose, onSuccess }: Nonconformance
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="critical">Crítica</SelectItem>
+                      <SelectItem value="critical">Critica</SelectItem>
                       <SelectItem value="high">Alta</SelectItem>
                       <SelectItem value="medium">Media</SelectItem>
                       <SelectItem value="low">Baja</SelectItem>

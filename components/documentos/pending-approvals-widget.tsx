@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Clock, CheckCircle2, AlertCircle, FileText } from 'lucide-react';
 import useSWR from 'swr';
 
-const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 interface DocumentApproval {
   id: string;
@@ -17,7 +17,7 @@ interface DocumentApproval {
 
 export function PendingApprovalsWidget() {
   const { data: pendingData, isLoading } = useSWR(
-    '/api/sostenibilidad/documentos-flujo?status=pending&limit=5',
+    '/api/sostenibilidad/documentos-flujostatus=pending&limit=5',
     fetcher,
     { revalidateOnFocus: false }
   );

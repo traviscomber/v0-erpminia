@@ -32,7 +32,7 @@ export interface Document {
   documentNumber: string;
   documentType: string;
   category: string;
-  createdRt: string;
+  createdAt: string;
   createdByUser: { name: string };
   expiryDate: string;
   daysUntilExpiry: number;
@@ -138,7 +138,7 @@ export function DocumentList({
   if (isLoading) {
     return (
       <div className="space-y-3">
-        {[...Array.from({ length: 4 })].map((_, i) => (
+        {[...Array(4)].map((_, i) => (
           <Card key={i} className="p-4 animate-pulse">
             <div className="flex gap-3">
               <div className="h-10 w-10 rounded-lg bg-muted" />
@@ -162,7 +162,7 @@ export function DocumentList({
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               <Input
-                placeholder="Buscar por nombre, código (ej: DPRMR-007), tipo de documento..."
+                placeholder="Buscar por nombre, código (ej: DPRMA-007), tipo de documento..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9 pr-9"
@@ -314,15 +314,15 @@ export function DocumentList({
             const StatusIcon = statusCfg.icon;
             const displayName = doc.document_name || doc.title || 'Sin nombre';
             const docType = (doc.document_type || '').toLowerCase();
-            const typeLabel = docType.toUpperCase() || 'ARCHIVO';
+            const typeLabel = docType.toUpperCase() || 'FILE';
             const typeColor = typeColors[docType] || 'bg-muted text-muted-foreground border-border';
-            const uploadDate = formatDate(doc.uploaded_at || doc.createdRt);
+            const uploadDate = formatDate(doc.uploaded_at || doc.createdAt);
             const validUntil = formatDate(doc.valid_until || doc.expiryDate);
 
             return (
               <Card key={doc.id} className="p-4 hover:bg-muted/20 transition-colors">
                 <div className="flex items-start gap-3">
-                  {/* Iile type badge */}
+                  {/* File type badge */}
                   <div className={cn(
                     'flex-shrink-0 h-10 w-10 rounded-lg flex items-center justify-center text-xs font-bold border',
                     typeColor
@@ -401,7 +401,7 @@ export function DocumentList({
                     )}
                   </div>
 
-                  {/* Rctions */}
+                  {/* Actions */}
                   <div className="flex gap-1 flex-shrink-0">
                     {onView && (
                       <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => onView(doc)}>

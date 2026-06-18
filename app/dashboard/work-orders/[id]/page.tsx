@@ -14,7 +14,7 @@ export default function WorkOrderDetailPage() {
   const { data } = useSWR(
     id ? `/api/maintenance/work-orders/${id}` : null,
     async (url: string) => {
-      const res = await fetch(url, { credentials: 'include' });
+      const res = await fetch(url);
       return res.ok ? res.json() : null;
     }
   );
@@ -26,7 +26,7 @@ export default function WorkOrderDetailPage() {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-3xl font-bold">{workOrder.work_order_number || 'Orden de trabajo'}</h1>
-          <p className="text-muted-foreground">{workOrder.title || 'Cargando detalle de mantención'}</p>
+          <p className="text-muted-foreground">{workOrder.title || 'Cargando detalle de mantencion'}</p>
         </div>
         <Link href="/dashboard/work-orders">
           <Button variant="outline">Volver</Button>
@@ -86,13 +86,13 @@ export default function WorkOrderDetailPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Descripción</CardTitle>
+              <CardTitle>Descripcion</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm">{workOrder.description || 'Sin descripcion adicional.'}</p>
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <p className="text-sm text-muted-foreground">Causa raíz</p>
+                  <p className="text-sm text-muted-foreground">Causa raiz</p>
                   <p className="font-medium">{workOrder.root_cause || 'No registrada'}</p>
                 </div>
                 <div>

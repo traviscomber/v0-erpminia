@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -23,6 +24,7 @@ import {
 } from '@/components/ui/select';
 import { AlertCircle, Loader2 } from 'lucide-react';
 
+// Validación
 const inspeccionSchema = z.object({
   tipo: z.enum(['internas', 'externas']),
   numero_inspeccion: z.string().min(3, 'Mínimo 3 caracteres'),
@@ -100,7 +102,9 @@ export function InspeccionModal({
         : '/api/sostenibilidad/inspecciones';
 
       const method = inspeccion?.id ? 'PUT' : 'POST';
-      const body = inspeccion?.id ? { id: inspeccion.id, ...data } : { ...data };
+      const body = inspeccion?.id
+        ? { id: inspeccion.id, ...data }
+        : { ...data };
 
       const response = await fetch(url, {
         method,
@@ -140,29 +144,30 @@ export function InspeccionModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{inspeccion?.id ? 'Editar inspección' : 'Nueva inspección'}</DialogTitle>
+          <DialogTitle>
+            {inspeccion?.id ? 'Editar Inspección' : 'Nueva Inspección'}
+          </DialogTitle>
           <DialogDescription>
             {inspeccion?.id
-              ? 'Modifica los detalles de la inspección.'
-              : 'Registra una nueva inspección.'}
+              ? 'Modifica los detalles de la inspección'
+              : 'Registra una nueva inspección'}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {error && (
-            <div className="flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/10 p-3">
-              <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-destructive" />
+            <div className="flex items-start gap-3 p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
+              <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0 mt-0.5" />
               <p className="text-sm text-destructive">{error}</p>
             </div>
           )}
 
+          {/* Tipo de Inspección */}
           <div>
-            <label className="mb-1 block text-sm font-medium">Tipo de inspección *</label>
-            <Select
-              value={tipo}
-              onValueChange={(value) => setValue('tipo', value as any)}
-              disabled={!!inspeccion?.id}
-            >
+            <label className="text-sm font-medium mb-1 block">
+              Tipo de Inspección *
+            </label>
+            <Select value={tipo} onValueChange={(value) => setValue('tipo', value as any)} disabled={!!inspeccion?.id}>
               <SelectTrigger className={errors.tipo ? 'border-destructive' : ''}>
                 <SelectValue />
               </SelectTrigger>
@@ -171,11 +176,18 @@ export function InspeccionModal({
                 <SelectItem value="externas">Externa</SelectItem>
               </SelectContent>
             </Select>
-            {errors.tipo && <p className="mt-1 text-xs text-destructive">{errors.tipo.message}</p>}
+            {errors.tipo && (
+              <p className="text-xs text-destructive mt-1">
+                {errors.tipo.message}
+              </p>
+            )}
           </div>
 
+          {/* Número de Inspección */}
           <div>
-            <label className="mb-1 block text-sm font-medium">Número de inspección *</label>
+            <label className="text-sm font-medium mb-1 block">
+              Número de Inspección *
+            </label>
             <Input
               placeholder="INS-001, INS-002, etc."
               {...register('numero_inspeccion')}
@@ -183,56 +195,83 @@ export function InspeccionModal({
               className={errors.numero_inspeccion ? 'border-destructive' : ''}
             />
             {errors.numero_inspeccion && (
-              <p className="mt-1 text-xs text-destructive">{errors.numero_inspeccion.message}</p>
+              <p className="text-xs text-destructive mt-1">
+                {errors.numero_inspeccion.message}
+              </p>
             )}
           </div>
 
+          {/* Grid 2 columnas */}
           <div className="grid grid-cols-2 gap-4">
+            {/* Fecha Planificada */}
             <div>
-              <label className="mb-1 block text-sm font-medium">Fecha planificada *</label>
+              <label className="text-sm font-medium mb-1 block">
+                Fecha Planificada *
+              </label>
               <Input
                 type="date"
                 {...register('fecha_planificada')}
                 className={errors.fecha_planificada ? 'border-destructive' : ''}
               />
               {errors.fecha_planificada && (
-                <p className="mt-1 text-xs text-destructive">{errors.fecha_planificada.message}</p>
+                <p className="text-xs text-destructive mt-1">
+                  {errors.fecha_planificada.message}
+                </p>
               )}
             </div>
 
+            {/* Faena */}
             <div>
-              <label className="mb-1 block text-sm font-medium">Faena *</label>
-              <Select value={watch('faena')} onValueChange={(value) => setValue('faena', value)}>
+              <label className="text-sm font-medium mb-1 block">
+                Faena *
+              </label>
+              <Select
+                value={watch('faena')}
+                onValueChange={(value) => setValue('faena', value)}
+              >
                 <SelectTrigger className={errors.faena ? 'border-destructive' : ''}>
                   <SelectValue placeholder="Selecciona una faena" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Mina A">Mina A</SelectItem>
                   <SelectItem value="Mina B">Mina B</SelectItem>
-                  <SelectItem value="Planta">Planta de procesamiento</SelectItem>
+                  <SelectItem value="Planta">Planta Procesamiento</SelectItem>
                   <SelectItem value="Laboratorio">Laboratorio</SelectItem>
                   <SelectItem value="Depósito">Depósito</SelectItem>
                 </SelectContent>
               </Select>
-              {errors.faena && <p className="mt-1 text-xs text-destructive">{errors.faena.message}</p>}
+              {errors.faena && (
+                <p className="text-xs text-destructive mt-1">
+                  {errors.faena.message}
+                </p>
+              )}
             </div>
           </div>
 
+          {/* Grid 2 columnas */}
           <div className="grid grid-cols-2 gap-4">
+            {/* Inspector */}
             <div>
-              <label className="mb-1 block text-sm font-medium">Inspector *</label>
+              <label className="text-sm font-medium mb-1 block">
+                Inspector *
+              </label>
               <Input
                 placeholder="Nombre del inspector"
                 {...register('inspector')}
                 className={errors.inspector ? 'border-destructive' : ''}
               />
               {errors.inspector && (
-                <p className="mt-1 text-xs text-destructive">{errors.inspector.message}</p>
+                <p className="text-xs text-destructive mt-1">
+                  {errors.inspector.message}
+                </p>
               )}
             </div>
 
+            {/* Hallazgos */}
             <div>
-              <label className="mb-1 block text-sm font-medium">Cantidad de hallazgos</label>
+              <label className="text-sm font-medium mb-1 block">
+                Cantidad Hallazgos
+              </label>
               <Input
                 type="number"
                 min="0"
@@ -240,13 +279,18 @@ export function InspeccionModal({
                 className={errors.hallazgos_count ? 'border-destructive' : ''}
               />
               {errors.hallazgos_count && (
-                <p className="mt-1 text-xs text-destructive">{errors.hallazgos_count.message}</p>
+                <p className="text-xs text-destructive mt-1">
+                  {errors.hallazgos_count.message}
+                </p>
               )}
             </div>
           </div>
 
+          {/* Estado */}
           <div>
-            <label className="mb-1 block text-sm font-medium">Estado *</label>
+            <label className="text-sm font-medium mb-1 block">
+              Estado *
+            </label>
             <Select value={estado} onValueChange={(value) => setValue('estado', value as any)}>
               <SelectTrigger className={errors.estado ? 'border-destructive' : ''}>
                 <SelectValue />
@@ -258,24 +302,36 @@ export function InspeccionModal({
               </SelectContent>
             </Select>
             {errors.estado && (
-              <p className="mt-1 text-xs text-destructive">{errors.estado.message}</p>
+              <p className="text-xs text-destructive mt-1">
+                {errors.estado.message}
+              </p>
             )}
           </div>
 
-          <div className="flex justify-end gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+          {/* Botones */}
+          <div className="flex gap-2 justify-end pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={loading}
+            >
               Cancelar
             </Button>
-            <Button type="submit" disabled={loading} className="bg-primary hover:bg-primary/90">
+            <Button
+              type="submit"
+              disabled={loading}
+              className="bg-primary hover:bg-primary/90"
+            >
               {loading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   {inspeccion?.id ? 'Guardando...' : 'Creando...'}
                 </>
               ) : inspeccion?.id ? (
-                'Guardar cambios'
+                'Guardar Cambios'
               ) : (
-                'Crear inspección'
+                'Crear Inspección'
               )}
             </Button>
           </div>

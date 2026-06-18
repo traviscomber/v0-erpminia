@@ -1,5 +1,4 @@
 'use client';
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,7 +28,7 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
   });
 
   const { data } = useSWR('/api/warehouse/stock', async (url: string) => {
-    const res = await fetch(url, { credentials: 'include' });
+    const res = await fetch(url);
     return res.ok ? res.json() : null;
   });
 
@@ -44,7 +43,6 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
       const response = await fetch('/api/warehouse/transfer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({
           stockId: formData.stockId,
           toBinId: formData.toBinId,
@@ -105,7 +103,7 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
               onValueChange={(value) => setFormData({ ...formData, toBinId: value })}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Selecciona una ubicación de destino" />
+                <SelectValue placeholder="Selecciona un bin de destino" />
               </SelectTrigger>
               <SelectContent>
                 {bins.map((bin: any) => (
@@ -131,13 +129,18 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
             <textarea
               value={formData.reason}
               onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-              className="w-full rounded border border-input bg-background p-2 text-foreground"
+              className="w-full p-2 border rounded"
             />
           </div>
           <Button
             type="submit"
             className="w-full"
-            disabled={submitting || !formData.stockId || !formData.toBinId || !formData.quantity}
+            disabled={
+              submitting ||
+              !formData.stockId ||
+              !formData.toBinId ||
+              !formData.quantity
+            }
           >
             {submitting ? 'Transfiriendo...' : 'Confirmar transferencia'}
           </Button>

@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Shield, Plus, Search, Check } from 'lucide-react';
 
 const fetcher = async (url: string) => {
-  const response = await fetch(url, { credentials: 'include' });
+  const response = await fetch(url);
   if (!response.ok) {
     return null;
   }
@@ -21,7 +21,7 @@ export default function HSEEPPPage() {
   const [cargo, setCargo] = useState('');
 
   const { data, error, isLoading } = useSWR(
-    `/api/hse/epp${cargo ? `?cargo=${encodeURIComponent(cargo)}` : ''}`,
+    `/api/hse/epp${cargo ? `cargo=${encodeURIComponent(cargo)}` : ''}`,
     fetcher,
     { revalidateOnFocus: false, refreshInterval: 300000 }
   );

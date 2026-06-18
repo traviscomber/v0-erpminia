@@ -8,7 +8,7 @@ import { AlertTriangle, TrendingDown, TrendingUp } from 'lucide-react';
 import { HSEKPIsSeguridad } from '@/components/hse/hse-kpis-seguridad';
 
 const fetcher = async (url: string) => {
-  const response = await fetch(url, { credentials: 'include' });
+  const response = await fetch(url);
   if (!response.ok) {
     return null;
   }

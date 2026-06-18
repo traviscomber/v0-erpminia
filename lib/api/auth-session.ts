@@ -1,7 +1,6 @@
 import { type NextRequest } from 'next/server';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
-import { verifyAuthCookieValue } from '@/lib/auth-cookie';
 
 export interface AuthSessionUser {
   id: string;
@@ -22,6 +21,25 @@ export interface AuthContext {
   organizationId?: string;
   sessionToken?: string;
   source: 'custom-cookie' | 'supabase';
+}
+
+function parseAuthToken(token?: string | null): AuthSessionData | null {
+  if (!token) return null;
+
+  try {
+    const parsed = JSON.parse(token) as Partial<AuthSessionData>;
+    if (!parsed.user?.id || !parsed.session_token) {
+      return null;
+    }
+
+    return {
+      user: parsed.user,
+      role: parsed.role,
+      session_token: parsed.session_token,
+    };
+  } catch {
+    return null;
+  }
 }
 
 async function resolveSupabaseAuth(request: NextRequest): Promise<AuthContext | null> {
@@ -97,7 +115,7 @@ async function resolveSupabaseAuth(request: NextRequest): Promise<AuthContext | 
 export async function resolveAuthContext(
   request: NextRequest
 ): Promise<AuthContext | null> {
-  const customSession = await verifyAuthCookieValue(request.cookies.get('auth_token')?.value);
+  const customSession = parseAuthToken(request.cookies.get('auth_token')?.value);
 
   if (customSession) {
     return {

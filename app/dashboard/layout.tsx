@@ -2,7 +2,6 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
-import { verifyAuthCookieValue } from '@/lib/auth-cookie';
 
 export default async function DashboardLayout({
   children,
@@ -11,9 +10,8 @@ export default async function DashboardLayout({
 }) {
   const cookieStore = await cookies();
   const authToken = cookieStore.get('auth_token');
-  const authSession = await verifyAuthCookieValue(authToken?.value);
 
-  if (!authSession?.user?.id) {
+  if (!authToken) {
     redirect('/auth/login');
   }
 

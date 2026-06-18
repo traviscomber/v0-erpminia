@@ -2,7 +2,9 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -11,6 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Upload, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { createClient } from '@supabase/supabase-js';
 
 interface ImportResult {
   success: boolean;
@@ -19,39 +22,33 @@ interface ImportResult {
   error?: string;
 }
 
-type CostCenterOption = {
-  id: string;
-  code: string;
-  name: string;
-};
-
-const NONE_VALUE = '__no_cost_center__';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export function BodegaInventoryImportComponent() {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [dragActive, setDragActive] = useState(false);
-  const [costCenters, setCostCenters] = useState<CostCenterOption[]>([]);
+  const [costCenters, setCostCenters] = useState<Array<{ id: string; nombre: string }>>([]);
   const [selectedCostCenter, setSelectedCostCenter] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const isValidFile = (file: File) => /\.(csv|xls|xlsx)$/i.test(file.name);
-
+  // Load cost centers
   useEffect(() => {
     const loadCostCenters = async () => {
       try {
-        const response = await fetch('/api/cost-centers', {
-          credentials: 'include',
-        });
+        const { data } = await supabase
+          .from('cost_centers')
+          .select('id, nombre')
+          .eq('nivel', 1)
+          .order('nombre');
 
-        if (!response.ok) {
-          throw new Error('No se pudieron cargar los centros de costos');
+        if (data) {
+          setCostCenters(data);
         }
-
-        const data = await response.json();
-        setCostCenters(Array.isArray(data) ? data : []);
       } catch (error) {
-        console.error('Error al cargar los centros de costos:', error);
+        console.error('Error loading cost centers:', error);
       }
     };
 
@@ -59,11 +56,11 @@ export function BodegaInventoryImportComponent() {
   }, []);
 
   const handleFile = async (file: File) => {
-    if (!isValidFile(file)) {
+    if (!file.name.endsWith('.csv')) {
       setResult({
         success: false,
-        message: 'Solo se aceptan archivos CSV, XLS o XLSX',
-        error: 'Tipo de archivo no válido',
+        message: 'Only CSV files are accepted',
+        error: 'Invalid file type',
       });
       return;
     }
@@ -80,7 +77,6 @@ export function BodegaInventoryImportComponent() {
 
       const response = await fetch('/api/bodega/import-inventory', {
         method: 'POST',
-        credentials: 'include',
         body: formData,
       });
 
@@ -95,14 +91,14 @@ export function BodegaInventoryImportComponent() {
       } else {
         setResult({
           success: false,
-          message: 'No se pudo importar el inventario',
-          error: data.error || 'Error desconocido',
+          message: 'Failed to import inventory',
+          error: data.error || 'Unknown error',
         });
       }
     } catch (error) {
       setResult({
         success: false,
-        message: 'Error al subir el archivo',
+        message: 'Error uploading file',
         error: String(error),
       });
     } finally {
@@ -139,37 +135,34 @@ export function BodegaInventoryImportComponent() {
             Importar Inventario Bodega
           </CardTitle>
           <CardDescription>
-            Sube tu archivo CSV, XLS o XLSX con el inventario de bodega (código, familia, subfamilia, equipo y producto)
+            Sube tu archivo CSV con el inventario de bodega (código, familia, producto, etc.)
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Cost center selector */}
           <div>
             <label className="text-sm font-medium mb-2 block">
               Centro de Costos (Opcional)
             </label>
-            <Select
-              value={selectedCostCenter || NONE_VALUE}
-              onValueChange={(value) => {
-                setSelectedCostCenter(value === NONE_VALUE ? '' : value);
-              }}
-            >
+            <Select value={selectedCostCenter} onValueChange={setSelectedCostCenter}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecciona un centro de costos" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={NONE_VALUE}>No asignar</SelectItem>
+                <SelectItem value="">No asignar</SelectItem>
                 {costCenters.map((cc) => (
                   <SelectItem key={cc.id} value={cc.id}>
-                    {cc.code} - {cc.name}
+                    {cc.nombre}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground mt-1">
-              Si no seleccionas, los ítems se importarán sin asignar a un centro
+              Si no seleccionas, los items se importarán sin asignar a un centro
             </p>
           </div>
 
+          {/* Drag and drop zone */}
           <div
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
@@ -187,13 +180,13 @@ export function BodegaInventoryImportComponent() {
               Arrastra tu archivo o haz clic para seleccionar
             </p>
             <p className="text-sm text-muted-foreground mt-1">
-              Formato: CSV, XLS o XLSX
+              Formato: CSV (separado por punto y coma)
             </p>
 
             <input
               ref={fileInputRef}
               type="file"
-              accept=".csv,.xls,.xlsx"
+              accept=".csv"
               onChange={(e) => {
                 if (e.target.files?.[0]) {
                   handleFile(e.target.files[0]);
@@ -203,6 +196,7 @@ export function BodegaInventoryImportComponent() {
             />
           </div>
 
+          {/* Format info */}
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
@@ -217,6 +211,7 @@ export function BodegaInventoryImportComponent() {
             </AlertDescription>
           </Alert>
 
+          {/* Results */}
           {result && (
             <Alert className={result.success ? 'border-green-500' : 'border-red-500'}>
               {result.success ? (
@@ -230,7 +225,7 @@ export function BodegaInventoryImportComponent() {
                 </p>
                 {result.imported && (
                   <p className="text-sm mt-1">
-                    {result.imported} centros de costos importados
+                    {result.imported} items de inventario importados
                   </p>
                 )}
                 {result.error && (
@@ -240,6 +235,7 @@ export function BodegaInventoryImportComponent() {
             </Alert>
           )}
 
+          {/* Loading state */}
           {isLoading && (
             <div className="flex items-center justify-center gap-2 p-4 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />

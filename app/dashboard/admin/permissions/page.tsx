@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import useSWR from 'swr';
@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 
 const fetcher = async (url: string) => {
-  const response = await fetch(url, { credentials: 'include' });
+  const response = await fetch(url);
   const data = await response.json();
   if (!response.ok) {
     return null;
@@ -35,22 +35,13 @@ const fetcher = async (url: string) => {
 
 const MODULES = ['produccion', 'mantenimiento', 'bodega', 'hse', 'documentos', 'compras', 'finanzas', 'reportes'];
 const ACTIONS = ['view', 'create', 'edit', 'delete', 'export', 'approve', 'admin'];
-const ACTION_LABELS: Record<string, string> = {
-  view: 'Ver',
-  create: 'Crear',
-  edit: 'Editar',
-  delete: 'Eliminar',
-  export: 'Exportar',
-  approve: 'Aprobar',
-  admin: 'Administrar',
-};
 const MINING_ROLES = [
-  { id: 'admin', label: 'Administrador', description: 'Acceso total al sistema' },
-  { id: 'manager', label: 'Gerente', description: 'Gestión operativa' },
-  { id: 'technician', label: 'Técnico', description: 'Operaciones en terreno' },
-  { id: 'warehouse_staff', label: 'Bodega', description: 'Gestión de inventario' },
-  { id: 'finance_officer', label: 'Finanzas', description: 'Operaciones financieras' },
-  { id: 'viewer', label: 'Solo lectura', description: 'Acceso de solo lectura' },
+  { id: 'admin', label: 'Administrator', description: 'Full system access' },
+  { id: 'manager', label: 'Manager', description: 'Operational management' },
+  { id: 'technician', label: 'Technician', description: 'Field operations' },
+  { id: 'warehouse_staff', label: 'Warehouse Staff', description: 'Inventory management' },
+  { id: 'finance_officer', label: 'Finance Officer', description: 'Financial operations' },
+  { id: 'viewer', label: 'Viewer', description: 'Read-only access' },
 ];
 
 export default function PermissionsPage() {
@@ -82,7 +73,6 @@ export default function PermissionsPage() {
         const response = await fetch('/api/admin/permissions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
           body: JSON.stringify({
             user_id: selectedUser,
             role: selectedRole,
@@ -111,7 +101,6 @@ export default function PermissionsPage() {
     const response = await fetch('/api/admin/permissions', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
       body: JSON.stringify({ permission_id: permissionId }),
     });
 
@@ -120,15 +109,14 @@ export default function PermissionsPage() {
     }
   };
 
-  const userPermissions = permissionsData?.permissions || [];
-  const users = usersData?.users || [];
-  const selectedRoleLabel = MINING_ROLES.find((role) => role.id === selectedRole)?.label || selectedRole;
+  const userPermissions = permissionsData.permissions || [];
+  const users = usersData.users || [];
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Gestión de permisos</h1>
-        <p className="mt-2 text-muted-foreground">Asignación granular por usuario, módulo y acción.</p>
+        <h1 className="text-3xl font-bold">Gestion de permisos</h1>
+        <p className="mt-2 text-muted-foreground">Asignacion granular por usuario, modulo y accion.</p>
       </div>
 
       <Card>
@@ -137,7 +125,7 @@ export default function PermissionsPage() {
             <Shield className="h-5 w-5" />
             Otorgar nuevo permiso
           </CardTitle>
-          <CardDescription>Asigna permisos específicos para una operación o flujo puntual.</CardDescription>
+          <CardDescription>Asigna permisos especificos para una operacion o flujo puntual.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {usersError ? <p className="text-sm text-red-500">No se pudieron cargar los usuarios.</p> : null}
@@ -162,7 +150,7 @@ export default function PermissionsPage() {
               <label className="text-sm font-medium">Rol de referencia</label>
               <Select value={selectedRole} onValueChange={setSelectedRole}>
                 <SelectTrigger>
-                  <SelectValue placeholder={selectedRoleLabel} />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {MINING_ROLES.map((role) => (
@@ -175,10 +163,10 @@ export default function PermissionsPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Módulo</label>
+              <label className="text-sm font-medium">Modulo</label>
               <Select value={selectedModule} onValueChange={setSelectedModule}>
                 <SelectTrigger>
-                  <SelectValue placeholder={selectedModule.charAt(0).toUpperCase() + selectedModule.slice(1)} />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {MODULES.map((module) => (
@@ -191,7 +179,7 @@ export default function PermissionsPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Temporal (días, 0 = permanente)</label>
+              <label className="text-sm font-medium">Temporal (dias, 0 = permanente)</label>
               <Input
                 type="number"
                 min="0"
@@ -203,11 +191,11 @@ export default function PermissionsPage() {
             </div>
           </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Acciones</label>
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                {ACTIONS.map((action) => (
-                  <div key={action} className="flex items-center space-x-2">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Acciones</label>
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+              {ACTIONS.map((action) => (
+                <div key={action} className="flex items-center space-x-2">
                   <Checkbox
                     id={action}
                     checked={selectedActions.includes(action)}
@@ -220,7 +208,7 @@ export default function PermissionsPage() {
                     }}
                   />
                   <label htmlFor={action} className="cursor-pointer text-sm font-medium">
-                    {ACTION_LABELS[action] || action}
+                    {action}
                   </label>
                 </div>
               ))}
@@ -238,7 +226,7 @@ export default function PermissionsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Permisos actuales del usuario</CardTitle>
-            <CardDescription>Permisos individuales activos en la organización.</CardDescription>
+            <CardDescription>Permisos individuales activos en la organizacion.</CardDescription>
           </CardHeader>
           <CardContent>
             {permissionsError ? <p className="mb-4 text-sm text-red-500">No se pudieron cargar los permisos.</p> : null}
@@ -246,8 +234,8 @@ export default function PermissionsPage() {
               <table className="w-full text-sm">
                 <thead className="border-b">
                   <tr>
-                    <th className="px-4 py-2 text-left">Módulo</th>
-                    <th className="px-4 py-2 text-left">Acción</th>
+                    <th className="px-4 py-2 text-left">Modulo</th>
+                    <th className="px-4 py-2 text-left">Accion</th>
                     <th className="px-4 py-2 text-left">Estado</th>
                     <th className="px-4 py-2 text-left">Vencimiento</th>
                     <th className="px-4 py-2 text-left">Acciones</th>
@@ -266,7 +254,7 @@ export default function PermissionsPage() {
                         <td className="px-4 py-2">
                           <Badge variant="outline">{permission.module}</Badge>
                         </td>
-                        <td className="px-4 py-2">{ACTION_LABELS[permission.action] || permission.action}</td>
+                        <td className="px-4 py-2">{permission.action}</td>
                         <td className="px-4 py-2">
                           {permission.is_active ? (
                             <Badge variant="default" className="gap-1">
@@ -323,4 +311,3 @@ export default function PermissionsPage() {
     </div>
   );
 }
-

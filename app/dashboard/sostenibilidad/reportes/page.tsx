@@ -38,7 +38,7 @@ export default function ReportesPage() {
   const [periodoTipo, setPeriodoTipo] = useState('mes');
   const [anio, setAnio] = useState(new Date().getFullYear().toString());
 
-  const { data: inspecciones = [] } = useSWR('/api/sostenibilidad/inspecciones?tipo=internas', fetcher);
+  const { data: inspecciones = [] } = useSWR('/api/sostenibilidad/inspeccionestipo=internas', fetcher);
 
   const inspeccionesList = (inspecciones.data || []) as any[];
 
@@ -129,7 +129,7 @@ export default function ReportesPage() {
       <Tabs defaultValue="kpi" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="kpi">Panel KPI</TabsTrigger>
-          <TabsTrigger value="detailed">Análisis detallado</TabsTrigger>
+          <TabsTrigger value="detailed">Análisis Detallado</TabsTrigger>
         </TabsList>
 
         <TabsContent value="kpi" className="space-y-6">

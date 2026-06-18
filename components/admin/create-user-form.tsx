@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,15 +13,6 @@ import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import type { UserRole } from '@/lib/rbac';
 
 const ROLES: UserRole[] = ['admin', 'manager', 'technician', 'warehouse_staff', 'finance_officer', 'viewer'];
-const ROLE_LABELS: Record<UserRole, string> = {
-  superadmin: 'Súperadministrador',
-  admin: 'Administrador',
-  manager: 'Gerente',
-  technician: 'Técnico',
-  warehouse_staff: 'Personal de bodega',
-  finance_officer: 'Responsable de finanzas',
-  viewer: 'Solo lectura',
-};
 
 interface CreateUserFormProps {
   onUserCreated: () => void;
@@ -37,10 +28,10 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
   const [success, setSuccess] = useState(false);
 
   const validatePassword = (pwd: string) => {
-    if (pwd.length < 8) return 'Mínimo 8 caracteres';
-    if (!/[A-Z]/.test(pwd)) return 'Debe contener mayúscula';
-    if (!/[0-9]/.test(pwd)) return 'Debe contener número';
-    if (!/[!@#$%^&*]/.test(pwd)) return 'Debe contener símbolo (!@#$%^&*)';
+    if (pwd.length < 8) return 'Minimo 8 caracteres';
+    if (!/[A-Z]/.test(pwd)) return 'Debe contener mayuscula';
+    if (!/[0-9]/.test(pwd)) return 'Debe contener numero';
+    if (!/[!@#$%^&*]/.test(pwd)) return 'Debe contener simbolo (!@#$%^&*)';
     return null;
   };
 
@@ -56,7 +47,7 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
 
     const passwordError = validatePassword(password);
     if (passwordError) {
-      setError(`Contraseña débil: ${passwordError}`);
+      setError(`Contrasena debil: ${passwordError}`);
       return;
     }
 
@@ -66,7 +57,6 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
       const res = await fetch('/api/admin/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ email, password, full_name: fullName, role }),
       });
 
@@ -123,7 +113,7 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
                 </label>
                 <Input
                   id="fullName"
-                  placeholder="Juan Pérez"
+                  placeholder="Juan Perez"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   disabled={loading}
@@ -133,7 +123,7 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
 
               <div className="space-y-2">
                 <label htmlFor="email" className="text-sm font-medium">
-                  Correo electrónico
+                  Email
                 </label>
                 <Input
                   id="email"
@@ -150,7 +140,7 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label htmlFor="password" className="text-sm font-medium">
-                  Contraseña
+                  Contrasena
                 </label>
                 <Input
                   id="password"
@@ -162,7 +152,7 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
                   required
                 />
                 <p className="text-xs text-muted-foreground">
-                  Min 8 caracteres, mayúscula, número y símbolo.
+                  Min 8 caracteres, mayuscula, numero y simbolo.
                 </p>
               </div>
 
@@ -177,7 +167,7 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
                   <SelectContent>
                     {ROLES.map((item) => (
                       <SelectItem key={item} value={item}>
-                        {ROLE_LABELS[item]}
+                        {item}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -194,4 +184,3 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
     </Card>
   );
 }
-

@@ -75,10 +75,7 @@ export default function MedioAmbientePage() {
     if (!selected?.id) return;
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/sostenibilidad/medio-ambiente?id=${selected.id}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
+      const res = await fetch(`/api/sostenibilidad/medio-ambiente?id=${selected.id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Error');
       toast.success('Registro eliminado');
       await mutate();
@@ -102,7 +99,6 @@ export default function MedioAmbientePage() {
       const response = await fetch('/api/sostenibilidad/medio-ambiente', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify(formData),
       });
 

@@ -86,7 +86,6 @@ export function DocumentUpload({
 
       const response = await fetch('/api/sostenibilidad/upload-documento', {
         method: 'POST',
-        credentials: 'include',
         body: formData,
       });
 

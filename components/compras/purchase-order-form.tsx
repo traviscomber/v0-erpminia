@@ -27,7 +27,6 @@ export function PurchaseOrderForm() {
       const res = await fetch('/api/compras/purchase-orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify(formData),
       });
 
@@ -36,7 +35,7 @@ export function PurchaseOrderForm() {
         setResult(data);
         setFormData({ vendor_name: '', item_code: '', quantity: 1, unit_price: 0, delivery_date: '' });
       } else {
-        setError('No se pudo crear la orden de compra');
+        setError('Failed to create purchase order');
       }
     } catch (err) {
       console.error('[v0] PO form error:', err);
@@ -49,14 +48,14 @@ export function PurchaseOrderForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Crear orden de compra</CardTitle>
+        <CardTitle>Create Purchase Order</CardTitle>
       </CardHeader>
       <CardContent>
         {result && (
           <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded flex gap-2">
             <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
             <div>
-              <p className="font-semibold text-sm text-green-800">Orden de compra creada</p>
+              <p className="font-semibold text-sm text-green-800">Purchase Order Created</p>
               <p className="text-sm text-green-700">{result.po_number} - Total: ${result.total_amount}</p>
             </div>
           </div>
@@ -71,28 +70,28 @@ export function PurchaseOrderForm() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-sm font-semibold">Proveedor</label>
+            <label className="text-sm font-semibold">Vendor Name</label>
             <Input
               value={formData.vendor_name}
               onChange={(e) => setFormData({ ...formData, vendor_name: e.target.value })}
-              placeholder="Ej: Proveedor SpA"
+              placeholder="e.g., Supplier Inc"
               required
             />
           </div>
 
           <div>
-            <label className="text-sm font-semibold">Código de item</label>
+            <label className="text-sm font-semibold">Item Code</label>
             <Input
               value={formData.item_code}
               onChange={(e) => setFormData({ ...formData, item_code: e.target.value })}
-              placeholder="Ej: PART-001"
+              placeholder="e.g., PART-001"
               required
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-semibold">Cantidad</label>
+              <label className="text-sm font-semibold">Quantity</label>
               <Input
                 type="number"
                 min="1"
@@ -103,7 +102,7 @@ export function PurchaseOrderForm() {
             </div>
 
             <div>
-              <label className="text-sm font-semibold">Precio unitario ($)</label>
+              <label className="text-sm font-semibold">Unit Price ($)</label>
               <Input
                 type="number"
                 step="0.01"
@@ -115,7 +114,7 @@ export function PurchaseOrderForm() {
           </div>
 
           <div>
-            <label className="text-sm font-semibold">Fecha de entrega</label>
+            <label className="text-sm font-semibold">Delivery Date</label>
             <Input
               type="date"
               value={formData.delivery_date}
@@ -125,7 +124,7 @@ export function PurchaseOrderForm() {
           </div>
 
           <Button type="submit" disabled={loading} className="w-full">
-            {loading ? 'Creando...' : 'Crear orden de compra'}
+            {loading ? 'Creating...' : 'Create Purchase Order'}
           </Button>
         </form>
       </CardContent>

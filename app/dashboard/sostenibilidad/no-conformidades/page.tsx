@@ -23,12 +23,12 @@ export default function NonconformanceDashboard() {
   };
 
   const { data: ncData, mutate: mutateNCs } = useSWR('/api/sostenibilidad/nonconformances', async (url: string) => {
-    const res = await fetch(url, { credentials: 'include' });
+    const res = await fetch(url);
     return res.ok ? res.json() : null;
   });
 
   const { data: reportData } = useSWR('/api/sostenibilidad/compliance-report', async (url: string) => {
-    const res = await fetch(url, { credentials: 'include' });
+    const res = await fetch(url);
     return res.ok ? res.json() : null;
   });
 
@@ -41,7 +41,6 @@ export default function NonconformanceDashboard() {
       const res = await fetch('/api/sostenibilidad/nonconformances', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify(formData),
       });
       if (!res.ok) throw new Error('No se pudo crear la no conformidad');
@@ -61,15 +60,14 @@ export default function NonconformanceDashboard() {
       const res = await fetch('/api/sostenibilidad/corrective-actions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ ...caData, ncId: selectedNC.id }),
       });
-      if (!res.ok) throw new Error('No se pudo crear la acción correctiva');
+      if (!res.ok) throw new Error('No se pudo crear la accin correctiva');
       
       setShowCAModal(false);
-      toast.success('Acción correctiva creada correctamente');
+      toast.success('Corrective action created successfully');
     } catch (error) {
-      toast.error('No se pudo crear la acción correctiva');
+      toast.error('No se pudo crear la accin correctiva');
       throw error;
     }
   };
@@ -82,7 +80,7 @@ export default function NonconformanceDashboard() {
     <div className="space-y-6">
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Gestión de no conformidades</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Gestion de no conformidades</h1>
           <p className="text-muted-foreground">Seguimiento, control y cierre de no conformidades con acciones correctivas</p>
         </div>
         <Button onClick={() => setShowForm(!showForm)} className="bg-primary">
@@ -291,16 +289,16 @@ export default function NonconformanceDashboard() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Descripción</p>
+                <p className="text-sm font-medium text-muted-foreground">Descripcion</p>
                 <p className="text-sm">{selectedNC.description}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Causa raíz</p>
+                <p className="text-sm font-medium text-muted-foreground">Causa raiz</p>
                 <p className="text-sm">{selectedNC.root_cause || 'No especificada'}</p>
               </div>
             </div>
             <Button onClick={() => setShowCAModal(true)} className="w-full">
-              Crear acción correctiva
+              Crear accin correctiva
             </Button>
           </CardContent>
         </Card>

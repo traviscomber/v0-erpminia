@@ -24,7 +24,7 @@ interface InspeccionExterna {
   reporte_url?: string;
 }
 
-const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((r) => r.json());
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 export default function InspeccionesExternasPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -54,7 +54,7 @@ export default function InspeccionesExternasPage() {
     try {
       const response = await fetch(
         `/api/sostenibilidad/inspecciones?id=${selectedInspeccion.id}&tipo=externas`,
-        { method: 'DELETE', credentials: 'include' }
+        { method: 'DELETE' }
       );
 
       if (!response.ok) throw new Error('Error al eliminar');

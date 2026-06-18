@@ -86,7 +86,7 @@ export default function DashboardPage() {
       icon: AlertTriangle,
     },
     {
-      label: 'Tareas Completadas Hoy',
+      label: 'Tasks Completadas Hoy',
       value: '14',
       status: 'success',
       icon: CheckCircle2,
@@ -282,7 +282,7 @@ export default function DashboardPage() {
             <BrandCard className="cursor-pointer hover:shadow-lg transition-shadow h-full">
               <CardHeader>
                 <Shield className="h-6 w-6 text-[var(--brand-rojo)] mb-2" />
-                <CardTitle>HSE y Cumplimiento</CardTitle>
+                <CardTitle>HSE & Compliance</CardTitle>
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground">
                 Gestión de seguridad, incidentes y cumplimiento normativo minero-ambiental

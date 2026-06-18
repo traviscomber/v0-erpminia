@@ -1,10 +1,10 @@
 'use client';
-
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 
 interface AddItemModalProps {
@@ -32,7 +32,6 @@ export function AddItemModal({ open, onOpenChange, onSubmit }: AddItemModalProps
       const res = await fetch('/api/warehouse/stock', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({
           part_code: formData.part_code,
           part_name: formData.part_name,
@@ -69,13 +68,13 @@ export function AddItemModal({ open, onOpenChange, onSubmit }: AddItemModalProps
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Agregar artículo</DialogTitle>
-          <DialogDescription>Ingresa los detalles del nuevo artículo de inventario.</DialogDescription>
+          <DialogTitle>Agregar Artículo</DialogTitle>
+          <DialogDescription>Ingrese los detalles del nuevo artículo de inventario</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label>Código de parte</Label>
+            <Label>Código de Parte</Label>
             <Input
               required
               value={formData.part_code}
@@ -85,7 +84,7 @@ export function AddItemModal({ open, onOpenChange, onSubmit }: AddItemModalProps
           </div>
 
           <div>
-            <Label>Nombre del artículo</Label>
+            <Label>Nombre del Artículo</Label>
             <Input
               required
               value={formData.part_name}
@@ -96,7 +95,7 @@ export function AddItemModal({ open, onOpenChange, onSubmit }: AddItemModalProps
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label>Cantidad actual</Label>
+              <Label>Cantidad Actual</Label>
               <Input
                 type="number"
                 value={formData.quantity_on_hand}
@@ -104,7 +103,7 @@ export function AddItemModal({ open, onOpenChange, onSubmit }: AddItemModalProps
               />
             </div>
             <div>
-              <Label>Costo unitario</Label>
+              <Label>Costo Unitario</Label>
               <Input
                 type="number"
                 step="0.01"
@@ -117,7 +116,7 @@ export function AddItemModal({ open, onOpenChange, onSubmit }: AddItemModalProps
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label>Nivel de reorden</Label>
+              <Label>Nivel de Reorden</Label>
               <Input
                 type="number"
                 value={formData.reorder_level}
@@ -125,7 +124,7 @@ export function AddItemModal({ open, onOpenChange, onSubmit }: AddItemModalProps
               />
             </div>
             <div>
-              <Label>Cantidad de reorden</Label>
+              <Label>Cantidad de Reorden</Label>
               <Input
                 type="number"
                 value={formData.reorder_quantity}
@@ -139,7 +138,7 @@ export function AddItemModal({ open, onOpenChange, onSubmit }: AddItemModalProps
               Cancelar
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Guardando...' : 'Agregar artículo'}
+              {loading ? 'Guardando...' : 'Agregar Artículo'}
             </Button>
           </DialogFooter>
         </form>

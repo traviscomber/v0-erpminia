@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent } from '@/components/ui/card';
@@ -28,7 +28,7 @@ export default function AdminUsersPage() {
             <div>
               <h2 className="font-semibold text-red-900">Acceso denegado</h2>
               <p className="mt-1 text-sm text-[var(--brand-rojo)]">
-                Solo administradores pueden acceder a esta sección.
+                Solo administradores pueden acceder a esta seccion.
               </p>
             </div>
           </CardContent>
@@ -41,7 +41,7 @@ export default function AdminUsersPage() {
     <div className="space-y-6">
       <div className="flex items-center gap-2">
         <Users className="h-8 w-8 text-sidebar-primary" />
-        <h1 className="text-3xl font-bold">Gestión de usuarios</h1>
+        <h1 className="text-3xl font-bold">Gestion de usuarios</h1>
       </div>
 
       <CreateUserForm onUserCreated={() => setRefreshKey((prev) => prev + 1)} />
@@ -50,14 +50,14 @@ export default function AdminUsersPage() {
       <Card className="border-[var(--secondary)]/30 bg-[var(--secondary)]/5">
         <CardContent className="space-y-3 pt-6">
           <div>
-            <h3 className="font-semibold text-blue-900">Información de roles</h3>
+            <h3 className="font-semibold text-blue-900">Informacion de roles</h3>
             <ul className="ml-4 mt-2 list-disc space-y-1 text-sm text-blue-800">
-              <li><strong>Administrador:</strong> acceso total a todos los módulos</li>
-              <li><strong>Gerente:</strong> gestión de operaciones y aprobaciones</li>
-              <li><strong>Técnico:</strong> acceso a mantenimiento y documentos</li>
-              <li><strong>Personal de bodega:</strong> gestión de bodega e inventario</li>
-              <li><strong>Responsable de finanzas:</strong> gestión de finanzas y compras</li>
-              <li><strong>Visualizador:</strong> lectura general de módulos</li>
+              <li><strong>Admin:</strong> acceso total a todos los modulos</li>
+              <li><strong>Manager:</strong> gestion de operaciones y aprobaciones</li>
+              <li><strong>Technician:</strong> acceso a mantenimiento y documentos</li>
+              <li><strong>Warehouse Staff:</strong> gestion de bodega e inventario</li>
+              <li><strong>Finance Officer:</strong> gestion de finanzas y compras</li>
+              <li><strong>Viewer:</strong> lectura general de modulos</li>
             </ul>
           </div>
         </CardContent>
@@ -65,4 +65,3 @@ export default function AdminUsersPage() {
     </div>
   );
 }
-

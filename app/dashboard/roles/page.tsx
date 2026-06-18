@@ -1,144 +1,168 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { rolePermissions, type UserRole, type Permission } from '@/lib/rbac';
+import { ROLE_PERMISSIONS, UserRole } from '@/lib/roles-config';
 import { CheckCircle2, Lock } from 'lucide-react';
 
-const ROLES: UserRole[] = ['superadmin', 'admin', 'manager', 'technician', 'warehouse_staff', 'finance_officer', 'viewer'];
-const MODULES = ['compras', 'bodega', 'finanzas', 'mantenimiento', 'documentos'];
-const PERMISSIONS: Permission[] = ['create', 'read', 'update', 'delete', 'approve', 'export'];
-
-const ROLE_LABELS: Record<UserRole, string> = {
-  superadmin: 'Súperadministrador',
-  admin: 'Administrador',
-  manager: 'Gerente',
-  technician: 'Técnico',
-  warehouse_staff: 'Bodega',
-  finance_officer: 'Finanzas',
-  viewer: 'Solo lectura',
-};
-
 export default function RolesPage() {
-  const [selectedRole, setSelectedRole] = useState<UserRole>('manager');
-  const roleConfig = rolePermissions[selectedRole];
+  const roles: UserRole[] = [
+    'operador_produccion',
+    'jefe_mantencion',
+    'tecnico_campo',
+    'responsable_bodega',
+    'oficial_hse',
+    'supervisor_gerencia',
+  ];
+
+  const [selectedRole, setSelectedRole] = useState<UserRole>('supervisor_gerencia');
+
+  const roleConfig = ROLE_PERMISSIONS[selectedRole];
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-4xl font-bold">Gestión de Roles y Permisos</h1>
-        <p className="mt-2 text-muted-foreground">
-          Vista operativa del RBAC real que usa el sistema para usuarios, módulos y acciones.
+        <p className="text-muted-foreground mt-2">
+          Visualiza qué módulos y funciones puede acceder cada rol en el sistema
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-7">
-        {ROLES.map((role) => {
+      {/* Roles Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        {roles.map((role: any) => {
+          const config = ROLE_PERMISSIONS[role as keyof typeof ROLE_PERMISSIONS];
           const isSelected = role === selectedRole;
-          const moduleCount = Object.keys(rolePermissions[role] || {}).length;
 
           return (
             <button
               key={role}
               onClick={() => setSelectedRole(role)}
-              className={`rounded-lg border-2 p-3 text-center transition-all ${
+              className={`p-3 rounded-lg border-2 transition-all text-center ${
                 isSelected
                   ? 'border-[var(--brand-naranja)] bg-[var(--brand-naranja)]/10'
                   : 'border-border hover:border-[var(--brand-naranja)]/50'
               }`}
             >
-              <p className="text-sm font-semibold">{ROLE_LABELS[role]}</p>
-              <p className="mt-1 text-xs text-muted-foreground">{moduleCount} módulos</p>
+              <div className="text-3xl mb-2">{config.icon}</div>
+              <p className="text-xs font-semibold">{config.name}</p>
             </button>
           );
         })}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      {/* Role Details */}
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Accessible Modules */}
         <Card>
           <CardHeader>
-            <CardTitle>Módulos accesibles</CardTitle>
-            <CardDescription>Acceso por módulo para el rol seleccionado</CardDescription>
+            <CardTitle>Módulos Accesibles</CardTitle>
+            <CardDescription>
+              Todas las páginas y sistemas que puede acceder este rol
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-2">
-            {MODULES.map((module) => {
-              const permissions = roleConfig[module] || [];
-              const allowed = permissions.length > 0;
-
-              return (
-                <div key={module} className="flex items-center justify-between gap-3 rounded-md border px-3 py-2">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium capitalize">{module}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {allowed ? permissions.join(', ') : 'Sin acceso'}
-                    </p>
-                  </div>
-                  {allowed ? (
-                    <CheckCircle2 className="h-4 w-4 text-green-500" />
-                  ) : (
-                    <Lock className="h-4 w-4 text-muted-foreground" />
-                  )}
+          <CardContent>
+            <div className="space-y-2">
+              {roleConfig.accessibleModules.map((module: any) => (
+                <div key={module} className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
+                  <code className="text-xs bg-muted px-2 py-1 rounded flex-1">{module}</code>
                 </div>
-              );
-            })}
+              ))}
+            </div>
           </CardContent>
         </Card>
 
+        {/* Features & Capabilities */}
         <Card>
           <CardHeader>
-            <CardTitle>Resumen del rol</CardTitle>
-            <CardDescription>Capacidades base del rol seleccionado</CardDescription>
+            <CardTitle>Funciones Disponibles</CardTitle>
+            <CardDescription>
+              Qué puede hacer este rol en el sistema
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {Object.entries(roleConfig).map(([module, permissions]) => (
-              <div key={module} className="rounded-md border p-3">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-sm font-medium capitalize">{module}</span>
-                  <Badge variant="outline">{permissions.length} permisos</Badge>
+          <CardContent>
+            <div className="space-y-2">
+              {roleConfig.features.map((feature, idx) => (
+                <div key={idx} className="flex items-start gap-2 text-sm">
+                  <span className="text-[var(--brand-naranja)] mt-1">▸</span>
+                  <span>{feature}</span>
                 </div>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {permissions.map((permission) => (
-                    <Badge key={`${module}-${permission}`} variant="secondary" className="capitalize">
-                      {permission}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </CardContent>
         </Card>
       </div>
 
+      {/* Dashboard Widgets */}
       <Card>
         <CardHeader>
-          <CardTitle>Matriz rápida de acceso</CardTitle>
-          <CardDescription>Permisos principales por módulo y rol</CardDescription>
+          <CardTitle>Widgets del Dashboard</CardTitle>
+          <CardDescription>
+            Elementos de visualización y KPIs que verá en su dashboard
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {roleConfig.dashboardWidgets.map((widget: any) => (
+              <div
+                key={widget}
+                className="bg-muted p-3 rounded border border-border hover:border-[var(--brand-naranja)]/50 transition-colors"
+              >
+                <p className="text-xs font-semibold text-center">{widget.replace(/_/g, ' ')}</p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Matrix of Roles vs Modules */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Matriz de Acceso: Roles vs Módulos</CardTitle>
+          <CardDescription>
+            Vista completa de qué rol puede acceder a qué módulo
+          </CardDescription>
         </CardHeader>
         <CardContent className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b">
-                <th className="px-2 py-2 text-left">Módulo</th>
-                {ROLES.map((role) => (
-                  <th key={role} className="px-2 py-2 text-center">
-                    {ROLE_LABELS[role]}
+                <th className="text-left py-2 px-2 font-semibold">Módulo</th>
+                {roles.map((role: any) => (
+                  <th key={role} className="text-center py-2 px-1">
+                    <span className="text-xs">{ROLE_PERMISSIONS[role as keyof typeof ROLE_PERMISSIONS].icon}</span>
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {MODULES.map((module) => (
-                <tr key={module} className="border-b">
-                  <td className="px-2 py-2 capitalize">{module}</td>
-                  {ROLES.map((role) => {
-                    const canRead = (rolePermissions[role][module] || []).includes('read');
+              {[
+                '/dashboard',
+                '/dashboard/produccion',
+                '/dashboard/mantenimiento',
+                '/dashboard/bodega',
+                '/dashboard/hse',
+                '/dashboard/documentos-gestion',
+                '/dashboard/finanzas',
+                '/dashboard/reportes',
+                '/dashboard/integracion-completa',
+              ].map((module: any) => (
+                <tr key={module} className="border-b hover:bg-muted/30">
+                  <td className="text-left py-2 px-2 text-xs">
+                    <code className="bg-muted px-2 py-1 rounded">{module}</code>
+                  </td>
+                  {roles.map((role: any) => {
+                    const canAccess = ROLE_PERMISSIONS[role as keyof typeof ROLE_PERMISSIONS].accessibleModules.some(m =>
+                      module.startsWith(m)
+                    );
                     return (
-                      <td key={`${role}-${module}`} className="px-2 py-2 text-center">
-                        {canRead ? (
-                          <CheckCircle2 className="mx-auto h-4 w-4 text-green-500" />
+                      <td key={role} className="text-center py-2 px-1">
+                        {canAccess ? (
+                          <CheckCircle2 className="w-4 h-4 text-green-500 mx-auto" />
                         ) : (
-                          <Lock className="mx-auto h-4 w-4 text-muted-foreground" />
+                          <Lock className="w-4 h-4 text-muted-foreground mx-auto" />
                         )}
                       </td>
                     );
@@ -149,7 +173,60 @@ export default function RolesPage() {
           </table>
         </CardContent>
       </Card>
+
+      {/* Role Summary Cards */}
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold">Resumen por Rol</h2>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {roles.map((role: any) => {
+            const config = ROLE_PERMISSIONS[role as keyof typeof ROLE_PERMISSIONS];
+            return (
+              <Card key={role} className="border-l-4" style={{ borderLeftColor: 'var(--brand-naranja)' }}>
+                <CardHeader>
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-3xl">{config.icon}</span>
+                    <div>
+                      <CardTitle className="text-base">{config.name}</CardTitle>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground mb-1">Módulos:</p>
+                    <div className="flex flex-wrap gap-1">
+                      {config.accessibleModules.slice(0, 3).map((m: any) => (
+                        <Badge key={m} variant="secondary" className="text-xs">
+                          {m.split('/').pop()}
+                        </Badge>
+                      ))}
+                      {config.accessibleModules.length > 3 && (
+                        <Badge variant="outline" className="text-xs">
+                          +{config.accessibleModules.length - 3}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground mb-1">Funciones clave:</p>
+                    <ul className="text-xs space-y-1">
+                      {config.features.slice(0, 3).map((f, idx) => (
+                        <li key={idx} className="text-muted-foreground">
+                          • {f}
+                        </li>
+                      ))}
+                      {config.features.length > 3 && (
+                        <li className="text-muted-foreground">
+                          +{config.features.length - 3} más
+                        </li>
+                      )}
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
-

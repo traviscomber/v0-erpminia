@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { DocumentUpload } from '@/components/documents/document-upload';
 import { DocumentList, Document } from '@/components/documents/document-list';
 import { DocumentReviewModal } from '@/components/documents/document-review-modal';
-import { DocumentUpload } from '@/components/documents/document-upload';
 import { BodegaImportXls } from '@/components/bodega/bodega-import-xls';
-import { FileText, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
+import { FileText, CheckCircle2, AlertCircle, Clock, Upload } from 'lucide-react';
 
 interface DocumentStats {
   total: number;
@@ -40,7 +40,9 @@ export default function DocumentosBodegaPage() {
         setStats({
           total: data.length,
           vigentes: data.filter((d: Document) => d.status === 'active').length,
-          en_revision: data.filter((d: Document) => d.status === 'pending_l1' || d.status === 'pending_l2').length,
+          en_revision: data.filter((d: Document) => 
+            d.status === 'pending_l1' || d.status === 'pending_l2'
+          ).length,
           rechazados: data.filter((d: Document) => d.status === 'rejected').length,
         });
       }
@@ -62,7 +64,7 @@ export default function DocumentosBodegaPage() {
         credentials: 'include',
       });
       if (response.ok) {
-        setDocuments(documents.filter((d) => d.id !== documentId));
+        setDocuments(documents.filter(d => d.id !== documentId));
         await loadDocuments();
       }
     } catch (error) {
@@ -72,7 +74,7 @@ export default function DocumentosBodegaPage() {
 
   const handleView = (document: Document | string) => {
     if (typeof document === 'string') {
-      const doc = documents.find((d) => d.id === document);
+      const doc = documents.find(d => d.id === document);
       if (doc) setSelectedDoc(doc);
     } else {
       setSelectedDoc(document);
@@ -85,13 +87,13 @@ export default function DocumentosBodegaPage() {
       const response = await fetch('/api/documents/review', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({
           documentId,
           action: 'approve',
           observations,
           reviewLevel: 'L1',
         }),
+        credentials: 'include',
       });
       if (response.ok) {
         await loadDocuments();
@@ -106,13 +108,13 @@ export default function DocumentosBodegaPage() {
       const response = await fetch('/api/documents/review', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({
           documentId,
           action: 'reject',
           observations,
           reviewLevel: 'L1',
         }),
+        credentials: 'include',
       });
       if (response.ok) {
         await loadDocuments();
@@ -127,7 +129,7 @@ export default function DocumentosBodegaPage() {
       <div>
         <h1 className="text-3xl font-bold">Documentos Bodega</h1>
         <p className="text-muted-foreground mt-2">
-          Gestión de procedimientos e instructivos de bodega y almacenamiento
+          GestiÃ³n de procedimientos e instructivos de bodega y almacenamiento
         </p>
       </div>
 
@@ -161,13 +163,13 @@ export default function DocumentosBodegaPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center justify-between">
-              <span>En Revisión</span>
+              <span>En RevisiÃ³n</span>
               <Clock className="h-4 w-4 text-yellow-500" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-yellow-500">{stats.en_revision}</p>
-            <p className="text-xs text-muted-foreground">esperando aprobación</p>
+            <p className="text-xs text-muted-foreground">esperando aprobaciÃ³n</p>
           </CardContent>
         </Card>
 
@@ -180,37 +182,32 @@ export default function DocumentosBodegaPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-red-500">{stats.rechazados}</p>
-            <p className="text-xs text-muted-foreground">pendientes de corrección</p>
+            <p className="text-xs text-muted-foreground">pendientes de correcciÃ³n</p>
           </CardContent>
         </Card>
       </div>
 
       <Tabs defaultValue="all" className="space-y-4">
         <TabsList className="bg-muted/60 border-b-2 border-border p-1">
-          <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
-            Todos
-          </TabsTrigger>
-          <TabsTrigger value="vigentes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
-            Vigentes
-          </TabsTrigger>
-          <TabsTrigger value="revision" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
-            En Revisión
-          </TabsTrigger>
-          <TabsTrigger value="upload" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
-            Subir Documentos
-          </TabsTrigger>
-          <TabsTrigger value="import" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
-            Importar Inventario
-          </TabsTrigger>
+          <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Todos</TabsTrigger>
+          <TabsTrigger value="vigentes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Vigentes</TabsTrigger>
+          <TabsTrigger value="revision" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">En Revisión</TabsTrigger>
+          <TabsTrigger value="upload" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Subir Documentos</TabsTrigger>
+          <TabsTrigger value="import" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Importar Inventario</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
-          <DocumentList documents={documents} isLoading={loading} onView={handleView} onDelete={handleDelete} />
+          <DocumentList
+            documents={documents}
+            isLoading={loading}
+            onView={handleView}
+            onDelete={handleDelete}
+          />
         </TabsContent>
 
         <TabsContent value="vigentes" className="space-y-4">
           <DocumentList
-            documents={documents.filter((d) => d.status === 'active')}
+            documents={documents.filter(d => d.status === 'active')}
             isLoading={loading}
             onView={handleView}
             onDelete={handleDelete}
@@ -219,7 +216,9 @@ export default function DocumentosBodegaPage() {
 
         <TabsContent value="revision" className="space-y-4">
           <DocumentList
-            documents={documents.filter((d) => d.status === 'pending_l1' || d.status === 'pending_l2')}
+            documents={documents.filter(d => 
+              d.status === 'pending_l1' || d.status === 'pending_l2'
+            )}
             isLoading={loading}
             onView={handleView}
             onDelete={handleDelete}
@@ -229,13 +228,16 @@ export default function DocumentosBodegaPage() {
         <TabsContent value="upload" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Subir Documento Nuevo</CardTitle>
+              <CardTitle>Subir Nuevo Documento</CardTitle>
+              <CardDescription>
+                Sube procedimientos e instructivos de bodega
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <DocumentUpload
+              <DocumentUpload 
                 module="bodega"
                 category="documentos"
-                onUploadSuccess={() => loadDocuments()}
+                onUploadSuccess={loadDocuments}
               />
             </CardContent>
           </Card>
@@ -249,7 +251,10 @@ export default function DocumentosBodegaPage() {
       <DocumentReviewModal
         document={selectedDoc}
         isOpen={reviewOpen}
-        onClose={() => setReviewOpen(false)}
+        onClose={() => {
+          setReviewOpen(false);
+          setSelectedDoc(null);
+        }}
         onApprove={handleApprove}
         onReject={handleReject}
         reviewLevel="L1"
@@ -257,3 +262,4 @@ export default function DocumentosBodegaPage() {
     </div>
   );
 }
+

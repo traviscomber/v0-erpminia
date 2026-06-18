@@ -15,9 +15,7 @@ export function useSustainabilityNotifications() {
     // Polling cada 30 segundos para verificar alertas
     const interval = setInterval(async () => {
       try {
-        const response = await fetch('/api/sostenibilidad/alerts/overdue', {
-          credentials: 'include',
-        });
+        const response = await fetch('/api/sostenibilidad/alerts/overdue');
         const data = await response.json();
 
         if (data.critical_alerts > 0) {

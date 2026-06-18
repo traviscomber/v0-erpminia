@@ -18,9 +18,7 @@ export function useWorkOrdersByCostCenter() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch('/api/maintenance/work-orders-by-cost-center', {
-          credentials: 'include',
-        });
+        const res = await fetch('/api/maintenance/work-orders-by-cost-center');
         if (!res.ok) throw new Error('Failed to fetch');
         const result = await res.json();
         setData(result);

@@ -8,35 +8,27 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
-export default function AuditModal({
-  open,
-  onOpenChange,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
+export default function AuditModal({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const [responses, setResponses] = useState<Record<string, string>>({});
 
   const questions = [
-    { id: '1', number: '4.1', question: 'Compromiso de la dirección con SST' },
-    { id: '2', number: '4.2', question: 'Políticas documentadas vigentes' },
-    { id: '3', number: '4.3', question: 'Proceso de identificación de peligros' },
+    { id: '1', number: '4.1', question: 'Leadership commitment to OH&S' },
+    { id: '2', number: '4.2', question: 'Documented policies in place' },
+    { id: '3', number: '4.3', question: 'Hazard identification process' },
   ];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Sesión de auditoría ISO 45001</DialogTitle>
+          <DialogTitle>Sesion de auditoria ISO 45001</DialogTitle>
         </DialogHeader>
 
-        <div className="max-h-[60vh] space-y-4 overflow-y-auto">
+        <div className="space-y-4 max-h-[60vh] overflow-y-auto">
           {questions.map((q) => (
             <Card key={q.id}>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm">
-                  {q.number} - {q.question}
-                </CardTitle>
+                <CardTitle className="text-sm">{q.number} - {q.question}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="space-y-2">
@@ -47,7 +39,7 @@ export default function AuditModal({
                         checked={responses[q.id] === option}
                         onCheckedChange={() => setResponses({ ...responses, [q.id]: option })}
                       />
-                      <Label htmlFor={`${q.id}-${option}`} className="cursor-pointer text-sm">
+                      <Label htmlFor={`${q.id}-${option}`} className="text-sm cursor-pointer">
                         {option}
                       </Label>
                     </div>
@@ -59,11 +51,13 @@ export default function AuditModal({
           ))}
         </div>
 
-        <div className="flex justify-end gap-2">
+        <div className="flex gap-2 justify-end">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button onClick={() => onOpenChange(false)}>Completar auditoría</Button>
+          <Button onClick={() => onOpenChange(false)}>
+            Completar auditoria
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

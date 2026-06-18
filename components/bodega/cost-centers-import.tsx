@@ -2,7 +2,9 @@
 
 import { useState, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { Upload, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 
 interface ImportResult {
@@ -18,14 +20,12 @@ export function CostCentersImportComponent() {
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const isValidFile = (file: File) => /\.(csv|xls|xlsx)$/i.test(file.name);
-
   const handleFile = async (file: File) => {
-    if (!isValidFile(file)) {
+    if (!file.name.endsWith('.csv')) {
       setResult({
         success: false,
-        message: 'Solo se aceptan archivos CSV, XLS o XLSX',
-        error: 'Tipo de archivo no válido',
+        message: 'Only CSV files are accepted',
+        error: 'Invalid file type',
       });
       return;
     }
@@ -39,7 +39,6 @@ export function CostCentersImportComponent() {
 
       const response = await fetch('/api/bodega/import-cost-centers', {
         method: 'POST',
-        credentials: 'include',
         body: formData,
       });
 
@@ -54,14 +53,14 @@ export function CostCentersImportComponent() {
       } else {
         setResult({
           success: false,
-          message: 'No se pudieron importar los centros de costos',
-          error: data.error || 'Error desconocido',
+          message: 'Failed to import cost centers',
+          error: data.error || 'Unknown error',
         });
       }
     } catch (error) {
       setResult({
         success: false,
-        message: 'Error al subir el archivo',
+        message: 'Error uploading file',
         error: String(error),
       });
     } finally {
@@ -98,10 +97,11 @@ export function CostCentersImportComponent() {
             Importar Centros de Costos
           </CardTitle>
           <CardDescription>
-            Sube tu archivo CSV, XLS o XLSX con la estructura de centros de costos (minas y áreas)
+            Sube tu archivo CSV con la estructura de centros de costos (minas y áreas)
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Drag and drop zone */}
           <div
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
@@ -119,13 +119,13 @@ export function CostCentersImportComponent() {
               Arrastra tu archivo o haz clic para seleccionar
             </p>
             <p className="text-sm text-muted-foreground mt-1">
-              Formato: CSV, XLS o XLSX
+              Formato: CSV (separado por punto y coma)
             </p>
 
             <input
               ref={fileInputRef}
               type="file"
-              accept=".csv,.xls,.xlsx"
+              accept=".csv"
               onChange={(e) => {
                 if (e.target.files?.[0]) {
                   handleFile(e.target.files[0]);
@@ -135,6 +135,7 @@ export function CostCentersImportComponent() {
             />
           </div>
 
+          {/* Format info */}
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
@@ -144,11 +145,12 @@ export function CostCentersImportComponent() {
                 CÓDIGO REC ELEC | NOMBRE | RUTA COMPLETA | CREADOR POR | FECHA DE CREACIÓN | NOTAS
               </div>
               <p className="text-xs text-muted-foreground mt-2">
-                La RUTA COMPLETA debe usar " &gt; " para indicar la jerarquía.
+                La RUTA COMPLETA debe usar " &gt; " para indicar la jerarquía (ej: Mina Peumo &gt; Perforación)
               </p>
             </AlertDescription>
           </Alert>
 
+          {/* Results */}
           {result && (
             <Alert className={result.success ? 'border-green-500' : 'border-red-500'}>
               {result.success ? (
@@ -172,6 +174,7 @@ export function CostCentersImportComponent() {
             </Alert>
           )}
 
+          {/* Loading state */}
           {isLoading && (
             <div className="flex items-center justify-center gap-2 p-4 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />

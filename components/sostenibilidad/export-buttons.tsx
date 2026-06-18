@@ -48,7 +48,7 @@ export function ExportButtons({ data, fileName, columns }: ExportButtonsProps) {
       table.style.borderCollapse = 'collapse';
       table.style.marginTop = '20px';
 
-      // Encabezados
+      // Headers
       const thead = document.createElement('thead');
       const headerRow = document.createElement('tr');
       columns.forEach((col) => {
@@ -64,7 +64,7 @@ export function ExportButtons({ data, fileName, columns }: ExportButtonsProps) {
       thead.appendChild(headerRow);
       table.appendChild(thead);
 
-      // Filas
+      // Rows
       const tbody = document.createElement('tbody');
       data.forEach((row) => {
         const tr = document.createElement('tr');
@@ -102,7 +102,7 @@ export function ExportButtons({ data, fileName, columns }: ExportButtonsProps) {
     if (!isMounted) return;
     setIsLoading(true);
     try {
-      const XLSX = await import('xlsx');
+      const XLSX = (await import('xlsx')).default;
 
       const worksheet = XLSX.utils.json_to_sheet(
         data.map((row) =>

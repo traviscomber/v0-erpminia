@@ -79,35 +79,16 @@ export async function GET(request: NextRequest) {
 
     if (stockError) throw stockError;
 
-    const stockRows = (stock || []).map((item: any) => {
-      const quantityOnHand = Number(item.quantity_on_hand || 0);
-      const quantityReserved = Number(item.quantity_reserved || 0);
-      const quantityAvailable = Number(item.quantity_available || quantityOnHand - quantityReserved);
-      const reorderLevel = Number(item.reorder_level || 0);
-      const reorderQuantity = Number(item.reorder_quantity || 0);
-      const unitCost = Number(item.unit_cost || 0);
-
-      return {
-        ...item,
-        sku: item.part_code,
-        name: item.part_name,
-        category: item.part_category || item.category || 'General',
-        quantity: quantityOnHand,
-        min_stock: reorderLevel,
-        unit_cost: unitCost,
-        quantity_on_hand: quantityOnHand,
-        quantity_reserved: quantityReserved,
-        quantity_available: quantityAvailable,
-        reorder_level: reorderLevel,
-        reorder_quantity: reorderQuantity,
-        bin: item.bin
-          ? {
-              bin_code: item.bin.bin_code || null,
-              bin_location: item.bin.bin_location || null,
-            }
-          : null,
-      };
-    });
+    const rows = (stock || []).map((item: any) => ({
+      ...item,
+      unit_cost: Number(item.unit_cost || 0),
+      quantity_on_hand: Number(item.quantity_on_hand || 0),
+      quantity_reserved: Number(item.quantity_reserved || 0),
+      quantity_available: Number(item.quantity_available || 0),
+      reorder_level: Number(item.reorder_level || 0),
+      reorder_quantity: Number(item.reorder_quantity || 0),
+    }));
+    const stockRows = rows;
 
     const summary = {
       totalItems: stockRows.length,
@@ -120,7 +101,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       stock: stockRows,
-      items: stockRows,
       bins,
       summary,
     });

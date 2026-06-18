@@ -16,7 +16,7 @@ export async function GET(
     }
 
     // Fetch all approval flows
-    const response = await fetch(`${url}/rest/v1/flujo_aprobacion_documentos_sostenibilidad?select=*`, {
+    const response = await fetch(`${url}/rest/v1/flujo_aprobacion_documentos_sostenibilidadselect=*`, {
       headers: {
         apikey: key,
         Authorization: `Bearer ${key}`,

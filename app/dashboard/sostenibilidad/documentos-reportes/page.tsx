@@ -24,7 +24,7 @@ import { AlertCircle, TrendingUp, Clock, CheckCircle2, XCircle } from 'lucide-re
 const COLORS = ['#22c55e', '#f97316', '#ef4444', '#6b7280'];
 
 const fetcher = async (url: string) => {
-  const response = await fetch(url, { credentials: 'include' });
+  const response = await fetch(url);
   const payload = await response.json().catch(() => null);
   if (!response.ok) {
     return null;
@@ -174,7 +174,7 @@ export default function DocumentosReportesPage() {
           title: document.title,
           daysOverdue: Math.max(daysOpen - 7, 0),
           approvalLevel:
-            document.steps.find((step) => step.status === 'pending') ? 'Pendiente' : 'En revisión',
+            document.steps.find((step) => step.status === 'pending') ? 'Pendiente' : 'En revisiÃ³n',
           daysOpen,
         };
       })
@@ -188,9 +188,9 @@ export default function DocumentosReportesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Reportería de Documentos</h1>
+        <h1 className="text-3xl font-bold text-foreground">ReporterÃ­a de Documentos</h1>
         <p className="text-muted-foreground mt-2">
-          Análisis y seguimiento del flujo de aprobación documental
+          AnÃ¡lisis y seguimiento del flujo de aprobaciÃ³n documental
         </p>
       </div>
 
@@ -198,7 +198,7 @@ export default function DocumentosReportesPage() {
         <Card className="border-destructive/30">
           <CardContent className="pt-6 flex items-center gap-3 text-sm">
             <AlertCircle className="w-4 h-4 text-destructive" />
-            <span>No fue posible cargar toda la reportería documental.</span>
+            <span>No fue posible cargar toda la reporterÃ­a documental.</span>
           </CardContent>
         </Card>
       )}
@@ -228,7 +228,7 @@ export default function DocumentosReportesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{pendingDocuments}</div>
-            <p className="text-xs text-muted-foreground mt-1">En revisión</p>
+            <p className="text-xs text-muted-foreground mt-1">En revisiÃ³n</p>
           </CardContent>
         </Card>
 
@@ -256,7 +256,7 @@ export default function DocumentosReportesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{averageApprovalDays}</div>
-            <p className="text-xs text-muted-foreground mt-1">d?as de aprobaci?n</p>
+            <p className="text-xs text-muted-foreground mt-1">das de aprobacin</p>
           </CardContent>
         </Card>
       </div>
@@ -264,7 +264,7 @@ export default function DocumentosReportesPage() {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="overview">Resumen</TabsTrigger>
-              <TabsTrigger value="timeline">Línea de tiempo</TabsTrigger>
+              <TabsTrigger value="timeline">LÃ­nea de tiempo</TabsTrigger>
               <TabsTrigger value="overdue">Vencidos</TabsTrigger>
         </TabsList>
 
@@ -272,8 +272,8 @@ export default function DocumentosReportesPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
-                <CardTitle>Distribución por Estado</CardTitle>
-                <CardDescription>Documentos por estado del flujo de aprobación</CardDescription>
+                <CardTitle>DistribuciÃ³n por Estado</CardTitle>
+                <CardDescription>Documentos por estado del flujo de aprobaciÃ³n</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
@@ -302,7 +302,7 @@ export default function DocumentosReportesPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Desglose por Estado</CardTitle>
-                <CardDescription>Estadísticas consolidadas del módulo</CardDescription>
+                <CardDescription>EstadÃ­sticas consolidadas del mÃ³dulo</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -333,15 +333,15 @@ export default function DocumentosReportesPage() {
         <TabsContent value="timeline">
           <Card>
             <CardHeader>
-              <CardTitle>Tiempo Promedio de Aprobación</CardTitle>
-              <CardDescription>Tendencia mensual según documentos procesados</CardDescription>
+              <CardTitle>Tiempo Promedio de AprobaciÃ³n</CardTitle>
+              <CardDescription>Tendencia mensual segÃºn documentos procesados</CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={400}>
                 <LineChart data={approvalTimeline}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
-                  <YAxis yAxisId="left" label={{ value: 'Días', angle: -90, position: 'insideLeft' }} />
+                  <YAxis yAxisId="left" label={{ value: 'DÃ­as', angle: -90, position: 'insideLeft' }} />
                   <YAxis
                     yAxisId="right"
                     orientation="right"
@@ -354,7 +354,7 @@ export default function DocumentosReportesPage() {
                     type="monotone"
                     dataKey="avgDays"
                     stroke="#f97316"
-                    name="Promedio (días)"
+                    name="Promedio (dÃ­as)"
                     strokeWidth={2}
                   />
                   <Bar
@@ -375,10 +375,10 @@ export default function DocumentosReportesPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <AlertCircle className="w-5 h-5 text-destructive" />
-                Documentos Vencidos en Aprobación
+                Documentos Vencidos en AprobaciÃ³n
               </CardTitle>
               <CardDescription>
-                Documentos pendientes con más de 7 días abiertos en revisión
+                Documentos pendientes con mÃ¡s de 7 dÃ­as abiertos en revisiÃ³n
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -393,7 +393,7 @@ export default function DocumentosReportesPage() {
                         <p className="font-medium">{doc.title}</p>
                         <p className="text-xs text-muted-foreground">{doc.approvalLevel}</p>
                       </div>
-                      <Badge variant="destructive">{doc.daysOverdue} días</Badge>
+                      <Badge variant="destructive">{doc.daysOverdue} dÃ­as</Badge>
                     </div>
                   ))
                 ) : (

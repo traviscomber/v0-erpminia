@@ -20,7 +20,7 @@ interface KPI {
   description: string;
 }
 
-const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const statusColors = {
   green: 'bg-[var(--brand-verde)]/5 border-[var(--brand-verde)]/30',

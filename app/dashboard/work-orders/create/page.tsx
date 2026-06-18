@@ -31,22 +31,22 @@ type ComponentTemplate = {
 
 const COMPONENT_TEMPLATES: Record<string, ComponentTemplate[]> = {
   excavator: [
-    { id: 'motor', name: 'Sistema Motor y Transmisión', code: 'EXC-MOTOR', estimatedHours: 4 },
-    { id: 'hydraulics', name: 'Sistema Hidráulico', code: 'EXC-HIDRAULICO', estimatedHours: 3 },
+    { id: 'motor', name: 'Sistema Motor y Transmision', code: 'EXC-MOTOR', estimatedHours: 4 },
+    { id: 'hydraulics', name: 'Sistema Hidraulico', code: 'EXC-HIDRAULICO', estimatedHours: 3 },
     { id: 'undercarriage', name: 'Tren de Rodaje', code: 'EXC-RODAJE', estimatedHours: 6 },
     { id: 'cooling', name: 'Sistema de Enfriamiento', code: 'EXC-ENFRIAMIENTO', estimatedHours: 2 },
   ],
   pump: [
     { id: 'impeller', name: 'Impulsor y carcasa', code: 'PMP-IMP', estimatedHours: 3 },
-    { id: 'seal', name: 'Sellos mecánicos', code: 'PMP-SEAL', estimatedHours: 2 },
+    { id: 'seal', name: 'Sellos mecanicos', code: 'PMP-SEAL', estimatedHours: 2 },
     { id: 'bearings', name: 'Rodamientos', code: 'PMP-BEAR', estimatedHours: 2 },
-    { id: 'lubrication', name: 'Sistema de lubricación', code: 'PMP-LUBE', estimatedHours: 1 },
+    { id: 'lubrication', name: 'Sistema de lubricacion', code: 'PMP-LUBE', estimatedHours: 1 },
   ],
   motor: [
     { id: 'stator', name: 'Estator y bobinado', code: 'MTR-STAT', estimatedHours: 5 },
     { id: 'bearings', name: 'Rodamientos y soporte', code: 'MTR-BEAR', estimatedHours: 2 },
-    { id: 'alignment', name: 'Alineación y acople', code: 'MTR-ALIGN', estimatedHours: 2 },
-    { id: 'cooling', name: 'Ventilación y enfriamiento', code: 'MTR-COOL', estimatedHours: 1 },
+    { id: 'alignment', name: 'Alineacion y acople', code: 'MTR-ALIGN', estimatedHours: 2 },
+    { id: 'cooling', name: 'Ventilacion y enfriamiento', code: 'MTR-COOL', estimatedHours: 1 },
   ],
   conveyor: [
     { id: 'belt', name: 'Correa transportadora', code: 'CNV-BELT', estimatedHours: 4 },
@@ -56,12 +56,12 @@ const COMPONENT_TEMPLATES: Record<string, ComponentTemplate[]> = {
   ],
   mill: [
     { id: 'liner', name: 'Revestimientos', code: 'MIL-LINER', estimatedHours: 8 },
-    { id: 'gear', name: 'Corona y piñón', code: 'MIL-GEAR', estimatedHours: 6 },
-    { id: 'lubrication', name: 'Lubricación', code: 'MIL-LUBE', estimatedHours: 2 },
+    { id: 'gear', name: 'Corona y pinon', code: 'MIL-GEAR', estimatedHours: 6 },
+    { id: 'lubrication', name: 'Lubricacion', code: 'MIL-LUBE', estimatedHours: 2 },
     { id: 'drive', name: 'Sistema de accionamiento', code: 'MIL-DRIVE', estimatedHours: 4 },
   ],
   generic: [
-    { id: 'inspection', name: 'Inspección general', code: 'GEN-INSP', estimatedHours: 2 },
+    { id: 'inspection', name: 'Inspeccion general', code: 'GEN-INSP', estimatedHours: 2 },
     { id: 'power', name: 'Sistema de potencia', code: 'GEN-POWER', estimatedHours: 3 },
     { id: 'fluids', name: 'Fluidos y sellos', code: 'GEN-FLUID', estimatedHours: 2 },
     { id: 'structure', name: 'Estructura y fijaciones', code: 'GEN-STRUC', estimatedHours: 2 },
@@ -69,7 +69,7 @@ const COMPONENT_TEMPLATES: Record<string, ComponentTemplate[]> = {
 };
 
 const fetcher = async (url: string) => {
-  const response = await fetch(url, { credentials: 'include' });
+  const response = await fetch(url);
   const payload = await response.json().catch(() => null);
 
   if (!response.ok) {
@@ -110,7 +110,7 @@ export default function CreateWorkOrderPage() {
     revalidateOnFocus: false,
   });
 
-  const assets = (data?.assets || []) as MaintenanceAsset[];
+  const assets = (data.assets || []) as MaintenanceAsset[];
   const selectedAsset = assets.find((asset) => asset.id === selectedAssetId) ?? null;
   const availableComponents = useMemo(
     () => resolveAssetTemplate(selectedAsset ?? null),
@@ -143,7 +143,6 @@ export default function CreateWorkOrderPage() {
       const response = await fetch('/api/maintenance/work-orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({
           assetId: selectedAsset.id,
           title: `${selectedAsset.asset_name} - ${selectedComponentsData.map((component) => component.name).join(', ')}`,
@@ -172,9 +171,9 @@ export default function CreateWorkOrderPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Crear Orden de Mantención</h1>
+        <h1 className="text-3xl font-bold">Crear Orden de Mantencion</h1>
         <p className="text-muted-foreground mt-2">
-          Flujo base del MVP con activos reales de mantención
+          Flujo base del MVP con activos reales de mantencion
         </p>
       </div>
 
@@ -215,14 +214,14 @@ export default function CreateWorkOrderPage() {
               <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm">
                 <div className="flex items-center gap-2 text-destructive">
                   <AlertCircle className="w-4 h-4" />
-                  <span>No fue posible cargar los activos de mantención.</span>
+                  <span>No fue posible cargar los activos de mantencion.</span>
                 </div>
               </div>
             )}
 
             {!isLoading && !error && assets.length === 0 && (
               <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
-                No hay activos registrados en `maintenance_assets` todavía.
+                No hay activos registrados en `maintenance_assets` todavia.
               </div>
             )}
 
@@ -239,9 +238,9 @@ export default function CreateWorkOrderPage() {
                 <div className="flex justify-between items-start gap-4">
                   <div>
                     <h3 className="font-semibold">{asset.asset_name}</h3>
-                    <p className="text-sm text-muted-foreground">Código: {asset.asset_code}</p>
+                    <p className="text-sm text-muted-foreground">Codigo: {asset.asset_code}</p>
                     <p className="text-sm text-muted-foreground">
-                      {asset.asset_type || 'Sin tipo'} - {asset.location || 'Sin ubicación'}
+                      {asset.asset_type || 'Sin tipo'} - {asset.location || 'Sin ubicacion'}
                     </p>
                     {(asset.manufacturer || asset.model) && (
                       <p className="text-sm text-muted-foreground">
@@ -298,7 +297,7 @@ export default function CreateWorkOrderPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Tipo de mantenimiento</label>
+              <label className="text-sm font-medium">Tipo de Mantenimiento</label>
               <Select value={orderType} onValueChange={setOrderType}>
                 <SelectTrigger>
                   <SelectValue />
@@ -317,7 +316,7 @@ export default function CreateWorkOrderPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="critical">Crítica</SelectItem>
+                  <SelectItem value="critical">Critica</SelectItem>
                   <SelectItem value="high">Alta</SelectItem>
                   <SelectItem value="medium">Media</SelectItem>
                   <SelectItem value="low">Baja</SelectItem>
@@ -325,7 +324,7 @@ export default function CreateWorkOrderPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Descripción</label>
+              <label className="text-sm font-medium">Descripcion</label>
               <textarea
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
@@ -336,7 +335,7 @@ export default function CreateWorkOrderPage() {
             <div className="p-3 bg-muted rounded-lg space-y-2 text-sm">
               <p className="font-semibold">Resumen</p>
               <p>Activo: {selectedAsset?.asset_name || '-'}</p>
-              <p>Código: {selectedAsset?.asset_code || '-'}</p>
+              <p>Codigo: {selectedAsset?.asset_code || '-'}</p>
               <p>Componentes: {selectedComponents.length}</p>
               <p>Tiempo total: {totalHours}h</p>
             </div>
@@ -375,3 +374,4 @@ export default function CreateWorkOrderPage() {
     </div>
   );
 }
+

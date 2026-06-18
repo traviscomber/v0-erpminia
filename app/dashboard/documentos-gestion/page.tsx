@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Search, Plus, AlertCircle, CheckCircle, Clock, XCircle } from 'lucide-react';
 
-const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function DocumentosGestionPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -206,7 +206,7 @@ export default function DocumentosGestionPage() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">{category.count || 0} documentos</span>
+                  <span className="text-muted-foreground">{category.count || 0} docs</span>
                   <span className="font-semibold">{category.pendingApprovals || 0} pendientes</span>
                 </div>
               </CardContent>

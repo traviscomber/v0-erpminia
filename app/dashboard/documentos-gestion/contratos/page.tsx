@@ -22,7 +22,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 
 const fetcher = async (url: string) => {
-  const response = await fetch(url, { credentials: 'include' });
+  const response = await fetch(url);
   if (!response.ok) return null;
   return response.json();
 };
@@ -109,7 +109,6 @@ export default function ContratosPage() {
 
       const response = await fetch('/api/contracts', {
         method: 'POST',
-        credentials: 'include',
         body: payload,
       });
 

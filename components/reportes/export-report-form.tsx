@@ -1,59 +1,16 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Download } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-
-type ReportType = 'mantencion' | 'hse' | 'auditoria';
-
-function toCsvRows(value: unknown, prefix = ''): string[] {
-  if (Array.isArray(value)) {
-    return value.flatMap((item, index) => toCsvRows(item, `${prefix}${prefix ? '.' : ''}${index}`));
-  }
-
-  if (value && typeof value === 'object') {
-    return Object.entries(value as Record<string, unknown>).flatMap(([key, nestedValue]) =>
-      toCsvRows(nestedValue, `${prefix}${prefix ? '.' : ''}${key}`)
-    );
-  }
-
-  return [`${prefix},${JSON.stringify(value ?? '')}`];
-}
-
-function downloadText(content: string, filename: string, mimeType = 'text/csv;charset=utf-8') {
-  const blob = new Blob([content], { type: mimeType });
-  const url = window.URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = filename;
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  window.URL.revokeObjectURL(url);
-}
 
 export function ExportReportForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [reportType, setReportType] = useState<ReportType>('mantencion');
-  const [startDate, setStartDate] = useState(
-    new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-  );
+  const [reportType, setReportType] = useState('maintenance');
+  const [startDate, setStartDate] = useState(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
-
-  const reportLabel = useMemo(() => {
-    if (reportType === 'mantencion') return 'mantencion';
-    if (reportType === 'hse') return 'hse';
-    return 'auditoria';
-  }, [reportType]);
 
   const handleExport = async () => {
     setLoading(true);
@@ -63,36 +20,19 @@ export function ExportReportForm() {
       const res = await fetch('/api/reportes/export', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ tipo_reporte: reportType, fecha_inicio: startDate, fecha_fin: endDate }),
+        body: JSON.stringify({ report_type: reportType, start_date: startDate, end_date: endDate }),
       });
 
-      const payload = await res.json().catch(() => null);
-
-      if (!res.ok) {
-        throw new Error(payload?.error || 'No se pudo generar el reporte');
+      if (res.ok) {
+        const { report } = await res.json();
+        const filename = `${reportType}-report-${new Date().toISOString().split('T')[0]}.csv`;
+        alert(`Report generated: ${report.row_count} records. Download ready.\nFilename: ${filename}`);
+      } else {
+        setError('Failed to generate report');
       }
-
-      const chartData = Array.isArray(payload?.chartData) ? payload.chartData : [];
-      const summary = payload?.summary || {};
-      const rows = [
-        `tipo_reporte,${JSON.stringify(reportType)}`,
-        `fecha_inicio,${JSON.stringify(startDate)}`,
-        `fecha_fin,${JSON.stringify(endDate)}`,
-        `generado_el,${JSON.stringify(payload?.generatedAt || new Date().toISOString())}`,
-        '',
-        'clave_resumen,valor_resumen',
-        ...Object.entries(summary).map(([key, value]) => `${key},${JSON.stringify(value)}`),
-        '',
-        'fila_grafico',
-        ...chartData.flatMap((row: unknown) => toCsvRows(row, 'row')),
-      ];
-
-      const filename = `${reportLabel}-report-${new Date().toISOString().split('T')[0]}.csv`;
-      downloadText(rows.join('\n'), filename);
     } catch (err) {
       console.error('[v0] Export error:', err);
-      setError(err instanceof Error ? err.message : 'Error inesperado al exportar');
+      setError((err as Error).message);
     } finally {
       setLoading(false);
     }
@@ -101,66 +41,59 @@ export function ExportReportForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Exportar reporte</CardTitle>
+        <CardTitle>Export Report</CardTitle>
       </CardHeader>
       <CardContent>
         {error && (
-          <div className="mb-4 flex gap-2 rounded border border-red-200 bg-red-50 p-3">
-            <AlertCircle className="h-5 w-5 flex-shrink-0 text-red-600" />
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded flex gap-2">
+            <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
             <p className="text-sm text-red-700">{error}</p>
           </div>
         )}
 
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-semibold">Tipo de reporte</label>
-            <Select value={reportType} onValueChange={(value) => setReportType(value as ReportType)}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Selecciona un tipo de reporte" />
-              </SelectTrigger>
-                            <SelectContent className="border-white/10 bg-zinc-950 text-zinc-100 shadow-xl dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-100">
-                <SelectItem value="mantencion" className="data-[highlighted]:bg-orange-500/20 data-[highlighted]:text-white">
-                  Órdenes de trabajo de mantención
-                </SelectItem>
-                <SelectItem value="hse" className="data-[highlighted]:bg-orange-500/20 data-[highlighted]:text-white">
-                  Incidentes e investigaciones HSE
-                </SelectItem>
-                <SelectItem value="auditoria" className="data-[highlighted]:bg-orange-500/20 data-[highlighted]:text-white">
-                  Trazabilidad y cumplimiento
-                </SelectItem>
-              </SelectContent>
-            </Select>
+            <label className="text-sm font-semibold">Report Type</label>
+            <select
+              value={reportType}
+              onChange={(e) => setReportType(e.target.value)}
+              className="w-full p-2 border rounded text-sm"
+            >
+              <option value="maintenance">Maintenance Work Orders</option>
+              <option value="hse">HSE Incidents & Investigations</option>
+              <option value="audit">Audit Trail & Compliance</option>
+            </select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-semibold">Desde</label>
+              <label className="text-sm font-semibold">Start Date</label>
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full rounded border border-border bg-background p-2 text-sm text-foreground"
+                className="w-full p-2 border rounded text-sm"
               />
             </div>
 
             <div>
-              <label className="text-sm font-semibold">Hasta</label>
+              <label className="text-sm font-semibold">End Date</label>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full rounded border border-border bg-background p-2 text-sm text-foreground"
+                className="w-full p-2 border rounded text-sm"
               />
             </div>
           </div>
 
           <Button onClick={handleExport} disabled={loading} className="w-full">
-            <Download className="mr-2 h-4 w-4" />
-            {loading ? 'Generando...' : 'Descargar CSV'}
+            <Download className="h-4 w-4 mr-2" />
+            {loading ? 'Generating...' : 'Export as CSV'}
           </Button>
 
           <p className="text-xs text-muted-foreground">
-            El archivo incluye resumen y detalle en formato CSV para auditoría y análisis.
+            Report will include all records for the selected period. Compliance-ready format for auditors.
           </p>
         </div>
       </CardContent>

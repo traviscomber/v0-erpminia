@@ -25,13 +25,12 @@ export async function GET(request: NextRequest) {
   // Get all items below min_stock
   const { data, error } = await supabase
     .from('bodega_inventory')
-    .select('id, sku, name, quantity, min_stock, category');
+    .select('id, sku, name, quantity, min_stock, category')
+    .lt('quantity', 'min_stock');
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  const alerts = (data || [])
-    .filter((item) => Number(item.quantity || 0) < Number(item.min_stock || 0))
-    .map(item => ({
+  const alerts = (data || []).map(item => ({
     ...item,
     reorder_qty: Math.max(0, item.min_stock * 2 - item.quantity),
     days_until_stockout: item.quantity > 0 ? Math.ceil(item.quantity / 1) : 0,

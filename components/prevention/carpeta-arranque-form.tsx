@@ -25,11 +25,11 @@ const DOCUMENTOS_REQUERIDOS = [
   'Documentacion de trabajadores extranjeros',
   'Procedimientos de trabajos actualizados con NRCT',
   'Procedimiento en caso de accidente',
-  'Política de empresa contratista en control de riesgos',
+  'Politica de empresa contratista en control de riesgos',
   'Copia carnet de identidad de todos los colaboradores',
   'Licencias de conduccion vigentes',
   'Recepcion de conductores por reglamento interno',
-  'Programa de supervision a cargo de personal',
+  'Programa de supervision a cargo personal',
   'Matriz de Identificacion de Peligros (MIPER)',
 ];
 
@@ -164,7 +164,7 @@ export default function CarpetaArranqueForm({ onSuccess }: CarpetaArranqueFormPr
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="empresa_rut">RUT de la empresa</Label>
+            <Label htmlFor="empresa_rut">RUT de la Empresa</Label>
             <Input
               id="empresa_rut"
               placeholder="Ej: 76.123.456-7"
@@ -174,7 +174,7 @@ export default function CarpetaArranqueForm({ onSuccess }: CarpetaArranqueFormPr
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="contacto_email">Correo de contacto EECC *</Label>
+          <Label htmlFor="contacto_email">Correo de Contacto EECC *</Label>
           <Input
             id="contacto_email"
             type="email"
@@ -270,7 +270,7 @@ export default function CarpetaArranqueForm({ onSuccess }: CarpetaArranqueFormPr
                 <label className="flex items-center gap-2 border border-dashed rounded-md p-3 cursor-pointer hover:border-primary/60 hover:bg-primary/5 transition-colors group">
                   <Upload className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
                   <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors">
-                    Haz clic para cargar (PDF, Word, Excel - max 50MB)
+                    Haz clic para cargar (PDF, Word, Excel — max 50MB)
                   </span>
                   <input
                     type="file"
@@ -342,7 +342,7 @@ export default function CarpetaArranqueForm({ onSuccess }: CarpetaArranqueFormPr
           >
             {submitting
               ? <><Loader2 className="h-4 w-4 animate-spin" />Enviando...</>
-              : <><Send className="h-4 w-4" />Enviar para revision ({uploadedCount} docs)</>}
+              : <><Send className="h-4 w-4" />Enviar para revisión ({uploadedCount} docs)</>}
           </Button>
           <Button type="button" variant="outline" onClick={() => onSuccess?.()}>
             Guardar y cerrar

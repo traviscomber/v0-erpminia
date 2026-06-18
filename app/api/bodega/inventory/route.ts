@@ -12,10 +12,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  if (!auth.organizationId) {
-    return NextResponse.json({ error: 'Organization not found' }, { status: 403 });
-  }
-
   // Get pagination parameters from query string
   const { searchParams } = new URL(request.url);
   const page = parseInt(searchParams.get('page') || '0', 10);
@@ -99,25 +95,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { sku, name, category, quantity, unit_cost, cost_center_id } = body;
-
-  if (cost_center_id) {
-    const { data: selectedCostCenter, error: costCenterError } = await supabase
-      .from('cost_centers')
-      .select('id')
-      .eq('id', cost_center_id)
-      .eq('organization_id', auth.organizationId)
-      .eq('status', 'active')
-      .maybeSingle();
-
-    if (costCenterError) {
-      return NextResponse.json({ error: costCenterError.message }, { status: 500 });
-    }
-
-    if (!selectedCostCenter) {
-      return NextResponse.json({ error: 'Invalid cost center' }, { status: 400 });
-    }
-  }
+  const { sku, name, category, quantity, unit_cost } = body;
 
   const { data, error } = await supabase
     .from('bodega_inventory')
@@ -127,7 +105,6 @@ export async function POST(request: NextRequest) {
       category,
       quantity,
       unit_cost,
-      cost_center_id: cost_center_id || null,
     })
     .select()
     .single();

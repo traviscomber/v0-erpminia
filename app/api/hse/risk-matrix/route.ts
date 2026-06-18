@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     }
 
     const status = request.nextUrl.searchParams.get('status');
-    let queryParams = '?select=*';
+    let queryParams = 'select=*';
     
     if (status) {
       queryParams += `&status=eq.${status}`;

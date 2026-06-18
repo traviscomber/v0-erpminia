@@ -1,62 +1,21 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { read, utils } from 'xlsx';
-import { getOrganizationContext } from '@/lib/api/organization-context';
-
-function normalizeHeader(value: string) {
-  return value
-    .trim()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase();
-}
-
-function parseCSVRows(text: string) {
-  const lines = text.split('\n').filter(line => line.trim());
-  const headers = lines[0].split(';').map(normalizeHeader);
-  return lines.slice(1).map(line => {
-    const values = line.split(';').map(v => v.trim());
-    const record: Record<string, string> = {};
-    headers.forEach((header, index) => {
-      record[header] = values[index] || '';
-    });
-    return record;
-  });
-}
-
-async function parseWorkbookRows(file: File, text: string) {
-  const lowerName = file.name.toLowerCase();
-  if (!lowerName.endsWith('.xlsx') && !lowerName.endsWith('.xls')) {
-    return parseCSVRows(text);
-  }
-
-  const workbook = read(Buffer.from(await file.arrayBuffer()), {
-    type: 'buffer',
-    cellDates: true,
-  });
-  const sheetName =
-    workbook.SheetNames.find((entry: string) => normalizeHeader(entry).includes('productos')) ||
-    workbook.SheetNames[0];
-  const sheet = workbook.Sheets[sheetName];
-  const rows: unknown[] = utils.sheet_to_json(sheet, { header: 1, defval: '', raw: true });
-  if (!rows.length) return [];
-
-  const headers = (rows[0] as unknown[]).map((header) => normalizeHeader(String(header ?? '')));
-  return rows.slice(1).map((row) => {
-    const values = row as unknown[];
-    const record: Record<string, unknown> = {};
-    headers.forEach((header, index) => {
-      record[header] = values[index] ?? '';
-    });
-    return record;
-  });
-}
+import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request: NextRequest) {
   try {
-    const context = await getOrganizationContext(request);
-    if (!context.ok) return context.response;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json(
+        { error: 'Missing Supabase configuration' },
+        { status: 500 }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
     const formData = await request.formData();
     const file = formData.get('file') as File;
@@ -71,36 +30,54 @@ export async function POST(request: NextRequest) {
 
     // Read file content
     const text = await file.text();
-    const rows = await parseWorkbookRows(file, text);
+    const lines = text.split('\n').filter(line => line.trim());
 
-    if (rows.length < 1) {
+    if (lines.length < 1) {
       return NextResponse.json(
         { error: 'File is empty' },
         { status: 400 }
       );
     }
 
+    // Parse CSV (use semicolon delimiter)
     const data: any[] = [];
-    for (const row of rows) {
-      const codigo = String(row['codigo'] || '').trim();
-      const familia = String(row['familia'] || '').trim();
-      const subFamilia = String(row['sub-familia'] || row['subfamilia'] || '').trim();
-      const equipo = String(row['equipo'] || '').trim();
-      const nombre = String(row['producto'] || familia || codigo).trim();
+    const headers = lines[0].split(';').map(h => h.trim().toLowerCase());
 
-      if (!codigo || !nombre) continue;
+    // Find column indices
+    const codigoIdx = headers.findIndex(h => h.includes('código') || h.includes('codigo'));
+    const familiaIdx = headers.findIndex(h => h.includes('familia'));
+    const subFamiliaIdx = headers.findIndex(h => h.includes('sub-familia') || h.includes('subfamilia'));
+    const equipoIdx = headers.findIndex(h => h.includes('equipo'));
+    const productoIdx = headers.findIndex(h => h.includes('producto'));
+
+    // Parse rows
+    for (let i = 1; i < lines.length; i++) {
+      const values = lines[i].split(';').map(v => v.trim());
+
+      if (values.length < 2 || !values[codigoIdx]) continue;
+
+      const codigo = values[codigoIdx];
+      const nombre = values[productoIdx] || values[familiaIdx] || '';
+
+      if (!nombre) continue;
 
       data.push({
-        sku: codigo,
+        codigo: codigo,
         name: nombre,
-        codigo,
-        familia,
-        sub_familia: subFamilia,
-        equipo,
-        category: familia || 'General',
+        sku: codigo,
+        familia: values[familiaIdx] || '',
+        sub_familia: values[subFamiliaIdx] || '',
+        equipo: values[equipoIdx] || '',
+        category: values[familiaIdx] || 'General',
         cost_center_id: costCenterId || null,
         quantity: 0,
+        description: `${values[familiaIdx] || ''} ${values[subFamiliaIdx] || ''} ${values[equipoIdx] || ''}`.trim(),
+        location: '',
         unit_cost: 0,
+        min_stock: 5,
+        max_stock: 500,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       });
     }
 
@@ -111,26 +88,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (costCenterId) {
-      const { data: selectedCostCenter, error: costCenterError } = await context.supabase
-        .from('cost_centers')
-        .select('id')
-        .eq('id', costCenterId)
-        .eq('organization_id', context.organizationId)
-        .eq('status', 'active')
-        .maybeSingle();
-
-      if (costCenterError) throw costCenterError;
-      if (!selectedCostCenter) {
-        return NextResponse.json(
-          { error: 'Invalid cost center selected for this organization' },
-          { status: 400 }
-        );
-      }
-    }
-
     // Insert into bodega_inventory
-    const { error: insertError } = await context.supabase
+    const { error: insertError, data: insertedData } = await supabase
       .from('bodega_inventory')
       .upsert(
         data.map(d => ({
@@ -143,7 +102,11 @@ export async function POST(request: NextRequest) {
           category: d.category,
           cost_center_id: d.cost_center_id,
           quantity: d.quantity,
+          description: d.description,
+          location: d.location,
           unit_cost: d.unit_cost,
+          min_stock: d.min_stock,
+          max_stock: d.max_stock,
         })),
         { onConflict: 'sku' }
       );

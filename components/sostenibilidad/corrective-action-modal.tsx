@@ -31,12 +31,7 @@ export function CorrectiveActionModal({ open, onOpenChange, ncId, onCreate }: an
       if (res.ok) {
         onCreate?.();
         onOpenChange(false);
-        setData({
-          actionDescription: '',
-          responsiblePerson: '',
-          scheduledCompletionDate: '',
-          verificationMethod: '',
-        });
+        setData({ actionDescription: '', responsiblePerson: '', scheduledCompletionDate: '', verificationMethod: '' });
       }
     } finally {
       setLoading(false);
@@ -86,10 +81,7 @@ export function CorrectiveActionModal({ open, onOpenChange, ncId, onCreate }: an
 
           <div>
             <Label>Método de verificación</Label>
-            <Select
-              value={data.verificationMethod}
-              onValueChange={(val) => setData({ ...data, verificationMethod: val })}
-            >
+            <Select value={data.verificationMethod} onValueChange={(val) => setData({ ...data, verificationMethod: val })}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>

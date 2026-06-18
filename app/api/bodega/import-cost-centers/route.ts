@@ -1,216 +1,162 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { read, utils } from 'xlsx';
-import { getOrganizationContext } from '@/lib/api/organization-context';
-
-type ImportedCostCenter = {
-  code: string;
-  name: string;
-  description: string | null;
-  status: 'active' | 'inactive';
-  created_at?: string;
-  updated_at?: string;
-};
-
-function normalizeHeader(value: string) {
-  return value
-    .trim()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase();
-}
-
-function normalizeRoute(value: string) {
-  return value
-    .trim()
-    .replace(/[/>]/g, '\\')
-    .replace(/\\+/g, '\\')
-    .replace(/^\\+|\\+$/g, '');
-}
-
-function slugify(value: string) {
-  return value
-    .trim()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
-}
-
-function parseDate(value: unknown) {
-  if (!value) return undefined;
-  if (value instanceof Date && !Number.isNaN(value.getTime())) {
-    return value.toISOString();
-  }
-  const text = String(value).trim();
-  if (!text) return undefined;
-  const parsed = new Date(text);
-  if (!Number.isNaN(parsed.getTime())) return parsed.toISOString();
-  return undefined;
-}
-
-async function parseWorkbookRows(file: File, text: string) {
-  const name = file.name.toLowerCase();
-  if (!name.endsWith('.xlsx') && !name.endsWith('.xls')) {
-    const lines = text.split('\n').filter(line => line.trim());
-    const headers = lines[0].split(';').map(normalizeHeader);
-    return lines.slice(1).map(line => {
-      const values = line.split(';').map(v => v.trim());
-      const record: Record<string, string> = {};
-      headers.forEach((header, index) => {
-        record[header] = values[index] || '';
-      });
-      return record;
-    });
-  }
-
-  const workbook = read(Buffer.from(await file.arrayBuffer()), {
-    type: 'buffer',
-    cellDates: true,
-  });
-  const sheetName =
-    workbook.SheetNames.find((entry: string) => normalizeHeader(entry).includes('centros de costos')) ||
-    workbook.SheetNames[0];
-  const sheet = workbook.Sheets[sheetName];
-  const rows: unknown[] = utils.sheet_to_json(sheet, { header: 1, defval: '', raw: true });
-  if (!rows.length) return [];
-
-  const headers = (rows[0] as unknown[]).map((header) => normalizeHeader(String(header ?? '')));
-  return rows.slice(1).map((row) => {
-    const values = row as unknown[];
-    const record: Record<string, unknown> = {};
-    headers.forEach((header, index) => {
-      record[header] = values[index] ?? '';
-    });
-    return record;
-  });
-}
-
-function splitName(value: string, parentCode?: string) {
-  const raw = value.trim();
-  const match = raw.match(/^([^\s]+)\s+(.+)$/);
-  if (match) {
-    return {
-      code: match[1].trim(),
-      name: match[2].trim(),
-    };
-  }
-
-  const fallbackCode = parentCode ? `${parentCode}-${slugify(raw)}` : slugify(raw);
-  return {
-    code: fallbackCode || raw,
-    name: raw,
-  };
-}
+import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request: NextRequest) {
   try {
-    const context = await getOrganizationContext(request);
-    if (!context.ok) return context.response;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json(
+        { error: 'Missing Supabase configuration' },
+        { status: 500 }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
     const formData = await request.formData();
     const file = formData.get('file') as File;
 
     if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'No file provided' },
+        { status: 400 }
+      );
     }
 
+    // Read file content
     const text = await file.text();
-    const rows = await parseWorkbookRows(file, text);
+    const lines = text.split('\n').filter(line => line.trim());
 
-    if (!rows.length) {
-      return NextResponse.json({ error: 'File is empty' }, { status: 400 });
+    if (lines.length < 1) {
+      return NextResponse.json(
+        { error: 'File is empty' },
+        { status: 400 }
+      );
     }
 
-    const parsed = rows
-      .map((row) => {
-        const nameValue = String(row['nombre'] || '').trim();
-        const routeValue = normalizeRoute(String(row['ruta completa'] || ''));
-        if (!nameValue || !routeValue) return null;
+    // Parse CSV
+    const data: any[] = [];
+    const headers = lines[0].split(';').map(h => h.trim().toLowerCase());
 
-        const routeSegments = routeValue.split('\\').filter(Boolean);
-        const depth = routeSegments.length || 1;
-        const parentRouteKey = routeSegments.slice(0, -1).join('\\');
+    // Find column indices
+    const codigoIdx = headers.findIndex(h => h.includes('código') || h.includes('codigo'));
+    const nombreIdx = headers.findIndex(h => h.includes('nombre'));
+    const rutaIdx = headers.findIndex(h => h.includes('ruta'));
+    const creadoPorIdx = headers.findIndex(h => h.includes('creador'));
+    const fechaCreacionIdx = headers.findIndex(h => h.includes('fecha de creación'));
+    const notasIdx = headers.findIndex(h => h.includes('notas'));
 
-        return {
-          sourceCode: String(row['codigo rec elec'] || '').trim(),
-          nameValue,
-          routeValue,
-          routeSegments,
-          parentRouteKey,
-          depth,
-          creator: String(row['creador por'] || '').trim(),
-          notes: String(row['notas'] || '').trim(),
-          discontinued: String(row['discontinuado'] || '').trim().toLowerCase() === 'si',
-          createdAt: parseDate(row['fecha de creacion'] || row['fecha de creación']),
-          updatedAt: parseDate(row['fecha de modificacion'] || row['fecha de modificación']),
-          modifiedBy: String(row['modificado por'] || '').trim(),
-        };
-      })
-      .filter((row): row is NonNullable<typeof row> => Boolean(row))
-      .sort((a, b) => a.depth - b.depth || a.routeValue.localeCompare(b.routeValue));
+    // Parse rows
+    for (let i = 1; i < lines.length; i++) {
+      const values = lines[i].split(';').map(v => v.trim());
 
-    if (!parsed.length) {
+      if (values.length < 2 || !values[codigoIdx]) continue;
+
+      const codigo = values[codigoIdx];
+      const nombre = values[nombreIdx] || '';
+      const rutaCompleta = values[rutaIdx] || '';
+
+      data.push({
+        codigo_rec_elec: codigo,
+        nombre,
+        ruta_completa: rutaCompleta,
+        creador_por: values[creadoPorIdx] || '',
+        fecha_creacion: values[fechaCreacionIdx] || new Date().toISOString(),
+        notas: values[notasIdx] || '',
+        parent_id: null, // Will be set after initial insert
+        nivel: rutaCompleta.split(' > ').length,
+      });
+    }
+
+    if (data.length === 0) {
       return NextResponse.json(
         { error: 'No valid data found in file' },
         { status: 400 }
       );
     }
 
-    const routeCodeMap = new Map<string, string>();
-    const payload: ImportedCostCenter[] = parsed.map((row) => {
-      const parentCode = row.parentRouteKey ? routeCodeMap.get(row.parentRouteKey) : undefined;
-      const derived = splitName(row.nameValue, parentCode);
-      const code = row.sourceCode || derived.code;
-      routeCodeMap.set(row.routeValue, code);
+    // Insert root centers first (those with level 1)
+    const rootCenters = data.filter(d => d.nivel === 1);
+    const childCenters = data.filter(d => d.nivel > 1);
 
-      const descriptionParts = [
-        `Ruta completa: ${row.routeValue}`,
-        row.sourceCode ? `Código REC ELEC: ${row.sourceCode}` : '',
-        row.creator ? `Creador: ${row.creator}` : '',
-        row.modifiedBy ? `Modificado por: ${row.modifiedBy}` : '',
-        row.createdAt ? `Fecha creación: ${row.createdAt}` : '',
-        row.updatedAt ? `Fecha modificación: ${row.updatedAt}` : '',
-        `Descontinuado: ${row.discontinued ? 'Sí' : 'No'}`,
-        row.notes ? `Notas: ${row.notes}` : '',
-      ].filter(Boolean);
+    // Insert root centers
+    if (rootCenters.length > 0) {
+      const { error: rootError } = await supabase
+        .from('cost_centers')
+        .upsert(
+          rootCenters.map(d => ({
+            codigo_rec_elec: d.codigo_rec_elec,
+            nombre: d.nombre,
+            ruta_completa: d.ruta_completa,
+            nivel: 1,
+            parent_id: null,
+            creador_por: d.creador_por,
+            fecha_creacion: d.fecha_creacion,
+            notas: d.notas,
+          })),
+          { onConflict: 'codigo_rec_elec' }
+        );
 
-      return {
-        code,
-        name: derived.name,
-        description: descriptionParts.join(' | ') || null,
-        status: row.discontinued ? 'inactive' : 'active',
-        created_at: row.createdAt,
-        updated_at: row.updatedAt,
-      };
-    });
+      if (rootError) throw rootError;
+    }
 
-    const { error } = await context.supabase
-      .from('cost_centers')
-      .upsert(
-        payload.map((item) => ({
-          organization_id: context.organizationId,
-          code: item.code,
-          name: item.name,
-          description: item.description,
-          status: item.status,
-          created_at: item.created_at,
-          updated_at: item.updated_at || new Date().toISOString(),
-        })),
-        { onConflict: 'organization_id,code' }
+    // Insert child centers with parent references
+    if (childCenters.length > 0) {
+      // For each child, find parent from ruta_completa
+      const processedChildren = await Promise.all(
+        childCenters.map(async (child) => {
+          const rutaParts = child.ruta_completa.split(' > ');
+          let parentId = null;
+
+          if (rutaParts.length > 1) {
+            // Get parent codigo from ruta
+            const parentRuta = rutaParts.slice(0, -1).join(' > ');
+            
+            // Find parent in already inserted data
+            const parentCenter = data.find(d => d.ruta_completa === parentRuta);
+            
+            if (parentCenter) {
+              // Query database for parent
+              const { data: parentData } = await supabase
+                .from('cost_centers')
+                .select('id')
+                .eq('codigo_rec_elec', parentCenter.codigo_rec_elec)
+                .single();
+
+              parentId = parentData?.id || null;
+            }
+          }
+
+          return {
+            codigo_rec_elec: child.codigo_rec_elec,
+            nombre: child.nombre,
+            ruta_completa: child.ruta_completa,
+            nivel: child.nivel,
+            parent_id: parentId,
+            creador_por: child.creador_por,
+            fecha_creacion: child.fecha_creacion,
+            notas: child.notas,
+          };
+        })
       );
 
-    if (error) throw error;
+      const { error: childError } = await supabase
+        .from('cost_centers')
+        .upsert(processedChildren, { onConflict: 'codigo_rec_elec' });
+
+      if (childError) throw childError;
+    }
 
     return NextResponse.json({
       success: true,
-      message: `Successfully imported ${payload.length} cost centers`,
-      imported: payload.length,
-      roots: parsed.filter((entry) => entry.depth === 1).length,
-      children: parsed.filter((entry) => entry.depth > 1).length,
+      message: `Successfully imported ${data.length} cost centers`,
+      imported: data.length,
+      roots: rootCenters.length,
+      children: childCenters.length,
     });
   } catch (error) {
     console.error('[v0] Cost centers import error:', error);

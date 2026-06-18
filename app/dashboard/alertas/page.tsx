@@ -38,7 +38,7 @@ type Alert = {
 };
 
 const fetcher = async (url: string) => {
-  const response = await fetch(url, { credentials: 'include' });
+  const response = await fetch(url);
   const payload = await response.json().catch(() => null);
 
   if (!response.ok) {
@@ -52,7 +52,7 @@ const severityConfig = {
   critica: {
     color: 'bg-destructive/10 text-destructive border-destructive/20',
     icon: AlertTriangle,
-    label: 'Crítica',
+    label: 'Critica',
   },
   alta: {
     color: 'bg-primary/10 text-primary border-primary/20',
@@ -81,7 +81,7 @@ function typeLabel(type: AlertType) {
     case 'documento':
       return 'Documentos';
     case 'mantenimiento':
-      return 'Mantención';
+      return 'Mantencion';
     case 'inventario':
       return 'Bodega';
     case 'sostenibilidad':
@@ -89,14 +89,13 @@ function typeLabel(type: AlertType) {
     case 'contrato':
       return 'Legal';
     default:
-      return 'Módulo';
+      return 'Modulo';
   }
 }
 
 export default function AlertasPage() {
   const router = useRouter();
   const [filter, setFilter] = useState<'todos' | 'no-leidas' | 'criticas' | 'accion'>('todos');
-  const [searchTerm, setSearchTerm] = useState('');
   const [archivedCount, setArchivedCount] = useState(0);
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -118,14 +117,12 @@ export default function AlertasPage() {
   const filteredAlerts = useMemo(
     () =>
       alerts.filter((alert) => {
-        const haystack = `${alert.title} ${alert.description} ${alert.type} ${alert.severity}`.toLowerCase();
-        if (searchTerm && !haystack.includes(searchTerm.toLowerCase())) return false;
         if (filter === 'no-leidas') return !alert.read;
         if (filter === 'criticas') return alert.severity === 'critica';
         if (filter === 'accion') return alert.actionRequired;
         return true;
       }),
-    [alerts, filter, searchTerm]
+    [alerts, filter]
   );
 
   const unreadCount = alerts.filter((alert) => !alert.read).length;
@@ -165,7 +162,7 @@ export default function AlertasPage() {
         <div>
           <h1 className="text-4xl font-bold tracking-tight">Centro de Alertas</h1>
           <p className="mt-3 text-muted-foreground">
-            Consolidación operativa de documentos, mantención, bodega y sostenibilidad.
+            Consolidacion operativa de documentos, mantencion, bodega y sostenibilidad.
           </p>
         </div>
 
@@ -194,7 +191,7 @@ export default function AlertasPage() {
         <div>
           <h1 className="text-4xl font-bold tracking-tight">Centro de Alertas</h1>
           <p className="mt-3 text-muted-foreground">
-            Consolidación operativa de documentos, mantención, bodega y sostenibilidad.
+            Consolidacion operativa de documentos, mantencion, bodega y sostenibilidad.
           </p>
         </div>
         <Button variant="outline" onClick={() => mutate()} className="gap-2">
@@ -206,11 +203,11 @@ export default function AlertasPage() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card className="border-border">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Alertas No Leídas</CardTitle>
+            <CardTitle className="text-sm font-medium">Alertas No Leidas</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{unreadCount}</div>
-            <p className="mt-1 text-xs text-muted-foreground">requieren atención</p>
+            <p className="mt-1 text-xs text-muted-foreground">requieren atencion</p>
           </CardContent>
         </Card>
 
@@ -218,18 +215,18 @@ export default function AlertasPage() {
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm font-medium">
               <AlertTriangle className="h-4 w-4 text-destructive" />
-              Críticas
+              Criticas
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-destructive">{criticalCount}</div>
-            <p className="mt-1 text-xs text-muted-foreground">acción inmediata</p>
+            <p className="mt-1 text-xs text-muted-foreground">accion inmediata</p>
           </CardContent>
         </Card>
 
         <Card className="border-border bg-primary/5">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Requieren Acción</CardTitle>
+            <CardTitle className="text-sm font-medium">Requieren Accion</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-primary">{actionCount}</div>
@@ -243,7 +240,7 @@ export default function AlertasPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-secondary">{archivedCount}</div>
-            <p className="mt-1 text-xs text-muted-foreground">resueltas en sesión</p>
+            <p className="mt-1 text-xs text-muted-foreground">resueltas en sesion</p>
           </CardContent>
         </Card>
       </div>
@@ -256,38 +253,20 @@ export default function AlertasPage() {
           variant={filter === 'no-leidas' ? 'default' : 'ghost'}
           onClick={() => setFilter('no-leidas')}
         >
-          No leídas ({unreadCount})
+          No leidas ({unreadCount})
         </Button>
         <Button
           variant={filter === 'criticas' ? 'default' : 'ghost'}
           onClick={() => setFilter('criticas')}
           className="text-destructive"
         >
-          Críticas ({criticalCount})
+          Criticas ({criticalCount})
         </Button>
         <Button
           variant={filter === 'accion' ? 'default' : 'ghost'}
           onClick={() => setFilter('accion')}
         >
-          Requieren Acción ({actionCount})
-        </Button>
-      </div>
-
-      <div className="grid gap-3 md:grid-cols-[1fr_auto]">
-        <input
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Buscar por título, descripción, tipo o severidad..."
-          className="h-10 rounded-md border border-border bg-background px-3 text-sm outline-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
-        />
-        <Button
-          variant="outline"
-          onClick={() => {
-            setSearchTerm('');
-            setFilter('todos');
-          }}
-        >
-          Limpiar filtros
+          Requieren Accion ({actionCount})
         </Button>
       </div>
 
@@ -297,7 +276,7 @@ export default function AlertasPage() {
             <Card className="border-border">
               <CardContent className="py-12 text-center">
                 <CheckCircle2 className="mx-auto mb-4 h-12 w-12 text-secondary opacity-50" />
-                <p className="text-muted-foreground">No hay alertas en esta categoría.</p>
+                <p className="text-muted-foreground">No hay alertas en esta categoria.</p>
               </CardContent>
             </Card>
           ) : (
@@ -337,7 +316,7 @@ export default function AlertasPage() {
                                 {formatTime(alert.timestamp)}
                               </span>
                               {alert.actionRequired && (
-                                <Badge variant="destructive">Requiere Acción</Badge>
+                                <Badge variant="destructive">Requiere Accion</Badge>
                               )}
                             </div>
                           </div>
@@ -354,7 +333,7 @@ export default function AlertasPage() {
                                 variant="outline"
                                 onClick={() => handleMarkAsRead(alert.id)}
                               >
-                                Marcar leída
+                                Marcar leida
                               </Button>
                             )}
                             <Button
@@ -391,13 +370,13 @@ export default function AlertasPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Título</p>
+                  <p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Titulo</p>
                   <p className="font-semibold text-foreground">{selectedAlert.title}</p>
                 </div>
 
                 <div>
                   <p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">
-                    Descripción
+                    Descripcion
                   </p>
                   <p className="text-sm text-foreground">{selectedAlert.description}</p>
                 </div>

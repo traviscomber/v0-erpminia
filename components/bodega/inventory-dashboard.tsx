@@ -24,8 +24,8 @@ export function InventoryDashboard() {
     const fetchInventory = async () => {
       try {
         const [stockRes, alertsRes] = await Promise.all([
-          fetch('/api/bodega/stock', { credentials: 'include' }),
-          fetch('/api/bodega/alerts', { credentials: 'include' })
+          fetch('/api/bodega/stock'),
+          fetch('/api/bodega/alerts')
         ]);
         
         if (stockRes.ok) {
@@ -54,7 +54,7 @@ export function InventoryDashboard() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total items</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Items</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stock.length}</div>
@@ -64,7 +64,7 @@ export function InventoryDashboard() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <AlertCircle className="h-4 w-4" /> Stock bajo
+              <AlertCircle className="h-4 w-4" /> Low Stock
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -75,7 +75,7 @@ export function InventoryDashboard() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" /> Disponibilidad
+              <TrendingUp className="h-4 w-4" /> Availability
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -88,11 +88,11 @@ export function InventoryDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Niveles de inventario</CardTitle>
+          <CardTitle>Inventory Levels</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-muted-foreground">Cargando...</p>
+            <p className="text-muted-foreground">Loading...</p>
           ) : (
             <div className="space-y-3">
               {stock.map(item => (
@@ -104,10 +104,10 @@ export function InventoryDashboard() {
                   <div className="flex items-center gap-2">
                     <div className="text-right">
                       <p className="text-sm font-semibold">{item.quantity_on_hand}</p>
-                      <p className="text-xs text-muted-foreground">Reservado: {item.quantity_reserved}</p>
+                      <p className="text-xs text-muted-foreground">Reserved: {item.quantity_reserved}</p>
                     </div>
                     {item.quantity_on_hand <= item.reorder_level ? (
-                      <Badge className="bg-red-600/20 text-red-700">Critico</Badge>
+                      <Badge className="bg-red-600/20 text-red-700">Critical</Badge>
                     ) : (
                       <Badge className="bg-green-600/20 text-green-700">OK</Badge>
                     )}
