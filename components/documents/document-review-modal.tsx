@@ -29,6 +29,15 @@ interface DocumentReviewModalProps {
   reviewLevel: 'L1' | 'L2';
 }
 
+const STATUS_LABELS: Record<string, string> = {
+  draft: 'Borrador',
+  pending_l1: 'Pendiente L1',
+  pending_l2: 'Pendiente L2',
+  approved: 'Aprobado',
+  rejected: 'Rechazado',
+  active: 'Vigente',
+};
+
 export function DocumentReviewModal({
   document,
   isOpen,
@@ -98,7 +107,7 @@ export function DocumentReviewModal({
               </div>
               <div>
                 <span className="text-muted-foreground">Estado:</span>
-                <Badge className="ml-2">{document.status}</Badge>
+                <Badge className="ml-2">{STATUS_LABELS[document.status] || document.status}</Badge>
               </div>
               <div>
                 <span className="text-muted-foreground">Cargado por:</span>

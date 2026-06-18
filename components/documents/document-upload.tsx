@@ -8,130 +8,130 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 
-// Tipos de documentos por módulo
+// Tipos de documentos por m�dulo
 const DOCUMENT_TYPES_BY_MODULE: Record<string, string[]> = {
-  prevención: [
+  prevencion: [
     'Acta de Entrega',
     'Anexo Contrato',
-    'Anexo Reglamento Interno Acuíferos',
-    'Asistencia a Capacitación Manual de Comunicación Radial',
-    'Autorización ABREN',
-    'Autorización Rescatador',
+    'Anexo Reglamento Interno Acu�feros',
+    'Asistencia a Capacitaci�n Manual de Comunicaci�n Radial',
+    'Autorizaci�n ABREN',
+    'Autorizaci�n Rescatador',
     'Autorizaciones Especiales',
-    'Bitácoras de Control',
-    'Cambio de Pólizas de Seguros',
+    'Bit�coras de Control',
+    'Cambio de P�lizas de Seguros',
     'Carnet de Identidad',
     'Certificado de Accidentabilidad',
-    'Certificado de Afiliación',
-    'Certificado de Afiliación Actualizado',
+    'Certificado de Afiliaci�n',
+    'Certificado de Afiliaci�n Actualizado',
     'Certificado de Cotizaciones',
-    'Comprobante de Recepción',
+    'Comprobante de Recepci�n',
     'Contrato de Trabajo',
     'Contrato Laboral',
-    'Documentación de Auditoría',
+    'Documentaci�n de Auditor�a',
     'Documentos de Cumplimiento Regulatorio',
-    'Evaluación de Procedimiento',
-    'Evaluación de Procedimiento de Emergencia Incendio',
-    'Evaluación procedimiento operación cargador frontal',
-    'Evaluación procedimiento operación camión Tolva',
-    'Evaluación procedimiento operación DTM',
-    'Evaluación procedimiento de emergencia en caso de accidente o enfermedad grave',
-    'Evaluación Operación Chancado',
-    'Evaluación Operación Camión Tolva',
-    'Evaluación Operación DTM',
-    'Evaluación Operación DUMPER',
-    'Evaluación Operación Sondaje',
-    'Evaluación Operación Scoop',
-    'Evaluación Operación y Limpieza Máquinas de Maestreo',
-    'Evaluación Procedimiento Cambio y Reposición EPP',
-    'Evaluación Procedimiento Chancador Interior de Operación',
-    'Evaluación Procedimiento Emergencia Mina',
-    'Evaluación Procedimiento Herramientas',
-    'Evaluación Procedimiento Operador y Limpieza',
-    'Evaluación Procedimiento Operación Chancador Versión 7 y 8',
-    'Evaluación Procedimiento Operación Equipo con Control Remoto',
-    'Evaluación Procedimiento Perforación Chancador',
-    'Evaluación Procedimiento Perforación Máquina Iviana',
-    'Evaluación Procedimiento Trabajos con Soldadura',
-    'Evaluación Procedimiento Trabajos con Soldadura y Oxicorte',
-    'Evaluación Procedimiento Trabajos en Altura',
-    'Evaluación Procedimiento Trabajos en Ambientes Confinados',
-    'Evaluación Procedimiento Transporte, Almacenamiento y Manejo de Explosivos',
-    'Evaluación Procedimiento Uso de Herramientas Eléctricas, Manuales y Neumáticas',
-    'Evaluación Procedimiento Uso Protecciones Respiratorias y Gafas',
-    'Evaluación Reglamento Estudios',
-    'Evaluación Reglamento Fortificación',
-    'Evaluación reglamento acuñadura',
-    'Evaluación reglamento interno de explosivos',
-    'Evaluación reglamento tránsito interior mina',
-    'Evaluación Reglamento Transporte y Conducción',
-    'Evaluación reglamento transporte y conducción',
+    'Evaluaci�n de Procedimiento',
+    'Evaluaci�n de Procedimiento de Emergencia Incendio',
+    'Evaluaci�n procedimiento operaci�n cargador frontal',
+    'Evaluaci�n procedimiento operaci�n cami�n Tolva',
+    'Evaluaci�n procedimiento operaci�n DTM',
+    'Evaluaci�n procedimiento de emergencia en caso de accidente o enfermedad grave',
+    'Evaluaci�n Operaci�n Chancado',
+    'Evaluaci�n Operaci�n Cami�n Tolva',
+    'Evaluaci�n Operaci�n DTM',
+    'Evaluaci�n Operaci�n DUMPER',
+    'Evaluaci�n Operaci�n Sondaje',
+    'Evaluaci�n Operaci�n Scoop',
+    'Evaluaci�n Operaci�n y Limpieza M�quinas de Maestreo',
+    'Evaluaci�n Procedimiento Cambio y Reposici�n EPP',
+    'Evaluaci�n Procedimiento Chancador Interior de Operaci�n',
+    'Evaluaci�n Procedimiento Emergencia Mina',
+    'Evaluaci�n Procedimiento Herramientas',
+    'Evaluaci�n Procedimiento Operador y Limpieza',
+    'Evaluaci�n Procedimiento Operaci�n Chancador Versi�n 7 y 8',
+    'Evaluaci�n Procedimiento Operaci�n Equipo con Control Remoto',
+    'Evaluaci�n Procedimiento Perforaci�n Chancador',
+    'Evaluaci�n Procedimiento Perforaci�n M�quina Iviana',
+    'Evaluaci�n Procedimiento Trabajos con Soldadura',
+    'Evaluaci�n Procedimiento Trabajos con Soldadura y Oxicorte',
+    'Evaluaci�n Procedimiento Trabajos en Altura',
+    'Evaluaci�n Procedimiento Trabajos en Ambientes Confinados',
+    'Evaluaci�n Procedimiento Transporte, Almacenamiento y Manejo de Explosivos',
+    'Evaluaci�n Procedimiento Uso de Herramientas El�ctricas, Manuales y Neum�ticas',
+    'Evaluaci�n Procedimiento Uso Protecciones Respiratorias y Gafas',
+    'Evaluaci�n Reglamento Estudios',
+    'Evaluaci�n Reglamento Fortificaci�n',
+    'Evaluaci�n reglamento acu�adura',
+    'Evaluaci�n reglamento interno de explosivos',
+    'Evaluaci�n reglamento tr�nsito interior mina',
+    'Evaluaci�n Reglamento Transporte y Conducci�n',
+    'Evaluaci�n reglamento transporte y conducci�n',
     'Examen Ocupacional',
     'Examen Organizacional',
-    'Examen Periódico',
+    'Examen Peri�dico',
     'Examen Pre-ocupacional',
-    'Ficha Técnica Autorrescatador',
+    'Ficha T�cnica Autorrescatador',
     'Fichas de Seguridad',
     'Informe de Accidentalidad',
-    'IRL (Índice de Riesgo Laboral)',
+    'IRL (�ndice de Riesgo Laboral)',
     'Levantamiento Extintores',
-    'Licencia de Conducción',
+    'Licencia de Conducci�n',
     'Licencia de Izamiento',
     'Maestro Autorizaciones',
-    'Maestro Licencias Internas de Conducción',
-    'Matriz IPER (Identificación de Peligros)',
+    'Maestro Licencias Internas de Conducci�n',
+    'Matriz IPER (Identificaci�n de Peligros)',
     'Matriz MIPER',
-    'OPR (Orden de Preparación/Riesgos)',
-    'Política Actualizada',
-    'Política de Riesgos',
-    'Política SST',
+    'OPR (Orden de Preparaci�n/Riesgos)',
+    'Pol�tica Actualizada',
+    'Pol�tica de Riesgos',
+    'Pol�tica SST',
     'Procedimiento Caso Accidentario',
-    'Procedimiento con Máquina Iviana',
+    'Procedimiento con M�quina Iviana',
     'Procedimiento de Trabajo',
-    'Procedimiento de Trabajo Crítico',
+    'Procedimiento de Trabajo Cr�tico',
     'Procedimiento en caso de Accidente',
-    'Procedimiento Operación Chancado',
-    'Procedimiento Operación Minería',
-    'Procedimiento Operación Sondaje',
-    'Programa de Capacitación HSE',
-    'Programa de Seguimiento Conductual y Capacitación',
-    'Recepción Firmada',
-    'Registro Capacitación Emergencia en Caso de Accidente',
-    'Registro Capacitación DTM',
-    'Registro Capacitación Procedimiento Emergencia en Caso de Accidente',
-    'Registro Capacitación Procedimiento Emergencia en Caso de Incendio en Mina',
-    'Registro Capacitación Procedimiento con Máquina Iviana',
-    'Registro Capacitación Procedimiento Operación Chancado',
-    'Registro Capacitación Reglamento Interno Acuíferos',
-    'Registro Capacitación Reglamento Interno Transporte y Conducción',
-    'Registro Capacitación Trabajos en Altura',
-    'Registro Capacitación Trabajos en Ambientes Confinados',
+    'Procedimiento Operaci�n Chancado',
+    'Procedimiento Operaci�n Miner�a',
+    'Procedimiento Operaci�n Sondaje',
+    'Programa de Capacitaci�n HSE',
+    'Programa de Seguimiento Conductual y Capacitaci�n',
+    'Recepci�n Firmada',
+    'Registro Capacitaci�n Emergencia en Caso de Accidente',
+    'Registro Capacitaci�n DTM',
+    'Registro Capacitaci�n Procedimiento Emergencia en Caso de Accidente',
+    'Registro Capacitaci�n Procedimiento Emergencia en Caso de Incendio en Mina',
+    'Registro Capacitaci�n Procedimiento con M�quina Iviana',
+    'Registro Capacitaci�n Procedimiento Operaci�n Chancado',
+    'Registro Capacitaci�n Reglamento Interno Acu�feros',
+    'Registro Capacitaci�n Reglamento Interno Transporte y Conducci�n',
+    'Registro Capacitaci�n Trabajos en Altura',
+    'Registro Capacitaci�n Trabajos en Ambientes Confinados',
     'Registro Entrega EPP',
     'Registro Maestro Control Evaluaciones',
     'Registro Maestro EPP por Cargo',
-    'Reglamento Contraseñas',
+    'Reglamento Contrase�as',
     'Reglamento Contratistas',
     'Reglamento Entrega EPP',
-    'Reglamento Ingreso Personas y Vehículos',
+    'Reglamento Ingreso Personas y Veh�culos',
     'Reglamento Interno (DS 44)',
-    'Reglamento Interno Acuíferos',
-    'Reglamento interno de acuñadura',
+    'Reglamento Interno Acu�feros',
+    'Reglamento interno de acu�adura',
     'Reglamento Interno Explosivos',
     'Reglamento interno de explosivos',
-    'Reglamento Interno Fortificación',
-    'Reglamento interno de fortificación',
+    'Reglamento Interno Fortificaci�n',
+    'Reglamento interno de fortificaci�n',
     'Reglamento Interno Transporte de Personal',
-    'Reglamento interno de transporte y conducción',
-    'Reglamento Tránsito Interior Mina',
-    'RIL (Evaluación de Riesgos)',
-    'RROHH y Comprobantes de Recepción',
-    'SGSST (Sistema de Gestión de Seguridad)',
+    'Reglamento interno de transporte y conducci�n',
+    'Reglamento Tr�nsito Interior Mina',
+    'RIL (Evaluaci�n de Riesgos)',
+    'RROHH y Comprobantes de Recepci�n',
+    'SGSST (Sistema de Gesti�n de Seguridad)',
     'Seguimiento y Control Instructivos de SGSST',
     'Seguimiento y Control Procedimientos',
     'Seguimiento y Control Reglamentos',
   ].sort(),
   mantenimiento: [
-    'Checklist de Inspección',
+    'Checklist de Inspecci�n',
     'Manual de Procedimiento',
     'Procedimiento de Emergencia',
     'Protocolo de Mantenimiento',
@@ -139,50 +139,50 @@ const DOCUMENT_TYPES_BY_MODULE: Record<string, string[]> = {
   ].sort(),
   finanzas: [
     'Instructivo de Compras',
-    'Política de Gastos',
-    'Política Financiera',
-    'Procedimiento de Facturación',
+    'Pol�tica de Gastos',
+    'Pol�tica Financiera',
+    'Procedimiento de Facturaci�n',
     'Procedimiento de Presupuesto',
   ].sort(),
   bodega: [
     'Checklist de Inventario',
-    'Política de Rotación',
+    'Pol�tica de Rotaci�n',
     'Procedimiento de Almacenamiento',
     'Procedimiento de Devoluciones',
   ].sort(),
   hse: [
     'Matriz de Riesgos',
     'Plan de Emergencia',
-    'Política HSE',
+    'Pol�tica HSE',
     'Procedimiento de Seguridad',
     'Protocolo de Salud',
   ].sort(),
   legal: [
     'Contrato',
-    'Documento de Compliance',
-    'Política Corporativa',
-    'Regulación Interna',
-    'Términos y Condiciones',
+    'Documento de cumplimiento',
+    'Pol�tica Corporativa',
+    'Regulaci�n Interna',
+    'T�rminos y Condiciones',
   ].sort(),
   compras: [
-    'Cotización',
+    'Cotizaci�n',
     'Orden de Compra',
     'Factura',
-    'Nota de Crédito',
+    'Nota de Cr�dito',
     'Contrato de Proveedor',
-    'Evaluación de Proveedor',
+    'Evaluaci�n de Proveedor',
     'Acuerdo de Confidencialidad',
-    'Especificaciones Técnicas',
-    'Recepción de Mercadería',
-    'Devolución de Mercadería',
-    'Análisis de Precios',
+    'Especificaciones T�cnicas',
+    'Recepci�n de Mercader�a',
+    'Devoluci�n de Mercader�a',
+    'An�lisis de Precios',
     'Solicitud de Compra',
   ].sort(),
 };
 
 interface DocumentUploadProps {
-  module: string; // 'prevención', 'mantenimiento', 'finanzas', etc
-  category: string; // 'arranque', 'procedimientos', 'políticas', etc
+  module: string; // 'prevenci�n', 'mantenimiento', 'finanzas', etc
+  category: string; // 'arranque', 'procedimientos', 'pol�ticas', etc
   onUploadSuccess: (documentId: string, fileName: string) => void;
   onCancel?: () => void;
 }
@@ -202,7 +202,8 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
   });
   const dragRef = useRef<HTMLDivElement>(null);
 
-  const availableTypes = DOCUMENT_TYPES_BY_MODULE[module.toLowerCase()] || [];
+  const normalizedModule = module.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
+  const availableTypes = DOCUMENT_TYPES_BY_MODULE[normalizedModule] || [];
 
   const acceptedTypes = {
     'application/pdf': ['.pdf'],
@@ -398,8 +399,8 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
                   <>
                     <Upload className="mx-auto h-10 w-10 text-primary/70" />
                     <div className="space-y-1">
-                      <p className="text-sm font-semibold text-foreground">Arrastra el archivo aquí o haz clic para seleccionar</p>
-                      <p className="text-xs text-muted-foreground">Formatos: PDF, Word (.doc, .docx), Excel (.xls, .xlsx) | Máx 50MB</p>
+                      <p className="text-sm font-semibold text-foreground">Arrastra el archivo aqui o haz clic para seleccionar</p>
+                      <p className="text-xs text-muted-foreground">Formatos: PDF, Word (.doc, .docx), Excel (.xls, .xlsx) | Max 50MB</p>
                     </div>
                   </>
                 )}
@@ -457,9 +458,9 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
         {file && uploadStatus === 'idle' && (
           <>
             <div className="space-y-3">
-              <label className="text-sm font-semibold text-foreground">Descripción</label>
+              <label className="text-sm font-semibold text-foreground">Descripci�n</label>
               <Textarea
-                placeholder="Descripción del documento (opcional)"
+                placeholder="Descripci�n del documento (opcional)"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 className="border-primary/30 focus:border-primary/70"
@@ -468,7 +469,7 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-3">
-                <label className="text-sm font-semibold text-foreground">Válido desde</label>
+                <label className="text-sm font-semibold text-foreground">V�lido desde</label>
                 <Input
                   type="date"
                   value={formData.validFrom}
@@ -477,7 +478,7 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
                 />
               </div>
               <div className="space-y-3">
-                <label className="text-sm font-semibold text-foreground">Válido hasta</label>
+                <label className="text-sm font-semibold text-foreground">V�lido hasta</label>
                 <Input
                   type="date"
                   value={formData.validUntil}
