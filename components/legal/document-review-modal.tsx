@@ -74,7 +74,7 @@ export function DocumentReviewModal({
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <DialogTitle className="text-lg">{document.title}</DialogTitle>
-              <p className="mt-1 text-sm text-muted-foreground">Revisión - Nivel {level}</p>
+              <p className="mt-1 text-sm text-muted-foreground">Revision - Nivel {level}</p>
             </div>
             {hasBeenReviewed && (
               <Badge variant={currentStatusData.status === 'cumple' ? 'default' : 'destructive'}>
@@ -130,7 +130,7 @@ export function DocumentReviewModal({
             <div className="rounded-lg border bg-amber-50 p-3 dark:bg-amber-950/20">
               <p className="flex items-center gap-2 text-sm font-medium text-amber-900 dark:text-amber-200">
                 <AlertCircle className="h-4 w-4" />
-                Revisión anterior (Nivel {level})
+                Revision anterior (Nivel {level})
               </p>
               <p className="mt-2 text-sm text-amber-800 dark:text-amber-300">
                 {currentStatusData.observations}
@@ -139,7 +139,7 @@ export function DocumentReviewModal({
           )}
 
           <div className="space-y-3 border-t pt-4">
-            <label className="text-sm font-medium">Tu revisión</label>
+            <label className="text-sm font-medium">Tu revision</label>
             <div className="space-y-2">
               <Button
                 variant={reviewStatus === 'cumple' ? 'default' : 'outline'}
@@ -200,9 +200,9 @@ export function DocumentReviewModal({
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {reviewStatus === null
-              ? 'Selecciona una opción'
+              ? 'Selecciona una opcion'
               : reviewStatus === 'cumple'
-                ? 'Confirmar aprobación'
+                ? 'Confirmar aprobacion'
                 : 'Confirmar rechazo'}
           </Button>
         </DialogFooter>
