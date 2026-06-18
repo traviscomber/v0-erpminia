@@ -206,11 +206,11 @@ export default function AlertasPage() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card className="border-border">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Alertas No Leidas</CardTitle>
+            <CardTitle className="text-sm font-medium">Alertas No Leídas</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{unreadCount}</div>
-            <p className="mt-1 text-xs text-muted-foreground">requieren atencion</p>
+            <p className="mt-1 text-xs text-muted-foreground">requieren atención</p>
           </CardContent>
         </Card>
 
@@ -354,7 +354,7 @@ export default function AlertasPage() {
                                 variant="outline"
                                 onClick={() => handleMarkAsRead(alert.id)}
                               >
-                                Marcar leida
+                                Marcar leída
                               </Button>
                             )}
                             <Button
