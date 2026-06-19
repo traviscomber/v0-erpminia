@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { Client } from 'pg';
 
 type InventoryRow = {
   sku: string;
@@ -70,7 +71,22 @@ async function runSqlStatement(supabase: any, sql: string) {
     }
   }
 
-  throw new Error('No se encontró una función SQL disponible para ajustar el esquema');
+  const directConnection = process.env.POSTGRES_URL_NON_POOLING || process.env.POSTGRES_URL;
+  if (!directConnection) {
+    throw new Error('No se encontró una función SQL disponible para ajustar el esquema');
+  }
+
+  const client = new Client({
+    connectionString: directConnection,
+    ssl: directConnection.includes('supabase.co') ? { rejectUnauthorized: false } : undefined,
+  });
+
+  await client.connect();
+  try {
+    await client.query(sql);
+  } finally {
+    await client.end();
+  }
 }
 
 async function ensureInventoryPrecision(supabase: any) {
