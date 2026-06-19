@@ -44,7 +44,6 @@ export function CostCentersDashboard() {
   const totalCenters = orderedCostCenters.length;
   const rootCount = orderedCostCenters.filter((center) => isRootCostCenter(center.code)).length;
   const activeCount = orderedCostCenters.filter((center) => center.status === 'active').length;
-  const subcenterCount = totalCenters - rootCount;
 
   const handleSeed = async () => {
     setSeeding(true);
@@ -128,27 +127,16 @@ export function CostCentersDashboard() {
 
   return (
     <div className="space-y-6">
-      <Card className="border-border/60 bg-card/80">
-        <CardContent className="flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-1">
-            <p className="text-sm font-medium text-muted-foreground">Vista simplificada</p>
-            <p className="text-base text-foreground">
-              La informacion esta agrupada por centro principal para que sea mas facil leerla y usarla en bodega,
-              compras y mantenimiento.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button onClick={handleSeed} disabled={seeding} variant="outline" size="sm">
-              <Database className="mr-2 h-4 w-4" />
-              {seeding ? 'Actualizando...' : 'Cargar base'}
-            </Button>
-            <Button onClick={reload} variant="outline" size="sm">
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Actualizar
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex flex-wrap gap-2">
+        <Button onClick={handleSeed} disabled={seeding} variant="outline" size="sm">
+          <Database className="mr-2 h-4 w-4" />
+          {seeding ? 'Actualizando...' : 'Actualizar base'}
+        </Button>
+        <Button onClick={reload} variant="outline" size="sm">
+          <RefreshCw className="mr-2 h-4 w-4" />
+          Recargar
+        </Button>
+      </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <Card>
@@ -178,12 +166,8 @@ export function CostCentersDashboard() {
       </div>
 
       <Card className="border-border/60">
-        <CardHeader className="space-y-2">
-          <CardTitle>Como leer esta pantalla</CardTitle>
-          <p className="max-w-3xl text-sm text-muted-foreground">
-            Cada tarjeta representa un grupo de costos. El numero indica cuantos centros reales hay dentro de ese
-            grupo, y el detalle completo se abre solo si hace falta.
-          </p>
+        <CardHeader className="py-4">
+          <CardTitle>Grupos de costos</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -207,16 +191,12 @@ export function CostCentersDashboard() {
                         </div>
                         <h3 className="text-base font-semibold text-foreground">{group.rootName}</h3>
                       </div>
-                      <span className="rounded-full border border-border/60 px-2 py-0.5 text-xs text-muted-foreground">
-                        Ver
-                      </span>
                     </div>
                   </summary>
 
                   <div className="mt-4 space-y-3 border-t border-border/50 pt-4 text-sm">
                     <div className="text-muted-foreground">
-                      <span className="font-medium text-foreground">Incluye:</span>{' '}
-                      {details.length > 0 ? details.map((item) => `${item.code} ${item.name}`).join(' - ') : 'Solo el centro principal'}
+                      {details.length > 0 ? details.map((item) => `${item.code} ${item.name}`).join(' - ') : 'Centro principal'}
                       {extraCount > 0 ? ` - +${extraCount} mas` : ''}
                     </div>
 
@@ -237,18 +217,6 @@ export function CostCentersDashboard() {
                 </details>
               );
             })}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="border-border/60 bg-muted/20">
-        <CardContent className="p-5">
-          <div className="flex flex-col gap-1">
-            <p className="text-sm font-medium text-foreground">Subcentros visibles</p>
-            <p className="text-sm text-muted-foreground">
-              {subcenterCount} centros quedan bajo estos grupos principales. Si necesitas el detalle fino, abre solo la
-              tarjeta correspondiente.
-            </p>
           </div>
         </CardContent>
       </Card>
