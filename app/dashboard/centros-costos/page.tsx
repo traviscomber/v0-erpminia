@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CostCentersDashboard } from '@/components/dashboard/cost-centers-dashboard';
 
 export const metadata = {
@@ -11,7 +10,9 @@ export default function CostCentersPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Centros de Costos</h1>
-        <p className="text-gray-600">Gestión jerárquica de 277 centros: minas, supervisiones y departamentos</p>
+        <p className="text-gray-600">
+          Gestión jerárquica de 277 centros: minas, supervisiones y departamentos
+        </p>
       </div>
 
       <CostCentersDashboard />
