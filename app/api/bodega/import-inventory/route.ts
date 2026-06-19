@@ -81,11 +81,18 @@ async function runSqlStatement(supabase: any, sql: string) {
     ssl: directConnection.includes('supabase.co') ? { rejectUnauthorized: false } : undefined,
   });
 
+  const previousTlsSetting = process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
   await client.connect();
   try {
     await client.query(sql);
   } finally {
     await client.end();
+    if (previousTlsSetting === undefined) {
+      delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+    } else {
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = previousTlsSetting;
+    }
   }
 }
 
