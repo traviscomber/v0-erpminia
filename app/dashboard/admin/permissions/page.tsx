@@ -36,12 +36,12 @@ const fetcher = async (url: string) => {
 const MODULES = ['produccion', 'mantenimiento', 'bodega', 'hse', 'documentos', 'compras', 'finanzas', 'reportes'];
 const ACTIONS = ['view', 'create', 'edit', 'delete', 'export', 'approve', 'admin'];
 const MINING_ROLES = [
-  { id: 'admin', label: 'Administrator', description: 'Full system access' },
-  { id: 'manager', label: 'Manager', description: 'Operational management' },
-  { id: 'technician', label: 'Technician', description: 'Field operations' },
-  { id: 'warehouse_staff', label: 'Warehouse Staff', description: 'Inventory management' },
-  { id: 'finance_officer', label: 'Finance Officer', description: 'Financial operations' },
-  { id: 'viewer', label: 'Viewer', description: 'Read-only access' },
+  { id: 'admin', label: 'Administrador', description: 'Acceso total' },
+  { id: 'manager', label: 'Supervisor', description: 'Gestion operativa' },
+  { id: 'technician', label: 'Tecnico', description: 'Trabajo en terreno' },
+  { id: 'warehouse_staff', label: 'Bodega', description: 'Inventario y despacho' },
+  { id: 'finance_officer', label: 'Finanzas', description: 'Control financiero' },
+  { id: 'viewer', label: 'Lectura', description: 'Solo consulta' },
 ];
 
 export default function PermissionsPage() {
@@ -115,17 +115,17 @@ export default function PermissionsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Gestion de permisos</h1>
-        <p className="mt-2 text-muted-foreground">Asignacion granular por usuario, modulo y accion.</p>
+        <h1 className="text-3xl font-bold">Permisos</h1>
+        <p className="mt-2 text-muted-foreground">Asigna acceso por usuario de forma simple.</p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5" />
-            Otorgar nuevo permiso
+            Nuevo permiso
           </CardTitle>
-          <CardDescription>Asigna permisos especificos para una operacion o flujo puntual.</CardDescription>
+          <CardDescription>Elige usuario, modulo y acciones.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {usersError ? <p className="text-sm text-red-500">No se pudieron cargar los usuarios.</p> : null}
@@ -179,7 +179,7 @@ export default function PermissionsPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Temporal (dias, 0 = permanente)</label>
+              <label className="text-sm font-medium">Duracion en dias</label>
               <Input
                 type="number"
                 min="0"
@@ -217,7 +217,7 @@ export default function PermissionsPage() {
 
           <Button onClick={handleGrantPermission} className="w-full" disabled={submitting || !selectedUser || selectedActions.length === 0}>
             <Plus className="mr-2 h-4 w-4" />
-            {submitting ? 'Otorgando...' : 'Otorgar permiso'}
+            {submitting ? 'Guardando...' : 'Guardar permiso'}
           </Button>
         </CardContent>
       </Card>
@@ -293,14 +293,14 @@ export default function PermissionsPage() {
         </Card>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Roles disponibles</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {MINING_ROLES.map((role) => (
-              <BrandCard key={role.id} className="p-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Roles base</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {MINING_ROLES.map((role) => (
+                <BrandCard key={role.id} className="p-4">
                 <div className="font-semibold">{role.label}</div>
                 <div className="text-sm text-muted-foreground">{role.description}</div>
               </BrandCard>

@@ -26,45 +26,43 @@ export function BodegaDashboard() {
     <div className="min-h-screen space-y-6 bg-background p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold text-foreground">Bodega</h1>
-          <p className="mt-1 text-lg text-muted-foreground">
-            Gestion de {pagination.total.toLocaleString()} articulos
-          </p>
+          <h1 className="text-4xl font-bold text-foreground">Bodega e Inventario</h1>
+          <p className="mt-1 text-lg text-muted-foreground">Resumen simple del stock real</p>
         </div>
         <Button size="lg" onClick={() => mutate()} className="gap-2" disabled={isLoading}>
           <RefreshCw className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
-          {isLoading ? 'Actualizando...' : 'Actualizar'}
+          {isLoading ? 'Actualizando...' : 'Recargar'}
         </Button>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold">Total en stock</CardTitle>
+            <CardTitle className="text-base font-semibold">Items</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-bold text-primary">{pagination.total.toLocaleString()}</div>
-            <p className="mt-2 text-sm text-muted-foreground">Articulos en inventario</p>
+            <p className="mt-2 text-sm text-muted-foreground">Registros cargados</p>
           </CardContent>
         </Card>
 
         <Card className="border-destructive">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold">Stock bajo</CardTitle>
+            <CardTitle className="text-base font-semibold">Bajo stock</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-bold text-destructive">{lowStock.length.toLocaleString()}</div>
-            <p className="mt-2 text-sm text-muted-foreground">Por debajo del minimo</p>
+            <p className="mt-2 text-sm text-muted-foreground">Revisar pronto</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold">Valor total</CardTitle>
+            <CardTitle className="text-base font-semibold">Valor</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-primary">${(totalValue / 1000).toFixed(1)}k</div>
-            <p className="mt-2 text-sm text-muted-foreground">Inventario valorizado</p>
+            <p className="mt-2 text-sm text-muted-foreground">Estimado del inventario</p>
           </CardContent>
         </Card>
       </div>
@@ -74,24 +72,24 @@ export function BodegaDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-3 text-destructive">
               <AlertTriangle className="h-6 w-6" />
-              <span className="text-lg">{lowStock.length} articulos con stock bajo</span>
+              <span className="text-lg">{lowStock.length} items con bajo stock</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
               {lowStock.slice(0, 6).map((item) => (
-                <div key={item.id} className="rounded-lg border border-border bg-background p-3">
-                  <div className="text-sm font-semibold text-foreground">{item.sku}</div>
-                  <div className="text-sm text-muted-foreground">{item.name?.substring(0, 30)}</div>
-                  <div className="mt-2 text-xs text-destructive">
+                  <div key={item.id} className="rounded-lg border border-border bg-background p-3">
+                    <div className="text-sm font-semibold text-foreground">{item.sku}</div>
+                    <div className="text-sm text-muted-foreground">{item.name?.substring(0, 30)}</div>
+                    <div className="mt-2 text-xs text-destructive">
                     Stock: <span className="font-bold">{item.quantity}</span> (Min: {item.min_stock})
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
             {lowStock.length > 6 && (
               <p className="mt-3 text-xs text-muted-foreground">
-                +{lowStock.length - 6} articulos mas con stock bajo
+                +{lowStock.length - 6} items mas con bajo stock
               </p>
             )}
           </CardContent>
@@ -100,14 +98,14 @@ export function BodegaDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-foreground">Filtros y busqueda</CardTitle>
+          <CardTitle className="text-foreground">Buscar y filtrar</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
               <Input
-                placeholder="Buscar por SKU, nombre o categoria..."
+                placeholder="Buscar SKU, nombre o categoria"
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
@@ -137,7 +135,7 @@ export function BodegaDashboard() {
       <Card>
         <CardHeader>
           <CardTitle className="text-foreground">
-            Inventario {pagination.page > 0 && `(Pagina ${pagination.page + 1} de ${pagination.totalPages})`}
+            Lista {pagination.page > 0 && `(Pagina ${pagination.page + 1} de ${pagination.totalPages})`}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -148,8 +146,8 @@ export function BodegaDashboard() {
                   <th className="p-3 text-left font-bold text-foreground">SKU</th>
                   <th className="p-3 text-left font-bold text-foreground">Producto</th>
                   <th className="p-3 text-left font-bold text-foreground">Categoria</th>
-                  <th className="p-3 text-right font-bold text-foreground">Cantidad</th>
-                  <th className="p-3 text-right font-bold text-foreground">Costo unit.</th>
+                  <th className="p-3 text-right font-bold text-foreground">Cant.</th>
+                  <th className="p-3 text-right font-bold text-foreground">Costo</th>
                   <th className="p-3 text-right font-bold text-foreground">Total</th>
                 </tr>
               </thead>
@@ -161,7 +159,7 @@ export function BodegaDashboard() {
                 ) : inventory.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="p-8 text-center text-muted-foreground">
-                      No se encontraron articulos
+                      No se encontraron items
                     </td>
                   </tr>
                 ) : (

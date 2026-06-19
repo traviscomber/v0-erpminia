@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Check, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -19,7 +19,6 @@ export function CategoryFilter({ categories, selectedCategory, onCategoryChange 
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
 
-  // Desktop: Show wrapping tags
   if (!isMobile) {
     return (
       <div className="flex flex-wrap gap-2">
@@ -31,7 +30,7 @@ export function CategoryFilter({ categories, selectedCategory, onCategoryChange 
         >
           Todas
         </Button>
-        {categories.map(cat => (
+        {categories.map((cat) => (
           <Button
             key={cat}
             variant={selectedCategory === cat ? 'default' : 'outline'}
@@ -46,28 +45,22 @@ export function CategoryFilter({ categories, selectedCategory, onCategoryChange 
     );
   }
 
-  // Mobile: Show dropdown with search
   return (
     <div className="flex items-center gap-2">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
-            className={cn(
-              'w-full justify-between text-sm',
-              selectedCategory && 'border-primary bg-primary/5',
-            )}
+            className={cn('w-full justify-between text-sm', selectedCategory && 'border-primary bg-primary/5')}
           >
-            <span className="truncate">
-              {selectedCategory || 'Filtrar por categoría...'}
-            </span>
-            <ChevronDown className="w-4 h-4 ml-2 shrink-0" />
+            <span className="truncate">{selectedCategory || 'Filtrar categoria...'}</span>
+            <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-full p-0" align="start">
           <Command>
-            <CommandInput placeholder="Buscar categoría..." />
-            <CommandEmpty>No se encontraron categorías.</CommandEmpty>
+            <CommandInput placeholder="Buscar categoria..." />
+            <CommandEmpty>No se encontraron categorias.</CommandEmpty>
             <CommandGroup className="max-h-64 overflow-y-auto">
               <CommandItem
                 onSelect={() => {
@@ -75,12 +68,10 @@ export function CategoryFilter({ categories, selectedCategory, onCategoryChange 
                   setOpen(false);
                 }}
               >
-                <Check
-                  className={cn('mr-2 h-4 w-4', selectedCategory === '' ? 'opacity-100' : 'opacity-0')}
-                />
+                <Check className={cn('mr-2 h-4 w-4', selectedCategory === '' ? 'opacity-100' : 'opacity-0')} />
                 Todas ({categories.length})
               </CommandItem>
-              {categories.map(cat => (
+              {categories.map((cat) => (
                 <CommandItem
                   key={cat}
                   onSelect={() => {
@@ -88,9 +79,7 @@ export function CategoryFilter({ categories, selectedCategory, onCategoryChange 
                     setOpen(false);
                   }}
                 >
-                  <Check
-                    className={cn('mr-2 h-4 w-4', selectedCategory === cat ? 'opacity-100' : 'opacity-0')}
-                  />
+                  <Check className={cn('mr-2 h-4 w-4', selectedCategory === cat ? 'opacity-100' : 'opacity-0')} />
                   {cat}
                 </CommandItem>
               ))}
@@ -100,7 +89,7 @@ export function CategoryFilter({ categories, selectedCategory, onCategoryChange 
       </Popover>
 
       {selectedCategory && (
-        <Badge variant="secondary" className="text-xs whitespace-nowrap">
+        <Badge variant="secondary" className="whitespace-nowrap text-xs">
           {selectedCategory}
         </Badge>
       )}

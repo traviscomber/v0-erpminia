@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button';
 import { AlertCircle, Download } from 'lucide-react';
 
 const REPORT_TYPES = [
-  { value: 'maintenance', label: 'Ordenes de trabajo de mantenimiento' },
-  { value: 'hse', label: 'Incidentes e investigaciones HSE' },
-  { value: 'audit', label: 'Trazabilidad y cumplimiento' },
+  { value: 'maintenance', label: 'Mantenimiento' },
+  { value: 'hse', label: 'HSE' },
+  { value: 'audit', label: 'Trazabilidad' },
 ];
 
 export function ExportReportForm() {
@@ -53,7 +53,7 @@ export function ExportReportForm() {
   return (
     <Card className="border-border/60 bg-card/90">
       <CardHeader>
-        <CardTitle>Exportar reporte</CardTitle>
+        <CardTitle>Exportar</CardTitle>
       </CardHeader>
       <CardContent>
         {error && (
@@ -65,7 +65,7 @@ export function ExportReportForm() {
 
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-semibold">Tipo de reporte</label>
+            <label className="text-sm font-semibold">Reporte</label>
             <select
               value={reportType}
               onChange={(e) => setReportType(e.target.value)}
@@ -81,7 +81,7 @@ export function ExportReportForm() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-semibold">Fecha de inicio</label>
+              <label className="text-sm font-semibold">Inicio</label>
               <input
                 type="date"
                 value={startDate}
@@ -91,7 +91,7 @@ export function ExportReportForm() {
             </div>
 
             <div>
-            <label className="text-sm font-semibold">Fecha de termino</label>
+              <label className="text-sm font-semibold">Fin</label>
               <input
                 type="date"
                 value={endDate}
@@ -103,11 +103,11 @@ export function ExportReportForm() {
 
           <Button onClick={handleExport} disabled={loading} className="w-full">
             <Download className="mr-2 h-4 w-4" />
-            {loading ? 'Generando...' : 'Exportar CSV'}
+            {loading ? 'Generando...' : 'Descargar CSV'}
           </Button>
 
           <p className="text-xs text-muted-foreground">
-            El reporte incluye todos los registros del periodo seleccionado en un formato listo para auditoria.
+            Descarga el reporte filtrado por fechas.
           </p>
         </div>
       </CardContent>
