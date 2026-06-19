@@ -12,7 +12,7 @@ export default function BodegaImportPage() {
       <div className="space-y-2">
         <h1 className="text-3xl font-bold text-foreground">Importar datos de bodega</h1>
         <p className="text-muted-foreground">
-          Importa centros de costo e inventario desde CSV, XLS o XLSX.
+          Carga centros de costo e inventario desde CSV, XLS o XLSX.
         </p>
       </div>
 
@@ -34,14 +34,14 @@ export default function BodegaImportPage() {
           <div className="grid gap-4 md:grid-cols-2">
             <Card className="border-blue-200 bg-blue-50/50">
               <CardHeader>
-                <CardTitle className="text-base">¿Por qué centros de costo?</CardTitle>
+                <CardTitle className="text-base">Porque centros de costo</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 <p>Los centros de costo permiten:</p>
                 <ul className="list-inside list-disc space-y-1 text-muted-foreground">
-                  <li>Organizar por minas y áreas operacionales</li>
+                  <li>Organizar por minas y areas operacionales</li>
                   <li>Asignar presupuestos y costos</li>
-                  <li>Generar reportes por ubicación</li>
+                  <li>Generar reportes por ubicacion</li>
                   <li>Integrar con finanzas y mantenimiento</li>
                 </ul>
               </CardContent>
@@ -49,18 +49,22 @@ export default function BodegaImportPage() {
 
             <Card className="border-green-200 bg-green-50/50">
               <CardHeader>
-                <CardTitle className="text-base">Estructura jerárquica</CardTitle>
+                <CardTitle className="text-base">Estructura jerarquica</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
-                <p>Los centros de costo forman una jerarquía:</p>
-                <div className="space-y-1 rounded bg-white p-2 font-mono text-xs text-muted-foreground">
-                  <div>1 Mina Peumo</div>
-                  <div className="ml-3">→ 1-1 Mina</div>
-                  <div className="ml-3">→ 1-2 Supervisión</div>
-                  <div className="ml-3">→ 1-3 Perforación Liviana</div>
-                  <div>4 Planta</div>
-                  <div className="ml-3">→ 4-1 Chancado</div>
-                  <div className="ml-3">→ 4-2 Molienda</div>
+                <p>Los centros de costo forman una jerarquia:</p>
+                <div className="space-y-1 rounded bg-white p-3 text-xs text-muted-foreground">
+                  <div>
+                    <span className="font-medium text-foreground">Raiz:</span> 1 Mina Peumo
+                  </div>
+                  <div className="ml-3">- 1-1 Mina</div>
+                  <div className="ml-3">- 1-2 Supervision</div>
+                  <div className="ml-3">- 1-3 Perforacion Liviana</div>
+                  <div>
+                    <span className="font-medium text-foreground">Raiz:</span> 4 Planta
+                  </div>
+                  <div className="ml-3">- 4-1 Chancado</div>
+                  <div className="ml-3">- 4-2 Molienda</div>
                 </div>
               </CardContent>
             </Card>
@@ -76,11 +80,11 @@ export default function BodegaImportPage() {
                 <CardTitle className="text-base">Estructura del inventario</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
-                <p>El inventario se organiza en categorías:</p>
+                <p>El inventario se organiza en categorias:</p>
                 <ul className="list-inside list-disc space-y-1 text-muted-foreground">
-                  <li>Acero</li>
-                  <li>Bola</li>
-                  <li>Bomba</li>
+                  <li>Acero y metalmecanica</li>
+                  <li>Consumos de molienda</li>
+                  <li>Bombas y fluidos</li>
                   <li>Repuestos y herramientas</li>
                 </ul>
               </CardContent>
@@ -88,12 +92,12 @@ export default function BodegaImportPage() {
 
             <Card className="border-green-200 bg-green-50/50">
               <CardHeader>
-                <CardTitle className="text-base">Integración</CardTitle>
+                <CardTitle className="text-base">Integracion</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 <p>El inventario se integra con:</p>
                 <ul className="list-inside list-disc space-y-1 text-muted-foreground">
-                  <li>Órdenes de mantenimiento</li>
+                  <li>Ordenes de mantenimiento</li>
                   <li>Requisiciones de compra</li>
                   <li>Control de stock</li>
                   <li>Reportes de consumo</li>

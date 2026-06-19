@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCostCenters } from '@/hooks/use-cost-centers';
-import { formatCostCenterLabel, isRootCostCenter, sortCostCenters } from '@/lib/cost-centers';
+import { isRootCostCenter, sortCostCenters } from '@/lib/cost-centers';
 
 interface ExpandedState {
   [key: string]: boolean;
@@ -145,7 +145,7 @@ export function CostCentersDashboard() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-1 font-mono text-sm">
+          <div className="space-y-1 text-sm">
             {orderedCostCenters.map((cc) => {
               const level = Math.max(0, cc.code.split('-').length - 1);
               const hasChildren = orderedCostCenters.some(
@@ -172,9 +172,8 @@ export function CostCentersDashboard() {
                       <div className="w-6" />
                     )}
                     <div style={{ marginLeft: `${level * 20}px` }} className="flex-1">
-                      <span className="font-semibold">{cc.code}</span>
+                      <span className="font-semibold text-foreground">{cc.code}</span>
                       <span className="ml-2 text-muted-foreground">{cc.name}</span>
-                      <span className="ml-2 text-xs text-muted-foreground">{formatCostCenterLabel(cc)}</span>
                     </div>
                     <Badge variant={cc.status === 'active' ? 'default' : 'secondary'}>
                       {cc.status === 'active' ? 'Activo' : 'Inactivo'}
