@@ -6,26 +6,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/api/guard';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 
-function cleanText(value: string) {
-  return value
+function normalizeText(value: string) {
+  return String(value || '')
     .trim()
-    .replaceAll('ÃƒÆ’Ã‚Â¡', 'á')
-    .replaceAll('ÃƒÆ’Ã‚Â©', 'é')
-    .replaceAll('ÃƒÆ’Ã‚Â­', 'í')
-    .replaceAll('ÃƒÆ’Ã‚Â³', 'ó')
-    .replaceAll('ÃƒÆ’Ã‚Âº', 'ú')
-    .replaceAll('ÃƒÆ’Ã‚Â±', 'ñ')
-    .replaceAll('ÃƒÆ’Ã‚Â¼', 'ü')
-    .replaceAll('ÃƒÆ’Ã¢â‚¬Å“', 'Ó')
-    .replaceAll('ÃƒÆ’Ã¯Â¿Â½', 'Í')
-    .replaceAll('ÃƒÆ’Ã¢â‚¬Ëœ', 'Ñ')
-    .replaceAll('Ãƒâ€šÃ‚Â°', '°')
-    .replaceAll('ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“', '-')
-    .replaceAll('ÃƒÂ¯Ã‚Â¿Ã‚Â½', 'ó');
+    .replaceAll('ï¿½', '')
+    .replaceAll('�', '')
+    .replace(/\s+/g, ' ');
 }
 
 function normalizeRoute(value: string) {
-  return cleanText(value)
+  return normalizeText(value)
     .replace(/[/>]/g, '\\')
     .replace(/\\+/g, '\\')
     .replace(/^\\+|\\+$/g, '');
@@ -43,22 +33,38 @@ function parseDate(value: string) {
 }
 
 function splitCsvLine(line: string) {
-  return line.split(';').map((value) => cleanText(value));
+  return line.split(';').map((value) => normalizeText(value));
 }
 
-function splitName(value: string, parentCode?: string) {
-  const raw = cleanText(value).trim();
-  const match = raw.match(/^([^\s]+)\s+(.+)$/);
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function deriveCodeAndName(rawName: string, parentCode?: string) {
+  const raw = normalizeText(rawName);
+
+  const match = raw.match(/^([0-9]+(?:-[0-9]+)*)\s+(.+)$/);
   if (match) {
     return {
       code: match[1].trim(),
-      name: match[2].trim(),
+      name: normalizeText(match[2]),
     };
   }
 
-  const fallbackCode = parentCode ? `${parentCode}-${raw.toLowerCase().replace(/[^a-z0-9]+/g, '-')}` : raw;
+  if (parentCode) {
+    return {
+      code: `${parentCode}-${slugify(raw)}`,
+      name: raw,
+    };
+  }
+
   return {
-    code: fallbackCode || raw,
+    code: slugify(raw) || raw,
     name: raw,
   };
 }
@@ -76,11 +82,13 @@ export async function POST(request: NextRequest) {
     const lines = content.split(/\r?\n/).filter((line) => line.trim());
 
     if (lines.length < 2) {
-      return NextResponse.json({ error: 'El archivo base de centros está vacío' }, { status: 400 });
+      return NextResponse.json({ error: 'El archivo base de centros esta vacio' }, { status: 400 });
     }
 
     const records = lines.slice(1).map((line) => {
       const values = splitCsvLine(line);
+      const routeValue = normalizeRoute(values[8] || '');
+
       return {
         creator: values[0] || '',
         code: values[1] || '',
@@ -90,29 +98,32 @@ export async function POST(request: NextRequest) {
         modifiedBy: values[5] || '',
         nameValue: values[6] || '',
         notes: values[7] || '',
-        routeValue: normalizeRoute(values[8] || ''),
+        routeValue,
+        routeDepth: routeValue ? routeValue.split('\\').filter(Boolean).length : 0,
       };
     });
 
     const routeCodeMap = new Map<string, string>();
     const payload = records
       .filter((row) => row.nameValue && row.routeValue)
+      .sort((a, b) => a.routeDepth - b.routeDepth || a.routeValue.localeCompare(b.routeValue))
       .map((row) => {
         const routeSegments = row.routeValue.split('\\').filter(Boolean);
         const parentRouteKey = routeSegments.slice(0, -1).join('\\');
         const parentCode = parentRouteKey ? routeCodeMap.get(parentRouteKey) : undefined;
-        const derived = splitName(row.nameValue, parentCode);
-        const derivedCode = row.code || derived.code;
+        const derived = deriveCodeAndName(row.nameValue, parentCode);
+        const code = normalizeText(row.code || derived.code);
+        const name = normalizeText(derived.name);
 
-        routeCodeMap.set(row.routeValue, derivedCode);
+        routeCodeMap.set(row.routeValue, code);
 
         const description = [
           `Ruta completa: ${row.routeValue}`,
           row.creator ? `Creador: ${row.creator}` : '',
           row.modifiedBy ? `Modificado por: ${row.modifiedBy}` : '',
-          row.createdAt ? `Fecha creación: ${row.createdAt}` : '',
-          row.updatedAt ? `Fecha modificación: ${row.updatedAt}` : '',
-          `Descontinuado: ${row.discontinued ? 'Sí' : 'No'}`,
+          row.createdAt ? `Fecha creacion: ${row.createdAt}` : '',
+          row.updatedAt ? `Fecha modificacion: ${row.updatedAt}` : '',
+          `Descontinuado: ${row.discontinued ? 'Si' : 'No'}`,
           row.notes ? `Notas: ${row.notes}` : '',
         ]
           .filter(Boolean)
@@ -120,8 +131,8 @@ export async function POST(request: NextRequest) {
 
         return {
           organization_id: auth.organizationId,
-          code: derivedCode,
-          name: derived.name,
+          code,
+          name,
           description: description || null,
           status: row.discontinued ? 'inactive' : 'active',
           created_at: row.createdAt,
@@ -129,10 +140,16 @@ export async function POST(request: NextRequest) {
         };
       });
 
-    const { error } = await supabase.from('cost_centers').upsert(payload, {
-      onConflict: 'organization_id,code',
-    });
+    const { error: deleteError } = await supabase
+      .from('cost_centers')
+      .delete()
+      .eq('organization_id', auth.organizationId);
 
+    if (deleteError) {
+      throw deleteError;
+    }
+
+    const { error } = await supabase.from('cost_centers').insert(payload);
     if (error) {
       throw error;
     }
