@@ -159,7 +159,7 @@ const DOCUMENT_TYPES_BY_MODULE: Record<string, string[]> = {
   ].sort(),
   legal: [
     'Contrato',
-    'Documento de Compliance',
+    'Documento de Cumplimiento',
     'Política Corporativa',
     'Regulación Interna',
     'Términos y Condiciones',
@@ -202,7 +202,11 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
   });
   const dragRef = useRef<HTMLDivElement>(null);
 
-  const availableTypes = DOCUMENT_TYPES_BY_MODULE[module.toLowerCase()] || [];
+  const normalizedModule = module
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+  const availableTypes = DOCUMENT_TYPES_BY_MODULE[normalizedModule] || DOCUMENT_TYPES_BY_MODULE[module.toLowerCase()] || [];
 
   const acceptedTypes = {
     'application/pdf': ['.pdf'],

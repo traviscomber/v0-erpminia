@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, AlertCircle, Clock, FileText, TrendingUp, Download } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CheckCircle2, AlertCircle, Clock, FileText, Download } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 interface ComplianceItem {
@@ -46,7 +46,7 @@ export function ComplianceTracker() {
         }));
 
         setItems(mappedItems);
-        const compliantCount = mappedItems.filter(i => i.status === 'compliant').length;
+        const compliantCount = mappedItems.filter((entry) => entry.status === 'compliant').length;
         setComplianceScore(mappedItems.length > 0 ? Math.round((compliantCount / mappedItems.length) * 100) : 0);
       } catch (err) {
         console.error('[v0] Error fetching compliance:', err);
@@ -72,71 +72,73 @@ export function ComplianceTracker() {
 
   return (
     <div className="space-y-6">
-      {/* Compliance Score Header */}
       <Card className="bg-gradient-to-br from-card to-muted/20 border-border">
         <CardHeader>
-          <div className="flex justify-between items-start">
+          <div className="flex items-start justify-between">
             <div>
-              <CardTitle>Índice de Cumplimiento</CardTitle>
+              <CardTitle>Índice de cumplimiento</CardTitle>
               <CardDescription>Auditoría integrada y trazabilidad completa</CardDescription>
             </div>
             <div className="text-right">
               <div className="text-4xl font-bold text-emerald-600">{complianceScore}%</div>
-              <p className="text-xs text-muted-foreground mt-1">Cumplimiento normativo</p>
+              <p className="mt-1 text-xs text-muted-foreground">Cumplimiento normativo</p>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="w-full bg-muted rounded-full h-2">
+          <div className="h-2 w-full rounded-full bg-muted">
             <div
-              className="bg-emerald-500 h-2 rounded-full transition-all"
+              className="h-2 rounded-full bg-emerald-500 transition-all"
               style={{ width: `${complianceScore}%` }}
             />
           </div>
         </CardContent>
       </Card>
 
-      {/* Compliance Items */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {loading ? (
-          <p className="text-muted-foreground">Cargando auditorías...</p>
+          <p className="col-span-full text-muted-foreground">Cargando auditorías...</p>
         ) : items.length === 0 ? (
-          <p className="text-muted-foreground col-span-full text-center py-8">
+          <p className="col-span-full py-8 text-center text-muted-foreground">
             No hay auditorías registradas
           </p>
         ) : (
           items.map((item) => (
-            <Card key={item.id} className="hover:border-border/80 transition-colors">
+            <Card key={item.id} className="transition-colors hover:border-border/80">
               <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <div className="flex gap-3 items-start flex-1">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex flex-1 items-start gap-3">
                     <div className="mt-0.5">{statusIcon[item.status]}</div>
                     <div className="flex-1">
                       <CardTitle className="text-base">{item.name}</CardTitle>
-                      <Badge variant="outline" className="text-xs mt-1.5">
+                      <Badge variant="outline" className="mt-1.5 text-xs">
                         {item.category}
                       </Badge>
                     </div>
                   </div>
                   <Badge className={statusBadge[item.status]}>
-                    {item.status === 'compliant' ? 'Conforme' : item.status === 'non_compliant' ? 'No conforme' : 'En progreso'}
+                    {item.status === 'compliant'
+                      ? 'Conforme'
+                      : item.status === 'non_compliant'
+                        ? 'No conforme'
+                        : 'En progreso'}
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p className="text-muted-foreground text-xs">Última auditoría</p>
+                    <p className="text-xs text-muted-foreground">Última auditoría</p>
                     <p className="font-medium">{item.last_audit.toLocaleDateString('es-CL')}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground text-xs">Próxima auditoría</p>
+                    <p className="text-xs text-muted-foreground">Próxima auditoría</p>
                     <p className="font-medium">{item.next_audit.toLocaleDateString('es-CL')}</p>
                   </div>
                 </div>
 
                 <div className="flex gap-2 text-sm">
-                  <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <FileText className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
                   <span className="text-muted-foreground">{item.evidence_count} evidencias adjuntas</span>
                 </div>
 
@@ -144,9 +146,9 @@ export function ComplianceTracker() {
                   Responsable: <span className="font-medium text-foreground">{item.responsible}</span>
                 </p>
 
-                <Button variant="outline" size="sm" className="w-full gap-2 mt-2">
+                <Button variant="outline" size="sm" className="mt-2 w-full gap-2">
                   <Download className="h-4 w-4" />
-                  Descargar Reporte
+                  Descargar informe
                 </Button>
               </CardContent>
             </Card>

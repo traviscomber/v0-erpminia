@@ -69,20 +69,20 @@ export default function ComplianceCalendar() {
           <div className="space-y-3">
             {events.length === 0 ? (
               <div className="text-sm text-muted-foreground">
-                No hay eventos de compliance registrados todavía.
+                No hay eventos de cumplimiento registrados todavía.
               </div>
             ) : (
               events.map((event: any) => (
-                <div key={event.id} className="flex items-start gap-3 p-3 border rounded-lg">
+                <div key={event.id} className="flex items-start gap-3 rounded-lg border p-3">
                   {event.status === 'completed' ? (
-                    <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5" />
+                    <CheckCircle2 className="mt-0.5 h-5 w-5 text-green-600" />
                   ) : (
                     <AlertCircle
-                      className={`h-5 w-5 mt-0.5 ${event.status === 'overdue' ? 'text-red-600' : 'text-yellow-600'}`}
+                      className={`mt-0.5 h-5 w-5 ${event.status === 'overdue' ? 'text-red-600' : 'text-yellow-600'}`}
                     />
                   )}
                   <div className="flex-1">
-                    <p className="font-medium text-sm">{event.title}</p>
+                    <p className="text-sm font-medium">{event.title}</p>
                     <p className="text-xs text-muted-foreground">
                       {new Date(event.due_date).toLocaleDateString('es-CL')}
                     </p>

@@ -19,117 +19,107 @@ export function BodegaDashboard() {
 
   if (error) return <div className="text-destructive font-semibold text-lg">Error cargando inventario</div>;
 
-  // Calculate metrics
-  const lowStock = inventory.filter(item => item.quantity <= item.min_stock);
-  const totalValue = inventory.reduce((sum, item) => sum + (item.quantity * (item.unit_cost || 0)), 0);
+  const lowStock = inventory.filter((item) => item.quantity <= item.min_stock);
+  const totalValue = inventory.reduce((sum, item) => sum + item.quantity * (item.unit_cost || 0), 0);
 
   return (
-    <div className="space-y-6 p-6 bg-background min-h-screen">
-      {/* Header */}
-      <div className="flex justify-between items-center">
+    <div className="min-h-screen space-y-6 bg-background p-6">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-bold text-foreground">Bodega</h1>
-          <p className="text-muted-foreground text-lg mt-1">Gestión de {pagination.total.toLocaleString()} artículos</p>
+          <p className="mt-1 text-lg text-muted-foreground">
+            Gestion de {pagination.total.toLocaleString()} articulos
+          </p>
         </div>
-        <Button 
-          size="lg" 
-          onClick={() => mutate()} 
-          className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
-          disabled={isLoading}
-        >
-          <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
+        <Button size="lg" onClick={() => mutate()} className="gap-2" disabled={isLoading}>
+          <RefreshCw className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
           {isLoading ? 'Actualizando...' : 'Actualizar'}
         </Button>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-card border-2 border-border">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold text-foreground">Total en Stock</CardTitle>
+            <CardTitle className="text-base font-semibold">Total en stock</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-bold text-primary">{pagination.total.toLocaleString()}</div>
-            <p className="text-sm text-muted-foreground mt-2">Artículos en inventario</p>
+            <p className="mt-2 text-sm text-muted-foreground">Articulos en inventario</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-card border-2 border-destructive">
+        <Card className="border-destructive">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold text-foreground">Stock Bajo</CardTitle>
+            <CardTitle className="text-base font-semibold">Stock bajo</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-bold text-destructive">{lowStock.length.toLocaleString()}</div>
-            <p className="text-sm text-muted-foreground mt-2">Por debajo del mínimo</p>
+            <p className="mt-2 text-sm text-muted-foreground">Por debajo del minimo</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-card border-2 border-border">
+        <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold text-foreground">Valor Total</CardTitle>
+            <CardTitle className="text-base font-semibold">Valor total</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-primary">${(totalValue / 1000).toFixed(1)}k</div>
-            <p className="text-sm text-muted-foreground mt-2">Inventario valorizado</p>
+            <p className="mt-2 text-sm text-muted-foreground">Inventario valorizado</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Alerts if low stock */}
       {lowStock.length > 0 && (
-        <Card className="border-2 border-destructive bg-destructive/5">
+        <Card className="border-destructive bg-destructive/5">
           <CardHeader>
-            <CardTitle className="flex gap-3 items-center text-destructive">
-              <AlertTriangle className="w-6 h-6" />
-              <span className="text-lg">{lowStock.length} Artículos con Stock Bajo</span>
+            <CardTitle className="flex items-center gap-3 text-destructive">
+              <AlertTriangle className="h-6 w-6" />
+              <span className="text-lg">{lowStock.length} articulos con stock bajo</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {lowStock.slice(0, 6).map(item => (
-                <div key={item.id} className="bg-background p-3 rounded-lg border border-border">
-                  <div className="font-semibold text-foreground text-sm">{item.sku}</div>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+              {lowStock.slice(0, 6).map((item) => (
+                <div key={item.id} className="rounded-lg border border-border bg-background p-3">
+                  <div className="text-sm font-semibold text-foreground">{item.sku}</div>
                   <div className="text-sm text-muted-foreground">{item.name?.substring(0, 30)}</div>
-                  <div className="text-xs text-destructive mt-2">
-                    Stock: <span className="font-bold">{item.quantity}</span> (Mín: {item.min_stock})
+                  <div className="mt-2 text-xs text-destructive">
+                    Stock: <span className="font-bold">{item.quantity}</span> (Min: {item.min_stock})
                   </div>
                 </div>
               ))}
             </div>
             {lowStock.length > 6 && (
-              <p className="text-xs text-muted-foreground mt-3">
-                +{lowStock.length - 6} artículos más con stock bajo
+              <p className="mt-3 text-xs text-muted-foreground">
+                +{lowStock.length - 6} articulos mas con stock bajo
               </p>
             )}
           </CardContent>
         </Card>
       )}
 
-      {/* Search and Filters */}
-      <Card className="bg-card border-2 border-border">
+      <Card>
         <CardHeader>
-          <CardTitle className="text-foreground">Filtros y Búsqueda</CardTitle>
+          <CardTitle className="text-foreground">Filtros y busqueda</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {/* Search box */}
             <div className="relative">
-              <Search className="absolute left-3 top-3 w-5 h-5 text-muted-foreground" />
+              <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
               <Input
-                placeholder="Buscar por SKU, nombre o categoría..."
+                placeholder="Buscar por SKU, nombre o categoria..."
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
                   setPage(0);
                 }}
-                className="pl-10 bg-background text-foreground border-border h-10 text-base"
+                className="h-10 border-border bg-background pl-10 text-base text-foreground"
               />
             </div>
 
-            {/* Category filter */}
             {categories.length > 0 && (
               <div>
-                <p className="text-sm font-medium text-foreground mb-2">Categoría</p>
+                <p className="mb-2 text-sm font-medium text-foreground">Categoria</p>
                 <CategoryFilter
                   categories={categories}
                   selectedCategory={category}
@@ -144,11 +134,10 @@ export function BodegaDashboard() {
         </CardContent>
       </Card>
 
-      {/* Inventory Table */}
-      <Card className="bg-card border-2 border-border">
+      <Card>
         <CardHeader>
           <CardTitle className="text-foreground">
-            Inventario {pagination.page > 0 && `(Página ${pagination.page + 1} de ${pagination.totalPages})`}
+            Inventario {pagination.page > 0 && `(Pagina ${pagination.page + 1} de ${pagination.totalPages})`}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -156,46 +145,40 @@ export function BodegaDashboard() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b-2 border-border bg-muted">
-                  <th className="text-left p-3 font-bold text-foreground">SKU</th>
-                  <th className="text-left p-3 font-bold text-foreground">Producto</th>
-                  <th className="text-left p-3 font-bold text-foreground">Categoría</th>
-                  <th className="text-right p-3 font-bold text-foreground">Cantidad</th>
-                  <th className="text-right p-3 font-bold text-foreground">Costo Unit.</th>
-                  <th className="text-right p-3 font-bold text-foreground">Total</th>
+                  <th className="p-3 text-left font-bold text-foreground">SKU</th>
+                  <th className="p-3 text-left font-bold text-foreground">Producto</th>
+                  <th className="p-3 text-left font-bold text-foreground">Categoria</th>
+                  <th className="p-3 text-right font-bold text-foreground">Cantidad</th>
+                  <th className="p-3 text-right font-bold text-foreground">Costo unit.</th>
+                  <th className="p-3 text-right font-bold text-foreground">Total</th>
                 </tr>
               </thead>
               <tbody>
                 {isLoading ? (
                   <tr>
-                    <td colSpan={6} className="p-8 text-center text-muted-foreground">
-                      Cargando...
-                    </td>
+                    <td colSpan={6} className="p-8 text-center text-muted-foreground">Cargando...</td>
                   </tr>
                 ) : inventory.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="p-8 text-center text-muted-foreground">
-                      No se encontraron artículos
+                      No se encontraron articulos
                     </td>
                   </tr>
                 ) : (
                   inventory.map((item, idx) => (
-                    <tr 
-                      key={item.id} 
-                      className={`border-b border-border hover:bg-muted transition-colors ${
-                        idx % 2 === 0 ? 'bg-background' : 'bg-muted/30'
-                      } ${item.quantity <= item.min_stock ? 'bg-destructive/10' : ''}`}
+                    <tr
+                      key={item.id}
+                      className={`border-b border-border hover:bg-muted ${idx % 2 === 0 ? 'bg-background' : 'bg-muted/30'} ${item.quantity <= item.min_stock ? 'bg-destructive/10' : ''}`}
                     >
-                      <td className="p-3 font-mono text-foreground font-semibold">{item.sku}</td>
-                      <td className="p-3 text-foreground max-w-xs truncate">{item.name}</td>
-                      <td className="p-3 text-muted-foreground text-sm">{item.category || '-'}</td>
-                      <td className="text-right p-3 font-semibold text-foreground">
+                      <td className="p-3 font-mono font-semibold text-foreground">{item.sku}</td>
+                      <td className="max-w-xs p-3 text-foreground truncate">{item.name}</td>
+                      <td className="p-3 text-sm text-muted-foreground">{item.category || '-'}</td>
+                      <td className="p-3 text-right font-semibold text-foreground">
                         {item.quantity.toLocaleString()}
-                        {item.quantity <= item.min_stock && (
-                          <span className="ml-2 text-destructive font-bold">⚠</span>
-                        )}
+                        {item.quantity <= item.min_stock && <span className="ml-2 font-bold text-destructive">!</span>}
                       </td>
-                      <td className="text-right p-3 text-foreground">${(item.unit_cost || 0).toFixed(2)}</td>
-                      <td className="text-right p-3 font-bold text-primary">
+                      <td className="p-3 text-right text-foreground">${(item.unit_cost || 0).toFixed(2)}</td>
+                      <td className="p-3 text-right font-bold text-primary">
                         ${((item.quantity || 0) * (item.unit_cost || 0)).toFixed(0)}
                       </td>
                     </tr>
@@ -205,46 +188,32 @@ export function BodegaDashboard() {
             </table>
           </div>
 
-          {/* Pagination Controls */}
           {pagination.totalPages > 1 && (
-            <div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
+            <div className="mt-6 flex items-center justify-between border-t border-border pt-4">
               <div className="text-sm text-muted-foreground">
-                Mostrando {(page * pageSize) + 1} a {Math.min((page + 1) * pageSize, pagination.total)} de {pagination.total.toLocaleString()} artículos
+                Mostrando {(page * pageSize) + 1} a {Math.min((page + 1) * pageSize, pagination.total)} de {pagination.total.toLocaleString()} articulos
               </div>
 
               <div className="flex items-center gap-2">
-                {/* Page size selector */}
                 <select
                   value={pageSize}
                   onChange={(e) => {
                     setPageSize(Number(e.target.value));
                     setPage(0);
                   }}
-                  className="px-3 py-2 rounded border border-border bg-background text-foreground text-sm font-medium"
+                  className="rounded border border-border bg-background px-3 py-2 text-sm font-medium text-foreground"
                 >
-                  <option value={25}>25 por página</option>
-                  <option value={50}>50 por página</option>
-                  <option value={100}>100 por página</option>
-                  <option value={250}>250 por página</option>
-                  <option value={500}>500 por página</option>
+                  <option value={25}>25 por pagina</option>
+                  <option value={50}>50 por pagina</option>
+                  <option value={100}>100 por pagina</option>
+                  <option value={250}>250 por pagina</option>
+                  <option value={500}>500 por pagina</option>
                 </select>
 
-                {/* Navigation buttons */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage(Math.max(0, page - 1))}
-                  disabled={page === 0}
-                  className="gap-1"
-                >
-                  <ChevronLeft className="w-4 h-4" />
+                <Button variant="outline" size="sm" onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0} className="gap-1">
+                  <ChevronLeft className="h-4 w-4" />
                   Anterior
                 </Button>
-
-                <span className="text-sm font-medium text-foreground px-3">
-                  {page + 1} / {pagination.totalPages}
-                </span>
-
                 <Button
                   variant="outline"
                   size="sm"
@@ -253,7 +222,7 @@ export function BodegaDashboard() {
                   className="gap-1"
                 >
                   Siguiente
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             </div>
