@@ -226,6 +226,42 @@ async function replaceInventoryWithStaging(rows: InventoryRow[]) {
         ) ON COMMIT DROP;
       `);
 
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS public.bodega_inventory_backup (
+          LIKE public.bodega_inventory INCLUDING DEFAULTS INCLUDING CONSTRAINTS
+        );
+      `);
+
+      await client.query(`
+        ALTER TABLE public.bodega_inventory_backup
+          ADD COLUMN IF NOT EXISTS backup_created_at timestamptz DEFAULT now();
+      `);
+
+      await client.query(`
+        INSERT INTO public.bodega_inventory_backup (
+          sku,
+          name,
+          category,
+          description,
+          quantity,
+          unit_cost,
+          min_stock,
+          max_stock,
+          location
+        )
+        SELECT
+          sku,
+          name,
+          category,
+          description,
+          quantity,
+          unit_cost,
+          min_stock,
+          max_stock,
+          location
+        FROM public.bodega_inventory;
+      `);
+
       await client.query(
         `
           INSERT INTO inventory_stage (
