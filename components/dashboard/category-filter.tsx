@@ -15,9 +15,47 @@ interface CategoryFilterProps {
   onCategoryChange: (category: string) => void;
 }
 
+function normalizeHeader(value: unknown) {
+  return String(value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+function toTitleCase(value: string) {
+  return value
+    .split(/\s+/)
+    .map((word) => {
+      if (!word) return word;
+      if (/^[A-Z0-9]{2,}$/.test(word)) return word;
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join(' ');
+}
+
+function canonicalCategory(value: unknown) {
+  const raw = String(value ?? '').trim();
+  if (!raw) return '';
+
+  const normalized = normalizeHeader(raw).replace(/\s+/g, ' ');
+  const aliases: Record<string, string> = {
+    ferreteria: 'Ferretería',
+    viveres: 'Víveres',
+    neumatico: 'Neumático',
+    electrico: 'Eléctrico',
+    epp: 'EPP',
+  };
+
+  return aliases[normalized] || toTitleCase(raw);
+}
+
 export function CategoryFilter({ categories, selectedCategory, onCategoryChange }: CategoryFilterProps) {
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
+  const normalizedCategories = Array.from(
+    new Set(categories.map(canonicalCategory).filter(Boolean))
+  ).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
 
   if (!isMobile) {
     return (
@@ -30,7 +68,7 @@ export function CategoryFilter({ categories, selectedCategory, onCategoryChange 
         >
           Todas
         </Button>
-        {categories.map((cat) => (
+        {normalizedCategories.map((cat) => (
           <Button
             key={cat}
             variant={selectedCategory === cat ? 'default' : 'outline'}
@@ -69,9 +107,9 @@ export function CategoryFilter({ categories, selectedCategory, onCategoryChange 
                 }}
               >
                 <Check className={cn('mr-2 h-4 w-4', selectedCategory === '' ? 'opacity-100' : 'opacity-0')} />
-                Todas ({categories.length})
+                Todas ({normalizedCategories.length})
               </CommandItem>
-              {categories.map((cat) => (
+              {normalizedCategories.map((cat) => (
                 <CommandItem
                   key={cat}
                   onSelect={() => {
