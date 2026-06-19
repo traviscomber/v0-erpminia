@@ -33,11 +33,12 @@ export function BodegaInventoryImportComponent() {
   const rootCostCenters = costCenters.filter((cc) => isRootCostCenter(cc.code));
 
   const handleFile = async (file: File) => {
-    if (!file.name.toLowerCase().endsWith('.csv')) {
+    const lowerName = file.name.toLowerCase();
+    if (!lowerName.endsWith('.csv') && !lowerName.endsWith('.xls') && !lowerName.endsWith('.xlsx')) {
       setResult({
         success: false,
-        message: 'Solo aceptamos archivos CSV',
-        error: 'Tipo de archivo no válido',
+        message: 'Solo aceptamos archivos CSV, XLS o XLSX',
+        error: 'Tipo de archivo no valido',
       });
       return;
     }
@@ -112,7 +113,7 @@ export function BodegaInventoryImportComponent() {
             Importar inventario de bodega
           </CardTitle>
           <CardDescription>
-            Sube tu archivo CSV con el inventario de bodega (código, familia, producto, etc.).
+            Sube tu archivo CSV, XLS o XLSX con codigo, familia, cantidad y precio.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -132,7 +133,7 @@ export function BodegaInventoryImportComponent() {
               </SelectContent>
             </Select>
             <p className="mt-1 text-xs text-muted-foreground">
-              Si no seleccionas, los ítems se importarán sin asignar a un centro.
+              Si no seleccionas, los items se importaran sin asignar a un centro.
             </p>
           </div>
 
@@ -150,12 +151,12 @@ export function BodegaInventoryImportComponent() {
           >
             <Upload className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
             <p className="font-semibold text-foreground">Arrastra tu archivo o haz clic para seleccionar</p>
-            <p className="mt-1 text-sm text-muted-foreground">Formato: CSV (separado por punto y coma)</p>
+            <p className="mt-1 text-sm text-muted-foreground">Formato: CSV, XLS o XLSX</p>
 
             <input
               ref={fileInputRef}
               type="file"
-              accept=".csv"
+              accept=".csv,.xls,.xlsx"
               onChange={(e) => {
                 if (e.target.files?.[0]) {
                   handleFile(e.target.files[0]);
@@ -171,10 +172,10 @@ export function BodegaInventoryImportComponent() {
               <p className="mb-2 font-semibold">Formato requerido:</p>
               <p className="text-sm">Tu archivo debe tener estas columnas:</p>
               <div className="mt-2 rounded bg-muted p-2 font-mono text-sm">
-                CÓDIGO | FAMILIA | SUB-FAMILIA | EQUIPO | PRODUCTO
+                CODIGO | FAMILIA | SUB-FAMILIA | EQUIPO | PRODUCTO | STOCK | VALOR UNIT
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
-                El CÓDIGO debe ser único. PRODUCTO es el nombre del artículo.
+                CODIGO debe ser unico. PRODUCTO es el nombre del articulo. STOCK y VALOR UNIT se cargan al sistema.
               </p>
             </AlertDescription>
           </Alert>
@@ -190,7 +191,7 @@ export function BodegaInventoryImportComponent() {
                 <p className={result.success ? 'font-semibold text-green-900' : 'font-semibold text-red-900'}>
                   {result.message}
                 </p>
-                {result.imported ? <p className="mt-1 text-sm">{result.imported} ítems de inventario importados</p> : null}
+                {result.imported ? <p className="mt-1 text-sm">{result.imported} items importados</p> : null}
                 {result.error ? <p className="mt-1 text-sm text-red-700">{result.error}</p> : null}
               </AlertDescription>
             </Alert>
