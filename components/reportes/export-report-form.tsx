@@ -9,7 +9,9 @@ export function ExportReportForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [reportType, setReportType] = useState('maintenance');
-  const [startDate, setStartDate] = useState(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+  const [startDate, setStartDate] = useState(
+    new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+  );
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
 
   const handleExport = async () => {
@@ -26,9 +28,9 @@ export function ExportReportForm() {
       if (res.ok) {
         const { report } = await res.json();
         const filename = `${reportType}-report-${new Date().toISOString().split('T')[0]}.csv`;
-        alert(`Report generated: ${report.row_count} records. Download ready.\nFilename: ${filename}`);
+        alert(`Reporte generado: ${report.row_count} registros.\nDescarga lista.\nArchivo: ${filename}`);
       } else {
-        setError('Failed to generate report');
+        setError('No se pudo generar el reporte');
       }
     } catch (err) {
       console.error('[v0] Export error:', err);
@@ -41,59 +43,59 @@ export function ExportReportForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Export Report</CardTitle>
+        <CardTitle>Exportar reporte</CardTitle>
       </CardHeader>
       <CardContent>
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded flex gap-2">
-            <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
+          <div className="mb-4 flex gap-2 rounded border border-red-200 bg-red-50 p-3">
+            <AlertCircle className="h-5 w-5 flex-shrink-0 text-red-600" />
             <p className="text-sm text-red-700">{error}</p>
           </div>
         )}
 
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-semibold">Report Type</label>
+            <label className="text-sm font-semibold">Tipo de reporte</label>
             <select
               value={reportType}
               onChange={(e) => setReportType(e.target.value)}
-              className="w-full p-2 border rounded text-sm"
+              className="w-full rounded border p-2 text-sm"
             >
-              <option value="maintenance">Maintenance Work Orders</option>
-              <option value="hse">HSE Incidents & Investigations</option>
-              <option value="audit">Audit Trail & Compliance</option>
+              <option value="maintenance">Órdenes de trabajo de mantenimiento</option>
+              <option value="hse">Incidentes e investigaciones HSE</option>
+              <option value="audit">Trazabilidad y cumplimiento</option>
             </select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-semibold">Start Date</label>
+              <label className="text-sm font-semibold">Fecha de inicio</label>
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full p-2 border rounded text-sm"
+                className="w-full rounded border p-2 text-sm"
               />
             </div>
 
             <div>
-              <label className="text-sm font-semibold">End Date</label>
+              <label className="text-sm font-semibold">Fecha de término</label>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full p-2 border rounded text-sm"
+                className="w-full rounded border p-2 text-sm"
               />
             </div>
           </div>
 
           <Button onClick={handleExport} disabled={loading} className="w-full">
-            <Download className="h-4 w-4 mr-2" />
-            {loading ? 'Generating...' : 'Export as CSV'}
+            <Download className="mr-2 h-4 w-4" />
+            {loading ? 'Generando...' : 'Exportar CSV'}
           </Button>
 
           <p className="text-xs text-muted-foreground">
-            Report will include all records for the selected period. Compliance-ready format for auditors.
+            El reporte incluirá todos los registros del periodo seleccionado. Formato listo para auditoría.
           </p>
         </div>
       </CardContent>

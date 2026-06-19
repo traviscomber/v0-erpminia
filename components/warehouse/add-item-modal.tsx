@@ -1,10 +1,10 @@
 'use client';
+
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 
 interface AddItemModalProps {
@@ -68,13 +68,13 @@ export function AddItemModal({ open, onOpenChange, onSubmit }: AddItemModalProps
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Agregar Artículo</DialogTitle>
+          <DialogTitle>Agregar artículo</DialogTitle>
           <DialogDescription>Ingrese los detalles del nuevo artículo de inventario</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label>Código de Parte</Label>
+            <Label>Código de parte</Label>
             <Input
               required
               value={formData.part_code}
@@ -84,7 +84,7 @@ export function AddItemModal({ open, onOpenChange, onSubmit }: AddItemModalProps
           </div>
 
           <div>
-            <Label>Nombre del Artículo</Label>
+            <Label>Nombre del artículo</Label>
             <Input
               required
               value={formData.part_name}
@@ -95,7 +95,7 @@ export function AddItemModal({ open, onOpenChange, onSubmit }: AddItemModalProps
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label>Cantidad Actual</Label>
+              <Label>Cantidad actual</Label>
               <Input
                 type="number"
                 value={formData.quantity_on_hand}
@@ -103,7 +103,7 @@ export function AddItemModal({ open, onOpenChange, onSubmit }: AddItemModalProps
               />
             </div>
             <div>
-              <Label>Costo Unitario</Label>
+              <Label>Costo unitario</Label>
               <Input
                 type="number"
                 step="0.01"
@@ -116,7 +116,7 @@ export function AddItemModal({ open, onOpenChange, onSubmit }: AddItemModalProps
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label>Nivel de Reorden</Label>
+              <Label>Nivel de reorden</Label>
               <Input
                 type="number"
                 value={formData.reorder_level}
@@ -124,7 +124,7 @@ export function AddItemModal({ open, onOpenChange, onSubmit }: AddItemModalProps
               />
             </div>
             <div>
-              <Label>Cantidad de Reorden</Label>
+              <Label>Cantidad de reorden</Label>
               <Input
                 type="number"
                 value={formData.reorder_quantity}
@@ -138,7 +138,7 @@ export function AddItemModal({ open, onOpenChange, onSubmit }: AddItemModalProps
               Cancelar
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Guardando...' : 'Agregar Artículo'}
+              {loading ? 'Guardando...' : 'Agregar artículo'}
             </Button>
           </DialogFooter>
         </form>
