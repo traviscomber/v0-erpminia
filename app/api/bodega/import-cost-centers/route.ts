@@ -49,6 +49,7 @@ export async function POST(request: NextRequest) {
     const creadoPorIdx = headers.findIndex(h => h.includes('creador'));
     const fechaCreacionIdx = headers.findIndex(h => h.includes('fecha de creación'));
     const notasIdx = headers.findIndex(h => h.includes('notas'));
+    const discontinuadoIdx = headers.findIndex(h => h.includes('discontinuado'));
 
     // Parse rows
     for (let i = 1; i < lines.length; i++) {
@@ -59,6 +60,9 @@ export async function POST(request: NextRequest) {
       const codigo = values[codigoIdx];
       const nombre = values[nombreIdx] || '';
       const rutaCompleta = values[rutaIdx] || '';
+      const discontinuado = discontinuadoIdx >= 0 && (values[discontinuadoIdx] || '').toLowerCase() === 'si';
+
+      if (discontinuado) continue;
 
       data.push({
         codigo_rec_elec: codigo,

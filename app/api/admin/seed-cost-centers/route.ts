@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
 
     const routeCodeMap = new Map<string, string>();
     const payload = records
-      .filter((row) => row.nameValue && row.routeValue)
+      .filter((row) => row.nameValue && row.routeValue && !row.discontinued)
       .sort((a, b) => a.routeDepth - b.routeDepth || a.routeValue.localeCompare(b.routeValue))
       .map((row) => {
         const routeSegments = row.routeValue.split('\\').filter(Boolean);
@@ -123,7 +123,6 @@ export async function POST(request: NextRequest) {
           row.modifiedBy ? `Modificado por: ${row.modifiedBy}` : '',
           row.createdAt ? `Fecha creacion: ${row.createdAt}` : '',
           row.updatedAt ? `Fecha modificacion: ${row.updatedAt}` : '',
-          `Descontinuado: ${row.discontinued ? 'Si' : 'No'}`,
           row.notes ? `Notas: ${row.notes}` : '',
         ]
           .filter(Boolean)
@@ -134,7 +133,7 @@ export async function POST(request: NextRequest) {
           code,
           name,
           description: description || null,
-          status: row.discontinued ? 'inactive' : 'active',
+          status: 'active',
           created_at: row.createdAt,
           updated_at: row.updatedAt,
         };

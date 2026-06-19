@@ -154,6 +154,7 @@ async function run() {
     const cleanContent = content.charCodeAt(0) === 0xFEFF ? content.slice(1) : content;
     
     const records = parseCSV(cleanContent);
+    const discontinuadoIdx = Object.keys(records[0] || {}).findIndex(h => String(h).toLowerCase().includes('discontinuado'));
 
     console.log(`\n📥 Importando ${records.length} centros de costos...\n`);
 
@@ -172,17 +173,21 @@ async function run() {
         if (!code && name) {
           code = name;
         }
+        const discontinuadoHeader = headers[discontinuadoIdx >= 0 ? discontinuadoIdx : 2];
+        const isDiscontinued = String(r[discontinuadoHeader] || '').trim().toLowerCase() === 'si';
+        if (isDiscontinued) return null;
         
         return {
           organization_id,
           code, // Use name as code if original code is empty
           name,
           description: fixText(r[headers[7]] || ''), // NOTAS (col 8)
-          status: (r[headers[2]] || 'No').toLowerCase() === 'si' ? 'inactive' : 'active',
+          status: 'active',
           created_at: createdAt,
           updated_at: updatedAt,
         };
       })
+      .filter(Boolean)
       .filter(r => r.name && r.code); // Only include records with both name and code
 
     // Delete existing rows for this organization (id is UUID, use organization_id filter)
