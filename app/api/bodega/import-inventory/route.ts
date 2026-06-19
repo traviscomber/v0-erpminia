@@ -48,6 +48,17 @@ function cleanText(value: unknown) {
   return String(value ?? '').trim();
 }
 
+function toTitleCase(value: string) {
+  return value
+    .split(/\s+/)
+    .map((word) => {
+      if (!word) return word;
+      if (/^[A-Z0-9]{2,}$/.test(word)) return word;
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join(' ');
+}
+
 function normalizeCategoryLabel(value: unknown) {
   const raw = cleanText(value);
   if (!raw) return 'General';
@@ -61,7 +72,7 @@ function normalizeCategoryLabel(value: unknown) {
     epp: 'EPP',
   };
 
-  return aliases[normalized] || raw;
+  return aliases[normalized] || toTitleCase(raw);
 }
 
 function formatError(error: unknown) {
