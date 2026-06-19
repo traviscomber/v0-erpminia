@@ -13,18 +13,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useCostCenters } from '@/hooks/use-cost-centers';
+import { isRootCostCenter } from '@/lib/cost-centers';
 
 interface ImportResult {
   success: boolean;
   message: string;
   imported?: number;
   error?: string;
-}
-
-interface RootCostCenter {
-  id: string;
-  code: string;
-  name: string;
 }
 
 export function BodegaInventoryImportComponent() {
@@ -35,7 +30,7 @@ export function BodegaInventoryImportComponent() {
   const [selectedCostCenter, setSelectedCostCenter] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const rootCostCenters = costCenters.filter((cc) => !cc.code.includes('-')) as RootCostCenter[];
+  const rootCostCenters = costCenters.filter((cc) => isRootCostCenter(cc.code));
 
   const handleFile = async (file: File) => {
     if (!file.name.toLowerCase().endsWith('.csv')) {

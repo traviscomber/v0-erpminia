@@ -6,6 +6,7 @@ import { CostCenterSelect } from '@/components/common/cost-center-select';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, TrendingUp, TrendingDown } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { formatCostCenterLabel } from '@/lib/cost-centers';
 
 export function FinanzasDashboard() {
   const [selectedCostCenterId, setSelectedCostCenterId] = useState<string>('');
@@ -66,6 +67,14 @@ export function FinanzasDashboard() {
           onValueChange={setSelectedCostCenterId}
           placeholder="Todos los centros"
         />
+        {selectedCostCenterId ? (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Centro activo:{' '}
+            {formatCostCenterLabel(
+              costCenters.find((cc) => cc.id === selectedCostCenterId) ?? { code: '', name: '' }
+            )}
+          </p>
+        ) : null}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

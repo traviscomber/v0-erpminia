@@ -13,6 +13,7 @@ import { Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCostCenters } from '@/hooks/use-cost-centers';
 import { useState } from 'react';
+import { formatCostCenterLabel, getCostCenterDepth } from '@/lib/cost-centers';
 
 interface CostCenterSelectProps {
   value?: string;
@@ -46,22 +47,40 @@ export function CostCenterSelect({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0">
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
         <Command>
           <CommandInput placeholder="Buscar centro de costos..." />
           <CommandEmpty>No se encontraron centros de costos.</CommandEmpty>
           <CommandGroup className="max-h-64 overflow-y-auto">
+            {!required ? (
+              <CommandItem
+                value="sin centro de costo"
+                onSelect={() => {
+                  onValueChange('');
+                  setOpen(false);
+                }}
+              >
+                <Check className={cn('mr-2 h-4 w-4', !value ? 'opacity-100' : 'opacity-0')} />
+                Sin centro de costo
+              </CommandItem>
+            ) : null}
             {costCenters.map(cc => (
               <CommandItem
                 key={cc.id}
-                value={cc.id}
-                onSelect={currentValue => {
-                  onValueChange(currentValue === value ? '' : currentValue);
+                value={`${cc.code} ${cc.name} ${cc.description ?? ''}`.trim()}
+                onSelect={() => {
+                  onValueChange(cc.id);
                   setOpen(false);
                 }}
               >
                 <Check className={cn('mr-2 h-4 w-4', value === cc.id ? 'opacity-100' : 'opacity-0')} />
-                {cc.code} - {cc.name}
+                <span className="flex min-w-0 items-center gap-2">
+                  <span
+                    className="inline-block h-3 w-3 shrink-0 rounded-full border border-muted-foreground/20 bg-muted-foreground/10"
+                    style={{ marginLeft: `${getCostCenterDepth(cc.code) * 12}px` }}
+                  />
+                  <span className="truncate">{formatCostCenterLabel(cc)}</span>
+                </span>
               </CommandItem>
             ))}
           </CommandGroup>

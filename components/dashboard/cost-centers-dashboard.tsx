@@ -2,20 +2,14 @@
 
 import { useState } from 'react';
 import { AlertCircle, ChevronDown, ChevronRight, Database, RefreshCw } from 'lucide-react';
-import { useCostCenters } from '@/hooks/use-cost-centers';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useCostCenters } from '@/hooks/use-cost-centers';
+import { formatCostCenterLabel, isRootCostCenter, sortCostCenters } from '@/lib/cost-centers';
 
 interface ExpandedState {
   [key: string]: boolean;
-}
-
-interface CostCenterRow {
-  id: string;
-  code: string;
-  name: string;
-  status: 'active' | 'inactive';
 }
 
 export function CostCentersDashboard() {
@@ -23,6 +17,9 @@ export function CostCentersDashboard() {
   const [expanded, setExpanded] = useState<ExpandedState>({});
   const [seeding, setSeeding] = useState(false);
   const [seedError, setSeedError] = useState('');
+
+  const orderedCostCenters = sortCostCenters(costCenters);
+  const rootCount = orderedCostCenters.filter((center) => isRootCostCenter(center.code)).length;
 
   const handleSeed = async () => {
     setSeeding(true);
@@ -48,17 +45,7 @@ export function CostCentersDashboard() {
     return <div className="py-10 text-center">Cargando centros de costos...</div>;
   }
 
-  const hierarchy = buildHierarchy(costCenters);
-  const hasData = hierarchy.length > 0;
-
-  const toggleExpand = (id: string) => {
-    setExpanded((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
-  };
-
-  if (error && !hasData) {
+  if (error && orderedCostCenters.length === 0) {
     return (
       <Card className="border-destructive/20 bg-destructive/5">
         <CardContent className="py-8">
@@ -85,14 +72,14 @@ export function CostCentersDashboard() {
     );
   }
 
-  if (!hasData) {
+  if (orderedCostCenters.length === 0) {
     return (
       <Card className="border-dashed border-muted-foreground/30">
         <CardContent className="py-10">
           <div className="flex flex-col items-center gap-4 text-center">
             <Database className="h-12 w-12 text-muted-foreground" />
             <div className="space-y-2">
-              <h3 className="text-lg font-semibold text-foreground">Todavía no hay centros de costo visibles</h3>
+              <h3 className="text-lg font-semibold text-foreground">Todavia no hay centros de costo visibles</h3>
               <p className="max-w-2xl text-sm text-muted-foreground">
                 Puedes cargar la base de referencia desde el archivo del proyecto para que la estructura aparezca en el dashboard y en los selectores de bodega.
               </p>
@@ -122,15 +109,15 @@ export function CostCentersDashboard() {
             <CardTitle className="text-sm font-medium">Total centros</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{costCenters.length}</div>
+            <div className="text-2xl font-bold">{orderedCostCenters.length}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Nivel 1 (raíces)</CardTitle>
+            <CardTitle className="text-sm font-medium">Nivel 1 (raices)</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{hierarchy.filter((h) => !h.code.includes('-')).length}</div>
+            <div className="text-2xl font-bold">{rootCount}</div>
           </CardContent>
         </Card>
         <Card>
@@ -138,14 +125,14 @@ export function CostCentersDashboard() {
             <CardTitle className="text-sm font-medium">Activos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{costCenters.filter((c) => c.status === 'active').length}</div>
+            <div className="text-2xl font-bold">{orderedCostCenters.filter((c) => c.status === 'active').length}</div>
           </CardContent>
         </Card>
       </div>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-3">
-          <CardTitle>Estructura jerárquica</CardTitle>
+          <CardTitle>Estructura jerarquica</CardTitle>
           <div className="flex flex-wrap gap-2">
             <Button onClick={handleSeed} disabled={seeding} variant="outline" size="sm">
               <Database className="mr-2 h-4 w-4" />
@@ -159,12 +146,13 @@ export function CostCentersDashboard() {
         </CardHeader>
         <CardContent>
           <div className="space-y-1 font-mono text-sm">
-            {hierarchy.map((cc) => {
-              const level = (cc.code.match(/-/g) || []).length;
-              const hasChildren = hierarchy.some(
+            {orderedCostCenters.map((cc) => {
+              const level = Math.max(0, cc.code.split('-').length - 1);
+              const hasChildren = orderedCostCenters.some(
                 (child) =>
+                  child.id !== cc.id &&
                   child.code.startsWith(`${cc.code}-`) &&
-                  (child.code.match(/-/g) || []).length === level + 1
+                  child.code.split('-').length === level + 2
               );
               const isExpanded = expanded[cc.id];
 
@@ -176,7 +164,7 @@ export function CostCentersDashboard() {
                         variant="ghost"
                         size="sm"
                         className="h-6 w-6 p-0"
-                        onClick={() => toggleExpand(cc.id)}
+                        onClick={() => setExpanded((prev) => ({ ...prev, [cc.id]: !prev[cc.id] }))}
                       >
                         {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                       </Button>
@@ -186,6 +174,7 @@ export function CostCentersDashboard() {
                     <div style={{ marginLeft: `${level * 20}px` }} className="flex-1">
                       <span className="font-semibold">{cc.code}</span>
                       <span className="ml-2 text-muted-foreground">{cc.name}</span>
+                      <span className="ml-2 text-xs text-muted-foreground">{formatCostCenterLabel(cc)}</span>
                     </div>
                     <Badge variant={cc.status === 'active' ? 'default' : 'secondary'}>
                       {cc.status === 'active' ? 'Activo' : 'Inactivo'}
@@ -193,10 +182,10 @@ export function CostCentersDashboard() {
                   </div>
 
                   {isExpanded &&
-                    hierarchy.map(
+                    orderedCostCenters.map(
                       (child) =>
                         child.code.startsWith(`${cc.code}-`) &&
-                        (child.code.match(/-/g) || []).length === level + 1 && (
+                        child.code.split('-').length === level + 2 && (
                           <div key={child.id} className="pl-2">
                             <div className="flex items-center gap-2 rounded px-2 py-1 hover:bg-muted/40">
                               <div className="w-6" />
@@ -219,16 +208,4 @@ export function CostCentersDashboard() {
       </Card>
     </div>
   );
-}
-
-function buildHierarchy(costCenters: CostCenterRow[]) {
-  const collator = new Intl.Collator('es', { numeric: true, sensitivity: 'base' });
-
-  return [...costCenters].sort((a, b) => {
-    const aDepth = (String(a.code || '').match(/-/g) || []).length;
-    const bDepth = (String(b.code || '').match(/-/g) || []).length;
-
-    if (aDepth !== bDepth) return aDepth - bDepth;
-    return collator.compare(String(a.code || ''), String(b.code || ''));
-  });
 }

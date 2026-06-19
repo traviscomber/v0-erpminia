@@ -1,15 +1,8 @@
 import { useEffect, useState } from 'react';
-
-interface CostCenter {
-  id: string;
-  code: string;
-  name: string;
-  description?: string;
-  status: 'active' | 'inactive';
-}
+import { sortCostCenters, type CostCenterRecord } from '@/lib/cost-centers';
 
 export function useCostCenters() {
-  const [costCenters, setCostCenters] = useState<CostCenter[]>([]);
+  const [costCenters, setCostCenters] = useState<CostCenterRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
@@ -25,7 +18,7 @@ export function useCostCenters() {
           throw new Error(payload?.error || 'No se pudieron cargar los centros de costo');
         }
 
-        setCostCenters(Array.isArray(payload) ? payload : []);
+        setCostCenters(Array.isArray(payload) ? sortCostCenters(payload) : []);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error desconocido');
         setCostCenters([]);
