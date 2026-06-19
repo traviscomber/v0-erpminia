@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { useRef, useState } from 'react';
+import { AlertCircle, CheckCircle2, Loader2, Upload } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -11,8 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Upload, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
+import { useCostCenters } from '@/hooks/use-cost-centers';
 
 interface ImportResult {
   success: boolean;
@@ -21,33 +21,21 @@ interface ImportResult {
   error?: string;
 }
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
+interface RootCostCenter {
+  id: string;
+  code: string;
+  name: string;
+}
 
 export function BodegaInventoryImportComponent() {
+  const { costCenters } = useCostCenters();
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [dragActive, setDragActive] = useState(false);
-  const [costCenters, setCostCenters] = useState<Array<{ id: string; nombre: string }>>([]);
   const [selectedCostCenter, setSelectedCostCenter] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    const loadCostCenters = async () => {
-      try {
-        const { data } = await supabase.from('cost_centers').select('id, nombre').eq('nivel', 1).order('nombre');
-
-        if (data) {
-          setCostCenters(data);
-        }
-      } catch (error) {
-        console.error('Error al cargar los centros de costos:', error);
-      }
-    };
-
-    loadCostCenters();
-  }, []);
+  const rootCostCenters = costCenters.filter((cc) => !cc.code.includes('-')) as RootCostCenter[];
 
   const handleFile = async (file: File) => {
     if (!file.name.toLowerCase().endsWith('.csv')) {
@@ -74,19 +62,19 @@ export function BodegaInventoryImportComponent() {
         body: formData,
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
 
       if (response.ok) {
         setResult({
           success: true,
-          message: data.message,
-          imported: data.imported,
+          message: data?.message || 'Inventario importado correctamente',
+          imported: data?.imported,
         });
       } else {
         setResult({
           success: false,
           message: 'No se pudo importar el inventario',
-          error: data.error || 'Error desconocido',
+          error: data?.error || 'Error desconocido',
         });
       }
     } catch (error) {
@@ -141,9 +129,9 @@ export function BodegaInventoryImportComponent() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">No asignar</SelectItem>
-                {costCenters.map((cc) => (
+                {rootCostCenters.map((cc) => (
                   <SelectItem key={cc.id} value={cc.id}>
-                    {cc.nombre}
+                    {cc.code} - {cc.name}
                   </SelectItem>
                 ))}
               </SelectContent>

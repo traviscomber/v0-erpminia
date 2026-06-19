@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
 
     if (!supabaseUrl || !supabaseKey) {
       return NextResponse.json(
-        { error: 'Missing Supabase configuration' },
+        { error: 'Falta la configuración de Supabase' },
         { status: 500 }
       );
     }
@@ -23,36 +23,32 @@ export async function POST(request: NextRequest) {
 
     if (!file) {
       return NextResponse.json(
-        { error: 'No file provided' },
+        { error: 'No se proporcionó archivo' },
         { status: 400 }
       );
     }
 
-    // Read file content
     const text = await file.text();
-    const lines = text.split('\n').filter(line => line.trim());
+    const lines = text.split(/\r?\n/).filter((line) => line.trim());
 
-    if (lines.length < 1) {
+    if (lines.length < 2) {
       return NextResponse.json(
-        { error: 'File is empty' },
+        { error: 'El archivo está vacío' },
         { status: 400 }
       );
     }
 
-    // Parse CSV (use semicolon delimiter)
-    const data: any[] = [];
-    const headers = lines[0].split(';').map(h => h.trim().toLowerCase());
+    const data: Array<Record<string, unknown>> = [];
+    const headers = lines[0].split(';').map((header) => header.trim().toLowerCase());
 
-    // Find column indices
-    const codigoIdx = headers.findIndex(h => h.includes('código') || h.includes('codigo'));
-    const familiaIdx = headers.findIndex(h => h.includes('familia'));
-    const subFamiliaIdx = headers.findIndex(h => h.includes('sub-familia') || h.includes('subfamilia'));
-    const equipoIdx = headers.findIndex(h => h.includes('equipo'));
-    const productoIdx = headers.findIndex(h => h.includes('producto'));
+    const codigoIdx = headers.findIndex((header) => header.includes('código') || header.includes('codigo'));
+    const familiaIdx = headers.findIndex((header) => header.includes('familia'));
+    const subFamiliaIdx = headers.findIndex((header) => header.includes('sub-familia') || header.includes('subfamilia'));
+    const equipoIdx = headers.findIndex((header) => header.includes('equipo'));
+    const productoIdx = headers.findIndex((header) => header.includes('producto'));
 
-    // Parse rows
-    for (let i = 1; i < lines.length; i++) {
-      const values = lines[i].split(';').map(v => v.trim());
+    for (let i = 1; i < lines.length; i += 1) {
+      const values = lines[i].split(';').map((value) => value.trim());
 
       if (values.length < 2 || !values[codigoIdx]) continue;
 
@@ -62,7 +58,7 @@ export async function POST(request: NextRequest) {
       if (!nombre) continue;
 
       data.push({
-        codigo: codigo,
+        codigo,
         name: nombre,
         sku: codigo,
         familia: values[familiaIdx] || '',
@@ -83,30 +79,29 @@ export async function POST(request: NextRequest) {
 
     if (data.length === 0) {
       return NextResponse.json(
-        { error: 'No valid data found in file' },
+        { error: 'No se encontraron datos válidos en el archivo' },
         { status: 400 }
       );
     }
 
-    // Insert into bodega_inventory
-    const { error: insertError, data: insertedData } = await supabase
+    const { error: insertError } = await supabase
       .from('bodega_inventory')
       .upsert(
-        data.map(d => ({
-          sku: d.sku,
-          name: d.name,
-          codigo: d.codigo,
-          familia: d.familia,
-          sub_familia: d.sub_familia,
-          equipo: d.equipo,
-          category: d.category,
-          cost_center_id: d.cost_center_id,
-          quantity: d.quantity,
-          description: d.description,
-          location: d.location,
-          unit_cost: d.unit_cost,
-          min_stock: d.min_stock,
-          max_stock: d.max_stock,
+        data.map((item) => ({
+          sku: item.sku,
+          name: item.name,
+          codigo: item.codigo,
+          familia: item.familia,
+          sub_familia: item.sub_familia,
+          equipo: item.equipo,
+          category: item.category,
+          cost_center_id: item.cost_center_id,
+          quantity: item.quantity,
+          description: item.description,
+          location: item.location,
+          unit_cost: item.unit_cost,
+          min_stock: item.min_stock,
+          max_stock: item.max_stock,
         })),
         { onConflict: 'sku' }
       );
@@ -115,7 +110,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `Successfully imported ${data.length} inventory items`,
+      message: `Se importaron correctamente ${data.length} ítems de inventario`,
       imported: data.length,
       costCenterId: costCenterId || null,
       sampleItems: data.slice(0, 3),
@@ -123,7 +118,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('[v0] Bodega inventory import error:', error);
     return NextResponse.json(
-      { error: 'Failed to import inventory', details: String(error) },
+      { error: 'No se pudo importar el inventario', details: String(error) },
       { status: 500 }
     );
   }
