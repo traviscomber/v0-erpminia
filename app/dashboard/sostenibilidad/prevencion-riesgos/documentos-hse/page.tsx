@@ -132,7 +132,7 @@ export default function DocumentosHSEPage() {
       <div>
         <h1 className="text-3xl font-bold">Documentos HSE</h1>
         <p className="text-muted-foreground mt-2">
-          Gesti?n de pol?ticas, procedimientos, instructivos y programas de seguridad
+          Gestion de politicas, procedimientos, instructivos y programas de seguridad
         </p>
       </div>
 
@@ -186,7 +186,7 @@ export default function DocumentosHSEPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-red-500">{stats.rechazados}</p>
-            <p className="text-xs text-muted-foreground">pendientes de correcci?n</p>
+            <p className="text-xs text-muted-foreground">pendientes de correccion</p>
           </CardContent>
         </Card>
       </div>
@@ -247,12 +247,12 @@ export default function DocumentosHSEPage() {
             <CardHeader>
               <CardTitle>Subir Nuevo Documento</CardTitle>
               <CardDescription>
-                Sube documentos HSE: pol?ticas, procedimientos, instructivos, programas de seguridad
+                Sube documentos HSE: politicas, procedimientos, instructivos, programas de seguridad
               </CardDescription>
             </CardHeader>
             <CardContent>
               <DocumentUpload
-                module="prevenci?n"
+                module="prevencion"
                 category="documentos-hse"
                 onUploadSuccess={loadDocuments}
               />

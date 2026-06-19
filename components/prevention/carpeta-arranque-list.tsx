@@ -318,7 +318,7 @@ export default function CarpetaArranqueList({ status }: { status: string }) {
                       )} />
                       <div className="min-w-0">
                         <p className="text-xs font-medium truncate">
-                          {carpeta.revisor_l1_nombre || 'Dennyse'} ??Â¢???????? L1
+                          {carpeta.revisor_l1_nombre || 'Dennyse'} - L1
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {carpeta.revisor_l1_status === 'cumple' ? 'Cumple' :
@@ -335,7 +335,7 @@ export default function CarpetaArranqueList({ status }: { status: string }) {
                       )} />
                       <div className="min-w-0">
                         <p className="text-xs font-medium truncate">
-                          {carpeta.revisor_l2_nombre || 'Javier / Gonzalo'} ? L2
+                          {carpeta.revisor_l2_nombre || 'Javier / Gonzalo'} - L2
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {carpeta.revisor_l2_status === 'cumple' ? 'Cumple' :

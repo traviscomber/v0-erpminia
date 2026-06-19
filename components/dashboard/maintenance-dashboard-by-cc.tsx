@@ -1,16 +1,21 @@
 'use client';
 
 import { useState } from 'react';
+import useSWR from 'swr';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useCostCenters } from '@/hooks/use-cost-centers';
 import { formatCostCenterLabel, sortCostCenters } from '@/lib/cost-centers';
 
+const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
+
 export function MaintenanceDashboardByCC() {
   const { costCenters } = useCostCenters();
+  const { data: workOrdersData } = useSWR('/api/maintenance/work-orders', fetcher);
   const [expandedCC, setExpandedCC] = useState<string | null>(null);
   const orderedCostCenters = sortCostCenters(costCenters);
+  const workOrders = Array.isArray(workOrdersData?.workOrders) ? workOrdersData.workOrders : [];
 
   return (
     <div className="space-y-6">
@@ -20,7 +25,13 @@ export function MaintenanceDashboardByCC() {
       </div>
 
       <div className="space-y-4">
-        {orderedCostCenters.map((cc) => (
+        {orderedCostCenters.map((cc) => {
+          const ccOrders = workOrders.filter((order: any) => order.cost_center_id === cc.id);
+          const completed = ccOrders.filter((order: any) => order.status === 'completed').length;
+          const inProgress = ccOrders.filter((order: any) => order.status === 'in_progress').length;
+          const open = ccOrders.filter((order: any) => order.status === 'open' || order.status === 'pending').length;
+
+          return (
           <Card key={cc.id}>
             <CardHeader className="pb-3">
               <button
@@ -39,22 +50,42 @@ export function MaintenanceDashboardByCC() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Badge variant="secondary">0 ordenes</Badge>
-                  <Badge className="bg-green-100 text-green-800">0 completadas</Badge>
-                  <Badge className="bg-blue-100 text-blue-800">0 en progreso</Badge>
+                  <Badge variant="secondary">{ccOrders.length} ordenes</Badge>
+                  <Badge className="bg-green-100 text-green-800">{completed} completadas</Badge>
+                  <Badge className="bg-blue-100 text-blue-800">{inProgress} en progreso</Badge>
                 </div>
               </button>
             </CardHeader>
 
             {expandedCC === cc.id && (
               <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Las ordenes de mantenimiento para {cc.name} se cargaran cuando el API este disponible.
-                </p>
+                {ccOrders.length > 0 ? (
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">
+                      {open} abiertas, {inProgress} en progreso y {completed} completadas.
+                    </p>
+                    <div className="space-y-2">
+                      {ccOrders.slice(0, 5).map((order: any) => (
+                        <div key={order.id} className="flex items-center justify-between rounded border p-3 text-sm">
+                          <div>
+                            <p className="font-medium">{order.work_order_number || order.code || order.title}</p>
+                            <p className="text-muted-foreground">{order.title}</p>
+                          </div>
+                          <Badge variant="outline">{order.status}</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Este centro de costo aun no tiene ordenes registradas.
+                  </p>
+                )}
               </CardContent>
             )}
           </Card>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

@@ -11,7 +11,7 @@ import { FileText, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
 interface DocumentStats {
   total: number;
   vigentes: number;
-  en_Revision: number;
+  en_revision: number;
   rechazados: number;
 }
 
@@ -23,7 +23,7 @@ export default function DocumentosMantenimientoPage() {
   const [stats, setStats] = useState<DocumentStats>({
     total: 0,
     vigentes: 0,
-    en_Revision: 0,
+    en_revision: 0,
     rechazados: 0,
   });
 
@@ -39,7 +39,7 @@ export default function DocumentosMantenimientoPage() {
         setStats({
           total: data.length,
           vigentes: data.filter((d: Document) => d.status === 'active').length,
-          en_Revision: data.filter((d: Document) => 
+          en_revision: data.filter((d: Document) => 
             d.status === 'pending_l1' || d.status === 'pending_l2'
           ).length,
           rechazados: data.filter((d: Document) => d.status === 'rejected').length,
@@ -128,7 +128,7 @@ export default function DocumentosMantenimientoPage() {
       <div>
         <h1 className="text-3xl font-bold">Documentos Mantenimiento</h1>
         <p className="text-muted-foreground mt-2">
-          Gesti?n de manuales, procedimientos e instructivos de mantenimiento
+          Gestion de manuales, procedimientos e instructivos de mantenimiento
         </p>
       </div>
 
@@ -167,7 +167,7 @@ export default function DocumentosMantenimientoPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-yellow-500">{stats.en_Revision}</p>
+            <p className="text-2xl font-bold text-yellow-500">{stats.en_revision}</p>
             <p className="text-xs text-muted-foreground">esperando Aprobacion</p>
           </CardContent>
         </Card>

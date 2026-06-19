@@ -257,7 +257,7 @@ export default function FlujDocumentalPage() {
       {/* Diagrama del flujo */}
       <Card className="mb-8 rounded-xl border shadow-none">
         <CardHeader>
-          <CardTitle className="text-sm">Fases de Aprobacion</CardTitle>
+              <CardTitle className="text-sm">Fases de Aprobacion</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-3 overflow-x-auto pb-4">
@@ -379,7 +379,7 @@ export default function FlujDocumentalPage() {
                             </p>
                           </div>
                         ) : (
-                          <p className="text-muted-foreground text-sm italic">Pendiente de Revision V1</p>
+                          <p className="text-muted-foreground text-sm italic">Pendiente de Revision V2</p>
                         )}
                       </div>
                     </div>
