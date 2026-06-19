@@ -1,25 +1,50 @@
 'use client';
 
-import { useState } from 'react';
-import { AlertCircle, ChevronDown, ChevronRight, Database, RefreshCw } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { AlertCircle, Database, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCostCenters } from '@/hooks/use-cost-centers';
-import { isRootCostCenter, sortCostCenters } from '@/lib/cost-centers';
+import { getCostCenterRootCode, isRootCostCenter, sortCostCenters, type CostCenterRecord } from '@/lib/cost-centers';
 
-interface ExpandedState {
-  [key: string]: boolean;
-}
+type CostCenterGroup = {
+  rootCode: string;
+  rootName: string;
+  items: CostCenterRecord[];
+};
 
 export function CostCentersDashboard() {
   const { costCenters, loading, error, reload } = useCostCenters();
-  const [expanded, setExpanded] = useState<ExpandedState>({});
   const [seeding, setSeeding] = useState(false);
   const [seedError, setSeedError] = useState('');
 
   const orderedCostCenters = sortCostCenters(costCenters);
+  const groupedCenters = useMemo<CostCenterGroup[]>(() => {
+    const groups = new Map<string, CostCenterGroup>();
+
+    orderedCostCenters.forEach((center) => {
+      const rootCode = isRootCostCenter(center.code) ? center.code : getCostCenterRootCode(center.code);
+      const current = groups.get(rootCode);
+      if (current) {
+        current.items.push(center);
+        return;
+      }
+
+      groups.set(rootCode, {
+        rootCode,
+        rootName: center.code === rootCode ? center.name : rootCode,
+        items: [center],
+      });
+    });
+
+    return Array.from(groups.values()).sort((a, b) => a.rootCode.localeCompare(b.rootCode, 'es', { numeric: true }));
+  }, [orderedCostCenters]);
+
+  const totalCenters = orderedCostCenters.length;
   const rootCount = orderedCostCenters.filter((center) => isRootCostCenter(center.code)).length;
+  const activeCount = orderedCostCenters.filter((center) => center.status === 'active').length;
+  const subcenterCount = totalCenters - rootCount;
 
   const handleSeed = async () => {
     setSeeding(true);
@@ -81,7 +106,7 @@ export function CostCentersDashboard() {
             <div className="space-y-2">
               <h3 className="text-lg font-semibold text-foreground">Todavia no hay centros de costo visibles</h3>
               <p className="max-w-2xl text-sm text-muted-foreground">
-                Puedes cargar la base de referencia desde el archivo del proyecto para que la estructura aparezca en el dashboard y en los selectores de bodega.
+                Puedes cargar la base de referencia para que la estructura aparezca en el dashboard y en los selectores de bodega.
               </p>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-3">
@@ -102,19 +127,41 @@ export function CostCentersDashboard() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      <Card className="border-border/60 bg-card/80">
+        <CardContent className="flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-muted-foreground">Vista simplificada</p>
+            <p className="text-base text-foreground">
+              La informacion esta agrupada por centro principal para que sea mas facil leerla y usarla en bodega,
+              compras y mantenimiento.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={handleSeed} disabled={seeding} variant="outline" size="sm">
+              <Database className="mr-2 h-4 w-4" />
+              {seeding ? 'Actualizando...' : 'Cargar base'}
+            </Button>
+            <Button onClick={reload} variant="outline" size="sm">
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Actualizar
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Total centros</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{orderedCostCenters.length}</div>
+            <div className="text-2xl font-bold">{totalCenters}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Nivel 1 (raices)</CardTitle>
+            <CardTitle className="text-sm font-medium">Grupos principales</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{rootCount}</div>
@@ -125,83 +172,83 @@ export function CostCentersDashboard() {
             <CardTitle className="text-sm font-medium">Activos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{orderedCostCenters.filter((c) => c.status === 'active').length}</div>
+            <div className="text-2xl font-bold">{activeCount}</div>
           </CardContent>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-3">
-          <CardTitle>Estructura jerarquica</CardTitle>
-          <div className="flex flex-wrap gap-2">
-            <Button onClick={handleSeed} disabled={seeding} variant="outline" size="sm">
-              <Database className="mr-2 h-4 w-4" />
-              {seeding ? 'Sincronizando...' : 'Sincronizar base'}
-            </Button>
-            <Button onClick={reload} variant="outline" size="sm">
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Refrescar
-            </Button>
-          </div>
+      <Card className="border-border/60">
+        <CardHeader className="space-y-2">
+          <CardTitle>Como leer esta pantalla</CardTitle>
+          <p className="max-w-3xl text-sm text-muted-foreground">
+            Cada tarjeta representa un grupo de costos. El numero indica cuantos centros reales hay dentro de ese
+            grupo, y el detalle completo se abre solo si hace falta.
+          </p>
         </CardHeader>
         <CardContent>
-          <div className="space-y-1 text-sm">
-            {orderedCostCenters.map((cc) => {
-              const level = Math.max(0, cc.code.split('-').length - 1);
-              const hasChildren = orderedCostCenters.some(
-                (child) =>
-                  child.id !== cc.id &&
-                  child.code.startsWith(`${cc.code}-`) &&
-                  child.code.split('-').length === level + 2
-              );
-              const isExpanded = expanded[cc.id];
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {groupedCenters.map((group) => {
+              const details = group.items.slice(1, 4);
+              const extraCount = Math.max(0, group.items.length - 4);
 
               return (
-                <div key={cc.id}>
-                  <div className="flex items-center gap-2 rounded px-2 py-1 hover:bg-muted/40">
-                    {hasChildren ? (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0"
-                        onClick={() => setExpanded((prev) => ({ ...prev, [cc.id]: !prev[cc.id] }))}
-                      >
-                        {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                      </Button>
-                    ) : (
-                      <div className="w-6" />
-                    )}
-                    <div style={{ marginLeft: `${level * 20}px` }} className="flex-1">
-                      <span className="font-semibold text-foreground">{cc.code}</span>
-                      <span className="ml-2 text-muted-foreground">{cc.name}</span>
+                <details
+                  key={group.rootCode}
+                  className="group rounded-xl border border-border/60 bg-background/40 p-4 shadow-sm transition-colors open:bg-background"
+                >
+                  <summary className="cursor-pointer list-none">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-sm font-semibold tracking-wide text-primary">{group.rootCode}</span>
+                          <Badge variant="secondary" className="text-xs">
+                            {group.items.length} centros
+                          </Badge>
+                        </div>
+                        <h3 className="text-base font-semibold text-foreground">{group.rootName}</h3>
+                      </div>
+                      <span className="rounded-full border border-border/60 px-2 py-0.5 text-xs text-muted-foreground">
+                        Ver
+                      </span>
                     </div>
-                    <Badge variant={cc.status === 'active' ? 'default' : 'secondary'}>
-                      {cc.status === 'active' ? 'Activo' : 'Inactivo'}
-                    </Badge>
-                  </div>
+                  </summary>
 
-                  {isExpanded &&
-                    orderedCostCenters.map(
-                      (child) =>
-                        child.code.startsWith(`${cc.code}-`) &&
-                        child.code.split('-').length === level + 2 && (
-                          <div key={child.id} className="pl-2">
-                            <div className="flex items-center gap-2 rounded px-2 py-1 hover:bg-muted/40">
-                              <div className="w-6" />
-                              <div style={{ marginLeft: `${(level + 1) * 20}px` }} className="flex-1">
-                                <span className="text-foreground/80">{child.code}</span>
-                                <span className="ml-2 text-sm text-muted-foreground">{child.name}</span>
-                              </div>
-                              <Badge variant="outline" className="text-xs">
-                                {child.status === 'active' ? 'Activo' : 'Inactivo'}
-                              </Badge>
-                            </div>
+                  <div className="mt-4 space-y-3 border-t border-border/50 pt-4 text-sm">
+                    <div className="text-muted-foreground">
+                      <span className="font-medium text-foreground">Incluye:</span>{' '}
+                      {details.length > 0 ? details.map((item) => `${item.code} ${item.name}`).join(' - ') : 'Solo el centro principal'}
+                      {extraCount > 0 ? ` - +${extraCount} mas` : ''}
+                    </div>
+
+                    <div className="space-y-2">
+                      {group.items.map((item) => (
+                        <div key={item.id} className="flex items-center justify-between gap-3 rounded-lg bg-muted/35 px-3 py-2">
+                          <div className="min-w-0">
+                            <div className="font-medium text-foreground">{item.code}</div>
+                            <div className="truncate text-xs text-muted-foreground">{item.name}</div>
                           </div>
-                        )
-                    )}
-                </div>
+                          <Badge variant={item.status === 'active' ? 'default' : 'secondary'} className="shrink-0">
+                            {item.status === 'active' ? 'Activo' : 'Inactivo'}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </details>
               );
             })}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-border/60 bg-muted/20">
+        <CardContent className="p-5">
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-medium text-foreground">Subcentros visibles</p>
+            <p className="text-sm text-muted-foreground">
+              {subcenterCount} centros quedan bajo estos grupos principales. Si necesitas el detalle fino, abre solo la
+              tarjeta correspondiente.
+            </p>
           </div>
         </CardContent>
       </Card>
