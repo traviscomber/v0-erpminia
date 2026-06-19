@@ -4,6 +4,41 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { resolveAuthContext } from '@/lib/api/auth-session';
 
+function normalizeHeader(value: unknown) {
+  return String(value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+function toTitleCase(value: string) {
+  return value
+    .split(/\s+/)
+    .map((word) => {
+      if (!word) return word;
+      if (/^[A-Z0-9]{2,}$/.test(word)) return word;
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join(' ');
+}
+
+function canonicalCategory(value: unknown) {
+  const raw = String(value ?? '').trim();
+  if (!raw) return '';
+
+  const normalized = normalizeHeader(raw).replace(/\s+/g, ' ');
+  const aliases: Record<string, string> = {
+    ferreteria: 'Ferretería',
+    viveres: 'Víveres',
+    neumatico: 'Neumático',
+    electrico: 'Eléctrico',
+    epp: 'EPP',
+  };
+
+  return aliases[normalized] || toTitleCase(raw);
+}
+
 export async function GET(request: NextRequest) {
   const supabase = await createClient();
   const auth = await resolveAuthContext(request);
@@ -35,7 +70,8 @@ export async function GET(request: NextRequest) {
       }
       if (!data || data.length === 0) break;
       for (const row of data) {
-        if (row.category) categorySet.add(row.category);
+        const categoryLabel = canonicalCategory(row.category);
+        if (categoryLabel) categorySet.add(categoryLabel);
       }
       if (data.length < chunk) break;
       from += chunk;
@@ -102,7 +138,7 @@ export async function POST(request: NextRequest) {
     .insert({
       sku,
       name,
-      category,
+      category: canonicalCategory(category),
       quantity,
       unit_cost,
     })
