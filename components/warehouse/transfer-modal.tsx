@@ -1,4 +1,5 @@
 'use client';
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,8 +33,8 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
     return res.ok ? res.json() : null;
   });
 
-  const stockList = data.stock || [];
-  const bins = data.bins || [];
+  const stockList = data?.stock || [];
+  const bins = data?.bins || [];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,6 +97,7 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
               </SelectContent>
             </Select>
           </div>
+
           <div>
             <Label>Destino</Label>
             <Select
@@ -114,6 +116,7 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
               </SelectContent>
             </Select>
           </div>
+
           <div>
             <Label>Cantidad</Label>
             <Input
@@ -124,23 +127,20 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
               required
             />
           </div>
+
           <div>
             <Label>Motivo</Label>
             <textarea
               value={formData.reason}
               onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-              className="w-full p-2 border rounded"
+              className="w-full rounded border p-2"
             />
           </div>
+
           <Button
             type="submit"
             className="w-full"
-            disabled={
-              submitting ||
-              !formData.stockId ||
-              !formData.toBinId ||
-              !formData.quantity
-            }
+            disabled={submitting || !formData.stockId || !formData.toBinId || !formData.quantity}
           >
             {submitting ? 'Transfiriendo...' : 'Confirmar transferencia'}
           </Button>

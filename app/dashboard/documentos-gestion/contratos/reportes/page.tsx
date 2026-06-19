@@ -2,85 +2,93 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Download, Filter } from 'lucide-react';
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Download } from 'lucide-react';
+import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
-
 const COLORS = ['#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 export default function ContratosReportesPage() {
-  const [periodo, setPeriodo] = useState('mes'); // mes, trimestre, anual
+  const [periodo, setPeriodo] = useState('mes');
 
   const { data: reportData } = useSWR(`/api/contratos/reportes?periodo=${periodo}`, fetcher, {
     revalidateOnFocus: false,
-    refreshInterval: 300000, // 5 minutos
+    refreshInterval: 300000,
   });
 
   const reportes = reportData || {};
-
-  const pagosPortratista = reportes.pagos_por_tratista || [];
+  const pagosPorContratista = reportes.pagos_por_tratista || [];
   const garantiasActivas = reportes.garantias_activas || [];
   const regaliasPorPropiedad = reportes.regalias_por_propiedad || [];
   const estadoPagos = reportes.estado_pagos || [];
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Reportería de Contratos</h1>
-          <p className="text-muted-foreground">Análisis y seguimiento de pagos, garantías y regalías</p>
+          <h1 className="text-3xl font-bold">Reporteria de Contratos</h1>
+          <p className="text-muted-foreground">Analisis y seguimiento de pagos, garantias y regalias</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-1" />
+            <Download className="mr-1 h-4 w-4" />
             Exportar PDF
           </Button>
         </div>
       </div>
 
-      {/* Period Selector */}
       <Card>
         <CardContent className="pt-6">
           <div className="flex gap-2">
-            {['mes', 'trimestre', 'anual'].map((p: any) => (
+            {['mes', 'trimestre', 'anual'].map((p: string) => (
               <Button
                 key={p}
                 variant={periodo === p ? 'default' : 'outline'}
                 onClick={() => setPeriodo(p)}
                 size="sm"
               >
-                {p === 'mes' ? 'Este Mes' : p === 'trimestre' ? 'Este Trimestre' : 'Este Año'}
+                {p === 'mes' ? 'Este mes' : p === 'trimestre' ? 'Este trimestre' : 'Este anio'}
               </Button>
             ))}
           </div>
         </CardContent>
       </Card>
 
-      {/* Main Reports Grid */}
       <Tabs defaultValue="pagos">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="pagos">Pagos</TabsTrigger>
-          <TabsTrigger value="garantias">Garantías</TabsTrigger>
-          <TabsTrigger value="regalias">Regalías</TabsTrigger>
+          <TabsTrigger value="garantias">Garantias</TabsTrigger>
+          <TabsTrigger value="regalias">Regalias</TabsTrigger>
           <TabsTrigger value="estado">Estado</TabsTrigger>
         </TabsList>
 
-        {/* Pagos Tab */}
         <TabsContent value="pagos" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Pagos por Contratista</CardTitle>
             </CardHeader>
             <CardContent>
-              {pagosPortratista.length > 0 ? (
+              {pagosPorContratista.length > 0 ? (
                 <div className="h-96">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={pagosPortratista}>
+                    <BarChart data={pagosPorContratista}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="nombre" angle={-45} textAnchor="end" height={80} />
                       <YAxis />
@@ -92,19 +100,16 @@ export default function ContratosReportesPage() {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <p className="text-center text-muted-foreground py-8">
-                  No hay datos suficientes para mostrar este reporte.
-                </p>
+                <p className="py-8 text-center text-muted-foreground">No hay datos suficientes para mostrar este reporte.</p>
               )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Garantias Tab */}
         <TabsContent value="garantias" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Estado de Garantías Retenidas</CardTitle>
+              <CardTitle>Estado de Garantias Retenidas</CardTitle>
             </CardHeader>
             <CardContent>
               {garantiasActivas.length > 0 ? (
@@ -130,17 +135,16 @@ export default function ContratosReportesPage() {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <p className="text-center text-muted-foreground py-8">Sin garantías activas</p>
+                <p className="py-8 text-center text-muted-foreground">Sin garantias activas</p>
               )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Regalias Tab */}
         <TabsContent value="regalias" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Regalías por Propiedad</CardTitle>
+              <CardTitle>Regalias por Propiedad</CardTitle>
             </CardHeader>
             <CardContent>
               {regaliasPorPropiedad.length > 0 ? (
@@ -159,17 +163,14 @@ export default function ContratosReportesPage() {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                  <p className="text-center text-muted-foreground py-8">
-                    No hay datos de regalías para el período seleccionado.
-                </p>
+                <p className="py-8 text-center text-muted-foreground">No hay datos de regalias para el periodo seleccionado.</p>
               )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Estado Tab */}
         <TabsContent value="estado" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {estadoPagos.map((estado: any, idx: number) => (
               <Card key={idx}>
                 <CardHeader className="pb-3">
@@ -177,7 +178,7 @@ export default function ContratosReportesPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold">{estado.cantidad}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     CLP {(estado.monto_total / 1000000).toFixed(1)}M
                   </p>
                 </CardContent>
@@ -189,5 +190,3 @@ export default function ContratosReportesPage() {
     </div>
   );
 }
-
-

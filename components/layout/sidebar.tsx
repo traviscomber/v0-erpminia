@@ -46,30 +46,30 @@ import { useAuth } from '@/hooks/use-auth';
 
 // Define permitted roles for each module
 const rolePermissions: Record<string, string[]> = {
-  'Dashboard': ['superadmin', 'admin', 'manager', 'supervisor', 'viewer'],
+  'Inicio': ['superadmin', 'admin', 'manager', 'supervisor', 'viewer'],
   'Alertas': ['superadmin', 'admin', 'manager', 'supervisor'],
   'Centros de Costos': ['superadmin', 'admin', 'manager', 'Operaciones-Supervisor', 'Finanzas-Supervisor'],
-  'Producción': ['superadmin', 'admin', 'Operaciones-Supervisor'],
-  'Mantención': ['superadmin', 'admin', 'Operaciones-Supervisor'],
-  'Mantención por Centro de Costo': ['superadmin', 'admin', 'Operaciones-Supervisor'],
-  'Órdenes de Trabajo': ['superadmin', 'admin', 'Operaciones-Supervisor'],
-  'Bodega & Inventario': ['superadmin', 'admin', 'Bodega-Supervisor'],
-  'Gestión Documental': ['superadmin', 'admin', 'manager'],
-  'Compras & OCs': ['superadmin', 'admin', 'Compras-Supervisor'],
-  'Finanzas & Presupuesto': ['superadmin', 'admin', 'Finanzas-Supervisor'],
-  'Reportes & Análisis': ['superadmin', 'admin', 'manager', 'supervisor'],
+  'Produccion': ['superadmin', 'admin', 'Operaciones-Supervisor'],
+  'Mantenimiento': ['superadmin', 'admin', 'Operaciones-Supervisor'],
+  'Mantenimiento por Centro de Costo': ['superadmin', 'admin', 'Operaciones-Supervisor'],
+  'Ordenes de Trabajo': ['superadmin', 'admin', 'Operaciones-Supervisor'],
+  'Bodega e Inventario': ['superadmin', 'admin', 'Bodega-Supervisor'],
+  'Gestion Documental': ['superadmin', 'admin', 'manager'],
+  'Compras y OCs': ['superadmin', 'admin', 'Compras-Supervisor'],
+  'Finanzas y Presupuesto': ['superadmin', 'admin', 'Finanzas-Supervisor'],
+  'Reportes y Analisis': ['superadmin', 'admin', 'manager', 'supervisor'],
   'IA Operacional Minera': ['superadmin', 'admin'],
-  'Dashboard de KPIs': ['superadmin', 'admin', 'manager'],
-  'Gestión de Usuarios': ['superadmin', 'admin'],
-  'Gestión de Permisos': ['superadmin', 'admin'],
-  'Módulo Legal': ['superadmin', 'admin', 'manager'],
-  'Guías de Uso': ['superadmin', 'admin', 'manager', 'supervisor', 'viewer'],
+  'Tablero de KPIs': ['superadmin', 'admin', 'manager'],
+  'Gestion de Usuarios': ['superadmin', 'admin'],
+  'Gestion de Permisos': ['superadmin', 'admin'],
+  'Modulo Legal': ['superadmin', 'admin', 'manager'],
+  'Guias de Uso': ['superadmin', 'admin', 'manager', 'supervisor', 'viewer'],
   // Sostenibilidad - Transversal (all 12 modules)
-  'Dashboard Sostenibilidad': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
-  'Prevención de Riesgos': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
+  'Tablero Sostenibilidad': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
+  'Prevencion de Riesgos': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
   'Capacitaciones': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor', 'manager'],
-  'Artículos EPP': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor', 'Bodega-Supervisor'],
-  'KPI Prevención': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor', 'manager'],
+  'Articulos EPP': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor', 'Bodega-Supervisor'],
+  'KPI Prevencion': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor', 'manager'],
   'Inspecciones': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
   'Carpeta de Arranque': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
   'Calendario': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor', 'manager', 'supervisor'],
@@ -83,13 +83,13 @@ const rolePermissions: Record<string, string[]> = {
   'Documentos Finanzas': ['superadmin', 'admin', 'Finanzas-Supervisor'],
   'Documentos HSE': ['superadmin', 'admin', 'HSE-Supervisor', 'Sostenibilidad-Supervisor'],
   'Documentos Legal': ['superadmin', 'admin', 'manager'],
-  'Documentos Prevención': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
+  'Documentos Prevencion': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
 };
 
 const menuItems = [
-  // CORE - Dashboard Principal
+  // CORE - Inicio Principal
   {
-    label: 'Dashboard',
+    label: 'Inicio',
     href: '/dashboard',
     icon: BarChart3,
     group: 'Core',
@@ -110,63 +110,63 @@ const menuItems = [
   
   // OPERACIONES - Depto. Operaciones
   {
-    label: 'Producción',
+    label: 'Produccion',
     href: '/dashboard/produccion',
     icon: Zap,
-    group: 'Producción',
+    group: 'Produccion',
   },
   {
-    label: 'Mantención',
+    label: 'Mantenimiento',
     href: '/dashboard/mantenimiento',
     icon: Wrench,
-    group: 'Mantención',
+    group: 'Mantenimiento',
   },
   {
-    label: 'Mantención por Centro de Costo',
+    label: 'Mantenimiento por Centro de Costo',
     href: '/dashboard/mantenimiento/centro-costo',
     icon: Wrench,
-    group: 'Mantención',
+    group: 'Mantenimiento',
   },
   {
     label: 'Documentos Mantenimiento',
     href: '/dashboard/mantenimiento/documentos',
     icon: File,
-    group: 'Mantención',
+    group: 'Mantenimiento',
   },
   {
-    label: 'Órdenes de Trabajo',
+    label: 'Ordenes de Trabajo',
     href: '/dashboard/work-orders',
     icon: Plus,
     group: 'Operaciones',
   },
   {
-    label: 'Bodega & Inventario',
+    label: 'Bodega e Inventario',
     href: '/dashboard/bodega',
     icon: Boxes,
-    group: 'Bodega & Inventario',
+    group: 'Bodega e Inventario',
   },
   {
     label: 'Documentos Bodega',
     href: '/dashboard/bodega/documentos',
     icon: File,
-    group: 'Bodega & Inventario',
+    group: 'Bodega e Inventario',
   },
   
   // SOSTENIBILIDAD - Transversal (4 Pilares, 12 Módulos)
   {
-    label: 'Dashboard Sostenibilidad',
+    label: 'Tablero Sostenibilidad',
     href: '/dashboard/sostenibilidad',
     icon: Leaf,
     group: 'Sostenibilidad',
   },
   {
-    label: 'Prevención de Riesgos',
+    label: 'Prevencion de Riesgos',
     href: '/dashboard/sostenibilidad/prevencion-riesgos',
     icon: Shield,
     group: 'Sostenibilidad',
   },
   {
-    label: 'Documentos Prevención',
+    label: 'Documentos Prevencion',
     href: '/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse',
     icon: File,
     group: 'Sostenibilidad',
@@ -178,13 +178,13 @@ const menuItems = [
     group: 'Sostenibilidad',
   },
   {
-    label: 'Artículos EPP',
+    label: 'Articulos EPP',
     href: '/dashboard/sostenibilidad/prevencion-riesgos/epp',
     icon: HardHat,
     group: 'Sostenibilidad',
   },
   {
-    label: 'KPI Prevención',
+    label: 'KPI Prevencion',
     href: '/dashboard/sostenibilidad/prevencion-riesgos/kpi',
     icon: Activity,
     group: 'Sostenibilidad',
@@ -226,7 +226,7 @@ const menuItems = [
     group: 'Sostenibilidad',
   },
   {
-    label: 'Reportería Documentos',
+    label: 'Reporteria Documentos',
     href: '/dashboard/sostenibilidad/documentos-reportes',
     icon: BarChart3,
     group: 'Sostenibilidad',
@@ -234,7 +234,7 @@ const menuItems = [
   
   // FINANZAS
   {
-    label: 'Compras & OCs',
+    label: 'Compras y OCs',
     href: '/dashboard/compras',
     icon: ShoppingCart,
     group: 'Finanzas',
@@ -246,7 +246,7 @@ const menuItems = [
     group: 'Finanzas',
   },
   {
-    label: 'Finanzas & Presupuesto',
+    label: 'Finanzas y Presupuesto',
     href: '/dashboard/finanzas',
     icon: DollarSign,
     group: 'Finanzas',
@@ -258,19 +258,19 @@ const menuItems = [
     group: 'Finanzas',
   },
   {
-    label: 'Gestión Documental',
+    label: 'Gestion Documental',
     href: '/dashboard/documentos-gestion',
     icon: FolderOpen,
     group: 'Finanzas',
   },
   {
-    label: 'Reportes & Análisis',
+    label: 'Reportes y Analisis',
     href: '/dashboard/reportes',
     icon: BarChart3,
     group: 'Finanzas',
   },
   {
-    label: 'Módulo Legal',
+    label: 'Modulo Legal',
     href: '/dashboard/legal',
     icon: Scale,
     group: 'Legal',
@@ -298,7 +298,7 @@ const menuItems = [
   
   // AYUDA
   {
-    label: 'Guías de Uso',
+    label: 'Guias de Uso',
     href: '/dashboard/guias',
     icon: HelpCircle,
     group: 'Ayuda',
@@ -312,10 +312,10 @@ export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     'Core': true,
-    'Producción': true,
+    'Produccion': true,
     'Operaciones': true,
-    'Mantención': false,
-    'Bodega & Inventario': false,
+    'Mantenimiento': false,
+    'Bodega e Inventario': false,
     'Sostenibilidad': true,
     'Finanzas': false,
     'Legal': false,
@@ -406,16 +406,16 @@ export function Sidebar() {
         {/* Navigation Menu - v7 Sistema Completo 5 Módulos */}
         <nav className="flex-1 px-4 py-6 overflow-y-auto">
           <div className="space-y-2">
-            {['Core', 'Producción', 'Operaciones', 'Mantención', 'Bodega & Inventario', 'Sostenibilidad', 'Finanzas', 'Legal', 'Inteligencia Artificial', 'Administración', 'Ayuda'].map((group) => {
+            {['Core', 'Produccion', 'Operaciones', 'Mantenimiento', 'Bodega e Inventario', 'Sostenibilidad', 'Finanzas', 'Legal', 'Inteligencia Artificial', 'Administración', 'Ayuda'].map((group) => {
               const groupItems = filteredMenuItems.filter((item) => item.group === group);
               if (groupItems.length === 0) return null;
               const isExpanded = expandedGroups[group] ?? false;
               const sortedGroupItems = [...groupItems].sort((a, b) => {
-                const aDashboard = a.label.toLowerCase().startsWith('dashboard');
-                const bDashboard = b.label.toLowerCase().startsWith('dashboard');
+                const aInicio = a.label.toLowerCase().startsWith('dashboard');
+                const bInicio = b.label.toLowerCase().startsWith('dashboard');
 
-                if (aDashboard !== bDashboard) {
-                  return aDashboard ? -1 : 1;
+                if (aInicio !== bInicio) {
+                  return aInicio ? -1 : 1;
                 }
 
                 return a.label.localeCompare(b.label, 'es');
@@ -511,3 +511,4 @@ export function Sidebar() {
     </>
   );
 }
+

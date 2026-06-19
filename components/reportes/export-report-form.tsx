@@ -5,6 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Download } from 'lucide-react';
 
+const REPORT_TYPES = [
+  { value: 'maintenance', label: 'Ordenes de trabajo de mantenimiento' },
+  { value: 'hse', label: 'Incidentes e investigaciones HSE' },
+  { value: 'audit', label: 'Trazabilidad y cumplimiento' },
+];
+
 export function ExportReportForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -22,26 +28,30 @@ export function ExportReportForm() {
       const res = await fetch('/api/reportes/export', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ report_type: reportType, start_date: startDate, end_date: endDate }),
+        body: JSON.stringify({
+          report_type: reportType,
+          start_date: startDate,
+          end_date: endDate,
+        }),
       });
 
       if (res.ok) {
         const { report } = await res.json();
-        const filename = `${reportType}-report-${new Date().toISOString().split('T')[0]}.csv`;
+        const filename = `${reportType}-reporte-${new Date().toISOString().split('T')[0]}.csv`;
         alert(`Reporte generado: ${report.row_count} registros.\nDescarga lista.\nArchivo: ${filename}`);
       } else {
         setError('No se pudo generar el reporte');
       }
     } catch (err) {
       console.error('[v0] Export error:', err);
-      setError((err as Error).message);
+      setError(err instanceof Error ? err.message : 'No se pudo generar el reporte');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Card>
+    <Card className="border-border/60 bg-card/90">
       <CardHeader>
         <CardTitle>Exportar reporte</CardTitle>
       </CardHeader>
@@ -59,11 +69,13 @@ export function ExportReportForm() {
             <select
               value={reportType}
               onChange={(e) => setReportType(e.target.value)}
-              className="w-full rounded border p-2 text-sm"
+              className="w-full rounded border border-border bg-background px-3 py-2 text-sm text-foreground"
             >
-              <option value="maintenance">Órdenes de trabajo de mantenimiento</option>
-              <option value="hse">Incidentes e investigaciones HSE</option>
-              <option value="audit">Trazabilidad y cumplimiento</option>
+              {REPORT_TYPES.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -74,17 +86,17 @@ export function ExportReportForm() {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full rounded border p-2 text-sm"
+                className="w-full rounded border border-border bg-background px-3 py-2 text-sm text-foreground"
               />
             </div>
 
             <div>
-              <label className="text-sm font-semibold">Fecha de término</label>
+            <label className="text-sm font-semibold">Fecha de termino</label>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full rounded border p-2 text-sm"
+                className="w-full rounded border border-border bg-background px-3 py-2 text-sm text-foreground"
               />
             </div>
           </div>
@@ -95,7 +107,7 @@ export function ExportReportForm() {
           </Button>
 
           <p className="text-xs text-muted-foreground">
-            El reporte incluirá todos los registros del periodo seleccionado. Formato listo para auditoría.
+            El reporte incluye todos los registros del periodo seleccionado en un formato listo para auditoria.
           </p>
         </div>
       </CardContent>

@@ -9,7 +9,7 @@ export default function ReportesPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Reportes</h1>
         <p className="text-muted-foreground">
-          Reportes de cumplimiento, trazabilidad y exportación de datos para auditoría
+          Reportes de cumplimiento, trazabilidad y exportacion de datos para auditoria
         </p>
       </div>
 
@@ -20,7 +20,7 @@ export default function ReportesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">3</div>
-            <p className="text-xs text-muted-foreground">Mantenimiento, HSE y auditoría</p>
+            <p className="text-xs text-muted-foreground">Mantenimiento, HSE y auditoria</p>
           </CardContent>
         </Card>
 
@@ -30,13 +30,13 @@ export default function ReportesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">100%</div>
-            <p className="text-xs text-muted-foreground">Todos los registros listos para auditoría</p>
+            <p className="text-xs text-muted-foreground">Todos los registros listos para auditoria</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Última exportación</CardTitle>
+            <CardTitle className="text-sm font-medium">Ultima exportacion</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">--</div>
@@ -49,27 +49,27 @@ export default function ReportesPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Descripción de reportes</CardTitle>
+          <CardTitle>Descripcion de reportes</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div>
-            <p className="text-sm font-semibold">Órdenes de trabajo de mantenimiento</p>
+            <p className="text-sm font-semibold">Ordenes de trabajo de mantenimiento</p>
             <p className="text-xs text-muted-foreground">
-              Registros completos con MTTR, estado, técnico y repuestos utilizados
+              Registros completos con MTTR, estado, tecnico y repuestos utilizados
             </p>
           </div>
 
           <div>
             <p className="text-sm font-semibold">Incidentes e investigaciones HSE</p>
             <p className="text-xs text-muted-foreground">
-              Incidentes de seguridad, análisis de causa raíz, acciones correctivas y estado RCA
+              Incidentes de seguridad, analisis de causa raiz, acciones correctivas y estado RCA
             </p>
           </div>
 
           <div>
             <p className="text-sm font-semibold">Trazabilidad y cumplimiento</p>
             <p className="text-xs text-muted-foreground">
-              Registro completo de movimientos, transacciones y contexto de usuario, hora y organización
+              Registro completo de movimientos, transacciones y contexto de usuario, hora y organizacion
             </p>
           </div>
         </CardContent>
