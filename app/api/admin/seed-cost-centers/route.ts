@@ -9,19 +9,19 @@ import { getSupabaseServerClient } from '@/lib/supabase-server';
 function cleanText(value: string) {
   return value
     .trim()
-    .replaceAll('ÃƒÂ¡', 'á')
-    .replaceAll('ÃƒÂ©', 'é')
-    .replaceAll('ÃƒÂ­', 'í')
-    .replaceAll('ÃƒÂ³', 'ó')
-    .replaceAll('ÃƒÂº', 'ú')
-    .replaceAll('ÃƒÂ±', 'ñ')
-    .replaceAll('ÃƒÂ¼', 'ü')
-    .replaceAll('Ãƒâ€œ', 'Ó')
-    .replaceAll('Ãƒï¿½', 'Í')
-    .replaceAll('Ãƒâ€˜', 'Ñ')
-    .replaceAll('Ã‚Â°', '°')
-    .replaceAll('Ã¢â‚¬â€œ', '-')
-    .replaceAll('Ã¯Â¿Â½', 'ó');
+    .replaceAll('ÃƒÆ’Ã‚Â¡', 'á')
+    .replaceAll('ÃƒÆ’Ã‚Â©', 'é')
+    .replaceAll('ÃƒÆ’Ã‚Â­', 'í')
+    .replaceAll('ÃƒÆ’Ã‚Â³', 'ó')
+    .replaceAll('ÃƒÆ’Ã‚Âº', 'ú')
+    .replaceAll('ÃƒÆ’Ã‚Â±', 'ñ')
+    .replaceAll('ÃƒÆ’Ã‚Â¼', 'ü')
+    .replaceAll('ÃƒÆ’Ã¢â‚¬Å“', 'Ó')
+    .replaceAll('ÃƒÆ’Ã¯Â¿Â½', 'Í')
+    .replaceAll('ÃƒÆ’Ã¢â‚¬Ëœ', 'Ñ')
+    .replaceAll('Ãƒâ€šÃ‚Â°', '°')
+    .replaceAll('ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“', '-')
+    .replaceAll('ÃƒÂ¯Ã‚Â¿Ã‚Â½', 'ó');
 }
 
 function normalizeRoute(value: string) {
@@ -66,7 +66,7 @@ function splitName(value: string, parentCode?: string) {
 export async function POST(request: NextRequest) {
   const auth = await requireAdmin(request);
   if (!auth.authorized || !auth.user || !auth.organizationId) {
-    return auth.response || NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return auth.response || NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
   try {
@@ -129,9 +129,9 @@ export async function POST(request: NextRequest) {
         };
       });
 
-    const { error } = await supabase
-      .from('cost_centers')
-      .upsert(payload, { onConflict: 'organization_id,code' });
+    const { error } = await supabase.from('cost_centers').upsert(payload, {
+      onConflict: 'organization_id,code',
+    });
 
     if (error) {
       throw error;

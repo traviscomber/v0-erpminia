@@ -26,16 +26,16 @@ export default function InitializeDBPage() {
       const response = await fetch('/api/admin/init-db', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${adminToken}`,
+          Authorization: `Bearer ${adminToken}`,
           'Content-Type': 'application/json',
         },
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`HTTP error: ${response.status}`);
       }
 
-      const data = await response.json();
+      await response.json();
       setStatus('success');
       setMessage('Base de datos inicializada exitosamente');
       setAdminToken('');
@@ -49,46 +49,44 @@ export default function InitializeDBPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md border-border">
         <CardHeader>
-          <CardTitle>Inicializar Base de Datos</CardTitle>
+          <CardTitle>Inicializar base de datos</CardTitle>
           <CardDescription>
-            Configura las tablas y esquema de la base de datos para n3uralia ERP
+            Configura las tablas y el esquema de la base de datos para n3uralia ERP
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Info Section */}
-          <div className="bg-muted p-4 rounded-lg border border-border">
+          <div className="rounded-lg border border-border bg-muted p-4">
             <p className="text-sm text-muted-foreground">
-              Esta operación creará todas las tablas necesarias para el sistema de gestión minera (Documentos, Mantenimiento, Bodega).
+              Esta operación creará todas las tablas necesarias para el sistema de gestión minera
+              (Documentos, Mantenimiento y Bodega).
             </p>
           </div>
 
-          {/* Status Messages */}
           {status === 'success' && (
-            <div className="flex gap-3 p-4 bg-[var(--brand-verde)]/10 rounded-lg border border-green-500/30">
-              <CheckCircle2 className="h-5 w-5 text-[var(--brand-verde)] flex-shrink-0 mt-0.5" />
+            <div className="flex gap-3 rounded-lg border border-green-500/30 bg-green-500/10 p-4">
+              <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" />
               <div>
-                <p className="font-semibold text-[var(--brand-verde)]">Éxito</p>
-                <p className="text-sm text-[var(--brand-verde)]">{message}</p>
+                <p className="font-semibold text-green-700">Éxito</p>
+                <p className="text-sm text-green-700">{message}</p>
               </div>
             </div>
           )}
 
           {status === 'error' && (
-            <div className="flex gap-3 p-4 bg-[var(--brand-rojo)]/10 rounded-lg border border-[var(--brand-rojo)]/20/30">
-              <AlertCircle className="h-5 w-5 text-[var(--brand-rojo)] flex-shrink-0 mt-0.5" />
+            <div className="flex gap-3 rounded-lg border border-destructive/30 bg-destructive/10 p-4">
+              <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-destructive" />
               <div>
-                <p className="font-semibold text-[var(--brand-rojo)]">Error</p>
-                <p className="text-sm text-[var(--brand-rojo)]">{message}</p>
+                <p className="font-semibold text-destructive">Error</p>
+                <p className="text-sm text-destructive">{message}</p>
               </div>
             </div>
           )}
 
-          {/* Input Section */}
           <div className="space-y-3">
-            <label className="text-sm font-medium">Token de Administrador</label>
+            <label className="text-sm font-medium">Token de administrador</label>
             <Input
               type="password"
               placeholder="Ingresa el token administrativo"
@@ -102,7 +100,6 @@ export default function InitializeDBPage() {
             </p>
           </div>
 
-          {/* Button */}
           <Button
             onClick={handleInitialize}
             disabled={isLoading || !adminToken.trim()}
@@ -115,14 +112,14 @@ export default function InitializeDBPage() {
                 Inicializando...
               </>
             ) : (
-              'Inicializar Base de Datos'
+              'Inicializar base de datos'
             )}
           </Button>
 
-          {/* Info Box */}
-          <div className="bg-[var(--secondary)]/10 p-4 rounded-lg border border-[var(--secondary)]/20/30">
-            <p className="text-xs text-[var(--secondary)]">
-              <strong>Nota:</strong> Esta operación es segura y solo puede ejecutarse una vez con el token correcto. Las tablas existentes no serán borradas.
+          <div className="rounded-lg border border-secondary/20 bg-secondary/10 p-4">
+            <p className="text-xs text-secondary">
+              <strong>Nota:</strong> Esta operación es segura y solo puede ejecutarse una vez con el
+              token correcto. Las tablas existentes no serán borradas.
             </p>
           </div>
         </CardContent>

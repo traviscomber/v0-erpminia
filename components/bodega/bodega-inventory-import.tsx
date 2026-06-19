@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -34,21 +33,16 @@ export function BodegaInventoryImportComponent() {
   const [selectedCostCenter, setSelectedCostCenter] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load cost centers
   useEffect(() => {
     const loadCostCenters = async () => {
       try {
-        const { data } = await supabase
-          .from('cost_centers')
-          .select('id, nombre')
-          .eq('nivel', 1)
-          .order('nombre');
+        const { data } = await supabase.from('cost_centers').select('id, nombre').eq('nivel', 1).order('nombre');
 
         if (data) {
           setCostCenters(data);
         }
       } catch (error) {
-        console.error('Error loading cost centers:', error);
+        console.error('Error al cargar los centros de costos:', error);
       }
     };
 
@@ -56,11 +50,11 @@ export function BodegaInventoryImportComponent() {
   }, []);
 
   const handleFile = async (file: File) => {
-    if (!file.name.endsWith('.csv')) {
+    if (!file.name.toLowerCase().endsWith('.csv')) {
       setResult({
         success: false,
-        message: 'Only CSV files are accepted',
-        error: 'Invalid file type',
+        message: 'Solo aceptamos archivos CSV',
+        error: 'Tipo de archivo no válido',
       });
       return;
     }
@@ -91,14 +85,14 @@ export function BodegaInventoryImportComponent() {
       } else {
         setResult({
           success: false,
-          message: 'Failed to import inventory',
-          error: data.error || 'Unknown error',
+          message: 'No se pudo importar el inventario',
+          error: data.error || 'Error desconocido',
         });
       }
     } catch (error) {
       setResult({
         success: false,
-        message: 'Error uploading file',
+        message: 'Error al subir el archivo',
         error: String(error),
       });
     } finally {
@@ -132,18 +126,15 @@ export function BodegaInventoryImportComponent() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Upload className="h-5 w-5" />
-            Importar Inventario Bodega
+            Importar inventario de bodega
           </CardTitle>
           <CardDescription>
-            Sube tu archivo CSV con el inventario de bodega (código, familia, producto, etc.)
+            Sube tu archivo CSV con el inventario de bodega (código, familia, producto, etc.).
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Cost center selector */}
           <div>
-            <label className="text-sm font-medium mb-2 block">
-              Centro de Costos (Opcional)
-            </label>
+            <label className="mb-2 block text-sm font-medium">Centro de costos (opcional)</label>
             <Select value={selectedCostCenter} onValueChange={setSelectedCostCenter}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecciona un centro de costos" />
@@ -157,31 +148,26 @@ export function BodegaInventoryImportComponent() {
                 ))}
               </SelectContent>
             </Select>
-            <p className="text-xs text-muted-foreground mt-1">
-              Si no seleccionas, los items se importarán sin asignar a un centro
+            <p className="mt-1 text-xs text-muted-foreground">
+              Si no seleccionas, los ítems se importarán sin asignar a un centro.
             </p>
           </div>
 
-          {/* Drag and drop zone */}
           <div
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
             onDragOver={handleDrag}
             onDrop={handleDrop}
-            className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+            className={`cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
               dragActive
                 ? 'border-primary bg-primary/5'
                 : 'border-muted-foreground/25 hover:border-muted-foreground/50'
             }`}
             onClick={() => fileInputRef.current?.click()}
           >
-            <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-            <p className="font-semibold text-foreground">
-              Arrastra tu archivo o haz clic para seleccionar
-            </p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Formato: CSV (separado por punto y coma)
-            </p>
+            <Upload className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
+            <p className="font-semibold text-foreground">Arrastra tu archivo o haz clic para seleccionar</p>
+            <p className="mt-1 text-sm text-muted-foreground">Formato: CSV (separado por punto y coma)</p>
 
             <input
               ref={fileInputRef}
@@ -196,22 +182,20 @@ export function BodegaInventoryImportComponent() {
             />
           </div>
 
-          {/* Format info */}
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              <p className="font-semibold mb-2">Formato requerido:</p>
+              <p className="mb-2 font-semibold">Formato requerido:</p>
               <p className="text-sm">Tu archivo debe tener estas columnas:</p>
-              <div className="mt-2 font-mono text-sm bg-muted p-2 rounded">
+              <div className="mt-2 rounded bg-muted p-2 font-mono text-sm">
                 CÓDIGO | FAMILIA | SUB-FAMILIA | EQUIPO | PRODUCTO
               </div>
-              <p className="text-xs text-muted-foreground mt-2">
+              <p className="mt-2 text-xs text-muted-foreground">
                 El CÓDIGO debe ser único. PRODUCTO es el nombre del artículo.
               </p>
             </AlertDescription>
           </Alert>
 
-          {/* Results */}
           {result && (
             <Alert className={result.success ? 'border-green-500' : 'border-red-500'}>
               {result.success ? (
@@ -220,22 +204,15 @@ export function BodegaInventoryImportComponent() {
                 <AlertCircle className="h-4 w-4 text-red-600" />
               )}
               <AlertDescription>
-                <p className={result.success ? 'text-green-900 font-semibold' : 'text-red-900 font-semibold'}>
+                <p className={result.success ? 'font-semibold text-green-900' : 'font-semibold text-red-900'}>
                   {result.message}
                 </p>
-                {result.imported && (
-                  <p className="text-sm mt-1">
-                    {result.imported} items de inventario importados
-                  </p>
-                )}
-                {result.error && (
-                  <p className="text-sm text-red-700 mt-1">{result.error}</p>
-                )}
+                {result.imported ? <p className="mt-1 text-sm">{result.imported} ítems de inventario importados</p> : null}
+                {result.error ? <p className="mt-1 text-sm text-red-700">{result.error}</p> : null}
               </AlertDescription>
             </Alert>
           )}
 
-          {/* Loading state */}
           {isLoading && (
             <div className="flex items-center justify-center gap-2 p-4 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
