@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { AlertCircle, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const REPORT_TYPES = [
-  { value: 'maintenance', label: 'Mantenimiento' },
-  { value: 'hse', label: 'HSE' },
-  { value: 'audit', label: 'Trazabilidad' },
+  { value: 'maintenance', label: 'Órdenes de mantenimiento' },
+  { value: 'hse', label: 'Incidentes y hallazgos HSE' },
+  { value: 'audit', label: 'Trazabilidad y movimientos' },
 ];
 
 export function ExportReportForm() {
@@ -16,7 +16,7 @@ export function ExportReportForm() {
   const [error, setError] = useState('');
   const [reportType, setReportType] = useState('maintenance');
   const [startDate, setStartDate] = useState(
-    new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
   );
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
 
@@ -38,7 +38,7 @@ export function ExportReportForm() {
       if (res.ok) {
         const { report } = await res.json();
         const filename = `${reportType}-reporte-${new Date().toISOString().split('T')[0]}.csv`;
-        alert(`Reporte generado: ${report.row_count} registros.\nDescarga lista.\nArchivo: ${filename}`);
+        alert(`Reporte generado correctamente.\nRegistros: ${report.row_count}\nArchivo: ${filename}`);
       } else {
         setError('No se pudo generar el reporte');
       }
@@ -53,7 +53,7 @@ export function ExportReportForm() {
   return (
     <Card className="border-border/60 bg-card/90">
       <CardHeader>
-        <CardTitle>Exportar</CardTitle>
+        <CardTitle>Exportar reporte</CardTitle>
       </CardHeader>
       <CardContent>
         {error && (
@@ -65,7 +65,7 @@ export function ExportReportForm() {
 
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-semibold">Reporte</label>
+            <label className="mb-2 block text-sm font-semibold">Tipo de reporte</label>
             <select
               value={reportType}
               onChange={(e) => setReportType(e.target.value)}
@@ -79,9 +79,9 @@ export function ExportReportForm() {
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="text-sm font-semibold">Inicio</label>
+              <label className="mb-2 block text-sm font-semibold">Desde</label>
               <input
                 type="date"
                 value={startDate}
@@ -91,7 +91,7 @@ export function ExportReportForm() {
             </div>
 
             <div>
-              <label className="text-sm font-semibold">Fin</label>
+              <label className="mb-2 block text-sm font-semibold">Hasta</label>
               <input
                 type="date"
                 value={endDate}
@@ -101,14 +101,12 @@ export function ExportReportForm() {
             </div>
           </div>
 
-          <Button onClick={handleExport} disabled={loading} className="w-full">
-            <Download className="mr-2 h-4 w-4" />
+          <Button onClick={handleExport} disabled={loading} className="w-full gap-2">
+            <Download className="h-4 w-4" />
             {loading ? 'Generando...' : 'Descargar CSV'}
           </Button>
 
-          <p className="text-xs text-muted-foreground">
-            Descarga el reporte filtrado por fechas.
-          </p>
+          <p className="text-xs text-muted-foreground">El archivo se genera con el rango de fechas seleccionado.</p>
         </div>
       </CardContent>
     </Card>
