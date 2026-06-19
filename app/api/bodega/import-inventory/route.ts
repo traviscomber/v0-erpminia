@@ -37,6 +37,20 @@ function cleanText(value: unknown) {
   return String(value ?? '').trim();
 }
 
+function formatError(error: unknown) {
+  if (!error) return 'Unknown error';
+  if (typeof error === 'string') return error;
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'object') {
+    try {
+      return JSON.stringify(error);
+    } catch {
+      return String(error);
+    }
+  }
+  return String(error);
+}
+
 function parseCsvText(text: string): InventoryRow[] {
   const lines = text.split(/\r?\n/).filter((line) => line.trim());
   if (lines.length < 2) return [];
@@ -169,7 +183,7 @@ export async function POST(request: NextRequest) {
 
     for (let index = 0; index < data.length; index += batchSize) {
       const batch = data.slice(index, index + batchSize);
-      const { error } = await supabase.from('bodega_inventory').insert(
+    const { error } = await supabase.from('bodega_inventory').insert(
         batch.map((item) => ({
           sku: item.sku,
           name: item.name,
@@ -183,7 +197,9 @@ export async function POST(request: NextRequest) {
         }))
       );
 
-      if (error) throw error;
+      if (error) {
+        throw new Error(`Batch ${Math.floor(index / batchSize) + 1}: ${formatError(error)}`);
+      }
       imported += batch.length;
     }
 
@@ -196,7 +212,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('[v0] Bodega inventory import error:', error);
     return NextResponse.json(
-      { error: 'No se pudo importar el inventario', details: String(error) },
+      { error: 'No se pudo importar el inventario', details: formatError(error) },
       { status: 500 }
     );
   }
