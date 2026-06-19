@@ -11,7 +11,7 @@ import { FileText, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
 interface DocumentStats {
   total: number;
   vigentes: number;
-  en_revision: number;
+  en_Revision: number;
   rechazados: number;
 }
 
@@ -23,7 +23,7 @@ export default function DocumentosMantenimientoPage() {
   const [stats, setStats] = useState<DocumentStats>({
     total: 0,
     vigentes: 0,
-    en_revision: 0,
+    en_Revision: 0,
     rechazados: 0,
   });
 
@@ -39,7 +39,7 @@ export default function DocumentosMantenimientoPage() {
         setStats({
           total: data.length,
           vigentes: data.filter((d: Document) => d.status === 'active').length,
-          en_revision: data.filter((d: Document) => 
+          en_Revision: data.filter((d: Document) => 
             d.status === 'pending_l1' || d.status === 'pending_l2'
           ).length,
           rechazados: data.filter((d: Document) => d.status === 'rejected').length,
@@ -128,7 +128,7 @@ export default function DocumentosMantenimientoPage() {
       <div>
         <h1 className="text-3xl font-bold">Documentos Mantenimiento</h1>
         <p className="text-muted-foreground mt-2">
-          GestiÃ³n de manuales, procedimientos e instructivos de mantenimiento
+          Gesti?n de manuales, procedimientos e instructivos de mantenimiento
         </p>
       </div>
 
@@ -162,13 +162,13 @@ export default function DocumentosMantenimientoPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center justify-between">
-              <span>En RevisiÃ³n</span>
+              <span>En Revision</span>
               <Clock className="h-4 w-4 text-yellow-500" />
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-yellow-500">{stats.en_revision}</p>
-            <p className="text-xs text-muted-foreground">esperando aprobaciÃ³n</p>
+            <p className="text-2xl font-bold text-yellow-500">{stats.en_Revision}</p>
+            <p className="text-xs text-muted-foreground">esperando Aprobacion</p>
           </CardContent>
         </Card>
 
@@ -181,7 +181,7 @@ export default function DocumentosMantenimientoPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-red-500">{stats.rechazados}</p>
-            <p className="text-xs text-muted-foreground">pendientes de correcciÃ³n</p>
+            <p className="text-xs text-muted-foreground">pendientes de correcci?n</p>
           </CardContent>
         </Card>
       </div>
@@ -190,7 +190,7 @@ export default function DocumentosMantenimientoPage() {
         <TabsList className="bg-muted/60 border-b-2 border-border p-1">
           <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Todos</TabsTrigger>
           <TabsTrigger value="vigentes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Vigentes</TabsTrigger>
-          <TabsTrigger value="revision" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">En RevisiÃ³n</TabsTrigger>
+          <TabsTrigger value="Revision" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">En Revision</TabsTrigger>
           <TabsTrigger value="upload" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Subir Documentos</TabsTrigger>
         </TabsList>
 
@@ -212,7 +212,7 @@ export default function DocumentosMantenimientoPage() {
           />
         </TabsContent>
 
-        <TabsContent value="revision" className="space-y-4">
+        <TabsContent value="Revision" className="space-y-4">
           <DocumentList
             documents={documents.filter(d => 
               d.status === 'pending_l1' || d.status === 'pending_l2'

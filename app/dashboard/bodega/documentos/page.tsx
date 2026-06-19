@@ -12,7 +12,7 @@ import { FileText, CheckCircle2, AlertCircle, Clock, Upload } from 'lucide-react
 interface DocumentStats {
   total: number;
   vigentes: number;
-  en_revision: number;
+  en_Revision: number;
   rechazados: number;
 }
 
@@ -24,7 +24,7 @@ export default function DocumentosBodegaPage() {
   const [stats, setStats] = useState<DocumentStats>({
     total: 0,
     vigentes: 0,
-    en_revision: 0,
+    en_Revision: 0,
     rechazados: 0,
   });
 
@@ -40,7 +40,7 @@ export default function DocumentosBodegaPage() {
         setStats({
           total: data.length,
           vigentes: data.filter((d: Document) => d.status === 'active').length,
-          en_revision: data.filter((d: Document) => 
+          en_Revision: data.filter((d: Document) => 
             d.status === 'pending_l1' || d.status === 'pending_l2'
           ).length,
           rechazados: data.filter((d: Document) => d.status === 'rejected').length,
@@ -129,7 +129,7 @@ export default function DocumentosBodegaPage() {
       <div>
         <h1 className="text-3xl font-bold">Documentos Bodega</h1>
         <p className="text-muted-foreground mt-2">
-          GestiÃ³n de procedimientos e instructivos de bodega y almacenamiento
+          Gesti?n de procedimientos e instructivos de bodega y almacenamiento
         </p>
       </div>
 
@@ -163,13 +163,13 @@ export default function DocumentosBodegaPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center justify-between">
-              <span>En RevisiÃ³n</span>
+              <span>En Revision</span>
               <Clock className="h-4 w-4 text-yellow-500" />
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-yellow-500">{stats.en_revision}</p>
-            <p className="text-xs text-muted-foreground">esperando aprobaciÃ³n</p>
+            <p className="text-2xl font-bold text-yellow-500">{stats.en_Revision}</p>
+            <p className="text-xs text-muted-foreground">esperando Aprobacion</p>
           </CardContent>
         </Card>
 
@@ -182,7 +182,7 @@ export default function DocumentosBodegaPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-red-500">{stats.rechazados}</p>
-            <p className="text-xs text-muted-foreground">pendientes de correcciÃ³n</p>
+            <p className="text-xs text-muted-foreground">pendientes de correcci?n</p>
           </CardContent>
         </Card>
       </div>
@@ -191,7 +191,7 @@ export default function DocumentosBodegaPage() {
         <TabsList className="bg-muted/60 border-b-2 border-border p-1">
           <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Todos</TabsTrigger>
           <TabsTrigger value="vigentes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Vigentes</TabsTrigger>
-          <TabsTrigger value="revision" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">En Revisión</TabsTrigger>
+          <TabsTrigger value="Revision" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">En Revision</TabsTrigger>
           <TabsTrigger value="upload" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Subir Documentos</TabsTrigger>
           <TabsTrigger value="import" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Importar Inventario</TabsTrigger>
         </TabsList>
@@ -214,7 +214,7 @@ export default function DocumentosBodegaPage() {
           />
         </TabsContent>
 
-        <TabsContent value="revision" className="space-y-4">
+        <TabsContent value="Revision" className="space-y-4">
           <DocumentList
             documents={documents.filter(d => 
               d.status === 'pending_l1' || d.status === 'pending_l2'

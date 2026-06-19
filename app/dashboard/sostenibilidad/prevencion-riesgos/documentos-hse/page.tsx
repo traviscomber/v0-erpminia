@@ -111,14 +111,14 @@ export default function DocumentosHSEPage() {
     }
   };
 
-  // Draft docs are loaded but not yet reviewed — show them in main tab
+  // Draft docs are loaded but not yet reviewed ? show them in main tab
   const draftDocs = documents.filter(d =>
     d.status === 'draft' || !d.status
   );
   const vigentesDocs = documents.filter(d =>
     d.status === 'aprobado' || d.status === 'active'
   );
-  const revisionDocs = documents.filter(d =>
+  const RevisionDocs = documents.filter(d =>
     d.status === 'en_revision_l1' || d.status === 'en_revision_l2' ||
     d.status === 'pending_l1' || d.status === 'pending_l2'
   );
@@ -132,7 +132,7 @@ export default function DocumentosHSEPage() {
       <div>
         <h1 className="text-3xl font-bold">Documentos HSE</h1>
         <p className="text-muted-foreground mt-2">
-          Gestión de políticas, procedimientos, instructivos y programas de seguridad
+          Gesti?n de pol?ticas, procedimientos, instructivos y programas de seguridad
         </p>
       </div>
 
@@ -167,13 +167,13 @@ export default function DocumentosHSEPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center justify-between">
-              <span>En Revisión</span>
+              <span>En Revision</span>
               <Clock className="h-4 w-4 text-yellow-500" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-yellow-500">{stats.en_revision}</p>
-            <p className="text-xs text-muted-foreground">esperando aprobación</p>
+            <p className="text-xs text-muted-foreground">esperando Aprobacion</p>
           </CardContent>
         </Card>
 
@@ -186,7 +186,7 @@ export default function DocumentosHSEPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-red-500">{stats.rechazados}</p>
-            <p className="text-xs text-muted-foreground">pendientes de corrección</p>
+            <p className="text-xs text-muted-foreground">pendientes de correcci?n</p>
           </CardContent>
         </Card>
       </div>
@@ -200,15 +200,15 @@ export default function DocumentosHSEPage() {
           <TabsTrigger value="vigentes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
             Vigentes ({vigentesDocs.length})
           </TabsTrigger>
-          <TabsTrigger value="revision" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
-            En Revisión ({revisionDocs.length})
+          <TabsTrigger value="Revision" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
+            En Revision ({RevisionDocs.length})
           </TabsTrigger>
           <TabsTrigger value="upload" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
             Subir
           </TabsTrigger>
         </TabsList>
 
-        {/* Todos — búsqueda inteligente en todos los documentos */}
+        {/* Todos ? b?squeda inteligente en todos los documentos */}
         <TabsContent value="todos" className="space-y-4">
           <DocumentList
             documents={documents}
@@ -230,10 +230,10 @@ export default function DocumentosHSEPage() {
           />
         </TabsContent>
 
-        {/* En Revisión */}
-        <TabsContent value="revision" className="space-y-4">
+        {/* En Revision */}
+        <TabsContent value="Revision" className="space-y-4">
           <DocumentList
-            documents={revisionDocs}
+            documents={RevisionDocs}
             isLoading={loading}
             onView={handleView}
             onDelete={handleDelete}
@@ -247,12 +247,12 @@ export default function DocumentosHSEPage() {
             <CardHeader>
               <CardTitle>Subir Nuevo Documento</CardTitle>
               <CardDescription>
-                Sube documentos HSE: políticas, procedimientos, instructivos, programas de seguridad
+                Sube documentos HSE: pol?ticas, procedimientos, instructivos, programas de seguridad
               </CardDescription>
             </CardHeader>
             <CardContent>
               <DocumentUpload
-                module="prevención"
+                module="prevenci?n"
                 category="documentos-hse"
                 onUploadSuccess={loadDocuments}
               />

@@ -135,7 +135,7 @@ export default function DocumentosReportesPage() {
           id: document.id,
           title: document.title,
           daysOverdue: Math.max(daysOpen - 7, 0),
-          approvalLevel: document.steps.find((step) => step.status === 'pending') ? 'Pendiente' : 'En revisión',
+          approvalLevel: document.steps.find((step) => step.status === 'pending') ? 'Pendiente' : 'En Revision',
           daysOpen,
         };
       })
@@ -149,9 +149,9 @@ export default function DocumentosReportesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Reportería de documentos</h1>
+        <h1 className="text-3xl font-bold text-foreground">Reporte de documentos</h1>
         <p className="mt-2 text-muted-foreground">
-          Análisis y seguimiento del flujo de aprobación documental
+          Analisis y seguimiento del flujo de Aprobacion documental
         </p>
       </div>
 
@@ -159,7 +159,7 @@ export default function DocumentosReportesPage() {
         <Card className="border-destructive/30">
           <CardContent className="flex items-center gap-3 pt-6 text-sm">
             <AlertCircle className="h-4 w-4 text-destructive" />
-            <span>No fue posible cargar toda la reportería documental.</span>
+            <span>No fue posible cargar todo el reporte documental.</span>
           </CardContent>
         </Card>
       )}
@@ -189,7 +189,7 @@ export default function DocumentosReportesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{pendingDocuments}</div>
-            <p className="mt-1 text-xs text-muted-foreground">En revisión</p>
+              <p className="mt-1 text-xs text-muted-foreground">En Revision</p>
           </CardContent>
         </Card>
 
@@ -217,7 +217,7 @@ export default function DocumentosReportesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{averageApprovalDays}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Días de aprobación</p>
+            <p className="mt-1 text-xs text-muted-foreground">dias de Aprobacion</p>
           </CardContent>
         </Card>
       </div>
@@ -225,7 +225,7 @@ export default function DocumentosReportesPage() {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="overview">Resumen</TabsTrigger>
-          <TabsTrigger value="timeline">Línea de tiempo</TabsTrigger>
+          <TabsTrigger value="timeline">Linea de tiempo</TabsTrigger>
           <TabsTrigger value="overdue">Vencidos</TabsTrigger>
         </TabsList>
 
@@ -233,8 +233,8 @@ export default function DocumentosReportesPage() {
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>Distribución por estado</CardTitle>
-                <CardDescription>Documentos por estado del flujo de aprobación</CardDescription>
+                <CardTitle>Distribucion por estado</CardTitle>
+                <CardDescription>Documentos por estado del flujo de Aprobacion</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
@@ -263,7 +263,7 @@ export default function DocumentosReportesPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Desglose por estado</CardTitle>
-                <CardDescription>Estadísticas consolidadas del módulo</CardDescription>
+                <CardDescription>Estadisticas consolidadas del modulo</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -288,15 +288,15 @@ export default function DocumentosReportesPage() {
         <TabsContent value="timeline">
           <Card>
             <CardHeader>
-              <CardTitle>Tiempo promedio de aprobación</CardTitle>
-              <CardDescription>Tendencia mensual según documentos procesados</CardDescription>
+              <CardTitle>Tiempo promedio de Aprobacion</CardTitle>
+              <CardDescription>Tendencia mensual segun documentos procesados</CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={400}>
                 <LineChart data={approvalTimeline}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
-                  <YAxis yAxisId="left" label={{ value: 'Días', angle: -90, position: 'insideLeft' }} />
+                  <YAxis yAxisId="left" label={{ value: 'dias', angle: -90, position: 'insideLeft' }} />
                   <YAxis
                     yAxisId="right"
                     orientation="right"
@@ -309,7 +309,7 @@ export default function DocumentosReportesPage() {
                     type="monotone"
                     dataKey="avgDays"
                     stroke="#f97316"
-                    name="Promedio (días)"
+                    name="Promedio (dias)"
                     strokeWidth={2}
                   />
                   <Bar
@@ -330,9 +330,9 @@ export default function DocumentosReportesPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <AlertCircle className="h-5 w-5 text-destructive" />
-                Documentos vencidos en aprobación
+                Documentos vencidos en Aprobacion
               </CardTitle>
-              <CardDescription>Documentos pendientes con más de 7 días abiertos en revisión</CardDescription>
+              <CardDescription>Documentos pendientes con mas de 7 dias abiertos en Revision</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -346,7 +346,7 @@ export default function DocumentosReportesPage() {
                         <p className="font-medium">{doc.title}</p>
                         <p className="text-xs text-muted-foreground">{doc.approvalLevel}</p>
                       </div>
-                      <Badge variant="destructive">{doc.daysOverdue} días</Badge>
+                      <Badge variant="destructive">{doc.daysOverdue} dias</Badge>
                     </div>
                   ))
                 ) : (

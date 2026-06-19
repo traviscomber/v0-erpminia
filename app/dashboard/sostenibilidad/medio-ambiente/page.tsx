@@ -106,7 +106,7 @@ export default function MedioAmbientePage() {
         toast.success('Registro creado correctamente');
         setModalOpen(false);
         setFormData({
-          tipo: 'emisiones',
+    tipo: 'emisiones',
           descripcion: '',
           valor: '',
           unidad: 'kg',
@@ -174,7 +174,7 @@ export default function MedioAmbientePage() {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="descripcion">Descripción</Label>
+                <Label htmlFor="descripcion">Descripci?n</Label>
                 <textarea
                   id="descripcion"
                   name="descripcion"
@@ -219,7 +219,7 @@ export default function MedioAmbientePage() {
                   <SelectContent>
                     <SelectItem value="conforme">Conforme</SelectItem>
                     <SelectItem value="no_conforme">No Conforme</SelectItem>
-                    <SelectItem value="en_revisin">En Revisión</SelectItem>
+                    <SelectItem value="en_revisin">En Revision</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -260,10 +260,10 @@ export default function MedioAmbientePage() {
           data={filtered}
           fileName="Medio_Ambiente"
           columns={[
-            { key: 'numero_registro', label: 'Número' },
+            { key: 'numero_registro', label: 'Numero' },
             { key: 'fecha', label: 'Fecha' },
             { key: 'tipo', label: 'Tipo' },
-            { key: 'descripcion', label: 'Descripción' },
+            { key: 'descripcion', label: 'Descripcion' },
             { key: 'valor', label: 'Valor' },
             { key: 'cumplimiento', label: 'Cumplimiento' },
           ]}
@@ -295,13 +295,13 @@ export default function MedioAmbientePage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Número</th>
+                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Numero</th>
                   <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Tipo</th>
-                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Descripción</th>
+                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Descripci?n</th>
                   <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Valor</th>
                   <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Cumplimiento</th>
                   <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Fecha</th>
-                  <th className="text-right py-3 px-4">Accines</th>
+                  <th className="text-right py-3 px-4">Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -340,7 +340,7 @@ export default function MedioAmbientePage() {
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
         titulo={`Registro ${selected?.numero_registro || ''}`}
-        descripcion="Se eliminará este registro permanentemente."
+        descripcion="Se eliminar? este registro permanentemente."
         onConfirm={handleDelete}
       />
     </div>
