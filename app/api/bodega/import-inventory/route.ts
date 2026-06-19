@@ -51,6 +51,39 @@ function formatError(error: unknown) {
   return String(error);
 }
 
+async function runSqlStatement(supabase: any, sql: string) {
+  const attempts = ['exec_sql', 'execute_sql'];
+
+  for (const fn of attempts) {
+    const { error } = await supabase.rpc(fn, { sql });
+    if (!error) {
+      return;
+    }
+
+    const message = formatError(error).toLowerCase();
+    const functionMissing =
+      message.includes('function') &&
+      (message.includes(fn) || message.includes('does not exist') || message.includes('not found'));
+
+    if (!functionMissing) {
+      throw error;
+    }
+  }
+
+  throw new Error('No se encontró una función SQL disponible para ajustar el esquema');
+}
+
+async function ensureInventoryPrecision(supabase: any) {
+  await runSqlStatement(
+    supabase,
+    `
+      ALTER TABLE public.bodega_inventory
+        ALTER COLUMN unit_cost TYPE numeric(20,2)
+        USING COALESCE(unit_cost, 0)::numeric(20,2);
+    `
+  );
+}
+
 function parseCsvText(text: string): InventoryRow[] {
   const lines = text.split(/\r?\n/).filter((line) => line.trim());
   if (lines.length < 2) return [];
@@ -175,6 +208,8 @@ export async function POST(request: NextRequest) {
     if (data.length === 0) {
       return NextResponse.json({ error: 'No se encontraron datos validos en el archivo' }, { status: 400 });
     }
+
+    await ensureInventoryPrecision(supabase);
 
     await supabase.from('bodega_inventory').delete().neq('sku', '__import_replace__');
 
