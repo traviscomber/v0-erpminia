@@ -47,17 +47,17 @@ export function CorrectiveActionCard({ action, onUpdate }: any) {
       <CardContent>
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Responsible:</span>
-            <span>{action.responsible_person_name || action.responsible_person || 'N/A'}</span>
+            <span className="text-muted-foreground">Responsable:</span>
+            <span>{action.responsible_person_name || action.responsible_person || 'N/D'}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Target Date:</span>
+            <span className="text-muted-foreground">Fecha objetivo:</span>
             <span className={isOverdue ? 'text-red-600 font-semibold' : ''}>{action.scheduled_completion_date}</span>
           </div>
           {action.percentage_complete !== undefined && (
             <div>
               <div className="flex justify-between mb-1">
-                <span className="text-muted-foreground">Progress:</span>
+                <span className="text-muted-foreground">Avance:</span>
                 <span>{action.percentage_complete}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
@@ -67,7 +67,7 @@ export function CorrectiveActionCard({ action, onUpdate }: any) {
           )}
         </div>
         <Button size="sm" className="w-full mt-4" disabled={updating} onClick={() => onUpdate(action.id)}>
-          Update Status
+          Actualizar estado
         </Button>
       </CardContent>
     </Card>

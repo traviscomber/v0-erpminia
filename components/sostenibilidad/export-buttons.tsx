@@ -29,26 +29,22 @@ export function ExportButtons({ data, fileName, columns }: ExportButtonsProps) {
       element.style.padding = '20px';
       element.style.fontFamily = 'Arial, sans-serif';
 
-      // Título
       const title = document.createElement('h1');
       title.textContent = fileName;
       title.style.marginBottom = '20px';
       element.appendChild(title);
 
-      // Fecha
       const date = document.createElement('p');
       date.textContent = `Generado: ${new Date().toLocaleDateString('es-ES')}`;
       date.style.marginBottom = '20px';
       date.style.color = '#666';
       element.appendChild(date);
 
-      // Tabla
       const table = document.createElement('table');
       table.style.width = '100%';
       table.style.borderCollapse = 'collapse';
       table.style.marginTop = '20px';
 
-      // Headers
       const thead = document.createElement('thead');
       const headerRow = document.createElement('tr');
       columns.forEach((col) => {
@@ -64,7 +60,6 @@ export function ExportButtons({ data, fileName, columns }: ExportButtonsProps) {
       thead.appendChild(headerRow);
       table.appendChild(thead);
 
-      // Rows
       const tbody = document.createElement('tbody');
       data.forEach((row) => {
         const tr = document.createElement('tr');
@@ -109,15 +104,15 @@ export function ExportButtons({ data, fileName, columns }: ExportButtonsProps) {
           columns.reduce((acc, col) => {
             acc[col.label] = row[col.key] || '-';
             return acc;
-          }, {} as any)
+          }, {} as Record<string, unknown>)
         )
       );
 
       const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Datos');
 
-      const fileName_xlsx = `${fileName}_${new Date().toISOString().split('T')[0]}.xlsx`;
-      XLSX.writeFile(workbook, fileName_xlsx);
+      const fileNameXlsx = `${fileName}_${new Date().toISOString().split('T')[0]}.xlsx`;
+      XLSX.writeFile(workbook, fileNameXlsx);
 
       toast.success('Excel descargado exitosamente');
     } catch (error) {
@@ -134,30 +129,12 @@ export function ExportButtons({ data, fileName, columns }: ExportButtonsProps) {
 
   return (
     <div className="flex gap-2">
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={exportToPDF}
-        disabled={isLoading || data.length === 0}
-      >
-        {isLoading ? (
-          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-        ) : (
-          <FileText className="w-4 h-4 mr-2" />
-        )}
+      <Button variant="outline" size="sm" onClick={exportToPDF} disabled={isLoading || data.length === 0}>
+        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
         Descargar PDF
       </Button>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={exportToExcel}
-        disabled={isLoading || data.length === 0}
-      >
-        {isLoading ? (
-          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-        ) : (
-          <Sheet className="w-4 h-4 mr-2" />
-        )}
+      <Button variant="outline" size="sm" onClick={exportToExcel} disabled={isLoading || data.length === 0}>
+        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sheet className="mr-2 h-4 w-4" />}
         Descargar Excel
       </Button>
     </div>
