@@ -1,7 +1,6 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { Client } from 'pg';
 
 type InventoryRow = {
@@ -14,6 +13,17 @@ type InventoryRow = {
   min_stock: number;
   max_stock: number;
   location: string;
+};
+
+type ParsedColumns = {
+  code: number;
+  family: number;
+  subFamily: number;
+  team: number;
+  product: number;
+  stock: number;
+  unitCost: number;
+  value: number;
 };
 
 function normalizeHeader(value: unknown) {
@@ -38,6 +48,22 @@ function cleanText(value: unknown) {
   return String(value ?? '').trim();
 }
 
+function normalizeCategoryLabel(value: unknown) {
+  const raw = cleanText(value);
+  if (!raw) return 'General';
+
+  const normalized = normalizeHeader(raw).replace(/\s+/g, ' ');
+  const aliases: Record<string, string> = {
+    ferreteria: 'Ferretería',
+    viveres: 'Víveres',
+    neumatico: 'Neumático',
+    electrico: 'Eléctrico',
+    epp: 'EPP',
+  };
+
+  return aliases[normalized] || raw;
+}
+
 function formatError(error: unknown) {
   if (!error) return 'Unknown error';
   if (typeof error === 'string') return error;
@@ -52,40 +78,27 @@ function formatError(error: unknown) {
   return String(error);
 }
 
-async function runSqlStatement(supabase: any, sql: string) {
-  const attempts = ['exec_sql', 'execute_sql'];
+function getPgConnectionString() {
+  return process.env.POSTGRES_URL_NON_POOLING || process.env.POSTGRES_URL;
+}
 
-  for (const fn of attempts) {
-    const { error } = await supabase.rpc(fn, { sql });
-    if (!error) {
-      return;
-    }
-
-    const message = formatError(error).toLowerCase();
-    const functionMissing =
-      message.includes('function') &&
-      (message.includes(fn) || message.includes('does not exist') || message.includes('not found'));
-
-    if (!functionMissing) {
-      throw error;
-    }
-  }
-
-  const directConnection = process.env.POSTGRES_URL_NON_POOLING || process.env.POSTGRES_URL;
-  if (!directConnection) {
-    throw new Error('No se encontró una función SQL disponible para ajustar el esquema');
+async function withPgClient<T>(handler: (client: Client) => Promise<T>) {
+  const connectionString = getPgConnectionString();
+  if (!connectionString) {
+    throw new Error('No se encontro una conexion de Postgres disponible para el import');
   }
 
   const client = new Client({
-    connectionString: directConnection,
-    ssl: directConnection.includes('supabase.co') ? { rejectUnauthorized: false } : undefined,
+    connectionString,
+    ssl: connectionString.includes('supabase.co') ? { rejectUnauthorized: false } : undefined,
   });
 
   const previousTlsSetting = process.env.NODE_TLS_REJECT_UNAUTHORIZED;
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
   await client.connect();
+
   try {
-    await client.query(sql);
+    return await handler(client);
   } finally {
     await client.end();
     if (previousTlsSetting === undefined) {
@@ -96,15 +109,28 @@ async function runSqlStatement(supabase: any, sql: string) {
   }
 }
 
-async function ensureInventoryPrecision(supabase: any) {
-  await runSqlStatement(
-    supabase,
-    `
-      ALTER TABLE public.bodega_inventory
-        ALTER COLUMN unit_cost TYPE numeric(20,2)
-        USING COALESCE(unit_cost, 0)::numeric(20,2);
-    `
-  );
+function parseRow(values: unknown[], columns: ParsedColumns): InventoryRow | null {
+  const sku = cleanText(values[columns.code]);
+  const name = cleanText(values[columns.product]);
+  if (!sku || !name) return null;
+
+  const stock = parseNumber(values[columns.stock]);
+  const unitCost = parseNumber(values[columns.unitCost]) || (stock > 0 ? parseNumber(values[columns.value]) / stock : 0);
+  const family = normalizeCategoryLabel(values[columns.family]);
+  const subFamily = cleanText(values[columns.subFamily]);
+  const team = cleanText(values[columns.team]);
+
+  return {
+    sku,
+    name,
+    category: family,
+    description: [subFamily, team].filter(Boolean).join(' - ') || name,
+    quantity: stock,
+    unit_cost: unitCost,
+    min_stock: stock > 0 ? Math.max(0, Math.round(stock * 0.1)) : 0,
+    max_stock: stock > 0 ? Math.max(stock, Math.round(stock * 1.5)) : 0,
+    location: '',
+  };
 }
 
 function parseCsvText(text: string): InventoryRow[] {
@@ -112,7 +138,7 @@ function parseCsvText(text: string): InventoryRow[] {
   if (lines.length < 2) return [];
 
   const headers = lines[0].split(';').map(normalizeHeader);
-  const columns = {
+  const columns: ParsedColumns = {
     code: headers.findIndex((header) => header.includes('codigo') || header.includes('code')),
     family: headers.findIndex((header) => header.includes('familia') && !header.includes('sub')),
     subFamily: headers.findIndex((header) => header.includes('sub-familia') || header.includes('subfamilia')),
@@ -125,27 +151,8 @@ function parseCsvText(text: string): InventoryRow[] {
 
   return lines.slice(1).flatMap((line) => {
     const values = line.split(';').map(cleanText);
-    const sku = values[columns.code] || '';
-    const name = values[columns.product] || '';
-    if (!sku || !name) return [];
-
-    const stock = parseNumber(values[columns.stock]);
-    const unitCost = parseNumber(values[columns.unitCost]) || (stock > 0 ? parseNumber(values[columns.value]) / stock : 0);
-    const family = values[columns.family] || '';
-    const subFamily = values[columns.subFamily] || '';
-    const team = values[columns.team] || '';
-
-    return [{
-      sku,
-      name,
-      category: family || 'General',
-      description: [subFamily, team].filter(Boolean).join(' - ') || name,
-      quantity: stock,
-      unit_cost: unitCost,
-      min_stock: stock > 0 ? Math.max(0, Math.round(stock * 0.1)) : 0,
-      max_stock: stock > 0 ? Math.max(stock, Math.round(stock * 1.5)) : 0,
-      location: '',
-    }];
+    const row = parseRow(values, columns);
+    return row ? [row] : [];
   });
 }
 
@@ -159,7 +166,7 @@ async function parseWorkbook(file: File): Promise<InventoryRow[]> {
   if (!rows.length) return [];
 
   const headers = (rows[0] as unknown[]).map(normalizeHeader);
-  const columns = {
+  const columns: ParsedColumns = {
     code: headers.findIndex((header) => header.includes('codigo') || header.includes('code')),
     family: headers.findIndex((header) => header.includes('familia') && !header.includes('sub')),
     subFamily: headers.findIndex((header) => header.includes('sub-familia') || header.includes('subfamilia')),
@@ -172,27 +179,8 @@ async function parseWorkbook(file: File): Promise<InventoryRow[]> {
 
   return rows.slice(1).flatMap((row) => {
     const values = row.map(cleanText);
-    const sku = values[columns.code] || '';
-    const name = values[columns.product] || '';
-    if (!sku || !name) return [];
-
-    const stock = parseNumber(values[columns.stock]);
-    const unitCost = parseNumber(values[columns.unitCost]) || (stock > 0 ? parseNumber(values[columns.value]) / stock : 0);
-    const family = values[columns.family] || '';
-    const subFamily = values[columns.subFamily] || '';
-    const team = values[columns.team] || '';
-
-    return [{
-      sku,
-      name,
-      category: family || 'General',
-      description: [subFamily, team].filter(Boolean).join(' - ') || name,
-      quantity: stock,
-      unit_cost: unitCost,
-      min_stock: stock > 0 ? Math.max(0, Math.round(stock * 0.1)) : 0,
-      max_stock: stock > 0 ? Math.max(stock, Math.round(stock * 1.5)) : 0,
-      location: '',
-    }];
+    const parsed = parseRow(values, columns);
+    return parsed ? [parsed] : [];
   });
 }
 
@@ -210,16 +198,112 @@ async function parseInventoryFile(file: File) {
   throw new Error('Formato no soportado. Usa CSV, XLS o XLSX.');
 }
 
+async function replaceInventoryWithStaging(rows: InventoryRow[]) {
+  await withPgClient(async (client) => {
+    await client.query('BEGIN');
+
+    try {
+      await client.query(`
+        ALTER TABLE public.bodega_inventory
+          ALTER COLUMN unit_cost TYPE numeric(20,2)
+          USING COALESCE(unit_cost, 0)::numeric(20,2);
+      `);
+
+      await client.query(`
+        CREATE TEMP TABLE inventory_stage (
+          LIKE public.bodega_inventory INCLUDING DEFAULTS INCLUDING CONSTRAINTS
+        ) ON COMMIT DROP;
+      `);
+
+      await client.query(
+        `
+          INSERT INTO inventory_stage (
+            sku,
+            name,
+            category,
+            description,
+            quantity,
+            unit_cost,
+            min_stock,
+            max_stock,
+            location
+          )
+          SELECT
+            sku,
+            name,
+            category,
+            description,
+            quantity,
+            unit_cost,
+            min_stock,
+            max_stock,
+            location
+          FROM jsonb_to_recordset($1::jsonb) AS item(
+            sku text,
+            name text,
+            category text,
+            description text,
+            quantity numeric,
+            unit_cost numeric,
+            min_stock numeric,
+            max_stock numeric,
+            location text
+          );
+        `,
+        [
+          JSON.stringify(
+            rows.map((item) => ({
+              sku: item.sku,
+              name: item.name,
+              category: item.category,
+              description: item.description,
+              quantity: item.quantity,
+              unit_cost: item.unit_cost,
+              min_stock: item.min_stock,
+              max_stock: item.max_stock,
+              location: item.location,
+            }))
+          ),
+        ]
+      );
+
+      await client.query('DELETE FROM public.bodega_inventory');
+
+      await client.query(`
+        INSERT INTO public.bodega_inventory (
+          sku,
+          name,
+          category,
+          description,
+          quantity,
+          unit_cost,
+          min_stock,
+          max_stock,
+          location
+        )
+        SELECT
+          sku,
+          name,
+          category,
+          description,
+          quantity,
+          unit_cost,
+          min_stock,
+          max_stock,
+          location
+        FROM inventory_stage;
+      `);
+
+      await client.query('COMMIT');
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    }
+  });
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseKey) {
-      return NextResponse.json({ error: 'Falta la configuracion de Supabase' }, { status: 500 });
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseKey);
     const formData = await request.formData();
     const file = formData.get('file');
 
@@ -232,39 +316,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No se encontraron datos validos en el archivo' }, { status: 400 });
     }
 
-    await ensureInventoryPrecision(supabase);
-
-    await supabase.from('bodega_inventory').delete().neq('sku', '__import_replace__');
-
-    const batchSize = 500;
-    let imported = 0;
-
-    for (let index = 0; index < data.length; index += batchSize) {
-      const batch = data.slice(index, index + batchSize);
-    const { error } = await supabase.from('bodega_inventory').insert(
-        batch.map((item) => ({
-          sku: item.sku,
-          name: item.name,
-          category: item.category,
-          description: item.description,
-          quantity: item.quantity,
-          unit_cost: item.unit_cost,
-          min_stock: item.min_stock,
-          max_stock: item.max_stock,
-          location: item.location,
-        }))
-      );
-
-      if (error) {
-        throw new Error(`Batch ${Math.floor(index / batchSize) + 1}: ${formatError(error)}`);
-      }
-      imported += batch.length;
-    }
+    await replaceInventoryWithStaging(data);
 
     return NextResponse.json({
       success: true,
-      message: `Se importaron correctamente ${imported} items de inventario`,
-      imported,
+      message: `Se importaron correctamente ${data.length} items de inventario`,
+      imported: data.length,
       sampleItems: data.slice(0, 3),
     });
   } catch (error) {
