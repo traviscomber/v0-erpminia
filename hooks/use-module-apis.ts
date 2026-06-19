@@ -3,7 +3,16 @@ import { useState, useMemo } from 'react';
 
 type KPI = { date: string; production_tons: number; equipment_uptime: number; safety_incidents: number; environmental_compliance: number; workforce_efficiency: number; };
 type Orden = { id: string; code: string; title: string; description: string; status: string; priority: string };
-type InventoryItem = { id: string; sku: string; name: string; quantity: number; min_stock: number; unit_cost: number; category?: string };
+type InventoryItem = {
+  id: string;
+  sku: string;
+  name: string;
+  quantity: number;
+  min_stock: number;
+  unit_cost: number;
+  category?: string;
+  description?: string;
+};
 type Movement = { id: string; date: string; description: string; amount: number; type: string; category: string };
 type Metric = { date: string; lost_time_injuries: number; near_misses: number; training_hours: number; employees_trained: number; audit_score: number };
 
