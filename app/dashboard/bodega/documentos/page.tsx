@@ -129,7 +129,7 @@ export default function DocumentosBodegaPage() {
       <div>
         <h1 className="text-3xl font-bold">Documentos Bodega</h1>
         <p className="text-muted-foreground mt-2">
-          Gestion de procedimientos e instructivos de bodega y almacenamiento
+          Gestión de procedimientos e instructivos de bodega y almacenamiento
         </p>
       </div>
 
@@ -163,13 +163,13 @@ export default function DocumentosBodegaPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center justify-between">
-              <span>En Revision</span>
+              <span>En revisión</span>
               <Clock className="h-4 w-4 text-yellow-500" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-yellow-500">{stats.en_revision}</p>
-            <p className="text-xs text-muted-foreground">esperando Aprobacion</p>
+            <p className="text-xs text-muted-foreground">esperando aprobación</p>
           </CardContent>
         </Card>
 
@@ -182,7 +182,7 @@ export default function DocumentosBodegaPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-red-500">{stats.rechazados}</p>
-            <p className="text-xs text-muted-foreground">pendientes de correcci?n</p>
+            <p className="text-xs text-muted-foreground">pendientes de corrección</p>
           </CardContent>
         </Card>
       </div>
@@ -191,9 +191,9 @@ export default function DocumentosBodegaPage() {
         <TabsList className="bg-muted/60 border-b-2 border-border p-1">
           <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Todos</TabsTrigger>
           <TabsTrigger value="vigentes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Vigentes</TabsTrigger>
-          <TabsTrigger value="Revision" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">En Revision</TabsTrigger>
-          <TabsTrigger value="upload" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Subir Documentos</TabsTrigger>
-          <TabsTrigger value="import" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Importar Inventario</TabsTrigger>
+          <TabsTrigger value="Revision" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">En revisión</TabsTrigger>
+          <TabsTrigger value="upload" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Subir documentos</TabsTrigger>
+          <TabsTrigger value="import" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Importar inventario</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
