@@ -3,41 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { resolveAuthContext } from '@/lib/api/auth-session';
-
-function normalizeHeader(value: unknown) {
-  return String(value ?? '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim();
-}
-
-function toTitleCase(value: string) {
-  return value
-    .split(/\s+/)
-    .map((word) => {
-      if (!word) return word;
-      if (/^[A-Z0-9]{2,}$/.test(word)) return word;
-      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-    })
-    .join(' ');
-}
-
-function canonicalCategory(value: unknown) {
-  const raw = String(value ?? '').trim();
-  if (!raw) return '';
-
-  const normalized = normalizeHeader(raw).replace(/\s+/g, ' ');
-  const aliases: Record<string, string> = {
-    ferreteria: 'Ferretería',
-    viveres: 'Víveres',
-    neumatico: 'Neumático',
-    electrico: 'Eléctrico',
-    epp: 'EPP',
-  };
-
-  return aliases[normalized] || toTitleCase(raw);
-}
+import { canonicalCategory } from '@/lib/bodega-normalization';
 
 export async function GET(request: NextRequest) {
   const supabase = await createClient();
@@ -59,11 +25,7 @@ export async function GET(request: NextRequest) {
     const chunk = 1000;
 
     while (true) {
-      const { data, error } = await supabase
-        .from('bodega_inventory')
-        .select('category')
-        .order('category')
-        .range(from, from + chunk - 1);
+      const { data, error } = await supabase.from('bodega_inventory').select('category').order('category').range(from, from + chunk - 1);
 
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
@@ -91,13 +53,11 @@ export async function GET(request: NextRequest) {
   let query = supabase.from('bodega_inventory').select('*', { count: 'exact' });
 
   if (search) {
-    query = query.or(
-      `sku.ilike.%${search}%,name.ilike.%${search}%,category.ilike.%${search}%,description.ilike.%${search}%`,
-    );
+    query = query.or(`sku.ilike.%${search}%,name.ilike.%${search}%,category.ilike.%${search}%,description.ilike.%${search}%`);
   }
 
   if (category) {
-    query = query.eq('category', category);
+    query = query.ilike('category', category);
   }
 
   const { data, error, count } = await query.order('sku').range(offset, offset + validPageSize - 1);

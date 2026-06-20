@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { AlertCircle, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, TrendingUp } from 'lucide-react';
 
 interface StockItem {
   id: string;
@@ -23,10 +23,7 @@ export function InventoryDashboard() {
   useEffect(() => {
     const fetchInventory = async () => {
       try {
-        const [stockRes, alertsRes] = await Promise.all([
-          fetch('/api/bodega/stock'),
-          fetch('/api/bodega/reorder-alerts'),
-        ]);
+        const [stockRes, alertsRes] = await Promise.all([fetch('/api/bodega/stock'), fetch('/api/bodega/reorder-alerts')]);
 
         if (stockRes.ok) {
           const { stock_items } = await stockRes.json();

@@ -8,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Check, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { canonicalCategory, categorySortKey } from '@/lib/bodega-normalization';
 
 interface CategoryFilterProps {
   categories: string[];
@@ -15,47 +16,12 @@ interface CategoryFilterProps {
   onCategoryChange: (category: string) => void;
 }
 
-function normalizeHeader(value: unknown) {
-  return String(value ?? '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim();
-}
-
-function toTitleCase(value: string) {
-  return value
-    .split(/\s+/)
-    .map((word) => {
-      if (!word) return word;
-      if (/^[A-Z0-9]{2,}$/.test(word)) return word;
-      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-    })
-    .join(' ');
-}
-
-function canonicalCategory(value: unknown) {
-  const raw = String(value ?? '').trim();
-  if (!raw) return '';
-
-  const normalized = normalizeHeader(raw).replace(/\s+/g, ' ');
-  const aliases: Record<string, string> = {
-    ferreteria: 'Ferretería',
-    viveres: 'Víveres',
-    neumatico: 'Neumático',
-    electrico: 'Eléctrico',
-    epp: 'EPP',
-  };
-
-  return aliases[normalized] || toTitleCase(raw);
-}
-
 export function CategoryFilter({ categories, selectedCategory, onCategoryChange }: CategoryFilterProps) {
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
-  const normalizedCategories = Array.from(
-    new Set(categories.map(canonicalCategory).filter(Boolean))
-  ).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+  const normalizedCategories = Array.from(new Set(categories.map(canonicalCategory).filter(Boolean))).sort((a, b) =>
+    categorySortKey(a).localeCompare(categorySortKey(b), 'es', { sensitivity: 'base' }),
+  );
 
   if (!isMobile) {
     return (
@@ -91,14 +57,14 @@ export function CategoryFilter({ categories, selectedCategory, onCategoryChange 
             variant="outline"
             className={cn('w-full justify-between text-sm', selectedCategory && 'border-primary bg-primary/5')}
           >
-            <span className="truncate">{selectedCategory || 'Filtrar categoria...'}</span>
+            <span className="truncate">{selectedCategory || 'Filtrar categoría...'}</span>
             <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-full p-0" align="start">
           <Command>
-            <CommandInput placeholder="Buscar categoria..." />
-            <CommandEmpty>No se encontraron categorias.</CommandEmpty>
+            <CommandInput placeholder="Buscar categoría..." />
+            <CommandEmpty>No se encontraron categorías.</CommandEmpty>
             <CommandGroup className="max-h-64 overflow-y-auto">
               <CommandItem
                 onSelect={() => {

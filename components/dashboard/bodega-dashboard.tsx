@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useBodegaCategories, useBodegaInventory } from '@/hooks/use-module-apis';
 import { CategoryFilter } from './category-filter';
+import { canonicalCategory } from '@/lib/bodega-normalization';
 
 function splitHierarchy(description?: string) {
   const parts = String(description ?? '')
@@ -44,12 +45,16 @@ export function BodegaDashboard() {
 
   if (error) return <div className="text-lg font-semibold text-destructive">Error cargando inventario</div>;
 
-  const lowStock = inventory.filter((item) => item.quantity <= item.min_stock);
-  const totalValue = inventory.reduce((sum, item) => sum + item.quantity * (item.unit_cost || 0), 0);
-  const familyCount = new Set(inventory.map((item) => item.category).filter(Boolean)).size;
-  const subfamilyCount = new Set(inventory.map((item) => splitHierarchy(item.description).subfamily).filter(Boolean)).size;
-  const categoryBuckets = inventory.reduce<Record<string, number>>((acc, item) => {
-    const key = item.category || 'Sin categoría';
+  const normalizedInventory = inventory.map((item) => ({
+    ...item,
+    categoryLabel: canonicalCategory(item.category) || 'Sin categoría',
+  }));
+  const lowStock = normalizedInventory.filter((item) => item.quantity <= item.min_stock);
+  const totalValue = normalizedInventory.reduce((sum, item) => sum + item.quantity * (item.unit_cost || 0), 0);
+  const familyCount = new Set(normalizedInventory.map((item) => item.categoryLabel).filter(Boolean)).size;
+  const subfamilyCount = new Set(normalizedInventory.map((item) => splitHierarchy(item.description).subfamily).filter(Boolean)).size;
+  const categoryBuckets = normalizedInventory.reduce<Record<string, number>>((acc, item) => {
+    const key = item.categoryLabel || 'Sin categoría';
     acc[key] = (acc[key] || 0) + 1;
     return acc;
   }, {});
@@ -73,7 +78,7 @@ export function BodegaDashboard() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold">Items</CardTitle>
+            <CardTitle className="text-base font-semibold">Ítems</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-bold text-primary">{pagination.total.toLocaleString()}</div>
@@ -147,7 +152,7 @@ export function BodegaDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-3 text-destructive">
               <AlertTriangle className="h-6 w-6" />
-              <span className="text-lg">{lowStock.length} items con bajo stock</span>
+              <span className="text-lg">{lowStock.length} ítems con bajo stock</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -163,7 +168,7 @@ export function BodegaDashboard() {
               ))}
             </div>
             {lowStock.length > 6 && (
-              <p className="mt-3 text-xs text-muted-foreground">+{lowStock.length - 6} items más con bajo stock</p>
+              <p className="mt-3 text-xs text-muted-foreground">+{lowStock.length - 6} ítems más con bajo stock</p>
             )}
           </CardContent>
         </Card>
@@ -236,11 +241,11 @@ export function BodegaDashboard() {
                 ) : inventory.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="p-8 text-center text-muted-foreground">
-                      No se encontraron items
+                      No se encontraron ítems
                     </td>
                   </tr>
                 ) : (
-                  inventory.map((item, idx) => {
+                  normalizedInventory.map((item, idx) => {
                     const hierarchy = splitHierarchy(item.description);
 
                     return (
@@ -254,7 +259,7 @@ export function BodegaDashboard() {
                         </td>
                         <td className="p-3 text-sm text-foreground">
                           <span className="inline-flex rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-semibold">
-                            {item.category || 'Sin categoría'}
+                            {item.categoryLabel}
                           </span>
                         </td>
                         <td className="p-3 text-sm text-muted-foreground">{hierarchy.subfamily || '-'}</td>

@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { Client } from 'pg';
+import { canonicalCategory, normalizeText } from '@/lib/bodega-normalization';
 
 type InventoryRow = {
   sku: string;
@@ -26,14 +27,6 @@ type ParsedColumns = {
   value: number;
 };
 
-function normalizeHeader(value: unknown) {
-  return String(value ?? '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim();
-}
-
 function parseNumber(value: unknown) {
   if (typeof value === 'number' && Number.isFinite(value)) return value;
   const text = String(value ?? '')
@@ -48,45 +41,93 @@ function cleanText(value: unknown) {
   return String(value ?? '').trim();
 }
 
-function toTitleCase(value: string) {
-  return value
-    .split(/\s+/)
-    .map((word) => {
-      if (!word) return word;
-      if (/^[A-Z0-9]{2,}$/.test(word)) return word;
-      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-    })
-    .join(' ');
+function parseRow(values: unknown[], columns: ParsedColumns): InventoryRow | null {
+  const sku = cleanText(values[columns.code]);
+  const name = cleanText(values[columns.product]);
+  if (!sku || !name) return null;
+
+  const stock = parseNumber(values[columns.stock]);
+  const unitCost = parseNumber(values[columns.unitCost]) || (stock > 0 ? parseNumber(values[columns.value]) / stock : 0);
+  const family = canonicalCategory(values[columns.family]);
+  const subFamily = cleanText(values[columns.subFamily]);
+  const team = cleanText(values[columns.team]);
+
+  return {
+    sku,
+    name,
+    category: family,
+    description: [subFamily, team].filter(Boolean).join(' - ') || name,
+    quantity: stock,
+    unit_cost: unitCost,
+    min_stock: stock > 0 ? Math.max(0, Math.round(stock * 0.1)) : 0,
+    max_stock: stock > 0 ? Math.max(stock, Math.round(stock * 1.5)) : 0,
+    location: '',
+  };
 }
 
-function normalizeCategoryLabel(value: unknown) {
-  const raw = cleanText(value);
-  if (!raw) return 'General';
+function parseCsvText(text: string): InventoryRow[] {
+  const lines = text.split(/\r?\n/).filter((line) => line.trim());
+  if (lines.length < 2) return [];
 
-  const normalized = normalizeHeader(raw).replace(/\s+/g, ' ');
-  const aliases: Record<string, string> = {
-    ferreteria: 'Ferretería',
-    viveres: 'Víveres',
-    neumatico: 'Neumático',
-    electrico: 'Eléctrico',
-    epp: 'EPP',
+  const headers = lines[0].split(';').map((header) => normalizeText(header));
+  const columns: ParsedColumns = {
+    code: headers.findIndex((header) => header.includes('codigo') || header.includes('code')),
+    family: headers.findIndex((header) => header.includes('familia') && !header.includes('sub')),
+    subFamily: headers.findIndex((header) => header.includes('sub-familia') || header.includes('subfamilia')),
+    team: headers.findIndex((header) => header.includes('equipo')),
+    product: headers.findIndex((header) => header.includes('producto')),
+    stock: headers.findIndex((header) => header.includes('stock') || header.includes('cantidad')),
+    unitCost: headers.findIndex((header) => header.includes('valor unit') || header.includes('precio') || header.includes('costo unit')),
+    value: headers.findIndex((header) => header === 'valor' || header.includes('total')),
   };
 
-  return aliases[normalized] || toTitleCase(raw);
+  return lines.slice(1).flatMap((line) => {
+    const values = line.split(';').map(cleanText);
+    const row = parseRow(values, columns);
+    return row ? [row] : [];
+  });
 }
 
-function formatError(error: unknown) {
-  if (!error) return 'Unknown error';
-  if (typeof error === 'string') return error;
-  if (error instanceof Error) return error.message;
-  if (typeof error === 'object') {
-    try {
-      return JSON.stringify(error);
-    } catch {
-      return String(error);
-    }
+async function parseWorkbook(file: File): Promise<InventoryRow[]> {
+  const xlsx = (await import('xlsx')) as any;
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const workbook = xlsx.read(buffer, { type: 'buffer', cellDates: true });
+  const sheetName = workbook.SheetNames[0];
+  const sheet = workbook.Sheets[sheetName];
+  const rows = xlsx.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: true }) as unknown[][];
+  if (!rows.length) return [];
+
+  const headers = (rows[0] as unknown[]).map((header) => normalizeText(header));
+  const columns: ParsedColumns = {
+    code: headers.findIndex((header) => header.includes('codigo') || header.includes('code')),
+    family: headers.findIndex((header) => header.includes('familia') && !header.includes('sub')),
+    subFamily: headers.findIndex((header) => header.includes('sub-familia') || header.includes('subfamilia')),
+    team: headers.findIndex((header) => header.includes('equipo')),
+    product: headers.findIndex((header) => header.includes('producto')),
+    stock: headers.findIndex((header) => header.includes('stock') || header.includes('cantidad')),
+    unitCost: headers.findIndex((header) => header.includes('valor unit') || header.includes('precio') || header.includes('costo unit')),
+    value: headers.findIndex((header) => header === 'valor' || header.includes('total')),
+  };
+
+  return rows.slice(1).flatMap((row) => {
+    const values = row.map(cleanText);
+    const parsed = parseRow(values, columns);
+    return parsed ? [parsed] : [];
+  });
+}
+
+async function parseInventoryFile(file: File) {
+  const filename = file.name.toLowerCase();
+  if (filename.endsWith('.xlsx') || filename.endsWith('.xls')) {
+    return parseWorkbook(file);
   }
-  return String(error);
+
+  if (filename.endsWith('.csv')) {
+    const text = await file.text();
+    return parseCsvText(text);
+  }
+
+  throw new Error('Formato no soportado. Usa CSV, XLS o XLSX.');
 }
 
 function getPgConnectionString() {
@@ -118,95 +159,6 @@ async function withPgClient<T>(handler: (client: Client) => Promise<T>) {
       process.env.NODE_TLS_REJECT_UNAUTHORIZED = previousTlsSetting;
     }
   }
-}
-
-function parseRow(values: unknown[], columns: ParsedColumns): InventoryRow | null {
-  const sku = cleanText(values[columns.code]);
-  const name = cleanText(values[columns.product]);
-  if (!sku || !name) return null;
-
-  const stock = parseNumber(values[columns.stock]);
-  const unitCost = parseNumber(values[columns.unitCost]) || (stock > 0 ? parseNumber(values[columns.value]) / stock : 0);
-  const family = normalizeCategoryLabel(values[columns.family]);
-  const subFamily = cleanText(values[columns.subFamily]);
-  const team = cleanText(values[columns.team]);
-
-  return {
-    sku,
-    name,
-    category: family,
-    description: [subFamily, team].filter(Boolean).join(' - ') || name,
-    quantity: stock,
-    unit_cost: unitCost,
-    min_stock: stock > 0 ? Math.max(0, Math.round(stock * 0.1)) : 0,
-    max_stock: stock > 0 ? Math.max(stock, Math.round(stock * 1.5)) : 0,
-    location: '',
-  };
-}
-
-function parseCsvText(text: string): InventoryRow[] {
-  const lines = text.split(/\r?\n/).filter((line) => line.trim());
-  if (lines.length < 2) return [];
-
-  const headers = lines[0].split(';').map(normalizeHeader);
-  const columns: ParsedColumns = {
-    code: headers.findIndex((header) => header.includes('codigo') || header.includes('code')),
-    family: headers.findIndex((header) => header.includes('familia') && !header.includes('sub')),
-    subFamily: headers.findIndex((header) => header.includes('sub-familia') || header.includes('subfamilia')),
-    team: headers.findIndex((header) => header.includes('equipo')),
-    product: headers.findIndex((header) => header.includes('producto')),
-    stock: headers.findIndex((header) => header.includes('stock') || header.includes('cantidad')),
-    unitCost: headers.findIndex((header) => header.includes('valor unit') || header.includes('precio') || header.includes('costo unit')),
-    value: headers.findIndex((header) => header === 'valor' || header.includes('total')),
-  };
-
-  return lines.slice(1).flatMap((line) => {
-    const values = line.split(';').map(cleanText);
-    const row = parseRow(values, columns);
-    return row ? [row] : [];
-  });
-}
-
-async function parseWorkbook(file: File): Promise<InventoryRow[]> {
-  const xlsx = (await import('xlsx')) as any;
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const workbook = xlsx.read(buffer, { type: 'buffer', cellDates: true });
-  const sheetName = workbook.SheetNames[0];
-  const sheet = workbook.Sheets[sheetName];
-  const rows = xlsx.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: true }) as unknown[][];
-  if (!rows.length) return [];
-
-  const headers = (rows[0] as unknown[]).map(normalizeHeader);
-  const columns: ParsedColumns = {
-    code: headers.findIndex((header) => header.includes('codigo') || header.includes('code')),
-    family: headers.findIndex((header) => header.includes('familia') && !header.includes('sub')),
-    subFamily: headers.findIndex((header) => header.includes('sub-familia') || header.includes('subfamilia')),
-    team: headers.findIndex((header) => header.includes('equipo')),
-    product: headers.findIndex((header) => header.includes('producto')),
-    stock: headers.findIndex((header) => header.includes('stock') || header.includes('cantidad')),
-    unitCost: headers.findIndex((header) => header.includes('valor unit') || header.includes('precio') || header.includes('costo unit')),
-    value: headers.findIndex((header) => header === 'valor' || header.includes('total')),
-  };
-
-  return rows.slice(1).flatMap((row) => {
-    const values = row.map(cleanText);
-    const parsed = parseRow(values, columns);
-    return parsed ? [parsed] : [];
-  });
-}
-
-async function parseInventoryFile(file: File) {
-  const filename = file.name.toLowerCase();
-  if (filename.endsWith('.xlsx') || filename.endsWith('.xls')) {
-    return parseWorkbook(file);
-  }
-
-  if (filename.endsWith('.csv')) {
-    const text = await file.text();
-    return parseCsvText(text);
-  }
-
-  throw new Error('Formato no soportado. Usa CSV, XLS o XLSX.');
 }
 
 async function replaceInventoryWithStaging(rows: InventoryRow[]) {
@@ -309,9 +261,9 @@ async function replaceInventoryWithStaging(rows: InventoryRow[]) {
               min_stock: item.min_stock,
               max_stock: item.max_stock,
               location: item.location,
-            }))
+            })),
           ),
-        ]
+        ],
       );
 
       await client.query('DELETE FROM public.bodega_inventory');
@@ -349,25 +301,39 @@ async function replaceInventoryWithStaging(rows: InventoryRow[]) {
   });
 }
 
+function formatError(error: unknown) {
+  if (!error) return 'Unknown error';
+  if (typeof error === 'string') return error;
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'object') {
+    try {
+      return JSON.stringify(error);
+    } catch {
+      return String(error);
+    }
+  }
+  return String(error);
+}
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const file = formData.get('file');
 
     if (!(file instanceof File)) {
-      return NextResponse.json({ error: 'No se proporciono archivo' }, { status: 400 });
+      return NextResponse.json({ error: 'No se proporcionó archivo' }, { status: 400 });
     }
 
     const data = await parseInventoryFile(file);
     if (data.length === 0) {
-      return NextResponse.json({ error: 'No se encontraron datos validos en el archivo' }, { status: 400 });
+      return NextResponse.json({ error: 'No se encontraron datos válidos en el archivo' }, { status: 400 });
     }
 
     await replaceInventoryWithStaging(data);
 
     return NextResponse.json({
       success: true,
-      message: `Se importaron correctamente ${data.length} items de inventario`,
+      message: `Se importaron correctamente ${data.length} ítems de inventario`,
       imported: data.length,
       sampleItems: data.slice(0, 3),
     });
@@ -375,7 +341,7 @@ export async function POST(request: NextRequest) {
     console.error('[v0] Bodega inventory import error:', error);
     return NextResponse.json(
       { error: 'No se pudo importar el inventario', details: formatError(error) },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

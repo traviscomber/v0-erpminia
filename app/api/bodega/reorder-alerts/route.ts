@@ -12,29 +12,34 @@ export async function GET(request: NextRequest) {
     {
       cookies: {
         getAll: () => cookieStore.getAll(),
-        setAll: (cookies) => {
-          cookies.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
+        setAll: (cookiesToSet) => {
+          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
         },
       },
-    }
+    },
   );
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
   if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  // Get all items below min_stock
   const { data, error } = await supabase
     .from('bodega_inventory')
     .select('id, sku, name, quantity, min_stock, category')
-    .lt('quantity', 'min_stock');
+    .order('name');
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  const alerts = (data || []).map(item => ({
-    ...item,
-    reorder_qty: Math.max(0, item.min_stock * 2 - item.quantity),
-    days_until_stockout: item.quantity > 0 ? Math.ceil(item.quantity / 1) : 0,
-  }));
+  const alerts = (data || [])
+    .filter((item) => (item.quantity || 0) <= (item.min_stock || 0))
+    .map((item) => ({
+      ...item,
+      reorder_qty: Math.max(0, (item.min_stock || 0) * 2 - (item.quantity || 0)),
+      days_until_stockout: item.quantity > 0 ? Math.ceil(item.quantity / 1) : 0,
+    }));
 
   return NextResponse.json({
     items_below_min_stock: alerts,

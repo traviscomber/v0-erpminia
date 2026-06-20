@@ -35,9 +35,9 @@ export function AddItemModal({ open, onOpenChange, onSubmit }: AddItemModalProps
         body: JSON.stringify({
           part_code: formData.part_code,
           part_name: formData.part_name,
-          quantity_on_hand: parseInt(formData.quantity_on_hand),
-          reorder_level: parseInt(formData.reorder_level),
-          reorder_quantity: parseInt(formData.reorder_quantity),
+          quantity_on_hand: parseInt(formData.quantity_on_hand, 10),
+          reorder_level: parseInt(formData.reorder_level, 10),
+          reorder_quantity: parseInt(formData.reorder_quantity, 10),
           unit_cost: parseFloat(formData.unit_cost),
         }),
       });
@@ -69,7 +69,7 @@ export function AddItemModal({ open, onOpenChange, onSubmit }: AddItemModalProps
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Agregar artículo</DialogTitle>
-          <DialogDescription>Ingrese los detalles del nuevo artículo de inventario</DialogDescription>
+          <DialogDescription>Ingresa los detalles del nuevo artículo de inventario</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
