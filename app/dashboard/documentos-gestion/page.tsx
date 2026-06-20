@@ -1,8 +1,8 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import useSWR from 'swr';
 import Link from 'next/link';
+import useSWR from 'swr';
 import { AlertCircle, CheckCircle, Clock, Plus, Search, XCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -62,10 +62,12 @@ export default function DocumentosGestionPage() {
   const stats = data?.stats || { total: 0, pending: 0, expiring: 0 };
 
   const filteredCategories = useMemo(() => {
-    if (!searchTerm) return categories;
+    const query = searchTerm.trim().toLowerCase();
+    if (!query) return categories;
+
     return categories.filter((cat: any) =>
-      String(cat.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      String(cat.description || '').toLowerCase().includes(searchTerm.toLowerCase()),
+      String(cat.name || '').toLowerCase().includes(query) ||
+      String(cat.description || '').toLowerCase().includes(query),
     );
   }, [categories, searchTerm]);
 
@@ -76,7 +78,7 @@ export default function DocumentosGestionPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Gestión Documental</h1>
+          <h1 className="text-3xl font-bold">Gestión documental</h1>
           <p className="mt-1 text-muted-foreground">
             Centraliza, revisa y organiza los documentos operativos en una sola vista.
           </p>
@@ -243,7 +245,7 @@ export default function DocumentosGestionPage() {
       {filteredCategories.length === 0 && (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
-            No se encontraron categorías que coincidan con tu búsqueda
+            No se encontraron categorías que coincidan con tu búsqueda.
           </CardContent>
         </Card>
       )}

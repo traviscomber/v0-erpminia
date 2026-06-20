@@ -32,63 +32,57 @@ export function FilterPanel({
   onReset,
   inspectores = [],
 }: FilterPanelProps) {
-  const hasFilters = searchTerm || estado || inspector;
+  const hasFilters = Boolean(searchTerm || estado || inspector);
 
   return (
-    <div className="space-y-4 p-4 bg-muted/30 rounded-lg border border-border">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {onSearchChange && (
-          <div>
-            <label className="text-sm font-medium mb-2 block">Buscar</label>
-            <Input
-              placeholder="Número, área..."
-              value={searchTerm || ''}
-              onChange={(e) => onSearchChange(e.target.value)}
-            />
-          </div>
-        )}
+    <div className="space-y-4 rounded-lg border border-border bg-muted/30 p-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div>
+          <label className="mb-2 block text-sm font-medium">Buscar</label>
+          <Input
+            placeholder="Número, área..."
+            value={searchTerm || ''}
+            onChange={(e) => onSearchChange(e.target.value)}
+          />
+        </div>
 
-        {onEstadoChange && (
-          <div>
-            <label className="text-sm font-medium mb-2 block">Estado</label>
-            <Select value={estado || 'todos'} onValueChange={onEstadoChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Todos los estados" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos</SelectItem>
-                <SelectItem value="planificada">Planificada</SelectItem>
-                <SelectItem value="realizada">Realizada</SelectItem>
-                <SelectItem value="cerrada">Cerrada</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        )}
+        <div>
+          <label className="mb-2 block text-sm font-medium">Estado</label>
+          <Select value={estado || 'todos'} onValueChange={onEstadoChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Todos los estados" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos</SelectItem>
+              <SelectItem value="planificada">Planificada</SelectItem>
+              <SelectItem value="realizada">Realizada</SelectItem>
+              <SelectItem value="cerrada">Cerrada</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-        {onInspectorChange && inspectores.length > 0 && (
-          <div>
-            <label className="text-sm font-medium mb-2 block">Inspector</label>
-            <Select value={inspector || 'todos'} onValueChange={onInspectorChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Todos los inspectores" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos</SelectItem>
-                {inspectores.map((insp) => (
-                  <SelectItem key={insp} value={insp}>
-                    {insp}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
+        <div>
+          <label className="mb-2 block text-sm font-medium">Inspector</label>
+          <Select value={inspector || 'todos'} onValueChange={onInspectorChange || (() => {})}>
+            <SelectTrigger>
+              <SelectValue placeholder="Todos los inspectores" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos</SelectItem>
+              {inspectores.map((insp) => (
+                <SelectItem key={insp} value={insp}>
+                  {insp}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
-      {hasFilters && onReset && (
+      {hasFilters && (
         <div className="flex justify-end">
           <Button variant="outline" size="sm" onClick={onReset}>
-            <X className="h-4 w-4 mr-2" />
+            <X className="mr-2 h-4 w-4" />
             Limpiar filtros
           </Button>
         </div>

@@ -2,9 +2,18 @@
 
 import Link from 'next/link';
 import useSWR from 'swr';
-import { ArrowRight, Activity, ClipboardCheck, FileText, FolderOpen, GraduationCap, HardHat, Shield } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Activity,
+  ArrowRight,
+  ClipboardCheck,
+  FileText,
+  FolderOpen,
+  GraduationCap,
+  HardHat,
+  Shield,
+} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const fetcher = async (url: string) => {
   const response = await fetch(url, { credentials: 'include' });
@@ -40,7 +49,7 @@ const normalizeCount = (payload: ListResponse | unknown): number => {
 const modules = [
   {
     title: 'Documentos HSE',
-    description: 'Políticas, procedimientos, instructivos y programas de seguridad',
+    description: 'Políticas, procedimientos, instructivos y programas de seguridad.',
     href: '/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse',
     icon: FileText,
     color: 'text-primary',
@@ -48,7 +57,7 @@ const modules = [
   },
   {
     title: 'Capacitaciones',
-    description: 'Gestión de cursos, entrenamientos y certificaciones del personal',
+    description: 'Gestión de cursos, entrenamientos y certificaciones del personal.',
     href: '/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones',
     icon: GraduationCap,
     color: 'text-secondary',
@@ -56,7 +65,7 @@ const modules = [
   },
   {
     title: 'Artículos EPP',
-    description: 'Catálogo maestro, asignaciones y control de equipos de protección',
+    description: 'Catálogo maestro, asignaciones y control de equipos de protección.',
     href: '/dashboard/sostenibilidad/prevencion-riesgos/epp',
     icon: HardHat,
     color: 'text-primary',
@@ -64,7 +73,7 @@ const modules = [
   },
   {
     title: 'KPI Prevención',
-    description: 'Indicadores de seguridad y tendencias operacionales',
+    description: 'Indicadores de seguridad y tendencias operacionales.',
     href: '/dashboard/sostenibilidad/prevencion-riesgos/kpi',
     icon: Activity,
     color: 'text-secondary',
@@ -72,7 +81,7 @@ const modules = [
   },
   {
     title: 'Inspecciones',
-    description: 'Planificación, ejecución y seguimiento de inspecciones de seguridad',
+    description: 'Planificación, ejecución y seguimiento de inspecciones de seguridad.',
     href: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones',
     icon: ClipboardCheck,
     color: 'text-muted-foreground',
@@ -80,7 +89,7 @@ const modules = [
   },
   {
     title: 'Carpeta de Arranque',
-    description: 'Validación de documentos de empresas contratistas y subcontratistas',
+    description: 'Validación de documentos de empresas contratistas y subcontratistas.',
     href: '/dashboard/sostenibilidad/prevencion-riesgos/carpeta-arranque',
     icon: FolderOpen,
     color: 'text-primary',
@@ -89,7 +98,10 @@ const modules = [
 ];
 
 export default function PrevencionRiesgosPage() {
-  const { data: documentosData } = useSWR<ListResponse>('/api/documents/list?module=prevenci%C3%B3n&category=documentos-hse', fetcher);
+  const { data: documentosData } = useSWR<ListResponse>(
+    '/api/documents/list?module=prevenci%C3%B3n&category=documentos-hse',
+    fetcher
+  );
   const { data: capacitacionesData } = useSWR<ListResponse>('/api/sostenibilidad/capacitaciones', fetcher);
   const { data: eppData } = useSWR<ListResponse>('/api/sostenibilidad/epp', fetcher);
   const { data: inspeccionesData } = useSWR<ListResponse>('/api/sostenibilidad/inspecciones', fetcher);
@@ -106,6 +118,15 @@ export default function PrevencionRiesgosPage() {
     { label: 'Inspecciones', value: inspectionCount },
   ];
 
+  const countsByModule: Record<string, number> = {
+    'Documentos HSE': documentCount,
+    Capacitaciones: trainingCount,
+    'Artículos EPP': eppCount,
+    Inspecciones: inspectionCount,
+    'Carpeta de Arranque': documentCount,
+    'KPI Prevención': Math.max(documentCount, trainingCount, eppCount, inspectionCount),
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -120,7 +141,9 @@ export default function PrevencionRiesgosPage() {
               </Badge>
             </div>
             <h1 className="text-2xl font-bold">Prevención de Riesgos</h1>
-            <p className="text-muted-foreground">Gestión integral de seguridad y salud ocupacional dentro de Sostenibilidad</p>
+            <p className="text-muted-foreground">
+              Gestión integral de seguridad y salud ocupacional dentro de Sostenibilidad.
+            </p>
           </div>
         </div>
       </div>
@@ -142,16 +165,7 @@ export default function PrevencionRiesgosPage() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {modules.map((module) => {
           const Icon = module.icon;
-          const count =
-            module.title === 'Documentos HSE'
-               documentCount
-              : module.title === 'Capacitaciones'
-                 trainingCount
-                : module.title === 'Artículos EPP'
-                   eppCount
-                  : module.title === 'Inspecciones'
-                     inspectionCount
-                    : Math.max(documentCount, trainingCount, eppCount, inspectionCount);
+          const count = countsByModule[module.title] ?? 0;
 
           return (
             <Link key={module.href} href={module.href}>

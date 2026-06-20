@@ -1,13 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { TrendingUp, TrendingDown, Plus, Download } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import useSWR from 'swr';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -16,8 +11,22 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Download, Plus, TrendingDown, TrendingUp } from 'lucide-react';
+import {
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart as RechartsLineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 
 interface KPIData {
   id: string;
@@ -28,7 +37,7 @@ interface KPIData {
   dias_sin_accidentes: number;
 }
 
-const fetcher = (url: string) => fetch(url).then(r => r.json());
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 export default function KPIPrevenccionPage() {
   const [isOpen, setIsOpen] = useState(false);
@@ -42,61 +51,16 @@ export default function KPIPrevenccionPage() {
 
   const { data: kpiData, isLoading, mutate } = useSWR('/api/sostenibilidad/kpi', fetcher);
 
-  const kpis = (((kpiData?.data || []) as KPIData[])).sort((a: KPIData, b: KPIData) =>
-    new Date(a.mes_ano).getTime() - new Date(b.mes_ano).getTime()
+  const kpis = useMemo(
+    () =>
+      (((kpiData?.data || []) as KPIData[]).slice().sort((a, b) => {
+        return new Date(a.mes_ano).getTime() - new Date(b.mes_ano).getTime();
+      })),
+    [kpiData]
   );
 
   const currentMonth = kpis[kpis.length - 1];
   const previousMonth = kpis[kpis.length - 2];
-
-  const calculateTrend = (current: number, previous: number) => {
-    if (!current || !previous) return null;
-    return current < previous ? 'down' : current > previous ? 'up' : 'stable';
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'mes_ano' ? value : parseFloat(value) || 0,
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const response = await fetch('/api/sostenibilidad/kpi', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        toast.success('KPI registrado correctamente');
-        setIsOpen(false);
-        setFormData({
-          mes_ano: new Date().toISOString().split('T')[0],
-          tasa_accidentabilidad: 0,
-          tasa_frecuencia: 0,
-          tasa_gravedad: 0,
-          dias_sin_accidentes: 0,
-        });
-        mutate();
-      } else {
-        toast.error('Error al registrar KPI');
-      }
-    } catch (error) {
-      console.error('[v0] Error creating KPI:', error);
-      toast.error('Error al registrar KPI');
-    }
-  };
-
-  // Brandbook: secondary=verde (good), destructive=rojo (bad), muted=gris (neutral)
-  const getTrendColor = (trend: string | null) => {
-    if (trend === 'down') return 'text-secondary';
-    if (trend === 'up') return 'text-destructive';
-    return 'text-muted-foreground';
-  };
 
   const chartData = kpis.map((item: KPIData) => ({
     mes: new Date(item.mes_ano).toLocaleDateString('es-CL', { month: 'short', year: '2-digit' }),
@@ -105,44 +69,92 @@ export default function KPIPrevenccionPage() {
     gravedad: item.tasa_gravedad,
   }));
 
+  const calculateTrend = (current?: number, previous?: number) => {
+    if (typeof current !== 'number' || typeof previous !== 'number') return null;
+    if (current < previous) return 'down';
+    if (current > previous) return 'up';
+    return 'stable';
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === 'mes_ano' ? value : parseFloat(value) || 0,
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const response = await fetch('/api/sostenibilidad/kpi', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al registrar KPI');
+      }
+
+      toast.success('KPI registrado correctamente');
+      setIsOpen(false);
+      setFormData({
+        mes_ano: new Date().toISOString().split('T')[0],
+        tasa_accidentabilidad: 0,
+        tasa_frecuencia: 0,
+        tasa_gravedad: 0,
+        dias_sin_accidentes: 0,
+      });
+      await mutate();
+    } catch (error) {
+      console.error('[v0] Error creating KPI:', error);
+      toast.error(error instanceof Error ? error.message : 'Error al registrar KPI');
+    }
+  };
+
+  const getTrendIcon = (trend: string | null) => {
+    if (trend === 'down') {
+      return <TrendingDown className="h-4 w-4 text-secondary" />;
+    }
+    if (trend === 'up') {
+      return <TrendingUp className="h-4 w-4 text-destructive" />;
+    }
+    return null;
+  };
+
   return (
-    <div className="min-h-screen bg-background p-6">
-      {/* Header */}
-      <div className="mb-8 flex justify-between items-start">
+    <div className="space-y-6">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-3xl font-bold text-foreground">KPIs de Prevención</h1>
-          </div>
-          <p className="text-muted-foreground">Indicadores de salud y seguridad ocupacional (SSO)</p>
+          <h1 className="text-3xl font-bold text-foreground">KPIs de prevención</h1>
+          <p className="text-muted-foreground">Indicadores de salud y seguridad ocupacional (SSO).</p>
         </div>
+
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-              <Plus className="w-4 h-4 mr-2" />
-              Agregar Mes
+              <Plus className="mr-2 h-4 w-4" />
+              Agregar mes
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Registrar KPI Mensual</DialogTitle>
+              <DialogTitle>Registrar KPI mensual</DialogTitle>
               <DialogDescription>
-                Ingresa los indicadores de seguridad para el período
+                Ingresa los indicadores de seguridad para el período seleccionado.
               </DialogDescription>
             </DialogHeader>
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="mes_ano">Mes/Año</Label>
-                <Input
-                  id="mes_ano"
-                  type="date"
-                  name="mes_ano"
-                  value={formData.mes_ano}
-                  onChange={handleInputChange}
-                  required
-                />
+                <Label htmlFor="mes_ano">Mes/año</Label>
+                <Input id="mes_ano" type="date" name="mes_ano" value={formData.mes_ano} onChange={handleInputChange} required />
               </div>
+
               <div>
-                <Label htmlFor="accidentabilidad">Tasa Accidentabilidad (%)</Label>
+                <Label htmlFor="accidentabilidad">Tasa de accidentabilidad (%)</Label>
                 <Input
                   id="accidentabilidad"
                   type="number"
@@ -154,8 +166,9 @@ export default function KPIPrevenccionPage() {
                   required
                 />
               </div>
+
               <div>
-                <Label htmlFor="frecuencia">Tasa Frecuencia</Label>
+                <Label htmlFor="frecuencia">Tasa de frecuencia</Label>
                 <Input
                   id="frecuencia"
                   type="number"
@@ -167,8 +180,9 @@ export default function KPIPrevenccionPage() {
                   required
                 />
               </div>
+
               <div>
-                <Label htmlFor="gravedad">Tasa Gravedad</Label>
+                <Label htmlFor="gravedad">Tasa de gravedad</Label>
                 <Input
                   id="gravedad"
                   type="number"
@@ -180,8 +194,9 @@ export default function KPIPrevenccionPage() {
                   required
                 />
               </div>
+
               <div>
-                <Label htmlFor="dias">Días sin Accidentes</Label>
+                <Label htmlFor="dias">Días sin accidentes</Label>
                 <Input
                   id="dias"
                   type="number"
@@ -192,18 +207,12 @@ export default function KPIPrevenccionPage() {
                   required
                 />
               </div>
-              <div className="flex gap-2 justify-end pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsOpen(false)}
-                >
+
+              <div className="flex justify-end gap-2 pt-4">
+                <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
                   Cancelar
                 </Button>
-                <Button
-                  type="submit"
-                  className="bg-primary text-primary-foreground hover:bg-primary/90"
-                >
+                <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90">
                   Registrar KPI
                 </Button>
               </div>
@@ -212,79 +221,71 @@ export default function KPIPrevenccionPage() {
         </Dialog>
       </div>
 
-      {/* Current Month KPIs */}
       {currentMonth && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {/* Tasa Accidentabilidad */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Tasa Accidentabilidad</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Tasa de accidentabilidad</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{currentMonth?.tasa_accidentabilidad?.toFixed(2) || 'N/A'}%</div>
-              <div className="flex items-center gap-1 mt-2">
-                {calculateTrend(currentMonth.tasa_accidentabilidad, previousMonth.tasa_accidentabilidad) === 'down' && (
-                  <>
-                    <TrendingDown className={getTrendColor('down')} />
-                    <p className="text-xs text-secondary">Mejorando</p>
-                  </>
+              <div className="mt-2 flex items-center gap-1">
+                {getTrendIcon(calculateTrend(currentMonth.tasa_accidentabilidad, previousMonth?.tasa_accidentabilidad))}
+                {calculateTrend(currentMonth.tasa_accidentabilidad, previousMonth?.tasa_accidentabilidad) === 'down' && (
+                  <p className="text-xs text-secondary">Mejorando</p>
                 )}
-                {calculateTrend(currentMonth.tasa_accidentabilidad, previousMonth.tasa_accidentabilidad) === 'up' && (
-                  <>
-                    <TrendingUp className={getTrendColor('up')} />
-                    <p className="text-xs text-destructive">Aumentando</p>
-                  </>
+                {calculateTrend(currentMonth.tasa_accidentabilidad, previousMonth?.tasa_accidentabilidad) === 'up' && (
+                  <p className="text-xs text-destructive">Aumentando</p>
+                )}
+                {calculateTrend(currentMonth.tasa_accidentabilidad, previousMonth?.tasa_accidentabilidad) === 'stable' && (
+                  <p className="text-xs text-muted-foreground">Sin cambios</p>
                 )}
               </div>
             </CardContent>
           </Card>
 
-          {/* Tasa Frecuencia */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Tasa Frecuencia</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Tasa de frecuencia</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{currentMonth?.tasa_frecuencia?.toFixed(2) || 'N/A'}</div>
-              <p className="text-xs text-muted-foreground mt-2">Accidentes por millón horas trabajadas</p>
+              <p className="mt-2 text-xs text-muted-foreground">Accidentes por millón de horas trabajadas</p>
             </CardContent>
           </Card>
 
-          {/* Tasa Gravedad */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Tasa Gravedad</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Tasa de gravedad</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{currentMonth?.tasa_gravedad?.toFixed(2) || 'N/A'}</div>
-              <p className="text-xs text-muted-foreground mt-2">Días perdidos por accidente</p>
+              <p className="mt-2 text-xs text-muted-foreground">Días perdidos por accidente</p>
             </CardContent>
           </Card>
 
-          {/* Días sin Accidentes */}
           <Card className="rounded-xl border border-secondary/20 shadow-none">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Días sin Accidentes</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Días sin accidentes</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-secondary">{currentMonth.dias_sin_accidentes || 0}</div>
-              <p className="text-xs text-muted-foreground mt-2">Jornadas sin incidentes</p>
+              <p className="mt-2 text-xs text-muted-foreground">Jornadas sin incidentes</p>
             </CardContent>
           </Card>
         </div>
       )}
 
-      {/* Trends Chart */}
       <Card className="mb-8">
         <CardHeader>
-          <CardTitle>Tendencia de Indicadores (12 meses)</CardTitle>
-          <CardDescription>Evolución de tasas de accidentabilidad, frecuencia y gravedad</CardDescription>
+          <CardTitle>Tendencia de indicadores (12 meses)</CardTitle>
+          <CardDescription>Evolución de tasas de accidentabilidad, frecuencia y gravedad.</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <p className="text-muted-foreground">Cargando gráfico...</p>
           ) : chartData.length === 0 ? (
-            <p className="text-muted-foreground text-center py-12">No hay datos de KPI disponibles</p>
+            <p className="py-12 text-center text-muted-foreground">No hay datos de KPI disponibles.</p>
           ) : (
             <ResponsiveContainer width="100%" height={300}>
               <RechartsLineChart data={chartData}>
@@ -295,7 +296,13 @@ export default function KPIPrevenccionPage() {
                   contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
                 />
                 <Legend />
-                <Line type="monotone" dataKey="accidentabilidad" stroke="hsl(var(--destructive))" strokeWidth={2} name="Accidentabilidad %" />
+                <Line
+                  type="monotone"
+                  dataKey="accidentabilidad"
+                  stroke="hsl(var(--destructive))"
+                  strokeWidth={2}
+                  name="Accidentabilidad %"
+                />
                 <Line type="monotone" dataKey="frecuencia" stroke="hsl(var(--primary))" strokeWidth={2} name="Frecuencia" />
                 <Line type="monotone" dataKey="gravedad" stroke="hsl(var(--secondary))" strokeWidth={2} name="Gravedad" />
               </RechartsLineChart>
@@ -304,45 +311,44 @@ export default function KPIPrevenccionPage() {
         </CardContent>
       </Card>
 
-      {/* Historical Data Table */}
       <Card>
         <CardHeader>
           <CardTitle>Histórico de KPIs</CardTitle>
-          <CardDescription>Registro mensual de indicadores de prevención</CardDescription>
+          <CardDescription>Registro mensual de indicadores de prevención.</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <p className="text-muted-foreground">Cargando...</p>
           ) : kpis.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">No hay datos registrados</p>
+            <p className="py-8 text-center text-muted-foreground">No hay datos registrados.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="text-left py-3 px-4 font-medium">Período</th>
-                    <th className="text-center py-3 px-4 font-medium">Accidentabilidad %</th>
-                    <th className="text-center py-3 px-4 font-medium">Tasa Frecuencia</th>
-                    <th className="text-center py-3 px-4 font-medium">Tasa Gravedad</th>
-                    <th className="text-center py-3 px-4 font-medium">Días sin Accidentes</th>
-                    <th className="text-right py-3 px-4 font-medium">Acciones</th>
+                    <th className="px-4 py-3 text-left font-medium">Período</th>
+                    <th className="px-4 py-3 text-center font-medium">Accidentabilidad %</th>
+                    <th className="px-4 py-3 text-center font-medium">Tasa de frecuencia</th>
+                    <th className="px-4 py-3 text-center font-medium">Tasa de gravedad</th>
+                    <th className="px-4 py-3 text-center font-medium">Días sin accidentes</th>
+                    <th className="px-4 py-3 text-right font-medium">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {kpis.map((kpi: KPIData) => (
-                    <tr key={kpi.id} className="border-b border-border hover:bg-muted transition">
-                      <td className="py-3 px-4 font-medium">
+                    <tr key={kpi.id} className="border-b border-border transition hover:bg-muted">
+                      <td className="px-4 py-3 font-medium">
                         {new Date(kpi.mes_ano).toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })}
                       </td>
-                      <td className="py-3 px-4 text-center">{kpi?.tasa_accidentabilidad?.toFixed(2)}%</td>
-                      <td className="py-3 px-4 text-center">{kpi?.tasa_frecuencia?.toFixed(2)}</td>
-                      <td className="py-3 px-4 text-center">{kpi?.tasa_gravedad?.toFixed(2)}</td>
-                      <td className="py-3 px-4 text-center">
+                      <td className="px-4 py-3 text-center">{kpi?.tasa_accidentabilidad?.toFixed(2)}%</td>
+                      <td className="px-4 py-3 text-center">{kpi?.tasa_frecuencia?.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-center">{kpi?.tasa_gravedad?.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-center">
                         <Badge variant="outline">{kpi.dias_sin_accidentes}</Badge>
                       </td>
-                      <td className="py-3 px-4 text-right">
+                      <td className="px-4 py-3 text-right">
                         <Button variant="ghost" size="sm">
-                          <Download className="w-4 h-4" />
+                          <Download className="h-4 w-4" />
                         </Button>
                       </td>
                     </tr>

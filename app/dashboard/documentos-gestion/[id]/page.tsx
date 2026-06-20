@@ -12,10 +12,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const CATEGORY_DISPLAY = {
-  seguridad: { name: 'Documentos de Seguridad', icon: '🛡️' },
-  ambiental: { name: 'Documentos Ambientales', icon: '🌱' },
-  operacional: { name: 'Documentos Operacionales', icon: '⚙️' },
-  laboral: { name: 'Documentos Laborales', icon: '👥' },
+  seguridad: { name: 'Documentos de seguridad', icon: '🛡️' },
+  ambiental: { name: 'Documentos ambientales', icon: '🌱' },
+  operacional: { name: 'Documentos operacionales', icon: '⚙️' },
+  laboral: { name: 'Documentos laborales', icon: '👥' },
 };
 
 function statusBadge(estado: string) {
@@ -48,7 +48,7 @@ export default function CategoryDetailPage() {
   const docs = data?.documents || { aprobados: [], pendientes: [], rechazados: [] };
 
   const DocumentRow = ({ doc }: { doc: any }) => (
-    <div key={doc.id} className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-accent">
+    <div className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-accent">
       <div className="flex-1">
         <div className="flex items-center gap-2 font-semibold">
           {doc.nombre}

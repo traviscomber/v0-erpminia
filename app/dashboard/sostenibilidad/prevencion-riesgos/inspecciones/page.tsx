@@ -1,15 +1,15 @@
 'use client';
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Plus, AlertCircle, CheckCircle, Clock, Eye, Download, Trash2 } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import useSWR from 'swr';
-import { InspeccionModal } from '@/components/sostenibilidad/inspeccion-modal';
+import { AlertCircle, CheckCircle, Clock, Download, Eye, Plus, Trash2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ConfirmDeleteDialog } from '@/components/sostenibilidad/confirm-delete-dialog';
-import { FilterPanel } from '@/components/sostenibilidad/filter-panel';
 import { ExportButtons } from '@/components/sostenibilidad/export-buttons';
+import { FilterPanel } from '@/components/sostenibilidad/filter-panel';
+import { InspeccionModal } from '@/components/sostenibilidad/inspeccion-modal';
 
 interface InspeccionInterna {
   id: string;
@@ -26,6 +26,8 @@ interface InspeccionInterna {
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
+const EMPTY_INSPECCIONES: InspeccionInterna[] = [];
+
 export default function InspeccionesInternasPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [estado, setEstado] = useState('');
@@ -34,20 +36,30 @@ export default function InspeccionesInternasPage() {
   const [selectedInspeccion, setSelectedInspeccion] = useState<InspeccionInterna | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { data: inspecciones = [], mutate } = useSWR(
+  const { data: inspecciones, mutate } = useSWR<InspeccionInterna[] | { data?: InspeccionInterna[] }>(
     '/api/sostenibilidad/inspecciones?tipo=internas',
     fetcher
   );
 
-  const inspeccionesList = (inspecciones.data || inspecciones || []) as InspeccionInterna[];
+  const inspeccionesList = useMemo(() => {
+    if (Array.isArray(inspecciones)) return inspecciones;
+    if (Array.isArray(inspecciones?.data)) return inspecciones.data;
+    return EMPTY_INSPECCIONES;
+  }, [inspecciones]);
 
-  const filteredInspecciones = inspeccionesList.filter((insp) => {
-    const matchSearch =
-      insp.numero_inspeccion.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      insp.faena.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchEstado = !estado || insp.estado === estado;
-    return matchSearch && matchEstado;
-  });
+  const filteredInspecciones = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+
+    return inspeccionesList.filter((insp) => {
+      const matchSearch =
+        !query ||
+        insp.numero_inspeccion.toLowerCase().includes(query) ||
+        insp.faena.toLowerCase().includes(query) ||
+        insp.inspector.toLowerCase().includes(query);
+      const matchEstado = !estado || insp.estado === estado;
+      return matchSearch && matchEstado;
+    });
+  }, [estado, inspeccionesList, searchTerm]);
 
   const handleDelete = async () => {
     if (!selectedInspeccion?.id) return;
@@ -64,9 +76,6 @@ export default function InspeccionesInternasPage() {
       await mutate();
       setDeleteOpen(false);
       setSelectedInspeccion(null);
-    } catch (error) {
-      console.error('[v0] Delete error:', error);
-      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -88,20 +97,21 @@ export default function InspeccionesInternasPage() {
   };
 
   const estadoIcon = {
-    planificada: <Clock className="w-4 h-4 text-primary" />,
-    realizada: <CheckCircle className="w-4 h-4 text-secondary" />,
-    cerrada: <AlertCircle className="w-4 h-4 text-muted-foreground" />,
+    planificada: <Clock className="h-4 w-4 text-primary" />,
+    realizada: <CheckCircle className="h-4 w-4 text-secondary" />,
+    cerrada: <AlertCircle className="h-4 w-4 text-muted-foreground" />,
   };
 
+  const totalHallazgos = filteredInspecciones.reduce((sum, insp) => sum + insp.hallazgos_count, 0);
+
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="mb-8 flex justify-between items-center">
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Inspecciones</h1>
-          <p className="text-muted-foreground">
-            Registro y seguimiento de inspecciones operacionales
-          </p>
+          <h1 className="text-3xl font-bold text-foreground">Inspecciones</h1>
+          <p className="text-muted-foreground">Registro y seguimiento de inspecciones operacionales.</p>
         </div>
+
         <Button
           className="bg-primary hover:bg-primary/90"
           onClick={() => {
@@ -109,8 +119,8 @@ export default function InspeccionesInternasPage() {
             setModalOpen(true);
           }}
         >
-          <Plus className="w-4 h-4 mr-2" />
-          Nueva Inspección
+          <Plus className="mr-2 h-4 w-4" />
+          Nueva inspección
         </Button>
       </div>
 
@@ -124,8 +134,8 @@ export default function InspeccionesInternasPage() {
       <ConfirmDeleteDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
-        titulo={`Inspección ${selectedInspeccion?.numero_inspeccion}`}
-        descripcion={`Se eliminará la inspección "${selectedInspeccion?.numero_inspeccion}" de la faena ${selectedInspeccion?.faena}. Esta acción no se puede deshacer.`}
+        titulo={`Inspección ${selectedInspeccion?.numero_inspeccion || ''}`}
+        descripcion={`Se eliminará la inspección "${selectedInspeccion?.numero_inspeccion || ''}" de la faena ${selectedInspeccion?.faena || ''}. Esta acción no se puede deshacer.`}
         onConfirm={handleDelete}
       />
 
@@ -140,13 +150,13 @@ export default function InspeccionesInternasPage() {
         }}
       />
 
-      <div className="mb-6 mt-6">
+      <div className="mt-6">
         <ExportButtons
           data={filteredInspecciones}
           fileName="Inspecciones_Internas"
           columns={[
-            { key: 'numero_inspeccion', label: 'Numero' },
-            { key: 'fecha_planificada', label: 'Fecha Planificada' },
+            { key: 'numero_inspeccion', label: 'Número' },
+            { key: 'fecha_planificada', label: 'Fecha planificada' },
             { key: 'faena', label: 'Faena' },
             { key: 'inspector', label: 'Inspector' },
             { key: 'hallazgos_count', label: 'Hallazgos' },
@@ -155,10 +165,10 @@ export default function InspeccionesInternasPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Inspecciones</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total de inspecciones</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{filteredInspecciones.length}</div>
@@ -189,72 +199,71 @@ export default function InspeccionesInternasPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Hallazgos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {filteredInspecciones.reduce((sum, i) => sum + i.hallazgos_count, 0)}
-            </div>
+            <div className="text-2xl font-bold">{totalHallazgos}</div>
           </CardContent>
         </Card>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Registro de Inspecciones</CardTitle>
+          <CardTitle>Registro de inspecciones</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-white/10">
-                  <th className="text-left py-3 px-4 font-medium">N Inspeccion</th>
-                  <th className="text-left py-3 px-4 font-medium">Faena</th>
-                  <th className="text-left py-3 px-4 font-medium">Inspector</th>
-                  <th className="text-left py-3 px-4 font-medium">Fecha Planificada</th>
-                  <th className="text-left py-3 px-4 font-medium">Hallazgos</th>
-                  <th className="text-left py-3 px-4 font-medium">Estado</th>
-                  <th className="text-right py-3 px-4 font-medium">Acciones</th>
+                  <th className="px-4 py-3 text-left font-medium">N° inspección</th>
+                  <th className="px-4 py-3 text-left font-medium">Faena</th>
+                  <th className="px-4 py-3 text-left font-medium">Inspector</th>
+                  <th className="px-4 py-3 text-left font-medium">Fecha planificada</th>
+                  <th className="px-4 py-3 text-left font-medium">Hallazgos</th>
+                  <th className="px-4 py-3 text-left font-medium">Estado</th>
+                  <th className="px-4 py-3 text-right font-medium">Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredInspecciones.map((insp) => (
-                  <tr key={insp.id} className="border-b border-white/10 hover:bg-white/5 transition">
-                    <td className="py-3 px-4 font-medium">{insp.numero_inspeccion}</td>
-                    <td className="py-3 px-4">{insp.faena}</td>
-                    <td className="py-3 px-4">{insp.inspector}</td>
-                    <td className="py-3 px-4">
-                      {new Date(insp.fecha_planificada).toLocaleDateString('es-CL')}
-                    </td>
-                    <td className="py-3 px-4">
+                  <tr key={insp.id} className="border-b border-white/10 transition hover:bg-white/5">
+                    <td className="px-4 py-3 font-medium">{insp.numero_inspeccion}</td>
+                    <td className="px-4 py-3">{insp.faena}</td>
+                    <td className="px-4 py-3">{insp.inspector}</td>
+                    <td className="px-4 py-3">{new Date(insp.fecha_planificada).toLocaleDateString('es-CL')}</td>
+                    <td className="px-4 py-3">
                       <Badge variant="outline">{insp.hallazgos_count}</Badge>
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        {estadoIcon[insp.estado as keyof typeof estadoIcon]}
+                        {estadoIcon[insp.estado]}
                         <span className="capitalize text-muted-foreground">{insp.estado}</span>
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-right space-x-1">
-                      <Button variant="ghost" size="sm" onClick={() => handleEditClick(insp)}>
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" disabled={isLoading}>
-                        <Download className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteClick(insp)}
-                        disabled={isLoading}
-                      >
-                        <Trash2 className="w-4 h-4 text-destructive" />
-                      </Button>
+                    <td className="px-4 py-3 text-right">
+                      <div className="inline-flex items-center gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => handleEditClick(insp)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" disabled={isLoading}>
+                          <Download className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteClick(insp)}
+                          disabled={isLoading}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+
             {filteredInspecciones.length === 0 && (
               <div className="py-8 text-center text-muted-foreground">
-                No hay inspecciones registradas
+                No hay inspecciones registradas.
               </div>
             )}
           </div>

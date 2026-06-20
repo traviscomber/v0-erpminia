@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, X, Loader2 } from 'lucide-react';
+import { Loader2, Plus, X } from 'lucide-react';
 
 interface NuevoContratoModalProps {
   onSuccess: () => void;
@@ -82,7 +82,7 @@ export function NuevoContratoModal({ onSuccess }: NuevoContratoModalProps) {
     return (
       <Button size="sm" className="gap-2 bg-orange-600 hover:bg-orange-700" onClick={() => setOpen(true)}>
         <Plus className="h-4 w-4" />
-        Nuevo Contrato
+        Nuevo contrato
       </Button>
     );
   }
@@ -91,11 +91,8 @@ export function NuevoContratoModal({ onSuccess }: NuevoContratoModalProps) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-md space-y-4 rounded-lg bg-white p-6 shadow-lg dark:bg-slate-900">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Crear Nuevo Contrato</h2>
-          <button
-            onClick={() => setOpen(false)}
-            className="rounded p-1 hover:bg-gray-100 dark:hover:bg-slate-800"
-          >
+          <h2 className="text-lg font-semibold">Crear nuevo contrato</h2>
+          <button onClick={() => setOpen(false)} className="rounded p-1 hover:bg-gray-100 dark:hover:bg-slate-800">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -108,25 +105,25 @@ export function NuevoContratoModal({ onSuccess }: NuevoContratoModalProps) {
           )}
 
           <div>
-            <Label htmlFor="contratista">Contratista/Prestador *</Label>
+            <Label htmlFor="contratista">Contratista / prestador *</Label>
             <Input
               id="contratista"
               name="contratista"
               value={formData.contratista}
               onChange={handleChange}
-              placeholder="Nombre empresa o persona"
+              placeholder="Nombre de empresa o persona"
               required
             />
           </div>
 
           <div>
-            <Label htmlFor="nombreContrato">Nombre contrato *</Label>
+            <Label htmlFor="nombreContrato">Nombre del contrato *</Label>
             <Input
               id="nombreContrato"
               name="nombreContrato"
               value={formData.nombreContrato}
               onChange={handleChange}
-              placeholder="Descripcion del contrato"
+              placeholder="Descripción del contrato"
               required
             />
           </div>
@@ -146,7 +143,7 @@ export function NuevoContratoModal({ onSuccess }: NuevoContratoModalProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="fechaInicio">Fecha inicio *</Label>
+              <Label htmlFor="fechaInicio">Fecha de inicio *</Label>
               <Input
                 id="fechaInicio"
                 name="fechaInicio"
@@ -157,7 +154,7 @@ export function NuevoContratoModal({ onSuccess }: NuevoContratoModalProps) {
               />
             </div>
             <div>
-              <Label htmlFor="fechaFin">Fecha fin *</Label>
+              <Label htmlFor="fechaFin">Fecha de término *</Label>
               <Input
                 id="fechaFin"
                 name="fechaFin"
@@ -177,7 +174,7 @@ export function NuevoContratoModal({ onSuccess }: NuevoContratoModalProps) {
                 name="projectName"
                 value={formData.projectName}
                 onChange={handleChange}
-                placeholder="Nombre real del proyecto"
+                placeholder="Nombre del proyecto"
               />
             </div>
             <div>
@@ -187,7 +184,7 @@ export function NuevoContratoModal({ onSuccess }: NuevoContratoModalProps) {
                 name="propertyName"
                 value={formData.propertyName}
                 onChange={handleChange}
-                placeholder="Nombre real de la propiedad"
+                placeholder="Nombre de la propiedad"
               />
             </div>
           </div>

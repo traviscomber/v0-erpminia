@@ -41,48 +41,49 @@ export default function ContratosReportesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Reporteria de Contratos</h1>
-          <p className="text-muted-foreground">Analisis y seguimiento de pagos, garantias y regalias</p>
+          <h1 className="text-3xl font-bold">Reportería de contratos</h1>
+          <p className="text-muted-foreground">
+            Análisis y seguimiento de pagos, garantías y regalías.
+          </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <Download className="mr-1 h-4 w-4" />
-            Exportar PDF
-          </Button>
-        </div>
+
+        <Button variant="outline" size="sm" className="w-fit">
+          <Download className="mr-1 h-4 w-4" />
+          Exportar PDF
+        </Button>
       </div>
 
       <Card>
         <CardContent className="pt-6">
-          <div className="flex gap-2">
-            {['mes', 'trimestre', 'anual'].map((p: string) => (
+          <div className="flex flex-wrap gap-2">
+            {['mes', 'trimestre', 'anual'].map((p) => (
               <Button
                 key={p}
                 variant={periodo === p ? 'default' : 'outline'}
                 onClick={() => setPeriodo(p)}
                 size="sm"
               >
-                {p === 'mes' ? 'Este mes' : p === 'trimestre' ? 'Este trimestre' : 'Este anio'}
+                {p === 'mes' ? 'Este mes' : p === 'trimestre' ? 'Este trimestre' : 'Este año'}
               </Button>
             ))}
           </div>
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="pagos">
+      <Tabs defaultValue="pagos" className="space-y-4">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="pagos">Pagos</TabsTrigger>
-          <TabsTrigger value="garantias">Garantias</TabsTrigger>
-          <TabsTrigger value="regalias">Regalias</TabsTrigger>
+          <TabsTrigger value="garantias">Garantías</TabsTrigger>
+          <TabsTrigger value="regalias">Regalías</TabsTrigger>
           <TabsTrigger value="estado">Estado</TabsTrigger>
         </TabsList>
 
         <TabsContent value="pagos" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Pagos por Contratista</CardTitle>
+              <CardTitle>Pagos por contratista</CardTitle>
             </CardHeader>
             <CardContent>
               {pagosPorContratista.length > 0 ? (
@@ -92,7 +93,7 @@ export default function ContratosReportesPage() {
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="nombre" angle={-45} textAnchor="end" height={80} />
                       <YAxis />
-                      <Tooltip formatter={(value: any) => `CLP ${(Number(value) / 1000000).toFixed(1)}M`} />
+                      <Tooltip formatter={(value: number) => `CLP ${(Number(value) / 1000000).toFixed(1)}M`} />
                       <Legend />
                       <Bar dataKey="monto_pagado" fill="#10b981" name="Pagado" />
                       <Bar dataKey="monto_pendiente" fill="#f59e0b" name="Pendiente" />
@@ -100,7 +101,9 @@ export default function ContratosReportesPage() {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <p className="py-8 text-center text-muted-foreground">No hay datos suficientes para mostrar este reporte.</p>
+                <p className="py-8 text-center text-muted-foreground">
+                  No hay datos suficientes para mostrar este reporte.
+                </p>
               )}
             </CardContent>
           </Card>
@@ -109,7 +112,7 @@ export default function ContratosReportesPage() {
         <TabsContent value="garantias" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Estado de Garantias Retenidas</CardTitle>
+              <CardTitle>Estado de garantías retenidas</CardTitle>
             </CardHeader>
             <CardContent>
               {garantiasActivas.length > 0 ? (
@@ -126,7 +129,7 @@ export default function ContratosReportesPage() {
                         fill="#8884d8"
                         dataKey="cantidad"
                       >
-                        {garantiasActivas.map((_: any, index: number) => (
+                        {garantiasActivas.map((_: unknown, index: number) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
@@ -135,7 +138,7 @@ export default function ContratosReportesPage() {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <p className="py-8 text-center text-muted-foreground">Sin garantias activas</p>
+                <p className="py-8 text-center text-muted-foreground">Sin garantías activas</p>
               )}
             </CardContent>
           </Card>
@@ -144,7 +147,7 @@ export default function ContratosReportesPage() {
         <TabsContent value="regalias" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Regalias por Propiedad</CardTitle>
+              <CardTitle>Regalías por propiedad</CardTitle>
             </CardHeader>
             <CardContent>
               {regaliasPorPropiedad.length > 0 ? (
@@ -154,7 +157,7 @@ export default function ContratosReportesPage() {
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="mes" />
                       <YAxis />
-                      <Tooltip formatter={(value: any) => `CLP ${(Number(value) / 1000000).toFixed(1)}M`} />
+                      <Tooltip formatter={(value: number) => `CLP ${(Number(value) / 1000000).toFixed(1)}M`} />
                       <Legend />
                       <Line type="monotone" dataKey="propiedad_1" stroke="#0ea5e9" name="Propiedad 1" />
                       <Line type="monotone" dataKey="propiedad_2" stroke="#10b981" name="Propiedad 2" />
@@ -163,7 +166,9 @@ export default function ContratosReportesPage() {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <p className="py-8 text-center text-muted-foreground">No hay datos de regalias para el periodo seleccionado.</p>
+                <p className="py-8 text-center text-muted-foreground">
+                  No hay datos de regalías para el período seleccionado.
+                </p>
               )}
             </CardContent>
           </Card>
