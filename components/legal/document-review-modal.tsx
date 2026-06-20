@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { AlertCircle, CheckCircle2, Download, ExternalLink, Loader2, XCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, CheckCircle2, XCircle, Loader2, Download, ExternalLink } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 
 type ReviewLevel = 'L1' | 'L2';
 type ReviewStatus = 'cumple' | 'no_cumple' | null;
@@ -29,13 +29,7 @@ export interface DocumentReviewModalProps {
   onReview: (docId: string, reviewLevel: ReviewLevel, status: ReviewStatus, observations: string) => Promise<void>;
 }
 
-export function DocumentReviewModal({
-  open,
-  document,
-  level = 'L1',
-  onClose,
-  onReview,
-}: DocumentReviewModalProps) {
+export function DocumentReviewModal({ open, document, level = 'L1', onClose, onReview }: DocumentReviewModalProps) {
   const [reviewStatus, setReviewStatus] = useState<ReviewStatus>(null);
   const [observations, setObservations] = useState('');
   const [loading, setLoading] = useState(false);
@@ -43,7 +37,7 @@ export function DocumentReviewModal({
   const handleReview = async (status: ReviewStatus) => {
     if (!document || status === null) return;
     if (status === 'no_cumple' && !observations.trim()) {
-      alert('Debes agregar observaciones al rechazar un documento');
+      alert('Debes agregar observaciones al rechazar un documento.');
       return;
     }
 
@@ -69,12 +63,12 @@ export function DocumentReviewModal({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+      <DialogContent className="flex max-h-[90vh] max-w-4xl flex-col">
         <DialogHeader>
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               <DialogTitle className="text-lg">{document.title}</DialogTitle>
-              <p className="text-sm text-muted-foreground mt-1">Revisión - Nivel {level}</p>
+              <DialogDescription className="mt-1">Revisión - Nivel {level}</DialogDescription>
             </div>
             {hasBeenReviewed && (
               <Badge variant={currentStatusData.status === 'cumple' ? 'default' : 'destructive'}>
@@ -84,17 +78,14 @@ export function DocumentReviewModal({
           </div>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto space-y-4 py-4">
-          {/* Document Info Card */}
-          <div className="border rounded-lg p-4 bg-muted/50 space-y-3">
+        <div className="flex-1 space-y-4 overflow-y-auto py-4">
+          <div className="space-y-3 rounded-lg border bg-muted/50 p-4">
             <div className="space-y-2">
               <p className="text-sm font-medium text-muted-foreground">Documento</p>
               <p className="text-base font-semibold">{document.title}</p>
-              {document.description && (
-                <p className="text-sm text-muted-foreground">{document.description}</p>
-              )}
+              {document.description && <p className="text-sm text-muted-foreground">{document.description}</p>}
             </div>
-            <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="grid grid-cols-1 gap-2 text-xs md:grid-cols-2">
               <div>
                 <p className="text-muted-foreground">Tipo</p>
                 <p className="font-medium">{document.documentType || 'Legal'}</p>
@@ -105,44 +96,40 @@ export function DocumentReviewModal({
               </div>
             </div>
             {document.fileUrl && (
-              <div className="flex gap-2 pt-2">
+              <div className="flex flex-col gap-2 pt-2 md:flex-row">
                 <a
                   href={document.fileUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm rounded bg-primary text-primary-foreground hover:bg-primary/90"
+                  className="inline-flex flex-1 items-center justify-center gap-2 rounded bg-primary px-3 py-2 text-sm text-primary-foreground hover:bg-primary/90"
                 >
-                  <ExternalLink className="w-4 h-4" />
+                  <ExternalLink className="h-4 w-4" />
                   Ver documento
                 </a>
                 <a
                   href={document.fileUrl}
                   download={document.title}
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm rounded bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                  className="inline-flex flex-1 items-center justify-center gap-2 rounded bg-secondary px-3 py-2 text-sm text-secondary-foreground hover:bg-secondary/80"
                 >
-                  <Download className="w-4 h-4" />
+                  <Download className="h-4 w-4" />
                   Descargar
                 </a>
               </div>
             )}
           </div>
 
-          {/* Previous Review (if exists) */}
           {hasBeenReviewed && currentStatusData.observations && (
-            <div className="border rounded-lg p-3 bg-amber-50 dark:bg-amber-950/20">
-              <p className="text-sm font-medium text-amber-900 dark:text-amber-200 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4" />
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 dark:bg-amber-950/20">
+              <p className="flex items-center gap-2 text-sm font-medium text-amber-900 dark:text-amber-200">
+                <AlertCircle className="h-4 w-4" />
                 Revisión anterior (Nivel {level})
               </p>
-              <p className="text-sm mt-2 text-amber-800 dark:text-amber-300">
-                {currentStatusData.observations}
-              </p>
+              <p className="mt-2 text-sm text-amber-800 dark:text-amber-300">{currentStatusData.observations}</p>
             </div>
           )}
 
-          {/* Review Form */}
           <div className="space-y-3 border-t pt-4">
-            <label className="text-sm font-medium">Tu Revisión</label>
+            <label className="text-sm font-medium">Tu revisión</label>
             <div className="space-y-2">
               <Button
                 variant={reviewStatus === 'cumple' ? 'default' : 'outline'}
@@ -150,7 +137,7 @@ export function DocumentReviewModal({
                 onClick={() => setReviewStatus('cumple')}
                 disabled={loading}
               >
-                <CheckCircle2 className="w-4 h-4" />
+                <CheckCircle2 className="h-4 w-4" />
                 Aprobar - Cumple
               </Button>
               <Button
@@ -159,16 +146,15 @@ export function DocumentReviewModal({
                 onClick={() => setReviewStatus('no_cumple')}
                 disabled={loading}
               >
-                <XCircle className="w-4 h-4" />
-                Rechazar - No Cumple
+                <XCircle className="h-4 w-4" />
+                Rechazar - No cumple
               </Button>
             </div>
           </div>
 
-          {/* Observations */}
           {reviewStatus === 'no_cumple' && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">Observaciones (requeridas)</label>
+              <label className="text-sm font-medium">Observaciones requeridas</label>
               <Textarea
                 placeholder="Describe los motivos del rechazo y las acciones correctivas necesarias..."
                 value={observations}
@@ -181,7 +167,7 @@ export function DocumentReviewModal({
 
           {reviewStatus === 'cumple' && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">Observaciones (opcional)</label>
+              <label className="text-sm font-medium">Observaciones opcionales</label>
               <Textarea
                 placeholder="Agrega cualquier nota o comentario..."
                 value={observations}
@@ -193,7 +179,7 @@ export function DocumentReviewModal({
           )}
         </div>
 
-        <DialogFooter className="flex gap-2 justify-end">
+        <DialogFooter className="flex justify-end gap-2">
           <Button variant="outline" onClick={onClose} disabled={loading}>
             Cancelar
           </Button>
@@ -202,12 +188,8 @@ export function DocumentReviewModal({
             disabled={loading || reviewStatus === null}
             variant={reviewStatus === 'no_cumple' ? 'destructive' : 'default'}
           >
-            {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            {reviewStatus === null
-              ? 'Selecciona una opción'
-              : reviewStatus === 'cumple'
-                ? 'Confirmar Aprobación'
-                : 'Confirmar Rechazo'}
+            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {reviewStatus === null ? 'Selecciona una opción' : reviewStatus === 'cumple' ? 'Confirmar aprobación' : 'Confirmar rechazo'}
           </Button>
         </DialogFooter>
       </DialogContent>
