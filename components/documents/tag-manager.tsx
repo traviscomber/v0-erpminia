@@ -76,7 +76,7 @@ export function TagManager({
     const normalized = newTag.trim();
     if (!normalized) return;
     if (tags.includes(normalized)) {
-      toast.error('El tag ya existe');
+      toast.error('La etiqueta ya existe');
       return;
     }
     setTags([...tags, normalized]);
@@ -107,7 +107,7 @@ export function TagManager({
         throw new Error(err.error || 'La actualización falló');
       }
 
-      toast.success('Tags actualizados correctamente');
+      toast.success('Etiquetas actualizadas correctamente');
       onTagsUpdated(tags);
       onOpenChange(false);
     } catch (err) {
@@ -123,7 +123,7 @@ export function TagManager({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Gestionar tags</DialogTitle>
+          <DialogTitle>Gestionar etiquetas</DialogTitle>
           <DialogDescription>{documentName}</DialogDescription>
         </DialogHeader>
 
@@ -136,10 +136,10 @@ export function TagManager({
           )}
 
           <div>
-            <label className="mb-2 block text-sm font-medium">Tags seleccionados</label>
+            <label className="mb-2 block text-sm font-medium">Etiquetas seleccionadas</label>
             <div className="flex flex-wrap gap-2">
               {tags.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Sin tags asignados</p>
+                <p className="text-sm text-muted-foreground">Sin etiquetas asignadas</p>
               ) : (
                 tags.map((tag) => (
                   <Badge
@@ -157,12 +157,12 @@ export function TagManager({
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium">Agregar tags del sistema</label>
+            <label className="mb-2 block text-sm font-medium">Agregar etiquetas del sistema</label>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="w-full gap-2">
                   <Plus className="h-4 w-4" />
-                  Seleccionar tags
+                  Seleccionar etiquetas
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56">
@@ -185,10 +185,10 @@ export function TagManager({
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium">Crear tag personalizado</label>
+            <label className="mb-2 block text-sm font-medium">Crear etiqueta personalizada</label>
             <div className="flex gap-2">
               <Input
-                placeholder="Nuevo tag..."
+                placeholder="Nueva etiqueta..."
                 value={newTag}
                 onChange={(e) => setNewTag(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleCreateTag()}
@@ -206,7 +206,7 @@ export function TagManager({
               className="gap-2"
             >
               <Save className="h-4 w-4" />
-              {loading ? 'Guardando...' : 'Guardar tags'}
+              {loading ? 'Guardando...' : 'Guardar etiquetas'}
             </Button>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar

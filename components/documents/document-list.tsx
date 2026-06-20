@@ -237,7 +237,7 @@ export function DocumentList({
               {allTags.length > 0 && (
                 <div className="space-y-1.5">
                   <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1">
-                    <Tag className="h-3 w-3" /> Tags
+                    <Tag className="h-3 w-3" /> Etiquetas
                   </span>
                   <div className="flex flex-wrap gap-1.5">
                     {allTags.map((tag) => (
@@ -276,7 +276,7 @@ export function DocumentList({
               {filtered.length} resultado{filtered.length !== 1 ? 's' : ''}
               {activeType && <span> en &quot;{activeType}&quot;</span>}
               {search && <span> para &quot;{search}&quot;</span>}
-              {activeTag && <span> con tag &quot;{activeTag}&quot;</span>}
+              {activeTag && <span> con etiqueta &quot;{activeTag}&quot;</span>}
               {(search || activeTag || activeType) && (
                 <button
                   onClick={() => { setSearch(''); setActiveTag(''); setActiveType(''); }}
@@ -314,7 +314,7 @@ export function DocumentList({
             const StatusIcon = statusCfg.icon;
             const displayName = doc.document_name || doc.title || 'Sin nombre';
             const docType = (doc.document_type || '').toLowerCase();
-            const typeLabel = docType.toUpperCase() || 'FILE';
+            const typeLabel = docType.toUpperCase() || 'ARCHIVO';
             const typeColor = typeColors[docType] || 'bg-muted text-muted-foreground border-border';
             const uploadDate = formatDate(doc.uploaded_at || doc.createdAt);
             const validUntil = formatDate(doc.valid_until || doc.expiryDate);
@@ -372,7 +372,7 @@ export function DocumentList({
                       )}
                     </div>
 
-                    {/* Tags */}
+                    {/* Etiquetas */}
                     {doc.tags && doc.tags.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
                         {doc.tags.map((tag) => (
