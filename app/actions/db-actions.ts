@@ -113,7 +113,7 @@ export async function createMaintenanceOrder(orderData: {
   const organizationId = assetOrganizationId || auth.organizationId;
 
   if (assetOrganizationId && assetOrganizationId !== auth.organizationId) {
-    throw new Error('Asset does not belong to the current organization');
+    throw new Error('El activo no pertenece a la organización actual');
   }
 
   if (!organizationId) {

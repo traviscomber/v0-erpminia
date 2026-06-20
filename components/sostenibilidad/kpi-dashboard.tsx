@@ -117,8 +117,8 @@ export function SustainabilityKPIDashboard() {
       {/* Trends Chart */}
       <Card>
         <CardHeader>
-          <CardTitle>Tendencia de Puntaje de cumplimiento</CardTitle>
-          <CardDescription>Ultimos 12 meses</CardDescription>
+          <CardTitle>Tendencia del puntaje de cumplimiento</CardTitle>
+          <CardDescription>Últimos 12 meses</CardDescription>
         </CardHeader>
         <CardContent>
           {trends && trends.length > 0 ? (
@@ -153,7 +153,7 @@ export function SustainabilityKPIDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardHeader>
-            <CardTitle>Distribucion de NC por estado</CardTitle>
+            <CardTitle>Distribución de NC por estado</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>

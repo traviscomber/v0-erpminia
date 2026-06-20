@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     // Verificar que NC está en estado válido para generar CA
     if (!['abierta', 'investigada', 'aprobada'].includes(ncData.status)) {
       return NextResponse.json(
-        { error: 'NC status must be abierta, investigada, or aprobada' },
+        { error: 'El estado de la NC debe ser abierta, investigada o aprobada' },
         { status: 400 }
       );
     }
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Helper function para calcular fecha de ejecución basada en severidad
+// Función auxiliar para calcular fecha de ejecución basada en severidad
 function calculateScheduledDate(severity: string): string {
   const date = new Date();
   switch (severity.toLowerCase()) {
