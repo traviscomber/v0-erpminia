@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     error: authError,
   } = await supabase.auth.getUser();
 
-  if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (authError || !user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
   const { data, error } = await supabase
     .from('bodega_inventory')

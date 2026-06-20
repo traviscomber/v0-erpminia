@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ items, summary });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch stock';
+    const message = error instanceof Error ? error.message : 'No se pudo obtener el stock';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

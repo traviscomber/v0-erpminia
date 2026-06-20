@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   );
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (authError || !user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
   const { data: inventory, error: invError } = await supabase
     .from('bodega_inventory')
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     .eq('sku', sku)
     .single();
 
-  if (invError || !inventory) return NextResponse.json({ error: 'SKU not found' }, { status: 404 });
+  if (invError || !inventory) return NextResponse.json({ error: 'No se encontró el SKU' }, { status: 404 });
 
   let newQuantity = inventory.quantity;
   if (tipo === 'entrada') newQuantity += cantidad;
@@ -89,9 +89,9 @@ export async function GET(request: NextRequest) {
   );
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (authError || !user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
-  if (!sku) return NextResponse.json({ error: 'SKU required' }, { status: 400 });
+  if (!sku) return NextResponse.json({ error: 'Se requiere SKU' }, { status: 400 });
 
   const { data, error } = await supabase
     .from('bodega_movements')
