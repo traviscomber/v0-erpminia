@@ -190,7 +190,7 @@ export default function DocumentosLegalPage() {
           <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Todos</TabsTrigger>
           <TabsTrigger value="vigentes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Vigentes</TabsTrigger>
           <TabsTrigger value="revision" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">En Revisión</TabsTrigger>
-          <TabsTrigger value="upload" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Subir Documentos</TabsTrigger>
+          <TabsTrigger value="upload" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Subir documentos</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
@@ -225,9 +225,9 @@ export default function DocumentosLegalPage() {
         <TabsContent value="upload" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Subir Nuevo Documento</CardTitle>
+              <CardTitle>Subir nuevo documento</CardTitle>
               <CardDescription>
-                Sube contratos, políticas y Documentos Legaleses
+                Sube contratos, políticas y documentos legales
               </CardDescription>
             </CardHeader>
             <CardContent>

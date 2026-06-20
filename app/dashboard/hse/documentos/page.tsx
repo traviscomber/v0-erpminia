@@ -123,7 +123,7 @@ export default function DocumentosHSEPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Documentos HSE</h1>
-        <p className="mt-2 text-muted-foreground">Gestion de documentos de Higiene, Seguridad y Ambiente</p>
+        <p className="mt-2 text-muted-foreground">Gestión de documentos de Higiene, Seguridad y Ambiente</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
@@ -156,13 +156,13 @@ export default function DocumentosHSEPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center justify-between text-sm font-medium">
-              <span>En Revision</span>
+              <span>En revisión</span>
               <Clock className="h-4 w-4 text-yellow-500" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-yellow-500">{stats.en_revision}</p>
-            <p className="text-xs text-muted-foreground">esperando aprobacion</p>
+            <p className="text-xs text-muted-foreground">esperando aprobación</p>
           </CardContent>
         </Card>
 
@@ -175,7 +175,7 @@ export default function DocumentosHSEPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-red-500">{stats.rechazados}</p>
-            <p className="text-xs text-muted-foreground">pendientes de correccion</p>
+            <p className="text-xs text-muted-foreground">pendientes de corrección</p>
           </CardContent>
         </Card>
       </div>
@@ -184,8 +184,8 @@ export default function DocumentosHSEPage() {
         <TabsList className="border-b-2 border-border bg-muted/60 p-1">
           <TabsTrigger value="all" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Todos</TabsTrigger>
           <TabsTrigger value="vigentes" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Vigentes</TabsTrigger>
-          <TabsTrigger value="revision" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">En Revision</TabsTrigger>
-          <TabsTrigger value="upload" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Subir Documentos</TabsTrigger>
+          <TabsTrigger value="revision" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">En revisión</TabsTrigger>
+          <TabsTrigger value="upload" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Subir documentos</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
@@ -213,7 +213,7 @@ export default function DocumentosHSEPage() {
         <TabsContent value="upload" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Subir Nuevo Documento</CardTitle>
+              <CardTitle>Subir nuevo documento</CardTitle>
               <CardDescription>Sube documentos de Higiene, Seguridad y Ambiente</CardDescription>
             </CardHeader>
             <CardContent>

@@ -17,7 +17,7 @@ export function HSEDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">HSE (Salud, Seguridad, Ambiente)</h1>
           <p className="text-muted-foreground">Gestión y cumplimiento normativo</p>
@@ -28,7 +28,7 @@ export function HSEDashboard() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">Lesiones Hoy</CardTitle>
@@ -61,7 +61,7 @@ export function HSEDashboard() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Puntaje Auditoría</CardTitle>
+            <CardTitle className="text-sm">Puntaje de auditoría</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-green-500">{avgAuditScore}%</div>
@@ -72,7 +72,7 @@ export function HSEDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Tendencia de Seguridad - Últimos 30 días</CardTitle>
+          <CardTitle>Tendencia de seguridad - Últimos 30 días</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
