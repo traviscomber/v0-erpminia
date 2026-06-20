@@ -216,7 +216,7 @@ export default function ContratosPage() {
           <Link href="/dashboard/documentos-gestion/contratos/reportes">
             <Button variant="outline" size="sm">
               <Eye className="h-4 w-4 mr-1" />
-              Ver Reportes
+              Ver reportes
             </Button>
           </Link>
           <Button variant="outline" size="sm" onClick={() => mutate()}>

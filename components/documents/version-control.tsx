@@ -30,7 +30,7 @@ interface Document {
 
 export function DocumentVersionControl() {
   const supabase = createClient();
-  const [documents, setDocuments] = useState<Document[]>([]);
+  const [documents] = useState<Document[]>([]);
   const [expandedDoc, setExpandedDoc] = useState<string | null>(null);
 
   const statusBadge = {
@@ -43,26 +43,27 @@ export function DocumentVersionControl() {
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>Versionado de Documentos</CardTitle>
+          <CardTitle>Versionado de documentos</CardTitle>
           <CardDescription>Historial completo de cambios y aprobaciones</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {documents.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">No hay documentos registrados</p>
+            <p className="py-8 text-center text-muted-foreground">
+              No hay documentos registrados
+            </p>
           ) : (
             <div className="space-y-3">
               {documents.map((doc) => (
-                <div key={doc.id} className="border border-border rounded-lg overflow-hidden">
-                  {/* Main Document Row */}
+                <div key={doc.id} className="overflow-hidden rounded-lg border border-border">
                   <button
                     onClick={() => setExpandedDoc(expandedDoc === doc.id ? null : doc.id)}
-                    className="w-full flex justify-between items-center p-4 hover:bg-muted/50 transition-colors text-left"
+                    className="flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-muted/50"
                   >
-                    <div className="flex gap-3 items-center flex-1">
-                      <FileText className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                    <div className="flex flex-1 items-center gap-3">
+                      <FileText className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
                       <div className="flex-1">
                         <p className="font-medium">{doc.name}</p>
-                        <div className="flex gap-2 text-xs text-muted-foreground mt-1">
+                        <div className="mt-1 flex gap-2 text-xs text-muted-foreground">
                           <span>v{doc.current_version}</span>
                           <span>•</span>
                           <span>{doc.owner}</span>
@@ -78,39 +79,32 @@ export function DocumentVersionControl() {
                     <Badge className={statusBadge[doc.status]}>{doc.status}</Badge>
                   </button>
 
-                  {/* Version History */}
                   {expandedDoc === doc.id && (
-                    <div className="bg-muted/30 border-t border-border p-4 space-y-3">
-                      <p className="text-sm font-medium flex gap-2 items-center text-muted-foreground">
+                    <div className="space-y-3 border-t border-border bg-muted/30 p-4">
+                      <p className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                         <History className="h-4 w-4" />
                         Historial de versiones ({doc.versions.length})
                       </p>
-                      {doc.versions.map((v, idx) => (
+                      {doc.versions.map((version, idx) => (
                         <div
-                          key={idx}
-                          className="flex justify-between items-center p-3 bg-background rounded border border-border/50"
+                          key={`${doc.id}-${idx}`}
+                          className="flex items-center justify-between rounded border border-border/50 bg-background p-3"
                         >
-                          <div className="text-sm flex-1">
-                            <p className="font-medium">Versión {v.version}</p>
-                            <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
-                              <div className="flex gap-2 items-center">
+                          <div className="flex-1 text-sm">
+                            <p className="font-medium">Versión {version.version}</p>
+                            <div className="mt-1 space-y-0.5 text-xs text-muted-foreground">
+                              <div className="flex items-center gap-2">
                                 <User className="h-3 w-3" />
-                                {v.uploaded_by}
+                                {version.uploaded_by}
                               </div>
-                              <div className="flex gap-2 items-center">
+                              <div className="flex items-center gap-2">
                                 <Calendar className="h-3 w-3" />
-                                {v.uploaded_at.toLocaleDateString('es-CL')}
+                                {version.uploaded_at.toLocaleDateString('es-CL')}
                               </div>
-                              {v.changes && (
-                                <p className="mt-2">{v.changes}</p>
-                              )}
+                              {version.changes && <p className="mt-2">{version.changes}</p>}
                             </div>
                           </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="gap-2 ml-4 flex-shrink-0"
-                          >
+                          <Button variant="outline" size="sm" className="ml-4 flex-shrink-0 gap-2">
                             <Download className="h-4 w-4" />
                             Descargar
                           </Button>

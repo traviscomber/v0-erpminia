@@ -17,7 +17,7 @@ interface DocumentApproval {
   approval_chain: Array<{
     level: 'jefe_sostenibilidad' | 'gerente_general';
     status: 'pendiente' | 'aprobado' | 'rechazado';
-    Aprobador: string;
+    approver: string;
     role: string;
     date: Date;
     comments: string;
@@ -58,7 +58,7 @@ export function DocumentApprovalFlow() {
         .update({
           status: 'aprobado',
           approved_at: new Date(),
-          signature: `Firma digital - ${level === 'jefe_sostenibilidad' ? 'Jefe Depto. Sostenibilidad' : 'Gerente General'}`,
+          signature: `Firma digital - ${level === 'jefe_sostenibilidad' ? 'Jefatura de Sostenibilidad' : 'Gerencia General'}`,
         })
         .eq('id', docId)
         .eq('approval_level', level);
@@ -66,16 +66,16 @@ export function DocumentApprovalFlow() {
       if (error) throw error;
       alert('Documento aprobado correctamente');
     } catch (err) {
-      console.error('[v0] Error approving document:', err);
+      console.error('[DocumentApprovalFlow] Error al aprobar documento:', err);
     }
   };
 
   const getLevelLabel = (level: string) => {
     switch (level) {
       case 'jefe_sostenibilidad':
-        return 'Jefe Depto. Sostenibilidad';
+        return 'Jefatura de Sostenibilidad';
       case 'gerente_general':
-        return 'Gerente General';
+        return 'Gerencia General';
       default:
         return level;
     }
@@ -85,40 +85,54 @@ export function DocumentApprovalFlow() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Flujo de Aprobación de Documentos</CardTitle>
+          <CardTitle>Flujo de aprobación de documentos</CardTitle>
           <CardDescription>Aprobaciones multinivel con trazabilidad completa</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {documents.length === 0 ? (
-            <p className="text-center py-8 text-muted-foreground">No hay documentos pendientes de Aprobación</p>
+            <p className="py-8 text-center text-muted-foreground">
+              No hay documentos pendientes de aprobación
+            </p>
           ) : (
             <div className="space-y-3">
               {documents.map((doc) => (
-                <div key={doc.id} className="rounded-lg border border-border p-4 transition-colors hover:bg-muted/50">
-                  <div className="mb-3 flex items-start justify-between">
+                <div
+                  key={doc.id}
+                  className="rounded-lg border border-border p-4 transition-colors hover:bg-muted/50"
+                >
+                  <div className="mb-3 flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3">
                       <FileText className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
                       <div>
                         <p className="font-medium">{doc.document_name}</p>
-                        <p className="text-sm text-muted-foreground">v{doc.version} • {doc.submitted_by}</p>
+                        <p className="text-sm text-muted-foreground">
+                          v{doc.version} • {doc.submitted_by}
+                        </p>
                       </div>
                     </div>
                     <Badge className={getStatusColor(doc.status)}>{doc.status}</Badge>
                   </div>
 
                   <div className="space-y-2">
-                    <p className="mb-2 text-xs font-medium text-muted-foreground">Flujo de Aprobación:</p>
+                    <p className="mb-2 text-xs font-medium text-muted-foreground">
+                      Flujo de aprobación:
+                    </p>
                     {doc.approval_chain.map((approval, idx) => (
-                      <div key={idx} className="flex items-center justify-between rounded border border-border bg-background p-2 text-sm">
+                      <div
+                        key={`${doc.id}-${idx}`}
+                        className="flex items-center justify-between rounded border border-border bg-background p-2 text-sm"
+                      >
                         <div className="flex items-center gap-2">
                           {getStatusIcon(approval.status)}
                           <div>
                             <span className="font-medium">{getLevelLabel(approval.level)}</span>
-                            <span className="ml-2 text-muted-foreground">({approval.Aprobador})</span>
+                            <span className="ml-2 text-muted-foreground">({approval.approver})</span>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          {approval.signature && <span className="text-xs text-emerald-600">Firmado</span>}
+                          {approval.signature && (
+                            <span className="text-xs text-emerald-600">Firmado</span>
+                          )}
                           {approval.status === 'pendiente' && (
                             <Button
                               size="sm"
