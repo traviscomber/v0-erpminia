@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
       summary,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch warehouse stock';
+    const message = error instanceof Error ? error.message : 'No se pudo obtener el stock de bodega';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { part_code, part_name, quantity_on_hand, reorder_level, reorder_quantity, unit_cost } = body;
 
-    // Get first bin for new items (or create default)
+    // Obtener la primera ubicación para nuevos ítems
     const { data: bins } = await supabase
       .from('warehouse_bins')
       .select('id')
@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(newItem, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to add warehouse stock';
+    const message = error instanceof Error ? error.message : 'No se pudo agregar el stock de bodega';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

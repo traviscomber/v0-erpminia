@@ -167,7 +167,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to transfer stock';
+    const message = error instanceof Error ? error.message : 'No se pudo transferir el stock';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

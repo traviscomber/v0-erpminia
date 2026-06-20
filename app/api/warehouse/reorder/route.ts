@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : 'Failed to fetch reorder alerts';
+      error instanceof Error ? error.message : 'No se pudieron obtener las alertas de reposición';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

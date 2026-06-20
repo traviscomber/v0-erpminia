@@ -52,7 +52,7 @@ const severityConfig = {
   critica: {
     color: 'bg-destructive/10 text-destructive border-destructive/20',
     icon: AlertTriangle,
-    label: 'Critica',
+    label: 'Crítica',
   },
   alta: {
     color: 'bg-primary/10 text-primary border-primary/20',
@@ -81,7 +81,7 @@ function typeLabel(type: AlertType) {
     case 'documento':
       return 'Documentos';
     case 'mantenimiento':
-      return 'Mantencion';
+      return 'Mantención';
     case 'inventario':
       return 'Bodega';
     case 'sostenibilidad':
@@ -162,7 +162,7 @@ export default function AlertasPage() {
         <div>
           <h1 className="text-4xl font-bold tracking-tight">Centro de Alertas</h1>
           <p className="mt-3 text-muted-foreground">
-            Consolidacion operativa de documentos, mantencion, bodega y sostenibilidad.
+            Consolidación operativa de documentos, mantención, bodega y sostenibilidad.
           </p>
         </div>
 
@@ -191,7 +191,7 @@ export default function AlertasPage() {
         <div>
           <h1 className="text-4xl font-bold tracking-tight">Centro de Alertas</h1>
           <p className="mt-3 text-muted-foreground">
-            Consolidacion operativa de documentos, mantencion, bodega y sostenibilidad.
+            Consolidación operativa de documentos, mantención, bodega y sostenibilidad.
           </p>
         </div>
         <Button variant="outline" onClick={() => mutate()} className="gap-2">
@@ -215,7 +215,7 @@ export default function AlertasPage() {
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm font-medium">
               <AlertTriangle className="h-4 w-4 text-destructive" />
-              Criticas
+              Críticas
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -260,7 +260,7 @@ export default function AlertasPage() {
           onClick={() => setFilter('criticas')}
           className="text-destructive"
         >
-          Criticas ({criticalCount})
+          Críticas ({criticalCount})
         </Button>
         <Button
           variant={filter === 'accion' ? 'default' : 'ghost'}

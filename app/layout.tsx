@@ -1,20 +1,20 @@
-import type { Metadata } from 'next'
+import type { Metadata } from 'next';
 export const dynamic = 'force-dynamic';
 
-import { Geist, Geist_Mono, Montserrat } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/next'
-import { ThemeProvider } from 'next-themes'
-import { Toaster } from 'sonner'
-import './globals.css'
+import { Geist, Geist_Mono, Montserrat } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/next';
+import { ThemeProvider } from 'next-themes';
+import { Toaster } from 'sonner';
+import './globals.css';
 
-const _geist = Geist({ subsets: ["latin", "latin-ext"] });
-const _geistMono = Geist_Mono({ subsets: ["latin", "latin-ext"] });
-const _montserrat = Montserrat({ subsets: ["latin", "latin-ext"], variable: "--font-heading" });
+const _geist = Geist({ subsets: ['latin', 'latin-ext'] });
+const _geistMono = Geist_Mono({ subsets: ['latin', 'latin-ext'] });
+const _montserrat = Montserrat({ subsets: ['latin', 'latin-ext'], variable: '--font-heading' });
 
 export const metadata: Metadata = {
-  title: 'Motil — Plataforma Operacional Minera',
+  title: 'Motil - Plataforma Operacional Minera',
   description:
-    'Plataforma operacional minera para conectar produccion, mantencion, bodega, HSE, documentos y gerencia con trazabilidad operacional y KPIs en tiempo real.',
+    'Plataforma operacional minera para conectar producción, mantención, bodega, HSE, documentos y gerencia con trazabilidad operacional y KPIs en tiempo real.',
   generator: 'v0.app',
   icons: {
     icon: [
@@ -33,12 +33,12 @@ export const metadata: Metadata = {
     ],
     apple: '/apple-icon.png',
   },
-}
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
     <html lang="es" className="dark" suppressHydrationWarning>
@@ -54,5 +54,5 @@ export default function RootLayout({
         </ThemeProvider>
       </body>
     </html>
-  )
+  );
 }
