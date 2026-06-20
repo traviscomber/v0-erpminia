@@ -143,7 +143,7 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
                   <SelectItem value="low">Baja</SelectItem>
                   <SelectItem value="medium">Media</SelectItem>
                   <SelectItem value="high">Alta</SelectItem>
-                  <SelectItem value="critical">Critica</SelectItem>
+                  <SelectItem value="critical">Crítica</SelectItem>
                 </SelectContent>
               </Select>
             </div>

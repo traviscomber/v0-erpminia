@@ -32,10 +32,10 @@ export function IntelligenceDashboard({
 
   const severityData = useMemo(() => {
     return [
-      { name: 'Low', value: trends.bySeverity.low || 0 },
-      { name: 'Medium', value: trends.bySeverity.medium || 0 },
-      { name: 'High', value: trends.bySeverity.high || 0 },
-      { name: 'Critical', value: trends.bySeverity.critical || 0 },
+      { name: 'Baja', value: trends.bySeverity.low || 0 },
+      { name: 'Media', value: trends.bySeverity.medium || 0 },
+      { name: 'Alta', value: trends.bySeverity.high || 0 },
+      { name: 'Crítica', value: trends.bySeverity.critical || 0 },
     ];
   }, [trends]);
 
@@ -110,7 +110,7 @@ export function IntelligenceDashboard({
           {/* NC Trend */}
           <Card>
             <CardHeader>
-              <CardTitle>Tendencia de NC (30 días)</CardTitle>
+            <CardTitle>Tendencia de NC (30 días)</CardTitle>
               <CardDescription>{trends.total} no conformidades creadas</CardDescription>
             </CardHeader>
             <CardContent>

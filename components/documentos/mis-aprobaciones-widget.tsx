@@ -30,7 +30,7 @@ export function MisAprobacionesWidget() {
         const data = await res.json();
         setUserRole(data.user.role);
       } catch (err) {
-        console.log('[v0] Error fetching user role');
+        console.log('[v0] Error al obtener el rol del usuario');
       }
     };
     getRole();
@@ -38,7 +38,7 @@ export function MisAprobacionesWidget() {
 
   // Fetch pending approvals based on user role
   const { data: pendingDocs, isLoading, error } = useSWR(
-    userRole ? `/api/sostenibilidad/documentos-flujorole=${userRole}&status=pending` : null,
+    userRole ? `/api/sostenibilidad/documentos-flujo?role=${encodeURIComponent(userRole)}&status=pending` : null,
     async (url) => {
       const res = await fetch(url);
       if (!res.ok) return;
@@ -57,7 +57,7 @@ export function MisAprobacionesWidget() {
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <AlertCircle className="w-5 h-5 text-destructive" />
-            Error loading approvals
+            Error al cargar aprobaciones
           </CardTitle>
         </CardHeader>
       </Card>
@@ -98,7 +98,7 @@ export function MisAprobacionesWidget() {
               .map(approval => (
                 <Link
                   key={approval.id}
-                  href={`/dashboard/sostenibilidad/documentos-flujodoc=${approval.document_id}`}
+                  href={`/dashboard/sostenibilidad/documentos-flujo?doc=${approval.document_id}`}
                 >
                   <div className="p-3 rounded-lg border border-destructive/30 bg-destructive/5 hover:bg-destructive/10 cursor-pointer transition">
                     <div className="flex items-start justify-between gap-2">
@@ -126,7 +126,7 @@ export function MisAprobacionesWidget() {
               .map(approval => (
                 <Link
                   key={approval.id}
-                  href={`/dashboard/sostenibilidad/documentos-flujodoc=${approval.document_id}`}
+                  href={`/dashboard/sostenibilidad/documentos-flujo?doc=${approval.document_id}`}
                 >
                   <div className="p-3 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 cursor-pointer transition">
                     <div className="flex items-start justify-between gap-2">

@@ -17,7 +17,7 @@ interface DocumentApproval {
 
 export function PendingApprovalsWidget() {
   const { data: pendingData, isLoading } = useSWR(
-    '/api/sostenibilidad/documentos-flujostatus=pending&limit=5',
+    '/api/sostenibilidad/documentos-flujo?status=pending&limit=5',
     fetcher,
     { revalidateOnFocus: false }
   );

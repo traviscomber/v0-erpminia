@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ workOrders: (data || []).map(mapWorkOrder) });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch work orders';
+    const message = error instanceof Error ? error.message : 'No se pudieron obtener las órdenes de trabajo';
     return NextResponse.json({ workOrders: [], error: message }, { status: 500 });
   }
 }
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data: mapWorkOrder(data) }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to create work order';
+    const message = error instanceof Error ? error.message : 'No se pudo crear la orden de trabajo';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

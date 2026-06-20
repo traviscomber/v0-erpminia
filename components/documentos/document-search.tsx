@@ -29,7 +29,7 @@ export function DocumentSearch({ onResultsChange, placeholder = 'Buscar document
   const [showResults, setShowResults] = useState(false);
 
   const { data: searchData, isLoading } = useSWR(
-    searchTerm ? `/api/sostenibilidad/documentos-flujo/searchq=${encodeURIComponent(searchTerm)}&category=${category}&status=${status}` : null,
+    searchTerm ? `/api/sostenibilidad/documentos-flujo/search?q=${encodeURIComponent(searchTerm)}&category=${encodeURIComponent(category)}&status=${encodeURIComponent(status)}` : null,
     fetcher,
     { revalidateOnFocus: false, dedupingInterval: 500 }
   );

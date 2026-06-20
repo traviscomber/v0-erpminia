@@ -95,7 +95,7 @@ export async function PATCH(
 
     return NextResponse.json({ data: mapWorkOrder(data) });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to update work order';
+    const message = error instanceof Error ? error.message : 'No se pudo actualizar la orden de trabajo';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
