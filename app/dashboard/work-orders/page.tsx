@@ -43,16 +43,42 @@ export default function WorkOrdersPage() {
   const critical = workOrders.filter((wo: any) => wo.priority === 'critical').length;
   const completed = workOrders.filter((wo: any) => wo.status === 'completed').length;
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'Completada';
+      case 'in_progress':
+        return 'En progreso';
+      case 'open':
+        return 'Abierta';
+      default:
+        return status || 'Sin estado';
+    }
+  };
+
+  const getWorkTypeLabel = (workType: string) => {
+    switch (workType) {
+      case 'corrective':
+        return 'Correctiva';
+      case 'preventive':
+        return 'Preventiva';
+      case 'predictive':
+        return 'Predictiva';
+      default:
+        return workType || 'Sin tipo';
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Ordenes de Trabajo</h1>
-          <p className="text-muted-foreground">Gestion de mantenimiento y seguimiento operativo</p>
+          <h1 className="text-3xl font-bold">Órdenes de Trabajo</h1>
+          <p className="text-muted-foreground">Gestión de mantenimiento y seguimiento operativo</p>
         </div>
         <Link href="/dashboard/work-orders/create">
           <Button className="gap-2">
-            <Plus className="w-4 h-4" /> Crear Nueva Orden
+            <Plus className="w-4 h-4" /> Crear nueva orden
           </Button>
         </Link>
       </div>
@@ -86,7 +112,7 @@ export default function WorkOrdersPage() {
           <CardContent className="pt-6">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Criticas</p>
+                <p className="text-sm text-muted-foreground">Críticas</p>
                 <p className="text-3xl font-bold text-destructive mt-2">{critical}</p>
               </div>
               <AlertCircle className="h-8 w-8 text-destructive opacity-60" />
@@ -115,13 +141,13 @@ export default function WorkOrdersPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Ordenes Activas</CardTitle>
+          <CardTitle>Órdenes activas</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             {workOrders.length === 0 && (
               <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
-                No hay ordenes de trabajo registradas todavia
+                No hay órdenes de trabajo registradas todavía
               </div>
             )}
             {workOrders.map((wo: any) => (
@@ -129,10 +155,10 @@ export default function WorkOrdersPage() {
                 <div className={`border-2 ${getPriorityColor(wo.priority)} rounded-lg p-4 hover:bg-muted/30 transition-colors cursor-pointer`}>
                   <div className="flex items-start justify-between gap-4 mb-3">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <code className="text-xs font-mono bg-muted px-2 py-1 rounded">{wo.work_order_number}</code>
-                        <Badge className={getStatusColor(wo.status)} variant="outline">{String(wo.status).replace('_', ' ').toUpperCase()}</Badge>
-                        <Badge variant="outline">{String(wo.work_type || 'preventive').toUpperCase()}</Badge>
+                    <div className="flex items-center gap-2 mb-1">
+                      <code className="text-xs font-mono bg-muted px-2 py-1 rounded">{wo.work_order_number}</code>
+                        <Badge className={getStatusColor(wo.status)} variant="outline">{getStatusLabel(wo.status)}</Badge>
+                        <Badge variant="outline">{getWorkTypeLabel(wo.work_type || 'preventive')}</Badge>
                       </div>
                       <h3 className="font-semibold">{wo.title}</h3>
                       <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">

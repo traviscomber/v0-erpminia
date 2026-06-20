@@ -35,7 +35,7 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title) {
-      toast.error('El titulo es obligatorio');
+      toast.error('El título es obligatorio');
       return;
     }
 
@@ -63,7 +63,7 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
       }
 
       const { data } = await res.json();
-      toast.success(`Orden de trabajo ${data.work_order_number} creada con exito`);
+      toast.success(`Orden de trabajo ${data.work_order_number} creada con éxito`);
       onSuccess();
       setFormData({
         title: '',
@@ -89,7 +89,7 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="title">Titulo</Label>
+            <Label htmlFor="title">Título</Label>
             <Input
               id="title"
               value={formData.title}
@@ -99,7 +99,7 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
           </div>
 
           <div>
-            <Label htmlFor="description">Descripcion</Label>
+            <Label htmlFor="description">Descripción</Label>
             <textarea
               id="description"
               value={formData.description}
@@ -110,7 +110,7 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
           </div>
 
           <div>
-            <Label htmlFor="costCenter">Centro de Costos</Label>
+            <Label htmlFor="costCenter">Centro de costos</Label>
             <CostCenterSelect
               value={formData.costCenterId}
               onValueChange={(id) => setFormData({ ...formData, costCenterId: id })}
@@ -151,7 +151,7 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="plannedDuration">Duracion planificada (horas)</Label>
+              <Label htmlFor="plannedDuration">Duración planificada (horas)</Label>
               <Input
                 id="plannedDuration"
                 type="number"

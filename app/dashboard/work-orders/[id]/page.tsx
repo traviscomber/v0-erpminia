@@ -20,28 +20,70 @@ export default function WorkOrderDetailPage() {
   );
 
   const workOrder = data?.data;
+  const hasWorkOrder = Boolean(workOrder);
+
+  const getStatusLabel = (status?: string) => {
+    switch (status) {
+      case 'completed':
+        return 'Completada';
+      case 'in_progress':
+        return 'En progreso';
+      case 'open':
+        return 'Abierta';
+      default:
+        return status || 'Sin estado';
+    }
+  };
+
+  const getPriorityLabel = (priority?: string) => {
+    switch (priority) {
+      case 'low':
+        return 'Baja';
+      case 'medium':
+        return 'Media';
+      case 'high':
+        return 'Alta';
+      case 'critical':
+        return 'Crítica';
+      default:
+        return priority || 'Sin prioridad';
+    }
+  };
+
+  const getWorkTypeLabel = (workType?: string) => {
+    switch (workType) {
+      case 'corrective':
+        return 'Correctiva';
+      case 'preventive':
+        return 'Preventiva';
+      case 'predictive':
+        return 'Predictiva';
+      default:
+        return workType || 'Sin tipo';
+    }
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-bold">{workOrder.work_order_number || 'Orden de trabajo'}</h1>
-          <p className="text-muted-foreground">{workOrder.title || 'Cargando detalle de mantencion'}</p>
+          <h1 className="text-3xl font-bold">{workOrder?.work_order_number || 'Orden de trabajo'}</h1>
+          <p className="text-muted-foreground">{workOrder?.title || 'Cargando detalle de mantención'}</p>
         </div>
         <Link href="/dashboard/work-orders">
           <Button variant="outline">Volver</Button>
         </Link>
       </div>
 
-      {!workOrder && (
+      {!hasWorkOrder && (
         <Card>
           <CardContent className="pt-6 text-muted-foreground">
-            No se encontro informacion para esta orden de trabajo.
+            No se encontró información para esta orden de trabajo.
           </CardContent>
         </Card>
       )}
 
-      {workOrder && (
+      {hasWorkOrder && (
         <>
           <Card>
             <CardHeader>
@@ -51,15 +93,15 @@ export default function WorkOrderDetailPage() {
             <CardContent className="grid gap-4 md:grid-cols-3">
               <div>
                 <p className="text-sm text-muted-foreground">Estado</p>
-                <Badge variant="outline">{workOrder.status}</Badge>
+                <Badge variant="outline">{getStatusLabel(workOrder.status)}</Badge>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Prioridad</p>
-                <p className="font-medium">{workOrder.priority || 'medium'}</p>
+                <p className="font-medium">{getPriorityLabel(workOrder.priority)}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Tipo</p>
-                <p className="font-medium">{workOrder.work_type || 'preventive'}</p>
+                <p className="font-medium">{getWorkTypeLabel(workOrder.work_type)}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Activo</p>
@@ -74,7 +116,7 @@ export default function WorkOrderDetailPage() {
                 <p className="font-medium">{workOrder.scheduled_date ? new Date(workOrder.scheduled_date).toLocaleDateString('es-CL') : 'Sin fecha'}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Codigo activo</p>
+                <p className="text-sm text-muted-foreground">Código activo</p>
                 <p className="font-medium">{workOrder.asset_code || 'No disponible'}</p>
               </div>
               <div>
@@ -86,13 +128,13 @@ export default function WorkOrderDetailPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Descripcion</CardTitle>
+              <CardTitle>Descripción</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-sm">{workOrder.description || 'Sin descripcion adicional.'}</p>
+              <p className="text-sm">{workOrder.description || 'Sin descripción adicional.'}</p>
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <p className="text-sm text-muted-foreground">Causa raiz</p>
+                  <p className="text-sm text-muted-foreground">Causa raíz</p>
                   <p className="font-medium">{workOrder.root_cause || 'No registrada'}</p>
                 </div>
                 <div>
