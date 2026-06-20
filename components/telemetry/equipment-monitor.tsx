@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { AlertCircle, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface EquipmentStatus {
   id: string;
@@ -13,11 +13,26 @@ interface EquipmentStatus {
   status: 'operational' | 'warning' | 'critical' | 'offline';
   availability: number;
   activeAlarms: number;
-  lastReading: {
+  lastReading?: {
     value: number;
     unit: string;
     timestamp: string;
   };
+}
+
+function deriveAvailability(status: string) {
+  switch (status) {
+    case 'operational':
+      return 100;
+    case 'warning':
+      return 85;
+    case 'critical':
+      return 60;
+    case 'offline':
+      return 0;
+    default:
+      return 90;
+  }
 }
 
 export function EquipmentMonitor() {
@@ -35,7 +50,6 @@ export function EquipmentMonitor() {
 
         if (equipError) throw equipError;
 
-        // Enrich with alarm data
         const enrichedEquipment = await Promise.all(
           (equipmentData || []).map(async (eq: any) => {
             const { data: alarmData } = await supabase
@@ -50,27 +64,32 @@ export function EquipmentMonitor() {
               .eq('equipment_id', eq.id)
               .order('timestamp', { ascending: false })
               .limit(1)
-              .single();
+              .maybeSingle();
 
             return {
               id: eq.id,
               name: eq.name,
               type: eq.type,
               status: eq.status || 'operational',
-              availability: Math.floor(Math.random() * (100 - 80) + 80),
+              availability: deriveAvailability(eq.status || 'operational'),
               activeAlarms: alarmData?.length || 0,
-              lastReading: readingData ? {
-                value: typeof readingData.value === 'number' ? readingData.value : 0,
-                unit: typeof readingData.unit === 'string' ? readingData.unit : '',
-                timestamp: typeof readingData.timestamp === 'string' ? readingData.timestamp : new Date().toISOString(),
-              } : undefined,
+              lastReading: readingData
+                ? {
+                    value: typeof readingData.value === 'number' ? readingData.value : Number(readingData.value) || 0,
+                    unit: typeof readingData.unit === 'string' ? readingData.unit : '',
+                    timestamp:
+                      typeof readingData.timestamp === 'string'
+                        ? readingData.timestamp
+                        : new Date().toISOString(),
+                  }
+                : undefined,
             } as EquipmentStatus;
           })
         );
 
         setEquipment(enrichedEquipment);
       } catch (err) {
-        console.error('[v0] Error fetching equipment status:', err);
+        console.error('[v0] Error al cargar el estado de equipos:', err);
       } finally {
         setLoading(false);
       }
@@ -78,7 +97,6 @@ export function EquipmentMonitor() {
 
     fetchEquipmentStatus();
 
-    // Subscribe to equipment changes
     const subscription = supabase
       .channel('equipment-status')
       .on(
@@ -121,9 +139,9 @@ export function EquipmentMonitor() {
       case 'warning':
         return <Badge className="bg-yellow-600/10 text-yellow-700">Alerta</Badge>;
       case 'critical':
-        return <Badge className="bg-destructive/10 text-destructive">Crítico</Badge>;
+        return <Badge className="bg-destructive/10 text-destructive">Critico</Badge>;
       case 'offline':
-        return <Badge className="bg-gray-600/10 text-gray-700">Offline</Badge>;
+        return <Badge className="bg-gray-600/10 text-gray-700">Sin senal</Badge>;
       default:
         return <Badge>Desconocido</Badge>;
     }
@@ -134,13 +152,13 @@ export function EquipmentMonitor() {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
       {equipment.map((eq) => (
         <Card key={eq.id} className="border-border">
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
+                <div className="mb-1 flex items-center gap-2">
                   {getStatusIcon(eq.status)}
                   <CardTitle className="text-sm">{eq.name}</CardTitle>
                 </div>
@@ -157,19 +175,19 @@ export function EquipmentMonitor() {
                   <p className="text-lg font-bold">{eq.availability}%</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Alarmas Activas</p>
+                  <p className="text-xs text-muted-foreground">Alarmas activas</p>
                   <p className="text-lg font-bold text-yellow-600">{eq.activeAlarms}</p>
                 </div>
               </div>
 
               {eq.lastReading && (
-                <div className="pt-2 border-t border-border/50">
-                  <p className="text-xs text-muted-foreground">Última lectura</p>
+                <div className="border-t border-border/50 pt-2">
+                  <p className="text-xs text-muted-foreground">Ultima lectura</p>
                   <div className="flex items-baseline gap-1">
                     <span className="text-sm font-semibold">{eq.lastReading.value}</span>
                     <span className="text-xs text-muted-foreground">{eq.lastReading.unit}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     {new Date(eq.lastReading.timestamp).toLocaleTimeString('es-CL')}
                   </p>
                 </div>

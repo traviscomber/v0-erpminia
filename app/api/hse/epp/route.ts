@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
       total: entregas.length,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch HSE EPP data';
+    const message = error instanceof Error ? error.message : 'No se pudieron cargar los datos de EPP';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

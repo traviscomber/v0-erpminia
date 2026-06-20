@@ -3,31 +3,211 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 
+type SensorRow = {
+  id: string;
+  equipment_id: string | null;
+  sensor_type: string | null;
+  unit: string | null;
+  name: string | null;
+};
+
+type ReadingRow = {
+  id: string;
+  sensor_id: string | null;
+  equipment_id: string | null;
+  timestamp: string | null;
+  created_at: string | null;
+  received_at: string | null;
+  value: number | string | null;
+  temperature: number | string | null;
+  pressure: number | string | null;
+  vibration: number | string | null;
+  rpm: number | string | null;
+};
+
+function toNumber(value: unknown) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function normalizeStatusFromReadings(
+  temperature: number | null,
+  vibration: number | null,
+  activeAlarmCount: number,
+  equipmentStatus?: string | null
+) {
+  const status = String(equipmentStatus || '').toLowerCase();
+
+  if (['offline', 'inactive', 'inactivo', 'fuera_servicio', 'fuera_de_servicio'].includes(status)) {
+    return 'alert';
+  }
+
+  if ((temperature !== null && temperature > 75) || (vibration !== null && vibration > 2.8)) {
+    return 'alert';
+  }
+
+  if (activeAlarmCount > 0) {
+    return 'alert';
+  }
+
+  return 'normal';
+}
+
+function safeTime(value: string | null) {
+  if (!value) return new Date().toISOString();
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString();
+}
+
+function buildSensorSummary(readings: ReadingRow[], sensorsById: Map<string, SensorRow>) {
+  let temperature: number | null = null;
+  let pressure: number | null = null;
+  let vibration: number | null = null;
+  let rpm: number | null = null;
+  let lastTimestamp: string | null = null;
+
+  for (const reading of readings) {
+    const sensor = reading.sensor_id ? sensorsById.get(reading.sensor_id) : undefined;
+    const sensorType = String(sensor?.sensor_type || '').toLowerCase();
+    const timestamp = reading.timestamp || reading.created_at || reading.received_at;
+    if (!lastTimestamp || (timestamp && new Date(timestamp).getTime() > new Date(lastTimestamp).getTime())) {
+      lastTimestamp = timestamp || lastTimestamp;
+    }
+
+    const directTemperature = toNumber(reading.temperature);
+    const directPressure = toNumber(reading.pressure);
+    const directVibration = toNumber(reading.vibration);
+    const directRpm = toNumber(reading.rpm);
+
+    if (directTemperature !== null) temperature = directTemperature;
+    if (directPressure !== null) pressure = directPressure;
+    if (directVibration !== null) vibration = directVibration;
+    if (directRpm !== null) rpm = directRpm;
+
+    if (sensorType.includes('temp') && toNumber(reading.value) !== null) temperature = toNumber(reading.value);
+    if (sensorType.includes('press') && toNumber(reading.value) !== null) pressure = toNumber(reading.value);
+    if (sensorType.includes('vib') && toNumber(reading.value) !== null) vibration = toNumber(reading.value);
+    if (sensorType.includes('rpm') && toNumber(reading.value) !== null) rpm = toNumber(reading.value);
+  }
+
+  return {
+    temperature,
+    pressure,
+    vibration,
+    rpm,
+    timestamp: safeTime(lastTimestamp),
+  };
+}
+
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
 
   try {
     const { searchParams } = new URL(request.url);
-    const asset_id = searchParams.get('asset_id');
+    const equipmentId =
+      searchParams.get('equipment_id') ||
+      searchParams.get('asset_id') ||
+      searchParams.get('equipmentId');
 
-    // Simulate sensor readings
-    const temperature = 68 + Math.random() * 8; // 68-76°C
-    const pressure = 45 + Math.random() * 5; // 45-50 PSI
-    const vibration = 2.1 + Math.random() * 0.8; // 2.1-2.9 m/s²
-    const rpm = 1200 + Math.random() * 50; // Normal operating range
+    if (!equipmentId) {
+      return NextResponse.json({ error: 'equipment_id es requerido', sensor_data: null, alarms: [] }, { status: 400 });
+    }
 
-    const sensor_data = {
-      asset_id: asset_id || 'SIM-001',
-      temperature: parseFloat(temperature.toFixed(2)),
-      pressure: parseFloat(pressure.toFixed(2)),
-      vibration: parseFloat(vibration.toFixed(2)),
-      rpm: parseFloat(rpm.toFixed(0)),
-      status: temperature > 75 || vibration > 2.8 ? 'alert' : 'normal',
-      timestamp: new Date().toISOString(),
-    };
+    const { data: equipment } = await context.supabase
+      .from('equipment')
+      .select('id, name, type, status')
+      .eq('id', equipmentId)
+      .maybeSingle();
 
-    return NextResponse.json({ sensor_data });
+    const { data: maintenanceAsset } = await context.supabase
+      .from('maintenance_assets')
+      .select('id, asset_name, asset_type, status')
+      .eq('id', equipmentId)
+      .eq('organization_id', context.organizationId)
+      .maybeSingle();
+
+    const { data: sensors } = await context.supabase
+      .from('sensors')
+      .select('id, equipment_id, sensor_type, unit, name')
+      .eq('equipment_id', equipmentId)
+      .order('name', { ascending: true });
+
+    const sensorRows = (sensors || []) as SensorRow[];
+    const sensorIds = sensorRows.map((sensor) => sensor.id);
+
+    const { data: directReadings } = await context.supabase
+      .from('sensor_readings')
+      .select('id, sensor_id, equipment_id, timestamp, created_at, received_at, value, temperature, pressure, vibration, rpm')
+      .eq('equipment_id', equipmentId)
+      .order('timestamp', { ascending: false })
+      .limit(50);
+
+    const readings = (directReadings || []) as ReadingRow[];
+
+    const sensorReadings =
+      readings.length > 0
+        ? readings
+        : sensorIds.length > 0
+        ? ((await context.supabase
+            .from('sensor_readings')
+            .select('id, sensor_id, equipment_id, timestamp, created_at, received_at, value, temperature, pressure, vibration, rpm')
+            .in('sensor_id', sensorIds)
+            .order('timestamp', { ascending: false })
+            .limit(50)).data || []) as ReadingRow[]
+        : [];
+
+    const sensorsById = new Map(sensorRows.map((sensor) => [sensor.id, sensor] as const));
+    const sensorSummary = buildSensorSummary(sensorReadings, sensorsById);
+
+    const { data: alarms } = await context.supabase
+      .from('alarms')
+      .select('id, equipment_id, severity, message, description, created_at, timestamp, acknowledged_at, status')
+      .eq('equipment_id', equipmentId)
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    const activeAlarms = (alarms || []).filter(
+      (alarm: any) => !['resolved', 'resuelta', 'cerrada', 'closed'].includes(String(alarm.status || '').toLowerCase())
+    );
+
+    const currentStatus = normalizeStatusFromReadings(
+      sensorSummary.temperature,
+      sensorSummary.vibration,
+      activeAlarms.length,
+      equipment?.status || maintenanceAsset?.status
+    );
+
+    const availability =
+      currentStatus === 'alert'
+        ? Math.max(60, 90 - activeAlarms.length * 5)
+        : currentStatus === 'normal'
+        ? 96
+        : 0;
+
+    return NextResponse.json({
+      equipment_id: equipmentId,
+      equipment_name: equipment?.name || maintenanceAsset?.asset_name || 'Equipo',
+      sensor_data: {
+        asset_id: equipmentId,
+        temperature: sensorSummary.temperature,
+        pressure: sensorSummary.pressure,
+        vibration: sensorSummary.vibration,
+        rpm: sensorSummary.rpm,
+        status: currentStatus,
+        timestamp: sensorSummary.timestamp,
+      },
+      availability_percentage: availability,
+      alarms: activeAlarms.map((alarm: any) => ({
+        id: alarm.id,
+        equipment_id: alarm.equipment_id,
+        severity: alarm.severity || 'medium',
+        message: alarm.message || alarm.description || 'Alerta operacional',
+        description: alarm.description || alarm.message || '',
+        created_at: alarm.created_at || alarm.timestamp || new Date().toISOString(),
+      })),
+      last_updated: sensorSummary.timestamp,
+    });
   } catch (error) {
     return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }
@@ -42,16 +222,18 @@ export async function POST(request: NextRequest) {
 
     const { data, error } = await context.supabase
       .from('equipment_sensors')
-      .insert([{
-        organization_id: context.organizationId,
-        asset_id,
-        temperature,
-        pressure,
-        vibration,
-        rpm,
-        status: temperature > 75 || vibration > 2.8 ? 'alert' : 'normal',
-        recorded_at: new Date().toISOString(),
-      }])
+      .insert([
+        {
+          organization_id: context.organizationId,
+          asset_id,
+          temperature,
+          pressure,
+          vibration,
+          rpm,
+          status: temperature > 75 || vibration > 2.8 ? 'alert' : 'normal',
+          recorded_at: new Date().toISOString(),
+        },
+      ])
       .select('*')
       .single();
 

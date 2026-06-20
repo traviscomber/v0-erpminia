@@ -160,7 +160,7 @@ export async function GET(request: NextRequest) {
     for (const approval of pendingApprovals) {
       alerts.push({
         id: `approval-${approval.id}`,
-        title: `Aprobacion pendiente - ${approval.document.title}`,
+        title: `Aprobación pendiente - ${approval.document.title}`,
         description: `Te corresponde revisar ${approval.levelName.toLowerCase()} del documento ${approval.document.documentNumber || approval.document.title}.`,
         severity: 'media',
         type: 'documento',
@@ -174,8 +174,8 @@ export async function GET(request: NextRequest) {
     for (const contract of legalCompliance.contracts_pending_review || []) {
       alerts.push({
         id: `contract-review-${contract.id}`,
-        title: `Contrato en revision - ${contract.title}`,
-        description: 'Contrato pendiente de revision legal o compliance.',
+        title: `Contrato en revisión - ${contract.title}`,
+        description: 'Contrato pendiente de revisión legal o cumplimiento.',
         severity: 'alta',
         type: 'contrato',
         timestamp: new Date().toISOString(),
@@ -190,7 +190,7 @@ export async function GET(request: NextRequest) {
       alerts.push({
         id: `contract-expiring-${contract.id}`,
         title: `Contrato por vencer - ${contract.title}`,
-        description: `Vence en ${days} dia${days === 1 ? '' : 's'}. Requiere seguimiento contractual.`,
+        description: `Vence en ${days} día${days === 1 ? '' : 's'}. Requiere seguimiento contractual.`,
         severity: days <= 7 ? 'critica' : 'alta',
         type: 'contrato',
         timestamp: safeDate(contract.end_date),
@@ -205,7 +205,7 @@ export async function GET(request: NextRequest) {
       alerts.push({
         id: `document-expiring-${document.id}`,
         title: `Documento por vencer - ${document.title}`,
-        description: `Documento regulatorio con vencimiento en ${days} dia${days === 1 ? '' : 's'}.`,
+        description: `Documento regulatorio con vencimiento en ${days} día${days === 1 ? '' : 's'}.`,
         severity: days <= 7 ? 'alta' : 'media',
         type: 'documento',
         timestamp: safeDate(document.expiry_date),
@@ -221,7 +221,7 @@ export async function GET(request: NextRequest) {
 
       alerts.push({
         id: `wo-${workOrder.id}`,
-        title: `${severity === 'critica' ? 'Orden critica' : 'Orden prioritaria'} - ${workOrder.title}`,
+        title: `${severity === 'critica' ? 'Orden crítica' : 'Orden prioritaria'} - ${workOrder.title}`,
         description:
           workOrder.description ||
           `OT ${workOrder.work_order_number || ''} asociada a ${workOrder.asset?.asset_name || 'equipo operativo'}.`,
@@ -255,7 +255,7 @@ export async function GET(request: NextRequest) {
       alerts.push({
         id: `nc-${nc.id}`,
         title: `No conformidad vencida - ${nc.nc_number || nc.title}`,
-        description: `${nc.title}. Lleva ${overdueDays} dia${overdueDays === 1 ? '' : 's'} vencida.`,
+        description: `${nc.title}. Lleva ${overdueDays} día${overdueDays === 1 ? '' : 's'} vencida.`,
         severity: severityFromDays(overdueDays, severityFromPriority(nc.severity)),
         type: 'sostenibilidad',
         timestamp: safeDate(nc.target_closure_date),
@@ -270,8 +270,8 @@ export async function GET(request: NextRequest) {
       const nc = Array.isArray(ca.nonconformance) ? ca.nonconformance[0] : ca.nonconformance;
       alerts.push({
         id: `ca-${ca.id}`,
-        title: `Accion correctiva vencida - ${ca.ca_number || ca.action_description}`,
-        description: `${ca.action_description}. Relacionada a ${nc.title || 'no conformidad'} y vencida hace ${overdueDays} dia${overdueDays === 1 ? '' : 's'}.`,
+        title: `Acción correctiva vencida - ${ca.ca_number || ca.action_description}`,
+        description: `${ca.action_description}. Relacionada a ${nc.title || 'no conformidad'} y vencida hace ${overdueDays} día${overdueDays === 1 ? '' : 's'}.`,
         severity: severityFromDays(overdueDays, severityFromPriority(nc.severity)),
         type: 'sostenibilidad',
         timestamp: safeDate(ca.scheduled_completion_date),
@@ -306,7 +306,7 @@ export async function GET(request: NextRequest) {
       generatedAt: new Date().toISOString(),
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch alerts';
+    const message = error instanceof Error ? error.message : 'No se pudieron cargar las alertas';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

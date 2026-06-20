@@ -5,35 +5,35 @@ import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'bcryptjs';
 
 /**
- * User registration API endpoint
- * Creates a new user in the profiles table
+ * Endpoint de registro de usuarios
+ * Crea un nuevo usuario en la tabla profiles
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { email, password, name } = body;
 
-    // Validate required fields
+    // Validar campos requeridos
     if (!email || !password) {
       return NextResponse.json(
-        { error: 'Email and password are required' },
+        { error: 'Correo electrónico y contraseña son obligatorios' },
         { status: 400 }
       );
     }
 
-    // Validate email format
+    // Validar formato del correo
     const emailRegex = /^[^\s@]+@[^\s@]+\[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return NextResponse.json(
-        { error: 'Invalid email format' },
+        { error: 'Formato de correo inválido' },
         { status: 400 }
       );
     }
 
-    // Validate password strength
+    // Validar fortaleza de la contraseña
     if (password.length < 8) {
       return NextResponse.json(
-        { error: 'Password must be at least 8 characters' },
+        { error: 'La contraseña debe tener al menos 8 caracteres' },
         { status: 400 }
       );
     }
@@ -43,14 +43,14 @@ export async function POST(request: NextRequest) {
 
     if (!supabaseUrl || !supabaseServiceKey) {
       return NextResponse.json(
-        { error: 'Server configuration error' },
+        { error: 'Error de configuración del servidor' },
         { status: 500 }
       );
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Check if user already exists
+    // Verificar si el usuario ya existe
     const { data: existingUser } = await supabase
       .from('profiles')
       .select('id')
@@ -59,15 +59,15 @@ export async function POST(request: NextRequest) {
 
     if (existingUser) {
       return NextResponse.json(
-        { error: 'User already exists' },
+        { error: 'El usuario ya existe' },
         { status: 409 }
       );
     }
 
-    // Hash password
+    // Encriptar contraseña
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create user in profiles table
+    // Crear usuario en la tabla profiles
     const { data: newUser, error: createError } = await supabase
       .from('profiles')
       .insert({
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     if (createError) {
       console.error('[v0] Registration error:', createError);
       return NextResponse.json(
-        { error: 'Failed to create user' },
+        { error: 'No se pudo crear el usuario' },
         { status: 500 }
       );
     }
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        message: 'User registered successfully',
+        message: 'Usuario registrado correctamente',
         user: {
           id: newUser.id,
           email: newUser.email,
@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('[v0] Registration error:', error);
     return NextResponse.json(
-      { error: 'Registration failed' },
+      { error: 'El registro falló' },
       { status: 500 }
     );
   }

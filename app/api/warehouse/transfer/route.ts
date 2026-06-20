@@ -46,14 +46,14 @@ export async function POST(request: NextRequest) {
 
     if (!stockId || !toBinId || quantity <= 0) {
       return NextResponse.json(
-        { error: 'stockId, toBinId and a positive quantity are required' },
+        { error: 'stockId, toBinId y una cantidad positiva son obligatorios' },
         { status: 400 }
       );
     }
 
     const validBinIds = await getOrganizationBins(context.supabase, context.organizationId);
     if (!validBinIds.includes(toBinId)) {
-      return NextResponse.json({ error: 'Destination bin not found' }, { status: 404 });
+      return NextResponse.json({ error: 'No se encontró el bin de destino' }, { status: 404 });
     }
 
     const { data: sourceStock, error: sourceError } = await context.supabase
@@ -65,18 +65,18 @@ export async function POST(request: NextRequest) {
 
     if (sourceError) throw sourceError;
     if (!sourceStock) {
-      return NextResponse.json({ error: 'Source stock not found' }, { status: 404 });
+      return NextResponse.json({ error: 'No se encontró el stock de origen' }, { status: 404 });
     }
 
     if (sourceStock.bin_id === toBinId) {
       return NextResponse.json(
-        { error: 'Destination bin must be different from source bin' },
+        { error: 'El bin de destino debe ser diferente al bin de origen' },
         { status: 400 }
       );
     }
 
     if (quantity > Number(sourceStock.quantity_available || sourceStock.quantity_on_hand || 0)) {
-      return NextResponse.json({ error: 'Insufficient available stock' }, { status: 400 });
+      return NextResponse.json({ error: 'Stock disponible insuficiente' }, { status: 400 });
     }
 
     const movingAll = quantity === Number(sourceStock.quantity_on_hand || 0);

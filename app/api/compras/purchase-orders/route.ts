@@ -60,9 +60,11 @@ export async function POST(request: NextRequest) {
     }
 
     const total_amount = quantity * unit_price;
-    const po_number = `PO-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000)
-      .toString()
-      .padStart(4, '0')}`;
+    const { count } = await context.supabase
+      .from('purchase_orders')
+      .select('id', { count: 'exact', head: true })
+      .eq('organization_id', context.organizationId);
+    const po_number = `PO-${new Date().getFullYear()}-${String((count || 0) + 1).padStart(4, '0')}`;
 
     const { data, error } = await context.supabase
       .from('purchase_orders')

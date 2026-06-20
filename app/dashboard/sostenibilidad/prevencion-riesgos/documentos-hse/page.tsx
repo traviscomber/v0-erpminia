@@ -111,7 +111,7 @@ export default function DocumentosHSEPage() {
     }
   };
 
-  // Draft docs are loaded but not yet reviewed ? show them in main tab
+  // Los borradores se cargan pero aún no están revisados; se muestran en la pestaña principal
   const draftDocs = documents.filter(d =>
     d.status === 'draft' || !d.status
   );
@@ -173,7 +173,7 @@ export default function DocumentosHSEPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-yellow-500">{stats.en_revision}</p>
-            <p className="text-xs text-muted-foreground">esperando Aprobacion</p>
+            <p className="text-xs text-muted-foreground">Esperando aprobación</p>
           </CardContent>
         </Card>
 
@@ -245,7 +245,7 @@ export default function DocumentosHSEPage() {
         <TabsContent value="upload" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Subir Nuevo Documento</CardTitle>
+              <CardTitle>Subir nuevo documento</CardTitle>
               <CardDescription>
                 Sube documentos HSE: politicas, procedimientos, instructivos, programas de seguridad
               </CardDescription>
@@ -261,7 +261,7 @@ export default function DocumentosHSEPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Review Modal */}
+      {/* Modal de revisión */}
       <DocumentReviewModal
         document={selectedDoc}
         isOpen={reviewOpen}

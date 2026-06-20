@@ -162,7 +162,7 @@ export default function FlujDocumentalPage() {
       <div className="mb-8 flex justify-between items-start">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-3xl font-bold text-foreground">Flujo de Aprobacion de Documentos</h1>
+            <h1 className="text-3xl font-bold text-foreground">Flujo de Aprobación de Documentos</h1>
           </div>
           <p className="text-muted-foreground">Flujo de 2 validadores: Jefe de Sostenibilidad &rarr; Gerente General</p>
         </div>
@@ -170,20 +170,20 @@ export default function FlujDocumentalPage() {
           <DialogTrigger asChild>
             <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
               <Plus className="w-4 h-4 mr-2" />
-              Nuevo Documento
+              Nuevo documento
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Nuevo Documento</DialogTitle>
+              <DialogTitle>Nuevo documento</DialogTitle>
               <DialogDescription>
-                Sube un documento y completa sus detalles para el flujo de Aprobacion
+                Sube un documento y completa sus detalles para el flujo de aprobación
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-6">
               {/* Upload Section */}
               <div>
-                <Label className="text-base font-semibold mb-3 block">1. Subir Documento</Label>
+                <Label className="text-base font-semibold mb-3 block">1. Subir documento</Label>
                 <DocumentUpload 
                   onUploadSuccess={handleUploadSuccess}
                   maxSizeMB={10}
@@ -193,10 +193,10 @@ export default function FlujDocumentalPage() {
 
               {/* Document Details */}
               <div className="border-t pt-6">
-                <Label className="text-base font-semibold mb-4 block">2. Detalles del Documento</Label>
+                <Label className="text-base font-semibold mb-4 block">2. Detalles del documento</Label>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <Label htmlFor="nombre">Nombre del Documento *</Label>
+                    <Label htmlFor="nombre">Nombre del documento *</Label>
                     <Input
                       id="nombre"
                       name="documento_nombre"
@@ -207,13 +207,13 @@ export default function FlujDocumentalPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="descripcion">Descripcion</Label>
+                    <Label htmlFor="descripcion">Descripción</Label>
                     <textarea
                       id="descripcion"
                       name="descripcion"
                       value={formData.descripcion}
                       onChange={handleInputChange}
-                      placeholder="Descripcion del documento"
+                      placeholder="Descripción del documento"
                       className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm"
                       rows={3}
                     />
@@ -244,7 +244,7 @@ export default function FlujDocumentalPage() {
                       disabled={!formData.archivo_url}
                       className="bg-primary text-primary-foreground hover:bg-primary/90"
                     >
-                      Crear Documento
+                      Crear documento
                     </Button>
                   </div>
                 </form>
@@ -257,7 +257,7 @@ export default function FlujDocumentalPage() {
       {/* Diagrama del flujo */}
       <Card className="mb-8 rounded-xl border shadow-none">
         <CardHeader>
-              <CardTitle className="text-sm">Fases de Aprobacion</CardTitle>
+              <CardTitle className="text-sm">Fases de Aprobación</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-3 overflow-x-auto pb-4">
@@ -356,7 +356,7 @@ export default function FlujDocumentalPage() {
                             </p>
                           </div>
                         ) : (
-                          <p className="text-muted-foreground text-sm italic">Pendiente de Revision</p>
+                          <p className="text-muted-foreground text-sm italic">Pendiente de revisión</p>
                         )}
                       </div>
 
@@ -379,7 +379,7 @@ export default function FlujDocumentalPage() {
                             </p>
                           </div>
                         ) : (
-                          <p className="text-muted-foreground text-sm italic">Pendiente de Revision V2</p>
+                          <p className="text-muted-foreground text-sm italic">Pendiente de revisión V2</p>
                         )}
                       </div>
                     </div>

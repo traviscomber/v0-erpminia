@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
   try {
     const value = request.nextUrl.searchParams.get('value');
     if (!value) {
-      return NextResponse.json({ error: 'value is required' }, { status: 400 });
+      return NextResponse.json({ error: 'value es obligatorio' }, { status: 400 });
     }
 
     const { data, error } = await context.supabase
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error;
     if (!data) {
-      return NextResponse.json({ error: 'QR code not found' }, { status: 404 });
+      return NextResponse.json({ error: 'No se encontró el código QR' }, { status: 404 });
     }
 
     await Promise.allSettled([
@@ -40,13 +40,13 @@ export async function GET(request: NextRequest) {
         action: 'view',
         bin_id_before: data.bin_id,
         bin_id_after: data.bin_id,
-        notes: `Scanned by ${context.userName || context.userEmail || context.userId}`,
+        notes: `Escaneado por ${context.userName || context.userEmail || context.userId}`,
       }),
     ]);
 
     return NextResponse.json(data);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to scan QR code';
+    const message = error instanceof Error ? error.message : 'No se pudo escanear el código QR';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     const binId = body.binId || body.bin_id || null;
 
     if (!stockId) {
-      return NextResponse.json({ error: 'stockId is required' }, { status: 400 });
+      return NextResponse.json({ error: 'stockId es obligatorio' }, { status: 400 });
     }
 
     const { data: stock, error: stockError } = await context.supabase
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
 
     if (stockError) throw stockError;
     if (!stock) {
-      return NextResponse.json({ error: 'Stock item not found' }, { status: 404 });
+      return NextResponse.json({ error: 'No se encontró el ítem de stock' }, { status: 404 });
     }
 
     const qrValue = `QR-${context.organizationId.slice(0, 8)}-${stockId.slice(0, 8)}-${nanoid(6)}`;
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ ...data, qrValue }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to generate QR code';
+    const message = error instanceof Error ? error.message : 'No se pudo generar el código QR';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -7,7 +7,7 @@ import { createContract, listContractsForOrganization } from '@/lib/api/contract
 export async function GET(request: NextRequest) {
   const auth = await requireAuth(request);
   if (!auth.authorized || !auth.organizationId || !auth.user) {
-    return auth.response || NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return auth.response || NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
   try {
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     const result = await listContractsForOrganization(auth.organizationId, search);
     return NextResponse.json(result);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch legal contracts';
+    const message = error instanceof Error ? error.message : 'No se pudieron cargar los contratos legales';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const auth = await requireAuth(request);
   if (!auth.authorized || !auth.organizationId || !auth.user) {
-    return auth.response || NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return auth.response || NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
   try {
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ contract }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to create legal contract';
+    const message = error instanceof Error ? error.message : 'No se pudo crear el contrato legal';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

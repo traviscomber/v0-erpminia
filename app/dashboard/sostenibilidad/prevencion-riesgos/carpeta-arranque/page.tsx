@@ -51,7 +51,7 @@ export default function CarpetaArranquePage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Carpeta de Arranque</h1>
         <p className="text-muted-foreground">
-          Sistema de validacion de documentos para empresas contratistas (EECC)
+          Sistema de validación de documentos para empresas contratistas (EECC)
         </p>
       </div>
 
@@ -152,7 +152,7 @@ export default function CarpetaArranquePage() {
           <div>
             <h2 className="text-lg font-semibold">Carpetas en Revision</h2>
             <p className="text-sm text-muted-foreground">
-              Documentos pendientes de validacion por los revisores asignados.
+              Documentos pendientes de validación por los revisores asignados.
             </p>
           </div>
           <CarpetaArranqueList key={"rev-" + listKey} status="en-revision" />

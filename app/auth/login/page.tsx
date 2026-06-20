@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -35,30 +35,30 @@ export default function LoginPage() {
       setError(data.error || 'Credenciales inválidas');
       setIsLoading(false);
     } catch {
-      setError('Error al iniciar sesi?n');
+      setError('Error al iniciar sesión');
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4" suppressHydrationWarning>
+    <div className="flex min-h-screen items-center justify-center bg-background p-4" suppressHydrationWarning>
       <div className="w-full max-w-md">
         <Card>
           <CardHeader className="space-y-2">
-            <CardTitle className="text-2xl">Iniciar Sesión</CardTitle>
-            <CardDescription>Motil — Plataforma Operacional Minera</CardDescription>
+            <CardTitle className="text-2xl">Iniciar sesión</CardTitle>
+            <CardDescription>Motil - Plataforma Operacional Minera</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4" suppressHydrationWarning>
               {error && (
-                <div className="flex gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded">
-                  <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0 mt-0.5" />
+                <div className="flex gap-2 rounded border border-destructive/20 bg-destructive/10 p-3">
+                  <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-destructive" />
                   <p className="text-sm text-destructive">{error}</p>
                 </div>
               )}
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Correo Electrónico</label>
+                <label className="text-sm font-medium">Correo electrónico</label>
                 <Input
                   type="email"
                   placeholder="usuario@empresa.cl"
@@ -82,13 +82,8 @@ export default function LoginPage() {
                 />
               </div>
 
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isLoading}
-                suppressHydrationWarning
-              >
-                {isLoading ? 'Ingresando...' : 'Iniciar Sesión'}
+              <Button type="submit" className="w-full" disabled={isLoading} suppressHydrationWarning>
+                {isLoading ? 'Ingresando...' : 'Iniciar sesión'}
               </Button>
             </form>
           </CardContent>

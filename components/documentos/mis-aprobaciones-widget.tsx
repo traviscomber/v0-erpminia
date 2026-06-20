@@ -36,7 +36,7 @@ export function MisAprobacionesWidget() {
     getRole();
   }, []);
 
-  // Fetch pending approvals based on user role
+  // Cargar aprobaciones pendientes según el rol del usuario
   const { data: pendingDocs, isLoading, error } = useSWR(
     userRole ? `/api/sostenibilidad/documentos-flujo?role=${encodeURIComponent(userRole)}&status=pending` : null,
     async (url) => {
@@ -91,7 +91,7 @@ export function MisAprobacionesWidget() {
           </div>
         ) : (
           <>
-            {/* Critical - overdue */}
+            {/* Críticos - vencidos */}
             {approvals
               .filter(a => a.days_pending > 7)
               .slice(0, 3)

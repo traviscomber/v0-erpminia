@@ -1,20 +1,27 @@
 'use client';
+
 import { useState } from 'react';
+import useSWR from 'swr';
+import { AlertCircle, CheckCircle, Clock, TrendingUp } from 'lucide-react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { AlertCircle, CheckCircle, Clock, TrendingUp } from 'lucide-react';
-import useSWR from 'swr';
-import { toast } from 'sonner';
 import { NonconformanceForm } from '@/components/sostenibilidad/nonconformances/nonconformance-form';
 import { NonconformanceCard } from '@/components/sostenibilidad/nonconformances/nonconformance-card';
 import { CorrectiveActionModal } from '@/components/sostenibilidad/nonconformances/corrective-action-modal';
 import { NonconformanceTable } from '@/components/sostenibilidad/nonconformances/nonconformance-table';
 
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  return res.ok ? res.json() : null;
+};
+
 export default function NonconformanceDashboard() {
   const [showForm, setShowForm] = useState(false);
   const [showCAModal, setShowCAModal] = useState(false);
   const [selectedNC, setSelectedNC] = useState<any>(null);
+
   const severityColors = {
     critical: 'bg-destructive/20 text-destructive',
     high: 'bg-orange-100 text-orange-800',
@@ -22,19 +29,15 @@ export default function NonconformanceDashboard() {
     low: 'bg-blue-100 text-blue-800',
   };
 
-  const { data: ncData, mutate: mutateNCs } = useSWR('/api/sostenibilidad/nonconformances', async (url: string) => {
-    const res = await fetch(url);
-    return res.ok ? res.json() : null;
-  });
-
-  const { data: reportData } = useSWR('/api/sostenibilidad/compliance-report', async (url: string) => {
-    const res = await fetch(url);
-    return res.ok ? res.json() : null;
-  });
+  const { data: ncData, mutate: mutateNCs } = useSWR('/api/sostenibilidad/nonconformances', fetcher);
+  const { data: reportData } = useSWR('/api/sostenibilidad/compliance-report', fetcher);
 
   const ncs = Array.isArray(ncData?.nonconformances) ? ncData.nonconformances : [];
   const stats = ncData?.stats || {};
   const report = reportData || {};
+
+  const openNCs = ncs.filter((nc: any) => nc.status === 'open');
+  const inProgressNCs = ncs.filter((nc: any) => nc.status === 'in_progress');
 
   const handleCreateNC = async (formData: any) => {
     try {
@@ -44,7 +47,6 @@ export default function NonconformanceDashboard() {
         body: JSON.stringify(formData),
       });
       if (!res.ok) throw new Error('No se pudo crear la no conformidad');
-      
       await mutateNCs();
       setShowForm(false);
       toast.success('No conformidad creada correctamente');
@@ -62,40 +64,35 @@ export default function NonconformanceDashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...caData, ncId: selectedNC.id }),
       });
-      if (!res.ok) throw new Error('No se pudo crear la accin correctiva');
-      
+      if (!res.ok) throw new Error('No se pudo crear la acción correctiva');
       setShowCAModal(false);
-      toast.success('Corrective action created successfully');
+      toast.success('Acción correctiva creada correctamente');
     } catch (error) {
-      toast.error('No se pudo crear la accin correctiva');
+      toast.error('No se pudo crear la acción correctiva');
       throw error;
     }
   };
 
-  const openNCs = ncs.filter((nc: any) => nc.status === 'open');
-  const inProgressNCs = ncs.filter((nc: any) => nc.status === 'in_progress');
-  const overdueCAs = report.overdue_actions || 0;
-
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-start">
+      <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Gestion de no conformidades</h1>
-          <p className="text-muted-foreground">Seguimiento, control y cierre de no conformidades con acciones correctivas</p>
+          <h1 className="mb-2 text-3xl font-bold text-foreground">Gestión de no conformidades</h1>
+          <p className="text-muted-foreground">
+            Seguimiento, control y cierre de no conformidades con acciones correctivas.
+          </p>
         </div>
-        <Button onClick={() => setShowForm(!showForm)} className="bg-primary">
-          {showForm ? 'Cancelar' : 'Reportar NC'}
-        </Button>
+        <Button onClick={() => setShowForm(!showForm)}>{showForm ? 'Cancelar' : 'Reportar no conformidad'}</Button>
       </div>
 
       {showForm && <NonconformanceForm onSubmit={handleCreateNC} />}
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <AlertCircle className="w-4 h-4" />
-              No conformidades abiertas
+            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <AlertCircle className="h-4 w-4" />
+              Abiertas
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -106,8 +103,8 @@ export default function NonconformanceDashboard() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Clock className="w-4 h-4" />
+            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <Clock className="h-4 w-4" />
               En progreso
             </CardTitle>
           </CardHeader>
@@ -119,8 +116,8 @@ export default function NonconformanceDashboard() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <CheckCircle className="w-4 h-4" />
+            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <CheckCircle className="h-4 w-4" />
               Cerradas
             </CardTitle>
           </CardHeader>
@@ -132,8 +129,8 @@ export default function NonconformanceDashboard() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <TrendingUp className="w-4 h-4" />
+            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <TrendingUp className="h-4 w-4" />
               Cumplimiento
             </CardTitle>
           </CardHeader>
@@ -148,7 +145,7 @@ export default function NonconformanceDashboard() {
         <Card className="border-destructive/50 bg-destructive/5">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 text-destructive">
-              <AlertCircle className="w-5 h-5" />
+              <AlertCircle className="h-5 w-5" />
               <span className="font-medium">{stats.overdue} no conformidades vencidas</span>
             </div>
           </CardContent>
@@ -164,7 +161,7 @@ export default function NonconformanceDashboard() {
         </TabsList>
 
         <TabsContent value="overview">
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid gap-4 md:grid-cols-2">
             <Card>
               <CardHeader>
                 <CardTitle>NC abiertas recientes</CardTitle>
@@ -174,13 +171,9 @@ export default function NonconformanceDashboard() {
                   <NonconformanceCard
                     key={nc.id}
                     nc={nc}
-                    onViewDetails={(id) => {
-                      const currentNC = ncs.find((item: any) => item.id === id) || nc;
-                      setSelectedNC(currentNC);
-                    }}
+                    onViewDetails={(id) => setSelectedNC(ncs.find((item: any) => item.id === id) || nc)}
                     onCreateCA={(id) => {
-                      const currentNC = ncs.find((item: any) => item.id === id) || nc;
-                      setSelectedNC(currentNC);
+                      setSelectedNC(ncs.find((item: any) => item.id === id) || nc);
                       setShowCAModal(true);
                     }}
                     severityColors={severityColors}
@@ -192,7 +185,7 @@ export default function NonconformanceDashboard() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Distribucion por severidad</CardTitle>
+                <CardTitle>Distribución por severidad</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 {['critical', 'high', 'medium', 'low'].map((sev: any) => (
@@ -206,21 +199,14 @@ export default function NonconformanceDashboard() {
           </div>
         </TabsContent>
 
-          <TabsContent value="open">
+        <TabsContent value="open">
           <Card>
             <CardHeader>
               <CardTitle>No conformidades activas</CardTitle>
               <CardDescription>Casos abiertos y en curso</CardDescription>
             </CardHeader>
             <CardContent>
-              <NonconformanceTable
-                data={openNCs}
-                onRowClick={(nc) => setSelectedNC(nc)}
-                onEdit={(nc) => {
-                  setSelectedNC(nc);
-                  setShowCAModal(true);
-                }}
-              />
+              <NonconformanceTable data={openNCs} onRowClick={(nc) => setSelectedNC(nc)} onEdit={(nc) => setSelectedNC(nc)} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -232,35 +218,24 @@ export default function NonconformanceDashboard() {
               <CardDescription>Historial completo de casos registrados</CardDescription>
             </CardHeader>
             <CardContent>
-              <NonconformanceTable
-                data={ncs}
-                onRowClick={(nc) => setSelectedNC(nc)}
-                onEdit={(nc) => {
-                  setSelectedNC(nc);
-                  setShowCAModal(true);
-                }}
-              />
+              <NonconformanceTable data={ncs} onRowClick={(nc) => setSelectedNC(nc)} onEdit={(nc) => setSelectedNC(nc)} />
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="severity">
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid gap-4 md:grid-cols-2">
             {['critical', 'high', 'medium', 'low'].map((sev: any) => {
               const filtered = ncs.filter((nc: any) => nc.severity === sev && nc.status !== 'closed');
               return (
                 <Card key={sev}>
                   <CardHeader>
-                    <CardTitle className="text-base capitalize">{sev} severidad</CardTitle>
+                    <CardTitle className="capitalize">{sev} severidad</CardTitle>
                     <CardDescription>{filtered.length} activas</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-2">
                     {filtered.slice(0, 5).map((nc: any) => (
-                      <button
-                        key={nc.id}
-                        onClick={() => setSelectedNC(nc)}
-                        className="w-full text-left text-sm p-2 rounded hover:bg-muted transition-colors"
-                      >
+                      <button key={nc.id} onClick={() => setSelectedNC(nc)} className="w-full rounded p-2 text-left text-sm hover:bg-muted">
                         <p className="font-medium truncate">{nc.title}</p>
                         <p className="text-xs text-muted-foreground">{nc.nc_number}</p>
                       </button>
@@ -276,12 +251,12 @@ export default function NonconformanceDashboard() {
       {selectedNC && !showCAModal && (
         <Card className="border-primary/20">
           <CardHeader>
-            <div className="flex justify-between items-start">
+            <div className="flex items-start justify-between">
               <div>
                 <CardTitle>{selectedNC.title}</CardTitle>
-                <CardDescription className="font-mono text-xs mt-1">{selectedNC.nc_number}</CardDescription>
+                <CardDescription className="mt-1 font-mono text-xs">{selectedNC.nc_number}</CardDescription>
               </div>
-                <Button variant="outline" onClick={() => setSelectedNC(null)}>
+              <Button variant="outline" onClick={() => setSelectedNC(null)}>
                 Cerrar
               </Button>
             </div>
@@ -289,16 +264,16 @@ export default function NonconformanceDashboard() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Descripcion</p>
+                <p className="text-sm font-medium text-muted-foreground">Descripción</p>
                 <p className="text-sm">{selectedNC.description}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Causa raiz</p>
+                <p className="text-sm font-medium text-muted-foreground">Causa raíz</p>
                 <p className="text-sm">{selectedNC.root_cause || 'No especificada'}</p>
               </div>
             </div>
             <Button onClick={() => setShowCAModal(true)} className="w-full">
-              Crear accin correctiva
+              Crear acción correctiva
             </Button>
           </CardContent>
         </Card>

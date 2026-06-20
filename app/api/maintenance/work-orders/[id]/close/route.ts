@@ -16,7 +16,7 @@ export async function POST(
     const body = await request.json();
     const { actual_duration_hours, root_cause } = body;
 
-    // Get the work order to calculate downtime
+    // Obtener la orden de trabajo para calcular la detención
     const { data: workOrder, error: woError } = await context.supabase
       .from('maintenance_work_orders')
       .select('*, asset:maintenance_assets(id, asset_name)')
@@ -25,10 +25,10 @@ export async function POST(
       .single();
 
     if (woError || !workOrder) {
-      return NextResponse.json({ error: 'Work order not found' }, { status: 404 });
+      return NextResponse.json({ error: 'No se encontró la orden de trabajo' }, { status: 404 });
     }
 
-    // Calculate downtime in hours (from start_date to completion)
+    // Calcular detención en horas (desde start_date hasta cierre)
     let downtime = 0;
     if (workOrder.start_date) {
       const startTime = new Date(workOrder.start_date);
@@ -36,7 +36,7 @@ export async function POST(
       downtime = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
     }
 
-    // Update work order
+    // Actualizar orden de trabajo
     const { data: updatedOT, error: updateError } = await context.supabase
       .from('maintenance_work_orders')
       .update({
@@ -54,7 +54,7 @@ export async function POST(
 
     if (updateError) throw updateError;
 
-    // Update equipment availability
+    // Actualizar disponibilidad del equipo
     const today = new Date().toISOString().split('T')[0];
     const availabilityPercent = Math.max(0, 100 - (downtime / 24) * 100);
 
@@ -77,7 +77,7 @@ export async function POST(
       availability_percentage: availabilityPercent,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to close work order';
+    const message = error instanceof Error ? error.message : 'No se pudo cerrar la orden de trabajo';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

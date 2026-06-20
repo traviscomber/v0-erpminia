@@ -1,25 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Trash2, Edit2, Loader2 } from 'lucide-react';
+import { Edit2, Loader2, Trash2 } from 'lucide-react';
 import type { UserRole } from '@/lib/rbac';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface User {
   id: string;
@@ -57,8 +44,8 @@ export function UsersList() {
     try {
       setLoading(true);
       const res = await fetch('/api/admin/users');
-      const data = await res.json();
-      setUsers(data.users || []);
+      const data = await res.json().catch(() => null);
+      setUsers(data?.users || []);
     } catch (error) {
       console.error('[v0] Error fetching users:', error);
     } finally {
@@ -84,7 +71,7 @@ export function UsersList() {
   };
 
   const handleDeleteUser = async (userId: string) => {
-    if (!confirm('Estas seguro de que deseas eliminar este usuario')) return;
+    if (!confirm('¿Estás seguro de que deseas eliminar este usuario?')) return;
 
     try {
       const res = await fetch('/api/admin/users', {
@@ -101,9 +88,10 @@ export function UsersList() {
     }
   };
 
-  const filteredUsers = users.filter((user) =>
-    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.full_name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUsers = users.filter(
+    (user) =>
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.full_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
@@ -126,7 +114,7 @@ export function UsersList() {
       </CardHeader>
       <CardContent className="space-y-4">
         <Input
-          placeholder="Buscar por email o nombre..."
+          placeholder="Buscar por correo o nombre..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="max-w-md"
@@ -136,11 +124,11 @@ export function UsersList() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Email</TableHead>
+                <TableHead>Correo</TableHead>
                 <TableHead>Nombre</TableHead>
                 <TableHead>Rol</TableHead>
                 <TableHead>Estado</TableHead>
-                <TableHead>Ultimo acceso</TableHead>
+                <TableHead>Último acceso</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>

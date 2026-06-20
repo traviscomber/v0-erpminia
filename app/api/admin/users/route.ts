@@ -12,14 +12,14 @@ import {
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin(request);
   if (!auth.authorized || !auth.user || !auth.organizationId) {
-    return auth.response || NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return auth.response || NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
   try {
     const users = await listOrganizationUsers(auth.organizationId);
     return NextResponse.json({ users });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch users';
+    const message = error instanceof Error ? error.message : 'No se pudieron cargar los usuarios';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const auth = await requireAdmin(request);
   if (!auth.authorized || !auth.user || !auth.organizationId) {
-    return auth.response || NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return auth.response || NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
   try {
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     const { email, password, full_name, role } = body;
 
     if (!email || !password || !full_name || !role) {
-      return NextResponse.json({ error: 'All fields required' }, { status: 400 });
+      return NextResponse.json({ error: 'Todos los campos son obligatorios' }, { status: 400 });
     }
 
     const user = await createOrganizationUser({
@@ -47,9 +47,9 @@ export async function POST(request: NextRequest) {
       assignedBy: auth.user.id,
     });
 
-    return NextResponse.json({ message: 'User created', user }, { status: 201 });
+    return NextResponse.json({ message: 'Usuario creado', user }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to create user';
+    const message = error instanceof Error ? error.message : 'No se pudo crear el usuario';
     const status = message === 'User already exists' ? 409 : 500;
     return NextResponse.json({ error: message }, { status });
   }
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   const auth = await requireAdmin(request);
   if (!auth.authorized || !auth.user || !auth.organizationId) {
-    return auth.response || NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return auth.response || NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
   try {
@@ -66,7 +66,7 @@ export async function PATCH(request: NextRequest) {
     const { userId, role } = body;
 
     if (!userId || !role) {
-      return NextResponse.json({ error: 'userId and role are required' }, { status: 400 });
+      return NextResponse.json({ error: 'userId y role son obligatorios' }, { status: 400 });
     }
 
     const updated = await updateOrganizationUserRole({
@@ -76,9 +76,9 @@ export async function PATCH(request: NextRequest) {
       assignedBy: auth.user.id,
     });
 
-    return NextResponse.json({ message: 'Role updated', user: updated });
+    return NextResponse.json({ message: 'Rol actualizado', user: updated });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to update role';
+    const message = error instanceof Error ? error.message : 'No se pudo actualizar el rol';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -86,7 +86,7 @@ export async function PATCH(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   const auth = await requireAdmin(request);
   if (!auth.authorized || !auth.user || !auth.organizationId) {
-    return auth.response || NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return auth.response || NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
   try {
@@ -94,7 +94,7 @@ export async function DELETE(request: NextRequest) {
     const { userId } = body;
 
     if (!userId) {
-      return NextResponse.json({ error: 'userId is required' }, { status: 400 });
+      return NextResponse.json({ error: 'userId es obligatorio' }, { status: 400 });
     }
 
     await deleteOrganizationUser({
@@ -102,9 +102,9 @@ export async function DELETE(request: NextRequest) {
       userId,
     });
 
-    return NextResponse.json({ message: 'User deleted' });
+    return NextResponse.json({ message: 'Usuario eliminado' });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to delete user';
+    const message = error instanceof Error ? error.message : 'No se pudo eliminar el usuario';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

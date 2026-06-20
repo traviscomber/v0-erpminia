@@ -16,7 +16,7 @@ export async function POST(
     const { partId, quantity } = body;
 
     if (!partId || !quantity) {
-      return NextResponse.json({ error: 'partId and quantity required' }, { status: 400 });
+      return NextResponse.json({ error: 'partId y quantity son obligatorios' }, { status: 400 });
     }
 
     const { data: stock, error: stockError } = await context.supabase
@@ -27,13 +27,13 @@ export async function POST(
       .single();
 
     if (stockError || !stock) {
-      return NextResponse.json({ error: 'Part not found' }, { status: 404 });
+      return NextResponse.json({ error: 'No se encontró la pieza' }, { status: 404 });
     }
 
     const available = stock.quantity_available ?? Math.max(0, (stock.quantity_on_hand || 0) - (stock.quantity_reserved || 0));
     if (available < quantity) {
       return NextResponse.json(
-        { error: `Insufficient stock. Available: ${available}` },
+        { error: `Stock insuficiente. Disponible: ${available}` },
         { status: 400 }
       );
     }
@@ -78,7 +78,7 @@ export async function POST(
 
     return NextResponse.json({ data: reservation, stock: updatedStock }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to reserve parts';
+    const message = error instanceof Error ? error.message : 'No se pudieron reservar las piezas';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -102,7 +102,7 @@ export async function GET(
 
     return NextResponse.json({ reservedParts: data || [] });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch reserved parts';
+    const message = error instanceof Error ? error.message : 'No se pudieron cargar las piezas reservadas';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -124,7 +124,7 @@ export async function DELETE(
       .single();
 
     if (fetchError || !reservation) {
-      return NextResponse.json({ error: 'Reservation not found' }, { status: 404 });
+      return NextResponse.json({ error: 'No se encontró la reserva' }, { status: 404 });
     }
 
     const { error: deleteError } = await context.supabase
@@ -159,7 +159,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to cancel reservation';
+    const message = error instanceof Error ? error.message : 'No se pudo cancelar la reserva';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

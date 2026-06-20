@@ -47,8 +47,8 @@ interface Carpeta {
 // Ayudantes
 const STATUS_CONFIG: Record<string, { label: string; icon: React.ReactNode; className: string }> = {
   pendiente:  { label: 'Pendiente',  icon: <Clock className="h-3 w-3" />,  className: 'bg-orange-500/10 text-orange-500 border-orange-500/20' },
-  en_revision_l1:  { label: 'Revision Nivel 1',  icon: <CircleDot className="h-3 w-3" />,  className: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },
-  en_revision_l2:  { label: 'Revision Nivel 2',  icon: <CircleDot className="h-3 w-3" />,  className: 'bg-purple-500/10 text-purple-500 border-purple-500/20' },
+  en_revision_l1:  { label: 'Revisión Nivel 1',  icon: <CircleDot className="h-3 w-3" />,  className: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },
+  en_revision_l2:  { label: 'Revisión Nivel 2',  icon: <CircleDot className="h-3 w-3" />,  className: 'bg-purple-500/10 text-purple-500 border-purple-500/20' },
   aprobado:  { label: 'Aprobado',  icon: <CheckCircle2 className="h-3 w-3" />, className: 'bg-green-500/10 text-green-500 border-green-500/20' },
   rechazado:  { label: 'Rechazado',  icon: <AlertCircle className="h-3 w-3" />, className: 'bg-red-500/10 text-red-500 border-red-500/20' },
 };
@@ -136,7 +136,7 @@ function ReviewModal({
       <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>
-            Revision Nivel {level} - {carpeta.empresa_nombre}
+            Revisión Nivel {level} - {carpeta.empresa_nombre}
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
             Marca cada documento como <strong>Cumple</strong> o <strong>No Cumple</strong>.

@@ -103,7 +103,7 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Nuevo Documento Legal</DialogTitle>
+          <DialogTitle>Nuevo documento legal</DialogTitle>
           <DialogDescription>
             Carga políticas, reglamentos, contratos o respaldos regulatorios para el módulo Legal.
           </DialogDescription>

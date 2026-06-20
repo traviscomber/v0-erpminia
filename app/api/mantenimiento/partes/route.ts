@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
   // Check inventory availability
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (!inventory || inventory.quantity < cantidad) {
-    return NextResponse.json({ error: 'Insufficient stock' }, { status: 400 });
+      return NextResponse.json({ error: 'Stock insuficiente' }, { status: 400 });
   }
 
   // Reserve parts
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
   const { data, error } = await supabase
@@ -109,7 +109,7 @@ export async function PATCH(request: NextRequest) {
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
   const { data, error } = await supabase

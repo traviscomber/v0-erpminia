@@ -109,7 +109,7 @@ async function parseContractRequest(request: NextRequest, organizationId: string
 export async function GET(request: NextRequest) {
   const auth = await requireAuth(request);
   if (!auth.authorized || !auth.organizationId) {
-    return auth.response || NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return auth.response || NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
   try {
@@ -117,7 +117,7 @@ export async function GET(request: NextRequest) {
     const result = await listContractsForOrganization(auth.organizationId, search);
     return NextResponse.json(result);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch contracts';
+    const message = error instanceof Error ? error.message : 'No se pudieron cargar los contratos';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -125,7 +125,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const auth = await requireAuth(request);
   if (!auth.authorized || !auth.organizationId || !auth.user) {
-    return auth.response || NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return auth.response || NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
   try {
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
 
     if (!payload.title) {
       return NextResponse.json(
-        { error: 'title is required' },
+        { error: 'title es obligatorio' },
         { status: 400 }
       );
     }
@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
     const contract = await createContract(payload);
     return NextResponse.json({ contract }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to create contract';
+    const message = error instanceof Error ? error.message : 'No se pudo crear el contrato';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

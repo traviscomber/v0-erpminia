@@ -13,16 +13,14 @@ export async function GET(
   const { id } = await params;
 
   try {
-    // Get OT asset
     const { data: ot } = await context.supabase
       .from('maintenance_work_orders')
       .select('asset_id')
       .eq('id', id)
       .single();
 
-    if (!ot) return NextResponse.json({ error: 'OT not found' }, { status: 404 });
+    if (!ot) return NextResponse.json({ error: 'No se encontró la OT' }, { status: 404 });
 
-    // Get HSE requirements for asset
     const { data: requirements } = await context.supabase
       .from('equipment_hse_requirements')
       .select('*')
@@ -38,7 +36,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to load HSE checklist' }, { status: 500 });
+    return NextResponse.json({ error: 'No se pudo cargar la lista HSE' }, { status: 500 });
   }
 }
 
@@ -58,19 +56,17 @@ export async function POST(
     const userId = authData.user?.id;
 
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    // Get OT
     const { data: ot } = await context.supabase
       .from('maintenance_work_orders')
       .select('asset_id')
       .eq('id', id)
       .single();
 
-    if (!ot) return NextResponse.json({ error: 'OT not found' }, { status: 404 });
+    if (!ot) return NextResponse.json({ error: 'No se encontró la OT' }, { status: 404 });
 
-    // Create incident
     const { data: incident, error } = await context.supabase
       .from('incidents')
       .insert({
@@ -88,7 +84,6 @@ export async function POST(
 
     if (error) throw error;
 
-    // Create investigation record
     if (findings) {
       await context.supabase.from('incident_investigations').insert({
         incident_id: incident.id,
@@ -100,7 +95,7 @@ export async function POST(
 
     return NextResponse.json({ incident }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to log incident';
+    const message = error instanceof Error ? error.message : 'No se pudo registrar el incidente';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

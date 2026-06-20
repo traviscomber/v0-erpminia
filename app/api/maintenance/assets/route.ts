@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ assets: (data || []).map(mapAsset) });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch maintenance assets';
+    const message = error instanceof Error ? error.message : 'No se pudieron cargar los activos de mantenimiento';
     return NextResponse.json({ assets: [], error: message }, { status: 500 });
   }
 }

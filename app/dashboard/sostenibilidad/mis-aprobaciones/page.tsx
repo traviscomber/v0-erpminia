@@ -1,26 +1,26 @@
 'use client';
 
 import useSWR from 'swr';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { CheckCircle2, FileText } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function MisAprobacionesPage() {
-  const { data: docData, isLoading } = useSWR('/api/sostenibilidad/documentos-flujo', fetcher);
+  const { data, isLoading } = useSWR('/api/sostenibilidad/documentos-flujo', fetcher);
 
-  const pendingApprovals =
-    (docData?.data || []).filter(
-      (doc: any) => doc.status === 'pending' || doc.status === 'submitted' || doc.status === 'under_review'
-    ) || [];
+  const documentos = Array.isArray(data?.data) ? data.data : [];
+  const pendientes = documentos.filter(
+    (doc: any) => doc.status === 'pending' || doc.status === 'submitted' || doc.status === 'under_review'
+  );
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Mis Aprobaciones</h1>
+        <h1 className="text-3xl font-bold text-foreground">Mis aprobaciones</h1>
         <p className="mt-2 text-muted-foreground">
-          Documentos pendientes de tu aprobacion en el flujo de sostenibilidad
+          Documentos pendientes de tu aprobación en el flujo de sostenibilidad
         </p>
       </div>
 
@@ -30,7 +30,7 @@ export default function MisAprobacionesPage() {
             <CardTitle className="text-sm font-medium">Pendientes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{pendingApprovals.length}</div>
+            <div className="text-3xl font-bold">{pendientes.length}</div>
           </CardContent>
         </Card>
 
@@ -55,20 +55,20 @@ export default function MisAprobacionesPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Documentos Pendientes</CardTitle>
-          <CardDescription>Esperando tu revision y aprobacion</CardDescription>
+          <CardTitle>Documentos pendientes</CardTitle>
+          <CardDescription>Esperando tu revisión y aprobación</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <p>Cargando...</p>
-          ) : pendingApprovals.length === 0 ? (
+          ) : pendientes.length === 0 ? (
             <div className="py-8 text-center">
               <CheckCircle2 className="mx-auto mb-4 h-12 w-12 text-muted-foreground/50" />
               <p className="text-muted-foreground">Sin documentos pendientes</p>
             </div>
           ) : (
             <div className="space-y-3">
-              {pendingApprovals.map((doc: any) => (
+              {pendientes.map((doc: any) => (
                 <div key={doc.id} className="flex items-center justify-between rounded-lg border p-3">
                   <div className="flex-1">
                     <div className="mb-1 flex items-center gap-2">
@@ -77,12 +77,9 @@ export default function MisAprobacionesPage() {
                     </div>
                     <p className="text-xs text-muted-foreground">{doc.description}</p>
                   </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
-                      Ver
-                    </Button>
-                    <Button size="sm">Aprobar</Button>
-                  </div>
+                  <Button variant="outline" size="sm">
+                    Revisar
+                  </Button>
                 </div>
               ))}
             </div>

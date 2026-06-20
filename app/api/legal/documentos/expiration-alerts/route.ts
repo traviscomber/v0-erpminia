@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
   const today = new Date();
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
     .order('expires_at', { ascending: false });
 
   if (expError || expiredError) {
-    return NextResponse.json({ error: 'Failed to fetch expiration alerts' }, { status: 500 });
+    return NextResponse.json({ error: 'No se pudieron cargar los alertas de vencimiento' }, { status: 500 });
   }
 
   return NextResponse.json({

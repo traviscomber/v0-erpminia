@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart3, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { AlertCircle, BarChart3, CheckCircle2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -33,7 +33,6 @@ export default function RegisterPage() {
     setError(null);
     setSuccess(false);
 
-    // Validations
     if (!email || !password || !confirmPassword || !fullName) {
       setError('Todos los campos son obligatorios');
       return;
@@ -59,7 +58,7 @@ export default function RegisterPage() {
         options: {
           data: {
             full_name: fullName,
-            role: 'operador_produccion', // Default role
+            role: 'operador_produccion',
           },
         },
       });
@@ -76,49 +75,45 @@ export default function RegisterPage() {
           router.push('/auth/login');
         }, 2000);
       }
-    } catch (err) {
+    } catch {
       setError('Error al registrarse. Intenta de nuevo.');
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background to-muted p-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="flex justify-center mb-8">
-          <div className="w-12 h-12 bg-sidebar-primary rounded-lg flex items-center justify-center">
-            <BarChart3 className="w-8 h-8 text-sidebar-primary-foreground" />
+        <div className="mb-8 flex justify-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-sidebar-primary">
+            <BarChart3 className="h-8 w-8 text-sidebar-primary-foreground" />
           </div>
         </div>
 
-        {/* Register Card */}
         <Card className="border-border">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl">Crear Cuenta</CardTitle>
-            <CardDescription>Motil — Plataforma Operacional Minera</CardDescription>
+            <CardTitle className="text-2xl">Crear cuenta</CardTitle>
+            <CardDescription>Motil - Plataforma Operacional Minera</CardDescription>
           </CardHeader>
           <CardContent>
             {success ? (
-              <div className="flex flex-col items-center justify-center py-8 space-y-3">
-                <CheckCircle2 className="w-12 h-12 text-[var(--brand-verde)]" />
-                <p className="font-semibold text-center">¡Registro exitoso!</p>
-                <p className="text-sm text-muted-foreground text-center">
-                  Redirigiendo a login en 2 segundos...
-                </p>
+              <div className="flex flex-col items-center justify-center space-y-3 py-8">
+                <CheckCircle2 className="h-12 w-12 text-[var(--brand-verde)]" />
+                <p className="text-center font-semibold">¡Registro exitoso!</p>
+                <p className="text-center text-sm text-muted-foreground">Redirigiendo a inicio de sesión en 2 segundos...</p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
                 {error && (
-                  <div className="flex items-start gap-3 p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
-                    <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0 mt-0.5" />
+                  <div className="flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/10 p-3">
+                    <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-destructive" />
                     <p className="text-sm text-destructive">{error}</p>
                   </div>
                 )}
 
                 <div className="space-y-2">
                   <label htmlFor="fullName" className="text-sm font-medium">
-                    Nombre Completo
+                    Nombre completo
                   </label>
                   <Input
                     id="fullName"
@@ -134,7 +129,7 @@ export default function RegisterPage() {
 
                 <div className="space-y-2">
                   <label htmlFor="email" className="text-sm font-medium">
-                    Correo Electrónico
+                    Correo electrónico
                   </label>
                   <Input
                     id="email"
@@ -169,7 +164,7 @@ export default function RegisterPage() {
 
                 <div className="space-y-2">
                   <label htmlFor="confirmPassword" className="text-sm font-medium">
-                    Confirmar Contraseña
+                    Confirmar contraseña
                   </label>
                   <Input
                     id="confirmPassword"
@@ -183,28 +178,27 @@ export default function RegisterPage() {
                   />
                 </div>
 
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Registrando...' : 'Crear Cuenta'}
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? 'Registrando...' : 'Crear cuenta'}
                 </Button>
               </form>
             )}
 
             <div className="mt-6 text-center text-sm">
               <p className="text-muted-foreground">
-                ¿Ya tienes cuenta{' '}
-                <Link href="/auth/login" className="text-sidebar-primary hover:underline font-semibold">
+                ¿Ya tienes cuenta?{' '}
+                <Link href="/auth/login" className="font-semibold text-sidebar-primary hover:underline">
                   Inicia sesión aquí
                 </Link>
               </p>
             </div>
 
-            <div className="mt-6 pt-6 border-t border-border">
-              <p className="text-xs text-muted-foreground text-center pt-4">
-                Desarrollado con <a href="https://n3uralia.com" target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline">n3uralia</a>
+            <div className="mt-6 border-t border-border pt-6">
+              <p className="pt-4 text-center text-xs text-muted-foreground">
+                Desarrollado con{' '}
+                <a href="https://n3uralia.com" target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline">
+                  n3uralia
+                </a>
               </p>
             </div>
           </CardContent>

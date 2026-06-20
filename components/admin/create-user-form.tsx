@@ -1,18 +1,19 @@
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import type { UserRole } from '@/lib/rbac';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-const ROLES: UserRole[] = ['admin', 'manager', 'technician', 'warehouse_staff', 'finance_officer', 'viewer'];
+const ROLES: { value: UserRole; label: string }[] = [
+  { value: 'admin', label: 'Administrador' },
+  { value: 'manager', label: 'Supervisor' },
+  { value: 'technician', label: 'Técnico' },
+  { value: 'warehouse_staff', label: 'Bodega' },
+  { value: 'finance_officer', label: 'Finanzas' },
+  { value: 'viewer', label: 'Lectura' },
+];
 
 interface CreateUserFormProps {
   onUserCreated: () => void;
@@ -28,10 +29,10 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
   const [success, setSuccess] = useState(false);
 
   const validatePassword = (pwd: string) => {
-    if (pwd.length < 8) return 'Minimo 8 caracteres';
-    if (!/[A-Z]/.test(pwd)) return 'Debe contener mayuscula';
-    if (!/[0-9]/.test(pwd)) return 'Debe contener numero';
-    if (!/[!@#$%^&*]/.test(pwd)) return 'Debe contener simbolo (!@#$%^&*)';
+    if (pwd.length < 8) return 'Mínimo 8 caracteres';
+    if (!/[A-Z]/.test(pwd)) return 'Debe contener mayúscula';
+    if (!/[0-9]/.test(pwd)) return 'Debe contener número';
+    if (!/[!@#$%^&*]/.test(pwd)) return 'Debe contener símbolo (!@#$%^&*)';
     return null;
   };
 
@@ -47,7 +48,7 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
 
     const passwordError = validatePassword(password);
     if (passwordError) {
-      setError(`Contrasena debil: ${passwordError}`);
+      setError(`Contraseña débil: ${passwordError}`);
       return;
     }
 
@@ -113,7 +114,7 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
                 </label>
                 <Input
                   id="fullName"
-                  placeholder="Juan Perez"
+                  placeholder="Juan Pérez"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   disabled={loading}
@@ -123,7 +124,7 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
 
               <div className="space-y-2">
                 <label htmlFor="email" className="text-sm font-medium">
-                  Email
+                  Correo electrónico
                 </label>
                 <Input
                   id="email"
@@ -140,7 +141,7 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label htmlFor="password" className="text-sm font-medium">
-                  Contrasena
+                  Contraseña
                 </label>
                 <Input
                   id="password"
@@ -151,9 +152,7 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
                   disabled={loading}
                   required
                 />
-                <p className="text-xs text-muted-foreground">
-                  Min 8 caracteres, mayuscula, numero y simbolo.
-                </p>
+                <p className="text-xs text-muted-foreground">Mínimo 8 caracteres, mayúscula, número y símbolo.</p>
               </div>
 
               <div className="space-y-2">
@@ -166,8 +165,8 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
                   </SelectTrigger>
                   <SelectContent>
                     {ROLES.map((item) => (
-                      <SelectItem key={item} value={item}>
-                        {item}
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
                       </SelectItem>
                     ))}
                   </SelectContent>

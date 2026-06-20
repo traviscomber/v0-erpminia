@@ -74,7 +74,7 @@ export function DocumentSearch({ onResultsChange, placeholder = 'Buscar document
         )}
       </div>
 
-      {/* Search Results Dropdown */}
+      {/* Desplegable de resultados */}
       {showResults && (
         <Card className="absolute top-full left-0 right-0 mt-2 max-h-64 overflow-y-auto z-50">
           <CardContent className="p-0">

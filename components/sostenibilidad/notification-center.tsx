@@ -24,7 +24,7 @@ export function NotificationCenter() {
     const handleNotification = (event: Event) => {
       const customEvent = event as CustomEvent;
       const newNotification: Notification = {
-        id: Math.random().toString(36),
+        id: crypto.randomUUID(),
         ...customEvent.detail,
         read: false,
       };

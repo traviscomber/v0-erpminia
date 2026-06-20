@@ -11,7 +11,7 @@ import {
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin(request);
   if (!auth.authorized || !auth.user || !auth.organizationId) {
-    return auth.response || NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return auth.response || NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
   try {
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ permissions });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch permissions';
+    const message = error instanceof Error ? error.message : 'No se pudieron cargar los permisos';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const auth = await requireAdmin(request);
   if (!auth.authorized || !auth.user || !auth.organizationId) {
-    return auth.response || NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return auth.response || NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
   try {
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
 
     if (!user_id || !module || !action) {
       return NextResponse.json(
-        { error: 'user_id, module and action are required' },
+        { error: 'user_id, módulo y acción son obligatorios' },
         { status: 400 }
       );
     }
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ permission }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to grant permission';
+    const message = error instanceof Error ? error.message : 'No se pudo otorgar el permiso';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   const auth = await requireAdmin(request);
   if (!auth.authorized || !auth.user || !auth.organizationId) {
-    return auth.response || NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return auth.response || NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
   try {
@@ -77,7 +77,7 @@ export async function DELETE(request: NextRequest) {
     const { permission_id } = body;
 
     if (!permission_id) {
-      return NextResponse.json({ error: 'permission_id is required' }, { status: 400 });
+      return NextResponse.json({ error: 'permission_id es obligatorio' }, { status: 400 });
     }
 
     await revokeUserPermission({
@@ -85,9 +85,9 @@ export async function DELETE(request: NextRequest) {
       permissionId: permission_id,
     });
 
-    return NextResponse.json({ message: 'Permission revoked' });
+    return NextResponse.json({ message: 'Permiso revocado' });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to revoke permission';
+    const message = error instanceof Error ? error.message : 'No se pudo revocar el permiso';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

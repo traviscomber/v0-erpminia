@@ -139,7 +139,7 @@ export default function CarpetaArranqueForm({ onSuccess }: CarpetaArranqueFormPr
     return (
       <div className="flex flex-col items-center justify-center py-12 gap-4 text-center">
         <CheckCircle2 className="h-16 w-16 text-green-500" />
-        <h3 className="text-xl font-semibold">Carpeta enviada a revision</h3>
+        <h3 className="text-xl font-semibold">Carpeta enviada a revisión</h3>
         <p className="text-muted-foreground text-sm max-w-md">
           Se ha notificado a Dennyse, Javier Vargas y Gonzalo Canales.
           Recibiras un correo cuando tus documentos sean revisados.

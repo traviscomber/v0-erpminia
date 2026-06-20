@@ -2,34 +2,19 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
+import { CheckCircle2, Clock, Lock, Plus, Shield, Trash2 } from 'lucide-react';
 import { BrandCard } from '@/components/ui/brand-card';
-import {
-  Shield,
-  Plus,
-  Trash2,
-  Clock,
-  CheckCircle2,
-  Lock,
-} from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const fetcher = async (url: string) => {
   const response = await fetch(url);
-  const data = await response.json();
-  if (!response.ok) {
-    return null;
-  }
+  const data = await response.json().catch(() => null);
+  if (!response.ok) return null;
   return data;
 };
 
@@ -37,8 +22,8 @@ const MODULES = ['produccion', 'mantenimiento', 'bodega', 'hse', 'documentos', '
 const ACTIONS = ['view', 'create', 'edit', 'delete', 'export', 'approve', 'admin'];
 const MINING_ROLES = [
   { id: 'admin', label: 'Administrador', description: 'Acceso total' },
-  { id: 'manager', label: 'Supervisor', description: 'Gestion operativa' },
-  { id: 'technician', label: 'Tecnico', description: 'Trabajo en terreno' },
+  { id: 'manager', label: 'Supervisor', description: 'Gestión operativa' },
+  { id: 'technician', label: 'Técnico', description: 'Trabajo en terreno' },
   { id: 'warehouse_staff', label: 'Bodega', description: 'Inventario y despacho' },
   { id: 'finance_officer', label: 'Finanzas', description: 'Control financiero' },
   { id: 'viewer', label: 'Lectura', description: 'Solo consulta' },
@@ -83,15 +68,15 @@ export default function PermissionsPage() {
         });
 
         if (!response.ok) {
-          const data = await response.json();
-          throw new Error(data.error || 'No se pudo otorgar el permiso');
+          const data = await response.json().catch(() => null);
+          throw new Error(data?.error || 'No se pudo otorgar el permiso');
         }
       }
 
       setSelectedActions([]);
       await mutatePermissions();
     } catch (error) {
-      console.error('[v0] Error granting permission:', error);
+      console.error('[v0] Error al otorgar permiso:', error);
     } finally {
       setSubmitting(false);
     }
@@ -109,8 +94,8 @@ export default function PermissionsPage() {
     }
   };
 
-  const userPermissions = permissionsData.permissions || [];
-  const users = usersData.users || [];
+  const userPermissions = permissionsData?.permissions || [];
+  const users = usersData?.users || [];
 
   return (
     <div className="space-y-6">
@@ -125,7 +110,7 @@ export default function PermissionsPage() {
             <Shield className="h-5 w-5" />
             Nuevo permiso
           </CardTitle>
-          <CardDescription>Elige usuario, modulo y acciones.</CardDescription>
+          <CardDescription>Elige usuario, módulo y acciones.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {usersError ? <p className="text-sm text-red-500">No se pudieron cargar los usuarios.</p> : null}
@@ -163,7 +148,7 @@ export default function PermissionsPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Modulo</label>
+              <label className="text-sm font-medium">Módulo</label>
               <Select value={selectedModule} onValueChange={setSelectedModule}>
                 <SelectTrigger>
                   <SelectValue />
@@ -179,7 +164,7 @@ export default function PermissionsPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Duracion en dias</label>
+              <label className="text-sm font-medium">Duración en días</label>
               <Input
                 type="number"
                 min="0"
@@ -201,9 +186,7 @@ export default function PermissionsPage() {
                     checked={selectedActions.includes(action)}
                     onCheckedChange={(checked) => {
                       setSelectedActions(
-                        checked
-                          ? [...selectedActions, action]
-                          : selectedActions.filter((item) => item !== action)
+                        checked ? [...selectedActions, action] : selectedActions.filter((item) => item !== action)
                       );
                     }}
                   />
@@ -215,7 +198,11 @@ export default function PermissionsPage() {
             </div>
           </div>
 
-          <Button onClick={handleGrantPermission} className="w-full" disabled={submitting || !selectedUser || selectedActions.length === 0}>
+          <Button
+            onClick={handleGrantPermission}
+            className="w-full"
+            disabled={submitting || !selectedUser || selectedActions.length === 0}
+          >
             <Plus className="mr-2 h-4 w-4" />
             {submitting ? 'Guardando...' : 'Guardar permiso'}
           </Button>
@@ -226,7 +213,7 @@ export default function PermissionsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Permisos actuales del usuario</CardTitle>
-            <CardDescription>Permisos individuales activos en la organizacion.</CardDescription>
+            <CardDescription>Permisos individuales activos en la organización.</CardDescription>
           </CardHeader>
           <CardContent>
             {permissionsError ? <p className="mb-4 text-sm text-red-500">No se pudieron cargar los permisos.</p> : null}
@@ -234,8 +221,8 @@ export default function PermissionsPage() {
               <table className="w-full text-sm">
                 <thead className="border-b">
                   <tr>
-                    <th className="px-4 py-2 text-left">Modulo</th>
-                    <th className="px-4 py-2 text-left">Accion</th>
+                    <th className="px-4 py-2 text-left">Módulo</th>
+                    <th className="px-4 py-2 text-left">Acción</th>
                     <th className="px-4 py-2 text-left">Estado</th>
                     <th className="px-4 py-2 text-left">Vencimiento</th>
                     <th className="px-4 py-2 text-left">Acciones</th>
@@ -293,14 +280,14 @@ export default function PermissionsPage() {
         </Card>
       )}
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Roles base</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {MINING_ROLES.map((role) => (
-                <BrandCard key={role.id} className="p-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Roles base</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {MINING_ROLES.map((role) => (
+              <BrandCard key={role.id} className="p-4">
                 <div className="font-semibold">{role.label}</div>
                 <div className="text-sm text-muted-foreground">{role.description}</div>
               </BrandCard>

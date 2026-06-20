@@ -24,29 +24,29 @@ export async function GET(request: NextRequest) {
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
   if (!otId) {
-    return NextResponse.json({ error: 'otId required' }, { status: 400 });
+    return NextResponse.json({ error: 'otId es obligatorio' }, { status: 400 });
   }
 
-  // Get OT with dates to calculate MTTR
+  // Obtener la OT con fechas para calcular el MTTR
   const { data: ot } = await supabase
     .from('mantenimiento_ordenes')
     .select('created_at, due_date, completed_at')
     .eq('id', otId)
     .single();
 
-  // Calculate MTTR in hours
+  // Calcular MTTR en horas
   let mttr = null;
   if (ot?.created_at && ot?.completed_at) {
     const createdTime = new Date(ot.created_at).getTime();
     const completedTime = new Date(ot.completed_at).getTime();
-    mttr = (completedTime - createdTime) / (1000 * 60 * 60); // Convert to hours
+    mttr = (completedTime - createdTime) / (1000 * 60 * 60); // Convertir a horas
   }
 
-  // Get total labor hours
+  // Obtener horas totales de trabajo
   const { data: timeEntries } = await supabase
     .from('mantenimiento_tiempo')
     .select('horas_trabajadas')
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
 
   const totalHoras = timeEntries?.reduce((sum, entry) => sum + entry.horas_trabajadas, 0) || 0;
 
-  // Get parts cost
+  // Obtener costo de repuestos
   const { data: parts } = await supabase
     .from('mantenimiento_partes')
     .select('quantity_consumed, sku(*)')
@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  // Recalculate MTTR KPI for the month
+  // Recalcular KPI de MTTR del mes
   const cookieStore = await cookies();
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -94,14 +94,14 @@ export async function POST(request: NextRequest) {
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
   const today = new Date();
   const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString();
   const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString();
 
-  // Get all completed OTs for the month
+  // Obtener todas las OT completadas del mes
   const { data: completedOts } = await supabase
     .from('mantenimiento_ordenes')
     .select('id, created_at, completed_at')
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ mttr_kpi: null });
   }
 
-  // Calculate average MTTR
+  // Calcular MTTR promedio
   const mttrValues = completedOts.map((ot) => {
     const created = new Date(ot.created_at).getTime();
     const completed = new Date(ot.completed_at).getTime();
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
 
   const mttrPromedio = mttrValues.reduce((a, b) => a + b, 0) / mttrValues.length;
 
-  // Store KPI
+  // Guardar KPI
   const mes = new Date(today.getFullYear(), today.getMonth(), 1).toISOString();
   const { data, error } = await supabase
     .from('mantenimiento_kpi')

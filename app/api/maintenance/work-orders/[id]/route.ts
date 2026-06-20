@@ -50,12 +50,12 @@ export async function GET(
     if (error) throw error;
 
     if (!data) {
-      return NextResponse.json({ error: 'Work order not found' }, { status: 404 });
+      return NextResponse.json({ error: 'No se encontró la orden de trabajo' }, { status: 404 });
     }
 
     return NextResponse.json({ data: mapWorkOrder(data) });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch work order';
+    const message = error instanceof Error ? error.message : 'No se pudo cargar la orden de trabajo';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -91,7 +91,7 @@ export async function PATCH(
       .single();
 
     if (error) throw error;
-    if (!data) return NextResponse.json({ error: 'Work order not found' }, { status: 404 });
+    if (!data) return NextResponse.json({ error: 'No se encontró la orden de trabajo' }, { status: 404 });
 
     return NextResponse.json({ data: mapWorkOrder(data) });
   } catch (error) {
@@ -119,7 +119,7 @@ export async function DELETE(
     if (error) throw error;
     return NextResponse.json({ success: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to delete work order';
+    const message = error instanceof Error ? error.message : 'No se pudo eliminar la orden de trabajo';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

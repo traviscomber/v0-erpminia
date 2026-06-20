@@ -23,10 +23,10 @@ export async function POST(request: NextRequest) {
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
-  // Store evidence metadata
+  // Guardar metadatos de la evidencia
   const filePath = `mantenimiento/${otId}/${Date.now()}_${fileName}`;
   const { data, error } = await supabase
     .from('mantenimiento_evidencia')
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Get signed URL for upload
+  // Obtener URL firmada para subir el archivo
   const { data: signedUrl } = await supabase.storage
     .from('mantenimiento-evidencia')
     .createSignedUploadUrl(filePath);
@@ -74,11 +74,11 @@ export async function GET(request: NextRequest) {
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
   if (!otId) {
-    return NextResponse.json({ error: 'otId required' }, { status: 400 });
+    return NextResponse.json({ error: 'otId es obligatorio' }, { status: 400 });
   }
 
   const { data, error } = await supabase
@@ -91,12 +91,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Get signed URLs for all files
+  // Obtener URLs firmadas para todos los archivos
   const evidence = await Promise.all(
     (data || []).map(async (file) => {
       const { data: signedUrl } = await supabase.storage
         .from('mantenimiento-evidencia')
-        .createSignedUrl(file.file_path, 3600); // 1 hour expiry
+        .createSignedUrl(file.file_path, 3600); // Expira en 1 hora
 
       return {
         ...file,

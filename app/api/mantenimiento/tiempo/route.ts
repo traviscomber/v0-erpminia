@@ -23,10 +23,10 @@ export async function POST(request: NextRequest) {
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
-  // Record labor time
+  // Registrar tiempo de trabajo
   const { data, error } = await supabase
     .from('mantenimiento_tiempo')
     .insert({
@@ -65,11 +65,11 @@ export async function GET(request: NextRequest) {
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
   if (!otId) {
-    return NextResponse.json({ error: 'otId required' }, { status: 400 });
+    return NextResponse.json({ error: 'otId es obligatorio' }, { status: 400 });
   }
 
   const { data, error } = await supabase

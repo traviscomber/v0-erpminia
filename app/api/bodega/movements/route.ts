@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     const userId = authData.user?.id;
 
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
     // Get current stock
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ movement, new_quantity: newQuantity }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to log movement';
+    const message = error instanceof Error ? error.message : 'No se pudo registrar el movimiento';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

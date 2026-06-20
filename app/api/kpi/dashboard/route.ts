@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
       period: '30_days',
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch KPIs';
+    const message = error instanceof Error ? error.message : 'No se pudieron cargar los KPIs';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

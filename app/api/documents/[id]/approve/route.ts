@@ -11,7 +11,7 @@ export async function POST(
 ) {
   const auth = await requireAuth(request);
   if (!auth.authorized || !auth.user) {
-    return auth.response || NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return auth.response || NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
   try {
@@ -19,7 +19,7 @@ export async function POST(
     const { approvalId, comments } = await request.json();
 
     if (!approvalId) {
-      return NextResponse.json({ error: 'approvalId is required' }, { status: 400 });
+      return NextResponse.json({ error: 'approvalId es obligatorio' }, { status: 400 });
     }
 
     const supabase = getSupabaseServerClient();
@@ -31,15 +31,15 @@ export async function POST(
       .maybeSingle();
 
     if (!approval) {
-      return NextResponse.json({ error: 'Approval not found' }, { status: 404 });
+      return NextResponse.json({ error: 'No se encontró la aprobación' }, { status: 404 });
     }
 
     if (approval.assigned_to && approval.assigned_to !== auth.user.id) {
-      return NextResponse.json({ error: 'Approval assigned to another user' }, { status: 403 });
+      return NextResponse.json({ error: 'La aprobación está asignada a otro usuario' }, { status: 403 });
     }
 
     if (approval.status !== 'pending') {
-      return NextResponse.json({ error: 'Approval is not pending' }, { status: 409 });
+      return NextResponse.json({ error: 'La aprobación no está pendiente' }, { status: 409 });
     }
 
     await DocumentService.approveDocument(id, approvalId, auth.user.id, comments);

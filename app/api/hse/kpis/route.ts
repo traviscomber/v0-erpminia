@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
       summary: data.summary,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch HSE KPIs';
+    const message = error instanceof Error ? error.message : 'No se pudieron cargar los KPIs HSE';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

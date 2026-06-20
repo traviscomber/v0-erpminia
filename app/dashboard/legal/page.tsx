@@ -592,9 +592,9 @@ export default function LegalPage() {
                     {(compliance.contracts_pending_review || []).slice(0, 5).map((item) => (
                       <li key={item.id}>{item.title}</li>
                     ))}
-                    {(compliance.contracts_pending_review || []).length === 0 && (
-                      <li>No hay contratos pendientes de revision.</li>
-                    )}
+                      {(compliance.contracts_pending_review || []).length === 0 && (
+                        <li>No hay contratos pendientes de revisión.</li>
+                      )}
                   </ul>
                 </div>
 
