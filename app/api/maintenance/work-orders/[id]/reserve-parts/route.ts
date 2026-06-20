@@ -16,16 +16,12 @@ export async function POST(
     const { partId, quantity } = body;
 
     if (!partId || !quantity) {
-      return NextResponse.json(
-        { error: 'partId and quantity required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'partId and quantity required' }, { status: 400 });
     }
 
-    // Check current stock
     const { data: stock, error: stockError } = await context.supabase
       .from('warehouse_stock')
-      .select('id, quantity_on_hand, quantity_available')
+      .select('id, quantity_on_hand, quantity_reserved, quantity_available, part_code, part_name')
       .eq('id', partId)
       .eq('organization_id', context.organizationId)
       .single();
@@ -34,21 +30,33 @@ export async function POST(
       return NextResponse.json({ error: 'Part not found' }, { status: 404 });
     }
 
-    if (stock.quantity_available < quantity) {
+    const available = stock.quantity_available ?? Math.max(0, (stock.quantity_on_hand || 0) - (stock.quantity_reserved || 0));
+    if (available < quantity) {
       return NextResponse.json(
-        { error: `Insufficient stock. Available: ${stock.quantity_available}` },
+        { error: `Insufficient stock. Available: ${available}` },
         { status: 400 }
       );
     }
 
-    // Insert order_wear_parts record (links OT to parts)
+    const { data: updatedStock, error: updateError } = await context.supabase
+      .from('warehouse_stock')
+      .update({
+        quantity_reserved: (stock.quantity_reserved || 0) + quantity,
+      })
+      .eq('id', partId)
+      .eq('organization_id', context.organizationId)
+      .select()
+      .single();
+
+    if (updateError) throw updateError;
+
     const { data: reservation, error: reserveError } = await context.supabase
       .from('order_wear_parts')
       .insert({
         organization_id: context.organizationId,
         maintenance_order_id: workOrderId,
         part_id: partId,
-        quantity: quantity,
+        quantity,
         status: 'reserved',
         created_by: context.userId,
       })
@@ -57,21 +65,18 @@ export async function POST(
 
     if (reserveError) throw reserveError;
 
-    // Create movement log
-    await context.supabase
-      .from('stock_movements')
-      .insert({
-        organization_id: context.organizationId,
-        warehouse_stock_id: partId,
-        movement_type: 'reservation',
-        quantity: -quantity,
-        reference_id: workOrderId,
-        reference_type: 'maintenance_work_order',
-        notes: `Reserved for work order`,
-        created_by: context.userId,
-      });
+    await context.supabase.from('stock_movements').insert({
+      organization_id: context.organizationId,
+      warehouse_stock_id: partId,
+      movement_type: 'reservation',
+      quantity: -quantity,
+      reference_id: workOrderId,
+      reference_type: 'maintenance_work_order',
+      notes: `Reservado para orden de trabajo`,
+      created_by: context.userId,
+    });
 
-    return NextResponse.json({ data: reservation }, { status: 201 });
+    return NextResponse.json({ data: reservation, stock: updatedStock }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to reserve parts';
     return NextResponse.json({ error: message }, { status: 500 });
@@ -89,9 +94,7 @@ export async function GET(
   try {
     const { data, error } = await context.supabase
       .from('order_wear_parts')
-      .select(
-        '*, part:warehouse_stock(id, part_code, part_name, unit_cost, quantity_on_hand)'
-      )
+      .select('*, part:warehouse_stock(id, part_code, part_name, unit_cost, quantity_on_hand, quantity_reserved)')
       .eq('maintenance_order_id', workOrderId)
       .eq('organization_id', context.organizationId);
 
@@ -113,10 +116,9 @@ export async function DELETE(
   if (!context.ok) return context.response;
 
   try {
-    // Get reservation to get quantity for reversal
     const { data: reservation, error: fetchError } = await context.supabase
       .from('order_wear_parts')
-      .select()
+      .select('id, maintenance_order_id, part_id, quantity, part:warehouse_stock(quantity_reserved)')
       .eq('id', reservationId)
       .eq('organization_id', context.organizationId)
       .single();
@@ -125,7 +127,6 @@ export async function DELETE(
       return NextResponse.json({ error: 'Reservation not found' }, { status: 404 });
     }
 
-    // Delete reservation
     const { error: deleteError } = await context.supabase
       .from('order_wear_parts')
       .delete()
@@ -133,19 +134,28 @@ export async function DELETE(
 
     if (deleteError) throw deleteError;
 
-    // Reverse movement log
     await context.supabase
-      .from('stock_movements')
-      .insert({
-        organization_id: context.organizationId,
-        warehouse_stock_id: reservation.part_id,
-        movement_type: 'reservation_cancel',
-        quantity: reservation.quantity,
-        reference_id: reservation.maintenance_order_id,
-        reference_type: 'maintenance_work_order',
-        notes: `Cancelled reservation`,
-        created_by: context.userId,
-      });
+      .from('warehouse_stock')
+      .update({
+        quantity_reserved: Math.max(
+          0,
+          (((reservation.part as Array<{ quantity_reserved?: number }> | undefined)?.[0]?.quantity_reserved) || 0) -
+            (reservation.quantity || 0),
+        ),
+      })
+      .eq('id', reservation.part_id)
+      .eq('organization_id', context.organizationId);
+
+    await context.supabase.from('stock_movements').insert({
+      organization_id: context.organizationId,
+      warehouse_stock_id: reservation.part_id,
+      movement_type: 'reservation_cancel',
+      quantity: reservation.quantity,
+      reference_id: reservation.maintenance_order_id,
+      reference_type: 'maintenance_work_order',
+      notes: `Reserva cancelada`,
+      created_by: context.userId,
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

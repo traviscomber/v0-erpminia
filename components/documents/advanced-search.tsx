@@ -79,7 +79,7 @@ export function AdvancedDocumentSearch() {
   useEffect(() => {
     const fetchEtiquetas = async () => {
       try {
-        const res = await fetch('/api/documents/tagsmodule=prevención');
+        const res = await fetch('/api/documents/tags?module=prevención');
         const data = await res.json();
         setAvailableTags(data);
       } catch (err) {
