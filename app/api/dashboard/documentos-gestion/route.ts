@@ -52,7 +52,7 @@ function matchesCategory(document: any, keywords: string[]) {
 export async function GET(request: NextRequest) {
   const auth = await requireAuth(request);
   if (!auth.authorized || !auth.organizationId) {
-    return auth.response || NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return auth.response || NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
   try {

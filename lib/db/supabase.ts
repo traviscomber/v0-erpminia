@@ -7,7 +7,7 @@ function getClients() {
   const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceRoleKey) {
-    throw new Error('Missing Supabase environment variables');
+    throw new Error('Faltan variables de entorno de Supabase');
   }
 
   return {

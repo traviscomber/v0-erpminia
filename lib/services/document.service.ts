@@ -7,7 +7,7 @@ function getSupabaseClient() {
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Missing Supabase environment variables');
+    throw new Error('Faltan variables de entorno de Supabase');
   }
 
   return createClient(supabaseUrl, supabaseKey);
@@ -110,7 +110,7 @@ export class DocumentService {
         .from('documents')
         .upload(fileName, input.file);
 
-      if (uploadError) throw new Error(`Upload failed: ${uploadError.message}`);
+      if (uploadError) throw new Error(`La carga falló: ${uploadError.message}`);
 
       const documentId = nanoid();
       const { data: document, error: docError } = await supabase

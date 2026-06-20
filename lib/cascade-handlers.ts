@@ -9,7 +9,7 @@ function getSupabaseClient() {
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   
   if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Missing Supabase environment variables');
+    throw new Error('Faltan variables de entorno de Supabase');
   }
   
   return createClient(supabaseUrl, supabaseKey);
@@ -59,7 +59,7 @@ export const handleSensorAnomaly = async (sensorId: string, equipmentId: string,
 
         maintenanceOrder = data;
       } else {
-        throw new Error('Unable to resolve organization for automatic maintenance order');
+        throw new Error('No se pudo resolver la organización para la orden de mantenimiento automática');
       }
 
       return { maintenanceOrder, hseAlert };

@@ -90,7 +90,7 @@ export function SustainabilityKPIDashboard() {
               {overview.overdue_cas}
             </div>
             <div className="mt-2 text-xs text-muted-foreground">
-              Requiere accin inmediata
+              Requiere acción inmediata
             </div>
           </CardContent>
         </Card>

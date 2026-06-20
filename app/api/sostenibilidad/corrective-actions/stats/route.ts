@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'No se pudieron cargar las estadsticas de acciones correctivas';
+    const message = error instanceof Error ? error.message : 'No se pudieron cargar las estadísticas de acciones correctivas';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

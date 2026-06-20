@@ -9,7 +9,7 @@ function getSupabaseServerClient() {
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   
   if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Missing Supabase environment variables');
+    throw new Error('Faltan variables de entorno de Supabase');
   }
   
   return createClient(supabaseUrl, supabaseKey);
@@ -60,7 +60,7 @@ export async function rbacMiddleware(
     if (!user) {
       return {
         isAuthorized: false,
-        error: 'Unauthorized',
+        error: 'No autorizado',
         statusCode: 401,
         user: null,
       };
@@ -166,7 +166,7 @@ export async function validateUserOwnership(
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { isValid: false, error: 'Unauthorized', statusCode: 401 };
+    return { isValid: false, error: 'No autorizado', statusCode: 401 };
   }
 
   if (user.id !== userIdFromUrl) {
@@ -189,7 +189,7 @@ export async function validateOrganizationAccess(
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { isValid: false, error: 'Unauthorized', statusCode: 401 };
+    return { isValid: false, error: 'No autorizado', statusCode: 401 };
   }
 
   try {

@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
   );
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (authError || !user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
   const { data, error } = await supabase
     .from('sostenibilidad_incidentes')
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
   );
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (authError || !user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
   let query = supabase.from('sostenibilidad_incidentes').select('*');
 

@@ -77,7 +77,7 @@ export async function getMaintenanceOrders() {
   const supabase = await createClient();
   const auth = await getMaintenanceActionAuthContext();
   if (!auth.organizationId) {
-    throw new Error('Unauthorized maintenance access');
+    throw new Error('Acceso no autorizado a mantenimiento');
   }
 
   const { data, error } = await supabase
@@ -106,7 +106,7 @@ export async function createMaintenanceOrder(orderData: {
   const payload = buildCreateMaintenanceWorkOrderPayload(orderData);
   const auth = await getMaintenanceActionAuthContext();
   if (!auth.organizationId) {
-    throw new Error('Unauthorized maintenance access');
+    throw new Error('Acceso no autorizado a mantenimiento');
   }
 
   const assetOrganizationId = await resolveMaintenanceOrganizationId(supabase, payload.asset_id);
@@ -164,7 +164,7 @@ export async function updateMaintenanceOrder(
   const supabase = await createClient();
   const auth = await getMaintenanceActionAuthContext();
   if (!auth.organizationId) {
-    throw new Error('Unauthorized maintenance access');
+    throw new Error('Acceso no autorizado a mantenimiento');
   }
 
   const payload = buildUpdateMaintenanceWorkOrderPayload(updates);

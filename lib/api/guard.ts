@@ -15,7 +15,7 @@ export async function requireAuth(request: NextRequest) {
       user: null,
       role: null,
       organizationId: null,
-      response: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
+      response: NextResponse.json({ error: 'No autorizado' }, { status: 401 }),
     };
   }
 

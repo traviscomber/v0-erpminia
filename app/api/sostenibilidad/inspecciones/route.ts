@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'No se pudo crear la inspeccin';
+    const message = error instanceof Error ? error.message : 'No se pudo crear la inspección';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -116,7 +116,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ data });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'No se pudo actualizar la inspeccin';
+    const message = error instanceof Error ? error.message : 'No se pudo actualizar la inspección';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -142,7 +142,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'No se pudo eliminar la inspeccin';
+    const message = error instanceof Error ? error.message : 'No se pudo eliminar la inspección';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

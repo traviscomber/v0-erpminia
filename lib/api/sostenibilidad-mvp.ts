@@ -27,7 +27,7 @@ export async function getSustainabilityContext(
     return {
       ok: false,
       response:
-        auth.response || NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
+        auth.response || NextResponse.json({ error: 'No autorizado' }, { status: 401 }),
     };
   }
 

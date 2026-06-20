@@ -55,9 +55,9 @@ export function isDemoMode(): boolean {
 }
 
 /**
- * Returns 401 Unauthorized response
+ * Returns 401 No autorizado response
  */
-export function unauthorizedResponse(message: string = 'Unauthorized') {
+export function unauthorizedResponse(message: string = 'No autorizado') {
   return NextResponse.json(
     { error: message },
     { status: 401 }

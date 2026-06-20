@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Alert marked as reviewed',
+      message: 'Alerta marcada como revisada',
     });
   } catch (error) {
     console.error('Error resolving alert:', error);
