@@ -162,7 +162,7 @@ export default function FlujDocumentalPage() {
       <div className="mb-8 flex justify-between items-start">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-3xl font-bold text-foreground">Flujo de Aprobación de Documentos</h1>
+            <h1 className="text-3xl font-bold text-foreground">Flujo de aprobación de documentos</h1>
           </div>
           <p className="text-muted-foreground">Flujo de 2 validadores: Jefe de Sostenibilidad &rarr; Gerente General</p>
         </div>
@@ -177,13 +177,13 @@ export default function FlujDocumentalPage() {
             <DialogHeader>
               <DialogTitle>Nuevo documento</DialogTitle>
               <DialogDescription>
-                Sube un documento y completa sus detalles para el flujo de aprobación
+                Sube un documento y completa sus detalles para el flujo de aprobación.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-6">
               {/* Upload Section */}
               <div>
-                <Label className="text-base font-semibold mb-3 block">1. Subir documento</Label>
+                <Label className="mb-3 block text-base font-semibold">1. Subir documento</Label>
                 <DocumentUpload 
                   onUploadSuccess={handleUploadSuccess}
                   maxSizeMB={10}
@@ -193,7 +193,7 @@ export default function FlujDocumentalPage() {
 
               {/* Document Details */}
               <div className="border-t pt-6">
-                <Label className="text-base font-semibold mb-4 block">2. Detalles del documento</Label>
+                <Label className="mb-4 block text-base font-semibold">2. Detalles del documento</Label>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
                     <Label htmlFor="nombre">Nombre del documento *</Label>
@@ -257,7 +257,7 @@ export default function FlujDocumentalPage() {
       {/* Diagrama del flujo */}
       <Card className="mb-8 rounded-xl border shadow-none">
         <CardHeader>
-              <CardTitle className="text-sm">Fases de Aprobación</CardTitle>
+              <CardTitle className="text-sm">Fases de aprobación</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-3 overflow-x-auto pb-4">
@@ -285,8 +285,8 @@ export default function FlujDocumentalPage() {
         <TabsList>
           <TabsTrigger value="todas">Todos ({docList.length})</TabsTrigger>
           <TabsTrigger value="borrador">Borradores ({docList.filter(d => d.estado === 'borrador').length})</TabsTrigger>
-          <TabsTrigger value="pendiente_validador1">Pendiente V1 ({docList.filter(d => d.estado === 'pendiente_validador1').length})</TabsTrigger>
-          <TabsTrigger value="pendiente_validador2">Pendiente V2 ({docList.filter(d => d.estado === 'pendiente_validador2').length})</TabsTrigger>
+          <TabsTrigger value="pendiente_validador1">Pendiente validador 1 ({docList.filter(d => d.estado === 'pendiente_validador1').length})</TabsTrigger>
+          <TabsTrigger value="pendiente_validador2">Pendiente validador 2 ({docList.filter(d => d.estado === 'pendiente_validador2').length})</TabsTrigger>
           <TabsTrigger value="aprobado_final">Aprobados ({docList.filter(d => d.estado === 'aprobado_final').length})</TabsTrigger>
         </TabsList>
 

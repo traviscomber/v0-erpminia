@@ -120,7 +120,7 @@ export default function ReportesPage() {
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="mb-8">
-        <h1 className="mb-2 text-3xl font-bold text-foreground">Reportes de Sostenibilidad</h1>
+        <h1 className="mb-2 text-3xl font-bold text-foreground">Reportes de sostenibilidad</h1>
         <p className="text-muted-foreground">
           Análisis comparativo por periodo de inspecciones, hallazgos y KPIs.
         </p>
@@ -128,7 +128,7 @@ export default function ReportesPage() {
 
       <Tabs defaultValue="kpi" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="kpi">Panel KPI</TabsTrigger>
+          <TabsTrigger value="kpi">Panel de KPI</TabsTrigger>
           <TabsTrigger value="detailed">Análisis Detallado</TabsTrigger>
         </TabsList>
 

@@ -64,7 +64,7 @@ const modules = [
     bgColor: 'bg-secondary/10',
   },
   {
-    title: 'Artículos EPP',
+    title: 'Elementos de EPP',
     description: 'Catálogo maestro, asignaciones y control de equipos de protección.',
     href: '/dashboard/sostenibilidad/prevencion-riesgos/epp',
     icon: HardHat,
@@ -72,7 +72,7 @@ const modules = [
     bgColor: 'bg-primary/10',
   },
   {
-    title: 'KPI Prevención',
+    title: 'Indicadores de prevención',
     description: 'Indicadores de seguridad y tendencias operacionales.',
     href: '/dashboard/sostenibilidad/prevencion-riesgos/kpi',
     icon: Activity,
@@ -121,10 +121,10 @@ export default function PrevencionRiesgosPage() {
   const countsByModule: Record<string, number> = {
     'Documentos HSE': documentCount,
     Capacitaciones: trainingCount,
-    'Artículos EPP': eppCount,
+    'Elementos de EPP': eppCount,
     Inspecciones: inspectionCount,
     'Carpeta de Arranque': documentCount,
-    'KPI Prevención': Math.max(documentCount, trainingCount, eppCount, inspectionCount),
+    'Indicadores de prevención': Math.max(documentCount, trainingCount, eppCount, inspectionCount),
   };
 
   return (

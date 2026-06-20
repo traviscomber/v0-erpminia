@@ -146,7 +146,7 @@ export default function SostenibilidadDashboard() {
         modules: [
           { name: 'Documentos HSE', path: '/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse', count: docCount, status: makeStatus(docCount) },
           { name: 'Capacitaciones', path: '/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones', count: capCount, status: makeStatus(capCount) },
-          { name: 'Artículos EPP', path: '/dashboard/sostenibilidad/prevencion-riesgos/epp', count: eppCount, status: makeStatus(eppCount) },
+          { name: 'Elementos de EPP', path: '/dashboard/sostenibilidad/prevencion-riesgos/epp', count: eppCount, status: makeStatus(eppCount) },
           { name: 'Inspecciones', path: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones', count: inspeccionesCount, status: makeStatus(inspeccionesCount) },
         ],
       },
@@ -159,7 +159,7 @@ export default function SostenibilidadDashboard() {
         modules: [
           { name: 'Monitoreos', path: '/dashboard/sostenibilidad/medio-ambiente', count: ambienteCount, status: makeStatus(ambienteCount) },
           { name: 'Permisos', path: '/dashboard/sostenibilidad/medio-ambiente', count: ambienteCount, status: makeStatus(ambienteCount) },
-          { name: 'Planes de Acción', path: '/dashboard/sostenibilidad/medio-ambiente', count: overdueCas, status: makeStatus(overdueCas) },
+          { name: 'Planes de acción', path: '/dashboard/sostenibilidad/medio-ambiente', count: overdueCas, status: makeStatus(overdueCas) },
         ],
       },
       {
@@ -169,7 +169,7 @@ export default function SostenibilidadDashboard() {
         bgClass: 'bg-muted',
         borderClass: 'border-l-muted-foreground',
         modules: [
-          { name: 'Stakeholders', path: '/dashboard/sostenibilidad/comunidades', count: comunidadesCount, status: makeStatus(comunidadesCount) },
+          { name: 'Partes interesadas', path: '/dashboard/sostenibilidad/comunidades', count: comunidadesCount, status: makeStatus(comunidadesCount) },
           { name: 'Compromisos', path: '/dashboard/sostenibilidad/comunidades', count: comunidadesCount, status: makeStatus(comunidadesCount) },
           { name: 'Licencia Social', path: '/dashboard/sostenibilidad/comunidades', count: comunidadesCount, status: makeStatus(comunidadesCount) },
         ],
@@ -183,7 +183,7 @@ export default function SostenibilidadDashboard() {
         modules: [
           { name: 'Iniciativas', path: '/dashboard/sostenibilidad/reportes', count: totalActions, status: makeStatus(totalActions) },
           { name: 'Presupuesto', path: '/dashboard/sostenibilidad/reportes', count: totalActions, status: makeStatus(totalActions) },
-          { name: 'ROI Tracking', path: '/dashboard/sostenibilidad/reportes', count: Math.round(completionRate), status: makeStatus(completionRate) },
+          { name: 'Seguimiento de retorno', path: '/dashboard/sostenibilidad/reportes', count: Math.round(completionRate), status: makeStatus(completionRate) },
         ],
       },
     ];
