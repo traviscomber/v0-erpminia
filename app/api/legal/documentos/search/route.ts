@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
     sqlQuery = sqlQuery.ilike('search_text', `%${query}%`);
   }
 
-  // Filters
+  // Filtros
   if (moduleId) {
     sqlQuery = sqlQuery.eq('module', moduleId);
   }
