@@ -40,14 +40,14 @@ export default function DocumentosBodegaPage() {
         setStats({
           total: data.length,
           vigentes: data.filter((d: Document) => d.status === 'active').length,
-          en_revision: data.filter((d: Document) => 
-            d.status === 'pending_l1' || d.status === 'pending_l2'
+          en_revision: data.filter(
+            (d: Document) => d.status === 'pending_l1' || d.status === 'pending_l2',
           ).length,
           rechazados: data.filter((d: Document) => d.status === 'rejected').length,
         });
       }
     } catch (error) {
-      console.error('Error cargando documentos:', error);
+      console.error('Error al cargar documentos:', error);
     } finally {
       setLoading(false);
     }
@@ -64,17 +64,17 @@ export default function DocumentosBodegaPage() {
         credentials: 'include',
       });
       if (response.ok) {
-        setDocuments(documents.filter(d => d.id !== documentId));
+        setDocuments(documents.filter((d) => d.id !== documentId));
         await loadDocuments();
       }
     } catch (error) {
-      console.error('Error eliminando documento:', error);
+      console.error('Error al eliminar documento:', error);
     }
   };
 
   const handleView = (document: Document | string) => {
     if (typeof document === 'string') {
-      const doc = documents.find(d => d.id === document);
+      const doc = documents.find((d) => d.id === document);
       if (doc) setSelectedDoc(doc);
     } else {
       setSelectedDoc(document);
@@ -99,7 +99,7 @@ export default function DocumentosBodegaPage() {
         await loadDocuments();
       }
     } catch (error) {
-      console.error('Error aprobando documento:', error);
+      console.error('Error al aprobar documento:', error);
     }
   };
 
@@ -120,23 +120,23 @@ export default function DocumentosBodegaPage() {
         await loadDocuments();
       }
     } catch (error) {
-      console.error('Error rechazando documento:', error);
+      console.error('Error al rechazar documento:', error);
     }
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Documentos Bodega</h1>
-        <p className="text-muted-foreground mt-2">
+        <h1 className="text-3xl font-bold">Documentos de bodega</h1>
+        <p className="mt-2 text-muted-foreground">
           Gestión de procedimientos e instructivos de bodega y almacenamiento
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between text-sm font-medium">
               <span>Total</span>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardTitle>
@@ -149,7 +149,7 @@ export default function DocumentosBodegaPage() {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between text-sm font-medium">
               <span>Vigentes</span>
               <CheckCircle2 className="h-4 w-4 text-green-500" />
             </CardTitle>
@@ -162,7 +162,7 @@ export default function DocumentosBodegaPage() {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between text-sm font-medium">
               <span>En revisión</span>
               <Clock className="h-4 w-4 text-yellow-500" />
             </CardTitle>
@@ -175,7 +175,7 @@ export default function DocumentosBodegaPage() {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between text-sm font-medium">
               <span>Rechazados</span>
               <AlertCircle className="h-4 w-4 text-red-500" />
             </CardTitle>
@@ -188,12 +188,22 @@ export default function DocumentosBodegaPage() {
       </div>
 
       <Tabs defaultValue="all" className="space-y-4">
-        <TabsList className="bg-muted/60 border-b-2 border-border p-1">
-          <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Todos</TabsTrigger>
-          <TabsTrigger value="vigentes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Vigentes</TabsTrigger>
-          <TabsTrigger value="Revision" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">En revisión</TabsTrigger>
-          <TabsTrigger value="upload" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Subir documentos</TabsTrigger>
-          <TabsTrigger value="import" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Importar inventario</TabsTrigger>
+        <TabsList className="border-b-2 border-border bg-muted/60 p-1">
+          <TabsTrigger value="all" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            Todos
+          </TabsTrigger>
+          <TabsTrigger value="vigentes" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            Vigentes
+          </TabsTrigger>
+          <TabsTrigger value="Revision" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            En revisión
+          </TabsTrigger>
+          <TabsTrigger value="upload" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            Subir documentos
+          </TabsTrigger>
+          <TabsTrigger value="import" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            Importar datos
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
@@ -207,7 +217,7 @@ export default function DocumentosBodegaPage() {
 
         <TabsContent value="vigentes" className="space-y-4">
           <DocumentList
-            documents={documents.filter(d => d.status === 'active')}
+            documents={documents.filter((d) => d.status === 'active')}
             isLoading={loading}
             onView={handleView}
             onDelete={handleDelete}
@@ -216,9 +226,7 @@ export default function DocumentosBodegaPage() {
 
         <TabsContent value="Revision" className="space-y-4">
           <DocumentList
-            documents={documents.filter(d => 
-              d.status === 'pending_l1' || d.status === 'pending_l2'
-            )}
+            documents={documents.filter((d) => d.status === 'pending_l1' || d.status === 'pending_l2')}
             isLoading={loading}
             onView={handleView}
             onDelete={handleDelete}
@@ -228,17 +236,11 @@ export default function DocumentosBodegaPage() {
         <TabsContent value="upload" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Subir Nuevo Documento</CardTitle>
-              <CardDescription>
-                Sube procedimientos e instructivos de bodega
-              </CardDescription>
+              <CardTitle>Subir nuevo documento</CardTitle>
+              <CardDescription>Sube procedimientos e instructivos de bodega.</CardDescription>
             </CardHeader>
             <CardContent>
-              <DocumentUpload 
-                module="bodega"
-                category="documentos"
-                onUploadSuccess={loadDocuments}
-              />
+              <DocumentUpload module="bodega" category="documentos" onUploadSuccess={loadDocuments} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -262,4 +264,3 @@ export default function DocumentosBodegaPage() {
     </div>
   );
 }
-

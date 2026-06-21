@@ -106,7 +106,9 @@ export function ExportReportForm() {
             {loading ? 'Generando...' : 'Descargar CSV'}
           </Button>
 
-          <p className="text-xs text-muted-foreground">El archivo se genera con el rango de fechas seleccionado.</p>
+          <p className="text-xs text-muted-foreground">
+            El archivo se genera con el rango de fechas seleccionado.
+          </p>
         </div>
       </CardContent>
     </Card>

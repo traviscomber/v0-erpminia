@@ -56,7 +56,7 @@ export default function InventarioPage() {
     revalidateOnFocus: false,
   });
 
-  const stockList = ((data.stock || []) as InventoryItem[]).map((item) => ({
+  const stockList = ((data?.stock || []) as InventoryItem[]).map((item) => ({
     ...item,
     quantity_on_hand: Number(item.quantity_on_hand || 0),
     quantity_available: Number(item.quantity_available || 0),
@@ -69,10 +69,11 @@ export default function InventarioPage() {
     () =>
       stockList.filter((item) => {
         const category = categoryForItem(item);
+        const query = searchTerm.toLowerCase();
         return (
-          (item.part_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (item.part_code || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-          category.toLowerCase().includes(searchTerm.toLowerCase())
+          (item.part_name || '').toLowerCase().includes(query) ||
+          (item.part_code || '').toLowerCase().includes(query) ||
+          category.toLowerCase().includes(query)
         );
       }),
     [searchTerm, stockList]
@@ -127,7 +128,7 @@ export default function InventarioPage() {
         <div>
           <h1 className="text-4xl font-bold tracking-tight">Control de Inventario</h1>
           <p className="mt-3 text-muted-foreground">
-            An?lisis consolidado de valuaci?n, rotaci?n, ABC y alertas de reorden.
+            Análisis consolidado de valorización, rotación, ABC y alertas de reorden.
           </p>
         </div>
 
@@ -156,7 +157,7 @@ export default function InventarioPage() {
         <div>
           <h1 className="text-4xl font-bold tracking-tight">Control de Inventario</h1>
           <p className="mt-3 text-muted-foreground">
-            An?lisis consolidado de valuaci?n, rotaci?n, ABC y alertas de reorden.
+            Análisis consolidado de valorización, rotación, ABC y alertas de reorden.
           </p>
         </div>
         <Button variant="outline" onClick={() => mutate()} className="gap-2">
@@ -168,17 +169,17 @@ export default function InventarioPage() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <Card className="border-border">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Valor Total Inventario</CardTitle>
+            <CardTitle className="text-sm font-medium">Valor total del inventario</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(getTotalInventoryValue())}</div>
-            <p className="mt-1 text-xs text-muted-foreground">{filteredItems.length} art?culos</p>
+            <p className="mt-1 text-xs text-muted-foreground">{filteredItems.length} artículos</p>
           </CardContent>
         </Card>
 
         <Card className="border-border">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Analisis ABC - Art?culos A</CardTitle>
+            <CardTitle className="text-sm font-medium">Análisis ABC - Artículos A</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-[var(--brand-rojo)]">{abcA}</div>
@@ -203,10 +204,10 @@ export default function InventarioPage() {
       <Card className="border-border">
         <CardHeader className="pb-4">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <CardTitle>Art?culos de Inventario</CardTitle>
+            <CardTitle>Artículos de inventario</CardTitle>
             <Button className="w-full md:w-auto" disabled>
               <Plus className="mr-2 h-4 w-4" />
-              Nuevo Art?culo
+              Nuevo artículo
             </Button>
           </div>
           <CardDescription>
@@ -218,7 +219,7 @@ export default function InventarioPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar por nombre, c?digo o categor?a..."
+                placeholder="Buscar por nombre, código o categoría..."
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
                 className="bg-input pl-10"
@@ -234,11 +235,11 @@ export default function InventarioPage() {
             <Table>
               <TableHeader className="bg-muted/50">
                 <TableRow className="border-border">
-                  <TableHead className="font-semibold">Art?culo</TableHead>
-                  <TableHead className="font-semibold">Categor?a</TableHead>
+                  <TableHead className="font-semibold">Artículo</TableHead>
+                  <TableHead className="font-semibold">Categoría</TableHead>
                   <TableHead className="text-center font-semibold">Stock</TableHead>
-                  <TableHead className="text-right font-semibold">Valor Unitario</TableHead>
-                  <TableHead className="text-right font-semibold">Valor Total</TableHead>
+                  <TableHead className="text-right font-semibold">Valor unitario</TableHead>
+                  <TableHead className="text-right font-semibold">Valor total</TableHead>
                   <TableHead className="text-right font-semibold">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
@@ -277,9 +278,7 @@ export default function InventarioPage() {
                           </p>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right">
-                        {formatCurrency(item.unit_cost)}
-                      </TableCell>
+                      <TableCell className="text-right">{formatCurrency(item.unit_cost)}</TableCell>
                       <TableCell className="text-right font-medium">
                         {formatCurrency(totalValue)}
                       </TableCell>
@@ -310,7 +309,7 @@ export default function InventarioPage() {
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div>
               <CardTitle>Detalle: {selectedItem.part_name || selectedItem.part_code}</CardTitle>
-              <CardDescription>Informaci?n operativa del ?tem seleccionado</CardDescription>
+              <CardDescription>Información operativa del ítem seleccionado</CardDescription>
             </div>
             <Button variant="ghost" size="sm" onClick={() => setSelectedItem(null)}>
               Cerrar
@@ -319,11 +318,11 @@ export default function InventarioPage() {
           <CardContent className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-muted-foreground">C?digo</p>
+                <p className="text-sm text-muted-foreground">Código</p>
                 <p className="font-semibold">{selectedItem.part_code || selectedItem.id}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Categor?a</p>
+                <p className="text-sm text-muted-foreground">Categoría</p>
                 <p className="font-semibold">{categoryForItem(selectedItem)}</p>
               </div>
               <div>
@@ -335,25 +334,25 @@ export default function InventarioPage() {
                 <p className="font-semibold">{selectedItem.quantity_available} u.</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Nivel m?nimo</p>
+                <p className="text-sm text-muted-foreground">Nivel mínimo</p>
                 <p className="font-semibold">{selectedItem.reorder_level} u.</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Cantidad de Reorden</p>
+                <p className="text-sm text-muted-foreground">Cantidad de reorden</p>
                 <p className="font-semibold">{selectedItem.reorder_quantity} u.</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Valor Unitario</p>
+                <p className="text-sm text-muted-foreground">Valor unitario</p>
                 <p className="font-semibold">{formatCurrency(selectedItem.unit_cost)}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Valor Total</p>
+                <p className="text-sm text-muted-foreground">Valor total</p>
                 <p className="font-semibold">
                   {formatCurrency(selectedItem.quantity_on_hand * selectedItem.unit_cost)}
                 </p>
               </div>
               <div className="col-span-2">
-                <p className="text-sm text-muted-foreground">Ubicaci?n</p>
+                <p className="text-sm text-muted-foreground">Ubicación</p>
                 <p className="font-semibold">
                   {selectedItem.bin?.bin_location || selectedItem.bin?.bin_code || 'Sin bin asignado'}
                 </p>
@@ -362,7 +361,7 @@ export default function InventarioPage() {
 
             <div className="border-t border-border pt-4">
               <div className="mb-2">
-                <p className="mb-2 text-sm text-muted-foreground">Estado del Stock</p>
+                <p className="mb-2 text-sm text-muted-foreground">Estado del stock</p>
                 <Progress
                   value={getStockPercentage(selectedItem.quantity_on_hand, selectedItem.reorder_level)}
                   className="h-2"
@@ -371,7 +370,7 @@ export default function InventarioPage() {
               <p className="text-xs text-muted-foreground">
                 {selectedItem.quantity_on_hand <= selectedItem.reorder_level ? (
                   <span className="font-medium text-[var(--secondary)]">
-                    Alerta: stock por debajo del nivel m?nimo
+                    Alerta: stock por debajo del nivel mínimo
                   </span>
                 ) : (
                   <span className="font-medium text-[var(--brand-verde)]">

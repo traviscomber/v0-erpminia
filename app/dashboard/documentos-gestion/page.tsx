@@ -102,7 +102,9 @@ export default function DocumentosGestionPage() {
 
         <Card className="border-[var(--secondary)]/30 bg-[var(--secondary)]/5">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-[var(--secondary)]">Pendientes de aprobación</CardTitle>
+            <CardTitle className="text-sm font-medium text-[var(--secondary)]">
+              Pendientes de aprobación
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-[var(--secondary)]">{stats.pending}</div>
