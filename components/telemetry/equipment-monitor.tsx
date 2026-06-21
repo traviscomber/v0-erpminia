@@ -151,6 +151,10 @@ export function EquipmentMonitor() {
     return <div className="text-muted-foreground">Cargando estado de equipos...</div>;
   }
 
+  if (equipment.length === 0) {
+    return <div className="text-muted-foreground">No hay equipos con telemetria disponible.</div>;
+  }
+
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
       {equipment.map((eq) => (

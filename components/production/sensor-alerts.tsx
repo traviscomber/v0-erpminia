@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { AlertTriangle, Zap } from 'lucide-react';
+import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface SensorReading {
@@ -36,7 +38,7 @@ async function fetchJson(url: string) {
   const payload = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(payload?.error || 'No se pudo cargar la información');
+    throw new Error(payload?.error || 'No se pudo cargar la informacion');
   }
 
   return payload;
@@ -48,6 +50,7 @@ export function SensorAlerts({ equipmentId }: SensorAlertProps) {
   const [resolvedEquipmentId, setResolvedEquipmentId] = useState<string | null>(equipmentId ?? null);
   const [equipmentName, setEquipmentName] = useState('Equipo');
   const [loading, setLoading] = useState(true);
+  const [creatingOt, setCreatingOt] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -84,7 +87,7 @@ export function SensorAlerts({ equipmentId }: SensorAlertProps) {
         setSensors(data?.sensor_data ? [data.sensor_data] : []);
         setAlerts(Array.isArray(data?.alarms) ? data.alarms : []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'No se pudo cargar la telemetría');
+        setError(err instanceof Error ? err.message : 'No se pudo cargar la telemetria');
         setSensors([]);
         setAlerts([]);
       } finally {
@@ -95,19 +98,55 @@ export function SensorAlerts({ equipmentId }: SensorAlertProps) {
     load();
   }, [resolvedEquipmentId]);
 
+  const sensor = sensors[0];
+  const canCreateOt = Boolean(resolvedEquipmentId && sensor);
+
+  const createSuggestedOt = async () => {
+    if (!resolvedEquipmentId || !sensor) return;
+
+    setCreatingOt(true);
+    try {
+      const response = await fetch('/api/workflows/sensor-alert-to-ot', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          asset_id: resolvedEquipmentId,
+          alert_type: sensor.status === 'alert' ? 'alerta_telemetria' : 'seguimiento_telemetria',
+          sensor_data: sensor,
+        }),
+      });
+
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(payload?.error || 'No se pudo generar la orden sugerida');
+      }
+
+      toast.success(
+        payload?.work_order_number
+          ? `Se genero la orden sugerida ${payload.work_order_number}`
+          : 'Se genero la orden sugerida correctamente'
+      );
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'No se pudo generar la orden sugerida');
+    } finally {
+      setCreatingOt(false);
+    }
+  };
+
   if (loading) {
-    return <div className="text-sm text-muted-foreground">Cargando telemetría real...</div>;
+    return <div className="text-sm text-muted-foreground">Cargando telemetria real...</div>;
   }
 
   if (error) {
-    return <div className="text-sm text-destructive">Error al cargar telemetría: {error}</div>;
+    return <div className="text-sm text-destructive">Error al cargar telemetria: {error}</div>;
   }
 
   if (sensors.length === 0) {
-    return <div className="text-sm text-muted-foreground">No hay telemetría disponible para mostrar.</div>;
+    return <div className="text-sm text-muted-foreground">No hay telemetria disponible para mostrar.</div>;
   }
-
-  const sensor = sensors[0];
 
   return (
     <div className="space-y-4">
@@ -120,7 +159,7 @@ export function SensorAlerts({ equipmentId }: SensorAlertProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm">{alerts[0]?.message || 'El equipo requiere atención inmediata.'}</p>
+            <p className="text-sm">{alerts[0]?.message || 'El equipo requiere atencion inmediata.'}</p>
           </CardContent>
         </Card>
       )}
@@ -138,15 +177,15 @@ export function SensorAlerts({ equipmentId }: SensorAlertProps) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-xs text-muted-foreground">Temperatura</p>
-              <p className="text-lg font-semibold">{sensor.temperature ?? '--'} °C</p>
+              <p className="text-lg font-semibold">{sensor.temperature ?? '--'} C</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Presión</p>
+              <p className="text-xs text-muted-foreground">Presion</p>
               <p className="text-lg font-semibold">{sensor.pressure ?? '--'} PSI</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Vibración</p>
-              <p className="text-lg font-semibold">{sensor.vibration ?? '--'} m/s²</p>
+              <p className="text-xs text-muted-foreground">Vibracion</p>
+              <p className="text-lg font-semibold">{sensor.vibration ?? '--'} m/s2</p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground">RPM</p>
@@ -154,8 +193,13 @@ export function SensorAlerts({ equipmentId }: SensorAlertProps) {
             </div>
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            Última lectura: {new Date(sensor.timestamp).toLocaleString('es-CL')}
+            Ultima lectura: {new Date(sensor.timestamp).toLocaleString('es-CL')}
           </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button size="sm" onClick={createSuggestedOt} disabled={!canCreateOt || creatingOt}>
+              {creatingOt ? 'Generando OT...' : 'Generar OT sugerida'}
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -168,7 +212,8 @@ export function SensorAlerts({ equipmentId }: SensorAlertProps) {
                 <div>
                   <p className="text-sm font-medium">{alarm.message}</p>
                   <p className="text-xs text-muted-foreground">
-                    {alarm.severity || 'media'} - {new Date(alarm.created_at || new Date().toISOString()).toLocaleTimeString('es-CL')}
+                    {alarm.severity || 'media'} -{' '}
+                    {new Date(alarm.created_at || new Date().toISOString()).toLocaleTimeString('es-CL')}
                   </p>
                 </div>
               </div>

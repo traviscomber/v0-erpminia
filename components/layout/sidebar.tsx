@@ -50,6 +50,7 @@ const rolePermissions: Record<string, string[]> = {
   'Alertas': ['superadmin', 'admin', 'manager', 'supervisor'],
   'Centros de Costos': ['superadmin', 'admin', 'manager', 'Operaciones-Supervisor', 'Finanzas-Supervisor'],
   'Producción': ['superadmin', 'admin', 'Operaciones-Supervisor'],
+  'Telemetria de Sensores': ['superadmin', 'admin', 'Operaciones-Supervisor'],
   'Mantenimiento': ['superadmin', 'admin', 'Operaciones-Supervisor'],
   'Mantenimiento por Centro de Costo': ['superadmin', 'admin', 'Operaciones-Supervisor'],
   'Ordenes de Trabajo': ['superadmin', 'admin', 'Operaciones-Supervisor'],
@@ -113,6 +114,12 @@ const menuItems = [
     label: 'Producción',
     href: '/dashboard/produccion',
     icon: Zap,
+    group: 'Producción',
+  },
+  {
+    label: 'Telemetria de Sensores',
+    href: '/dashboard/telemetria',
+    icon: Activity,
     group: 'Producción',
   },
   {
