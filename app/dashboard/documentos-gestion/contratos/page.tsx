@@ -228,7 +228,7 @@ export default function ContratosPage() {
             onClick={() => setShowNewContractModal(true)}
           >
             <Plus className="h-4 w-4 mr-1" />
-            Nuevo Contrato
+            Nuevo contrato
           </Button>
         </div>
       </div>
@@ -237,7 +237,7 @@ export default function ContratosPage() {
         <Card className="bg-white/5 border-white/10">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Contratos
+              Total contratos
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -296,7 +296,7 @@ export default function ContratosPage() {
 
       <Card className="bg-white/5 border-white/10">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Buscar Contratos</CardTitle>
+          <CardTitle className="text-base">Buscar contratos</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="relative">
@@ -313,7 +313,7 @@ export default function ContratosPage() {
 
       <Card className="bg-white/5 border-white/10">
         <CardHeader>
-          <CardTitle>{filteredContracts.length} Contratos Encontrados</CardTitle>
+          <CardTitle>{filteredContracts.length} contratos encontrados</CardTitle>
           <CardDescription>Lista de contratos registrados en el sistema</CardDescription>
         </CardHeader>
         <CardContent>
@@ -447,7 +447,7 @@ export default function ContratosPage() {
           <Card className="w-full max-w-4xl bg-background border-white/10 max-h-[90vh] overflow-y-auto">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 sticky top-0 bg-background border-b border-white/10">
               <div>
-                <CardTitle>Crear Nuevo Contrato</CardTitle>
+                <CardTitle>Crear nuevo contrato</CardTitle>
                 <CardDescription>Registra un nuevo contrato con respaldo legal</CardDescription>
               </div>
               <Button variant="ghost" size="sm" onClick={() => setShowNewContractModal(false)}>
