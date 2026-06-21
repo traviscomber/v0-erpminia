@@ -11,7 +11,7 @@ export default function CostCentersPage() {
       <div>
         <h1 className="text-3xl font-bold">Centros de Costos</h1>
         <p className="text-muted-foreground">
-          Vista simple de los centros reales, agrupada para que cualquier persona la pueda entender rápido.
+          Vista simple de los centros reales, agrupada para que cualquier persona la pueda entender rapido.
         </p>
       </div>
 

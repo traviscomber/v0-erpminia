@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { AlertCircle, Database, Layers3, RefreshCw } from 'lucide-react';
+import { AlertCircle, ChevronDown, ChevronUp, Database, Layers3, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -33,10 +33,15 @@ function prettifyText(value: string) {
     .join(' ');
 }
 
+function normalizeName(value: string) {
+  return prettifyText(String(value || '').replace(/\s+/g, ' ').trim());
+}
+
 export function CostCentersDashboard() {
   const { costCenters, loading, error, reload } = useCostCenters();
   const [seeding, setSeeding] = useState(false);
   const [seedError, setSeedError] = useState('');
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
 
   const visibleCostCenters = useMemo(
     () => sortCostCenters(costCenters.filter((center) => isVisibleCostCenter(center.code))),
@@ -87,6 +92,13 @@ export function CostCentersDashboard() {
     } finally {
       setSeeding(false);
     }
+  };
+
+  const toggleGroup = (rootCode: string) => {
+    setExpandedGroups((current) => ({
+      ...current,
+      [rootCode]: !current[rootCode],
+    }));
   };
 
   if (loading) {
@@ -208,16 +220,21 @@ export function CostCentersDashboard() {
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
             {groupedCenters.map((group) => {
               const children = group.items.filter((item) => item.code !== group.rootCode);
+              const isExpanded = Boolean(expandedGroups[group.rootCode]);
               const previewChildren = children.slice(0, 4);
               const extraCount = Math.max(0, children.length - previewChildren.length);
               const rootLabel = formatCostCenterLabel({
                 code: group.rootCode,
-                name: prettifyText(group.rootName),
+                name: normalizeName(group.rootName),
               });
 
               return (
                 <div key={group.rootCode} className="rounded-xl border border-border/60 bg-background/40 p-4 shadow-sm">
-                  <div className="flex items-start justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={() => toggleGroup(group.rootCode)}
+                    className="flex w-full items-start justify-between gap-3 text-left transition-colors hover:text-primary"
+                  >
                     <div className="space-y-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="text-sm font-semibold tracking-wide text-primary">{group.rootCode}</span>
@@ -227,20 +244,29 @@ export function CostCentersDashboard() {
                       </div>
                       <h3 className="text-base font-semibold text-foreground">{rootLabel}</h3>
                     </div>
-                  </div>
+                    <span className="mt-1 rounded-full border border-border/60 p-1 text-muted-foreground">
+                      {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </span>
+                  </button>
 
                   <div className="mt-4 space-y-3 border-t border-border/50 pt-4 text-sm">
                     <div className="flex flex-wrap gap-2">
-                      {previewChildren.length > 0 ? (
+                      {isExpanded ? (
+                        group.items.map((item) => (
+                          <Badge key={item.id} variant={item.code === group.rootCode ? 'default' : 'outline'} className="max-w-full truncate">
+                            {item.code} {normalizeName(item.name)}
+                          </Badge>
+                        ))
+                      ) : previewChildren.length > 0 ? (
                         previewChildren.map((item) => (
                           <Badge key={item.id} variant="outline" className="max-w-full truncate">
-                            {item.code} {prettifyText(item.name)}
+                            {item.code} {normalizeName(item.name)}
                           </Badge>
                         ))
                       ) : (
                         <span className="text-muted-foreground">Centro principal</span>
                       )}
-                      {extraCount > 0 ? <span className="text-muted-foreground">+{extraCount} más</span> : null}
+                      {!isExpanded && extraCount > 0 ? <span className="text-muted-foreground">+{extraCount} más</span> : null}
                     </div>
 
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
