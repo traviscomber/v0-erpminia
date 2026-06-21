@@ -73,6 +73,7 @@ export function CostCentersDashboard() {
   const rootCount = groupedCenters.length;
   const activeCount = visibleCostCenters.filter((center) => center.status === 'active').length;
   const leafCount = visibleCostCenters.filter((center) => !isRootCostCenter(center.code)).length;
+  const allExpanded = groupedCenters.length > 0 && groupedCenters.every((group) => expandedGroups[group.rootCode]);
 
   const handleSeed = async () => {
     setSeeding(true);
@@ -99,6 +100,15 @@ export function CostCentersDashboard() {
       ...current,
       [rootCode]: !current[rootCode],
     }));
+  };
+
+  const setAllExpanded = (expanded: boolean) => {
+    setExpandedGroups(
+      groupedCenters.reduce<Record<string, boolean>>((acc, group) => {
+        acc[group.rootCode] = expanded;
+        return acc;
+      }, {}),
+    );
   };
 
   if (loading) {
@@ -139,7 +149,7 @@ export function CostCentersDashboard() {
           <div className="flex flex-col items-center gap-4 text-center">
             <Database className="h-12 w-12 text-muted-foreground" />
             <div className="space-y-2">
-              <h3 className="text-lg font-semibold text-foreground">Todavía no hay centros de costo visibles</h3>
+              <h3 className="text-lg font-semibold text-foreground">Todavia no hay centros de costo visibles</h3>
               <p className="max-w-2xl text-sm text-muted-foreground">
                 Puedes cargar la base de referencia para que la estructura aparezca en el dashboard y en los selectores de bodega.
               </p>
@@ -171,6 +181,9 @@ export function CostCentersDashboard() {
         <Button onClick={reload} variant="outline" size="sm">
           <RefreshCw className="mr-2 h-4 w-4" />
           Recargar
+        </Button>
+        <Button onClick={() => setAllExpanded(!allExpanded)} variant="outline" size="sm">
+          {allExpanded ? 'Contraer todo' : 'Expandir todo'}
         </Button>
       </div>
 
@@ -266,7 +279,7 @@ export function CostCentersDashboard() {
                       ) : (
                         <span className="text-muted-foreground">Centro principal</span>
                       )}
-                      {!isExpanded && extraCount > 0 ? <span className="text-muted-foreground">+{extraCount} más</span> : null}
+                      {!isExpanded && extraCount > 0 ? <span className="text-muted-foreground">+{extraCount} mas</span> : null}
                     </div>
 
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
