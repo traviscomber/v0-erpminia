@@ -7,15 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  AlertCircle,
-  CheckCircle2,
-  Download,
-  Eye,
-  FileText,
-  Scale,
-  Search,
-} from 'lucide-react';
+import { AlertCircle, CheckCircle2, Download, Eye, FileText, Scale, Search } from 'lucide-react';
 import { ContractsTracker } from '@/components/legal/contracts-tracker';
 import { AddDocumentModal } from '@/components/legal/add-document-modal';
 import { DocumentReviewModal } from '@/components/legal/document-review-modal';
@@ -100,8 +92,7 @@ function getComplianceTone(value: number) {
 function mapContractStatus(status: string): 'active' | 'expiring' | 'expired' {
   const value = String(status || '').toLowerCase();
   if (value.includes('vencido')) return 'expired';
-  if (value.includes('por vencer') || value.includes('revision') || value.includes('revisi'))
-    return 'expiring';
+  if (value.includes('por vencer') || value.includes('revision') || value.includes('revisi')) return 'expiring';
   return 'active';
 }
 
@@ -129,7 +120,6 @@ export default function LegalPage() {
 
   const handleOpenDoc = async (doc: LegalDocument, download = false) => {
     if (download) {
-      // Download behavior
       if (loadingDocId === doc.id) return;
       setLoadingDocId(doc.id);
       try {
@@ -153,7 +143,6 @@ export default function LegalPage() {
         setLoadingDocId(null);
       }
     } else {
-      // Preview behavior - open review modal
       setReviewingDoc(doc);
       setReviewModalOpen(true);
     }
@@ -178,7 +167,6 @@ export default function LegalPage() {
         throw new Error(err.error || 'Error en la revisión');
       }
 
-      // Refresh the documents list
       await mutateDocuments();
       setReviewingDoc(null);
     } catch (error) {
@@ -186,9 +174,8 @@ export default function LegalPage() {
       alert(`Error: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   };
-  const searchParam = searchQuery.trim()
-    ? `?search=${encodeURIComponent(searchQuery.trim())}`
-    : '';
+
+  const searchParam = searchQuery.trim() ? `?search=${encodeURIComponent(searchQuery.trim())}` : '';
 
   const { data: documentData, error: documentsError, mutate: mutateDocuments } = useSWR(
     `/api/legal/documentos${searchParam}`,
@@ -282,20 +269,15 @@ export default function LegalPage() {
     const checks = [
       summary.total_contracts ? (summary.active_contracts || 0) / summary.total_contracts : 1,
       summary.total_contracts
-        ? ((summary.total_contracts || 0) - (summary.contracts_missing_file || 0)) /
-          summary.total_contracts
+        ? ((summary.total_contracts || 0) - (summary.contracts_missing_file || 0)) / summary.total_contracts
         : 1,
+      summary.legal_documents ? (summary.approved_documents || 0) / summary.legal_documents : 1,
       summary.legal_documents
-        ? (summary.approved_documents || 0) / summary.legal_documents
-        : 1,
-      summary.legal_documents
-        ? ((summary.legal_documents || 0) - (summary.expiring_documents || 0)) /
-          summary.legal_documents
+        ? ((summary.legal_documents || 0) - (summary.expiring_documents || 0)) / summary.legal_documents
         : 1,
     ];
 
-    const score =
-      checks.reduce((acc, value) => acc + Math.max(0, Math.min(1, value)), 0) / checks.length;
+    const score = checks.reduce((acc, value) => acc + Math.max(0, Math.min(1, value)), 0) / checks.length;
     return Math.round(score * 100);
   }, [compliance.summary]);
 
@@ -303,49 +285,27 @@ export default function LegalPage() {
     () => [
       {
         requirement: 'Contratos vigentes',
-        percentage:
-          compliance.summary?.total_contracts
-            ? Math.round(
-                ((compliance.summary?.active_contracts || 0) /
-                  Math.max(compliance.summary?.total_contracts || 1, 1)) *
-                  100
-              )
-            : 100,
+        percentage: compliance.summary?.total_contracts
+          ? Math.round(((compliance.summary?.active_contracts || 0) / Math.max(compliance.summary?.total_contracts || 1, 1)) * 100)
+          : 100,
       },
       {
         requirement: 'Contratos con respaldo documental',
-        percentage:
-          compliance.summary?.total_contracts
-            ? Math.round(
-                (((compliance.summary?.total_contracts || 0) -
-                  (compliance.summary?.contracts_missing_file || 0)) /
-                  Math.max(compliance.summary?.total_contracts || 1, 1)) *
-                  100
-              )
-            : 100,
+        percentage: compliance.summary?.total_contracts
+          ? Math.round((((compliance.summary?.total_contracts || 0) - (compliance.summary?.contracts_missing_file || 0)) / Math.max(compliance.summary?.total_contracts || 1, 1)) * 100)
+          : 100,
       },
       {
         requirement: 'Documentos legales aprobados',
-        percentage:
-          compliance.summary?.legal_documents
-            ? Math.round(
-                ((compliance.summary?.approved_documents || 0) /
-                  Math.max(compliance.summary?.legal_documents || 1, 1)) *
-                  100
-              )
-            : 100,
+        percentage: compliance.summary?.legal_documents
+          ? Math.round(((compliance.summary?.approved_documents || 0) / Math.max(compliance.summary?.legal_documents || 1, 1)) * 100)
+          : 100,
       },
       {
         requirement: 'Documentos sin vencimiento inmediato',
-        percentage:
-          compliance.summary?.legal_documents
-            ? Math.round(
-                (((compliance.summary?.legal_documents || 0) -
-                  (compliance.summary?.expiring_documents || 0)) /
-                  Math.max(compliance.summary?.legal_documents || 1, 1)) *
-                  100
-              )
-            : 100,
+        percentage: compliance.summary?.legal_documents
+          ? Math.round((((compliance.summary?.legal_documents || 0) - (compliance.summary?.expiring_documents || 0)) / Math.max(compliance.summary?.legal_documents || 1, 1)) * 100)
+          : 100,
       },
     ],
     [compliance.summary]
@@ -373,66 +333,56 @@ export default function LegalPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-foreground">Módulo Legal</h1>
-        <p className="text-muted-foreground mt-2">
+        <p className="mt-2 text-muted-foreground">
           Gestión de documentos legales, contratos y cumplimiento normativo minero
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Documentos Legales
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Documentos Legales</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{documentCount}</div>
-            <p className="text-xs text-muted-foreground mt-1">Registrados en el sistema</p>
+            <p className="mt-1 text-xs text-muted-foreground">Registrados en el sistema</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Contratos Vigentes
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Contratos Vigentes</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{activeContracts}</div>
-            <p className="text-xs text-muted-foreground mt-1">Activos y en seguimiento</p>
+            <p className="mt-1 text-xs text-muted-foreground">Activos y en seguimiento</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Documentos Legales
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Documentos Legales</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{documentCount}</div>
-            <p className="text-xs text-muted-foreground mt-1">Total cargados</p>
+            <p className="mt-1 text-xs text-muted-foreground">Total cargados</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Cumplimiento
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Cumplimiento</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{compliancePercent}%</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Basado en contratos y documentos legales
-            </p>
+            <p className="mt-1 text-xs text-muted-foreground">Basado en contratos y documentos legales</p>
           </CardContent>
         </Card>
       </div>
 
       {hasError && (
         <Card className="border-destructive/30">
-          <CardContent className="pt-6 flex items-center justify-between gap-4">
+          <CardContent className="flex items-center justify-between gap-4 pt-6">
             <div className="flex items-center gap-3 text-sm">
               <AlertCircle className="h-4 w-4 text-destructive" />
               <span>No fue posible cargar una parte del módulo legal.</span>
@@ -454,15 +404,15 @@ export default function LegalPage() {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="documents" className="flex items-center gap-2">
-            <FileText className="w-4 h-4" />
+            <FileText className="h-4 w-4" />
             <span className="hidden sm:inline">Documentos</span>
           </TabsTrigger>
           <TabsTrigger value="contracts" className="flex items-center gap-2">
-            <Scale className="w-4 h-4" />
+            <Scale className="h-4 w-4" />
             <span className="hidden sm:inline">Contratos</span>
           </TabsTrigger>
           <TabsTrigger value="compliance" className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4" />
+            <CheckCircle2 className="h-4 w-4" />
             <span className="hidden sm:inline">Cumplimiento</span>
           </TabsTrigger>
         </TabsList>
@@ -473,22 +423,18 @@ export default function LegalPage() {
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <CardTitle>Documentos Legales</CardTitle>
-                  <CardDescription>
-                    Políticas, procedimientos, protocolos y respaldo regulatorio
-                  </CardDescription>
+                  <CardDescription>Políticas, procedimientos, protocolos y respaldo regulatorio</CardDescription>
                 </div>
-                <div className="flex gap-2 items-center">
+                <div className="flex items-center gap-2">
                   <AddDocumentModal onSubmit={handleAddDocument} />
-                  <div className="flex-1 max-w-sm">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Buscar documentos..."
-                        value={searchQuery}
-                        onChange={(event) => setSearchQuery(event.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
+                  <div className="relative max-w-sm flex-1">
+                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar documentos..."
+                      value={searchQuery}
+                      onChange={(event) => setSearchQuery(event.target.value)}
+                      className="pl-10"
+                    />
                   </div>
                 </div>
               </div>
@@ -504,19 +450,18 @@ export default function LegalPage() {
                 {legalDocs.map((doc) => (
                   <div
                     key={doc.id}
-                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition"
+                    className="flex items-center justify-between rounded-lg border p-3 transition hover:bg-muted/50"
                   >
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <FileText className="w-5 h-5 text-primary flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{doc.title}</p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {(doc.documentType || 'Documento').replace(/_/g, ' ')} -{' '}
-                          {doc.description || 'Sin descripción'}
+                    <div className="flex min-w-0 flex-1 items-center gap-3">
+                      <FileText className="h-5 w-5 flex-shrink-0 text-primary" />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-medium">{doc.title}</p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {(doc.documentType || 'Documento').replace(/_/g, ' ')} - {doc.description || 'Sin descripción'}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex flex-shrink-0 items-center gap-2">
                       {getStatusBadge(doc.status)}
                       {(doc.fileUrl || doc.filePath) && (
                         <>
@@ -528,7 +473,7 @@ export default function LegalPage() {
                             onClick={() => handleOpenDoc(doc, false)}
                             title="Vista previa"
                           >
-                            <Eye className="w-4 h-4" />
+                            <Eye className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -538,7 +483,7 @@ export default function LegalPage() {
                             onClick={() => handleOpenDoc(doc, true)}
                             title="Descargar"
                           >
-                            <Download className="w-4 h-4" />
+                            <Download className="h-4 w-4" />
                           </Button>
                         </>
                       )}
@@ -551,7 +496,7 @@ export default function LegalPage() {
         </TabsContent>
 
         <TabsContent value="contracts">
-          <div className="flex justify-end mb-4">
+          <div className="mb-4 flex justify-end">
             <AddContractModal onSubmit={handleAddContract} />
           </div>
           <ContractsTracker contracts={trackerContracts} />
@@ -561,9 +506,7 @@ export default function LegalPage() {
           <Card>
             <CardHeader>
               <CardTitle>Matriz de Cumplimiento</CardTitle>
-              <CardDescription>
-                Seguimiento de respaldo contractual y documental del módulo legal
-              </CardDescription>
+              <CardDescription>Seguimiento de respaldo contractual y documental del módulo legal</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
@@ -571,15 +514,10 @@ export default function LegalPage() {
                   <div key={item.requirement} className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">{item.requirement}</span>
-                      <Badge className={getComplianceTone(item.percentage)}>
-                        {item.percentage}%
-                      </Badge>
+                      <Badge className={getComplianceTone(item.percentage)}>{item.percentage}%</Badge>
                     </div>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div
-                        className="bg-secondary h-2 rounded-full"
-                        style={{ width: `${item.percentage}%` }}
-                      />
+                    <div className="h-2 w-full rounded-full bg-muted">
+                      <div className="h-2 rounded-full bg-secondary" style={{ width: `${item.percentage}%` }} />
                     </div>
                   </div>
                 ))}
@@ -587,26 +525,24 @@ export default function LegalPage() {
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="rounded-lg border p-4">
-                  <p className="text-sm font-semibold mb-2">Contratos por revisar</p>
+                  <p className="mb-2 text-sm font-semibold">Contratos por revisar</p>
                   <ul className="space-y-2 text-sm text-muted-foreground">
                     {(compliance.contracts_pending_review || []).slice(0, 5).map((item) => (
                       <li key={item.id}>{item.title}</li>
                     ))}
-                      {(compliance.contracts_pending_review || []).length === 0 && (
-                        <li>No hay contratos pendientes de revisión.</li>
-                      )}
+                    {(compliance.contracts_pending_review || []).length === 0 && (
+                      <li>No hay contratos pendientes de revisión.</li>
+                    )}
                   </ul>
                 </div>
 
                 <div className="rounded-lg border p-4">
-                  <p className="text-sm font-semibold mb-2">Documentos por vencer</p>
+                  <p className="mb-2 text-sm font-semibold">Documentos por vencer</p>
                   <ul className="space-y-2 text-sm text-muted-foreground">
                     {(compliance.expiring_documents || []).slice(0, 5).map((item) => (
                       <li key={item.id}>
                         {item.title}
-                        {item.expiry_date
-                          ? ` - ${new Date(item.expiry_date).toLocaleDateString('es-CL')}`
-                          : ''}
+                        {item.expiry_date ? ` - ${new Date(item.expiry_date).toLocaleDateString('es-CL')}` : ''}
                       </li>
                     ))}
                     {(compliance.expiring_documents || []).length === 0 && (
@@ -633,6 +569,3 @@ export default function LegalPage() {
     </div>
   );
 }
-
-
-

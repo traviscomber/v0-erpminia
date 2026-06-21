@@ -39,7 +39,6 @@ export default function ReportesPage() {
   const [anio, setAnio] = useState(new Date().getFullYear().toString());
 
   const { data: inspecciones = [] } = useSWR('/api/sostenibilidad/inspeccionestipo=internas', fetcher);
-
   const inspeccionesList = (inspecciones.data || []) as any[];
 
   const generateReportData = () => {
@@ -92,18 +91,9 @@ export default function ReportesPage() {
   const reportData = generateReportData();
 
   const estadoData = [
-    {
-      name: 'Planificadas',
-      value: inspeccionesList.filter((item) => item.estado === 'planificada').length,
-    },
-    {
-      name: 'Realizadas',
-      value: inspeccionesList.filter((item) => item.estado === 'realizada').length,
-    },
-    {
-      name: 'Cerradas',
-      value: inspeccionesList.filter((item) => item.estado === 'cerrada').length,
-    },
+    { name: 'Planificadas', value: inspeccionesList.filter((item) => item.estado === 'planificada').length },
+    { name: 'Realizadas', value: inspeccionesList.filter((item) => item.estado === 'realizada').length },
+    { name: 'Cerradas', value: inspeccionesList.filter((item) => item.estado === 'cerrada').length },
   ];
 
   const faenaData = Object.entries(

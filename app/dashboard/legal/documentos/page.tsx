@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DocumentUpload } from '@/components/documents/document-upload';
@@ -39,9 +39,7 @@ export default function DocumentosLegalPage() {
       setStats({
         total: data?.total ?? docs.length,
         vigentes: docs.filter((d: Document) => d.status === 'active').length,
-        en_revision: docs.filter((d: Document) =>
-          d.status === 'pending_l1' || d.status === 'pending_l2'
-        ).length,
+        en_revision: docs.filter((d: Document) => d.status === 'pending_l1' || d.status === 'pending_l2').length,
         rechazados: docs.filter((d: Document) => d.status === 'rejected').length,
       });
     } catch (error) {
@@ -62,7 +60,7 @@ export default function DocumentosLegalPage() {
         credentials: 'include',
       });
       if (response.ok) {
-        setDocuments(documents.filter(d => d.id !== documentId));
+        setDocuments(documents.filter((d) => d.id !== documentId));
         await loadDocuments();
       }
     } catch (error) {
@@ -72,7 +70,7 @@ export default function DocumentosLegalPage() {
 
   const handleView = (document: Document | string) => {
     if (typeof document === 'string') {
-      const doc = documents.find(d => d.id === document);
+      const doc = documents.find((d) => d.id === document);
       if (doc) setSelectedDoc(doc);
     } else {
       setSelectedDoc(document);
@@ -126,15 +124,15 @@ export default function DocumentosLegalPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Documentos Legales</h1>
-        <p className="text-muted-foreground mt-2">
+        <p className="mt-2 text-muted-foreground">
           Gestión de contratos, políticas y documentos legales
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between text-sm font-medium">
               <span>Total</span>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardTitle>
@@ -147,7 +145,7 @@ export default function DocumentosLegalPage() {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between text-sm font-medium">
               <span>Vigentes</span>
               <CheckCircle2 className="h-4 w-4 text-green-500" />
             </CardTitle>
@@ -160,8 +158,8 @@ export default function DocumentosLegalPage() {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center justify-between">
-              <span>En Revisión</span>
+            <CardTitle className="flex items-center justify-between text-sm font-medium">
+              <span>En revisión</span>
               <Clock className="h-4 w-4 text-yellow-500" />
             </CardTitle>
           </CardHeader>
@@ -173,7 +171,7 @@ export default function DocumentosLegalPage() {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between text-sm font-medium">
               <span>Rechazados</span>
               <AlertCircle className="h-4 w-4 text-red-500" />
             </CardTitle>
@@ -186,11 +184,19 @@ export default function DocumentosLegalPage() {
       </div>
 
       <Tabs defaultValue="all" className="space-y-4">
-        <TabsList className="bg-muted/60 border-b-2 border-border p-1">
-          <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Todos</TabsTrigger>
-          <TabsTrigger value="vigentes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Vigentes</TabsTrigger>
-          <TabsTrigger value="revision" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">En Revisión</TabsTrigger>
-          <TabsTrigger value="upload" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Subir documentos</TabsTrigger>
+        <TabsList className="border-b-2 border-border bg-muted/60 p-1">
+          <TabsTrigger value="all" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            Todos
+          </TabsTrigger>
+          <TabsTrigger value="vigentes" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            Vigentes
+          </TabsTrigger>
+          <TabsTrigger value="revision" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            En revisión
+          </TabsTrigger>
+          <TabsTrigger value="upload" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            Subir documentos
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
@@ -204,7 +210,7 @@ export default function DocumentosLegalPage() {
 
         <TabsContent value="vigentes" className="space-y-4">
           <DocumentList
-            documents={documents.filter(d => d.status === 'active')}
+            documents={documents.filter((d) => d.status === 'active')}
             isLoading={loading}
             onView={handleView}
             onDelete={handleDelete}
@@ -213,9 +219,7 @@ export default function DocumentosLegalPage() {
 
         <TabsContent value="revision" className="space-y-4">
           <DocumentList
-            documents={documents.filter(d =>
-              d.status === 'pending_l1' || d.status === 'pending_l2'
-            )}
+            documents={documents.filter((d) => d.status === 'pending_l1' || d.status === 'pending_l2')}
             isLoading={loading}
             onView={handleView}
             onDelete={handleDelete}
@@ -226,16 +230,10 @@ export default function DocumentosLegalPage() {
           <Card>
             <CardHeader>
               <CardTitle>Subir nuevo documento</CardTitle>
-              <CardDescription>
-                Sube contratos, políticas y documentos legales
-              </CardDescription>
+              <CardDescription>Sube contratos, políticas y documentos legales</CardDescription>
             </CardHeader>
             <CardContent>
-              <DocumentUpload 
-                module="legal"
-                category="documentos"
-                onUploadSuccess={loadDocuments}
-              />
+              <DocumentUpload module="legal" category="documentos" onUploadSuccess={loadDocuments} />
             </CardContent>
           </Card>
         </TabsContent>

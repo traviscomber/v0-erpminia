@@ -110,7 +110,10 @@ export default function SostenibilidadDashboard() {
   const { data: overviewData } = useSWR<OverviewResponse>('/api/sostenibilidad/dashboard/overview', fetcher, {
     refreshInterval: 60000,
   });
-  const { data: documentosData } = useSWR<ListResponse>('/api/documents/list?module=prevenci%C3%B3n&category=documentos-hse', fetcher);
+  const { data: documentosData } = useSWR<ListResponse>(
+    '/api/documents/list?module=prevenci%C3%B3n&category=documentos-hse',
+    fetcher
+  );
   const { data: capacitacionesData } = useSWR<ListResponse>('/api/sostenibilidad/capacitaciones', fetcher);
   const { data: eppData } = useSWR<ListResponse>('/api/sostenibilidad/epp', fetcher);
   const { data: inspeccionesData } = useSWR<ListResponse>('/api/sostenibilidad/inspecciones', fetcher);
