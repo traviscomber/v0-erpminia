@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
@@ -151,7 +151,7 @@ export default function DocumentosGestionPage() {
                 <div className="flex-1">
                   <div className="text-sm font-semibold">{doc.nombre}</div>
                   <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
-                    <span>ID: {doc.documentId} • v{doc.version}</span>
+                    <span>ID: {doc.documentId} €€¢ v{doc.version}</span>
                     <span className="text-[var(--secondary)]">Por revisar: {doc.pendingBy || 'Sin asignar'}</span>
                   </div>
                 </div>
@@ -176,9 +176,9 @@ export default function DocumentosGestionPage() {
                     <div className="text-sm font-medium">{doc.nombre}</div>
                     <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                       <span>{doc.documentId}</span>
-                      <span>•</span>
+                      <span>€€¢</span>
                       <span>v{doc.version}</span>
-                      <span>•</span>
+                      <span>€€¢</span>
                       <span>Por: {doc.creador}</span>
                     </div>
                   </div>
@@ -254,3 +254,5 @@ export default function DocumentosGestionPage() {
     </div>
   );
 }
+
+

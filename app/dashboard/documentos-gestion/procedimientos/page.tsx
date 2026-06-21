@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
@@ -207,3 +207,6 @@ export default function ProcedimientosPage() {
     </div>
   );
 }
+
+
+

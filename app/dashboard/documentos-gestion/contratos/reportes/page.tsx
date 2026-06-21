@@ -34,7 +34,7 @@ export default function ContratosReportesPage() {
   });
 
   const reportes = reportData || {};
-  const pagosPorContratista = reportes.pagos_por_tratista || [];
+  const pagosPorContratista = reportes.pagos_por_contratista || [];
   const garantiasActivas = reportes.garantias_activas || [];
   const regaliasPorPropiedad = reportes.regalias_por_propiedad || [];
   const estadoPagos = reportes.estado_pagos || [];

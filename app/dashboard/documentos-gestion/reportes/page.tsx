@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useMemo, useState } from 'react';
 import { BarChart3, Download, FileText, Plus, Search, TrendingUp } from 'lucide-react';
@@ -180,7 +180,7 @@ export default function ReportesPage() {
                       </div>
                       <p className="text-sm text-muted-foreground">{report.title}</p>
                       <p className="text-xs text-muted-foreground">
-                        Autor: {report.author} • {report.date} • {report.pages} páginas • {report.size}
+                        Autor: {report.author} €€¢ {report.date} €€¢ {report.pages} páginas €€¢ {report.size}
                       </p>
                     </div>
                   </div>
@@ -209,3 +209,6 @@ export default function ReportesPage() {
     </div>
   );
 }
+
+
+

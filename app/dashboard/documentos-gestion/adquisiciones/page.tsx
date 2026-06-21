@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -156,10 +156,10 @@ export default function AdquisicionesPage() {
                           </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          {order.vendor_name} • {order.item_code}
+                          {order.vendor_name} €€¢ {order.item_code}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          Entrega: {order.delivery_date || 'Sin fecha'} • Cantidad: {order.quantity || 0}
+                          Entrega: {order.delivery_date || 'Sin fecha'} €€¢ Cantidad: {order.quantity || 0}
                         </p>
                       </div>
                     </div>
@@ -180,3 +180,6 @@ export default function AdquisicionesPage() {
     </div>
   );
 }
+
+
+
