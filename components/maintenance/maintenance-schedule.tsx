@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -27,12 +27,12 @@ const priorityColors = {
 
 const getUrgency = (daysUntil: number | undefined) => {
   if (daysUntil === undefined || daysUntil === null) {
-    return { color: 'text-muted-foreground', label: 'Schedule pending' };
+    return { color: 'text-muted-foreground', label: 'Pendiente de programación' };
   }
-  if (daysUntil <= 0) return { color: 'text-destructive', label: 'Overdue' };
-  if (daysUntil <= 1) return { color: 'text-yellow-700', label: 'Today' };
-  if (daysUntil <= 3) return { color: 'text-yellow-600', label: 'Soon' };
-  return { color: 'text-foreground', label: `In ${daysUntil} days` };
+  if (daysUntil <= 0) return { color: 'text-destructive', label: 'Vencido' };
+  if (daysUntil <= 1) return { color: 'text-yellow-700', label: 'Hoy' };
+  if (daysUntil <= 3) return { color: 'text-yellow-600', label: 'Pronto' };
+  return { color: 'text-foreground', label: `En ${daysUntil} días` };
 };
 
 export function MaintenanceSchedule({ schedules, onMarkComplete }: MaintenanceScheduleProps) {
@@ -41,7 +41,7 @@ export function MaintenanceSchedule({ schedules, onMarkComplete }: MaintenanceSc
       {schedules.length === 0 ? (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
-            No scheduled maintenance in the next 7 days
+            No hay mantenimientos programados en los próximos 7 días
           </CardContent>
         </Card>
       ) : (
@@ -69,7 +69,7 @@ export function MaintenanceSchedule({ schedules, onMarkComplete }: MaintenanceSc
                     variant={(schedule.daysUntil ?? 999) <= 0 ? 'default' : 'outline'}
                     onClick={() => onMarkComplete?.(schedule.id)}
                   >
-                    Complete
+                    Marcar como completado
                   </Button>
                 </div>
               </CardContent>
@@ -80,3 +80,5 @@ export function MaintenanceSchedule({ schedules, onMarkComplete }: MaintenanceSc
     </div>
   );
 }
+
+

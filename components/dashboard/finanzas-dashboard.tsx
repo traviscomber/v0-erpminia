@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useFinanzasMovements } from '@/hooks/use-module-apis';
 import { useCostCenters } from '@/hooks/use-cost-centers';
@@ -13,10 +13,10 @@ export function FinanzasDashboard() {
   const { movements, isLoading, error, mutate } = useFinanzasMovements();
   const { costCenters } = useCostCenters();
 
-  if (error) return <div className="text-red-500">Error cargando movimientos</div>;
+  if (error) return <div className="text-red-500">Error al cargar movimientos</div>;
   if (isLoading) return <div>Cargando...</div>;
 
-  // Filter movements by cost center if selected
+  // Filtrar movimientos por centro de costo si se selecciona uno
   const filteredMovements = selectedCostCenterId
     ? movements.filter(m => (m as any).cost_center_id === selectedCostCenterId)
     : movements;
@@ -61,7 +61,7 @@ export function FinanzasDashboard() {
       </div>
 
       <div className="max-w-xs">
-        <label className="text-sm font-medium mb-2 block">Filtrar por Centro de Costos</label>
+        <label className="text-sm font-medium mb-2 block">Filtrar por centro de costos</label>
         <CostCenterSelect
           value={selectedCostCenterId}
           onValueChange={setSelectedCostCenterId}
@@ -119,7 +119,7 @@ export function FinanzasDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Flujo de Caja - Últimos movimientos</CardTitle>
+          <CardTitle>Flujo de Caja - Ãšltimos movimientos</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -159,3 +159,5 @@ export function FinanzasDashboard() {
     </div>
   );
 }
+
+

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { AlertTriangle, Boxes, ChevronLeft, ChevronRight, Layers3, RefreshCw, Search } from 'lucide-react';
@@ -47,14 +47,14 @@ export function BodegaDashboard() {
 
   const normalizedInventory = inventory.map((item) => ({
     ...item,
-    categoryLabel: canonicalCategory(item.category) || 'Sin categoría',
+    categoryLabel: canonicalCategory(item.category) || 'Sin categorÃ­a',
   }));
   const lowStock = normalizedInventory.filter((item) => item.quantity <= item.min_stock);
   const totalValue = normalizedInventory.reduce((sum, item) => sum + item.quantity * (item.unit_cost || 0), 0);
   const familyCount = new Set(normalizedInventory.map((item) => item.categoryLabel).filter(Boolean)).size;
   const subfamilyCount = new Set(normalizedInventory.map((item) => splitHierarchy(item.description).subfamily).filter(Boolean)).size;
   const categoryBuckets = normalizedInventory.reduce<Record<string, number>>((acc, item) => {
-    const key = item.categoryLabel || 'Sin categoría';
+    const key = item.categoryLabel || 'Sin categorÃ­a';
     acc[key] = (acc[key] || 0) + 1;
     return acc;
   }, {});
@@ -78,7 +78,7 @@ export function BodegaDashboard() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold">Ítems</CardTitle>
+            <CardTitle className="text-base font-semibold">Ãtems</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-bold text-primary">{pagination.total.toLocaleString()}</div>
@@ -116,7 +116,7 @@ export function BodegaDashboard() {
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-3">
           <div className="rounded-lg border border-border bg-background/60 p-4">
-            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Familias en página</div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Familias en pÃ¡gina</div>
             <div className="mt-2 text-3xl font-bold text-foreground">{familyCount.toLocaleString()}</div>
             <div className="mt-1 text-sm text-muted-foreground">Categorías principales visibles</div>
           </div>
@@ -284,7 +284,7 @@ export function BodegaDashboard() {
             <div className="mt-6 flex items-center justify-between border-t border-border pt-4">
               <div className="text-sm text-muted-foreground">
                 Mostrando {(page * pageSize) + 1} a {Math.min((page + 1) * pageSize, pagination.total)} de{' '}
-                {pagination.total.toLocaleString()} artículos
+                {pagination.total.toLocaleString()} artÃ­culos
               </div>
 
               <div className="flex items-center gap-2">
@@ -296,11 +296,11 @@ export function BodegaDashboard() {
                   }}
                   className="rounded border border-border bg-background px-3 py-2 text-sm font-medium text-foreground"
                 >
-                  <option value={25}>25 por página</option>
-                  <option value={50}>50 por página</option>
-                  <option value={100}>100 por página</option>
-                  <option value={250}>250 por página</option>
-                  <option value={500}>500 por página</option>
+                  <option value={25}>25 por pÃ¡gina</option>
+                  <option value={50}>50 por pÃ¡gina</option>
+                  <option value={100}>100 por pÃ¡gina</option>
+                  <option value={250}>250 por pÃ¡gina</option>
+                  <option value={500}>500 por pÃ¡gina</option>
                 </select>
 
                 <Button variant="outline" size="sm" onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0} className="gap-1">
@@ -325,3 +325,5 @@ export function BodegaDashboard() {
     </div>
   );
 }
+
+
