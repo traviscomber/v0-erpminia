@@ -60,7 +60,7 @@ function StatusBadge({ status }: { status: string }) {
     </span>
   );
 }
-// Dos puntos de color para el estado de Revision L1 y L2 por documento
+// Dos puntos de color para el estado de Revisión L1 y L2 por documento
 function ReviewDots({ l1, l2 }: { l1: DocSlot['l1_status']; l2: DocSlot['l2_status'] }) {
   const dotColor = (s: typeof l1) =>
     s === 'cumple' ? 'bg-green-500' : s === 'no_cumple' ? 'bg-red-500' : 'bg-yellow-400/70';
@@ -71,7 +71,7 @@ function ReviewDots({ l1, l2 }: { l1: DocSlot['l1_status']; l2: DocSlot['l2_stat
     </div>
   );
 }
-// Modal de Revision
+// Modal de Revisión
 interface ReviewState {
   slot_index: number;
   status: 'cumple' | 'no_cumple' | null;
@@ -210,7 +210,7 @@ function ReviewModal({
         <DialogFooter className="pt-2 border-t">
           <Button variant="outline" onClick={onClose} disabled={saving}>Cancelar</Button>
           <Button onClick={handleSave} disabled={saving} className="gap-2">
-            {saving ? <><Loader2 className="h-4 w-4 animate-spin" />Guardando...</> : <><Send className="h-4 w-4" />Guardar Revision</>}
+            {saving ? <><Loader2 className="h-4 w-4 animate-spin" />Guardando...</> : <><Send className="h-4 w-4" />Guardar Revisión</>}
           </Button>
         </DialogFooter>
       </DialogContent>

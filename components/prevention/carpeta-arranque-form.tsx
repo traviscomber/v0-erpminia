@@ -13,24 +13,24 @@ interface CarpetaArranqueFormProps {
 
 const DOCUMENTOS_REQUERIDOS = [
   'Certificado de afiliacion y cotizacion a Organismo Administrador',
-  'Certificado de Accidentabilidad (ultimos 2 anos)',
+  'Certificado de Accidentabilidad (últimos 2 años)',
   'Reglamento interno de orden, higiene y seguridad',
   'Copia IRL de todos sus colaboradores',
   'Contratos de trabajos de su personal',
   'Registro de entrega de EPP',
   'Registro interno de la empresa contratista',
-  'Recepcion firmada del Sistema de Gestion y Seguridad en el Trabajo',
-  'Examenes pre-ocupacionales (ultimos 3 anos)',
-  'Examenes ocupacionales (agentes como ruido, silice)',
-  'Documentacion de trabajadores extranjeros',
-  'Procedimientos de trabajos actualizados con NRCT',
+  'Recepción firmada del Sistema de Gestión y Seguridad en el Trabajo',
+  'Exámenes pre-ocupacionales (últimos 3 años)',
+  'Exámenes ocupacionales (agentes como ruido, sílice)',
+  'Documentación de trabajadores extranjeros',
+  'Procedimientos de trabajo actualizados con NRCT',
   'Procedimiento en caso de accidente',
-  'Politica de empresa contratista en control de riesgos',
+  'Política de empresa contratista en control de riesgos',
   'Copia carnet de identidad de todos los colaboradores',
-  'Licencias de conduccion vigentes',
-  'Recepcion de conductores por reglamento interno',
-  'Programa de supervision a cargo personal',
-  'Matriz de Identificacion de Peligros (MIPER)',
+  'Licencias de conducción vigentes',
+  'Recepción de conductores por reglamento interno',
+  'Programa de supervisión a cargo de personal',
+  'Matriz de Identificación de Peligros (MIPER)',
 ];
 
 type SlotStatus = 'idle' | 'uploading' | 'done' | 'error';
@@ -142,7 +142,7 @@ export default function CarpetaArranqueForm({ onSuccess }: CarpetaArranqueFormPr
         <h3 className="text-xl font-semibold">Carpeta enviada a revisión</h3>
         <p className="text-muted-foreground text-sm max-w-md">
           Se ha notificado a Dennyse, Javier Vargas y Gonzalo Canales.
-          Recibiras un correo cuando tus documentos sean revisados.
+          Recibirás un correo cuando tus documentos sean revisados.
         </p>
       </div>
     );
@@ -184,7 +184,7 @@ export default function CarpetaArranqueForm({ onSuccess }: CarpetaArranqueFormPr
             required
           />
           <p className="text-xs text-muted-foreground">
-            A este correo se enviaran las notificaciones de rechazo/aprobacion.
+            A este correo se enviarán las notificaciones de rechazo/aprobación.
           </p>
         </div>
         {submitError && (
