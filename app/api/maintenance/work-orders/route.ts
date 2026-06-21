@@ -4,13 +4,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 
 function mapWorkOrder(row: any) {
+  const asset = row.asset || {};
   return {
     id: row.id,
     work_order_number: row.work_order_number,
-    asset_id: row.asset_id || row.asset.id || null,
-    asset_name: row.asset.asset_name || null,
-    asset_code: row.asset.asset_code || null,
-    asset_type: row.asset.asset_type || null,
+    asset_id: row.asset_id || asset.id || null,
+    asset_name: asset.asset_name || null,
+    asset_code: asset.asset_code || null,
+    asset_type: asset.asset_type || null,
     title: row.title,
     description: row.description,
     work_type: row.work_type,
@@ -18,8 +19,7 @@ function mapWorkOrder(row: any) {
     priority: row.priority,
     assigned_to_name: row.assigned_to_name,
     cost_center_id: row.cost_center_id || null,
-    progress_percentage:
-      row.status === 'completed' ? 100 : row.status === 'in_progress' ? 50 : 0,
+    progress_percentage: row.status === 'completed' ? 100 : row.status === 'in_progress' ? 50 : 0,
     planned_duration_hours: row.planned_duration_hours,
     actual_duration_hours: row.actual_duration_hours,
     scheduled_date: row.scheduled_date,
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ workOrders: (data || []).map(mapWorkOrder) });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'No se pudieron obtener las órdenes de trabajo';
+    const message = error instanceof Error ? error.message : 'No se pudieron obtener las ordenes de trabajo';
     return NextResponse.json({ workOrders: [], error: message }, { status: 500 });
   }
 }

@@ -4,13 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CostCenterSelect } from '@/components/common/cost-center-select';
 import { toast } from 'sonner';
@@ -35,7 +29,7 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title) {
-      toast.error('El título es obligatorio');
+      toast.error('El titulo es obligatorio');
       return;
     }
 
@@ -63,7 +57,7 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
       }
 
       const { data } = await res.json();
-      toast.success(`Orden de trabajo ${data.work_order_number} creada con éxito`);
+      toast.success(`Orden de trabajo ${data.work_order_number} creada con exito`);
       onSuccess();
       setFormData({
         title: '',
@@ -89,17 +83,12 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="title">Título</Label>
-            <Input
-              id="title"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              required
-            />
+            <Label htmlFor="title">Titulo</Label>
+            <Input id="title" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} required />
           </div>
 
           <div>
-            <Label htmlFor="description">Descripción</Label>
+            <Label htmlFor="description">Descripcion</Label>
             <textarea
               id="description"
               value={formData.description}
@@ -143,7 +132,7 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
                   <SelectItem value="low">Baja</SelectItem>
                   <SelectItem value="medium">Media</SelectItem>
                   <SelectItem value="high">Alta</SelectItem>
-                  <SelectItem value="critical">Crítica</SelectItem>
+                  <SelectItem value="critical">Critica</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -151,7 +140,7 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="plannedDuration">Duración planificada (horas)</Label>
+              <Label htmlFor="plannedDuration">Duracion planificada (horas)</Label>
               <Input
                 id="plannedDuration"
                 type="number"
