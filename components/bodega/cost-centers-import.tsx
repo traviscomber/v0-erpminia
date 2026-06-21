@@ -1,8 +1,7 @@
-﻿'use client';
+'use client';
 
 import { useState, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Upload, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 
@@ -28,7 +27,7 @@ export function CostCentersImportComponent() {
       setResult({
         success: false,
         message: 'Solo aceptamos archivos CSV, XLS o XLSX',
-        error: 'Tipo de archivo no válido',
+        error: 'Tipo de archivo no valido',
       });
       return;
     }
@@ -100,7 +99,7 @@ export function CostCentersImportComponent() {
             Importar centros de costo
           </CardTitle>
           <CardDescription>
-            Sube tu archivo CSV, XLS o XLSX con la estructura de centros de costo (minas y áreas).
+            Sube tu archivo CSV, XLS o XLSX con la estructura de centros de costo (minas y areas).
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -117,12 +116,8 @@ export function CostCentersImportComponent() {
             onClick={() => fileInputRef.current?.click()}
           >
             <Upload className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
-            <p className="font-semibold text-foreground">
-              Arrastra tu archivo o haz clic para seleccionar
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Formato: CSV, XLS o XLSX
-            </p>
+            <p className="font-semibold text-foreground">Arrastra tu archivo o haz clic para seleccionar</p>
+            <p className="mt-1 text-sm text-muted-foreground">Formato: CSV, XLS o XLSX</p>
 
             <input
               ref={fileInputRef}
@@ -143,11 +138,10 @@ export function CostCentersImportComponent() {
               <p className="mb-2 font-semibold">Formato requerido:</p>
               <p className="text-sm">Tu archivo debe tener estas columnas:</p>
               <div className="mt-2 rounded bg-muted p-2 font-mono text-sm">
-                CÓDIGO REC ELEC | NOMBRE | RUTA COMPLETA | CREADOR POR | FECHA DE CREACIÓN | NOTAS
+                CODIGO REC ELEC | NOMBRE | RUTA COMPLETA | CREADOR POR | FECHA DE CREACION | NOTAS
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
-                La RUTA COMPLETA debe usar " &gt; " para indicar la jerarquía {' '}
-                (ej: Mina Peumo &gt; Perforación)
+                La RUTA COMPLETA debe usar " &gt; " para indicar la jerarquia (ej: Mina Peumo &gt; Perforacion)
               </p>
             </AlertDescription>
           </Alert>

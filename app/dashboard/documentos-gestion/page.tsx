@@ -67,18 +67,18 @@ export default function DocumentosGestionPage() {
 
     return categories.filter((cat: any) =>
       String(cat.name || '').toLowerCase().includes(query) ||
-      String(cat.description || '').toLowerCase().includes(query),
+      String(cat.description || '').toLowerCase().includes(query)
     );
   }, [categories, searchTerm]);
 
   if (error) return <div className="text-red-500">Error al cargar documentos</div>;
-  if (isLoading) return <div className="text-gray-500">Cargando gestión documental...</div>;
+  if (isLoading) return <div className="text-gray-500">Cargando gestion documental...</div>;
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Gestión documental</h1>
+          <h1 className="text-3xl font-bold">Gestion documental</h1>
           <p className="mt-1 text-muted-foreground">
             Centraliza, revisa y organiza los documentos operativos en una sola vista.
           </p>
@@ -103,12 +103,12 @@ export default function DocumentosGestionPage() {
         <Card className="border-[var(--secondary)]/30 bg-[var(--secondary)]/5">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-[var(--secondary)]">
-              Pendientes de aprobación
+              Pendientes de aprobacion
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-[var(--secondary)]">{stats.pending}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Requieren revisión</p>
+            <p className="mt-1 text-xs text-muted-foreground">Requieren revision</p>
           </CardContent>
         </Card>
 
@@ -118,13 +118,13 @@ export default function DocumentosGestionPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-[var(--brand-verde)]">{recentDocuments.length}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Últimos documentos</p>
+            <p className="mt-1 text-xs text-muted-foreground">Ultimos documentos</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Categorías activas</CardTitle>
+            <CardTitle className="text-sm font-medium">Categorias activas</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{categories.length}</div>
@@ -138,9 +138,9 @@ export default function DocumentosGestionPage() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-[var(--secondary)]" />
-              <CardTitle>Documentos pendientes de aprobación</CardTitle>
+              <CardTitle>Documentos pendientes de aprobacion</CardTitle>
             </div>
-            <CardDescription>{pendingApprovals.length} documentos requieren revisión</CardDescription>
+            <CardDescription>{pendingApprovals.length} documentos requieren revision</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {pendingApprovals.map((doc: any) => (
@@ -166,7 +166,7 @@ export default function DocumentosGestionPage() {
         <Card>
           <CardHeader>
             <CardTitle>Documentos recientes</CardTitle>
-            <CardDescription>Últimos documentos creados o actualizados</CardDescription>
+            <CardDescription>Ultimos documentos creados o actualizados</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -194,20 +194,20 @@ export default function DocumentosGestionPage() {
         <Card className="border-amber-500/30 bg-amber-500/5">
           <CardHeader>
             <CardTitle>Documentos por vencer</CardTitle>
-            <CardDescription>{expiringDocuments.length} documentos próximos a vencerse</CardDescription>
+            <CardDescription>{expiringDocuments.length} documentos proximos a vencerse</CardDescription>
           </CardHeader>
         </Card>
       )}
 
       <Card>
         <CardHeader>
-          <CardTitle>Buscar categorías</CardTitle>
+          <CardTitle>Buscar categorias</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Busca por nombre o descripción..."
+              placeholder="Busca por nombre o descripcion..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -247,12 +247,10 @@ export default function DocumentosGestionPage() {
       {filteredCategories.length === 0 && (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
-            No se encontraron categorías que coincidan con tu búsqueda.
+            No se encontraron categorias que coincidan con tu busqueda.
           </CardContent>
         </Card>
       )}
     </div>
   );
 }
-
-
