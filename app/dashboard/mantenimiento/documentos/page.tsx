@@ -128,7 +128,7 @@ export default function DocumentosMantenimientoPage() {
       <div>
         <h1 className="text-3xl font-bold">Documentos de mantenimiento</h1>
         <p className="text-muted-foreground mt-2">
-          Gestion de manuales, procedimientos e instructivos de mantenimiento
+          Gestión de manuales, procedimientos e instructivos de mantenimiento
         </p>
       </div>
 
