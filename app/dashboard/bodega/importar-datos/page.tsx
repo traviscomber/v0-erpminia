@@ -58,8 +58,8 @@ export default function BodegaImportPage() {
                     <span className="font-medium text-foreground">Raíz:</span> 1 Mina Peumo
                   </div>
                   <div className="ml-3">- 1-1 Mina</div>
-                  <div className="ml-3">- 1-2 Supervision</div>
-                  <div className="ml-3">- 1-3 Perforacion Liviana</div>
+                  <div className="ml-3">- 1-2 Supervisión</div>
+                  <div className="ml-3">- 1-3 Perforación Liviana</div>
                   <div>
                     <span className="font-medium text-foreground">Raíz:</span> 4 Planta
                   </div>

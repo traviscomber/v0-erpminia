@@ -118,10 +118,10 @@ export function BodegaInventoryImportComponent() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <label className="mb-2 block text-sm font-medium">Centro de costos (opcional)</label>
+            <label className="mb-2 block text-sm font-medium">Centro de costo (opcional)</label>
             <Select value={selectedCostCenter} onValueChange={setSelectedCostCenter}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecciona un centro de costos" />
+                <SelectValue placeholder="Selecciona un centro de costo" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">No asignar</SelectItem>
@@ -172,7 +172,7 @@ export function BodegaInventoryImportComponent() {
               <p className="mb-2 font-semibold">Formato requerido:</p>
               <p className="text-sm">Tu archivo debe tener estas columnas:</p>
               <div className="mt-2 rounded bg-muted p-2 font-mono text-sm">
-                CODIGO | FAMILIA | SUB-FAMILIA | EQUIPO | PRODUCTO | STOCK | VALOR UNIT
+                CÓDIGO | FAMILIA | SUB-FAMILIA | EQUIPO | PRODUCTO | STOCK | VALOR UNIT
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
                 CÓDIGO debe ser único. PRODUCTO es el nombre del artículo. STOCK y VALOR UNIT se cargan al sistema.

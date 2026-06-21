@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -146,8 +146,7 @@ export function CostCentersImportComponent() {
                 CÓDIGO REC ELEC | NOMBRE | RUTA COMPLETA | CREADOR POR | FECHA DE CREACIÓN | NOTAS
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
-                La RUTA COMPLETA debe usar " &gt; " para indicar la jerarquía
-                {' '}
+                La RUTA COMPLETA debe usar " &gt; " para indicar la jerarquía {' '}
                 (ej: Mina Peumo &gt; Perforación)
               </p>
             </AlertDescription>
