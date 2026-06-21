@@ -67,7 +67,7 @@ export default function VehiclesPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Vehiculos en sistema</CardTitle>
+          <CardTitle>Vehículos en sistema</CardTitle>
           <CardDescription>
             {isLoading ? 'Cargando activos...' : `${vehicles.length} vehículos registrados`}
           </CardDescription>

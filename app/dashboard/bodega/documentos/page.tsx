@@ -7,7 +7,7 @@ import { DocumentUpload } from '@/components/documents/document-upload';
 import { DocumentList, Document } from '@/components/documents/document-list';
 import { DocumentReviewModal } from '@/components/documents/document-review-modal';
 import { BodegaImportXls } from '@/components/bodega/bodega-import-xls';
-import { FileText, CheckCircle2, AlertCircle, Clock, Upload } from 'lucide-react';
+import { FileText, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
 
 interface DocumentStats {
   total: number;
