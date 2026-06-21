@@ -36,7 +36,7 @@ async function fetchJson(url: string) {
   const payload = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(payload?.error || 'No se pudo cargar la informacion');
+    throw new Error(payload?.error || 'No se pudo cargar la información');
   }
 
   return payload;
@@ -84,7 +84,7 @@ export function SensorAlerts({ equipmentId }: SensorAlertProps) {
         setSensors(data?.sensor_data ? [data.sensor_data] : []);
         setAlerts(Array.isArray(data?.alarms) ? data.alarms : []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'No se pudo cargar la telemetria');
+        setError(err instanceof Error ? err.message : 'No se pudo cargar la telemetría');
         setSensors([]);
         setAlerts([]);
       } finally {
@@ -96,15 +96,15 @@ export function SensorAlerts({ equipmentId }: SensorAlertProps) {
   }, [resolvedEquipmentId]);
 
   if (loading) {
-    return <div className="text-sm text-muted-foreground">Cargando telemetria real...</div>;
+    return <div className="text-sm text-muted-foreground">Cargando telemetría real...</div>;
   }
 
   if (error) {
-    return <div className="text-sm text-destructive">Error al cargar telemetria: {error}</div>;
+    return <div className="text-sm text-destructive">Error al cargar telemetría: {error}</div>;
   }
 
   if (sensors.length === 0) {
-    return <div className="text-sm text-muted-foreground">No hay telemetria disponible para mostrar.</div>;
+    return <div className="text-sm text-muted-foreground">No hay telemetría disponible para mostrar.</div>;
   }
 
   const sensor = sensors[0];
@@ -120,7 +120,7 @@ export function SensorAlerts({ equipmentId }: SensorAlertProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm">{alerts[0]?.message || 'El equipo requiere atencion inmediata.'}</p>
+            <p className="text-sm">{alerts[0]?.message || 'El equipo requiere atención inmediata.'}</p>
           </CardContent>
         </Card>
       )}
@@ -141,12 +141,12 @@ export function SensorAlerts({ equipmentId }: SensorAlertProps) {
               <p className="text-lg font-semibold">{sensor.temperature ?? '--'} °C</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Presion</p>
+              <p className="text-xs text-muted-foreground">Presión</p>
               <p className="text-lg font-semibold">{sensor.pressure ?? '--'} PSI</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Vibracion</p>
-              <p className="text-lg font-semibold">{sensor.vibration ?? '--'} m/s2</p>
+              <p className="text-xs text-muted-foreground">Vibración</p>
+              <p className="text-lg font-semibold">{sensor.vibration ?? '--'} m/s²</p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground">RPM</p>
@@ -154,7 +154,7 @@ export function SensorAlerts({ equipmentId }: SensorAlertProps) {
             </div>
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            Ultima lectura: {new Date(sensor.timestamp).toLocaleString('es-CL')}
+            Última lectura: {new Date(sensor.timestamp).toLocaleString('es-CL')}
           </p>
         </CardContent>
       </Card>

@@ -67,7 +67,7 @@ export function CreateWorkOrder({ equipmentId, equipmentName, onSuccess }: Creat
         onSuccess();
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error creating work order');
+      setError(err instanceof Error ? err.message : 'Error al crear la orden de trabajo');
     } finally {
       setIsSubmitting(false);
     }
@@ -76,7 +76,7 @@ export function CreateWorkOrder({ equipmentId, equipmentName, onSuccess }: Creat
   return (
     <Card className="border-border">
       <CardHeader>
-        <CardTitle>Crear Nueva Orden de Trabajo</CardTitle>
+        <CardTitle>Crear nueva orden de trabajo</CardTitle>
         <CardDescription>{equipmentName}</CardDescription>
       </CardHeader>
       <CardContent>
@@ -97,7 +97,7 @@ export function CreateWorkOrder({ equipmentId, equipmentName, onSuccess }: Creat
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">Número de Orden</label>
+              <label className="text-sm font-medium mb-2 block">Número de orden</label>
               <Input
                 value={formData.order_number}
                 disabled
@@ -114,16 +114,16 @@ export function CreateWorkOrder({ equipmentId, equipmentName, onSuccess }: Creat
                   <SelectItem value="baja">Baja</SelectItem>
                   <SelectItem value="media">Media</SelectItem>
                   <SelectItem value="alta">Alta</SelectItem>
-                  <SelectItem value="critica_seguridad">Crítica Seguridad</SelectItem>
+                  <SelectItem value="critica_seguridad">Crítica de seguridad</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <div>
-            <label className="text-sm font-medium mb-2 block">Título</label>
+              <label className="text-sm font-medium mb-2 block">Título</label>
             <Input
-              placeholder="ej: Mantención preventiva de compresores"
+              placeholder="Ej: Mantención preventiva de compresores"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               required
@@ -142,7 +142,7 @@ export function CreateWorkOrder({ equipmentId, equipmentName, onSuccess }: Creat
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">Tipo Mantención</label>
+            <label className="text-sm font-medium mb-2 block">Tipo de mantención</label>
               <Select value={formData.maintenance_type} onValueChange={(value) => setFormData({ ...formData, maintenance_type: value })}>
                 <SelectTrigger>
                   <SelectValue />

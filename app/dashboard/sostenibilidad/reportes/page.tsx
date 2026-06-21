@@ -122,14 +122,14 @@ export default function ReportesPage() {
       <div className="mb-8">
         <h1 className="mb-2 text-3xl font-bold text-foreground">Reportes de sostenibilidad</h1>
         <p className="text-muted-foreground">
-          Análisis comparativo por periodo de inspecciones, hallazgos y KPIs.
+          Análisis comparativo por período de inspecciones, hallazgos y KPIs.
         </p>
       </div>
 
       <Tabs defaultValue="kpi" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="kpi">Panel de KPI</TabsTrigger>
-          <TabsTrigger value="detailed">Análisis Detallado</TabsTrigger>
+          <TabsTrigger value="detailed">Análisis detallado</TabsTrigger>
         </TabsList>
 
         <TabsContent value="kpi" className="space-y-6">
@@ -170,7 +170,7 @@ export default function ReportesPage() {
                     data={reportData}
                     fileName={`Reporte_${periodoTipo}_${anio}`}
                     columns={[
-                      { key: 'periodo', label: 'Periodo' },
+                      { key: 'periodo', label: 'Período' },
                       { key: 'inspecciones', label: 'Inspecciones' },
                       { key: 'hallazgos', label: 'Hallazgos' },
                       { key: 'cumplimiento', label: 'Cumplimiento' },
@@ -184,7 +184,7 @@ export default function ReportesPage() {
           <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Total Inspecciones</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total de inspecciones</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold">{inspeccionesList.length}</div>
@@ -202,7 +202,7 @@ export default function ReportesPage() {
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Total Hallazgos</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total de hallazgos</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-destructive">
@@ -212,7 +212,7 @@ export default function ReportesPage() {
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">% Cumplimiento</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">% de cumplimiento</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-primary">
@@ -232,7 +232,7 @@ export default function ReportesPage() {
           <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>Tendencia de Inspecciones</CardTitle>
+                <CardTitle>Tendencia de inspecciones</CardTitle>
                 <CardDescription>Inspecciones por {periodoTipo === 'mes' ? 'mes' : 'trimestre'}</CardDescription>
               </CardHeader>
               <CardContent>
@@ -252,7 +252,7 @@ export default function ReportesPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Hallazgos por Periodo</CardTitle>
+                <CardTitle>Hallazgos por período</CardTitle>
                 <CardDescription>Cantidad de hallazgos encontrados</CardDescription>
               </CardHeader>
               <CardContent>
@@ -273,7 +273,7 @@ export default function ReportesPage() {
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>Distribución por Estado</CardTitle>
+                <CardTitle>Distribución por estado</CardTitle>
                 <CardDescription>Total de inspecciones por estado</CardDescription>
               </CardHeader>
               <CardContent>
@@ -301,7 +301,7 @@ export default function ReportesPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Inspecciones por Faena</CardTitle>
+                <CardTitle>Inspecciones por faena</CardTitle>
                 <CardDescription>Distribución de inspecciones por zona operativa</CardDescription>
               </CardHeader>
               <CardContent>

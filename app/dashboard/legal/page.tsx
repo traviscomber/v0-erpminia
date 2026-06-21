@@ -182,7 +182,7 @@ export default function LegalPage() {
       await mutateDocuments();
       setReviewingDoc(null);
     } catch (error) {
-      console.error('Error reviewing document:', error);
+      console.error('Error al revisar documento:', error);
       alert(`Error: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   };

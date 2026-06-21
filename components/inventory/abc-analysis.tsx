@@ -54,7 +54,7 @@ export function ABCAnalysis({ items }: ABCAnalysisProps) {
       <div className="grid grid-cols-3 gap-3">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Items Clase A</CardTitle>
+            <CardTitle className="text-sm">Artículos clase A</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{items.filter(i => i.classification === 'A').length}</p>
@@ -63,7 +63,7 @@ export function ABCAnalysis({ items }: ABCAnalysisProps) {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Items Clase B</CardTitle>
+            <CardTitle className="text-sm">Artículos clase B</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{items.filter(i => i.classification === 'B').length}</p>
@@ -72,7 +72,7 @@ export function ABCAnalysis({ items }: ABCAnalysisProps) {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Items Clase C</CardTitle>
+            <CardTitle className="text-sm">Artículos clase C</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{items.filter(i => i.classification === 'C').length}</p>
@@ -110,7 +110,7 @@ export function ABCAnalysis({ items }: ABCAnalysisProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Items de Alto Valor (Clase A)</CardTitle>
+          <CardTitle className="text-sm">Artículos de alto valor (clase A)</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           {items

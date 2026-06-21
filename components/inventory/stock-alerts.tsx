@@ -119,7 +119,7 @@ export function StockLevelAlerts() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="border-border">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm">Items Total</CardTitle>
+            <CardTitle className="text-sm">Total de artículos</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalItems}</div>
@@ -132,7 +132,7 @@ export function StockLevelAlerts() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">{alerts.critical.length}</div>
-            <p className="text-xs text-muted-foreground mt-1">sin stock</p>
+            <p className="text-xs text-muted-foreground mt-1">Sin stock</p>
           </CardContent>
         </Card>
 
@@ -148,13 +148,13 @@ export function StockLevelAlerts() {
 
         <Card className="border-border">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm">Valor Total</CardTitle>
+            <CardTitle className="text-sm">Valor total</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-lg font-bold">
               ${totalValue.toLocaleString('es-CL')}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">en inventario</p>
+            <p className="text-xs text-muted-foreground mt-1">En inventario</p>
           </CardContent>
         </Card>
       </div>
@@ -163,7 +163,7 @@ export function StockLevelAlerts() {
       {alerts.critical.length > 0 && (
         <Card className="border-red-500/30 bg-red-500/5">
           <CardHeader>
-            <CardTitle className="text-red-700 text-lg">Items Sin Stock</CardTitle>
+            <CardTitle className="text-red-700 text-lg">Artículos sin stock</CardTitle>
             <CardDescription>Requieren reorden inmediata</CardDescription>
           </CardHeader>
           <CardContent>
@@ -181,7 +181,7 @@ export function StockLevelAlerts() {
                     <Badge className="bg-red-600/10 text-red-700">CRÍTICO</Badge>
                     {item.lead_time_days && (
                       <p className="text-xs text-muted-foreground mt-1">
-                        Lead time: {item.lead_time_days} días
+                        Tiempo de entrega: {item.lead_time_days} días
                       </p>
                     )}
                   </div>
@@ -196,7 +196,7 @@ export function StockLevelAlerts() {
       {alerts.low.length > 0 && (
         <Card className="border-yellow-500/30 bg-yellow-500/5">
           <CardHeader>
-            <CardTitle className="text-yellow-700 text-lg">Stock Bajo</CardTitle>
+            <CardTitle className="text-yellow-700 text-lg">Stock bajo</CardTitle>
             <CardDescription>Próximo al nivel mínimo</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -227,7 +227,7 @@ export function StockLevelAlerts() {
       {alerts.excess.length > 0 && (
         <Card className="border-blue-500/30 bg-blue-500/5">
           <CardHeader>
-            <CardTitle className="text-blue-700 text-lg">Stock en Exceso</CardTitle>
+            <CardTitle className="text-blue-700 text-lg">Stock en exceso</CardTitle>
             <CardDescription>Considerar revisión de inventario</CardDescription>
           </CardHeader>
           <CardContent>
@@ -247,10 +247,10 @@ export function StockLevelAlerts() {
       {alerts.adequate.length > 0 && (
         <Card className="border-green-500/30 bg-green-500/5">
           <CardHeader>
-            <CardTitle className="text-green-700 text-lg">Stock Adecuado</CardTitle>
+            <CardTitle className="text-green-700 text-lg">Stock adecuado</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm">{alerts.adequate.length} items en nivel óptimo</p>
+            <p className="text-sm">{alerts.adequate.length} artículos en nivel óptimo</p>
           </CardContent>
         </Card>
       )}
