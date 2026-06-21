@@ -18,7 +18,7 @@ export function OfflineIndicator() {
 
   return (
     <div className="fixed bottom-4 right-4 z-50 max-w-sm">
-      <Alert className={isOnline ? 'bg-secondary/5 border-secondary' : 'bg-destructive/5 border-destructive'}>
+      <Alert className={isOnline ? 'border-secondary bg-secondary/5' : 'border-destructive bg-destructive/5'}>
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             {isOnline ? (
@@ -26,16 +26,16 @@ export function OfflineIndicator() {
                 <Wifi className="h-4 w-4 text-secondary" />
                 {pendingRequests.length > 0 ? (
                   <AlertDescription>
-                    {isSyncing ? 'Syncing' : `${pendingRequests.length} pending`}
+                    {isSyncing ? 'Sincronizando' : `${pendingRequests.length} pendientes`}
                   </AlertDescription>
                 ) : (
-                  <AlertDescription>Back online</AlertDescription>
+                  <AlertDescription>Conectado nuevamente</AlertDescription>
                 )}
               </>
             ) : (
               <>
                 <WifiOff className="h-4 w-4 text-destructive" />
-                <AlertDescription>You're offline - changes will sync when online</AlertDescription>
+                <AlertDescription>Sin conexión. Los cambios se sincronizarán al volver a estar en línea.</AlertDescription>
               </>
             )}
           </div>
@@ -48,7 +48,7 @@ export function OfflineIndicator() {
               className="gap-1"
             >
               <RefreshCw className={`h-3 w-3 ${isSyncing ? 'animate-spin' : ''}`} />
-              {isSyncing ? 'Syncing' : 'Sync'}
+              {isSyncing ? 'Sincronizando' : 'Sincronizar'}
             </Button>
           )}
         </div>

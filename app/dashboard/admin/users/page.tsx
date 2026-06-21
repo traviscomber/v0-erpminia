@@ -27,7 +27,9 @@ export default function AdminUsersPage() {
             <AlertCircle className="h-6 w-6 flex-shrink-0 text-[var(--brand-rojo)]" />
             <div>
               <h2 className="font-semibold text-red-900">Acceso denegado</h2>
-              <p className="mt-1 text-sm text-[var(--brand-rojo)]">Solo administradores pueden acceder a esta sección.</p>
+              <p className="mt-1 text-sm text-[var(--brand-rojo)]">
+                Solo administradores pueden acceder a esta sección.
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -51,22 +53,22 @@ export default function AdminUsersPage() {
             <h3 className="font-semibold text-blue-900">Información de roles</h3>
             <ul className="ml-4 mt-2 list-disc space-y-1 text-sm text-blue-800">
               <li>
-                <strong>Admin:</strong> acceso total a todos los módulos
+                <strong>Administrador:</strong> acceso total a todos los módulos
               </li>
               <li>
-                <strong>Manager:</strong> gestión de operaciones y aprobaciones
+                <strong>Gerente:</strong> gestión de operaciones y aprobaciones
               </li>
               <li>
-                <strong>Technician:</strong> acceso a mantenimiento y documentos
+                <strong>Técnico:</strong> acceso a mantenimiento y documentos
               </li>
               <li>
-                <strong>Warehouse Staff:</strong> gestión de bodega e inventario
+                <strong>Personal de bodega:</strong> gestión de bodega e inventario
               </li>
               <li>
-                <strong>Finance Officer:</strong> gestión de finanzas y compras
+                <strong>Encargado de finanzas:</strong> gestión de finanzas y compras
               </li>
               <li>
-                <strong>Viewer:</strong> lectura general de módulos
+                <strong>Solo lectura:</strong> lectura general de módulos
               </li>
             </ul>
           </div>

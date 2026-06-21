@@ -60,43 +60,43 @@ export function IncidentReportForm({ onSuccess }: IncidentReportFormProps) {
         onSuccess();
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error reporting incident');
+      setError(err instanceof Error ? err.message : 'Error al reportar el incidente');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <Card className="border-border max-w-2xl mx-auto">
+    <Card className="mx-auto max-w-2xl border-border">
       <CardHeader>
-        <CardTitle>Reportar Incidente HSE</CardTitle>
+        <CardTitle>Reportar incidente HSE</CardTitle>
         <CardDescription>
-          Documenta eventos, accidentes, near misses e incumplimientos
+          Documenta eventos, accidentes, cuasi incidentes e incumplimientos
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="flex items-start gap-3 p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
-              <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0 mt-0.5" />
+            <div className="flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/10 p-3">
+              <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-destructive" />
               <p className="text-sm text-destructive">{error}</p>
             </div>
           )}
 
           {success && (
-            <div className="flex items-start gap-3 p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
-              <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
+            <div className="flex items-start gap-3 rounded-lg border border-green-500/30 bg-green-500/10 p-3">
+              <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600" />
               <p className="text-sm text-green-700">Incidente reportado exitosamente</p>
             </div>
           )}
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">Número Incidente</label>
+              <label className="mb-2 block text-sm font-medium">Número de incidente</label>
               <Input value={formData.incident_number} disabled className="bg-muted" />
             </div>
             <div>
-              <label className="text-sm font-medium mb-2 block">Fecha del Incidente</label>
+              <label className="mb-2 block text-sm font-medium">Fecha del incidente</label>
               <Input
                 type="date"
                 value={formData.date_occurred}
@@ -108,7 +108,7 @@ export function IncidentReportForm({ onSuccess }: IncidentReportFormProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">Tipo de Incidente</label>
+              <label className="mb-2 block text-sm font-medium">Tipo de incidente</label>
               <Select
                 value={formData.incident_type}
                 onValueChange={(value) => setFormData({ ...formData, incident_type: value })}
@@ -119,15 +119,15 @@ export function IncidentReportForm({ onSuccess }: IncidentReportFormProps) {
                 <SelectContent>
                   <SelectItem value="accidente">Accidente</SelectItem>
                   <SelectItem value="lesion">Lesión</SelectItem>
-                  <SelectItem value="near_miss">Near Miss</SelectItem>
-                  <SelectItem value="propiedad">Daño a Propiedad</SelectItem>
-                  <SelectItem value="ambiental">Incidente Ambiental</SelectItem>
-                  <SelectItem value="incumplimiento">Incumplimiento Normativa</SelectItem>
+                  <SelectItem value="near_miss">Cuasi incidente</SelectItem>
+                  <SelectItem value="propiedad">Daño a propiedad</SelectItem>
+                  <SelectItem value="ambiental">Incidente ambiental</SelectItem>
+                  <SelectItem value="incumplimiento">Incumplimiento de normativa</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <label className="text-sm font-medium mb-2 block">Severidad</label>
+              <label className="mb-2 block text-sm font-medium">Severidad</label>
               <Select
                 value={formData.severity}
                 onValueChange={(value) => setFormData({ ...formData, severity: value })}
@@ -146,9 +146,9 @@ export function IncidentReportForm({ onSuccess }: IncidentReportFormProps) {
           </div>
 
           <div>
-            <label className="text-sm font-medium mb-2 block">Ubicación del Incidente</label>
+            <label className="mb-2 block text-sm font-medium">Ubicación del incidente</label>
             <Input
-              placeholder="Ej: Área de carga, Sector de Mantención"
+              placeholder="Ej: Área de carga, sector de mantenimiento"
               value={formData.location}
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
               required
@@ -156,7 +156,7 @@ export function IncidentReportForm({ onSuccess }: IncidentReportFormProps) {
           </div>
 
           <div>
-            <label className="text-sm font-medium mb-2 block">Descripción del Incidente</label>
+            <label className="mb-2 block text-sm font-medium">Descripción del incidente</label>
             <Textarea
               placeholder="Describe en detalle qué sucedió..."
               value={formData.description}
@@ -167,7 +167,7 @@ export function IncidentReportForm({ onSuccess }: IncidentReportFormProps) {
           </div>
 
           <div>
-            <label className="text-sm font-medium mb-2 block">Reportado por</label>
+            <label className="mb-2 block text-sm font-medium">Reportado por</label>
             <Input
               placeholder="Nombre y rol del reportante"
               value={formData.reported_by}
@@ -177,7 +177,7 @@ export function IncidentReportForm({ onSuccess }: IncidentReportFormProps) {
           </div>
 
           <Button type="submit" disabled={isSubmitting} className="w-full">
-            {isSubmitting ? 'Reportando...' : 'Reportar Incidente'}
+            {isSubmitting ? 'Reportando...' : 'Reportar incidente'}
           </Button>
         </form>
       </CardContent>
