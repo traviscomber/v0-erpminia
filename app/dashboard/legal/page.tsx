@@ -2,12 +2,12 @@
 
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
+import { AlertCircle, CheckCircle2, Download, Eye, FileText, Scale, Search } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { AlertCircle, CheckCircle2, Download, Eye, FileText, Scale, Search } from 'lucide-react';
 import { ContractsTracker } from '@/components/legal/contracts-tracker';
 import { AddDocumentModal } from '@/components/legal/add-document-modal';
 import { DocumentReviewModal } from '@/components/legal/document-review-modal';
@@ -118,6 +118,24 @@ export default function LegalPage() {
   const [reviewingDoc, setReviewingDoc] = useState<LegalDocument | null>(null);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
 
+  const searchParam = searchQuery.trim() ? `?search=${encodeURIComponent(searchQuery.trim())}` : '';
+
+  const { data: documentData, error: documentsError, mutate: mutateDocuments } = useSWR(
+    `/api/legal/documentos${searchParam}`,
+    fetcher,
+    { revalidateOnFocus: false }
+  );
+  const { data: contractData, error: contractsError, mutate: mutateContracts } = useSWR(
+    `/api/legal/contratos${searchParam}`,
+    fetcher,
+    { revalidateOnFocus: false }
+  );
+  const { data: complianceData, error: complianceError, mutate: mutateCompliance } = useSWR(
+    '/api/legal/compliance',
+    fetcher,
+    { revalidateOnFocus: false }
+  );
+
   const handleOpenDoc = async (doc: LegalDocument, download = false) => {
     if (download) {
       if (loadingDocId === doc.id) return;
@@ -142,10 +160,11 @@ export default function LegalPage() {
       } finally {
         setLoadingDocId(null);
       }
-    } else {
-      setReviewingDoc(doc);
-      setReviewModalOpen(true);
+      return;
     }
+
+    setReviewingDoc(doc);
+    setReviewModalOpen(true);
   };
 
   const handleDocumentReview = async (
@@ -164,7 +183,7 @@ export default function LegalPage() {
 
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error || 'Error en la revisión');
+        throw new Error(err.error || 'Error en la revision');
       }
 
       await mutateDocuments();
@@ -174,24 +193,6 @@ export default function LegalPage() {
       alert(`Error: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   };
-
-  const searchParam = searchQuery.trim() ? `?search=${encodeURIComponent(searchQuery.trim())}` : '';
-
-  const { data: documentData, error: documentsError, mutate: mutateDocuments } = useSWR(
-    `/api/legal/documentos${searchParam}`,
-    fetcher,
-    { revalidateOnFocus: false }
-  );
-  const { data: contractData, error: contractsError, mutate: mutateContracts } = useSWR(
-    `/api/legal/contratos${searchParam}`,
-    fetcher,
-    { revalidateOnFocus: false }
-  );
-  const { data: complianceData, error: complianceError, mutate: mutateCompliance } = useSWR(
-    '/api/legal/compliance',
-    fetcher,
-    { revalidateOnFocus: false }
-  );
 
   const handleAddDocument = async (doc: any) => {
     const hasFile = doc.file instanceof File;
@@ -332,16 +333,16 @@ export default function LegalPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Módulo Legal</h1>
+        <h1 className="text-3xl font-bold text-foreground">Modulo Legal</h1>
         <p className="mt-2 text-muted-foreground">
-          Gestión de documentos legales, contratos y cumplimiento normativo minero
+          Gestion de documentos legales, contratos y cumplimiento normativo minero.
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Documentos Legales</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Documentos legales</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{documentCount}</div>
@@ -351,7 +352,7 @@ export default function LegalPage() {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Contratos Vigentes</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Contratos vigentes</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{activeContracts}</div>
@@ -361,7 +362,7 @@ export default function LegalPage() {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Documentos Legales</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Documentos cargados</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{documentCount}</div>
@@ -385,7 +386,7 @@ export default function LegalPage() {
           <CardContent className="flex items-center justify-between gap-4 pt-6">
             <div className="flex items-center gap-3 text-sm">
               <AlertCircle className="h-4 w-4 text-destructive" />
-              <span>No fue posible cargar una parte del módulo legal.</span>
+              <span>No fue posible cargar una parte del modulo legal.</span>
             </div>
             <Button
               variant="outline"
@@ -422,8 +423,8 @@ export default function LegalPage() {
             <CardHeader>
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <CardTitle>Documentos Legales</CardTitle>
-                  <CardDescription>Políticas, procedimientos, protocolos y respaldo regulatorio</CardDescription>
+                  <CardTitle>Documentos legales</CardTitle>
+                  <CardDescription>Politicas, procedimientos, protocolos y respaldo regulatorio.</CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
                   <AddDocumentModal onSubmit={handleAddDocument} />
@@ -443,7 +444,7 @@ export default function LegalPage() {
               <div className="space-y-3">
                 {legalDocs.length === 0 && (
                   <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
-                    No hay documentos legales cargados todavía.
+                    No hay documentos legales cargados todavia.
                   </div>
                 )}
 
@@ -457,7 +458,7 @@ export default function LegalPage() {
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-medium">{doc.title}</p>
                         <p className="truncate text-xs text-muted-foreground">
-                          {(doc.documentType || 'Documento').replace(/_/g, ' ')} - {doc.description || 'Sin descripción'}
+                          {(doc.documentType || 'Documento').replace(/_/g, ' ')} - {doc.description || 'Sin descripcion'}
                         </p>
                       </div>
                     </div>
@@ -505,8 +506,8 @@ export default function LegalPage() {
         <TabsContent value="compliance">
           <Card>
             <CardHeader>
-              <CardTitle>Matriz de Cumplimiento</CardTitle>
-              <CardDescription>Seguimiento de respaldo contractual y documental del módulo legal</CardDescription>
+              <CardTitle>Matriz de cumplimiento</CardTitle>
+              <CardDescription>Seguimiento de respaldo contractual y documental del modulo legal.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
@@ -531,7 +532,7 @@ export default function LegalPage() {
                       <li key={item.id}>{item.title}</li>
                     ))}
                     {(compliance.contracts_pending_review || []).length === 0 && (
-                      <li>No hay contratos pendientes de revisión.</li>
+                      <li>No hay contratos pendientes de revision.</li>
                     )}
                   </ul>
                 </div>
