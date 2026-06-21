@@ -74,10 +74,8 @@ export default function ReportesPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold">Reportes y análisis</h1>
-        <p className="text-muted-foreground">
-          Reportes operacionales, de cumplimiento y análisis estratégicos.
-        </p>
+        <h1 className="text-3xl font-bold">Reportes y analisis</h1>
+        <p className="text-muted-foreground">Reportes operacionales, de cumplimiento y analisis estrategicos.</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -87,7 +85,7 @@ export default function ReportesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">24</div>
-            <p className="mt-1 text-xs text-muted-foreground">Documentos emitidos en el período</p>
+            <p className="mt-1 text-xs text-muted-foreground">Documentos emitidos en el periodo</p>
           </CardContent>
         </Card>
 
@@ -103,7 +101,7 @@ export default function ReportesPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Promedio de páginas</CardTitle>
+            <CardTitle className="text-sm">Promedio de paginas</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">38</div>
@@ -131,9 +129,7 @@ export default function ReportesPage() {
               </div>
               <div>
                 <CardTitle>Repositorio de reportes</CardTitle>
-                <CardDescription>
-                  Reportes operacionales, financieros y de cumplimiento.
-                </CardDescription>
+                <CardDescription>Reportes operacionales, financieros y de cumplimiento.</CardDescription>
               </div>
             </div>
 
@@ -150,7 +146,7 @@ export default function ReportesPage() {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar por ID, título, tipo o autor"
+                  placeholder="Buscar por ID, titulo, tipo o autor"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -180,7 +176,7 @@ export default function ReportesPage() {
                       </div>
                       <p className="text-sm text-muted-foreground">{report.title}</p>
                       <p className="text-xs text-muted-foreground">
-                        Autor: {report.author} · {report.date} · {report.pages} páginas · {report.size}
+                        Autor: {report.author} · {report.date} · {report.pages} paginas · {report.size}
                       </p>
                     </div>
                   </div>
@@ -199,7 +195,7 @@ export default function ReportesPage() {
 
               {filteredReports.length === 0 && (
                 <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-                  No hay reportes que coincidan con la búsqueda.
+                  No hay reportes que coincidan con la busqueda.
                 </div>
               )}
             </div>

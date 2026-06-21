@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
@@ -11,7 +11,7 @@ type Procedimiento = {
   id: string;
   title: string;
   version: string;
-  status: 'Vigente' | 'En revisión';
+  status: 'Vigente' | 'En revision';
   lastReview: string;
   reviewedBy: string;
   documents: number;
@@ -32,18 +32,18 @@ export default function ProcedimientosPage() {
     },
     {
       id: 'PROC-002',
-      title: 'Protocolo de bloqueo de energía',
+      title: 'Protocolo de bloqueo de energia',
       version: 'v1.5',
       status: 'Vigente',
       lastReview: '2024-02-20',
-      reviewedBy: 'María Rodríguez',
+      reviewedBy: 'Maria Rodriguez',
       documents: 5,
     },
     {
       id: 'PROC-003',
-      title: 'Procedimiento de excavación segura',
+      title: 'Procedimiento de excavacion segura',
       version: 'v3.0',
-      status: 'En revisión',
+      status: 'En revision',
       lastReview: '2024-04-01',
       reviewedBy: 'Juan Silva',
       documents: 12,
@@ -54,7 +54,7 @@ export default function ProcedimientosPage() {
       version: 'v2.3',
       status: 'Vigente',
       lastReview: '2024-01-10',
-      reviewedBy: 'Ana López',
+      reviewedBy: 'Ana Lopez',
       documents: 6,
     },
   ];
@@ -85,7 +85,7 @@ export default function ProcedimientosPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">18</div>
-            <p className="mt-1 text-xs text-muted-foreground">Documentos activos en el catálogo</p>
+            <p className="mt-1 text-xs text-muted-foreground">Documentos activos en el catalogo</p>
           </CardContent>
         </Card>
 
@@ -101,20 +101,20 @@ export default function ProcedimientosPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">En revisión</CardTitle>
+            <CardTitle className="text-sm">En revision</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">2</div>
-            <p className="mt-1 text-xs text-muted-foreground">Pendientes de actualización</p>
+            <p className="mt-1 text-xs text-muted-foreground">Pendientes de actualizacion</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Próxima revisión</CardTitle>
+            <CardTitle className="text-sm">Proxima revision</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">18 días</div>
+            <div className="text-2xl font-bold">18 dias</div>
             <p className="mt-1 text-xs text-muted-foreground">Ventana estimada de control</p>
           </CardContent>
         </Card>
@@ -181,7 +181,7 @@ export default function ProcedimientosPage() {
                       </div>
                       <p className="text-sm text-muted-foreground">{proc.title}</p>
                       <p className="text-xs text-muted-foreground">
-                        Revisado por {proc.reviewedBy} • {proc.lastReview} • {proc.documents} documentos
+                        Revisado por {proc.reviewedBy} · {proc.lastReview} · {proc.documents} documentos
                       </p>
                     </div>
                   </div>
@@ -197,7 +197,7 @@ export default function ProcedimientosPage() {
 
               {filteredProcedures.length === 0 && (
                 <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-                  No hay procedimientos que coincidan con la búsqueda.
+                  No hay procedimientos que coincidan con la busqueda.
                 </div>
               )}
             </div>
@@ -207,6 +207,3 @@ export default function ProcedimientosPage() {
     </div>
   );
 }
-
-
-

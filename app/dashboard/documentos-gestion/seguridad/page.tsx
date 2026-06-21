@@ -27,7 +27,7 @@ export default function SeguridadPage() {
     {
       id: 'MSDS-001',
       type: 'MSDS',
-      title: 'Hoja de seguridad - diésel',
+      title: 'Hoja de seguridad - diesel',
       chemical: 'Combustible',
       date: '2024-04-10',
       status: 'Vigente',
@@ -45,16 +45,16 @@ export default function SeguridadPage() {
     {
       id: 'RPT-INC-2024-08',
       type: 'Reporte de incidente',
-      title: 'Reporte de lesión en brazo - sitio sur',
-      incident: 'Lesión',
+      title: 'Reporte de lesion en brazo - sitio sur',
+      incident: 'Lesion',
       date: '2024-04-08',
       status: 'Cerrado',
       lastUpdate: '2024-04-09',
     },
     {
       id: 'AUDIT-SEG-Q1',
-      type: 'Auditoría',
-      title: 'Auditoría de seguridad Q1 2024',
+      type: 'Auditoria',
+      title: 'Auditoria de seguridad Q1 2024',
       area: 'Planta principal',
       date: '2024-03-31',
       status: 'Completado',
@@ -79,7 +79,7 @@ export default function SeguridadPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Documentos de seguridad</h1>
-        <p className="text-muted-foreground">MSDS, protocolos de seguridad y reportes de incidentes</p>
+        <p className="text-muted-foreground">MSDS, protocolos de seguridad y reportes de incidentes.</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -109,7 +109,7 @@ export default function SeguridadPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Auditorías pendientes</CardTitle>
+            <CardTitle className="text-sm">Auditorias pendientes</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">1</div>
@@ -122,7 +122,7 @@ export default function SeguridadPage() {
           <div className="flex items-center justify-between gap-4">
             <div>
               <CardTitle>Documentos de seguridad</CardTitle>
-              <CardDescription>MSDS, protocolos, incidentes y auditorías</CardDescription>
+              <CardDescription>MSDS, protocolos, incidentes y auditorias.</CardDescription>
             </div>
             <Button className="gap-2">
               <Plus className="h-4 w-4" />
@@ -177,7 +177,7 @@ export default function SeguridadPage() {
                       <p className="text-xs text-muted-foreground">
                         {doc.type === 'MSDS'
                           ? `Sustancia: ${doc.chemical}`
-                          : `Categoría: ${doc.category || doc.incident || doc.area}`} · {doc.date}
+                          : `Categoria: ${doc.category || doc.incident || doc.area}`} · {doc.date}
                       </p>
                     </div>
                   </div>
@@ -192,7 +192,7 @@ export default function SeguridadPage() {
 
               {filteredDocs.length === 0 && (
                 <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-                  No hay documentos de seguridad que coincidan con la búsqueda.
+                  No hay documentos de seguridad que coincidan con la busqueda.
                 </div>
               )}
             </div>

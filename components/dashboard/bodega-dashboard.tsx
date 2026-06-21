@@ -87,7 +87,7 @@ export function BodegaDashboard() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-4xl font-bold text-foreground">Bodega e Inventario</h1>
-          <p className="mt-1 text-lg text-muted-foreground">Resumen simple del stock real</p>
+          <p className="mt-1 text-lg text-muted-foreground">Resumen ejecutivo del stock real</p>
         </div>
         <Button size="lg" onClick={() => mutate()} className="gap-2" disabled={isLoading}>
           <RefreshCw className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
@@ -98,7 +98,7 @@ export function BodegaDashboard() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold">Items</CardTitle>
+            <CardTitle className="text-base font-semibold">Items en stock</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-bold text-primary">{pagination.total.toLocaleString()}</div>
@@ -118,11 +118,11 @@ export function BodegaDashboard() {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold">Valor</CardTitle>
+            <CardTitle className="text-base font-semibold">Valor estimado</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-primary">{formatCurrency(totalValue)}</div>
-            <p className="mt-2 text-sm text-muted-foreground">Estimado del inventario</p>
+            <p className="mt-2 text-sm text-muted-foreground">Inventario valorizado</p>
           </CardContent>
         </Card>
       </div>
@@ -131,17 +131,17 @@ export function BodegaDashboard() {
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-foreground">
             <Layers3 className="h-5 w-5 text-primary" />
-            Estructura visible
+            Estructura de la bodega
           </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-3">
           <div className="rounded-lg border border-border bg-background/60 p-4">
-            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Familias en pagina</div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Familias visibles</div>
             <div className="mt-2 text-3xl font-bold text-foreground">{familyCount.toLocaleString()}</div>
-            <div className="mt-1 text-sm text-muted-foreground">Categorias principales visibles</div>
+            <div className="mt-1 text-sm text-muted-foreground">Categorias principales activas</div>
           </div>
           <div className="rounded-lg border border-border bg-background/60 p-4">
-            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Subfamilias en pagina</div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Subfamilias visibles</div>
             <div className="mt-2 text-3xl font-bold text-foreground">{subfamilyCount.toLocaleString()}</div>
             <div className="mt-1 text-sm text-muted-foreground">Agrupaciones bajo la familia</div>
           </div>
@@ -196,7 +196,7 @@ export function BodegaDashboard() {
                 );
               })}
             </div>
-            {lowStock.length > 6 && <p className="mt-3 text-xs text-muted-foreground">+{lowStock.length - 6} items más con bajo stock</p>}
+            {lowStock.length > 6 && <p className="mt-3 text-xs text-muted-foreground">+{lowStock.length - 6} items mas con bajo stock</p>}
           </CardContent>
         </Card>
       )}
@@ -239,9 +239,7 @@ export function BodegaDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-foreground">
-            Lista {pagination.page > 0 && `(Pagina ${pagination.page + 1} de ${pagination.totalPages})`}
-          </CardTitle>
+          <CardTitle className="text-foreground">Listado {pagination.page > 0 && `(Pagina ${pagination.page + 1} de ${pagination.totalPages})`}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">

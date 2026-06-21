@@ -4,25 +4,14 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import useSWR from 'swr';
 import { toast } from 'sonner';
-import {
-  AlertCircle,
-  ArrowLeft,
-  CheckCircle,
-  Clock,
-  Download,
-  Eye,
-  FileText,
-  Plus,
-  RefreshCw,
-  Search,
-} from 'lucide-react';
+import { AlertCircle, ArrowLeft, CheckCircle, Clock, Download, Eye, FileText, Plus, RefreshCw, Search } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 
 const fetcher = async (url: string) => {
-  const response = await fetch(url);
+  const response = await fetch(url, { credentials: 'include' });
   if (!response.ok) return null;
   return response.json();
 };
@@ -37,17 +26,27 @@ const initialFormState = {
   endDate: '',
   reviewDueDate: '',
   contractValue: '',
-  paidAmount: '',
   currency: 'CLP',
   contractorName: '',
   responsiblePerson: '',
   responsibleArea: 'Legal',
-  propertyName: '',
-  projectName: '',
-  royaltyRate: '',
-  guaranteeAmount: '',
-  complianceStatus: 'Pendiente',
-  complianceNotes: '',
+};
+
+type ContractRow = {
+  id: string;
+  title: string;
+  contract_number: string;
+  description: string | null;
+  contract_type: string;
+  status: string;
+  start_date: string | null;
+  end_date: string | null;
+  contract_value: number | null;
+  currency: string | null;
+  contractor_name: string | null;
+  responsible_person: string | null;
+  responsible_area: string | null;
+  file_url: string | null;
 };
 
 export default function ContratosPage() {
@@ -63,29 +62,29 @@ export default function ContratosPage() {
     refreshInterval: 60000,
   });
 
-  const contracts = data?.contracts || [];
+  const contracts = (data?.contracts || []) as ContractRow[];
 
   const filteredContracts = useMemo(() => {
     const searchLower = searchTerm.toLowerCase();
-    return contracts.filter((contract: any) => {
+    return contracts.filter((contract) => {
       if (!searchLower) return true;
       return (
         contract.title.toLowerCase().includes(searchLower) ||
         contract.contract_number.toLowerCase().includes(searchLower) ||
-        contract.description.toLowerCase().includes(searchLower) ||
-        contract.responsible_person.toLowerCase().includes(searchLower) ||
-        contract.contractor_name.toLowerCase().includes(searchLower)
+        (contract.description || '').toLowerCase().includes(searchLower) ||
+        (contract.responsible_person || '').toLowerCase().includes(searchLower) ||
+        (contract.contractor_name || '').toLowerCase().includes(searchLower)
       );
     });
   }, [contracts, searchTerm]);
 
   const stats = {
     total: contracts.length,
-    vigentes: contracts.filter((contract: any) => contract.status === 'Vigente').length,
-    porVencer: contracts.filter((contract: any) => contract.status === 'Por Vencer').length,
-    enRevision: contracts.filter((contract: any) => contract.status === 'En Revision').length,
-    vencidos: contracts.filter((contract: any) => contract.status === 'Vencido').length,
-    conArchivo: contracts.filter((contract: any) => Boolean(contract.file_url)).length,
+    vigentes: contracts.filter((contract) => contract.status === 'Vigente').length,
+    porVencer: contracts.filter((contract) => contract.status === 'Por Vencer').length,
+    enRevision: contracts.filter((contract) => contract.status === 'En Revision').length,
+    vencidos: contracts.filter((contract) => contract.status === 'Vencido').length,
+    conArchivo: contracts.filter((contract) => Boolean(contract.file_url)).length,
   };
   const sinArchivo = stats.total - stats.conArchivo;
 
@@ -105,9 +104,7 @@ export default function ContratosPage() {
     try {
       const payload = new FormData();
       Object.entries(formState).forEach(([key, value]) => payload.append(key, value));
-      if (contractFile) {
-        payload.append('file', contractFile);
-      }
+      if (contractFile) payload.append('file', contractFile);
 
       const response = await fetch('/api/contracts', {
         method: 'POST',
@@ -123,8 +120,8 @@ export default function ContratosPage() {
       resetForm();
       setShowNewContractModal(false);
       await mutate();
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Error al crear contrato');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Error al crear contrato');
     } finally {
       setSubmitting(false);
     }
@@ -148,18 +145,18 @@ export default function ContratosPage() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'Vigente':
-        return <CheckCircle className="w-3 h-3" />;
+        return <CheckCircle className="h-3 w-3" />;
       case 'Por Vencer':
       case 'En Revision':
-        return <Clock className="w-3 h-3" />;
+        return <Clock className="h-3 w-3" />;
       case 'Vencido':
-        return <AlertCircle className="w-3 h-3" />;
+        return <AlertCircle className="h-3 w-3" />;
       default:
         return null;
     }
   };
 
-  const formatCurrency = (value: number, currency: string) => {
+  const formatCurrency = (value: number | null, currency: string | null) => {
     if (!value) return '-';
     return new Intl.NumberFormat('es-CL', {
       style: 'currency',
@@ -172,7 +169,7 @@ export default function ContratosPage() {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--brand-naranja)] mx-auto mb-4" />
+          <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-[var(--brand-naranja)]" />
           <p className="text-muted-foreground">Cargando contratos...</p>
         </div>
       </div>
@@ -181,8 +178,8 @@ export default function ContratosPage() {
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <AlertCircle className="h-12 w-12 text-[var(--brand-rojo)] mx-auto mb-4" />
+      <div className="py-12 text-center">
+        <AlertCircle className="mx-auto mb-4 h-12 w-12 text-[var(--brand-rojo)]" />
         <p className="text-[var(--brand-rojo)]">Error al cargar contratos</p>
         <Button variant="outline" onClick={() => mutate()} className="mt-4">
           Reintentar
@@ -197,39 +194,28 @@ export default function ContratosPage() {
         <div className="flex items-center gap-4">
           <Link href="/dashboard/documentos-gestion">
             <Button variant="ghost" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-1" />
+              <ArrowLeft className="mr-1 h-4 w-4" />
             </Button>
           </Link>
           <div>
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-lg bg-[var(--brand-naranja)]/20 flex items-center justify-center">
-                <FileText className="w-6 h-6 text-[var(--brand-naranja)]" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--brand-naranja)]/20">
+                <FileText className="h-6 w-6 text-[var(--brand-naranja)]" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold tracking-tight">Gestion de Contratos</h1>
-                <p className="text-muted-foreground text-sm">
-                  Contratos principales, subcontratos y respaldo legal
-                </p>
+                <h1 className="text-2xl font-bold tracking-tight">Gestion de contratos</h1>
+                <p className="text-sm text-muted-foreground">Contratos principales, subcontratos y respaldo legal</p>
               </div>
             </div>
           </div>
         </div>
         <div className="flex gap-2">
-          <Link href="/dashboard/documentos-gestion/contratos/reportes">
-            <Button variant="outline" size="sm">
-              <Eye className="h-4 w-4 mr-1" />
-              Ver reportes
-            </Button>
-          </Link>
           <Button variant="outline" size="sm" onClick={() => mutate()}>
-            <RefreshCw className="h-4 w-4 mr-1" />
+            <RefreshCw className="mr-1 h-4 w-4" />
             Actualizar
           </Button>
-          <Button
-            className="bg-[var(--brand-naranja)] text-white hover:bg-[var(--brand-naranja)]/90"
-            onClick={() => setShowNewContractModal(true)}
-          >
-            <Plus className="h-4 w-4 mr-1" />
+          <Button className="bg-[var(--brand-naranja)] text-white hover:bg-[var(--brand-naranja)]/90" onClick={() => setShowNewContractModal(true)}>
+            <Plus className="mr-1 h-4 w-4" />
             Nuevo contrato
           </Button>
         </div>
@@ -238,79 +224,47 @@ export default function ContratosPage() {
       <div className="grid grid-cols-2 gap-4 md:grid-cols-6">
         <Card className="bg-white/5 border-white/10">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total contratos
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total contratos</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.total}</div>
           </CardContent>
         </Card>
-
         <Card className="bg-white/5 border-white/10">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-[var(--brand-verde)]">
-              Vigentes
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-[var(--brand-verde)]">Vigentes</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-[var(--brand-verde)]">{stats.vigentes}</div>
           </CardContent>
         </Card>
-
         <Card className="bg-white/5 border-white/10">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-[var(--brand-gold)]">
-              Por Vencer
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-[var(--brand-gold)]">Por vencer</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-[var(--brand-gold)]">
-              {stats.porVencer}
-            </div>
+            <div className="text-2xl font-bold text-[var(--brand-gold)]">{stats.porVencer}</div>
           </CardContent>
         </Card>
-
         <Card className="bg-white/5 border-white/10">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-[var(--secondary)]">
-              En Revision
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-[var(--secondary)]">En revision</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-[var(--secondary)]">
-              {stats.enRevision}
-            </div>
+            <div className="text-2xl font-bold text-[var(--secondary)]">{stats.enRevision}</div>
           </CardContent>
         </Card>
-
         <Card className="bg-white/5 border-white/10">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-[var(--brand-rojo)]">
-              Vencidos
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-[var(--brand-rojo)]">Vencidos</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-[var(--brand-rojo)]">{stats.vencidos}</div>
           </CardContent>
         </Card>
-
         <Card className="bg-white/5 border-white/10">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Con archivo
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.conArchivo}</div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white/5 border-white/10">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Sin archivo
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Sin archivo</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{sinArchivo}</div>
@@ -329,21 +283,21 @@ export default function ContratosPage() {
               placeholder="Buscar por titulo, numero, contratista o responsable..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-white/5 border-white/10"
+              className="border-white/10 bg-white/5 pl-10"
             />
           </div>
         </CardContent>
       </Card>
 
-      <Card className="bg-white/5 border-white/10">
+      <Card className="border-white/10 bg-white/5">
         <CardHeader>
           <CardTitle>{filteredContracts.length} contratos encontrados</CardTitle>
           <CardDescription>Lista de contratos registrados en el sistema</CardDescription>
         </CardHeader>
         <CardContent>
           {filteredContracts.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <div className="py-12 text-center text-muted-foreground">
+              <FileText className="mx-auto mb-4 h-12 w-12 opacity-50" />
               <p>No hay contratos que coincidan con tu busqueda</p>
             </div>
           ) : (
@@ -351,108 +305,72 @@ export default function ContratosPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-white/10">
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">
-                      Contrato
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">
-                      Numero
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">
-                      Tipo
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">
-                      Estado
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">
-                      Valor
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">
-                      Vigencia
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">
-                      Responsable
-                    </th>
-                    <th className="text-right py-3 px-4 font-medium text-muted-foreground">
-                      Acciones
-                    </th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Contrato</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Numero</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Tipo</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Estado</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Valor</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Vigencia</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Responsable</th>
+                    <th className="px-4 py-3 text-right font-medium text-muted-foreground">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredContracts.map((contract: any) => (
-                    <tr
-                      key={contract.id}
-                      className="border-b border-white/10 hover:bg-white/5 transition-colors"
-                    >
-                      <td className="py-3 px-4">
+                  {filteredContracts.map((contract) => (
+                    <tr key={contract.id} className="border-b border-white/10 transition-colors hover:bg-white/5">
+                      <td className="px-4 py-3">
                         <div className="font-medium">{contract.title}</div>
-                        <div className="text-xs text-muted-foreground line-clamp-1">
-                          {contract.description}
-                        </div>
-                        <div className="text-xs text-muted-foreground mt-1">
+                        <div className="line-clamp-1 text-xs text-muted-foreground">{contract.description}</div>
+                        <div className="mt-1 text-xs text-muted-foreground">
                           {contract.contractor_name || 'Sin contratista'}
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-muted-foreground font-mono text-xs">
-                        {contract.contract_number}
-                      </td>
-                      <td className="py-3 px-4">
+                      <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{contract.contract_number}</td>
+                      <td className="px-4 py-3">
                         <Badge variant="outline" className="text-xs">
                           {contract.contract_type}
                         </Badge>
                       </td>
-                      <td className="py-3 px-4">
-                        <Badge
-                          variant="outline"
-                          className={`flex items-center gap-1 w-fit ${getStatusColor(contract.status)}`}
-                        >
+                      <td className="px-4 py-3">
+                        <Badge variant="outline" className={`flex w-fit items-center gap-1 ${getStatusColor(contract.status)}`}>
                           {getStatusIcon(contract.status)}
                           {contract.status}
                         </Badge>
                       </td>
-                      <td className="py-3 px-4 font-medium">
-                        {formatCurrency(contract.contract_value, contract.currency)}
-                      </td>
-                      <td className="py-3 px-4 text-xs text-muted-foreground">
+                      <td className="px-4 py-3 font-medium">{formatCurrency(contract.contract_value, contract.currency)}</td>
+                      <td className="px-4 py-3 text-xs text-muted-foreground">
+                        <div>{contract.start_date ? new Date(contract.start_date).toLocaleDateString('es-CL') : '-'}</div>
                         <div>
-                          {contract.start_date
-                            ? new Date(contract.start_date).toLocaleDateString('es-CL')
-                            : '-'}
-                        </div>
-                        <div>
-                          →{' '}
-                          {contract.end_date
-                            ? new Date(contract.end_date).toLocaleDateString('es-CL')
-                            : '-'}
+                          {'→ '}
+                          {contract.end_date ? new Date(contract.end_date).toLocaleDateString('es-CL') : '-'}
                         </div>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="px-4 py-3">
                         <div className="text-sm">{contract.responsible_person || '-'}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {contract.responsible_area || '-'}
-                        </div>
+                        <div className="text-xs text-muted-foreground">{contract.responsible_area || '-'}</div>
                       </td>
-                      <td className="py-3 px-4 text-right">
+                      <td className="px-4 py-3 text-right">
                         <div className="flex justify-end gap-1">
                           {contract.file_url ? (
                             <Button variant="ghost" size="sm" asChild title="Ver archivo">
                               <a href={contract.file_url} target="_blank" rel="noopener noreferrer">
-                                <Eye className="w-4 h-4" />
+                                <Eye className="h-4 w-4" />
                               </a>
                             </Button>
                           ) : (
                             <Button variant="ghost" size="sm" disabled title="Sin archivo">
-                              <Eye className="w-4 h-4" />
+                              <Eye className="h-4 w-4" />
                             </Button>
                           )}
                           {contract.file_url ? (
                             <Button variant="ghost" size="sm" asChild title="Descargar">
                               <a href={contract.file_url} target="_blank" rel="noopener noreferrer">
-                                <Download className="w-4 h-4" />
+                                <Download className="h-4 w-4" />
                               </a>
                             </Button>
                           ) : (
                             <Button variant="ghost" size="sm" disabled title="Sin archivo">
-                              <Download className="w-4 h-4" />
+                              <Download className="h-4 w-4" />
                             </Button>
                           )}
                         </div>
@@ -467,59 +385,59 @@ export default function ContratosPage() {
       </Card>
 
       {showNewContractModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-4xl bg-background border-white/10 max-h-[90vh] overflow-y-auto">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 sticky top-0 bg-background border-b border-white/10">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <Card className="max-h-[90vh] w-full max-w-4xl overflow-y-auto border-white/10 bg-background">
+            <CardHeader className="sticky top-0 flex flex-row items-center justify-between space-y-0 border-b border-white/10 bg-background">
               <div>
                 <CardTitle>Crear nuevo contrato</CardTitle>
                 <CardDescription>Registra un nuevo contrato con respaldo legal</CardDescription>
               </div>
               <Button variant="ghost" size="sm" onClick={() => setShowNewContractModal(false)}>
-                ×
+                x
               </Button>
             </CardHeader>
             <CardContent className="pt-6">
               <form className="space-y-5" onSubmit={handleCreateContract}>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Titulo del Contrato *</label>
+                    <label className="mb-2 block text-sm font-medium">Titulo del contrato *</label>
                     <Input
                       value={formState.title}
                       onChange={(e) => updateField('title', e.target.value)}
-                      placeholder="Ej: Contrato Mantención Planta 2026"
-                      className="bg-white/5 border-white/10"
+                      placeholder="Ej: Contrato Mantencion Planta 2026"
+                      className="border-white/10 bg-white/5"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Numero de Contrato *</label>
+                    <label className="mb-2 block text-sm font-medium">Numero de contrato *</label>
                     <Input
                       value={formState.contractNumber}
                       onChange={(e) => updateField('contractNumber', e.target.value)}
                       placeholder="Ej: CNT-2026-001"
-                      className="bg-white/5 border-white/10"
+                      className="border-white/10 bg-white/5"
                       required
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Descripcion</label>
+                  <label className="mb-2 block text-sm font-medium">Descripcion</label>
                   <Input
                     value={formState.description}
                     onChange={(e) => updateField('description', e.target.value)}
                     placeholder="Breve descripcion del contrato"
-                    className="bg-white/5 border-white/10"
+                    className="border-white/10 bg-white/5"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Tipo de Contrato *</label>
+                    <label className="mb-2 block text-sm font-medium">Tipo de contrato *</label>
                     <select
                       value={formState.contractType}
                       onChange={(e) => updateField('contractType', e.target.value)}
-                      className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-md text-sm"
+                      className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm"
                     >
                       <option>Principal</option>
                       <option>Subcontrato</option>
@@ -528,11 +446,11 @@ export default function ContratosPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Estado *</label>
+                    <label className="mb-2 block text-sm font-medium">Estado *</label>
                     <select
                       value={formState.status}
                       onChange={(e) => updateField('status', e.target.value)}
-                      className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-md text-sm"
+                      className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm"
                     >
                       <option>En Revision</option>
                       <option>Vigente</option>
@@ -545,198 +463,51 @@ export default function ContratosPage() {
 
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Fecha de Inicio</label>
-                    <Input
-                      type="date"
-                      value={formState.startDate}
-                      onChange={(e) => updateField('startDate', e.target.value)}
-                      className="bg-white/5 border-white/10"
-                    />
+                    <label className="mb-2 block text-sm font-medium">Fecha de inicio</label>
+                    <Input type="date" value={formState.startDate} onChange={(e) => updateField('startDate', e.target.value)} className="border-white/10 bg-white/5" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Fecha de Termino</label>
-                    <Input
-                      type="date"
-                      value={formState.endDate}
-                      onChange={(e) => updateField('endDate', e.target.value)}
-                      className="bg-white/5 border-white/10"
-                    />
+                    <label className="mb-2 block text-sm font-medium">Fecha de termino</label>
+                    <Input type="date" value={formState.endDate} onChange={(e) => updateField('endDate', e.target.value)} className="border-white/10 bg-white/5" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Proxima Revision Legal</label>
-                    <Input
-                      type="date"
-                      value={formState.reviewDueDate}
-                      onChange={(e) => updateField('reviewDueDate', e.target.value)}
-                      className="bg-white/5 border-white/10"
-                    />
+                    <label className="mb-2 block text-sm font-medium">Proxima revision legal</label>
+                    <Input type="date" value={formState.reviewDueDate} onChange={(e) => updateField('reviewDueDate', e.target.value)} className="border-white/10 bg-white/5" />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Valor del Contrato</label>
-                    <Input
-                      type="number"
-                      value={formState.contractValue}
-                      onChange={(e) => updateField('contractValue', e.target.value)}
-                      placeholder="Ej: 1000000"
-                      className="bg-white/5 border-white/10"
-                    />
+                    <label className="mb-2 block text-sm font-medium">Valor del contrato</label>
+                    <Input type="number" value={formState.contractValue} onChange={(e) => updateField('contractValue', e.target.value)} className="border-white/10 bg-white/5" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Monto Pagado</label>
-                    <Input
-                      type="number"
-                      value={formState.paidAmount}
-                      onChange={(e) => updateField('paidAmount', e.target.value)}
-                      placeholder="Ej: 250000"
-                      className="bg-white/5 border-white/10"
-                    />
+                    <label className="mb-2 block text-sm font-medium">Moneda</label>
+                    <Input value={formState.currency} onChange={(e) => updateField('currency', e.target.value)} className="border-white/10 bg-white/5" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Moneda</label>
-                    <select
-                      value={formState.currency}
-                      onChange={(e) => updateField('currency', e.target.value)}
-                      className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-md text-sm"
-                    >
-                      <option>CLP</option>
-                      <option>USD</option>
-                      <option>EUR</option>
-                    </select>
+                    <label className="mb-2 block text-sm font-medium">Contratista</label>
+                    <Input value={formState.contractorName} onChange={(e) => updateField('contractorName', e.target.value)} className="border-white/10 bg-white/5" />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Contratista</label>
-                    <Input
-                      value={formState.contractorName}
-                      onChange={(e) => updateField('contractorName', e.target.value)}
-                      placeholder="Nombre empresa o persona"
-                      className="bg-white/5 border-white/10"
-                    />
+                    <label className="mb-2 block text-sm font-medium">Responsable</label>
+                    <Input value={formState.responsiblePerson} onChange={(e) => updateField('responsiblePerson', e.target.value)} placeholder="Nombre del responsable" className="border-white/10 bg-white/5" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Responsable</label>
-                    <Input
-                      value={formState.responsiblePerson}
-                      onChange={(e) => updateField('responsiblePerson', e.target.value)}
-                      placeholder="Nombre del responsable"
-                      className="bg-white/5 border-white/10"
-                    />
+                    <label className="mb-2 block text-sm font-medium">Area responsable</label>
+                    <Input value={formState.responsibleArea} onChange={(e) => updateField('responsibleArea', e.target.value)} className="border-white/10 bg-white/5" />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Área Responsable</label>
-                    <select
-                      value={formState.responsibleArea}
-                      onChange={(e) => updateField('responsibleArea', e.target.value)}
-                      className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-md text-sm"
-                    >
-                      <option>Legal</option>
-                      <option>Operaciones</option>
-                      <option>Mantención</option>
-                      <option>Administración</option>
-                      <option>Compras</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Propiedad</label>
-                    <Input
-                      value={formState.propertyName}
-                      onChange={(e) => updateField('propertyName', e.target.value)}
-                      placeholder="Ej: Propiedad Norte"
-                      className="bg-white/5 border-white/10"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Proyecto</label>
-                    <Input
-                      value={formState.projectName}
-                      onChange={(e) => updateField('projectName', e.target.value)}
-                      placeholder="Ej: Expansión Planta"
-                      className="bg-white/5 border-white/10"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Tasa Regalía (%)</label>
-                    <Input
-                      type="number"
-                      value={formState.royaltyRate}
-                      onChange={(e) => updateField('royaltyRate', e.target.value)}
-                      placeholder="Ej: 5"
-                      className="bg-white/5 border-white/10"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Garantía</label>
-                    <Input
-                      type="number"
-                      value={formState.guaranteeAmount}
-                      onChange={(e) => updateField('guaranteeAmount', e.target.value)}
-                      placeholder="Ej: 50000"
-                      className="bg-white/5 border-white/10"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Cumplimiento</label>
-                    <select
-                      value={formState.complianceStatus}
-                      onChange={(e) => updateField('complianceStatus', e.target.value)}
-                      className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-md text-sm"
-                    >
-                      <option>Pendiente</option>
-                      <option>Al Día</option>
-                      <option>Observado</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Notas de cumplimiento</label>
-                  <Input
-                    value={formState.complianceNotes}
-                    onChange={(e) => updateField('complianceNotes', e.target.value)}
-                    placeholder="Observaciones legales o regulatorias"
-                    className="bg-white/5 border-white/10"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Documento Legal</label>
-                    <Input
-                      type="file"
-                      accept=".pdf,.doc,.docx"
-                      onChange={(e) => setContractFile(e.target.files?.[0] || null)}
-                      className="bg-white/5 border-white/10"
-                    />
-                  <p className="text-xs text-muted-foreground mt-2">
-                    PDF, DOC o DOCX. Máximo 50MB.
-                  </p>
-                </div>
-
-                <div className="flex justify-end gap-3 pt-6 border-t border-white/10 mt-6">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowNewContractModal(false)}
-                    disabled={submitting}
-                  >
+                <div className="flex items-center justify-end gap-2 pt-2">
+                  <Button type="button" variant="outline" onClick={() => setShowNewContractModal(false)}>
                     Cancelar
                   </Button>
-                  <Button
-                    type="submit"
-                    className="bg-[var(--brand-naranja)] text-white hover:bg-[var(--brand-naranja)]/90"
-                    disabled={submitting}
-                  >
-                    {submitting ? 'Creando...' : 'Crear Contrato'}
+                  <Button type="submit" disabled={submitting} className="bg-[var(--brand-naranja)] text-white hover:bg-[var(--brand-naranja)]/90">
+                    {submitting ? 'Guardando...' : 'Crear contrato'}
                   </Button>
                 </div>
               </form>
@@ -747,5 +518,3 @@ export default function ContratosPage() {
     </div>
   );
 }
-
-
