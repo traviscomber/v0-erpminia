@@ -32,7 +32,7 @@ const initialFormState = {
   contractNumber: '',
   description: '',
   contractType: 'Principal',
-  status: 'En Revisión',
+  status: 'En Revision',
   startDate: '',
   endDate: '',
   reviewDueDate: '',
@@ -83,7 +83,7 @@ export default function ContratosPage() {
     total: contracts.length,
     vigentes: contracts.filter((contract: any) => contract.status === 'Vigente').length,
     porVencer: contracts.filter((contract: any) => contract.status === 'Por Vencer').length,
-    enRevision: contracts.filter((contract: any) => contract.status === 'En Revisión').length,
+    enRevision: contracts.filter((contract: any) => contract.status === 'En Revision').length,
     vencidos: contracts.filter((contract: any) => contract.status === 'Vencido').length,
     conArchivo: contracts.filter((contract: any) => Boolean(contract.file_url)).length,
   };
@@ -136,7 +136,7 @@ export default function ContratosPage() {
         return 'bg-[var(--brand-verde)]/20 text-[var(--brand-verde)] border-[var(--brand-verde)]/50';
       case 'Por Vencer':
         return 'bg-[var(--brand-gold)]/20 text-[var(--brand-gold)] border-[var(--brand-gold)]/50';
-      case 'En Revisión':
+      case 'En Revision':
         return 'bg-[var(--secondary)]/20 text-[var(--secondary)] border-[var(--secondary)]/30';
       case 'Vencido':
         return 'bg-[var(--brand-rojo)]/20 text-[var(--brand-rojo)] border-[var(--brand-rojo)]/50';
@@ -150,7 +150,7 @@ export default function ContratosPage() {
       case 'Vigente':
         return <CheckCircle className="w-3 h-3" />;
       case 'Por Vencer':
-      case 'En Revisión':
+      case 'En Revision':
         return <Clock className="w-3 h-3" />;
       case 'Vencido':
         return <AlertCircle className="w-3 h-3" />;
@@ -206,7 +206,7 @@ export default function ContratosPage() {
                 <FileText className="w-6 h-6 text-[var(--brand-naranja)]" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold tracking-tight">Gestión de Contratos</h1>
+                <h1 className="text-2xl font-bold tracking-tight">Gestion de Contratos</h1>
                 <p className="text-muted-foreground text-sm">
                   Contratos principales, subcontratos y respaldo legal
                 </p>
@@ -274,7 +274,7 @@ export default function ContratosPage() {
         <Card className="bg-white/5 border-white/10">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-[var(--secondary)]">
-              En Revisión
+              En Revision
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -326,7 +326,7 @@ export default function ContratosPage() {
           <div className="relative">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar por título, número, contratista o responsable..."
+              placeholder="Buscar por titulo, numero, contratista o responsable..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 bg-white/5 border-white/10"
@@ -344,7 +344,7 @@ export default function ContratosPage() {
           {filteredContracts.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No hay contratos que coincidan con tu búsqueda</p>
+              <p>No hay contratos que coincidan con tu busqueda</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -355,7 +355,7 @@ export default function ContratosPage() {
                       Contrato
                     </th>
                     <th className="text-left py-3 px-4 font-medium text-muted-foreground">
-                      Número
+                      Numero
                     </th>
                     <th className="text-left py-3 px-4 font-medium text-muted-foreground">
                       Tipo
@@ -482,7 +482,7 @@ export default function ContratosPage() {
               <form className="space-y-5" onSubmit={handleCreateContract}>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Título del Contrato *</label>
+                    <label className="block text-sm font-medium mb-2">Titulo del Contrato *</label>
                     <Input
                       value={formState.title}
                       onChange={(e) => updateField('title', e.target.value)}
@@ -492,7 +492,7 @@ export default function ContratosPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Número de Contrato *</label>
+                    <label className="block text-sm font-medium mb-2">Numero de Contrato *</label>
                     <Input
                       value={formState.contractNumber}
                       onChange={(e) => updateField('contractNumber', e.target.value)}
@@ -504,11 +504,11 @@ export default function ContratosPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Descripción</label>
+                  <label className="block text-sm font-medium mb-2">Descripcion</label>
                   <Input
                     value={formState.description}
                     onChange={(e) => updateField('description', e.target.value)}
-                    placeholder="Breve descripción del contrato"
+                    placeholder="Breve descripcion del contrato"
                     className="bg-white/5 border-white/10"
                   />
                 </div>
@@ -534,7 +534,7 @@ export default function ContratosPage() {
                       onChange={(e) => updateField('status', e.target.value)}
                       className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-md text-sm"
                     >
-                      <option>En Revisión</option>
+                      <option>En Revision</option>
                       <option>Vigente</option>
                       <option>Por Vencer</option>
                       <option>Vencido</option>
@@ -554,7 +554,7 @@ export default function ContratosPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Fecha de Término</label>
+                    <label className="block text-sm font-medium mb-2">Fecha de Termino</label>
                     <Input
                       type="date"
                       value={formState.endDate}
@@ -563,7 +563,7 @@ export default function ContratosPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Próxima Revisión Legal</label>
+                    <label className="block text-sm font-medium mb-2">Proxima Revision Legal</label>
                     <Input
                       type="date"
                       value={formState.reviewDueDate}
