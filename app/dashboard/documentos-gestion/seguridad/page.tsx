@@ -177,7 +177,7 @@ export default function SeguridadPage() {
                       <p className="text-xs text-muted-foreground">
                         {doc.type === 'MSDS'
                           ? `Sustancia: ${doc.chemical}`
-                          : `Categoría: ${doc.category || doc.incident || doc.area}`} • {doc.date}
+                          : `Categoría: ${doc.category || doc.incident || doc.area}`} · {doc.date}
                       </p>
                     </div>
                   </div>

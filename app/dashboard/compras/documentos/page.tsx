@@ -16,12 +16,12 @@ export default function ComprasDocumentosPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Ir a Adquisiciones</CardTitle>
-          <CardDescription>Revisa el listado operativo de ordenes de compra.</CardDescription>
+          <CardTitle>Ir a adquisiciones</CardTitle>
+          <CardDescription>Revisa el listado operativo de órdenes de compra.</CardDescription>
         </CardHeader>
         <CardContent>
           <Button asChild>
-            <Link href="/dashboard/compras">Abrir Compras</Link>
+            <Link href="/dashboard/compras">Abrir compras</Link>
           </Button>
         </CardContent>
       </Card>
