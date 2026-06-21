@@ -500,7 +500,7 @@ export default function ContratosPage() {
                       <option>Principal</option>
                       <option>Subcontrato</option>
                       <option>Enmienda</option>
-                      <option>Addendum</option>
+                      <option value="Addendum">Adenda</option>
                     </select>
                   </div>
                   <div>
