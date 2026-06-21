@@ -31,7 +31,7 @@ export default function AdquisicionesPage() {
         const purchaseOrders = Array.isArray(data?.purchase_orders) ? data.purchase_orders : [];
         setOrders(purchaseOrders);
       } catch (error) {
-        console.error('[v0] Error loading purchase orders:', error);
+        console.error('[AdquisicionesPage] Error al cargar órdenes de compra:', error);
       } finally {
         setLoading(false);
       }
@@ -66,10 +66,10 @@ export default function AdquisicionesPage() {
         <p className="text-muted-foreground">Gestiona órdenes de compra y trazabilidad de abastecimiento</p>
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Total Órdenes</CardTitle>
+            <CardTitle className="text-sm">Total de órdenes</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totals.total}</div>
@@ -77,7 +77,7 @@ export default function AdquisicionesPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Órdenes Abiertas</CardTitle>
+            <CardTitle className="text-sm">Órdenes abiertas</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">{totals.open}</div>
@@ -93,7 +93,7 @@ export default function AdquisicionesPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Monto Total</CardTitle>
+            <CardTitle className="text-sm">Monto total</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">${totals.amount.toLocaleString('es-CL')}</div>
@@ -103,9 +103,9 @@ export default function AdquisicionesPage() {
 
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center gap-4">
+          <div className="flex items-center justify-between gap-4">
             <div>
-              <CardTitle>Órdenes de Compra Reales</CardTitle>
+              <CardTitle>Órdenes de compra reales</CardTitle>
               <CardDescription>La creación de OC se gestiona desde el módulo Compras</CardDescription>
             </div>
             <div className="text-sm text-muted-foreground">Vista de solo lectura</div>
@@ -116,12 +116,12 @@ export default function AdquisicionesPage() {
             <div className="flex gap-2">
               <div className="flex-1">
                 <Input
-                  placeholder="Buscar por número, proveedor o título..."
+                  placeholder="Buscar por número, proveedor o código..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <Button variant="outline" size="icon">
+              <Button variant="outline" size="icon" aria-label="Buscar">
                 <Search className="h-4 w-4" />
               </Button>
             </div>
@@ -135,24 +135,37 @@ export default function AdquisicionesPage() {
             ) : (
               <div className="space-y-3">
                 {filteredOrders.map((order) => (
-                  <div key={order.id} className="flex items-center justify-between border rounded-lg p-4 hover:bg-accent transition-colors">
-                    <div className="flex items-center gap-4 flex-1">
+                  <div
+                    key={order.id}
+                    className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-accent"
+                  >
+                    <div className="flex flex-1 items-center gap-4">
                       <FileText className="h-5 w-5 text-muted-foreground" />
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <span className="font-semibold">{order.po_number}</span>
                           <Badge variant="outline">OC</Badge>
-                          <Badge className={String(order.status || '').toLowerCase() === 'received' ? 'bg-[var(--brand-verde)]' : 'bg-[var(--secondary)]'}>
+                          <Badge
+                            className={
+                              String(order.status || '').toLowerCase() === 'received'
+                                ? 'bg-[var(--brand-verde)]'
+                                : 'bg-[var(--secondary)]'
+                            }
+                          >
                             {order.status}
                           </Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground">{order.vendor_name} · {order.item_code}</p>
-                        <p className="text-xs text-muted-foreground">Entrega: {order.delivery_date || 'Sin fecha'} · Cantidad: {order.quantity || 0}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {order.vendor_name} • {order.item_code}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Entrega: {order.delivery_date || 'Sin fecha'} • Cantidad: {order.quantity || 0}
+                        </p>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="font-semibold">${Number(order.total_amount || 0).toLocaleString('es-CL')}</p>
-                      <Button variant="ghost" size="sm" className="gap-2 mt-1">
+                      <Button variant="ghost" size="sm" className="mt-1 gap-2">
                         <Download className="h-3 w-3" />
                         Descargar
                       </Button>

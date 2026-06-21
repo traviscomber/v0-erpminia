@@ -23,7 +23,7 @@ export default function ProcedimientosPage() {
   const procedures: Procedimiento[] = [
     {
       id: 'PROC-001',
-      title: 'Procedimiento de Arranque de Planta',
+      title: 'Procedimiento de arranque de planta',
       version: 'v2.1',
       status: 'Vigente',
       lastReview: '2024-03-15',
@@ -32,7 +32,7 @@ export default function ProcedimientosPage() {
     },
     {
       id: 'PROC-002',
-      title: 'Protocolo de Bloqueo de Energía',
+      title: 'Protocolo de bloqueo de energía',
       version: 'v1.5',
       status: 'Vigente',
       lastReview: '2024-02-20',
@@ -41,7 +41,7 @@ export default function ProcedimientosPage() {
     },
     {
       id: 'PROC-003',
-      title: 'Procedimiento de Excavación Segura',
+      title: 'Procedimiento de excavación segura',
       version: 'v3.0',
       status: 'En revisión',
       lastReview: '2024-04-01',
@@ -50,7 +50,7 @@ export default function ProcedimientosPage() {
     },
     {
       id: 'PROC-004',
-      title: 'Manejo de Residuos Peligrosos',
+      title: 'Manejo de residuos peligrosos',
       version: 'v2.3',
       status: 'Vigente',
       lastReview: '2024-01-10',
@@ -69,15 +69,13 @@ export default function ProcedimientosPage() {
         .toLowerCase()
         .includes(query)
     );
-  }, [procedures, searchTerm]);
+  }, [searchTerm]);
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold">Procedimientos operacionales</h1>
-        <p className="text-muted-foreground">
-          Gestiona procedimientos, protocolos y procesos operacionales.
-        </p>
+        <p className="text-muted-foreground">Gestiona procedimientos, protocolos y procesos operacionales.</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
