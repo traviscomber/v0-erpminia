@@ -3,7 +3,6 @@
 import { useState, useCallback } from 'react';
 import useSWR from 'swr';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Search, X, Loader2 } from 'lucide-react';
 
@@ -29,12 +28,14 @@ export function DocumentSearch({ onResultsChange, placeholder = 'Buscar document
   const [showResults, setShowResults] = useState(false);
 
   const { data: searchData, isLoading } = useSWR(
-    searchTerm ? `/api/sostenibilidad/documentos-flujo/search?q=${encodeURIComponent(searchTerm)}&category=${encodeURIComponent(category)}&status=${encodeURIComponent(status)}` : null,
+    searchTerm
+      ? `/api/sostenibilidad/documentos-flujo/search?q=${encodeURIComponent(searchTerm)}&category=${encodeURIComponent(category)}&status=${encodeURIComponent(status)}`
+      : null,
     fetcher,
     { revalidateOnFocus: false, dedupingInterval: 500 }
   );
 
-  const results = searchData.data || [];
+  const results = searchData?.data || [];
 
   const handleSearch = useCallback((value: string) => {
     setSearchTerm(value);
@@ -44,9 +45,7 @@ export function DocumentSearch({ onResultsChange, placeholder = 'Buscar document
   const handleClear = () => {
     setSearchTerm('');
     setShowResults(false);
-    if (onResultsChange) {
-      onResultsChange([]);
-    }
+    onResultsChange([]);
   };
 
   const handleSelectResult = (result: SearchResult) => {
@@ -57,7 +56,7 @@ export function DocumentSearch({ onResultsChange, placeholder = 'Buscar document
   return (
     <div className="relative w-full">
       <div className="relative">
-        <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+        <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder={placeholder}
           value={searchTerm}
@@ -69,18 +68,17 @@ export function DocumentSearch({ onResultsChange, placeholder = 'Buscar document
             onClick={handleClear}
             className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
           >
-            <X className="w-4 h-4" />
+            <X className="h-4 w-4" />
           </button>
         )}
       </div>
 
-      {/* Desplegable de resultados */}
       {showResults && (
-        <Card className="absolute top-full left-0 right-0 mt-2 max-h-64 overflow-y-auto z-50">
+        <Card className="absolute left-0 right-0 top-full z-50 mt-2 max-h-64 overflow-y-auto">
           <CardContent className="p-0">
             {isLoading ? (
-              <div className="p-4 flex items-center justify-center gap-2 text-muted-foreground">
-                <Loader2 className="w-4 h-4 animate-spin" />
+              <div className="flex items-center justify-center gap-2 p-4 text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
                 Buscando...
               </div>
             ) : results.length === 0 ? (
@@ -93,7 +91,7 @@ export function DocumentSearch({ onResultsChange, placeholder = 'Buscar document
                   <button
                     key={result.id}
                     onClick={() => handleSelectResult(result)}
-                    className="w-full text-left p-3 hover:bg-muted transition text-sm"
+                    className="w-full p-3 text-left text-sm transition hover:bg-muted"
                   >
                     <div className="font-medium">{result.title}</div>
                     <div className="text-xs text-muted-foreground">{result.category}</div>

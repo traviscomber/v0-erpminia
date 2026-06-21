@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Search, Filter, X } from 'lucide-react';
+import { Filter, X } from 'lucide-react';
 import { useState } from 'react';
 
 interface FilterConfig {
@@ -35,28 +35,27 @@ export function AdvancedFilter({ filters, onFilterChange }: AdvancedFilterProps)
     onFilterChange({});
   };
 
-  const activeFilterCount = Object.values(activeFilters).filter(v => v).length;
+  const activeFilterCount = Object.values(activeFilters).filter((value) => value).length;
 
   return (
     <div className="space-y-3">
-      <Button
-        variant="outline"
-        onClick={() => setIsOpen(!isOpen)}
-        className="gap-2"
-      >
+      <Button variant="outline" onClick={() => setIsOpen(!isOpen)} className="gap-2">
         <Filter className="h-4 w-4" />
         Filtros {activeFilterCount > 0 && `(${activeFilterCount})`}
       </Button>
 
       {isOpen && (
         <Card>
-          <CardContent className="pt-6 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <CardContent className="space-y-4 pt-6">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {filters.map((filter) => (
                 <div key={filter.id}>
-                  <label className="text-sm font-medium mb-2 block">{filter.label}</label>
+                  <label className="mb-2 block text-sm font-medium">{filter.label}</label>
                   {filter.type === 'select' ? (
-                    <Select value={activeFilters[filter.id] || ''} onValueChange={(v) => handleFilterChange(filter.id, v)}>
+                    <Select
+                      value={activeFilters[filter.id] || ''}
+                      onValueChange={(value) => handleFilterChange(filter.id, value)}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder={filter.placeholder} />
                       </SelectTrigger>
@@ -79,13 +78,9 @@ export function AdvancedFilter({ filters, onFilterChange }: AdvancedFilterProps)
                 </div>
               ))}
             </div>
+
             {activeFilterCount > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearFilters}
-                className="gap-2"
-              >
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-2">
                 <X className="h-4 w-4" />
                 Limpiar filtros
               </Button>

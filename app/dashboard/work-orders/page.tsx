@@ -71,25 +71,25 @@ export default function WorkOrdersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Órdenes de Trabajo</h1>
+          <h1 className="text-3xl font-bold">Órdenes de trabajo</h1>
           <p className="text-muted-foreground">Gestión de mantenimiento y seguimiento operativo</p>
         </div>
         <Link href="/dashboard/work-orders/create">
           <Button className="gap-2">
-            <Plus className="w-4 h-4" /> Crear nueva orden
+            <Plus className="h-4 w-4" /> Crear nueva orden
           </Button>
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total</p>
-                <p className="text-3xl font-bold text-primary mt-2">{workOrders.length}</p>
+                <p className="mt-2 text-3xl font-bold text-primary">{workOrders.length}</p>
               </div>
               <Wrench className="h-8 w-8 text-primary opacity-60" />
             </div>
@@ -100,8 +100,8 @@ export default function WorkOrdersPage() {
           <CardContent className="pt-6">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">En Progreso</p>
-                <p className="text-3xl font-bold text-primary mt-2">{inProgress}</p>
+                <p className="text-sm text-muted-foreground">En progreso</p>
+                <p className="mt-2 text-3xl font-bold text-primary">{inProgress}</p>
               </div>
               <Clock className="h-8 w-8 text-primary opacity-60" />
             </div>
@@ -113,7 +113,7 @@ export default function WorkOrdersPage() {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Críticas</p>
-                <p className="text-3xl font-bold text-destructive mt-2">{critical}</p>
+                <p className="mt-2 text-3xl font-bold text-destructive">{critical}</p>
               </div>
               <AlertCircle className="h-8 w-8 text-destructive opacity-60" />
             </div>
@@ -125,7 +125,7 @@ export default function WorkOrdersPage() {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Completadas</p>
-                <p className="text-3xl font-bold text-accent mt-2">{completed}</p>
+                <p className="mt-2 text-3xl font-bold text-accent">{completed}</p>
               </div>
               <CheckCircle2 className="h-8 w-8 text-accent opacity-60" />
             </div>
@@ -150,32 +150,47 @@ export default function WorkOrdersPage() {
                 No hay órdenes de trabajo registradas todavía
               </div>
             )}
+
             {workOrders.map((wo: any) => (
               <Link key={wo.id} href={`/dashboard/work-orders/${wo.id}`}>
-                <div className={`border-2 ${getPriorityColor(wo.priority)} rounded-lg p-4 hover:bg-muted/30 transition-colors cursor-pointer`}>
-                  <div className="flex items-start justify-between gap-4 mb-3">
+                <div
+                  className={`cursor-pointer rounded-lg border-2 p-4 transition-colors hover:bg-muted/30 ${getPriorityColor(wo.priority)}`}
+                >
+                  <div className="mb-3 flex items-start justify-between gap-4">
                     <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <code className="text-xs font-mono bg-muted px-2 py-1 rounded">{wo.work_order_number}</code>
-                        <Badge className={getStatusColor(wo.status)} variant="outline">{getStatusLabel(wo.status)}</Badge>
+                      <div className="mb-1 flex items-center gap-2">
+                        <code className="rounded bg-muted px-2 py-1 font-mono text-xs">{wo.work_order_number}</code>
+                        <Badge className={getStatusColor(wo.status)} variant="outline">
+                          {getStatusLabel(wo.status)}
+                        </Badge>
                         <Badge variant="outline">{getWorkTypeLabel(wo.work_type || 'preventive')}</Badge>
                       </div>
                       <h3 className="font-semibold">{wo.title}</h3>
-                      <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                      <div className="mt-2 flex items-center gap-4 text-sm text-muted-foreground">
                         <span>{wo.asset_name || 'Activo no asociado'}</span>
                         <span>Asignado: {wo.assigned_to_name || 'Sin asignar'}</span>
-                        <span>Vence: {wo.scheduled_date ? new Date(wo.scheduled_date).toLocaleDateString('es-CL') : 'Sin fecha'}</span>
+                        <span>
+                          Vence:{' '}
+                          {wo.scheduled_date ? new Date(wo.scheduled_date).toLocaleDateString('es-CL') : 'Sin fecha'}
+                        </span>
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="sm"><Eye className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="sm"><Edit className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="sm">
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm">
+                        <Edit className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div className="bg-primary h-2 rounded-full transition-all" style={{ width: `${wo.progress_percentage || 0}%` }} />
+                  <div className="h-2 w-full rounded-full bg-muted">
+                    <div
+                      className="h-2 rounded-full bg-primary transition-all"
+                      style={{ width: `${wo.progress_percentage || 0}%` }}
+                    />
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">{wo.progress_percentage || 0}% completado</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{wo.progress_percentage || 0}% completado</p>
                 </div>
               </Link>
             ))}

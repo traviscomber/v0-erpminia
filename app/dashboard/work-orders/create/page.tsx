@@ -92,7 +92,7 @@ function resolveAssetTemplate(asset: MaintenanceAsset | null) {
   return COMPONENT_TEMPLATES.generic;
 }
 
-function normalizeAsset(asset: MaintenanceAsset): Required<Pick<MaintenanceAsset, 'asset_code' | 'asset_name' | 'asset_type'>> & MaintenanceAsset {
+function normalizeAsset(asset: MaintenanceAsset) {
   return {
     ...asset,
     asset_code: asset.asset_code || asset.assetCode || '',
@@ -148,8 +148,7 @@ export default function CreateWorkOrderPage() {
           assetId: selectedAsset.id,
           title: `${assetName} - ${componentNames}`,
           description:
-            description ||
-            `Mantenimiento ${orderType} para ${assetName}. Componentes: ${componentNames}`,
+            description || `Mantenimiento ${orderType} para ${assetName}. Componentes: ${componentNames}`,
           workType: orderType,
           priority,
           plannedDurationHours: totalHours,
@@ -244,9 +243,7 @@ export default function CreateWorkOrderPage() {
                       </p>
                     )}
                   </div>
-                  {selectedAssetId === asset.id && (
-                    <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-primary" />
-                  )}
+                  {selectedAssetId === asset.id && <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-primary" />}
                 </div>
               </div>
             ))}
