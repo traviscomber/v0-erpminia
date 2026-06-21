@@ -1,8 +1,8 @@
-﻿import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useProductionKPI } from '@/hooks/use-module-apis';
 import { LineChart, Line, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis } from 'recharts';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, AlertCircle } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 
 export function ProduccionDashboard() {
   const { kpis, isLoading, error, mutate } = useProductionKPI();
@@ -11,11 +11,11 @@ export function ProduccionDashboard() {
   if (isLoading) return <div>Cargando...</div>;
 
   const latestKPI = kpis[0] || {};
-  const avg_production = (kpis.reduce((sum, k) => sum + (k.production_tons || 0), 0) / kpis.length).toFixed(1);
+  const avgProduction = (kpis.reduce((sum, k) => sum + (k.production_tons || 0), 0) / kpis.length).toFixed(1);
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Producción en tiempo real</h1>
           <p className="text-muted-foreground">Monitoreo integral de KPIs operacionales</p>
@@ -26,14 +26,14 @@ export function ProduccionDashboard() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">Producción de hoy</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{latestKPI.production_tons?.toFixed(0) || 0} ton</div>
-            <p className="text-xs text-muted-foreground">Promedio: {avg_production} ton</p>
+            <p className="text-xs text-muted-foreground">Promedio: {avgProduction} ton</p>
           </CardContent>
         </Card>
 
@@ -49,7 +49,7 @@ export function ProduccionDashboard() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Incidentes Hoy</CardTitle>
+            <CardTitle className="text-sm">Incidentes hoy</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-500">{latestKPI.safety_incidents || 0}</div>
@@ -70,11 +70,11 @@ export function ProduccionDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>ProducciÃ³n - Ãšltimos 30 dÃ­as</CardTitle>
+          <CardTitle>Producción - Últimos 30 días</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={kpis.reverse()}>
+            <LineChart data={kpis.slice().reverse()}>
               <CartesianGrid />
               <XAxis dataKey="date" />
               <YAxis />
@@ -92,7 +92,7 @@ export function ProduccionDashboard() {
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={kpis.reverse()}>
+            <BarChart data={kpis.slice().reverse()}>
               <CartesianGrid />
               <XAxis dataKey="date" />
               <YAxis />
@@ -107,5 +107,3 @@ export function ProduccionDashboard() {
     </div>
   );
 }
-
-

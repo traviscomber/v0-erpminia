@@ -167,8 +167,8 @@ export function DocumentUploadModal({ open, onOpenChange, organizationId, onSucc
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Centro de costos opcional</label>
-            <CostCenterSelect value={costCenterId} onValueChange={setCostCenterId} placeholder="Selecciona centro de costos..." />
+            <label className="text-sm font-medium text-foreground">Centro de costo opcional</label>
+            <CostCenterSelect value={costCenterId} onValueChange={setCostCenterId} placeholder="Selecciona centro de costo..." />
           </div>
 
           <div className="space-y-2">
