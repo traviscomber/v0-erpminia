@@ -9,7 +9,7 @@ import { getSupabaseServerClient } from '@/lib/supabase-server';
 function normalizeText(value: string) {
   return String(value || '')
     .trim()
-    .replaceAll('ï¿½', '')
+    .replaceAll('�', '')
     .replace(/\uFFFD/g, '')
     .replace(/\s+/g, ' ');
 }
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
     const lines = content.split(/\r?\n/).filter((line) => line.trim());
 
     if (lines.length < 2) {
-      return NextResponse.json({ error: 'El archivo base de centros está vacío' }, { status: 400 });
+      return NextResponse.json({ error: 'El archivo base de centros esta vacio' }, { status: 400 });
     }
 
     const records = lines.slice(1).map((line) => {
@@ -121,8 +121,8 @@ export async function POST(request: NextRequest) {
           `Ruta completa: ${row.routeValue}`,
           row.creator ? `Creador: ${row.creator}` : '',
           row.modifiedBy ? `Modificado por: ${row.modifiedBy}` : '',
-          row.createdAt ? `Fecha creación: ${row.createdAt}` : '',
-          row.updatedAt ? `Fecha modificación: ${row.updatedAt}` : '',
+          row.createdAt ? `Fecha creacion: ${row.createdAt}` : '',
+          row.updatedAt ? `Fecha modificacion: ${row.updatedAt}` : '',
           row.notes ? `Notas: ${row.notes}` : '',
         ]
           .filter(Boolean)

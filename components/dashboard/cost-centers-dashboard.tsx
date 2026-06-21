@@ -12,6 +12,7 @@ import {
   getCostCenterRootCode,
   isRootCostCenter,
   isVisibleCostCenter,
+  repairCostCenterText,
   sortCostCenters,
   type CostCenterRecord,
 } from '@/lib/cost-centers';
@@ -21,21 +22,6 @@ type CostCenterGroup = {
   rootName: string;
   items: CostCenterRecord[];
 };
-
-function prettifyText(value: string) {
-  return value
-    .split(/\s+/)
-    .map((word) => {
-      if (!word) return word;
-      if (/^[A-Z0-9]{2,}$/.test(word)) return word;
-      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-    })
-    .join(' ');
-}
-
-function normalizeName(value: string) {
-  return prettifyText(String(value || '').replace(/\s+/g, ' ').trim());
-}
 
 export function CostCentersDashboard() {
   const { costCenters, loading, error, reload } = useCostCenters();
@@ -238,7 +224,7 @@ export function CostCentersDashboard() {
               const extraCount = Math.max(0, children.length - previewChildren.length);
               const rootLabel = formatCostCenterLabel({
                 code: group.rootCode,
-                name: normalizeName(group.rootName),
+                name: repairCostCenterText(group.rootName),
               });
 
               return (
@@ -267,13 +253,13 @@ export function CostCentersDashboard() {
                       {isExpanded ? (
                         group.items.map((item) => (
                           <Badge key={item.id} variant={item.code === group.rootCode ? 'default' : 'outline'} className="max-w-full truncate">
-                            {item.code} {normalizeName(item.name)}
+                            {item.code} {repairCostCenterText(item.name)}
                           </Badge>
                         ))
                       ) : previewChildren.length > 0 ? (
                         previewChildren.map((item) => (
                           <Badge key={item.id} variant="outline" className="max-w-full truncate">
-                            {item.code} {normalizeName(item.name)}
+                            {item.code} {repairCostCenterText(item.name)}
                           </Badge>
                         ))
                       ) : (

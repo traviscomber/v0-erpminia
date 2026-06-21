@@ -39,6 +39,44 @@ function normalizeCode(code: string) {
   return String(code || '').trim();
 }
 
+const TEXT_FIXES: Array<[RegExp, string]> = [
+  [/exploracin/gi, 'exploracion'],
+  [/explotacin/gi, 'explotacion'],
+  [/administracin/gi, 'administracion'],
+  [/mantencin/gi, 'mantencion'],
+  [/perforacin/gi, 'perforacion'],
+  [/carguio/gi, 'carguio'],
+  [/desague/gi, 'desague'],
+  [/mecnica/gi, 'mecanica'],
+  [/planificacin/gi, 'planificacion'],
+  [/geologa/gi, 'geologia'],
+  [/sondaje/gi, 'sondaje'],
+  [/topografa/gi, 'topografia'],
+  [/recepcin/gi, 'recepcion'],
+  [/supervisin/gi, 'supervision'],
+  [/recepcion/gi, 'recepcion'],
+  [/distribucin/gi, 'distribucion'],
+  [/operacin/gi, 'operacion'],
+  [/explotacion/gi, 'explotacion'],
+  [/exploracion/gi, 'exploracion'],
+  [/administracion/gi, 'administracion'],
+  [/mantencion/gi, 'mantencion'],
+  [/perforacion/gi, 'perforacion'],
+  [/mecanica/gi, 'mecanica'],
+  [/planificacion/gi, 'planificacion'],
+  [/geologia/gi, 'geologia'],
+  [/topografia/gi, 'topografia'],
+  [/supervision/gi, 'supervision'],
+];
+
+export function repairCostCenterText(value: string) {
+  let result = String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  for (const [pattern, replacement] of TEXT_FIXES) {
+    result = result.replace(pattern, replacement);
+  }
+  return result.replace(/\s+/g, ' ').trim();
+}
+
 export function getCostCenterDepth(code: string) {
   const normalized = normalizeCode(code);
   if (!normalized) return 0;
@@ -67,7 +105,7 @@ export function getCostCenterPriority(code: string) {
 }
 
 export function formatCostCenterLabel(costCenter: Pick<CostCenterRecord, 'code' | 'name'>) {
-  return `${costCenter.code} - ${costCenter.name}`;
+  return `${costCenter.code} - ${repairCostCenterText(costCenter.name)}`;
 }
 
 export function sortCostCenters<T extends Pick<CostCenterRecord, 'code' | 'name'>>(costCenters: T[]) {
