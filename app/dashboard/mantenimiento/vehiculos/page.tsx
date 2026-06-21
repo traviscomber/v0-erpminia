@@ -35,14 +35,14 @@ export default function VehiclesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Gestion de vehiculos</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Gestión de vehículos</h1>
         <p className="mt-2 text-muted-foreground">
-          Administra vehiculos y arbol de fallas con datos reales del sistema.
+          Administra vehículos y árbol de fallas con datos reales del sistema.
         </p>
         <div className="mt-4 rounded-lg border border-[var(--secondary)]/30 bg-[var(--secondary)]/5 p-4 dark:border-blue-800 dark:bg-blue-950">
           <p className="text-sm text-blue-900 dark:text-blue-100">
-            <strong>Como funciona:</strong> cada activo trae su informacion operacional y puedes abrir
-            el arbol de fallas para diagnosticar problemas y crear ordenes de trabajo.
+            <strong>Cómo funciona:</strong> cada activo trae su información operacional y puedes abrir
+            el árbol de fallas para diagnosticar problemas y crear órdenes de trabajo.
           </p>
         </div>
       </div>
@@ -54,13 +54,13 @@ export default function VehiclesPage() {
               <Wrench className="h-4 w-4" />
             </div>
             <div>
-              <p className="text-sm font-medium">Alta de vehiculos</p>
+              <p className="text-sm font-medium">Alta de vehículos</p>
               <p className="text-xs text-muted-foreground">Disponible cuando el flujo operativo lo habilite</p>
             </div>
           </div>
           <Button className="gap-2 bg-[var(--brand-naranja)] hover:bg-[var(--brand-naranja)]/90" disabled>
             <Plus className="h-4 w-4" />
-            Crear nuevo vehiculo
+            Crear nuevo vehículo
           </Button>
         </div>
       </BrandCard>
@@ -69,13 +69,13 @@ export default function VehiclesPage() {
         <CardHeader>
           <CardTitle>Vehiculos en sistema</CardTitle>
           <CardDescription>
-            {isLoading ? 'Cargando activos...' : `${vehicles.length} vehiculos registrados`}
+            {isLoading ? 'Cargando activos...' : `${vehicles.length} vehículos registrados`}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {error ? (
             <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-              No fue posible cargar los vehiculos reales.
+              No fue posible cargar los vehículos reales.
             </div>
           ) : (
             <div className="space-y-4">
@@ -92,7 +92,7 @@ export default function VehiclesPage() {
                     <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground md:grid-cols-4">
                       <div>
                         <span className="font-medium text-foreground">{vehicle.assetCode}</span>
-                        <p>Codigo</p>
+                        <p>Código</p>
                       </div>
                       <div>
                         <span className="font-medium text-foreground">{vehicle.assetType || '-'}</span>
@@ -104,13 +104,13 @@ export default function VehiclesPage() {
                       </div>
                       <div>
                         <span className="font-medium text-foreground">{vehicle.location || '-'}</span>
-                        <p>Ubicacion</p>
+                        <p>Ubicación</p>
                       </div>
                     </div>
                   </div>
                   <Link href={`/dashboard/mantenimiento/vehiculos/${vehicle.id}/arbol`}>
                     <Button variant="outline" className="ml-4 gap-2">
-                      Ver arbol de fallas
+                      Ver árbol de fallas
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </Link>
@@ -119,7 +119,7 @@ export default function VehiclesPage() {
 
               {!isLoading && vehicles.length === 0 && (
                 <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
-                  Todavia no hay vehiculos cargados desde la base real.
+                  Todavía no hay vehículos cargados desde la base real.
                 </div>
               )}
             </div>
