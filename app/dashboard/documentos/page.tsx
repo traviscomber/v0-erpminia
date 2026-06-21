@@ -127,7 +127,7 @@ export default function DocumentosDashboard() {
     <div className="space-y-6">
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Gestion de Documentos</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Gestión de Documentos</h1>
           <p className="text-muted-foreground">
             Administra documentos y aprobaciones con compliance SERNAGEOMIN
           </p>

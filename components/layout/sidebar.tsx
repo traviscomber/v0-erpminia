@@ -49,21 +49,21 @@ const rolePermissions: Record<string, string[]> = {
   'Inicio': ['superadmin', 'admin', 'manager', 'supervisor', 'viewer'],
   'Alertas': ['superadmin', 'admin', 'manager', 'supervisor'],
   'Centros de Costos': ['superadmin', 'admin', 'manager', 'Operaciones-Supervisor', 'Finanzas-Supervisor'],
-  'Produccion': ['superadmin', 'admin', 'Operaciones-Supervisor'],
+  'Producción': ['superadmin', 'admin', 'Operaciones-Supervisor'],
   'Mantenimiento': ['superadmin', 'admin', 'Operaciones-Supervisor'],
   'Mantenimiento por Centro de Costo': ['superadmin', 'admin', 'Operaciones-Supervisor'],
   'Ordenes de Trabajo': ['superadmin', 'admin', 'Operaciones-Supervisor'],
   'Bodega e Inventario': ['superadmin', 'admin', 'Bodega-Supervisor'],
-  'Gestion Documental': ['superadmin', 'admin', 'manager'],
+  'Gestión Documental': ['superadmin', 'admin', 'manager'],
   'Compras y OCs': ['superadmin', 'admin', 'Compras-Supervisor'],
   'Finanzas y Presupuesto': ['superadmin', 'admin', 'Finanzas-Supervisor'],
-  'Reportes y Analisis': ['superadmin', 'admin', 'manager', 'supervisor'],
+  'Reportes y Análisis': ['superadmin', 'admin', 'manager', 'supervisor'],
   'IA Operacional Minera': ['superadmin', 'admin'],
   'Tablero de KPIs': ['superadmin', 'admin', 'manager'],
-  'Gestion de Usuarios': ['superadmin', 'admin'],
-  'Gestion de Permisos': ['superadmin', 'admin'],
-  'Modulo Legal': ['superadmin', 'admin', 'manager'],
-  'Guias de Uso': ['superadmin', 'admin', 'manager', 'supervisor', 'viewer'],
+  'Gestión de Usuarios': ['superadmin', 'admin'],
+  'Gestión de Permisos': ['superadmin', 'admin'],
+  'Módulo Legal': ['superadmin', 'admin', 'manager'],
+  'Guías de Uso': ['superadmin', 'admin', 'manager', 'supervisor', 'viewer'],
   // Sostenibilidad - Transversal (all 12 modules)
   'Tablero Sostenibilidad': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
   'Prevencion de Riesgos': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
@@ -83,7 +83,7 @@ const rolePermissions: Record<string, string[]> = {
   'Documentos Finanzas': ['superadmin', 'admin', 'Finanzas-Supervisor'],
   'Documentos HSE': ['superadmin', 'admin', 'HSE-Supervisor', 'Sostenibilidad-Supervisor'],
   'Documentos Legal': ['superadmin', 'admin', 'manager'],
-  'Documentos Prevencion': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
+  'Documentos Prevención': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
 };
 
 const menuItems = [
@@ -110,10 +110,10 @@ const menuItems = [
   
   // OPERACIONES - Depto. Operaciones
   {
-    label: 'Produccion',
+    label: 'Producción',
     href: '/dashboard/produccion',
     icon: Zap,
-    group: 'Produccion',
+    group: 'Producción',
   },
   {
     label: 'Mantenimiento',
@@ -166,7 +166,7 @@ const menuItems = [
     group: 'Sostenibilidad',
   },
   {
-    label: 'Documentos Prevencion',
+    label: 'Documentos Prevención',
     href: '/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse',
     icon: File,
     group: 'Sostenibilidad',
@@ -226,7 +226,7 @@ const menuItems = [
     group: 'Sostenibilidad',
   },
   {
-    label: 'Reporteria Documentos',
+    label: 'Reportería Documentos',
     href: '/dashboard/sostenibilidad/documentos-reportes',
     icon: BarChart3,
     group: 'Sostenibilidad',
@@ -258,19 +258,19 @@ const menuItems = [
     group: 'Finanzas',
   },
   {
-    label: 'Gestion Documental',
+    label: 'Gestión Documental',
     href: '/dashboard/documentos-gestion',
     icon: FolderOpen,
     group: 'Finanzas',
   },
   {
-    label: 'Reportes y Analisis',
+    label: 'Reportes y Análisis',
     href: '/dashboard/reportes',
     icon: BarChart3,
     group: 'Finanzas',
   },
   {
-    label: 'Modulo Legal',
+    label: 'Módulo Legal',
     href: '/dashboard/legal',
     icon: Scale,
     group: 'Legal',
@@ -298,7 +298,7 @@ const menuItems = [
   
   // AYUDA
   {
-    label: 'Guias de Uso',
+    label: 'Guías de Uso',
     href: '/dashboard/guias',
     icon: HelpCircle,
     group: 'Ayuda',
@@ -312,7 +312,7 @@ export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     'Core': true,
-    'Produccion': true,
+    'Producción': true,
     'Operaciones': true,
     'Mantenimiento': false,
     'Bodega e Inventario': false,
@@ -406,7 +406,7 @@ export function Sidebar() {
         {/* Navigation Menu - v7 Sistema Completo 5 Módulos */}
         <nav className="flex-1 px-4 py-6 overflow-y-auto">
           <div className="space-y-2">
-            {['Core', 'Produccion', 'Operaciones', 'Mantenimiento', 'Bodega e Inventario', 'Sostenibilidad', 'Finanzas', 'Legal', 'Inteligencia Artificial', 'Administración', 'Ayuda'].map((group) => {
+            {['Core', 'Producción', 'Operaciones', 'Mantenimiento', 'Bodega e Inventario', 'Sostenibilidad', 'Finanzas', 'Legal', 'Inteligencia Artificial', 'Administración', 'Ayuda'].map((group) => {
               const groupItems = filteredMenuItems.filter((item) => item.group === group);
               if (groupItems.length === 0) return null;
               const isExpanded = expandedGroups[group] ?? false;
