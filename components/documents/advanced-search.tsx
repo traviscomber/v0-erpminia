@@ -65,7 +65,7 @@ export function AdvancedDocumentSearch() {
     pageSize: 50,
   });
 
-  const [Resultados, setResultados] = useState<SearchResultados | null>(null);
+  const [resultados, setResultados] = useState<SearchResultados | null>(null);
   const [availableTags, setAvailableTags] = useState<{ systemTags: Record<string, string[]>; userTags: string[] }>({
     systemTags: {},
     userTags: [],
@@ -75,9 +75,8 @@ export function AdvancedDocumentSearch() {
   const [selectedDocs, setSelectedDocs] = useState<Set<string>>(new Set());
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
-  // Fetch available Etiquetas on mount
   useEffect(() => {
-    const fetchEtiquetas = async () => {
+    const fetchTags = async () => {
       try {
         const res = await fetch('/api/documents/tags?module=prevención');
         const data = await res.json();
@@ -86,10 +85,9 @@ export function AdvancedDocumentSearch() {
         console.error('[v0] Error fetching tags:', err);
       }
     };
-    fetchEtiquetas();
+    fetchTags();
   }, []);
 
-  // Debounced search (built-in, no lodash)
   const performSearch = useCallback(async (searchFilters: SearchFilters) => {
     setLoading(true);
     setError(null);
@@ -116,11 +114,8 @@ export function AdvancedDocumentSearch() {
     }
   }, []);
 
-  // Trigger search when filters change with debounce
   useEffect(() => {
-    if (debounceTimer.current) {
-      clearTimeout(debounceTimer.current);
-    }
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
     debounceTimer.current = setTimeout(() => {
       performSearch(filters);
     }, 300);
@@ -148,11 +143,8 @@ export function AdvancedDocumentSearch() {
 
   const handleDocumentToggle = (docId: string) => {
     const newSelected = new Set(selectedDocs);
-    if (newSelected.has(docId)) {
-      newSelected.delete(docId);
-    } else {
-      newSelected.add(docId);
-    }
+    if (newSelected.has(docId)) newSelected.delete(docId);
+    else newSelected.add(docId);
     setSelectedDocs(newSelected);
   };
 
@@ -197,28 +189,24 @@ export function AdvancedDocumentSearch() {
   };
 
   const getExpiryIcon = (expiryStatus: string) => {
-    if (expiryStatus === 'active')
-      return <CheckCircle2 className="h-4 w-4 text-green-500" />;
-    if (expiryStatus === 'expiring_soon')
-      return <AlertCircle className="h-4 w-4 text-yellow-500" />;
+    if (expiryStatus === 'active') return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+    if (expiryStatus === 'expiring_soon') return <AlertCircle className="h-4 w-4 text-yellow-500" />;
     return <X className="h-4 w-4 text-red-500" />;
   };
 
   return (
     <div className="space-y-6">
-      {/* Barra de búsqueda */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Search className="h-5 w-5" />
-            Búsqueda Avanzada de Documentos
+            Búsqueda avanzada de documentos
           </CardTitle>
           <CardDescription>
-            Busca por nombre, descripción o palabras clave. Filtra por tags, estado y Vigencia.
+            Busca por nombre, descripción o palabras clave. Filtra por etiquetas, estado y vigencia.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Consulta */}
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
@@ -229,9 +217,7 @@ export function AdvancedDocumentSearch() {
             />
           </div>
 
-          {/* Filters */}
           <div className="flex flex-wrap gap-2">
-            {/* Tag Filter */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2">
@@ -260,7 +246,6 @@ export function AdvancedDocumentSearch() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Expiry Filter */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2">
@@ -286,7 +271,7 @@ export function AdvancedDocumentSearch() {
                   checked={filters.expiryFilter === 'expiring_30_days'}
                   onCheckedChange={() => handleExpiryFilterChange('expiring_30_days')}
                 >
-                  Próximos a Vencer
+                  Próximos a vencer
                 </DropdownMenuCheckboxItem>
                 <DropdownMenuCheckboxItem
                   checked={filters.expiryFilter === 'expired'}
@@ -297,7 +282,6 @@ export function AdvancedDocumentSearch() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Clear Filters */}
             {(filters.query || filters.tags.length > 0) && (
               <Button
                 variant="ghost"
@@ -319,7 +303,6 @@ export function AdvancedDocumentSearch() {
             )}
           </div>
 
-          {/* Active Etiquetas */}
           {filters.tags.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {filters.tags.map((tag) => (
@@ -337,7 +320,6 @@ export function AdvancedDocumentSearch() {
         </CardContent>
       </Card>
 
-      {/* Resultados */}
       {error && (
         <Card className="border-destructive">
           <CardContent className="pt-6">
@@ -357,37 +339,33 @@ export function AdvancedDocumentSearch() {
         </Card>
       )}
 
-      {Resultados && !loading && (
+      {resultados && !loading && (
         <Card>
           <CardHeader>
             <CardTitle>
-              {Resultados.pagination.total} documento{Resultados.pagination.total !== 1 ? 's' : ''} encontrado
-              {Resultados.pagination.total !== 1 ? 's' : ''}
+              {resultados.pagination.total} documento{resultados.pagination.total !== 1 ? 's' : ''} encontrado
+              {resultados.pagination.total !== 1 ? 's' : ''}
             </CardTitle>
             {selectedDocs.size > 0 && (
-              <div className="flex gap-2 mt-4">
-                <Button
-                  size="sm"
-                  onClick={handleBulkExport}
-                  className="gap-2"
-                >
+              <div className="mt-4 flex gap-2">
+                <Button size="sm" onClick={handleBulkExport} className="gap-2">
                   <Download className="h-4 w-4" />
-                  Exportar Seleccionados ({selectedDocs.size})
+                  Exportar seleccionados ({selectedDocs.size})
                 </Button>
               </div>
             )}
           </CardHeader>
           <CardContent>
-            {Resultados.data.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">
+            {resultados.data.length === 0 ? (
+              <p className="py-8 text-center text-muted-foreground">
                 No hay documentos que coincidan con tus criterios
               </p>
             ) : (
               <div className="space-y-3">
-                {Resultados.data.map((doc) => (
+                {resultados.data.map((doc) => (
                   <div
                     key={doc.id}
-                    className="flex items-start gap-3 p-3 border rounded-lg hover:bg-muted cursor-pointer"
+                    className="flex cursor-pointer items-start gap-3 rounded-lg border p-3 hover:bg-muted"
                     onClick={() => handleDocumentToggle(doc.id)}
                   >
                     <input
@@ -396,13 +374,13 @@ export function AdvancedDocumentSearch() {
                       onChange={() => handleDocumentToggle(doc.id)}
                       className="mt-1"
                     />
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-sm truncate">{doc.document_name}</h4>
-                      <p className="text-xs text-muted-foreground mb-2">
+                    <div className="min-w-0 flex-1">
+                      <h4 className="truncate text-sm font-medium">{doc.document_name}</h4>
+                      <p className="mb-2 text-xs text-muted-foreground">
                         {doc.category} • v{doc.id.slice(0, 8)}
                       </p>
                       {doc.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mb-2">
+                        <div className="mb-2 flex flex-wrap gap-1">
                           {doc.tags.slice(0, 3).map((tag) => (
                             <Badge key={tag} variant="outline" className="text-xs">
                               {tag}
@@ -419,10 +397,8 @@ export function AdvancedDocumentSearch() {
                     <div className="flex items-center gap-2">
                       {getExpiryIcon(doc.expiryStatus)}
                       {doc.daysUntilExpiry !== null && (
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          {doc.daysUntilExpiry > 0
-                            ? `${doc.daysUntilExpiry}d`
-                            : 'Vencido'}
+                        <span className="whitespace-nowrap text-xs text-muted-foreground">
+                          {doc.daysUntilExpiry > 0 ? `${doc.daysUntilExpiry}d` : 'Vencido'}
                         </span>
                       )}
                     </div>
@@ -431,9 +407,8 @@ export function AdvancedDocumentSearch() {
               </div>
             )}
 
-            {/* Pagination */}
-            {Resultados.pagination.totalPages > 1 && (
-              <div className="flex justify-center gap-2 mt-4">
+            {resultados.pagination.totalPages > 1 && (
+              <div className="mt-4 flex justify-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
@@ -444,7 +419,7 @@ export function AdvancedDocumentSearch() {
                 </Button>
                 <div className="flex items-center gap-2">
                   <span className="text-sm">
-                    página {Resultados.pagination.page} de {Resultados.pagination.totalPages}
+                    página {resultados.pagination.page} de {resultados.pagination.totalPages}
                   </span>
                 </div>
                 <Button
@@ -453,10 +428,10 @@ export function AdvancedDocumentSearch() {
                   onClick={() =>
                     setFilters((p) => ({
                       ...p,
-                      page: Math.min(Resultados.pagination.totalPages, p.page + 1),
+                      page: Math.min(resultados.pagination.totalPages, p.page + 1),
                     }))
                   }
-                  disabled={filters.page === Resultados.pagination.totalPages}
+                  disabled={filters.page === resultados.pagination.totalPages}
                 >
                   Siguiente
                 </Button>
@@ -468,4 +443,3 @@ export function AdvancedDocumentSearch() {
     </div>
   );
 }
-
