@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { AlertCircle, CheckCircle2, Clock, FileText, RefreshCw } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { DocumentUpload } from '@/components/documents/document-upload';
 import { DocumentList, Document } from '@/components/documents/document-list';
 import { DocumentReviewModal } from '@/components/documents/document-review-modal';
-import { FileText, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
 
 interface DocumentStats {
   total: number;
@@ -39,9 +40,7 @@ export default function DocumentosMantenimientoPage() {
         setStats({
           total: data.length,
           vigentes: data.filter((d: Document) => d.status === 'active').length,
-          en_revision: data.filter((d: Document) => 
-            d.status === 'pending_l1' || d.status === 'pending_l2'
-          ).length,
+          en_revision: data.filter((d: Document) => d.status === 'pending_l1' || d.status === 'pending_l2').length,
           rechazados: data.filter((d: Document) => d.status === 'rejected').length,
         });
       }
@@ -63,7 +62,7 @@ export default function DocumentosMantenimientoPage() {
         credentials: 'include',
       });
       if (response.ok) {
-        setDocuments(documents.filter(d => d.id !== documentId));
+        setDocuments(documents.filter((d) => d.id !== documentId));
         await loadDocuments();
       }
     } catch (error) {
@@ -73,7 +72,7 @@ export default function DocumentosMantenimientoPage() {
 
   const handleView = (document: Document | string) => {
     if (typeof document === 'string') {
-      const doc = documents.find(d => d.id === document);
+      const doc = documents.find((d) => d.id === document);
       if (doc) setSelectedDoc(doc);
     } else {
       setSelectedDoc(document);
@@ -125,30 +124,34 @@ export default function DocumentosMantenimientoPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Documentos de mantenimiento</h1>
-        <p className="text-muted-foreground mt-2">
-          Gestión de manuales, procedimientos e instructivos de mantenimiento
-        </p>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Documentos de mantenimiento</h1>
+          <p className="mt-2 text-muted-foreground">Gestión de manuales, procedimientos e instructivos de mantenimiento</p>
+        </div>
+        <Button variant="outline" onClick={loadDocuments} disabled={loading}>
+          <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          {loading ? 'Actualizando...' : 'Recargar'}
+        </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between text-sm font-medium">
               <span>Total</span>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{stats.total}</p>
-            <p className="text-xs text-muted-foreground">documentos</p>
+            <p className="text-xs text-muted-foreground">documentos reales cargados</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between text-sm font-medium">
               <span>Vigentes</span>
               <CheckCircle2 className="h-4 w-4 text-green-500" />
             </CardTitle>
@@ -161,7 +164,7 @@ export default function DocumentosMantenimientoPage() {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between text-sm font-medium">
               <span>En revisión</span>
               <Clock className="h-4 w-4 text-yellow-500" />
             </CardTitle>
@@ -174,7 +177,7 @@ export default function DocumentosMantenimientoPage() {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between text-sm font-medium">
               <span>Rechazados</span>
               <AlertCircle className="h-4 w-4 text-red-500" />
             </CardTitle>
@@ -187,36 +190,32 @@ export default function DocumentosMantenimientoPage() {
       </div>
 
       <Tabs defaultValue="all" className="space-y-4">
-        <TabsList className="bg-muted/60 border-b-2 border-border p-1">
-          <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Todos</TabsTrigger>
-          <TabsTrigger value="vigentes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Vigentes</TabsTrigger>
-          <TabsTrigger value="Revision" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">En revisión</TabsTrigger>
-          <TabsTrigger value="upload" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">Subir documentos</TabsTrigger>
+        <TabsList className="border-b-2 border-border bg-muted/60 p-1">
+          <TabsTrigger value="all" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            Todos
+          </TabsTrigger>
+          <TabsTrigger value="vigentes" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            Vigentes
+          </TabsTrigger>
+          <TabsTrigger value="revision" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            En revisión
+          </TabsTrigger>
+          <TabsTrigger value="upload" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            Subir documentos
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
-          <DocumentList
-            documents={documents}
-            isLoading={loading}
-            onView={handleView}
-            onDelete={handleDelete}
-          />
+          <DocumentList documents={documents} isLoading={loading} onView={handleView} onDelete={handleDelete} />
         </TabsContent>
 
         <TabsContent value="vigentes" className="space-y-4">
-          <DocumentList
-            documents={documents.filter(d => d.status === 'active')}
-            isLoading={loading}
-            onView={handleView}
-            onDelete={handleDelete}
-          />
+          <DocumentList documents={documents.filter((d) => d.status === 'active')} isLoading={loading} onView={handleView} onDelete={handleDelete} />
         </TabsContent>
 
-        <TabsContent value="Revision" className="space-y-4">
+        <TabsContent value="revision" className="space-y-4">
           <DocumentList
-            documents={documents.filter(d => 
-              d.status === 'pending_l1' || d.status === 'pending_l2'
-            )}
+            documents={documents.filter((d) => d.status === 'pending_l1' || d.status === 'pending_l2')}
             isLoading={loading}
             onView={handleView}
             onDelete={handleDelete}
@@ -227,16 +226,10 @@ export default function DocumentosMantenimientoPage() {
           <Card>
             <CardHeader>
               <CardTitle>Subir nuevo documento</CardTitle>
-              <CardDescription>
-                Sube manuales, procedimientos e instructivos de mantenimiento
-              </CardDescription>
+              <CardDescription>Sube manuales, procedimientos e instructivos de mantenimiento</CardDescription>
             </CardHeader>
             <CardContent>
-              <DocumentUpload 
-                module="mantenimiento"
-                category="documentos"
-                onUploadSuccess={loadDocuments}
-              />
+              <DocumentUpload module="mantenimiento" category="documentos" onUploadSuccess={loadDocuments} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -256,4 +249,3 @@ export default function DocumentosMantenimientoPage() {
     </div>
   );
 }
-

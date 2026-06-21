@@ -85,7 +85,9 @@ export default function ContratosPage() {
     porVencer: contracts.filter((contract: any) => contract.status === 'Por Vencer').length,
     enRevision: contracts.filter((contract: any) => contract.status === 'En Revisión').length,
     vencidos: contracts.filter((contract: any) => contract.status === 'Vencido').length,
+    conArchivo: contracts.filter((contract: any) => Boolean(contract.file_url)).length,
   };
+  const sinArchivo = stats.total - stats.conArchivo;
 
   const updateField = (field: string, value: string) => {
     setFormState((current) => ({ ...current, [field]: value }));
@@ -233,7 +235,7 @@ export default function ContratosPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-6">
         <Card className="bg-white/5 border-white/10">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -290,6 +292,28 @@ export default function ContratosPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-[var(--brand-rojo)]">{stats.vencidos}</div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white/5 border-white/10">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Con archivo
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.conArchivo}</div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white/5 border-white/10">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Sin archivo
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{sinArchivo}</div>
           </CardContent>
         </Card>
       </div>
