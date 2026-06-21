@@ -1,6 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle, AlertCircle, Info } from 'lucide-react';
 
 interface ContratoAlerta {
@@ -44,14 +43,14 @@ export function AlertasContratos({ alertas }: { alertas: ContratoAlerta[] }) {
           Alertas del Sistema
         </CardTitle>
         <CardDescription>
-          {alertasCriticas.length} crítica(s), {alertasAltas.length} alta(s), {alertasActivas.length} total
+          {alertasCriticas.length} críticas, {alertasAltas.length} altas, {alertasActivas.length} en total
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         {alertasCriticas.length === 0 && alertasAltas.length === 0 && alertasActivas.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <Info className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p>Sin alertas activas - Sistema operacional normal</p>
+          <div className="py-8 text-center text-muted-foreground">
+            <Info className="mx-auto mb-2 h-8 w-8 opacity-50" />
+            <p>Sin alertas activas. Funcionamiento operativo normal.</p>
           </div>
         ) : (
           alertasActivas.map((alerta) => {
@@ -61,15 +60,15 @@ export function AlertasContratos({ alertas }: { alertas: ContratoAlerta[] }) {
             return (
               <div
                 key={alerta.id}
-                className={`${colores.bg} ${colores.border} border rounded-lg p-3 space-y-1 ${!alerta.leida ? 'ring-2 ring-offset-1 ring-destructive/40' : ''}`}
+                className={`${colores.bg} ${colores.border} rounded-lg border p-3 space-y-1 ${!alerta.leida ? 'ring-2 ring-offset-1 ring-destructive/40' : ''}`}
               >
                 <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-2 flex-1">
-                    <IconoTipo className={`h-4 w-4 ${colores.text} flex-shrink-0 mt-0.5`} />
+                  <div className="flex flex-1 items-start gap-2">
+                    <IconoTipo className={`mt-0.5 h-4 w-4 flex-shrink-0 ${colores.text}`} />
                     <div className="flex-1">
-                      <p className={`font-semibold text-sm ${colores.text}`}>{alerta.titulo}</p>
+                      <p className={`text-sm font-semibold ${colores.text}`}>{alerta.titulo}</p>
                       {alerta.descripcion && (
-                        <p className={`text-xs ${colores.text} opacity-80 mt-1`}>{alerta.descripcion}</p>
+                        <p className={`mt-1 text-xs ${colores.text} opacity-80`}>{alerta.descripcion}</p>
                       )}
                     </div>
                   </div>

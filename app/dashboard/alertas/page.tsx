@@ -18,12 +18,7 @@ import {
 } from 'lucide-react';
 
 type AlertSeverity = 'critica' | 'alta' | 'media' | 'baja' | 'info';
-type AlertType =
-  | 'documento'
-  | 'mantenimiento'
-  | 'inventario'
-  | 'sostenibilidad'
-  | 'contrato';
+type AlertType = 'documento' | 'mantenimiento' | 'inventario' | 'sostenibilidad' | 'contrato';
 
 type Alert = {
   id: string;
@@ -89,7 +84,7 @@ function typeLabel(type: AlertType) {
     case 'contrato':
       return 'Legal';
     default:
-      return 'Modulo';
+      return 'Módulo';
   }
 }
 
@@ -151,9 +146,9 @@ export default function AlertasPage() {
       Math.floor((now.getTime() - date.getTime()) / (1000 * 60))
     );
 
-    if (diffMinutes < 60) return `${diffMinutes}m atras`;
-    if (diffMinutes < 1440) return `${Math.floor(diffMinutes / 60)}h atras`;
-    return `${Math.floor(diffMinutes / 1440)}d atras`;
+    if (diffMinutes < 60) return `${diffMinutes}m atrás`;
+    if (diffMinutes < 1440) return `${Math.floor(diffMinutes / 60)}h atrás`;
+    return `${Math.floor(diffMinutes / 1440)}d atrás`;
   };
 
   if (error) {
@@ -203,11 +198,11 @@ export default function AlertasPage() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card className="border-border">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Alertas No Leidas</CardTitle>
+            <CardTitle className="text-sm font-medium">Alertas no leídas</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{unreadCount}</div>
-            <p className="mt-1 text-xs text-muted-foreground">requieren atencion</p>
+            <p className="mt-1 text-xs text-muted-foreground">requieren atención</p>
           </CardContent>
         </Card>
 
@@ -220,13 +215,13 @@ export default function AlertasPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-destructive">{criticalCount}</div>
-            <p className="mt-1 text-xs text-muted-foreground">accion inmediata</p>
+            <p className="mt-1 text-xs text-muted-foreground">acción inmediata</p>
           </CardContent>
         </Card>
 
         <Card className="border-border bg-primary/5">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Requieren Accion</CardTitle>
+            <CardTitle className="text-sm font-medium">Requieren acción</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-primary">{actionCount}</div>
@@ -240,7 +235,7 @@ export default function AlertasPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-secondary">{archivedCount}</div>
-            <p className="mt-1 text-xs text-muted-foreground">resueltas en sesion</p>
+            <p className="mt-1 text-xs text-muted-foreground">resueltas en sesión</p>
           </CardContent>
         </Card>
       </div>
@@ -253,7 +248,7 @@ export default function AlertasPage() {
           variant={filter === 'no-leidas' ? 'default' : 'ghost'}
           onClick={() => setFilter('no-leidas')}
         >
-          No leidas ({unreadCount})
+          No leídas ({unreadCount})
         </Button>
         <Button
           variant={filter === 'criticas' ? 'default' : 'ghost'}
@@ -266,17 +261,17 @@ export default function AlertasPage() {
           variant={filter === 'accion' ? 'default' : 'ghost'}
           onClick={() => setFilter('accion')}
         >
-          Requieren Accion ({actionCount})
+          Requieren acción ({actionCount})
         </Button>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-4">
+        <div className="space-y-4 lg:col-span-2">
           {filteredAlerts.length === 0 ? (
             <Card className="border-border">
               <CardContent className="py-12 text-center">
                 <CheckCircle2 className="mx-auto mb-4 h-12 w-12 text-secondary opacity-50" />
-                <p className="text-muted-foreground">No hay alertas en esta categoria.</p>
+                <p className="text-muted-foreground">No hay alertas en esta categoría.</p>
               </CardContent>
             </Card>
           ) : (
@@ -316,7 +311,7 @@ export default function AlertasPage() {
                                 {formatTime(alert.timestamp)}
                               </span>
                               {alert.actionRequired && (
-                                <Badge variant="destructive">Requiere Accion</Badge>
+                                <Badge variant="destructive">Requiere acción</Badge>
                               )}
                             </div>
                           </div>
@@ -333,7 +328,7 @@ export default function AlertasPage() {
                                 variant="outline"
                                 onClick={() => handleMarkAsRead(alert.id)}
                               >
-                                Marcar leida
+                                Marcar leída
                               </Button>
                             )}
                             <Button
@@ -359,7 +354,7 @@ export default function AlertasPage() {
             <Card className="sticky top-20 border-[var(--brand-naranja)]/30 bg-[var(--brand-naranja)]/5">
               <CardHeader>
                 <div className="flex items-start justify-between gap-2">
-                  <CardTitle>Detalle de Alerta</CardTitle>
+                  <CardTitle>Detalle de alerta</CardTitle>
                   <button
                     onClick={() => setSelectedAlert(null)}
                     className="text-muted-foreground hover:text-foreground"
@@ -370,13 +365,13 @@ export default function AlertasPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Titulo</p>
+                  <p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Título</p>
                   <p className="font-semibold text-foreground">{selectedAlert.title}</p>
                 </div>
 
                 <div>
                   <p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">
-                    Descripcion
+                    Descripción
                   </p>
                   <p className="text-sm text-foreground">{selectedAlert.description}</p>
                 </div>
@@ -410,9 +405,7 @@ export default function AlertasPage() {
                       className="w-full bg-[var(--brand-naranja)] hover:bg-[var(--brand-naranja)]/90"
                       onClick={() => setSelectedAlert(null)}
                     >
-                      <Link href={selectedAlert.actionUrl}>
-                        Ir a {typeLabel(selectedAlert.type)}
-                      </Link>
+                      <Link href={selectedAlert.actionUrl}>Ir a {typeLabel(selectedAlert.type)}</Link>
                     </Button>
                   )}
                 </div>
