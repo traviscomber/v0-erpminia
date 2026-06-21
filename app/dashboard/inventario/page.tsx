@@ -45,7 +45,7 @@ const fetcher = async (url: string) => {
 };
 
 function categoryForItem(item: InventoryItem) {
-  return item.part_category || 'General';
+  return item.part_category || 'Sin categoría';
 }
 
 export default function InventarioPage() {
