@@ -87,7 +87,7 @@ export function BodegaDashboard() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-4xl font-bold text-foreground">Bodega e Inventario</h1>
-          <p className="mt-1 text-lg text-muted-foreground">Resumen ejecutivo del stock real</p>
+          <p className="mt-1 text-lg text-muted-foreground">Resumen ejecutivo del stock real y sus familias</p>
         </div>
         <Button size="lg" onClick={() => mutate()} className="gap-2" disabled={isLoading}>
           <RefreshCw className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
@@ -136,17 +136,17 @@ export function BodegaDashboard() {
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-3">
           <div className="rounded-lg border border-border bg-background/60 p-4">
-            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Familias visibles</div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Familias activas</div>
             <div className="mt-2 text-3xl font-bold text-foreground">{familyCount.toLocaleString()}</div>
-            <div className="mt-1 text-sm text-muted-foreground">Categorias principales activas</div>
+            <div className="mt-1 text-sm text-muted-foreground">Categorias principales visibles</div>
           </div>
           <div className="rounded-lg border border-border bg-background/60 p-4">
-            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Subfamilias visibles</div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Subfamilias activas</div>
             <div className="mt-2 text-3xl font-bold text-foreground">{subfamilyCount.toLocaleString()}</div>
-            <div className="mt-1 text-sm text-muted-foreground">Agrupaciones bajo la familia</div>
+            <div className="mt-1 text-sm text-muted-foreground">Agrupaciones bajo cada familia</div>
           </div>
           <div className="rounded-lg border border-border bg-background/60 p-4">
-            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Familias destacadas</div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Familias con mas volumen</div>
             <div className="mt-2 flex flex-wrap gap-2">
               {topFamilies.length > 0 ? (
                 topFamilies.map(([label, count]) => (
@@ -239,7 +239,8 @@ export function BodegaDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-foreground">Listado {pagination.page > 0 && `(Pagina ${pagination.page + 1} de ${pagination.totalPages})`}</CardTitle>
+          <CardTitle className="text-foreground">Detalle de inventario {pagination.page > 0 && `(Pagina ${pagination.page + 1} de ${pagination.totalPages})`}</CardTitle>
+          <p className="text-sm text-muted-foreground">Usa la busqueda y la categoria para reducir el listado.</p>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -306,7 +307,7 @@ export function BodegaDashboard() {
           {pagination.totalPages > 1 && (
             <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-border pt-4">
               <div className="text-sm text-muted-foreground">
-                Mostrando {visibleRangeStart} a {visibleRangeEnd} de {pagination.total.toLocaleString()} articulos
+                Mostrando {visibleRangeStart} a {visibleRangeEnd} de {pagination.total.toLocaleString()} items
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
