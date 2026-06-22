@@ -35,15 +35,15 @@ export default function DocumentosMantenimientoPage() {
         credentials: 'include',
       });
       const data = await response.json();
-      if (Array.isArray(data)) {
-        setDocuments(data);
-        setStats({
-          total: data.length,
-          vigentes: data.filter((d: Document) => d.status === 'active').length,
-          en_revision: data.filter((d: Document) => d.status === 'pending_l1' || d.status === 'pending_l2').length,
-          rechazados: data.filter((d: Document) => d.status === 'rejected').length,
-        });
-      }
+      const docs = Array.isArray(data?.documents) ? data.documents : Array.isArray(data) ? data : [];
+
+      setDocuments(docs);
+      setStats({
+        total: docs.length,
+        vigentes: docs.filter((d: Document) => d.status === 'active' || d.status === 'aprobado').length,
+        en_revision: docs.filter((d: Document) => d.status === 'pending_l1' || d.status === 'pending_l2' || d.status === 'en_revision_l1' || d.status === 'en_revision_l2').length,
+        rechazados: docs.filter((d: Document) => d.status === 'rejected' || d.status === 'rechazado').length,
+      });
     } catch (error) {
       console.error('Error cargando documentos:', error);
     } finally {
@@ -127,7 +127,7 @@ export default function DocumentosMantenimientoPage() {
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Documentos de mantenimiento</h1>
-          <p className="mt-2 text-muted-foreground">Gestion de manuales, procedimientos e instructivos de mantenimiento</p>
+          <p className="mt-2 text-muted-foreground">Gestion de manuales, procedimientos e instructivos de mantenimiento.</p>
         </div>
         <Button variant="outline" onClick={loadDocuments} disabled={loading}>
           <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />

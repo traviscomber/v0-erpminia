@@ -35,15 +35,15 @@ export default function DocumentosBodegaPage() {
         credentials: 'include',
       });
       const data = await response.json();
-      if (Array.isArray(data)) {
-        setDocuments(data);
-        setStats({
-          total: data.length,
-          vigentes: data.filter((d: Document) => d.status === 'active').length,
-          en_revision: data.filter((d: Document) => d.status === 'pending_l1' || d.status === 'pending_l2').length,
-          rechazados: data.filter((d: Document) => d.status === 'rejected').length,
-        });
-      }
+      const docs = Array.isArray(data?.documents) ? data.documents : Array.isArray(data) ? data : [];
+
+      setDocuments(docs);
+      setStats({
+        total: docs.length,
+        vigentes: docs.filter((d: Document) => d.status === 'active' || d.status === 'aprobado').length,
+        en_revision: docs.filter((d: Document) => d.status === 'pending_l1' || d.status === 'pending_l2' || d.status === 'en_revision_l1' || d.status === 'en_revision_l2').length,
+        rechazados: docs.filter((d: Document) => d.status === 'rejected' || d.status === 'rechazado').length,
+      });
     } catch (error) {
       console.error('Error al cargar documentos:', error);
     } finally {
@@ -126,7 +126,7 @@ export default function DocumentosBodegaPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Documentos de bodega</h1>
-        <p className="mt-2 text-muted-foreground">Gestion de procedimientos e instructivos de bodega y almacenamiento</p>
+        <p className="mt-2 text-muted-foreground">Gestion de procedimientos, instructivos y respaldo operativo de bodega.</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
@@ -139,7 +139,7 @@ export default function DocumentosBodegaPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{stats.total}</p>
-            <p className="text-xs text-muted-foreground">documentos</p>
+            <p className="text-xs text-muted-foreground">documentos reales cargados</p>
           </CardContent>
         </Card>
 

@@ -119,7 +119,6 @@ export default function ContratosPage() {
       toast.success('Contrato creado correctamente');
       resetForm();
       setShowNewContractModal(false);
-      await mutate();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Error al crear contrato');
     } finally {
@@ -404,7 +403,7 @@ export default function ContratosPage() {
                     <Input
                       value={formState.title}
                       onChange={(e) => updateField('title', e.target.value)}
-                      placeholder="Ej: Contrato Mantencion Planta 2026"
+                      placeholder="Ej: Contrato Mantenimiento Planta 2026"
                       className="border-white/10 bg-white/5"
                       required
                     />
