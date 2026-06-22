@@ -117,19 +117,19 @@ export function MaintenanceDashboardByCC() {
                 </button>
               </CardHeader>
 
-                  {expandedCC === cc.id && (
+              {expandedCC === cc.id && (
                 <CardContent>
                   {ccOrders.length > 0 ? (
                     <div className="space-y-3">
                       <p className="text-sm text-muted-foreground">
                         {open} abiertas, {inProgress} en progreso y {completed} completadas.
                       </p>
-                      <div className="space-y-2">
-                        {ccOrders.slice(0, 5).map((order: any) => (
+                      <div className="max-h-96 space-y-2 overflow-y-auto pr-1">
+                        {ccOrders.map((order: any) => (
                           <div key={order.id} className="flex items-center justify-between rounded border border-border p-3 text-sm">
-                            <div>
+                            <div className="min-w-0">
                               <p className="font-medium">{order.work_order_number || order.code || order.title}</p>
-                              <p className="text-muted-foreground">{order.title}</p>
+                              <p className="truncate text-muted-foreground">{order.title}</p>
                             </div>
                             <Badge variant="outline">{statusLabel(order.status)}</Badge>
                           </div>

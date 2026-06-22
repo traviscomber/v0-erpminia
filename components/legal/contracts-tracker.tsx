@@ -22,6 +22,12 @@ interface ContractsTrackerProps {
 }
 
 export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
+  const sortedContracts = [...contracts].sort((left, right) => {
+    const leftDays = daysUntilExpiry(left.endDate);
+    const rightDays = daysUntilExpiry(right.endDate);
+    return leftDays - rightDays;
+  });
+
   const getStatusBadge = (status: 'active' | 'expiring' | 'expired') => {
     switch (status) {
       case 'active':
@@ -59,15 +65,16 @@ export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          {contracts.length === 0 && (
+          {sortedContracts.length === 0 && (
             <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
               No hay contratos cargados todavia.
             </div>
           )}
 
-          {contracts.map((contract) => {
+          {sortedContracts.map((contract) => {
             const daysLeft = daysUntilExpiry(contract.endDate);
             const isExpiring = daysLeft <= 60 && daysLeft > 0;
+            const expiryLabel = daysLeft > 0 ? `Vence en ${daysLeft} dias` : daysLeft === 0 ? 'Vence hoy' : `Vencio hace ${Math.abs(daysLeft)} dias`;
 
             return (
               <div
@@ -90,7 +97,8 @@ export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
                     <Calendar className="h-3 w-3" />
                     <span>
                       {new Date(contract.endDate).toLocaleDateString('es-CL')}
-                      {daysLeft > 0 && ` (${daysLeft} dias)`}
+                      {' '}
+                      ({expiryLabel})
                     </span>
                   </div>
                 </div>

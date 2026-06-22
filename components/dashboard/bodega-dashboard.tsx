@@ -182,7 +182,7 @@ export function BodegaDashboard() {
                 return (
                   <div key={item.id} className="rounded-lg border border-border bg-background p-3">
                     <div className="text-sm font-semibold text-foreground">{item.sku}</div>
-                    <div className="text-sm text-muted-foreground">{item.name?.substring(0, 40)}</div>
+                    <div className="text-sm text-muted-foreground">{item.name || 'Sin nombre'}</div>
                     <div className="mt-2 text-xs text-destructive">
                       Stock: <span className="font-bold">{item.quantity}</span> (Min: {item.min_stock})
                     </div>
