@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import Script from 'next/script';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Zap, Map, CheckCircle2, BarChart3, ArrowRight, FileText, Package, Wrench, Shield, Cpu } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Zap, CheckCircle2, BarChart3, ArrowRight, FileText, Package, Wrench, Shield, Cpu } from 'lucide-react';
 import { organizationSchema, productSchema, faqSchema } from '@/lib/schema-markup';
 
 export default function Home() {
@@ -18,7 +18,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <div className="font-bold text-xl text-[var(--brand-cobre)]">Motil</div>
           <Link href="/auth/login">
-            <Button className="bg-[var(--brand-cobre)] hover:bg-[var(--brand-cobre)]/90">Iniciar Sesión</Button>
+            <Button className="bg-[var(--brand-cobre)] hover:bg-[var(--brand-cobre)]/90">Iniciar Sesion</Button>
           </Link>
         </div>
       </nav>
@@ -29,26 +29,39 @@ export default function Home() {
             <p className="text-sm font-semibold text-[var(--brand-cobre)] tracking-wide">PLATAFORMA OPERACIONAL MINERA</p>
           </div>
           <h1 className="text-6xl md:text-7xl font-bold text-foreground leading-tight">Control Operacional Minero en Tiempo Real</h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">Conecta producción, mantención, bodega, HSE, documentos y gerencia en un flujo trazable desde terreno hasta dirección.</p>
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            Conecta produccion, mantencion, bodega, HSE, documentos y gerencia en un flujo trazable desde terreno hasta direccion.
+          </p>
           <div className="flex gap-4 justify-center pt-8">
-            <Link href="/auth/login"><Button size="lg" className="gap-2 bg-[var(--brand-cobre)] hover:bg-[var(--brand-cobre)]/90 text-base px-8">Solicitar Demo<ArrowRight className="h-4 w-4" /></Button></Link>
-            <Link href="#modules"><Button size="lg" variant="outline" className="gap-2 text-base px-8">Explorar Módulos</Button></Link>
+            <Link href="/auth/login">
+              <Button size="lg" className="gap-2 bg-[var(--brand-cobre)] hover:bg-[var(--brand-cobre)]/90 text-base px-8">
+                Solicitar Demo
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
+            <Link href="#modules">
+              <Button size="lg" variant="outline" className="gap-2 text-base px-8">
+                Explorar Modulos
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
 
       <section className="max-w-7xl mx-auto px-4 py-16 border-t border-border">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-foreground mb-4">El Problema: Información Fragmentada en Faena</h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">Sensores dispersos. Órdenes de trabajo perdidas. Repuestos no localizados. HSE desconectado. Auditoría imposible.</p>
+          <h2 className="text-4xl font-bold text-foreground mb-4">El Problema: Informacion Fragmentada en Faena</h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Sensores dispersos. Ordenes de trabajo perdidas. Repuestos no localizados. HSE desconectado. Auditoria imposible.
+          </p>
         </div>
         <div className="grid md:grid-cols-5 gap-4">
           {[
-            { icon: Cpu, label: 'Sensores Aislados', desc: 'Sin integración' },
-            { icon: Wrench, label: 'Órdenes Manuales', desc: 'Sin trazabilidad' },
-            { icon: Package, label: 'Bodega Ciega', desc: 'Stock descontrolado' },
-            { icon: Shield, label: 'HSE Tardío', desc: 'Respuesta lenta' },
-            { icon: FileText, label: 'Sin Auditoría', desc: 'Cumplimiento manual' },
+            { icon: Cpu, label: 'Sensores aislados', desc: 'Sin integracion' },
+            { icon: Wrench, label: 'Ordenes manuales', desc: 'Sin trazabilidad' },
+            { icon: Package, label: 'Bodega ciega', desc: 'Stock descontrolado' },
+            { icon: Shield, label: 'HSE tardio', desc: 'Respuesta lenta' },
+            { icon: FileText, label: 'Sin auditoria', desc: 'Cumplimiento manual' },
           ].map((item, i) => (
             <Card key={i} className="border-border bg-card/50 hover:bg-card/80 transition-colors">
               <CardContent className="pt-6 text-center">
@@ -63,12 +76,14 @@ export default function Home() {
 
       <section className="max-w-7xl mx-auto px-4 py-16 border-t border-border">
         <h2 className="text-4xl font-bold text-foreground mb-12 text-center">Flujo Operacional Integrado</h2>
-        <p className="text-center text-muted-foreground max-w-4xl mx-auto mb-8">Evento operacional → Alerta → Orden de trabajo → Repuestos → HSE → Evidencia → Auditoría → KPIs</p>
+        <p className="text-center text-muted-foreground max-w-4xl mx-auto mb-8">
+          Evento operacional &gt; Alerta &gt; Orden de trabajo &gt; Repuestos &gt; HSE &gt; Evidencia &gt; Auditoria &gt; KPIs
+        </p>
         <div className="grid md:grid-cols-11 gap-2 items-center">
           {[
             { step: '1', label: 'Alerta', icon: Zap },
             { step: 'arrow', label: '', icon: ArrowRight },
-            { step: '2', label: 'OT Auto', icon: Wrench },
+            { step: '2', label: 'OT auto', icon: Wrench },
             { step: 'arrow', label: '', icon: ArrowRight },
             { step: '3', label: 'Repuesto', icon: Package },
             { step: 'arrow', label: '', icon: ArrowRight },
@@ -77,27 +92,31 @@ export default function Home() {
             { step: '5', label: 'Evidencia', icon: FileText },
             { step: 'arrow', label: '', icon: ArrowRight },
             { step: '6', label: 'KPI', icon: BarChart3 },
-          ].map((item, i) => item.step === 'arrow' ? (
-            <div key={i} className="text-[var(--brand-cobre)] h-5"><item.icon className="h-5 w-5" /></div>
-          ) : (
-            <div key={i} className="text-center">
-              <div className="bg-[var(--brand-cobre)]/10 border border-[var(--brand-cobre)]/30 rounded-sm px-2 py-1 mb-2">
-                <p className="text-xs font-bold text-[var(--brand-cobre)]">{item.step}</p>
+          ].map((item, i) =>
+            item.step === 'arrow' ? (
+              <div key={i} className="text-[var(--brand-cobre)] h-5">
+                <item.icon className="h-5 w-5" />
               </div>
-              {item.label && <p className="text-xs font-semibold text-foreground">{item.label}</p>}
-            </div>
-          ))}
+            ) : (
+              <div key={i} className="text-center">
+                <div className="bg-[var(--brand-cobre)]/10 border border-[var(--brand-cobre)]/30 rounded-sm px-2 py-1 mb-2">
+                  <p className="text-xs font-bold text-[var(--brand-cobre)]">{item.step}</p>
+                </div>
+                {item.label && <p className="text-xs font-semibold text-foreground">{item.label}</p>}
+              </div>
+            )
+          )}
         </div>
       </section>
 
       <section id="modules" className="max-w-7xl mx-auto px-4 py-16 border-t border-border">
-        <h2 className="text-4xl font-bold text-foreground mb-12 text-center">Módulos Operacionales</h2>
+        <h2 className="text-4xl font-bold text-foreground mb-12 text-center">Modulos Operacionales</h2>
         <div className="grid md:grid-cols-5 gap-6">
           {[
-            { icon: BarChart3, name: 'Producción', desc: 'KPIs en tiempo real, sensores integrados' },
-            { icon: Wrench, name: 'Mantención', desc: 'Órdenes de trabajo, preventivo, MTTR' },
-            { icon: Package, name: 'Bodega', desc: 'Stock, reorden automático, trazabilidad' },
-            { icon: Shield, name: 'HSE', desc: 'Incidentes, auditoría, cumplimiento' },
+            { icon: BarChart3, name: 'Produccion', desc: 'KPIs en tiempo real, sensores integrados' },
+            { icon: Wrench, name: 'Mantencion', desc: 'Ordenes de trabajo, preventivo, MTTR' },
+            { icon: Package, name: 'Bodega', desc: 'Stock, reorden automatico, trazabilidad' },
+            { icon: Shield, name: 'HSE', desc: 'Incidentes, auditoria, cumplimiento' },
             { icon: FileText, name: 'Documentos', desc: 'Contratos, normativas, evidencia auditada' },
           ].map((mod, i) => (
             <Card key={i} className="border-border bg-card">
@@ -117,9 +136,9 @@ export default function Home() {
         <h2 className="text-4xl font-bold text-foreground mb-12 text-center">Para Cada Rol</h2>
         <div className="grid md:grid-cols-3 gap-6">
           {[
-            { role: 'Operador Terreno', items: ['Alertas en tiempo real', 'Checklists HSE', 'Órdenes de trabajo'] },
-            { role: 'Técnico / Jefe Mantención', items: ['MTTR optimizado', 'Stock de repuestos', 'Preventivo planificado'] },
-            { role: 'Gerencia', items: ['Dashboard KPI', 'Auditoría trazable', 'Disponibilidad de equipo'] },
+            { role: 'Operador de terreno', items: ['Alertas en tiempo real', 'Checklists HSE', 'Ordenes de trabajo'] },
+            { role: 'Tecnico / Jefe de mantencion', items: ['MTTR optimizado', 'Stock de repuestos', 'Preventivo planificado'] },
+            { role: 'Gerencia', items: ['Dashboard KPI', 'Auditoria trazable', 'Disponibilidad de equipo'] },
           ].map((section, i) => (
             <Card key={i} className="border-border bg-card">
               <CardHeader>
@@ -144,10 +163,10 @@ export default function Home() {
         <h2 className="text-4xl font-bold text-foreground mb-12 text-center">Beneficios Ejecutivos</h2>
         <div className="grid md:grid-cols-4 gap-6">
           {[
-            { metric: '+15%', label: 'Disponibilidad de Equipos' },
-            { metric: '-40%', label: 'MTTR Promedio' },
-            { metric: '-25%', label: 'Costos de Mantención' },
-            { metric: '100%', label: 'Trazabilidad Auditada' },
+            { metric: '+15%', label: 'Disponibilidad de equipos' },
+            { metric: '-40%', label: 'MTTR promedio' },
+            { metric: '-25%', label: 'Costos de mantencion' },
+            { metric: '100%', label: 'Trazabilidad auditada' },
           ].map((item, i) => (
             <Card key={i} className="border-border bg-card text-center">
               <CardContent className="pt-8 pb-8">
@@ -160,14 +179,21 @@ export default function Home() {
       </section>
 
       <section className="max-w-7xl mx-auto px-4 py-20 border-t border-border text-center">
-        <h2 className="text-4xl font-bold text-foreground mb-6">Listo para Transformar tu Operación</h2>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">Conecta producción, mantención, bodega, HSE, documentos y gerencia en una sola plataforma trazable.</p>
-        <Link href="/auth/login"><Button size="lg" className="gap-2 bg-[var(--brand-cobre)] hover:bg-[var(--brand-cobre)]/90 text-base px-8">Solicitar Demo<ArrowRight className="h-4 w-4" /></Button></Link>
+        <h2 className="text-4xl font-bold text-foreground mb-6">Listo para transformar tu operacion</h2>
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+          Conecta produccion, mantencion, bodega, HSE, documentos y gerencia en una sola plataforma trazable.
+        </p>
+        <Link href="/auth/login">
+          <Button size="lg" className="gap-2 bg-[var(--brand-cobre)] hover:bg-[var(--brand-cobre)]/90 text-base px-8">
+            Solicitar Demo
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </Link>
       </section>
 
       <footer className="border-t border-border bg-card/30 mt-20">
         <div className="max-w-7xl mx-auto px-4 py-12 text-center text-sm text-muted-foreground">
-          <p>Motil © 2026 · n3uralia</p>
+          <p>Motil 2026 - n3uralia</p>
         </div>
       </footer>
     </div>
