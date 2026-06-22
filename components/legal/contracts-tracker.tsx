@@ -27,7 +27,7 @@ export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
       case 'active':
         return <Badge className="bg-secondary/10 text-secondary">Activo</Badge>;
       case 'expiring':
-        return <Badge className="bg-primary/10 text-primary">Próx. vencer</Badge>;
+        return <Badge className="bg-primary/10 text-primary">Por vencer</Badge>;
       case 'expired':
         return <Badge className="bg-destructive/10 text-destructive">Vencido</Badge>;
     }
@@ -54,14 +54,14 @@ export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Gestión de Contratos</CardTitle>
+        <CardTitle>Gestion de contratos</CardTitle>
         <CardDescription>Seguimiento de contratos vigentes y vencimientos</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
           {contracts.length === 0 && (
             <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
-              No hay contratos cargados todavía.
+              No hay contratos cargados todavia.
             </div>
           )}
 
@@ -72,33 +72,33 @@ export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
             return (
               <div
                 key={contract.id}
-                className={`flex items-center justify-between p-4 border rounded-lg ${
+                className={`flex items-center justify-between rounded-lg border p-4 transition ${
                   contract.status === 'expired'
                     ? 'border-destructive/20 bg-destructive/5'
                     : isExpiring
                       ? 'border-primary/20 bg-primary/5'
                       : 'hover:bg-muted/50'
-                } transition`}
+                }`}
               >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="font-medium truncate">{contract.title}</p>
-                    {isExpiring && <AlertCircle className="w-4 h-4 text-primary flex-shrink-0" />}
+                <div className="min-w-0 flex-1">
+                  <div className="mb-1 flex items-center gap-2">
+                    <p className="truncate font-medium">{contract.title}</p>
+                    {isExpiring && <AlertCircle className="h-4 w-4 flex-shrink-0 text-primary" />}
                   </div>
                   <p className="text-xs text-muted-foreground">Proveedor: {contract.provider}</p>
-                  <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                    <Calendar className="w-3 h-3" />
+                  <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                    <Calendar className="h-3 w-3" />
                     <span>
                       {new Date(contract.endDate).toLocaleDateString('es-CL')}
-                      {daysLeft > 0 && ` (${daysLeft} días)`}
+                      {daysLeft > 0 && ` (${daysLeft} dias)`}
                     </span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 flex-shrink-0 ml-4">
+                <div className="ml-4 flex flex-shrink-0 items-center gap-2">
                   <div className="text-right">
-                    <div className="font-semibold text-sm">{contract.value}</div>
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="text-sm font-semibold">{contract.value}</div>
+                    <div className="mt-1 flex items-center gap-2">
                       {getStatusBadge(contract.status)}
                       {getApprovalBadge(contract.approvalStatus)}
                     </div>
@@ -108,12 +108,12 @@ export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
                       <>
                         <Button asChild variant="ghost" size="sm" className="h-8 w-8 p-0">
                           <a href={contract.fileUrl} target="_blank" rel="noreferrer">
-                            <Eye className="w-4 h-4" />
+                            <Eye className="h-4 w-4" />
                           </a>
                         </Button>
                         <Button asChild variant="ghost" size="sm" className="h-8 w-8 p-0">
                           <a href={contract.fileUrl} target="_blank" rel="noreferrer">
-                            <Download className="w-4 h-4" />
+                            <Download className="h-4 w-4" />
                           </a>
                         </Button>
                       </>

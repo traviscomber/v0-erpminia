@@ -65,28 +65,28 @@ export function AddDocumentModal({ onSubmit }: AddDocumentModalProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button size="sm" className="gap-2">
-          <Plus className="w-4 h-4" />
+          <Plus className="h-4 w-4" />
           Nuevo documento legal
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Agregar Documento Legal</DialogTitle>
+          <DialogTitle>Agregar documento legal</DialogTitle>
           <DialogDescription>Registra un nuevo documento legal o normativo.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Título</Label>
+            <Label htmlFor="title">Titulo</Label>
             <Input
               id="title"
-              placeholder="Ej: Política de Cumplimiento Contractual"
+              placeholder="Ej: Politica de Cumplimiento Contractual"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               required
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="category">Categoría</Label>
+            <Label htmlFor="category">Categoria</Label>
             <Select value={formData.category} onValueChange={(val) => setFormData({ ...formData, category: val })}>
               <SelectTrigger>
                 <SelectValue />
@@ -94,22 +94,22 @@ export function AddDocumentModal({ onSubmit }: AddDocumentModalProps) {
               <SelectContent>
                 <SelectItem value="compliance">Cumplimiento</SelectItem>
                 <SelectItem value="regulatory">Regulatorio</SelectItem>
-                <SelectItem value="legal">Legal General</SelectItem>
+                <SelectItem value="legal">Legal general</SelectItem>
                 <SelectItem value="contracts">Contratos</SelectItem>
-                <SelectItem value="policies">Políticas</SelectItem>
+                <SelectItem value="policies">Politicas</SelectItem>
                 <SelectItem value="regulations">Reglamentos</SelectItem>
                 <SelectItem value="permits">Permisos</SelectItem>
                 <SelectItem value="reports">Informes</SelectItem>
                 <SelectItem value="agreements">Acuerdos</SelectItem>
-                <SelectItem value="audit">Auditorías</SelectItem>
+                <SelectItem value="audit">Auditorias</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="desc">Descripción</Label>
+            <Label htmlFor="desc">Descripcion</Label>
             <Textarea
               id="desc"
-              placeholder="Descripción del documento..."
+              placeholder="Descripcion del documento..."
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={3}
@@ -117,15 +117,10 @@ export function AddDocumentModal({ onSubmit }: AddDocumentModalProps) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="file">Archivo opcional</Label>
-            <Input
-              id="file"
-              type="file"
-              accept=".pdf,.doc,.docx,.xls,.xlsx"
-              onChange={handleFileChange}
-            />
-            <p className="text-xs text-muted-foreground">PDF, DOC, DOCX, XLS o XLSX. Máximo 50MB.</p>
+            <Input id="file" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx" onChange={handleFileChange} />
+            <p className="text-xs text-muted-foreground">PDF, DOC, DOCX, XLS o XLSX. Maximo 50MB.</p>
           </div>
-          <div className="flex gap-2 justify-end">
+          <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancelar
             </Button>

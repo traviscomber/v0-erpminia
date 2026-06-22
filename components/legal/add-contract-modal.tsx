@@ -70,18 +70,18 @@ export function AddContractModal({ onSubmit }: AddContractModalProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button size="sm" className="gap-2">
-          <Plus className="w-4 h-4" />
-          Nuevo Contrato
+          <Plus className="h-4 w-4" />
+          Nuevo contrato
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Agregar Contrato</DialogTitle>
+          <DialogTitle>Agregar contrato</DialogTitle>
           <DialogDescription>Registra un nuevo contrato comercial.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Título del Contrato</Label>
+            <Label htmlFor="title">Titulo del contrato</Label>
             <Input
               id="title"
               placeholder="Ej: Contrato Proveedor"
@@ -91,7 +91,7 @@ export function AddContractModal({ onSubmit }: AddContractModalProps) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="contractor">Contratista/Proveedor</Label>
+            <Label htmlFor="contractor">Contratista / proveedor</Label>
             <Input
               id="contractor"
               placeholder="Nombre"
@@ -102,7 +102,7 @@ export function AddContractModal({ onSubmit }: AddContractModalProps) {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="start">Fecha Inicio</Label>
+              <Label htmlFor="start">Fecha de inicio</Label>
               <Input
                 id="start"
                 type="date"
@@ -112,7 +112,7 @@ export function AddContractModal({ onSubmit }: AddContractModalProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="end">Fecha Término</Label>
+              <Label htmlFor="end">Fecha de termino</Label>
               <Input
                 id="end"
                 type="date"
@@ -134,15 +134,10 @@ export function AddContractModal({ onSubmit }: AddContractModalProps) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="file">Archivo opcional</Label>
-            <Input
-              id="file"
-              type="file"
-              accept=".pdf,.doc,.docx"
-              onChange={handleFileChange}
-            />
-            <p className="text-xs text-muted-foreground">PDF, DOC o DOCX. Máximo 50MB.</p>
+            <Input id="file" type="file" accept=".pdf,.doc,.docx" onChange={handleFileChange} />
+            <p className="text-xs text-muted-foreground">PDF, DOC o DOCX. Maximo 50MB.</p>
           </div>
-          <div className="flex gap-2 justify-end">
+          <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancelar
             </Button>
