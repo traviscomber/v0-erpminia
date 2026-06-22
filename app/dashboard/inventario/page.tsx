@@ -6,14 +6,7 @@ import { Plus, Search, Filter, Eye, Edit2, Trash2, AlertCircle, RefreshCw } from
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 
@@ -45,7 +38,7 @@ const fetcher = async (url: string) => {
 };
 
 function categoryForItem(item: InventoryItem) {
-  return item.part_category || 'Sin categoría';
+  return item.part_category || 'Sin categoria';
 }
 
 export default function InventarioPage() {
@@ -126,9 +119,9 @@ export default function InventarioPage() {
     return (
       <div className="space-y-4">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight">Control de Inventario</h1>
+          <h1 className="text-4xl font-bold tracking-tight">Control de inventario</h1>
           <p className="mt-3 text-muted-foreground">
-            Análisis consolidado de valorización, rotación, ABC y alertas de reorden.
+            Analisis consolidado de valorizacion, rotacion, ABC y alertas de reorden.
           </p>
         </div>
 
@@ -155,9 +148,9 @@ export default function InventarioPage() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight">Control de Inventario</h1>
+          <h1 className="text-4xl font-bold tracking-tight">Control de inventario</h1>
           <p className="mt-3 text-muted-foreground">
-            Análisis consolidado de valorización, rotación, ABC y alertas de reorden.
+            Analisis consolidado de valorizacion, rotacion, ABC y alertas de reorden.
           </p>
         </div>
         <Button variant="outline" onClick={() => mutate()} className="gap-2">
@@ -173,13 +166,13 @@ export default function InventarioPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(getTotalInventoryValue())}</div>
-            <p className="mt-1 text-xs text-muted-foreground">{filteredItems.length} artículos</p>
+            <p className="mt-1 text-xs text-muted-foreground">{filteredItems.length} articulos</p>
           </CardContent>
         </Card>
 
         <Card className="border-border">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Análisis ABC - Artículos A</CardTitle>
+            <CardTitle className="text-sm font-medium">Analisis ABC - Articulos A</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-[var(--brand-rojo)]">{abcA}</div>
@@ -196,7 +189,7 @@ export default function InventarioPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-[var(--secondary)]">{getLowStockItems()}</div>
-            <p className="mt-1 text-xs text-muted-foreground">requieren reorden</p>
+            <p className="mt-1 text-xs text-muted-foreground">Requieren reorden</p>
           </CardContent>
         </Card>
       </div>
@@ -204,22 +197,20 @@ export default function InventarioPage() {
       <Card className="border-border">
         <CardHeader className="pb-4">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <CardTitle>Artículos de inventario</CardTitle>
+            <CardTitle>Articulos de inventario</CardTitle>
             <Button className="w-full md:w-auto" disabled>
               <Plus className="mr-2 h-4 w-4" />
-              Nuevo artículo
+              Nuevo articulo
             </Button>
           </div>
-          <CardDescription>
-            Vista operativa basada en `warehouse_stock`, bins y niveles de reorden.
-          </CardDescription>
+          <CardDescription>Vista operativa basada en `warehouse_stock`, bins y niveles de reorden.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar por nombre, código o categoría..."
+                placeholder="Buscar por nombre, codigo o categoria..."
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
                 className="bg-input pl-10"
@@ -235,8 +226,8 @@ export default function InventarioPage() {
             <Table>
               <TableHeader className="bg-muted/50">
                 <TableRow className="border-border">
-                  <TableHead className="font-semibold">Artículo</TableHead>
-                  <TableHead className="font-semibold">Categoría</TableHead>
+                  <TableHead className="font-semibold">Articulo</TableHead>
+                  <TableHead className="font-semibold">Categoria</TableHead>
                   <TableHead className="text-center font-semibold">Stock</TableHead>
                   <TableHead className="text-right font-semibold">Valor unitario</TableHead>
                   <TableHead className="text-right font-semibold">Valor total</TableHead>
@@ -253,9 +244,7 @@ export default function InventarioPage() {
                       <TableCell>
                         <div>
                           <p className="font-medium">{item.part_name || 'Sin nombre'}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {item.part_code || item.id}
-                          </p>
+                          <p className="text-xs text-muted-foreground">{item.part_code || item.id}</p>
                         </div>
                       </TableCell>
                       <TableCell>{category}</TableCell>
@@ -264,24 +253,17 @@ export default function InventarioPage() {
                           <div className="flex items-center justify-between text-xs">
                             <span className="font-medium">{item.quantity_on_hand} u.</span>
                             {item.quantity_on_hand <= item.reorder_level && (
-                              <Badge className="bg-[var(--secondary)]/20 text-[var(--secondary)]">
-                                Bajo
-                              </Badge>
+                              <Badge className="bg-[var(--secondary)]/20 text-[var(--secondary)]">Bajo</Badge>
                             )}
                           </div>
-                          <Progress
-                            value={getStockPercentage(item.quantity_on_hand, item.reorder_level)}
-                            className="h-1.5"
-                          />
+                          <Progress value={getStockPercentage(item.quantity_on_hand, item.reorder_level)} className="h-1.5" />
                           <p className="text-xs text-muted-foreground">
                             Min: {item.reorder_level} u. Disponible: {item.quantity_available} u.
                           </p>
                         </div>
                       </TableCell>
                       <TableCell className="text-right">{formatCurrency(item.unit_cost)}</TableCell>
-                      <TableCell className="text-right font-medium">
-                        {formatCurrency(totalValue)}
-                      </TableCell>
+                      <TableCell className="text-right font-medium">{formatCurrency(totalValue)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
                           <Button variant="ghost" size="sm" onClick={() => setSelectedItem(item)}>
@@ -301,6 +283,12 @@ export default function InventarioPage() {
               </TableBody>
             </Table>
           </div>
+
+          {filteredItems.length === 0 && (
+            <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
+              No se encontraron articulos.
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -309,7 +297,7 @@ export default function InventarioPage() {
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div>
               <CardTitle>Detalle: {selectedItem.part_name || selectedItem.part_code}</CardTitle>
-              <CardDescription>Información operativa del ítem seleccionado</CardDescription>
+              <CardDescription>Informacion operativa del item seleccionado</CardDescription>
             </div>
             <Button variant="ghost" size="sm" onClick={() => setSelectedItem(null)}>
               Cerrar
@@ -318,11 +306,11 @@ export default function InventarioPage() {
           <CardContent className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-muted-foreground">Código</p>
+                <p className="text-sm text-muted-foreground">Codigo</p>
                 <p className="font-semibold">{selectedItem.part_code || selectedItem.id}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Categoría</p>
+                <p className="text-sm text-muted-foreground">Categoria</p>
                 <p className="font-semibold">{categoryForItem(selectedItem)}</p>
               </div>
               <div>
@@ -334,7 +322,7 @@ export default function InventarioPage() {
                 <p className="font-semibold">{selectedItem.quantity_available} u.</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Nivel mínimo</p>
+                <p className="text-sm text-muted-foreground">Nivel minimo</p>
                 <p className="font-semibold">{selectedItem.reorder_level} u.</p>
               </div>
               <div>
@@ -347,12 +335,10 @@ export default function InventarioPage() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Valor total</p>
-                <p className="font-semibold">
-                  {formatCurrency(selectedItem.quantity_on_hand * selectedItem.unit_cost)}
-                </p>
+                <p className="font-semibold">{formatCurrency(selectedItem.quantity_on_hand * selectedItem.unit_cost)}</p>
               </div>
               <div className="col-span-2">
-                <p className="text-sm text-muted-foreground">Ubicación</p>
+                <p className="text-sm text-muted-foreground">Ubicacion</p>
                 <p className="font-semibold">
                   {selectedItem.bin?.bin_location || selectedItem.bin?.bin_code || 'Sin bin asignado'}
                 </p>
@@ -362,20 +348,13 @@ export default function InventarioPage() {
             <div className="border-t border-border pt-4">
               <div className="mb-2">
                 <p className="mb-2 text-sm text-muted-foreground">Estado del stock</p>
-                <Progress
-                  value={getStockPercentage(selectedItem.quantity_on_hand, selectedItem.reorder_level)}
-                  className="h-2"
-                />
+                <Progress value={getStockPercentage(selectedItem.quantity_on_hand, selectedItem.reorder_level)} className="h-2" />
               </div>
               <p className="text-xs text-muted-foreground">
                 {selectedItem.quantity_on_hand <= selectedItem.reorder_level ? (
-                  <span className="font-medium text-[var(--secondary)]">
-                    Alerta: stock por debajo del nivel mínimo
-                  </span>
+                  <span className="font-medium text-[var(--secondary)]">Alerta: stock por debajo del nivel minimo</span>
                 ) : (
-                  <span className="font-medium text-[var(--brand-verde)]">
-                    Stock dentro del rango operacional esperado
-                  </span>
+                  <span className="font-medium text-[var(--brand-verde)]">Stock dentro del rango operacional esperado</span>
                 )}
               </p>
             </div>

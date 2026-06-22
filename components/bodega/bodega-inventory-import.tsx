@@ -5,13 +5,7 @@ import { AlertCircle, CheckCircle2, Loader2, Upload } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCostCenters } from '@/hooks/use-cost-centers';
 import { isRootCostCenter } from '@/lib/cost-centers';
 
@@ -112,9 +106,7 @@ export function BodegaInventoryImportComponent() {
             <Upload className="h-5 w-5" />
             Importar inventario de bodega
           </CardTitle>
-          <CardDescription>
-            Sube tu archivo CSV, XLS o XLSX con codigo, familia, cantidad y precio.
-          </CardDescription>
+          <CardDescription>Sube tu archivo CSV, XLS o XLSX con codigo, familia, cantidad y precio.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
@@ -143,9 +135,7 @@ export function BodegaInventoryImportComponent() {
             onDragOver={handleDrag}
             onDrop={handleDrop}
             className={`cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
-              dragActive
-                ? 'border-primary bg-primary/5'
-                : 'border-muted-foreground/25 hover:border-muted-foreground/50'
+              dragActive ? 'border-primary bg-primary/5' : 'border-muted-foreground/25 hover:border-muted-foreground/50'
             }`}
             onClick={() => fileInputRef.current?.click()}
           >
@@ -182,11 +172,7 @@ export function BodegaInventoryImportComponent() {
 
           {result && (
             <Alert className={result.success ? 'border-green-500' : 'border-red-500'}>
-              {result.success ? (
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
-              ) : (
-                <AlertCircle className="h-4 w-4 text-red-600" />
-              )}
+              {result.success ? <CheckCircle2 className="h-4 w-4 text-green-600" /> : <AlertCircle className="h-4 w-4 text-red-600" />}
               <AlertDescription>
                 <p className={result.success ? 'font-semibold text-green-900' : 'font-semibold text-red-900'}>
                   {result.message}

@@ -30,7 +30,7 @@ export function BodegaImportXls() {
       setResult({
         success: false,
         message: 'Solo se aceptan archivos .csv, .xls y .xlsx',
-        error: 'Tipo de archivo inválido',
+        error: 'Tipo de archivo invalido',
       });
       return;
     }
@@ -39,30 +39,23 @@ export function BodegaImportXls() {
     setResult(null);
 
     try {
-      // Subir a Supabase Storage
       const timestamp = Date.now();
       const fileName = `bodega-import-${timestamp}-${file.name}`;
-      
-      const { data, error } = await supabase.storage
-        .from('documents')
-        .upload(`bodega-imports/${fileName}`, file);
+
+      const { error } = await supabase.storage.from('documents').upload(`bodega-imports/${fileName}`, file);
 
       if (error) {
         throw error;
       }
 
-      // Obtener URL pública
-      const { data: urlData } = supabase.storage
-        .from('documents')
-        .getPublicUrl(`bodega-imports/${fileName}`);
+      supabase.storage.from('documents').getPublicUrl(`bodega-imports/${fileName}`);
 
       setResult({
         success: true,
         message: `Archivo "${file.name}" subido exitosamente a bodega/importaciones`,
-        fileName: fileName,
+        fileName,
       });
 
-      // Limpiar input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -101,46 +94,36 @@ export function BodegaImportXls() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Subir Inventario</CardTitle>
-        <CardDescription>
-          Carga tu archivo de inventario (CSV, XLS o XLSX) a la bodega
-        </CardDescription>
+        <CardTitle>Subir inventario</CardTitle>
+        <CardDescription>Carga tu archivo de inventario (CSV, XLS o XLSX) a la bodega</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Info */}
         <Alert>
           <FileText className="h-4 w-4" />
           <AlertDescription>
-            <p className="font-semibold mb-2">Formato requerido:</p>
+            <p className="mb-2 font-semibold">Formato requerido:</p>
             <p className="text-sm">Tu archivo debe contener estas columnas:</p>
-            <div className="mt-2 font-mono text-sm bg-muted p-2 rounded">
-              SKU | Nombre | Cantidad | Ubicación | Proveedor
+            <div className="mt-2 rounded bg-muted p-2 font-mono text-sm">
+              SKU | Nombre | Cantidad | Ubicacion | Proveedor
             </div>
           </AlertDescription>
         </Alert>
 
-        {/* Drag and drop area */}
         <div
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          className={`border-2 border-dashed rounded-lg p-8 text-center transition ${
-            isDragging
-              ? 'border-primary bg-primary/10'
-              : 'border-muted-foreground/25 bg-muted/30 hover:border-primary/50'
+          className={`rounded-lg border-2 border-dashed p-8 text-center transition ${
+            isDragging ? 'border-primary bg-primary/10' : 'border-muted-foreground/25 bg-muted/30 hover:border-primary/50'
           }`}
         >
-          <Upload className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
-          <p className="font-semibold mb-1">Arrastra tu archivo aquí</p>
-          <p className="text-sm text-muted-foreground mb-3">o haz clic para seleccionar</p>
-          <Button
-            variant="outline"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isLoading}
-          >
+          <Upload className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
+          <p className="mb-1 font-semibold">Arrastra tu archivo aqui</p>
+          <p className="mb-3 text-sm text-muted-foreground">o haz clic para seleccionar</p>
+          <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isLoading}>
             {isLoading ? (
               <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Subiendo...
               </>
             ) : (
@@ -160,33 +143,25 @@ export function BodegaImportXls() {
           />
         </div>
 
-        {/* Result message */}
         {result && (
           <Alert variant={result.success ? 'default' : 'destructive'}>
             <div className="flex items-start gap-3">
-              {result.success ? (
-                <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5" />
-              ) : (
-                <AlertCircle className="h-4 w-4 mt-0.5" />
-              )}
+              {result.success ? <CheckCircle2 className="mt-0.5 h-4 w-4 text-green-500" /> : <AlertCircle className="mt-0.5 h-4 w-4" />}
               <div className="space-y-1">
                 <p className="font-semibold">{result.message}</p>
-                {result.error && (
-                  <p className="text-sm text-destructive">{result.error}</p>
-                )}
+                {result.error && <p className="text-sm text-destructive">{result.error}</p>}
               </div>
             </div>
           </Alert>
         )}
 
-        {/* Instructions */}
-        <div className="bg-muted/50 p-4 rounded-lg space-y-3">
-          <p className="font-semibold text-sm">Pasos:</p>
-          <ol className="text-sm space-y-2 text-muted-foreground">
+        <div className="space-y-3 rounded-lg bg-muted/50 p-4">
+          <p className="text-sm font-semibold">Pasos:</p>
+          <ol className="space-y-2 text-sm text-muted-foreground">
             <li>1. Prepara tu archivo CSV/XLS con las columnas requeridas</li>
-            <li>2. Arrastra el archivo aquí o haz clic para seleccionar</li>
-            <li>3. El archivo se guardará en: bodega/importaciones/</li>
-            <li>4. Puedes descargar y procesar los datos según necesites</li>
+            <li>2. Arrastra el archivo aqui o haz clic para seleccionar</li>
+            <li>3. El archivo se guardara en: bodega/importaciones/</li>
+            <li>4. Puedes descargar y procesar los datos segun necesites</li>
           </ol>
         </div>
       </CardContent>
