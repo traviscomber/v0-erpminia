@@ -27,7 +27,7 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
     return res.ok ? res.json() : null;
   });
 
-  const stockList = data?.stock || [];
+  const stockList = data?.items || [];
   const bins = data?.bins || [];
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -80,7 +80,7 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
               onValueChange={(value) => setFormData({ ...formData, stockId: value })}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Selecciona un insumo" />
+                <SelectValue placeholder="Selecciona un item" />
               </SelectTrigger>
               <SelectContent>
                 {stockList.map((item: any) => (

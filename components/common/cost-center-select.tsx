@@ -13,7 +13,7 @@ import { Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCostCenters } from '@/hooks/use-cost-centers';
 import { useState } from 'react';
-import { formatCostCenterLabel, getCostCenterDepth } from '@/lib/cost-centers';
+import { formatCostCenterLabel, getCostCenterDepth, repairCostCenterText } from '@/lib/cost-centers';
 
 interface CostCenterSelectProps {
   value?: string;
@@ -74,12 +74,17 @@ export function CostCenterSelect({
                 }}
               >
                 <Check className={cn('mr-2 h-4 w-4', value === cc.id ? 'opacity-100' : 'opacity-0')} />
-                <span className="flex min-w-0 items-center gap-2">
-                  <span
-                    className="inline-block h-3 w-3 shrink-0 rounded-full border border-muted-foreground/20 bg-muted-foreground/10"
-                    style={{ marginLeft: `${getCostCenterDepth(cc.code) * 12}px` }}
-                  />
-                  <span className="truncate">{formatCostCenterLabel(cc)}</span>
+                <span className="flex min-w-0 flex-col">
+                  <span className="flex min-w-0 items-center gap-2">
+                    <span
+                      className="inline-block h-3 w-3 shrink-0 rounded-full border border-muted-foreground/20 bg-muted-foreground/10"
+                      style={{ marginLeft: `${getCostCenterDepth(cc.code) * 12}px` }}
+                    />
+                    <span className="truncate font-medium">{formatCostCenterLabel(cc)}</span>
+                  </span>
+                  {cc.description ? (
+                    <span className="ml-5 truncate text-xs text-muted-foreground">{repairCostCenterText(cc.description)}</span>
+                  ) : null}
                 </span>
               </CommandItem>
             ))}

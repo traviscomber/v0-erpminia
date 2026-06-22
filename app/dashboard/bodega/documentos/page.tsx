@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DocumentUpload } from '@/components/documents/document-upload';
@@ -40,9 +40,7 @@ export default function DocumentosBodegaPage() {
         setStats({
           total: data.length,
           vigentes: data.filter((d: Document) => d.status === 'active').length,
-          en_revision: data.filter(
-            (d: Document) => d.status === 'pending_l1' || d.status === 'pending_l2',
-          ).length,
+          en_revision: data.filter((d: Document) => d.status === 'pending_l1' || d.status === 'pending_l2').length,
           rechazados: data.filter((d: Document) => d.status === 'rejected').length,
         });
       }
@@ -128,9 +126,7 @@ export default function DocumentosBodegaPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Documentos de bodega</h1>
-        <p className="mt-2 text-muted-foreground">
-          Gestión de procedimientos e instructivos de bodega y almacenamiento
-        </p>
+        <p className="mt-2 text-muted-foreground">Gestion de procedimientos e instructivos de bodega y almacenamiento</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
@@ -163,13 +159,13 @@ export default function DocumentosBodegaPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center justify-between text-sm font-medium">
-              <span>En revisión</span>
+              <span>En revision</span>
               <Clock className="h-4 w-4 text-yellow-500" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-yellow-500">{stats.en_revision}</p>
-            <p className="text-xs text-muted-foreground">esperando aprobación</p>
+            <p className="text-xs text-muted-foreground">esperando aprobacion</p>
           </CardContent>
         </Card>
 
@@ -182,7 +178,7 @@ export default function DocumentosBodegaPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-red-500">{stats.rechazados}</p>
-            <p className="text-xs text-muted-foreground">pendientes de corrección</p>
+            <p className="text-xs text-muted-foreground">pendientes de correccion</p>
           </CardContent>
         </Card>
       </div>
@@ -195,8 +191,8 @@ export default function DocumentosBodegaPage() {
           <TabsTrigger value="vigentes" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             Vigentes
           </TabsTrigger>
-          <TabsTrigger value="Revision" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-            En revisión
+          <TabsTrigger value="revision" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            En revision
           </TabsTrigger>
           <TabsTrigger value="upload" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             Subir documentos
@@ -207,24 +203,14 @@ export default function DocumentosBodegaPage() {
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
-          <DocumentList
-            documents={documents}
-            isLoading={loading}
-            onView={handleView}
-            onDelete={handleDelete}
-          />
+          <DocumentList documents={documents} isLoading={loading} onView={handleView} onDelete={handleDelete} />
         </TabsContent>
 
         <TabsContent value="vigentes" className="space-y-4">
-          <DocumentList
-            documents={documents.filter((d) => d.status === 'active')}
-            isLoading={loading}
-            onView={handleView}
-            onDelete={handleDelete}
-          />
+          <DocumentList documents={documents.filter((d) => d.status === 'active')} isLoading={loading} onView={handleView} onDelete={handleDelete} />
         </TabsContent>
 
-        <TabsContent value="Revision" className="space-y-4">
+        <TabsContent value="revision" className="space-y-4">
           <DocumentList
             documents={documents.filter((d) => d.status === 'pending_l1' || d.status === 'pending_l2')}
             isLoading={loading}

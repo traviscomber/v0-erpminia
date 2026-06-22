@@ -57,14 +57,14 @@ export function CategoryFilter({ categories, selectedCategory, onCategoryChange 
             variant="outline"
             className={cn('w-full justify-between text-sm', selectedCategory && 'border-primary bg-primary/5')}
           >
-            <span className="truncate">{selectedCategory || 'Filtrar categoría...'}</span>
+            <span className="truncate">{selectedCategory || 'Filtrar categoria...'}</span>
             <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-full p-0" align="start">
           <Command>
-            <CommandInput placeholder="Buscar categoría..." />
-            <CommandEmpty>No se encontraron categorías.</CommandEmpty>
+            <CommandInput placeholder="Buscar categoria..." />
+            <CommandEmpty>No se encontraron categorias.</CommandEmpty>
             <CommandGroup className="max-h-64 overflow-y-auto">
               <CommandItem
                 onSelect={() => {

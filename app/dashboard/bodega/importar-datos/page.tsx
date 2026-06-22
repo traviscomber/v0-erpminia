@@ -11,7 +11,7 @@ export default function BodegaImportPage() {
     <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="text-3xl font-bold text-foreground">Importar datos de bodega</h1>
-        <p className="text-muted-foreground">Carga centros de costo e inventario desde CSV, XLS o XLSX.</p>
+        <p className="text-muted-foreground">Carga centros de costo e inventario desde CSV, XLS o XLSX usando carga segura.</p>
       </div>
 
       <Tabs defaultValue="cost-centers" className="w-full">
@@ -50,7 +50,7 @@ export default function BodegaImportPage() {
                 <CardTitle className="text-base">Estructura jerarquica</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
-                <p>Los centros de costo forman una jerarquia:</p>
+                <p>Los centros de costo forman una jerarquia simple y ordenada.</p>
                 <div className="space-y-1 rounded bg-white p-3 text-xs text-muted-foreground">
                   <div>
                     <span className="font-medium text-foreground">Raiz:</span> 1 Mina Peumo
@@ -78,7 +78,7 @@ export default function BodegaImportPage() {
                 <CardTitle className="text-base">Estructura del inventario</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
-                <p>El inventario se organiza en categorias:</p>
+                <p>El inventario se organiza en categorias principales.</p>
                 <ul className="list-inside list-disc space-y-1 text-muted-foreground">
                   <li>Acero y metalmecanica</li>
                   <li>Consumos de molienda</li>

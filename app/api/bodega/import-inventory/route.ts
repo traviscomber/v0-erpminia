@@ -321,7 +321,7 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file');
 
     if (!(file instanceof File)) {
-      return NextResponse.json({ error: 'No se proporcionó archivo' }, { status: 400 });
+      return NextResponse.json({ error: 'No se proporciono archivo' }, { status: 400 });
     }
 
     const data = await parseInventoryFile(file);
@@ -333,7 +333,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `Se importaron correctamente ${data.length} ítems de inventario`,
+      message: `Se importaron correctamente ${data.length} items de inventario`,
       imported: data.length,
       sampleItems: data.slice(0, 3),
     });

@@ -84,8 +84,8 @@ function parseCsvRows(text: string) {
       route ? `Ruta completa: ${route}` : '',
       creator ? `Creador: ${creator}` : '',
       modifiedBy ? `Modificado por: ${modifiedBy}` : '',
-      createdAt ? `Fecha creación: ${createdAt}` : '',
-      updatedAt ? `Fecha modificación: ${updatedAt}` : '',
+      createdAt ? `Fecha creacion: ${createdAt}` : '',
+      updatedAt ? `Fecha modificacion: ${updatedAt}` : '',
       notes ? `Notas: ${notes}` : '',
     ]
       .filter(Boolean)
@@ -138,12 +138,12 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file');
 
     if (!(file instanceof File)) {
-      return NextResponse.json({ error: 'No se proporcionó un archivo' }, { status: 400 });
+      return NextResponse.json({ error: 'No se proporciono un archivo' }, { status: 400 });
     }
 
     const parsedRows = await parseFile(file);
     if (parsedRows.length === 0) {
-      return NextResponse.json({ error: 'No se encontraron centros de costo válidos en el archivo' }, { status: 400 });
+      return NextResponse.json({ error: 'No se encontraron centros de costo validos en el archivo' }, { status: 400 });
     }
 
     const { data: existingRows, error: readError } = await context.supabase

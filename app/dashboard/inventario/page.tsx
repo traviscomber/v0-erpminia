@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { canonicalCategory } from '@/lib/bodega-normalization';
 
 type InventoryItem = {
   id: string;
@@ -38,7 +39,7 @@ const fetcher = async (url: string) => {
 };
 
 function categoryForItem(item: InventoryItem) {
-  return item.part_category || 'Sin categoria';
+  return canonicalCategory(item.part_category) || 'Sin categoria';
 }
 
 export default function InventarioPage() {
@@ -49,8 +50,9 @@ export default function InventarioPage() {
     revalidateOnFocus: false,
   });
 
-  const stockList = ((data?.stock || []) as InventoryItem[]).map((item) => ({
+  const stockList = ((data?.items || data?.stock || []) as InventoryItem[]).map((item) => ({
     ...item,
+    part_category: canonicalCategory(item.part_category),
     quantity_on_hand: Number(item.quantity_on_hand || 0),
     quantity_available: Number(item.quantity_available || 0),
     reorder_level: Number(item.reorder_level || 0),
@@ -203,7 +205,7 @@ export default function InventarioPage() {
               Nuevo articulo
             </Button>
           </div>
-          <CardDescription>Vista operativa basada en `warehouse_stock`, bins y niveles de reorden.</CardDescription>
+          <CardDescription>Vista operativa basada en stock real, bins y niveles de reorden.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2">

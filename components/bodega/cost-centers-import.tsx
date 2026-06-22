@@ -99,7 +99,7 @@ export function CostCentersImportComponent() {
             Importar centros de costo
           </CardTitle>
           <CardDescription>
-            Sube tu archivo CSV, XLS o XLSX con la estructura de centros de costo (minas y areas).
+            Sube tu archivo CSV, XLS o XLSX con la estructura de centros de costo. El proceso usa carga segura y no borra la tabla si falla.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -141,7 +141,7 @@ export function CostCentersImportComponent() {
                 CODIGO REC ELEC | NOMBRE | RUTA COMPLETA | CREADOR POR | FECHA DE CREACION | NOTAS
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
-                La RUTA COMPLETA debe usar " &gt; " para indicar la jerarquia (ej: Mina Peumo &gt; Perforacion)
+                La RUTA COMPLETA debe usar " &gt; " para indicar la jerarquia, por ejemplo: Mina Peumo &gt; Perforacion.
               </p>
             </AlertDescription>
           </Alert>

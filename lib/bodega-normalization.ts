@@ -18,10 +18,10 @@ export function toTitleCase(value: string) {
 }
 
 const CATEGORY_ALIASES: Record<string, string> = {
-  ferreteria: 'Ferretería',
-  viveres: 'Víveres',
-  neumatico: 'Neumático',
-  electrico: 'Eléctrico',
+  ferreteria: 'Ferreteria',
+  viveres: 'Viveres',
+  neumatico: 'Neumatico',
+  electrico: 'Electrico',
   lubricante: 'Lubricante',
   sondaje: 'Sondaje',
   epp: 'EPP',

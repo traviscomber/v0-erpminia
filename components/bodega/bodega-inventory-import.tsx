@@ -106,7 +106,7 @@ export function BodegaInventoryImportComponent() {
             <Upload className="h-5 w-5" />
             Importar inventario de bodega
           </CardTitle>
-          <CardDescription>Sube tu archivo CSV, XLS o XLSX con codigo, familia, cantidad y precio.</CardDescription>
+          <CardDescription>Sube tu archivo CSV, XLS o XLSX con codigo, familia, cantidad y precio. La carga se procesa en etapa segura para no vaciar la tabla si falla.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
