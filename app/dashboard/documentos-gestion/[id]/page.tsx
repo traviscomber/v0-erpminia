@@ -20,7 +20,7 @@ const CATEGORY_DISPLAY = {
 
 function statusBadge(estado: string) {
   if (estado === 'aprobado') return <Badge className="bg-[var(--brand-verde)]">Aprobado</Badge>;
-  if (estado.includes('pendiente')) return <Badge className="bg-[var(--secondary)]">Pendiente</Badge>;
+  if ((estado || '').includes('pendiente')) return <Badge className="bg-[var(--secondary)]">Pendiente</Badge>;
   if (estado === 'rechazado') return <Badge className="bg-[var(--brand-rojo)]">Rechazado</Badge>;
   return <Badge variant="outline">{estado}</Badge>;
 }
@@ -57,12 +57,12 @@ export default function CategoryDetailPage() {
         <p className="text-sm text-muted-foreground">
           ID: {doc.documentId} - v{doc.version}
         </p>
-        {doc.validador1.nombre && (
+        {doc.validador1?.nombre && (
           <p className="mt-1 text-xs text-muted-foreground">
             Validador 1: {doc.validador1.nombre} ({doc.validador1.rol})
           </p>
         )}
-        {doc.validador2.nombre && (
+        {doc.validador2?.nombre && (
           <p className="text-xs text-muted-foreground">
             Validador 2: {doc.validador2.nombre} ({doc.validador2.rol})
           </p>

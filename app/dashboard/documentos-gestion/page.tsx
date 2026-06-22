@@ -71,8 +71,13 @@ export default function DocumentosGestionPage() {
     );
   }, [categories, searchTerm]);
 
-  if (error) return <div className="text-red-500">Error al cargar documentos</div>;
-  if (isLoading) return <div className="text-gray-500">Cargando gestion documental...</div>;
+  if (error) {
+    return <div className="text-red-500">Error al cargar documentos</div>;
+  }
+
+  if (isLoading) {
+    return <div className="text-gray-500">Cargando gestion documental...</div>;
+  }
 
   return (
     <div className="space-y-6">

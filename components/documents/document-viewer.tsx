@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Loader2, Download } from 'lucide-react';
+import { Loader2, Download, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface PDFViewerProps {
@@ -125,7 +125,7 @@ export function DocumentViewer({ open, onOpenChange, document }: DocumentViewerP
     const labels: Record<string, string> = {
       draft: 'Borrador',
       submitted: 'Enviado',
-      under_review: 'En revisión',
+      under_review: 'En revision',
       approved: 'Aprobado',
       rejected: 'Rechazado',
       expired: 'Vencido',
@@ -159,7 +159,7 @@ export function DocumentViewer({ open, onOpenChange, document }: DocumentViewerP
               <p className="text-xs text-muted-foreground">{document.createdByUser.email}</p>
             </div>
             <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Fecha de creación</p>
+              <p className="text-xs text-muted-foreground">Fecha de creacion</p>
               <p className="text-sm font-medium">{new Date(document.createdAt).toLocaleDateString('es-CL')}</p>
               <p className="text-xs text-muted-foreground">{new Date(document.createdAt).toLocaleTimeString('es-CL')}</p>
             </div>
@@ -167,11 +167,11 @@ export function DocumentViewer({ open, onOpenChange, document }: DocumentViewerP
 
           <div className="min-h-96 rounded-lg border bg-muted/30 p-4">
             <div className="flex h-full flex-col items-center justify-center space-y-4">
-              <div className="text-6xl">📄</div>
+              <FileText className="h-16 w-16 text-muted-foreground" />
               <div className="text-center">
                 <p className="font-medium text-foreground">Archivo: {document.title}</p>
                 <p className="text-sm text-muted-foreground">
-                  {document.fileSize ? `${(document.fileSize / 1024 / 1024).toFixed(2)} MB` : 'Tamaño desconocido'}
+                  {document.fileSize ? `${(document.fileSize / 1024 / 1024).toFixed(2)} MB` : 'Tamano desconocido'}
                 </p>
               </div>
 

@@ -5,13 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import useSWR from 'swr';
 import { toast } from 'sonner';
 
@@ -54,7 +48,7 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
 
       const result = await response.json();
       if (!response.ok) {
-        throw new Error(result.error || 'La transferencia falló');
+        throw new Error(result.error || 'La transferencia fallo');
       }
 
       toast.success('Transferencia completada');
@@ -66,7 +60,7 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
       });
       onTransfer(result);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'La transferencia falló');
+      toast.error(error instanceof Error ? error.message : 'La transferencia fallo');
     } finally {
       setSubmitting(false);
     }

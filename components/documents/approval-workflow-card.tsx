@@ -84,7 +84,7 @@ export function ApprovalWorkflowCard({
     const reason = rejectionReason[step.id]?.trim();
 
     if (!reason) {
-      toast.error('Ingresa una razón de rechazo');
+      toast.error('Ingresa una razon de rechazo');
       return;
     }
 
@@ -106,8 +106,8 @@ export function ApprovalWorkflowCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Flujo de aprobación</CardTitle>
-        <CardDescription>{steps.length} niveles de revisión requeridos</CardDescription>
+        <CardTitle>Flujo de aprobacion</CardTitle>
+        <CardDescription>{steps.length} niveles de revision requeridos</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-4">
@@ -136,15 +136,11 @@ export function ApprovalWorkflowCard({
                   </div>
 
                   {step.assignedToName && (
-                    <p className="text-sm text-muted-foreground">
-                      Asignado a: {step.assignedToName}
-                    </p>
+                    <p className="text-sm text-muted-foreground">Asignado a: {step.assignedToName}</p>
                   )}
 
                   {step.approvedByName && (
-                    <p className="text-sm text-muted-foreground">
-                      Aprobado por: {step.approvedByName}
-                    </p>
+                    <p className="text-sm text-muted-foreground">Aprobado por: {step.approvedByName}</p>
                   )}
 
                   {step.approvedAt && (
@@ -165,8 +161,7 @@ export function ApprovalWorkflowCard({
                   {step.rejectionReason && (
                     <div className="mt-2 rounded bg-destructive/10 p-2 text-sm">
                       <p className="text-destructive">
-                        <span className="font-medium">Razón de rechazo:</span>{' '}
-                        {step.rejectionReason}
+                        <span className="font-medium">Razon de rechazo:</span> {step.rejectionReason}
                       </p>
                     </div>
                   )}
@@ -176,7 +171,7 @@ export function ApprovalWorkflowCard({
               {step.status === 'pending' && currentUserCanApprove && (
                 <div className="ml-14 space-y-3 pt-2">
                   <Textarea
-                    placeholder="Comentarios (opcional)"
+                    placeholder="Comentarios opcionales"
                     value={comments[step.id] || ''}
                     onChange={(event) =>
                       setComments((prev) => ({ ...prev, [step.id]: event.target.value }))
@@ -187,7 +182,7 @@ export function ApprovalWorkflowCard({
 
                   {rejectingStepId === step.id && (
                     <Textarea
-                      placeholder="Razón del rechazo"
+                      placeholder="Razon del rechazo"
                       value={rejectionReason[step.id] || ''}
                       onChange={(event) =>
                         setRejectionReason((prev) => ({ ...prev, [step.id]: event.target.value }))

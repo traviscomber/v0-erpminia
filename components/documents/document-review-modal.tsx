@@ -100,7 +100,7 @@ export function DocumentReviewModal({ document, isOpen, onClose, onApprove, onRe
               </div>
               {document.valid_until && (
                 <div>
-                  <span className="text-muted-foreground">Válido hasta:</span>
+                  <span className="text-muted-foreground">Valido hasta:</span>
                   <p className="mt-1">{new Date(document.valid_until).toLocaleDateString('es-CL')}</p>
                 </div>
               )}
@@ -132,12 +132,12 @@ export function DocumentReviewModal({ document, isOpen, onClose, onApprove, onRe
           )}
 
           <div className="space-y-3">
-            <label className="text-sm font-semibold">Observaciones de revisión {reviewLevel}</label>
+            <label className="text-sm font-semibold">Observaciones de revision {reviewLevel}</label>
             <Textarea
               placeholder={
                 reviewLevel === 'L1'
                   ? 'Ingresa observaciones opcionales si apruebas'
-                  : 'Ingresa observaciones o retroalimentación'
+                  : 'Ingresa observaciones o retroalimentacion'
               }
               value={observations}
               onChange={(e) => setObservations(e.target.value)}
@@ -147,7 +147,7 @@ export function DocumentReviewModal({ document, isOpen, onClose, onApprove, onRe
             <p className="text-xs text-muted-foreground">
               {reviewLevel === 'L1'
                 ? 'Si apruebas sin observaciones, el documento pasa directamente a L2.'
-                : 'Las observaciones serán notificadas al responsable.'}
+                : 'Las observaciones seran notificadas al responsable.'}
             </p>
           </div>
 

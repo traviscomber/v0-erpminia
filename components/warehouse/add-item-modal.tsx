@@ -43,7 +43,7 @@ export function AddItemModal({ open, onOpenChange, onSubmit }: AddItemModalProps
       });
 
       if (res.ok) {
-        toast.success('Artículo agregado correctamente');
+        toast.success('Articulo agregado correctamente');
         onSubmit(await res.json());
         setFormData({
           part_code: '',
@@ -55,7 +55,7 @@ export function AddItemModal({ open, onOpenChange, onSubmit }: AddItemModalProps
         });
         onOpenChange(false);
       } else {
-        toast.error('Error al agregar artículo');
+        toast.error('Error al agregar articulo');
       }
     } catch (error) {
       toast.error('Error: ' + String(error));
@@ -68,13 +68,13 @@ export function AddItemModal({ open, onOpenChange, onSubmit }: AddItemModalProps
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Agregar artículo</DialogTitle>
-          <DialogDescription>Ingresa los detalles del nuevo artículo de inventario</DialogDescription>
+          <DialogTitle>Agregar articulo</DialogTitle>
+          <DialogDescription>Ingresa los detalles del nuevo articulo de inventario</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label>Código de parte</Label>
+            <Label>Codigo de parte</Label>
             <Input
               required
               value={formData.part_code}
@@ -84,12 +84,12 @@ export function AddItemModal({ open, onOpenChange, onSubmit }: AddItemModalProps
           </div>
 
           <div>
-            <Label>Nombre del artículo</Label>
+            <Label>Nombre del articulo</Label>
             <Input
               required
               value={formData.part_name}
               onChange={(e) => setFormData({ ...formData, part_name: e.target.value })}
-              placeholder="Correa de transmisión"
+              placeholder="Correa de transmision"
             />
           </div>
 
@@ -134,11 +134,11 @@ export function AddItemModal({ open, onOpenChange, onSubmit }: AddItemModalProps
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
               Cancelar
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Guardando...' : 'Agregar artículo'}
+              {loading ? 'Guardando...' : 'Agregar articulo'}
             </Button>
           </DialogFooter>
         </form>

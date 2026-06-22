@@ -52,7 +52,7 @@ export function DocumentUploadModal({ open, onOpenChange, organizationId, onSucc
     }
 
     if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
-      toast.error('El archivo supera el límite de 50MB.');
+      toast.error('El archivo supera el limite de 50MB.');
       e.target.value = '';
       return;
     }
@@ -88,7 +88,7 @@ export function DocumentUploadModal({ open, onOpenChange, organizationId, onSucc
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'La carga falló');
+        throw new Error(error.error || 'La carga fallo');
       }
 
       const result = await response.json();
@@ -114,7 +114,7 @@ export function DocumentUploadModal({ open, onOpenChange, organizationId, onSucc
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Título del documento</label>
+            <label className="text-sm font-medium text-foreground">Titulo del documento</label>
             <Input
               placeholder="Ej: Certificado de Seguridad 2026"
               value={title}
@@ -124,7 +124,7 @@ export function DocumentUploadModal({ open, onOpenChange, organizationId, onSucc
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Descripción opcional</label>
+            <label className="text-sm font-medium text-foreground">Descripcion opcional</label>
             <Textarea
               placeholder="Detalles adicionales sobre el documento"
               value={description}
@@ -151,10 +151,10 @@ export function DocumentUploadModal({ open, onOpenChange, organizationId, onSucc
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Categoría</label>
+              <label className="text-sm font-medium text-foreground">Categoria</label>
               <Select value={category} onValueChange={setCategory} disabled={isLoading}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecciona una categoría" />
+                  <SelectValue placeholder="Selecciona una categoria" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="safety">Seguridad</SelectItem>
@@ -168,7 +168,11 @@ export function DocumentUploadModal({ open, onOpenChange, organizationId, onSucc
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Centro de costo opcional</label>
-            <CostCenterSelect value={costCenterId} onValueChange={setCostCenterId} placeholder="Selecciona centro de costo..." />
+            <CostCenterSelect
+              value={costCenterId}
+              onValueChange={setCostCenterId}
+              placeholder="Selecciona centro de costo..."
+            />
           </div>
 
           <div className="space-y-2">
@@ -187,7 +191,7 @@ export function DocumentUploadModal({ open, onOpenChange, organizationId, onSucc
                 <p className="text-sm font-medium text-foreground">
                   {file ? file.name : 'Haz clic para seleccionar o arrastra un archivo'}
                 </p>
-                <p className="mt-1 text-xs text-muted-foreground">PDF, JPG, PNG, DOC, DOCX (máx. 50MB)</p>
+                <p className="mt-1 text-xs text-muted-foreground">PDF, JPG, PNG, DOC, DOCX (max. 50MB)</p>
               </label>
             </div>
           </div>
