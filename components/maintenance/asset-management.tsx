@@ -45,7 +45,6 @@ export function AssetManagement() {
 
     fetchAssets();
 
-    // Subscribe to changes
     const subscription = supabase
       .channel('equipment-changes')
       .on(
@@ -71,9 +70,9 @@ export function AssetManagement() {
       case 'operational':
         return <Badge className="bg-green-600/10 text-green-700">Operacional</Badge>;
       case 'maintenance':
-        return <Badge className="bg-blue-600/10 text-blue-700">Mantención</Badge>;
+        return <Badge className="bg-blue-600/10 text-blue-700">Mantencion</Badge>;
       case 'offline':
-        return <Badge className="bg-red-600/10 text-red-700">Offline</Badge>;
+        return <Badge className="bg-red-600/10 text-red-700">Fuera de servicio</Badge>;
       default:
         return <Badge>{status}</Badge>;
     }
@@ -102,15 +101,14 @@ export function AssetManagement() {
 
   return (
     <div className="space-y-4">
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <Card className="border-border">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm">Activos Totales</CardTitle>
+            <CardTitle className="text-sm">Activos totales</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{assets.length}</div>
-            <p className="text-xs text-muted-foreground mt-1">bajo gestión</p>
+            <p className="mt-1 text-xs text-muted-foreground">bajo gestion</p>
           </CardContent>
         </Card>
 
@@ -120,48 +118,46 @@ export function AssetManagement() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-green-600">
-              {assets.filter(a => a.status === 'operational').length}
+              {assets.filter((asset) => asset.status === 'operational').length}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">en operación</p>
+            <p className="mt-1 text-xs text-muted-foreground">en operacion</p>
           </CardContent>
         </Card>
 
         <Card className="border-border bg-yellow-500/5">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm text-yellow-700">Requieren Mantención</CardTitle>
+            <CardTitle className="text-sm text-yellow-700">Requieren mantencion</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-yellow-600">
-              {assets.filter(a => {
-                const next = getDaysToNextMaintenance(a.last_maintenance || '', a.maintenance_hours || 0);
+              {assets.filter((asset) => {
+                const next = getDaysToNextMaintenance(asset.last_maintenance || '', asset.maintenance_hours || 0);
                 return next?.urgent;
               }).length}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">próximas 2 semanas</p>
+            <p className="mt-1 text-xs text-muted-foreground">proximas 2 semanas</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Assets List */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {assets.map((asset) => {
           const maintenance = getDaysToNextMaintenance(asset.last_maintenance || '', asset.maintenance_hours || 0);
+
           return (
             <Card key={asset.id} className={`border-border ${maintenance?.urgent ? 'bg-yellow-500/5' : ''}`}>
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="mb-1 flex items-center gap-2">
                       <CardTitle className="text-base">{asset.name}</CardTitle>
                       {getStatusBadge(asset.status)}
                     </div>
                     <CardDescription className="text-xs">
-                      {asset.code} • {asset.type}
+                      {asset.code} - {asset.type}
                     </CardDescription>
                   </div>
-                  {maintenance?.urgent && (
-                    <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0" />
-                  )}
+                  {maintenance?.urgent && <AlertTriangle className="h-5 w-5 flex-shrink-0 text-yellow-600" />}
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -179,22 +175,20 @@ export function AssetManagement() {
                   </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-3 text-xs pt-2 border-t border-border/50">
+                <div className="grid grid-cols-2 gap-3 border-t border-border/50 pt-2 text-xs">
                   <div>
-                    <p className="text-muted-foreground flex items-center gap-1">
+                    <p className="flex items-center gap-1 text-muted-foreground">
                       <Calendar className="h-3 w-3" />
-                      Última Mantención
+                      Ultima mantencion
                     </p>
                     <p className="font-medium">
-                      {asset.last_maintenance
-                        ? new Date(asset.last_maintenance).toLocaleDateString('es-CL')
-                        : 'Sin registro'}
+                      {asset.last_maintenance ? new Date(asset.last_maintenance).toLocaleDateString('es-CL') : 'Sin registro'}
                     </p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground flex items-center gap-1">
+                    <p className="flex items-center gap-1 text-muted-foreground">
                       <Wrench className="h-3 w-3" />
-                      Próxima Mantención
+                      Proxima mantencion
                     </p>
                     <p className={`font-medium ${maintenance?.urgent ? 'text-yellow-600' : ''}`}>
                       {maintenance ? `${Math.round(maintenance.hours)}h` : '-'}
@@ -202,8 +196,8 @@ export function AssetManagement() {
                   </div>
                 </div>
 
-                <Button className="w-full mt-3" size="sm" variant="outline">
-                  Crear Orden de Trabajo
+                <Button className="mt-3 w-full" size="sm" variant="outline">
+                  Crear orden de trabajo
                 </Button>
               </CardContent>
             </Card>

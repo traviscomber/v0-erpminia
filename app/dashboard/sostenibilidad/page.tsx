@@ -119,6 +119,12 @@ export default function SostenibilidadDashboard() {
   const totalActions = overview.ca_stats?.total || 0;
   const completionRate = overview.ca_stats?.completionRate || 0;
 
+  const trendLabel = overview.overview.trend === 'mejorando'
+    ? 'Mejorando'
+    : overview.overview.trend === 'empeorando'
+      ? 'Empeorando'
+      : 'Estable';
+
   const pillars = useMemo<PillarCard[]>(() => {
     const makeStatus = (count: number): ModuleItem['status'] => {
       if (count > 0) return 'active';
@@ -164,7 +170,7 @@ export default function SostenibilidadDashboard() {
         ],
       },
       {
-        title: 'Proyectos Sostenibilidad',
+        title: 'Proyectos de sostenibilidad',
         icon: <Target className="w-8 h-8" />,
         colorClass: 'text-destructive',
         bgClass: 'bg-destructive/10',
@@ -179,9 +185,9 @@ export default function SostenibilidadDashboard() {
   }, [ambienteCount, capCount, comunidadesCount, completionRate, docCount, eppCount, inspeccionesCount, overdueCas, totalActions]);
 
   const topMetrics = [
-    { label: 'Score de compliance', value: `${complianceScore}%`, helper: overview.overview.trend, tone: complianceScore >= 85 ? 'text-secondary' : complianceScore >= 70 ? 'text-primary' : 'text-destructive' },
+    { label: 'Indice de cumplimiento', value: `${complianceScore}%`, helper: trendLabel, tone: complianceScore >= 85 ? 'text-secondary' : complianceScore >= 70 ? 'text-primary' : 'text-destructive' },
     { label: 'NC abiertas', value: `${openNcs}`, helper: `${overview.overview.total_ncs} totales`, tone: 'text-primary' },
-    { label: 'CAs vencidas', value: `${overdueCas}`, helper: 'Requieren accion', tone: overdueCas > 0 ? 'text-destructive' : 'text-secondary' },
+    { label: 'Acciones vencidas', value: `${overdueCas}`, helper: 'Requieren accion', tone: overdueCas > 0 ? 'text-destructive' : 'text-secondary' },
     { label: 'Inspecciones cerradas', value: `${inspeccionesCount}`, helper: 'Fuente real', tone: 'text-secondary' },
     { label: 'Documentos HSE', value: `${docCount}`, helper: 'En el modulo', tone: 'text-primary' },
   ];

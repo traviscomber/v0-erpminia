@@ -261,6 +261,7 @@ export default function LegalPage() {
   const compliance = (complianceData || {}) as CompliancePayload;
 
   const documentCount = documentData?.total ?? legalDocs.length;
+  const documentsWithFile = legalDocs.filter((doc) => Boolean(doc.fileUrl || doc.filePath)).length;
   const activeContracts = compliance.summary?.active_contracts ?? 0;
 
   const compliancePercent = useMemo(() => {
@@ -362,11 +363,11 @@ export default function LegalPage() {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Documentos cargados</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Documentos con archivo</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{documentCount}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Total cargados</p>
+            <div className="text-3xl font-bold">{documentsWithFile}</div>
+            <p className="mt-1 text-xs text-muted-foreground">Con respaldo disponible</p>
           </CardContent>
         </Card>
 

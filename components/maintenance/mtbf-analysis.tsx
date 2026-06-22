@@ -13,8 +13,8 @@ interface MTBFAnalysisProps {
 }
 
 export function MTBFAnalysis({ data }: MTBFAnalysisProps) {
-  const avgMTBF = Math.round(data.reduce((sum, d) => sum + d.mtbf_hours, 0) / data.length);
-  const avgMTTR = Math.round(data.reduce((sum, d) => sum + d.mttr_hours, 0) / data.length);
+  const avgMTBF = Math.round(data.reduce((sum, item) => sum + item.mtbf_hours, 0) / data.length);
+  const avgMTTR = Math.round(data.reduce((sum, item) => sum + item.mttr_hours, 0) / data.length);
 
   return (
     <div className="space-y-4">
@@ -25,16 +25,17 @@ export function MTBFAnalysis({ data }: MTBFAnalysisProps) {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold text-green-600">{avgMTBF}h</p>
-            <p className="text-xs text-muted-foreground mt-1">Tiempo promedio entre fallos</p>
+            <p className="mt-1 text-xs text-muted-foreground">Tiempo promedio entre fallas</p>
           </CardContent>
         </Card>
+
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm">Promedio MTTR</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold text-orange-600">{avgMTTR}h</p>
-            <p className="text-xs text-muted-foreground mt-1">Tiempo promedio de reparación</p>
+            <p className="mt-1 text-xs text-muted-foreground">Tiempo promedio de reparacion</p>
           </CardContent>
         </Card>
       </div>
@@ -53,7 +54,7 @@ export function MTBFAnalysis({ data }: MTBFAnalysisProps) {
               <Legend />
               <Line type="monotone" dataKey="mtbf_hours" stroke="#10b981" name="MTBF (horas)" />
               <Line type="monotone" dataKey="mttr_hours" stroke="#f59e0b" name="MTTR (horas)" />
-              <Line type="monotone" dataKey="target_mtbf" stroke="#3b82f6" strokeDasharray="5 5" name="Target MTBF" />
+              <Line type="monotone" dataKey="target_mtbf" stroke="#3b82f6" strokeDasharray="5 5" name="MTBF objetivo" />
             </LineChart>
           </ResponsiveContainer>
         </CardContent>
