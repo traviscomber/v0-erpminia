@@ -30,7 +30,7 @@ export default function TelemetriaPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">Sensores vivos</div>
-            <p className="text-xs text-muted-foreground">Lecturas desde Supabase sin datos mock.</p>
+            <p className="text-xs text-muted-foreground">Lecturas desde Supabase sin datos de prueba.</p>
           </CardContent>
         </Card>
 

@@ -5,14 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Clock, User, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Clock, User } from 'lucide-react';
 
 interface WorkOrder {
   id: string;
@@ -49,7 +43,7 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
     const fetchOrders = async () => {
       try {
         const response = await fetch('/api/maintenance/work-orders');
-        if (!response.ok) throw new Error('No se pudieron obtener las órdenes de trabajo');
+        if (!response.ok) throw new Error('No se pudieron obtener las ordenes de trabajo');
         const { workOrders } = await response.json();
         setOrders((workOrders || []).slice(0, limit));
       } catch (err) {
@@ -72,7 +66,7 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
       });
       if (!res.ok) throw new Error('No se pudo actualizar la orden de trabajo');
       const { data } = await res.json();
-      setOrders(orders.map(o => o.id === orderId ? data : o));
+      setOrders(orders.map((o) => (o.id === orderId ? data : o)));
     } catch (err) {
       console.error('[v0] Error updating order:', err);
     } finally {
@@ -83,15 +77,15 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'open':
-        return <Badge className="bg-blue-600/10 text-blue-700">Abierto</Badge>;
+        return <Badge className="bg-blue-600/10 text-blue-700">Abierta</Badge>;
       case 'assigned':
-        return <Badge className="bg-yellow-600/10 text-yellow-700">Asignado</Badge>;
+        return <Badge className="bg-yellow-600/10 text-yellow-700">Asignada</Badge>;
       case 'in_progress':
-        return <Badge className="bg-purple-600/10 text-purple-700">En Progreso</Badge>;
+        return <Badge className="bg-purple-600/10 text-purple-700">En progreso</Badge>;
       case 'completed':
-        return <Badge className="bg-green-600/10 text-green-700">Completado</Badge>;
+        return <Badge className="bg-green-600/10 text-green-700">Completada</Badge>;
       case 'closed':
-        return <Badge className="bg-gray-600/10 text-gray-700">Cerrado</Badge>;
+        return <Badge className="bg-gray-600/10 text-gray-700">Cerrada</Badge>;
       default:
         return <Badge>{status}</Badge>;
     }
@@ -113,7 +107,7 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
   };
 
   if (loading) {
-    return <div className="text-muted-foreground">Cargando órdenes de trabajo...</div>;
+    return <div className="text-muted-foreground">Cargando ordenes de trabajo...</div>;
   }
 
   return (
@@ -123,7 +117,7 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
+                <div className="mb-1 flex items-center gap-2">
                   <CardTitle className="text-base">{order.work_order_number}</CardTitle>
                   {getStatusBadge(order.status)}
                 </div>
@@ -135,23 +129,21 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Progress */}
             <div>
-              <div className="flex justify-between mb-2 text-sm">
+              <div className="mb-2 flex justify-between text-sm">
                 <span className="font-medium">Progreso</span>
                 <span className="text-muted-foreground">{order.progress_percentage}%</span>
               </div>
               <Progress value={order.progress_percentage} className="h-2" />
             </div>
 
-            {/* Details Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div className="grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
               <div>
-                <p className="text-muted-foreground text-xs">Tipo</p>
+                <p className="text-xs text-muted-foreground">Tipo</p>
                 <p className="font-semibold capitalize">{order.work_type}</p>
               </div>
               <div>
-                <p className="text-muted-foreground text-xs flex items-center gap-1">
+                <p className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Clock className="h-3 w-3" />
                   Horas
                 </p>
@@ -160,22 +152,21 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
                 </p>
               </div>
               <div>
-                <p className="text-muted-foreground text-xs">Estado</p>
+                <p className="text-xs text-muted-foreground">Estado</p>
                 <p className="font-semibold capitalize">{order.status}</p>
               </div>
               {order.assigned_to_name && (
                 <div>
-                  <p className="text-muted-foreground text-xs flex items-center gap-1">
+                  <p className="flex items-center gap-1 text-xs text-muted-foreground">
                     <User className="h-3 w-3" />
-                    Técnico
+                    Tecnico
                   </p>
                   <p className="font-semibold">{order.assigned_to_name}</p>
                 </div>
               )}
             </div>
 
-            {/* Status Update */}
-            <div className="pt-3 border-t border-border/50 flex items-center gap-2">
+            <div className="flex items-center gap-2 border-t border-border/50 pt-3">
               <Select
                 value={order.status}
                 onValueChange={(newStatus) => handleStatusUpdate(order.id, newStatus)}
@@ -185,16 +176,14 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="open">Abierto</SelectItem>
-                  <SelectItem value="assigned">Asignado</SelectItem>
-                  <SelectItem value="in_progress">En Progreso</SelectItem>
-                  <SelectItem value="completed">Completado</SelectItem>
-                  <SelectItem value="closed">Cerrado</SelectItem>
+                  <SelectItem value="open">Abierta</SelectItem>
+                  <SelectItem value="assigned">Asignada</SelectItem>
+                  <SelectItem value="in_progress">En progreso</SelectItem>
+                  <SelectItem value="completed">Completada</SelectItem>
+                  <SelectItem value="closed">Cerrada</SelectItem>
                 </SelectContent>
               </Select>
-              {updatingId === order.id && (
-                <span className="text-xs text-muted-foreground">Actualizando...</span>
-              )}
+              {updatingId === order.id && <span className="text-xs text-muted-foreground">Actualizando...</span>}
             </div>
           </CardContent>
         </Card>
@@ -203,9 +192,7 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
       {orders.length === 0 && (
         <Card className="border-border bg-muted/30">
           <CardContent className="pt-6">
-            <div className="text-center text-muted-foreground">
-              No hay órdenes de trabajo disponibles
-            </div>
+            <div className="text-center text-muted-foreground">No hay ordenes de trabajo disponibles</div>
           </CardContent>
         </Card>
       )}
