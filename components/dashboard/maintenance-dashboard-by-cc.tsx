@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import useSWR from 'swr';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,16 +27,69 @@ export function MaintenanceDashboardByCC() {
   const [expandedCC, setExpandedCC] = useState<string | null>(null);
   const orderedCostCenters = sortCostCenters(costCenters);
   const workOrders = Array.isArray(workOrdersData?.workOrders) ? workOrdersData.workOrders : [];
+  const summary = useMemo(() => {
+    const open = workOrders.filter((order: any) => order.status === 'open' || order.status === 'pending').length;
+    const inProgress = workOrders.filter((order: any) => order.status === 'in_progress').length;
+    const completed = workOrders.filter((order: any) => order.status === 'completed').length;
+    return {
+      totalCostCenters: orderedCostCenters.length,
+      totalOrders: workOrders.length,
+      open,
+      inProgress,
+      completed,
+    };
+  }, [orderedCostCenters.length, workOrders]);
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Mantenimiento por centro de costos</h1>
-        <p className="text-muted-foreground">Seguimiento de ordenes agrupadas por centro de costos</p>
+        <p className="text-muted-foreground">Seguimiento real de ordenes agrupadas por centro de costos.</p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Centros visibles</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{summary.totalCostCenters}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Ordenes totales</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{summary.totalOrders}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Abiertas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">{summary.open}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Completadas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{summary.completed}</div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="space-y-4">
-        {orderedCostCenters.map((cc) => {
+        {orderedCostCenters.length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center text-sm text-muted-foreground">
+              No hay centros de costo cargados todavia.
+            </CardContent>
+          </Card>
+        ) : orderedCostCenters.map((cc) => {
           const ccOrders = workOrders.filter((order: any) => order.cost_center_id === cc.id);
           const completed = ccOrders.filter((order: any) => order.status === 'completed').length;
           const inProgress = ccOrders.filter((order: any) => order.status === 'in_progress').length;
@@ -64,7 +117,7 @@ export function MaintenanceDashboardByCC() {
                 </button>
               </CardHeader>
 
-              {expandedCC === cc.id && (
+                  {expandedCC === cc.id && (
                 <CardContent>
                   {ccOrders.length > 0 ? (
                     <div className="space-y-3">

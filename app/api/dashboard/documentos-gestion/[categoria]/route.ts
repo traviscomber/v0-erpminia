@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ categoria: string }> }
 ) {
   try {
@@ -15,8 +15,7 @@ export async function GET(
       return NextResponse.json({ error: 'Missing Supabase config' }, { status: 500 });
     }
 
-    // Fetch all approval flows
-    const response = await fetch(`${url}/rest/v1/flujo_aprobacion_documentos_sostenibilidadselect=*`, {
+    const response = await fetch(`${url}/rest/v1/flujo_aprobacion_documentos_sostenibilidad?select=*`, {
       headers: {
         apikey: key,
         Authorization: `Bearer ${key}`,
@@ -29,20 +28,18 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid response' }, { status: 500 });
     }
 
-    // Map categories to document types
     const categoryMap: Record<string, string[]> = {
-      seguridad: ['MSDS', 'Seguridad', 'Protocolo', 'Auditoría'],
+      seguridad: ['MSDS', 'Seguridad', 'Protocolo', 'Auditoria'],
       ambiental: ['Ambiental', 'Residuos', 'Impacto'],
       operacional: ['Procedimiento', 'Instructivo', 'Plan'],
-      laboral: ['RIOHS', 'Capacitación', 'Permiso'],
+      laboral: ['RIOHS', 'Capacitacion', 'Permiso'],
     };
 
     const keywords = categoryMap[categoria] || [];
 
-    // Filter documents by category
     const documents = allDocs
       .filter((doc: any) => {
-        const name = (doc.documento_nombre || '').toLowerCase();
+        const name = String(doc.documento_nombre || '').toLowerCase();
         return keywords.some((kw) => name.includes(kw.toLowerCase()));
       })
       .map((doc: any) => ({
@@ -65,11 +62,9 @@ export async function GET(
         activo: doc.activo,
       }));
 
-    // Separate by approval status
     const aprobados = documents.filter((d: any) => d.estado === 'aprobado');
     const pendientes = documents.filter(
-      (d: any) =>
-        d.estado === 'pendiente_validador1' || d.estado === 'pendiente_validador2'
+      (d: any) => d.estado === 'pendiente_validador1' || d.estado === 'pendiente_validador2'
     );
     const rechazados = documents.filter((d: any) => d.estado === 'rechazado');
 
@@ -89,9 +84,6 @@ export async function GET(
     });
   } catch (error) {
     console.error('[v0] Error fetching categoria documents:', error);
-    return NextResponse.json(
-      { error: 'No se pudieron obtener los documentos' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'No se pudieron obtener los documentos' }, { status: 500 });
   }
 }
