@@ -1,6 +1,6 @@
 # Roadmap MVP
 
-Estado base del MVP calculado desde el codigo actual: **68%**.
+Estado base del MVP calculado desde el codigo actual: **74%**.
 
 ## Objetivo
 

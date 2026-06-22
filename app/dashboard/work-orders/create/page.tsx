@@ -183,7 +183,7 @@ export default function CreateWorkOrderPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Crear orden de mantencion</h1>
+        <h1 className="text-3xl font-bold">Crear orden de mantenimiento</h1>
         <p className="mt-2 text-muted-foreground">Flujo base del MVP con activos reales de mantenimiento.</p>
       </div>
 
