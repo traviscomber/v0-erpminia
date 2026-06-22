@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-const CATEGORY_DISPLAY = {
+const CATEGORY_DISPLAY: Record<string, { name: string; icon: string }> = {
   seguridad: { name: 'Documentos de seguridad', icon: 'Seguridad' },
   ambiental: { name: 'Documentos ambientales', icon: 'Ambiental' },
   operacional: { name: 'Documentos operacionales', icon: 'Operacional' },
@@ -22,16 +22,16 @@ function statusBadge(estado: string) {
   if (estado === 'aprobado') return <Badge className="bg-[var(--brand-verde)]">Aprobado</Badge>;
   if ((estado || '').includes('pendiente')) return <Badge className="bg-[var(--secondary)]">Pendiente</Badge>;
   if (estado === 'rechazado') return <Badge className="bg-[var(--brand-rojo)]">Rechazado</Badge>;
-  return <Badge variant="outline">{estado}</Badge>;
+  return <Badge variant="outline">{estado || 'Sin estado'}</Badge>;
 }
 
 export default function CategoryDetailPage() {
-  const params = useParams();
+  const params = useParams<{ id: string }>();
   const router = useRouter();
-  const categoryId = params.id as string;
+  const categoryId = String(params.id || '');
   const [activeTab, setActiveTab] = useState('aprobados');
 
-  const categoryInfo = CATEGORY_DISPLAY[categoryId as keyof typeof CATEGORY_DISPLAY] || {
+  const categoryInfo = CATEGORY_DISPLAY[categoryId] || {
     name: 'Documentos',
     icon: 'Documentos',
   };
@@ -41,8 +41,8 @@ export default function CategoryDetailPage() {
     refreshInterval: 300000,
   });
 
-  if (error) return <div className="text-red-500">Error al cargar documentos</div>;
-  if (isLoading) return <div className="text-gray-500">Cargando gestion documental...</div>;
+  if (error) return <div className="text-destructive">Error al cargar documentos</div>;
+  if (isLoading) return <div className="text-muted-foreground">Cargando gestion documental...</div>;
 
   const stats = data?.stats || { total: 0, aprobados: 0, pendientes: 0, rechazados: 0 };
   const docs = data?.documents || { aprobados: [], pendientes: [], rechazados: [] };
