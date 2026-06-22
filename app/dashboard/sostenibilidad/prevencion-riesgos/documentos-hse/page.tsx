@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DocumentUpload } from '@/components/documents/document-upload';
@@ -75,7 +75,7 @@ export default function DocumentosHSEPage() {
 
   const handleView = (document: Document | string) => {
     if (typeof document === 'string') {
-      const doc = documents.find(d => d.id === document);
+      const doc = documents.find((d) => d.id === document);
       if (doc) setSelectedDoc(doc);
     } else {
       setSelectedDoc(document);
@@ -111,36 +111,27 @@ export default function DocumentosHSEPage() {
     }
   };
 
-  // Los borradores se cargan pero aún no están revisados; se muestran en la pestaña principal
-  const draftDocs = documents.filter(d =>
-    d.status === 'draft' || !d.status
-  );
-  const vigentesDocs = documents.filter(d =>
-    d.status === 'aprobado' || d.status === 'active'
-  );
-  const RevisionDocs = documents.filter(d =>
-    d.status === 'en_revision_l1' || d.status === 'en_revision_l2' ||
-    d.status === 'pending_l1' || d.status === 'pending_l2'
+  const draftDocs = documents.filter((d) => d.status === 'draft' || !d.status);
+  const vigentesDocs = documents.filter((d) => d.status === 'aprobado' || d.status === 'active');
+  const revisionDocs = documents.filter(
+    (d) => d.status === 'en_revision_l1' || d.status === 'en_revision_l2' || d.status === 'pending_l1' || d.status === 'pending_l2'
   );
 
-  // Default tab: show where documents actually are
   const defaultTab = vigentesDocs.length > 0 ? 'vigentes' : draftDocs.length > 0 ? 'todos' : 'todos';
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <h1 className="text-3xl font-bold">Documentos HSE</h1>
-        <p className="text-muted-foreground mt-2">
+        <p className="mt-2 text-muted-foreground">
           Gestion de politicas, procedimientos, instructivos y programas de seguridad
         </p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between text-sm font-medium">
               <span>Total</span>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardTitle>
@@ -153,7 +144,7 @@ export default function DocumentosHSEPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between text-sm font-medium">
               <span>Vigentes</span>
               <CheckCircle2 className="h-4 w-4 text-green-500" />
             </CardTitle>
@@ -166,20 +157,20 @@ export default function DocumentosHSEPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center justify-between">
-              <span>En Revision</span>
+            <CardTitle className="flex items-center justify-between text-sm font-medium">
+              <span>En revision</span>
               <Clock className="h-4 w-4 text-yellow-500" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-yellow-500">{stats.en_revision}</p>
-            <p className="text-xs text-muted-foreground">Esperando aprobación</p>
+            <p className="text-xs text-muted-foreground">Esperando aprobacion</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between text-sm font-medium">
               <span>Rechazados</span>
               <AlertCircle className="h-4 w-4 text-red-500" />
             </CardTitle>
@@ -191,49 +182,45 @@ export default function DocumentosHSEPage() {
         </Card>
       </div>
 
-      {/* Tabs */}
       <Tabs defaultValue={defaultTab} className="space-y-4">
         <TabsList className="bg-muted/60 p-1">
-          <TabsTrigger value="todos" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
+          <TabsTrigger value="todos" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             Todos ({documents.length})
           </TabsTrigger>
-          <TabsTrigger value="vigentes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
+          <TabsTrigger value="vigentes" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             Vigentes ({vigentesDocs.length})
           </TabsTrigger>
-          <TabsTrigger value="Revision" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
-            En Revision ({RevisionDocs.length})
+          <TabsTrigger value="Revision" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            En revision ({revisionDocs.length})
           </TabsTrigger>
-          <TabsTrigger value="upload" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
+          <TabsTrigger value="upload" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             Subir
           </TabsTrigger>
         </TabsList>
 
-        {/* Todos ? b?squeda inteligente en todos los documentos */}
         <TabsContent value="todos" className="space-y-4">
           <DocumentList
             documents={documents}
             isLoading={loading}
             onView={handleView}
             onDelete={handleDelete}
-            showSearch={true}
+            showSearch
           />
         </TabsContent>
 
-        {/* Vigentes */}
         <TabsContent value="vigentes" className="space-y-4">
           <DocumentList
             documents={vigentesDocs}
             isLoading={loading}
             onView={handleView}
             onDelete={handleDelete}
-            showSearch={true}
+            showSearch
           />
         </TabsContent>
 
-        {/* En Revision */}
         <TabsContent value="Revision" className="space-y-4">
           <DocumentList
-            documents={RevisionDocs}
+            documents={revisionDocs}
             isLoading={loading}
             onView={handleView}
             onDelete={handleDelete}
@@ -241,31 +228,28 @@ export default function DocumentosHSEPage() {
           />
         </TabsContent>
 
-        {/* Upload */}
         <TabsContent value="upload" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Subir nuevo documento</CardTitle>
               <CardDescription>
-                Sube documentos HSE: politicas, procedimientos, instructivos, programas de seguridad
+                Sube documentos HSE: politicas, procedimientos, instructivos y programas de seguridad
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <DocumentUpload
-                module="prevencion"
-                category="documentos-hse"
-                onUploadSuccess={loadDocuments}
-              />
+              <DocumentUpload module="prevencion" category="documentos-hse" onUploadSuccess={loadDocuments} />
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
 
-      {/* Modal de revisión */}
       <DocumentReviewModal
         document={selectedDoc}
         isOpen={reviewOpen}
-        onClose={() => { setReviewOpen(false); setSelectedDoc(null); }}
+        onClose={() => {
+          setReviewOpen(false);
+          setSelectedDoc(null);
+        }}
         onApprove={handleApprove}
         onReject={handleReject}
         reviewLevel="L1"
@@ -273,4 +257,3 @@ export default function DocumentosHSEPage() {
     </div>
   );
 }
-

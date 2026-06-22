@@ -20,10 +20,10 @@ export function SustainabilityModuleConnections() {
   ];
 
   const connections: ConnectionFlow[] = [
-    { from: 'Inspecciones', to: 'No Conformidades', action: 'Genera NC desde hallazgos de inspección' },
+    { from: 'Inspecciones', to: 'No Conformidades', action: 'Genera NC desde hallazgos de inspeccion' },
     { from: 'No Conformidades', to: 'Acciones Correctivas', action: 'Activa acciones cuando la NC es aprobada' },
-    { from: 'Acciones Correctivas', to: 'Documentos HSE', action: 'Vincula evidencia y planes de acción' },
-    { from: 'Todas las áreas', to: 'Calendario', action: 'Sincroniza eventos y hitos del área' },
+    { from: 'Acciones Correctivas', to: 'Documentos HSE', action: 'Vincula evidencia y planes de accion' },
+    { from: 'Todas las areas', to: 'Calendario', action: 'Sincroniza eventos y hitos del area' },
   ];
 
   return (
@@ -32,9 +32,9 @@ export function SustainabilityModuleConnections() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Database className="h-5 w-5" />
-            Módulos del área
+            Modulos del area
           </CardTitle>
-          <CardDescription>Módulos operacionales de Sostenibilidad</CardDescription>
+          <CardDescription>Modulos operacionales de Sostenibilidad</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -42,7 +42,7 @@ export function SustainabilityModuleConnections() {
               <Link key={module.name} href={module.path}>
                 <div className="cursor-pointer rounded-lg border border-border p-4 transition hover:bg-muted">
                   <h3 className="text-sm font-semibold text-foreground">{module.name}</h3>
-                  <p className="mt-1 text-xs text-muted-foreground">Ver módulo</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Ver modulo</p>
                 </div>
               </Link>
             ))}
@@ -54,9 +54,9 @@ export function SustainabilityModuleConnections() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Zap className="h-5 w-5 text-primary" />
-            Flujos entre módulos
+            Flujos entre modulos
           </CardTitle>
-          <CardDescription>Cómo se conectan los módulos del área de Sostenibilidad</CardDescription>
+          <CardDescription>Como se conectan los modulos del area de Sostenibilidad</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">

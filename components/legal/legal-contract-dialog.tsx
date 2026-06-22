@@ -26,7 +26,7 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
   const [description, setDescription] = useState('');
   const [contractNumber, setContractNumber] = useState('');
   const [contractType, setContractType] = useState('Servicios');
-  const [status, setStatus] = useState('En Revision');
+  const [status, setStatus] = useState('En revision');
   const [contractValue, setContractValue] = useState('');
   const [currency, setCurrency] = useState('CLP');
   const [startDate, setStartDate] = useState('');
@@ -40,7 +40,7 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
     setDescription('');
     setContractNumber('');
     setContractType('Servicios');
-    setStatus('En Revision');
+    setStatus('En revision');
     setContractValue('');
     setCurrency('CLP');
     setStartDate('');
@@ -196,7 +196,7 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
                   <SelectValue placeholder="Seleccionar" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="En Revision">En Revision</SelectItem>
+                  <SelectItem value="En revision">En revision</SelectItem>
                   <SelectItem value="Vigente">Vigente</SelectItem>
                   <SelectItem value="Borrador">Borrador</SelectItem>
                   <SelectItem value="Por Vencer">Por Vencer</SelectItem>

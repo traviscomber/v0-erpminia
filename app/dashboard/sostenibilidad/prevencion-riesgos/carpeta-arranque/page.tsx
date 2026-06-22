@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -29,10 +29,10 @@ export default function CarpetaArranquePage() {
     const carpetas: Array<{ status: string }> = data.carpetas || [];
     setStats({
       total: carpetas.length,
-      pendientes: carpetas.filter(c => c.status === 'pendiente').length,
-      en_revision: carpetas.filter(c => ['en_revision_l1', 'en_revision_l2'].includes(c.status)).length,
-      aprobadas: carpetas.filter(c => c.status === 'aprobado').length,
-      rechazadas: carpetas.filter(c => c.status === 'rechazado').length,
+      pendientes: carpetas.filter((c) => c.status === 'pendiente').length,
+      en_revision: carpetas.filter((c) => ['en_revision_l1', 'en_revision_l2'].includes(c.status)).length,
+      aprobadas: carpetas.filter((c) => c.status === 'aprobado').length,
+      rechazadas: carpetas.filter((c) => c.status === 'rechazado').length,
     });
   }, []);
 
@@ -42,7 +42,7 @@ export default function CarpetaArranquePage() {
 
   const handleFormSuccess = () => {
     setShowNewForm(false);
-    setListKey(k => k + 1);
+    setListKey((k) => k + 1);
     setActiveTab('mis-carpetas');
   };
 
@@ -50,9 +50,7 @@ export default function CarpetaArranquePage() {
     <div className="space-y-6 p-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Carpeta de Arranque</h1>
-        <p className="text-muted-foreground">
-          Sistema de validación de documentos para empresas contratistas (EECC)
-        </p>
+        <p className="text-muted-foreground">Sistema de validacion de documentos para empresas contratistas (EECC)</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
@@ -66,7 +64,7 @@ export default function CarpetaArranquePage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-sm font-medium">
               <Clock className="h-4 w-4 text-orange-500" />
               Pendientes
             </CardTitle>
@@ -77,9 +75,9 @@ export default function CarpetaArranquePage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-sm font-medium">
               <CircleDot className="h-4 w-4 text-blue-500" />
-              En Revision
+              En revision
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -88,7 +86,7 @@ export default function CarpetaArranquePage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-sm font-medium">
               <CheckCircle2 className="h-4 w-4 text-green-500" />
               Aprobadas
             </CardTitle>
@@ -99,7 +97,7 @@ export default function CarpetaArranquePage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-sm font-medium">
               <AlertCircle className="h-4 w-4 text-red-500" />
               Rechazadas
             </CardTitle>
@@ -114,9 +112,9 @@ export default function CarpetaArranquePage() {
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="mis-carpetas">Mis Carpetas</TabsTrigger>
           <TabsTrigger value="en-revision" className="gap-2">
-            En Revision
+            En revision
             {stats.en_revision > 0 && (
-              <span className="rounded-full bg-blue-500 text-white text-xs font-bold px-1.5 py-0.5 leading-none">
+              <span className="rounded-full bg-blue-500 px-1.5 py-0.5 text-xs font-bold leading-none text-white">
                 {stats.en_revision}
               </span>
             )}
@@ -125,7 +123,7 @@ export default function CarpetaArranquePage() {
         </TabsList>
 
         <TabsContent value="mis-carpetas" className="space-y-4">
-          <div className="flex justify-between items-center">
+          <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">Carpetas de Arranque</h2>
             <Button onClick={() => setShowNewForm(!showNewForm)} className="gap-2">
               <Plus className="h-4 w-4" />
@@ -150,12 +148,12 @@ export default function CarpetaArranquePage() {
 
         <TabsContent value="en-revision" className="space-y-4">
           <div>
-            <h2 className="text-lg font-semibold">Carpetas en Revision</h2>
+            <h2 className="text-lg font-semibold">Carpetas en revision</h2>
             <p className="text-sm text-muted-foreground">
-              Documentos pendientes de validación por los revisores asignados.
+              Documentos pendientes de validacion por los revisores asignados.
             </p>
           </div>
-          <CarpetaArranqueList key={"rev-" + listKey} status="en-revision" />
+          <CarpetaArranqueList key={`rev-${listKey}`} status="en-revision" />
         </TabsContent>
 
         <TabsContent value="documentos-std" className="space-y-4">
@@ -190,9 +188,11 @@ export default function CarpetaArranquePage() {
                   'Programa de supervision a cargo personal',
                   'Matriz de Identificacion de Peligros (MIPER)',
                 ].map((doc, idx) => (
-                  <div key={idx} className="flex items-start gap-3 p-3 border rounded-md">
-                    <FileText className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span className="text-sm">{idx + 1}. {doc}</span>
+                  <div key={idx} className="flex items-start gap-3 rounded-md border p-3">
+                    <FileText className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                    <span className="text-sm">
+                      {idx + 1}. {doc}
+                    </span>
                   </div>
                 ))}
               </div>

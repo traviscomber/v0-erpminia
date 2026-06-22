@@ -160,7 +160,7 @@ export default function DocumentosFinanzasPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center justify-between text-sm font-medium">
-              <span>En Revision</span>
+              <span>En revision</span>
               <Clock className="h-4 w-4 text-yellow-500" />
             </CardTitle>
           </CardHeader>
@@ -188,7 +188,7 @@ export default function DocumentosFinanzasPage() {
         <TabsList className="border-b-2 border-border bg-muted/60 p-1">
           <TabsTrigger value="all" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Todos</TabsTrigger>
           <TabsTrigger value="vigentes" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Vigentes</TabsTrigger>
-          <TabsTrigger value="revision" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">En Revision</TabsTrigger>
+          <TabsTrigger value="revision" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">En revision</TabsTrigger>
           <TabsTrigger value="upload" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Subir Documentos</TabsTrigger>
         </TabsList>
 

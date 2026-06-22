@@ -21,7 +21,7 @@ const initialFormState = {
   contractNumber: '',
   description: '',
   contractType: 'Principal',
-  status: 'En Revision',
+  status: 'En revision',
   startDate: '',
   endDate: '',
   reviewDueDate: '',
@@ -82,7 +82,7 @@ export default function ContratosPage() {
     total: contracts.length,
     vigentes: contracts.filter((contract) => contract.status === 'Vigente').length,
     porVencer: contracts.filter((contract) => contract.status === 'Por Vencer').length,
-    enRevision: contracts.filter((contract) => contract.status === 'En Revision').length,
+    enRevision: contracts.filter((contract) => contract.status === 'En revision').length,
     vencidos: contracts.filter((contract) => contract.status === 'Vencido').length,
     conArchivo: contracts.filter((contract) => Boolean(contract.file_url)).length,
   };
@@ -133,7 +133,7 @@ export default function ContratosPage() {
         return 'bg-[var(--brand-verde)]/20 text-[var(--brand-verde)] border-[var(--brand-verde)]/50';
       case 'Por Vencer':
         return 'bg-[var(--brand-gold)]/20 text-[var(--brand-gold)] border-[var(--brand-gold)]/50';
-      case 'En Revision':
+      case 'En revision':
         return 'bg-[var(--secondary)]/20 text-[var(--secondary)] border-[var(--secondary)]/30';
       case 'Vencido':
         return 'bg-[var(--brand-rojo)]/20 text-[var(--brand-rojo)] border-[var(--brand-rojo)]/50';
@@ -147,7 +147,7 @@ export default function ContratosPage() {
       case 'Vigente':
         return <CheckCircle className="h-3 w-3" />;
       case 'Por Vencer':
-      case 'En Revision':
+      case 'En revision':
         return <Clock className="h-3 w-3" />;
       case 'Vencido':
         return <AlertCircle className="h-3 w-3" />;
@@ -341,7 +341,7 @@ export default function ContratosPage() {
                       <td className="px-4 py-3 text-xs text-muted-foreground">
                         <div>{contract.start_date ? new Date(contract.start_date).toLocaleDateString('es-CL') : '-'}</div>
                         <div>
-                          {'→ '}
+                          {'-> '}
                           {contract.end_date ? new Date(contract.end_date).toLocaleDateString('es-CL') : '-'}
                         </div>
                       </td>
@@ -452,7 +452,7 @@ export default function ContratosPage() {
                       onChange={(e) => updateField('status', e.target.value)}
                       className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm"
                     >
-                      <option>En Revision</option>
+                      <option>En revision</option>
                       <option>Vigente</option>
                       <option>Por Vencer</option>
                       <option>Vencido</option>
