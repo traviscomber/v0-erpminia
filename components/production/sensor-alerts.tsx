@@ -151,9 +151,9 @@ export function SensorAlerts({ equipmentId }: SensorAlertProps) {
   return (
     <div className="space-y-4">
       {alerts.length > 0 && (
-        <Card className="border-red-500 bg-red-50">
+        <Card className="border-destructive/30 bg-destructive/5">
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm text-red-700">
+            <CardTitle className="flex items-center gap-2 text-sm text-destructive">
               <AlertTriangle className="h-4 w-4" />
               Alerta activa
             </CardTitle>
@@ -174,31 +174,31 @@ export function SensorAlerts({ equipmentId }: SensorAlertProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-xs text-muted-foreground">Temperatura</p>
-              <p className="text-lg font-semibold">{sensor.temperature ?? '--'} C</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-xs text-muted-foreground">Temperatura</p>
+                <p className="text-lg font-semibold">{sensor.temperature ?? '--'} C</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Presion</p>
+                <p className="text-lg font-semibold">{sensor.pressure ?? '--'} PSI</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Vibracion</p>
+                <p className="text-lg font-semibold">{sensor.vibration ?? '--'} m/s2</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">RPM</p>
+                <p className="text-lg font-semibold">{sensor.rpm ?? '--'}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Presion</p>
-              <p className="text-lg font-semibold">{sensor.pressure ?? '--'} PSI</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Vibracion</p>
-              <p className="text-lg font-semibold">{sensor.vibration ?? '--'} m/s2</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">RPM</p>
-              <p className="text-lg font-semibold">{sensor.rpm ?? '--'}</p>
-            </div>
-          </div>
-          <p className="mt-3 text-xs text-muted-foreground">
-            Ultima lectura: {new Date(sensor.timestamp).toLocaleString('es-CL')}
-          </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Button size="sm" onClick={createSuggestedOt} disabled={!canCreateOt || creatingOt}>
-              {creatingOt ? 'Generando OT...' : 'Generar OT sugerida'}
-            </Button>
+            <p className="mt-3 text-xs text-muted-foreground">
+              Ultima lectura: {new Date(sensor.timestamp).toLocaleString('es-CL')}
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button size="sm" onClick={createSuggestedOt} disabled={!canCreateOt || creatingOt}>
+                {creatingOt ? 'Generando OT...' : 'Generar OT sugerida'}
+              </Button>
           </div>
         </CardContent>
       </Card>
