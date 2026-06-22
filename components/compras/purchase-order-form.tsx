@@ -88,7 +88,7 @@ export function PurchaseOrderForm() {
           </div>
 
           <div>
-            <label className="text-sm font-semibold">Codigo del item</label>
+            <label className="text-sm font-semibold">Codigo del producto</label>
             <Input
               value={formData.item_code}
               onChange={(e) => setFormData({ ...formData, item_code: e.target.value })}
@@ -110,7 +110,7 @@ export function PurchaseOrderForm() {
             </div>
 
             <div>
-              <label className="text-sm font-semibold">Precio unitario ($)</label>
+              <label className="text-sm font-semibold">Costo unitario ($)</label>
               <Input
                 type="number"
                 step="0.01"

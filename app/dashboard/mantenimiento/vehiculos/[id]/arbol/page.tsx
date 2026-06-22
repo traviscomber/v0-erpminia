@@ -12,7 +12,7 @@ const faultTreeData = {
   components: [
     {
       id: '1',
-      name: 'Sistema Motor',
+      name: 'Sistema motor',
       code: 'MOTOR-001',
       status: 'operativo',
       faults: [
@@ -30,10 +30,10 @@ const faultTreeData = {
         },
         {
           id: 'f2',
-          name: 'Pérdida de potencia',
+          name: 'Perdida de potencia',
           code: 'FM-MOTOR-002',
           severity: 'mayor',
-          symptoms: 'Baja presión, humo negro',
+          symptoms: 'Baja presion, humo negro',
           parts: [
             { id: 'p4', name: 'Juego Inyectores', code: 'PART-INY-001', cost: 1800, stock: 0 },
             { id: 'p5', name: 'Turbocompresor', code: 'PART-TURBO-001', cost: 8900, stock: 0 },
@@ -43,26 +43,26 @@ const faultTreeData = {
     },
     {
       id: '2',
-      name: 'Sistema Hidráulico',
+      name: 'Sistema hidraulico',
       code: 'HIDRO-001',
       status: 'operativo',
       faults: [
         {
           id: 'f3',
-          name: 'Baja presión hidráulica',
+          name: 'Baja presion hidraulica',
           code: 'FM-HID-001',
           severity: 'critica',
           symptoms: 'Movimientos lentos, sin fuerza',
           parts: [
-            { id: 'p6', name: 'Bomba Hidráulica', code: 'PART-BOMBA-001', cost: 12500, stock: 0 },
-            { id: 'p7', name: 'Filtro Hidráulico', code: 'PART-FILTRO-001', cost: 180, stock: 5 },
+            { id: 'p6', name: 'Bomba hidraulica', code: 'PART-BOMBA-001', cost: 12500, stock: 0 },
+            { id: 'p7', name: 'Filtro hidraulico', code: 'PART-FILTRO-001', cost: 180, stock: 5 },
           ],
         },
       ],
     },
     {
       id: '3',
-      name: 'Tren de Rodaje',
+      name: 'Tren de rodaje',
       code: 'RODAJE-001',
       status: 'operativo',
       faults: [
@@ -107,7 +107,7 @@ function FaultItem({ fault, onSelectPart }: any) {
 
       <div className="text-sm">
         <p className="text-muted-foreground">
-          <span className="font-medium">Síntomas:</span> {fault.symptoms}
+          <span className="font-medium">Sintomas:</span> {fault.symptoms}
         </p>
       </div>
 
@@ -189,13 +189,13 @@ export default function VehicleFaultTreePage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{faultTreeData.name}</h1>
           <p className="mt-2 text-muted-foreground">
-            Árbol de fallas interactivo - Selecciona piezas para agregar a orden
+            Arbol de fallas interactivo. Selecciona piezas para agregar a la orden.
           </p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Árbol de componentes</CardTitle>
+            <CardTitle>Arbol de componentes</CardTitle>
             <CardDescription>Haz clic en un componente para ver sus modos de falla</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -215,7 +215,7 @@ export default function VehicleFaultTreePage() {
           <CardContent className="space-y-4">
             {selectedParts.length === 0 ? (
               <p className="py-6 text-center text-sm text-muted-foreground">
-                Selecciona piezas del árbol para agregar
+                Selecciona piezas del arbol para agregarlas
               </p>
             ) : (
               <>
@@ -234,7 +234,7 @@ export default function VehicleFaultTreePage() {
                           className="h-6 w-6 p-0"
                           onClick={() => handleRemovePart(part.id)}
                         >
-                          ×
+                          x
                         </Button>
                       </div>
                     </div>
