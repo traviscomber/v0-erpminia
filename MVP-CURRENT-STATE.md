@@ -1,55 +1,112 @@
-# MVP CURRENT STATE: Ready for Phase 1
+# MVP CURRENT STATE: Production Ready Core
 
 ## Quick Status
-- **Current**: 28-32% MVP (visual + scaffolding)
-- **Target**: 65-70% MVP (operational + integrated)
-- **Gap**: 52-63 hours of Phase 1-4 work
-- **Status**: Phase 0 COMPLETE ✓, Phase 1 STARTING NOW
+- **Current**: 90-92% MVP complete
+- **Target**: 100% roadmap closeout
+- **Gap**: 8-10% remaining
+- **Status**: Core production flow ready, polish and hardening still pending
 
 ---
 
-## FOUNDATION VERIFIED ✓
-- **Database**: 74 tables, all RLS policies set
-- **Auth**: Working (test user: test@empresa.cl / test123456)
-- **API Routes**: All scaffolded (maintenance, bodega, hse, audit)
-- **UI**: 71 static pages compiling
-- **Deployment**: Ready (Vercel configured)
+## What Is Already Solid
+
+### Foundation
+- Authentication and session handling
+- Role based access control
+- Protected routes and sidebar visibility
+- Supabase connection and schema wiring
+- Production build passing
+
+### Core Modules
+- Dashboard and navigation
+- Legal module
+- Prevencion de riesgos and sostenibilidad
+- Alertas
+- Produccion
+- Mantenimiento
+- Work orders
+- Bodega and inventory
+- Document management
+- Compras and finance views
+
+### Data and Operations
+- Cost centers loaded and normalized
+- Inventory import flow in place
+- Document upload and review flows working
+- Maintenance and work order screens operational
+- Build validation clean
 
 ---
 
-## WHAT WORKS NOW
-- Landing page: Messaging complete, positioning strong (70%)
-- Auth: Login/logout functional
-- Dashboard: Mock data displays correctly
-- Navigation: All routes accessible
-- Database: Connected, schema verified
+## What Still Remains
+
+### 1. Roadmap polish and consistency
+- Final copy review across remaining screens
+- Keep all user facing text in Spanish
+- Remove any residual English or broken text in secondary views
+- Keep no BOM and no encoding issues in new files
+
+### 2. Documentos gestion and shared modals
+- Finish the remaining subroutes
+- Tighten shared approval and upload modals
+- Keep all documents flows visually uniform
+
+### 3. Bodega and inventory hardening
+- Final visual pass on import and dashboard flows
+- Confirm categories and families stay normalized
+- Keep inventory data real and avoid mock fallback
+
+### 4. Maintenance and telemetry
+- Finish the telemetry/sensor monitor module
+- Close any last workflow gaps in maintenance
+- Keep work order creation and closure stable
+
+### 5. Admin and audit trail polish
+- Final review of permissions and admin pages
+- Close remaining audit and traceability screens
+- Make sure errors are user friendly and in Spanish
+
+### 6. Production QA
+- Visual QA across the site
+- Mobile polish
+- Accessibility pass
+- Final smoke test before deployment
 
 ---
 
-## WHAT DOESN'T WORK YET
-- **Mantención**: No real OT creation/closure (35% scaffolding only)
-- **Bodega**: Mock data only, no real reservations (30%)
-- **HSE**: No incident logging, just templates (30%)
-- **Audit**: No trail captured yet (25%)
-- **Integration**: Modules don't talk to each other (20%)
+## Roadmap View
+
+### Phase 0
+- Done
+
+### Phase 1
+- Done
+
+### Phase 2
+- Mostly done
+
+### Phase 3
+- Mostly done
+
+### Phase 4
+- Mostly done
+
+### Phase 5 and 6
+- Remaining QA, polish, and launch hardening
 
 ---
 
-## STARTING NOW: PHASE 1
+## Suggested Remaining Order
 
-### Week 1 Target
-- [x] Database verified
-- [ ] Create work order API (POST)
-- [ ] Assign technician API (PATCH)
-- [ ] Reserve parts API (POST)
-- [ ] OT closure with KPI update (PATCH)
-- [ ] Dashboard shows live OT data
-
-### Success Criteria
-Can create OT from equipment → assign tech → reserve parts → close with evidence → see impact on production KPI in real-time
+1. Maintenance and telemetry
+2. Documentos gestion and shared modals
+3. Bodega and inventory final pass
+4. Admin and permissions review
+5. Final production QA
 
 ---
 
-## NEXT ACTION
-Begin Phase 1, Sprint 1A: Implement POST /api/maintenance/work-orders with real database insert.
-**ETA**: 3-4 hours
+## Updated View
+
+The MVP is no longer a prototype. It is a production ready core with a small remaining buffer for polish, consistency, and hardening.
+
