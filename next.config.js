@@ -129,6 +129,14 @@ const nextConfig = {
   // Compression
   compress: true,
 
+  webpack: (config, { dev }) => {
+    if (!dev) {
+      config.cache = false;
+    }
+
+    return config;
+  },
+
   // Generate ETags for caching
   generateEtags: true,
 

@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import { AlertCircle, ArrowRight, CheckCircle2, ChevronLeft } from 'lucide-react';
 import { toast } from 'sonner';
@@ -34,22 +34,22 @@ type ComponentTemplate = {
 
 const COMPONENT_TEMPLATES: Record<string, ComponentTemplate[]> = {
   excavator: [
-    { id: 'motor', name: 'Sistema motor y transmisión', code: 'EXC-MOTOR', estimatedHours: 4 },
-    { id: 'hydraulics', name: 'Sistema hidráulico', code: 'EXC-HIDRAULICO', estimatedHours: 3 },
+    { id: 'motor', name: 'Sistema motor y transmision', code: 'EXC-MOTOR', estimatedHours: 4 },
+    { id: 'hydraulics', name: 'Sistema hidraulico', code: 'EXC-HIDRAULICO', estimatedHours: 3 },
     { id: 'undercarriage', name: 'Tren de rodaje', code: 'EXC-RODAJE', estimatedHours: 6 },
     { id: 'cooling', name: 'Sistema de enfriamiento', code: 'EXC-ENFRIAMIENTO', estimatedHours: 2 },
   ],
   pump: [
     { id: 'impeller', name: 'Impulsor y carcasa', code: 'PMP-IMP', estimatedHours: 3 },
-    { id: 'seal', name: 'Sellos mecánicos', code: 'PMP-SEAL', estimatedHours: 2 },
+    { id: 'seal', name: 'Sellos mecanicos', code: 'PMP-SEAL', estimatedHours: 2 },
     { id: 'bearings', name: 'Rodamientos', code: 'PMP-BEAR', estimatedHours: 2 },
-    { id: 'lubrication', name: 'Sistema de lubricación', code: 'PMP-LUBE', estimatedHours: 1 },
+    { id: 'lubrication', name: 'Sistema de lubricacion', code: 'PMP-LUBE', estimatedHours: 1 },
   ],
   motor: [
     { id: 'stator', name: 'Estator y bobinado', code: 'MTR-STAT', estimatedHours: 5 },
     { id: 'bearings', name: 'Rodamientos y soporte', code: 'MTR-BEAR', estimatedHours: 2 },
-    { id: 'alignment', name: 'Alineación y acople', code: 'MTR-ALIGN', estimatedHours: 2 },
-    { id: 'cooling', name: 'Ventilación y enfriamiento', code: 'MTR-COOL', estimatedHours: 1 },
+    { id: 'alignment', name: 'Alineacion y acople', code: 'MTR-ALIGN', estimatedHours: 2 },
+    { id: 'cooling', name: 'Ventilacion y enfriamiento', code: 'MTR-COOL', estimatedHours: 1 },
   ],
   conveyor: [
     { id: 'belt', name: 'Correa transportadora', code: 'CNV-BELT', estimatedHours: 4 },
@@ -59,12 +59,12 @@ const COMPONENT_TEMPLATES: Record<string, ComponentTemplate[]> = {
   ],
   mill: [
     { id: 'liner', name: 'Revestimientos', code: 'MIL-LINER', estimatedHours: 8 },
-    { id: 'gear', name: 'Corona y piñón', code: 'MIL-GEAR', estimatedHours: 6 },
-    { id: 'lubrication', name: 'Lubricación', code: 'MIL-LUBE', estimatedHours: 2 },
+    { id: 'gear', name: 'Corona y pinon', code: 'MIL-GEAR', estimatedHours: 6 },
+    { id: 'lubrication', name: 'Lubricacion', code: 'MIL-LUBE', estimatedHours: 2 },
     { id: 'drive', name: 'Sistema de accionamiento', code: 'MIL-DRIVE', estimatedHours: 4 },
   ],
   generic: [
-    { id: 'inspection', name: 'Inspección general', code: 'GEN-INSP', estimatedHours: 2 },
+    { id: 'inspection', name: 'Inspeccion general', code: 'GEN-INSP', estimatedHours: 2 },
     { id: 'power', name: 'Sistema de potencia', code: 'GEN-POWER', estimatedHours: 3 },
     { id: 'fluids', name: 'Fluidos y sellos', code: 'GEN-FLUID', estimatedHours: 2 },
     { id: 'structure', name: 'Estructura y fijaciones', code: 'GEN-STRUC', estimatedHours: 2 },
@@ -103,8 +103,10 @@ function normalizeAsset(asset: MaintenanceAsset) {
 
 export default function CreateWorkOrderPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialAssetId = searchParams.get('assetId') || '';
   const [step, setStep] = useState(1);
-  const [selectedAssetId, setSelectedAssetId] = useState('');
+  const [selectedAssetId, setSelectedAssetId] = useState(initialAssetId);
   const [selectedComponents, setSelectedComponents] = useState<string[]>([]);
   const [orderType, setOrderType] = useState('preventive');
   const [priority, setPriority] = useState('high');
@@ -120,13 +122,19 @@ export default function CreateWorkOrderPage() {
   const availableComponents = useMemo(() => resolveAssetTemplate(selectedAsset), [selectedAsset]);
   const selectedComponentsData = useMemo(
     () => availableComponents.filter((component) => selectedComponents.includes(component.id)),
-    [availableComponents, selectedComponents]
+    [availableComponents, selectedComponents],
   );
   const totalHours = selectedComponentsData.reduce((sum, component) => sum + component.estimatedHours, 0);
 
+  useEffect(() => {
+    if (!selectedAssetId && initialAssetId && assets.some((asset) => asset.id === initialAssetId)) {
+      setSelectedAssetId(initialAssetId);
+    }
+  }, [assets, initialAssetId, selectedAssetId]);
+
   const handleComponentToggle = (componentId: string) => {
     setSelectedComponents((prev) =>
-      prev.includes(componentId) ? prev.filter((id) => id !== componentId) : [...prev, componentId]
+      prev.includes(componentId) ? prev.filter((id) => id !== componentId) : [...prev, componentId],
     );
   };
 
@@ -147,8 +155,7 @@ export default function CreateWorkOrderPage() {
         body: JSON.stringify({
           assetId: selectedAsset.id,
           title: `${assetName} - ${componentNames}`,
-          description:
-            description || `Mantenimiento ${orderType} para ${assetName}. Componentes: ${componentNames}`,
+          description: description || `Mantenimiento ${orderType} para ${assetName}. Componentes: ${componentNames}`,
           workType: orderType,
           priority,
           plannedDurationHours: totalHours,
@@ -159,8 +166,13 @@ export default function CreateWorkOrderPage() {
       const result = await response.json().catch(() => null);
       if (!response.ok) throw new Error(result?.error || 'No fue posible crear la orden');
 
+      const createdId = result?.data?.id;
       toast.success('Orden de trabajo creada');
-      router.push(`/dashboard/work-orders/${result.data.id}`);
+      if (createdId) {
+        router.push(`/dashboard/work-orders/${createdId}`);
+      } else {
+        router.push('/dashboard/work-orders');
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Error al crear la orden');
     } finally {
@@ -171,10 +183,8 @@ export default function CreateWorkOrderPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Crear orden de mantención</h1>
-        <p className="mt-2 text-muted-foreground">
-          Flujo base del MVP con activos reales de mantención.
-        </p>
+        <h1 className="text-3xl font-bold">Crear orden de mantencion</h1>
+        <p className="mt-2 text-muted-foreground">Flujo base del MVP con activos reales de mantenimiento.</p>
       </div>
 
       <div className="flex gap-4">
@@ -208,14 +218,14 @@ export default function CreateWorkOrderPage() {
               <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm">
                 <div className="flex items-center gap-2 text-destructive">
                   <AlertCircle className="h-4 w-4" />
-                  <span>No fue posible cargar los activos de mantención.</span>
+                  <span>No fue posible cargar los activos de mantenimiento.</span>
                 </div>
               </div>
             )}
 
             {!isLoading && !error && assets.length === 0 && (
               <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
-                No hay activos registrados en `maintenance_assets` todavía.
+                No hay activos registrados todavia.
               </div>
             )}
 
@@ -233,9 +243,9 @@ export default function CreateWorkOrderPage() {
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <h3 className="font-semibold">{asset.asset_name || 'Activo sin nombre'}</h3>
-                    <p className="text-sm text-muted-foreground">Código: {asset.asset_code || '-'}</p>
+                    <p className="text-sm text-muted-foreground">Codigo: {asset.asset_code || '-'}</p>
                     <p className="text-sm text-muted-foreground">
-                      {asset.asset_type || 'Sin tipo'} - {asset.location || 'Sin ubicación'}
+                      {asset.asset_type || 'Sin tipo'} - {asset.location || 'Sin ubicacion'}
                     </p>
                     {(asset.manufacturer || asset.model) && (
                       <p className="text-sm text-muted-foreground">
@@ -255,9 +265,7 @@ export default function CreateWorkOrderPage() {
         <Card>
           <CardHeader>
             <CardTitle>Seleccionar componentes</CardTitle>
-            <CardDescription>
-              Define el alcance del trabajo para {selectedAsset?.asset_name || 'el activo'}
-            </CardDescription>
+            <CardDescription>Define el alcance del trabajo para {selectedAsset?.asset_name || 'el activo'}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {availableComponents.map((component) => (
@@ -308,7 +316,7 @@ export default function CreateWorkOrderPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="critical">Crítica</SelectItem>
+                  <SelectItem value="critical">Critica</SelectItem>
                   <SelectItem value="high">Alta</SelectItem>
                   <SelectItem value="medium">Media</SelectItem>
                   <SelectItem value="low">Baja</SelectItem>
@@ -317,7 +325,7 @@ export default function CreateWorkOrderPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Descripción</label>
+              <label className="text-sm font-medium">Descripcion</label>
               <textarea
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
@@ -329,7 +337,7 @@ export default function CreateWorkOrderPage() {
             <div className="space-y-2 rounded-lg bg-muted p-3 text-sm">
               <p className="font-semibold">Resumen</p>
               <p>Activo: {selectedAsset?.asset_name || '-'}</p>
-              <p>Código: {selectedAsset?.asset_code || '-'}</p>
+              <p>Codigo: {selectedAsset?.asset_code || '-'}</p>
               <p>Componentes: {selectedComponents.length}</p>
               <p>Tiempo total: {totalHours}h</p>
             </div>

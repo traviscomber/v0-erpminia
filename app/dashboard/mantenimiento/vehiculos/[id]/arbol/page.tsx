@@ -1,246 +1,299 @@
 'use client';
 
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { useMemo } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import useSWR from 'swr';
+import { AlertCircle, ArrowRight, Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown, ChevronRight, AlertCircle, AlertTriangle, Wrench } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-const faultTreeData = {
-  name: 'Excavadora CAT 390F',
-  code: 'EXC-001',
-  components: [
-    {
-      id: '1',
-      name: 'Sistema motor',
-      code: 'MOTOR-001',
-      status: 'operativo',
-      faults: [
-        {
-          id: 'f1',
-          name: 'Sobrecalentamiento',
-          code: 'FM-MOTOR-001',
-          severity: 'critica',
-          symptoms: 'Temperatura > 95C, humo',
-          parts: [
-            { id: 'p1', name: 'Radiador', code: 'PART-RAD-001', cost: 4500, stock: 0 },
-            { id: 'p2', name: 'Termostato', code: 'PART-TERM-001', cost: 450, stock: 2 },
-            { id: 'p3', name: 'Ventilador', code: 'PART-VEN-001', cost: 2800, stock: 1 },
-          ],
-        },
-        {
-          id: 'f2',
-          name: 'Perdida de potencia',
-          code: 'FM-MOTOR-002',
-          severity: 'mayor',
-          symptoms: 'Baja presion, humo negro',
-          parts: [
-            { id: 'p4', name: 'Juego Inyectores', code: 'PART-INY-001', cost: 1800, stock: 0 },
-            { id: 'p5', name: 'Turbocompresor', code: 'PART-TURBO-001', cost: 8900, stock: 0 },
-          ],
-        },
-      ],
-    },
-    {
-      id: '2',
-      name: 'Sistema hidraulico',
-      code: 'HIDRO-001',
-      status: 'operativo',
-      faults: [
-        {
-          id: 'f3',
-          name: 'Baja presion hidraulica',
-          code: 'FM-HID-001',
-          severity: 'critica',
-          symptoms: 'Movimientos lentos, sin fuerza',
-          parts: [
-            { id: 'p6', name: 'Bomba hidraulica', code: 'PART-BOMBA-001', cost: 12500, stock: 0 },
-            { id: 'p7', name: 'Filtro hidraulico', code: 'PART-FILTRO-001', cost: 180, stock: 5 },
-          ],
-        },
-      ],
-    },
-    {
-      id: '3',
-      name: 'Tren de rodaje',
-      code: 'RODAJE-001',
-      status: 'operativo',
-      faults: [
-        {
-          id: 'f4',
-          name: 'Desgaste de orugas',
-          code: 'FM-RODAJE-001',
-          severity: 'mayor',
-          symptoms: 'Ruido excesivo, resbalamiento',
-          parts: [{ id: 'p8', name: 'Orugas (par)', code: 'PART-ORUGAS-001', cost: 18000, stock: 0 }],
-        },
-      ],
-    },
-  ],
+type MaintenanceAsset = {
+  id: string;
+  assetCode?: string;
+  assetName?: string;
+  assetType?: string;
+  location?: string;
+  status?: string;
+  manufacturer?: string;
+  model?: string;
+  criticality?: string;
 };
 
-function FaultItem({ fault, onSelectPart }: any) {
-  const severityColor = {
-    critica: 'bg-destructive/10 text-destructive border-destructive/20',
-    mayor: 'bg-orange-100/50 text-orange-800 border-orange-200',
-    menor: 'bg-[var(--secondary)]/10/50 text-[var(--secondary)] border-[var(--secondary)]/30',
+type WorkOrder = {
+  id: string;
+  work_order_number: string;
+  title: string;
+  description?: string;
+  status: string;
+  priority: string;
+  work_type: string;
+  progress_percentage?: number;
+  planned_duration_hours?: number;
+  actual_duration_hours?: number;
+  assigned_to_name?: string;
+  created_at?: string;
+  scheduled_date?: string;
+  completion_date?: string;
+  asset_id?: string | null;
+};
+
+const fetcher = async (url: string) => {
+  const response = await fetch(url);
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) return null;
+  return payload;
+};
+
+function statusLabel(status: string) {
+  const labels: Record<string, string> = {
+    open: 'Abierta',
+    assigned: 'Asignada',
+    in_progress: 'En progreso',
+    completed: 'Completada',
+    closed: 'Cerrada',
   };
-
-  const SeverityIcon = fault.severity === 'critica' ? AlertCircle : AlertTriangle;
-
-  return (
-    <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-4">
-      <div className="flex items-start justify-between">
-        <div className="flex flex-1 items-start gap-3">
-          <SeverityIcon className={`mt-0.5 h-5 w-5 ${fault.severity === 'critica' ? 'text-destructive' : 'text-orange-600'}`} />
-          <div>
-            <h4 className="font-semibold">{fault.name}</h4>
-            <p className="text-xs text-muted-foreground">{fault.code}</p>
-          </div>
-        </div>
-        <Badge className={severityColor[fault.severity as keyof typeof severityColor]}>
-          {fault.severity.toUpperCase()}
-        </Badge>
-      </div>
-
-      <div className="text-sm">
-        <p className="text-muted-foreground">
-          <span className="font-medium">Sintomas:</span> {fault.symptoms}
-        </p>
-      </div>
-
-      <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase text-muted-foreground">Piezas asociadas:</p>
-        <div className="space-y-2">
-          {fault.parts.map((part: any) => (
-            <div key={part.id} className="flex items-center justify-between rounded border border-border bg-background p-2 text-sm">
-              <div>
-                <p className="font-medium">{part.name}</p>
-                <p className="text-xs text-muted-foreground">{part.code}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="text-right">
-                  <p className="font-semibold">${part.cost.toLocaleString()}</p>
-                  <p className={`text-xs ${part.stock === 0 ? 'text-destructive' : 'text-accent'}`}>Stock: {part.stock}</p>
-                </div>
-                <Button size="sm" variant="outline" onClick={() => onSelectPart(part)}>
-                  Agregar
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+  return labels[status] || status || 'Sin estado';
 }
 
-function ComponentNode({ component, onSelectPart }: any) {
-  const [expanded, setExpanded] = useState(true);
+function priorityLabel(priority: string) {
+  const labels: Record<string, string> = {
+    low: 'Baja',
+    medium: 'Media',
+    high: 'Alta',
+    critical: 'Critica',
+  };
+  return labels[priority] || priority || 'Sin prioridad';
+}
 
-  return (
-    <div className="space-y-3">
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="flex w-full items-center gap-2 rounded-lg border border-border p-3 text-left transition-colors hover:bg-muted/50"
-      >
-        {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-        <div className="flex-1">
-          <p className="font-semibold">{component.name}</p>
-          <p className="text-xs text-muted-foreground">{component.code}</p>
-        </div>
-        <Badge className="bg-accent/10 text-accent">{component.faults.length} fallas</Badge>
-      </button>
+function workTypeLabel(workType: string) {
+  const labels: Record<string, string> = {
+    preventive: 'Preventivo',
+    corrective: 'Correctivo',
+    predictive: 'Predictivo',
+  };
+  return labels[workType] || workType || 'Sin tipo';
+}
 
-      {expanded && (
-        <div className="ml-6 space-y-4 border-l-2 border-border pl-4">
-          {component.faults.map((fault: any) => (
-            <FaultItem key={fault.id} fault={fault} onSelectPart={onSelectPart} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
+function badgeClass(status: string) {
+  switch (status) {
+    case 'completed':
+      return 'bg-green-600/10 text-green-700';
+    case 'in_progress':
+      return 'bg-blue-600/10 text-blue-700';
+    case 'open':
+      return 'bg-orange-600/10 text-orange-700';
+    case 'closed':
+      return 'bg-slate-600/10 text-slate-700';
+    default:
+      return 'bg-muted text-muted-foreground';
+  }
 }
 
 export default function VehicleFaultTreePage() {
-  const [selectedParts, setSelectedParts] = useState<any[]>([]);
+  const params = useParams<{ id: string }>();
+  const router = useRouter();
+  const assetId = decodeURIComponent(String(params.id || ''));
 
-  const handleSelectPart = (part: any) => {
-    if (!selectedParts.find((p) => p.id === part.id)) {
-      setSelectedParts([...selectedParts, part]);
-    }
-  };
+  const { data: assetData, error: assetError, isLoading: assetLoading } = useSWR('/api/maintenance/assets', fetcher, {
+    revalidateOnFocus: false,
+  });
 
-  const handleRemovePart = (partId: string) => {
-    setSelectedParts(selectedParts.filter((p) => p.id !== partId));
-  };
+  const { data: workOrderData, error: workOrderError, isLoading: workOrdersLoading } = useSWR(
+    '/api/maintenance/work-orders',
+    fetcher,
+    {
+      revalidateOnFocus: false,
+    },
+  );
+
+  const assets = ((assetData?.assets || []) as MaintenanceAsset[]).map((asset) => ({
+    ...asset,
+    assetCode: asset.assetCode || '',
+    assetName: asset.assetName || '',
+    assetType: asset.assetType || '',
+  }));
+
+  const workOrders = (workOrderData?.workOrders || []) as WorkOrder[];
+
+  const selectedAsset = assets.find((asset) => asset.id === assetId) || null;
+  const assetOrders = useMemo(
+    () => workOrders.filter((order) => String(order.asset_id || '') === assetId),
+    [assetId, workOrders],
+  );
+
+  const openOrders = assetOrders.filter((order) => order.status === 'open' || order.status === 'assigned');
+  const progressOrders = assetOrders.filter((order) => order.status === 'in_progress');
+  const closedOrders = assetOrders.filter((order) => order.status === 'completed' || order.status === 'closed');
+
+  if (assetLoading || workOrdersLoading) {
+    return <div className="text-muted-foreground">Cargando informacion del activo...</div>;
+  }
+
+  if (assetError || workOrderError) {
+    return (
+      <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+        No fue posible cargar el historial real del activo.
+      </div>
+    );
+  }
+
+  if (!selectedAsset) {
+    return (
+      <div className="space-y-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Activo no encontrado</h1>
+          <p className="mt-2 text-muted-foreground">No pudimos ubicar el equipo solicitado en la base real.</p>
+        </div>
+        <Button variant="outline" onClick={() => router.push('/dashboard/mantenimiento/vehiculos')}>
+          Volver a vehiculos
+        </Button>
+      </div>
+    );
+  }
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-      <div className="space-y-6 lg:col-span-2">
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{faultTreeData.name}</h1>
-          <p className="mt-2 text-muted-foreground">
-            Arbol de fallas interactivo. Selecciona piezas para agregar a la orden.
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight">{selectedAsset.assetName || 'Activo'}</h1>
+          <p className="mt-2 text-muted-foreground">Vista real del activo con su historial de ordenes de trabajo.</p>
         </div>
+        <Link href={`/dashboard/work-orders/create?assetId=${selectedAsset.id}`}>
+          <Button className="gap-2">
+            <Wrench className="h-4 w-4" />
+            Crear orden de trabajo
+          </Button>
+        </Link>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total ordenes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{assetOrders.length}</div>
+          </CardContent>
+        </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Arbol de componentes</CardTitle>
-            <CardDescription>Haz clic en un componente para ver sus modos de falla</CardDescription>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Abiertas</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
-            {faultTreeData.components.map((component: any) => (
-              <ComponentNode key={component.id} component={component} onSelectPart={handleSelectPart} />
-            ))}
+          <CardContent>
+            <div className="text-3xl font-bold text-orange-600">{openOrders.length}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">En progreso</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-blue-600">{progressOrders.length}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Cerradas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-green-600">{closedOrders.length}</div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="lg:col-span-1">
-        <Card className="sticky top-4">
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card className="lg:col-span-1">
           <CardHeader>
-            <CardTitle className="text-lg">Piezas seleccionadas</CardTitle>
-            <CardDescription>{selectedParts.length} piezas</CardDescription>
+            <CardTitle>Ficha del activo</CardTitle>
+            <CardDescription>Datos reales del sistema</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {selectedParts.length === 0 ? (
-              <p className="py-6 text-center text-sm text-muted-foreground">
-                Selecciona piezas del arbol para agregarlas
-              </p>
+          <CardContent className="space-y-3 text-sm">
+            <div>
+              <p className="text-muted-foreground">Codigo</p>
+              <p className="font-semibold">{selectedAsset.assetCode || '-'}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Tipo</p>
+              <p className="font-semibold">{selectedAsset.assetType || '-'}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Ubicacion</p>
+              <p className="font-semibold">{selectedAsset.location || '-'}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Fabricante</p>
+              <p className="font-semibold">{selectedAsset.manufacturer || '-'}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Modelo</p>
+              <p className="font-semibold">{selectedAsset.model || '-'}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Criticidad</p>
+              <p className="font-semibold">{selectedAsset.criticality || '-'}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Ordenes relacionadas</CardTitle>
+            <CardDescription>Historial operativo del activo con estados reales</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {assetOrders.length === 0 ? (
+              <div className="flex items-center gap-2 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
+                <AlertCircle className="h-4 w-4" />
+                No hay ordenes de trabajo asociadas a este activo.
+              </div>
             ) : (
-              <>
-                <div className="max-h-96 space-y-2 overflow-y-auto">
-                  {selectedParts.map((part: any) => (
-                    <div key={part.id} className="rounded-lg border border-border bg-muted p-3 text-sm">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <p className="font-medium">{part.name}</p>
-                          <p className="text-xs text-muted-foreground">{part.code}</p>
-                          <p className="mt-1 font-semibold text-accent">${part.cost.toLocaleString()}</p>
+              <div className="space-y-3">
+                {assetOrders.map((order) => (
+                  <div key={order.id} className="rounded-lg border border-border bg-background p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="font-semibold">{order.work_order_number}</p>
+                          <Badge className={badgeClass(order.status)}>{statusLabel(order.status)}</Badge>
+                          <Badge variant="outline">{priorityLabel(order.priority)}</Badge>
+                          <Badge variant="outline">{workTypeLabel(order.work_type)}</Badge>
                         </div>
-                        <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => handleRemovePart(part.id)}>
-                          x
-                        </Button>
+                        <p className="mt-1 text-sm text-muted-foreground">{order.title}</p>
+                        {order.description ? <p className="mt-1 text-xs text-muted-foreground">{order.description}</p> : null}
+                      </div>
+                      <div className="text-right text-sm text-muted-foreground">
+                        <p>{order.scheduled_date ? new Date(order.scheduled_date).toLocaleDateString('es-CL') : 'Sin fecha'}</p>
+                        {typeof order.progress_percentage === 'number' ? (
+                          <p className="mt-1 font-semibold text-foreground">{order.progress_percentage}% completado</p>
+                        ) : null}
                       </div>
                     </div>
-                  ))}
-                </div>
-                <div className="space-y-2 border-t border-border pt-4">
-                  <div className="text-sm">
-                    <p className="text-muted-foreground">Total estimado:</p>
-                    <p className="text-lg font-bold text-accent">
-                      ${selectedParts.reduce((sum, p) => sum + p.cost, 0).toLocaleString()}
-                    </p>
+                    <div className="mt-3 grid gap-3 text-sm md:grid-cols-3">
+                      <div>
+                        <p className="text-muted-foreground">Tecnico</p>
+                        <p className="font-medium">{order.assigned_to_name || 'Sin asignar'}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Horas</p>
+                        <p className="font-medium">
+                          {order.actual_duration_hours || '-'} / {order.planned_duration_hours || '-'} h
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Creada</p>
+                        <p className="font-medium">
+                          {order.created_at ? new Date(order.created_at).toLocaleDateString('es-CL') : '-'}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <Button className="w-full gap-2">
-                    <Wrench className="h-4 w-4" />
-                    Crear orden de mantenimiento
-                  </Button>
-                </div>
-              </>
+                ))}
+              </div>
             )}
           </CardContent>
         </Card>
