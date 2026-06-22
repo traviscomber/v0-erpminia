@@ -12,16 +12,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const CATEGORY_DISPLAY = {
-  seguridad: { name: 'Documentos de seguridad', icon: '🛡️' },
-  ambiental: { name: 'Documentos ambientales', icon: '🌱' },
-  operacional: { name: 'Documentos operacionales', icon: '⚙️' },
-  laboral: { name: 'Documentos laborales', icon: '👥' },
+  seguridad: { name: 'Documentos de seguridad', icon: 'Seguridad' },
+  ambiental: { name: 'Documentos ambientales', icon: 'Ambiental' },
+  operacional: { name: 'Documentos operacionales', icon: 'Operacional' },
+  laboral: { name: 'Documentos laborales', icon: 'Laboral' },
 };
 
 function statusBadge(estado: string) {
-  if (estado === 'aprobado') return <Badge className="bg-[var(--brand-verde)]">✓ Aprobado</Badge>;
-  if (estado.includes('pendiente')) return <Badge className="bg-[var(--secondary)]">⏱ Pendiente</Badge>;
-  if (estado === 'rechazado') return <Badge className="bg-[var(--brand-rojo)]">✕ Rechazado</Badge>;
+  if (estado === 'aprobado') return <Badge className="bg-[var(--brand-verde)]">Aprobado</Badge>;
+  if (estado.includes('pendiente')) return <Badge className="bg-[var(--secondary)]">Pendiente</Badge>;
+  if (estado === 'rechazado') return <Badge className="bg-[var(--brand-rojo)]">Rechazado</Badge>;
   return <Badge variant="outline">{estado}</Badge>;
 }
 
@@ -33,7 +33,7 @@ export default function CategoryDetailPage() {
 
   const categoryInfo = CATEGORY_DISPLAY[categoryId as keyof typeof CATEGORY_DISPLAY] || {
     name: 'Documentos',
-    icon: '📄',
+    icon: 'Documentos',
   };
 
   const { data, error, isLoading } = useSWR(`/api/dashboard/documentos-gestion/${categoryId}`, fetcher, {
@@ -42,7 +42,7 @@ export default function CategoryDetailPage() {
   });
 
   if (error) return <div className="text-red-500">Error al cargar documentos</div>;
-  if (isLoading) return <div className="text-gray-500">Cargando gestión documental...</div>;
+  if (isLoading) return <div className="text-gray-500">Cargando gestion documental...</div>;
 
   const stats = data?.stats || { total: 0, aprobados: 0, pendientes: 0, rechazados: 0 };
   const docs = data?.documents || { aprobados: [], pendientes: [], rechazados: [] };
@@ -55,7 +55,7 @@ export default function CategoryDetailPage() {
           {statusBadge(doc.estado)}
         </div>
         <p className="text-sm text-muted-foreground">
-          ID: {doc.documentId} • v{doc.version}
+          ID: {doc.documentId} - v{doc.version}
         </p>
         {doc.validador1.nombre && (
           <p className="mt-1 text-xs text-muted-foreground">
@@ -89,7 +89,7 @@ export default function CategoryDetailPage() {
           <h1 className="text-3xl font-bold">
             {categoryInfo.icon} {categoryInfo.name}
           </h1>
-          <p className="text-muted-foreground">Gestión de documentos con flujo de aprobaciones</p>
+          <p className="text-muted-foreground">Gestion de documentos con flujo de aprobaciones</p>
         </div>
       </div>
 

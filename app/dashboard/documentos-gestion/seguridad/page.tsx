@@ -1,11 +1,11 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { AlertTriangle, Download, Plus, Search, Shield } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Download, AlertTriangle, Shield } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 
 type SafetyDoc = {
   id: string;
@@ -177,7 +177,7 @@ export default function SeguridadPage() {
                       <p className="text-xs text-muted-foreground">
                         {doc.type === 'MSDS'
                           ? `Sustancia: ${doc.chemical}`
-                          : `Categoria: ${doc.category || doc.incident || doc.area}`} · {doc.date}
+                          : `Categoria: ${doc.category || doc.incident || doc.area}`} - {doc.date}
                       </p>
                     </div>
                   </div>

@@ -81,7 +81,7 @@ export default function ReportesPage() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Reportes este año</CardTitle>
+            <CardTitle className="text-sm">Reportes este ano</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">24</div>
@@ -105,7 +105,7 @@ export default function ReportesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">38</div>
-            <p className="mt-1 text-xs text-muted-foreground">Tamaño medio por documento</p>
+            <p className="mt-1 text-xs text-muted-foreground">Tamano medio por documento</p>
           </CardContent>
         </Card>
 
@@ -176,7 +176,7 @@ export default function ReportesPage() {
                       </div>
                       <p className="text-sm text-muted-foreground">{report.title}</p>
                       <p className="text-xs text-muted-foreground">
-                        Autor: {report.author} · {report.date} · {report.pages} paginas · {report.size}
+                        Autor: {report.author} - {report.date} - {report.pages} paginas - {report.size}
                       </p>
                     </div>
                   </div>

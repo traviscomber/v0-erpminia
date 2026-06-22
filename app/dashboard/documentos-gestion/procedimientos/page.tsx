@@ -181,7 +181,7 @@ export default function ProcedimientosPage() {
                       </div>
                       <p className="text-sm text-muted-foreground">{proc.title}</p>
                       <p className="text-xs text-muted-foreground">
-                        Revisado por {proc.reviewedBy} · {proc.lastReview} · {proc.documents} documentos
+                        Revisado por {proc.reviewedBy} - {proc.lastReview} - {proc.documents} documentos
                       </p>
                     </div>
                   </div>

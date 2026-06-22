@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { AlertCircle, CheckCircle2, Clock, FileText } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DocumentUpload } from '@/components/documents/document-upload';
 import { DocumentList, Document } from '@/components/documents/document-list';
 import { DocumentReviewModal } from '@/components/documents/document-review-modal';
-import { FileText, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
 
 interface DocumentStats {
   total: number;
@@ -123,10 +123,8 @@ export default function DocumentosLegalPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Documentos Legales</h1>
-        <p className="mt-2 text-muted-foreground">
-          Gestión de contratos, políticas y documentos legales
-        </p>
+        <h1 className="text-3xl font-bold">Documentos legales</h1>
+        <p className="mt-2 text-muted-foreground">Gestion de contratos, politicas y documentos legales.</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
@@ -139,7 +137,7 @@ export default function DocumentosLegalPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{stats.total}</p>
-            <p className="text-xs text-muted-foreground">documentos</p>
+            <p className="text-xs text-muted-foreground">Documentos cargados</p>
           </CardContent>
         </Card>
 
@@ -152,20 +150,20 @@ export default function DocumentosLegalPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-green-500">{stats.vigentes}</p>
-            <p className="text-xs text-muted-foreground">aprobados</p>
+            <p className="text-xs text-muted-foreground">Aprobados</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center justify-between text-sm font-medium">
-              <span>En revisión</span>
+              <span>En revision</span>
               <Clock className="h-4 w-4 text-yellow-500" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-yellow-500">{stats.en_revision}</p>
-            <p className="text-xs text-muted-foreground">esperando aprobación</p>
+            <p className="text-xs text-muted-foreground">Esperando aprobacion</p>
           </CardContent>
         </Card>
 
@@ -178,7 +176,7 @@ export default function DocumentosLegalPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-red-500">{stats.rechazados}</p>
-            <p className="text-xs text-muted-foreground">pendientes de corrección</p>
+            <p className="text-xs text-muted-foreground">Pendientes de correccion</p>
           </CardContent>
         </Card>
       </div>
@@ -192,7 +190,7 @@ export default function DocumentosLegalPage() {
             Vigentes
           </TabsTrigger>
           <TabsTrigger value="revision" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-            En revisión
+            En revision
           </TabsTrigger>
           <TabsTrigger value="upload" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             Subir documentos
@@ -200,21 +198,11 @@ export default function DocumentosLegalPage() {
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
-          <DocumentList
-            documents={documents}
-            isLoading={loading}
-            onView={handleView}
-            onDelete={handleDelete}
-          />
+          <DocumentList documents={documents} isLoading={loading} onView={handleView} onDelete={handleDelete} />
         </TabsContent>
 
         <TabsContent value="vigentes" className="space-y-4">
-          <DocumentList
-            documents={documents.filter((d) => d.status === 'active')}
-            isLoading={loading}
-            onView={handleView}
-            onDelete={handleDelete}
-          />
+          <DocumentList documents={documents.filter((d) => d.status === 'active')} isLoading={loading} onView={handleView} onDelete={handleDelete} />
         </TabsContent>
 
         <TabsContent value="revision" className="space-y-4">
@@ -230,7 +218,7 @@ export default function DocumentosLegalPage() {
           <Card>
             <CardHeader>
               <CardTitle>Subir nuevo documento</CardTitle>
-              <CardDescription>Sube contratos, políticas y documentos legales</CardDescription>
+              <CardDescription>Sube contratos, politicas y documentos legales.</CardDescription>
             </CardHeader>
             <CardContent>
               <DocumentUpload module="legal" category="documentos" onUploadSuccess={loadDocuments} />
