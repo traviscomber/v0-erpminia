@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
@@ -26,7 +26,7 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
   const [description, setDescription] = useState('');
   const [contractNumber, setContractNumber] = useState('');
   const [contractType, setContractType] = useState('Servicios');
-  const [status, setStatus] = useState('En Revisión');
+  const [status, setStatus] = useState('En Revision');
   const [contractValue, setContractValue] = useState('');
   const [currency, setCurrency] = useState('CLP');
   const [startDate, setStartDate] = useState('');
@@ -40,7 +40,7 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
     setDescription('');
     setContractNumber('');
     setContractType('Servicios');
-    setStatus('En Revisión');
+    setStatus('En Revision');
     setContractValue('');
     setCurrency('CLP');
     setStartDate('');
@@ -124,7 +124,7 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Nuevo Contrato Legal</DialogTitle>
+          <DialogTitle>Nuevo contrato legal</DialogTitle>
           <DialogDescription>
             Registra contratos, subcontratos o anexos con respaldo documental y archivo adjunto.
           </DialogDescription>
@@ -133,9 +133,9 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium text-foreground">Título</label>
+              <label className="text-sm font-medium text-foreground">Titulo</label>
               <Input
-                placeholder="Ej: Contrato Principal Operaciones La Patagua 2026"
+                placeholder="Ej: Contrato principal Operaciones La Patagua 2026"
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
                 disabled={isLoading}
@@ -163,7 +163,7 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
             </div>
 
             <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium text-foreground">Descripción</label>
+              <label className="text-sm font-medium text-foreground">Descripcion</label>
               <Textarea
                 placeholder="Alcance, condiciones clave y observaciones"
                 value={description}
@@ -196,7 +196,7 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
                   <SelectValue placeholder="Seleccionar" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="En Revisión">En Revisión</SelectItem>
+                  <SelectItem value="En Revision">En Revision</SelectItem>
                   <SelectItem value="Vigente">Vigente</SelectItem>
                   <SelectItem value="Borrador">Borrador</SelectItem>
                   <SelectItem value="Por Vencer">Por Vencer</SelectItem>
@@ -242,7 +242,7 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Fecha término</label>
+              <label className="text-sm font-medium text-foreground">Fecha termino</label>
               <Input
                 type="date"
                 value={endDate}
@@ -252,7 +252,7 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Área responsable</label>
+              <label className="text-sm font-medium text-foreground">Area responsable</label>
               <Input
                 placeholder="Legal, Abastecimiento, Operaciones..."
                 value={responsibleArea}
@@ -287,14 +287,12 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
                 disabled={isLoading}
                 accept=".pdf,.doc,.docx"
               />
-              <label htmlFor="legal-contract-file" className="cursor-pointer block">
+              <label htmlFor="legal-contract-file" className="block cursor-pointer">
                 <Upload className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
                 <p className="text-sm font-medium text-foreground">
                   {file ? file.name : 'Haz clic para adjuntar el contrato'}
                 </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  PDF, DOC o DOCX, máximo 50MB
-                </p>
+                <p className="mt-1 text-xs text-muted-foreground">PDF, DOC o DOCX, maximo 50MB</p>
               </label>
             </div>
           </div>
@@ -312,7 +310,7 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
               ) : (
                 <>
                   <Upload className="mr-2 h-4 w-4" />
-                  Crear Contrato
+                  Crear contrato
                 </>
               )}
             </Button>
