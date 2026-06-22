@@ -1,9 +1,9 @@
 # N3uralia ERP MVP - Status Report
 
 ## Current Status
-- **Overall:** 90-92% complete
-- **State:** Production ready core
-- **Remaining:** 8-10% for polish, consistency, and hardening
+- **Overall:** 60-65% complete
+- **State:** Core working, roadmap still open
+- **Remaining:** 35-40% for workflow depth, data completion, and QA
 
 ---
 
@@ -62,7 +62,7 @@
 
 ### 4. Maintenance and telemetry
 - Finish telemetry and sensor monitor
-- Close any remaining workflow gaps
+- Close workflow gaps
 - Keep work order creation and closure stable
 
 ### 5. Admin and audit trail
@@ -80,7 +80,7 @@
 
 ## Recommendation
 
-The MVP can be treated as production ready for the core flow. The remaining work is mostly finish work, not a structural rebuild.
+The MVP is usable and already has a strong production core, but it still has enough open work that it should not be described as nearly finished.
 
 Suggested order:
 1. Maintenance and telemetry
@@ -88,4 +88,3 @@ Suggested order:
 3. Bodega and inventory final pass
 4. Admin and permissions review
 5. Final production QA
-

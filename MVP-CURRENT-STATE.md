@@ -1,10 +1,10 @@
-# MVP CURRENT STATE: Production Ready Core
+# MVP CURRENT STATE: Mid-Roadmap Reality
 
 ## Quick Status
-- **Current**: 90-92% MVP complete
-- **Target**: 100% roadmap closeout
-- **Gap**: 8-10% remaining
-- **Status**: Core production flow ready, polish and hardening still pending
+- **Current**: 60-65% MVP complete
+- **Target**: 100% original 7-month roadmap
+- **Gap**: 35-40% remaining
+- **Status**: Core production flow working, but several modules still need real data, workflow depth, and QA
 
 ---
 
@@ -43,13 +43,13 @@
 ### 1. Roadmap polish and consistency
 - Final copy review across remaining screens
 - Keep all user facing text in Spanish
-- Remove any residual English or broken text in secondary views
+- Remove residual English or broken text in secondary views
 - Keep no BOM and no encoding issues in new files
 
 ### 2. Documentos gestion and shared modals
 - Finish the remaining subroutes
 - Tighten shared approval and upload modals
-- Keep all documents flows visually uniform
+- Keep all document flows visually uniform
 
 ### 3. Bodega and inventory hardening
 - Final visual pass on import and dashboard flows
@@ -57,8 +57,8 @@
 - Keep inventory data real and avoid mock fallback
 
 ### 4. Maintenance and telemetry
-- Finish the telemetry/sensor monitor module
-- Close any last workflow gaps in maintenance
+- Finish the telemetry and sensor monitor module
+- Close workflow gaps in maintenance
 - Keep work order creation and closure stable
 
 ### 5. Admin and audit trail polish
@@ -83,13 +83,13 @@
 - Done
 
 ### Phase 2
-- Mostly done
+- In progress
 
 ### Phase 3
-- Mostly done
+- In progress
 
 ### Phase 4
-- Mostly done
+- In progress
 
 ### Phase 5 and 6
 - Remaining QA, polish, and launch hardening
@@ -108,5 +108,4 @@
 
 ## Updated View
 
-The MVP is no longer a prototype. It is a production ready core with a small remaining buffer for polish, consistency, and hardening.
-
+The MVP is not a prototype anymore, but it is also not 90% done. It is a strong mid-to-late roadmap build with a meaningful amount of finish work still ahead.

@@ -1,4 +1,4 @@
-# Roadmap MVP 6 Meses
+# Roadmap MVP Original 7 Meses
 
 ## Objetivo
 Construir un MVP enterprise grade listo para produccion para n3uralia ERP mining, centrado en:
@@ -7,9 +7,9 @@ Construir un MVP enterprise grade listo para produccion para n3uralia ERP mining
 3. Bodega e Inventario
 
 ## Estado Actual
-- **MVP actual:** 90-92% completo
-- **Estado:** core operativo listo para produccion
-- **Restante:** 8-10% de polish, QA y hardening
+- **MVP actual:** 60-65% completo
+- **Estado:** core operativo con varios bloques aun abiertos
+- **Restante:** 35-40% de polish, workflow depth, data y QA
 
 ## Lo que ya esta cubierto
 - Autenticacion y roles
@@ -84,5 +84,4 @@ Construir un MVP enterprise grade listo para produccion para n3uralia ERP mining
 ---
 
 ## Lectura Ejecutiva
-El roadmap sigue siendo de 6 meses, pero hoy el sistema ya llego al punto donde el trabajo restante es cierre de bloques, consistencia de data y QA final.
-
+El roadmap original es de 7 meses. Hoy el sistema ya tiene una base solida, pero todavia queda bastante trabajo para cerrar bloques, completar data real y llegar al nivel final de QA y produccion.
