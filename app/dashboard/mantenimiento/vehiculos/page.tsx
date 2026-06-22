@@ -36,7 +36,9 @@ export default function VehiclesPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Gestion de vehiculos</h1>
-        <p className="mt-2 text-muted-foreground">Administra vehiculos y arbol de fallas con datos reales del sistema.</p>
+        <p className="mt-2 text-muted-foreground">
+          Administra vehiculos y arbol de fallas con datos reales del sistema.
+        </p>
         <div className="mt-4 rounded-lg border border-[var(--secondary)]/30 bg-[var(--secondary)]/5 p-4 dark:border-blue-800 dark:bg-blue-950">
           <p className="text-sm text-blue-900 dark:text-blue-100">
             <strong>Como funciona:</strong> cada activo trae su informacion operacional y puedes abrir el
@@ -66,7 +68,9 @@ export default function VehiclesPage() {
       <Card>
         <CardHeader>
           <CardTitle>Vehiculos en sistema</CardTitle>
-          <CardDescription>{isLoading ? 'Cargando activos...' : `${vehicles.length} vehiculos registrados`}</CardDescription>
+          <CardDescription>
+            {isLoading ? 'Cargando activos...' : `${vehicles.length} vehiculos registrados`}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {error ? (

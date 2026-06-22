@@ -21,7 +21,7 @@ const faultTreeData = {
           name: 'Sobrecalentamiento',
           code: 'FM-MOTOR-001',
           severity: 'critica',
-          symptoms: 'Temperatura > 95°C, humo',
+          symptoms: 'Temperatura > 95C, humo',
           parts: [
             { id: 'p1', name: 'Radiador', code: 'PART-RAD-001', cost: 4500, stock: 0 },
             { id: 'p2', name: 'Termostato', code: 'PART-TERM-001', cost: 450, stock: 2 },
@@ -92,9 +92,7 @@ function FaultItem({ fault, onSelectPart }: any) {
     <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-4">
       <div className="flex items-start justify-between">
         <div className="flex flex-1 items-start gap-3">
-          <SeverityIcon
-            className={`mt-0.5 h-5 w-5 ${fault.severity === 'critica' ? 'text-destructive' : 'text-orange-600'}`}
-          />
+          <SeverityIcon className={`mt-0.5 h-5 w-5 ${fault.severity === 'critica' ? 'text-destructive' : 'text-orange-600'}`} />
           <div>
             <h4 className="font-semibold">{fault.name}</h4>
             <p className="text-xs text-muted-foreground">{fault.code}</p>
@@ -115,10 +113,7 @@ function FaultItem({ fault, onSelectPart }: any) {
         <p className="text-xs font-semibold uppercase text-muted-foreground">Piezas asociadas:</p>
         <div className="space-y-2">
           {fault.parts.map((part: any) => (
-            <div
-              key={part.id}
-              className="flex items-center justify-between rounded border border-border bg-background p-2 text-sm"
-            >
+            <div key={part.id} className="flex items-center justify-between rounded border border-border bg-background p-2 text-sm">
               <div>
                 <p className="font-medium">{part.name}</p>
                 <p className="text-xs text-muted-foreground">{part.code}</p>
@@ -126,9 +121,7 @@ function FaultItem({ fault, onSelectPart }: any) {
               <div className="flex items-center gap-2">
                 <div className="text-right">
                   <p className="font-semibold">${part.cost.toLocaleString()}</p>
-                  <p className={`text-xs ${part.stock === 0 ? 'text-destructive' : 'text-accent'}`}>
-                    Stock: {part.stock}
-                  </p>
+                  <p className={`text-xs ${part.stock === 0 ? 'text-destructive' : 'text-accent'}`}>Stock: {part.stock}</p>
                 </div>
                 <Button size="sm" variant="outline" onClick={() => onSelectPart(part)}>
                   Agregar
@@ -228,12 +221,7 @@ export default function VehicleFaultTreePage() {
                           <p className="text-xs text-muted-foreground">{part.code}</p>
                           <p className="mt-1 font-semibold text-accent">${part.cost.toLocaleString()}</p>
                         </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-6 w-6 p-0"
-                          onClick={() => handleRemovePart(part.id)}
-                        >
+                        <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => handleRemovePart(part.id)}>
                           x
                         </Button>
                       </div>

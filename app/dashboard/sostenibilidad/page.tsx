@@ -26,12 +26,7 @@ type OverviewResponse = {
     overdue_cas: number;
     trend: 'mejorando' | 'empeorando' | 'stable';
   };
-  nc_stats: {
-    critical: number;
-    high: number;
-    medium: number;
-    low: number;
-  };
+  nc_stats: { critical: number; high: number; medium: number; low: number };
   ca_stats: {
     total: number;
     planned: number;
@@ -41,13 +36,7 @@ type OverviewResponse = {
     completionRate: number;
   };
   trends: Array<{ report_period: string; compliance_score: number }>;
-  top_risks: Array<{
-    id: string;
-    nc_number: string | null;
-    title: string | null;
-    severity: string | null;
-    status: string | null;
-  }>;
+  top_risks: Array<{ id: string; nc_number: string | null; title: string | null; severity: string | null; status: string | null }>;
   inspections_completed: number;
   generated_at: string;
 };
@@ -110,10 +99,7 @@ export default function SostenibilidadDashboard() {
   const { data: overviewData } = useSWR<OverviewResponse>('/api/sostenibilidad/dashboard/overview', fetcher, {
     refreshInterval: 60000,
   });
-  const { data: documentosData } = useSWR<ListResponse>(
-    '/api/documents/list?module=prevenci%C3%B3n&category=documentos-hse',
-    fetcher
-  );
+  const { data: documentosData } = useSWR<ListResponse>('/api/documents/list?module=prevencion&category=documentos-hse', fetcher);
   const { data: capacitacionesData } = useSWR<ListResponse>('/api/sostenibilidad/capacitaciones', fetcher);
   const { data: eppData } = useSWR<ListResponse>('/api/sostenibilidad/epp', fetcher);
   const { data: inspeccionesData } = useSWR<ListResponse>('/api/sostenibilidad/inspecciones', fetcher);
@@ -141,7 +127,7 @@ export default function SostenibilidadDashboard() {
 
     return [
       {
-        title: 'Prevención de Riesgos',
+        title: 'Prevencion de Riesgos',
         icon: <Shield className="w-8 h-8" />,
         colorClass: 'text-primary',
         bgClass: 'bg-primary/10',
@@ -162,7 +148,7 @@ export default function SostenibilidadDashboard() {
         modules: [
           { name: 'Monitoreos', path: '/dashboard/sostenibilidad/medio-ambiente', count: ambienteCount, status: makeStatus(ambienteCount) },
           { name: 'Permisos', path: '/dashboard/sostenibilidad/medio-ambiente', count: ambienteCount, status: makeStatus(ambienteCount) },
-          { name: 'Planes de acción', path: '/dashboard/sostenibilidad/medio-ambiente', count: overdueCas, status: makeStatus(overdueCas) },
+          { name: 'Planes de accion', path: '/dashboard/sostenibilidad/medio-ambiente', count: overdueCas, status: makeStatus(overdueCas) },
         ],
       },
       {
@@ -195,9 +181,9 @@ export default function SostenibilidadDashboard() {
   const topMetrics = [
     { label: 'Score de compliance', value: `${complianceScore}%`, helper: overview.overview.trend, tone: complianceScore >= 85 ? 'text-secondary' : complianceScore >= 70 ? 'text-primary' : 'text-destructive' },
     { label: 'NC abiertas', value: `${openNcs}`, helper: `${overview.overview.total_ncs} totales`, tone: 'text-primary' },
-    { label: 'CAs vencidas', value: `${overdueCas}`, helper: 'Requieren acción', tone: overdueCas > 0 ? 'text-destructive' : 'text-secondary' },
+    { label: 'CAs vencidas', value: `${overdueCas}`, helper: 'Requieren accion', tone: overdueCas > 0 ? 'text-destructive' : 'text-secondary' },
     { label: 'Inspecciones cerradas', value: `${inspeccionesCount}`, helper: 'Fuente real', tone: 'text-secondary' },
-    { label: 'Documentos HSE', value: `${docCount}`, helper: 'En el módulo', tone: 'text-primary' },
+    { label: 'Documentos HSE', value: `${docCount}`, helper: 'En el modulo', tone: 'text-primary' },
   ];
 
   return (
@@ -214,7 +200,7 @@ export default function SostenibilidadDashboard() {
           </div>
           <h1 className="text-4xl font-bold text-foreground">Departamento de Sostenibilidad</h1>
           <p className="mt-2 max-w-3xl text-muted-foreground">
-            Gestión integrada de Prevención de Riesgos, Medio Ambiente, Comunidades y Proyectos con datos operativos reales.
+            Gestion integrada de Prevencion de Riesgos, Medio Ambiente, Comunidades y Proyectos con datos operativos reales.
           </p>
         </div>
       </div>
@@ -243,13 +229,13 @@ export default function SostenibilidadDashboard() {
                 </div>
                 <div>
                   <CardTitle className="text-xl">{pillar.title}</CardTitle>
-                  <CardDescription>{pillar.modules.length} módulos conectados</CardDescription>
+                  <CardDescription>{pillar.modules.length} modulos conectados</CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <h3 className="mb-3 text-sm font-semibold text-foreground">Módulos</h3>
+                <h3 className="mb-3 text-sm font-semibold text-foreground">Modulos</h3>
                 <div className="space-y-2">
                   {pillar.modules.map((module) => (
                     <Link key={module.name} href={module.path}>

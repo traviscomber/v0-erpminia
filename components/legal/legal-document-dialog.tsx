@@ -49,7 +49,7 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
     }
 
     if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
-      toast.error('El archivo excede el límite de 50MB.');
+      toast.error('El archivo excede el limite de 50MB.');
       event.target.value = '';
       return;
     }
@@ -61,7 +61,7 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
     event.preventDefault();
 
     if (!title || !documentType || !category || !file) {
-      toast.error('Completa título, tipo, categoría y archivo.');
+      toast.error('Completa titulo, tipo, categoria y archivo.');
       return;
     }
 
@@ -105,15 +105,15 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
         <DialogHeader>
           <DialogTitle>Nuevo documento legal</DialogTitle>
           <DialogDescription>
-            Carga políticas, reglamentos, contratos o respaldos regulatorios para el módulo Legal.
+            Carga politicas, reglamentos, contratos o respaldos regulatorios para el modulo Legal.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Título</label>
+            <label className="text-sm font-medium text-foreground">Titulo</label>
             <Input
-              placeholder="Ej: Política de Cumplimiento Contractual"
+              placeholder="Ej: Politica de Cumplimiento Contractual"
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               disabled={isLoading}
@@ -121,9 +121,9 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Descripción</label>
+            <label className="text-sm font-medium text-foreground">Descripcion</label>
             <Textarea
-              placeholder="Contexto breve del documento y su aplicación"
+              placeholder="Contexto breve del documento y su aplicacion"
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               disabled={isLoading}
@@ -139,7 +139,7 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
                   <SelectValue placeholder="Seleccionar" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="policy">Política</SelectItem>
+                  <SelectItem value="policy">Politica</SelectItem>
                   <SelectItem value="procedure">Procedimiento</SelectItem>
                   <SelectItem value="regulation">Reglamento</SelectItem>
                   <SelectItem value="report">Informe</SelectItem>
@@ -153,7 +153,7 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Categoría</label>
+              <label className="text-sm font-medium text-foreground">Categoria</label>
               <Select value={category} onValueChange={setCategory} disabled={isLoading}>
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar" />
@@ -163,24 +163,19 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
                   <SelectItem value="regulatory">Regulatorio</SelectItem>
                   <SelectItem value="legal">Legal General</SelectItem>
                   <SelectItem value="contracts">Contratos</SelectItem>
-                  <SelectItem value="policies">Políticas</SelectItem>
+                  <SelectItem value="policies">Politicas</SelectItem>
                   <SelectItem value="regulations">Reglamentos</SelectItem>
                   <SelectItem value="permits">Permisos</SelectItem>
                   <SelectItem value="reports">Informes</SelectItem>
                   <SelectItem value="agreements">Acuerdos</SelectItem>
-                  <SelectItem value="audit">Auditorías</SelectItem>
+                  <SelectItem value="audit">Auditorias</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Vencimiento</label>
-              <Input
-                type="date"
-                value={expiryDate}
-                onChange={(event) => setExpiryDate(event.target.value)}
-                disabled={isLoading}
-              />
+              <Input type="date" value={expiryDate} onChange={(event) => setExpiryDate(event.target.value)} disabled={isLoading} />
             </div>
           </div>
 
@@ -195,14 +190,10 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
                 disabled={isLoading}
                 accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
               />
-              <label htmlFor="legal-document-file" className="cursor-pointer block">
+              <label htmlFor="legal-document-file" className="block cursor-pointer">
                 <Upload className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
-                <p className="text-sm font-medium text-foreground">
-                  {file ? file.name : 'Haz clic para seleccionar el archivo'}
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  PDF, JPG, PNG, DOC o DOCX, máximo 50MB
-                </p>
+                <p className="text-sm font-medium text-foreground">{file ? file.name : 'Haz clic para seleccionar el archivo'}</p>
+                <p className="mt-1 text-xs text-muted-foreground">PDF, JPG, PNG, DOC o DOCX, maximo 50MB</p>
               </label>
             </div>
           </div>
@@ -220,7 +211,7 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
               ) : (
                 <>
                   <Upload className="mr-2 h-4 w-4" />
-                  Crear Documento
+                  Crear documento
                 </>
               )}
             </Button>
