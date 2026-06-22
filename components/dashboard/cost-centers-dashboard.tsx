@@ -108,7 +108,7 @@ export function CostCentersDashboard() {
           <div className="flex flex-col items-center gap-4 text-center">
             <AlertCircle className="h-10 w-10 text-destructive" />
             <div className="space-y-2">
-              <h3 className="text-lg font-semibold text-foreground">No pudimos cargar los centros de costo</h3>
+              <h3 className="text-lg font-semibold text-foreground">No pudimos cargar los centros de costos</h3>
               <p className="max-w-2xl text-sm text-muted-foreground">{error}</p>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-3">
@@ -135,7 +135,7 @@ export function CostCentersDashboard() {
           <div className="flex flex-col items-center gap-4 text-center">
             <Database className="h-12 w-12 text-muted-foreground" />
             <div className="space-y-2">
-              <h3 className="text-lg font-semibold text-foreground">Todavia no hay centros de costo visibles</h3>
+              <h3 className="text-lg font-semibold text-foreground">Todavia no hay centros de costos visibles</h3>
               <p className="max-w-2xl text-sm text-muted-foreground">
                 Puedes cargar la base de referencia para que la estructura aparezca en el dashboard y en los selectores de bodega.
               </p>
@@ -242,6 +242,9 @@ export function CostCentersDashboard() {
                         </Badge>
                       </div>
                       <h3 className="text-base font-semibold text-foreground">{rootLabel}</h3>
+                      <p className="text-xs text-muted-foreground">
+                        {isExpanded ? 'Pulsa para ocultar los centros incluidos' : 'Pulsa para ver todos los centros incluidos'}
+                      </p>
                     </div>
                     <span className="mt-1 rounded-full border border-border/60 p-1 text-muted-foreground">
                       {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}

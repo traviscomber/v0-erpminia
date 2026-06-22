@@ -9,7 +9,6 @@ import { getSupabaseServerClient } from '@/lib/supabase-server';
 function normalizeText(value: string) {
   return String(value || '')
     .trim()
-    .replaceAll('�', '')
     .replace(/\uFFFD/g, '')
     .replace(/\s+/g, ' ');
 }
@@ -166,3 +165,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
