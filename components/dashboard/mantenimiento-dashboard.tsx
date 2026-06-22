@@ -23,7 +23,7 @@ function statusLabel(status: string) {
 function priorityLabel(priority: string) {
   const labels: Record<string, string> = {
     urgente: 'Urgente',
-    critical: 'Crítica',
+    critical: 'Critica',
     alta: 'Alta',
     high: 'Alta',
     media: 'Media',
@@ -45,7 +45,7 @@ export function MantenimientoDashboard() {
   const { ordenes, isLoading, error, mutate } = useMantenimientoOrdenes();
 
   if (error) {
-    return <div className="text-lg font-semibold text-destructive">Error cargando órdenes</div>;
+    return <div className="text-lg font-semibold text-destructive">Error cargando ordenes</div>;
   }
 
   if (isLoading) {
@@ -61,7 +61,7 @@ export function MantenimientoDashboard() {
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Mantenimiento</h1>
-          <p className="text-muted-foreground">Gestión simple de órdenes de trabajo</p>
+          <p className="text-muted-foreground">Gestion simple de ordenes de trabajo</p>
         </div>
         <Button size="sm" onClick={() => mutate()} className="gap-2">
           <RefreshCw className="h-4 w-4" />
@@ -76,7 +76,7 @@ export function MantenimientoDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-orange-500">{pendientes}</div>
-            <p className="text-xs text-muted-foreground">Órdenes por iniciar</p>
+            <p className="text-xs text-muted-foreground">Ordenes por iniciar</p>
           </CardContent>
         </Card>
 
@@ -103,14 +103,14 @@ export function MantenimientoDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Órdenes de trabajo</CardTitle>
+          <CardTitle>Ordenes de trabajo</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             {ordenes.length === 0 ? (
               <div className="flex items-center gap-2 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
                 <AlertCircle className="h-4 w-4" />
-                No hay órdenes registradas todavía.
+                No hay ordenes registradas todavia.
               </div>
             ) : (
               ordenes.map((orden) => (

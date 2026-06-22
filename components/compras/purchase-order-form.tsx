@@ -1,13 +1,21 @@
 'use client';
 
 import { useState } from 'react';
+import { AlertCircle, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { AlertCircle, CheckCircle } from 'lucide-react';
+
+type PurchaseOrderFormState = {
+  vendor_name: string;
+  item_code: string;
+  quantity: number;
+  unit_price: number;
+  delivery_date: string;
+};
 
 export function PurchaseOrderForm() {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<PurchaseOrderFormState>({
     vendor_name: '',
     item_code: '',
     quantity: 1,
@@ -52,18 +60,18 @@ export function PurchaseOrderForm() {
       </CardHeader>
       <CardContent>
         {result && (
-          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded flex gap-2">
-            <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+          <div className="mb-4 flex gap-2 rounded border border-green-200 bg-green-50 p-3">
+            <CheckCircle className="h-5 w-5 flex-shrink-0 text-green-600" />
             <div>
-              <p className="font-semibold text-sm text-green-800">Orden de compra creada</p>
+              <p className="text-sm font-semibold text-green-800">Orden de compra creada</p>
               <p className="text-sm text-green-700">{result.po_number} - Total: ${result.total_amount}</p>
             </div>
           </div>
         )}
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded flex gap-2">
-            <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
+          <div className="mb-4 flex gap-2 rounded border border-red-200 bg-red-50 p-3">
+            <AlertCircle className="h-5 w-5 flex-shrink-0 text-red-600" />
             <p className="text-sm text-red-700">{error}</p>
           </div>
         )}
@@ -80,7 +88,7 @@ export function PurchaseOrderForm() {
           </div>
 
           <div>
-            <label className="text-sm font-semibold">Código del ítem</label>
+            <label className="text-sm font-semibold">Codigo del item</label>
             <Input
               value={formData.item_code}
               onChange={(e) => setFormData({ ...formData, item_code: e.target.value })}
