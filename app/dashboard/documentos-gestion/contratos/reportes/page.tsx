@@ -5,7 +5,7 @@ import useSWR from 'swr';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Download } from 'lucide-react';
+import { Download, AlertCircle } from 'lucide-react';
 import {
   BarChart,
   Bar,
@@ -22,13 +22,17 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = async (url: string) => {
+  const response = await fetch(url, { credentials: 'include' });
+  return response.json();
+};
+
 const COLORS = ['#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 export default function ContratosReportesPage() {
   const [periodo, setPeriodo] = useState('mes');
 
-  const { data: reportData } = useSWR(`/api/contratos/reportes?periodo=${periodo}`, fetcher, {
+  const { data: reportData, error, isLoading } = useSWR(`/api/contratos/reportes?periodo=${periodo}`, fetcher, {
     revalidateOnFocus: false,
     refreshInterval: 300000,
   });
@@ -39,14 +43,27 @@ export default function ContratosReportesPage() {
   const regaliasPorPropiedad = reportes.regalias_por_propiedad || [];
   const estadoPagos = reportes.estado_pagos || [];
 
+  if (isLoading) {
+    return <div className="text-muted-foreground">Cargando reporteria de contratos...</div>;
+  }
+
+  if (error) {
+    return (
+      <Card className="border-destructive/30">
+        <CardContent className="flex items-center gap-3 pt-6 text-sm">
+          <AlertCircle className="h-4 w-4 text-destructive" />
+          No fue posible cargar los reportes reales de contratos.
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Reportería de contratos</h1>
-          <p className="text-muted-foreground">
-            Análisis y seguimiento de pagos, garantías y regalías.
-          </p>
+          <h1 className="text-3xl font-bold">Reporteria de contratos</h1>
+          <p className="text-muted-foreground">Analisis y seguimiento de pagos, garantias y regalias.</p>
         </div>
 
         <Button variant="outline" size="sm" className="w-fit">
@@ -59,13 +76,8 @@ export default function ContratosReportesPage() {
         <CardContent className="pt-6">
           <div className="flex flex-wrap gap-2">
             {['mes', 'trimestre', 'anual'].map((p) => (
-              <Button
-                key={p}
-                variant={periodo === p ? 'default' : 'outline'}
-                onClick={() => setPeriodo(p)}
-                size="sm"
-              >
-                {p === 'mes' ? 'Este mes' : p === 'trimestre' ? 'Este trimestre' : 'Este año'}
+              <Button key={p} variant={periodo === p ? 'default' : 'outline'} onClick={() => setPeriodo(p)} size="sm">
+                {p === 'mes' ? 'Este mes' : p === 'trimestre' ? 'Este trimestre' : 'Este ano'}
               </Button>
             ))}
           </div>
@@ -75,8 +87,8 @@ export default function ContratosReportesPage() {
       <Tabs defaultValue="pagos" className="space-y-4">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="pagos">Pagos</TabsTrigger>
-          <TabsTrigger value="garantias">Garantías</TabsTrigger>
-          <TabsTrigger value="regalias">Regalías</TabsTrigger>
+          <TabsTrigger value="garantias">Garantias</TabsTrigger>
+          <TabsTrigger value="regalias">Regalias</TabsTrigger>
           <TabsTrigger value="estado">Estado</TabsTrigger>
         </TabsList>
 
@@ -101,9 +113,7 @@ export default function ContratosReportesPage() {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <p className="py-8 text-center text-muted-foreground">
-                  No hay datos suficientes para mostrar este reporte.
-                </p>
+                <p className="py-8 text-center text-muted-foreground">No hay datos suficientes para mostrar este reporte.</p>
               )}
             </CardContent>
           </Card>
@@ -112,7 +122,7 @@ export default function ContratosReportesPage() {
         <TabsContent value="garantias" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Estado de garantías retenidas</CardTitle>
+              <CardTitle>Estado de garantias retenidas</CardTitle>
             </CardHeader>
             <CardContent>
               {garantiasActivas.length > 0 ? (
@@ -138,7 +148,7 @@ export default function ContratosReportesPage() {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <p className="py-8 text-center text-muted-foreground">Sin garantías activas</p>
+                <p className="py-8 text-center text-muted-foreground">Sin garantias activas</p>
               )}
             </CardContent>
           </Card>
@@ -147,7 +157,7 @@ export default function ContratosReportesPage() {
         <TabsContent value="regalias" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Regalías por propiedad</CardTitle>
+              <CardTitle>Regalias por propiedad</CardTitle>
             </CardHeader>
             <CardContent>
               {regaliasPorPropiedad.length > 0 ? (
@@ -166,9 +176,7 @@ export default function ContratosReportesPage() {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <p className="py-8 text-center text-muted-foreground">
-                  No hay datos de regalías para el período seleccionado.
-                </p>
+                <p className="py-8 text-center text-muted-foreground">No hay datos de regalias para el periodo seleccionado.</p>
               )}
             </CardContent>
           </Card>
@@ -183,9 +191,7 @@ export default function ContratosReportesPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold">{estado.cantidad}</div>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    CLP {(estado.monto_total / 1000000).toFixed(1)}M
-                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">CLP {(estado.monto_total / 1000000).toFixed(1)}M</p>
                 </CardContent>
               </Card>
             ))}

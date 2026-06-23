@@ -1,207 +1,323 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { BarChart3, Download, FileText, Plus, Search, TrendingUp } from 'lucide-react';
+import useSWR from 'swr';
+import { AlertCircle, BarChart3, Clock, FileText, Search, Shield, Sparkles } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 
-type ReporteDocumento = {
+type CategorySummary = {
   id: string;
-  title: string;
-  type: string;
-  date: string;
-  author: string;
-  pages: number;
-  size: string;
+  name: string;
+  description: string;
+  count: number;
+  pendingApprovals: number;
 };
 
-export default function ReportesPage() {
+type GestionDocumentalPayload = {
+  categories: CategorySummary[];
+  pendingApprovals: Array<{
+    id: string;
+    documentId: string;
+    nombre: string;
+    version: string;
+    estado: string;
+    createdBy: string;
+    pendingBy?: string;
+    pendingRole?: string;
+  }>;
+  recentDocuments: Array<{
+    documentId: string;
+    nombre: string;
+    version: string;
+    estado: string;
+    creador: string;
+    fechaCreacion?: string;
+    validador1?: string | null;
+  }>;
+  expiringDocuments: Array<{
+    id: string;
+    title: string;
+    daysUntilExpiry?: number;
+  }>;
+  stats: {
+    total: number;
+    pending: number;
+    expiring: number;
+  };
+};
+
+const fetcher = async (url: string) => {
+  const response = await fetch(url, { credentials: 'include' });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) return null;
+  return payload;
+};
+
+function statusBadge(status: string) {
+  switch (String(status || '').toLowerCase()) {
+    case 'aprobado':
+    case 'active':
+    case 'approved':
+      return <Badge className="bg-secondary/10 text-secondary">Aprobado</Badge>;
+    case 'pendiente_validador1':
+    case 'pendiente_validador2':
+    case 'draft':
+    case 'submitted':
+    case 'under_review':
+      return <Badge className="bg-primary/10 text-primary">Pendiente</Badge>;
+    case 'rechazado':
+    case 'rejected':
+      return <Badge className="bg-destructive/10 text-destructive">Rechazado</Badge>;
+    default:
+      return <Badge variant="outline">{status || 'Sin estado'}</Badge>;
+  }
+}
+
+export default function ReportesGestionDocumentalPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const reports: ReporteDocumento[] = [
-    {
-      id: 'RPT-OPE-2024-04',
-      title: 'Reporte Operacional Abril 2024',
-      type: 'Operacional',
-      date: '2024-04-30',
-      author: 'Gerencia de Operaciones',
-      pages: 45,
-      size: '2.3 MB',
-    },
-    {
-      id: 'RPT-CUMP-Q1-2024',
-      title: 'Reporte de Cumplimiento Q1 2024',
-      type: 'Cumplimiento',
-      date: '2024-04-01',
-      author: 'HSE y Cumplimiento',
-      pages: 28,
-      size: '1.8 MB',
-    },
-    {
-      id: 'RPT-FIN-MAR-2024',
-      title: 'Reporte Financiero Marzo 2024',
-      type: 'Financiero',
-      date: '2024-04-15',
-      author: 'Finanzas',
-      pages: 35,
-      size: '3.1 MB',
-    },
-    {
-      id: 'RPT-MANT-2024-Q1',
-      title: 'Reporte de Mantenimiento Q1 2024',
-      type: 'Mantenimiento',
-      date: '2024-04-05',
-      author: 'Equipo de Mantenimiento',
-      pages: 52,
-      size: '2.7 MB',
-    },
-  ];
+  const { data, error, isLoading } = useSWR<GestionDocumentalPayload>('/api/dashboard/documentos-gestion', fetcher, {
+    revalidateOnFocus: false,
+    refreshInterval: 300000,
+  });
 
-  const filteredReports = useMemo(() => {
+  const categories = data?.categories || [];
+  const pendingApprovals = data?.pendingApprovals || [];
+  const recentDocuments = data?.recentDocuments || [];
+  const expiringDocuments = data?.expiringDocuments || [];
+  const stats = data?.stats || { total: 0, pending: 0, expiring: 0 };
+
+  const filteredCategories = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
-    if (!query) return reports;
+    if (!query) return categories;
 
-    return reports.filter((report) =>
-      [report.id, report.title, report.type, report.author, report.date, report.size]
+    return categories.filter((category) =>
+      [category.name, category.description, category.id]
         .join(' ')
         .toLowerCase()
         .includes(query)
     );
-  }, [reports, searchTerm]);
+  }, [categories, searchTerm]);
+
+  if (isLoading) {
+    return <div className="text-muted-foreground">Cargando resumen documental...</div>;
+  }
+
+  if (error || !data) {
+    return (
+      <Card className="border-destructive/30">
+        <CardContent className="flex items-center justify-between gap-4 pt-6">
+          <div className="flex items-center gap-3 text-sm">
+            <AlertCircle className="h-4 w-4 text-destructive" />
+            <span>No fue posible cargar el resumen documental real.</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold">Reportes y analisis</h1>
-        <p className="text-muted-foreground">Reportes operacionales, de cumplimiento y analisis estrategicos.</p>
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Sparkles className="h-4 w-4 text-primary" />
+          <span className="text-sm font-medium">Resumen real</span>
+        </div>
+        <h1 className="text-3xl font-bold">Reportes de gestion documental</h1>
+        <p className="text-muted-foreground">
+          Vista ejecutiva con categorias, aprobaciones pendientes y documentos proximos a vencer.
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Reportes este ano</CardTitle>
+            <CardTitle className="text-sm">Documentos totales</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">24</div>
-            <p className="mt-1 text-xs text-muted-foreground">Documentos emitidos en el periodo</p>
+            <div className="text-2xl font-bold">{stats.total}</div>
+            <p className="mt-1 text-xs text-muted-foreground">Cargados en la base real</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-primary/30 bg-primary/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-primary">Pendientes de aprobacion</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-primary">{stats.pending}</div>
+            <p className="mt-1 text-xs text-muted-foreground">Requieren seguimiento</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-amber-500/30 bg-amber-500/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-amber-600">Por vencer</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-amber-600">{stats.expiring}</div>
+            <p className="mt-1 text-xs text-muted-foreground">Dentro de la ventana critica</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Este mes</CardTitle>
+            <CardTitle className="text-sm">Categorias activas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-[var(--secondary)]">6</div>
-            <p className="mt-1 text-xs text-muted-foreground">Reportes creados recientemente</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Promedio de paginas</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">38</div>
-            <p className="mt-1 text-xs text-muted-foreground">Tamano medio por documento</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Almacenamiento total</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">145 MB</div>
-            <p className="mt-1 text-xs text-muted-foreground">Uso total de archivos</p>
+            <div className="text-2xl font-bold">{categories.length}</div>
+            <p className="mt-1 text-xs text-muted-foreground">Clasificacion operativa</p>
           </CardContent>
         </Card>
       </div>
 
       <Card>
         <CardHeader>
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex items-start gap-3">
-              <div className="rounded-lg bg-primary/10 p-3">
-                <FileText className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <CardTitle>Repositorio de reportes</CardTitle>
-                <CardDescription>Reportes operacionales, financieros y de cumplimiento.</CardDescription>
-              </div>
-            </div>
-
-            <Button className="gap-2 self-start">
-              <Plus className="h-4 w-4" />
-              Nuevo reporte
-            </Button>
-          </div>
+          <CardTitle>Buscar categorias</CardTitle>
+          <CardDescription>Filtra el resumen por nombre, descripcion o id de categoria.</CardDescription>
         </CardHeader>
-
         <CardContent>
-          <div className="space-y-4">
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar por ID, titulo, tipo o autor"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <Button variant="outline" size="icon" aria-label="Buscar">
-                <Search className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <div className="space-y-3">
-              {filteredReports.map((report) => (
-                <div
-                  key={report.id}
-                  className="flex flex-col gap-4 rounded-lg border p-4 transition-colors hover:bg-accent/50 lg:flex-row lg:items-center lg:justify-between"
-                >
-                  <div className="flex flex-1 items-start gap-4">
-                    {report.type === 'Financiero' ? (
-                      <BarChart3 className="mt-1 h-5 w-5 text-emerald-600" />
-                    ) : (
-                      <TrendingUp className="mt-1 h-5 w-5 text-[var(--secondary)]" />
-                    )}
-                    <div className="flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-semibold">{report.id}</span>
-                        <Badge variant="outline">{report.type}</Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">{report.title}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Autor: {report.author} - {report.date} - {report.pages} paginas - {report.size}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2 self-end lg:self-auto">
-                    <Button variant="ghost" size="sm">
-                      Ver
-                    </Button>
-                    <Button variant="ghost" size="sm" className="gap-2">
-                      <Download className="h-3 w-3" />
-                      Descargar
-                    </Button>
-                  </div>
-                </div>
-              ))}
-
-              {filteredReports.length === 0 && (
-                <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-                  No hay reportes que coincidan con la busqueda.
-                </div>
-              )}
-            </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar categoria o descripcion..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
         </CardContent>
       </Card>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        {filteredCategories.map((category) => (
+          <Card key={category.id} className="border-border">
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <CardTitle className="text-lg">{category.name}</CardTitle>
+                  <CardDescription className="mt-1">{category.description}</CardDescription>
+                </div>
+                <Badge variant="secondary">{category.count} docs</Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Pendientes</span>
+                <span className="font-semibold text-primary">{category.pendingApprovals}</span>
+              </div>
+              <div className="h-2 rounded-full bg-muted">
+                <div
+                  className="h-2 rounded-full bg-primary"
+                  style={{
+                    width: `${Math.min(100, Math.max(10, category.count > 0 ? (category.pendingApprovals / category.count) * 100 : 10))}%`,
+                  }}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {filteredCategories.length === 0 && (
+        <Card>
+          <CardContent className="py-8 text-center text-sm text-muted-foreground">
+            No se encontraron categorias que coincidan con la busqueda.
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Documentos pendientes</CardTitle>
+            <CardDescription>{pendingApprovals.length} documentos en revision</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {pendingApprovals.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+                No hay documentos pendientes.
+              </div>
+            ) : (
+              pendingApprovals.map((doc) => (
+                <div key={doc.id} className="rounded-lg border border-border p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-medium">{doc.nombre}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {doc.documentId} - v{doc.version}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Pendiente por: {doc.pendingBy || 'Sin asignar'}
+                      </p>
+                    </div>
+                    {statusBadge(doc.estado)}
+                  </div>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Documentos recientes</CardTitle>
+            <CardDescription>Ultimos registros que entraron al sistema</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {recentDocuments.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+                No hay documentos recientes.
+              </div>
+            ) : (
+              recentDocuments.map((doc) => (
+                <div key={`${doc.documentId}-${doc.version}`} className="rounded-lg border border-border p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-medium">{doc.nombre}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {doc.documentId} - v{doc.version}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">Por: {doc.creador}</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      {statusBadge(doc.estado)}
+                      <span className="text-xs text-muted-foreground">
+                        <Clock className="mr-1 inline h-3 w-3" />
+                        {doc.fechaCreacion ? new Date(doc.fechaCreacion).toLocaleDateString('es-CL') : 'Sin fecha'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {expiringDocuments.length > 0 && (
+        <Card className="border-amber-500/30 bg-amber-500/5">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-amber-600" />
+              <CardTitle>Documentos por vencer</CardTitle>
+            </div>
+            <CardDescription>{expiringDocuments.length} documentos proximos a vencerse</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {expiringDocuments.map((doc) => (
+              <div key={doc.id} className="flex items-center justify-between rounded border border-amber-500/20 bg-background/60 p-3">
+                <span className="font-medium">{doc.title}</span>
+                <Badge className="bg-amber-500/10 text-amber-700">
+                  {typeof doc.daysUntilExpiry === 'number' ? `${doc.daysUntilExpiry} dias` : 'Sin dato'}
+                </Badge>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
