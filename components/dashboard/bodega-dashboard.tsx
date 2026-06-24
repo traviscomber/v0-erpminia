@@ -107,13 +107,27 @@ export function BodegaDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="border-destructive">
+        <Card className="border-destructive/50 bg-destructive/5">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold">Bajo stock</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-base font-semibold">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Stock bajo (mín. 20 un.)
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold text-destructive">{lowStock.length.toLocaleString()}</div>
-            <p className="mt-2 text-sm text-muted-foreground">Revisar pronto</p>
+            <div className="space-y-3">
+              <div className="text-4xl font-bold text-destructive">{lowStock.length.toLocaleString()}</div>
+              <p className="text-sm text-muted-foreground">Productos por debajo del mínimo</p>
+              
+              {lowStock.length > 0 && (
+                <div className="mt-4 space-y-2 border-t border-border/50 pt-3">
+                  <p className="text-xs font-semibold uppercase text-muted-foreground">Críticos (qty &lt; 10):</p>
+                  <div className="text-lg font-bold text-destructive">
+                    {lowStock.filter(item => item.quantity < 10).length}
+                  </div>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
 
@@ -258,7 +272,8 @@ export function BodegaDashboard() {
                   <th className="p-3 text-left font-bold text-foreground">Familia</th>
                   <th className="p-3 text-left font-bold text-foreground">Subfamilia</th>
                   <th className="p-3 text-left font-bold text-foreground">Equipo</th>
-                  <th className="p-3 text-right font-bold text-foreground">Cant.</th>
+                  <th className="p-3 text-right font-bold text-foreground">Stock</th>
+                  <th className="p-3 text-right font-bold text-foreground">Mín.</th>
                   <th className="p-3 text-right font-bold text-foreground">Costo</th>
                   <th className="p-3 text-right font-bold text-foreground">Total</th>
                 </tr>
@@ -296,9 +311,13 @@ export function BodegaDashboard() {
                         </td>
                         <td className="p-3 text-sm text-muted-foreground">{hierarchy.subfamily || '-'}</td>
                         <td className="p-3 text-sm text-muted-foreground">{hierarchy.team || '-'}</td>
-                        <td className="p-3 text-right font-semibold text-foreground">
+                        <td className={`p-3 text-right font-semibold ${item.quantity < 10 ? 'text-destructive' : item.quantity <= item.min_stock ? 'text-yellow-600' : 'text-foreground'}`}>
                           {item.quantity.toLocaleString()}
-                          {item.quantity <= item.min_stock && <span className="ml-2 font-bold text-destructive">!</span>}
+                          {item.quantity < 10 && <span className="ml-2 font-bold">🔴</span>}
+                          {item.quantity >= 10 && item.quantity <= item.min_stock && <span className="ml-2 font-bold">🟡</span>}
+                        </td>
+                        <td className="p-3 text-right font-semibold text-muted-foreground">
+                          {item.min_stock.toLocaleString()}
                         </td>
                         <td className="p-3 text-right text-foreground">{formatCurrency(item.unit_cost || 0)}</td>
                         <td className="p-3 text-right font-bold text-primary">{formatCurrency((item.quantity || 0) * (item.unit_cost || 0))}</td>
