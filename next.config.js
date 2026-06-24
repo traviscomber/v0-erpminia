@@ -129,12 +129,11 @@ const nextConfig = {
   // Compression
   compress: true,
 
-  webpack: (config, { dev }) => {
-    if (!dev) {
-      config.cache = false;
-    }
-
-    return config;
+  // Turbopack configuration for Next.js 16
+  turbopack: {
+    resolveAlias: {
+      '@': './src',
+    },
   },
 
   // Generate ETags for caching
