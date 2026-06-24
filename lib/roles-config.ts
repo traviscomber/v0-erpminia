@@ -47,7 +47,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
   },
 
   jefe_mantencion: {
-    name: 'Jefe de Mantención',
+    name: 'Jefe de Mantención y Equipos Móviles y Estacionarios',
     icon: '👷',
     color: 'text-purple-500',
     accessibleModules: [

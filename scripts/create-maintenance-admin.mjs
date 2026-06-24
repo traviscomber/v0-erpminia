@@ -70,7 +70,7 @@ async function createMaintenanceAdmin() {
       .insert([{
         id: userId,
         email: 'mastudillo@lapatagua.cl',
-        full_name: 'Administrador Mantención',
+        full_name: 'Jefe de Mantención y Equipos Móviles y Estacionarios',
         role: 'jefe_mantencion',
         organization_id: org.id,
         status: 'active',
