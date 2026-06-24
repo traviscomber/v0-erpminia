@@ -9,7 +9,9 @@ export default function ReportesPage() {
     <div className="space-y-6 p-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Reportes</h1>
-        <p className="text-muted-foreground">Descarga los reportes que necesitas en un solo lugar, en español y con foco operativo.</p>
+        <p className="text-muted-foreground">
+          Descarga los reportes que necesitas en un solo lugar, en espanol y con foco operativo.
+        </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -43,7 +45,7 @@ export default function ReportesPage() {
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm font-medium">
               <History className="h-4 w-4 text-primary" />
-              Última descarga
+              Ultima descarga
             </CardTitle>
           </CardHeader>
           <CardContent>

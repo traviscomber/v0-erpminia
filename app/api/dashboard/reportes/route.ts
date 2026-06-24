@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     };
 
     const production = {
-      title: 'Reporte de Producción',
+      title: 'Reporte de Produccion',
       data: snapshot.trendData.map((item: any) => ({
         month: item.date,
         actual: item.equipos,
@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
     const combined = {
       title: 'Reporte Integrado',
       data: [
-        { metric: 'Producción', value: snapshot.insights.efficiency },
+        { metric: 'Produccion', value: snapshot.insights.efficiency },
         { metric: 'Mantenimiento', value: clamp(100 - snapshot.summary.overdueWorkOrders * 10) },
         { metric: 'Seguridad', value: clamp(100 - snapshot.insights.equipment_risks * 8) },
         { metric: 'Financiero', value: clamp(100 - snapshot.summary.expiringContracts * 4) },
@@ -132,9 +132,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('[v0] Error in reportes API:', error);
-    return NextResponse.json(
-      { error: 'Error al cargar datos de reportes' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Error al cargar datos de reportes' }, { status: 500 });
   }
 }
