@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     // Query profiles table directly
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
-      .select('id, email, full_name, password_hash, organization_id')
+      .select('id, email, full_name, password_hash, organization_id, role')
       .eq('email', email);
 
     if (profileError) {
@@ -63,18 +63,9 @@ export async function POST(request: NextRequest) {
 
     console.log('[v0] Password matched for:', email);
 
-    // Query user role
-    const { data: roleData, error: roleError } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', profile.id);
-
-    let role = 'viewer';
-    if (roleError) {
-      console.log('[v0] Role query error:', roleError, '- using default viewer role');
-    } else if (roleData && roleData.length > 0) {
-      role = roleData[0].role;
-    }
+    // Get role from profile (primary source of truth for roles)
+    let role = profile.role || 'viewer';
+    console.log('[v0] User role from profile:', role);
 
     const sessionData = {
       user: {
