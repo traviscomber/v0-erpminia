@@ -5,7 +5,7 @@ import useSWR from 'swr';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Clock, CheckCircle2, AlertCircle, Edit, Eye, Wrench, Filter } from 'lucide-react';
+import { Plus, Clock, CheckCircle2, AlertCircle, Eye, Wrench, Filter } from 'lucide-react';
 
 export default function WorkOrdersPage() {
   const { data } = useSWR('/api/maintenance/work-orders', async (url: string) => {
@@ -71,10 +71,10 @@ export default function WorkOrdersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <h1 className="text-3xl font-bold">Ordenes de trabajo</h1>
-          <p className="text-muted-foreground">Gestion de mantenimiento y seguimiento operativo</p>
+          <p className="text-muted-foreground">Gestion de mantenimiento y seguimiento operativo con datos reales.</p>
         </div>
         <Link href="/dashboard/work-orders/create">
           <Button className="gap-2">
@@ -133,10 +133,15 @@ export default function WorkOrdersPage() {
         </Card>
       </div>
 
-      <div className="flex gap-2">
-        <Button variant="outline" className="gap-2">
+      <div className="flex flex-wrap gap-2">
+        <Button variant="outline" className="gap-2" disabled>
           <Filter className="h-4 w-4" /> Filtrar
         </Button>
+        <Link href="/dashboard/mantenimiento">
+          <Button variant="outline" className="gap-2">
+            <Wrench className="h-4 w-4" /> Volver a mantenimiento
+          </Button>
+        </Link>
       </div>
 
       <Card>
@@ -167,20 +172,22 @@ export default function WorkOrdersPage() {
                       </div>
                       <h3 className="font-semibold">{wo.title}</h3>
                       <div className="mt-2 flex items-center gap-4 text-sm text-muted-foreground">
-                        <span>{wo.asset_name || 'Activo no asociado'}</span>
+                        <span>Activo: {wo.asset_name || 'Sin activo asociado'}</span>
                         <span>Asignado: {wo.assigned_to_name || 'Sin asignar'}</span>
                         <span>
-                          Vence:{' '}
+                          Programada:{' '}
                           {wo.scheduled_date ? new Date(wo.scheduled_date).toLocaleDateString('es-CL') : 'Sin fecha'}
                         </span>
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="sm">
-                        <Eye className="h-4 w-4" />
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link href={`/dashboard/work-orders/${wo.id}`}>
+                          <Eye className="h-4 w-4" />
+                        </Link>
                       </Button>
-                      <Button variant="ghost" size="sm">
-                        <Edit className="h-4 w-4" />
+                      <Button variant="ghost" size="sm" disabled title="Edicion pendiente de definir">
+                        Ver
                       </Button>
                     </div>
                   </div>

@@ -1,6 +1,7 @@
 'use client';
 
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import Link from 'next/link';
+import { AlertCircle, ArrowRight, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -100,6 +101,40 @@ export function MantenimientoDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <Card className="border-border/70 bg-card/90">
+        <CardHeader>
+          <CardTitle>Siguiente paso</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <Button asChild className="justify-between">
+              <Link href="/dashboard/work-orders/create">
+                Crear orden de trabajo
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/vehiculos">
+                Ver vehiculos
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/centro-costo">
+                Ver por centro de costo
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/documentos">
+                Revisar documentos
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

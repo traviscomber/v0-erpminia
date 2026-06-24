@@ -1,8 +1,10 @@
 'use client';
 
+import Link from 'next/link';
 import AdquisicionesPage from '../documentos-gestion/adquisiciones/page';
 import { PurchaseOrderForm } from '@/components/compras/purchase-order-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 export default function ComprasPage() {
   return (
@@ -11,6 +13,20 @@ export default function ComprasPage() {
         <h1 className="text-3xl font-bold">Compras</h1>
         <p className="mt-2 text-muted-foreground">Crea, revisa y sigue ordenes de compra con trazabilidad operativa real.</p>
       </div>
+
+      <Card className="border-border/70 bg-card/90">
+        <CardHeader>
+          <CardTitle>Importar existencias y proveedores</CardTitle>
+          <CardDescription>
+            Sube el Excel con proveedores, compras y stock min-max para dejar la base de abastecimiento lista en el sistema.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button asChild>
+            <Link href="/dashboard/compras/importar-existencias">Abrir importador</Link>
+          </Button>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6 lg:grid-cols-[420px_1fr]">
         <PurchaseOrderForm />

@@ -30,6 +30,7 @@ import {
   FileCheck,
   Scale,
   File,
+  Upload,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -103,6 +104,7 @@ const menuItems = [
   { label: 'Flujo Documental', href: '/dashboard/sostenibilidad/documentos-flujo', icon: FileCheck, group: 'Sostenibilidad' },
   { label: 'Reporteria Documentos', href: '/dashboard/sostenibilidad/documentos-reportes', icon: BarChart3, group: 'Sostenibilidad' },
   { label: 'Compras y OCs', href: '/dashboard/compras', icon: ShoppingCart, group: 'Finanzas' },
+  { label: 'Importar existencias', href: '/dashboard/compras/importar-existencias', icon: Upload, group: 'Finanzas' },
   { label: 'Documentos Compras', href: '/dashboard/compras/documentos', icon: File, group: 'Finanzas' },
   { label: 'Finanzas y Presupuesto', href: '/dashboard/finanzas', icon: DollarSign, group: 'Finanzas' },
   { label: 'Documentos Finanzas', href: '/dashboard/finanzas/documentos', icon: File, group: 'Finanzas' },
