@@ -1,7 +1,6 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Client } from 'pg';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { canonicalCategory, normalizeText } from '@/lib/bodega-normalization';
 
@@ -310,37 +309,6 @@ async function parseWorkbook(file: File) {
   };
 }
 
-function getPgConnectionString() {
-  return process.env.POSTGRES_URL_NON_POOLING || process.env.POSTGRES_URL;
-}
-
-async function withPgClient<T>(handler: (client: Client) => Promise<T>) {
-  const connectionString = getPgConnectionString();
-  if (!connectionString) {
-    throw new Error('No se encontro una conexion de Postgres disponible para el import');
-  }
-
-  const client = new Client({
-    connectionString,
-    ssl: connectionString.includes('supabase.co') ? { rejectUnauthorized: false } : undefined,
-  });
-
-  const previousTlsSetting = process.env.NODE_TLS_REJECT_UNAUTHORIZED;
-  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-  await client.connect();
-
-  try {
-    return await handler(client);
-  } finally {
-    await client.end();
-    if (previousTlsSetting === undefined) {
-      delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;
-    } else {
-      process.env.NODE_TLS_REJECT_UNAUTHORIZED = previousTlsSetting;
-    }
-  }
-}
-
 function chunkArray<T>(items: T[], size: number) {
   const chunks: T[][] = [];
   for (let index = 0; index < items.length; index += size) {
@@ -361,285 +329,107 @@ async function formatError(error: unknown) {
 }
 
 async function importData(
-  client: Client,
+  supabase: any,
   organizationId: string,
   userId: string | null,
   suppliers: SupplierRow[],
   stock: StockRow[],
   purchases: PurchaseAggregate[],
 ) {
-  await client.query('BEGIN');
-
   try {
-    await client.query(
-      `DELETE FROM public.purchase_orders WHERE organization_id = $1 AND po_number LIKE 'EX-%'`,
-      [organizationId],
-    );
+    const { error: purchaseDeleteError } = await supabase
+      .from('purchase_orders')
+      .delete()
+      .eq('organization_id', organizationId)
+      .ilike('po_number', 'EX-%');
+    if (purchaseDeleteError) throw purchaseDeleteError;
 
-    await client.query(
-      `DELETE FROM public.warehouse_stock WHERE organization_id = $1 AND batch_number = 'MINMAX'`,
-      [organizationId],
-    );
+    const { error: stockDeleteError } = await supabase
+      .from('warehouse_stock')
+      .delete()
+      .eq('organization_id', organizationId)
+      .eq('batch_number', 'MINMAX');
+    if (stockDeleteError) throw stockDeleteError;
 
     if (suppliers.length > 0) {
       const suppliersWithRut = suppliers.filter((item) => item.rut);
       const suppliersWithoutRut = suppliers.filter((item) => !item.rut);
 
       if (suppliersWithRut.length > 0) {
-        await client.query(
-          `
-            INSERT INTO public.suppliers (
-              organization_id,
-              name,
-              rut,
-              email,
-              phone,
-              address,
-              city,
-              region,
-              country,
-              business_type,
-              contact_person,
-              payment_terms,
-              status,
-              created_by
-            )
-            SELECT
-              x.organization_id,
-              x.name,
-              x.rut,
-              x.email,
-              x.phone,
-              x.address,
-              x.city,
-              x.region,
-              x.country,
-              x.business_type,
-              x.contact_person,
-              x.payment_terms,
-              x.status,
-              x.created_by
-            FROM jsonb_to_recordset($1::jsonb) AS x(
-              organization_id uuid,
-              name text,
-              rut text,
-              email text,
-              phone text,
-              address text,
-              city text,
-              region text,
-              country text,
-              business_type text,
-              contact_person text,
-              payment_terms text,
-              status text,
-              created_by uuid
-            )
-            ON CONFLICT (organization_id, rut) DO UPDATE SET
-              name = EXCLUDED.name,
-              email = EXCLUDED.email,
-              phone = EXCLUDED.phone,
-              address = EXCLUDED.address,
-              city = EXCLUDED.city,
-              region = EXCLUDED.region,
-              country = EXCLUDED.country,
-              business_type = EXCLUDED.business_type,
-              contact_person = EXCLUDED.contact_person,
-              payment_terms = EXCLUDED.payment_terms,
-              status = EXCLUDED.status,
-              updated_at = NOW(),
-              created_by = EXCLUDED.created_by;
-          `,
-          [
-            JSON.stringify(
-              suppliersWithRut.map((item) => ({
-                organization_id: organizationId,
-                ...item,
-                created_by: userId,
-              })),
-            ),
-          ],
-        );
+        for (const batch of chunkArray(
+          suppliersWithRut.map((item) => ({
+            organization_id: organizationId,
+            ...item,
+            created_by: userId,
+          })),
+          500,
+        )) {
+          const { error } = await supabase
+            .from('suppliers')
+            .upsert(batch, { onConflict: 'organization_id,rut' });
+          if (error) throw error;
+        }
       }
 
       if (suppliersWithoutRut.length > 0) {
-        const existingNames = await client.query(
-          `SELECT name FROM public.suppliers WHERE organization_id = $1`,
-          [organizationId],
-        );
+        const { data: existingNames, error: existingNamesError } = await supabase
+          .from('suppliers')
+          .select('name')
+          .eq('organization_id', organizationId);
+        if (existingNamesError) throw existingNamesError;
+
         const existingNameSet = new Set(
-          existingNames.rows.map((row: any) => normalizeText(row.name)),
+          (existingNames || []).map((row: any) => normalizeText(row.name)),
         );
 
         const pending = suppliersWithoutRut.filter((item) => !existingNameSet.has(normalizeText(item.name)));
-
-        for (const supplier of pending) {
-          await client.query(
-            `
-              INSERT INTO public.suppliers (
-                organization_id,
-                name,
-                rut,
-                email,
-                phone,
-                address,
-                city,
-                region,
-                country,
-                business_type,
-                contact_person,
-                payment_terms,
-                status,
-                created_by
-              ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
-            `,
-            [
-              organizationId,
-              supplier.name,
-              supplier.rut,
-              supplier.email,
-              supplier.phone,
-              supplier.address,
-              supplier.city,
-              supplier.region,
-              supplier.country,
-              supplier.business_type,
-              supplier.contact_person,
-              supplier.payment_terms,
-              supplier.status,
-              userId,
-            ],
-          );
+        for (const batch of chunkArray(
+          pending.map((supplier) => ({
+            organization_id: organizationId,
+            ...supplier,
+            created_by: userId,
+          })),
+          500,
+        )) {
+          const { error } = await supabase.from('suppliers').insert(batch);
+          if (error) throw error;
         }
       }
     }
 
     if (stock.length > 0) {
-      for (const batch of chunkArray(stock, 500)) {
-        await client.query(
-          `
-            INSERT INTO public.warehouse_stock (
-              organization_id,
-              part_code,
-              part_name,
-              quantity_on_hand,
-              quantity_reserved,
-              reorder_level,
-              reorder_quantity,
-              unit_cost,
-              batch_number,
-              supplier_lot,
-              updated_at
-            )
-            SELECT
-              x.organization_id,
-              x.part_code,
-              x.part_name,
-              x.quantity_on_hand,
-              0,
-              x.reorder_level,
-              x.reorder_quantity,
-              x.unit_cost,
-              x.batch_number,
-              x.supplier_lot,
-              NOW()
-            FROM jsonb_to_recordset($1::jsonb) AS x(
-              organization_id uuid,
-              part_code text,
-              part_name text,
-              quantity_on_hand integer,
-              reorder_level integer,
-              reorder_quantity integer,
-              unit_cost numeric,
-              batch_number text,
-              supplier_lot text
-            )
-            ON CONFLICT (organization_id, part_code, batch_number) DO UPDATE SET
-              part_name = EXCLUDED.part_name,
-              quantity_on_hand = EXCLUDED.quantity_on_hand,
-              reorder_level = EXCLUDED.reorder_level,
-              reorder_quantity = EXCLUDED.reorder_quantity,
-              unit_cost = EXCLUDED.unit_cost,
-              supplier_lot = EXCLUDED.supplier_lot,
-              updated_at = NOW();
-          `,
-          [
-            JSON.stringify(
-              batch.map((item) => ({
-                organization_id: organizationId,
-                ...item,
-              })),
-            ),
-          ],
-        );
+      for (const batch of chunkArray(
+        stock.map((item) => ({
+          organization_id: organizationId,
+          ...item,
+        })),
+        500,
+      )) {
+        const { error } = await supabase
+          .from('warehouse_stock')
+          .upsert(batch, { onConflict: 'organization_id,part_code,batch_number' });
+        if (error) throw error;
       }
     }
 
     if (purchases.length > 0) {
-      for (const batch of chunkArray(purchases, 500)) {
-        await client.query(
-          `
-            INSERT INTO public.purchase_orders (
-              organization_id,
-              po_number,
-              vendor_name,
-              item_code,
-              quantity,
-              unit_price,
-              total_amount,
-              delivery_date,
-              status,
-              created_by
-            )
-            SELECT
-              x.organization_id,
-              x.po_number,
-              x.vendor_name,
-              x.item_code,
-              x.quantity,
-              x.unit_price,
-              x.total_amount,
-              x.delivery_date,
-              x.status,
-              x.created_by
-            FROM jsonb_to_recordset($1::jsonb) AS x(
-              organization_id uuid,
-              po_number text,
-              vendor_name text,
-              item_code text,
-              quantity numeric,
-              unit_price numeric,
-              total_amount numeric,
-              delivery_date date,
-              status text,
-              created_by uuid
-            )
-            ON CONFLICT (organization_id, po_number) DO UPDATE SET
-              vendor_name = EXCLUDED.vendor_name,
-              item_code = EXCLUDED.item_code,
-              quantity = EXCLUDED.quantity,
-              unit_price = EXCLUDED.unit_price,
-              total_amount = EXCLUDED.total_amount,
-              delivery_date = EXCLUDED.delivery_date,
-              status = EXCLUDED.status,
-              updated_at = NOW();
-          `,
-          [
-            JSON.stringify(
-              batch.map((item) => ({
-                organization_id: organizationId,
-                ...item,
-                created_by: userId,
-              })),
-            ),
-          ],
-        );
+      for (const batch of chunkArray(
+        purchases.map((item) => ({
+          organization_id: organizationId,
+          ...item,
+          created_by: userId,
+        })),
+        500,
+      )) {
+        const { error } = await supabase
+          .from('purchase_orders')
+          .upsert(batch, { onConflict: 'organization_id,po_number' });
+        if (error) throw error;
       }
     }
 
-    await client.query('COMMIT');
+    return;
   } catch (error) {
-    await client.query('ROLLBACK');
     throw error;
   }
 }
@@ -662,16 +452,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'El archivo debe ser XLS o XLSX' }, { status: 400 });
     }
 
-    await withPgClient(async (client) => {
-      await importData(
-        client,
-        context.organizationId,
-        context.userId,
-        parsed.suppliers,
-        parsed.stock,
-        parsed.purchases,
-      );
-    });
+    await importData(
+      context.supabase,
+      context.organizationId,
+      context.userId,
+      parsed.suppliers,
+      parsed.stock,
+      parsed.purchases,
+    );
 
     return NextResponse.json({
       success: true,
