@@ -55,7 +55,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
       '/dashboard/mantenimiento',
       '/dashboard/work-orders',
       '/dashboard/produccion', // See production to understand issues
-      '/dashboard/bodega', // Check available inventory
+      '/dashboard/inventario', // Full inventory management
+      '/dashboard/bodega', // Full warehouse management
       '/dashboard/alertas',
       '/dashboard/hse', // See HSE requirements
       '/dashboard/reportes', // View reports
