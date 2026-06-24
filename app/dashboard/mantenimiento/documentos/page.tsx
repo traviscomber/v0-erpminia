@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { AlertCircle, CheckCircle2, Clock, FileText, RefreshCw } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { AlertCircle, CheckCircle2, Clock, FileText, RefreshCw, Search } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { DocumentUpload } from '@/components/documents/document-upload';
 import { DocumentList, Document } from '@/components/documents/document-list';
 import { DocumentReviewModal } from '@/components/documents/document-review-modal';
@@ -19,6 +20,7 @@ interface DocumentStats {
 export default function DocumentosMantenimientoPage() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const [selectedDoc, setSelectedDoc] = useState<any>(null);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [stats, setStats] = useState<DocumentStats>({
@@ -54,6 +56,46 @@ export default function DocumentosMantenimientoPage() {
   useEffect(() => {
     loadDocuments();
   }, []);
+
+  const filteredDocuments = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+    if (!query) return documents;
+
+    return documents.filter((doc: any) => {
+      const searchable = [
+        doc.id,
+        doc.title,
+        doc.name,
+        doc.document_name,
+        doc.description,
+        doc.category,
+        doc.type,
+        doc.documentType,
+        doc.owner,
+        doc.created_by,
+      ]
+        .map((value) => String(value || '').toLowerCase())
+        .join(' ');
+
+      return searchable.includes(query);
+    });
+  }, [documents, searchTerm]);
+
+  const filteredStats = useMemo(
+    () => ({
+      total: filteredDocuments.length,
+      vigentes: filteredDocuments.filter((d: Document) => d.status === 'active' || d.status === 'aprobado').length,
+      en_revision: filteredDocuments.filter(
+        (d: Document) =>
+          d.status === 'pending_l1' ||
+          d.status === 'pending_l2' ||
+          d.status === 'en_revision_l1' ||
+          d.status === 'en_revision_l2'
+      ).length,
+      rechazados: filteredDocuments.filter((d: Document) => d.status === 'rejected' || d.status === 'rechazado').length,
+    }),
+    [filteredDocuments]
+  );
 
   const handleDelete = async (documentId: string) => {
     try {
@@ -144,7 +186,7 @@ export default function DocumentosMantenimientoPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{stats.total}</p>
+            <p className="text-2xl font-bold">{filteredStats.total}</p>
             <p className="text-xs text-muted-foreground">documentos reales cargados</p>
           </CardContent>
         </Card>
@@ -157,7 +199,7 @@ export default function DocumentosMantenimientoPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-green-500">{stats.vigentes}</p>
+            <p className="text-2xl font-bold text-green-500">{filteredStats.vigentes}</p>
             <p className="text-xs text-muted-foreground">aprobados</p>
           </CardContent>
         </Card>
@@ -170,7 +212,7 @@ export default function DocumentosMantenimientoPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-yellow-500">{stats.en_revision}</p>
+            <p className="text-2xl font-bold text-yellow-500">{filteredStats.en_revision}</p>
             <p className="text-xs text-muted-foreground">esperando aprobacion</p>
           </CardContent>
         </Card>
@@ -183,11 +225,29 @@ export default function DocumentosMantenimientoPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-red-500">{stats.rechazados}</p>
+            <p className="text-2xl font-bold text-red-500">{filteredStats.rechazados}</p>
             <p className="text-xs text-muted-foreground">pendientes de correccion</p>
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Buscar documentos</CardTitle>
+          <CardDescription>Filtra por titulo, descripcion, categoria o responsable.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar documento de mantenimiento..."
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       <Tabs defaultValue="all" className="space-y-4">
         <TabsList className="border-b-2 border-border bg-muted/60 p-1">
@@ -206,16 +266,21 @@ export default function DocumentosMantenimientoPage() {
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
-          <DocumentList documents={documents} isLoading={loading} onView={handleView} onDelete={handleDelete} />
+          <DocumentList documents={filteredDocuments} isLoading={loading} onView={handleView} onDelete={handleDelete} />
         </TabsContent>
 
         <TabsContent value="vigentes" className="space-y-4">
-          <DocumentList documents={documents.filter((d) => d.status === 'active')} isLoading={loading} onView={handleView} onDelete={handleDelete} />
+          <DocumentList
+            documents={filteredDocuments.filter((d) => d.status === 'active')}
+            isLoading={loading}
+            onView={handleView}
+            onDelete={handleDelete}
+          />
         </TabsContent>
 
         <TabsContent value="revision" className="space-y-4">
           <DocumentList
-            documents={documents.filter((d) => d.status === 'pending_l1' || d.status === 'pending_l2')}
+            documents={filteredDocuments.filter((d) => d.status === 'pending_l1' || d.status === 'pending_l2')}
             isLoading={loading}
             onView={handleView}
             onDelete={handleDelete}
