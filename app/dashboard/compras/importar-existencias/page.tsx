@@ -51,7 +51,14 @@ export default function ImportarExistenciasPage() {
         body: formData,
       });
 
-      const payload = await response.json().catch(() => null);
+      const rawBody = await response.text();
+      const payload = rawBody ? (() => {
+        try {
+          return JSON.parse(rawBody);
+        } catch {
+          return null;
+        }
+      })() : null;
 
       if (response.ok) {
         setResult({
@@ -67,7 +74,7 @@ export default function ImportarExistenciasPage() {
           success: false,
           message: 'No se pudo importar el Excel',
           error: payload?.error || 'Error desconocido',
-          details: payload?.details,
+          details: payload?.details || rawBody || undefined,
         });
       }
     } catch (error) {

@@ -435,10 +435,10 @@ async function importData(
 }
 
 export async function POST(request: NextRequest) {
-  const context = await getOrganizationContext(request);
-  if (!context.ok) return context.response;
-
   try {
+    const context = await getOrganizationContext(request);
+    if (!context.ok) return context.response;
+
     const formData = await request.formData();
     const file = formData.get('file');
 
