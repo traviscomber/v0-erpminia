@@ -498,10 +498,20 @@ export default function LegalPage() {
         </TabsContent>
 
         <TabsContent value="contracts">
-          <div className="mb-4 flex justify-end">
-            <AddContractModal onSubmit={handleAddContract} />
-          </div>
-          <ContractsTracker contracts={trackerContracts} />
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <CardTitle>Contratos vigentes</CardTitle>
+                  <CardDescription>Seguimiento de contratos activos y vencimientos proximos.</CardDescription>
+                </div>
+                <AddContractModal onSubmit={handleAddContract} />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ContractsTracker contracts={trackerContracts} />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="compliance">

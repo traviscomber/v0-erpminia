@@ -58,19 +58,15 @@ export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Gestion de contratos</CardTitle>
-        <CardDescription>Seguimiento de contratos vigentes y vencimientos</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {sortedContracts.length === 0 && (
-            <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
-              No hay contratos cargados todavia.
-            </div>
-          )}
-
+    <div className="space-y-3">
+      {sortedContracts.length === 0 ? (
+        <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
+          <AlertCircle className="mx-auto mb-2 h-6 w-6" />
+          <p>No hay contratos cargados todavia.</p>
+          <p className="mt-1 text-xs">Usa el boton "Nuevo contrato" para agregar contratos a la gestion.</p>
+        </div>
+      ) : (
+        <>
           {sortedContracts.map((contract) => {
             const daysLeft = daysUntilExpiry(contract.endDate);
             const isExpiring = daysLeft <= 60 && daysLeft > 0;
@@ -131,8 +127,8 @@ export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
               </div>
             );
           })}
-        </div>
-      </CardContent>
-    </Card>
+        </>
+      )}
+    </div>
   );
 }
