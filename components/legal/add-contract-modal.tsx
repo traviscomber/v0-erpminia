@@ -77,24 +77,24 @@ export function AddContractModal({ onSubmit }: AddContractModalProps) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Agregar contrato</DialogTitle>
-          <DialogDescription>Registra un nuevo contrato comercial.</DialogDescription>
+          <DialogDescription>Registra un nuevo contrato comercial con respaldo documental.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="title">Titulo del contrato</Label>
             <Input
               id="title"
-              placeholder="Ej: Contrato Proveedor"
+              placeholder="Ej: Contrato Proveedor 2026"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               required
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="contractor">Contratista / proveedor</Label>
+            <Label htmlFor="contractor">Contratista o proveedor</Label>
             <Input
               id="contractor"
-              placeholder="Nombre"
+              placeholder="Nombre del contratista o proveedor"
               value={formData.contractor_name}
               onChange={(e) => setFormData({ ...formData, contractor_name: e.target.value })}
               required

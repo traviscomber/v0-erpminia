@@ -72,11 +72,11 @@ export function AddDocumentModal({ onSubmit }: AddDocumentModalProps) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Agregar documento legal</DialogTitle>
-          <DialogDescription>Registra un nuevo documento legal o normativo.</DialogDescription>
+          <DialogDescription>Registra un nuevo documento legal o normativo con respaldo real.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Titulo</Label>
+            <Label htmlFor="title">Titulo del documento</Label>
             <Input
               id="title"
               placeholder="Ej: Politica de Cumplimiento Contractual"
@@ -89,7 +89,7 @@ export function AddDocumentModal({ onSubmit }: AddDocumentModalProps) {
             <Label htmlFor="category">Categoria</Label>
             <Select value={formData.category} onValueChange={(val) => setFormData({ ...formData, category: val })}>
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder="Selecciona una categoria" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="compliance">Cumplimiento</SelectItem>
@@ -106,10 +106,10 @@ export function AddDocumentModal({ onSubmit }: AddDocumentModalProps) {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="desc">Descripcion</Label>
+            <Label htmlFor="desc">Descripcion breve</Label>
             <Textarea
               id="desc"
-              placeholder="Descripcion del documento..."
+              placeholder="Contexto breve, alcance y uso del documento..."
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={3}

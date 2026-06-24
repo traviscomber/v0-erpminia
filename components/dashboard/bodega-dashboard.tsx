@@ -74,6 +74,7 @@ export function BodegaDashboard() {
   const topFamilies = Object.entries(categoryBuckets)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 6);
+  const topFamiliesPreview = topFamilies.slice(0, 4);
 
   const visibleRangeStart = pagination.total === 0 ? 0 : page * pageSize + 1;
   const visibleRangeEnd = Math.min((page + 1) * pageSize, pagination.total);
@@ -148,8 +149,8 @@ export function BodegaDashboard() {
           <div className="rounded-lg border border-border bg-background/60 p-4">
             <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Familias con mas volumen</div>
             <div className="mt-2 flex flex-wrap gap-2">
-              {topFamilies.length > 0 ? (
-                topFamilies.map(([label, count]) => (
+              {topFamiliesPreview.length > 0 ? (
+                topFamiliesPreview.map(([label, count]) => (
                   <span
                     key={label}
                     className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1 text-sm text-foreground"
@@ -163,6 +164,11 @@ export function BodegaDashboard() {
                 <span className="text-sm text-muted-foreground">Sin datos para resumir</span>
               )}
             </div>
+            {topFamilies.length > topFamiliesPreview.length && (
+              <p className="mt-2 text-xs text-muted-foreground">
+                +{topFamilies.length - topFamiliesPreview.length} familias mas con volumen relevante
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>

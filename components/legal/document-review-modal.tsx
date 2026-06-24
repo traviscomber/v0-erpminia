@@ -68,7 +68,7 @@ export function DocumentReviewModal({ open, document, level = 'L1', onClose, onR
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               <DialogTitle className="text-lg">{document.title}</DialogTitle>
-              <DialogDescription className="mt-1">Revision - Nivel {level}</DialogDescription>
+              <DialogDescription className="mt-1">Revision nivel {level}</DialogDescription>
             </div>
             {hasBeenReviewed && (
               <Badge variant={currentStatusData.status === 'cumple' ? 'default' : 'destructive'}>
@@ -129,7 +129,7 @@ export function DocumentReviewModal({ open, document, level = 'L1', onClose, onR
           )}
 
           <div className="space-y-3 border-t pt-4">
-            <label className="text-sm font-medium">Tu revision</label>
+            <label className="text-sm font-medium">Tu decision</label>
             <div className="space-y-2">
               <Button
                 variant={reviewStatus === 'cumple' ? 'default' : 'outline'}
@@ -138,7 +138,7 @@ export function DocumentReviewModal({ open, document, level = 'L1', onClose, onR
                 disabled={loading}
               >
                 <CheckCircle2 className="h-4 w-4" />
-                Aprobar - Cumple
+                Aprobar
               </Button>
               <Button
                 variant={reviewStatus === 'no_cumple' ? 'destructive' : 'outline'}
@@ -147,7 +147,7 @@ export function DocumentReviewModal({ open, document, level = 'L1', onClose, onR
                 disabled={loading}
               >
                 <XCircle className="h-4 w-4" />
-                Rechazar - No cumple
+                Rechazar
               </Button>
             </div>
           </div>

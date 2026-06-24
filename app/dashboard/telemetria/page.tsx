@@ -24,32 +24,32 @@ export default function TelemetriaPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <Card>
+        <Card className="border-border/70 bg-card/90">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">Monitoreo real</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">Sensores vivos</div>
+            <div className="text-2xl font-bold text-primary">Sensores vivos</div>
             <p className="text-xs text-muted-foreground">Lecturas desde Supabase sin datos de prueba.</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-border/70 bg-card/90">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">Alertas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">OT sugerida</div>
+            <div className="text-2xl font-bold text-[var(--secondary)]">OT sugerida</div>
             <p className="text-xs text-muted-foreground">Generacion directa desde la alerta de sensor.</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-border/70 bg-card/90">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">Cobertura</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">Equipo + lectura</div>
+            <div className="text-2xl font-bold text-[var(--brand-verde)]">Equipo + lectura</div>
             <p className="text-xs text-muted-foreground">Vista simple para operar y reaccionar a tiempo.</p>
           </CardContent>
         </Card>
