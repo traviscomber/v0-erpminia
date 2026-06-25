@@ -306,6 +306,9 @@ export function AssetDetailView() {
                 Copiar enlace
               </Button>
               <Button variant="outline" asChild>
+                <Link href={`/dashboard/mantenimiento/vehiculos/${asset.id}/qr`}>Tarjeta QR</Link>
+              </Button>
+              <Button variant="outline" asChild>
                 <Link href={`/dashboard/mantenimiento/vehiculos/${asset.id}/arbol`}>Ver arbol de fallas</Link>
               </Button>
               <Button variant="outline" asChild>
