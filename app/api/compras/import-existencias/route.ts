@@ -505,18 +505,32 @@ export async function POST(request: NextRequest) {
 
     if (contentType.includes('application/json')) {
       const body = await request.json();
-      const chunks: Array<{ url: string; index: number }> | undefined = body.chunks;
+      const chunks: string[] | undefined = body.chunks; // Base64-encoded chunks
       const blobUrl = String(body.blobUrl || body.url || '').trim();
       const blobPathname = String(body.blobPathname || body.pathname || '').trim();
       const fileName = String(body.fileName || 'existencias.xlsx').trim();
 
       if (chunks && Array.isArray(chunks) && chunks.length > 0) {
-        // Combined chunks upload path
-        uploadedBlobPath = JSON.stringify(chunks); // Store for cleanup
-        const chunkUrls = chunks.sort((a, b) => a.index - b.index).map((c) => c.url);
-        parsed = await combineChunksAndParse(chunkUrls, fileName);
+        // Base64-encoded chunks: combine and parse directly
+        const combined = new Uint8Array(chunks.reduce((size, chunk) => {
+          const binaryString = atob(chunk);
+          return size + binaryString.length;
+        }, 0));
+
+        let offset = 0;
+        for (const chunk of chunks) {
+          const binaryString = atob(chunk);
+          for (let i = 0; i < binaryString.length; i++) {
+            combined[offset++] = binaryString.charCodeAt(i);
+          }
+        }
+
+        const file = new File([combined], fileName, {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+        parsed = await parseWorkbook(file);
       } else if (blobUrl) {
-        // Single blob path
+        // Single blob path (legacy)
         uploadedBlobPath = blobUrl || blobPathname;
         parsed = await parseWorkbookFromBlob(blobUrl, fileName);
       } else {

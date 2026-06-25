@@ -72,22 +72,78 @@ export default function ImportarExistenciasPage() {
     };
 
     try {
-      // Send file as FormData to server for processing.
-      // Server handles the file directly without relying on Blob client SDK.
-      setResult({
-        success: false,
-        message: 'Procesando archivo...',
-      });
+      // Split large files into small chunks to avoid Vercel payload limits.
+      // Each chunk (~2MB) is sent as Base64 JSON, server combines them.
+      const CHUNK_SIZE = 2 * 1024 * 1024; // 2MB per chunk
+      const fileBuffer = await file.arrayBuffer();
+      const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
 
-      const formData = new FormData();
-      formData.append('file', file);
+      if (totalChunks > 1) {
+        // Multi-chunk upload
+        setResult({
+          success: false,
+          message: `Subiendo parte 1/${totalChunks}...`,
+        });
 
-      const response = await fetch('/api/compras/import-existencias', {
-        method: 'POST',
-        body: formData,
-      });
+        const chunks: string[] = [];
+        for (let i = 0; i < totalChunks; i++) {
+          const start = i * CHUNK_SIZE;
+          const end = Math.min(start + CHUNK_SIZE, file.size);
+          const chunk = fileBuffer.slice(start, end);
+          const chunkArray = new Uint8Array(chunk);
+          
+          // Convert chunk to Base64
+          let binary = '';
+          for (let j = 0; j < chunkArray.length; j++) {
+            binary += String.fromCharCode(chunkArray[j]);
+          }
+          const base64 = btoa(binary);
+          chunks.push(base64);
 
-      await applyResponse(response);
+          setResult({
+            success: false,
+            message: `Subiendo parte ${i + 1}/${totalChunks}...`,
+          });
+        }
+
+        // Send all chunks to server
+        const response = await fetch('/api/compras/import-existencias', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chunks,
+            fileName: file.name,
+            totalSize: file.size,
+          }),
+        });
+
+        await applyResponse(response);
+      } else {
+        // Single chunk (file is small enough)
+        setResult({
+          success: false,
+          message: 'Procesando archivo...',
+        });
+
+        const fileArray = new Uint8Array(fileBuffer);
+        let binary = '';
+        for (let i = 0; i < fileArray.length; i++) {
+          binary += String.fromCharCode(fileArray[i]);
+        }
+        const base64 = btoa(binary);
+
+        const response = await fetch('/api/compras/import-existencias', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chunks: [base64],
+            fileName: file.name,
+            totalSize: file.size,
+          }),
+        });
+
+        await applyResponse(response);
+      }
     } catch (error) {
       setResult({
         success: false,
