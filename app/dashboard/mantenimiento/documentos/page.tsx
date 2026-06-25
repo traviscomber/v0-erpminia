@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { AlertCircle, CheckCircle2, Clock, FileText, RefreshCw, Search } from 'lucide-react';
+import Link from 'next/link';
+import { AlertCircle, ArrowRight, CheckCircle2, Clock, FileText, RefreshCw, Search } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -171,10 +172,30 @@ export default function DocumentosMantenimientoPage() {
           <h1 className="text-3xl font-bold">Documentos de mantenimiento</h1>
           <p className="mt-2 text-muted-foreground">Gestion de manuales, procedimientos e instructivos de mantenimiento.</p>
         </div>
-        <Button variant="outline" onClick={loadDocuments} disabled={loading}>
-          <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-          {loading ? 'Actualizando...' : 'Recargar'}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline">
+            <Link href="/dashboard/mantenimiento/bitacora">
+              Bitacora
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/dashboard/mantenimiento/planificacion">
+              Planificacion
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/dashboard/mantenimiento/gerencial">
+              Gerencial
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+          <Button variant="outline" onClick={loadDocuments} disabled={loading}>
+            <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            {loading ? 'Actualizando...' : 'Recargar'}
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
@@ -299,6 +320,33 @@ export default function DocumentosMantenimientoPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Accesos rapidos</CardTitle>
+          <CardDescription>Atajos utiles para operacion y supervision.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 gap-2 md:grid-cols-3">
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/mantenimiento/vehiculos">
+              Vehiculos y QR
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/mantenimiento/bitacora">
+              Bitacora
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/mantenimiento/gerencial">
+              Dashboard gerencial
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
 
       <DocumentReviewModal
         document={selectedDoc}

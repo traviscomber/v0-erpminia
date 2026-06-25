@@ -90,6 +90,12 @@ export function PreventivePlanBoard() {
             <RefreshCw className="h-4 w-4" />
             Recargar planificacion
           </Button>
+          <Button asChild variant="outline" className="gap-2">
+            <Link href="/dashboard/mantenimiento/vehiculos">
+              Ver vehiculos
+              <CalendarClock className="h-4 w-4" />
+            </Link>
+          </Button>
           <Button asChild className="gap-2">
             <Link href="/dashboard/mantenimiento/bitacora">
               <CalendarClock className="h-4 w-4" />

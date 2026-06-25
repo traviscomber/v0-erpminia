@@ -95,6 +95,12 @@ export function MaintenanceHistoryBoard() {
             <History className="h-4 w-4" />
             Recargar bitacora
           </Button>
+          <Button asChild variant="outline" className="gap-2">
+            <Link href="/dashboard/mantenimiento/vehiculos">
+              Vehiculos y QR
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
           <Button asChild className="gap-2">
             <Link href="/dashboard/mantenimiento/planificacion">
               <CalendarClock className="h-4 w-4" />
@@ -186,6 +192,14 @@ export function MaintenanceHistoryBoard() {
                       <Button variant="outline" size="sm" asChild className="gap-2">
                         <Link href={`/dashboard/mantenimiento/vehiculos/${group.assetId}/arbol`}>
                           Ver ficha
+                          <ArrowRight className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                    ) : null}
+                    {group.assetId ? (
+                      <Button variant="outline" size="sm" asChild className="gap-2">
+                        <Link href={`/dashboard/mantenimiento/vehiculos/${group.assetId}/qr`}>
+                          Ver QR
                           <ArrowRight className="h-4 w-4" />
                         </Link>
                       </Button>

@@ -22,6 +22,12 @@ export default function TelemetriaPage() {
             Volver a produccion
           </Button>
         </Link>
+        <Link href="/dashboard/mantenimiento">
+          <Button variant="outline" className="gap-2">
+            <ArrowRight className="h-4 w-4" />
+            Ir a mantenimiento
+          </Button>
+        </Link>
       </div>
 
       <TelemetryExecutiveSummary />
