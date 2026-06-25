@@ -43,34 +43,7 @@ export default function ImportarExistenciasPage() {
     setLoading(true);
     setResult(null);
 
-    try {
-      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const blobPath = `compras-existencias/${Date.now()}-${safeName}`;
-
-      const uploadedBlob = await upload(blobPath, file, {
-        access: 'private',
-        handleUploadUrl: '/api/compras/import-existencias/upload',
-        multipart: file.size > 8 * 1024 * 1024,
-        onUploadProgress: ({ percentage }) => {
-          setResult({
-            success: false,
-            message: `Subiendo archivo... ${Math.round(percentage)}%`,
-          });
-        },
-      });
-
-      const response = await fetch('/api/compras/import-existencias', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          blobUrl: uploadedBlob.url,
-          blobPathname: uploadedBlob.pathname,
-          fileName: file.name,
-        }),
-      });
-
+    const applyResponse = async (response: Response) => {
       const rawBody = await response.text();
       const payload = rawBody ? (() => {
         try {
@@ -96,6 +69,70 @@ export default function ImportarExistenciasPage() {
           error: payload?.error || 'Error desconocido',
           details: payload?.details || rawBody || undefined,
         });
+      }
+    };
+
+    // Sends the file directly to the server as multipart/form-data. Used as a
+    // fallback when the direct-to-Blob upload is unavailable (e.g. local dev
+    // where Blob cannot reach the callback URL).
+    const importViaFormData = async () => {
+      setResult({ success: false, message: 'Procesando archivo en el servidor...' });
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await fetch('/api/compras/import-existencias', {
+        method: 'POST',
+        body: formData,
+      });
+      await applyResponse(response);
+    };
+
+    try {
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const blobPath = `compras-existencias/${Date.now()}-${safeName}`;
+
+      // Prefer uploading the file straight to Vercel Blob so large workbooks
+      // never hit the API payload limit. We race against a timeout so a stalled
+      // upload (common on localhost) transparently falls back to FormData.
+      let uploadedBlob: Awaited<ReturnType<typeof upload>> | null = null;
+      console.log('[v0] handleFile START blob upload', blobPath);
+      try {
+        uploadedBlob = await Promise.race([
+          upload(blobPath, file, {
+            access: 'private',
+            handleUploadUrl: '/api/compras/import-existencias/upload',
+            multipart: file.size > 8 * 1024 * 1024,
+            onUploadProgress: ({ percentage }) => {
+              console.log('[v0] onUploadProgress', percentage);
+              setResult({
+                success: false,
+                message: `Subiendo archivo... ${Math.round(percentage)}%`,
+              });
+            },
+          }),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error('blob-upload-timeout')), 20000),
+          ),
+        ]);
+        console.log('[v0] blob upload RESOLVED', uploadedBlob?.url);
+      } catch (e) {
+        console.log('[v0] blob upload FAILED, will fall back to FormData', String(e));
+        uploadedBlob = null;
+      }
+
+      if (uploadedBlob) {
+        const response = await fetch('/api/compras/import-existencias', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            blobUrl: uploadedBlob.url,
+            blobPathname: uploadedBlob.pathname,
+            fileName: file.name,
+          }),
+        });
+        await applyResponse(response);
+      } else {
+        // Blob upload was unavailable or stalled: fall back to direct upload.
+        await importViaFormData();
       }
     } catch (error) {
       setResult({
