@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import useSWR from 'swr';
 import { toast } from 'sonner';
-import { AlertCircle, ArrowLeft, CheckCircle, Clock, Download, Eye, FileText, Plus, RefreshCw, Search } from 'lucide-react';
+import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle, Clock, Download, Eye, FileText, Plus, RefreshCw, Search } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -218,6 +218,27 @@ export default function ContratosPage() {
             Nuevo contrato
           </Button>
         </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <Button asChild variant="outline" size="sm" className="gap-2">
+          <Link href="/dashboard/legal/documentos">
+            Documentos legales
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </Button>
+        <Button asChild variant="outline" size="sm" className="gap-2">
+          <Link href="/dashboard/mantenimiento/documentos">
+            Documentos de mantenimiento
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </Button>
+        <Button asChild variant="outline" size="sm" className="gap-2">
+          <Link href="/dashboard/documentos-gestion/reportes">
+            Reportes
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </Button>
       </div>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-6">

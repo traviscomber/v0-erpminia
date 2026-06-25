@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Activity, RefreshCw } from 'lucide-react';
+import { Activity, ArrowRight, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useProductionKPI } from '@/hooks/use-module-apis';
@@ -38,10 +38,24 @@ export function ProduccionDashboard() {
             Monitoreo integral de KPIs operacionales y telemetria real.
           </p>
         </div>
-        <Button size="sm" onClick={() => mutate()} className="gap-2">
-          <RefreshCw className="w-4 h-4" />
-          Actualizar
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline" size="sm" className="gap-2">
+            <Link href="/dashboard/telemetria">
+              Telemetria
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" size="sm" className="gap-2">
+            <Link href="/dashboard/mantenimiento">
+              Mantenimiento
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button size="sm" onClick={() => mutate()} className="gap-2">
+            <RefreshCw className="w-4 h-4" />
+            Actualizar
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
