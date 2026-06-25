@@ -33,6 +33,7 @@ import {
   Scale,
   File,
   Upload,
+  Fuel,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -53,6 +54,7 @@ const rolePermissions: Record<string, string[]> = {
   'Dashboard Gerencial Mantencion': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
   'Panel Movil Mantencion': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
   'Personal Mantencion': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
+  'Combustible': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
   'Costo por Equipo': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
   'Indicadores de Mantencion': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
   'Gestion de Neumaticos': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
@@ -102,6 +104,7 @@ const menuItems = [
   { label: 'Dashboard Gerencial Mantencion', href: '/dashboard/mantenimiento/gerencial', icon: BarChart3, group: 'Mantenimiento' },
   { label: 'Panel Movil Mantencion', href: '/dashboard/mantenimiento/movil', icon: Smartphone, group: 'Mantenimiento' },
   { label: 'Personal Mantencion', href: '/dashboard/mantenimiento/personal', icon: Users, group: 'Mantenimiento' },
+  { label: 'Combustible', href: '/dashboard/mantenimiento/combustible', icon: Fuel, group: 'Mantenimiento' },
   { label: 'Costo por Equipo', href: '/dashboard/mantenimiento/costos', icon: DollarSign, group: 'Mantenimiento' },
   { label: 'Indicadores de Mantencion', href: '/dashboard/mantenimiento/indicadores', icon: BarChart3, group: 'Mantenimiento' },
   { label: 'Gestion de Neumaticos', href: '/dashboard/mantenimiento/neumaticos', icon: Boxes, group: 'Mantenimiento' },

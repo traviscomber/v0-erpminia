@@ -25,6 +25,7 @@ export function MaintenanceExecutiveDashboard() {
   const { data: preventiveData, mutate: mutatePreventive } = useSWR('/api/maintenance/preventive', fetcher);
   const { data: tiresData, mutate: mutateTires } = useSWR('/api/maintenance/neumaticos', fetcher);
   const { data: componentsData, mutate: mutateComponents } = useSWR('/api/maintenance/componentes-mayores', fetcher);
+  const { data: fuelData, mutate: mutateFuel } = useSWR('/api/bodega/inventory?category=Combustible&pageSize=100', fetcher);
 
   const assets = Array.isArray(assetsData?.assets) ? assetsData.assets : [];
   const workOrders = Array.isArray(ordersData?.workOrders) ? ordersData.workOrders : [];
@@ -32,6 +33,20 @@ export function MaintenanceExecutiveDashboard() {
   const preventiveSummary = preventiveData?.summary || { total: 0, enabled: 0, overdue: 0, dueSoon: 0 };
   const componentSummary = componentsData?.summary || { totalTemplates: 0, totalComponents: 0, degraded: 0, failures: 0 };
   const costSummary = costsData?.summary || { totalCost: 0, totalWorkOrders: 0, totalRecords: 0, assets: 0, averageCostPerAsset: 0 };
+  const fuelItems = Array.isArray(fuelData?.inventory) ? fuelData.inventory : [];
+  const fuelSummary = fuelItems.reduce(
+    (acc: { totalItems: number; totalQuantity: number; totalValue: number; lowStock: number }, item: any) => {
+      const quantity = Number(item.quantity || 0);
+      const unitCost = Number(item.unit_cost || 0);
+      const minStock = Number(item.min_stock || 0);
+      acc.totalItems += 1;
+      acc.totalQuantity += quantity;
+      acc.totalValue += quantity * unitCost;
+      if (quantity <= minStock) acc.lowStock += 1;
+      return acc;
+    },
+    { totalItems: 0, totalQuantity: 0, totalValue: 0, lowStock: 0 },
+  );
 
   const activeAssets = assets.filter((asset: any) => String(asset.status || '').toLowerCase() === 'active').length;
   const maintenanceAssets = assets.filter((asset: any) => String(asset.status || '').toLowerCase() === 'maintenance').length;
@@ -52,6 +67,7 @@ export function MaintenanceExecutiveDashboard() {
     overdueOrders > 0 ? `${overdueOrders} ordenes atrasadas requieren atencion.` : null,
     preventiveSummary.overdue > 0 ? `${preventiveSummary.overdue} mantenimientos preventivos estan vencidos.` : null,
     tireSummary.lowStock > 0 ? `${tireSummary.lowStock} repuestos de neumaticos estan bajo minimo.` : null,
+    fuelSummary.lowStock > 0 ? `${fuelSummary.lowStock} items de combustible estan bajo minimo.` : null,
     componentSummary.failures > 0 ? `${componentSummary.failures} componentes mayores estan en falla.` : null,
   ].filter(Boolean) as string[];
 
@@ -63,6 +79,7 @@ export function MaintenanceExecutiveDashboard() {
     { label: 'MTTR', value: `${Number(mttrData?.averageMTTR || 0).toFixed(1)} h`, icon: Gauge, tone: 'text-primary', hint: 'Tiempo promedio de reparacion' },
     { label: 'Preventivos', value: number(preventiveSummary.enabled), icon: CalendarClock, tone: 'text-blue-500', hint: `${preventiveSummary.dueSoon} proximos a vencer` },
     { label: 'Neumaticos bajo minimo', value: number(tireSummary.lowStock), icon: TrendingDown, tone: 'text-orange-500', hint: `${number(tireSummary.totalItems)} items de neumaticos` },
+    { label: 'Combustible bajo minimo', value: number(fuelSummary.lowStock), icon: TrendingDown, tone: 'text-amber-500', hint: `${number(fuelSummary.totalItems)} items de combustible` },
     { label: 'Componentes con falla', value: number(componentSummary.failures), icon: TrendingUp, tone: 'text-green-500', hint: `${number(componentSummary.totalTemplates)} familias` },
   ];
 
@@ -92,6 +109,7 @@ export function MaintenanceExecutiveDashboard() {
               void mutatePreventive();
               void mutateTires();
               void mutateComponents();
+              void mutateFuel();
             }}
             className="gap-2"
           >
@@ -248,6 +266,12 @@ export function MaintenanceExecutiveDashboard() {
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/personal">
                 Personal mantencion
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/combustible">
+                Combustible
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
