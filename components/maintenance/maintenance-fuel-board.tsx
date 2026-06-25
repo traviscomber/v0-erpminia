@@ -66,9 +66,15 @@ export function MaintenanceFuelBoard() {
             <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
             Recargar
           </Button>
-          <Button asChild className="gap-2">
+          <Button asChild variant="outline" className="gap-2">
             <Link href="/dashboard/bodega">
               Ir a bodega
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild className="gap-2">
+            <Link href="/dashboard/inventario">
+              Ver inventario
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
@@ -167,6 +173,32 @@ export function MaintenanceFuelBoard() {
               ))}
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Accesos relacionados</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 gap-2 md:grid-cols-3">
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/mantenimiento/costos">
+              Costo por equipo
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/mantenimiento/gerencial">
+              Dashboard gerencial
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/mantenimiento/personal">
+              Personal mantencion
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
         </CardContent>
       </Card>
     </div>

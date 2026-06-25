@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import useSWR from 'swr';
 import { AlertCircle, RefreshCw, Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -27,10 +28,22 @@ export function ComponentesMayoresBoard() {
           <h1 className="text-3xl font-bold tracking-tight">Control de componentes mayores</h1>
           <p className="mt-2 text-muted-foreground">Estado real de componentes criticos por vehiculo y plantilla tecnica.</p>
         </div>
-        <Button variant="outline" onClick={() => void mutate()} className="gap-2">
-          <RefreshCw className="h-4 w-4" />
-          Recargar
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={() => void mutate()} className="gap-2">
+            <RefreshCw className="h-4 w-4" />
+            Recargar
+          </Button>
+          <Button asChild variant="outline" className="gap-2">
+            <Link href="/dashboard/mantenimiento/vehiculos">
+              Vehiculos y QR
+            </Link>
+          </Button>
+          <Button asChild className="gap-2">
+            <Link href="/dashboard/mantenimiento/gerencial">
+              Gerencial
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">

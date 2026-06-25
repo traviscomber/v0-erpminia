@@ -32,6 +32,18 @@ export function MaintenanceCostsBoard() {
             <RefreshCw className="h-4 w-4" />
             Recargar
           </Button>
+          <Button asChild variant="outline" className="gap-2">
+            <Link href="/dashboard/mantenimiento/bitacora">
+              Bitacora
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="gap-2">
+            <Link href="/dashboard/mantenimiento/vehiculos">
+              Vehiculos y QR
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
           <Button asChild className="gap-2">
             <Link href="/dashboard/mantenimiento/indicadores">
               <DollarSign className="h-4 w-4" />

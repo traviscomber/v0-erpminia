@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import useSWR from 'swr';
 import { Clock3, RefreshCw, Users, Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -22,10 +23,18 @@ export function MaintenancePersonnelBoard() {
           <h1 className="text-3xl font-bold tracking-tight">Personal de mantencion</h1>
           <p className="mt-2 text-muted-foreground">Horas reales, tecnicos activos y registros recientes del modulo.</p>
         </div>
-        <Button variant="outline" className="gap-2" onClick={() => void mutate()}>
-          <RefreshCw className="h-4 w-4" />
-          Recargar
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" className="gap-2" onClick={() => void mutate()}>
+            <RefreshCw className="h-4 w-4" />
+            Recargar
+          </Button>
+          <Button asChild variant="outline" className="gap-2">
+            <Link href="/dashboard/mantenimiento/bitacora">Bitacora</Link>
+          </Button>
+          <Button asChild className="gap-2">
+            <Link href="/dashboard/mantenimiento/gerencial">Gerencial</Link>
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -113,6 +122,32 @@ export function MaintenancePersonnelBoard() {
               No hay registros recientes.
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Accesos relacionados</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 gap-2 md:grid-cols-3">
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/mantenimiento/costos">
+              Costo por equipo
+              <Clock3 className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/mantenimiento/planificacion">
+              Planificacion
+              <Wrench className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/mantenimiento/vehiculos">
+              Vehiculos y QR
+              <Users className="h-4 w-4" />
+            </Link>
+          </Button>
         </CardContent>
       </Card>
     </div>
