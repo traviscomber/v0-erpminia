@@ -61,7 +61,20 @@ export function MaintenanceExecutiveDashboard() {
   }).length;
   const openOrders = workOrders.filter((order: any) => ['open', 'pending', 'pendiente'].includes(String(order.status || '').toLowerCase())).length;
   const inProgressOrders = workOrders.filter((order: any) => ['in_progress', 'en_progreso'].includes(String(order.status || '').toLowerCase())).length;
+  const completedOrders = workOrders.filter((order: any) => ['completed', 'completado', 'closed'].includes(String(order.status || '').toLowerCase())).length;
+  const criticalOrders = workOrders.filter(
+    (order: any) =>
+      ['open', 'pending', 'pendiente', 'in_progress', 'en_progreso'].includes(String(order.status || '').toLowerCase()) &&
+      ['high', 'critical', 'urgente'].includes(String(order.priority || '').toLowerCase()),
+  );
   const availability = assets.length > 0 ? Math.round((activeAssets / assets.length) * 100) : 0;
+  const maintenanceCoverage = workOrders.length > 0 ? Math.round((completedOrders / workOrders.length) * 100) : 0;
+  const executivePulse = [
+    { label: 'Disponibilidad', value: `${availability}%`, tone: availability >= 85 ? 'text-green-500' : availability >= 70 ? 'text-amber-500' : 'text-destructive' },
+    { label: 'Cobertura OT', value: `${maintenanceCoverage}%`, tone: maintenanceCoverage >= 80 ? 'text-green-500' : 'text-amber-500' },
+    { label: 'Activos criticos', value: number(criticalAssets), tone: criticalAssets > 0 ? 'text-orange-500' : 'text-green-500' },
+    { label: 'OT criticas', value: number(criticalOrders.length), tone: criticalOrders.length > 0 ? 'text-destructive' : 'text-green-500' },
+  ];
 
   const executiveWarnings = [
     overdueOrders > 0 ? `${overdueOrders} ordenes atrasadas requieren atencion.` : null,
@@ -89,7 +102,7 @@ export function MaintenanceExecutiveDashboard() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard gerencial de mantencion</h1>
           <p className="mt-2 max-w-2xl text-muted-foreground">
-            Vista ejecutiva real para gerencia: equipos, OT, costos, neumaticos, preventivos y componentes mayores.
+            Vista ejecutiva real para gerencia: estado del dia, riesgos, costos, OT criticas y foco operativo en una sola pantalla.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -131,6 +144,19 @@ export function MaintenanceExecutiveDashboard() {
             <CardContent className="space-y-1">
               <div className="text-3xl font-bold">{card.value}</div>
               <p className="text-xs text-muted-foreground">{card.hint}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {executivePulse.map((item) => (
+          <Card key={item.label}>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">{item.label}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className={`text-3xl font-bold ${item.tone}`}>{item.value}</div>
             </CardContent>
           </Card>
         ))}
@@ -199,6 +225,10 @@ export function MaintenanceExecutiveDashboard() {
               <span className="text-muted-foreground">Componentes mayores en degradacion</span>
               <Badge variant="secondary">{componentSummary.degraded}</Badge>
             </div>
+            <div className="flex items-center justify-between rounded-lg border border-border p-3">
+              <span className="text-muted-foreground">OT criticas activas</span>
+              <Badge variant={criticalOrders.length > 0 ? 'destructive' : 'outline'}>{criticalOrders.length}</Badge>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -230,9 +260,33 @@ export function MaintenanceExecutiveDashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Acceso rapido gerencial</CardTitle>
+            <CardTitle>Foco operativo de gerencia</CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <CardContent className="space-y-3">
+            {criticalOrders.length > 0 ? (
+              <div className="space-y-2">
+                {criticalOrders.slice(0, 4).map((order: any) => (
+                  <div key={order.id} className="rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-sm">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="font-semibold">{order.work_order_number || order.code || order.title}</p>
+                        <p className="text-muted-foreground">{order.title}</p>
+                      </div>
+                      <Badge variant="destructive">{order.priority || 'critical'}</Badge>
+                    </div>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      {order.asset_name || 'Sin equipo'} {order.scheduled_date ? `- ${new Date(order.scheduled_date).toLocaleDateString('es-CL')}` : ''}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-lg border border-border p-3 text-sm text-muted-foreground">
+                No hay OT criticas activas en este momento.
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento">
                 Panel principal
@@ -281,6 +335,7 @@ export function MaintenanceExecutiveDashboard() {
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
+            </div>
           </CardContent>
         </Card>
       </div>

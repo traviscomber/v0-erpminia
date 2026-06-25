@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { inferMachineFamilyFromText } from '@/lib/maintenance/cost-center-machines';
 
 const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
 
@@ -179,6 +180,11 @@ export function MaintenanceMobilePanel() {
     }
   };
 
+  const selectedAssetFamily = useMemo(() => {
+    const text = `${selectedAsset?.asset_name || ''} ${selectedAsset?.asset_type || ''} ${selectedAsset?.model || ''} ${selectedAsset?.manufacturer || ''}`;
+    return inferMachineFamilyFromText(text) || 'Sin familia';
+  }, [selectedAsset?.asset_name, selectedAsset?.asset_type, selectedAsset?.model, selectedAsset?.manufacturer]);
+
   return (
     <div className="mx-auto max-w-md space-y-4 pb-8">
       <div>
@@ -201,6 +207,34 @@ export function MaintenanceMobilePanel() {
           </Card>
         ))}
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Resumen de terreno</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 gap-3 text-sm">
+          <div className="rounded-lg border border-border p-3">
+            <p className="text-xs text-muted-foreground">Personal</p>
+            <p className="text-xl font-bold">{personalSummary.technicians || 0}</p>
+            <p className="text-xs text-muted-foreground">Tecnicos con registros</p>
+          </div>
+          <div className="rounded-lg border border-border p-3">
+            <p className="text-xs text-muted-foreground">Horas</p>
+            <p className="text-xl font-bold">{Number(personalSummary.totalHours || 0).toFixed(1)}</p>
+            <p className="text-xs text-muted-foreground">Horas cargadas hoy</p>
+          </div>
+          <div className="rounded-lg border border-border p-3">
+            <p className="text-xs text-muted-foreground">Urgentes</p>
+            <p className="text-xl font-bold text-orange-500">{urgentOrders.length}</p>
+            <p className="text-xs text-muted-foreground">OT criticas activas</p>
+          </div>
+          <div className="rounded-lg border border-border p-3">
+            <p className="text-xs text-muted-foreground">MTTR</p>
+            <p className="text-xl font-bold">{Number(mttrData?.averageMTTR || 0).toFixed(1)}</p>
+            <p className="text-xs text-muted-foreground">Promedio actual</p>
+          </div>
+        </CardContent>
+      </Card>
 
       {assetId ? (
         <Card>
@@ -234,10 +268,20 @@ export function MaintenanceMobilePanel() {
                     </p>
                   </div>
                 </div>
+                <div className="rounded-lg border border-border p-3">
+                  <p className="text-xs text-muted-foreground">Familia detectada</p>
+                  <p className="font-semibold">{selectedAssetFamily}</p>
+                </div>
                 <Button asChild className="w-full justify-between">
                   <Link href={`/dashboard/mantenimiento/vehiculos/${assetId}/ficha`}>
                     Abrir ficha completa
                     <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="w-full justify-between">
+                  <Link href={`/dashboard/mantenimiento/vehiculos/${assetId}/qr`}>
+                    Ver tarjeta QR
+                    <QrCode className="h-4 w-4" />
                   </Link>
                 </Button>
               </>
@@ -370,6 +414,14 @@ export function MaintenanceMobilePanel() {
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
+          {assetId ? (
+            <Button asChild variant="outline" className="justify-between">
+              <Link href={`/dashboard/mantenimiento/vehiculos/${assetId}/qr`}>
+                Abrir QR del equipo
+                <QrCode className="h-4 w-4" />
+              </Link>
+            </Button>
+          ) : null}
           <Button asChild variant="outline" className="justify-between">
             <Link href="/dashboard/mantenimiento/bitacora">
               Ver bitacora
