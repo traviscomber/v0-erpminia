@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import Link from 'next/link';
+import { upload } from '@vercel/blob/client';
 import { AlertCircle, ArrowLeft, CheckCircle2, FileSpreadsheet, Loader2, Upload, Warehouse, Users } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -43,12 +44,31 @@ export default function ImportarExistenciasPage() {
     setResult(null);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const blobPath = `compras-existencias/${Date.now()}-${safeName}`;
+
+      const uploadedBlob = await upload(blobPath, file, {
+        access: 'private',
+        handleUploadUrl: '/api/compras/import-existencias/upload',
+        multipart: file.size > 8 * 1024 * 1024,
+        onUploadProgress: ({ percentage }) => {
+          setResult({
+            success: false,
+            message: `Subiendo archivo... ${Math.round(percentage)}%`,
+          });
+        },
+      });
 
       const response = await fetch('/api/compras/import-existencias', {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          blobUrl: uploadedBlob.url,
+          blobPathname: uploadedBlob.pathname,
+          fileName: file.name,
+        }),
       });
 
       const rawBody = await response.text();

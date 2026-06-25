@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
+import { del, get } from '@vercel/blob';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { canonicalCategory, normalizeText } from '@/lib/bodega-normalization';
 
@@ -309,6 +310,23 @@ async function parseWorkbook(file: File) {
   };
 }
 
+async function parseWorkbookFromBlob(blobUrlOrPath: string, fileName: string) {
+  const blob = await get(blobUrlOrPath, {
+    access: 'private',
+  });
+
+  if (!blob || !blob.stream) {
+    throw new Error('No se pudo leer el archivo subido');
+  }
+
+  const arrayBuffer = await new Response(blob.stream).arrayBuffer();
+  const file = new File([arrayBuffer], fileName, {
+    type: blob.blob.contentType || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  });
+
+  return parseWorkbook(file);
+}
+
 function chunkArray<T>(items: T[], size: number) {
   const chunks: T[][] = [];
   for (let index = 0; index < items.length; index += size) {
@@ -435,21 +453,41 @@ async function importData(
 }
 
 export async function POST(request: NextRequest) {
+  let uploadedBlobPath: string | null = null;
+
   try {
     const context = await getOrganizationContext(request);
     if (!context.ok) return context.response;
 
-    const formData = await request.formData();
-    const file = formData.get('file');
+    const contentType = request.headers.get('content-type') || '';
+    let parsed: Awaited<ReturnType<typeof parseWorkbook>>;
 
-    if (!(file instanceof File)) {
-      return NextResponse.json({ error: 'No se proporciono archivo' }, { status: 400 });
-    }
+    if (contentType.includes('application/json')) {
+      const body = await request.json();
+      const blobUrl = String(body.blobUrl || body.url || '').trim();
+      const blobPathname = String(body.blobPathname || body.pathname || '').trim();
+      const fileName = String(body.fileName || 'existencias.xlsx').trim();
 
-    const parsed = await parseWorkbook(file);
-    const fileName = file.name.toLowerCase();
-    if (!fileName.endsWith('.xlsx') && !fileName.endsWith('.xls')) {
-      return NextResponse.json({ error: 'El archivo debe ser XLS o XLSX' }, { status: 400 });
+      if (!blobUrl && !blobPathname) {
+        return NextResponse.json({ error: 'No se proporciono una referencia del archivo cargado' }, { status: 400 });
+      }
+
+      uploadedBlobPath = blobPathname || blobUrl;
+      parsed = await parseWorkbookFromBlob(blobPathname || blobUrl, fileName);
+    } else {
+      const formData = await request.formData();
+      const file = formData.get('file');
+
+      if (!(file instanceof File)) {
+        return NextResponse.json({ error: 'No se proporciono archivo' }, { status: 400 });
+      }
+
+      const fileName = file.name.toLowerCase();
+      if (!fileName.endsWith('.xlsx') && !fileName.endsWith('.xls')) {
+        return NextResponse.json({ error: 'El archivo debe ser XLS o XLSX' }, { status: 400 });
+      }
+
+      parsed = await parseWorkbook(file);
     }
 
     await importData(
@@ -460,6 +498,10 @@ export async function POST(request: NextRequest) {
       parsed.stock,
       parsed.purchases,
     );
+
+    if (uploadedBlobPath) {
+      await del(uploadedBlobPath).catch(() => null);
+    }
 
     return NextResponse.json({
       success: true,
@@ -474,6 +516,9 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
+    if (uploadedBlobPath) {
+      await del(uploadedBlobPath).catch(() => null);
+    }
     console.error('[v0] import-existencias error:', error);
     return NextResponse.json(
       { error: 'No se pudo importar el Excel', details: await formatError(error) },
