@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     // and the parent group (X) is one of the machinery groups 8-18
     let { data, error } = await supabase
       .from('cost_centers')
-      .select('code, name, status, org_id')
+      .select('code, name, status')
       .like('code', '%-%') // only sub-codes (machines), not parent groups
       .order('code');
 
