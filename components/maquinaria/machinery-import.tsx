@@ -196,10 +196,10 @@ export function MaquinariaImport({ onSuccess }: { onSuccess?: () => void }) {
                   </div>
                 </div>
               )}
-              {(result.warnings?.length > 0 || result.details?.length > 0) && (
+              {((result.warnings?.length ?? 0) > 0 || (result.details?.length ?? 0) > 0) && (
                 <div>
                   <p className="mb-1 text-xs font-semibold uppercase text-amber-700">
-                    {(result.warnings?.length || 0) + (result.details?.length || 0)} advertencias
+                    {(result.warnings?.length ?? 0) + (result.details?.length ?? 0)} advertencias
                   </p>
                   <div className="max-h-32 space-y-0.5 overflow-y-auto text-xs text-amber-800">
                     {[...(result.warnings || []), ...(result.details || [])].map((w, i) => (

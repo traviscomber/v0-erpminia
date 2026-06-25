@@ -256,8 +256,6 @@ export default function MaquinariaPage() {
             </Card>
           ))}
         </div>
-          )}
-        </>
       )}
         </TabsContent>
       </Tabs>
