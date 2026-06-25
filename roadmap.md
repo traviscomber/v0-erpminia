@@ -47,11 +47,23 @@ Cerrar el producto para produccion dejando:
 
 ### 5. Mantenimiento
 
-- Cerrar ordenes de trabajo, activos y documentos.
-- Completar arbol de fallas y formularios asociados.
-- Revisar centros de costo del modulo.
-- Normalizar textos, estados y acciones.
-- Dejar consistencia entre vehiculos, activos y ordenes.
+- Estado actual:
+  - Ordenes de trabajo reales con cierre, detalle y consumo de repuestos.
+  - Bitacora historica y planificacion preventiva.
+  - Costo por equipo, indicadores, neumaticos y componentes mayores.
+  - Vehiculos, arbol de fallas, documentos y centro de costo.
+  - Trazabilidad de repuestos reservados y movimiento de partes.
+- Falta para cerrar el modulo:
+  - QR por equipo con acceso directo a historial, horometros, repuestos instalados, manuales, fallas y fotografias.
+  - Aplicacion movil para abrir y cerrar OT, adjuntar fotos, registrar repuestos y firmar trabajos.
+  - Dashboard gerencial completo con equipos totales, operativos, detenidos y disponibilidad mecanica y fisica.
+  - Control de combustible por equipo con cargas, consumo, rendimiento y costo.
+  - Control de personal con mecanico responsable, horas, especialidad y productividad.
+  - Planificacion a largo plazo de 12 meses con grandes reparaciones, overhaul, cambios y proyeccion de repuestos, presupuesto y personal.
+  - Estados completos de repuestos reparables: disponible, instalado, en reparacion, esperando reparacion y baja definitiva.
+  - Alertas preventivas mas finas por vencimiento, kilometraje, inspecciones y bajo stock critico.
+  - Reportes por equipo con disponibilidad, costos, fallas, repuestos y estado general.
+  - Limpieza final de copy, acentos, modales y mensajes residuales de mantenimiento.
 
 ### 6. Sostenibilidad
 
@@ -131,4 +143,3 @@ Cerrar el producto para produccion dejando:
 - No cambiar flujos que ya funcionan sin validar build.
 - Mantener todo el copy en espanol simple.
 - Si un texto no puede llevar tilde por codificacion, dejarlo sin tilde pero completo.
-
