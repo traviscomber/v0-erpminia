@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Search, Truck, Wrench, Upload, Package, ExternalLink } from 'lucide-react';
+import { Search, Truck, Wrench, Upload, Package, ExternalLink, Download } from 'lucide-react';
 import Link from 'next/link';
 import { MaquinariaImport } from '@/components/maquinaria/machinery-import';
 
@@ -67,11 +67,22 @@ export default function MaquinariaPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Maquinaria y Vehículos</h1>
-        <p className="text-muted-foreground">
-          Flota operacional completa extraída desde centros de costo
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Maquinaria y Vehículos</h1>
+          <p className="text-muted-foreground">
+            Flota operacional completa extraída desde centros de costo
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="shrink-0"
+          onClick={() => window.open('/api/maquinaria/export', '_blank')}
+        >
+          <Download className="mr-2 h-4 w-4" />
+          Descargar Excel Maestro
+        </Button>
       </div>
 
       <Tabs defaultValue="lista" className="w-full">
