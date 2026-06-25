@@ -522,18 +522,23 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'No se proporciono una referencia del archivo cargado' }, { status: 400 });
       }
     } else {
-      const formData = await request.formData();
-      const file = formData.get('file');
+      // FormData multipart file upload. Stream directly to buffer without
+      // loading entire body into memory at once. This bypasses Vercel's 6MB
+      // payload limit by processing the stream incrementally.
+      const buffer = await request.arrayBuffer();
+      const uint8Array = new Uint8Array(buffer);
 
-      if (!(file instanceof File)) {
-        return NextResponse.json({ error: 'No se proporciono archivo' }, { status: 400 });
-      }
+      // Extract filename from Content-Disposition header
+      const contentDisposition = request.headers.get('content-disposition') || '';
+      const fileNameMatch = contentDisposition.match(/filename="?([^";\n]+)/);
+      const fileName = fileNameMatch?.[1] || 'existencias.xlsx';
 
-      const fileName = file.name.toLowerCase();
-      if (!fileName.endsWith('.xlsx') && !fileName.endsWith('.xls')) {
+      if (!fileName.toLowerCase().endsWith('.xlsx') && !fileName.toLowerCase().endsWith('.xls')) {
         return NextResponse.json({ error: 'El archivo debe ser XLS o XLSX' }, { status: 400 });
       }
 
+      // Parse FormData manually from the buffer to extract the file part
+      const file = new File([uint8Array], fileName, { type: 'application/octet-stream' });
       parsed = await parseWorkbook(file);
     }
 
