@@ -19,7 +19,10 @@ type Metric = { date: string; lost_time_injuries: number; near_misses: number; t
 const fetcher = async (url: string) => {
   const res = await fetch(url, { credentials: 'include' });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error);
+  if (!res.ok) {
+    console.error('[v0] API error:', { url, status: res.status, error: data.error });
+    throw new Error(data.error || `API error: ${res.status}`);
+  }
   return data;
 };
 
