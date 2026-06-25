@@ -72,56 +72,53 @@ export default function ImportarExistenciasPage() {
     };
 
     try {
-      setResult({
-        success: false,
-        message: 'Preparando subida...',
-      });
+      // Split the file into 3MB chunks and upload each one through the server
+      // (server uses Blob SDK server-side — no CORS issues, no payload limits).
+      const CHUNK_SIZE = 3 * 1024 * 1024; // 3 MB per chunk
+      const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+      const fileId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const chunkUrls: { url: string; index: number }[] = [];
 
-      // Get upload token from server
-      const tokenRes = await fetch('/api/compras/import-existencias/upload', {
-        method: 'POST',
-        headers: { 'x-get-client-token': 'true' },
-      });
+      for (let i = 0; i < totalChunks; i++) {
+        setResult({
+          success: false,
+          message: totalChunks === 1
+            ? 'Subiendo archivo...'
+            : `Subiendo parte ${i + 1} de ${totalChunks}...`,
+        });
 
-      const tokenData = (await tokenRes.json()) as { clientToken?: string; error?: string };
-      if (!tokenData.clientToken) {
-        throw new Error(tokenData.error || 'No se pudo obtener token de subida');
+        const start = i * CHUNK_SIZE;
+        const end = Math.min(start + CHUNK_SIZE, file.size);
+        const chunkBlob = file.slice(start, end);
+
+        const fd = new FormData();
+        fd.append('chunk', chunkBlob, file.name);
+        fd.append('index', String(i));
+        fd.append('total', String(totalChunks));
+        fd.append('fileId', fileId);
+
+        const res = await fetch('/api/compras/import-existencias/chunk', {
+          method: 'POST',
+          body: fd,
+        });
+
+        if (!res.ok) {
+          const err = (await res.json().catch(() => ({}))) as { error?: string };
+          throw new Error(err.error || `Error subiendo parte ${i + 1}`);
+        }
+
+        const data = (await res.json()) as { url: string; index: number };
+        chunkUrls.push(data);
       }
 
-      setResult({
-        success: false,
-        message: 'Subiendo archivo...',
-      });
+      setResult({ success: false, message: 'Importando datos...' });
 
-      // Upload directly to Vercel Blob using the token
-      const uploadRes = await fetch('https://blob.vercelusercontent.com', {
-        method: 'PUT',
-        headers: {
-          'x-client-token': tokenData.clientToken,
-        },
-        body: file,
-      });
-
-      if (!uploadRes.ok) {
-        throw new Error(`Upload failed: ${uploadRes.status} ${uploadRes.statusText}`);
-      }
-
-      const uploadedBlob = (await uploadRes.json()) as { url?: string; error?: string };
-      if (!uploadedBlob.url) {
-        throw new Error(uploadedBlob.error || 'No se pudo procesar el archivo');
-      }
-
-      setResult({
-        success: false,
-        message: 'Importando datos...',
-      });
-
-      // Process the uploaded file
+      // Tell the server to assemble chunks and run the import
       const response = await fetch('/api/compras/import-existencias', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          blobUrl: uploadedBlob.url,
+          chunks: chunkUrls.sort((a, b) => a.index - b.index),
           fileName: file.name,
         }),
       });

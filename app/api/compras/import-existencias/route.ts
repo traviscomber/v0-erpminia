@@ -332,6 +332,21 @@ async function parseWorkbookFromBlob(blobUrlOrPath: string, fileName: string) {
   return parseWorkbook(file);
 }
 
+/** Delete one blob URL or a JSON array of blob URLs. Swallows errors. */
+async function cleanupBlobs(path: string | null) {
+  if (!path) return;
+  try {
+    const urls: string[] = JSON.parse(path);
+    if (Array.isArray(urls)) {
+      await Promise.all(urls.map((u) => del(u).catch(() => null)));
+      return;
+    }
+  } catch {
+    // Not JSON — treat as a single URL
+  }
+  await del(path).catch(() => null);
+}
+
 async function combineChunksAndParse(
   chunkUrls: string[],
   fileName: string,
@@ -505,17 +520,44 @@ export async function POST(request: NextRequest) {
 
     if (contentType.includes('application/json')) {
       const body = await request.json();
-      const chunks: string[] | undefined = body.chunks; // Base64-encoded chunks
+      const chunkRefs: Array<{ url: string; index: number }> | undefined = body.chunks;
       const blobUrl = String(body.blobUrl || body.url || '').trim();
-      const blobPathname = String(body.blobPathname || body.pathname || '').trim();
       const fileName = String(body.fileName || 'existencias.xlsx').trim();
 
-      if (!blobUrl) {
+      if (chunkRefs && Array.isArray(chunkRefs) && chunkRefs.length > 0) {
+        // Assemble chunks uploaded by the client via /chunk endpoint
+        const token = process.env.BLOB_READ_WRITE_TOKEN;
+        const sorted = chunkRefs.sort((a, b) => a.index - b.index);
+        const chunkBuffers = await Promise.all(
+          sorted.map(async ({ url }) => {
+            const result = await get(url, { access: 'private', token });
+            if (!result?.stream) throw new Error(`No se pudo leer chunk: ${url}`);
+            return new Uint8Array(await new Response(result.stream).arrayBuffer());
+          }),
+        );
+
+        // Combine into a single buffer
+        const totalLength = chunkBuffers.reduce((n, c) => n + c.length, 0);
+        const combined = new Uint8Array(totalLength);
+        let offset = 0;
+        for (const chunk of chunkBuffers) {
+          combined.set(chunk, offset);
+          offset += chunk.length;
+        }
+
+        // Store chunk URLs for cleanup
+        uploadedBlobPath = JSON.stringify(sorted.map((c) => c.url));
+
+        const assembledFile = new File([combined], fileName, {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+        parsed = await parseWorkbook(assembledFile);
+      } else if (blobUrl) {
+        uploadedBlobPath = blobUrl;
+        parsed = await parseWorkbookFromBlob(blobUrl, fileName);
+      } else {
         return NextResponse.json({ error: 'No se proporciono una referencia del archivo cargado' }, { status: 400 });
       }
-
-      uploadedBlobPath = blobUrl || blobPathname;
-      parsed = await parseWorkbookFromBlob(blobUrl, fileName);
     } else {
       // FormData multipart file upload
       const formData = await request.formData();
@@ -542,10 +584,8 @@ export async function POST(request: NextRequest) {
       parsed.purchases,
     );
 
-    // Clean up uploaded blob
-    if (uploadedBlobPath) {
-      await del(uploadedBlobPath).catch(() => null);
-    }
+    // Clean up uploaded blob(s)
+    await cleanupBlobs(uploadedBlobPath);
 
     return NextResponse.json({
       success: true,
@@ -560,10 +600,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    // Clean up uploaded blob on error
-    if (uploadedBlobPath) {
-      await del(uploadedBlobPath).catch(() => null);
-    }
+    await cleanupBlobs(uploadedBlobPath);
     console.error('[v0] import-existencias error:', error);
     return NextResponse.json(
       { error: 'No se pudo importar el Excel', details: await formatError(error) },
