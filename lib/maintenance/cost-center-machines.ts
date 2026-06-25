@@ -74,6 +74,37 @@ function canonicalFamilyLabel(rootCode: string, rawName: string) {
   return toTitleCase(family.replace(/\s+/g, ' ').trim());
 }
 
+export function inferMachineFamilyFromText(value: string) {
+  const normalized = normalize(value);
+  if (!normalized) return null;
+
+  const matches: Array<[string, string]> = [
+    ['camionetas', 'Camionetas'],
+    ['camion', 'Camiones'],
+    ['scoop', 'Cargadores de Bajo Perfil'],
+    ['cargador frontal', 'Cargadores Frontales'],
+    ['cargador', 'Cargadores de Bajo Perfil'],
+    ['dumper', 'Camiones de Bajo Perfil'],
+    ['compresor', 'Compresores'],
+    ['sondaje', 'Equipos de sondaje'],
+    ['sonda', 'Equipos de sondaje'],
+    ['perforacion', 'Equipos de perforacion'],
+    ['excavadora', 'Excavadoras y Retroexcavadoras'],
+    ['retroexcavadora', 'Excavadoras y Retroexcavadoras'],
+    ['planta', 'Planta'],
+    ['exploracion', 'Exploracion'],
+    ['proyectos', 'Proyectos en Ejecucion'],
+    ['generador', 'Grupos Generadores'],
+    ['electrogeno', 'Grupos Generadores'],
+  ];
+
+  for (const [needle, label] of matches) {
+    if (normalized.includes(needle)) return label;
+  }
+
+  return null;
+}
+
 export type DerivedCostCenterMachine = {
   id: string;
   code: string;

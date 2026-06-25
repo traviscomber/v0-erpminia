@@ -4,11 +4,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import { AlertCircle, ArrowRight, CheckCircle2, ChevronLeft } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { inferMachineFamilyFromText } from '@/lib/maintenance/cost-center-machines';
 
 type MaintenanceAsset = {
   id: string;
@@ -31,6 +33,8 @@ type ComponentTemplate = {
   code: string;
   estimatedHours: number;
 };
+
+type AssetCard = MaintenanceAsset & { family: string };
 
 const COMPONENT_TEMPLATES: Record<string, ComponentTemplate[]> = {
   excavator: [
@@ -112,19 +116,50 @@ export default function CreateWorkOrderPage() {
   const [priority, setPriority] = useState('high');
   const [description, setDescription] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [familyFilter, setFamilyFilter] = useState('all');
 
   const { data, error, isLoading } = useSWR('/api/maintenance/assets', fetcher, {
     revalidateOnFocus: false,
   });
+  const { data: machineCatalogData } = useSWR('/api/maintenance/cost-center-machines', fetcher, {
+    revalidateOnFocus: false,
+  });
 
   const assets = useMemo(() => ((data?.assets || []) as MaintenanceAsset[]).map(normalizeAsset), [data]);
-  const selectedAsset = assets.find((asset) => asset.id === selectedAssetId) ?? null;
+  const assetCards = useMemo<AssetCard[]>(() => {
+    return assets
+      .map((asset) => {
+        const family = inferMachineFamilyFromText(`${asset.asset_name || ''} ${asset.asset_type || ''} ${asset.model || ''} ${asset.manufacturer || ''}`) || 'Sin familia';
+        return { ...asset, family };
+      })
+      .sort((a, b) => {
+        const familyCompare = String(a.family || '').localeCompare(String(b.family || ''), 'es', { sensitivity: 'base' });
+        if (familyCompare !== 0) return familyCompare;
+        return String(a.asset_name || '').localeCompare(String(b.asset_name || ''), 'es', { sensitivity: 'base' });
+      });
+  }, [assets]);
+  const machineFamilies = useMemo(() => {
+    const derivedFamilies = new Set<string>();
+    const catalogItems = Array.isArray(machineCatalogData?.machines) ? machineCatalogData.machines : [];
+    catalogItems.forEach((item: any) => {
+      if (item?.family) derivedFamilies.add(String(item.family));
+    });
+    assetCards.forEach((asset) => {
+      if (asset.family && asset.family !== 'Sin familia') derivedFamilies.add(String(asset.family));
+    });
+    return ['all', ...Array.from(derivedFamilies).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }))];
+  }, [assetCards, machineCatalogData?.machines]);
+  const selectedAsset = assetCards.find((asset) => asset.id === selectedAssetId) ?? null;
   const availableComponents = useMemo(() => resolveAssetTemplate(selectedAsset), [selectedAsset]);
   const selectedComponentsData = useMemo(
     () => availableComponents.filter((component) => selectedComponents.includes(component.id)),
     [availableComponents, selectedComponents],
   );
   const totalHours = selectedComponentsData.reduce((sum, component) => sum + component.estimatedHours, 0);
+  const visibleAssets = useMemo(
+    () => assetCards.filter((asset) => familyFilter === 'all' || String(asset.family || '') === familyFilter),
+    [assetCards, familyFilter],
+  );
 
   useEffect(() => {
     if (!selectedAssetId && initialAssetId && assets.some((asset) => asset.id === initialAssetId)) {
@@ -212,6 +247,22 @@ export default function CreateWorkOrderPage() {
             <CardDescription>Elige el equipo real para esta orden de trabajo</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {machineFamilies.length > 1 ? (
+              <div className="flex flex-wrap gap-2">
+                {machineFamilies.map((family) => (
+                  <Button
+                    key={family}
+                    type="button"
+                    variant={familyFilter === family ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFamilyFilter(family)}
+                  >
+                    {family === 'all' ? 'Todas las familias' : family}
+                  </Button>
+                ))}
+              </div>
+            ) : null}
+
             {isLoading && <div className="text-sm text-muted-foreground">Cargando activos...</div>}
 
             {error && (
@@ -223,13 +274,13 @@ export default function CreateWorkOrderPage() {
               </div>
             )}
 
-            {!isLoading && !error && assets.length === 0 && (
+            {!isLoading && !error && visibleAssets.length === 0 && (
               <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
-                No hay activos registrados todavia.
+                No hay activos registrados para esta familia.
               </div>
             )}
 
-            {assets.map((asset) => (
+            {visibleAssets.map((asset) => (
               <div
                 key={asset.id}
                 onClick={() => {
@@ -252,6 +303,9 @@ export default function CreateWorkOrderPage() {
                         {[asset.manufacturer, asset.model].filter(Boolean).join(' - ')}
                       </p>
                     )}
+                    <div className="mt-2">
+                      <Badge variant="outline">{asset.family || 'Sin familia'}</Badge>
+                    </div>
                   </div>
                   {selectedAssetId === asset.id && <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-primary" />}
                 </div>

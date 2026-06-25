@@ -8,6 +8,7 @@ import { AlertCircle, ArrowRight, Copy, History, LayoutDashboard, QrCode, Smartp
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { inferMachineFamilyFromText } from '@/lib/maintenance/cost-center-machines';
 
 type MaintenanceAsset = {
   id: string;
@@ -139,6 +140,9 @@ export function AssetDetailView() {
       revalidateOnFocus: false,
     },
   );
+  const { data: machineCatalogData } = useSWR('/api/maintenance/cost-center-machines', fetcher, {
+    revalidateOnFocus: false,
+  });
 
   const asset = historyData?.asset as MaintenanceAsset | undefined;
   const history = Array.isArray(historyData?.history) ? (historyData.history as HistoryRow[]) : [];
@@ -147,6 +151,18 @@ export function AssetDetailView() {
   const assetOrders = useMemo(
     () => workOrders.filter((order) => String(order.asset_id || '') === assetId),
     [assetId, workOrders],
+  );
+  const machineCatalog = Array.isArray(machineCatalogData?.machines) ? machineCatalogData.machines : [];
+  const machineFamily = useMemo(() => {
+    const text = `${asset?.asset_name || ''} ${asset?.asset_type || ''} ${asset?.model || ''} ${asset?.manufacturer || ''}`;
+    return inferMachineFamilyFromText(text);
+  }, [asset?.asset_name, asset?.asset_type, asset?.model, asset?.manufacturer]);
+  const relatedMachines = useMemo(
+    () =>
+      machineFamily
+        ? machineCatalog.filter((machine: any) => String(machine.family || '').toLowerCase() === machineFamily.toLowerCase()).slice(0, 6)
+        : [],
+    [machineCatalog, machineFamily],
   );
 
   const openOrders = assetOrders.filter((order) => order.status === 'open' || order.status === 'assigned');
@@ -330,6 +346,10 @@ export function AssetDetailView() {
               <p className="font-semibold">{asset.criticality || '-'}</p>
             </div>
             <div>
+              <p className="text-muted-foreground">Familia derivada</p>
+              <p className="font-semibold">{machineFamily || 'Sin familia'}</p>
+            </div>
+            <div>
               <p className="text-muted-foreground">Horometro tecnico</p>
               <p className="font-semibold">{asset.mtbf_hours ? `${asset.mtbf_hours} h` : 'Sin lectura'}</p>
             </div>
@@ -376,6 +396,39 @@ export function AssetDetailView() {
               </Button>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Maquinas relacionadas</CardTitle>
+          <CardDescription>
+            {machineFamily
+              ? `Modelos detectados en la familia ${machineFamily}`
+              : 'No pudimos derivar una familia clara desde el nombre del equipo'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {machineFamily && relatedMachines.length > 0 ? (
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {relatedMachines.map((machine: any) => (
+                <div key={machine.id} className="rounded-lg border border-border p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs text-muted-foreground">{machine.family}</p>
+                      <p className="font-semibold">{machine.name}</p>
+                      <p className="text-sm text-muted-foreground">{machine.code}</p>
+                    </div>
+                    <Badge variant="outline">Centro</Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
+              Todavia no hay maquinas relacionadas para mostrar.
+            </div>
+          )}
         </CardContent>
       </Card>
 
