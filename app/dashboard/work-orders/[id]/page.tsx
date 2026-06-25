@@ -7,6 +7,7 @@ import useSWR from 'swr';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { WorkOrderPartsPanel } from '@/components/maintenance/work-order-parts-panel';
 
 export default function WorkOrderDetailPage() {
   const params = useParams<{ id: string }>();
@@ -230,6 +231,8 @@ export default function WorkOrderDetailPage() {
               </div>
             </CardContent>
           </Card>
+
+          <WorkOrderPartsPanel workOrderId={id} />
         </>
       )}
     </div>
