@@ -183,7 +183,7 @@ export function MaquinariaImport({ onSuccess }: { onSuccess?: () => void }) {
           </CardHeader>
           {(result.warnings?.length > 0 || result.details?.length > 0 || result.sample?.length > 0) && (
             <CardContent className="space-y-3">
-              {result.sample?.length > 0 && (
+              {(result.sample?.length ?? 0) > 0 && (
                 <div>
                   <p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Muestra importada</p>
                   <div className="space-y-1">
