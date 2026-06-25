@@ -1,17 +1,12 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { resolveAuthContext } from '@/lib/api/auth-session';
+import { getOrganizationContext } from '@/lib/api/organization-context';
 import { canonicalCategory } from '@/lib/bodega-normalization';
 
 export async function GET(request: NextRequest) {
-  const supabase = await createClient();
-  const auth = await resolveAuthContext(request);
-
-  if (!auth) {
-    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-  }
+  const context = await getOrganizationContext(request);
+  if (!context.ok) return context.response;
 
   const { searchParams } = new URL(request.url);
   const page = parseInt(searchParams.get('page') || '0', 10);
@@ -25,10 +20,10 @@ export async function GET(request: NextRequest) {
     const chunk = 1000;
 
     while (true) {
-      const { data, error } = await supabase
+      const { data, error } = await context.supabase
         .from('warehouse_stock')
         .select('part_code')
-        .eq('organization_id', auth.organizationId)
+        .eq('organization_id', context.organizationId)
         .order('part_code')
         .range(from, from + chunk - 1);
 
@@ -55,13 +50,13 @@ export async function GET(request: NextRequest) {
   const validPage = Math.max(page, 0);
   const offset = validPage * validPageSize;
 
-  let query = supabase
+  let query = context.supabase
     .from('warehouse_stock')
     .select(
       'id, part_code, quantity, min_stock, max_stock, unit_cost, batch_number, warehouse_location, organization_id, created_at',
       { count: 'exact' }
     )
-    .eq('organization_id', auth.organizationId);
+    .eq('organization_id', context.organizationId);
 
   if (search) {
     query = query.or(`part_code.ilike.%${search}%,batch_number.ilike.%${search}%`);
@@ -98,17 +93,13 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient();
-  const auth = await resolveAuthContext(request);
-
-  if (!auth) {
-    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-  }
+  const context = await getOrganizationContext(request);
+  if (!context.ok) return context.response;
 
   const body = await request.json();
   const { sku, name, category, quantity, unit_cost } = body;
 
-  const { data, error } = await supabase
+  const { data, error } = await context.supabase
     .from('bodega_inventory')
     .insert({
       sku,
@@ -116,6 +107,7 @@ export async function POST(request: NextRequest) {
       category: canonicalCategory(category),
       quantity,
       unit_cost,
+      organization_id: context.organizationId,
     })
     .select()
     .single();
