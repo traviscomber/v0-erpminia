@@ -6,7 +6,6 @@ import { resolveAuthContext } from '@/lib/api/auth-session';
 import { canonicalCategory } from '@/lib/bodega-normalization';
 
 export async function GET(request: NextRequest) {
-  try {
   const auth = await resolveAuthContext(request);
   if (!auth) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
@@ -70,10 +69,7 @@ export async function GET(request: NextRequest) {
     .order('part_code')
     .range(offset, offset + validPageSize - 1);
 
-  if (error) {
-    console.error('[v0] bodega/inventory query error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   // Map warehouse_stock → InventoryItem shape expected by the UI hook
   const inventory = (data || []).map((item: any) => ({
@@ -97,12 +93,6 @@ export async function GET(request: NextRequest) {
       totalPages: Math.ceil((count || 0) / validPageSize),
     },
   });
-}
-
-  } catch (e) {
-    console.error('[v0] bodega/inventory unhandled error:', e);
-    return NextResponse.json({ error: 'Error inesperado' }, { status: 500 });
-  }
 }
 
 export async function POST(request: NextRequest) {
