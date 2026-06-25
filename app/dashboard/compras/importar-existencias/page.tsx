@@ -72,16 +72,45 @@ export default function ImportarExistenciasPage() {
       }
     };
 
-    // Sends the file directly to the server as multipart/form-data. Used as a
-    // fallback when the direct-to-Blob upload is unavailable (e.g. local dev
-    // where Blob cannot reach the callback URL).
-    const importViaFormData = async () => {
-      setResult({ success: false, message: 'Procesando archivo en el servidor...' });
-      const formData = new FormData();
-      formData.append('file', file);
+    // Uploads large files in chunks to avoid payload limits. Each chunk (~5MB)
+    // is uploaded to Blob separately, then the server combines them.
+    const importViaChunkedBlob = async () => {
+      const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks
+      const chunks: { url: string; index: number }[] = [];
+      const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+
+      for (let i = 0; i < totalChunks; i++) {
+        const start = i * CHUNK_SIZE;
+        const end = Math.min(start + CHUNK_SIZE, file.size);
+        const chunk = file.slice(start, end);
+        const blobPath = `compras-existencias/${Date.now()}-chunk-${i}-of-${totalChunks}`;
+
+        setResult({
+          success: false,
+          message: `Subiendo parte ${i + 1}/${totalChunks}...`,
+        });
+
+        try {
+          const blobChunk = await upload(blobPath, chunk, {
+            access: 'private',
+            handleUploadUrl: '/api/compras/import-existencias/upload',
+            multipart: chunk.size > 2 * 1024 * 1024,
+          });
+          chunks.push({ url: blobChunk.url, index: i });
+        } catch (e) {
+          throw new Error(`Fallo al subir parte ${i + 1}: ${String(e)}`);
+        }
+      }
+
+      // Send combined chunk references to server
       const response = await fetch('/api/compras/import-existencias', {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chunks: chunks.sort((a, b) => a.index - b.index),
+          fileName: file.name,
+          totalSize: file.size,
+        }),
       });
       await applyResponse(response);
     };
@@ -90,29 +119,44 @@ export default function ImportarExistenciasPage() {
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
       const blobPath = `compras-existencias/${Date.now()}-${safeName}`;
 
-      // Prefer uploading the file straight to Vercel Blob so large workbooks
-      // never hit the API payload limit. We race against a timeout so a stalled
-      // upload (common on localhost) transparently falls back to FormData.
-      let uploadedBlob: Awaited<ReturnType<typeof upload>> | null = null;
-      try {
-        uploadedBlob = await Promise.race([
-          upload(blobPath, file, {
-            access: 'private',
-            handleUploadUrl: '/api/compras/import-existencias/upload',
-            multipart: file.size > 8 * 1024 * 1024,
-            onUploadProgress: ({ percentage }) => {
-              setResult({
-                success: false,
-                message: `Subiendo archivo... ${Math.round(percentage)}%`,
-              });
-            },
-          }),
-          new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error('blob-upload-timeout')), 20000),
-          ),
-        ]);
-      } catch (e) {
-        uploadedBlob = null;
+      // For files <= 10MB, try direct upload to Blob.
+      // For larger files, automatically use chunked upload.
+      if (file.size <= 10 * 1024 * 1024) {
+        try {
+          const uploadedBlob = await Promise.race([
+            upload(blobPath, file, {
+              access: 'private',
+              handleUploadUrl: '/api/compras/import-existencias/upload',
+              multipart: file.size > 8 * 1024 * 1024,
+              onUploadProgress: ({ percentage }) => {
+                setResult({
+                  success: false,
+                  message: `Subiendo archivo... ${Math.round(percentage)}%`,
+                });
+              },
+            }),
+            new Promise<never>((_, reject) =>
+              setTimeout(() => reject(new Error('blob-timeout')), 20000),
+            ),
+          ]);
+
+          const response = await fetch('/api/compras/import-existencias', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              blobUrl: uploadedBlob.url,
+              blobPathname: uploadedBlob.pathname,
+              fileName: file.name,
+            }),
+          });
+          await applyResponse(response);
+        } catch {
+          // Direct upload failed, fall back to chunked
+          await importViaChunkedBlob();
+        }
+      } else {
+        // File is large, use chunked upload directly
+        await importViaChunkedBlob();
       }
 
       if (uploadedBlob) {
