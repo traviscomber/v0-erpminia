@@ -22,6 +22,13 @@ interface ContractsTrackerProps {
 }
 
 export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
+  const daysUntilExpiry = (endDate: string): number => {
+    const today = new Date();
+    const expiry = new Date(endDate);
+    const diff = expiry.getTime() - today.getTime();
+    return Math.ceil(diff / (1000 * 60 * 60 * 24));
+  };
+
   const sortedContracts = [...contracts].sort((left, right) => {
     const leftDays = daysUntilExpiry(left.endDate);
     const rightDays = daysUntilExpiry(right.endDate);
@@ -48,13 +55,6 @@ export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
       case 'rejected':
         return <Badge className="bg-destructive/10 text-destructive">Observado</Badge>;
     }
-  };
-
-  const daysUntilExpiry = (endDate: string): number => {
-    const today = new Date();
-    const expiry = new Date(endDate);
-    const diff = expiry.getTime() - today.getTime();
-    return Math.ceil(diff / (1000 * 60 * 60 * 24));
   };
 
   return (

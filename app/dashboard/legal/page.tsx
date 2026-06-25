@@ -263,6 +263,9 @@ export default function LegalPage() {
   const documentCount = documentData?.total ?? legalDocs.length;
   const documentsWithFile = legalDocs.filter((doc) => Boolean(doc.fileUrl || doc.filePath)).length;
   const activeContracts = compliance.summary?.active_contracts ?? 0;
+  const pendingReviewCount = compliance.summary?.contracts_pending_review ?? 0;
+  const expiringContractsCount = compliance.summary?.expiring_contracts ?? 0;
+  const expiringDocumentsCount = compliance.summary?.expiring_documents ?? 0;
 
   const compliancePercent = useMemo(() => {
     const summary = compliance.summary;
@@ -335,12 +338,12 @@ export default function LegalPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-foreground">Modulo Legal</h1>
-        <p className="mt-2 text-muted-foreground">
-          Gestion de documentos legales, contratos y cumplimiento normativo minero.
+        <p className="mt-2 max-w-3xl text-muted-foreground">
+          Vista ejecutiva para documentos, contratos y cumplimiento normativo, con foco en respaldo, vencimientos y revision.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">Documentos legales</CardTitle>
@@ -378,6 +381,36 @@ export default function LegalPage() {
           <CardContent>
             <div className="text-3xl font-bold">{compliancePercent}%</div>
             <p className="mt-1 text-xs text-muted-foreground">Basado en contratos y documentos legales</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-primary/30 bg-primary/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-primary">Pendientes de revision</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-primary">{pendingReviewCount}</div>
+            <p className="mt-1 text-xs text-muted-foreground">Contratos en cola de validacion</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-amber-500/30 bg-amber-500/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-amber-600">Contratos por vencer</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-amber-600">{expiringContractsCount}</div>
+            <p className="mt-1 text-xs text-muted-foreground">Requieren seguimiento cercano</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-destructive/30 bg-destructive/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-destructive">Documentos por vencer</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-destructive">{expiringDocumentsCount}</div>
+            <p className="mt-1 text-xs text-muted-foreground">Revisar respaldo y vigencia</p>
           </CardContent>
         </Card>
       </div>
