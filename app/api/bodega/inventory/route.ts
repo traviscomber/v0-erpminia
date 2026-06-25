@@ -1,8 +1,8 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 import { resolveAuthContext } from '@/lib/api/auth-session';
-import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { canonicalCategory } from '@/lib/bodega-normalization';
 
 export async function GET(request: NextRequest) {
@@ -10,15 +10,8 @@ export async function GET(request: NextRequest) {
   const auth = await resolveAuthContext(request);
   if (!auth) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
-  let supabase: ReturnType<typeof getSupabaseServerClient>;
-  try {
-    supabase = getSupabaseServerClient();
-  } catch (e) {
-    console.error('[v0] bodega/inventory: getSupabaseServerClient failed:', e);
-    return NextResponse.json({ error: 'Error de configuración de base de datos' }, { status: 500 });
-  }
+  const supabase = await createClient();
   const orgId = auth.organizationId;
-  console.log('[v0] bodega/inventory GET orgId:', orgId);
 
   const { searchParams } = new URL(request.url);
   const page = parseInt(searchParams.get('page') || '0', 10);
@@ -116,7 +109,7 @@ export async function POST(request: NextRequest) {
   const auth = await resolveAuthContext(request);
   if (!auth) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
-  const supabase = getSupabaseServerClient();
+  const supabase = await createClient();
   const body = await request.json();
   const { sku, name, category, quantity, unit_cost } = body;
 

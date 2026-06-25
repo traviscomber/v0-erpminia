@@ -1,8 +1,8 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 import { resolveAuthContext } from '@/lib/api/auth-session';
-import { getSupabaseServerClient } from '@/lib/supabase-server';
 
 function normalizeOrder(row: any) {
   return {
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
   const auth = await resolveAuthContext(request);
   if (!auth) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
-  const supabase = getSupabaseServerClient();
+  const supabase = await createClient();
   const orgId = auth.organizationId;
 
   try {
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
   const auth = await resolveAuthContext(request);
   if (!auth) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
-  const supabase = getSupabaseServerClient();
+  const supabase = await createClient();
   const orgId = auth.organizationId;
 
   try {
