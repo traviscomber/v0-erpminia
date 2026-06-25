@@ -72,78 +72,65 @@ export default function ImportarExistenciasPage() {
     };
 
     try {
-      // Split large files into small chunks to avoid Vercel payload limits.
-      // Each chunk (~2MB) is sent as Base64 JSON, server combines them.
-      const CHUNK_SIZE = 2 * 1024 * 1024; // 2MB per chunk
-      const fileBuffer = await file.arrayBuffer();
-      const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+      setResult({
+        success: false,
+        message: 'Preparando subida...',
+      });
 
-      if (totalChunks > 1) {
-        // Multi-chunk upload
-        setResult({
-          success: false,
-          message: `Subiendo parte 1/${totalChunks}...`,
-        });
+      // Get upload token from server
+      const tokenRes = await fetch('/api/compras/import-existencias/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'blob.generate-client-token',
+          payload: JSON.stringify({ fileName: file.name }),
+        }),
+      });
 
-        const chunks: string[] = [];
-        for (let i = 0; i < totalChunks; i++) {
-          const start = i * CHUNK_SIZE;
-          const end = Math.min(start + CHUNK_SIZE, file.size);
-          const chunk = fileBuffer.slice(start, end);
-          const chunkArray = new Uint8Array(chunk);
-          
-          // Convert chunk to Base64
-          let binary = '';
-          for (let j = 0; j < chunkArray.length; j++) {
-            binary += String.fromCharCode(chunkArray[j]);
-          }
-          const base64 = btoa(binary);
-          chunks.push(base64);
-
-          setResult({
-            success: false,
-            message: `Subiendo parte ${i + 1}/${totalChunks}...`,
-          });
-        }
-
-        // Send all chunks to server
-        const response = await fetch('/api/compras/import-existencias', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chunks,
-            fileName: file.name,
-            totalSize: file.size,
-          }),
-        });
-
-        await applyResponse(response);
-      } else {
-        // Single chunk (file is small enough)
-        setResult({
-          success: false,
-          message: 'Procesando archivo...',
-        });
-
-        const fileArray = new Uint8Array(fileBuffer);
-        let binary = '';
-        for (let i = 0; i < fileArray.length; i++) {
-          binary += String.fromCharCode(fileArray[i]);
-        }
-        const base64 = btoa(binary);
-
-        const response = await fetch('/api/compras/import-existencias', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chunks: [base64],
-            fileName: file.name,
-            totalSize: file.size,
-          }),
-        });
-
-        await applyResponse(response);
+      const tokenData = (await tokenRes.json()) as { clientToken?: string; error?: string };
+      if (!tokenData.clientToken) {
+        throw new Error(tokenData.error || 'No se pudo obtener token de subida');
       }
+
+      setResult({
+        success: false,
+        message: 'Subiendo archivo...',
+      });
+
+      // Upload directly to Vercel Blob using the token
+      const uploadRes = await fetch('https://blob.vercelusercontent.com', {
+        method: 'PUT',
+        headers: {
+          'x-client-token': tokenData.clientToken,
+        },
+        body: file,
+      });
+
+      if (!uploadRes.ok) {
+        throw new Error(`Upload failed: ${uploadRes.status} ${uploadRes.statusText}`);
+      }
+
+      const uploadedBlob = (await uploadRes.json()) as { url?: string; error?: string };
+      if (!uploadedBlob.url) {
+        throw new Error(uploadedBlob.error || 'No se pudo procesar el archivo');
+      }
+
+      setResult({
+        success: false,
+        message: 'Importando datos...',
+      });
+
+      // Process the uploaded file
+      const response = await fetch('/api/compras/import-existencias', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          blobUrl: uploadedBlob.url,
+          fileName: file.name,
+        }),
+      });
+
+      await applyResponse(response);
     } catch (error) {
       setResult({
         success: false,

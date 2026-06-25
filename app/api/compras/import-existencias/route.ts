@@ -510,32 +510,12 @@ export async function POST(request: NextRequest) {
       const blobPathname = String(body.blobPathname || body.pathname || '').trim();
       const fileName = String(body.fileName || 'existencias.xlsx').trim();
 
-      if (chunks && Array.isArray(chunks) && chunks.length > 0) {
-        // Base64-encoded chunks: combine and parse directly
-        const combined = new Uint8Array(chunks.reduce((size, chunk) => {
-          const binaryString = atob(chunk);
-          return size + binaryString.length;
-        }, 0));
-
-        let offset = 0;
-        for (const chunk of chunks) {
-          const binaryString = atob(chunk);
-          for (let i = 0; i < binaryString.length; i++) {
-            combined[offset++] = binaryString.charCodeAt(i);
-          }
-        }
-
-        const file = new File([combined], fileName, {
-          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        });
-        parsed = await parseWorkbook(file);
-      } else if (blobUrl) {
-        // Single blob path (legacy)
-        uploadedBlobPath = blobUrl || blobPathname;
-        parsed = await parseWorkbookFromBlob(blobUrl, fileName);
-      } else {
+      if (!blobUrl) {
         return NextResponse.json({ error: 'No se proporciono una referencia del archivo cargado' }, { status: 400 });
       }
+
+      uploadedBlobPath = blobUrl || blobPathname;
+      parsed = await parseWorkbookFromBlob(blobUrl, fileName);
     } else {
       // FormData multipart file upload
       const formData = await request.formData();
@@ -562,18 +542,9 @@ export async function POST(request: NextRequest) {
       parsed.purchases,
     );
 
-    // Clean up uploaded blobs (single or chunked)
+    // Clean up uploaded blob
     if (uploadedBlobPath) {
-      try {
-        const parsed = JSON.parse(uploadedBlobPath);
-        if (Array.isArray(parsed)) {
-          // Chunked upload: delete all chunks in parallel
-          await Promise.all(parsed.map((c: any) => del(c.url).catch(() => null)));
-        }
-      } catch {
-        // Single blob: try to delete as URL string
-        await del(uploadedBlobPath).catch(() => null);
-      }
+      await del(uploadedBlobPath).catch(() => null);
     }
 
     return NextResponse.json({
@@ -589,16 +560,9 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    // Clean up uploaded blobs on error
+    // Clean up uploaded blob on error
     if (uploadedBlobPath) {
-      try {
-        const parsed = JSON.parse(uploadedBlobPath);
-        if (Array.isArray(parsed)) {
-          await Promise.all(parsed.map((c: any) => del(c.url).catch(() => null)));
-        }
-      } catch {
-        await del(uploadedBlobPath).catch(() => null);
-      }
+      await del(uploadedBlobPath).catch(() => null);
     }
     console.error('[v0] import-existencias error:', error);
     return NextResponse.json(
