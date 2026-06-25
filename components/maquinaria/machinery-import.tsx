@@ -181,7 +181,7 @@ export function MaquinariaImport({ onSuccess }: { onSuccess?: () => void }) {
                 : result.error || 'Error al importar'}
             </CardTitle>
           </CardHeader>
-          {(result.warnings?.length > 0 || result.details?.length > 0 || result.sample?.length > 0) && (
+          {((result.warnings?.length ?? 0) > 0 || (result.details?.length ?? 0) > 0 || (result.sample?.length ?? 0) > 0) && (
             <CardContent className="space-y-3">
               {(result.sample?.length ?? 0) > 0 && (
                 <div>
