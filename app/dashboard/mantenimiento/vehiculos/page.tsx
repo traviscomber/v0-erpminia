@@ -30,7 +30,9 @@ const fetcher = async (url: string) => {
 
 export default function VehiclesPage() {
   const { data, error, isLoading } = useSWR('/api/maintenance/assets', fetcher);
+  const { data: machineCatalogData } = useSWR('/api/maintenance/cost-center-machines', fetcher);
   const vehicles = (data?.assets || []) as MaintenanceAsset[];
+  const derivedMachines = Array.isArray(machineCatalogData?.machines) ? machineCatalogData.machines : [];
 
   return (
     <div className="space-y-6">
@@ -130,6 +132,42 @@ export default function VehiclesPage() {
                   Todavia no hay vehiculos cargados desde la base real.
                 </div>
               )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Modelos derivados desde centros de costo</CardTitle>
+          <CardDescription>
+            {derivedMachines.length > 0
+              ? `${derivedMachines.length} modelos detectados desde la base de centros de costo`
+              : 'Todavia no se detectaron modelos en los centros de costo'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {derivedMachines.length > 0 ? (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {derivedMachines.slice(0, 12).map((machine: any) => (
+                <div key={machine.id} className="rounded-lg border border-border p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{machine.family}</p>
+                      <h3 className="truncate text-base font-semibold">{machine.name}</h3>
+                      <p className="mt-1 text-sm text-muted-foreground">{machine.code}</p>
+                    </div>
+                    <Badge variant="outline">{machine.source}</Badge>
+                  </div>
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    Este modelo viene del centro de costo y puede usarse como base del maestro de maquinas.
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
+              No se encontraron modelos claros desde centros de costo.
             </div>
           )}
         </CardContent>
