@@ -210,14 +210,14 @@ export function MantenimientoDashboard() {
               </Link>
             </Button>
             <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/vehiculos">
-                Ver vehiculos
+              <Link href="/dashboard/mantenimiento/bitacora">
+                Ver bitacora
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
             <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/centro-costo">
-                Ver por centro de costo
+              <Link href="/dashboard/mantenimiento/planificacion">
+                Ver planificacion
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>

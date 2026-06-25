@@ -1,52 +1,116 @@
 export const dynamic = 'force-dynamic';
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { getOrganizationContext } from '@/lib/api/organization-context';
 
-export const runtime = 'nodejs';
+function toDateOnly(value?: string | null) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString().split('T')[0];
+}
 
-export async function GET() {
+function calculateDaysUntil(dateString?: string | null) {
+  if (!dateString) return null;
+  const dueDate = new Date(dateString);
+  if (Number.isNaN(dueDate.getTime())) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  dueDate.setHours(0, 0, 0, 0);
+  return Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+export async function GET(request: NextRequest) {
+  const context = await getOrganizationContext(request);
+  if (!context.ok) return context.response;
+
   try {
-    const calculateDaysUntil = (dateString: string) => {
-      const dueDate = new Date(dateString);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      dueDate.setHours(0, 0, 0, 0);
-      const timeDiff = dueDate.getTime() - today.getTime();
-      return Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
-    };
+    const searchParams = new URL(request.url).searchParams;
+    const days = Number(searchParams.get('days') || '365');
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + (Number.isFinite(days) ? days : 365));
 
-    const date7days = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    const date14days = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const { data, error } = await context.supabase
+      .from('preventive_maintenance_schedules')
+      .select(`
+        id,
+        organization_id,
+        asset_id,
+        task_name,
+        description,
+        frequency_days,
+        frequency_hours,
+        last_executed_date,
+        next_scheduled_date,
+        estimated_duration_hours,
+        priority,
+        enabled,
+        created_at,
+        updated_at,
+        asset:maintenance_assets(
+          id,
+          asset_code,
+          asset_name,
+          asset_type,
+          location,
+          status,
+          criticality
+        )
+      `)
+      .eq('organization_id', context.organizationId)
+      .order('next_scheduled_date', { ascending: true })
+      .limit(250);
 
-    const schedules = [
-      {
-        id: '1',
-        taskName: 'Revisión de alineación - SAG',
-        assetName: 'Molino SAG',
-        nextScheduledDate: date7days,
-        priority: 'high' as const,
-        daysUntil: calculateDaysUntil(date7days),
-      },
-      {
-        id: '2',
-        taskName: 'Cambio de neumáticos - Bolas',
-        assetName: 'Molino Bolas',
-        nextScheduledDate: date14days,
-        priority: 'medium' as const,
-        daysUntil: calculateDaysUntil(date14days),
-      },
-      {
-        id: '3',
-        taskName: 'Inspección de rodamientos',
-        assetName: 'Bomba Principal',
-        nextScheduledDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        priority: 'high' as const,
-        daysUntil: 3,
-      },
-    ];
+    if (error) throw error;
 
-    return NextResponse.json({ schedules });
+    const schedules = (data || [])
+      .map((schedule: any) => {
+        const nextScheduledDate = toDateOnly(schedule.next_scheduled_date);
+        const daysUntil = calculateDaysUntil(nextScheduledDate);
+        return {
+          id: schedule.id,
+          assetId: schedule.asset_id,
+          assetCode: schedule.asset?.asset_code || null,
+          assetName: schedule.asset?.asset_name || 'Sin activo',
+          assetType: schedule.asset?.asset_type || null,
+          location: schedule.asset?.location || null,
+          criticality: schedule.asset?.criticality || null,
+          taskName: schedule.task_name,
+          description: schedule.description || null,
+          frequencyDays: schedule.frequency_days || null,
+          frequencyHours: schedule.frequency_hours || null,
+          lastExecutedDate: toDateOnly(schedule.last_executed_date),
+          nextScheduledDate,
+          estimatedDurationHours: schedule.estimated_duration_hours || null,
+          priority: schedule.priority || 'medium',
+          enabled: Boolean(schedule.enabled),
+          daysUntil,
+        };
+      })
+      .filter((schedule: any) => {
+        if (!schedule.nextScheduledDate) return true;
+        const dueDate = new Date(schedule.nextScheduledDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        dueDate.setHours(0, 0, 0, 0);
+        return dueDate <= futureDate;
+      });
+
+    const enabledSchedules = schedules.filter((schedule: any) => schedule.enabled);
+    const overdue = enabledSchedules.filter((schedule: any) => (schedule.daysUntil ?? 9999) < 0).length;
+    const dueSoon = enabledSchedules.filter((schedule: any) => (schedule.daysUntil ?? 9999) >= 0 && (schedule.daysUntil ?? 9999) <= 30).length;
+
+    return NextResponse.json({
+      schedules,
+      summary: {
+        total: schedules.length,
+        enabled: enabledSchedules.length,
+        overdue,
+        dueSoon,
+      },
+    });
   } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'No se pudo cargar la planificacion preventiva';
+    return NextResponse.json({ schedules: [], summary: { total: 0, enabled: 0, overdue: 0, dueSoon: 0 }, error: message }, { status: 500 });
   }
 }
