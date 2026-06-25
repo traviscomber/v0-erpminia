@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import useSWR from 'swr';
-import { AlertCircle, ArrowRight, CalendarClock, CircleAlert, CircleCheckBig, DollarSign, Gauge, Smartphone, TrendingDown, TrendingUp, Wrench } from 'lucide-react';
+import { AlertCircle, ArrowRight, CalendarClock, CircleAlert, CircleCheckBig, DollarSign, Gauge, QrCode, Smartphone, TrendingDown, TrendingUp, Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -110,6 +110,12 @@ export function MaintenanceExecutiveDashboard() {
             <Link href="/dashboard/mantenimiento/movil">
               <Smartphone className="h-4 w-4" />
               Vista movil
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="gap-2">
+            <Link href="/dashboard/mantenimiento/vehiculos">
+              <QrCode className="h-4 w-4" />
+              Vehiculos y QR
             </Link>
           </Button>
           <Button

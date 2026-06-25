@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import useSWR from 'swr';
 import { ArrowLeft, Copy, Printer, QrCode, Wrench } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { inferMachineFamilyFromText } from '@/lib/maintenance/cost-center-machines';
@@ -89,7 +90,12 @@ export default function VehicleQrPage() {
 
   const copyLink = async () => {
     if (typeof navigator !== 'undefined') {
-      await navigator.clipboard.writeText(qrTargetUrl);
+      try {
+        await navigator.clipboard.writeText(qrTargetUrl);
+        toast.success('Enlace copiado');
+      } catch {
+        toast.error('No se pudo copiar el enlace');
+      }
     }
   };
 
@@ -153,6 +159,11 @@ export default function VehicleQrPage() {
               <Button variant="outline" className="gap-2" onClick={copyLink}>
                 <Copy className="h-4 w-4" />
                 Copiar enlace
+              </Button>
+              <Button asChild variant="outline">
+                <Link href={qrTargetUrl} target="_blank" rel="noreferrer">
+                  Abrir ficha
+                </Link>
               </Button>
               <Button asChild variant="outline">
                 <Link href={`/dashboard/work-orders/create?assetId=${asset.id}`}>Crear OT</Link>

@@ -210,6 +210,32 @@ export function MaintenanceMobilePanel() {
 
       <Card>
         <CardHeader>
+          <CardTitle>Acceso rapido</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 gap-2">
+          <Button asChild variant="outline" className="w-full justify-between">
+            <Link href="/dashboard/mantenimiento/vehiculos">
+              Vehiculos y QR
+              <QrCode className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="w-full justify-between">
+            <Link href="/dashboard/mantenimiento/bitacora">
+              Bitacora
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="w-full justify-between">
+            <Link href="/dashboard/mantenimiento/gerencial">
+              Dashboard gerencial
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Resumen de terreno</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-2 gap-3 text-sm">
