@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import AdquisicionesPage from '../documentos-gestion/adquisiciones/page';
 import { PurchaseOrderForm } from '@/components/compras/purchase-order-form';
 import { SuppliersList } from '@/components/compras/suppliers-list';
 import { PurchaseOrdersList } from '@/components/compras/purchase-orders-list';
@@ -49,8 +48,6 @@ export default function ComprasPage() {
       <PurchaseOrdersList />
 
       <SuppliersList />
-
-      <AdquisicionesPage />
     </div>
   );
 }
