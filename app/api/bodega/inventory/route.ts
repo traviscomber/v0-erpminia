@@ -54,15 +54,16 @@ export async function GET(request: NextRequest) {
   const validPage = Math.max(page, 0);
   const offset = validPage * validPageSize;
 
+  // Real columns: quantity_on_hand, quantity_available, reorder_level, reorder_quantity, part_name, bin_id
   let query = supabase
     .from('warehouse_stock')
     .select(
-      'id, part_code, quantity, min_stock, max_stock, unit_cost, batch_number, warehouse_location, organization_id, created_at',
+      'id, part_code, part_name, quantity_on_hand, quantity_available, quantity_reserved, reorder_level, reorder_quantity, unit_cost, batch_number, bin_id, organization_id, created_at',
       { count: 'exact' },
     );
 
   if (orgId) query = query.eq('organization_id', orgId);
-  if (search) query = query.or(`part_code.ilike.%${search}%,batch_number.ilike.%${search}%`);
+  if (search) query = query.or(`part_code.ilike.%${search}%,part_name.ilike.%${search}%,batch_number.ilike.%${search}%`);
   if (category) query = query.ilike('part_code', `%${category}%`);
 
   const { data, error, count } = await query
@@ -75,13 +76,15 @@ export async function GET(request: NextRequest) {
   const inventory = (data || []).map((item: any) => ({
     id: item.id,
     sku: item.part_code,
-    name: item.batch_number || item.part_code,
+    name: item.part_name || item.batch_number || item.part_code,
     category: canonicalCategory(item.part_code) || item.part_code,
-    quantity: item.quantity ?? 0,
-    min_stock: item.min_stock ?? 0,
-    max_stock: item.max_stock ?? 0,
+    quantity: item.quantity_on_hand ?? 0,
+    quantity_available: item.quantity_available ?? 0,
+    quantity_reserved: item.quantity_reserved ?? 0,
+    min_stock: item.reorder_level ?? 0,
+    max_stock: item.reorder_quantity ?? 0,
     unit_cost: item.unit_cost ?? 0,
-    description: item.warehouse_location || '',
+    description: item.bin_id || '',
   }));
 
   return NextResponse.json({
