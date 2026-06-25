@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { resolveAuthContext } from '@/lib/api/auth-session';
 
-// Groups 8–18 = machinery/vehicles in cost_centers
+// Groups 8-18 = machinery/vehicles in cost_centers
 const MACHINERY_GROUPS: Record<string, string> = {
   '8': 'Camionetas',
   '9': 'Camiones',
@@ -13,9 +13,9 @@ const MACHINERY_GROUPS: Record<string, string> = {
   '12': 'Camiones de Bajo Perfil',
   '13': 'Grupos Generadores',
   '14': 'Compresores',
-  '15': 'Manipuladores Telescópicos',
+  '15': 'Manipuladores Telescopicos',
   '16': 'Equipos de Sondaje',
-  '17': 'Equipos de Perforación',
+  '17': 'Equipos de Perforacion',
   '18': 'Minicargadores',
 };
 
@@ -38,7 +38,7 @@ interface MachineRow {
 }
 
 function parseRows(rows: unknown[][]): { valid: MachineRow[]; errors: string[] } {
-  if (!rows.length) return { valid: [], errors: ['Archivo vacío'] };
+  if (!rows.length) return { valid: [], errors: ['Archivo vacio'] };
 
   const headers = (rows[0] as unknown[]).map(normalizeText);
   const codeIdx = headers.findIndex((h) => h.includes('codigo') || h.includes('code') || h === 'cod');
@@ -56,17 +56,16 @@ function parseRows(rows: unknown[][]): { valid: MachineRow[]; errors: string[] }
     const name = cleanText((row as any[])[nameIdx]);
     const status = cleanText((row as any[])[statusIdx ?? -1]) || 'active';
 
-    if (!code || !name) return; // skip empty rows
+    if (!code || !name) return;
 
-    // Must be X-Y format
     if (!code.includes('-')) {
-      errors.push(`Fila ${i + 2}: código "${code}" debe tener formato X-Y (ej: 8-5)`);
+      errors.push(`Fila ${i + 2}: codigo "${code}" debe tener formato X-Y, por ejemplo 8-5`);
       return;
     }
 
     const parentCode = code.split('-')[0];
     if (!MACHINERY_GROUPS[parentCode]) {
-      errors.push(`Fila ${i + 2}: código "${code}" — grupo ${parentCode} no es maquinaria (8-18)`);
+      errors.push(`Fila ${i + 2}: codigo "${code}" - grupo ${parentCode} no es maquinaria (8-18)`);
       return;
     }
 
@@ -84,7 +83,7 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get('file');
     if (!(file instanceof File)) {
-      return NextResponse.json({ error: 'No se proporcionó archivo' }, { status: 400 });
+      return NextResponse.json({ error: 'No se proporciono archivo' }, { status: 400 });
     }
 
     const filename = file.name.toLowerCase();
@@ -98,38 +97,36 @@ export async function POST(request: NextRequest) {
       rows = xlsx.utils.sheet_to_json(ws, { header: 1, defval: '', raw: true }) as unknown[][];
     } else if (filename.endsWith('.csv')) {
       const text = await file.text();
-      rows = text.split(/\r?\n/).filter(Boolean).map((l) => l.split(';').map((v) => v.trim()));
+      rows = text
+        .split(/\r?\n/)
+        .filter(Boolean)
+        .map((line) => line.split(';').map((value) => value.trim()));
     } else {
       return NextResponse.json({ error: 'Formato no soportado. Usa CSV, XLS o XLSX.' }, { status: 400 });
     }
 
     const { valid, errors } = parseRows(rows);
     if (valid.length === 0) {
-      return NextResponse.json({ error: 'No se encontraron filas válidas', details: errors }, { status: 400 });
+      return NextResponse.json({ error: 'No se encontraron filas validas', details: errors }, { status: 400 });
     }
 
     const supabase = getSupabaseServerClient();
     const orgId = auth.organizationId;
 
-    // Upsert each machine as a cost_center row
-    const upsertRows = valid.map((m) => ({
-      code: m.code,
-      name: m.name,
-      status: m.status,
+    const upsertRows = valid.map((machine) => ({
+      code: machine.code,
+      name: machine.name,
+      status: machine.status,
       org_id: orgId,
     }));
 
-    const { error: upsertError } = await supabase
-      .from('cost_centers')
-      .upsert(upsertRows, { onConflict: 'code,org_id' });
-
+    const { error: upsertError } = await supabase.from('cost_centers').upsert(upsertRows, { onConflict: 'code,org_id' });
     if (upsertError) throw upsertError;
 
     return NextResponse.json({
       success: true,
       imported: valid.length,
       warnings: errors,
-      sample: valid.slice(0, 5),
     });
   } catch (err: any) {
     console.error('[v0] import-machinery error:', err);

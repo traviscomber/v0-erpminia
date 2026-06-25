@@ -54,11 +54,6 @@ export async function GET() {
       status_breakdown: statusBreakdown,
       documents_by_module: byModule,
       all_modules: uniqueModules,
-      sample_documents: allDocuments.slice(0, 10).map((d) => ({
-        name: d.document_name,
-        module: d.module,
-        status: d.status,
-      })) || [],
     });
   } catch (error) {
     console.error('[v0] Check uploads error:', error);

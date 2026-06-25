@@ -335,7 +335,6 @@ export async function POST(request: NextRequest) {
       success: true,
       message: `Se importaron correctamente ${data.length} items de inventario`,
       imported: data.length,
-      sampleItems: data.slice(0, 3),
     });
   } catch (error) {
     console.error('[v0] Bodega inventory import error:', error);

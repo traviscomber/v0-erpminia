@@ -608,11 +608,6 @@ export async function POST(request: NextRequest) {
       suppliersImported: parsed.suppliers.length,
       stockImported: parsed.stock.length,
       purchasesImported: parsed.purchases.length,
-      samples: {
-        suppliers: parsed.suppliers.slice(0, 3),
-        stock: parsed.stock.slice(0, 3),
-        purchases: parsed.purchases.slice(0, 3),
-      },
     });
   } catch (error) {
     await cleanupBlobs(uploadedBlobPath);

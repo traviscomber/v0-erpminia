@@ -16,11 +16,6 @@ type ImportResult = {
   purchasesImported?: number;
   error?: string;
   details?: string;
-  samples?: {
-    suppliers?: Array<{ name: string; rut: string | null; payment_terms: string | null }>;
-    stock?: Array<{ part_code: string; part_name: string; reorder_level: number; reorder_quantity: number }>;
-    purchases?: Array<{ po_number: string; vendor_name: string; total_amount: number }>;
-  };
 };
 
 export default function ImportarExistenciasPage() {
@@ -59,7 +54,6 @@ export default function ImportarExistenciasPage() {
           suppliersImported: payload?.suppliersImported,
           stockImported: payload?.stockImported,
           purchasesImported: payload?.purchasesImported,
-          samples: payload?.samples,
         });
       } else {
         setResult({
@@ -265,56 +259,6 @@ export default function ImportarExistenciasPage() {
         </CardContent>
       </Card>
 
-      {result?.success && result.samples && (
-        <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-          <Card>
-            <CardHeader>
-              <CardTitle>Proveedores cargados</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {(result.samples.suppliers || []).slice(0, 3).map((supplier) => (
-                <div key={`${supplier.name}-${supplier.rut || 'sin-rut'}`} className="rounded-lg border border-border p-3">
-                  <p className="font-semibold">{supplier.name}</p>
-                  <p className="text-sm text-muted-foreground">{supplier.rut || 'Sin RUT'}</p>
-                  <p className="text-xs text-muted-foreground">{supplier.payment_terms || 'Sin forma de pago'}</p>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Stock min-max</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {(result.samples.stock || []).slice(0, 3).map((item) => (
-                <div key={item.part_code} className="rounded-lg border border-border p-3">
-                  <p className="font-semibold">{item.part_code}</p>
-                  <p className="text-sm text-muted-foreground">{item.part_name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Min {item.reorder_level} | Max {item.reorder_quantity}
-                  </p>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Compras agrupadas</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {(result.samples.purchases || []).slice(0, 3).map((purchase) => (
-                <div key={purchase.po_number} className="rounded-lg border border-border p-3">
-                  <p className="font-semibold">{purchase.po_number}</p>
-                  <p className="text-sm text-muted-foreground">{purchase.vendor_name}</p>
-                  <p className="text-xs text-muted-foreground">${purchase.total_amount.toLocaleString('es-CL')}</p>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-      )}
     </div>
   );
 }
