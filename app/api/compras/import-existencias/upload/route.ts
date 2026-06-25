@@ -16,6 +16,25 @@ export async function POST(request: NextRequest): Promise<Response> {
     const auth = await requireAuth(request);
     if (!auth.authorized || !auth.user) return auth.response!;
 
+    // For direct token generation (not using handleUpload callback)
+    const clientToken = request.headers.get('x-get-client-token');
+    if (clientToken === 'true') {
+      const token = process.env.BLOB_READ_WRITE_TOKEN;
+      if (!token) {
+        return new Response(JSON.stringify({ error: 'Falta BLOB_READ_WRITE_TOKEN en el entorno' }), {
+          status: 500,
+          headers: { 'content-type': 'application/json' },
+        });
+      }
+
+      // Return the token directly for client-side use
+      return new Response(JSON.stringify({ clientToken: token }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+    }
+
+    // Original flow: use handleUpload
     const body = (await request.json()) as Parameters<typeof handleUpload>[0]['body'];
     const token = process.env.BLOB_READ_WRITE_TOKEN;
     if (!token) {

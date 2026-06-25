@@ -80,11 +80,7 @@ export default function ImportarExistenciasPage() {
       // Get upload token from server
       const tokenRes = await fetch('/api/compras/import-existencias/upload', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'blob.generate-client-token',
-          payload: JSON.stringify({ fileName: file.name }),
-        }),
+        headers: { 'x-get-client-token': 'true' },
       });
 
       const tokenData = (await tokenRes.json()) as { clientToken?: string; error?: string };
