@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { AlertCircle, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,9 +16,14 @@ type PurchaseOrderFormState = {
 };
 
 export function PurchaseOrderForm() {
+  const searchParams = useSearchParams();
+  // Pre-fill from maquinaria: ?ref=Scoop+Atlas+Copco+ST-1030&cost_center=10-3
+  const prefilledRef = searchParams.get('ref') || '';
+  const prefilledCostCenter = searchParams.get('cost_center') || '';
+
   const [formData, setFormData] = useState<PurchaseOrderFormState>({
     vendor_name: '',
-    item_code: '',
+    item_code: prefilledRef,
     quantity: 1,
     unit_price: 0,
     delivery_date: '',
@@ -59,6 +65,16 @@ export function PurchaseOrderForm() {
         <CardTitle>Crear orden de compra</CardTitle>
       </CardHeader>
       <CardContent>
+        {prefilledRef && (
+          <div className="mb-4 flex items-center gap-2 rounded border border-primary/30 bg-primary/5 px-3 py-2 text-sm">
+            <CheckCircle className="h-4 w-4 shrink-0 text-primary" />
+            <span>
+              Repuestos para <span className="font-semibold">{prefilledRef}</span>
+              {prefilledCostCenter && <span className="text-muted-foreground"> — CC {prefilledCostCenter}</span>}
+            </span>
+          </div>
+        )}
+
         {result && (
           <div className="mb-4 flex gap-2 rounded border border-green-200 bg-green-50 p-3">
             <CheckCircle className="h-5 w-5 flex-shrink-0 text-green-600" />

@@ -249,15 +249,15 @@ export default function MaquinariaPage() {
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
                           <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
-                            <Link href={`/dashboard/work-orders?cost_center=${item.code}`}>
-                              <Wrench className="h-3 w-3" />
+                            <Link href={`/dashboard/work-orders/create?cost_center=${item.code}&machine=${encodeURIComponent(item.model || item.name)}`}>
+                              <Wrench className="h-3 w-3 mr-1" />
                               OT
                             </Link>
                           </Button>
                           <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
-                            <Link href={`/dashboard/compras?ref=${encodeURIComponent(item.model || item.name)}`}>
-                              <Package className="h-3 w-3" />
-                              <ExternalLink className="h-3 w-3 ml-0.5" />
+                            <Link href={`/dashboard/compras?ref=${encodeURIComponent(item.model || item.name)}&cost_center=${item.code}`}>
+                              <Package className="h-3 w-3 mr-1" />
+                              Compra
                             </Link>
                           </Button>
                         </div>

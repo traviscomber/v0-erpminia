@@ -109,12 +109,18 @@ export default function CreateWorkOrderPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialAssetId = searchParams.get('assetId') || '';
+  // Pre-fill from maquinaria page: ?cost_center=10-3&machine=Scoop+Atlas+Copco
+  const prefilledCostCenter = searchParams.get('cost_center') || '';
+  const prefilledMachine = searchParams.get('machine') || '';
+
   const [step, setStep] = useState(1);
   const [selectedAssetId, setSelectedAssetId] = useState(initialAssetId);
   const [selectedComponents, setSelectedComponents] = useState<string[]>([]);
   const [orderType, setOrderType] = useState('preventive');
   const [priority, setPriority] = useState('high');
-  const [description, setDescription] = useState('');
+  const [description, setDescription] = useState(
+    prefilledMachine ? `Mantenimiento de ${prefilledMachine}${prefilledCostCenter ? ` (CC: ${prefilledCostCenter})` : ''}` : ''
+  );
   const [submitting, setSubmitting] = useState(false);
   const [familyFilter, setFamilyFilter] = useState('all');
 
@@ -221,6 +227,16 @@ export default function CreateWorkOrderPage() {
         <h1 className="text-3xl font-bold">Crear orden de mantenimiento</h1>
         <p className="mt-2 text-muted-foreground">Flujo base del MVP con activos reales de mantenimiento.</p>
       </div>
+
+      {prefilledMachine && (
+        <div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-sm">
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
+          <span>
+            Creando OT para <span className="font-semibold">{prefilledMachine}</span>
+            {prefilledCostCenter && <span className="text-muted-foreground"> — Centro de costo {prefilledCostCenter}</span>}
+          </span>
+        </div>
+      )}
 
       <div className="flex gap-4">
         {[1, 2, 3].map((n) => (
