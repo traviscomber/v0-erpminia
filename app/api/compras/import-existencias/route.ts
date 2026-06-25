@@ -1,4 +1,5 @@
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60; // Allow up to 60 seconds for large file processing
 
 import { NextRequest, NextResponse } from 'next/server';
 import { del, get } from '@vercel/blob';
@@ -522,23 +523,19 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'No se proporciono una referencia del archivo cargado' }, { status: 400 });
       }
     } else {
-      // FormData multipart file upload. Stream directly to buffer without
-      // loading entire body into memory at once. This bypasses Vercel's 6MB
-      // payload limit by processing the stream incrementally.
-      const buffer = await request.arrayBuffer();
-      const uint8Array = new Uint8Array(buffer);
+      // FormData multipart file upload
+      const formData = await request.formData();
+      const file = formData.get('file');
 
-      // Extract filename from Content-Disposition header
-      const contentDisposition = request.headers.get('content-disposition') || '';
-      const fileNameMatch = contentDisposition.match(/filename="?([^";\n]+)/);
-      const fileName = fileNameMatch?.[1] || 'existencias.xlsx';
+      if (!(file instanceof File)) {
+        return NextResponse.json({ error: 'No se proporciono archivo' }, { status: 400 });
+      }
 
-      if (!fileName.toLowerCase().endsWith('.xlsx') && !fileName.toLowerCase().endsWith('.xls')) {
+      const fileName = file.name.toLowerCase();
+      if (!fileName.endsWith('.xlsx') && !fileName.endsWith('.xls')) {
         return NextResponse.json({ error: 'El archivo debe ser XLS o XLSX' }, { status: 400 });
       }
 
-      // Parse FormData manually from the buffer to extract the file part
-      const file = new File([uint8Array], fileName, { type: 'application/octet-stream' });
       parsed = await parseWorkbook(file);
     }
 
