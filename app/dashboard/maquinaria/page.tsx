@@ -6,8 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Package, Truck, Wrench, ChevronRight } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Search, Package, Truck, Wrench, ChevronRight, Upload } from 'lucide-react';
 import Link from 'next/link';
+import { MaquinariaImport } from '@/components/maquinaria/machinery-import';
 
 interface Machine {
   id: string;
@@ -47,7 +49,7 @@ export default function MaquinariaPage() {
   }, [search]);
 
   const params = new URLSearchParams({ search: debouncedSearch, category: selectedCategory });
-  const { data, error, isLoading } = useSWR(`/api/maquinaria/machinery?${params}`, fetcher);
+  const { data, error, isLoading, mutate } = useSWR(`/api/maquinaria/machinery?${params}`, fetcher);
 
   const machinery: Machine[] = data?.machinery || [];
   const categories: Category[] = data?.categories || [];
@@ -59,12 +61,32 @@ export default function MaquinariaPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Maquinaria y Vehículos</h1>
-        <p className="text-muted-foreground">
-          Flota operacional completa — haz click en cualquier equipo para ordenar repuestos o crear una OT
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Maquinaria y Vehículos</h1>
+          <p className="text-muted-foreground">
+            Flota operacional completa — haz click en cualquier equipo para ordenar repuestos o crear una OT
+          </p>
+        </div>
       </div>
+
+      <Tabs defaultValue="lista" className="w-full">
+        <TabsList className="w-full max-w-xs">
+          <TabsTrigger value="lista" className="flex-1">
+            <Truck className="mr-2 h-4 w-4" />
+            Lista
+          </TabsTrigger>
+          <TabsTrigger value="importar" className="flex-1">
+            <Upload className="mr-2 h-4 w-4" />
+            Importar
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="importar" className="mt-6">
+          <MaquinariaImport onSuccess={() => mutate()} />
+        </TabsContent>
+
+        <TabsContent value="lista" className="mt-6 space-y-6">
 
       {/* Summary Cards */}
       <div className="grid gap-4 md:grid-cols-3">
@@ -234,7 +256,11 @@ export default function MaquinariaPage() {
             </Card>
           ))}
         </div>
+          )}
+        </>
       )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
