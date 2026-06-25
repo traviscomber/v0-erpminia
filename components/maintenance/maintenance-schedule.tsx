@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar } from 'lucide-react';
@@ -27,12 +27,12 @@ const priorityColors = {
 
 const getUrgency = (daysUntil: number | undefined) => {
   if (daysUntil === undefined || daysUntil === null) {
-    return { color: 'text-muted-foreground', label: 'Pendiente de programación' };
+    return { color: 'text-muted-foreground', label: 'Pendiente de programacion' };
   }
   if (daysUntil <= 0) return { color: 'text-destructive', label: 'Vencido' };
   if (daysUntil <= 1) return { color: 'text-yellow-700', label: 'Hoy' };
   if (daysUntil <= 3) return { color: 'text-yellow-600', label: 'Pronto' };
-  return { color: 'text-foreground', label: `En ${daysUntil} días` };
+  return { color: 'text-foreground', label: `En ${daysUntil} dias` };
 };
 
 export function MaintenanceSchedule({ schedules, onMarkComplete }: MaintenanceScheduleProps) {
@@ -41,7 +41,7 @@ export function MaintenanceSchedule({ schedules, onMarkComplete }: MaintenanceSc
       {schedules.length === 0 ? (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
-            No hay mantenimientos programados en los próximos 7 días
+            No hay mantenimientos programados en los proximos 7 dias
           </CardContent>
         </Card>
       ) : (
@@ -50,16 +50,14 @@ export function MaintenanceSchedule({ schedules, onMarkComplete }: MaintenanceSc
           return (
             <Card key={schedule.id}>
               <CardContent className="p-4">
-                <div className="flex justify-between items-start">
+                <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <h4 className="font-semibold">{schedule.taskName}</h4>
                     <p className="text-sm text-muted-foreground">{schedule.assetName}</p>
-                    <div className="flex gap-2 mt-2">
-                      <Badge className={priorityColors[schedule.priority]}>
-                        {schedule.priority}
-                      </Badge>
+                    <div className="mt-2 flex gap-2">
+                      <Badge className={priorityColors[schedule.priority]}>{schedule.priority}</Badge>
                       <span className={`text-sm ${urgency.color}`}>
-                        <Calendar className="w-3 h-3 inline mr-1" />
+                        <Calendar className="mr-1 inline h-3 w-3" />
                         {urgency.label}
                       </span>
                     </div>
@@ -80,5 +78,3 @@ export function MaintenanceSchedule({ schedules, onMarkComplete }: MaintenanceSc
     </div>
   );
 }
-
-

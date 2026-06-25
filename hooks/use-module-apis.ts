@@ -2,7 +2,18 @@ import useSWR from 'swr';
 import { useState, useMemo } from 'react';
 
 type KPI = { date: string; production_tons: number; equipment_uptime: number; safety_incidents: number; environmental_compliance: number; workforce_efficiency: number; };
-type Orden = { id: string; code: string; title: string; description: string; status: string; priority: string };
+type Orden = {
+  id: string;
+  code?: string;
+  order_number?: string;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  asset_name?: string;
+  scheduled_date?: string | null;
+  assigned_to_name?: string | null;
+};
 type InventoryItem = {
   id: string;
   sku: string;

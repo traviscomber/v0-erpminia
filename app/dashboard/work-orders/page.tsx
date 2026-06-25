@@ -1,14 +1,17 @@
 'use client';
 
 import Link from 'next/link';
+import { useMemo, useState } from 'react';
 import useSWR from 'swr';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Clock, CheckCircle2, AlertCircle, Eye, Wrench, Filter } from 'lucide-react';
+import { MaintenanceSchedule } from '@/components/maintenance/maintenance-schedule';
 
 export default function WorkOrdersPage() {
-  const { data } = useSWR('/api/maintenance/work-orders', async (url: string) => {
+  const [updatingScheduleId, setUpdatingScheduleId] = useState<string | null>(null);
+  const { data, mutate } = useSWR('/api/maintenance/work-orders', async (url: string) => {
     const res = await fetch(url);
     return res.ok ? res.json() : null;
   });
@@ -42,6 +45,51 @@ export default function WorkOrdersPage() {
   const inProgress = workOrders.filter((wo: any) => wo.status === 'in_progress').length;
   const critical = workOrders.filter((wo: any) => wo.priority === 'critical').length;
   const completed = workOrders.filter((wo: any) => wo.status === 'completed').length;
+
+  const scheduleItems = useMemo(() => {
+    return workOrders
+      .filter((wo: any) => wo.scheduled_date)
+      .map((wo: any) => {
+        const scheduledDate = new Date(wo.scheduled_date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        scheduledDate.setHours(0, 0, 0, 0);
+        const daysUntil = Math.ceil((scheduledDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+        return {
+          id: wo.id,
+          assetName: wo.asset_name || 'Sin activo asociado',
+          taskName: `${wo.work_order_number || 'OT'} - ${wo.title}`,
+          nextScheduledDate: wo.scheduled_date,
+          priority: ['critical', 'high'].includes(wo.priority) ? 'high' : wo.priority === 'low' ? 'low' : 'medium',
+          daysUntil,
+        };
+      })
+      .sort((a: any, b: any) => a.daysUntil - b.daysUntil)
+      .slice(0, 7);
+  }, [workOrders]);
+
+  const markScheduleComplete = async (scheduleId: string) => {
+    setUpdatingScheduleId(scheduleId);
+    try {
+      const res = await fetch(`/api/maintenance/work-orders/${scheduleId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'completed' }),
+      });
+
+      if (!res.ok) {
+        const payload = await res.json().catch(() => null);
+        throw new Error(payload?.error || 'No se pudo actualizar la orden de trabajo');
+      }
+
+      await mutate();
+    } catch (error) {
+      console.error('[work-orders] schedule update failed', error);
+    } finally {
+      setUpdatingScheduleId(null);
+    }
+  };
 
   const getStatusLabel = (status: string) => {
     switch (status) {
@@ -143,6 +191,23 @@ export default function WorkOrdersPage() {
           </Button>
         </Link>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Planificacion visual</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="mb-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
+            <span>Vencidas y proximas primero</span>
+            <span>·</span>
+            <span>Actualiza el estado directo desde cada bloque</span>
+          </div>
+          {updatingScheduleId ? (
+            <p className="mb-3 text-sm text-muted-foreground">Actualizando orden {updatingScheduleId}...</p>
+          ) : null}
+          <MaintenanceSchedule schedules={scheduleItems} onMarkComplete={markScheduleComplete} />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

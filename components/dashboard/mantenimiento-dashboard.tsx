@@ -1,11 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { AlertCircle, ArrowRight, RefreshCw } from 'lucide-react';
+import useSWR from 'swr';
+import { AlertCircle, ArrowRight, Activity, CircleAlert, CircleCheckBig, Factory, RefreshCw, Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useMantenimientoOrdenes } from '@/hooks/use-module-apis';
+
+const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
 
 function statusLabel(status: string) {
   const labels: Record<string, string> = {
@@ -42,75 +45,167 @@ function priorityVariant(priority: string) {
   return 'outline' as const;
 }
 
-export function MantenimientoDashboard() {
-  const { ordenes, isLoading, error, mutate } = useMantenimientoOrdenes();
+function assetStatusLabel(status: string) {
+  const labels: Record<string, string> = {
+    active: 'Operativo',
+    inactive: 'Inactivo',
+    maintenance: 'En mantencion',
+    decommissioned: 'Baja',
+  };
 
-  if (error) {
-    return <div className="text-lg font-semibold text-destructive">Error cargando ordenes</div>;
+  return labels[status] || status;
+}
+
+function assetStatusVariant(status: string) {
+  if (status === 'maintenance') return 'secondary' as const;
+  if (status === 'inactive' || status === 'decommissioned') return 'outline' as const;
+  return 'default' as const;
+}
+
+export function MantenimientoDashboard() {
+  const { ordenes, isLoading: ordersLoading, error: ordersError, mutate: mutateOrders } = useMantenimientoOrdenes();
+  const { data: assetsData, isLoading: assetsLoading, mutate: mutateAssets, error: assetsError } = useSWR(
+    '/api/maintenance/assets',
+    fetcher,
+  );
+
+  const isLoading = ordersLoading || assetsLoading;
+
+  const assets = Array.isArray(assetsData?.assets) ? assetsData.assets : [];
+  const totalAssets = assets.length;
+  const activeAssets = assets.filter((asset: any) => String(asset.status || '').toLowerCase() === 'active').length;
+  const maintenanceAssets = assets.filter((asset: any) => String(asset.status || '').toLowerCase() === 'maintenance').length;
+  const inactiveAssets = assets.filter((asset: any) =>
+    ['inactive', 'decommissioned'].includes(String(asset.status || '').toLowerCase()),
+  ).length;
+
+  const openOrders = ordenes.filter((o) => ['pendiente', 'open', 'pending'].includes(o.status)).length;
+  const inProgressOrders = ordenes.filter((o) => ['en_progreso', 'in_progress'].includes(o.status)).length;
+  const completedOrders = ordenes.filter((o) => ['completado', 'completed'].includes(o.status)).length;
+  const urgentOrders = ordenes.filter((o) => ['urgente', 'critical'].includes(o.priority)).length;
+  const overdueOrders = ordenes.filter((order: any) => {
+    if (!order.scheduled_date) return false;
+    if (['completado', 'completed'].includes(order.status)) return false;
+    const scheduled = new Date(order.scheduled_date);
+    if (Number.isNaN(scheduled.getTime())) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    scheduled.setHours(0, 0, 0, 0);
+    return scheduled < today;
+  }).length;
+
+  const availability = totalAssets > 0 ? Math.round((activeAssets / totalAssets) * 100) : 0;
+  const recentOrders = [...ordenes].slice(0, 6);
+  const criticalAssets = assets
+    .filter((asset: any) => ['critical', 'high'].includes(String(asset.criticality || '').toLowerCase()))
+    .slice(0, 6);
+
+  if (ordersError || assetsError) {
+    return (
+      <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-6 text-destructive">
+        <div className="flex items-center gap-2 font-semibold">
+          <AlertCircle className="h-4 w-4" />
+          No se pudo cargar mantenimiento
+        </div>
+        <p className="mt-2 text-sm text-destructive/80">
+          Revisa la conexion a las APIs de mantenimiento y activos antes de volver a intentar.
+        </p>
+      </div>
+    );
   }
 
   if (isLoading) {
-    return <div>Cargando...</div>;
+    return <div className="text-sm text-muted-foreground">Cargando mantenimiento...</div>;
   }
-
-  const pendientes = ordenes.filter((o) => o.status === 'pendiente' || o.status === 'open' || o.status === 'pending').length;
-  const enProgreso = ordenes.filter((o) => o.status === 'en_progreso' || o.status === 'in_progress').length;
-  const completadas = ordenes.filter((o) => o.status === 'completado' || o.status === 'completed').length;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Mantenimiento</h1>
-          <p className="text-muted-foreground">Gestion simple de ordenes de trabajo</p>
+          <p className="text-muted-foreground">Panel ejecutivo con equipos, OT y disponibilidad real.</p>
         </div>
-        <Button size="sm" onClick={() => mutate()} className="gap-2">
-          <RefreshCw className="h-4 w-4" />
-          Actualizar
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" onClick={() => void mutateOrders()} className="gap-2">
+            <RefreshCw className="h-4 w-4" />
+            Actualizar OT
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => void mutateAssets()} className="gap-2">
+            <RefreshCw className="h-4 w-4" />
+            Actualizar equipos
+          </Button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Pendientes</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <Factory className="h-4 w-4 text-primary" />
+              Equipos totales
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-orange-500">{pendientes}</div>
-            <p className="text-xs text-muted-foreground">Ordenes por iniciar</p>
+            <div className="text-3xl font-bold">{totalAssets}</div>
+            <p className="text-xs text-muted-foreground">{availability}% disponibilidad operativa</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">En progreso</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <CircleCheckBig className="h-4 w-4 text-green-500" />
+              Operativos
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-blue-500">{enProgreso}</div>
-            <p className="text-xs text-muted-foreground">Trabajos activos</p>
+            <div className="text-3xl font-bold text-green-500">{activeAssets}</div>
+            <p className="text-xs text-muted-foreground">Equipos en servicio</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Completadas</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <Wrench className="h-4 w-4 text-secondary" />
+              OT abiertas
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-500">{completadas}</div>
-            <p className="text-xs text-muted-foreground">Trabajos cerrados</p>
+            <div className="text-3xl font-bold text-secondary">{openOrders}</div>
+            <p className="text-xs text-muted-foreground">Incluye pendientes y abiertas</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <CircleAlert className="h-4 w-4 text-orange-500" />
+              Atrasadas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-orange-500">{overdueOrders}</div>
+            <p className="text-xs text-muted-foreground">OT con fecha vencida</p>
           </CardContent>
         </Card>
       </div>
 
       <Card className="border-border/70 bg-card/90">
         <CardHeader>
-          <CardTitle>Siguiente paso</CardTitle>
+          <CardTitle>Acceso rapido</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
             <Button asChild className="justify-between">
               <Link href="/dashboard/work-orders/create">
                 Crear orden de trabajo
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/work-orders">
+                Ver ordenes
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -126,43 +221,120 @@ export function MantenimientoDashboard() {
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/documentos">
-                Revisar documentos
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
           </div>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Ordenes de trabajo</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {ordenes.length === 0 ? (
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Estado de equipos</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+              <div className="rounded-lg border border-border p-3">
+                <p className="text-xs text-muted-foreground">Operativos</p>
+                <p className="text-2xl font-bold text-green-500">{activeAssets}</p>
+              </div>
+              <div className="rounded-lg border border-border p-3">
+                <p className="text-xs text-muted-foreground">En mantencion</p>
+                <p className="text-2xl font-bold text-secondary">{maintenanceAssets}</p>
+              </div>
+              <div className="rounded-lg border border-border p-3">
+                <p className="text-xs text-muted-foreground">Inactivos</p>
+                <p className="text-2xl font-bold text-muted-foreground">{inactiveAssets}</p>
+              </div>
+              <div className="rounded-lg border border-border p-3">
+                <p className="text-xs text-muted-foreground">Criticos</p>
+                <p className="text-2xl font-bold text-orange-500">{criticalAssets.length}</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              {criticalAssets.length === 0 ? (
+                <div className="flex items-center gap-2 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
+                  <AlertCircle className="h-4 w-4" />
+                  No hay equipos criticos visibles.
+                </div>
+              ) : (
+                criticalAssets.map((asset: any) => (
+                  <div key={asset.id} className="flex items-center justify-between rounded-lg border border-border p-3">
+                    <div>
+                      <p className="font-semibold">{asset.assetName || asset.assetCode || 'Equipo'}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {asset.assetType || 'Sin tipo'} · {asset.location || 'Sin ubicacion'}
+                      </p>
+                    </div>
+                    <Badge variant={assetStatusVariant(String(asset.status || '').toLowerCase())}>
+                      {assetStatusLabel(String(asset.status || '').toLowerCase())}
+                    </Badge>
+                  </div>
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>OT recientes</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {recentOrders.length === 0 ? (
               <div className="flex items-center gap-2 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
                 <AlertCircle className="h-4 w-4" />
                 No hay ordenes registradas todavia.
               </div>
             ) : (
-              ordenes.map((orden) => (
-                <div key={orden.id} className="flex items-start justify-between gap-4 rounded-lg border border-border bg-background p-3">
-                  <div className="min-w-0">
-                    <div className="font-semibold text-foreground">
-                      {orden.code} - {orden.title}
+              recentOrders.map((orden) => (
+                <div key={orden.id} className="rounded-lg border border-border bg-background p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="font-semibold text-foreground">
+                        {orden.order_number || orden.code || 'OT'} - {orden.title}
+                      </div>
+                      <p className="mt-1 text-sm text-muted-foreground">{orden.description}</p>
                     </div>
-                    <p className="mt-1 text-sm text-muted-foreground">{orden.description}</p>
+                    <div className="flex shrink-0 flex-col items-end gap-2">
+                      <Badge variant={priorityVariant(orden.priority)}>{priorityLabel(orden.priority)}</Badge>
+                      <span className="text-xs text-muted-foreground">{statusLabel(orden.status)}</span>
+                    </div>
                   </div>
-                  <div className="flex shrink-0 flex-col items-end gap-2">
-                    <Badge variant={priorityVariant(orden.priority)}>{priorityLabel(orden.priority)}</Badge>
-                    <span className="text-xs text-muted-foreground">{statusLabel(orden.status)}</span>
+
+                  <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                    {orden.asset_name ? <span>Equipo: {orden.asset_name}</span> : null}
+                    {orden.scheduled_date ? <span>Programada: {new Date(orden.scheduled_date).toLocaleDateString('es-CL')}</span> : null}
+                    {orden.assigned_to_name ? <span>Responsable: {orden.assigned_to_name}</span> : null}
                   </div>
                 </div>
               ))
             )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Resumen operacional</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+            <div className="rounded-lg border border-border p-4">
+              <p className="text-xs text-muted-foreground">OT completadas</p>
+              <p className="text-2xl font-bold text-green-500">{completedOrders}</p>
+            </div>
+            <div className="rounded-lg border border-border p-4">
+              <p className="text-xs text-muted-foreground">OT en progreso</p>
+              <p className="text-2xl font-bold text-blue-500">{inProgressOrders}</p>
+            </div>
+            <div className="rounded-lg border border-border p-4">
+              <p className="text-xs text-muted-foreground">OT urgentes</p>
+              <p className="text-2xl font-bold text-orange-500">{urgentOrders}</p>
+            </div>
+            <div className="rounded-lg border border-border p-4">
+              <p className="text-xs text-muted-foreground">Disponibilidad</p>
+              <p className="text-2xl font-bold">{availability}%</p>
+            </div>
           </div>
         </CardContent>
       </Card>

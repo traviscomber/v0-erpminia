@@ -144,13 +144,6 @@ const nextConfig = {
 
   // Production source maps disabled for performance
   productionBrowserSourceMaps: false,
-
-  // Allow larger request bodies for file uploads (up to 50MB)
-  api: {
-    bodyParser: {
-      sizeLimit: '50mb',
-    },
-  },
 };
 
 module.exports = nextConfig;
