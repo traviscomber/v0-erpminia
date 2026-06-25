@@ -158,22 +158,6 @@ export default function ImportarExistenciasPage() {
         // File is large, use chunked upload directly
         await importViaChunkedBlob();
       }
-
-      if (uploadedBlob) {
-        const response = await fetch('/api/compras/import-existencias', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            blobUrl: uploadedBlob.url,
-            blobPathname: uploadedBlob.pathname,
-            fileName: file.name,
-          }),
-        });
-        await applyResponse(response);
-      } else {
-        // Blob upload was unavailable or stalled: fall back to direct upload.
-        await importViaFormData();
-      }
     } catch (error) {
       setResult({
         success: false,

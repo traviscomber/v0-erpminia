@@ -331,6 +331,42 @@ async function parseWorkbookFromBlob(blobUrlOrPath: string, fileName: string) {
   return parseWorkbook(file);
 }
 
+async function combineChunksAndParse(
+  chunkUrls: string[],
+  fileName: string,
+): Promise<Awaited<ReturnType<typeof parseWorkbook>>> {
+  // Download all chunks in parallel and combine them
+  const chunks: Uint8Array[] = [];
+  const downloadPromises = chunkUrls.map(async (url) => {
+    const result = await get(url, {
+      access: 'private',
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+    });
+    if (!result || !result.stream) throw new Error(`Failed to download chunk: ${url}`);
+    const ab = await new Response(result.stream).arrayBuffer();
+    return new Uint8Array(ab);
+  });
+
+  for (const chunk of await Promise.all(downloadPromises)) {
+    chunks.push(chunk);
+  }
+
+  // Combine chunks into single buffer
+  const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+  const combined = new Uint8Array(totalLength);
+  let offset = 0;
+  for (const chunk of chunks) {
+    combined.set(chunk, offset);
+    offset += chunk.length;
+  }
+
+  // Create File and parse
+  const file = new File([combined], fileName, {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  });
+  return parseWorkbook(file);
+}
+
 function chunkArray<T>(items: T[], size: number) {
   const chunks: T[][] = [];
   for (let index = 0; index < items.length; index += size) {
@@ -468,16 +504,23 @@ export async function POST(request: NextRequest) {
 
     if (contentType.includes('application/json')) {
       const body = await request.json();
+      const chunks: Array<{ url: string; index: number }> | undefined = body.chunks;
       const blobUrl = String(body.blobUrl || body.url || '').trim();
       const blobPathname = String(body.blobPathname || body.pathname || '').trim();
       const fileName = String(body.fileName || 'existencias.xlsx').trim();
 
-      if (!blobUrl) {
+      if (chunks && Array.isArray(chunks) && chunks.length > 0) {
+        // Combined chunks upload path
+        uploadedBlobPath = JSON.stringify(chunks); // Store for cleanup
+        const chunkUrls = chunks.sort((a, b) => a.index - b.index).map((c) => c.url);
+        parsed = await combineChunksAndParse(chunkUrls, fileName);
+      } else if (blobUrl) {
+        // Single blob path
+        uploadedBlobPath = blobUrl || blobPathname;
+        parsed = await parseWorkbookFromBlob(blobUrl, fileName);
+      } else {
         return NextResponse.json({ error: 'No se proporciono una referencia del archivo cargado' }, { status: 400 });
       }
-
-      uploadedBlobPath = blobUrl || blobPathname;
-      parsed = await parseWorkbookFromBlob(blobUrl, fileName);
     } else {
       const formData = await request.formData();
       const file = formData.get('file');
@@ -503,8 +546,18 @@ export async function POST(request: NextRequest) {
       parsed.purchases,
     );
 
+    // Clean up uploaded blobs (single or chunked)
     if (uploadedBlobPath) {
-      await del(uploadedBlobPath).catch(() => null);
+      try {
+        const parsed = JSON.parse(uploadedBlobPath);
+        if (Array.isArray(parsed)) {
+          // Chunked upload: delete all chunks in parallel
+          await Promise.all(parsed.map((c: any) => del(c.url).catch(() => null)));
+        }
+      } catch {
+        // Single blob: try to delete as URL string
+        await del(uploadedBlobPath).catch(() => null);
+      }
     }
 
     return NextResponse.json({
@@ -520,8 +573,16 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
+    // Clean up uploaded blobs on error
     if (uploadedBlobPath) {
-      await del(uploadedBlobPath).catch(() => null);
+      try {
+        const parsed = JSON.parse(uploadedBlobPath);
+        if (Array.isArray(parsed)) {
+          await Promise.all(parsed.map((c: any) => del(c.url).catch(() => null)));
+        }
+      } catch {
+        await del(uploadedBlobPath).catch(() => null);
+      }
     }
     console.error('[v0] import-existencias error:', error);
     return NextResponse.json(
