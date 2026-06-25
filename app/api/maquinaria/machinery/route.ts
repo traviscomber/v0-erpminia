@@ -7,8 +7,8 @@ import { resolveAuthContext } from '@/lib/api/auth-session';
 // Groups 8–18 in cost_centers = machinery & vehicles
 // Group code (no dash) = category, sub-code (with dash) = individual machine
 const MACHINERY_GROUPS: Record<string, string> = {
-  '8': 'Camionetas',
-  '9': 'Camiones',
+  '8':  'Camionetas',
+  '9':  'Camiones',
   '10': 'Cargadores de Bajo Perfil',
   '11': 'Cargadores Frontales',
   '12': 'Camiones de Bajo Perfil',
@@ -18,6 +18,8 @@ const MACHINERY_GROUPS: Record<string, string> = {
   '16': 'Equipos de Sondaje',
   '17': 'Equipos de Perforación',
   '18': 'Minicargadores',
+  '19': 'Excavadoras',
+  '20': 'Otros Equipos',
 };
 
 const MACHINERY_PARENT_CODES = Object.keys(MACHINERY_GROUPS); // ['8','9',...,'18']

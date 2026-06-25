@@ -7,7 +7,15 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, Package, Truck, Wrench, ChevronRight, Upload } from 'lucide-react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Search, Truck, Wrench, Upload, Package, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { MaquinariaImport } from '@/components/maquinaria/machinery-import';
 
@@ -35,8 +43,7 @@ const fetcher = async (url: string) => {
   return res.json();
 };
 
-// Icons per category type
-const VEHICLE_GROUPS = ['8', '9', '12']; // Camionetas, Camiones, CBP
+const VEHICLE_GROUPS = ['8', '9', '12'];
 
 export default function MaquinariaPage() {
   const [search, setSearch] = useState('');
@@ -60,25 +67,22 @@ export default function MaquinariaPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Maquinaria y Vehículos</h1>
-          <p className="text-muted-foreground">
-            Flota operacional completa — haz click en cualquier equipo para ordenar repuestos o crear una OT
-          </p>
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Maquinaria y Vehículos</h1>
+        <p className="text-muted-foreground">
+          Flota operacional completa extraída desde centros de costo
+        </p>
       </div>
 
       <Tabs defaultValue="lista" className="w-full">
-        <TabsList className="w-full max-w-xs">
-          <TabsTrigger value="lista" className="flex-1">
+        <TabsList>
+          <TabsTrigger value="lista">
             <Truck className="mr-2 h-4 w-4" />
             Lista
           </TabsTrigger>
-          <TabsTrigger value="importar" className="flex-1">
+          <TabsTrigger value="importar">
             <Upload className="mr-2 h-4 w-4" />
-            Importar
+            Importar / Actualizar
           </TabsTrigger>
         </TabsList>
 
@@ -86,177 +90,179 @@ export default function MaquinariaPage() {
           <MaquinariaImport onSuccess={() => mutate()} />
         </TabsContent>
 
-        <TabsContent value="lista" className="mt-6 space-y-6">
+        <TabsContent value="lista" className="mt-6 space-y-5">
 
-      {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Activos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{total}</div>
-            <p className="text-xs text-muted-foreground">{categories.length} categorías</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <Truck className="h-4 w-4" /> Vehículos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{vehicleCount}</div>
-            <p className="text-xs text-muted-foreground">Camionetas, Camiones</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <Wrench className="h-4 w-4" /> Equipos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{equipmentCount}</div>
-            <p className="text-xs text-muted-foreground">Sondajes, Compresores, etc.</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Search + Category Filters */}
-      <div className="space-y-3">
-        <div className="relative max-w-lg">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nombre, modelo o patente..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-
-        {/* Category tags */}
-        <div className="flex flex-wrap gap-2">
-          <Button
-            size="sm"
-            variant={selectedCategory === '' ? 'default' : 'outline'}
-            onClick={() => setSelectedCategory('')}
-          >
-            Todos ({total})
-          </Button>
-          {categories.map((cat) => (
-            <Button
-              key={cat.code}
-              size="sm"
-              variant={selectedCategory === cat.code ? 'default' : 'outline'}
-              onClick={() => setSelectedCategory(selectedCategory === cat.code ? '' : cat.code)}
-            >
-              {cat.name}
-              <Badge variant="secondary" className="ml-2 text-xs">
-                {cat.count}
-              </Badge>
-            </Button>
-          ))}
-        </div>
-      </div>
-
-      {/* Error */}
-      {error && (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-          {error.message}
-        </div>
-      )}
-
-      {/* Machine Cards */}
-      {isLoading ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader className="pb-3">
-                <div className="h-5 w-3/4 rounded bg-muted" />
-                <div className="h-3 w-1/2 rounded bg-muted" />
+          {/* Summary Cards */}
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total Activos</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-4 w-full rounded bg-muted" />
+                <div className="text-3xl font-bold">{total}</div>
+                <p className="text-xs text-muted-foreground">{categories.length} categorías</p>
               </CardContent>
             </Card>
-          ))}
-        </div>
-      ) : machinery.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
-            No se encontraron equipos ni vehículos
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {machinery.map((item) => (
-            <Card
-              key={item.code}
-              className="flex flex-col transition-all hover:border-primary/50 hover:shadow-md"
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <CardTitle className="truncate text-base leading-tight">{item.model || item.name}</CardTitle>
-                    <p className="mt-0.5 text-xs text-muted-foreground">{item.code}</p>
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className="shrink-0 text-xs"
-                  >
-                    {item.category}
-                  </Badge>
-                </div>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                  <Truck className="h-4 w-4" /> Vehículos
+                </CardTitle>
               </CardHeader>
-
-              <CardContent className="flex-1 space-y-2 text-sm">
-                {item.plate && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Patente</span>
-                    <span className="font-mono font-semibold">{item.plate}</span>
-                  </div>
-                )}
-                {item.year && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Año</span>
-                    <span className="font-medium">{item.year}</span>
-                  </div>
-                )}
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Estado</span>
-                  <Badge
-                    className={
-                      item.status === 'Activo'
-                        ? 'bg-green-100 text-green-700 border-green-200'
-                        : 'bg-red-100 text-red-700 border-red-200'
-                    }
-                    variant="outline"
-                  >
-                    {item.status}
-                  </Badge>
-                </div>
+              <CardContent>
+                <div className="text-3xl font-bold">{vehicleCount}</div>
+                <p className="text-xs text-muted-foreground">Camionetas y Camiones</p>
               </CardContent>
-
-              <div className="grid grid-cols-2 gap-2 border-t border-border p-3">
-                <Button variant="ghost" size="sm" className="justify-start text-xs" asChild>
-                  <Link href={`/dashboard/work-orders?cost_center=${item.code}`}>
-                    <Wrench className="mr-1 h-3.5 w-3.5" />
-                    Crear OT
-                  </Link>
-                </Button>
-                <Button variant="ghost" size="sm" className="justify-start text-xs" asChild>
-                  <Link href={`/dashboard/compras?ref=${encodeURIComponent(item.name)}`}>
-                    <Package className="mr-1 h-3.5 w-3.5" />
-                    Repuestos
-                    <ChevronRight className="ml-auto h-3.5 w-3.5" />
-                  </Link>
-                </Button>
-              </div>
             </Card>
-          ))}
-        </div>
-      )}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                  <Wrench className="h-4 w-4" /> Equipos
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{equipmentCount}</div>
+                <p className="text-xs text-muted-foreground">Sondajes, Compresores, etc.</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Search + Category Tags */}
+          <div className="space-y-3">
+            <div className="relative max-w-lg">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por nombre, patente, modelo o código..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                variant={selectedCategory === '' ? 'default' : 'outline'}
+                onClick={() => setSelectedCategory('')}
+              >
+                Todos ({total})
+              </Button>
+              {categories.map((cat) => (
+                <Button
+                  key={cat.code}
+                  size="sm"
+                  variant={selectedCategory === cat.code ? 'default' : 'outline'}
+                  onClick={() => setSelectedCategory(selectedCategory === cat.code ? '' : cat.code)}
+                >
+                  {cat.name}
+                  <Badge variant="secondary" className="ml-2 text-xs">
+                    {cat.count}
+                  </Badge>
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Error */}
+          {error && (
+            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+              {error.message}
+            </div>
+          )}
+
+          {/* Table */}
+          <div className="rounded-lg border border-border overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="w-24">Código</TableHead>
+                  <TableHead>Nombre / Modelo</TableHead>
+                  <TableHead>Categoría</TableHead>
+                  <TableHead className="w-28">Patente / Serie</TableHead>
+                  <TableHead className="w-16">Año</TableHead>
+                  <TableHead className="w-24">Estado</TableHead>
+                  <TableHead className="w-36 text-right">Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  Array.from({ length: 10 }).map((_, i) => (
+                    <TableRow key={i}>
+                      {Array.from({ length: 7 }).map((_, j) => (
+                        <TableCell key={j}>
+                          <div className="h-4 w-full animate-pulse rounded bg-muted" />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : machinery.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="py-12 text-center text-muted-foreground">
+                      No se encontraron equipos ni vehículos
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  machinery.map((item) => (
+                    <TableRow key={item.code} className="hover:bg-muted/30">
+                      <TableCell className="font-mono text-xs text-muted-foreground">
+                        {item.code}
+                      </TableCell>
+                      <TableCell>
+                        <div className="font-medium">{item.model || item.name}</div>
+                        {item.model && item.model !== item.name && (
+                          <div className="text-xs text-muted-foreground truncate max-w-xs">{item.name}</div>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-xs whitespace-nowrap">
+                          {item.category}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-mono text-sm font-semibold">
+                        {item.plate ?? <span className="text-muted-foreground">—</span>}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {item.year ?? <span className="text-muted-foreground">—</span>}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={
+                            item.status === 'Activo'
+                              ? 'border-green-200 bg-green-50 text-green-700'
+                              : 'border-red-200 bg-red-50 text-red-700'
+                          }
+                        >
+                          {item.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
+                            <Link href={`/dashboard/work-orders?cost_center=${item.code}`}>
+                              <Wrench className="h-3 w-3" />
+                              OT
+                            </Link>
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
+                            <Link href={`/dashboard/compras?ref=${encodeURIComponent(item.model || item.name)}`}>
+                              <Package className="h-3 w-3" />
+                              <ExternalLink className="h-3 w-3 ml-0.5" />
+                            </Link>
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          <p className="text-xs text-muted-foreground">
+            {machinery.length} de {total} equipos mostrados
+            {selectedCategory && ` · Filtro activo: ${categories.find(c => c.code === selectedCategory)?.name}`}
+          </p>
+
         </TabsContent>
       </Tabs>
     </div>
