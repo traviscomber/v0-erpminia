@@ -46,14 +46,12 @@ export default function ImportarExistenciasPage() {
     try {
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
       const blobPath = `compras-existencias/${Date.now()}-${safeName}`;
-      console.log('[v0] starting upload', blobPath, 'size', file.size);
 
       const uploadedBlob = await upload(blobPath, file, {
         access: 'private',
         handleUploadUrl: '/api/compras/import-existencias/upload',
         multipart: file.size > 8 * 1024 * 1024,
         onUploadProgress: ({ percentage }) => {
-          console.log('[v0] upload progress', percentage);
           setResult({
             success: false,
             message: `Subiendo archivo... ${Math.round(percentage)}%`,
@@ -61,7 +59,6 @@ export default function ImportarExistenciasPage() {
         },
       });
 
-      console.log('[v0] upload finished', uploadedBlob.url);
       const response = await fetch('/api/compras/import-existencias', {
         method: 'POST',
         headers: {
