@@ -3,8 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { resolveAuthContext } from '@/lib/api/auth-session';
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const XLSX = require('xlsx') as typeof import('xlsx');
+
 
 const MACHINERY_GROUPS: Record<string, string> = {
   '8':  'Camionetas',
@@ -29,6 +28,7 @@ export async function GET(request: NextRequest) {
   if (!auth) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
   const supabase = getSupabaseServerClient();
+  const xlsx = (await import('xlsx')) as any;
 
   const { data, error } = await supabase
     .from('cost_centers')
@@ -37,6 +37,11 @@ export async function GET(request: NextRequest) {
     .order('code');
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  const cols = [
+    { wch: 10 }, { wch: 50 }, { wch: 35 }, { wch: 28 },
+    { wch: 14 }, { wch: 6 }, { wch: 10 },
+  ];
 
   const rows = (data || [])
     .filter((row: any) => PARENT_CODES.includes(row.code.split('-')[0]))
@@ -50,41 +55,32 @@ export async function GET(request: NextRequest) {
         .trim();
 
       return {
-        'Código CC':     row.code,
+        'Código CC':       row.code,
         'Nombre Completo': row.name,
-        'Modelo':        model,
-        'Categoría':     MACHINERY_GROUPS[parentCode] || '',
-        'Patente/Serie': plateMatch ? plateMatch[1] : '',
-        'Año':           yearMatch ? parseInt(yearMatch[0]) : '',
-        'Estado':        row.status === 'active' ? 'Activo' : 'Inactivo',
+        'Modelo':          model,
+        'Categoría':       MACHINERY_GROUPS[parentCode] || '',
+        'Patente/Serie':   plateMatch ? plateMatch[1] : '',
+        'Año':             yearMatch ? parseInt(yearMatch[0]) : '',
+        'Estado':          row.status === 'active' ? 'Activo' : 'Inactivo',
       };
     });
 
-  // Build workbook with one sheet per category
-  const wb = XLSX.utils.book_new();
+  // Build workbook — one sheet per category + one "Todos"
+  const wb = xlsx.utils.book_new();
 
-  // Main sheet — all machines
-  const wsAll = XLSX.utils.json_to_sheet(rows);
-  wsAll['!cols'] = [
-    { wch: 10 }, { wch: 50 }, { wch: 35 }, { wch: 28 },
-    { wch: 14 }, { wch: 6 }, { wch: 10 },
-  ];
-  XLSX.utils.book_append_sheet(wb, wsAll, 'Todos');
+  const wsAll = xlsx.utils.json_to_sheet(rows);
+  wsAll['!cols'] = cols;
+  xlsx.utils.book_append_sheet(wb, wsAll, 'Todos');
 
-  // One sheet per category
   for (const [code, label] of Object.entries(MACHINERY_GROUPS)) {
-    const catRows = rows.filter((r) => r['Código CC'].split('-')[0] === code);
+    const catRows = rows.filter((r: any) => r['Código CC'].split('-')[0] === code);
     if (catRows.length === 0) continue;
-    const ws = XLSX.utils.json_to_sheet(catRows);
-    ws['!cols'] = [
-      { wch: 10 }, { wch: 50 }, { wch: 35 }, { wch: 28 },
-      { wch: 14 }, { wch: 6 }, { wch: 10 },
-    ];
-    // Truncate sheet name to 31 chars (Excel limit)
-    XLSX.utils.book_append_sheet(wb, ws, label.substring(0, 31));
+    const ws = xlsx.utils.json_to_sheet(catRows);
+    ws['!cols'] = cols;
+    xlsx.utils.book_append_sheet(wb, ws, (label as string).substring(0, 31));
   }
 
-  const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+  const buffer = xlsx.write(wb, { type: 'buffer', bookType: 'xlsx' });
 
   const date = new Date().toISOString().split('T')[0];
   return new NextResponse(buffer, {
