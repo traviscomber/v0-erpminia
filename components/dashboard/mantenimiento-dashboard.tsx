@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import useSWR from 'swr';
@@ -218,6 +218,30 @@ export function MantenimientoDashboard() {
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/planificacion">
                 Ver planificacion
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/costos">
+                Ver costos
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/indicadores">
+                Ver indicadores
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/neumaticos">
+                Ver neumaticos
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/componentes-mayores">
+                Ver componentes mayores
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
