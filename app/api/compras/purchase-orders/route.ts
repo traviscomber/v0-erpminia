@@ -13,6 +13,8 @@ function normalizeOrder(row: any) {
     total_amount: Number(row.total_amount || row.amount || row.cost || 0),
     delivery_date: row.delivery_date || row.expected_delivery_date || row.created_at || '',
     quantity: Number(row.quantity || row.qty || 0),
+    unit_price: Number(row.unit_price || row.price || 0),
+    created_at: row.created_at,
   };
 }
 
@@ -21,22 +23,48 @@ export async function GET(request: NextRequest) {
   if (!context.ok) return context.response;
 
   try {
-    const { data, error } = await context.supabase
+    const searchParams = request.nextUrl.searchParams;
+    const search = searchParams.get('search') || '';
+    const page = parseInt(searchParams.get('page') || '0');
+    const pageSize = parseInt(searchParams.get('pageSize') || '50');
+    const status = searchParams.get('status') || '';
+
+    const validPageSize = Math.min(Math.max(pageSize, 10), 500);
+    const validPage = Math.max(page, 0);
+    const offset = validPage * validPageSize;
+
+    let query = context.supabase
       .from('purchase_orders')
-      .select('*')
-      .eq('organization_id', context.organizationId)
-      .order('created_at', { ascending: false })
-      .limit(50);
+      .select('*', { count: 'exact' })
+      .eq('organization_id', context.organizationId);
+
+    if (search) {
+      query = query.or(`po_number.ilike.%${search}%,vendor_name.ilike.%${search}%,item_code.ilike.%${search}%`);
+    }
+
+    if (status) {
+      query = query.eq('status', status);
+    }
+
+    const { data, error, count } = await query
+      .order('delivery_date', { ascending: false })
+      .range(offset, offset + validPageSize - 1);
 
     if (error) throw error;
 
     return NextResponse.json({
-      purchase_orders: (data || []).map(normalizeOrder),
+      orders: (data || []).map(normalizeOrder),
+      pagination: {
+        page: validPage,
+        pageSize: validPageSize,
+        total: count || 0,
+        totalPages: Math.ceil((count || 0) / validPageSize),
+      },
       generated_at: new Date().toISOString(),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudieron cargar las ordenes de compra';
-    return NextResponse.json({ error: message, purchase_orders: [] }, { status: 200 });
+    return NextResponse.json({ error: message, orders: [], pagination: { page: 0, pageSize: 50, total: 0, totalPages: 0 } }, { status: 200 });
   }
 }
 

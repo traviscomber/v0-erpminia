@@ -4,6 +4,7 @@ import Link from 'next/link';
 import AdquisicionesPage from '../documentos-gestion/adquisiciones/page';
 import { PurchaseOrderForm } from '@/components/compras/purchase-order-form';
 import { SuppliersList } from '@/components/compras/suppliers-list';
+import { PurchaseOrdersList } from '@/components/compras/purchase-orders-list';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
@@ -44,6 +45,8 @@ export default function ComprasPage() {
           </CardContent>
         </Card>
       </div>
+
+      <PurchaseOrdersList />
 
       <SuppliersList />
 
