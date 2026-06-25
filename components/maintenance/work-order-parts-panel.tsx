@@ -40,6 +40,18 @@ type ReservedPart = {
   };
 };
 
+type MovementRow = {
+  id: string;
+  movement_type?: string;
+  quantity?: number;
+  notes?: string;
+  created_at?: string;
+  stock?: {
+    part_code?: string;
+    part_name?: string;
+  };
+};
+
 function money(value: number) {
   return `$${Number(value || 0).toLocaleString('es-CL')}`;
 }
@@ -64,6 +76,7 @@ export function WorkOrderPartsPanel({ workOrderId }: { workOrderId: string }) {
   const reservedParts = Array.isArray(reservationData?.reservedParts)
     ? (reservationData.reservedParts as ReservedPart[])
     : [];
+  const movements = Array.isArray(reservationData?.movements) ? (reservationData.movements as MovementRow[]) : [];
 
   const filteredStock = useMemo(() => {
     const term = query.trim().toLowerCase();
@@ -232,6 +245,41 @@ export function WorkOrderPartsPanel({ workOrderId }: { workOrderId: string }) {
                       <p className="text-muted-foreground">{part.part?.part_code || '-'}</p>
                     </div>
                     <Badge variant="outline">{part.quantity} un</Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold">Trazabilidad de repuestos</h3>
+          {movements.length === 0 ? (
+            <div className="flex items-center gap-2 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
+              <AlertCircle className="h-4 w-4" />
+              Todavia no hay movimientos de repuestos para esta OT.
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {movements.map((movement) => (
+                <div key={movement.id} className="rounded-lg border border-border p-3 text-sm">
+                  <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                    <div>
+                      <p className="font-medium">
+                        {movement.stock?.part_name || 'Repuesto'} {movement.stock?.part_code ? `(${movement.stock.part_code})` : ''}
+                      </p>
+                      <p className="text-muted-foreground">
+                        {movement.movement_type || 'movimiento'} · {movement.notes || 'Sin nota'}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <Badge variant="outline">
+                        {movement.quantity ? `${movement.quantity > 0 ? '+' : ''}${movement.quantity}` : '0'}
+                      </Badge>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {movement.created_at ? new Date(movement.created_at).toLocaleString('es-CL') : 'Sin fecha'}
+                      </p>
+                    </div>
                   </div>
                 </div>
               ))}

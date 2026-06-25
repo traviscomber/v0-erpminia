@@ -92,15 +92,25 @@ export async function GET(
   if (!context.ok) return context.response;
 
   try {
-    const { data, error } = await context.supabase
+    const [{ data, error }, { data: movements, error: movementError }] = await Promise.all([
+      context.supabase
       .from('order_wear_parts')
       .select('*, part:warehouse_stock(id, part_code, part_name, unit_cost, quantity_on_hand, quantity_reserved)')
       .eq('maintenance_order_id', workOrderId)
-      .eq('organization_id', context.organizationId);
+      .eq('organization_id', context.organizationId),
+      context.supabase
+        .from('stock_movements')
+        .select('id, movement_type, quantity, notes, created_at, stock:warehouse_stock(id, part_code, part_name)')
+        .eq('organization_id', context.organizationId)
+        .eq('reference_id', workOrderId)
+        .eq('reference_type', 'maintenance_work_order')
+        .order('created_at', { ascending: false }),
+    ]);
 
     if (error) throw error;
+    if (movementError) throw movementError;
 
-    return NextResponse.json({ reservedParts: data || [] });
+    return NextResponse.json({ reservedParts: data || [], movements: movements || [] });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudieron cargar las piezas reservadas';
     return NextResponse.json({ error: message }, { status: 500 });
