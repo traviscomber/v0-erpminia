@@ -86,12 +86,12 @@ export function PurchaseOrdersList() {
               className="pl-10"
             />
           </div>
-          <Select value={status} onValueChange={(v) => { setStatus(v); setPage(0); }}>
+          <Select value={status || 'all'} onValueChange={(v) => { setStatus(v === 'all' ? '' : v); setPage(0); }}>
             <SelectTrigger className="w-40">
               <SelectValue placeholder="Estado" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos</SelectItem>
+              <SelectItem value="all">Todos</SelectItem>
               {statusOptions.map((s) => (
                 <SelectItem key={s} value={s}>
                   {s.charAt(0).toUpperCase() + s.slice(1)}
