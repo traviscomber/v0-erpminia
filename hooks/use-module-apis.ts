@@ -58,13 +58,18 @@ export function useBodegaInventory(page: number = 0, pageSize: number = 50, sear
   };
 }
 
+export interface BodegaCategory {
+  label: string;
+  color: string;
+  count: number;
+  total_stock: number;
+  low_stock: number;
+}
+
 export function useBodegaCategories() {
-  const { data, error, isLoading } = useSWR(
-    '/api/bodega/inventory?categories=true',
-    fetcher,
-  );
+  const { data, error, isLoading } = useSWR('/api/bodega/categories', fetcher);
   return {
-    categories: (data?.categories || []) as string[],
+    categories: (data?.categories || []) as BodegaCategory[],
     error,
     isLoading,
   };

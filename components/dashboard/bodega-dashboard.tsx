@@ -1,13 +1,13 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { AlertTriangle, Boxes, ChevronLeft, ChevronRight, Layers3, RefreshCw, Search } from 'lucide-react';
+import { AlertTriangle, ChevronLeft, ChevronRight, Layers3, RefreshCw, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useBodegaCategories, useBodegaInventory } from '@/hooks/use-module-apis';
 import { CategoryFilter } from './category-filter';
-import { canonicalCategory } from '@/lib/bodega-normalization';
+import { canonicalCategory, getCategoryColor } from '@/lib/bodega-normalization';
 
 function splitHierarchy(description?: string) {
   const parts = String(description ?? '')
@@ -62,19 +62,14 @@ export function BodegaDashboard() {
 
   const lowStock = normalizedInventory.filter((item) => item.quantity <= item.min_stock);
   const totalValue = normalizedInventory.reduce((sum, item) => sum + item.quantity * (item.unit_cost || 0), 0);
-  const familyCount = new Set(normalizedInventory.map((item) => item.categoryLabel).filter(Boolean)).size;
-  const subfamilyCount = new Set(normalizedInventory.map((item) => splitHierarchy(item.description).subfamily).filter(Boolean)).size;
 
-  const categoryBuckets = normalizedInventory.reduce<Record<string, number>>((acc, item) => {
-    const key = item.categoryLabel || 'Sin categoria';
-    acc[key] = (acc[key] || 0) + 1;
-    return acc;
-  }, {});
-
-  const topFamilies = Object.entries(categoryBuckets)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 6);
+  // Use server-side category data for accuracy
+  const familyCount = categories.length;
+  const lowStockTotal = categories.reduce((sum, c) => sum + c.low_stock, 0);
+  const topFamilies = [...categories].sort((a, b) => b.count - a.count).slice(0, 6);
   const topFamiliesPreview = topFamilies.slice(0, 4);
+
+  const subfamilyCount = new Set(normalizedInventory.map((item) => splitHierarchy(item.description).subfamily).filter(Boolean)).size;
 
   const visibleRangeStart = pagination.total === 0 ? 0 : page * pageSize + 1;
   const visibleRangeEnd = Math.min((page + 1) * pageSize, pagination.total);
@@ -107,26 +102,26 @@ export function BodegaDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="border-destructive/50 bg-destructive/5">
+        <Card className="border-amber-500/30 bg-amber-500/5">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base font-semibold">
-              <AlertTriangle className="h-5 w-5 text-destructive" />
-              Stock bajo (mín. 20 un.)
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              Stock bajo reorden
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <div className="text-4xl font-bold text-destructive">{lowStock.length.toLocaleString()}</div>
-              <p className="text-sm text-muted-foreground">Productos por debajo del mínimo</p>
-              
-              {lowStock.length > 0 && (
-                <div className="mt-4 space-y-2 border-t border-border/50 pt-3">
-                  <p className="text-xs font-semibold uppercase text-muted-foreground">Críticos (qty &lt; 10):</p>
-                  <div className="text-lg font-bold text-destructive">
-                    {lowStock.filter(item => item.quantity < 10).length}
-                  </div>
+              <div className="text-4xl font-bold text-amber-500">{lowStockTotal.toLocaleString()}</div>
+              <p className="text-sm text-muted-foreground">Items bajo nivel de reorden</p>
+              {topFamilies.filter(c => c.low_stock > 0).slice(0, 3).map(c => (
+                <div key={c.label} className="flex items-center justify-between text-xs">
+                  <span className="flex items-center gap-1.5 text-muted-foreground">
+                    <span className={`w-2 h-2 rounded-full ${c.color}`} />
+                    {c.label}
+                  </span>
+                  <span className="font-medium text-amber-500">{c.low_stock}</span>
                 </div>
-              )}
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -164,14 +159,14 @@ export function BodegaDashboard() {
             <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Familias con mas volumen</div>
             <div className="mt-2 flex flex-wrap gap-2">
               {topFamiliesPreview.length > 0 ? (
-                topFamiliesPreview.map(([label, count]) => (
+                topFamiliesPreview.map((cat) => (
                   <span
-                    key={label}
+                    key={cat.label}
                     className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1 text-sm text-foreground"
                   >
-                    <Boxes className="h-3.5 w-3.5 text-primary" />
-                    <span>{prettifyLabel(label)}</span>
-                    <span className="text-muted-foreground">({count})</span>
+                    <span className={`w-2 h-2 rounded-full flex-shrink-0 ${cat.color}`} />
+                    <span>{cat.label}</span>
+                    <span className="text-muted-foreground">({cat.count.toLocaleString()})</span>
                   </span>
                 ))
               ) : (
