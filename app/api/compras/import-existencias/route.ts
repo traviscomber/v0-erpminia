@@ -434,7 +434,7 @@ async function importData(
           suppliersWithRut.map((item) => ({
             organization_id: organizationId,
             ...item,
-            created_by: userId,
+            created_by: userId || null,
           })),
           500,
         )) {
@@ -461,7 +461,7 @@ async function importData(
           pending.map((supplier) => ({
             organization_id: organizationId,
             ...supplier,
-            created_by: userId,
+            created_by: userId || null,
           })),
           500,
         )) {
@@ -491,7 +491,7 @@ async function importData(
         purchases.map((item) => ({
           organization_id: organizationId,
           ...item,
-          created_by: userId,
+          created_by: userId || null,
         })),
         500,
       )) {
