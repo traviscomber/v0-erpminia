@@ -3,6 +3,7 @@ import { Activity, ArrowRight, Cpu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { EquipmentMonitor } from '@/components/telemetry/equipment-monitor';
+import { TelemetryExecutiveSummary } from '@/components/telemetry/telemetry-executive-summary';
 import { SensorAlerts } from '@/components/production/sensor-alerts';
 
 export default function TelemetriaPage() {
@@ -22,6 +23,8 @@ export default function TelemetriaPage() {
           </Button>
         </Link>
       </div>
+
+      <TelemetryExecutiveSummary />
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <Card className="border-border/70 bg-card/90">

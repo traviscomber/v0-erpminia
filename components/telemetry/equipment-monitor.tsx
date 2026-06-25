@@ -155,9 +155,67 @@ export function EquipmentMonitor() {
     return <div className="text-muted-foreground">No hay equipos con telemetria disponible.</div>;
   }
 
+  const summary = equipment.reduce(
+    (acc, item) => {
+      acc.total += 1;
+      acc.operational += item.status === 'operational' ? 1 : 0;
+      acc.warning += item.status === 'warning' ? 1 : 0;
+      acc.critical += item.status === 'critical' ? 1 : 0;
+      acc.offline += item.status === 'offline' ? 1 : 0;
+      acc.availability += item.availability;
+      return acc;
+    },
+    { total: 0, operational: 0, warning: 0, critical: 0, offline: 0, availability: 0 },
+  );
+
+  const orderedEquipment = [...equipment].sort((a, b) => {
+    const order: Record<string, number> = { critical: 0, warning: 1, offline: 2, operational: 3 };
+    return (order[a.status] ?? 4) - (order[b.status] ?? 4) || b.activeAlarms - a.activeAlarms;
+  });
+
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {equipment.map((eq) => (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-6">
+        <Card className="border-border/70">
+          <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground">Total</p>
+            <p className="text-2xl font-bold">{summary.total}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-border/70">
+          <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground">Operativos</p>
+            <p className="text-2xl font-bold text-green-600">{summary.operational}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-border/70">
+          <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground">Alertas</p>
+            <p className="text-2xl font-bold text-yellow-600">{summary.warning}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-border/70">
+          <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground">Criticos</p>
+            <p className="text-2xl font-bold text-destructive">{summary.critical}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-border/70">
+          <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground">Sin senal</p>
+            <p className="text-2xl font-bold text-slate-500">{summary.offline}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-border/70">
+          <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground">Disponibilidad</p>
+            <p className="text-2xl font-bold">{summary.total > 0 ? Math.round(summary.availability / summary.total) : 0}%</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {orderedEquipment.map((eq) => (
         <Card key={eq.id} className="border-border">
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between">
@@ -200,6 +258,7 @@ export function EquipmentMonitor() {
           </CardContent>
         </Card>
       ))}
+      </div>
     </div>
   );
 }
