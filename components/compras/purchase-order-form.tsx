@@ -51,13 +51,19 @@ export function PurchaseOrderForm() {
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState('');
 
-  // Fetch suppliers on search change
+  // Fetch suppliers — debounced on search change, immediate on dropdown open
   useEffect(() => {
+    if (!showDropdown) return;
+    const delay = supplierSearch.length > 0 ? 250 : 0;
     const timer = setTimeout(async () => {
-      if (!showDropdown) return;
       setLoadingSuppliers(true);
       try {
-        const res = await fetch(`/api/compras/suppliers?search=${encodeURIComponent(supplierSearch)}&pageSize=20`);
+        const params = new URLSearchParams({
+          search: supplierSearch,
+          pageSize: '100', // show up to 100 per query across 2158 suppliers
+          page: '0',
+        });
+        const res = await fetch(`/api/compras/suppliers?${params}`);
         if (res.ok) {
           const data = await res.json();
           setSuppliers(data.suppliers || []);
@@ -67,7 +73,7 @@ export function PurchaseOrderForm() {
       } finally {
         setLoadingSuppliers(false);
       }
-    }, 250);
+    }, delay);
     return () => clearTimeout(timer);
   }, [supplierSearch, showDropdown]);
 
@@ -213,23 +219,30 @@ export function PurchaseOrderForm() {
                       No se encontraron proveedores
                     </div>
                   ) : (
-                    <ul className="max-h-60 overflow-y-auto py-1">
-                      {suppliers.map((s) => (
-                        <li key={s.id}>
-                          <button
-                            type="button"
-                            className="flex w-full flex-col gap-0.5 px-3 py-2 text-left text-sm hover:bg-accent"
-                            onClick={() => selectSupplier(s)}
-                          >
-                            <span className="font-medium">{s.name}</span>
-                            <span className="font-mono text-xs text-muted-foreground">
-                              {s.rut}
-                              {s.contact_person && ` · ${s.contact_person}`}
-                            </span>
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
+                    <>
+                      <ul className="max-h-60 overflow-y-auto py-1">
+                        {suppliers.map((s) => (
+                          <li key={s.id}>
+                            <button
+                              type="button"
+                              className="flex w-full flex-col gap-0.5 px-3 py-2 text-left text-sm hover:bg-accent"
+                              onClick={() => selectSupplier(s)}
+                            >
+                              <span className="font-medium">{s.name}</span>
+                              <span className="font-mono text-xs text-muted-foreground">
+                                {s.rut}
+                                {s.contact_person && ` · ${s.contact_person}`}
+                              </span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                      {suppliers.length === 100 && (
+                        <div className="border-t border-border px-3 py-2 text-xs text-muted-foreground">
+                          Mostrando 100 de 2158 — escribe para filtrar
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               )}
