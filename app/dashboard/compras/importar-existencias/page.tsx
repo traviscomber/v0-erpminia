@@ -94,7 +94,6 @@ export default function ImportarExistenciasPage() {
       // never hit the API payload limit. We race against a timeout so a stalled
       // upload (common on localhost) transparently falls back to FormData.
       let uploadedBlob: Awaited<ReturnType<typeof upload>> | null = null;
-      console.log('[v0] handleFile START blob upload', blobPath);
       try {
         uploadedBlob = await Promise.race([
           upload(blobPath, file, {
@@ -102,7 +101,6 @@ export default function ImportarExistenciasPage() {
             handleUploadUrl: '/api/compras/import-existencias/upload',
             multipart: file.size > 8 * 1024 * 1024,
             onUploadProgress: ({ percentage }) => {
-              console.log('[v0] onUploadProgress', percentage);
               setResult({
                 success: false,
                 message: `Subiendo archivo... ${Math.round(percentage)}%`,
@@ -113,9 +111,7 @@ export default function ImportarExistenciasPage() {
             setTimeout(() => reject(new Error('blob-upload-timeout')), 20000),
           ),
         ]);
-        console.log('[v0] blob upload RESOLVED', uploadedBlob?.url);
       } catch (e) {
-        console.log('[v0] blob upload FAILED, will fall back to FormData', String(e));
         uploadedBlob = null;
       }
 
