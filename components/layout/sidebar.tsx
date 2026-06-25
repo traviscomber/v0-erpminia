@@ -34,6 +34,7 @@ import {
   File,
   Upload,
   Fuel,
+  Truck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -63,6 +64,7 @@ const rolePermissions: Record<string, string[]> = {
   'Ordenes de Trabajo': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
   'Bodega e Inventario': ['superadmin', 'admin', 'Bodega-Supervisor', 'jefe_mantencion'],
   'Documentos Bodega': ['superadmin', 'admin', 'Bodega-Supervisor', 'jefe_mantencion'],
+  'Maquinaria y Vehiculos': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
   'Gestion Documental': ['superadmin', 'admin', 'manager'],
   'Compras y OCs': ['superadmin', 'admin', 'Compras-Supervisor'],
   'Documentos Compras': ['superadmin', 'admin', 'Compras-Supervisor'],
@@ -113,6 +115,7 @@ const menuItems = [
   { label: 'Ordenes de Trabajo', href: '/dashboard/work-orders', icon: Plus, group: 'Operaciones' },
   { label: 'Bodega e Inventario', href: '/dashboard/bodega', icon: Boxes, group: 'Bodega e Inventario' },
   { label: 'Documentos Bodega', href: '/dashboard/bodega/documentos', icon: File, group: 'Bodega e Inventario' },
+  { label: 'Maquinaria y Vehiculos', href: '/dashboard/maquinaria', icon: Truck, group: 'Bodega e Inventario' },
   { label: 'Tablero Sostenibilidad', href: '/dashboard/sostenibilidad', icon: Leaf, group: 'Sostenibilidad' },
   { label: 'Prevencion de Riesgos', href: '/dashboard/sostenibilidad/prevencion-riesgos', icon: Shield, group: 'Sostenibilidad' },
   { label: 'Documentos Prevencion', href: '/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse', icon: File, group: 'Sostenibilidad' },
