@@ -158,7 +158,7 @@ export function PurchaseOrdersList() {
             {pagination.totalPages > 1 && (
               <div className="flex items-center justify-between">
                 <div className="text-sm text-muted-foreground">
-                  {pagination.total} resultados totales
+                  Página {page + 1} de {pagination.totalPages} · {pagination.total.toLocaleString()} órdenes
                 </div>
                 <div className="flex gap-2">
                   <Button
@@ -167,25 +167,15 @@ export function PurchaseOrdersList() {
                     onClick={() => setPage(Math.max(0, page - 1))}
                     disabled={page === 0}
                   >
-                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeft className="w-4 h-4 mr-1" /> Anterior
                   </Button>
-                  {Array.from({ length: pagination.totalPages }).map((_, i) => (
-                    <Button
-                      key={i}
-                      variant={page === i ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setPage(i)}
-                    >
-                      {i + 1}
-                    </Button>
-                  ))}
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setPage(Math.min(pagination.totalPages - 1, page + 1))}
                     disabled={page >= pagination.totalPages - 1}
                   >
-                    <ChevronRight className="w-4 h-4" />
+                    Siguiente <ChevronRight className="w-4 h-4 ml-1" />
                   </Button>
                 </div>
               </div>

@@ -1,7 +1,8 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getOrganizationContext } from '@/lib/api/organization-context';
+import { resolveAuthContext } from '@/lib/api/auth-session';
+import { getSupabaseServerClient } from '@/lib/supabase-server';
 
 function normalizeOrder(row: any) {
   return {
@@ -19,8 +20,11 @@ function normalizeOrder(row: any) {
 }
 
 export async function GET(request: NextRequest) {
-  const context = await getOrganizationContext(request);
-  if (!context.ok) return context.response;
+  const auth = await resolveAuthContext(request);
+  if (!auth) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+
+  const supabase = getSupabaseServerClient();
+  const orgId = auth.organizationId;
 
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -33,18 +37,13 @@ export async function GET(request: NextRequest) {
     const validPage = Math.max(page, 0);
     const offset = validPage * validPageSize;
 
-    let query = context.supabase
+    let query = supabase
       .from('purchase_orders')
-      .select('*', { count: 'exact' })
-      .eq('organization_id', context.organizationId);
+      .select('*', { count: 'exact' });
 
-    if (search) {
-      query = query.or(`po_number.ilike.%${search}%,vendor_name.ilike.%${search}%,item_code.ilike.%${search}%`);
-    }
-
-    if (status) {
-      query = query.eq('status', status);
-    }
+    if (orgId) query = query.eq('organization_id', orgId);
+    if (search) query = query.or(`po_number.ilike.%${search}%,vendor_name.ilike.%${search}%,item_code.ilike.%${search}%`);
+    if (status) query = query.eq('status', status);
 
     const { data, error, count } = await query
       .order('delivery_date', { ascending: false })
@@ -69,8 +68,11 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const context = await getOrganizationContext(request);
-  if (!context.ok) return context.response;
+  const auth = await resolveAuthContext(request);
+  if (!auth) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+
+  const supabase = getSupabaseServerClient();
+  const orgId = auth.organizationId;
 
   try {
     const body = await request.json();
@@ -83,21 +85,24 @@ export async function POST(request: NextRequest) {
     if (!vendor_name || !item_code || quantity <= 0 || unit_price <= 0 || !delivery_date) {
       return NextResponse.json(
         { error: 'vendor_name, item_code, quantity, unit_price y delivery_date son requeridos' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const total_amount = quantity * unit_price;
-    const { count } = await context.supabase
+
+    let countQuery = supabase
       .from('purchase_orders')
-      .select('id', { count: 'exact', head: true })
-      .eq('organization_id', context.organizationId);
+      .select('id', { count: 'exact', head: true });
+    if (orgId) countQuery = countQuery.eq('organization_id', orgId);
+    const { count } = await countQuery;
+
     const po_number = `PO-${new Date().getFullYear()}-${String((count || 0) + 1).padStart(4, '0')}`;
 
-    const { data, error } = await context.supabase
+    const { data, error } = await supabase
       .from('purchase_orders')
       .insert({
-        organization_id: context.organizationId,
+        ...(orgId ? { organization_id: orgId } : {}),
         po_number,
         vendor_name,
         item_code,
@@ -106,7 +111,7 @@ export async function POST(request: NextRequest) {
         total_amount,
         delivery_date,
         status: 'draft',
-        created_by: context.userId,
+        created_by: null,
       })
       .select('*')
       .single();
