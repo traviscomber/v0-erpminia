@@ -1,7 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { AlertTriangle, ChevronLeft, ChevronRight, Layers3, RefreshCw, Search } from 'lucide-react';
+import { AlertTriangle, ArrowRight, ChevronLeft, ChevronRight, Layers3, RefreshCw, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -85,10 +86,24 @@ export function BodegaDashboard() {
           <h1 className="text-4xl font-bold text-foreground">Bodega e Inventario</h1>
           <p className="mt-1 text-lg text-muted-foreground">Resumen ejecutivo del stock real y sus familias</p>
         </div>
-        <Button size="lg" onClick={() => mutate()} className="gap-2" disabled={isLoading}>
-          <RefreshCw className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
-          {isLoading ? 'Actualizando...' : 'Recargar'}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline" size="lg" className="gap-2">
+            <Link href="/dashboard/bodega/importar-datos">
+              Importar datos
+              <ArrowRight className="h-5 w-5" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" size="lg" className="gap-2">
+            <Link href="/dashboard/bodega/documentos">
+              Documentos
+              <ArrowRight className="h-5 w-5" />
+            </Link>
+          </Button>
+          <Button size="lg" onClick={() => mutate()} className="gap-2" disabled={isLoading}>
+            <RefreshCw className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
+            {isLoading ? 'Actualizando...' : 'Recargar'}
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -268,7 +283,7 @@ export function BodegaDashboard() {
                   <th className="p-3 text-left font-bold text-foreground">Subfamilia</th>
                   <th className="p-3 text-left font-bold text-foreground">Equipo</th>
                   <th className="p-3 text-right font-bold text-foreground">Stock</th>
-                  <th className="p-3 text-right font-bold text-foreground">Mín.</th>
+                  <th className="p-3 text-right font-bold text-foreground">Min.</th>
                   <th className="p-3 text-right font-bold text-foreground">Costo</th>
                   <th className="p-3 text-right font-bold text-foreground">Total</th>
                 </tr>
@@ -308,8 +323,8 @@ export function BodegaDashboard() {
                         <td className="p-3 text-sm text-muted-foreground">{hierarchy.team || '-'}</td>
                         <td className={`p-3 text-right font-semibold ${item.quantity < 10 ? 'text-destructive' : item.quantity <= item.min_stock ? 'text-yellow-600' : 'text-foreground'}`}>
                           {item.quantity.toLocaleString()}
-                          {item.quantity < 10 && <span className="ml-2 font-bold">🔴</span>}
-                          {item.quantity >= 10 && item.quantity <= item.min_stock && <span className="ml-2 font-bold">🟡</span>}
+                          {item.quantity < 10 && <span className="ml-2 font-bold">Rojo</span>}
+                          {item.quantity >= 10 && item.quantity <= item.min_stock && <span className="ml-2 font-bold">Amarillo</span>}
                         </td>
                         <td className="p-3 text-right font-semibold text-muted-foreground">
                           {item.min_stock.toLocaleString()}
