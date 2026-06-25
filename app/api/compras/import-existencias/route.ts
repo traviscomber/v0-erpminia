@@ -302,7 +302,7 @@ function parsePurchases(sheet: any): PurchaseAggregate[] {
       po_number: `EX-${group.number}`,
       vendor_name: group.vendor,
       item_code: itemCode,
-      quantity: Number(group.quantity.toFixed(2)),
+      quantity: validateNumericField(Number(group.quantity.toFixed(2))),
       unit_price: validateNumericField(Number(unitPrice.toFixed(2))),
       total_amount: validateNumericField(Number(group.totalAmount.toFixed(0))),
       delivery_date: group.date,
