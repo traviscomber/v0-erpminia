@@ -25,7 +25,12 @@ export async function GET(request: NextRequest) {
     const chunk = 1000;
 
     while (true) {
-      const { data, error } = await supabase.from('bodega_inventory').select('category').order('category').range(from, from + chunk - 1);
+      const { data, error } = await supabase
+        .from('warehouse_stock')
+        .select('part_code')
+        .eq('organization_id', auth.organizationId)
+        .order('part_code')
+        .range(from, from + chunk - 1);
 
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
@@ -34,7 +39,7 @@ export async function GET(request: NextRequest) {
       if (!data || data.length === 0) break;
 
       for (const row of data) {
-        const categoryLabel = canonicalCategory(row.category);
+        const categoryLabel = canonicalCategory(row.part_code);
         if (categoryLabel) categorySet.add(categoryLabel);
       }
 
@@ -50,24 +55,39 @@ export async function GET(request: NextRequest) {
   const validPage = Math.max(page, 0);
   const offset = validPage * validPageSize;
 
-  let query = supabase.from('bodega_inventory').select('*', { count: 'exact' });
+  let query = supabase
+    .from('warehouse_stock')
+    .select(
+      'id, part_code, quantity, min_stock, max_stock, unit_cost, batch_number, warehouse_location, organization_id, created_at',
+      { count: 'exact' }
+    )
+    .eq('organization_id', auth.organizationId);
 
   if (search) {
-    query = query.or(`sku.ilike.%${search}%,name.ilike.%${search}%,category.ilike.%${search}%,description.ilike.%${search}%`);
+    query = query.or(`part_code.ilike.%${search}%,batch_number.ilike.%${search}%`);
   }
 
-  if (category) {
-    query = query.ilike('category', category);
-  }
-
-  const { data, error, count } = await query.order('sku').range(offset, offset + validPageSize - 1);
+  const { data, error, count } = await query.order('part_code').range(offset, offset + validPageSize - 1);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  // Transform warehouse_stock to bodega_inventory format for UI compatibility
+  const inventory = (data || []).map((item: any) => ({
+    id: item.id,
+    sku: item.part_code,
+    name: item.batch_number || 'Stock',
+    category: item.part_code, // Use part_code as category
+    quantity: item.quantity,
+    min_stock: item.min_stock,
+    max_stock: item.max_stock,
+    unit_cost: item.unit_cost,
+    description: item.warehouse_location,
+  }));
+
   return NextResponse.json({
-    inventory: data || [],
+    inventory,
     pagination: {
       page: validPage,
       pageSize: validPageSize,
