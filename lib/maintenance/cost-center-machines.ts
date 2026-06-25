@@ -36,13 +36,42 @@ const MACHINE_KEYWORDS = [
 
 const MACHINE_ROOT_CODES = new Set(['3', '4', '7', '8', '9', '10', '11', '12']);
 
+const CANONICAL_FAMILIES: Record<string, string> = {
+  '1': 'Mina Peumo',
+  '2': 'Mina Don Jaime',
+  '3': 'Exploracion',
+  '4': 'Planta',
+  '7': 'Proyectos en Ejecucion',
+  '8': 'Camionetas',
+  '9': 'Camiones',
+  '10': 'Cargadores de Bajo Perfil',
+  '11': 'Cargadores Frontales',
+  '12': 'Camiones de Bajo Perfil',
+};
+
 function normalize(value: string) {
   return repairCostCenterText(value).toLowerCase();
+}
+
+function toTitleCase(value: string) {
+  return String(value || '')
+    .split(/\s+/)
+    .map((word) => {
+      if (!word) return word;
+      if (/^[A-Z0-9]{2,}$/.test(word)) return word;
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join(' ');
 }
 
 function looksLikeMachine(name: string) {
   const normalized = normalize(name);
   return MACHINE_KEYWORDS.some((keyword) => normalized.includes(keyword));
+}
+
+function canonicalFamilyLabel(rootCode: string, rawName: string) {
+  const family = CANONICAL_FAMILIES[rootCode] || repairCostCenterText(rawName || rootCode);
+  return toTitleCase(family.replace(/\s+/g, ' ').trim());
 }
 
 export type DerivedCostCenterMachine = {
@@ -73,13 +102,13 @@ export function deriveMachinesFromCostCenters(costCenters: Array<{ id: string; c
   for (const center of costCenters) {
     const rootCode = getCostCenterRootCode(center.code);
     if (!rootNames.has(rootCode) && !String(center.code || '').includes('-')) {
-      rootNames.set(rootCode, repairCostCenterText(center.name || rootCode));
+      rootNames.set(rootCode, canonicalFamilyLabel(rootCode, center.name || rootCode));
     }
   }
 
   const machines: DerivedCostCenterMachine[] = centers.map((center) => {
     const rootCode = getCostCenterRootCode(center.code);
-    const family = rootNames.get(rootCode) || rootCode;
+    const family = rootNames.get(rootCode) || canonicalFamilyLabel(rootCode, rootCode);
     return {
       id: center.id,
       code: String(center.code || ''),
