@@ -38,8 +38,8 @@ export async function POST(request: NextRequest): Promise<Response> {
           allowedContentTypes: ALLOWED_CONTENT_TYPES,
           maximumSizeInBytes: MAX_FILE_SIZE_BYTES,
           validUntil: Date.now() + 60 * 60 * 1000,
-          addRandomSuffix: false,
-          allowOverwrite: false,
+          addRandomSuffix: true,
+          allowOverwrite: true,
           cacheControlMaxAge: 60,
           tokenPayload: JSON.stringify({
             organizationId: auth.organizationId,

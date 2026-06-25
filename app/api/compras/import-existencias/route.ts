@@ -311,17 +311,21 @@ async function parseWorkbook(file: File) {
 }
 
 async function parseWorkbookFromBlob(blobUrlOrPath: string, fileName: string) {
-  const blob = await get(blobUrlOrPath, {
+  // The Blob store is configured for private access, so we must read it via the
+  // SDK's get() with access: 'private' (a plain fetch would 401). The token
+  // defaults to BLOB_READ_WRITE_TOKEN, passed explicitly for robustness.
+  const result = await get(blobUrlOrPath, {
     access: 'private',
+    token: process.env.BLOB_READ_WRITE_TOKEN,
   });
 
-  if (!blob || !blob.stream) {
+  if (!result || result.statusCode !== 200 || !result.stream) {
     throw new Error('No se pudo leer el archivo subido');
   }
 
-  const arrayBuffer = await new Response(blob.stream).arrayBuffer();
+  const arrayBuffer = await new Response(result.stream).arrayBuffer();
   const file = new File([arrayBuffer], fileName, {
-    type: blob.blob.contentType || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    type: result.blob.contentType || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   });
 
   return parseWorkbook(file);
@@ -468,12 +472,12 @@ export async function POST(request: NextRequest) {
       const blobPathname = String(body.blobPathname || body.pathname || '').trim();
       const fileName = String(body.fileName || 'existencias.xlsx').trim();
 
-      if (!blobUrl && !blobPathname) {
+      if (!blobUrl) {
         return NextResponse.json({ error: 'No se proporciono una referencia del archivo cargado' }, { status: 400 });
       }
 
-      uploadedBlobPath = blobPathname || blobUrl;
-      parsed = await parseWorkbookFromBlob(blobPathname || blobUrl, fileName);
+      uploadedBlobPath = blobUrl || blobPathname;
+      parsed = await parseWorkbookFromBlob(blobUrl, fileName);
     } else {
       const formData = await request.formData();
       const file = formData.get('file');
