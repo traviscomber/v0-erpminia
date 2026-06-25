@@ -1,264 +1,239 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import useSWR from 'swr';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { ChevronLeft, ChevronRight, Search, Package, AlertCircle, CheckCircle } from 'lucide-react';
+import { Search, Package, Truck, Wrench, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 
-interface Machinery {
+interface Machine {
   id: string;
   code: string;
   name: string;
-  type: string;
-  model?: string;
-  year?: number;
+  model: string;
+  plate: string | null;
+  year: number | null;
+  category_code: string;
+  category: string;
   status: string;
-  criticality?: string;
-  category: 'Equipo' | 'Vehículo';
 }
 
-interface Pagination {
-  page: number;
-  pageSize: number;
-  total: number;
-  totalPages: number;
+interface Category {
+  code: string;
+  name: string;
+  count: number;
 }
+
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Error cargando maquinaria');
+  return res.json();
+};
+
+// Icons per category type
+const VEHICLE_GROUPS = ['8', '9', '12']; // Camionetas, Camiones, CBP
 
 export default function MaquinariaPage() {
-  const [machinery, setMachinery] = useState<Machinery[]>([]);
-  const [pagination, setPagination] = useState<Pagination>({
-    page: 0,
-    pageSize: 50,
-    total: 0,
-    totalPages: 0,
-  });
   const [search, setSearch] = useState('');
-  const [category, setCategory] = useState<'all' | 'Equipo' | 'Vehículo'>('all');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const fetchMachinery = async (page: number = 0) => {
-    setIsLoading(true);
-    setError('');
-    try {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        pageSize: '50',
-        search: search,
-      });
-      const res = await fetch(`/api/maquinaria/machinery?${params}`);
-      if (!res.ok) throw new Error(await res.text());
-      const data = await res.json();
-      const filtered =
-        category === 'all' ? data.machinery : data.machinery.filter((m: Machinery) => m.category === category);
-      setMachinery(filtered);
-      setPagination(data.pagination);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error cargando maquinaria');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
 
   useEffect(() => {
-    const timer = setTimeout(() => fetchMachinery(0), 300);
-    return () => clearTimeout(timer);
-  }, [search, category]);
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
 
-  const statusColor = (status: string) => {
-    if (status.toLowerCase().includes('activo') || status.toLowerCase().includes('disponible'))
-      return 'bg-green-100 text-green-700';
-    if (status.toLowerCase().includes('mantenimiento')) return 'bg-yellow-100 text-yellow-700';
-    if (status.toLowerCase().includes('inactivo') || status.toLowerCase().includes('fuera'))
-      return 'bg-red-100 text-red-700';
-    return 'bg-gray-100 text-gray-700';
-  };
+  const params = new URLSearchParams({ search: debouncedSearch, category: selectedCategory });
+  const { data, error, isLoading } = useSWR(`/api/maquinaria/machinery?${params}`, fetcher);
+
+  const machinery: Machine[] = data?.machinery || [];
+  const categories: Category[] = data?.categories || [];
+  const total: number = data?.total || 0;
+
+  const vehicleCount = machinery.filter((m) => VEHICLE_GROUPS.includes(m.category_code)).length;
+  const equipmentCount = machinery.filter((m) => !VEHICLE_GROUPS.includes(m.category_code)).length;
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold">Maquinaria y Vehículos</h1>
-        <p className="text-muted-foreground">Gestión de equipos y vehículos operacionales</p>
+        <h1 className="text-3xl font-bold tracking-tight">Maquinaria y Vehículos</h1>
+        <p className="text-muted-foreground">
+          Flota operacional completa — haz click en cualquier equipo para ordenar repuestos o crear una OT
+        </p>
       </div>
 
       {/* Summary Cards */}
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total de Equipos</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Activos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{pagination.total}</div>
-            <p className="text-xs text-muted-foreground">Máquinas y vehículos</p>
+            <div className="text-3xl font-bold">{total}</div>
+            <p className="text-xs text-muted-foreground">{categories.length} categorías</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-green-600" />
-              Activos
+            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <Truck className="h-4 w-4" /> Vehículos
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">
-              {machinery.filter((m) => m.status.toLowerCase().includes('activo') || m.status.toLowerCase().includes('disponible')).length}
-            </div>
-            <p className="text-xs text-muted-foreground">En operación</p>
+            <div className="text-3xl font-bold">{vehicleCount}</div>
+            <p className="text-xs text-muted-foreground">Camionetas, Camiones</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-yellow-600" />
-              En Mantenimiento
+            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <Wrench className="h-4 w-4" /> Equipos
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">
-              {machinery.filter((m) => m.status.toLowerCase().includes('mantenimiento')).length}
-            </div>
-            <p className="text-xs text-muted-foreground">Requieren atención</p>
+            <div className="text-3xl font-bold">{equipmentCount}</div>
+            <p className="text-xs text-muted-foreground">Sondajes, Compresores, etc.</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex-1 flex items-center gap-2">
-          <Search className="w-4 h-4 text-muted-foreground" />
+      {/* Search + Category Filters */}
+      <div className="space-y-3">
+        <div className="relative max-w-lg">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Buscar por código, nombre o modelo..."
+            placeholder="Buscar por nombre, modelo o patente..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="flex-1"
+            className="pl-10"
           />
         </div>
-        <Select value={category} onValueChange={(v) => setCategory(v as any)}>
-          <SelectTrigger className="w-40">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            <SelectItem value="Equipo">Equipos</SelectItem>
-            <SelectItem value="Vehículo">Vehículos</SelectItem>
-          </SelectContent>
-        </Select>
+
+        {/* Category tags */}
+        <div className="flex flex-wrap gap-2">
+          <Button
+            size="sm"
+            variant={selectedCategory === '' ? 'default' : 'outline'}
+            onClick={() => setSelectedCategory('')}
+          >
+            Todos ({total})
+          </Button>
+          {categories.map((cat) => (
+            <Button
+              key={cat.code}
+              size="sm"
+              variant={selectedCategory === cat.code ? 'default' : 'outline'}
+              onClick={() => setSelectedCategory(selectedCategory === cat.code ? '' : cat.code)}
+            >
+              {cat.name}
+              <Badge variant="secondary" className="ml-2 text-xs">
+                {cat.count}
+              </Badge>
+            </Button>
+          ))}
+        </div>
       </div>
 
       {/* Error */}
       {error && (
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="pt-6 text-red-700">{error}</CardContent>
-        </Card>
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+          {error.message}
+        </div>
       )}
 
-      {/* Machinery Grid */}
+      {/* Machine Cards */}
       {isLoading ? (
-        <Card>
-          <CardContent className="pt-6 text-center text-muted-foreground">Cargando...</CardContent>
-        </Card>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardHeader className="pb-3">
+                <div className="h-5 w-3/4 rounded bg-muted" />
+                <div className="h-3 w-1/2 rounded bg-muted" />
+              </CardHeader>
+              <CardContent>
+                <div className="h-4 w-full rounded bg-muted" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       ) : machinery.length === 0 ? (
         <Card>
-          <CardContent className="pt-6 text-center text-muted-foreground">
-            No se encontraron máquinas o vehículos
+          <CardContent className="py-12 text-center text-muted-foreground">
+            No se encontraron equipos ni vehículos
           </CardContent>
         </Card>
       ) : (
-        <>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {machinery.map((item) => (
-              <Card
-                key={item.id}
-                className="flex flex-col hover:shadow-lg transition-shadow"
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg">{item.name}</CardTitle>
-                      <p className="text-sm text-muted-foreground">{item.code}</p>
-                    </div>
-                    <Badge className={statusColor(item.status)}>{item.status}</Badge>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {machinery.map((item) => (
+            <Card
+              key={item.code}
+              className="flex flex-col transition-all hover:border-primary/50 hover:shadow-md"
+            >
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="truncate text-base leading-tight">{item.model || item.name}</CardTitle>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{item.code}</p>
                   </div>
-                </CardHeader>
-                <CardContent className="flex-1 space-y-3">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Tipo</p>
-                    <p className="text-sm font-medium">{item.type}</p>
-                  </div>
-                  {item.model && (
-                    <div>
-                      <p className="text-xs text-muted-foreground">Modelo</p>
-                      <p className="text-sm font-medium">{item.model}</p>
-                    </div>
-                  )}
-                  {item.year && (
-                    <div>
-                      <p className="text-xs text-muted-foreground">Año</p>
-                      <p className="text-sm font-medium">{item.year}</p>
-                    </div>
-                  )}
-                  {item.criticality && (
-                    <div>
-                      <p className="text-xs text-muted-foreground">Criticidad</p>
-                      <Badge variant="outline">{item.criticality}</Badge>
-                    </div>
-                  )}
-                </CardContent>
-                <div className="border-t border-border p-3">
-                  <Button
+                  <Badge
                     variant="outline"
-                    size="sm"
-                    className="w-full"
-                    asChild
+                    className="shrink-0 text-xs"
                   >
-                    <Link href={`/dashboard/compras?machinery_id=${item.id}`}>
-                      <Package className="w-4 h-4 mr-1" />
-                      Ordenar Repuestos
-                    </Link>
-                  </Button>
+                    {item.category}
+                  </Badge>
                 </div>
-              </Card>
-            ))}
-          </div>
+              </CardHeader>
 
-          {/* Pagination */}
-          {pagination.totalPages > 1 && (
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-muted-foreground">
-                Página {pagination.page + 1} de {pagination.totalPages}
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => fetchMachinery(Math.max(0, pagination.page - 1))}
-                  disabled={pagination.page === 0}
-                >
-                  <ChevronLeft className="w-4 h-4 mr-1" /> Anterior
+              <CardContent className="flex-1 space-y-2 text-sm">
+                {item.plate && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Patente</span>
+                    <span className="font-mono font-semibold">{item.plate}</span>
+                  </div>
+                )}
+                {item.year && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Año</span>
+                    <span className="font-medium">{item.year}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Estado</span>
+                  <Badge
+                    className={
+                      item.status === 'Activo'
+                        ? 'bg-green-100 text-green-700 border-green-200'
+                        : 'bg-red-100 text-red-700 border-red-200'
+                    }
+                    variant="outline"
+                  >
+                    {item.status}
+                  </Badge>
+                </div>
+              </CardContent>
+
+              <div className="grid grid-cols-2 gap-2 border-t border-border p-3">
+                <Button variant="ghost" size="sm" className="justify-start text-xs" asChild>
+                  <Link href={`/dashboard/work-orders?cost_center=${item.code}`}>
+                    <Wrench className="mr-1 h-3.5 w-3.5" />
+                    Crear OT
+                  </Link>
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => fetchMachinery(Math.min(pagination.totalPages - 1, pagination.page + 1))}
-                  disabled={pagination.page >= pagination.totalPages - 1}
-                >
-                  Siguiente <ChevronRight className="w-4 h-4 ml-1" />
+                <Button variant="ghost" size="sm" className="justify-start text-xs" asChild>
+                  <Link href={`/dashboard/compras?ref=${encodeURIComponent(item.name)}`}>
+                    <Package className="mr-1 h-3.5 w-3.5" />
+                    Repuestos
+                    <ChevronRight className="ml-auto h-3.5 w-3.5" />
+                  </Link>
                 </Button>
               </div>
-            </div>
-          )}
-        </>
+            </Card>
+          ))}
+        </div>
       )}
     </div>
   );
