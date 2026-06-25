@@ -44,7 +44,7 @@ export default function ContratosReportesPage() {
   const estadoPagos = reportes.estado_pagos || [];
 
   if (isLoading) {
-    return <div className="text-muted-foreground">Cargando reporteria de contratos...</div>;
+    return <div className="text-muted-foreground">Cargando reportes de contratos...</div>;
   }
 
   if (error) {
@@ -62,8 +62,8 @@ export default function ContratosReportesPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Reporteria de contratos</h1>
-          <p className="text-muted-foreground">Analisis y seguimiento de pagos, garantias y regalias.</p>
+          <h1 className="text-3xl font-bold">Reportes de contratos</h1>
+          <p className="text-muted-foreground">Analisis y seguimiento de pagos, garantias y regalias con data real.</p>
         </div>
 
         <Button variant="outline" size="sm" className="w-fit">

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
-import { AlertCircle, BarChart3, Clock, FileText, Search, Shield, Sparkles } from 'lucide-react';
+import { AlertCircle, Clock, Search, Sparkles } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -127,7 +127,7 @@ export default function ReportesGestionDocumentalPage() {
         </div>
         <h1 className="text-3xl font-bold">Reportes de gestion documental</h1>
         <p className="text-muted-foreground">
-          Vista ejecutiva con categorias, aprobaciones pendientes y documentos proximos a vencer.
+          Vista ejecutiva con categorias, aprobaciones pendientes, documentos recientes y vencimientos.
         </p>
       </div>
 
@@ -169,6 +169,66 @@ export default function ReportesGestionDocumentalPage() {
           <CardContent>
             <div className="text-2xl font-bold">{categories.length}</div>
             <p className="mt-1 text-xs text-muted-foreground">Clasificacion operativa</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Documentos recientes</CardTitle>
+            <CardDescription>Ultimos registros que entraron al sistema</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {recentDocuments.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+                No hay documentos recientes.
+              </div>
+            ) : (
+              recentDocuments.slice(0, 5).map((doc) => (
+                <div key={`${doc.documentId}-${doc.version}`} className="rounded-lg border border-border p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-medium">{doc.nombre}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {doc.documentId} - v{doc.version}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">Por: {doc.creador}</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      {statusBadge(doc.estado)}
+                      <span className="text-xs text-muted-foreground">
+                        <Clock className="mr-1 inline h-3 w-3" />
+                        {doc.fechaCreacion ? new Date(doc.fechaCreacion).toLocaleDateString('es-CL') : 'Sin fecha'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="border-amber-500/30 bg-amber-500/5">
+          <CardHeader>
+            <CardTitle>Documentos por vencer</CardTitle>
+            <CardDescription>{expiringDocuments.length} documentos proximos a vencerse</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {expiringDocuments.length > 0 ? (
+              expiringDocuments.slice(0, 5).map((doc) => (
+                <div key={doc.id} className="flex items-center justify-between rounded border border-amber-500/20 bg-background/60 p-3">
+                  <span className="font-medium">{doc.title}</span>
+                  <Badge className="bg-amber-500/10 text-amber-700">
+                    {typeof doc.daysUntilExpiry === 'number' ? `${doc.daysUntilExpiry} dias` : 'Sin dato'}
+                  </Badge>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+                No hay documentos con vencimiento cercano.
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -260,64 +320,7 @@ export default function ReportesGestionDocumentalPage() {
             )}
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Documentos recientes</CardTitle>
-            <CardDescription>Ultimos registros que entraron al sistema</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {recentDocuments.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-                No hay documentos recientes.
-              </div>
-            ) : (
-              recentDocuments.map((doc) => (
-                <div key={`${doc.documentId}-${doc.version}`} className="rounded-lg border border-border p-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="font-medium">{doc.nombre}</p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {doc.documentId} - v{doc.version}
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground">Por: {doc.creador}</p>
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                      {statusBadge(doc.estado)}
-                      <span className="text-xs text-muted-foreground">
-                        <Clock className="mr-1 inline h-3 w-3" />
-                        {doc.fechaCreacion ? new Date(doc.fechaCreacion).toLocaleDateString('es-CL') : 'Sin fecha'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
       </div>
-
-      {expiringDocuments.length > 0 && (
-        <Card className="border-amber-500/30 bg-amber-500/5">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-amber-600" />
-              <CardTitle>Documentos por vencer</CardTitle>
-            </div>
-            <CardDescription>{expiringDocuments.length} documentos proximos a vencerse</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {expiringDocuments.map((doc) => (
-              <div key={doc.id} className="flex items-center justify-between rounded border border-amber-500/20 bg-background/60 p-3">
-                <span className="font-medium">{doc.title}</span>
-                <Badge className="bg-amber-500/10 text-amber-700">
-                  {typeof doc.daysUntilExpiry === 'number' ? `${doc.daysUntilExpiry} dias` : 'Sin dato'}
-                </Badge>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }

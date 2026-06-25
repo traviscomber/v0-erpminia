@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Download, Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -89,7 +89,7 @@ export default function CategoryDetailPage() {
           <h1 className="text-3xl font-bold">
             {categoryInfo.icon} {categoryInfo.name}
           </h1>
-          <p className="text-muted-foreground">Gestion de documentos con flujo de aprobaciones</p>
+          <p className="text-muted-foreground">Vista detallada de la categoria con estado, validaciones y acceso rapido a cada documento.</p>
         </div>
       </div>
 
@@ -131,6 +131,7 @@ export default function CategoryDetailPage() {
       <Card>
         <CardHeader>
           <CardTitle>Documentos por estado</CardTitle>
+          <CardDescription>Ordenados por aprobados, pendientes y rechazados para lectura rapida.</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
