@@ -62,6 +62,21 @@ function parseNumber(value: unknown) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+// Clamp numeric values to precision(15,2) limits to avoid DB overflow
+// Max value with precision 15 scale 2 is 9,999,999,999,999.99
+function validateNumericField(value: number, maxValue: number = 9999999999999.99): number {
+  if (!Number.isFinite(value)) return 0;
+  if (value > maxValue) {
+    console.warn(`[v0] Numeric overflow detected: ${value} truncated to ${maxValue}`);
+    return maxValue;
+  }
+  if (value < -maxValue) {
+    console.warn(`[v0] Numeric overflow detected: ${value} truncated to ${-maxValue}`);
+    return -maxValue;
+  }
+  return value;
+}
+
 function cleanValue(value: unknown) {
   return String(value ?? '')
     .trim()
@@ -190,7 +205,7 @@ function parseStock(sheet: any): StockRow[] {
 
     const minStock = Math.max(0, Math.round(parseNumber(row[idx.minStock])));
     const maxStock = Math.max(minStock, Math.round(parseNumber(row[idx.maxStock]) || minStock));
-    const unitCost = parseNumber(row[idx.cost]);
+    const unitCost = validateNumericField(parseNumber(row[idx.cost]));
     const category = deriveStockCategory(partCode, partName);
     const notes = cleanValue(row[idx.notes] || '');
     const className = cleanValue(row[idx.class] || '');
@@ -288,8 +303,8 @@ function parsePurchases(sheet: any): PurchaseAggregate[] {
       vendor_name: group.vendor,
       item_code: itemCode,
       quantity: Number(group.quantity.toFixed(2)),
-      unit_price: Number(unitPrice.toFixed(2)),
-      total_amount: Number(group.totalAmount.toFixed(0)),
+      unit_price: validateNumericField(Number(unitPrice.toFixed(2))),
+      total_amount: validateNumericField(Number(group.totalAmount.toFixed(0))),
       delivery_date: group.date,
       status: 'received',
     };
