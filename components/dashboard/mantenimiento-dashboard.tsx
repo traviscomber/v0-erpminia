@@ -222,6 +222,18 @@ export function MantenimientoDashboard() {
               </Link>
             </Button>
             <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/gerencial">
+                Ver dashboard gerencial
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/movil">
+                Ver panel movil
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/costos">
                 Ver costos
                 <ArrowRight className="h-4 w-4" />

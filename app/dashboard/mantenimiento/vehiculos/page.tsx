@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { BrandCard } from '@/components/ui/brand-card';
-import { ChevronRight, Plus, Wrench } from 'lucide-react';
+import { ChevronRight, FileSearch, Plus, Wrench } from 'lucide-react';
 
 type MaintenanceAsset = {
   id: string;
@@ -108,12 +108,20 @@ export default function VehiclesPage() {
                       </div>
                     </div>
                   </div>
-                  <Link href={`/dashboard/mantenimiento/vehiculos/${vehicle.id}/arbol`}>
-                    <Button variant="outline" className="ml-4 gap-2">
-                      Ver arbol de fallas
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </Link>
+                  <div className="ml-4 flex flex-col gap-2 sm:flex-row">
+                    <Link href={`/dashboard/mantenimiento/vehiculos/${vehicle.id}/ficha`}>
+                      <Button variant="outline" className="gap-2">
+                        Ver ficha completa
+                        <FileSearch className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                    <Link href={`/dashboard/mantenimiento/vehiculos/${vehicle.id}/arbol`}>
+                      <Button variant="outline" className="gap-2">
+                        Ver arbol de fallas
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               ))}
 

@@ -53,10 +53,13 @@ Cerrar el producto para produccion dejando:
   - Costo por equipo, indicadores, neumaticos y componentes mayores.
   - Vehiculos, arbol de fallas, documentos y centro de costo.
   - Trazabilidad de repuestos reservados y movimiento de partes.
+  - QR por equipo con ficha completa, historial y accesos directos.
+  - Dashboard gerencial de mantenimiento con KPIs reales.
+  - Panel movil de mantencion para terreno y atajos operativos.
 - Falta para cerrar el modulo:
-  - QR por equipo con acceso directo a historial, horometros, repuestos instalados, manuales, fallas y fotografias.
   - Aplicacion movil para abrir y cerrar OT, adjuntar fotos, registrar repuestos y firmar trabajos.
-  - Dashboard gerencial completo con equipos totales, operativos, detenidos y disponibilidad mecanica y fisica.
+  - Horometros por equipo con captura real y trazabilidad por activo.
+  - Repuestos instalados, manuales y fotografias por equipo dentro de la ficha.
   - Control de combustible por equipo con cargas, consumo, rendimiento y costo.
   - Control de personal con mecanico responsable, horas, especialidad y productividad.
   - Planificacion a largo plazo de 12 meses con grandes reparaciones, overhaul, cambios y proyeccion de repuestos, presupuesto y personal.

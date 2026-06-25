@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import useSWR from 'swr';
-import { AlertCircle, Copy, History, QrCode, Wrench } from 'lucide-react';
+import { AlertCircle, ArrowRight, Copy, History, LayoutDashboard, QrCode, Smartphone, Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -151,8 +151,11 @@ export function AssetDetailView() {
   const openOrders = assetOrders.filter((order) => order.status === 'open' || order.status === 'assigned');
   const progressOrders = assetOrders.filter((order) => order.status === 'in_progress');
   const closedOrders = assetOrders.filter((order) => order.status === 'completed' || order.status === 'closed');
+  const latestHistory = history[0];
+  const totalMaintenanceCost = history.reduce((sum, item) => sum + Number(item.parts_cost || 0) + Number(item.labor_cost || 0), 0);
+  const totalLaborHours = history.reduce((sum, item) => sum + Number(item.labor_hours || 0), 0);
 
-  const qrTargetUrl = `${origin}/dashboard/mantenimiento/vehiculos/${assetId}/arbol`;
+  const qrTargetUrl = `${origin}/dashboard/mantenimiento/vehiculos/${assetId}/ficha`;
   const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(qrTargetUrl)}`;
 
   const copyQrLink = async () => {
@@ -196,12 +199,26 @@ export function AssetDetailView() {
           <h1 className="text-3xl font-bold tracking-tight">{asset.asset_name || 'Activo'}</h1>
           <p className="mt-2 text-muted-foreground">Vista real del activo con su historial de mantencion, QR y ordenes.</p>
         </div>
-        <Link href={`/dashboard/work-orders/create?assetId=${asset.id}`}>
-          <Button className="gap-2">
-            <Wrench className="h-4 w-4" />
-            Crear orden de trabajo
+        <div className="flex flex-wrap gap-2">
+          <Button asChild className="gap-2">
+            <Link href={`/dashboard/work-orders/create?assetId=${asset.id}`}>
+              <Wrench className="h-4 w-4" />
+              Crear orden de trabajo
+            </Link>
           </Button>
-        </Link>
+          <Button asChild variant="outline" className="gap-2">
+            <Link href="/dashboard/mantenimiento/movil">
+              <Smartphone className="h-4 w-4" />
+              Vista movil
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="gap-2">
+            <Link href="/dashboard/mantenimiento/gerencial">
+              <LayoutDashboard className="h-4 w-4" />
+              Dashboard gerencial
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
@@ -240,6 +257,16 @@ export function AssetDetailView() {
             <div className="text-3xl font-bold text-green-600">{closedOrders.length}</div>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Costo acumulado</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">${Number(totalMaintenanceCost).toLocaleString('es-CL')}</div>
+            <p className="text-xs text-muted-foreground">{totalLaborHours.toFixed(1)} horas registradas</p>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -260,6 +287,9 @@ export function AssetDetailView() {
               <Button variant="outline" className="gap-2" onClick={copyQrLink}>
                 <Copy className="h-4 w-4" />
                 Copiar enlace
+              </Button>
+              <Button variant="outline" asChild>
+                <Link href={`/dashboard/mantenimiento/vehiculos/${asset.id}/arbol`}>Ver arbol de fallas</Link>
               </Button>
               <Button variant="outline" asChild>
                 <Link href={`/dashboard/work-orders/create?assetId=${asset.id}`}>Nueva OT</Link>
@@ -298,9 +328,51 @@ export function AssetDetailView() {
               <p className="text-muted-foreground">Criticidad</p>
               <p className="font-semibold">{asset.criticality || '-'}</p>
             </div>
+            <div>
+              <p className="text-muted-foreground">Ultima mantencion</p>
+              <p className="font-semibold">
+                {latestHistory?.created_at ? new Date(latestHistory.created_at).toLocaleDateString('es-CL') : '-'}
+              </p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Ultimo tecnico</p>
+              <p className="font-semibold">{latestHistory?.performed_by_name || '-'}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Costo historico</p>
+              <p className="font-semibold">${Number(totalMaintenanceCost).toLocaleString('es-CL')}</p>
+            </div>
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Trazabilidad rapida</CardTitle>
+          <CardDescription>Accesos utiles para terreno y supervision</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-lg border border-border p-4">
+            <p className="text-xs text-muted-foreground">OT activas</p>
+            <p className="text-2xl font-bold">{openOrders.length + progressOrders.length}</p>
+          </div>
+          <div className="rounded-lg border border-border p-4">
+            <p className="text-xs text-muted-foreground">Mantenciones cerradas</p>
+            <p className="text-2xl font-bold">{closedOrders.length}</p>
+          </div>
+          <div className="rounded-lg border border-border p-4">
+            <p className="text-xs text-muted-foreground">Acceso directo</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Button size="sm" variant="outline" asChild>
+                <Link href="/dashboard/mantenimiento/documentos">Documentos</Link>
+              </Button>
+              <Button size="sm" variant="outline" asChild>
+                <Link href="/dashboard/mantenimiento/bitacora">Bitacora</Link>
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
