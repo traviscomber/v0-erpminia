@@ -19,6 +19,7 @@ type MaintenanceAsset = {
   manufacturer?: string;
   model?: string;
   criticality?: string;
+  mtbf_hours?: number | null;
 };
 
 type WorkOrder = {
@@ -327,6 +328,10 @@ export function AssetDetailView() {
             <div>
               <p className="text-muted-foreground">Criticidad</p>
               <p className="font-semibold">{asset.criticality || '-'}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Horometro tecnico</p>
+              <p className="font-semibold">{asset.mtbf_hours ? `${asset.mtbf_hours} h` : 'Sin lectura'}</p>
             </div>
             <div>
               <p className="text-muted-foreground">Ultima mantencion</p>

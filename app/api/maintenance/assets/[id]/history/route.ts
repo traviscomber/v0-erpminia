@@ -15,7 +15,7 @@ export async function GET(
   try {
     const { data: asset, error: assetError } = await context.supabase
       .from('maintenance_assets')
-      .select('id, asset_code, asset_name, asset_type, location, status, manufacturer, model, criticality')
+      .select('id, asset_code, asset_name, asset_type, location, status, manufacturer, model, criticality, mtbf_hours')
       .eq('id', id)
       .eq('organization_id', context.organizationId)
       .maybeSingle();

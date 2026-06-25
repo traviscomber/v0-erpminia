@@ -1,0 +1,64 @@
+export const dynamic = 'force-dynamic';
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getOrganizationContext } from '@/lib/api/organization-context';
+
+export async function GET(request: NextRequest) {
+  const context = await getOrganizationContext(request);
+  if (!context.ok) return context.response;
+
+  try {
+    const { data: workOrders, error: woError } = await context.supabase
+      .from('maintenance_work_orders')
+      .select('id')
+      .eq('organization_id', context.organizationId);
+
+    if (woError) throw woError;
+
+    const otIds = (workOrders || []).map((order: any) => order.id).filter(Boolean);
+    if (otIds.length === 0) {
+      return NextResponse.json({ summary: { totalHours: 0, totalEntries: 0, technicians: 0 }, technicians: [], recentEntries: [] });
+    }
+
+    const { data, error } = await context.supabase
+      .from('mantenimiento_tiempo')
+      .select('id, ot_id, technician_id, horas_trabajadas, descripcion, fecha, technician:users(id, email, full_name)')
+      .in('ot_id', otIds)
+      .order('fecha', { ascending: false });
+
+    if (error) throw error;
+
+    const entries = data || [];
+    const techniciansMap = new Map<string, { technicianId: string; name: string; email: string; hours: number; entries: number }>();
+
+    for (const entry of entries as any[]) {
+      const techId = String(entry.technician_id || '');
+      const current = techniciansMap.get(techId) || {
+        technicianId: techId,
+        name: entry.technician?.full_name || entry.technician?.email || techId || 'Tecnico',
+        email: entry.technician?.email || '',
+        hours: 0,
+        entries: 0,
+      };
+
+      current.hours += Number(entry.horas_trabajadas || 0);
+      current.entries += 1;
+      techniciansMap.set(techId, current);
+    }
+
+    const technicians = [...techniciansMap.values()].sort((a, b) => b.hours - a.hours);
+
+    return NextResponse.json({
+      summary: {
+        totalHours: entries.reduce((sum: number, entry: any) => sum + Number(entry.horas_trabajadas || 0), 0),
+        totalEntries: entries.length,
+        technicians: technicians.length,
+      },
+      technicians,
+      recentEntries: entries.slice(0, 10),
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'No se pudo cargar el personal de mantenimiento';
+    return NextResponse.json({ summary: { totalHours: 0, totalEntries: 0, technicians: 0 }, technicians: [], recentEntries: [], error: message }, { status: 500 });
+  }
+}

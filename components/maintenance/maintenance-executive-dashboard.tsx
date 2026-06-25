@@ -246,6 +246,12 @@ export function MaintenanceExecutiveDashboard() {
               </Link>
             </Button>
             <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/personal">
+                Personal mantencion
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/componentes-mayores">
                 Componentes mayores
                 <ArrowRight className="h-4 w-4" />

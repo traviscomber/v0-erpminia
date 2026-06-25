@@ -1,13 +1,17 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
-import { AlertCircle, ArrowRight, Gauge, QrCode, Smartphone, Wrench } from 'lucide-react';
+import { AlertCircle, ArrowRight, Gauge, QrCode, Smartphone, Upload, Users, Wrench } from 'lucide-react';
+import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
 
@@ -30,6 +34,7 @@ export function MaintenanceMobilePanel() {
   const { data: ordersData } = useSWR('/api/maintenance/work-orders', fetcher);
   const { data: mttrData } = useSWR('/api/maintenance/mttr', fetcher);
   const { data: assetHistoryData } = useSWR(assetId ? `/api/maintenance/assets/${assetId}/history` : null, fetcher);
+  const { data: personalData, mutate: mutatePersonal } = useSWR('/api/maintenance/personal', fetcher);
 
   const assets = Array.isArray(assetsData?.assets) ? assetsData.assets : [];
   const workOrders = Array.isArray(ordersData?.workOrders) ? ordersData.workOrders : [];
@@ -40,11 +45,41 @@ export function MaintenanceMobilePanel() {
     () => workOrders.filter((order: any) => ['open', 'pending', 'pendiente', 'in_progress'].includes(String(order.status || '').toLowerCase())).slice(0, 5),
     [workOrders],
   );
-
   const urgentOrders = useMemo(
     () => workOrders.filter((order: any) => ['high', 'critical', 'urgente'].includes(String(order.priority || '').toLowerCase())).slice(0, 3),
     [workOrders],
   );
+
+  const [selectedOtId, setSelectedOtId] = useState('');
+  const [hoursWorked, setHoursWorked] = useState('1');
+  const [timeNotes, setTimeNotes] = useState('');
+  const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
+  const [evidenceLabel, setEvidenceLabel] = useState('');
+  const [uploadingTime, setUploadingTime] = useState(false);
+  const [uploadingEvidence, setUploadingEvidence] = useState(false);
+
+  const currentOrder = workOrders.find((order: any) => order.id === selectedOtId) || openOrders[0] || workOrders[0] || null;
+
+  useEffect(() => {
+    if (!selectedOtId && currentOrder?.id) {
+      setSelectedOtId(currentOrder.id);
+    }
+  }, [currentOrder, selectedOtId]);
+
+  const { data: selectedTimeData, mutate: mutateSelectedTime } = useSWR(
+    selectedOtId ? `/api/mantenimiento/tiempo?otId=${encodeURIComponent(selectedOtId)}` : null,
+    fetcher,
+  );
+  const { data: selectedEvidenceData, mutate: mutateSelectedEvidence } = useSWR(
+    selectedOtId ? `/api/mantenimiento/evidencia?otId=${encodeURIComponent(selectedOtId)}` : null,
+    fetcher,
+  );
+
+  const personalSummary = personalData?.summary || { totalHours: 0, totalEntries: 0, technicians: 0 };
+  const technicians = Array.isArray(personalData?.technicians) ? personalData.technicians : [];
+  const recentEntries = Array.isArray(personalData?.recentEntries) ? personalData.recentEntries : [];
+  const timeEntries = Array.isArray(selectedTimeData?.time_entries) ? selectedTimeData.time_entries : [];
+  const evidenceEntries = Array.isArray(selectedEvidenceData?.evidence) ? selectedEvidenceData.evidence : [];
 
   const stats = [
     { label: 'Equipos', value: String(assets.length), icon: Smartphone },
@@ -53,12 +88,103 @@ export function MaintenanceMobilePanel() {
     { label: 'MTTR', value: `${Number(mttrData?.averageMTTR || 0).toFixed(1)} h`, icon: Gauge },
   ];
 
+  const handleRegisterTime = async () => {
+    if (!selectedOtId) {
+      toast.error('Selecciona una orden de trabajo');
+      return;
+    }
+
+    const parsedHours = Number(hoursWorked);
+    if (!Number.isFinite(parsedHours) || parsedHours <= 0) {
+      toast.error('Ingresa horas validas');
+      return;
+    }
+
+    setUploadingTime(true);
+    try {
+      const response = await fetch('/api/mantenimiento/tiempo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          otId: selectedOtId,
+          horasTrabajadas: parsedHours,
+          descripcion: timeNotes,
+        }),
+      });
+
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.error || 'No se pudo registrar el tiempo');
+
+      toast.success('Tiempo registrado correctamente');
+      setTimeNotes('');
+      await mutateSelectedTime();
+      await mutatePersonal();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'No se pudo registrar el tiempo');
+    } finally {
+      setUploadingTime(false);
+    }
+  };
+
+  const handleUploadEvidence = async () => {
+    if (!selectedOtId) {
+      toast.error('Selecciona una orden de trabajo');
+      return;
+    }
+
+    if (!evidenceFile) {
+      toast.error('Selecciona una evidencia para subir');
+      return;
+    }
+
+    setUploadingEvidence(true);
+    try {
+      const response = await fetch('/api/mantenimiento/evidencia', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          otId: selectedOtId,
+          fileName: evidenceLabel.trim() || evidenceFile.name,
+          fileType: evidenceFile.type || 'application/octet-stream',
+        }),
+      });
+
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.error || 'No se pudo preparar la evidencia');
+
+      if (payload?.signed_url) {
+        const uploadResponse = await fetch(payload.signed_url, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': evidenceFile.type || 'application/octet-stream',
+          },
+          body: evidenceFile,
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error('No se pudo subir el archivo a almacenamiento');
+        }
+      }
+
+      toast.success('Evidencia subida correctamente');
+      setEvidenceFile(null);
+      setEvidenceLabel('');
+      await mutateSelectedEvidence();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'No se pudo subir la evidencia');
+    } finally {
+      setUploadingEvidence(false);
+    }
+  };
+
   return (
     <div className="mx-auto max-w-md space-y-4 pb-8">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Panel movil de mantencion</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Vista optimizada para terreno con accesos rapidos, OT abiertas y ficha del equipo.
+          Vista optimizada para terreno con OT reales, horas, evidencia y acceso rapido a la ficha del equipo.
         </p>
       </div>
 
@@ -97,6 +223,16 @@ export function MaintenanceMobilePanel() {
                     <p className="text-xs text-muted-foreground">Ubicacion</p>
                     <p className="font-semibold">{selectedAsset.location || '-'}</p>
                   </div>
+                  <div className="rounded-lg border border-border p-3">
+                    <p className="text-xs text-muted-foreground">Horometro tecnico</p>
+                    <p className="font-semibold">{selectedAsset.mtbf_hours ? `${selectedAsset.mtbf_hours} h` : 'Sin lectura'}</p>
+                  </div>
+                  <div className="rounded-lg border border-border p-3">
+                    <p className="text-xs text-muted-foreground">Ultima trazabilidad</p>
+                    <p className="font-semibold">
+                      {selectedHistory[0]?.created_at ? new Date(selectedHistory[0].created_at).toLocaleDateString('es-CL') : 'Sin registro'}
+                    </p>
+                  </div>
                 </div>
                 <Button asChild className="w-full justify-between">
                   <Link href={`/dashboard/mantenimiento/vehiculos/${assetId}/ficha`}>
@@ -114,6 +250,114 @@ export function MaintenanceMobilePanel() {
           </CardContent>
         </Card>
       ) : null}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Orden operativa</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div>
+            <Label htmlFor="ot">Orden de trabajo</Label>
+            <select
+              id="ot"
+              className="mt-1 w-full rounded-md border border-border bg-background p-2 text-sm"
+              value={selectedOtId}
+              onChange={(event) => setSelectedOtId(event.target.value)}
+            >
+              <option value="">Selecciona una OT</option>
+              {workOrders.map((order: any) => (
+                <option key={order.id} value={order.id}>
+                  {order.work_order_number || order.code || order.title}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="hours">Horas trabajadas</Label>
+              <Input id="hours" type="number" step="0.1" min="0" value={hoursWorked} onChange={(event) => setHoursWorked(event.target.value)} />
+            </div>
+            <div className="flex items-end">
+              <Button type="button" className="w-full" onClick={handleRegisterTime} disabled={uploadingTime}>
+                {uploadingTime ? 'Guardando...' : 'Registrar horas'}
+              </Button>
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="timeNotes">Descripcion del trabajo</Label>
+            <Textarea
+              id="timeNotes"
+              rows={3}
+              value={timeNotes}
+              onChange={(event) => setTimeNotes(event.target.value)}
+              placeholder="Detalle breve de la tarea realizada"
+            />
+          </div>
+
+          <div className="rounded-lg border border-border p-3 text-sm">
+            <p className="font-semibold">Horometro tecnico</p>
+            <p className="text-muted-foreground">
+              {selectedAsset?.mtbf_hours ? `${selectedAsset.mtbf_hours} horas tecnicas registradas en el activo` : 'Sin lectura directa aun en la base actual'}
+            </p>
+          </div>
+
+          {timeEntries.length > 0 ? (
+            <div className="space-y-2 rounded-lg border border-border p-3 text-sm">
+              <p className="font-semibold">Ultimos registros de esta OT</p>
+              {timeEntries.slice(0, 3).map((entry: any) => (
+                <div key={entry.id} className="rounded-md bg-muted/40 p-2">
+                  <p className="font-medium">{Number(entry.horas_trabajadas || 0).toFixed(1)} h</p>
+                  <p className="text-xs text-muted-foreground">{entry.descripcion || 'Sin descripcion'}</p>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Evidencia del trabajo</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div>
+            <Label htmlFor="evidenceLabel">Nombre de evidencia</Label>
+            <Input
+              id="evidenceLabel"
+              value={evidenceLabel}
+              onChange={(event) => setEvidenceLabel(event.target.value)}
+              placeholder="Foto, informe, respaldo o documento"
+            />
+          </div>
+          <div>
+            <Label htmlFor="evidenceFile">Archivo</Label>
+            <Input
+              id="evidenceFile"
+              type="file"
+              onChange={(event) => setEvidenceFile(event.target.files?.[0] || null)}
+            />
+          </div>
+          <Button type="button" variant="outline" className="w-full gap-2" onClick={handleUploadEvidence} disabled={uploadingEvidence}>
+            <Upload className="h-4 w-4" />
+            {uploadingEvidence ? 'Subiendo...' : 'Subir evidencia'}
+          </Button>
+
+          {evidenceEntries.length > 0 ? (
+            <div className="space-y-2">
+              {evidenceEntries.slice(0, 3).map((item: any) => (
+                <div key={item.id} className="rounded-lg border border-border p-3 text-sm">
+                  <p className="font-semibold">{item.file_name}</p>
+                  <p className="text-muted-foreground">{item.file_type || 'Archivo'}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">Todavia no hay evidencia cargada para esta OT.</p>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -194,6 +438,64 @@ export function MaintenanceMobilePanel() {
           ) : null}
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Personal de mantencion</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm">
+          <div className="grid grid-cols-3 gap-3">
+            <div className="rounded-lg border border-border p-3">
+              <p className="text-xs text-muted-foreground">Horas</p>
+              <p className="text-xl font-bold">{Number(personalSummary.totalHours || 0).toFixed(1)}</p>
+            </div>
+            <div className="rounded-lg border border-border p-3">
+              <p className="text-xs text-muted-foreground">Registros</p>
+              <p className="text-xl font-bold">{personalSummary.totalEntries || 0}</p>
+            </div>
+            <div className="rounded-lg border border-border p-3">
+              <p className="text-xs text-muted-foreground">Tecnicos</p>
+              <p className="text-xl font-bold">{personalSummary.technicians || 0}</p>
+            </div>
+          </div>
+
+          {technicians.length > 0 ? (
+            <div className="space-y-2">
+              {technicians.slice(0, 3).map((tech: any) => (
+                <div key={tech.technicianId} className="rounded-lg border border-border p-3">
+                  <div className="flex items-center justify-between">
+                    <p className="font-semibold">{tech.name || 'Tecnico'}</p>
+                    <Badge variant="outline">{Number(tech.hours || 0).toFixed(1)} h</Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{tech.entries} registros</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 rounded-lg border border-dashed border-border p-3 text-muted-foreground">
+              <Users className="h-4 w-4" />
+              Todavia no hay registros de tiempo para resumir.
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {recentEntries.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Ultimos registros de tiempo</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            {recentEntries.slice(0, 3).map((item: any) => (
+              <div key={item.id} className="rounded-lg border border-border p-3">
+                <p className="font-semibold">{item.descripcion || 'Tiempo registrado'}</p>
+                <p className="text-muted-foreground">{Number(item.horas_trabajadas || 0).toFixed(1)} h</p>
+                <p className="mt-1 text-xs text-muted-foreground">{item.fecha ? new Date(item.fecha).toLocaleDateString('es-CL') : 'Sin fecha'}</p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      ) : null}
 
       {selectedHistory.length > 0 ? (
         <Card>
