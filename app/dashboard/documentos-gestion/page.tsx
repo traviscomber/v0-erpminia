@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import useSWR from 'swr';
-import { AlertCircle, CheckCircle, Clock, Plus, Search, XCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle, Clock, FileText, FolderOpen, Plus, Search, Scale, Shield, XCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -70,6 +70,7 @@ export default function DocumentosGestionPage() {
       String(cat.description || '').toLowerCase().includes(query)
     );
   }, [categories, searchTerm]);
+  const expiringPreview = expiringDocuments.slice(0, 5);
 
   if (error) {
     return <div className="text-red-500">Error al cargar documentos</div>;
@@ -85,7 +86,7 @@ export default function DocumentosGestionPage() {
         <div>
           <h1 className="text-3xl font-bold">Gestion documental</h1>
           <p className="mt-1 text-muted-foreground">
-            Centraliza, revisa y organiza los documentos operativos en una sola vista.
+            Centraliza, revisa y organiza los documentos operativos en una sola vista, con alertas de revision y vencimiento.
           </p>
         </div>
         <Button className="gap-2 bg-[var(--brand-naranja)] hover:bg-[var(--brand-naranja)]/90">
@@ -94,7 +95,7 @@ export default function DocumentosGestionPage() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium">Total de documentos</CardTitle>
@@ -137,6 +138,96 @@ export default function DocumentosGestionPage() {
           </CardContent>
         </Card>
       </div>
+
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <Card className="border-[var(--secondary)]/30 bg-[var(--secondary)]/5">
+          <CardHeader>
+            <CardTitle className="text-base">Resumen de control</CardTitle>
+            <CardDescription>Lectura rapida para supervision y aprobacion.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-lg border border-border bg-background/70 p-3">
+              <p className="text-xs text-muted-foreground">Pendientes de aprobacion</p>
+              <p className="text-2xl font-bold text-[var(--secondary)]">{stats.pending}</p>
+            </div>
+            <div className="rounded-lg border border-border bg-background/70 p-3">
+              <p className="text-xs text-muted-foreground">Documentos recientes</p>
+              <p className="text-2xl font-bold text-[var(--brand-verde)]">{recentDocuments.length}</p>
+            </div>
+            <div className="rounded-lg border border-border bg-background/70 p-3">
+              <p className="text-xs text-muted-foreground">Categorias activas</p>
+              <p className="text-2xl font-bold">{categories.length}</p>
+            </div>
+            <div className="rounded-lg border border-border bg-background/70 p-3">
+              <p className="text-xs text-muted-foreground">Documentos por vencer</p>
+              <p className="text-2xl font-bold text-amber-600">{expiringDocuments.length}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-amber-500/30 bg-amber-500/5">
+          <CardHeader>
+            <CardTitle className="text-base">Documentos por vencer</CardTitle>
+            <CardDescription>{expiringDocuments.length} documentos proximos a vencerse</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {expiringPreview.length > 0 ? (
+              expiringPreview.map((doc: any) => (
+                <div key={doc.id} className="rounded-lg border border-amber-500/20 bg-background/70 p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="font-semibold">{doc.nombre}</p>
+                      <p className="text-xs text-muted-foreground">{doc.documentId}</p>
+                    </div>
+                    {statusBadge(doc.estado)}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
+                No hay documentos con vencimiento cercano.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card className="border-border/70 bg-card/80">
+        <CardHeader>
+          <CardTitle>Accesos rapidos</CardTitle>
+          <CardDescription>Entra directo a las subrutas mas usadas del modulo.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <Link href="/dashboard/documentos-gestion/contratos" className="rounded-lg border border-border p-4 transition hover:bg-muted/50">
+            <div className="flex items-center gap-2">
+              <Scale className="h-4 w-4 text-[var(--brand-naranja)]" />
+              <span className="font-semibold">Contratos</span>
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">Vigencia, revision y respaldo contractual.</p>
+          </Link>
+          <Link href="/dashboard/documentos-gestion/procedimientos" className="rounded-lg border border-border p-4 transition hover:bg-muted/50">
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-[var(--brand-verde)]" />
+              <span className="font-semibold">Procedimientos</span>
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">Protocolos, procesos y documentos operativos.</p>
+          </Link>
+          <Link href="/dashboard/documentos-gestion/seguridad" className="rounded-lg border border-border p-4 transition hover:bg-muted/50">
+            <div className="flex items-center gap-2">
+              <Shield className="h-4 w-4 text-[var(--secondary)]" />
+              <span className="font-semibold">Seguridad</span>
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">MSDS, auditorias, incidentes y protocolos HSE.</p>
+          </Link>
+          <Link href="/dashboard/documentos-gestion/reportes" className="rounded-lg border border-border p-4 transition hover:bg-muted/50">
+            <div className="flex items-center gap-2">
+              <FolderOpen className="h-4 w-4 text-primary" />
+              <span className="font-semibold">Reportes</span>
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">Seguimiento ejecutivo de cumplimiento documental.</p>
+          </Link>
+        </CardContent>
+      </Card>
 
       {pendingApprovals.length > 0 && (
         <Card className="border-[var(--secondary)]/30 bg-[var(--secondary)]/5">
@@ -192,15 +283,6 @@ export default function DocumentosGestionPage() {
               ))}
             </div>
           </CardContent>
-        </Card>
-      )}
-
-      {expiringDocuments.length > 0 && (
-        <Card className="border-amber-500/30 bg-amber-500/5">
-          <CardHeader>
-            <CardTitle>Documentos por vencer</CardTitle>
-            <CardDescription>{expiringDocuments.length} documentos proximos a vencerse</CardDescription>
-          </CardHeader>
         </Card>
       )}
 

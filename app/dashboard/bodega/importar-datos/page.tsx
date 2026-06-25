@@ -1,18 +1,47 @@
 'use client';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CostCentersImportComponent } from '@/components/bodega/cost-centers-import';
 import { BodegaInventoryImportComponent } from '@/components/bodega/bodega-inventory-import';
-import { Building2, Package } from 'lucide-react';
+import { AlertTriangle, Building2, Package, ShieldCheck } from 'lucide-react';
 
 export default function BodegaImportPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="text-3xl font-bold text-foreground">Importar datos de bodega</h1>
-        <p className="text-muted-foreground">Carga centros de costo e inventario desde CSV, XLS o XLSX usando carga segura.</p>
+        <p className="max-w-3xl text-muted-foreground">
+          Carga centros de costo e inventario desde CSV, XLS o XLSX con un flujo seguro, trazable y sin vaciar el resto del sistema.
+        </p>
       </div>
+
+      <Card className="border-[var(--secondary)]/30 bg-[var(--secondary)]/5">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <ShieldCheck className="h-5 w-5 text-[var(--secondary)]" />
+            Carga segura
+          </CardTitle>
+          <CardDescription>La importacion reemplaza solo la fuente seleccionada y mantiene el resto intacto.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-3 md:grid-cols-3">
+          <div className="rounded-lg border border-border bg-background/70 p-3">
+            <p className="text-xs text-muted-foreground">Centros de costo</p>
+            <p className="mt-1 font-semibold">Jerarquia real y trazable</p>
+          </div>
+          <div className="rounded-lg border border-border bg-background/70 p-3">
+            <p className="text-xs text-muted-foreground">Inventario</p>
+            <p className="mt-1 font-semibold">Stock, costos y ubicacion</p>
+          </div>
+          <div className="rounded-lg border border-border bg-background/70 p-3">
+            <p className="text-xs text-muted-foreground">Riesgo controlado</p>
+            <p className="mt-1 font-semibold flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-amber-500" />
+              No vacia otras tablas si falla algo
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       <Tabs defaultValue="cost-centers" className="w-full">
         <TabsList className="grid w-full grid-cols-2 gap-4">
@@ -35,12 +64,12 @@ export default function BodegaImportPage() {
                 <CardTitle className="text-base">Por que centros de costo</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
-                <p>Los centros de costo permiten:</p>
+                <p>Los centros de costo permiten ordenar la operacion por area y familia.</p>
                 <ul className="list-inside list-disc space-y-1 text-muted-foreground">
                   <li>Organizar por minas y areas operacionales</li>
                   <li>Asignar presupuestos y costos</li>
                   <li>Generar reportes por ubicacion</li>
-                  <li>Integrar con finanzas y mantenimiento</li>
+                  <li>Integrar con finanzas, mantenimiento y bodega</li>
                 </ul>
               </CardContent>
             </Card>
@@ -50,7 +79,7 @@ export default function BodegaImportPage() {
                 <CardTitle className="text-base">Estructura jerarquica</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
-                <p>Los centros de costo forman una jerarquia simple y ordenada.</p>
+                <p>Los centros de costo forman una jerarquia simple y ordenada que es facil de leer en la app.</p>
                 <div className="space-y-1 rounded bg-white p-3 text-xs text-muted-foreground">
                   <div>
                     <span className="font-medium text-foreground">Raiz:</span> 1 Mina Peumo
@@ -78,7 +107,7 @@ export default function BodegaImportPage() {
                 <CardTitle className="text-base">Estructura del inventario</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
-                <p>El inventario se organiza en categorias principales.</p>
+                <p>El inventario se organiza en categorias principales para control operativo y compras.</p>
                 <ul className="list-inside list-disc space-y-1 text-muted-foreground">
                   <li>Acero y metalmecanica</li>
                   <li>Consumos de molienda</li>
