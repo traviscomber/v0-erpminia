@@ -113,7 +113,9 @@ export default function CreateWorkOrderPage() {
   const prefilledCostCenter = searchParams.get('cost_center') || '';
   const prefilledMachine = searchParams.get('machine') || '';
 
-  const [step, setStep] = useState(1);
+  // If coming from maquinaria, start at step 2 (skip asset picker — machine is known)
+  const fromMaquinaria = !!prefilledCostCenter && !!prefilledMachine;
+  const [step, setStep] = useState(fromMaquinaria ? 2 : 1);
   const [selectedAssetId, setSelectedAssetId] = useState(initialAssetId);
   const [selectedComponents, setSelectedComponents] = useState<string[]>([]);
   const [orderType, setOrderType] = useState('preventive');
@@ -179,22 +181,31 @@ export default function CreateWorkOrderPage() {
     );
   };
 
-  const handleCreateOT = async () => {
-    if (!selectedAsset || selectedComponents.length === 0) {
-      toast.error('Selecciona un activo y al menos un componente');
+    const handleCreateOT = async () => {
+    if (!fromMaquinaria && !selectedAsset) {
+      toast.error('Selecciona un activo');
+      return;
+    }
+    if (selectedComponents.length === 0) {
+      toast.error('Selecciona al menos un componente');
       return;
     }
 
     setSubmitting(true);
     try {
-      const assetName = selectedAsset.asset_name || 'Activo';
+      // If coming from maquinaria, use the cost-center name; otherwise use maintenance_assets
+      const assetName = fromMaquinaria
+        ? prefilledMachine
+        : (selectedAsset?.asset_name || 'Activo');
+      const assetId = fromMaquinaria ? null : selectedAsset?.id;
       const componentNames = selectedComponentsData.map((component) => component.name).join(', ');
 
       const response = await fetch('/api/maintenance/work-orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          assetId: selectedAsset.id,
+          ...(assetId ? { assetId } : {}),
+          costCenterCode: fromMaquinaria ? prefilledCostCenter : undefined,
           title: `${assetName} - ${componentNames}`,
           description: description || `Mantenimiento ${orderType} para ${assetName}. Componentes: ${componentNames}`,
           workType: orderType,
@@ -406,8 +417,8 @@ export default function CreateWorkOrderPage() {
 
             <div className="space-y-2 rounded-lg bg-muted p-3 text-sm">
               <p className="font-semibold">Resumen</p>
-              <p>Activo: {selectedAsset?.asset_name || '-'}</p>
-              <p>Codigo: {selectedAsset?.asset_code || '-'}</p>
+              <p>Activo: {fromMaquinaria ? prefilledMachine : (selectedAsset?.asset_name || '-')}</p>
+              <p>Codigo CC: {fromMaquinaria ? prefilledCostCenter : (selectedAsset?.asset_code || '-')}</p>
               <p>Componentes: {selectedComponents.length}</p>
               <p>Tiempo total: {totalHours}h</p>
             </div>
@@ -425,7 +436,10 @@ export default function CreateWorkOrderPage() {
         {step < 3 && (
           <Button
             onClick={() => setStep(step + 1)}
-            disabled={(step === 1 && !selectedAssetId) || (step === 2 && selectedComponents.length === 0)}
+            disabled={
+              (step === 1 && !selectedAssetId && !fromMaquinaria) ||
+              (step === 2 && selectedComponents.length === 0)
+            }
             className="ml-auto gap-2"
           >
             Siguiente <ArrowRight className="h-4 w-4" />
