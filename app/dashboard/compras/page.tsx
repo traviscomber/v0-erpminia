@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { PurchaseOrderForm } from '@/components/compras/purchase-order-form';
 import { SuppliersList } from '@/components/compras/suppliers-list';
@@ -30,7 +31,9 @@ export default function ComprasPage() {
       </Card>
 
       <div className="grid gap-6 lg:grid-cols-[420px_1fr]">
-        <PurchaseOrderForm />
+        <Suspense fallback={<div className="h-64 animate-pulse rounded-lg bg-muted" />}>
+          <PurchaseOrderForm />
+        </Suspense>
         <Card>
           <CardHeader>
             <CardTitle>Flujo de compras</CardTitle>
