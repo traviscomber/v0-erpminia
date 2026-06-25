@@ -148,8 +148,9 @@ export default function VehiclesPage() {
         </CardHeader>
         <CardContent>
           {derivedMachines.length > 0 ? (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {derivedMachines.slice(0, 12).map((machine: any) => (
+            <div className="max-h-[720px] overflow-y-auto pr-1">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {derivedMachines.map((machine: any) => (
                 <div key={machine.id} className="rounded-lg border border-border p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -163,7 +164,8 @@ export default function VehiclesPage() {
                     Este modelo viene del centro de costo y puede usarse como base del maestro de maquinas.
                   </p>
                 </div>
-              ))}
+                ))}
+              </div>
             </div>
           ) : (
             <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">

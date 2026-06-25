@@ -31,10 +31,7 @@ export function SuppliersList() {
     ...(debouncedSearch && { search: debouncedSearch }),
   });
 
-  const { data, isLoading, error } = useSWR(
-    `/api/compras/suppliers?${params}`,
-    fetcher,
-  );
+  const { data, isLoading, error } = useSWR(`/api/compras/suppliers?${params}`, fetcher);
 
   const suppliers = data?.suppliers || [];
   const pagination = data?.pagination || { page: 0, pageSize: 50, total: 0, totalPages: 0 };
@@ -60,15 +57,13 @@ export function SuppliersList() {
           />
         </div>
 
-        {error && (
-          <p className="text-sm text-destructive">Error cargando proveedores</p>
-        )}
+        {error && <p className="text-sm text-destructive">Error cargando proveedores</p>}
 
         {isLoading ? (
           <div className="py-8 text-center text-sm text-muted-foreground">Cargando proveedores...</div>
         ) : suppliers.length === 0 ? (
           <div className="py-8 text-center text-sm text-muted-foreground">
-            {debouncedSearch ? 'Sin resultados para la búsqueda' : 'No hay proveedores importados aún'}
+            {debouncedSearch ? 'Sin resultados para la busqueda' : 'No hay proveedores importados aun'}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -79,8 +74,8 @@ export function SuppliersList() {
                   <TableHead>RUT</TableHead>
                   <TableHead>Contacto</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Teléfono</TableHead>
-                  <TableHead>Dirección</TableHead>
+                  <TableHead>Telefono</TableHead>
+                  <TableHead>Direccion</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -104,7 +99,7 @@ export function SuppliersList() {
         {pagination.totalPages > 1 && (
           <div className="flex items-center justify-between border-t border-border pt-4">
             <span className="text-sm text-muted-foreground">
-              Página {page + 1} de {pagination.totalPages}
+              Pagina {page + 1} de {pagination.totalPages}
             </span>
             <div className="flex gap-2">
               <Button

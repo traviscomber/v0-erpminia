@@ -72,8 +72,8 @@ export default function ImportarExistenciasPage() {
     };
 
     try {
-      // Split the file into 3MB chunks and upload each one through the server
-      // (server uses Blob SDK server-side — no CORS issues, no payload limits).
+      // Split the file into 3MB chunks and upload each one through the server.
+      // The server uses Blob SDK, so we avoid CORS issues and payload limits.
       const CHUNK_SIZE = 3 * 1024 * 1024; // 3 MB per chunk
       const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
       const fileId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;

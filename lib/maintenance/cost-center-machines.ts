@@ -34,7 +34,27 @@ const MACHINE_KEYWORDS = [
   'electrogeno',
 ];
 
-const MACHINE_ROOT_CODES = new Set(['3', '4', '7', '8', '9', '10', '11', '12']);
+// Families that can produce operational machines or assets from the cost-center tree.
+// We keep administrative roots out, but include the equipment-heavy families that were
+// previously being skipped from the derived catalog.
+const MACHINE_ROOT_CODES = new Set([
+  '3',
+  '4',
+  '7',
+  '8',
+  '9',
+  '10',
+  '11',
+  '12',
+  '13',
+  '14',
+  '15',
+  '16',
+  '17',
+  '18',
+  '19',
+  '20',
+]);
 
 const CANONICAL_FAMILIES: Record<string, string> = {
   '1': 'Mina Peumo',
