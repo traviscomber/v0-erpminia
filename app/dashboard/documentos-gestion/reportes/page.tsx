@@ -1,9 +1,11 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
-import { AlertCircle, Clock, Search, Sparkles } from 'lucide-react';
+import { AlertCircle, ArrowRight, Clock, Search, Sparkles } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 
@@ -172,6 +174,41 @@ export default function ReportesGestionDocumentalPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card className="border-border/70 bg-card/80">
+        <CardHeader>
+          <CardTitle>Acceso rapido al modulo</CardTitle>
+          <CardDescription>Subrutas utiles para revisar el detalle sin perder contexto.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/documentos-gestion/contratos">
+                Contratos
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/documentos-gestion/procedimientos">
+                Procedimientos
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/documentos-gestion/seguridad">
+                Seguridad
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/documentos-gestion">
+                Gestion documental
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>

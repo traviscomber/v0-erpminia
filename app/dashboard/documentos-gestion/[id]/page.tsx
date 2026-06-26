@@ -1,9 +1,10 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import useSWR from 'swr';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Download, Eye } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Download, Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -127,6 +128,41 @@ export default function CategoryDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card className="border-border/70 bg-card/80">
+        <CardHeader>
+          <CardTitle>Acceso rapido al modulo</CardTitle>
+          <CardDescription>Entra a las subrutas principales sin volver al inicio.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/documentos-gestion">
+                Gestion documental
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/documentos-gestion/contratos">
+                Contratos
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/documentos-gestion/procedimientos">
+                Procedimientos
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/documentos-gestion/reportes">
+                Reportes
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
