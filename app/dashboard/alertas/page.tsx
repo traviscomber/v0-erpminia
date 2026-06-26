@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import useSWR from 'swr';
 import Link from 'next/link';
-import { AlertTriangle, AlertCircle, Info, CheckCircle2, Clock, Archive, RefreshCw } from 'lucide-react';
+import { AlertTriangle, AlertCircle, Info, CheckCircle2, Clock, Archive, RefreshCw, ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
@@ -200,6 +201,39 @@ export default function AlertasPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Accesos rapidos</CardTitle>
+          <CardDescription>Rutas utiles para resolver alertas sin salir del flujo operativo.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 gap-2 md:grid-cols-4">
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/mantenimiento/gerencial">
+              Mantenimiento
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/bodega">
+              Bodega
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/documentos-gestion">
+              Gestion documental
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/legal/documentos">
+              Documentos legales
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">

@@ -1,7 +1,9 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
+import { ArrowRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -115,6 +117,33 @@ export default function ProcedimientosPage() {
         <p className="text-muted-foreground">Gestion real de procedimientos, protocolos y procesos operacionales.</p>
       </div>
 
+      <div className="flex flex-wrap gap-2">
+        <Button asChild variant="outline" size="sm" className="gap-2">
+          <Link href="/dashboard/documentos-gestion">
+            Gestion documental
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </Button>
+        <Button asChild variant="outline" size="sm" className="gap-2">
+          <Link href="/dashboard/documentos-gestion/contratos">
+            Contratos
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </Button>
+        <Button asChild variant="outline" size="sm" className="gap-2">
+          <Link href="/dashboard/documentos-gestion/reportes">
+            Reportes
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </Button>
+        <Button asChild variant="outline" size="sm" className="gap-2">
+          <Link href="/dashboard/mantenimiento/documentos">
+            Documentos de mantenimiento
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </Button>
+      </div>
+
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
@@ -179,6 +208,33 @@ export default function ProcedimientosPage() {
           </CardContent>
         </Card>
       )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Accesos rapidos</CardTitle>
+          <CardDescription>Atajos utiles para revisar, medir y cruzar documentos.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 gap-2 md:grid-cols-3">
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/legal/documentos">
+              Documentos legales
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/mantenimiento/documentos">
+              Documentos de mantenimiento
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/documentos-gestion/reportes">
+              Reportes
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
