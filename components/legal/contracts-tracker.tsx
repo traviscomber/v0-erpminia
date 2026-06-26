@@ -35,6 +35,10 @@ export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
     return leftDays - rightDays;
   });
 
+  const activeCount = sortedContracts.filter((contract) => contract.status === 'active').length;
+  const expiringCount = sortedContracts.filter((contract) => contract.status === 'expiring').length;
+  const expiredCount = sortedContracts.filter((contract) => contract.status === 'expired').length;
+
   const getStatusBadge = (status: 'active' | 'expiring' | 'expired') => {
     switch (status) {
       case 'active':
@@ -59,6 +63,27 @@ export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
 
   return (
     <div className="space-y-3">
+      <Card className="border-border/70 bg-card/80">
+        <CardHeader className="pb-3">
+          <CardTitle>Matriz de contratos</CardTitle>
+          <CardDescription>Ordenada por vencimiento para ver primero lo que necesita revision.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-3">
+          <div className="rounded-lg border border-border p-3">
+            <p className="text-xs text-muted-foreground">Activos</p>
+            <p className="text-2xl font-bold">{activeCount}</p>
+          </div>
+          <div className="rounded-lg border border-border p-3">
+            <p className="text-xs text-muted-foreground">Por vencer</p>
+            <p className="text-2xl font-bold text-primary">{expiringCount}</p>
+          </div>
+          <div className="rounded-lg border border-border p-3">
+            <p className="text-xs text-muted-foreground">Vencidos</p>
+            <p className="text-2xl font-bold text-destructive">{expiredCount}</p>
+          </div>
+        </CardContent>
+      </Card>
+
       {sortedContracts.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
           <AlertCircle className="mx-auto mb-2 h-6 w-6" />
@@ -70,7 +95,8 @@ export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
           {sortedContracts.map((contract) => {
             const daysLeft = daysUntilExpiry(contract.endDate);
             const isExpiring = daysLeft <= 60 && daysLeft > 0;
-            const expiryLabel = daysLeft > 0 ? `Vence en ${daysLeft} dias` : daysLeft === 0 ? 'Vence hoy' : `Vencio hace ${Math.abs(daysLeft)} dias`;
+            const expiryLabel =
+              daysLeft > 0 ? `Vence en ${daysLeft} dias` : daysLeft === 0 ? 'Vence hoy' : `Vencio hace ${Math.abs(daysLeft)} dias`;
 
             return (
               <div
@@ -92,9 +118,7 @@ export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
                   <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
                     <Calendar className="h-3 w-3" />
                     <span>
-                      {new Date(contract.endDate).toLocaleDateString('es-CL')}
-                      {' '}
-                      ({expiryLabel})
+                      {new Date(contract.endDate).toLocaleDateString('es-CL')} ({expiryLabel})
                     </span>
                   </div>
                 </div>

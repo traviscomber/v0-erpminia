@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import useSWR from 'swr';
-import { AlertCircle, RefreshCw, Wrench } from 'lucide-react';
+import { AlertCircle, ArrowRight, RefreshCw, Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -36,22 +36,86 @@ export function ComponentesMayoresBoard() {
           <Button asChild variant="outline" className="gap-2">
             <Link href="/dashboard/mantenimiento/vehiculos">
               Vehiculos y QR
+              <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
           <Button asChild className="gap-2">
             <Link href="/dashboard/mantenimiento/gerencial">
               Gerencial
+              <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-        <Card><CardHeader className="pb-2"><CardTitle className="text-sm">Plantillas</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{summary.totalTemplates}</div></CardContent></Card>
-        <Card><CardHeader className="pb-2"><CardTitle className="text-sm">Componentes</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{summary.totalComponents}</div></CardContent></Card>
-        <Card><CardHeader className="pb-2"><CardTitle className="text-sm">Degradados</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold text-orange-500">{summary.degraded}</div></CardContent></Card>
-        <Card><CardHeader className="pb-2"><CardTitle className="text-sm">En fallo</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold text-destructive">{summary.failures}</div></CardContent></Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Plantillas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{summary.totalTemplates}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Componentes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{summary.totalComponents}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Degradados</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-500">{summary.degraded}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">En fallo</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-destructive">{summary.failures}</div>
+          </CardContent>
+        </Card>
       </div>
+
+      <Card className="border-border/70 bg-card/80">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-foreground">Acceso rapido a mantenimiento</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/costos">
+                Costos
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/personal">
+                Personal
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/vehiculos">
+                Vehiculos y QR
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/gerencial">
+                Gerencial
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="space-y-4">
         {isLoading ? (
@@ -75,7 +139,7 @@ export function ComponentesMayoresBoard() {
                   <div>
                     <CardTitle className="text-lg">{group.name}</CardTitle>
                     <p className="text-sm text-muted-foreground">
-                      {group.code} · {group.vehicleType || 'Sin tipo'} · Nivel {group.level}
+                      {group.code} | {group.vehicleType || 'Sin tipo'} | Nivel {group.level}
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">

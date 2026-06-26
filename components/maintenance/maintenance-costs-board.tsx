@@ -54,11 +54,73 @@ export function MaintenanceCostsBoard() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-        <Card><CardHeader className="pb-2"><CardTitle className="text-sm">Costo total</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{money(summary.totalCost)}</div></CardContent></Card>
-        <Card><CardHeader className="pb-2"><CardTitle className="text-sm">Equipos con costo</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{summary.assets}</div></CardContent></Card>
-        <Card><CardHeader className="pb-2"><CardTitle className="text-sm">OT con costo</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{summary.totalWorkOrders}</div></CardContent></Card>
-        <Card><CardHeader className="pb-2"><CardTitle className="text-sm">Promedio por equipo</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{money(summary.averageCostPerAsset)}</div></CardContent></Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Costo total</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{money(summary.totalCost)}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Equipos con costo</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{summary.assets}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">OT con costo</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{summary.totalWorkOrders}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Promedio por equipo</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{money(summary.averageCostPerAsset)}</div>
+          </CardContent>
+        </Card>
       </div>
+
+      <Card className="border-border/70 bg-card/80">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-foreground">Acceso rapido a mantenimiento</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/componentes-mayores">
+                Componentes mayores
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/personal">
+                Personal
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/bitacora">
+                Bitacora
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/vehiculos">
+                Vehiculos y QR
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         <Card>
@@ -85,7 +147,7 @@ export function MaintenanceCostsBoard() {
                       <p className="font-semibold">{asset.assetName}</p>
                       <p className="text-xs text-muted-foreground">{asset.assetCode || '-'}</p>
                       <p className="mt-2 text-xs text-muted-foreground">
-                        Repuestos {money(asset.partsCost)} · Mano de obra {money(asset.laborCost)} · OT {money(asset.workOrderCost)}
+                        Repuestos {money(asset.partsCost)} | Mano de obra {money(asset.laborCost)} | OT {money(asset.workOrderCost)}
                       </p>
                     </div>
                     <Badge variant="secondary">{money(asset.totalCost)}</Badge>

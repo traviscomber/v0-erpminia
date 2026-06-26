@@ -73,6 +73,40 @@ export function MaintenancePersonnelBoard() {
         </Card>
       </div>
 
+      <Card className="border-border/70 bg-card/80">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-foreground">Acceso rapido a mantenimiento</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/costos">
+                Costo por equipo
+                <Clock3 className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/componentes-mayores">
+                Componentes mayores
+                <Wrench className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/planificacion">
+                Planificacion
+                <Wrench className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/vehiculos">
+                Vehiculos y QR
+                <Users className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>Top tecnicos por horas</CardTitle>
@@ -122,32 +156,6 @@ export function MaintenancePersonnelBoard() {
               No hay registros recientes.
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Accesos relacionados</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-2 md:grid-cols-3">
-          <Button asChild variant="outline" className="justify-between">
-            <Link href="/dashboard/mantenimiento/costos">
-              Costo por equipo
-              <Clock3 className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="justify-between">
-            <Link href="/dashboard/mantenimiento/planificacion">
-              Planificacion
-              <Wrench className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="justify-between">
-            <Link href="/dashboard/mantenimiento/vehiculos">
-              Vehiculos y QR
-              <Users className="h-4 w-4" />
-            </Link>
-          </Button>
         </CardContent>
       </Card>
     </div>
