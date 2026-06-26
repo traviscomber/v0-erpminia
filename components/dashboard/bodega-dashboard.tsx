@@ -165,8 +165,20 @@ export function BodegaDashboard() {
               </Link>
             </Button>
             <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/compras/importar-existencias">
+                Compras y existencias
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/combustible">
                 Combustible para mantenimiento
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/centros-costos">
+                Centros de costo
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -179,6 +191,12 @@ export function BodegaDashboard() {
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/legal/documentos">
                 Documentos legales
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/bodega/documentos">
+                Documentos de bodega
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
