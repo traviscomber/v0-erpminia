@@ -154,6 +154,40 @@ export function BodegaDashboard() {
 
       <Card className="border-border/70 bg-card/80">
         <CardHeader className="pb-3">
+          <CardTitle className="text-foreground">Acceso rapido al flujo operativo</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/bodega/importar-datos">
+                Importar datos
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/combustible">
+                Combustible para mantenimiento
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento">
+                Mantenimiento
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/legal/documentos">
+                Documentos legales
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-border/70 bg-card/80">
+        <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-foreground">
             <Layers3 className="h-5 w-5 text-primary" />
             Estructura de la bodega
@@ -323,8 +357,8 @@ export function BodegaDashboard() {
                         <td className="p-3 text-sm text-muted-foreground">{hierarchy.team || '-'}</td>
                         <td className={`p-3 text-right font-semibold ${item.quantity < 10 ? 'text-destructive' : item.quantity <= item.min_stock ? 'text-yellow-600' : 'text-foreground'}`}>
                           {item.quantity.toLocaleString()}
-                          {item.quantity < 10 && <span className="ml-2 font-bold">Rojo</span>}
-                          {item.quantity >= 10 && item.quantity <= item.min_stock && <span className="ml-2 font-bold">Amarillo</span>}
+                          {item.quantity < 10 && <span className="ml-2 font-bold">Critico</span>}
+                          {item.quantity >= 10 && item.quantity <= item.min_stock && <span className="ml-2 font-bold">Reorden</span>}
                         </td>
                         <td className="p-3 text-right font-semibold text-muted-foreground">
                           {item.min_stock.toLocaleString()}
