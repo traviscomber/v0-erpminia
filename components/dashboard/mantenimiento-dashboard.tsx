@@ -193,6 +193,40 @@ export function MantenimientoDashboard() {
 
       <Card className="border-border/70 bg-card/90">
         <CardHeader>
+          <CardTitle>Acceso rapido al ecosistema</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/telemetria">
+                Telemetria de sensores
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/bodega">
+                Bodega e inventario
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/legal">
+                Modulo legal
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/documentos">
+                Documentos de mantenimiento
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-border/70 bg-card/90">
+        <CardHeader>
           <CardTitle>Acceso rapido</CardTitle>
         </CardHeader>
         <CardContent>

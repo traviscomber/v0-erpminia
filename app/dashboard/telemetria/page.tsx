@@ -64,6 +64,44 @@ export default function TelemetriaPage() {
         </Card>
       </div>
 
+      <Card className="border-border/70 bg-card/90">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="h-4 w-4 text-[var(--brand-naranja)]" />
+            Acceso rapido al flujo operativo
+          </CardTitle>
+          <CardDescription>Salta entre produccion, mantenimiento, bodega y legal sin perder el contexto.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento">
+                Mantenimiento
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/bodega">
+                Bodega
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/legal">
+                Legal
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/produccion">
+                Produccion
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-1">
           <CardHeader>

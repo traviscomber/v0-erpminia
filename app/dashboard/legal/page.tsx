@@ -1,8 +1,9 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
-import { AlertCircle, CheckCircle2, Download, Eye, FileText, Scale, Search } from 'lucide-react';
+import { AlertCircle, ArrowRight, CheckCircle2, Download, Eye, FileText, Scale, Search } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -414,6 +415,43 @@ export default function LegalPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card className="border-border/70 bg-card/90">
+        <CardHeader>
+          <CardTitle>Acceso rapido al flujo documental</CardTitle>
+          <CardDescription>
+            Legal trabaja conectado a mantenimiento, bodega y telemetria para cerrar trazabilidad.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/documentos">
+                Documentos de mantenimiento
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/bodega/documentos">
+                Documentos de bodega
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/telemetria">
+                Telemetria
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/legal/documentos">
+                Documentos legales
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {hasError && (
         <Card className="border-destructive/30">
