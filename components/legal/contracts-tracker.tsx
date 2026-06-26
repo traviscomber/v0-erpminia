@@ -57,7 +57,7 @@ export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
       case 'pending':
         return <Badge className="bg-primary/10 text-primary">Pendiente</Badge>;
       case 'rejected':
-        return <Badge className="bg-destructive/10 text-destructive">Observado</Badge>;
+        return <Badge className="bg-destructive/10 text-destructive">Rechazado</Badge>;
     }
   };
 

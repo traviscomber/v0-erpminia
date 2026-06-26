@@ -129,27 +129,6 @@ export default function DocumentosLegalPage() {
         <p className="mt-2 text-muted-foreground">Gestion de contratos, politicas y documentos legales.</p>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        <Button asChild variant="outline" className="gap-2">
-          <Link href="/dashboard/legal">
-            Inicio legal
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </Button>
-        <Button asChild variant="outline" className="gap-2">
-          <Link href="/dashboard/documentos-gestion/contratos">
-            Contratos
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </Button>
-        <Button asChild variant="outline" className="gap-2">
-          <Link href="/dashboard/documentos-gestion/reportes">
-            Reportes
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </Button>
-      </div>
-
       <Card>
         <CardHeader>
           <CardTitle>Acceso rapido al flujo legal</CardTitle>
