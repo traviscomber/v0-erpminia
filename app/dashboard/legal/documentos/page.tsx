@@ -150,6 +150,39 @@ export default function DocumentosLegalPage() {
         </Button>
       </div>
 
+      <Card>
+        <CardHeader>
+          <CardTitle>Acceso rapido al flujo legal</CardTitle>
+          <CardDescription>Rutas directas para contratos, documentos y reportes sin salir del modulo.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 gap-2 md:grid-cols-4">
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/legal">
+              Inicio legal
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/legal/documentos">
+              Documentos legales
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/documentos-gestion/contratos">
+              Contratos y tracker
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/documentos-gestion/reportes">
+              Reportes documentales
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-3">
@@ -249,33 +282,6 @@ export default function DocumentosLegalPage() {
           </Card>
         </TabsContent>
       </Tabs>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Accesos rapidos</CardTitle>
-          <CardDescription>Atajos utiles para no salir del flujo legal.</CardDescription>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-2 md:grid-cols-3">
-          <Button asChild variant="outline" className="justify-between">
-            <Link href="/dashboard/legal/documentos">
-              Documentos legales
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="justify-between">
-            <Link href="/dashboard/documentos-gestion/contratos">
-              Contratos y tracker
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="justify-between">
-            <Link href="/dashboard/mantenimiento/documentos">
-              Documentos de mantenimiento
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-        </CardContent>
-      </Card>
 
       <DocumentReviewModal
         document={selectedDoc}

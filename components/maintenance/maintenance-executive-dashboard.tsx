@@ -107,6 +107,12 @@ export function MaintenanceExecutiveDashboard() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline" className="gap-2">
+            <Link href="/dashboard/mantenimiento/planificacion">
+              <CalendarClock className="h-4 w-4" />
+              Planificacion
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="gap-2">
             <Link href="/dashboard/mantenimiento/movil">
               <Smartphone className="h-4 w-4" />
               Vista movil
@@ -293,10 +299,10 @@ export function MaintenanceExecutiveDashboard() {
             )}
 
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento">
-                Panel principal
-                <ArrowRight className="h-4 w-4" />
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento">
+                  Panel principal
+                  <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
             <Button asChild variant="outline" className="justify-between">
@@ -305,11 +311,11 @@ export function MaintenanceExecutiveDashboard() {
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/planificacion">
-                Planificacion preventiva
-                <ArrowRight className="h-4 w-4" />
-              </Link>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/planificacion">
+                  Planificacion preventiva
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/costos">
@@ -335,12 +341,12 @@ export function MaintenanceExecutiveDashboard() {
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/componentes-mayores">
-                Componentes mayores
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/componentes-mayores">
+                  Componentes mayores
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
             </div>
           </CardContent>
         </Card>

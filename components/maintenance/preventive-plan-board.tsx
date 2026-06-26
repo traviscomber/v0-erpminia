@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
-import { AlertCircle, CalendarClock, Filter, RefreshCw } from 'lucide-react';
+import { AlertCircle, ArrowRight, CalendarClock, Filter, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -141,6 +141,38 @@ export function PreventivePlanBoard() {
       </div>
 
       <Card>
+        <CardHeader>
+          <CardTitle>Acceso rapido a mantenimiento</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-4">
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/mantenimiento/gerencial">
+              Dashboard gerencial
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/mantenimiento/bitacora">
+              Bitacora
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/mantenimiento/costos">
+              Costo por equipo
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/mantenimiento/vehiculos">
+              Vehiculos y QR
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
         <CardHeader className="space-y-3">
           <CardTitle className="flex items-center gap-2">
             <Filter className="h-4 w-4" />
@@ -187,8 +219,8 @@ export function PreventivePlanBoard() {
                           </div>
                           <p className="text-sm text-muted-foreground">
                             {schedule.assetName}
-                            {schedule.assetCode ? ` · ${schedule.assetCode}` : ''}
-                            {schedule.location ? ` · ${schedule.location}` : ''}
+                            {schedule.assetCode ? ` | ${schedule.assetCode}` : ''}
+                            {schedule.location ? ` | ${schedule.location}` : ''}
                           </p>
                           {schedule.description ? <p className="text-sm text-muted-foreground">{schedule.description}</p> : null}
                           <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
@@ -215,3 +247,4 @@ export function PreventivePlanBoard() {
     </div>
   );
 }
+
