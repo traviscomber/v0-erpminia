@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { AlertCircle, CheckCircle2, Download, ExternalLink, Loader2, XCircle } from 'lucide-react';
+import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -37,7 +38,7 @@ export function DocumentReviewModal({ open, document, level = 'L1', onClose, onR
   const handleReview = async (status: ReviewStatus) => {
     if (!document || status === null) return;
     if (status === 'no_cumple' && !observations.trim()) {
-      alert('Debes agregar observaciones al rechazar un documento.');
+      toast.error('Debes agregar observaciones al rechazar un documento.');
       return;
     }
 
@@ -154,7 +155,7 @@ export function DocumentReviewModal({ open, document, level = 'L1', onClose, onR
 
           {reviewStatus === 'no_cumple' && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">Observaciones requeridas</label>
+              <label className="text-sm font-medium">Observaciones requeridas para rechazo</label>
               <Textarea
                 placeholder="Describe los motivos del rechazo y las acciones correctivas necesarias..."
                 value={observations}
@@ -167,7 +168,7 @@ export function DocumentReviewModal({ open, document, level = 'L1', onClose, onR
 
           {reviewStatus === 'cumple' && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">Observaciones opcionales</label>
+              <label className="text-sm font-medium">Observaciones opcionales de aprobacion</label>
               <Textarea
                 placeholder="Agrega cualquier nota o comentario..."
                 value={observations}

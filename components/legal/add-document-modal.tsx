@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface AddDocumentModalProps {
   onSubmit: (doc: any) => Promise<void>;
@@ -33,12 +34,14 @@ export function AddDocumentModal({ onSubmit }: AddDocumentModalProps) {
     if (!ALLOWED_EXTENSIONS.includes(extension)) {
       event.target.value = '';
       setFile(null);
+      toast.error('Formato no valido. Usa PDF, DOC, DOCX, XLS o XLSX.');
       return;
     }
 
     if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
       event.target.value = '';
       setFile(null);
+      toast.error('El archivo supera el limite de 50 MB.');
       return;
     }
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { AlertTriangle, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
@@ -199,6 +200,18 @@ export function SensorAlerts({ equipmentId }: SensorAlertProps) {
               <Button size="sm" onClick={createSuggestedOt} disabled={!canCreateOt || creatingOt}>
                 {creatingOt ? 'Generando OT...' : 'Generar OT sugerida'}
               </Button>
+              {resolvedEquipmentId && (
+                <>
+                  <Button size="sm" variant="outline" asChild>
+                    <Link href={`/dashboard/mantenimiento/vehiculos/${resolvedEquipmentId}/ficha`}>
+                      Ver ficha completa
+                    </Link>
+                  </Button>
+                  <Button size="sm" variant="outline" asChild>
+                    <Link href="/dashboard/mantenimiento">Ir a mantenimiento</Link>
+                  </Button>
+                </>
+              )}
           </div>
         </CardContent>
       </Card>

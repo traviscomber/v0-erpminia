@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface AddContractModalProps {
   onSubmit: (contract: any) => Promise<void>;
@@ -37,12 +38,14 @@ export function AddContractModal({ onSubmit }: AddContractModalProps) {
     if (!ALLOWED_EXTENSIONS.includes(extension)) {
       event.target.value = '';
       setFile(null);
+      toast.error('Formato no valido. Usa PDF, DOC o DOCX.');
       return;
     }
 
     if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
       event.target.value = '';
       setFile(null);
+      toast.error('El archivo supera el limite de 50 MB.');
       return;
     }
 

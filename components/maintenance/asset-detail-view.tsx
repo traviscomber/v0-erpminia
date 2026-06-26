@@ -238,6 +238,41 @@ export function AssetDetailView() {
         </div>
       </div>
 
+      <Card className="border-border/70 bg-card/90">
+        <CardHeader className="pb-3">
+          <CardTitle>Atajos del activo</CardTitle>
+          <CardDescription>Todo lo importante del equipo queda a un clic para terreno y supervision.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <Button asChild variant="outline" className="justify-between">
+              <Link href={`/dashboard/mantenimiento/vehiculos/${asset.id}/qr`}>
+                Tarjeta QR
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href={`/dashboard/work-orders/create?assetId=${asset.id}`}>
+                Crear OT
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/telemetria">
+                Telemetria
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/bodega">
+                Bodega
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
