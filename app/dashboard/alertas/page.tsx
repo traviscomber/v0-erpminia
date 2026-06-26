@@ -215,6 +215,12 @@ export default function AlertasPage() {
             </Link>
           </Button>
           <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/telemetria">
+              Telemetria
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
             <Link href="/dashboard/bodega">
               Bodega
               <ArrowRight className="h-4 w-4" />

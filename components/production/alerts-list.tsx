@@ -65,7 +65,7 @@ export function AlertsList({ alerts }: AlertsListProps) {
                       </div>
                     </div>
                     {alert.action_needed && (
-                      <p className="text-xs font-medium mt-2 text-yellow-700">Acción: {alert.action_needed}</p>
+                      <p className="text-xs font-medium mt-2 text-yellow-700">Accion: {alert.action_needed}</p>
                     )}
                   </div>
                 </div>

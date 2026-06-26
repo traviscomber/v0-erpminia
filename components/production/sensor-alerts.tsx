@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { AlertTriangle, Zap } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -128,7 +128,7 @@ export function SensorAlerts({ equipmentId }: SensorAlertProps) {
       toast.success(
         payload?.work_order_number
           ? `Se genero la orden sugerida ${payload.work_order_number}`
-          : 'Se genero la orden sugerida correctamente'
+          : 'Se genero la orden sugerida correctamente',
       );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'No se pudo generar la orden sugerida');
@@ -176,43 +176,45 @@ export function SensorAlerts({ equipmentId }: SensorAlertProps) {
           <CardDescription>Lectura resumida del activo y acceso directo a mantenimiento.</CardDescription>
         </CardHeader>
         <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-xs text-muted-foreground">Temperatura</p>
-                <p className="text-lg font-semibold">{sensor.temperature ?? '--'} C</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Presion</p>
-                <p className="text-lg font-semibold">{sensor.pressure ?? '--'} PSI</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Vibracion</p>
-                <p className="text-lg font-semibold">{sensor.vibration ?? '--'} m/s2</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">RPM</p>
-                <p className="text-lg font-semibold">{sensor.rpm ?? '--'}</p>
-              </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs text-muted-foreground">Temperatura</p>
+              <p className="text-lg font-semibold">{sensor.temperature ?? '--'} C</p>
             </div>
-            <p className="mt-3 text-xs text-muted-foreground">
-              Ultima lectura: {new Date(sensor.timestamp).toLocaleString('es-CL')}
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <Button size="sm" onClick={createSuggestedOt} disabled={!canCreateOt || creatingOt}>
-                {creatingOt ? 'Generando OT...' : 'Crear OT sugerida'}
-              </Button>
-              {resolvedEquipmentId && (
-                <>
-                  <Button size="sm" variant="outline" asChild>
-                    <Link href={`/dashboard/mantenimiento/vehiculos/${resolvedEquipmentId}/ficha`}>
-                      Ver ficha completa
-                    </Link>
-                  </Button>
-                  <Button size="sm" variant="outline" asChild>
-                    <Link href="/dashboard/mantenimiento">Ir a mantenimiento</Link>
-                  </Button>
-                </>
-              )}
+            <div>
+              <p className="text-xs text-muted-foreground">Presion</p>
+              <p className="text-lg font-semibold">{sensor.pressure ?? '--'} PSI</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Vibracion</p>
+              <p className="text-lg font-semibold">{sensor.vibration ?? '--'} m/s2</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">RPM</p>
+              <p className="text-lg font-semibold">{sensor.rpm ?? '--'}</p>
+            </div>
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">Ultima lectura: {new Date(sensor.timestamp).toLocaleString('es-CL')}</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button size="sm" onClick={createSuggestedOt} disabled={!canCreateOt || creatingOt}>
+              {creatingOt ? 'Generando OT...' : 'Crear OT sugerida'}
+            </Button>
+            {resolvedEquipmentId && (
+              <>
+                <Button size="sm" variant="outline" asChild>
+                  <Link href={`/dashboard/mantenimiento/vehiculos/${resolvedEquipmentId}/ficha`}>
+                    Ver ficha completa
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button size="sm" variant="outline" asChild>
+                  <Link href="/dashboard/mantenimiento">
+                    Ir a mantenimiento
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -226,8 +228,7 @@ export function SensorAlerts({ equipmentId }: SensorAlertProps) {
                 <div>
                   <p className="text-sm font-medium">{alarm.message}</p>
                   <p className="text-xs text-muted-foreground">
-                    {alarm.severity || 'media'} -{' '}
-                    {new Date(alarm.created_at || new Date().toISOString()).toLocaleTimeString('es-CL')}
+                    {alarm.severity || 'media'} - {new Date(alarm.created_at || new Date().toISOString()).toLocaleTimeString('es-CL')}
                   </p>
                 </div>
               </div>
