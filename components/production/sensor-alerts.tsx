@@ -6,7 +6,7 @@ import { AlertTriangle, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface SensorReading {
   asset_id: string;
@@ -156,7 +156,7 @@ export function SensorAlerts({ equipmentId }: SensorAlertProps) {
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm text-destructive">
               <AlertTriangle className="h-4 w-4" />
-              Alerta activa
+              Alerta operativa activa
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -173,6 +173,7 @@ export function SensorAlerts({ equipmentId }: SensorAlertProps) {
               {sensor.status === 'alert' ? 'Alerta' : 'Normal'}
             </Badge>
           </CardTitle>
+          <CardDescription>Lectura resumida del activo y acceso directo a mantenimiento.</CardDescription>
         </CardHeader>
         <CardContent>
             <div className="grid grid-cols-2 gap-4">
@@ -198,7 +199,7 @@ export function SensorAlerts({ equipmentId }: SensorAlertProps) {
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               <Button size="sm" onClick={createSuggestedOt} disabled={!canCreateOt || creatingOt}>
-                {creatingOt ? 'Generando OT...' : 'Generar OT sugerida'}
+                {creatingOt ? 'Generando OT...' : 'Crear OT sugerida'}
               </Button>
               {resolvedEquipmentId && (
                 <>
