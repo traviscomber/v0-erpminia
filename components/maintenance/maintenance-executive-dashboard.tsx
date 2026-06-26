@@ -303,44 +303,44 @@ export function MaintenanceExecutiveDashboard() {
                 <Link href="/dashboard/mantenimiento">
                   Panel principal
                   <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/bitacora">
-                Bitacora
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/bitacora">
+                  Bitacora
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/planificacion">
                   Planificacion preventiva
                   <ArrowRight className="h-4 w-4" />
                 </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/costos">
-                Costo por equipo
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/neumaticos">
-                Neumaticos
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/personal">
-                Personal mantencion
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/combustible">
-                Combustible
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
+              </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/costos">
+                  Costo por equipo
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/neumaticos">
+                  Neumaticos
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/personal">
+                  Personal mantencion
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/combustible">
+                  Combustible
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/componentes-mayores">
                   Componentes mayores
