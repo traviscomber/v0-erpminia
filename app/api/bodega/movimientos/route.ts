@@ -100,7 +100,9 @@ export async function GET(request: NextRequest) {
     .order('created_at', { ascending: false })
     .limit(limit);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    return NextResponse.json({ movements: [], warning: error.message });
+  }
 
   return NextResponse.json({ movements: data || [] });
 }
