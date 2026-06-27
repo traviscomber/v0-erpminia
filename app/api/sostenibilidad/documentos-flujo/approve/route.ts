@@ -3,7 +3,6 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-// Initialize Supabase client only when needed to avoid build-time errors
 function getSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -30,22 +29,14 @@ export async function POST(request: NextRequest) {
     const body: ApprovalRequest = await request.json();
     const { document_id, approval_level, action, comments, user_id, user_role } = body;
 
-    // Validaciones
     if (!document_id || !approval_level || !action || !user_id || !user_role) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     if (!['approve', 'reject'].includes(action)) {
-      return NextResponse.json(
-        { error: 'Invalid action' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
 
-    // Get current approval record
     const { data: approval, error: getError } = await supabase
       .from('document_approvals')
       .select('*')
@@ -54,21 +45,13 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (getError || !approval) {
-      return NextResponse.json(
-        { error: 'Approval record not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Approval record not found' }, { status: 404 });
     }
 
-    // Verify user role matches required role
     if (approval.required_role !== user_role) {
-      return NextResponse.json(
-        { error: 'Insufficient permissions to approve at this level' },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: 'Insufficient permissions to approve at this level' }, { status: 403 });
     }
 
-    // Update approval status
     const { data: updatedApproval, error: updateError } = await supabase
       .from('document_approvals')
       .update({
@@ -84,55 +67,51 @@ export async function POST(request: NextRequest) {
 
     if (updateError) {
       console.error('[v0] Error updating approval:', updateError);
-      return NextResponse.json(
-        { error: 'No se pudo actualizar approval' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'No se pudo actualizar approval' }, { status: 500 });
     }
 
-    // If approved, check if all previous levels are approved and update document status
+    const warnings: string[] = [];
+
     if (action === 'approve') {
-      // Get all approvals for this document
-      const { data: allApprovals } = await supabase
+      const { data: allApprovals, error: approvalsError } = await supabase
         .from('document_approvals')
         .select('*')
         .eq('document_id', document_id)
         .order('approval_level', { ascending: true });
 
-      // Determine document status based on approval chain
-      let newDocStatus = 'under_review';
-      let allApproved = true;
+      if (approvalsError) {
+        warnings.push('No se pudo validar la cadena completa de aprobaciones');
+      } else {
+        let newDocStatus = 'under_review';
 
-      if (allApprovals && allApprovals.length > 0) {
-        // Check if current level is the last one
-        const isLastLevel = approval_level === Math.max(...allApprovals.map((a: any) => a.approval_level));
+        if (allApprovals && allApprovals.length > 0) {
+          const isLastLevel = approval_level === Math.max(...allApprovals.map((a: any) => a.approval_level));
 
-        if (isLastLevel) {
-          // Check if all previous levels are approved
-          const previousApprovals = allApprovals.filter((a: any) => a.approval_level < approval_level);
-          const allPreviousApproved = previousApprovals.every((a: any) => a.status === 'approved');
+          if (isLastLevel) {
+            const previousApprovals = allApprovals.filter((a: any) => a.approval_level < approval_level);
+            const allPreviousApproved = previousApprovals.every((a: any) => a.status === 'approved');
 
-          if (allPreviousApproved) {
-            newDocStatus = 'approved';
-          } else {
-            newDocStatus = 'under_review';
+            if (allPreviousApproved) {
+              newDocStatus = 'approved';
+            }
           }
-        } else {
-          newDocStatus = 'under_review';
+        }
+
+        const { error: docUpdateError } = await supabase
+          .from('documents')
+          .update({
+            status: newDocStatus,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', document_id);
+
+        if (docUpdateError) {
+          warnings.push('No se pudo actualizar el estado del documento');
+          console.error('[v0] Error updating document status:', docUpdateError);
         }
       }
-
-      // Update document status
-      await supabase
-        .from('documents')
-        .update({
-          status: newDocStatus,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', document_id);
     } else if (action === 'reject') {
-      // If rejected, update document status to rejected
-      await supabase
+      const { error: docUpdateError } = await supabase
         .from('documents')
         .update({
           status: 'rejected',
@@ -141,29 +120,36 @@ export async function POST(request: NextRequest) {
           updated_at: new Date().toISOString(),
         })
         .eq('id', document_id);
+
+      if (docUpdateError) {
+        warnings.push('No se pudo actualizar el estado del documento');
+        console.error('[v0] Error updating rejected document:', docUpdateError);
+      }
     }
 
-    // Log audit trail
-    await supabase.from('document_audit_logs').insert({
-      document_id,
-      action: action === 'approve' ? 'approved' : 'rejected',
-      user_id,
-      details: `${action === 'approve' ? 'Approved' : 'Rejected'} at level ${approval_level}: ${comments || ''}`,
-    });
+    try {
+      await supabase.from('document_audit_logs').insert({
+        document_id,
+        action: action === 'approve' ? 'approved' : 'rejected',
+        user_id,
+        details: `${action === 'approve' ? 'Approved' : 'Rejected'} at level ${approval_level}: ${comments || ''}`,
+      });
+    } catch (auditError) {
+      warnings.push('No se pudo guardar el audit log');
+      console.error('[v0] Error inserting audit log:', auditError);
+    }
 
     return NextResponse.json(
       {
         success: true,
         message: `Document ${action === 'approve' ? 'approved' : 'rejected'} successfully`,
         data: updatedApproval,
+        warnings,
       },
       { status: 200 }
     );
   } catch (error) {
     console.error('[v0] Error in POST /api/sostenibilidad/documentos-flujo/approve:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
