@@ -5,7 +5,7 @@ import { CheckCircle2, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
 
 export default function MisAprobacionesPage() {
   const { data, isLoading } = useSWR('/api/sostenibilidad/documentos-flujo', fetcher);
@@ -14,6 +14,8 @@ export default function MisAprobacionesPage() {
   const pendientes = documentos.filter(
     (doc: any) => doc.status === 'pending' || doc.status === 'submitted' || doc.status === 'under_review'
   );
+  const aprobados = documentos.filter((doc: any) => doc.status === 'approved' || doc.status === 'aprobado_final');
+  const rechazados = documentos.filter((doc: any) => doc.status === 'rejected');
 
   return (
     <div className="space-y-6">
@@ -39,7 +41,7 @@ export default function MisAprobacionesPage() {
             <CardTitle className="text-sm font-medium">Aprobados</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">0</div>
+            <div className="text-3xl font-bold">{aprobados.length}</div>
           </CardContent>
         </Card>
 
@@ -48,7 +50,7 @@ export default function MisAprobacionesPage() {
             <CardTitle className="text-sm font-medium">Rechazados</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">0</div>
+            <div className="text-3xl font-bold">{rechazados.length}</div>
           </CardContent>
         </Card>
       </div>
