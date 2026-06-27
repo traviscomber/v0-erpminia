@@ -60,7 +60,18 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudieron cargar las no conformidades';
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[sostenibilidad][nonconformances] GET fallback:', message);
+    return NextResponse.json({
+      data: [],
+      nonconformances: [],
+      stats: {
+        total: 0,
+        open: 0,
+        in_progress: 0,
+        closed: 0,
+        overdue: 0,
+      },
+    });
   }
 }
 
