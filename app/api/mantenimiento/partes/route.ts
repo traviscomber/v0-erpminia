@@ -7,6 +7,10 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(request: NextRequest) {
   const { otId, sku, cantidad } = await request.json();
 
+  if (!otId || !sku || typeof cantidad !== 'number' || cantidad <= 0) {
+    return NextResponse.json({ error: 'Datos de reserva inválidos' }, { status: 400 });
+  }
+
   const cookieStore = await cookies();
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -96,6 +100,10 @@ export async function GET(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   const { partId, quantityConsumed } = await request.json();
+
+  if (!partId || typeof quantityConsumed !== 'number' || quantityConsumed < 0) {
+    return NextResponse.json({ error: 'Datos de consumo inválidos' }, { status: 400 });
+  }
 
   const cookieStore = await cookies();
   const supabase = createServerClient(
