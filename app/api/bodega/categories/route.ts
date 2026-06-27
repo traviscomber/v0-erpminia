@@ -21,7 +21,9 @@ export async function GET(request: NextRequest) {
 
   const { data, error } = await query;
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    return NextResponse.json({ categories: [], warning: error.message });
+  }
 
   // Aggregate by canonical category
   const map = new Map<string, { count: number; low_stock: number; total_stock: number }>();
