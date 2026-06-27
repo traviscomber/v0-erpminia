@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState, type DragEvent } from 'react';
 import useSWR from 'swr';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,7 +33,7 @@ export default function HSECapacitacionesPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data, error, isLoading } = useSWR(
-    `/api/hse/capacitaciones${estado ? `estado=${encodeURIComponent(estado)}` : ''}`,
+    `/api/hse/capacitaciones${estado ? `?estado=${encodeURIComponent(estado)}` : ''}`,
     fetcher,
     { revalidateOnFocus: false, refreshInterval: 300000 }
   );
@@ -112,7 +112,7 @@ export default function HSECapacitacionesPage() {
     }
   };
 
-  const handleImportDrag = (e: React.DragEvent) => {
+  const handleImportDrag = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     if (e.type === 'dragenter' || e.type === 'dragover') {
@@ -122,7 +122,7 @@ export default function HSECapacitacionesPage() {
     }
   };
 
-  const handleImportDrop = (e: React.DragEvent) => {
+  const handleImportDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
