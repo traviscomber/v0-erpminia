@@ -7,6 +7,10 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(request: NextRequest) {
   const { otId, horasTrabajadas, descripcion } = await request.json();
 
+  if (!otId || typeof horasTrabajadas !== 'number' || horasTrabajadas <= 0) {
+    return NextResponse.json({ error: 'Datos de tiempo inválidos' }, { status: 400 });
+  }
+
   const cookieStore = await cookies();
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
