@@ -7,6 +7,14 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(request: NextRequest) {
   const { sku, tipo, cantidad, razon, location_from, location_to } = await request.json();
 
+  if (!sku || !tipo || typeof cantidad !== 'number' || cantidad <= 0) {
+    return NextResponse.json({ error: 'Datos de movimiento inválidos' }, { status: 400 });
+  }
+
+  if (tipo !== 'entrada' && tipo !== 'salida') {
+    return NextResponse.json({ error: 'Tipo de movimiento inválido' }, { status: 400 });
+  }
+
   const cookieStore = await cookies();
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -32,29 +40,30 @@ export async function POST(request: NextRequest) {
 
   if (invError || !inventory) return NextResponse.json({ error: 'No se encontró el SKU' }, { status: 404 });
 
-  let newQuantity = inventory.quantity;
-  if (tipo === 'entrada') newQuantity += cantidad;
-  else if (tipo === 'salida') newQuantity = Math.max(0, inventory.quantity - cantidad);
+  const currentQuantity = Number(inventory.quantity || 0);
+  const movementQuantity = Number(cantidad || 0);
 
-  // Update inventory
+  let newQuantity = currentQuantity;
+  if (tipo === 'entrada') newQuantity += movementQuantity;
+  else newQuantity = Math.max(0, currentQuantity - movementQuantity);
+
   const { data: updated, error: updateError } = await supabase
     .from('bodega_inventory')
     .update({
       quantity: newQuantity,
-      location: location_to || inventory.location,
+      location: location_to || inventory.location || '',
     })
     .eq('sku', sku)
     .select();
 
   if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 });
 
-  // Record movement
   const { data: movement, error: moveError } = await supabase
     .from('bodega_movements')
     .insert({
       sku,
       movement_type: tipo,
-      quantity: cantidad,
+      quantity: movementQuantity,
       reason: razon,
       performed_by: user.id,
     })
@@ -91,7 +100,7 @@ export async function GET(request: NextRequest) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
-  if (!sku) return NextResponse.json({ error: 'Se requiere SKU' }, { status: 400 });
+  if (!sku) return NextResponse.json({ movements: [], warning: 'Se requiere SKU' });
 
   const { data, error } = await supabase
     .from('bodega_movements')
