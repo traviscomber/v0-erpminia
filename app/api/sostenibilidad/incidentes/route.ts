@@ -51,7 +51,17 @@ export async function GET(request: NextRequest) {
 
   const { data, error } = await query.order('fecha_incidente', { ascending: false });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error('[sostenibilidad][incidentes] GET fallback:', error.message);
+    return NextResponse.json({
+      incidents: [],
+      stats: {
+        total: 0,
+        lesiones: 0,
+        near_miss: 0,
+      },
+    });
+  }
 
   const stats = {
     total: data?.length || 0,
