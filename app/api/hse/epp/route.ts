@@ -14,7 +14,9 @@ export async function GET(request: NextRequest) {
 
     const entregas = cargo
       ? data.epp.filter((item: any) =>
-          item.cargo.toLowerCase().includes(cargo.toLowerCase())
+          String(item.cargo || item.cargo_puesto || '')
+            .toLowerCase()
+            .includes(cargo.toLowerCase())
         )
       : data.epp;
 
