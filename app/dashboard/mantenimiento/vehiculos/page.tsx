@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { BrandCard } from '@/components/ui/brand-card';
 import { ChevronRight, FileSearch, Plus, Wrench } from 'lucide-react';
+import { AssetImport } from '@/components/mantenimiento/asset-import';
 
 type MaintenanceAsset = {
   id: string;
@@ -48,6 +49,8 @@ export default function VehiclesPage() {
           </p>
         </div>
       </div>
+
+      <AssetImport onSuccess={() => window.location.reload()} />
 
       <BrandCard variant="default">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
