@@ -13,11 +13,21 @@ interface KPISeguridadProps {
   dias_sin_accidentes: number;
 }
 
+function toNumber(value: unknown, fallback = 0) {
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+}
+
+function formatNumber(value: unknown, digits: number, fallback = '-') {
+  return typeof value === 'number' && Number.isFinite(value) ? value.toFixed(digits) : fallback;
+}
+
 export function HSEKPIsSeguridad({ kpis, meta_iirl = 1.0 }: { kpis: KPISeguridadProps[]; meta_iirl: number }) {
   const ultimoMes = kpis[kpis.length - 1] || {};
   const mesPrevio = kpis[kpis.length - 2] || {};
 
-  const cambioIirl = (ultimoMes.iirl || 0) - (mesPrevio.iirl || 0);
+  const ultimoIirl = toNumber((ultimoMes as any).iirl);
+  const previoIirl = toNumber((mesPrevio as any).iirl);
+  const cambioIirl = ultimoIirl - previoIirl;
   const esBien = cambioIirl < 0;
 
   return (
@@ -27,11 +37,11 @@ export function HSEKPIsSeguridad({ kpis, meta_iirl = 1.0 }: { kpis: KPISeguridad
         <CardDescription>Tendencias de los ultimos 12 meses</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {(ultimoMes.iirl || 0) > meta_iirl && (
+        {ultimoIirl > meta_iirl && (
           <Alert className="border-red-200 bg-red-50">
             <AlertTriangle className="h-4 w-4 text-red-600" />
             <AlertDescription className="text-red-800">
-              IIRL por encima de meta (Actual: {ultimoMes.iirl}, Meta: {meta_iirl})
+              IIRL por encima de meta (Actual: {formatNumber((ultimoMes as any).iirl, 2, '0.00')}, Meta: {meta_iirl})
             </AlertDescription>
           </Alert>
         )}
@@ -40,7 +50,7 @@ export function HSEKPIsSeguridad({ kpis, meta_iirl = 1.0 }: { kpis: KPISeguridad
           <div className="rounded bg-blue-50 p-3">
             <p className="mb-1 text-xs text-muted-foreground">IIRL (indice)</p>
             <div className="flex items-end justify-between">
-              <p className="text-lg font-bold">{ultimoMes.iirl.toFixed(2) || '-'}</p>
+              <p className="text-lg font-bold">{formatNumber((ultimoMes as any).iirl, 2)}</p>
               <div className={`flex items-center gap-1 text-xs ${esBien ? 'text-green-600' : 'text-red-600'}`}>
                 {esBien ? <TrendingDown className="h-3 w-3" /> : <TrendingUp className="h-3 w-3" />}
                 {Math.abs(cambioIirl).toFixed(2)}
@@ -50,17 +60,17 @@ export function HSEKPIsSeguridad({ kpis, meta_iirl = 1.0 }: { kpis: KPISeguridad
 
           <div className="rounded bg-orange-50 p-3">
             <p className="mb-1 text-xs text-muted-foreground">ODI (indice)</p>
-            <p className="text-lg font-bold">{ultimoMes.odi.toFixed(2) || '-'}</p>
+            <p className="text-lg font-bold">{formatNumber((ultimoMes as any).odi, 2)}</p>
           </div>
 
           <div className="rounded bg-green-50 p-3">
             <p className="mb-1 text-xs text-muted-foreground">Dias sin accidentes</p>
-            <p className="text-lg font-bold">{ultimoMes.dias_sin_accidentes || '0'}</p>
+            <p className="text-lg font-bold">{toNumber((ultimoMes as any).dias_sin_accidentes, 0)}</p>
           </div>
 
           <div className="rounded bg-purple-50 p-3">
             <p className="mb-1 text-xs text-muted-foreground">Tasa frecuencia</p>
-            <p className="text-lg font-bold">{ultimoMes.tasa_frecuencia.toFixed(1) || '-'}</p>
+            <p className="text-lg font-bold">{formatNumber((ultimoMes as any).tasa_frecuencia, 1)}</p>
           </div>
         </div>
 
