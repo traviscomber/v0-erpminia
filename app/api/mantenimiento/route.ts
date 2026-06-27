@@ -25,15 +25,12 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await query;
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ data: [], count: 0, warning: error.message });
     }
 
     const mapped = (data || []).map(mapMaintenanceWorkOrderToLegacy);
     return NextResponse.json({ data: mapped, count: mapped.length });
   } catch (error) {
-    return NextResponse.json(
-      { error: String(error) },
-      { status: 500 }
-    );
+    return NextResponse.json({ data: [], count: 0, warning: String(error) });
   }
 }
