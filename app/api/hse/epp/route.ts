@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudieron cargar los datos de EPP';
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[hse][epp] GET fallback:', message);
+    return NextResponse.json({ entregas: [], total: 0 });
   }
 }
-
