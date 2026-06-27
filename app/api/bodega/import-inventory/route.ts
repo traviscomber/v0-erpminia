@@ -339,7 +339,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('[v0] Bodega inventory import error:', error);
     return NextResponse.json(
-      { error: 'No se pudo importar el inventario', details: formatError(error) },
+      { error: 'No se pudo importar el inventario', details: formatError(error), imported: 0 },
       { status: 500 },
     );
   }
