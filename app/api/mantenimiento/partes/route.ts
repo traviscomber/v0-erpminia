@@ -78,13 +78,17 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
+  if (!otId) {
+    return NextResponse.json({ parts: [] });
+  }
+
   const { data, error } = await supabase
     .from('mantenimiento_partes')
     .select('*, sku(*)')
     .eq('ot_id', otId);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ parts: [], warning: error.message });
   }
 
   return NextResponse.json({ parts: data || [] });
