@@ -138,12 +138,12 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file');
 
     if (!(file instanceof File)) {
-      return NextResponse.json({ error: 'No se proporciono un archivo' }, { status: 400 });
+      return NextResponse.json({ error: 'No se proporciono un archivo', imported: 0 }, { status: 400 });
     }
 
     const parsedRows = await parseFile(file);
     if (parsedRows.length === 0) {
-      return NextResponse.json({ error: 'No se encontraron centros de costo validos en el archivo' }, { status: 400 });
+      return NextResponse.json({ error: 'No se encontraron centros de costo validos en el archivo', imported: 0 }, { status: 400 });
     }
 
     const { data: existingRows, error: readError } = await context.supabase
@@ -174,7 +174,7 @@ export async function POST(request: NextRequest) {
 
     if (insertError) {
       if (backupRows.length > 0) {
-        await context.supabase.from('cost_centers').insert(
+        const { error: restoreError } = await context.supabase.from('cost_centers').insert(
           backupRows.map((row: any) => ({
             organization_id: row.organization_id,
             code: row.code,
@@ -183,6 +183,10 @@ export async function POST(request: NextRequest) {
             status: row.status,
           })),
         );
+
+        if (restoreError) {
+          console.error('[v0] Cost centers restore error:', restoreError);
+        }
       }
 
       throw insertError;
@@ -196,7 +200,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('[v0] Cost centers import error:', error);
     return NextResponse.json(
-      { error: 'No se pudieron importar los centros de costo', details: String(error) },
+      { error: 'No se pudieron importar los centros de costo', details: String(error), imported: 0 },
       { status: 500 },
     );
   }
