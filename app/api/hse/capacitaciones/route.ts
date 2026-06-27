@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to fetch HSE trainings';
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[hse][capacitaciones] GET fallback:', message);
+    return NextResponse.json({ capacitaciones: [], total: 0 });
   }
 }
