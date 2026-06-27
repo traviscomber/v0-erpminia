@@ -3,7 +3,6 @@ export const dynamic = 'force-dynamic';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { NextRequest, NextResponse } from 'next/server';
 
-// GET /api/sostenibilidad/no-conformidades - Listar NCs con filtros avanzados
 export async function GET(request: NextRequest) {
   try {
     const supabase = getSupabaseServerClient();
@@ -36,14 +35,13 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error fetching NCs:', error);
-    return NextResponse.json(
-      { error: 'No se pudieron cargar no-conformidades' },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      data: [],
+      pagination: { total: 0, limit: 50, offset: 0 },
+    });
   }
 }
 
-// POST /api/sostenibilidad/no-conformidades - Crear NC
 export async function POST(request: NextRequest) {
   try {
     const supabase = getSupabaseServerClient();
@@ -63,7 +61,6 @@ export async function POST(request: NextRequest) {
 
     if (error) throw error;
 
-    // Log creation event
     await supabase.from('event_log').insert([
       {
         source_module: 'sostenibilidad',
