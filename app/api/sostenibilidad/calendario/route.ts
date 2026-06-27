@@ -65,7 +65,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ data: rows });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudieron cargar los eventos del calendario';
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[sostenibilidad][calendario] GET fallback:', message);
+    return NextResponse.json({ data: [] });
   }
 }
 
