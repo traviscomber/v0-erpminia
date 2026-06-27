@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
       reorder_quantity: item.reorder_quantity || 0,
       unit_cost: item.unit_cost || 0,
       total_value: (item.quantity_on_hand || 0) * (item.unit_cost || 0),
-      bin_location: item.bin.bin_location || 'N/A',
+      bin_location: item.bin?.bin_location || item.bin_location || 'N/A',
       is_low_stock: (item.quantity_on_hand || 0) <= (item.reorder_level || 0),
       is_critical: (item.quantity_on_hand || 0) === 0,
     }));
@@ -43,6 +43,16 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ items, summary });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudo obtener el stock';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({
+      items: [],
+      summary: {
+        total_items: 0,
+        total_quantity: 0,
+        total_value: 0,
+        low_stock_count: 0,
+        critical_count: 0,
+      },
+      warning: message,
+    });
   }
 }
