@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     
     if (!url || !key) {
-      return NextResponse.json({ error: 'Missing config' }, { status: 500 });
+      return NextResponse.json({ data: [], count: 0, warning: 'Missing config' });
     }
 
     const severity = request.nextUrl.searchParams.get('severity');
@@ -34,15 +34,12 @@ export async function GET(request: NextRequest) {
 
     if (!response.ok) {
       const text = await response.text();
-      return NextResponse.json({ error: text }, { status: response.status });
+      return NextResponse.json({ data: [], count: 0, warning: text });
     }
 
     const data = await response.json();
-    return NextResponse.json({ data, count: data.length });
+    return NextResponse.json({ data: data || [], count: data?.length || 0 });
   } catch (error) {
-    return NextResponse.json(
-      { error: String(error) },
-      { status: 500 }
-    );
+    return NextResponse.json({ data: [], count: 0, warning: String(error) });
   }
 }
