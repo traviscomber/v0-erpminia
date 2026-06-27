@@ -19,10 +19,10 @@ export async function GET(request: NextRequest) {
     .limit(30);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ metrics: [], warning: error.message });
   }
 
-  return NextResponse.json({ metrics: data });
+  return NextResponse.json({ metrics: data || [] });
 }
 
 export async function POST(request: NextRequest) {
