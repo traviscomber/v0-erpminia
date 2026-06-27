@@ -9,25 +9,32 @@ export async function POST(request: NextRequest) {
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
-      return NextResponse.json(
-        { error: 'Falta configuración Supabase' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Falta configuracion Supabase' }, { status: 500 });
     }
 
-    // Use service role key to bypass RLS
     const supabase = createClient(supabaseUrl, supabaseKey, {
       auth: {
         autoRefreshToken: false,
         persistSession: false,
-      }
+      },
     });
 
-    const { type, data } = await request.json();
+    const body = await request.json().catch(() => ({}));
+    const { type, data } = body as { type?: string; data?: any[] };
 
-    if (type === 'inventory') {
-      // Map data fields to bodega_inventory columns
-      const mappedData = data.map((item: any) => ({
+    if (type !== 'inventory') {
+      return NextResponse.json(
+        { error: 'Tipo de importacion no especificado. Use type: "inventory"' },
+        { status: 400 },
+      );
+    }
+
+    if (!Array.isArray(data) || data.length === 0) {
+      return NextResponse.json({ error: 'No hay datos para importar', count: 0 }, { status: 400 });
+    }
+
+    const mappedData = data
+      .map((item: any) => ({
         sku: item.codigo || '',
         name: item.producto || '',
         category: item.familia || '',
@@ -38,37 +45,35 @@ export async function POST(request: NextRequest) {
         max_stock: 0,
         location: '',
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })).filter((item: any) => item.sku && item.name);
+        updated_at: new Date().toISOString(),
+      }))
+      .filter((item: any) => item.sku && item.name);
 
-      const { error, data: result } = await supabase
-        .from('bodega_inventory')
-        .upsert(mappedData, {
-          onConflict: 'sku'
-        });
-
-      if (error) {
-        console.error('Error importing inventory:', error);
-        return NextResponse.json({ error: error.message }, { status: 400 });
-      }
-
-      return NextResponse.json({
-        success: true,
-        message: `${mappedData.length} artículos importados exitosamente a Supabase`,
-        count: mappedData.length
-      });
+    if (mappedData.length === 0) {
+      return NextResponse.json({ error: 'No se encontraron registros validos para importar', count: 0 }, { status: 400 });
     }
 
-    return NextResponse.json(
-      { error: 'Tipo de importación no especificado. Use type: "inventory"' },
-      { status: 400 }
-    );
+    const { error } = await supabase
+      .from('bodega_inventory')
+      .upsert(mappedData, {
+        onConflict: 'sku',
+      });
+
+    if (error) {
+      console.error('Error importing inventory:', error);
+      return NextResponse.json({ error: error.message, count: 0 }, { status: 400 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `${mappedData.length} articulos importados exitosamente a Supabase`,
+      count: mappedData.length,
+    });
   } catch (error: any) {
     console.error('Bulk import error:', error);
     return NextResponse.json(
       { error: error.message || 'Error al importar datos' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
-
