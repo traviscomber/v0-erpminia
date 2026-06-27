@@ -74,7 +74,8 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudieron cargar las acciones correctivas';
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[sostenibilidad][corrective-actions] GET fallback:', message);
+    return NextResponse.json({ data: [] });
   }
 }
 
