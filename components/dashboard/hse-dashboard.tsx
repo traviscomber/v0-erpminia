@@ -1,112 +1,99 @@
+'use client';
+
+import useSWR from 'swr';
+import Link from 'next/link';
+import { AlertTriangle, BookOpen, ShieldCheck, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useHSEMetrics } from '@/hooks/use-module-apis';
-import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Badge } from '@/components/ui/badge';
+
+const fetcher = async (url: string) => {
+  const response = await fetch(url);
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) return null;
+  return payload;
+};
 
 export function HSEDashboard() {
-  const { metrics, isLoading, error, mutate } = useHSEMetrics();
+  const { data } = useSWR('/api/dashboard/hse', fetcher, {
+    revalidateOnFocus: false,
+  });
 
-  if (error) return <div className="text-red-500">Error cargando métricas HSE</div>;
-  if (isLoading) return <div>Cargando...</div>;
+  const summary = data?.summary || {};
+  const kpis = Array.isArray(data?.kpis) ? data.kpis : [];
+  const trainings = Array.isArray(data?.trainings) ? data.trainings : [];
+  const epp = Array.isArray(data?.epp) ? data.epp : [];
+  const incidents = Array.isArray(data?.incidents) ? data.incidents : [];
 
-  const latest = metrics[0] || {};
-  const totalTrainingHours = metrics.reduce((sum, m) => sum + (m.training_hours || 0), 0);
-  const totalEmployeesTrained = metrics.reduce((sum, m) => sum + (m.employees_trained || 0), 0);
-  const avgAuditScore = (metrics.reduce((sum, m) => sum + (m.audit_score || 0), 0) / metrics.length).toFixed(1);
+  const cards = [
+    { label: 'Incidentes', value: summary.total_incidents || incidents.length || 0, icon: <AlertTriangle className="h-4 w-4" /> },
+    { label: 'Capacitaciones', value: summary.total_trainings || trainings.length || 0, icon: <BookOpen className="h-4 w-4" /> },
+    { label: 'EPP', value: summary.total_epp || epp.length || 0, icon: <ShieldCheck className="h-4 w-4" /> },
+    { label: 'Investigaciones', value: summary.open_investigations || 0, icon: <Users className="h-4 w-4" /> },
+  ];
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">HSE (Salud, Seguridad, Ambiente)</h1>
-          <p className="text-muted-foreground">Gestión y cumplimiento normativo</p>
-        </div>
-        <Button size="sm" onClick={() => mutate()} className="gap-2">
-          <RefreshCw className="w-4 h-4" />
-          Actualizar
-        </Button>
+      <div>
+        <h1 className="text-3xl font-bold">HSE</h1>
+        <p className="text-muted-foreground">Resumen operativo de seguridad, entrenamiento y control.</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-4">
+        {cards.map((card) => (
+          <Card key={card.label}>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm text-muted-foreground">
+                {card.icon}
+                {card.label}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{card.value}</div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Lesiones Hoy</CardTitle>
+          <CardHeader>
+            <CardTitle>KPIs recientes</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-red-500">{latest.lost_time_injuries || 0}</div>
-            <p className="text-xs text-muted-foreground">Lesiones con tiempo perdido</p>
+          <CardContent className="space-y-2">
+            {kpis.slice(-6).map((item: any, index: number) => (
+              <div key={index} className="flex items-center justify-between rounded border p-3">
+                <div>
+                  <p className="font-medium">{item.mes}</p>
+                  <p className="text-xs text-muted-foreground">
+                    IIRL {item.iirl?.toFixed?.(2) ?? item.iirl ?? 0}
+                  </p>
+                </div>
+                <Badge variant="outline">{item.iirl <= (data?.meta_iirl || 1) ? 'OK' : 'Revisar'}</Badge>
+              </div>
+            ))}
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Casi Accidentes</CardTitle>
+          <CardHeader>
+            <CardTitle>Accesos rápidos</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-orange-500">{latest.near_misses || 0}</div>
-            <p className="text-xs text-muted-foreground">Near misses identificados</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Horas Capacitación</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-blue-500">{totalTrainingHours}</div>
-            <p className="text-xs text-muted-foreground">Total últimas semanas</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Puntaje de auditoría</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-green-500">{avgAuditScore}%</div>
-            <p className="text-xs text-muted-foreground">Promedio HSE</p>
+          <CardContent className="space-y-3">
+            <Link href="/dashboard/hse/kpis" className="block rounded border p-3 hover:bg-muted/40">
+              KPIs de seguridad
+            </Link>
+            <Link href="/dashboard/hse/epp" className="block rounded border p-3 hover:bg-muted/40">
+              EPP
+            </Link>
+            <Link href="/dashboard/hse/capacitaciones" className="block rounded border p-3 hover:bg-muted/40">
+              Capacitaciones
+            </Link>
+            <Link href="/dashboard/hse/documentos" className="block rounded border p-3 hover:bg-muted/40">
+              Documentos HSE
+            </Link>
           </CardContent>
         </Card>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Tendencia de seguridad - Últimos 30 días</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={metrics.reverse()}>
-              <CartesianGrid />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="lost_time_injuries" stroke="#ef4444" name="Lesiones" />
-              <Line type="monotone" dataKey="near_misses" stroke="#f97316" name="Near Misses" />
-            </LineChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Capacitaciones</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={metrics.reverse()}>
-              <CartesianGrid />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="training_hours" fill="#3b82f6" name="Horas" />
-              <Bar dataKey="employees_trained" fill="#22c55e" name="Empleados" />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
     </div>
   );
 }
