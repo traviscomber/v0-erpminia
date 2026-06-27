@@ -90,7 +90,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: true, data: mapped });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudieron cargar los documentos';
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[sostenibilidad][documentos-flujo] GET fallback:', message);
+    return NextResponse.json({ success: true, data: [] });
   }
 }
 
