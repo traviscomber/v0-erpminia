@@ -47,9 +47,7 @@ export async function GET(request: NextRequest) {
 
     const planned = rows.filter((item) => item.status === 'planned').length;
     const inProgress = rows.filter((item) => item.status === 'in_progress').length;
-    const completed = rows.filter((item) =>
-      ['completed', 'verified'].includes(item.status)
-    ).length;
+    const completed = rows.filter((item) => ['completed', 'verified'].includes(item.status)).length;
     const overdue = rows.filter(
       (item) => !['completed', 'verified'].includes(item.status) && isPastDue(item.scheduled_completion_date)
     ).length;
@@ -66,6 +64,16 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudieron cargar las estadísticas de acciones correctivas';
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[sostenibilidad][corrective-actions][stats] GET fallback:', message);
+    return NextResponse.json({
+      data: {
+        total: 0,
+        planned: 0,
+        in_progress: 0,
+        completed: 0,
+        overdue: 0,
+        completionRate: 0,
+      },
+    });
   }
 }
