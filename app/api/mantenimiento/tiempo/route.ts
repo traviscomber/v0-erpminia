@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
   }
 
   if (!otId) {
-    return NextResponse.json({ error: 'otId es obligatorio' }, { status: 400 });
+    return NextResponse.json({ time_entries: [], total_horas: 0 });
   }
 
   const { data, error } = await supabase
@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
     .order('fecha', { ascending: false });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ time_entries: [], total_horas: 0, warning: error.message });
   }
 
   const totalHoras = data?.reduce((sum, entry) => sum + entry.horas_trabajadas, 0) || 0;
