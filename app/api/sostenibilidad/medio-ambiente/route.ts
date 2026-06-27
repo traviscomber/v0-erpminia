@@ -19,7 +19,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ data: data || [] });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudieron cargar los registros de medio ambiente';
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[sostenibilidad][medio-ambiente] GET fallback:', message);
+    return NextResponse.json({ data: [] });
   }
 }
 
@@ -86,4 +87,3 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
-
