@@ -31,7 +31,13 @@ export async function GET(request: NextRequest) {
     .select('id, sku, name, quantity, min_stock, category')
     .order('name');
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    return NextResponse.json({
+      items_below_min_stock: [],
+      total_alerts: 0,
+      warning: error.message,
+    });
+  }
 
   const alerts = (data || [])
     .filter((item) => (item.quantity || 0) <= (item.min_stock || 0))
