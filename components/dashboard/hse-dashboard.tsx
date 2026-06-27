@@ -88,6 +88,12 @@ export function HSEDashboard() {
             <Link href="/dashboard/hse/incidentes" className="block rounded border p-3 hover:bg-muted/40">
               Incidentes
             </Link>
+            <Link href="/dashboard/hse/riesgos" className="block rounded border p-3 hover:bg-muted/40">
+              Riesgos
+            </Link>
+            <Link href="/dashboard/hse/investigaciones" className="block rounded border p-3 hover:bg-muted/40">
+              Investigaciones
+            </Link>
             <Link href="/dashboard/hse/capacitaciones" className="block rounded border p-3 hover:bg-muted/40">
               Capacitaciones
             </Link>
