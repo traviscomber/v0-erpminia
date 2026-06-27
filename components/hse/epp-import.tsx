@@ -136,7 +136,7 @@ export function EppImport({ onSuccess }: EppImportProps) {
           <AlertDescription>
             <p className="mb-2 font-semibold">Columnas esperadas:</p>
             <div className="rounded bg-muted p-2 font-mono text-sm">
-              CARGO | EPP_ELEMENTO | CANTIDAD | FRECUENCIA_REEMPLAZO | MARCA_MODELO | FECHA_ENTREGA | ACTIVO
+              CARGO | TAREA | FAENA | EPP_ELEMENTO | CANTIDAD | FRECUENCIA_REEMPLAZO | MARCA_MODELO | FECHA_ENTREGA | ACTIVO
             </div>
           </AlertDescription>
         </Alert>
