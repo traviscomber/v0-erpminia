@@ -28,37 +28,68 @@ export async function GET(request: NextRequest) {
   }
 
   if (!otId) {
-    return NextResponse.json({ error: 'otId es obligatorio' }, { status: 400 });
+    return NextResponse.json({
+      mttr: null,
+      labor_hours: 0,
+      parts_cost: 0,
+      total_cost: 0,
+    });
   }
 
-  // Obtener la OT con fechas para calcular el MTTR
-  const { data: ot } = await supabase
+  const { data: ot, error: otError } = await supabase
     .from('mantenimiento_ordenes')
     .select('created_at, due_date, completed_at')
     .eq('id', otId)
     .single();
 
-  // Calcular MTTR en horas
+  if (otError) {
+    return NextResponse.json({
+      mttr: null,
+      labor_hours: 0,
+      parts_cost: 0,
+      total_cost: 0,
+      warning: otError.message,
+    });
+  }
+
   let mttr = null;
   if (ot?.created_at && ot?.completed_at) {
     const createdTime = new Date(ot.created_at).getTime();
     const completedTime = new Date(ot.completed_at).getTime();
-    mttr = (completedTime - createdTime) / (1000 * 60 * 60); // Convertir a horas
+    mttr = (completedTime - createdTime) / (1000 * 60 * 60);
   }
 
-  // Obtener horas totales de trabajo
-  const { data: timeEntries } = await supabase
+  const { data: timeEntries, error: timeError } = await supabase
     .from('mantenimiento_tiempo')
     .select('horas_trabajadas')
     .eq('ot_id', otId);
 
+  if (timeError) {
+    return NextResponse.json({
+      mttr,
+      labor_hours: 0,
+      parts_cost: 0,
+      total_cost: 0,
+      warning: timeError.message,
+    });
+  }
+
   const totalHoras = timeEntries?.reduce((sum, entry) => sum + entry.horas_trabajadas, 0) || 0;
 
-  // Obtener costo de repuestos
-  const { data: parts } = await supabase
+  const { data: parts, error: partsError } = await supabase
     .from('mantenimiento_partes')
     .select('quantity_consumed, sku(*)')
     .eq('ot_id', otId);
+
+  if (partsError) {
+    return NextResponse.json({
+      mttr,
+      labor_hours: totalHoras,
+      parts_cost: 0,
+      total_cost: totalHoras * 50,
+      warning: partsError.message,
+    });
+  }
 
   let totalCostoPiezas = 0;
   if (parts && Array.isArray(parts)) {
@@ -72,12 +103,11 @@ export async function GET(request: NextRequest) {
     mttr,
     labor_hours: totalHoras,
     parts_cost: totalCostoPiezas,
-    total_cost: totalCostoPiezas + (totalHoras * 50), // Assuming $50/hour labor rate
+    total_cost: totalCostoPiezas + (totalHoras * 50),
   });
 }
 
 export async function POST(request: NextRequest) {
-  // Recalcular KPI de MTTR del mes
   const cookieStore = await cookies();
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -101,7 +131,6 @@ export async function POST(request: NextRequest) {
   const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString();
   const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString();
 
-  // Obtener todas las OT completadas del mes
   const { data: completedOts } = await supabase
     .from('mantenimiento_ordenes')
     .select('id, created_at, completed_at')
@@ -109,11 +138,18 @@ export async function POST(request: NextRequest) {
     .gte('completed_at', startOfMonth)
     .lte('completed_at', endOfMonth);
 
+  const mes = new Date(today.getFullYear(), today.getMonth(), 1).toISOString();
+
   if (!completedOts || completedOts.length === 0) {
-    return NextResponse.json({ mttr_kpi: null });
+    return NextResponse.json({
+      kpi: {
+        mes,
+        ot_completadas: 0,
+        mttr_promedio: 0,
+      },
+    });
   }
 
-  // Calcular MTTR promedio
   const mttrValues = completedOts.map((ot) => {
     const created = new Date(ot.created_at).getTime();
     const completed = new Date(ot.completed_at).getTime();
@@ -122,8 +158,6 @@ export async function POST(request: NextRequest) {
 
   const mttrPromedio = mttrValues.reduce((a, b) => a + b, 0) / mttrValues.length;
 
-  // Guardar KPI
-  const mes = new Date(today.getFullYear(), today.getMonth(), 1).toISOString();
   const { data, error } = await supabase
     .from('mantenimiento_kpi')
     .upsert({
@@ -135,7 +169,14 @@ export async function POST(request: NextRequest) {
     .select();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({
+      kpi: {
+        mes,
+        ot_completadas: completedOts.length,
+        mttr_promedio: mttrPromedio,
+      },
+      warning: error.message,
+    });
   }
 
   return NextResponse.json({ kpi: data?.[0] });
