@@ -30,7 +30,10 @@ export default function NonconformanceDashboard() {
   };
 
   const { data: ncData, mutate: mutateNCs } = useSWR('/api/sostenibilidad/nonconformances', fetcher);
-  const { data: reportData } = useSWR('/api/sostenibilidad/compliance-report', fetcher);
+  const { data: reportData, mutate: mutateReport } = useSWR(
+    '/api/sostenibilidad/compliance-report',
+    fetcher
+  );
 
   const ncs = Array.isArray(ncData?.nonconformances) ? ncData.nonconformances : [];
   const stats = ncData?.stats || {};
@@ -48,7 +51,9 @@ export default function NonconformanceDashboard() {
       });
       if (!res.ok) throw new Error('No se pudo crear la no conformidad');
       await mutateNCs();
+      await mutateReport();
       setShowForm(false);
+      setSelectedNC(null);
       toast.success('No conformidad creada correctamente');
     } catch (error) {
       toast.error('No se pudo crear la no conformidad');
@@ -64,11 +69,14 @@ export default function NonconformanceDashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...caData, ncId: selectedNC.id }),
       });
-      if (!res.ok) throw new Error('No se pudo crear la acción correctiva');
+      if (!res.ok) throw new Error('No se pudo crear la accion correctiva');
+      await mutateNCs();
+      await mutateReport();
       setShowCAModal(false);
-      toast.success('Acción correctiva creada correctamente');
+      setSelectedNC(null);
+      toast.success('Accion correctiva creada correctamente');
     } catch (error) {
-      toast.error('No se pudo crear la acción correctiva');
+      toast.error('No se pudo crear la accion correctiva');
       throw error;
     }
   };
@@ -77,7 +85,7 @@ export default function NonconformanceDashboard() {
     <div className="space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="mb-2 text-3xl font-bold text-foreground">Gestión de no conformidades</h1>
+          <h1 className="mb-2 text-3xl font-bold text-foreground">GestiÃ³n de no conformidades</h1>
           <p className="text-muted-foreground">
             Seguimiento, control y cierre de no conformidades con acciones correctivas.
           </p>
@@ -185,7 +193,7 @@ export default function NonconformanceDashboard() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Distribución por severidad</CardTitle>
+                <CardTitle>DistribuciÃ³n por severidad</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 {['critical', 'high', 'medium', 'low'].map((sev: any) => (
