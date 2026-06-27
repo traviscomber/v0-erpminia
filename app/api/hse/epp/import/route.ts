@@ -5,6 +5,8 @@ import { getSustainabilityContext } from '@/lib/api/sostenibilidad-mvp';
 
 type ImportEppRow = {
   cargo: string;
+  tarea: string;
+  faena: string;
   epp_elemento: string;
   cantidad: number;
   frecuencia_reemplazo: string;
@@ -49,6 +51,8 @@ function parseCsvRows(text: string): ImportEppRow[] {
   const headers = lines[0].split(';').map(normalizeHeader);
   const columns = {
     cargo: pickIndex(headers, ['cargo', 'puesto', 'rol']),
+    tarea: pickIndex(headers, ['tarea', 'actividad', 'proceso']),
+    faena: pickIndex(headers, ['faena', 'ubicacion', 'area', 'sede']),
     epp_elemento: pickIndex(headers, ['epp', 'elemento', 'insumo']),
     cantidad: pickIndex(headers, ['cantidad', 'qty', 'unidades']),
     frecuencia_reemplazo: pickIndex(headers, ['frecuencia', 'reemplazo']),
@@ -66,6 +70,8 @@ function parseCsvRows(text: string): ImportEppRow[] {
     return [
       {
         cargo,
+        tarea: values[columns.tarea] || '',
+        faena: values[columns.faena] || '',
         epp_elemento,
         cantidad: parseNumber(values[columns.cantidad]),
         frecuencia_reemplazo: values[columns.frecuencia_reemplazo] || '',
@@ -130,6 +136,8 @@ export async function POST(request: NextRequest) {
       const payload = {
         organization_id: context.organizationId,
         cargo: row.cargo,
+        tarea: row.tarea,
+        faena: row.faena,
         epp_elemento: row.epp_elemento,
         cantidad: row.cantidad,
         frecuencia_reemplazo: row.frecuencia_reemplazo,
@@ -145,6 +153,8 @@ export async function POST(request: NextRequest) {
         .select('id')
         .eq('organization_id', context.organizationId)
         .eq('cargo', row.cargo)
+        .eq('tarea', row.tarea)
+        .eq('faena', row.faena)
         .eq('epp_elemento', row.epp_elemento)
         .maybeSingle();
 
