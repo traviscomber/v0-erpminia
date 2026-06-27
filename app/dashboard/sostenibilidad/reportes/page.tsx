@@ -38,7 +38,7 @@ export default function ReportesPage() {
   const [periodoTipo, setPeriodoTipo] = useState('mes');
   const [anio, setAnio] = useState(new Date().getFullYear().toString());
 
-  const { data: inspecciones = [] } = useSWR('/api/sostenibilidad/inspeccionestipo=internas', fetcher);
+  const { data: inspecciones = [] } = useSWR('/api/sostenibilidad/inspecciones?tipo=internas', fetcher);
   const inspeccionesList = (inspecciones.data || []) as any[];
 
   const generateReportData = () => {
