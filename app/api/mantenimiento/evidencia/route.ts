@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     .select();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ evidence: [], warning: error.message });
   }
 
   // Obtener URL firmada para subir el archivo
@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
   }
 
   if (!otId) {
-    return NextResponse.json({ error: 'otId es obligatorio' }, { status: 400 });
+    return NextResponse.json({ evidence: [] });
   }
 
   const { data, error } = await supabase
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
     .order('uploaded_at', { ascending: false });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ evidence: [], warning: error.message });
   }
 
   // Obtener URLs firmadas para todos los archivos
