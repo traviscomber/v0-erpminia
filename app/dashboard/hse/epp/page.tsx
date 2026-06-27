@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Shield, Plus, Search, Check } from 'lucide-react';
+import { Download, Shield, Plus, Search, Check } from 'lucide-react';
 import { EppImport } from '@/components/hse/epp-import';
 
 const miningEppCatalog = [
@@ -26,6 +26,25 @@ const miningEppCatalog = [
     title: 'Mineria de superficie',
     items: ['Ropa de alta visibilidad', 'Proteccion contra polvo y viento', 'Proteccion climatica segun turno y altura'],
   },
+];
+
+const templateHeaders = [
+  'CARGO',
+  'TAREA',
+  'FAENA',
+  'EPP_ELEMENTO',
+  'CANTIDAD',
+  'FRECUENCIA_REEMPLAZO',
+  'MARCA_MODELO',
+  'FECHA_ENTREGA',
+  'ACTIVO',
+];
+
+const templateRows = [
+  ['Operador mina', 'Perforacion', 'Mina central', 'Casco con barbiquejo', '1', '12 meses', 'Norma minera', '2026-06-27', 'si'],
+  ['Operador mina', 'Perforacion', 'Mina central', 'Lentes de seguridad', '1', '6 meses', 'Antifog', '2026-06-27', 'si'],
+  ['Mecanico mantenimiento', 'Intervencion equipos', 'Planta', 'Guantes de trabajo', '2', '3 meses', 'Refuerzo cuero', '2026-06-27', 'si'],
+  ['Electricista', 'Trabajo electrico', 'Faena subteranea', 'Guantes dieléctricos', '1', '12 meses', 'Clase 0 o superior', '2026-06-27', 'si'],
 ];
 
 const fetcher = async (url: string) => {
@@ -64,6 +83,37 @@ export default function HSEEPPPage() {
     return acc;
   }, {});
 
+  const groupRecords = (field: 'cargo' | 'tarea' | 'faena') =>
+    filtradas.reduce((acc: Record<string, any>, item: any) => {
+      const key = String(item[field] || 'Sin dato').trim() || 'Sin dato';
+      if (!acc[key]) {
+        acc[key] = { total: 0, activos: 0, items: [] as any[] };
+      }
+      acc[key].total += 1;
+      if (item.activo !== false) acc[key].activos += 1;
+      acc[key].items.push(item);
+      return acc;
+    }, {});
+
+  const cargosGroup = groupRecords('cargo');
+  const tareasGroup = groupRecords('tarea');
+  const faenasGroup = groupRecords('faena');
+
+  const downloadTemplate = () => {
+    const csv = [templateHeaders, ...templateRows]
+      .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(';'))
+      .join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'plantilla-epp-mineria.csv';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
+
   if (error) {
     return <div className="text-red-500">Error al cargar la matriz EPP.</div>;
   }
@@ -79,10 +129,16 @@ export default function HSEEPPPage() {
           <h1 className="text-3xl font-bold">Matriz EPP</h1>
           <p className="text-muted-foreground">Requerimientos de EPP por cargo, elemento y frecuencia de recambio.</p>
         </div>
-        <Button>
-          <Plus className="mr-1 h-4 w-4" />
-          Nuevo requerimiento EPP
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={downloadTemplate}>
+            <Download className="mr-1 h-4 w-4" />
+            Plantilla Excel
+          </Button>
+          <Button>
+            <Plus className="mr-1 h-4 w-4" />
+            Nuevo requerimiento EPP
+          </Button>
+        </div>
       </div>
 
       <EppImport onSuccess={() => window.location.reload()} />
@@ -111,6 +167,62 @@ export default function HSEEPPPage() {
           </div>
         </CardContent>
       </Card>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Por cargo</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {Object.entries(cargosGroup).slice(0, 6).map(([cargoName, stats]: [string, any]) => (
+              <div key={cargoName} className="rounded border border-border p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-semibold">{cargoName}</p>
+                  <Badge variant="outline">{stats.total}</Badge>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">{stats.activos} activos</p>
+              </div>
+            ))}
+            {Object.keys(cargosGroup).length === 0 ? <p className="text-sm text-muted-foreground">Sin registros por cargo.</p> : null}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Por tarea</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {Object.entries(tareasGroup).slice(0, 6).map(([taskName, stats]: [string, any]) => (
+              <div key={taskName} className="rounded border border-border p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-semibold">{taskName}</p>
+                  <Badge variant="outline">{stats.total}</Badge>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">{stats.activos} activos</p>
+              </div>
+            ))}
+            {Object.keys(tareasGroup).length === 0 ? <p className="text-sm text-muted-foreground">Sin registros por tarea.</p> : null}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Por faena</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {Object.entries(faenasGroup).slice(0, 6).map(([siteName, stats]: [string, any]) => (
+              <div key={siteName} className="rounded border border-border p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-semibold">{siteName}</p>
+                  <Badge variant="outline">{stats.total}</Badge>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">{stats.activos} activos</p>
+              </div>
+            ))}
+            {Object.keys(faenasGroup).length === 0 ? <p className="text-sm text-muted-foreground">Sin registros por faena.</p> : null}
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card>
