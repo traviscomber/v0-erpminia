@@ -32,7 +32,9 @@ export async function GET(request: NextRequest) {
       if (orgId) q = q.eq('organization_id', orgId);
 
       const { data, error } = await q;
-      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      if (error) {
+        return NextResponse.json({ categories: [], warning: error.message });
+      }
       if (!data || data.length === 0) break;
 
       for (const row of data) {
@@ -70,9 +72,20 @@ export async function GET(request: NextRequest) {
     .order('part_code')
     .range(offset, offset + validPageSize - 1);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    return NextResponse.json({
+      inventory: [],
+      pagination: {
+        page: validPage,
+        pageSize: validPageSize,
+        total: 0,
+        totalPages: 0,
+      },
+      warning: error.message,
+    });
+  }
 
-  // Map warehouse_stock → InventoryItem shape expected by the UI hook
+  // Map warehouse_stock â†’ InventoryItem shape expected by the UI hook
   const inventory = (data || []).map((item: any) => ({
     id: item.id,
     sku: item.part_code,
