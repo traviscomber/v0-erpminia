@@ -3,23 +3,19 @@ export const dynamic = 'force-dynamic';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { NextRequest, NextResponse } from 'next/server';
 
-// GET /api/sostenibilidad/alerts/overdue
-// Obtiene todas las alertas de incumplimiento vencido
 export async function GET(request: NextRequest) {
   try {
     const supabase = getSupabaseServerClient();
     const { searchParams } = new URL(request.url);
-    const severity = searchParams.get('severity'); // 'crítica', 'alta', 'media'
-    const status = searchParams.get('status') || 'activa'; // 'activa', 'resuelta'
+    const severity = searchParams.get('severity');
+    const status = searchParams.get('status') || 'activa';
 
-    // Alertas de NCs vencidas
     const { data: overdueNCs } = await supabase
       .from('sostenibilidad_nonconformances')
       .select('id, nc_number, title, severity, target_closure_date, status')
       .lt('target_closure_date', new Date().toLocaleDateString('en-CA'))
       .neq('status', 'cerrada');
 
-    // Alertas de CAs vencidas
     const { data: overdueCAs } = await supabase
       .from('sostenibilidad_corrective_actions')
       .select(
@@ -29,10 +25,8 @@ export async function GET(request: NextRequest) {
       .lt('scheduled_completion_date', new Date().toLocaleDateString('en-CA'))
       .neq('status', 'verificada');
 
-    // Consolidar alertas
     const alerts: any[] = [];
 
-    // Agregar NCs vencidas
     (overdueNCs || []).forEach((nc) => {
       const daysOverdue = calculateDaysOverdue(nc.target_closure_date);
       alerts.push({
@@ -49,7 +43,6 @@ export async function GET(request: NextRequest) {
       });
     });
 
-    // Agregar CAs vencidas
     (overdueCAs || []).forEach((ca: any) => {
       const daysOverdue = calculateDaysOverdue(ca.scheduled_completion_date);
       const ncData = ca.sostenibilidad_nonconformances[0] || { severity: 'media', nc_number: 'N/A' };
@@ -68,13 +61,11 @@ export async function GET(request: NextRequest) {
       });
     });
 
-    // Filtrar por severidad si se especifica
     let filteredAlerts = alerts;
     if (severity) {
       filteredAlerts = alerts.filter((a) => a.severity === severity);
     }
 
-    // Ordenar por prioridad (descendente)
     filteredAlerts.sort((a, b) => {
       const priorityOrder: Record<string, number> = { crítica: 3, alta: 2, media: 1, baja: 0 };
       return (
@@ -91,14 +82,16 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error fetching overdue alerts:', error);
-    return NextResponse.json(
-      { error: 'No se pudieron cargar las alertas' },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      total_alerts: 0,
+      critical_alerts: 0,
+      high_alerts: 0,
+      alerts: [],
+      last_updated: new Date().toISOString(),
+    });
   }
 }
 
-// POST /api/sostenibilidad/alerts/overdue - Mark alert as resolved
 export async function POST(request: NextRequest) {
   try {
     const supabase = getSupabaseServerClient();
@@ -112,17 +105,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Actualizar el estado según el tipo de alerta
-    let table, field;
     if (alert_type === 'nc_overdue') {
-      // Para NCs, solo registrar que se revisó
       await supabase
         .from('sostenibilidad_nonconformances')
         .update({ updated_at: new Date().toISOString() })
         .eq('id', alert_id);
     } else if (alert_type === 'ca_overdue') {
-      // Para CAs, registrar nota de resolución
-      const { data: ca } = await supabase
+      await supabase
         .from('sostenibilidad_corrective_actions')
         .select('ca_number')
         .eq('id', alert_id)
@@ -139,7 +128,6 @@ export async function POST(request: NextRequest) {
       ]);
     }
 
-    // Log event
     await supabase.from('event_log').insert([
       {
         source_module: 'sostenibilidad',
@@ -164,7 +152,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Helper functions
 function calculateDaysOverdue(targetDate: string): number {
   const target = new Date(targetDate);
   const today = new Date();
