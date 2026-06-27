@@ -4,7 +4,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/api/guard';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 
-// Helper: Calculate compliance score (read-only)
 interface NonConformance {
   id: string;
   status: string;
@@ -38,7 +37,6 @@ async function calculateComplianceScore(supabase: any, organization_id: string) 
   return { totalNCs, closedNCs, openNCs, overduNCs, complianceScore };
 }
 
-// GET /api/sostenibilidad/compliance/calculate-score - READ ONLY
 export async function GET(request: NextRequest) {
   const auth = await requireAuth(request);
   if (!auth.authorized || !auth.organizationId) {
@@ -52,7 +50,6 @@ export async function GET(request: NextRequest) {
     const { totalNCs, closedNCs, openNCs, overduNCs, complianceScore } = 
       await calculateComplianceScore(supabase, organization_id);
 
-    // Generate alerts
     const alerts = [];
     if (complianceScore < 60) {
       alerts.push({
@@ -86,14 +83,18 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error calculating compliance score:', error);
-    return NextResponse.json(
-      { error: 'No se pudo calcular el puntaje de cumplimiento' },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      compliance_score: 0,
+      total_ncs: 0,
+      open_ncs: 0,
+      closed_ncs: 0,
+      overdue_cas: 0,
+      alerts: [],
+      timestamp: new Date().toISOString(),
+    });
   }
 }
 
-// POST /api/sostenibilidad/compliance/calculate-score - SAVE HISTORY
 export async function POST(request: NextRequest) {
   const auth = await requireAuth(request);
   if (!auth.authorized || !auth.organizationId) {
@@ -109,7 +110,6 @@ export async function POST(request: NextRequest) {
     const { totalNCs, closedNCs, openNCs, overduNCs, complianceScore } = 
       await calculateComplianceScore(supabase, org);
 
-    // Save to history (POST side effect)
     const { error: saveError } = await supabase
       .from('sostenibilidad_compliance_history')
       .insert([
@@ -133,14 +133,13 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error in compliance score calculation:', error);
-    return NextResponse.json(
-      { error: 'No se pudo calcular el puntaje de cumplimiento' },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      compliance_score: 0,
+      saved: false,
+    });
   }
 }
 
-// Helper functions
 function getCurrentPeriod(): string {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
