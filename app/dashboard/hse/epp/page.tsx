@@ -9,6 +9,25 @@ import { Badge } from '@/components/ui/badge';
 import { Shield, Plus, Search, Check } from 'lucide-react';
 import { EppImport } from '@/components/hse/epp-import';
 
+const miningEppCatalog = [
+  {
+    title: 'Proteccion base',
+    items: ['Casco con barbiquejo', 'Lentes de seguridad', 'Guantes de trabajo', 'Botas de seguridad', 'Chaleco alta visibilidad'],
+  },
+  {
+    title: 'Exposicion ambiental',
+    items: ['Proteccion auditiva', 'Respirador segun polvo/fibra', 'Antiparras cerradas', 'Proteccion solar'],
+  },
+  {
+    title: 'Tareas criticas',
+    items: ['Arnes y linea de vida', 'Ropa FR/ignifuga cuando aplique', 'Guantes dieléctricos en labores electricas', 'Proteccion facial para esmerilado o proyeccion'],
+  },
+  {
+    title: 'Mineria de superficie',
+    items: ['Ropa de alta visibilidad', 'Proteccion contra polvo y viento', 'Proteccion climatica segun turno y altura'],
+  },
+];
+
 const fetcher = async (url: string) => {
   const response = await fetch(url);
   if (!response.ok) {
@@ -67,6 +86,31 @@ export default function HSEEPPPage() {
       </div>
 
       <EppImport onSuccess={() => window.location.reload()} />
+
+      <Card className="border-[var(--secondary)]/25 bg-[var(--secondary)]/5">
+        <CardHeader>
+          <CardTitle className="text-base">EPP base recomendado para mineria</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Este catalogo es una base operativa para la matriz EPP. Debe ajustarse por cargo, tarea, ubicacion y matriz de riesgo.
+          </p>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            {miningEppCatalog.map((group) => (
+              <div key={group.title} className="rounded-lg border border-border bg-background p-4">
+                <h3 className="font-semibold">{group.title}</h3>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {group.items.map((item) => (
+                    <Badge key={item} variant="outline" className="whitespace-normal text-left">
+                      {item}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card>
