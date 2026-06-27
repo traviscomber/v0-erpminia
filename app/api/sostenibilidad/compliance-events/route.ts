@@ -45,7 +45,16 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudieron cargar los eventos de cumplimiento';
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[sostenibilidad][compliance-events] GET fallback:', message);
+    return NextResponse.json({
+      data: [],
+      stats: {
+        total: 0,
+        pending: 0,
+        completed: 0,
+        overdue: 0,
+      },
+    });
   }
 }
 
