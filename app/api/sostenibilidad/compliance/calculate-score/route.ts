@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/api/guard';
+import { normalizeNcStatus } from '@/lib/api/sostenibilidad-mvp';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 
 interface NonConformance {
@@ -24,12 +25,15 @@ async function calculateComplianceScore(supabase: any, organization_id: string) 
 
   if (ncError) throw ncError;
 
-  const ncs: NonConformance[] = allNCs || [];
+  const ncs: NonConformance[] = (allNCs || []).map((nc: NonConformance) => ({
+    ...nc,
+    status: normalizeNcStatus(nc.status),
+  }));
   const totalNCs = ncs.length;
-  const closedNCs = ncs.filter((nc: NonConformance) => nc.status === 'cerrada').length;
+  const closedNCs = ncs.filter((nc: NonConformance) => nc.status === 'closed').length;
   const openNCs = totalNCs - closedNCs;
   const overduNCs = ncs.filter(
-    (nc: NonConformance) => nc.status !== 'cerrada' && isOverdue(nc.created_at)
+    (nc: NonConformance) => nc.status !== 'closed' && isOverdue(nc.created_at)
   ).length;
 
   const complianceScore = totalNCs > 0 ? Math.round((closedNCs / totalNCs) * 100) : 100;
