@@ -48,7 +48,7 @@ const templateRows = [
 ];
 
 const fetcher = async (url: string) => {
-  const response = await fetch(url);
+  const response = await fetch(url, { credentials: 'include' });
   if (!response.ok) {
     return null;
   }

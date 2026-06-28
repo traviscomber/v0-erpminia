@@ -44,7 +44,7 @@ export function EppImport({ onSuccess }: EppImportProps) {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/hse/epp/import', {
+      const response = await fetch('/api/sostenibilidad/epp', {
         method: 'POST',
         credentials: 'include',
         body: formData,
@@ -133,13 +133,13 @@ export function EppImport({ onSuccess }: EppImportProps) {
 
         <Alert>
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            <p className="mb-2 font-semibold">Columnas esperadas:</p>
-            <div className="rounded bg-muted p-2 font-mono text-sm">
-              CARGO | TAREA | FAENA | EPP_ELEMENTO | CANTIDAD | FRECUENCIA_REEMPLAZO | MARCA_MODELO | FECHA_ENTREGA | ACTIVO
-            </div>
-          </AlertDescription>
-        </Alert>
+        <AlertDescription>
+          <p className="mb-2 font-semibold">Columnas esperadas:</p>
+          <div className="rounded bg-muted p-2 font-mono text-sm">
+              CARGO_PUESTO | ELEMENTO_EPP | CANTIDAD_ELEMENTO | MARCA_MODELO | FICHA_TECNICA_URL | FRECUENCIA_REEMPLAZO | ACTIVO
+          </div>
+        </AlertDescription>
+      </Alert>
 
         {result && (
           <Alert className={result.success ? 'border-green-500' : 'border-red-500'}>
