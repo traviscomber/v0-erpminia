@@ -13,6 +13,17 @@ type SessionData = {
   role?: string | null;
 };
 
+type ApprovalItem = {
+  id: string;
+  title: string;
+  document_id: string;
+  approval_level_name: string;
+  approval_level: number;
+  status: string;
+  days_pending: number;
+  submitted_at: string;
+};
+
 const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
 
 function normalize(value: unknown) {
@@ -36,7 +47,7 @@ export function MisAprobacionesWidget() {
 
   const approvals = useMemo(() => {
     const documentos = Array.isArray(docsData?.data) ? docsData.data : [];
-    return documentos.flatMap((doc: any) => {
+    return documentos.flatMap((doc: any): ApprovalItem[] => {
       const approvalsList = Array.isArray(doc.document_approvals) ? doc.document_approvals : [];
       return approvalsList
         .filter((approval: any) => {
@@ -53,11 +64,11 @@ export function MisAprobacionesWidget() {
           status: approval.status || 'pending',
           submitted_at: doc.created_at || approval.created_at || new Date().toISOString(),
           days_pending: daysSince(doc.created_at || approval.created_at),
-        }));
-    });
+        })) as ApprovalItem[];
+    }) as ApprovalItem[];
   }, [currentRole, currentUserId, docsData?.data]);
 
-  const criticalCount = approvals.filter((a) => a.days_pending > 7).length;
+  const criticalCount = approvals.filter((a: ApprovalItem) => a.days_pending > 7).length;
 
   if (error) {
     return (
@@ -98,7 +109,7 @@ export function MisAprobacionesWidget() {
         ) : (
           <>
             {approvals
-              .filter((a) => a.days_pending > 7)
+              .filter((a: ApprovalItem) => a.days_pending > 7)
               .slice(0, 3)
               .map((approval) => (
                 <Link key={approval.id} href={`/dashboard/sostenibilidad/documentos-flujo?doc=${approval.document_id}`}>
@@ -118,7 +129,7 @@ export function MisAprobacionesWidget() {
               ))}
 
             {approvals
-              .filter((a) => a.days_pending <= 7)
+              .filter((a: ApprovalItem) => a.days_pending <= 7)
               .slice(0, 2)
               .map((approval) => (
                 <Link key={approval.id} href={`/dashboard/sostenibilidad/documentos-flujo?doc=${approval.document_id}`}>
