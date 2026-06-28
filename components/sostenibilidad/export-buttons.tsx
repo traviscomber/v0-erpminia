@@ -88,7 +88,7 @@ export function ExportButtons({ data, fileName, columns }: ExportButtonsProps) {
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2 },
         jsPDF: { orientation: 'landscape', unit: 'mm', format: 'a4' },
-      };
+      } as const;
 
       html2pdf().set(opt).from(element).save();
       toast.success('PDF descargado exitosamente');
