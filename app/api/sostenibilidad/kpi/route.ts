@@ -30,13 +30,17 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
+    const mesAno = String(body.mes_ano ?? '').trim();
+    if (!mesAno) {
+      return NextResponse.json({ error: 'mes_ano is required' }, { status: 400 });
+    }
 
     const { data, error } = await context.supabase
       .from('sostenibilidad_kpis')
       .upsert(
         {
           organization_id: context.organizationId,
-          mes_ano: body.mes_ano,
+          mes_ano: mesAno,
           tasa_accidentabilidad: Number(body.tasa_accidentabilidad || 0),
           tasa_frecuencia: Number(body.tasa_frecuencia || 0),
           tasa_gravedad: Number(body.tasa_gravedad || 0),

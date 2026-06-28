@@ -25,6 +25,11 @@ function normalizeText(value: unknown) {
   return String(value ?? '').trim().replace(/\s+/g, ' ');
 }
 
+function normalizeDate(value: unknown) {
+  const text = normalizeText(value);
+  return text || null;
+}
+
 function normalizeCategory(value: unknown) {
   const text = normalizeText(value).toLowerCase();
   if (['environment', 'ambiental', 'medio ambiente', 'medio_ambiente'].includes(text)) return 'environment';
@@ -95,10 +100,10 @@ function parseRows(text: string): ImportNcRow[] {
         category: normalizeCategory(values[columns.category]),
         severity: normalizeSeverity(values[columns.severity]),
         source: normalizeSource(values[columns.source]),
-        discovered_date: values[columns.discovered_date] || new Date().toISOString().split('T')[0],
+        discovered_date: normalizeDate(values[columns.discovered_date]) || new Date().toISOString().split('T')[0],
         root_cause: values[columns.root_cause] || null,
         impact_description: values[columns.impact_description] || null,
-        target_closure_date: values[columns.target_closure_date] || null,
+        target_closure_date: normalizeDate(values[columns.target_closure_date]),
         status: normalizeStatus(values[columns.status]),
       },
     ];
@@ -229,13 +234,13 @@ export async function POST(request: NextRequest) {
           category: normalizeCategory(row.category),
           severity: normalizeSeverity(row.severity),
           source: normalizeSource(row.source),
-          discovered_date: row.discovered_date,
+          discovered_date: normalizeDate(row.discovered_date) || new Date().toISOString().split('T')[0],
           reported_by: context.userId,
           assigned_to: context.userId,
           status: normalizeStatus(row.status),
           root_cause: row.root_cause ? normalizeText(row.root_cause) : null,
           impact_description: row.impact_description ? normalizeText(row.impact_description) : null,
-          target_closure_date: row.target_closure_date,
+          target_closure_date: normalizeDate(row.target_closure_date),
           updated_at: new Date().toISOString(),
         };
 
@@ -290,13 +295,15 @@ export async function POST(request: NextRequest) {
         category: normalizeCategory(body.category),
         severity: normalizeSeverity(body.severity),
         source: normalizeSource(body.source),
-        discovered_date: body.discoveredDate || body.discovered_date || new Date().toISOString().split('T')[0],
+        discovered_date:
+          normalizeDate(body.discoveredDate || body.discovered_date) ||
+          new Date().toISOString().split('T')[0],
         reported_by: context.userId,
         assigned_to: context.userId,
         status: normalizeStatus(body.status),
-        root_cause: body.rootCause || body.root_cause || null,
-        impact_description: body.impactDescription || body.impact_description || null,
-        target_closure_date: body.targetClosureDate || body.target_closure_date || null,
+        root_cause: normalizeText(body.rootCause || body.root_cause) || null,
+        impact_description: normalizeText(body.impactDescription || body.impact_description) || null,
+        target_closure_date: normalizeDate(body.targetClosureDate || body.target_closure_date),
         updated_at: new Date().toISOString(),
       })
       .select('*')
@@ -329,11 +336,21 @@ export async function PUT(request: NextRequest) {
         category: body.category ? normalizeCategory(body.category) : undefined,
         severity: body.severity ? normalizeSeverity(body.severity) : undefined,
         source: body.source ? normalizeSource(body.source) : undefined,
-        root_cause: body.root_cause || body.rootCause || null,
-        impact_description: body.impact_description || body.impactDescription || null,
+        root_cause:
+          body.root_cause !== undefined || body.rootCause !== undefined
+            ? normalizeText(body.root_cause || body.rootCause) || null
+            : undefined,
+        impact_description:
+          body.impact_description !== undefined || body.impactDescription !== undefined
+            ? normalizeText(body.impact_description || body.impactDescription) || null
+            : undefined,
         status: body.status ? normalizeStatus(body.status) : undefined,
-        target_closure_date: body.target_closure_date || body.targetClosureDate || null,
-        actual_closure_date: body.actual_closure_date || null,
+        target_closure_date:
+          body.target_closure_date !== undefined || body.targetClosureDate !== undefined
+            ? normalizeDate(body.target_closure_date || body.targetClosureDate)
+            : undefined,
+        actual_closure_date:
+          body.actual_closure_date !== undefined ? normalizeDate(body.actual_closure_date) : undefined,
         updated_at: new Date().toISOString(),
       })
       .eq('id', body.id)
