@@ -6,23 +6,24 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/api/guard';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 
-function normalizeText(value: string) {
-  return String(value || '')
+function normalizeText(value: unknown) {
+  return String(value ?? '')
     .trim()
     .replace(/\uFFFD/g, '')
     .replace(/\s+/g, ' ');
 }
 
-function normalizeRoute(value: string) {
+function normalizeRoute(value: unknown) {
   return normalizeText(value)
     .replace(/[/>]/g, '\\')
     .replace(/\\+/g, '\\')
     .replace(/^\\+|\\+$/g, '');
 }
 
-function parseDate(value: string) {
-  if (!value || value === '---') return null;
-  const [datePart, timePart] = value.trim().split(' ');
+function parseDate(value: unknown) {
+  const text = normalizeText(value);
+  if (!text || text === '---') return null;
+  const [datePart, timePart] = text.split(' ');
   if (!datePart || !timePart) return null;
   const [day, month, year] = datePart.split('-').map(Number);
   const [hours, minutes] = timePart.split(':').map(Number);

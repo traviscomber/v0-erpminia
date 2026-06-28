@@ -16,7 +16,7 @@ function normalizeText(value: unknown) {
     .replace(/\s+/g, ' ');
 }
 
-function normalizeHeader(value: string) {
+function normalizeHeader(value: unknown) {
   return normalizeText(value)
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -111,7 +111,7 @@ async function parseWorkbookRows(file: File) {
   const rows = xlsx.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: true }) as unknown[][];
   if (!rows.length) return [];
 
-  const headerText = rows[0].map((value) => normalizeHeader(String(value ?? '')));
+  const headerText = rows[0].map((value) => normalizeHeader(value));
   const toCsv = [headerText.join(';'), ...rows.slice(1).map((row) => row.map((value) => normalizeText(String(value ?? ''))).join(';'))].join('\n');
   return parseCsvRows(toCsv);
 }
