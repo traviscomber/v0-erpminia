@@ -30,6 +30,29 @@ function normalizeStatus(value: unknown) {
   return text || 'pendiente';
 }
 
+function normalizeTipo(value: unknown) {
+  const text = normalizeText(value).toLowerCase();
+  if (['comunicacion', 'comunicación', 'mensaje', 'notice'].includes(text)) return 'Comunicación';
+  if (['compromiso', 'commitment'].includes(text)) return 'Compromiso';
+  return 'Evento';
+}
+
+function normalizeTipoStakeholder(value: unknown) {
+  const text = normalizeText(value).toLowerCase();
+  if (['indigena', 'indígena', 'comunidad indigena', 'comunidad indígena'].includes(text)) return 'indigena';
+  if (['gobierno', 'estado', 'publico', 'público'].includes(text)) return 'gobierno';
+  if (['ong', 'ngo'].includes(text)) return 'ong';
+  if (['vecino', 'vecinos', 'comunidad vecina'].includes(text)) return 'vecino';
+  return 'comunidad';
+}
+
+function normalizePrioridad(value: unknown) {
+  const text = normalizeText(value).toLowerCase();
+  if (['alta', 'high', 'urgente'].includes(text)) return 'alta';
+  if (['baja', 'low'].includes(text)) return 'baja';
+  return 'media';
+}
+
 function normalizeText(value: unknown) {
   return String(value ?? '').trim().replace(/\s+/g, ' ');
 }
@@ -74,11 +97,11 @@ function parseRows(text: string): ImportCommunityRow[] {
     return [
       {
         fecha: values[columns.fecha] || new Date().toISOString().split('T')[0],
-        tipo: values[columns.tipo] || 'Evento',
+        tipo: normalizeTipo(values[columns.tipo]),
         descripcion,
         stakeholder,
         estado: normalizeStatus(values[columns.estado]),
-        tipo_stakeholder: values[columns.tipo_stakeholder] || 'comunidad',
+        tipo_stakeholder: normalizeTipoStakeholder(values[columns.tipo_stakeholder]),
         ubicacion: values[columns.ubicacion] || null,
         contacto_persona: values[columns.contacto_persona] || null,
         contacto_email: values[columns.contacto_email] || null,
@@ -88,7 +111,7 @@ function parseRows(text: string): ImportCommunityRow[] {
         responsable: values[columns.responsable] || null,
         observaciones: values[columns.observaciones] || null,
         tipo_documento: values[columns.tipo_documento] || null,
-        prioridad: (values[columns.prioridad] || 'media').toLowerCase() as ImportCommunityRow['prioridad'],
+        prioridad: normalizePrioridad(values[columns.prioridad]),
       },
     ];
   });
@@ -228,23 +251,23 @@ export async function POST(request: NextRequest) {
         organization_id:  context.organizationId,
         numero_registro:  numeroRegistro,
         fecha:  body.fecha || new Date().toISOString().split('T')[0],
-        tipo:  body.tipo,
-        descripcion:  body.descripcion,
-        stakeholder:  body.stakeholder,
+        tipo: normalizeTipo(body.tipo),
+        descripcion: body.descripcion,
+        stakeholder: body.stakeholder,
         estado: normalizeStatus(body.estado || 'pendiente'),
-        tipo_stakeholder:  body.tipo_stakeholder || 'comunidad',
-        ubicacion:  body.ubicacion || null,
-        contacto_persona:  body.contacto_persona || null,
-        contacto_email:  body.contacto_email || null,
-        contacto_telefono:  body.contacto_telefono || null,
-        impactado_por:  body.impactado_por || null,
-        fecha_seguimiento:  body.fecha_seguimiento || null,
-        responsable:  body.responsable || null,
-        observaciones:  body.observaciones || null,
-        prioridad:  body.prioridad || 'media',
-        tipo_documento:  body.tipo_documento || null,
-        created_by:  context.userId,
-        updated_at:  new Date().toISOString(),
+        tipo_stakeholder: normalizeTipoStakeholder(body.tipo_stakeholder),
+        ubicacion: body.ubicacion || null,
+        contacto_persona: body.contacto_persona || null,
+        contacto_email: body.contacto_email || null,
+        contacto_telefono: body.contacto_telefono || null,
+        impactado_por: body.impactado_por || null,
+        fecha_seguimiento: body.fecha_seguimiento || null,
+        responsable: body.responsable || null,
+        observaciones: body.observaciones || null,
+        prioridad: normalizePrioridad(body.prioridad),
+        tipo_documento: body.tipo_documento || null,
+        created_by: context.userId,
+        updated_at: new Date().toISOString(),
       })
       .select('*')
       .single();
