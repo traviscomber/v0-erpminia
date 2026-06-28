@@ -80,6 +80,7 @@ export default function CompliancePage() {
   const complianceScore = typeof score.compliance_score === 'number' ? score.compliance_score : 0;
   const openNonconformities = typeof score.open_ncs === 'number' ? score.open_ncs : 0;
   const overdueNonconformities = typeof score.overdue_cas === 'number' ? score.overdue_cas : 0;
+  const closedNonconformities = typeof score.closed_ncs === 'number' ? score.closed_ncs : 0;
 
   return (
     <div className="space-y-6">
@@ -183,7 +184,7 @@ export default function CompliancePage() {
                 <CardTitle className="text-sm text-muted-foreground">NC cerradas</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">{score.closed_ncs ?? 0}</div>
+                <div className="text-3xl font-bold">{closedNonconformities}</div>
               </CardContent>
             </Card>
             <Card>
