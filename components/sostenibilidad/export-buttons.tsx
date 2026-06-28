@@ -6,9 +6,15 @@ import { Download, FileText, Loader2, Sheet } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ExportButtonsProps {
-  data: Record<string, unknown>[];
+  data: unknown[];
   fileName: string;
   columns: { key: string; label: string }[];
+}
+
+function getCellValue(row: unknown, key: string) {
+  if (typeof row !== 'object' || row === null) return '-';
+  const value = (row as Record<string, unknown>)[key];
+  return value ?? '-';
 }
 
 export function ExportButtons({ data, fileName, columns }: ExportButtonsProps) {
@@ -66,7 +72,7 @@ export function ExportButtons({ data, fileName, columns }: ExportButtonsProps) {
         const tr = document.createElement('tr');
         columns.forEach((col) => {
           const td = document.createElement('td');
-          td.textContent = String(row[col.key] || '-');
+          td.textContent = String(getCellValue(row, col.key));
           td.style.border = '1px solid #ddd';
           td.style.padding = '8px';
           tr.appendChild(td);
@@ -104,7 +110,7 @@ export function ExportButtons({ data, fileName, columns }: ExportButtonsProps) {
       const worksheet = XLSX.utils.json_to_sheet(
         data.map((row) =>
           columns.reduce((acc, col) => {
-            acc[col.label] = row[col.key] || '-';
+            acc[col.label] = getCellValue(row, col.key);
             return acc;
           }, {} as Record<string, unknown>)
         )
