@@ -179,7 +179,8 @@ export default function CorrectiveActionsImportPage() {
       let created = 0;
       let updated = 0;
       let failed = 0;
-      const actionsCache = new Map<string, Array<{ id: string; action_description?: string | null }>>();
+      type CachedAction = { id: string; action_description?: string | null };
+      const actionsCache = new Map<string, CachedAction[]>();
 
       for (const row of rows) {
         const resolvedNcId = row.ncId || (row.ncNumber ? ncMap.get(normalizeKey(row.ncNumber)) || '' : '');
@@ -189,13 +190,13 @@ export default function CorrectiveActionsImportPage() {
           continue;
         }
 
-        let existingActions = actionsCache.get(resolvedNcId);
-        if (!existingActions) {
+        let existingActions = actionsCache.get(resolvedNcId) || [];
+        if (!actionsCache.has(resolvedNcId)) {
           const response = await fetch(`/api/sostenibilidad/corrective-actions?ncId=${encodeURIComponent(resolvedNcId)}`, {
             credentials: 'include',
           });
           const payload = await response.json().catch(() => ({}));
-          existingActions = Array.isArray(payload.data) ? payload.data : [];
+          existingActions = Array.isArray(payload.data) ? (payload.data as CachedAction[]) : [];
           actionsCache.set(resolvedNcId, existingActions);
         }
 
