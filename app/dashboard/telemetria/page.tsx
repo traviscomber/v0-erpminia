@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Activity, ArrowRight, Cpu } from 'lucide-react';
+import { Activity, ArrowRight, Cpu, RadioTower } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { EquipmentMonitor } from '@/components/telemetry/equipment-monitor';
@@ -98,6 +98,36 @@ export default function TelemetriaPage() {
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-border/70 bg-card/90">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <RadioTower className="h-4 w-4 text-[var(--brand-verde)]" />
+            Integracion LAN
+          </CardTitle>
+          <CardDescription>
+            Preparado para recibir lecturas desde otra maquina de la red local de la Patagua.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <div className="rounded-lg border border-border bg-background p-3">
+            <p className="text-xs text-muted-foreground">Endpoint de ingreso</p>
+            <p className="mt-1 font-semibold">POST /api/telemetry/ingest</p>
+          </div>
+          <div className="rounded-lg border border-border bg-background p-3">
+            <p className="text-xs text-muted-foreground">Autenticacion</p>
+            <p className="mt-1 font-semibold">x-telemetry-token</p>
+          </div>
+          <div className="rounded-lg border border-border bg-background p-3">
+            <p className="text-xs text-muted-foreground">Modo de uso</p>
+            <p className="mt-1 font-semibold">Push desde gateway local</p>
+          </div>
+          <div className="rounded-lg border border-border bg-background p-3">
+            <p className="text-xs text-muted-foreground">Campos minimos</p>
+            <p className="mt-1 font-semibold">equipment_id o equipment_code</p>
           </div>
         </CardContent>
       </Card>
