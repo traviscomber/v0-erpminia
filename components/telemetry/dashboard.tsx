@@ -23,7 +23,38 @@ interface TelemetryDashboardProps {
   equipmentName: string;
 }
 
+const TELEMETRY_REALTIME_ENABLED = process.env.NEXT_PUBLIC_TELEMETRY_REALTIME === 'true';
+
 export function TelemetryDashboard({ equipmentId, equipmentName }: TelemetryDashboardProps) {
+  return TELEMETRY_REALTIME_ENABLED ? (
+    <TelemetryDashboardLive equipmentId={equipmentId} equipmentName={equipmentName} />
+  ) : (
+    <TelemetryDashboardSafe equipmentName={equipmentName} />
+  );
+}
+
+function TelemetryDashboardSafe({ equipmentName }: Pick<TelemetryDashboardProps, 'equipmentName'>) {
+  return (
+    <div className="space-y-4">
+      <Card className="border-dashed border-border/70 bg-card/80">
+        <CardHeader>
+          <CardTitle className="text-sm">Telemetria segura</CardTitle>
+          <CardDescription>{equipmentName}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm text-muted-foreground">
+          <p>
+            El monitoreo realtime esta desactivado en este entorno para evitar bloqueos por CSP o redes locales.
+          </p>
+          <p>
+            Cuando se active `NEXT_PUBLIC_TELEMETRY_REALTIME=true`, esta vista volvera a consumir lecturas vivas.
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function TelemetryDashboardLive({ equipmentId, equipmentName }: TelemetryDashboardProps) {
   const { readings, isConnected, error } = useRealtimeSensors(equipmentId);
   const { alarms, unreadCount, acknowledgeAlarm } = useRealtimeAlarms();
 
