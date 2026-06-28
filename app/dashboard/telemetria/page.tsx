@@ -6,8 +6,6 @@ import { Activity, ArrowRight, Cpu, RadioTower } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-const TELEMETRY_REALTIME_ENABLED = process.env.NEXT_PUBLIC_TELEMETRY_REALTIME === 'true';
-
 const TelemetryExecutiveSummary = dynamic(
   () => import('@/components/telemetry/telemetry-executive-summary').then((mod) => mod.TelemetryExecutiveSummary),
   { ssr: false, loading: () => <div className="text-sm text-muted-foreground">Cargando resumen de telemetria...</div> }
@@ -47,15 +45,11 @@ export default function TelemetriaPage() {
         </Link>
       </div>
 
-      <Card className={TELEMETRY_REALTIME_ENABLED ? 'border-border/70 bg-card/90' : 'border-amber-300/70 bg-amber-50/40'}>
+      <Card className="border-border/70 bg-card/90">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">
-            {TELEMETRY_REALTIME_ENABLED ? 'Modo conectado' : 'Modo seguro'}
-          </CardTitle>
+          <CardTitle className="text-sm">Modo estable por API</CardTitle>
           <CardDescription>
-            {TELEMETRY_REALTIME_ENABLED
-              ? 'La vista puede usar datos vivos y conexiones realtime.'
-              : 'Realtime esta desactivado para evitar bloqueos por CSP o redes locales. La telemetria sigue operando con datos historicos y por API.'}
+            La telemetria sigue operando con datos historicos, lecturas agregadas y consultas por API sin depender de websockets.
           </CardDescription>
         </CardHeader>
       </Card>
@@ -68,13 +62,9 @@ export default function TelemetriaPage() {
             <CardTitle className="text-sm">Monitoreo</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-primary">
-              {TELEMETRY_REALTIME_ENABLED ? 'Sensores vivos' : 'Datos seguros'}
-            </div>
+            <div className="text-2xl font-bold text-primary">Datos seguros</div>
             <p className="text-xs text-muted-foreground">
-              {TELEMETRY_REALTIME_ENABLED
-                ? 'Lecturas desde Supabase sin datos de prueba.'
-                : 'La pagina permanece estable aunque el realtime no este disponible.'}
+              La pagina permanece estable aunque el realtime no este disponible.
             </p>
           </CardContent>
         </Card>
@@ -84,13 +74,9 @@ export default function TelemetriaPage() {
             <CardTitle className="text-sm">Alertas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-[var(--secondary)]">
-              {TELEMETRY_REALTIME_ENABLED ? 'OT sugerida' : 'Ruta segura'}
-            </div>
+            <div className="text-2xl font-bold text-[var(--secondary)]">Ruta segura</div>
             <p className="text-xs text-muted-foreground">
-              {TELEMETRY_REALTIME_ENABLED
-                ? 'Generacion directa desde la alerta de sensor.'
-                : 'La integracion LAN sigue lista para usarse sin realtime.'}
+              La integracion LAN sigue lista para usarse sin realtime.
             </p>
           </CardContent>
         </Card>
@@ -100,13 +86,9 @@ export default function TelemetriaPage() {
             <CardTitle className="text-sm">Cobertura</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-[var(--brand-verde)]">
-              {TELEMETRY_REALTIME_ENABLED ? 'Equipo + lectura' : 'Modo offline'}
-            </div>
+            <div className="text-2xl font-bold text-[var(--brand-verde)]">Modo offline</div>
             <p className="text-xs text-muted-foreground">
-              {TELEMETRY_REALTIME_ENABLED
-                ? 'Vista simple para operar y reaccionar a tiempo.'
-                : 'El sistema no intenta abrir web sockets si el entorno los bloquea.'}
+              El sistema no intenta abrir web sockets si el entorno los bloquea.
             </p>
           </CardContent>
         </Card>
@@ -190,22 +172,7 @@ export default function TelemetriaPage() {
             <CardDescription>Lectura resumida y alertas del equipo seleccionado.</CardDescription>
           </CardHeader>
           <CardContent>
-            {TELEMETRY_REALTIME_ENABLED ? (
-              <SensorAlerts />
-            ) : (
-              <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">
-                  El modo seguro evita suscripciones realtime. Cuando se active el entorno correcto,
-                  esta tarjeta volvera a mostrar lecturas vivas.
-                </p>
-                <Button asChild variant="outline" className="w-full">
-                  <Link href="/dashboard/telemetria/integracion">
-                    Ver integracion LAN
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
-            )}
+            <SensorAlerts />
           </CardContent>
         </Card>
 
@@ -218,14 +185,7 @@ export default function TelemetriaPage() {
             <CardDescription>Estado vivo de disponibilidad, alarmas y ultima lectura.</CardDescription>
           </CardHeader>
           <CardContent>
-            {TELEMETRY_REALTIME_ENABLED ? (
-              <EquipmentMonitor />
-            ) : (
-              <div className="rounded-lg border border-dashed border-border/70 bg-background/60 p-4 text-sm text-muted-foreground">
-                Monitoreo realtime desactivado para priorizar estabilidad. La infraestructura queda
-                lista para reactivar con una sola variable de entorno.
-              </div>
-            )}
+            <EquipmentMonitor />
           </CardContent>
         </Card>
       </div>
