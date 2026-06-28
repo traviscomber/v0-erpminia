@@ -30,8 +30,14 @@ function normalize(value: unknown) {
   return String(value || '').trim().toLowerCase();
 }
 
+type DocumentApproval = {
+  required_role?: string | null;
+  status?: string | null;
+  assigned_to?: string | null;
+};
+
 function getPendingApproval(doc: any, role: string | null | undefined, userId?: string) {
-  const approvals = Array.isArray(doc.document_approvals) ? doc.document_approvals : [];
+  const approvals: DocumentApproval[] = Array.isArray(doc.document_approvals) ? doc.document_approvals : [];
   return approvals.find((approval) => {
     const approvalRole = normalize(approval.required_role);
     const approvalStatus = normalize(approval.status);
