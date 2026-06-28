@@ -9,6 +9,39 @@ function normalizeEventStatus(dueDate: string, status: string | null) {
   return new Date(dueDate).getTime() < Date.now() ? 'overdue' : 'pending';
 }
 
+function normalizeText(value: unknown) {
+  return String(value ?? '').trim().replace(/\s+/g, ' ');
+}
+
+function normalizeFrequency(value: unknown) {
+  const text = normalizeText(value).toLowerCase();
+  if (!text) return 'one_time';
+  if (['one_time', 'once', 'unica', 'única', 'puntual'].includes(text)) return 'one_time';
+  if (['monthly', 'mensual'].includes(text)) return 'monthly';
+  if (['quarterly', 'trimestral'].includes(text)) return 'quarterly';
+  if (['semiannual', 'semi_anual', 'semestral'].includes(text)) return 'semiannual';
+  if (['annual', 'anual'].includes(text)) return 'annual';
+  return text;
+}
+
+function normalizeEventType(value: unknown) {
+  const text = normalizeText(value).toLowerCase();
+  if (!text) return 'tarea';
+  if (['inspection', 'inspeccion', 'inspección'].includes(text)) return 'inspection';
+  if (['training', 'capacitacion', 'capacitación'].includes(text)) return 'training';
+  if (['audit', 'auditoria', 'auditoría'].includes(text)) return 'audit';
+  if (['monitoring', 'monitoreo'].includes(text)) return 'monitoring';
+  if (['legal'].includes(text)) return 'legal';
+  if (['meeting', 'reunion', 'reunión'].includes(text)) return 'meeting';
+  if (['tarea', 'task'].includes(text)) return 'tarea';
+  return 'tarea';
+}
+
+function normalizeDate(value: unknown) {
+  const text = normalizeText(value);
+  return text || null;
+}
+
 export async function GET(request: NextRequest) {
   const auth = await requireAuth(request);
   if (!auth.authorized || !auth.organizationId) {
@@ -67,7 +100,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const supabase = getSupabaseServerClient();
-    const dueDate = String(body.due_date || body.dueDate || '').trim();
+    const dueDate = normalizeDate(body.due_date || body.dueDate);
 
     if (!body.title || !dueDate || !body.event_type) {
       return NextResponse.json(
@@ -80,15 +113,15 @@ export async function POST(request: NextRequest) {
       .from('compliance_events')
       .insert({
         org_id: auth.organizationId,
-        title: String(body.title).trim(),
-        description: String(body.description || '').trim() || null,
-        event_type: String(body.event_type).trim(),
+        title: normalizeText(body.title),
+        description: normalizeText(body.description) || null,
+        event_type: normalizeEventType(body.event_type),
         due_date: dueDate,
-        frequency: String(body.frequency || 'one_time').trim(),
-        next_date: body.next_date || null,
+        frequency: normalizeFrequency(body.frequency),
+        next_date: normalizeDate(body.next_date),
         status: normalizeEventStatus(dueDate, body.status),
         responsible_person_id: auth.user.id,
-        related_documents: body.related_documents || [],
+        related_documents: Array.isArray(body.related_documents) ? body.related_documents : [],
         updated_at: new Date().toISOString(),
       })
       .select('*')
