@@ -14,9 +14,12 @@ interface NonconformanceCardProps {
 }
 
 export function NonconformanceCard({ nc, onViewDetails, onCreateCA, severityColors }: NonconformanceCardProps) {
-  const isOverdue = new Date(nc.due_date) < new Date();
-  const caProgress = nc.corrective_actions.length
-    ? Math.round((nc.corrective_actions.filter((ca: any) => ca.status === 'verified').length / nc.corrective_actions.length) * 100)
+  const correctiveActions = Array.isArray(nc.corrective_actions) ? nc.corrective_actions : [];
+  const hasDueDate = !!nc.target_closure_date || !!nc.due_date;
+  const dueDate = nc.target_closure_date || nc.due_date || '';
+  const isOverdue = hasDueDate && new Date(dueDate) < new Date() && nc.status !== 'closed';
+  const caProgress = correctiveActions.length
+    ? Math.round((correctiveActions.filter((ca: any) => ca.status === 'verified').length / correctiveActions.length) * 100)
     : 0;
 
   return (
@@ -39,16 +42,16 @@ export function NonconformanceCard({ nc, onViewDetails, onCreateCA, severityColo
         <div className="flex justify-between">
           <span>Vencimiento:</span>
           <span className={isOverdue ? 'text-red-600 font-semibold' : ''}>
-            {new Date(nc.due_date).toLocaleDateString()}
+            {hasDueDate ? new Date(dueDate).toLocaleDateString() : 'Sin fecha'}
             {isOverdue && ' ⚠️'}
           </span>
         </div>
       </div>
 
-      {nc.corrective_actions.length > 0 && (
+      {correctiveActions.length > 0 && (
         <div className="mb-4">
           <div className="flex justify-between text-xs mb-1">
-            <span>Acciones ({nc.corrective_actions.length})</span>
+            <span>Acciones ({correctiveActions.length})</span>
             <span>{caProgress}%</span>
           </div>
           <Progress value={caProgress} className="h-2" />

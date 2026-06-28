@@ -27,7 +27,9 @@ export function NonconformanceTable({ data, severityColors }: NonconformanceTabl
         </TableHeader>
         <TableBody>
           {data.map((nc) => {
-            const isOverdue = new Date(nc.due_date) < new Date();
+            const dueDate = nc.target_closure_date || nc.due_date || nc.target_date || '';
+            const isOverdue = dueDate ? new Date(dueDate) < new Date() : false;
+            const correctiveActions = Array.isArray(nc.corrective_actions) ? nc.corrective_actions : [];
             return (
               <TableRow key={nc.id}>
                 <TableCell className="font-mono text-sm">{nc.nc_number}</TableCell>
@@ -41,9 +43,9 @@ export function NonconformanceTable({ data, severityColors }: NonconformanceTabl
                   <Badge variant="outline">{nc.status}</Badge>
                 </TableCell>
                 <TableCell className={isOverdue ? 'text-red-600 font-semibold' : ''}>
-                  {new Date(nc.due_date).toLocaleDateString()}
+                  {dueDate ? new Date(dueDate).toLocaleDateString() : 'Sin fecha'}
                 </TableCell>
-                <TableCell>{nc.corrective_actions.length || 0} CAs</TableCell>
+                <TableCell>{correctiveActions.length} CAs</TableCell>
                 <TableCell className="flex gap-1">
                   <Button variant="ghost" size="sm">
                     <Eye className="w-4 h-4" />

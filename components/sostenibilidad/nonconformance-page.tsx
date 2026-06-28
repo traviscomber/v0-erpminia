@@ -18,7 +18,7 @@ export function NoncConformancePage({ organizationId }: NCPageProps) {
   const [filterStatus, setFilterStatus] = useState('');
 
   const { data: stats } = useSWR(
-    `/api/sostenibilidad/nonconformances/statsorgId=${organizationId}`,
+    `/api/sostenibilidad/nonconformances/stats?orgId=${encodeURIComponent(organizationId)}`,
     async (url) => {
       const res = await fetch(url);
       return res.json().then((r) => r.data);
@@ -26,10 +26,10 @@ export function NoncConformancePage({ organizationId }: NCPageProps) {
   );
 
   const { data: ncs } = useSWR(
-    `/api/sostenibilidad/nonconformancesorgId=${organizationId}&status=${filterStatus}`,
+    `/api/sostenibilidad/nonconformances?orgId=${encodeURIComponent(organizationId)}${filterStatus && filterStatus !== 'overdue' ? `&status=${encodeURIComponent(filterStatus)}` : ''}`,
     async (url) => {
       const res = await fetch(url);
-      return res.json().then((r) => r.data);
+      return res.json();
     }
   );
 
@@ -39,6 +39,18 @@ export function NoncConformancePage({ organizationId }: NCPageProps) {
     medium: 'bg-yellow-100 text-yellow-800',
     low: 'bg-green-100 text-green-800',
   };
+
+  const nonconformances = Array.isArray(ncs?.nonconformances) ? ncs.nonconformances : [];
+  const overdueItems = nonconformances.filter((nc: any) => {
+    if (!nc?.target_closure_date) return false;
+    if (nc.status === 'closed') return false;
+    return new Date(nc.target_closure_date) < new Date();
+  });
+
+  const visibleRows =
+    filterStatus === 'overdue'
+      ? overdueItems
+      : nonconformances;
 
   return (
     <div className="space-y-6">
@@ -57,7 +69,7 @@ export function NoncConformancePage({ organizationId }: NCPageProps) {
             <CardTitle className="text-sm text-muted-foreground">Abiertas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{stats.open || 0}</div>
+            <div className="text-3xl font-bold">{stats?.open || 0}</div>
           </CardContent>
         </Card>
 
@@ -66,7 +78,7 @@ export function NoncConformancePage({ organizationId }: NCPageProps) {
             <CardTitle className="text-sm text-muted-foreground">Vencidas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-red-600">{stats.overdue || 0}</div>
+            <div className="text-3xl font-bold text-red-600">{stats?.overdue || 0}</div>
           </CardContent>
         </Card>
 
@@ -75,7 +87,7 @@ export function NoncConformancePage({ organizationId }: NCPageProps) {
             <CardTitle className="text-sm text-muted-foreground">En Progreso</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{stats.inProgress || 0}</div>
+            <div className="text-3xl font-bold">{stats?.inProgress || 0}</div>
           </CardContent>
         </Card>
 
@@ -84,7 +96,7 @@ export function NoncConformancePage({ organizationId }: NCPageProps) {
             <CardTitle className="text-sm text-muted-foreground">Cumplimiento</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-600">{stats.CumplimientoScore || 0}%</div>
+            <div className="text-3xl font-bold text-green-600">{stats?.complianceScore || 0}%</div>
           </CardContent>
         </Card>
       </div>
@@ -104,7 +116,7 @@ export function NoncConformancePage({ organizationId }: NCPageProps) {
       </div>
 
       {/* Table */}
-      <NonconformanceTable data={ncs || []} severityColors={severityColors} />
+      <NonconformanceTable data={visibleRows} severityColors={severityColors} />
 
       {/* Form Modal */}
       {showForm && (
