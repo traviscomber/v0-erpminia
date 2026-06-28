@@ -68,7 +68,7 @@ type MappedDocument = {
   documentNumber: string;
   documentType?: string | null;
   category?: string | null;
-  status?: string | null;
+  status: string;
   fileUrl?: string;
   fileSize?: number;
   createdAt?: string | null;
@@ -162,7 +162,7 @@ function mapDocument(
     documentNumber: document.document_number || '',
     documentType: document.document_type,
     category: document.category,
-    status: document.status,
+    status: document.status || 'draft',
     fileUrl: getDocumentFileUrl(document.current_file_path || document.current_file_url),
     fileSize: document.file_size_mb
       ? Number(document.file_size_mb) * 1024 * 1024
