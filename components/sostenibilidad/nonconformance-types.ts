@@ -18,7 +18,7 @@ export type NonconformanceRecord = {
   title: string;
   description: string;
   category?: string;
-  severity?: string;
+  severity: string;
   status: 'open' | 'in_progress' | 'closed' | string;
   discovered_date?: string | null;
   target_closure_date?: string | null;
