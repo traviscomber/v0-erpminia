@@ -1,9 +1,26 @@
+'use client';
+
 import Link from 'next/link';
-import { ArrowRight, CheckCircle2, Download, RadioTower } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowRight, CheckCircle2, Download, RadioTower, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+
+type ConnectionCheck = {
+  ok: boolean;
+  configured?: boolean;
+  endpoint?: string;
+  required_header?: string;
+  accepted_payload?: string[];
+  error?: string;
+  message?: string;
+};
 
 export default function TelemetriaIntegracionPage() {
+  const [checking, setChecking] = useState(false);
+  const [checkResult, setCheckResult] = useState<ConnectionCheck | null>(null);
+
   const code = `curl -X POST https://TU-DOMINIO/api/telemetry/ingest \\
   -H "Content-Type: application/json" \\
   -H "x-telemetry-token: TU_TOKEN" \\
@@ -55,6 +72,31 @@ export default function TelemetriaIntegracionPage() {
     URL.revokeObjectURL(url);
   };
 
+  const testConnection = async () => {
+    setChecking(true);
+    setCheckResult(null);
+
+    try {
+      const response = await fetch('/api/telemetry/ingest', {
+        method: 'GET',
+        cache: 'no-store',
+      });
+      const payload = (await response.json().catch(() => null)) as ConnectionCheck | null;
+
+      setCheckResult({
+        ok: response.ok,
+        ...payload,
+      });
+    } catch (error) {
+      setCheckResult({
+        ok: false,
+        error: error instanceof Error ? error.message : 'No se pudo conectar con el endpoint',
+      });
+    } finally {
+      setChecking(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
@@ -69,6 +111,10 @@ export default function TelemetriaIntegracionPage() {
             <Download className="mr-2 h-4 w-4" />
             Descargar especificacion
           </Button>
+          <Button variant="outline" onClick={testConnection} disabled={checking}>
+            <RefreshCw className={`mr-2 h-4 w-4 ${checking ? 'animate-spin' : ''}`} />
+            {checking ? 'Probando...' : 'Probar conexion'}
+          </Button>
           <Button asChild>
             <Link href="/dashboard/telemetria">
               <ArrowRight className="mr-2 h-4 w-4" />
@@ -77,6 +123,36 @@ export default function TelemetriaIntegracionPage() {
           </Button>
         </div>
       </div>
+
+      {checkResult && (
+        <Card className={checkResult.ok ? 'border-green-300 bg-green-50/40' : 'border-amber-300 bg-amber-50/40'}>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              {checkResult.ok ? (
+                <CheckCircle2 className="h-5 w-5 text-green-600" />
+              ) : (
+                <RadioTower className="h-5 w-5 text-amber-600" />
+              )}
+              {checkResult.ok ? 'Conexion verificada' : 'Conexion con observaciones'}
+            </CardTitle>
+            <CardDescription>
+              {checkResult.ok
+                ? 'El endpoint responde y la ruta de telemetria esta disponible.'
+                : checkResult.error || 'El endpoint responde, pero requiere ajuste antes de enviar lecturas.'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-2 text-sm">
+            <Badge variant="outline">Endpoint: {checkResult.endpoint || '/api/telemetry/ingest'}</Badge>
+            <Badge variant="outline">
+              Configurado: {checkResult.configured ? 'si' : 'no'}
+            </Badge>
+            {Array.isArray(checkResult.accepted_payload) && (
+              <Badge variant="outline">{checkResult.accepted_payload.length} campos aceptados</Badge>
+            )}
+            {checkResult.required_header ? <Badge variant="outline">Header: {checkResult.required_header}</Badge> : null}
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
