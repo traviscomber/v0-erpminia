@@ -42,7 +42,10 @@ export default function HSEIncidentsPage() {
       return acc;
     }, {});
   }, [filtered]);
-  const severityEntries = Object.entries(bySeverity) as [string, number][];
+  const severityEntries: [string, number][] = [];
+  for (const severity of Object.keys(bySeverity)) {
+    severityEntries.push([severity, bySeverity[severity] ?? 0]);
+  }
 
   const downloadTemplate = () => {
     const headers = ['TITLE', 'DESCRIPTION', 'SEVERITY', 'STATUS', 'DATE_REPORTED', 'LOCATION'];
