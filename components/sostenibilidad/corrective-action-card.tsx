@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactElement } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -23,7 +23,7 @@ export function CorrectiveActionCard({ action, onUpdate }: CorrectiveActionCardP
     on_hold: 'bg-gray-100 text-gray-800',
   };
 
-  const statusIcons: Record<string, JSX.Element> = {
+  const statusIcons: Record<string, ReactElement> = {
     planned: <Clock className="w-4 h-4" />,
     in_progress: <AlertCircle className="w-4 h-4" />,
     completed: <CheckCircle className="w-4 h-4" />,
