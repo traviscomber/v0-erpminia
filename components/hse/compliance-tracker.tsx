@@ -17,6 +17,16 @@ interface ComplianceItem {
   evidence_count: number;
 }
 
+type AuditSessionItem = {
+  id: string;
+  audit_name?: string | null;
+  category?: string | null;
+  compliance_status?: string | null;
+  created_at?: string | null;
+  auditor?: string | null;
+  evidence_count?: number | null;
+};
+
 export function ComplianceTracker() {
   const [items, setItems] = useState<ComplianceItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,19 +44,21 @@ export function ComplianceTracker() {
           throw new Error(payload?.error || 'No se pudieron cargar las auditorias');
         }
 
-        const mappedItems = (Array.isArray(payload?.data) ? payload.data : []).map((item: any) => ({
-          id: item.id,
-          name: item.audit_name || 'Auditoría sin nombre',
-          category: item.category || 'HSE',
-          status: item.compliance_status || 'in_progress',
-          last_audit: new Date(item.created_at),
-          next_audit: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
-          responsible: item.auditor || 'Por asignar',
-          evidence_count: item.evidence_count || 0,
-        }));
+        const mappedItems: ComplianceItem[] = (Array.isArray(payload?.data) ? payload.data : []).map(
+          (item: AuditSessionItem) => ({
+            id: item.id,
+            name: item.audit_name || 'Auditoría sin nombre',
+            category: (item.category || 'HSE') as ComplianceItem['category'],
+            status: (item.compliance_status || 'in_progress') as ComplianceItem['status'],
+            last_audit: new Date(item.created_at || Date.now()),
+            next_audit: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+            responsible: item.auditor || 'Por asignar',
+            evidence_count: item.evidence_count || 0,
+          })
+        );
 
         setItems(mappedItems);
-        const compliantCount = mappedItems.filter((entry) => entry.status === 'compliant').length;
+        const compliantCount = mappedItems.filter((entry: ComplianceItem) => entry.status === 'compliant').length;
         setComplianceScore(mappedItems.length > 0 ? Math.round((compliantCount / mappedItems.length) * 100) : 0);
       } catch (err) {
         console.error('[v0] Error fetching compliance:', err);
