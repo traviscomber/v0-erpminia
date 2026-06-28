@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { getSupabaseServerClient } from '@/lib/supabase-server';
+import { normalizeCorrectiveActionStatus } from '@/lib/api/sostenibilidad-mvp';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
           nc_id,
           ca_number: newCANumber,
           action_description: `Accion correctiva para: ${ncData.title}`,
-          status: 'abierta',
+          status: normalizeCorrectiveActionStatus(body.status),
           priority,
           scheduled_completion_date: scheduledCompletionDate,
           created_at: new Date().toISOString(),

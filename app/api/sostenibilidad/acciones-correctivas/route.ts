@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
           ...body,
           ca_number: newCANumber,
           created_at: new Date().toISOString(),
-          status: 'abierta',
+          status: normalizeCorrectiveActionStatus(body.status),
         },
       ])
       .select()
