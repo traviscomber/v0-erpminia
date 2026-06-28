@@ -42,6 +42,7 @@ export default function HSEIncidentsPage() {
       return acc;
     }, {});
   }, [filtered]);
+  const severityEntries = Object.entries(bySeverity) as [string, number][];
 
   const downloadTemplate = () => {
     const headers = ['TITLE', 'DESCRIPTION', 'SEVERITY', 'STATUS', 'DATE_REPORTED', 'LOCATION'];
@@ -92,7 +93,7 @@ export default function HSEIncidentsPage() {
           <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Total</CardTitle></CardHeader>
           <CardContent><div className="text-2xl font-bold">{incidents.length}</div></CardContent>
         </Card>
-        {Object.entries(bySeverity).map(([severity, count]: [string, number]) => (
+        {severityEntries.map(([severity, count]) => (
           <Card key={severity}>
             <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground capitalize">{severity}</CardTitle></CardHeader>
             <CardContent><div className="text-2xl font-bold">{count}</div></CardContent>
