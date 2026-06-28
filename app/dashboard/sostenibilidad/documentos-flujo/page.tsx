@@ -25,10 +25,8 @@ import { toast } from 'sonner';
 interface DocumentoFlujo {
   id: string;
   title: string;
-  documento_nombre: string;
   description: string;
   category: string;
-  version: number;
   status: string;
   estado: string;
   document_approvals: Array<{
@@ -43,7 +41,6 @@ interface DocumentoFlujo {
     rejection_reason: string;
     approved_at: string;
   }>;
-  created_by: string;
   creador_nombre: string;
   created_at: string;
 }
@@ -57,6 +54,27 @@ const estadoSteps = [
   'pendiente_validador2',
   'aprobado_final',
 ];
+
+function getApprovalLevel(doc: DocumentoFlujo, level: number) {
+  return doc.document_approvals.find((approval) => approval.approval_level === level);
+}
+
+function getDocumentoStage(doc: DocumentoFlujo) {
+  const status = String(doc.status || doc.estado || '').toLowerCase();
+  if (status.includes('draft') || status.includes('borrador')) return 'borrador';
+  if (status.includes('approved') || status.includes('aprobado')) return 'aprobado_final';
+  if (status.includes('rejected')) return 'rechazado';
+
+  const approval1 = getApprovalLevel(doc, 1);
+  const approval2 = getApprovalLevel(doc, 2);
+
+  if (!approval1 || approval1.status === 'pending') return 'pendiente_validador1';
+  if (approval1.status === 'approved' && (!approval2 || approval2.status === 'pending')) return 'pendiente_validador2';
+  if (approval2?.status === 'approved') return 'aprobado_final';
+  if (approval1.status === 'rejected' || approval2?.status === 'rejected') return 'rechazado';
+
+  return 'pendiente_validador1';
+}
 
 export default function FlujDocumentalPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -73,9 +91,9 @@ export default function FlujDocumentalPage() {
   const docList = Array.isArray(documentos?.data) ? (documentos.data as DocumentoFlujo[]) : [];
 
   const filteredDocs = docList.filter((doc: any) => {
-    const title = doc.title || doc.documento_nombre || '';
-    const id = doc.id || doc.documento_id || '';
-    const status = doc.status || doc.estado || '';
+    const title = doc.title || '';
+    const id = doc.id || '';
+    const status = getDocumentoStage(doc as DocumentoFlujo);
     
     return (
       (title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -83,6 +101,89 @@ export default function FlujDocumentalPage() {
       (!filterEstado || status === filterEstado)
     );
   });
+
+  const docsByStage = (stage: string) => docList.filter((doc) => getDocumentoStage(doc) === stage);
+
+  const renderDocumentCard = (doc: DocumentoFlujo) => (
+    <Card key={doc.id} className="rounded-xl border border-border shadow-none">
+      <CardHeader>
+        <div className="flex justify-between items-start">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-2">
+              {getEstadoIcon(getDocumentoStage(doc))}
+              <h3 className="text-lg font-bold">{doc.title}</h3>
+              <Badge className={getEstadoColor(getDocumentoStage(doc))}>
+                {getDocumentoStage(doc).replace(/_/g, ' ')}
+              </Badge>
+            </div>
+            <p className="text-sm text-muted-foreground">{doc.description || 'Sin descripción'}</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm">
+              <Eye className="w-4 h-4 mr-1" />
+              Ver
+            </Button>
+            <Button variant="outline" size="sm">
+              <Download className="w-4 h-4 mr-1" />
+              Descargar
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="rounded-xl border border-border p-4 shadow-none">
+            <h4 className="font-bold text-sm mb-3 flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs">1</div>
+              {getApprovalLevel(doc, 1)?.approval_level_name || 'Jefe de Sostenibilidad'}
+            </h4>
+            {getApprovalLevel(doc, 1) ? (
+              <div className="space-y-2 text-sm">
+                <p className="text-muted-foreground">
+                  <span className="font-medium">Revisor:</span> {getApprovalLevel(doc, 1)?.assigned_to_name || 'Sin asignar'}
+                </p>
+                <p className="text-muted-foreground">
+                  <span className="font-medium">Accion:</span>
+                  <Badge className="ml-2" variant="outline">
+                    {getApprovalLevel(doc, 1)?.status || 'pending'}
+                  </Badge>
+                </p>
+              </div>
+            ) : (
+              <p className="text-muted-foreground text-sm italic">Pendiente de revisión</p>
+            )}
+          </div>
+
+          <div className="rounded-xl border border-border p-4 shadow-none">
+            <h4 className="font-bold text-sm mb-3 flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center text-xs">2</div>
+              {getApprovalLevel(doc, 2)?.approval_level_name || 'Gerente General'}
+            </h4>
+            {getApprovalLevel(doc, 2) ? (
+              <div className="space-y-2 text-sm">
+                <p className="text-muted-foreground">
+                  <span className="font-medium">Revisor:</span> {getApprovalLevel(doc, 2)?.assigned_to_name || 'Sin asignar'}
+                </p>
+                <p className="text-muted-foreground">
+                  <span className="font-medium">Accion:</span>
+                  <Badge className="ml-2" variant="outline">
+                    {getApprovalLevel(doc, 2)?.status || 'pending'}
+                  </Badge>
+                </p>
+              </div>
+            ) : (
+              <p className="text-muted-foreground text-sm italic">Pendiente de revisión V2</p>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-white/10 flex justify-between text-xs text-muted-foreground">
+          <span>Creador: {doc.creador_nombre}</span>
+          <span>{new Date(doc.created_at).toLocaleDateString('es-CL')}</span>
+        </div>
+      </CardContent>
+    </Card>
+  );
 
   const getEstadoColor = (estado: string) => {
     const statusMap: Record<string, string> = {
@@ -292,12 +393,12 @@ export default function FlujDocumentalPage() {
       {/* Tabs for different statuses */}
       <Tabs defaultValue="todas" className="mb-8">
         <TabsList>
-          <TabsTrigger value="todas">Todos ({docList.length})</TabsTrigger>
-          <TabsTrigger value="borrador">Borradores ({docList.filter(d => d.estado === 'borrador').length})</TabsTrigger>
-          <TabsTrigger value="pendiente_validador1">Pendiente validador 1 ({docList.filter(d => d.estado === 'pendiente_validador1').length})</TabsTrigger>
-          <TabsTrigger value="pendiente_validador2">Pendiente validador 2 ({docList.filter(d => d.estado === 'pendiente_validador2').length})</TabsTrigger>
-          <TabsTrigger value="aprobado_final">Aprobados ({docList.filter(d => d.estado === 'aprobado_final').length})</TabsTrigger>
-        </TabsList>
+        <TabsTrigger value="todas">Todos ({docList.length})</TabsTrigger>
+        <TabsTrigger value="borrador">Borradores ({docsByStage('borrador').length})</TabsTrigger>
+        <TabsTrigger value="pendiente_validador1">Pendiente validador 1 ({docsByStage('pendiente_validador1').length})</TabsTrigger>
+        <TabsTrigger value="pendiente_validador2">Pendiente validador 2 ({docsByStage('pendiente_validador2').length})</TabsTrigger>
+        <TabsTrigger value="aprobado_final">Aprobados ({docsByStage('aprobado_final').length})</TabsTrigger>
+      </TabsList>
 
         <TabsContent value="todas" className="space-y-4">
           {/* Search */}
@@ -318,91 +419,41 @@ export default function FlujDocumentalPage() {
             {filteredDocs.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">No hay documentos</p>
             ) : (
-              filteredDocs.map((doc: any) => (
-                <Card key={doc.id} className="rounded-xl border border-border shadow-none">
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          {getEstadoIcon(doc.estado)}
-                          <h3 className="text-lg font-bold">{doc.documento_nombre}</h3>
-                          <Badge className={getEstadoColor(doc.estado)}>
-                            v{doc.version}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground">ID: {doc.documento_id}</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
-                          <Eye className="w-4 h-4 mr-1" />
-                          Ver
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          <Download className="w-4 h-4 mr-1" />
-                          Descargar
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Validador 1 */}
-                      <div className="rounded-xl border border-border p-4 shadow-none">
-                        <h4 className="font-bold text-sm mb-3 flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs">1</div>
-                          Jefe de Sostenibilidad
-                        </h4>
-                        {doc.validador1_nombre ? (
-                          <div className="space-y-2 text-sm">
-                            <p className="text-muted-foreground">
-                              <span className="font-medium">Revisor:</span> {doc.validador1_nombre}
-                            </p>
-                            <p className="text-muted-foreground">
-                              <span className="font-medium">Accion:</span>
-                              <Badge className="ml-2" variant="outline">
-                                {doc.validador1_accion || 'Pendiente'}
-                              </Badge>
-                            </p>
-                          </div>
-                        ) : (
-                          <p className="text-muted-foreground text-sm italic">Pendiente de revisión</p>
-                        )}
-                      </div>
-
-                      {/* Validador 2 */}
-                      <div className="rounded-xl border border-border p-4 shadow-none">
-                        <h4 className="font-bold text-sm mb-3 flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center text-xs">2</div>
-                          Gerente General
-                        </h4>
-                        {doc.validador2_nombre ? (
-                          <div className="space-y-2 text-sm">
-                            <p className="text-muted-foreground">
-                              <span className="font-medium">Revisor:</span> {doc.validador2_nombre}
-                            </p>
-                            <p className="text-muted-foreground">
-                              <span className="font-medium">Accion:</span>
-                              <Badge className="ml-2" variant="outline">
-                                {doc.validador2_accion || 'Pendiente'}
-                              </Badge>
-                            </p>
-                          </div>
-                        ) : (
-                          <p className="text-muted-foreground text-sm italic">Pendiente de revisión V2</p>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Metadata */}
-                    <div className="mt-4 pt-4 border-t border-white/10 flex justify-between text-xs text-muted-foreground">
-                      <span>Creador: {doc.creador_nombre}</span>
-                      <span>{new Date(doc.created_at).toLocaleDateString('es-CL')}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
+              filteredDocs.map((doc: DocumentoFlujo) => renderDocumentCard(doc))
             )}
           </div>
+        </TabsContent>
+
+        <TabsContent value="borrador" className="space-y-4">
+          {docsByStage('borrador').length === 0 ? (
+            <p className="text-muted-foreground py-8 text-center">No hay borradores</p>
+          ) : (
+            <div className="space-y-4">{docsByStage('borrador').map((doc) => renderDocumentCard(doc))}</div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="pendiente_validador1" className="space-y-4">
+          {docsByStage('pendiente_validador1').length === 0 ? (
+            <p className="text-muted-foreground py-8 text-center">No hay documentos pendientes del validador 1</p>
+          ) : (
+            <div className="space-y-4">{docsByStage('pendiente_validador1').map((doc) => renderDocumentCard(doc))}</div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="pendiente_validador2" className="space-y-4">
+          {docsByStage('pendiente_validador2').length === 0 ? (
+            <p className="text-muted-foreground py-8 text-center">No hay documentos pendientes del validador 2</p>
+          ) : (
+            <div className="space-y-4">{docsByStage('pendiente_validador2').map((doc) => renderDocumentCard(doc))}</div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="aprobado_final" className="space-y-4">
+          {docsByStage('aprobado_final').length === 0 ? (
+            <p className="text-muted-foreground py-8 text-center">No hay documentos aprobados</p>
+          ) : (
+            <div className="space-y-4">{docsByStage('aprobado_final').map((doc) => renderDocumentCard(doc))}</div>
+          )}
         </TabsContent>
       </Tabs>
     </div>

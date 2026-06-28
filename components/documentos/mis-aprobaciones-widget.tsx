@@ -1,55 +1,63 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import useSWR from 'swr';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertCircle, CheckCircle2, Clock, ChevronRight } from 'lucide-react';
+import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, AlertCircle, CheckCircle2, ChevronRight } from 'lucide-react';
-import Link from 'next/link';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-interface PendingApproval {
-  id: string;
-  title: string;
-  document_id: string;
-  approval_level_name: string;
-  approval_level: number;
-  status: string;
-  submitted_at: string;
-  days_pending: number;
+type SessionData = {
+  user?: { id: string };
+  role?: string | null;
+};
+
+const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
+
+function normalize(value: unknown) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function daysSince(dateValue?: string | null) {
+  if (!dateValue) return 0;
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return 0;
+  const diff = Date.now() - date.getTime();
+  return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
 }
 
 export function MisAprobacionesWidget() {
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const { data: session } = useSWR<SessionData>('/api/auth/session', fetcher);
+  const currentRole = session?.role || null;
+  const currentUserId = session?.user?.id;
 
-  // Obtener rol del usuario desde session
-  useEffect(() => {
-    const getRole = async () => {
-      try {
-        const res = await fetch('/api/auth/session');
-        const data = await res.json();
-        setUserRole(data.user.role);
-      } catch (err) {
-        console.log('[v0] Error al obtener el rol del usuario');
-      }
-    };
-    getRole();
-  }, []);
+  const { data: docsData, isLoading, error } = useSWR('/api/sostenibilidad/documentos-flujo', fetcher);
 
-  // Cargar aprobaciones pendientes según el rol del usuario
-  const { data: pendingDocs, isLoading, error } = useSWR(
-    userRole ? `/api/sostenibilidad/documentos-flujo?role=${encodeURIComponent(userRole)}&status=pending` : null,
-    async (url) => {
-      const res = await fetch(url);
-      if (!res.ok) return;
-      return res.json();
-    },
-    { revalidateOnFocus: false, dedupingInterval: 60000 }
-  );
+  const approvals = useMemo(() => {
+    const documentos = Array.isArray(docsData?.data) ? docsData.data : [];
+    return documentos.flatMap((doc: any) => {
+      const approvalsList = Array.isArray(doc.document_approvals) ? doc.document_approvals : [];
+      return approvalsList
+        .filter((approval: any) => {
+          const roleMatches = currentRole ? normalize(approval.required_role) === normalize(currentRole) : false;
+          const userMatches = currentUserId ? String(approval.assigned_to || '') === currentUserId : false;
+          return normalize(approval.status) === 'pending' && (roleMatches || userMatches);
+        })
+        .map((approval: any) => ({
+          id: `${doc.id}-${approval.approval_level}`,
+          title: doc.title || doc.documento_nombre || 'Documento',
+          document_id: doc.id,
+          approval_level_name: approval.approval_level_name || `Nivel ${approval.approval_level || 1}`,
+          approval_level: approval.approval_level || 1,
+          status: approval.status || 'pending',
+          submitted_at: doc.created_at || approval.created_at || new Date().toISOString(),
+          days_pending: daysSince(doc.created_at || approval.created_at),
+        }));
+    });
+  }, [currentRole, currentUserId, docsData?.data]);
 
-  const approvals = (pendingDocs.data || []) as PendingApproval[];
-  const criticalCount = approvals.filter(a => a.days_pending > 7).length;
-  const normalCount = approvals.filter(a => a.days_pending <= 7).length;
+  const criticalCount = approvals.filter((a) => a.days_pending > 7).length;
 
   if (error) {
     return (
@@ -70,13 +78,11 @@ export function MisAprobacionesWidget() {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-lg">Mis Aprobaciones</CardTitle>
-            <CardDescription>
-              {approvals.length} documentos pendientes
-            </CardDescription>
+            <CardDescription>{approvals.length} documentos pendientes</CardDescription>
           </div>
           {criticalCount > 0 && (
             <Badge variant="destructive" className="animate-pulse">
-              {criticalCount} críticos
+              {criticalCount} cr&iacute;ticos
             </Badge>
           )}
         </div>
@@ -91,56 +97,40 @@ export function MisAprobacionesWidget() {
           </div>
         ) : (
           <>
-            {/* Críticos - vencidos */}
             {approvals
-              .filter(a => a.days_pending > 7)
+              .filter((a) => a.days_pending > 7)
               .slice(0, 3)
-              .map(approval => (
-                <Link
-                  key={approval.id}
-                  href={`/dashboard/sostenibilidad/documentos-flujo?doc=${approval.document_id}`}
-                >
-                  <div className="p-3 rounded-lg border border-destructive/30 bg-destructive/5 hover:bg-destructive/10 cursor-pointer transition">
+              .map((approval) => (
+                <Link key={approval.id} href={`/dashboard/sostenibilidad/documentos-flujo?doc=${approval.document_id}`}>
+                  <div className="cursor-pointer rounded-lg border border-destructive/30 bg-destructive/5 p-3 transition hover:bg-destructive/10">
                     <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate text-destructive">{approval.title}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Nivel: {approval.approval_level_name}
-                        </p>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-destructive">{approval.title}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">Nivel: {approval.approval_level_name}</p>
                       </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <AlertCircle className="w-4 h-4 text-destructive" />
-                        <span className="text-xs font-semibold text-destructive">
-                          {approval.days_pending}d
-                        </span>
+                      <div className="flex flex-shrink-0 items-center gap-2">
+                        <AlertCircle className="h-4 w-4 text-destructive" />
+                        <span className="text-xs font-semibold text-destructive">{approval.days_pending}d</span>
                       </div>
                     </div>
                   </div>
                 </Link>
               ))}
 
-            {/* Normal - not overdue */}
             {approvals
-              .filter(a => a.days_pending <= 7)
+              .filter((a) => a.days_pending <= 7)
               .slice(0, 2)
-              .map(approval => (
-                <Link
-                  key={approval.id}
-                  href={`/dashboard/sostenibilidad/documentos-flujo?doc=${approval.document_id}`}
-                >
-                  <div className="p-3 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 cursor-pointer transition">
+              .map((approval) => (
+                <Link key={approval.id} href={`/dashboard/sostenibilidad/documentos-flujo?doc=${approval.document_id}`}>
+                  <div className="cursor-pointer rounded-lg border border-primary/20 bg-primary/5 p-3 transition hover:bg-primary/10">
                     <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{approval.title}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Nivel: {approval.approval_level_name}
-                        </p>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium">{approval.title}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">Nivel: {approval.approval_level_name}</p>
                       </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <Clock className="w-4 h-4 text-primary" />
-                        <span className="text-xs font-semibold text-primary">
-                          {approval.days_pending}d
-                        </span>
+                      <div className="flex flex-shrink-0 items-center gap-2">
+                        <Clock className="h-4 w-4 text-primary" />
+                        <span className="text-xs font-semibold text-primary">{approval.days_pending}d</span>
                       </div>
                     </div>
                   </div>
@@ -151,9 +141,9 @@ export function MisAprobacionesWidget() {
 
         {approvals.length > 5 && (
           <Link href="/dashboard/sostenibilidad/documentos-flujo">
-            <Button variant="outline" size="sm" className="w-full mt-2">
+            <Button variant="outline" size="sm" className="mt-2 w-full">
               Ver todos ({approvals.length})
-              <ChevronRight className="w-4 h-4 ml-2" />
+              <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
         )}

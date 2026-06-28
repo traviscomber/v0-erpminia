@@ -1,28 +1,93 @@
 'use client';
 
+import Link from 'next/link';
 import useSWR from 'swr';
-import { CheckCircle2, FileText } from 'lucide-react';
+import { CheckCircle2, Clock, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
 
+type SessionData = {
+  user?: {
+    id: string;
+    email?: string;
+    full_name?: string;
+  };
+  role?: string | null;
+};
+
+function daysSince(dateValue?: string | null) {
+  if (!dateValue) return 0;
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return 0;
+  const diff = Date.now() - date.getTime();
+  return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+}
+
+function normalize(value: unknown) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function getPendingApproval(doc: any, role: string | null | undefined, userId?: string) {
+  const approvals = Array.isArray(doc.document_approvals) ? doc.document_approvals : [];
+  return approvals.find((approval) => {
+    const approvalRole = normalize(approval.required_role);
+    const approvalStatus = normalize(approval.status);
+    const assignedTo = String(approval.assigned_to || '');
+    const roleMatches = role ? approvalRole === normalize(role) : false;
+    const userMatches = userId ? assignedTo === userId : false;
+    return approvalStatus === 'pending' && (roleMatches || userMatches);
+  });
+}
+
 export default function MisAprobacionesPage() {
+  const { data: session } = useSWR<SessionData>('/api/auth/session', fetcher);
+  const currentRole = session?.role || null;
+  const currentUserId = session?.user?.id;
+
   const { data, isLoading } = useSWR('/api/sostenibilidad/documentos-flujo', fetcher);
 
   const documentos = Array.isArray(data?.data) ? data.data : [];
-  const pendientes = documentos.filter(
-    (doc: any) => doc.status === 'pending' || doc.status === 'submitted' || doc.status === 'under_review'
-  );
-  const aprobados = documentos.filter((doc: any) => doc.status === 'approved' || doc.status === 'aprobado_final');
-  const rechazados = documentos.filter((doc: any) => doc.status === 'rejected');
+  const pendingApprovals = documentos
+    .map((doc: any) => {
+      const pendingApproval = getPendingApproval(doc, currentRole, currentUserId);
+      return pendingApproval
+        ? {
+            documentId: doc.id,
+            title: doc.title || doc.documento_nombre || 'Documento',
+            description: doc.description || '',
+            approvalLevelName: pendingApproval.approval_level_name || `Nivel ${pendingApproval.approval_level || 1}`,
+            approvalLevel: pendingApproval.approval_level || 1,
+            assignedToName: pendingApproval.assigned_to_name || '',
+            status: pendingApproval.status || 'pending',
+            createdAt: doc.created_at || pendingApproval.created_at || null,
+          }
+        : null;
+    })
+    .filter(Boolean) as Array<{
+    documentId: string;
+    title: string;
+    description: string;
+    approvalLevelName: string;
+    approvalLevel: number;
+    assignedToName: string;
+    status: string;
+    createdAt: string | null;
+  }>;
+
+  const approvedCount = documentos.filter((doc: any) => normalize(doc.status) === 'approved').length;
+  const rejectedCount = documentos.filter((doc: any) => normalize(doc.status) === 'rejected').length;
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold text-foreground">Mis aprobaciones</h1>
-        <p className="mt-2 text-muted-foreground">
-          Documentos pendientes de tu aprobación en el flujo de sostenibilidad
+        <p className="text-muted-foreground">
+          {currentRole
+            ? `Pendientes asignadas a tu rol ${currentRole}`
+            : 'Pendientes de revisión en el flujo de sostenibilidad'}
         </p>
       </div>
 
@@ -32,7 +97,7 @@ export default function MisAprobacionesPage() {
             <CardTitle className="text-sm font-medium">Pendientes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{pendientes.length}</div>
+            <div className="text-3xl font-bold">{pendingApprovals.length}</div>
           </CardContent>
         </Card>
 
@@ -41,7 +106,7 @@ export default function MisAprobacionesPage() {
             <CardTitle className="text-sm font-medium">Aprobados</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{aprobados.length}</div>
+            <div className="text-3xl font-bold">{approvedCount}</div>
           </CardContent>
         </Card>
 
@@ -50,7 +115,7 @@ export default function MisAprobacionesPage() {
             <CardTitle className="text-sm font-medium">Rechazados</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{rechazados.length}</div>
+            <div className="text-3xl font-bold">{rejectedCount}</div>
           </CardContent>
         </Card>
       </div>
@@ -63,24 +128,31 @@ export default function MisAprobacionesPage() {
         <CardContent>
           {isLoading ? (
             <p>Cargando...</p>
-          ) : pendientes.length === 0 ? (
+          ) : pendingApprovals.length === 0 ? (
             <div className="py-8 text-center">
               <CheckCircle2 className="mx-auto mb-4 h-12 w-12 text-muted-foreground/50" />
               <p className="text-muted-foreground">Sin documentos pendientes</p>
             </div>
           ) : (
             <div className="space-y-3">
-              {pendientes.map((doc: any) => (
-                <div key={doc.id} className="flex items-center justify-between rounded-lg border p-3">
+              {pendingApprovals.map((approval) => (
+                <div key={`${approval.documentId}-${approval.approvalLevel}`} className="flex items-center justify-between rounded-lg border p-3">
                   <div className="flex-1">
                     <div className="mb-1 flex items-center gap-2">
                       <FileText className="h-4 w-4" />
-                      <h3 className="font-semibold">{doc.title || doc.documento_nombre}</h3>
+                      <h3 className="font-semibold">{approval.title}</h3>
                     </div>
-                    <p className="text-xs text-muted-foreground">{doc.description}</p>
+                    <p className="text-xs text-muted-foreground">{approval.description || 'Sin descripción'}</p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <Badge variant="outline">{approval.approvalLevelName}</Badge>
+                      <Badge variant="secondary">{approval.status}</Badge>
+                      <Badge variant="outline">{daysSince(approval.createdAt)} d</Badge>
+                    </div>
                   </div>
-                  <Button variant="outline" size="sm">
-                    Revisar
+                  <Button asChild variant="outline" size="sm">
+                    <Link href={`/dashboard/sostenibilidad/documentos-flujo?doc=${approval.documentId}`}>
+                      Revisar
+                    </Link>
                   </Button>
                 </div>
               ))}
