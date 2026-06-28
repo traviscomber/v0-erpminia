@@ -1,7 +1,112 @@
 import { DocumentService } from '@/lib/services/document.service';
 import { listContractsForOrganization } from '@/lib/api/contracts';
 
-type SupabaseClientLike = any;
+type QueryResult<T> = {
+  data: T | null;
+  error: unknown;
+};
+
+type QueryBuilderLike = {
+  select: (select: string) => QueryBuilderLike;
+  eq: (column: string, value: string | number | boolean) => QueryBuilderLike;
+  not: (column: string, operator: string, value: null) => QueryBuilderLike;
+  lte: (column: string, value: string) => QueryBuilderLike;
+  order: (column: string, options: { ascending: boolean }) => QueryBuilderLike;
+  limit: (value: number) => QueryBuilderLike;
+};
+
+type SupabaseClientLike = {
+  from: (table: string) => QueryBuilderLike;
+};
+
+type DocumentExpiryRow = {
+  id: string;
+  title?: string | null;
+  expiry_date?: string | null;
+  status?: string | null;
+  created_at?: string | null;
+};
+
+type WorkOrderRow = {
+  id: string;
+  work_order_number?: string | null;
+  title?: string | null;
+  work_type?: string | null;
+  status?: string | null;
+  priority?: string | null;
+  created_at?: string | null;
+  scheduled_date?: string | null;
+  completion_date?: string | null;
+  asset_id?: string | null;
+};
+
+type StockRow = {
+  id: string;
+  part_name?: string | null;
+  part_code?: string | null;
+  quantity_on_hand?: number | string | null;
+  reorder_level?: number | string | null;
+  unit_cost?: number | string | null;
+  created_at?: string | null;
+};
+
+type CostCenterRow = {
+  id: string;
+  name?: string | null;
+  code?: string | null;
+  budget_annual?: number | string | null;
+  budget_used?: number | string | null;
+};
+
+type ContractRow = {
+  id: string;
+  status?: string | null;
+  days_until_expiry?: number | null;
+  pending_amount?: number | string | null;
+  review_due_date?: string | null;
+  end_date?: string | null;
+  start_date?: string | null;
+  created_at?: string | null;
+  contract_value?: number | string | null;
+};
+
+type EquipmentRow = {
+  id: string;
+  name?: string | null;
+  status?: string | null;
+  created_at?: string | null;
+  criticality?: string | null;
+};
+
+type MaintenanceAssetRow = {
+  id: string;
+  asset_name?: string | null;
+  status?: string | null;
+  created_at?: string | null;
+  criticality?: string | null;
+};
+
+type IncidentRow = {
+  id: string;
+  incident_type?: string | null;
+  severity?: string | null;
+  status?: string | null;
+  date_reported?: string | null;
+  description?: string | null;
+};
+
+type AssetCard = {
+  id: string;
+  name?: string | null;
+  status?: string | null;
+  created_at?: string | null;
+  criticality?: string | null;
+};
+
+type WorkOrderCard = WorkOrderRow;
+type StockCard = StockRow;
+type ContractCard = ContractRow;
+type IncidentCard = IncidentRow;
 
 type DashboardSnapshotInput = {
   organizationId: string;
@@ -36,7 +141,7 @@ function monthLabel(dateValue?: string | null) {
   return date.toLocaleDateString('es-CL', { month: 'short' }).replace('.', '');
 }
 
-async function safeQuery<T>(fn: () => Promise<{ data: T | null; error: any }>, fallback: T) {
+async function safeQuery<T>(fn: () => Promise<QueryResult<T>>, fallback: T): Promise<T> {
   try {
     const result = await fn();
     if (result.error) return fallback;
@@ -75,7 +180,7 @@ export async function getDashboardSnapshot({ organizationId, supabase }: Dashboa
           .lte('expiry_date', new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10))
           .order('expiry_date', { ascending: true })
           .limit(25),
-      [] as any[]
+      [] as DocumentExpiryRow[]
     ),
     safeQuery(
       async () =>
@@ -85,7 +190,7 @@ export async function getDashboardSnapshot({ organizationId, supabase }: Dashboa
           .eq('organization_id', organizationId)
           .order('created_at', { ascending: false })
           .limit(500),
-      [] as any[]
+      [] as WorkOrderRow[]
     ),
     safeQuery(
       async () =>
@@ -95,7 +200,7 @@ export async function getDashboardSnapshot({ organizationId, supabase }: Dashboa
           .eq('organization_id', organizationId)
           .order('part_name', { ascending: true })
           .limit(1000),
-      [] as any[]
+      [] as StockRow[]
     ),
     safeQuery(
       async () =>
@@ -104,12 +209,14 @@ export async function getDashboardSnapshot({ organizationId, supabase }: Dashboa
           .select('id, name, code, budget_annual, budget_used')
           .eq('organization_id', organizationId)
           .order('name', { ascending: true }),
-      [] as any[]
+      [] as CostCenterRow[]
     ),
-    listContractsForOrganization(organizationId).then((result) => result.contracts).catch(() => [] as any[]),
+    listContractsForOrganization(organizationId)
+      .then((result) => result.contracts as ContractRow[])
+      .catch(() => [] as ContractRow[]),
     safeQuery(
       async () => supabase.from('equipment').select('id, name, status, created_at').order('name', { ascending: true }),
-      [] as any[]
+      [] as EquipmentRow[]
     ),
     safeQuery(
       async () =>
@@ -118,7 +225,7 @@ export async function getDashboardSnapshot({ organizationId, supabase }: Dashboa
           .select('id, asset_name, status, created_at, criticality')
           .eq('organization_id', organizationId)
           .order('asset_name', { ascending: true }),
-      [] as any[]
+      [] as MaintenanceAssetRow[]
     ),
     safeQuery(
       async () =>
@@ -127,18 +234,18 @@ export async function getDashboardSnapshot({ organizationId, supabase }: Dashboa
           .select('id, incident_type, severity, status, date_reported, description')
           .order('date_reported', { ascending: false })
           .limit(50),
-      [] as any[]
+      [] as IncidentRow[]
     ),
   ]);
 
-  const assets = productionEquipment.length > 0
-    ? productionEquipment.map((item: any) => ({
+  const assets: AssetCard[] = productionEquipment.length > 0
+    ? productionEquipment.map((item) => ({
         id: item.id,
         name: item.name,
         status: item.status,
         created_at: item.created_at,
       }))
-    : maintenanceAssets.map((item: any) => ({
+    : maintenanceAssets.map((item) => ({
         id: item.id,
         name: item.asset_name,
         status: item.status,
@@ -146,41 +253,35 @@ export async function getDashboardSnapshot({ organizationId, supabase }: Dashboa
         criticality: item.criticality,
       }));
 
-  const lowStockItems = stock.filter(
-    (item: any) => toNumber(item.quantity_on_hand) <= toNumber(item.reorder_level)
-  );
+  const lowStockItems = stock.filter((item) => toNumber(item.quantity_on_hand) <= toNumber(item.reorder_level));
 
-  const openWorkOrders = workOrders.filter((item: any) =>
-    ['open', 'in_progress'].includes(normalizeStatus(item.status))
-  );
-  const preventiveOrders = workOrders.filter((item: any) => normalizeStatus(item.work_type) === 'preventive');
-  const correctiveOrders = workOrders.filter((item: any) => normalizeStatus(item.work_type) === 'corrective');
-  const criticalWorkOrders = openWorkOrders.filter((item: any) =>
-    ['critical', 'high'].includes(normalizeStatus(item.priority))
-  );
-  const overdueWorkOrders = openWorkOrders.filter((item: any) => {
+  const openWorkOrders = workOrders.filter((item) => ['open', 'in_progress'].includes(normalizeStatus(item.status)));
+  const preventiveOrders = workOrders.filter((item) => normalizeStatus(item.work_type) === 'preventive');
+  const correctiveOrders = workOrders.filter((item) => normalizeStatus(item.work_type) === 'corrective');
+  const criticalWorkOrders = openWorkOrders.filter((item) => ['critical', 'high'].includes(normalizeStatus(item.priority)));
+  const overdueWorkOrders = openWorkOrders.filter((item) => {
     if (!item.scheduled_date) return false;
     return new Date(item.scheduled_date).getTime() < Date.now();
   });
 
-  const pendingContracts = contracts.filter((item: any) => normalizeStatus(item.status).includes('revisi'));
-  const expiringContracts = contracts.filter((item: any) =>
+  const pendingContracts = contracts.filter((item) => normalizeStatus(item.status).includes('revisi'));
+  const expiringContracts = contracts.filter((item) =>
     typeof item.days_until_expiry === 'number' && item.days_until_expiry >= 0 && item.days_until_expiry <= 30
   );
-  const overdueFinancial = contracts.filter((item: any) => {
+  const overdueFinancial = contracts.filter((item) => {
     const pendingAmount = toNumber(item.pending_amount);
     const dueDate = item.review_due_date || item.end_date;
     if (!dueDate || pendingAmount <= 0) return false;
     return new Date(dueDate).getTime() < Date.now();
   });
 
-  const operationalEquipment = assets.filter((item: any) => {
+  const operationalEquipment = assets.filter((item) => {
     const status = normalizeStatus(item.status);
     return ['operational', 'operativo', 'active', 'activo', 'running'].includes(status);
   }).length;
 
   const assetCount = Math.max(assets.length, 1);
-  const corrective30d = correctiveOrders.filter((item: any) => {
+  const corrective30d = correctiveOrders.filter((item) => {
     const created = new Date(item.created_at || item.scheduled_date || Date.now());
     return created.getTime() >= Date.now() - 30 * 24 * 60 * 60 * 1000;
   }).length;
@@ -201,11 +302,11 @@ export async function getDashboardSnapshot({ organizationId, supabase }: Dashboa
     ? Math.round(((contracts.length - overdueFinancial.length) / contracts.length) * 100)
     : 100;
   const operationalCostsMonthly = contracts
-    .filter((item: any) => {
+    .filter((item) => {
       const baseDate = new Date(item.start_date || item.created_at || Date.now());
       return baseDate >= currentMonthStart;
     })
-    .reduce((sum: number, item: any) => sum + toNumber(item.contract_value), 0);
+    .reduce((sum: number, item) => sum + toNumber(item.contract_value), 0);
 
   const documentsHealth = documentStats.total > 0
     ? clamp(Math.round((documentStats.approved / documentStats.total) * 100) - expiringDocuments.length * 2)
@@ -222,9 +323,9 @@ export async function getDashboardSnapshot({ organizationId, supabase }: Dashboa
   ];
 
   const trendByMonth = buildMonthSeries(sixMonthKeys).map(({ key, label }) => {
-    const docMonth = expiringDocuments.filter((item: any) => monthKey(item.created_at) === key).length;
-    const woMonth = workOrders.filter((item: any) => monthKey(item.created_at) === key).length;
-    const contractMonth = contracts.filter((item: any) => monthKey(item.created_at) === key).length;
+    const docMonth = expiringDocuments.filter((item) => monthKey(item.created_at) === key).length;
+    const woMonth = workOrders.filter((item) => monthKey(item.created_at) === key).length;
+    const contractMonth = contracts.filter((item) => monthKey(item.created_at) === key).length;
 
     const docScore = documentStats.total > 0 ? clamp(validDocumentsPct - docMonth) : 100;
     const maintenanceScore = clamp(100 - woMonth * 3);
@@ -339,10 +440,7 @@ export async function getDashboardSnapshot({ organizationId, supabase }: Dashboa
       overdueWorkOrders: overdueWorkOrders.length,
       totalInventoryItems: stock.length,
       lowStockItems: lowStockItems.length,
-      inventoryValue: stock.reduce(
-        (sum: number, item: any) => sum + toNumber(item.quantity_on_hand) * toNumber(item.unit_cost),
-        0
-      ),
+      inventoryValue: stock.reduce((sum: number, item) => sum + toNumber(item.quantity_on_hand) * toNumber(item.unit_cost), 0),
       contractsPendingReview: pendingContracts.length,
       expiringContracts: expiringContracts.length,
       activeAlerts:
