@@ -2,11 +2,13 @@
 
 import { useMemo, useState, type FormEvent } from 'react';
 import useSWR from 'swr';
-import { Download, Search, ClipboardCheck } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowRight, Download, Search, ClipboardCheck } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { InvestigationsImport } from '@/components/hse/investigations-import';
 
 const fetcher = async (url: string) => {
   const response = await fetch(url);
@@ -122,12 +124,20 @@ export default function HSEInvestigacionesPage() {
             <Download className="mr-2 h-4 w-4" />
             Plantilla Excel
           </Button>
+          <Button asChild variant="outline">
+            <Link href="/dashboard/hse/investigaciones/importar">
+              <ArrowRight className="mr-2 h-4 w-4" />
+              Importar Excel
+            </Link>
+          </Button>
           <Button variant="outline" onClick={() => mutate()}>
             <Search className="mr-2 h-4 w-4" />
             Recargar
           </Button>
         </div>
       </div>
+
+      <InvestigationsImport onSuccess={() => mutate()} />
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
