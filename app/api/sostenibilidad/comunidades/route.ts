@@ -22,6 +22,14 @@ type ImportCommunityRow = {
   prioridad: 'alta' | 'media' | 'baja';
 };
 
+function normalizeStatus(value: unknown) {
+  const text = normalizeText(value).toLowerCase();
+  if (['pendiente', 'pending', 'abierto', 'open'].includes(text)) return 'pendiente';
+  if (['en progreso', 'en_progreso', 'in_progress', 'progreso'].includes(text)) return 'en_progreso';
+  if (['completado', 'completed', 'completada', 'closed'].includes(text)) return 'completado';
+  return text || 'pendiente';
+}
+
 function normalizeText(value: unknown) {
   return String(value ?? '').trim().replace(/\s+/g, ' ');
 }
@@ -69,7 +77,7 @@ function parseRows(text: string): ImportCommunityRow[] {
         tipo: values[columns.tipo] || 'Evento',
         descripcion,
         stakeholder,
-        estado: values[columns.estado] || 'Pendiente',
+        estado: normalizeStatus(values[columns.estado]),
         tipo_stakeholder: values[columns.tipo_stakeholder] || 'comunidad',
         ubicacion: values[columns.ubicacion] || null,
         contacto_persona: values[columns.contacto_persona] || null,
@@ -171,7 +179,7 @@ export async function POST(request: NextRequest) {
           tipo: row.tipo,
           descripcion: row.descripcion,
           stakeholder: row.stakeholder,
-          estado: row.estado,
+          estado: normalizeStatus(row.estado),
           tipo_stakeholder: row.tipo_stakeholder,
           ubicacion: row.ubicacion,
           contacto_persona: row.contacto_persona,
@@ -223,7 +231,7 @@ export async function POST(request: NextRequest) {
         tipo:  body.tipo,
         descripcion:  body.descripcion,
         stakeholder:  body.stakeholder,
-        estado:  body.estado || 'pendiente',
+        estado: normalizeStatus(body.estado || 'pendiente'),
         tipo_stakeholder:  body.tipo_stakeholder || 'comunidad',
         ubicacion:  body.ubicacion || null,
         contacto_persona:  body.contacto_persona || null,

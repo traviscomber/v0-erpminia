@@ -33,7 +33,7 @@ type Comunidad = {
   tipo: 'Evento' | 'Comunicación' | 'Compromiso';
   descripcion: string;
   stakeholder: string;
-  estado: 'Pendiente' | 'Completado' | 'En Progreso';
+  estado: 'pendiente' | 'completado' | 'en_progreso';
   tipo_stakeholder: 'indigena' | 'comunidad' | 'gobierno' | 'ong' | 'vecino';
   ubicacion: string;
   contacto_persona: string;
@@ -79,9 +79,9 @@ const STAKEHOLDER_TYPES = {
 } as const;
 
 const STATUS_COLOR = {
-  Pendiente: 'bg-blue-500/15 text-blue-400',
-  'En Progreso': 'bg-amber-500/15 text-amber-400',
-  Completado: 'bg-green-500/15 text-green-400',
+  pendiente: 'bg-blue-500/15 text-blue-400',
+  en_progreso: 'bg-amber-500/15 text-amber-400',
+  completado: 'bg-green-500/15 text-green-400',
 } as const;
 
 const PRIORITY_COLOR = {
@@ -105,7 +105,7 @@ const BLANK_FORM: ComunidadForm = {
   tipo: 'Evento',
   descripcion: '',
   stakeholder: '',
-  estado: 'Pendiente',
+  estado: 'pendiente',
   tipo_stakeholder: 'comunidad',
   ubicacion: '',
   contacto_persona: '',
@@ -122,6 +122,14 @@ const BLANK_FORM: ComunidadForm = {
 
 const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((r) => r.json());
 
+function normalizeEstado(value: string) {
+  const text = value.trim().toLowerCase();
+  if (['pendiente', 'pending', 'abierto', 'open'].includes(text)) return 'pendiente';
+  if (['en progreso', 'en_progreso', 'in_progress', 'progreso'].includes(text)) return 'en_progreso';
+  if (['completado', 'completed', 'completada', 'closed'].includes(text)) return 'completado';
+  return 'pendiente';
+}
+
 export default function ComunidadesPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [filterStakeholder, setFilterStakeholder] = useState('todos');
@@ -135,7 +143,7 @@ export default function ComunidadesPage() {
   const filteredRecords = useMemo(() => {
     return allRecords
       .filter((r) => filterStakeholder === 'todos' || r.tipo_stakeholder === filterStakeholder)
-      .filter((r) => filterStatus === 'todos' || r.estado === filterStatus)
+      .filter((r) => filterStatus === 'todos' || normalizeEstado(r.estado) === filterStatus)
       .filter(
         (r) =>
           !search ||
@@ -152,10 +160,10 @@ export default function ComunidadesPage() {
     return {
       total: allRecords.length,
       alta: allRecords.filter((r) => r.prioridad === 'alta').length,
-      pendientes: allRecords.filter((r) => r.estado === 'Pendiente').length,
-      completados: allRecords.filter((r) => r.estado === 'Completado').length,
+      pendientes: allRecords.filter((r) => normalizeEstado(r.estado) === 'pendiente').length,
+      completados: allRecords.filter((r) => normalizeEstado(r.estado) === 'completado').length,
       vencidos: allRecords.filter(
-        (r) => r.fecha_seguimiento && new Date(`${r.fecha_seguimiento}T00:00:00`) < now && r.estado !== 'Completado'
+        (r) => r.fecha_seguimiento && new Date(`${r.fecha_seguimiento}T00:00:00`) < now && normalizeEstado(r.estado) !== 'completado'
       ).length,
       indigenas: allRecords.filter((r) => r.tipo_stakeholder === 'indigena').length,
     };
@@ -332,9 +340,9 @@ export default function ComunidadesPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Pendiente">Pendiente</SelectItem>
-                      <SelectItem value="En Progreso">En Progreso</SelectItem>
-                      <SelectItem value="Completado">Completado</SelectItem>
+                      <SelectItem value="pendiente">Pendiente</SelectItem>
+                      <SelectItem value="en_progreso">En Progreso</SelectItem>
+                      <SelectItem value="completado">Completado</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -481,9 +489,9 @@ export default function ComunidadesPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="todos">Todos los estados</SelectItem>
-                <SelectItem value="Pendiente">Pendiente</SelectItem>
-                <SelectItem value="En Progreso">En Progreso</SelectItem>
-                <SelectItem value="Completado">Completado</SelectItem>
+                <SelectItem value="pendiente">Pendiente</SelectItem>
+                <SelectItem value="en_progreso">En Progreso</SelectItem>
+                <SelectItem value="completado">Completado</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -519,8 +527,8 @@ export default function ComunidadesPage() {
                             {stakeholderCfg.label}
                           </span>
                         </Badge>
-                        <Badge className={`h-6 px-2 py-0 text-[10px] ${STATUS_COLOR[record.estado]}`}>
-                          {record.estado}
+                        <Badge className={`h-6 px-2 py-0 text-[10px] ${STATUS_COLOR[normalizeEstado(record.estado)]}`}>
+                          {normalizeEstado(record.estado).replace(/_/g, ' ')}
                         </Badge>
                         <Badge className={`h-6 px-2 py-0 text-[10px] ${PRIORITY_COLOR[record.prioridad]}`}>
                           {record.prioridad}
