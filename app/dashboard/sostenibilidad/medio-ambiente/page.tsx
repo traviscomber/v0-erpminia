@@ -29,6 +29,14 @@ interface MedioAmbienteRecord {
 
 const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((r) => r.json());
 
+function normalizeCumplimiento(value: string) {
+  const text = value.trim().toLowerCase();
+  if (['conforme', 'cumple', 'ok', 'approved'].includes(text)) return 'conforme';
+  if (['no_conforme', 'no conforme', 'rejected', 'incumple'].includes(text)) return 'no_conforme';
+  if (['en_revision', 'en revision', 'revision', 'pending'].includes(text)) return 'en_revision';
+  return 'conforme';
+}
+
 export default function MedioAmbientePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [tipo, setTipo] = useState('');
@@ -279,9 +287,9 @@ export default function MedioAmbientePage() {
                       {r.valor} {r.unidad}
                     </td>
                     <td className="px-4 py-3">
-                      <Badge className={cumplimientoColor[r.cumplimiento as keyof typeof cumplimientoColor]}>
-                        {r.cumplimiento}
-                      </Badge>
+                        <Badge className={cumplimientoColor[normalizeCumplimiento(r.cumplimiento) as keyof typeof cumplimientoColor]}>
+                        {normalizeCumplimiento(r.cumplimiento).replace(/_/g, ' ')}
+                        </Badge>
                     </td>
                     <td className="px-4 py-3 text-sm">{new Date(r.fecha).toLocaleDateString('es-CL')}</td>
                     <td className="px-4 py-3 text-right">

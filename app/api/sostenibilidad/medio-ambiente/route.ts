@@ -11,6 +11,14 @@ type ImportRow = {
   cumplimiento: 'conforme' | 'no_conforme' | 'en_revision';
 };
 
+function normalizeCumplimiento(value: unknown): ImportRow['cumplimiento'] {
+  const text = normalizeText(value).toLowerCase();
+  if (['conforme', 'cumple', 'ok', 'aprobado', 'approved'].includes(text)) return 'conforme';
+  if (['no_conforme', 'no conforme', 'incumple', 'rechazado', 'rejected'].includes(text)) return 'no_conforme';
+  if (['en_revision', 'en revision', 'revisión', 'revision', 'pending'].includes(text)) return 'en_revision';
+  return 'conforme';
+}
+
 function normalizeText(value: unknown) {
   return String(value ?? '').trim().replace(/\s+/g, ' ');
 }
@@ -41,7 +49,7 @@ function parseRows(text: string): ImportRow[] {
     if (!descripcion) return [];
 
     const tipo = (values[columns.tipo] || 'emisiones').toLowerCase() as ImportRow['tipo'];
-    const cumplimiento = (values[columns.cumplimiento] || 'conforme').toLowerCase() as ImportRow['cumplimiento'];
+    const cumplimiento = normalizeCumplimiento(values[columns.cumplimiento]);
 
     return [
       {
@@ -87,7 +95,12 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error;
 
-    return NextResponse.json({ data: data || [] });
+    const normalized = (data || []).map((row: any) => ({
+      ...row,
+      cumplimiento: normalizeCumplimiento(row.cumplimiento),
+    }));
+
+    return NextResponse.json({ data: normalized });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudieron cargar los registros de medio ambiente';
     console.error('[sostenibilidad][medio-ambiente] GET fallback:', message);
@@ -141,7 +154,7 @@ export async function POST(request: NextRequest) {
           descripcion: row.descripcion,
           valor: row.valor,
           unidad: row.unidad,
-          cumplimiento: row.cumplimiento,
+          cumplimiento: normalizeCumplimiento(row.cumplimiento),
           created_by: context.userId,
           updated_at: new Date().toISOString(),
         };
@@ -183,7 +196,7 @@ export async function POST(request: NextRequest) {
         descripcion: body.descripcion,
         valor: String(body.valor || ''),
         unidad: body.unidad,
-        cumplimiento: body.cumplimiento || 'conforme',
+        cumplimiento: normalizeCumplimiento(body.cumplimiento || 'conforme'),
         created_by: context.userId,
         updated_at: new Date().toISOString(),
       })
