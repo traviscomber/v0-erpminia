@@ -143,14 +143,15 @@ export default function CorrectiveActionsImportPage() {
 
   const parseFile = async (file: File) => {
     const buffer = await file.arrayBuffer();
-    const workbook = XLSX.read(buffer, { type: 'array' });
+    const xlsx = XLSX as any;
+    const workbook = xlsx.read(buffer, { type: 'array' });
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
     if (!worksheet) return [];
 
-    const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet, {
+    const rows = xlsx.utils.sheet_to_json(worksheet, {
       defval: '',
       raw: false,
-    });
+    }) as Record<string, unknown>[];
 
     return rows.map((row) => ({
       ncId: readCell(row, HEADER_ALIASES.ncId),
