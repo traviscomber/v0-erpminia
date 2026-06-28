@@ -1,12 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { DocumentUpload } from '@/components/documents/document-upload';
 import { DocumentList, Document } from '@/components/documents/document-list';
 import { DocumentReviewModal } from '@/components/documents/document-review-modal';
-import { FileText, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
+import { FileText, CheckCircle2, AlertCircle, Clock, Upload } from 'lucide-react';
 
 interface DocumentStats {
   total: number;
@@ -121,11 +123,19 @@ export default function DocumentosHSEPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Documentos HSE</h1>
-        <p className="mt-2 text-muted-foreground">
-          Gestion de politicas, procedimientos, instructivos y programas de seguridad
-        </p>
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Documentos HSE</h1>
+          <p className="mt-2 text-muted-foreground">
+            Gestion de politicas, procedimientos, instructivos y programas de seguridad
+          </p>
+        </div>
+        <Button asChild variant="outline">
+          <Link href="/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse/cargar">
+            <Upload className="mr-2 h-4 w-4" />
+            Cargar documentos
+          </Link>
+        </Button>
       </div>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
