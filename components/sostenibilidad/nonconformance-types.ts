@@ -16,11 +16,13 @@ export type NonconformanceRecord = {
   id: string;
   nc_number?: string;
   title?: string;
+  description: string;
   category?: string;
   severity?: string;
   status: 'open' | 'in_progress' | 'closed' | string;
   discovered_date?: string | null;
   target_closure_date?: string | null;
+  root_cause?: string;
   corrective_actions?: CorrectiveActionRecord[];
   [key: string]: unknown;
 };
