@@ -71,6 +71,8 @@ export default function EPPPage() {
   const { data: usersData } = useSWR('/api/admin/users', authFetcher);
 
   const eppData = ((epp?.data || []) as EPP[]);
+  const activeEppCount = eppData.filter((item: EPP) => item.activo).length;
+  const inactiveEppCount = eppData.length - activeEppCount;
   const users = Array.isArray(usersData?.users)
     ? usersData.users.map((user: any) => ({
         id: user.id,
@@ -80,6 +82,24 @@ export default function EPPPage() {
       }))
     : [];
   const cargos = [...new Set(eppData.map((item: EPP) => item.cargo_puesto))];
+  const miningEppRecommendations = [
+    {
+      role: 'Operador de equipo pesado',
+      items: ['Casco minero con barboquejo', 'Lentes sellados', 'Guantes anticorte', 'Botas dieléctricas'],
+    },
+    {
+      role: 'Perforista / sondaje',
+      items: ['Proteccion auditiva', 'Respirador segun polvo', 'Lentes de seguridad', 'Rodilleras resistentes'],
+    },
+    {
+      role: 'Mantenimiento mecanico',
+      items: ['Guantes de cuero o anticorte', 'Careta facial', 'Overol ignifugo', 'Proteccion auditiva'],
+    },
+    {
+      role: 'Supervision de faena',
+      items: ['Casco con lampara', 'Chaleco reflectante', 'Lentes de seguridad', 'Botas de seguridad'],
+    },
+  ];
 
   const filteredEPP = eppData.filter((item: EPP) =>
     (item.elemento_epp.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -289,6 +309,15 @@ export default function EPPPage() {
             </form>
           </DialogContent>
         </Dialog>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">EPP inactivos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{inactiveEppCount}</div>
+            <p className="text-xs text-muted-foreground">Catálogo por depurar o reemplazar</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Search and Filters */}
@@ -315,7 +344,7 @@ export default function EPPPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total EPP Activo</CardTitle>
@@ -344,6 +373,30 @@ export default function EPPPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card className="mb-8 border-primary/20 bg-primary/5">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Package className="w-5 h-5 text-primary" />
+            EPP minero recomendado
+          </CardTitle>
+          <CardDescription>
+            Base de referencia para cargos de faena. Vigentes: {activeEppCount} · Inactivos: {inactiveEppCount}.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          {miningEppRecommendations.map((role) => (
+            <div key={role.role} className="rounded-lg border bg-background p-4">
+              <p className="font-semibold">{role.role}</p>
+              <ul className="mt-3 space-y-1 text-sm text-muted-foreground">
+                {role.items.map((item) => (
+                  <li key={item}>• {item}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
 
       {/* EPP Matrix */}
       <Card>

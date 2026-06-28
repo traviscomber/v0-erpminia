@@ -8,13 +8,26 @@ export default function TelemetriaIntegracionPage() {
   -H "Content-Type: application/json" \\
   -H "x-telemetry-token: TU_TOKEN" \\
   -d '{
-    "equipment_code": "EQ-001",
-    "temperature": 72.4,
-    "pressure": 81.2,
-    "vibration": 1.8,
-    "rpm": 1480,
-    "status": "normal",
-    "source_machine": "patagua-gateway-01"
+    "readings": [
+      {
+        "equipment_code": "EQ-001",
+        "temperature": 72.4,
+        "pressure": 81.2,
+        "vibration": 1.8,
+        "rpm": 1480,
+        "status": "normal",
+        "source_machine": "patagua-gateway-01"
+      },
+      {
+        "equipment_code": "EQ-002",
+        "temperature": 84.1,
+        "pressure": 93.6,
+        "vibration": 3.2,
+        "rpm": 1605,
+        "status": "alert",
+        "source_machine": "patagua-gateway-01"
+      }
+    ]
   }'`;
 
   const downloadSpec = () => {
@@ -28,6 +41,7 @@ export default function TelemetriaIntegracionPage() {
       ['rpm', 'No', 'RPM del equipo'],
       ['status', 'Si', 'normal o alert'],
       ['source_machine', 'No', 'Nombre del gateway o maquina origen'],
+      ['readings[]', 'No', 'Lote de lecturas para enviar varios equipos en una sola llamada'],
     ];
     const csv = lines.map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(';')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -74,7 +88,7 @@ export default function TelemetriaIntegracionPage() {
           </CardHeader>
           <CardContent>
             <div className="font-semibold">POST /api/telemetry/ingest</div>
-            <p className="text-sm text-muted-foreground">Acepta JSON desde un gateway local.</p>
+            <p className="text-sm text-muted-foreground">Acepta JSON desde un gateway local o lotes de lecturas.</p>
           </CardContent>
         </Card>
         <Card>
@@ -98,7 +112,7 @@ export default function TelemetriaIntegracionPage() {
           </CardHeader>
           <CardContent>
             <div className="font-semibold">Gateway o PLC</div>
-            <p className="text-sm text-muted-foreground">La otra maquina solo empuja lecturas y eventos.</p>
+            <p className="text-sm text-muted-foreground">La otra maquina puede empujar una lectura o varias en un solo POST.</p>
           </CardContent>
         </Card>
       </div>
@@ -121,7 +135,7 @@ export default function TelemetriaIntegracionPage() {
           <CardContent className="space-y-3 text-sm">
             <div>1. Configurar `TELEMETRY_INGEST_TOKEN` en el entorno del sistema.</div>
             <div>2. Asegurar que la otra maquina resuelva la URL del sistema en la red local.</div>
-            <div>3. Enviar `equipment_id` o `equipment_code` para identificar el destino.</div>
+            <div>3. Enviar `equipment_id` o `equipment_code` para identificar el destino, o `readings` para lotes.</div>
             <div>4. Probar una lectura normal y una de alerta.</div>
             <div>5. Verificar que la lectura aparezca en telemetria y, si corresponde, que cree alarma.</div>
           </CardContent>
@@ -135,6 +149,7 @@ export default function TelemetriaIntegracionPage() {
             <div className="rounded-lg border p-3">equipment_id, equipment_code, asset_code, equipment_name</div>
             <div className="rounded-lg border p-3">temperature, pressure, vibration, rpm</div>
             <div className="rounded-lg border p-3">status, severity, message, description</div>
+            <div className="rounded-lg border p-3">readings[] para enviar varios equipos en una sola llamada</div>
             <div className="rounded-lg border p-3">source_machine, timestamp</div>
           </CardContent>
         </Card>

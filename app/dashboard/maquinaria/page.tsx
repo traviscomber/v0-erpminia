@@ -49,6 +49,7 @@ export default function MaquinariaPage() {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 300);
@@ -61,6 +62,12 @@ export default function MaquinariaPage() {
   const machinery: Machine[] = data?.machinery || [];
   const categories: Category[] = data?.categories || [];
   const total: number = data?.total || 0;
+  const activeCount = machinery.filter((item) => item.status === 'Activo').length;
+  const inactiveCount = machinery.length - activeCount;
+  const visibleMachinery = machinery.filter((item) => {
+    if (!selectedStatus) return true;
+    return selectedStatus === 'Activo' ? item.status === 'Activo' : item.status !== 'Activo';
+  });
 
   const vehicleCount = machinery.filter((m) => VEHICLE_GROUPS.includes(m.category_code)).length;
   const equipmentCount = machinery.filter((m) => !VEHICLE_GROUPS.includes(m.category_code)).length;
@@ -104,7 +111,7 @@ export default function MaquinariaPage() {
         <TabsContent value="lista" className="mt-6 space-y-5">
 
           {/* Summary Cards */}
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-4">
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Total Activos</CardTitle>
@@ -134,6 +141,15 @@ export default function MaquinariaPage() {
               <CardContent>
                 <div className="text-3xl font-bold">{equipmentCount}</div>
                 <p className="text-xs text-muted-foreground">Sondajes, Compresores, etc.</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Activos operativos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{activeCount}</div>
+                <p className="text-xs text-muted-foreground">Disponibles para operación · Inactivos: {inactiveCount}</p>
               </CardContent>
             </Card>
           </div>
@@ -171,6 +187,25 @@ export default function MaquinariaPage() {
                 </Button>
               ))}
             </div>
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" variant={selectedStatus === '' ? 'default' : 'outline'} onClick={() => setSelectedStatus('')}>
+                Todos los estados
+              </Button>
+              <Button
+                size="sm"
+                variant={selectedStatus === 'Activo' ? 'default' : 'outline'}
+                onClick={() => setSelectedStatus(selectedStatus === 'Activo' ? '' : 'Activo')}
+              >
+                Activos
+              </Button>
+              <Button
+                size="sm"
+                variant={selectedStatus === 'Inactivo' ? 'default' : 'outline'}
+                onClick={() => setSelectedStatus(selectedStatus === 'Inactivo' ? '' : 'Inactivo')}
+              >
+                Inactivos
+              </Button>
+            </div>
           </div>
 
           {/* Error */}
@@ -205,14 +240,14 @@ export default function MaquinariaPage() {
                       ))}
                     </TableRow>
                   ))
-                ) : machinery.length === 0 ? (
+                ) : visibleMachinery.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="py-12 text-center text-muted-foreground">
                       No se encontraron equipos ni vehículos
                     </TableCell>
                   </TableRow>
                 ) : (
-                  machinery.map((item) => (
+                  visibleMachinery.map((item) => (
                     <TableRow key={item.code} className="hover:bg-muted/30">
                       <TableCell className="font-mono text-xs text-muted-foreground">
                         {item.code}
@@ -270,8 +305,9 @@ export default function MaquinariaPage() {
           </div>
 
           <p className="text-xs text-muted-foreground">
-            {machinery.length} de {total} equipos mostrados
+            {visibleMachinery.length} de {total} equipos mostrados
             {selectedCategory && ` · Filtro activo: ${categories.find(c => c.code === selectedCategory)?.name}`}
+            {selectedStatus && ` · Estado: ${selectedStatus}`}
           </p>
 
         </TabsContent>

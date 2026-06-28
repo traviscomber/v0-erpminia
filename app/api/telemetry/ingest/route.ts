@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 
-type TelemetryPayload = {
+type TelemetryReadingPayload = {
   equipment_id?: string;
   equipment_code?: string;
   asset_code?: string;
@@ -22,6 +22,10 @@ type TelemetryPayload = {
   description?: string;
   source_machine?: string;
   timestamp?: string;
+};
+
+type TelemetryPayload = TelemetryReadingPayload & {
+  readings?: TelemetryReadingPayload[];
 };
 
 function toNumber(value: unknown) {
@@ -52,7 +56,7 @@ function pickToken(request: NextRequest) {
 
 async function resolveTargetEquipment(
   supabase: ReturnType<typeof getSupabaseServerClient>,
-  payload: TelemetryPayload
+  payload: TelemetryReadingPayload
 ) {
   const equipmentId = String(payload.equipment_id || '').trim();
   const equipmentCode = String(payload.equipment_code || payload.asset_code || '').trim();
@@ -101,6 +105,15 @@ async function resolveTargetEquipment(
   return null;
 }
 
+function buildReadingList(payload: TelemetryPayload) {
+  if (Array.isArray(payload.readings) && payload.readings.length > 0) {
+    return payload.readings;
+  }
+
+  const { readings: _readings, ...singleReading } = payload;
+  return [singleReading];
+}
+
 export async function GET() {
   const configured = Boolean(process.env.TELEMETRY_INGEST_TOKEN);
 
@@ -109,7 +122,7 @@ export async function GET() {
     endpoint: '/api/telemetry/ingest',
     method: 'POST',
     required_header: 'x-telemetry-token',
-    accepted_payload: ['equipment_id', 'equipment_code', 'sensor_id', 'temperature', 'pressure', 'vibration', 'rpm', 'status'],
+    accepted_payload: ['equipment_id', 'equipment_code', 'sensor_id', 'temperature', 'pressure', 'vibration', 'rpm', 'status', 'readings[]'],
     example: {
       equipment_id: 'eq-123',
       temperature: 72.4,
@@ -141,64 +154,95 @@ export async function POST(request: NextRequest) {
   }
 
   const supabase = getSupabaseServerClient();
-  const target = await resolveTargetEquipment(supabase, payload);
-  if (!target) {
-    return NextResponse.json({ error: 'No se pudo resolver el equipo destino' }, { status: 404 });
-  }
+  const readings = buildReadingList(payload);
+  const defaultTarget = await resolveTargetEquipment(supabase, payload);
+  const inserted: Array<{ equipment_id: string; equipment_name: string; status: string; timestamp: string }> = [];
+  const errors: string[] = [];
+  let alarmCount = 0;
 
-  const timestamp =
-    payload.timestamp && !Number.isNaN(new Date(payload.timestamp).getTime())
-      ? new Date(payload.timestamp).toISOString()
-      : new Date().toISOString();
-  const status = normalizeStatus(payload.status);
-  const severity = normalizeSeverity(payload.severity || status);
-  const message =
-    payload.message ||
-    payload.description ||
-    `Lectura ${status === 'alert' ? 'critica' : 'normal'} recibida desde ${payload.source_machine || 'gateway'}`;
+  for (const reading of readings) {
+    const target = (await resolveTargetEquipment(supabase, reading)) || defaultTarget;
+    if (!target) {
+      errors.push(`No se pudo resolver el equipo destino para ${reading.equipment_id || reading.equipment_code || reading.asset_code || reading.equipment_name || 'lectura'}`);
+      continue;
+    }
 
-  const { error: readingError } = await supabase.from('sensor_readings').insert([
-    {
-      sensor_id: payload.sensor_id || null,
-      equipment_id: target.id,
-      timestamp,
-      created_at: timestamp,
-      received_at: timestamp,
-      value: toNumber(payload.value),
-      temperature: toNumber(payload.temperature),
-      pressure: toNumber(payload.pressure),
-      vibration: toNumber(payload.vibration),
-      rpm: toNumber(payload.rpm),
-    },
-  ]);
+    const timestamp =
+      reading.timestamp && !Number.isNaN(new Date(reading.timestamp).getTime())
+        ? new Date(reading.timestamp).toISOString()
+        : new Date().toISOString();
+    const status = normalizeStatus(reading.status || payload.status);
+    const severity = normalizeSeverity(reading.severity || status);
+    const message =
+      reading.message ||
+      reading.description ||
+      payload.message ||
+      payload.description ||
+      `Lectura ${status === 'alert' ? 'critica' : 'normal'} recibida desde ${reading.source_machine || payload.source_machine || 'gateway'}`;
 
-  if (readingError) {
-    return NextResponse.json({ error: readingError.message }, { status: 500 });
-  }
-
-  let alarmCreated = false;
-  if (status === 'alert') {
-    const { error: alarmError } = await supabase.from('alarms').insert([
+    const { error: readingError } = await supabase.from('sensor_readings').insert([
       {
+        sensor_id: reading.sensor_id || null,
         equipment_id: target.id,
-        severity,
-        status: 'active',
-        message,
-        description: message,
-        created_at: timestamp,
         timestamp,
+        created_at: timestamp,
+        received_at: timestamp,
+        value: toNumber(reading.value),
+        temperature: toNumber(reading.temperature),
+        pressure: toNumber(reading.pressure),
+        vibration: toNumber(reading.vibration),
+        rpm: toNumber(reading.rpm),
       },
     ]);
 
-    if (!alarmError) alarmCreated = true;
+    if (readingError) {
+      errors.push(readingError.message);
+      continue;
+    }
+
+    if (status === 'alert') {
+      const { error: alarmError } = await supabase.from('alarms').insert([
+        {
+          equipment_id: target.id,
+          severity,
+          status: 'active',
+          message,
+          description: message,
+          created_at: timestamp,
+          timestamp,
+        },
+      ]);
+
+      if (!alarmError) alarmCount += 1;
+    }
+
+    inserted.push({
+      equipment_id: target.id,
+      equipment_name: target.name,
+      status,
+      timestamp,
+    });
+  }
+
+  if (inserted.length === 0) {
+    return NextResponse.json(
+      {
+        error: errors[0] || 'No se pudo resolver el equipo destino',
+        errors,
+      },
+      { status: errors.some((error) => error.includes('destino')) ? 404 : 500 }
+    );
   }
 
   return NextResponse.json({
     success: true,
-    equipment_id: target.id,
-    equipment_name: target.name,
-    status,
-    alarm_created: alarmCreated,
-    timestamp,
+    batch: inserted.length > 1,
+    ingested_count: inserted.length,
+    alarm_count: alarmCount,
+    equipment_id: inserted[0]?.equipment_id || null,
+    equipment_name: inserted[0]?.equipment_name || null,
+    status: inserted[0]?.status || 'normal',
+    timestamp: inserted[inserted.length - 1]?.timestamp || new Date().toISOString(),
+    errors,
   });
 }
