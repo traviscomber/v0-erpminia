@@ -273,6 +273,12 @@ export default function SostenibilidadDashboard() {
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/acciones-correctivas/importar">
+              Acciones correctivas
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
         </CardContent>
       </Card>
 

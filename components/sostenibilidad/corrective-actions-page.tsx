@@ -1,11 +1,13 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Upload } from 'lucide-react';
 import useSWR from 'swr';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CorrectiveActionCard } from '@/components/sostenibilidad/corrective-action-card';
 import { CorrectiveActionModal } from '@/components/sostenibilidad/corrective-action-modal';
 
@@ -21,23 +23,33 @@ export function CorrectiveActionsPage() {
     fetcher
   );
 
-  const inProgressCount = actions.data.filter((a: any) => a.status === 'in_progress').length || 0;
-  const completedCount = actions.data.filter((a: any) => a.status === 'completed' || a.status === 'verified').length || 0;
-  const overDueCount = actions.data.filter((a: any) => new Date(a.scheduled_completion_date) < new Date() && a.status !== 'completed').length || 0;
-  const totalActions = actions.data.length || 0;
+  const actionList = actions?.data ?? [];
+  const statsData = stats?.data ?? {};
+
+  const inProgressCount = actionList.filter((a: any) => a.status === 'in_progress').length || 0;
+  const completedCount = actionList.filter((a: any) => a.status === 'completed' || a.status === 'verified').length || 0;
+  const overDueCount = actionList.filter((a: any) => new Date(a.scheduled_completion_date) < new Date() && a.status !== 'completed').length || 0;
+  const totalActions = actionList.length || 0;
 
   return (
     <div className="space-y-6 p-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold">Acciones correctivas</h1>
           <p className="text-muted-foreground">Seguimiento y gestion de planes correctivos</p>
         </div>
-        <Button onClick={() => setModalOpen(true)} className="bg-primary" variant="default">
-          <Plus className="w-4 h-4 mr-2" />
-          Nueva acción
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline">
+            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/acciones-correctivas/importar">
+              <Upload className="mr-2 h-4 w-4" />
+              Importar Excel
+            </Link>
+          </Button>
+          <Button onClick={() => setModalOpen(true)} className="bg-primary" variant="default">
+            <Plus className="mr-2 h-4 w-4" />
+            Nueva acción
+          </Button>
+        </div>
       </div>
 
       {!ncId && (
@@ -48,14 +60,13 @@ export function CorrectiveActionsPage() {
         </Card>
       )}
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">En progreso</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{inProgressCount || stats.data.in_progress || 0}</div>
+            <div className="text-2xl font-bold">{inProgressCount || statsData.in_progress || 0}</div>
           </CardContent>
         </Card>
         <Card>
@@ -63,7 +74,7 @@ export function CorrectiveActionsPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Completadas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{completedCount || stats.data.completed || 0}</div>
+            <div className="text-2xl font-bold">{completedCount || statsData.completed || 0}</div>
           </CardContent>
         </Card>
         <Card>
@@ -71,7 +82,7 @@ export function CorrectiveActionsPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Vencidas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{overDueCount || stats.data.overdue || 0}</div>
+            <div className="text-2xl font-bold text-red-600">{overDueCount || statsData.overdue || 0}</div>
           </CardContent>
         </Card>
         <Card>
@@ -80,13 +91,12 @@ export function CorrectiveActionsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {totalActions ? Math.round((completedCount / totalActions) * 100) : stats?.data?.completionRate || 0}%
+              {totalActions ? Math.round((completedCount / totalActions) * 100) : statsData?.completionRate || 0}%
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Tabs */}
       <Tabs defaultValue="active" className="w-full">
         <TabsList>
           <TabsTrigger value="active">Activas</TabsTrigger>
@@ -95,8 +105,8 @@ export function CorrectiveActionsPage() {
         </TabsList>
 
         <TabsContent value="active" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {actions.data
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {actionList
               .filter((a: any) => ['planned', 'in_progress'].includes(a.status))
               .map((action: any) => (
                 <CorrectiveActionCard key={action.id} action={action} onUpdate={() => mutate()} />
@@ -105,8 +115,8 @@ export function CorrectiveActionsPage() {
         </TabsContent>
 
         <TabsContent value="completed" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {actions.data
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {actionList
               .filter((a: any) => ['completed', 'verified'].includes(a.status))
               .map((action: any) => (
                 <CorrectiveActionCard key={action.id} action={action} onUpdate={() => mutate()} />
@@ -115,8 +125,8 @@ export function CorrectiveActionsPage() {
         </TabsContent>
 
         <TabsContent value="overdue" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {actions.data
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {actionList
               .filter((a: any) => new Date(a.scheduled_completion_date) < new Date() && a.status !== 'completed')
               .map((action: any) => (
                 <CorrectiveActionCard key={action.id} action={action} onUpdate={() => mutate()} />
