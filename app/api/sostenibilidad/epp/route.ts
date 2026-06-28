@@ -17,6 +17,11 @@ function normalizeText(value: unknown) {
   return String(value ?? '').trim().replace(/\s+/g, ' ');
 }
 
+function normalizeUrl(value: unknown) {
+  const text = normalizeText(value);
+  return text || null;
+}
+
 function normalizeHeader(value: unknown) {
   return normalizeText(value)
     .normalize('NFD')
@@ -137,17 +142,17 @@ export async function POST(request: NextRequest) {
           .eq('elemento_epp', row.elemento_epp)
           .maybeSingle();
 
-        const payload = {
-          organization_id: context.organizationId,
-          cargo_puesto: row.cargo_puesto,
-          elemento_epp: row.elemento_epp,
-          cantidad_elemento: row.cantidad_elemento,
-          marca_modelo: row.marca_modelo,
-          ficha_tecnica_url: row.ficha_tecnica_url,
-          frecuencia_reemplazo: row.frecuencia_reemplazo,
-          activo: row.activo,
-          created_by: context.userId,
-          updated_at: new Date().toISOString(),
+      const payload = {
+        organization_id: context.organizationId,
+        cargo_puesto: normalizeText(row.cargo_puesto),
+        elemento_epp: normalizeText(row.elemento_epp),
+        cantidad_elemento: row.cantidad_elemento,
+        marca_modelo: normalizeText(row.marca_modelo),
+        ficha_tecnica_url: normalizeUrl(row.ficha_tecnica_url),
+        frecuencia_reemplazo: normalizeText(row.frecuencia_reemplazo) || 'semestral',
+        activo: row.activo,
+        created_by: context.userId,
+        updated_at: new Date().toISOString(),
         };
 
         if (existing?.id) {
@@ -175,12 +180,12 @@ export async function POST(request: NextRequest) {
       .from('sostenibilidad_epp')
       .insert({
         organization_id: context.organizationId,
-        cargo_puesto: body.cargo_puesto,
-        elemento_epp: body.elemento_epp,
+        cargo_puesto: normalizeText(body.cargo_puesto),
+        elemento_epp: normalizeText(body.elemento_epp),
         cantidad_elemento: Number(body.cantidad_elemento || 1),
-        marca_modelo: body.marca_modelo || null,
-        ficha_tecnica_url: body.ficha_tecnica_url || null,
-        frecuencia_reemplazo: body.frecuencia_reemplazo || 'semestral',
+        marca_modelo: normalizeText(body.marca_modelo) || null,
+        ficha_tecnica_url: normalizeUrl(body.ficha_tecnica_url),
+        frecuencia_reemplazo: normalizeText(body.frecuencia_reemplazo) || 'semestral',
         activo: body.activo !== false,
         created_by: context.userId,
         updated_at: new Date().toISOString(),
@@ -211,12 +216,12 @@ export async function PUT(request: NextRequest) {
     const { data, error } = await context.supabase
       .from('sostenibilidad_epp')
       .update({
-        cargo_puesto: body.cargo_puesto,
-        elemento_epp: body.elemento_epp,
+        cargo_puesto: normalizeText(body.cargo_puesto),
+        elemento_epp: normalizeText(body.elemento_epp),
         cantidad_elemento: Number(body.cantidad_elemento || 1),
-        marca_modelo: body.marca_modelo || null,
-        ficha_tecnica_url: body.ficha_tecnica_url || null,
-        frecuencia_reemplazo: body.frecuencia_reemplazo || 'semestral',
+        marca_modelo: normalizeText(body.marca_modelo) || null,
+        ficha_tecnica_url: normalizeUrl(body.ficha_tecnica_url),
+        frecuencia_reemplazo: normalizeText(body.frecuencia_reemplazo) || 'semestral',
         activo: body.activo !== false,
         updated_at: new Date().toISOString(),
       })
