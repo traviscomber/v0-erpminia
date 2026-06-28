@@ -14,7 +14,7 @@ export type CorrectiveActionRecord = {
 
 export type NonconformanceRecord = {
   id: string;
-  nc_number?: string;
+  nc_number: string;
   title: string;
   description: string;
   category?: string;
