@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { AlertTriangle, TrendingDown } from 'lucide-react';
+import { isTelemetryRealtimeEnabled } from '@/lib/telemetry-realtime';
 
 interface StockItem {
   id: string;
@@ -29,7 +30,7 @@ interface StockLevelAlerts {
 
 export function StockLevelAlerts() {
   const supabase = createClient();
-  const realtimeEnabled = process.env.NEXT_PUBLIC_TELEMETRY_REALTIME === 'true';
+  const realtimeEnabled = isTelemetryRealtimeEnabled();
   const [alerts, setAlerts] = useState<StockLevelAlerts>({
     critical: [],
     low: [],

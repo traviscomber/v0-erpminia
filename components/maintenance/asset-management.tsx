@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Wrench, Calendar } from 'lucide-react';
+import { isTelemetryRealtimeEnabled } from '@/lib/telemetry-realtime';
 
 interface Asset {
   id: string;
@@ -22,7 +23,7 @@ interface Asset {
 
 export function AssetManagement() {
   const supabase = createClient();
-  const realtimeEnabled = process.env.NEXT_PUBLIC_TELEMETRY_REALTIME === 'true';
+  const realtimeEnabled = isTelemetryRealtimeEnabled();
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
 

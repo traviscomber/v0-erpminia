@@ -1,10 +1,12 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useRealtimeSensors, useRealtimeAlarms } from '@/hooks/use-realtime';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, TrendingUp, Gauge, Zap, Clock } from 'lucide-react';
+import { isTelemetryRealtimeEnabled } from '@/lib/telemetry-realtime';
 import {
   LineChart,
   Line,
@@ -23,10 +25,14 @@ interface TelemetryDashboardProps {
   equipmentName: string;
 }
 
-const TELEMETRY_REALTIME_ENABLED = process.env.NEXT_PUBLIC_TELEMETRY_REALTIME === 'true';
-
 export function TelemetryDashboard({ equipmentId, equipmentName }: TelemetryDashboardProps) {
-  return TELEMETRY_REALTIME_ENABLED ? (
+  const [telemetryRealtimeEnabled, setTelemetryRealtimeEnabled] = useState(false);
+
+  useEffect(() => {
+    setTelemetryRealtimeEnabled(isTelemetryRealtimeEnabled());
+  }, []);
+
+  return telemetryRealtimeEnabled ? (
     <TelemetryDashboardLive equipmentId={equipmentId} equipmentName={equipmentName} />
   ) : (
     <TelemetryDashboardSafe equipmentName={equipmentName} />
