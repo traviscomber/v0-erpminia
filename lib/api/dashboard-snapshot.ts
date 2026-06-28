@@ -13,6 +13,10 @@ type QueryBuilderLike = {
   lte: (column: string, value: string) => QueryBuilderLike;
   order: (column: string, options: { ascending: boolean }) => QueryBuilderLike;
   limit: (value: number) => QueryBuilderLike;
+  then: <TResult1 = QueryResult<unknown>, TResult2 = never>(
+    onfulfilled?: ((value: QueryResult<unknown>) => TResult1 | PromiseLike<TResult1>) | null,
+    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null
+  ) => PromiseLike<TResult1 | TResult2>;
 };
 
 type SupabaseClientLike = {
@@ -141,7 +145,7 @@ function monthLabel(dateValue?: string | null) {
   return date.toLocaleDateString('es-CL', { month: 'short' }).replace('.', '');
 }
 
-async function safeQuery<T>(fn: () => Promise<QueryResult<T>>, fallback: T): Promise<T> {
+async function safeQuery<T>(fn: () => PromiseLike<QueryResult<T>>, fallback: T): Promise<T> {
   try {
     const result = await fn();
     if (result.error) return fallback;
@@ -170,72 +174,57 @@ export async function getDashboardSnapshot({ organizationId, supabase }: Dashboa
 
   const [documentStats, expiringDocuments, workOrders, stock, costCenters, contracts, productionEquipment, maintenanceAssets, incidents] = await Promise.all([
     DocumentService.getDashboardStats(organizationId),
-    safeQuery(
-      async () =>
-        supabase
-          .from('documents')
-          .select('id, title, expiry_date, status, created_at')
-          .eq('organization_id', organizationId)
-          .not('expiry_date', 'is', null)
-          .lte('expiry_date', new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10))
-          .order('expiry_date', { ascending: true })
-          .limit(25),
-      [] as DocumentExpiryRow[]
-    ),
-    safeQuery(
-      async () =>
-        supabase
-          .from('maintenance_work_orders')
-          .select('id, work_order_number, title, work_type, status, priority, created_at, scheduled_date, completion_date, asset_id')
-          .eq('organization_id', organizationId)
-          .order('created_at', { ascending: false })
-          .limit(500),
-      [] as WorkOrderRow[]
-    ),
-    safeQuery(
-      async () =>
-        supabase
-          .from('warehouse_stock')
-          .select('id, part_name, part_code, quantity_on_hand, reorder_level, unit_cost, created_at')
-          .eq('organization_id', organizationId)
-          .order('part_name', { ascending: true })
-          .limit(1000),
-      [] as StockRow[]
-    ),
-    safeQuery(
-      async () =>
-        supabase
-          .from('cost_centers')
-          .select('id, name, code, budget_annual, budget_used')
-          .eq('organization_id', organizationId)
-          .order('name', { ascending: true }),
-      [] as CostCenterRow[]
-    ),
+    safeQuery(() =>
+      supabase
+        .from('documents')
+        .select('id, title, expiry_date, status, created_at')
+        .eq('organization_id', organizationId)
+        .not('expiry_date', 'is', null)
+        .lte('expiry_date', new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10))
+        .order('expiry_date', { ascending: true })
+        .limit(25)
+    , [] as DocumentExpiryRow[]),
+    safeQuery(() =>
+      supabase
+        .from('maintenance_work_orders')
+        .select('id, work_order_number, title, work_type, status, priority, created_at, scheduled_date, completion_date, asset_id')
+        .eq('organization_id', organizationId)
+        .order('created_at', { ascending: false })
+        .limit(500)
+    , [] as WorkOrderRow[]),
+    safeQuery(() =>
+      supabase
+        .from('warehouse_stock')
+        .select('id, part_name, part_code, quantity_on_hand, reorder_level, unit_cost, created_at')
+        .eq('organization_id', organizationId)
+        .order('part_name', { ascending: true })
+        .limit(1000)
+    , [] as StockRow[]),
+    safeQuery(() =>
+      supabase
+        .from('cost_centers')
+        .select('id, name, code, budget_annual, budget_used')
+        .eq('organization_id', organizationId)
+        .order('name', { ascending: true })
+    , [] as CostCenterRow[]),
     listContractsForOrganization(organizationId)
       .then((result) => result.contracts as ContractRow[])
       .catch(() => [] as ContractRow[]),
-    safeQuery(
-      async () => supabase.from('equipment').select('id, name, status, created_at').order('name', { ascending: true }),
-      [] as EquipmentRow[]
-    ),
-    safeQuery(
-      async () =>
-        supabase
-          .from('maintenance_assets')
-          .select('id, asset_name, status, created_at, criticality')
-          .eq('organization_id', organizationId)
-          .order('asset_name', { ascending: true }),
-      [] as MaintenanceAssetRow[]
-    ),
-    safeQuery(
-      async () =>
-        supabase
-          .from('incidents')
-          .select('id, incident_type, severity, status, date_reported, description')
-          .order('date_reported', { ascending: false })
-          .limit(50),
-      [] as IncidentRow[]
-    ),
+    safeQuery(() => supabase.from('equipment').select('id, name, status, created_at').order('name', { ascending: true }), [] as EquipmentRow[]),
+    safeQuery(() =>
+      supabase
+        .from('maintenance_assets')
+        .select('id, asset_name, status, created_at, criticality')
+        .eq('organization_id', organizationId)
+        .order('asset_name', { ascending: true })
+    , [] as MaintenanceAssetRow[]),
+    safeQuery(() =>
+      supabase
+        .from('incidents')
+        .select('id, incident_type, severity, status, date_reported, description')
+        .order('date_reported', { ascending: false })
+        .limit(50)
+    , [] as IncidentRow[]),
   ]);
 
   const assets: AssetCard[] = productionEquipment.length > 0
