@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -219,14 +220,21 @@ export default function CapacitacionesPage() {
           </div>
           <p className="text-muted-foreground">Registra y gestiona todas las capacitaciones del personal</p>
         </div>
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-              <Plus className="w-4 h-4 mr-2" />
-              Nueva CapacitaciÃ³n
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+        <div className="flex gap-2">
+          <Button asChild variant="outline">
+            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones/importar">
+              <Upload className="mr-2 h-4 w-4" />
+              Importar Excel
+            </Link>
+          </Button>
+          <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+                <Plus className="w-4 h-4 mr-2" />
+                Nueva CapacitaciÃ³n
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Nueva CapacitaciÃ³n</DialogTitle>
               <DialogDescription>Registra una nueva capacitaciÃ³n para el personal</DialogDescription>
@@ -384,8 +392,9 @@ export default function CapacitacionesPage() {
                 </Button>
               </div>
             </form>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <Card className="mb-6 border-[var(--secondary)]/25 bg-[var(--secondary)]/5">
