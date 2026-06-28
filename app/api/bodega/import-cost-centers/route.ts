@@ -103,7 +103,7 @@ function parseCsvRows(text: string) {
 }
 
 async function parseWorkbookRows(file: File) {
-  const xlsx = await import('xlsx');
+  const xlsx = (await import('xlsx')) as any;
   const buffer = Buffer.from(await file.arrayBuffer());
   const workbook = xlsx.read(buffer, { type: 'buffer', cellDates: true });
   const sheetName = workbook.SheetNames[0];

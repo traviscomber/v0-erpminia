@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
     let rows: unknown[][] = [];
 
     if (filename.endsWith('.xlsx') || filename.endsWith('.xls')) {
-      const xlsx = await import('xlsx');
+      const xlsx = (await import('xlsx')) as any;
       const buffer = Buffer.from(await file.arrayBuffer());
       const wb = xlsx.read(buffer, { type: 'buffer', cellDates: true });
       const ws = wb.Sheets[wb.SheetNames[0]];

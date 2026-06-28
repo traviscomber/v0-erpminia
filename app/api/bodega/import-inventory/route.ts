@@ -89,7 +89,7 @@ function parseCsvText(text: string): InventoryRow[] {
 }
 
 async function parseWorkbook(file: File): Promise<InventoryRow[]> {
-  const xlsx = await import('xlsx');
+  const xlsx = (await import('xlsx')) as any;
   const buffer = Buffer.from(await file.arrayBuffer());
   const workbook = xlsx.read(buffer, { type: 'buffer', cellDates: true });
   const sheetName = workbook.SheetNames[0];

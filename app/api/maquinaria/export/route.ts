@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
   if (!auth) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
   const supabase = getSupabaseServerClient();
-  const xlsx = await import('xlsx');
+  const xlsx = (await import('xlsx')) as any;
 
   const { data, error } = await supabase
     .from('cost_centers')

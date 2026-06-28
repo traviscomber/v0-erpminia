@@ -104,7 +104,7 @@ function getSheetByName(workbook: any, contains: string) {
   return name ? workbook.Sheets[name] : null;
 }
 
-type XlsxModule = typeof import('xlsx');
+type XlsxModule = any;
 
 function getXlsxModule(): XlsxModule {
   const moduleCache = globalThis as typeof globalThis & { __xlsxModule?: XlsxModule };
@@ -322,7 +322,7 @@ function parsePurchases(sheet: any): PurchaseAggregate[] {
 }
 
 async function parseWorkbook(file: File) {
-  const xlsx = await import('xlsx');
+  const xlsx = (await import('xlsx')) as any;
   (globalThis as typeof globalThis & { __xlsxModule?: XlsxModule }).__xlsxModule = xlsx;
 
   const buffer = Buffer.from(await file.arrayBuffer());

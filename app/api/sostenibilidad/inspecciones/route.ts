@@ -90,7 +90,7 @@ function parseRows(text: string): ImportInspectionRow[] {
 }
 
 async function parseWorkbook(file: File) {
-  const xlsx = await import('xlsx');
+  const xlsx = (await import('xlsx')) as any;
   const buffer = Buffer.from(await file.arrayBuffer());
   const workbook = xlsx.read(buffer, { type: 'buffer', cellDates: true });
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
