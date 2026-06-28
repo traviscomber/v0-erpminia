@@ -8,6 +8,7 @@ import { Plus, FileText, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
 import useSWR from 'swr';
 import { NonconformanceForm } from './nonconformance-form';
 import { NonconformanceTable } from './nonconformance-table';
+import type { NonconformanceRecord } from '@/components/sostenibilidad/nonconformance-types';
 
 interface NCPageProps {
   organizationId: string;
@@ -40,8 +41,8 @@ export function NoncConformancePage({ organizationId }: NCPageProps) {
     low: 'bg-green-100 text-green-800',
   };
 
-  const nonconformances = Array.isArray(ncs?.nonconformances) ? ncs.nonconformances : [];
-  const overdueItems = nonconformances.filter((nc: any) => {
+  const nonconformances: NonconformanceRecord[] = Array.isArray(ncs?.nonconformances) ? ncs.nonconformances : [];
+  const overdueItems = nonconformances.filter((nc) => {
     if (!nc?.target_closure_date) return false;
     if (nc.status === 'closed') return false;
     return new Date(nc.target_closure_date) < new Date();

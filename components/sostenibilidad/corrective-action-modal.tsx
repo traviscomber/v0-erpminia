@@ -8,7 +8,14 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 
-export function CorrectiveActionModal({ open, onOpenChange, ncId, onCreate }: any) {
+interface CorrectiveActionModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  ncId: string | null;
+  onCreate?: () => void;
+}
+
+export function CorrectiveActionModal({ open, onOpenChange, ncId, onCreate }: CorrectiveActionModalProps) {
   const [data, setData] = useState({
     actionDescription: '',
     responsiblePerson: '',

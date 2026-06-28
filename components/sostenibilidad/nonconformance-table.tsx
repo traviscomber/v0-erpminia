@@ -4,9 +4,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eye, Trash2 } from 'lucide-react';
+import type { NonconformanceRecord } from '@/components/sostenibilidad/nonconformance-types';
 
 interface NonconformanceTableProps {
-  data: any[];
+  data: NonconformanceRecord[];
   severityColors: Record<string, string>;
 }
 
@@ -35,8 +36,8 @@ export function NonconformanceTable({ data, severityColors }: NonconformanceTabl
                 <TableCell className="font-mono text-sm">{nc.nc_number}</TableCell>
                 <TableCell className="font-medium">{nc.title}</TableCell>
                 <TableCell>
-                  <Badge className={severityColors[nc.severity] || 'bg-gray-100'}>
-                    {nc.severity}
+                  <Badge className={severityColors[nc.severity || 'low'] || 'bg-gray-100'}>
+                    {nc.severity || 'low'}
                   </Badge>
                 </TableCell>
                 <TableCell>

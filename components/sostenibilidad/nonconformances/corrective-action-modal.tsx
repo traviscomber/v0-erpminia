@@ -8,9 +8,21 @@ import { toast } from 'sonner';
 
 interface CorrectiveActionModalProps {
   ncNumber: string;
-  onSubmit: (data: any) => void;
+  onSubmit: (data: {
+    actionDescription: string;
+    responsiblePerson: string;
+    scheduledCompletionDate: string;
+    verificationMethod: string;
+    estimatedCost: string;
+  }) => void | Promise<void>;
   onCancel: () => void;
-  initialData?: any;
+  initialData?: Partial<{
+    action_description: string;
+    responsible_person: string;
+    scheduled_completion_date: string;
+    verification_method: string;
+    estimated_cost: string;
+  }>;
 }
 
 export function CorrectiveActionModal({ ncNumber, onSubmit, onCancel, initialData = {} }: CorrectiveActionModalProps) {

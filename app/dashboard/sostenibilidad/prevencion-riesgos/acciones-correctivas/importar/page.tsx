@@ -9,6 +9,16 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
+type XlsxLikeModule = {
+  read: (buffer: ArrayBuffer, options: { type: 'array' }) => {
+    Sheets: Record<string, unknown>;
+    SheetNames: string[];
+  };
+  utils: {
+    sheet_to_json: (worksheet: unknown, options: { defval: string; raw: boolean }) => Record<string, unknown>[];
+  };
+};
+
 type ImportResult = {
   success: boolean;
   message: string;
@@ -143,7 +153,7 @@ export default function CorrectiveActionsImportPage() {
 
   const parseFile = async (file: File) => {
     const buffer = await file.arrayBuffer();
-    const xlsx = XLSX as any;
+    const xlsx = XLSX as unknown as XlsxLikeModule;
     const workbook = xlsx.read(buffer, { type: 'array' });
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
     if (!worksheet) return [];

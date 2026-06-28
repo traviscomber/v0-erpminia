@@ -6,14 +6,26 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 
+type NonconformanceFormData = {
+  title: string;
+  description: string;
+  category: string;
+  severity: string;
+  source: string;
+  discoveredDate: string;
+  targetClosureDate: string;
+  rootCause: string;
+  impactDescription: string;
+};
+
 interface NonconformanceFormProps {
-  onSubmit: (data: any) => void;
-  initialData?: any;
+  onSubmit: (data: NonconformanceFormData) => void | Promise<void>;
+  initialData?: Partial<Record<string, string>>;
 }
 
 export function NonconformanceForm({ onSubmit, initialData = {} }: NonconformanceFormProps) {
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<NonconformanceFormData>({
     title: initialData.title || '',
     description: initialData.description || '',
     category: initialData.category || 'safety',

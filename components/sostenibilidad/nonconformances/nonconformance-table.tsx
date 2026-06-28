@@ -3,28 +3,29 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AlertCircle } from 'lucide-react';
+import type { NonconformanceRecord } from '@/components/sostenibilidad/nonconformance-types';
 
 interface NonconformanceTableProps {
-  data: any[];
-  onRowClick: (nc: any) => void;
-  onEdit: (nc: any) => void;
+  data: NonconformanceRecord[];
+  onRowClick: (nc: NonconformanceRecord) => void;
+  onEdit: (nc: NonconformanceRecord) => void;
 }
 
 export function NonconformanceTable({ data, onRowClick, onEdit }: NonconformanceTableProps) {
-  const severityColors: any = {
+  const severityColors: Record<string, string> = {
     critical: 'bg-destructive',
     high: 'bg-orange-500',
     medium: 'bg-yellow-500',
     low: 'bg-blue-500',
   };
 
-  const statusColors: any = {
+  const statusColors: Record<string, string> = {
     open: 'text-destructive',
     in_progress: 'text-blue-600',
     closed: 'text-green-600',
   };
 
-  const isOverdue = (nc: any) => nc.target_closure_date && new Date(nc.target_closure_date) < new Date() && nc.status !== 'closed';
+  const isOverdue = (nc: NonconformanceRecord) => Boolean(nc.target_closure_date) && new Date(nc.target_closure_date as string) < new Date() && nc.status !== 'closed';
 
   return (
     <div className="border rounded-lg overflow-hidden">
@@ -48,8 +49,8 @@ export function NonconformanceTable({ data, onRowClick, onEdit }: Nonconformance
               <TableCell className="text-sm font-medium truncate max-w-xs">{nc.title}</TableCell>
               <TableCell className="text-xs capitalize">{nc.category}</TableCell>
               <TableCell>
-                <Badge className={`${severityColors[nc.severity] || 'bg-gray-500'} text-xs`} variant="default">
-                  {nc.severity}
+                <Badge className={`${severityColors[nc.severity || 'low'] || 'bg-gray-500'} text-xs`} variant="default">
+                  {nc.severity || 'low'}
                 </Badge>
               </TableCell>
               <TableCell className={`text-sm font-medium ${statusColors[nc.status]}`}>{nc.status}</TableCell>

@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CorrectiveActionCard } from '@/components/sostenibilidad/corrective-action-card';
 import { CorrectiveActionModal } from '@/components/sostenibilidad/corrective-action-modal';
+import type { CorrectiveActionRecord } from '@/components/sostenibilidad/nonconformance-types';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -23,12 +24,12 @@ export function CorrectiveActionsPage() {
     fetcher
   );
 
-  const actionList = actions?.data ?? [];
-  const statsData = stats?.data ?? {};
+  const actionList: CorrectiveActionRecord[] = Array.isArray(actions?.data) ? actions.data : [];
+  const statsData: Record<string, number> = stats?.data && typeof stats.data === 'object' ? (stats.data as Record<string, number>) : {};
 
-  const inProgressCount = actionList.filter((a: any) => a.status === 'in_progress').length || 0;
-  const completedCount = actionList.filter((a: any) => a.status === 'completed' || a.status === 'verified').length || 0;
-  const overDueCount = actionList.filter((a: any) => new Date(a.scheduled_completion_date) < new Date() && a.status !== 'completed').length || 0;
+  const inProgressCount = actionList.filter((a) => a.status === 'in_progress').length || 0;
+  const completedCount = actionList.filter((a) => a.status === 'completed' || a.status === 'verified').length || 0;
+  const overDueCount = actionList.filter((a) => Boolean(a.scheduled_completion_date) && new Date(a.scheduled_completion_date as string) < new Date() && a.status !== 'completed').length || 0;
   const totalActions = actionList.length || 0;
 
   return (
@@ -107,8 +108,8 @@ export function CorrectiveActionsPage() {
         <TabsContent value="active" className="space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {actionList
-              .filter((a: any) => ['planned', 'in_progress'].includes(a.status))
-              .map((action: any) => (
+              .filter((a) => ['planned', 'in_progress'].includes(a.status))
+              .map((action) => (
                 <CorrectiveActionCard key={action.id} action={action} onUpdate={() => mutate()} />
               ))}
           </div>
@@ -117,8 +118,8 @@ export function CorrectiveActionsPage() {
         <TabsContent value="completed" className="space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {actionList
-              .filter((a: any) => ['completed', 'verified'].includes(a.status))
-              .map((action: any) => (
+              .filter((a) => ['completed', 'verified'].includes(a.status))
+              .map((action) => (
                 <CorrectiveActionCard key={action.id} action={action} onUpdate={() => mutate()} />
               ))}
           </div>
@@ -127,8 +128,8 @@ export function CorrectiveActionsPage() {
         <TabsContent value="overdue" className="space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {actionList
-              .filter((a: any) => new Date(a.scheduled_completion_date) < new Date() && a.status !== 'completed')
-              .map((action: any) => (
+              .filter((a) => Boolean(a.scheduled_completion_date) && new Date(a.scheduled_completion_date as string) < new Date() && a.status !== 'completed')
+              .map((action) => (
                 <CorrectiveActionCard key={action.id} action={action} onUpdate={() => mutate()} />
               ))}
           </div>

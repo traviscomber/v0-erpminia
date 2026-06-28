@@ -5,8 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import type { CorrectiveActionRecord } from '@/components/sostenibilidad/nonconformance-types';
 
-export function CorrectiveActionCard({ action, onUpdate }: any) {
+interface CorrectiveActionCardProps {
+  action: CorrectiveActionRecord;
+  onUpdate: (id: string) => void;
+}
+
+export function CorrectiveActionCard({ action, onUpdate }: CorrectiveActionCardProps) {
   const [updating, setUpdating] = useState(false);
 
   const statusColors: Record<string, string> = {
@@ -17,7 +23,7 @@ export function CorrectiveActionCard({ action, onUpdate }: any) {
     on_hold: 'bg-gray-100 text-gray-800',
   };
 
-  const statusIcons: Record<string, any> = {
+  const statusIcons: Record<string, JSX.Element> = {
     planned: <Clock className="w-4 h-4" />,
     in_progress: <AlertCircle className="w-4 h-4" />,
     completed: <CheckCircle className="w-4 h-4" />,
@@ -36,7 +42,7 @@ export function CorrectiveActionCard({ action, onUpdate }: any) {
             <CardTitle className="text-base">{action.ca_number}</CardTitle>
             <p className="text-sm text-muted-foreground mt-1">{action.action_description}</p>
           </div>
-          <Badge className={statusColors[action.status]}>
+          <Badge className={statusColors[action.status] || statusColors.on_hold}>
             <div className="flex items-center gap-1">
               {statusIcons[action.status]}
               {action.status}

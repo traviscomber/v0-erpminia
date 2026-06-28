@@ -5,9 +5,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { AlertCircle, ChevronRight } from 'lucide-react';
+import type { NonconformanceRecord, CorrectiveActionRecord } from '@/components/sostenibilidad/nonconformance-types';
 
 interface NonconformanceCardProps {
-  nc: any;
+  nc: NonconformanceRecord;
   onViewDetails: (id: string) => void;
   onCreateCA: (ncId: string) => void;
   severityColors: Record<string, string>;
@@ -16,8 +17,8 @@ interface NonconformanceCardProps {
 export function NonconformanceCard({ nc, onViewDetails, onCreateCA, severityColors }: NonconformanceCardProps) {
   const correctiveActions = Array.isArray(nc.corrective_actions) ? nc.corrective_actions : [];
   const hasDueDate = !!nc.target_closure_date;
-  const isOverdue = hasDueDate && new Date(nc.target_closure_date) < new Date() && nc.status !== 'closed';
-  const completedActions = correctiveActions.filter((ca: any) => ca.status === 'verified').length;
+  const isOverdue = hasDueDate && new Date(nc.target_closure_date as string) < new Date() && nc.status !== 'closed';
+  const completedActions = correctiveActions.filter((ca: CorrectiveActionRecord) => ca.status === 'verified').length;
   const caProgress = correctiveActions.length
     ? Math.round((completedActions / correctiveActions.length) * 100)
     : 0;
@@ -30,8 +31,8 @@ export function NonconformanceCard({ nc, onViewDetails, onCreateCA, severityColo
           <h3 className="font-semibold text-lg truncate">{nc.title}</h3>
           <p className="text-xs text-muted-foreground mt-1 capitalize">{nc.category}</p>
         </div>
-        <Badge className={severityColors[nc.severity] || 'bg-gray-100'}>
-          {nc.severity}
+        <Badge className={severityColors[nc.severity || 'low'] || 'bg-gray-100'}>
+          {nc.severity || 'low'}
         </Badge>
       </div>
 
