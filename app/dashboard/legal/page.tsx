@@ -335,6 +335,40 @@ export default function LegalPage() {
 
   const hasError = documentsError || contractsError || complianceError;
 
+  const downloadTemplate = (kind: 'documents' | 'contracts') => {
+    const config = {
+      documents: {
+        filename: 'plantilla-documentos-legales.csv',
+        headers: ['TITLE', 'DESCRIPTION', 'DOCUMENT_TYPE', 'CATEGORY', 'STATUS'],
+        rows: [
+          ['Politica HSE', 'Politica corporativa de seguridad', 'policy', 'HSE', 'pending'],
+          ['Procedimiento vehiculos', 'Uso seguro de vehiculos', 'procedure', 'Operacion', 'active'],
+        ],
+      },
+      contracts: {
+        filename: 'plantilla-contratos-legales.csv',
+        headers: ['TITLE', 'CONTRACTOR_NAME', 'START_DATE', 'END_DATE', 'STATUS', 'CONTRACT_VALUE', 'CURRENCY', 'COMPLIANCE_STATUS'],
+        rows: [
+          ['Contrato transporte', 'Transportes del Norte', '2026-07-01', '2027-06-30', 'active', '15000000', 'CLP', 'Pendiente'],
+          ['Contrato mantencion', 'Servicios Andes', '2026-07-01', '2026-12-31', 'active', '8500000', 'CLP', 'Cumple'],
+        ],
+      },
+    }[kind];
+
+    const csv = [config.headers, ...config.rows]
+      .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(';'))
+      .join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = config.filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -342,6 +376,16 @@ export default function LegalPage() {
         <p className="mt-2 max-w-3xl text-muted-foreground">
           Vista ejecutiva para documentos, contratos y cumplimiento normativo, con foco en respaldo, vencimientos y revision.
         </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Button variant="outline" onClick={() => downloadTemplate('documents')}>
+            <Download className="mr-2 h-4 w-4" />
+            Plantilla documentos
+          </Button>
+          <Button variant="outline" onClick={() => downloadTemplate('contracts')}>
+            <Download className="mr-2 h-4 w-4" />
+            Plantilla contratos
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
