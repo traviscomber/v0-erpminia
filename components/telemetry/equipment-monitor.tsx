@@ -36,12 +36,25 @@ function deriveAvailability(status: string) {
 }
 
 export function EquipmentMonitor() {
-  const supabase = createClient();
+  const [supabase] = useState(() => {
+    try {
+      return createClient();
+    } catch (error) {
+      console.error('[telemetry] Supabase client unavailable:', error);
+      return null;
+    }
+  });
   const [equipment, setEquipment] = useState<EquipmentStatus[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchEquipmentStatus = async () => {
+      if (!supabase) {
+        setEquipment([]);
+        setLoading(false);
+        return;
+      }
+
       try {
         const { data: equipmentData, error: equipError } = await supabase
           .from('equipment')
@@ -97,6 +110,10 @@ export function EquipmentMonitor() {
 
     fetchEquipmentStatus();
 
+    if (!supabase) {
+      return;
+    }
+
     const subscription = supabase
       .channel('equipment-status')
       .on(
@@ -149,6 +166,22 @@ export function EquipmentMonitor() {
 
   if (loading) {
     return <div className="text-muted-foreground">Cargando estado de equipos...</div>;
+  }
+
+  if (!supabase) {
+    return (
+      <Card className="border-dashed border-border/70 bg-card/80">
+        <CardHeader>
+          <CardTitle>Monitoreo no disponible</CardTitle>
+          <CardDescription>
+            Faltan credenciales de Supabase en este entorno, por lo que el tablero de telemetria no puede suscribirse a datos vivos.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="text-sm text-muted-foreground">
+          La vista sigue funcionando, pero el monitoreo en tiempo real queda deshabilitado hasta configurar `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+        </CardContent>
+      </Card>
+    );
   }
 
   if (equipment.length === 0) {
