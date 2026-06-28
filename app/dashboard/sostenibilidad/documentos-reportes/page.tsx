@@ -6,18 +6,12 @@ import { AlertCircle, CheckCircle2, Clock, TrendingUp, XCircle } from 'lucide-re
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-type DocumentStep = {
-  status: string;
-  approvedAt: string;
-};
-
 type DashboardDocument = {
   id: string;
   title: string;
   status: string;
   createdAt: string;
   expiryDate: string;
-  steps: DocumentStep[];
 };
 
 const fetcher = async (url: string) => {
@@ -26,17 +20,6 @@ const fetcher = async (url: string) => {
   if (!response.ok) return null;
   return payload;
 };
-
-function approvalDays(document: DashboardDocument) {
-  const createdAt = document.createdAt ? new Date(document.createdAt) : null;
-  const approvedAt = document.steps
-    .filter((step) => step.status === 'approved' && step.approvedAt)
-    .map((step) => new Date(step.approvedAt).getTime())
-    .sort((a, b) => b - a)[0];
-
-  if (!createdAt || Number.isNaN(createdAt.getTime()) || !approvedAt) return null;
-  return Math.max(0, Math.round(((approvedAt - createdAt.getTime()) / (1000 * 60 * 60 * 24)) * 10) / 10);
-}
 
 export default function DocumentosReportesPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -47,28 +30,41 @@ export default function DocumentosReportesPage() {
     revalidateOnFocus: false,
   });
 
-  const documents = (documentsData?.documents || []) as DashboardDocument[];
+  const rawDocuments = Array.isArray(documentsData)
+    ? documentsData
+    : Array.isArray(documentsData?.documents)
+      ? documentsData.documents
+      : [];
+
+  const documents = rawDocuments.map((doc: any) => ({
+    id: doc.id,
+    title: doc.title || doc.document_name || doc.documento_nombre || 'Documento',
+    status: doc.status || 'draft',
+    createdAt: doc.created_at || doc.createdAt || '',
+    expiryDate: doc.expiry_date || doc.expiryDate || '',
+  })) as DashboardDocument[];
   const filteredDocuments = documents.filter((doc) =>
     (doc.title || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalDocuments = statsData?.total ?? documents.length;
+  const totalDocuments = statsData?.totalDocuments ?? documents.length;
   const approvedDocuments = statsData?.approved ?? 0;
   const pendingDocuments = statsData?.pending ?? 0;
-  const expiredDocuments = statsData?.expired ?? 0;
 
-  const rejectedDocuments = useMemo(() => documents.filter((doc) => doc.status === 'rejected').length, [documents]);
+  const rejectedDocuments =
+    typeof statsData?.rejected === 'number'
+      ? statsData.rejected
+      : documents.filter((doc) => String(doc.status || '').toLowerCase() === 'rejected').length;
 
-  const averageApprovalDays = useMemo(() => {
-    const values = documents.map(approvalDays).filter((value): value is number => typeof value === 'number');
-    if (values.length === 0) return 0;
-    return Math.round((values.reduce((sum, value) => sum + value, 0) / values.length) * 10) / 10;
-  }, [documents]);
+  const averageApprovalDays =
+    typeof statsData?.avgApprovalDays === 'number'
+      ? statsData.avgApprovalDays
+      : 0;
 
   const overdueDocuments = useMemo(() => {
     const now = new Date();
     return documents
-      .filter((document) => ['draft', 'submitted', 'under_review', 'pending'].includes(String(document.status || '')))
+      .filter((document) => ['draft', 'submitted', 'under_review', 'pending'].includes(String(document.status || '').toLowerCase()))
       .map((document) => {
         const createdAt = document.createdAt ? new Date(document.createdAt) : null;
         const daysOpen =
