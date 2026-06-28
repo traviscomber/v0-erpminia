@@ -40,6 +40,11 @@ function normalizeBoolean(value: unknown) {
   return true;
 }
 
+function normalizeDate(value: unknown) {
+  const text = normalizeText(value);
+  return text || new Date().toISOString();
+}
+
 function pickIndex(headers: string[], variants: string[]) {
   return headers.findIndex((header) => variants.some((variant) => header.includes(variant)));
 }
@@ -70,13 +75,13 @@ function parseCsvRows(text: string): ImportEppRow[] {
     return [
       {
         cargo,
-        tarea: values[columns.tarea] || '',
-        faena: values[columns.faena] || '',
-        epp_elemento,
+        tarea: normalizeText(values[columns.tarea]),
+        faena: normalizeText(values[columns.faena]),
+        epp_elemento: normalizeText(epp_elemento),
         cantidad: parseNumber(values[columns.cantidad]),
-        frecuencia_reemplazo: values[columns.frecuencia_reemplazo] || '',
-        marca_modelo: values[columns.marca_modelo] || '',
-        fecha_entrega: values[columns.fecha_entrega] || new Date().toISOString(),
+        frecuencia_reemplazo: normalizeText(values[columns.frecuencia_reemplazo]),
+        marca_modelo: normalizeText(values[columns.marca_modelo]),
+        fecha_entrega: normalizeDate(values[columns.fecha_entrega]),
         activo: normalizeBoolean(values[columns.activo]),
       },
     ];
@@ -135,14 +140,14 @@ export async function POST(request: NextRequest) {
     for (const row of rows) {
       const payload = {
         organization_id: context.organizationId,
-        cargo: row.cargo,
-        tarea: row.tarea,
-        faena: row.faena,
-        epp_elemento: row.epp_elemento,
+        cargo: normalizeText(row.cargo),
+        tarea: normalizeText(row.tarea),
+        faena: normalizeText(row.faena),
+        epp_elemento: normalizeText(row.epp_elemento),
         cantidad: row.cantidad,
-        frecuencia_reemplazo: row.frecuencia_reemplazo,
-        marca_modelo: row.marca_modelo,
-        fecha_entrega: row.fecha_entrega,
+        frecuencia_reemplazo: normalizeText(row.frecuencia_reemplazo),
+        marca_modelo: normalizeText(row.marca_modelo),
+        fecha_entrega: normalizeDate(row.fecha_entrega),
         activo: row.activo,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
