@@ -30,9 +30,8 @@ export function CorrectiveActionCard({ action, onUpdate }: CorrectiveActionCardP
     verified: <CheckCircle className="w-4 h-4" />,
   };
 
-  const isOverdue =
-    Boolean(action.scheduled_completion_date) &&
-    new Date(action.scheduled_completion_date) < new Date();
+  const dueDate = action.scheduled_completion_date || '';
+  const isOverdue = Boolean(dueDate) && new Date(dueDate) < new Date();
 
   return (
     <Card className={isOverdue && !['completed', 'verified'].includes(action.status) ? 'border-red-300' : ''}>
@@ -58,7 +57,7 @@ export function CorrectiveActionCard({ action, onUpdate }: CorrectiveActionCardP
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Fecha objetivo:</span>
-            <span className={isOverdue ? 'text-red-600 font-semibold' : ''}>{action.scheduled_completion_date}</span>
+            <span className={isOverdue ? 'text-red-600 font-semibold' : ''}>{dueDate || 'Sin fecha'}</span>
           </div>
           {action.percentage_complete !== undefined && (
             <div>
