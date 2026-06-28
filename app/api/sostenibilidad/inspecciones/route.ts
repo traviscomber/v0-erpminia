@@ -37,6 +37,10 @@ function normalizeTipo(value: unknown): ImportInspectionRow['tipo'] {
   return 'internas';
 }
 
+function normalizeNumero(value: unknown) {
+  return normalizeText(value);
+}
+
 function normalizeEstado(value: unknown): ImportInspectionRow['estado'] {
   const text = normalizeText(value).toLowerCase();
   if (['realizada', 'realizado', 'ejecutada', 'ejecutado', 'completed'].includes(text)) return 'realizada';
@@ -168,19 +172,19 @@ export async function POST(request: NextRequest) {
 
         const payload: Record<string, unknown> = {
           organization_id: context.organizationId,
-          numero_inspeccion: row.numero_inspeccion,
+          numero_inspeccion: normalizeNumero(row.numero_inspeccion),
           fecha_planificada: row.fecha_planificada,
           fecha_realizada: row.estado === 'realizada' ? row.fecha_planificada : null,
-          faena: row.faena,
-          inspector: row.inspector,
+          faena: normalizeText(row.faena),
+          inspector: normalizeText(row.inspector),
           hallazgos_count: row.hallazgos_count,
           estado: row.estado,
           updated_at: new Date().toISOString(),
         };
 
         if (table === 'inspecciones_externas') {
-          payload.empresa_externa = row.empresa_externa || null;
-          payload.contacto_externo = row.contacto_externo || null;
+          payload.empresa_externa = row.empresa_externa ? normalizeText(row.empresa_externa) : null;
+          payload.contacto_externo = row.contacto_externo ? normalizeText(row.contacto_externo) : null;
         }
 
         if (existing?.id) {
@@ -205,15 +209,15 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const table = resolveInspectionTable(body.tipo);
+    const table = resolveInspectionTable(normalizeTipo(body.tipo));
 
     const payload: Record<string, unknown> = {
       organization_id: context.organizationId,
-      numero_inspeccion: body.numero_inspeccion,
+      numero_inspeccion: normalizeNumero(body.numero_inspeccion),
       fecha_planificada: body.fecha_planificada,
       fecha_realizada: body.estado === 'realizada' ? body.fecha_planificada : null,
-      faena: body.faena,
-      inspector: body.inspector,
+      faena: normalizeText(body.faena),
+      inspector: normalizeText(body.inspector),
       hallazgos_count: Number(body.hallazgos_count || 0),
       estado: normalizeEstado(body.estado),
       created_by: context.userId,
@@ -221,8 +225,8 @@ export async function POST(request: NextRequest) {
     };
 
     if (table === 'inspecciones_externas') {
-      payload.empresa_externa = body.empresa_externa;
-      payload.contacto_externo = body.contacto_externo;
+      payload.empresa_externa = body.empresa_externa ? normalizeText(body.empresa_externa) : null;
+      payload.contacto_externo = body.contacto_externo ? normalizeText(body.contacto_externo) : null;
     }
 
     const { data, error } = await context.supabase
@@ -246,22 +250,22 @@ export async function PUT(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const table = resolveInspectionTable(body.tipo);
+    const table = resolveInspectionTable(normalizeTipo(body.tipo));
 
     const payload: Record<string, unknown> = {
       fecha_planificada: body.fecha_planificada,
       fecha_realizada:
         normalizeEstado(body.estado) === 'realizada' ? body.fecha_realizada || body.fecha_planificada : null,
-      faena: body.faena,
-      inspector: body.inspector,
+      faena: normalizeText(body.faena),
+      inspector: normalizeText(body.inspector),
       hallazgos_count: Number(body.hallazgos_count || 0),
       estado: normalizeEstado(body.estado),
       updated_at: new Date().toISOString(),
     };
 
     if (table === 'inspecciones_externas') {
-      payload.empresa_externa = body.empresa_externa;
-      payload.contacto_externo = body.contacto_externo;
+      payload.empresa_externa = body.empresa_externa ? normalizeText(body.empresa_externa) : null;
+      payload.contacto_externo = body.contacto_externo ? normalizeText(body.contacto_externo) : null;
     }
 
     const { data, error } = await context.supabase
@@ -293,7 +297,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     const { error } = await context.supabase
-      .from(resolveInspectionTable(tipo))
+      .from(resolveInspectionTable(normalizeTipo(tipo)))
       .delete()
       .eq('id', id)
       .eq('organization_id', context.organizationId);
