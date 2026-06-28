@@ -40,7 +40,14 @@ interface Capacitacion {
   estado: 'planificada' | 'realizada' | 'cancelada';
 }
 
-const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((r) => r.json());
+type CapacitacionesResponse = {
+  data?: Capacitacion[];
+};
+
+const fetcher = async (url: string): Promise<CapacitacionesResponse> => {
+  const response = await fetch(url, { credentials: 'include' });
+  return response.json();
+};
 
 export default function CapacitacionesPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -62,8 +69,11 @@ export default function CapacitacionesPage() {
     cantidad_asistentes: 0,
   });
 
-  const { data: capacitaciones, isLoading, mutate } = useSWR('/api/sostenibilidad/capacitaciones', fetcher);
-  const capacitacionesList = ((capacitaciones?.data || []) as Capacitacion[]);
+  const { data: capacitaciones, isLoading, mutate } = useSWR<CapacitacionesResponse>(
+    '/api/sostenibilidad/capacitaciones',
+    fetcher
+  );
+  const capacitacionesList = capacitaciones?.data || [];
 
   const filteredCapacitaciones = capacitacionesList.filter((cap: Capacitacion) =>
     cap.nombre_capacitacion.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -102,7 +112,7 @@ export default function CapacitacionesPage() {
           duracion_horas: 0,
           cantidad_asistentes: 0,
         });
-        mutate();
+        void mutate();
         toast.success('CapacitaciÃ³n creada exitosamente');
       } else {
         toast.error('Error al crear capacitaciÃ³n');
@@ -123,7 +133,7 @@ export default function CapacitacionesPage() {
       });
 
       if (response.ok) {
-        mutate();
+        void mutate();
         toast.success('CapacitaciÃ³n eliminada exitosamente');
       } else {
         toast.error('Error al eliminar capacitaciÃ³n');
@@ -176,7 +186,7 @@ export default function CapacitacionesPage() {
         imported: data.imported,
         updated: data.updated,
       });
-      mutate();
+      void mutate();
     } catch (error) {
       setImportResult({
         success: false,
