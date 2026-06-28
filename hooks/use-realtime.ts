@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
+const TELEMETRY_REALTIME_ENABLED = process.env.NEXT_PUBLIC_TELEMETRY_REALTIME === 'true';
+
 interface SensorReading {
   id: string;
   equipment_id: string;
@@ -17,6 +19,10 @@ interface SensorReading {
 
 export function useRealtimeSensors(equipmentId: string) {
   const [supabase] = useState(() => {
+    if (!TELEMETRY_REALTIME_ENABLED) {
+      return null;
+    }
+
     try {
       return createClient();
     } catch (error) {
@@ -33,7 +39,7 @@ export function useRealtimeSensors(equipmentId: string) {
     if (!supabase) {
       setReadings([]);
       setIsConnected(false);
-      setError('Realtime no disponible');
+      setError(null);
       return;
     }
 
@@ -55,6 +61,13 @@ export function useRealtimeSensors(equipmentId: string) {
 
   // Setup realtime subscription
   useEffect(() => {
+    if (!TELEMETRY_REALTIME_ENABLED) {
+      setReadings([]);
+      setIsConnected(false);
+      setError(null);
+      return;
+    }
+
     fetchInitialData();
 
     if (!supabase) {
@@ -93,6 +106,10 @@ export function useRealtimeSensors(equipmentId: string) {
 
 export function useRealtimeAlarms() {
   const [supabase] = useState(() => {
+    if (!TELEMETRY_REALTIME_ENABLED) {
+      return null;
+    }
+
     try {
       return createClient();
     } catch (error) {

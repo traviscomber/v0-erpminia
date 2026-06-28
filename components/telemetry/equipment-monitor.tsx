@@ -6,6 +6,8 @@ import { createClient } from '@/lib/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
+const TELEMETRY_REALTIME_ENABLED = process.env.NEXT_PUBLIC_TELEMETRY_REALTIME === 'true';
+
 interface EquipmentStatus {
   id: string;
   name: string;
@@ -37,6 +39,10 @@ function deriveAvailability(status: string) {
 
 export function EquipmentMonitor() {
   const [supabase] = useState(() => {
+    if (!TELEMETRY_REALTIME_ENABLED) {
+      return null;
+    }
+
     try {
       return createClient();
     } catch (error) {
@@ -108,6 +114,11 @@ export function EquipmentMonitor() {
       }
     };
 
+    if (!TELEMETRY_REALTIME_ENABLED) {
+      fetchEquipmentStatus();
+      return;
+    }
+
     fetchEquipmentStatus();
 
     if (!supabase) {
@@ -174,11 +185,11 @@ export function EquipmentMonitor() {
         <CardHeader>
           <CardTitle>Monitoreo no disponible</CardTitle>
           <CardDescription>
-            Faltan credenciales de Supabase en este entorno, por lo que el tablero de telemetria no puede suscribirse a datos vivos.
+            El realtime de telemetria esta desactivado en este entorno para evitar bloqueos por CSP o redes locales.
           </CardDescription>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
-          La vista sigue funcionando, pero el monitoreo en tiempo real queda deshabilitado hasta configurar `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+          La vista sigue funcionando, pero el monitoreo en tiempo real queda deshabilitado hasta activar `NEXT_PUBLIC_TELEMETRY_REALTIME=true`.
         </CardContent>
       </Card>
     );
