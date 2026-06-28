@@ -1,11 +1,12 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, AlertCircle, CheckCircle, Clock, Eye, Download, Trash2 } from 'lucide-react';
+import { Plus, Search, AlertCircle, CheckCircle, Clock, Eye, Download, Trash2, Upload } from 'lucide-react';
 import useSWR from 'swr';
 import { InspeccionExternaModal } from '@/components/sostenibilidad/inspeccion-externa-modal';
 import { ConfirmDeleteDialog } from '@/components/sostenibilidad/confirm-delete-dialog';
@@ -100,16 +101,24 @@ export default function InspeccionesExternasPage() {
             Registro de auditorias y fiscalizaciones de organismos externos
           </p>
         </div>
-        <Button
-          className="bg-primary hover:bg-primary/90"
-          onClick={() => {
-            setSelectedInspeccion(null);
-            setModalOpen(true);
-          }}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Nueva Inspección
-        </Button>
+        <div className="flex gap-2">
+          <Button asChild variant="outline">
+            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/inspecciones-externas/importar">
+              <Upload className="mr-2 h-4 w-4" />
+              Importar Excel
+            </Link>
+          </Button>
+          <Button
+            className="bg-primary hover:bg-primary/90"
+            onClick={() => {
+              setSelectedInspeccion(null);
+              setModalOpen(true);
+            }}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Nueva Inspección
+          </Button>
+        </div>
       </div>
 
       <InspeccionExternaModal

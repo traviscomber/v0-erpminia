@@ -130,6 +130,9 @@ export default function ReportesPage() {
             <Link href="/dashboard/sostenibilidad/prevencion-riesgos/inspecciones/importar">Inspecciones</Link>
           </Button>
           <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/inspecciones-externas/importar">Inspecciones externas</Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
             <Link href="/dashboard/sostenibilidad/prevencion-riesgos/epp/importar">EPP</Link>
           </Button>
           <Button asChild variant="outline" className="justify-between">
