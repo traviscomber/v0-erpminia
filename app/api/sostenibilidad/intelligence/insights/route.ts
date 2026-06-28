@@ -8,6 +8,7 @@ import {
   analyzeTrends,
   predictClosureDate,
 } from '@/lib/predictive-analytics';
+import { normalizeNcStatus } from '@/lib/api/sostenibilidad-mvp';
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,10 +29,15 @@ export async function GET(request: NextRequest) {
     const recommendations = generateRecommendations(ncs || []);
     const trends = analyzeTrends(ncs || [], days);
     
+    const normalizedNCs = (ncs || []).map((nc: any) => ({
+      ...nc,
+      status: normalizeNcStatus(nc.status ?? nc.estado),
+    }));
+
     // Get predictions for open NCs
-    const openNCs = (ncs || []).filter((nc: any) => nc.estado !== 'cerrada');
+    const openNCs = normalizedNCs.filter((nc: any) => nc.status !== 'closed');
     const predictions = openNCs.slice(0, 10).map((nc: any) => 
-      predictClosureDate(nc, ncs || [])
+      predictClosureDate(nc, normalizedNCs)
     );
 
     return NextResponse.json({
