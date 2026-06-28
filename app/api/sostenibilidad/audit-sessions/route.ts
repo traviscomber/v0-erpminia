@@ -10,6 +10,74 @@ function normalizeComplianceStatus(value: unknown) {
   return 'in_progress';
 }
 
+async function selectAuditSessions(supabase: any, organizationId: string, limit: number) {
+  const candidateColumns = ['organization_id', 'org_id'] as const;
+
+  for (const column of candidateColumns) {
+    const { data, error } = await supabase
+      .from('compliance_audit_log')
+      .select('*')
+      .eq(column, organizationId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (!error) {
+      return { data, error: null };
+    }
+
+    const message = String(error.message || '').toLowerCase();
+    const looksLikeMissingColumn =
+      message.includes(column) && (message.includes('column') || message.includes('does not exist'));
+
+    if (!looksLikeMissingColumn) {
+      return { data: null, error };
+    }
+  }
+
+  return supabase
+    .from('compliance_audit_log')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+}
+
+async function insertAuditSession(
+  supabase: any,
+  organizationId: string,
+  payload: Record<string, unknown>
+) {
+  const candidateColumns = ['organization_id', 'org_id'] as const;
+
+  for (const column of candidateColumns) {
+    const { data, error } = await supabase
+      .from('compliance_audit_log')
+      .insert({
+        [column]: organizationId,
+        ...payload,
+      })
+      .select('*')
+      .single();
+
+    if (!error) {
+      return { data, error: null };
+    }
+
+    const message = String(error.message || '').toLowerCase();
+    const looksLikeMissingColumn =
+      message.includes(column) && (message.includes('column') || message.includes('does not exist'));
+
+    if (!looksLikeMissingColumn) {
+      return { data: null, error };
+    }
+  }
+
+  return supabase
+    .from('compliance_audit_log')
+    .insert(payload)
+    .select('*')
+    .single();
+}
+
 export async function GET(request: NextRequest) {
   try {
     const context = await getSustainabilityContext(request);
@@ -17,11 +85,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '20', 10);
 
-    const { data, error } = await context.supabase
-      .from('compliance_audit_log')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(limit);
+    const { data, error } = await selectAuditSessions(context.supabase, context.organizationId, limit);
 
     if (error) throw error;
 
@@ -46,17 +110,13 @@ export async function POST(request: NextRequest) {
     const evidenceCount = Number(body.evidence_count ?? body.evidenceCount ?? 0);
     const complianceStatus = normalizeComplianceStatus(body.compliance_status || body.status);
 
-    const { data, error } = await context.supabase
-      .from('compliance_audit_log')
-      .insert({
-        audit_name: auditName,
-        category,
-        compliance_status: complianceStatus,
-        auditor,
-        evidence_count: Number.isFinite(evidenceCount) ? evidenceCount : 0,
-      })
-      .select('*')
-      .single();
+    const { data, error } = await insertAuditSession(context.supabase, context.organizationId, {
+      audit_name: auditName,
+      category,
+      compliance_status: complianceStatus,
+      auditor,
+      evidence_count: Number.isFinite(evidenceCount) ? evidenceCount : 0,
+    });
 
     if (error) throw error;
 

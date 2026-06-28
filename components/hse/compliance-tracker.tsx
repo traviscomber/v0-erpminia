@@ -5,7 +5,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle2, AlertCircle, Clock, FileText, Download } from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
 
 interface ComplianceItem {
   id: string;
@@ -19,7 +18,6 @@ interface ComplianceItem {
 }
 
 export function ComplianceTracker() {
-  const supabase = createClient();
   const [items, setItems] = useState<ComplianceItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [complianceScore, setComplianceScore] = useState(0);
@@ -27,14 +25,16 @@ export function ComplianceTracker() {
   useEffect(() => {
     const fetchCompliance = async () => {
       try {
-        const { data, error } = await supabase
-          .from('compliance_audit_log')
-          .select('*')
-          .order('created_at', { ascending: false });
+        const response = await fetch('/api/sostenibilidad/audit-sessions', {
+          credentials: 'include',
+        });
+        const payload = await response.json().catch(() => null);
 
-        if (error) throw error;
+        if (!response.ok) {
+          throw new Error(payload?.error || 'No se pudieron cargar las auditorias');
+        }
 
-        const mappedItems = (data || []).map((item: any) => ({
+        const mappedItems = (Array.isArray(payload?.data) ? payload.data : []).map((item: any) => ({
           id: item.id,
           name: item.audit_name || 'Auditoría sin nombre',
           category: item.category || 'HSE',
@@ -56,7 +56,7 @@ export function ComplianceTracker() {
     };
 
     fetchCompliance();
-  }, [supabase]);
+  }, []);
 
   const statusIcon = {
     compliant: <CheckCircle2 className="h-4 w-4 text-emerald-500" />,
