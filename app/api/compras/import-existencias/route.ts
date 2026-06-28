@@ -104,9 +104,19 @@ function getSheetByName(workbook: any, contains: string) {
   return name ? workbook.Sheets[name] : null;
 }
 
+type XlsxModule = typeof import('xlsx');
+
+function getXlsxModule(): XlsxModule {
+  const moduleCache = globalThis as typeof globalThis & { __xlsxModule?: XlsxModule };
+  if (!moduleCache.__xlsxModule) {
+    throw new Error('Módulo XLSX no inicializado');
+  }
+
+  return moduleCache.__xlsxModule;
+}
+
 function toRows(sheet: any) {
-  const xlsx = (globalThis as any).__xlsxModule as any;
-  return xlsx.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: true }) as unknown[][];
+  return getXlsxModule().utils.sheet_to_json<unknown[]>(sheet, { header: 1, defval: '', raw: true });
 }
 
 function parseSuppliers(sheet: any): SupplierRow[] {
@@ -312,8 +322,8 @@ function parsePurchases(sheet: any): PurchaseAggregate[] {
 }
 
 async function parseWorkbook(file: File) {
-  const xlsx = (await import('xlsx')) as any;
-  (globalThis as any).__xlsxModule = xlsx;
+  const xlsx = await import('xlsx');
+  (globalThis as typeof globalThis & { __xlsxModule?: XlsxModule }).__xlsxModule = xlsx;
 
   const buffer = Buffer.from(await file.arrayBuffer());
   const workbook = xlsx.read(buffer, { type: 'buffer', cellDates: true });

@@ -6,7 +6,7 @@ import { Download, FileText, Loader2, Sheet } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ExportButtonsProps {
-  data: any[];
+  data: Record<string, unknown>[];
   fileName: string;
   columns: { key: string; label: string }[];
 }
@@ -76,7 +76,7 @@ export function ExportButtons({ data, fileName, columns }: ExportButtonsProps) {
       table.appendChild(tbody);
       element.appendChild(table);
 
-      const opt: any = {
+      const opt = {
         margin: 10,
         filename: `${fileName}_${new Date().toISOString().split('T')[0]}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
@@ -84,7 +84,7 @@ export function ExportButtons({ data, fileName, columns }: ExportButtonsProps) {
         jsPDF: { orientation: 'landscape', unit: 'mm', format: 'a4' },
       };
 
-      (html2pdf() as any).set(opt).from(element).save();
+      html2pdf().set(opt).from(element).save();
       toast.success('PDF descargado exitosamente');
     } catch (error) {
       console.error('[v0] PDF export error:', error);
@@ -99,7 +99,7 @@ export function ExportButtons({ data, fileName, columns }: ExportButtonsProps) {
     setIsLoading(true);
 
     try {
-      const XLSX = (await import('xlsx')) as any;
+      const XLSX = await import('xlsx');
 
       const worksheet = XLSX.utils.json_to_sheet(
         data.map((row) =>

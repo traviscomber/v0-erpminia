@@ -109,7 +109,7 @@ export default function DocumentosFlujoImportPage() {
     const response = await fetch('/api/sostenibilidad/documentos-flujo', { credentials: 'include' });
     const payload = await response.json().catch(() => ({}));
     const records = Array.isArray(payload.data) ? payload.data : [];
-    const map = new Map<string, any>();
+    const map = new Map<string, Record<string, unknown>>();
 
     for (const record of records) {
       const key = normalizeKey(
@@ -140,12 +140,12 @@ export default function DocumentosFlujoImportPage() {
       });
     }
 
-    const xlsx = (await import('xlsx')) as any;
+    const xlsx = await import('xlsx');
     const buffer = await file.arrayBuffer();
     const workbook = xlsx.read(buffer, { type: 'array' });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     if (!sheet) return [];
-    return xlsx.utils.sheet_to_json(sheet, { defval: '', raw: false }) as Record<string, unknown>[];
+    return xlsx.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: '', raw: false });
   };
 
   const uploadFile = async (file: File) => {

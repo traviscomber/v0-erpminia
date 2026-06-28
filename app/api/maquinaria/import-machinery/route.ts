@@ -90,11 +90,11 @@ export async function POST(request: NextRequest) {
     let rows: unknown[][] = [];
 
     if (filename.endsWith('.xlsx') || filename.endsWith('.xls')) {
-      const xlsx = (await import('xlsx')) as any;
+      const xlsx = await import('xlsx');
       const buffer = Buffer.from(await file.arrayBuffer());
       const wb = xlsx.read(buffer, { type: 'buffer', cellDates: true });
       const ws = wb.Sheets[wb.SheetNames[0]];
-      rows = xlsx.utils.sheet_to_json(ws, { header: 1, defval: '', raw: true }) as unknown[][];
+      rows = xlsx.utils.sheet_to_json<unknown[]>(ws, { header: 1, defval: '', raw: true });
     } else if (filename.endsWith('.csv')) {
       const text = await file.text();
       rows = text

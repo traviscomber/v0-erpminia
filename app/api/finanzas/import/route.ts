@@ -59,11 +59,11 @@ function parseCsvRows(text: string) {
 }
 
 async function parseWorkbook(file: File) {
-  const xlsx = (await import('xlsx')) as any;
+  const xlsx = await import('xlsx');
   const buffer = Buffer.from(await file.arrayBuffer());
   const workbook = xlsx.read(buffer, { type: 'buffer', cellDates: true });
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
-  const rows = xlsx.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: true }) as unknown[][];
+  const rows = xlsx.utils.sheet_to_json<unknown[]>(sheet, { header: 1, defval: '', raw: true });
   if (!rows.length) return [];
 
   const csvText = [rows[0].map((value) => normalizeText(value)).join(';'), ...rows.slice(1).map((row) => row.map((value) => normalizeText(value)).join(';'))].join('\n');

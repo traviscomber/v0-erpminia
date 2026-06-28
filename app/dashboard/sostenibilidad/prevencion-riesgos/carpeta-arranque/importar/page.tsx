@@ -64,9 +64,9 @@ function parseCsvRows(text: string): ImportRow[] {
 
 async function parseWorkbook(file: File) {
   const buffer = await file.arrayBuffer();
-  const workbook = (XLSX as any).read(buffer, { type: 'array', cellDates: true });
+  const workbook = XLSX.read(buffer, { type: 'array', cellDates: true });
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
-  const rows = (XLSX as any).utils.sheet_to_json(sheet, { header: 1, defval: '', raw: true }) as unknown[][];
+  const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, defval: '', raw: true });
   if (!rows.length) return [];
 
   const csvText = [rows[0].map((value) => normalize(value)).join(';'), ...rows.slice(1).map((row) => row.map((value) => normalize(value)).join(';'))].join('\n');
