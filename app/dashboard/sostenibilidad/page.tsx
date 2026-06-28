@@ -4,8 +4,9 @@ import { useMemo, type ReactNode } from 'react';
 import Link from 'next/link';
 import useSWR from 'swr';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, Clock, Leaf, Shield, Target, Users } from 'lucide-react';
+import { ArrowRight, CheckCircle, Clock, Leaf, Shield, Target, Upload, Users } from 'lucide-react';
 import { SustainabilityKPIDashboard } from '@/components/sostenibilidad/kpi-dashboard';
 import { SustainabilityModuleConnections } from '@/components/sostenibilidad/module-connections';
 import { SustainabilityWorkflowDiagram } from '@/components/sostenibilidad/sustainability-workflow-diagram';
@@ -224,6 +225,56 @@ export default function SostenibilidadDashboard() {
           </Card>
         ))}
       </div>
+
+      <Card className="mb-12 rounded-xl border shadow-none">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-xl">
+            <Upload className="h-5 w-5 text-primary" />
+            Cargas rapidas por Excel
+          </CardTitle>
+          <CardDescription>
+            Entra directo a los modulos que ya permiten importar o actualizar datos desde archivos.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/inspecciones/importar">
+              Inspecciones
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/epp/importar">
+              EPP
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones">
+              Capacitaciones
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/sostenibilidad/medio-ambiente/importar">
+              Medio ambiente
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/sostenibilidad/comunidades/importar">
+              Comunidades
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/sostenibilidad/no-conformidades/importar">
+              No conformidades
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
 
       <div className="mb-12 grid grid-cols-1 gap-6 lg:grid-cols-2">
         {pillars.map((pillar) => (
