@@ -40,6 +40,11 @@ function normalizeText(value: unknown) {
   return String(value ?? '').trim().replace(/\s+/g, ' ');
 }
 
+function normalizeDate(value: unknown) {
+  const text = normalizeText(value);
+  return text || null;
+}
+
 function normalizeStatus(value: unknown) {
   const text = normalizeText(value).toLowerCase();
   if (['planned', 'planificada', 'planificado', 'pending', 'pendiente'].includes(text)) return 'planned';
@@ -135,7 +140,7 @@ export async function POST(request: NextRequest) {
         responsible_person: context.userId,
         responsible_person_name: normalizeText(body.responsiblePerson || context.userName || context.userEmail),
         scheduled_completion_date:
-          body.scheduledCompletionDate || body.scheduled_completion_date,
+          normalizeDate(body.scheduledCompletionDate || body.scheduled_completion_date),
         status: normalizeStatus(body.status || 'planned'),
         verification_method: normalizeText(body.verificationMethod || body.verification_method || 'inspection'),
         estimated_cost: normalizeMoney(body.estimatedCost || body.estimated_cost || 0),
@@ -175,8 +180,11 @@ export async function PUT(request: NextRequest) {
             ? normalizeText(body.responsible_person_name || body.responsiblePerson)
             : undefined,
         scheduled_completion_date:
-          body.scheduled_completion_date || body.scheduledCompletionDate || null,
-        actual_completion_date: body.actual_completion_date || null,
+          body.scheduled_completion_date !== undefined || body.scheduledCompletionDate !== undefined
+            ? normalizeDate(body.scheduled_completion_date || body.scheduledCompletionDate)
+            : undefined,
+        actual_completion_date:
+          body.actual_completion_date !== undefined ? normalizeDate(body.actual_completion_date) : undefined,
         status: body.status ? normalizeStatus(body.status) : undefined,
         verification_method:
           body.verification_method || body.verificationMethod
