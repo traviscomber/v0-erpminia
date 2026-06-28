@@ -10,7 +10,7 @@ type ParsedCenterRow = {
   status: 'active';
 };
 
-function normalizeText(value: string) {
+function normalizeText(value: unknown) {
   return String(value || '')
     .trim()
     .replace(/\s+/g, ' ');
@@ -108,7 +108,7 @@ async function parseWorkbookRows(file: File) {
   const workbook = xlsx.read(buffer, { type: 'buffer', cellDates: true });
   const sheetName = workbook.SheetNames[0];
   const sheet = workbook.Sheets[sheetName];
-  const rows = xlsx.utils.sheet_to_json<unknown[]>(sheet, { header: 1, defval: '', raw: true });
+  const rows = xlsx.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: true }) as unknown[][];
   if (!rows.length) return [];
 
   const headerText = rows[0].map((value) => normalizeHeader(String(value ?? '')));
