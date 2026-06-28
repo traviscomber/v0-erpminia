@@ -16,6 +16,8 @@ const ALLOWED_TYPES = [
 const sanitize = (s: string) =>
   s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9.\-]/gi, '_').toLowerCase();
 
+const normalizeText = (value: unknown) => String(value ?? '').trim().replace(/\s+/g, ' ');
+
 // POST /api/carpeta-arranque/[id]/upload-doc
 // FormData: file, slot_index
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -42,9 +44,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   const formData = await request.formData();
   const file = formData.get('file') as File;
-  const slotIndex = parseInt(formData.get('slot_index') as string, 10);
+  const slotIndex = Number.parseInt(String(formData.get('slot_index') ?? ''), 10);
 
-  if (!file || !slotIndex) {
+  if (!file || !Number.isFinite(slotIndex) || slotIndex <= 0) {
     return NextResponse.json({ error: 'Archivo y slot_index son requeridos' }, { status: 400 });
   }
 
@@ -84,7 +86,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const { data: doc, error: docError } = await supabase
     .from('carpeta_documentos')
     .update({
-      file_name: file.name,
+      file_name: normalizeText(file.name),
       file_path: uploadData.path,
       file_size_bytes: file.size,
       uploaded_by: auth.user.id,

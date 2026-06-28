@@ -4,6 +4,18 @@ import { getSupabaseServerClient } from '@/lib/supabase-server';
 
 export const dynamic = 'force-dynamic';
 
+function normalizeText(value: unknown) {
+  return String(value ?? '').trim().replace(/\s+/g, ' ');
+}
+
+function normalizeEmail(value: unknown) {
+  return String(value ?? '').trim().toLowerCase();
+}
+
+function normalizeRut(value: unknown) {
+  return String(value ?? '').trim().replace(/\s+/g, '');
+}
+
 // GET  /api/carpeta-arranque  — list all carpetas (with doc counts per carpeta)
 export async function GET(request: NextRequest) {
   const auth = await resolveAuthContext(request);
@@ -35,7 +47,11 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   const { empresa_nombre, empresa_rut, contacto_email } = body;
 
-  if (!empresa_nombre || !contacto_email) {
+  const normalizedNombre = normalizeText(empresa_nombre);
+  const normalizedEmail = normalizeEmail(contacto_email);
+  const normalizedRut = normalizeRut(empresa_rut);
+
+  if (!normalizedNombre || !normalizedEmail) {
     return NextResponse.json({ error: 'Nombre de empresa y correo son requeridos' }, { status: 400 });
   }
 
@@ -44,9 +60,9 @@ export async function POST(request: NextRequest) {
   const { data: carpeta, error: carpetaError } = await supabase
     .from('carpetas_arranque')
     .insert({
-      empresa_nombre,
-      empresa_rut: empresa_rut || null,
-      contacto_email,
+      empresa_nombre: normalizedNombre,
+      empresa_rut: normalizedRut || null,
+      contacto_email: normalizedEmail,
       created_by: auth.user.id,
       status: 'pendiente',
     })
