@@ -38,6 +38,14 @@ function parseList(value: unknown) {
     .filter(Boolean);
 }
 
+function parseFaenasCargos(value: unknown) {
+  if (Array.isArray(value)) {
+    return value.map((item) => normalizeText(item)).filter(Boolean);
+  }
+
+  return parseList(value);
+}
+
 function normalizeEstado(value: unknown): ImportTrainingRow['estado'] {
   const text = normalizeText(value).toLowerCase();
   if (text === 'realizada' || text === 'realizado') return 'realizada';
@@ -84,8 +92,8 @@ function parseCsvRows(text: string): ImportTrainingRow[] {
       duracion_horas: Number(values[columns.duracion_horas] || 0),
       cantidad_asistentes: Number(values[columns.cantidad_asistentes] || 0),
       faenas_cargos: parseList(values[columns.faenas_cargos]),
-      estado: normalizeEstado(values[columns.estado]),
-    }];
+        estado: normalizeEstado(values[columns.estado]),
+      }];
   });
 }
 
@@ -177,7 +185,7 @@ export async function POST(request: NextRequest) {
           hora_inicio: row.hora_inicio,
           hora_termino: row.hora_termino,
           duracion_horas: row.duracion_horas,
-          cantidad_asistentes: row.cantidad_asistentes,
+        cantidad_asistentes: row.cantidad_asistentes,
           faenas_cargos: row.faenas_cargos,
           estado: row.estado,
           created_by: context.userId,
@@ -227,8 +235,8 @@ export async function POST(request: NextRequest) {
         hora_termino: body.hora_termino || null,
         duracion_horas: Number(body.duracion_horas || 0),
         cantidad_asistentes: Number(body.cantidad_asistentes || 0),
-        faenas_cargos: body.faenas_cargos || [],
-        estado: body.estado || 'planificada',
+        faenas_cargos: parseFaenasCargos(body.faenas_cargos),
+        estado: normalizeEstado(body.estado),
         created_by: context.userId,
         updated_at: new Date().toISOString(),
       })

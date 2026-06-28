@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -48,9 +49,17 @@ export default function CarpetaArranquePage() {
 
   return (
     <div className="space-y-6 p-6">
-      <div>
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div>
         <h1 className="text-3xl font-bold tracking-tight">Carpeta de Arranque</h1>
         <p className="text-muted-foreground">Sistema de validacion de documentos para empresas contratistas (EECC)</p>
+        </div>
+        <Button asChild variant="outline" className="gap-2">
+          <Link href="/dashboard/sostenibilidad/prevencion-riesgos/carpeta-arranque/importar">
+            <Plus className="h-4 w-4" />
+            Importar Excel
+          </Link>
+        </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
