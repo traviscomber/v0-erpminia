@@ -32,6 +32,9 @@ type NonconformanceRecord = {
 type NonconformanceResponse = {
   nonconformances?: unknown;
   stats?: {
+    open?: number;
+    closed?: number;
+    overdue?: number;
     by_severity?: Record<string, number>;
   };
 };
