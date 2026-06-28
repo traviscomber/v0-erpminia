@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Wrench, Calendar } from 'lucide-react';
-import { isTelemetryRealtimeEnabled } from '@/lib/telemetry-realtime';
 
 interface Asset {
   id: string;
@@ -23,7 +22,6 @@ interface Asset {
 
 export function AssetManagement() {
   const supabase = createClient();
-  const realtimeEnabled = isTelemetryRealtimeEnabled();
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -47,30 +45,9 @@ export function AssetManagement() {
 
     fetchAssets();
 
-    if (!realtimeEnabled) {
-      const interval = setInterval(fetchAssets, 30000);
-      return () => clearInterval(interval);
-    }
-
-    const subscription = supabase
-      .channel('equipment-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'equipment',
-        },
-        () => {
-          fetchAssets();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [supabase, realtimeEnabled]);
+    const interval = setInterval(fetchAssets, 30000);
+    return () => clearInterval(interval);
+  }, [supabase]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {

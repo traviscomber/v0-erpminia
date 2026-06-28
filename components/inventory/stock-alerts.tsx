@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { AlertTriangle, TrendingDown } from 'lucide-react';
-import { isTelemetryRealtimeEnabled } from '@/lib/telemetry-realtime';
 
 interface StockItem {
   id: string;
@@ -30,7 +29,6 @@ interface StockLevelAlerts {
 
 export function StockLevelAlerts() {
   const supabase = createClient();
-  const realtimeEnabled = isTelemetryRealtimeEnabled();
   const [alerts, setAlerts] = useState<StockLevelAlerts>({
     critical: [],
     low: [],
@@ -88,30 +86,9 @@ export function StockLevelAlerts() {
 
     fetchStockLevels();
 
-    if (!realtimeEnabled) {
-      const interval = setInterval(fetchStockLevels, 30000);
-      return () => clearInterval(interval);
-    }
-
-    const subscription = supabase
-      .channel('wear-parts-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'wear_parts',
-        },
-        () => {
-          fetchStockLevels();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [supabase, realtimeEnabled]);
+    const interval = setInterval(fetchStockLevels, 30000);
+    return () => clearInterval(interval);
+  }, [supabase]);
 
   if (loading) {
     return <div className="text-muted-foreground">Cargando niveles de stock...</div>;
