@@ -181,13 +181,6 @@ export async function POST(request: NextRequest) {
       let updated = 0;
 
       for (const row of rows) {
-        const ncNumber = await buildOrgSequence(
-          context.supabase,
-          'sostenibilidad_nonconformances',
-          context.organizationId,
-          'NC'
-        );
-
         const { data: existing } = await context.supabase
           .from('sostenibilidad_nonconformances')
           .select('id')
@@ -198,7 +191,6 @@ export async function POST(request: NextRequest) {
 
         const payload = {
           organization_id: context.organizationId,
-          nc_number: ncNumber,
           title: row.title,
           description: row.description,
           category: row.category,
@@ -219,7 +211,21 @@ export async function POST(request: NextRequest) {
           if (error) throw error;
           updated += 1;
         } else {
-          const { error } = await context.supabase.from('sostenibilidad_nonconformances').insert(payload);
+          const ncNumber = await buildOrgSequence(
+            context.supabase,
+            'sostenibilidad_nonconformances',
+            context.organizationId,
+            'NC'
+          );
+
+          const { error } = await context.supabase.from('sostenibilidad_nonconformances').insert({
+            ...payload,
+            nc_number: ncNumber,
+            reported_by: context.userId,
+            assigned_to: context.userId,
+            status: normalizeNcStatus(row.status),
+            updated_at: new Date().toISOString(),
+          });
           if (error) throw error;
           imported += 1;
         }
