@@ -1,5 +1,7 @@
 'use client';
 
+import { Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CostCentersImportComponent } from '@/components/bodega/cost-centers-import';
@@ -7,6 +9,40 @@ import { BodegaInventoryImportComponent } from '@/components/bodega/bodega-inven
 import { AlertTriangle, Building2, Package, ShieldCheck } from 'lucide-react';
 
 export default function BodegaImportPage() {
+  const downloadTemplate = (kind: 'cost-centers' | 'inventory') => {
+    const config = {
+      'cost-centers': {
+        filename: 'plantilla-centros-costo.csv',
+        headers: ['CODE', 'NAME', 'DESCRIPTION', 'PARENT_CODE', 'STATUS'],
+        rows: [
+          ['CC-100', 'Mina Principal', 'Centro principal de operacion', '', 'active'],
+          ['CC-110', 'Perforacion', 'Area de perforacion', 'CC-100', 'active'],
+        ],
+      },
+      inventory: {
+        filename: 'plantilla-inventario-bodega.csv',
+        headers: ['SKU', 'NAME', 'CATEGORY', 'DESCRIPTION', 'QUANTITY', 'MIN_STOCK', 'UNIT_COST'],
+        rows: [
+          ['SKU-001', 'Pernos 3/4', 'Repuestos', 'Pernos galvanizados', '150', '30', '1200'],
+          ['SKU-002', 'Filtro aceite', 'Consumos', 'Filtro para equipos', '40', '10', '8500'],
+        ],
+      },
+    }[kind];
+
+    const csv = [config.headers, ...config.rows]
+      .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(';'))
+      .join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = config.filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -14,6 +50,16 @@ export default function BodegaImportPage() {
         <p className="max-w-3xl text-muted-foreground">
           Carga centros de costo e inventario desde CSV, XLS o XLSX con un flujo seguro, trazable y sin vaciar el resto del sistema.
         </p>
+        <div className="flex flex-wrap gap-2 pt-2">
+          <Button variant="outline" onClick={() => downloadTemplate('cost-centers')}>
+            <Download className="mr-2 h-4 w-4" />
+            Plantilla centros de costo
+          </Button>
+          <Button variant="outline" onClick={() => downloadTemplate('inventory')}>
+            <Download className="mr-2 h-4 w-4" />
+            Plantilla inventario
+          </Button>
+        </div>
       </div>
 
       <Card className="border-[var(--secondary)]/30 bg-[var(--secondary)]/5">
