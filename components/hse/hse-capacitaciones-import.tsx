@@ -15,7 +15,7 @@ type ImportResult = {
 };
 
 type HSECapacitacionesImportProps = {
-  onSuccess?: () => void;
+  onSuccess?: () => void | Promise<void>;
 };
 
 export function HSECapacitacionesImport({ onSuccess }: HSECapacitacionesImportProps) {
@@ -66,7 +66,7 @@ export function HSECapacitacionesImport({ onSuccess }: HSECapacitacionesImportPr
         imported: payload.imported,
         updated: payload.updated,
       });
-      onSuccess?.();
+      await onSuccess?.();
     } catch (error) {
       setImportResult({
         success: false,

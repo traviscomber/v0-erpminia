@@ -112,7 +112,7 @@ export default function CapacitacionesPage() {
           duracion_horas: 0,
           cantidad_asistentes: 0,
         });
-        void mutate();
+        await mutate();
         toast.success('CapacitaciÃ³n creada exitosamente');
       } else {
         toast.error('Error al crear capacitaciÃ³n');
@@ -133,7 +133,7 @@ export default function CapacitacionesPage() {
       });
 
       if (response.ok) {
-        void mutate();
+        await mutate();
         toast.success('CapacitaciÃ³n eliminada exitosamente');
       } else {
         toast.error('Error al eliminar capacitaciÃ³n');
@@ -186,7 +186,7 @@ export default function CapacitacionesPage() {
         imported: data.imported,
         updated: data.updated,
       });
-      void mutate();
+      await mutate();
     } catch (error) {
       setImportResult({
         success: false,

@@ -86,7 +86,7 @@ export default function HSECapacitacionesPage() {
         </div>
       </div>
 
-      <HSECapacitacionesImport onSuccess={() => void mutate()} />
+      <HSECapacitacionesImport onSuccess={async () => { await mutate(); }} />
 
       {proximasCapacitaciones.length > 0 && (
         <div className="rounded-lg border border-[var(--secondary)]/30 bg-[var(--secondary)]/5 p-4">
