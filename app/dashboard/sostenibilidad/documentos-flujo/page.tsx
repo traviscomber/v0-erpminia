@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Search, FileText, CheckCircle, Clock, AlertCircle, MessageSquare, Download, Eye } from 'lucide-react';
+import { Plus, Search, FileText, CheckCircle, Clock, AlertCircle, MessageSquare, Download, Eye, Upload } from 'lucide-react';
 import useSWR from 'swr';
 import { DocumentUpload } from '@/components/sostenibilidad/document-upload';
 import { DocumentSearch } from '@/components/documentos/document-search';
@@ -166,14 +167,21 @@ export default function FlujDocumentalPage() {
           </div>
           <p className="text-muted-foreground">Flujo de 2 validadores: Jefe de Sostenibilidad &rarr; Gerente General</p>
         </div>
-        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-              <Plus className="w-4 h-4 mr-2" />
-              Nuevo documento
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+        <div className="flex gap-2">
+          <Button asChild variant="outline">
+            <Link href="/dashboard/sostenibilidad/documentos-flujo/importar">
+              <Upload className="mr-2 h-4 w-4" />
+              Importar Excel
+            </Link>
+          </Button>
+          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+                <Plus className="w-4 h-4 mr-2" />
+                Nuevo documento
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Nuevo documento</DialogTitle>
               <DialogDescription>
@@ -250,8 +258,9 @@ export default function FlujDocumentalPage() {
                 </form>
               </div>
             </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Diagrama del flujo */}

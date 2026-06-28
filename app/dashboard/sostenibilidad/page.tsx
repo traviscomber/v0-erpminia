@@ -262,6 +262,12 @@ export default function SostenibilidadDashboard() {
             </Link>
           </Button>
           <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/sostenibilidad/documentos-flujo/importar">
+              Flujo documental
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
             <Link href="/dashboard/sostenibilidad/medio-ambiente/importar">
               Medio ambiente
               <ArrowRight className="h-4 w-4" />

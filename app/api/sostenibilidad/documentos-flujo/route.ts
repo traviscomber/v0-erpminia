@@ -166,3 +166,74 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
+
+export async function PUT(request: NextRequest) {
+  const context = await getSustainabilityContext(request);
+  if (!context.ok) return context.response;
+
+  try {
+    const body = await request.json();
+    const id = String(body.id || '').trim();
+    const title = String(body.title || body.documento_nombre || '').trim();
+    const description = String(body.description || body.descripcion || '').trim();
+    const category = String(body.category || 'sostenibilidad').trim();
+    const documentType = String(body.document_type || 'document').trim();
+    const status = String(body.status || body.estado || 'draft').trim();
+    const fileUrl = String(body.file_url || body.archivo_url || '').trim();
+    const fileSizeMb = body.file_size_mb ?? null;
+    const fileMimeType = body.file_mime_type ?? null;
+
+    if (!id) {
+      return NextResponse.json({ error: 'id is required' }, { status: 400 });
+    }
+
+    if (!title) {
+      return NextResponse.json({ error: 'title is required' }, { status: 400 });
+    }
+
+    const { data: document, error: documentError } = await context.supabase
+      .from('documents')
+      .update({
+        title,
+        description: description || null,
+        category,
+        document_type: documentType,
+        status,
+        current_file_url: fileUrl || null,
+        file_size_mb: fileSizeMb,
+        file_mime_type: fileMimeType,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .eq('organization_id', context.organizationId)
+      .select('id, title, description, category, document_type, status, current_file_url, created_by, created_at, updated_at')
+      .single();
+
+    if (documentError) throw documentError;
+
+    await context.supabase.from('document_audit_logs').insert({
+      document_id: document.id,
+      action: 'updated',
+      user_id: context.userId,
+      details: `Documento actualizado: ${title}`,
+    });
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: 'Document updated successfully',
+        data: {
+          ...document,
+          documento_nombre: document.title,
+          descripcion: document.description,
+          archivo_url: document.current_file_url,
+          estado: document.status,
+        },
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'No se pudo actualizar el documento';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
