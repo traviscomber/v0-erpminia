@@ -130,8 +130,8 @@ async function loadProfiles(userIds: Array<string | null | undefined>) {
 }
 
 function mapApprovalStep(approval: DocumentApprovalRow, profiles: Map<string, ProfileRecord>): MappedApprovalStep {
-  const assignedProfile = profiles.get(approval.assigned_to);
-  const approvedByProfile = profiles.get(approval.approved_by);
+  const assignedProfile = approval.assigned_to ? profiles.get(approval.assigned_to) : undefined;
+  const approvedByProfile = approval.approved_by ? profiles.get(approval.approved_by) : undefined;
 
   return {
     id: approval.id,
@@ -153,7 +153,7 @@ function mapDocument(
   profiles: Map<string, ProfileRecord>,
   approvals: DocumentApprovalRow[] = []
 ): MappedDocument {
-  const creatorProfile = profiles.get(document.created_by);
+  const creatorProfile = document.created_by ? profiles.get(document.created_by) : undefined;
 
   return {
     id: document.id,
