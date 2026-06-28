@@ -189,7 +189,7 @@ export async function PUT(request: NextRequest) {
     const description = String(body.description || body.descripcion || '').trim();
     const category = String(body.category || 'sostenibilidad').trim();
     const documentType = String(body.document_type || 'document').trim();
-    const status = String(body.status || body.estado || 'draft').trim();
+    const status = normalizeDocumentStatus(body.status || body.estado || 'draft');
     const fileUrl = String(body.file_url || body.archivo_url || '').trim();
     const fileSizeMb = body.file_size_mb ?? null;
     const fileMimeType = body.file_mime_type ?? null;
