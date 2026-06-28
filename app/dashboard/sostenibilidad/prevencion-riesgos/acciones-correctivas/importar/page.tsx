@@ -13,6 +13,7 @@ type ImportResult = {
   success: boolean;
   message: string;
   created?: number;
+  updated?: number;
   failed?: number;
   error?: string;
 };
@@ -41,6 +42,15 @@ function normalizeKey(value: string) {
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^A-Z0-9]/gi, '')
     .toUpperCase();
+}
+
+function normalizeText(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
 }
 
 function normalizeStatus(value: unknown) {
@@ -167,7 +177,9 @@ export default function CorrectiveActionsImportPage() {
       const ncMap = await loadNcMap();
       const rows = await parseFile(file);
       let created = 0;
+      let updated = 0;
       let failed = 0;
+      const actionsCache = new Map<string, Array<{ id: string; action_description?: string | null }>>();
 
       for (const row of rows) {
         const resolvedNcId = row.ncId || (row.ncNumber ? ncMap.get(normalizeKey(row.ncNumber)) || '' : '');
@@ -177,17 +189,33 @@ export default function CorrectiveActionsImportPage() {
           continue;
         }
 
+        let existingActions = actionsCache.get(resolvedNcId);
+        if (!existingActions) {
+          const response = await fetch(`/api/sostenibilidad/corrective-actions?ncId=${encodeURIComponent(resolvedNcId)}`, {
+            credentials: 'include',
+          });
+          const payload = await response.json().catch(() => ({}));
+          existingActions = Array.isArray(payload.data) ? payload.data : [];
+          actionsCache.set(resolvedNcId, existingActions);
+        }
+
+        const existingAction = existingActions.find(
+          (action) => normalizeText(String(action.action_description || '')) === normalizeText(row.actionDescription)
+        );
+
+        const payload = {
+          nc_id: resolvedNcId,
+          action_description: row.actionDescription,
+          priority: row.priority || 'media',
+          scheduled_completion_date: row.scheduledCompletionDate || null,
+          status: row.status || 'planned',
+        };
+
         const response = await fetch('/api/sostenibilidad/corrective-actions', {
-          method: 'POST',
+          method: existingAction ? 'PUT' : 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            nc_id: resolvedNcId,
-            action_description: row.actionDescription,
-            priority: row.priority || 'media',
-            scheduled_completion_date: row.scheduledCompletionDate || null,
-            status: row.status || 'planned',
-          }),
+          body: JSON.stringify(existingAction ? { id: existingAction.id, ...payload } : payload),
         });
 
         if (!response.ok) {
@@ -195,7 +223,11 @@ export default function CorrectiveActionsImportPage() {
           continue;
         }
 
-        created += 1;
+        if (existingAction) {
+          updated += 1;
+        } else {
+          created += 1;
+        }
       }
 
       setResult({
@@ -205,6 +237,7 @@ export default function CorrectiveActionsImportPage() {
             ? 'Acciones correctivas importadas correctamente'
             : 'Importacion terminada con observaciones',
         created,
+        updated,
         failed,
       });
     } catch (error) {
@@ -314,6 +347,7 @@ export default function CorrectiveActionsImportPage() {
                   {result.message}
                 </p>
                 {result.created !== undefined ? <p className="mt-1 text-sm">Procesadas: {result.created}</p> : null}
+                {result.updated !== undefined ? <p className="mt-1 text-sm">Actualizadas: {result.updated}</p> : null}
                 {result.failed !== undefined ? <p className="mt-1 text-sm">Fallidas: {result.failed}</p> : null}
                 {result.error ? <p className="mt-1 text-sm text-red-700">{result.error}</p> : null}
               </AlertDescription>
