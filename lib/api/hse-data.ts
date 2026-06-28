@@ -206,6 +206,16 @@ function resolveDateString(...values: unknown[]) {
   return new Date().toISOString();
 }
 
+function resolveNullableDateString(...values: unknown[]) {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim()) return value;
+    if (typeof value === 'number' && Number.isFinite(value)) return new Date(value).toISOString();
+    if (value instanceof Date && !Number.isNaN(value.getTime())) return value.toISOString();
+  }
+
+  return null;
+}
+
 function monthKey(dateValue?: string | null) {
   const date = new Date(dateValue || Date.now());
   if (Number.isNaN(date.getTime())) return new Date().toISOString().slice(0, 7);
@@ -377,7 +387,7 @@ export function mapHseIncident(row: HseIncidentSource): HseIncident {
     equipment: row.location || row.process_or_area || 'Sin ubicacion',
     date: new Date(resolveDateString(row.date_reported, row.date_occurred, row.created_at)).toLocaleDateString('es-CL'),
     status: normalizeIncidentStatus(row.status),
-    date_reported: row.date_reported || row.date_occurred || row.created_at || null,
+    date_reported: resolveNullableDateString(row.date_reported, row.date_occurred, row.created_at),
     injuries_count: toNumber(row.injuries_count),
     people_involved: toNumber(row.people_involved || 1),
   };
