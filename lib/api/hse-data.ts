@@ -196,6 +196,16 @@ function toNumber(value: unknown) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function resolveDateString(...values: unknown[]) {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim()) return value;
+    if (typeof value === 'number' && Number.isFinite(value)) return new Date(value).toISOString();
+    if (value instanceof Date && !Number.isNaN(value.getTime())) return value.toISOString();
+  }
+
+  return new Date().toISOString();
+}
+
 function monthKey(dateValue?: string | null) {
   const date = new Date(dateValue || Date.now());
   if (Number.isNaN(date.getTime())) return new Date().toISOString().slice(0, 7);
@@ -332,7 +342,7 @@ export function mapHseTraining(row: HseTrainingSource): HseTraining {
     id: row.id,
     nombre: row.nombre_capacitacion || row.tema || 'Capacitacion HSE',
     tipo: row.tipo || row.programa_hse || 'HSE',
-    fecha_programada: row.fecha_programada || row.created_at || new Date().toISOString(),
+    fecha_programada: resolveDateString(row.fecha_programada, row.created_at),
     duracion_horas: toNumber(row.duracion_horas),
     proveedor: row.proveedor_instructor || null,
     estado: normalizeTrainingStatus(row.estado),
@@ -348,7 +358,7 @@ export function mapHseEpp(row: HseEppSource): HseEpp {
     personal_nombre: row.cargo_puesto || 'Cargo sin definir',
     epp_elemento: row.elemento_epp || 'Elemento EPP',
     cantidad: toNumber(row.cantidad_elemento || row.cantidad),
-    fecha_entrega: row.updated_at || row.created_at || new Date().toISOString(),
+    fecha_entrega: resolveDateString(row.updated_at, row.created_at),
     estado_anterior: 'nuevo' as const,
     devolucion_requerida: false,
     fecha_devolucion: null,
@@ -365,7 +375,7 @@ export function mapHseIncident(row: HseIncidentSource): HseIncident {
     severity: normalizeIncidentSeverity(row.severity),
     description: row.description || '',
     equipment: row.location || row.process_or_area || 'Sin ubicacion',
-    date: new Date(row.date_reported || row.date_occurred || row.created_at || Date.now()).toLocaleDateString('es-CL'),
+    date: new Date(resolveDateString(row.date_reported, row.date_occurred, row.created_at)).toLocaleDateString('es-CL'),
     status: normalizeIncidentStatus(row.status),
     date_reported: row.date_reported || row.date_occurred || row.created_at || null,
     injuries_count: toNumber(row.injuries_count),
