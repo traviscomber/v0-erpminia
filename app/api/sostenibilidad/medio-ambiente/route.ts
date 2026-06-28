@@ -38,6 +38,11 @@ function normalizeTipo(value: unknown): ImportRow['tipo'] {
   return 'emisiones';
 }
 
+function normalizeValor(value: unknown) {
+  const text = normalizeText(value);
+  return text === '' ? '' : text;
+}
+
 function parseRows(text: string): ImportRow[] {
   const lines = text.split(/\r?\n/).filter((line) => line.trim());
   if (lines.length < 2) return [];
@@ -158,10 +163,10 @@ export async function POST(request: NextRequest) {
           organization_id: context.organizationId,
           numero_registro: numeroRegistro,
           fecha: new Date().toISOString().split('T')[0],
-          tipo: row.tipo,
-          descripcion: row.descripcion,
-          valor: row.valor,
-          unidad: row.unidad,
+          tipo: normalizeTipo(row.tipo),
+          descripcion: normalizeText(row.descripcion),
+          valor: normalizeValor(row.valor),
+          unidad: normalizeText(row.unidad),
           cumplimiento: normalizeCumplimiento(row.cumplimiento),
           created_by: context.userId,
           updated_at: new Date().toISOString(),
@@ -200,10 +205,10 @@ export async function POST(request: NextRequest) {
         organization_id: context.organizationId,
         numero_registro: numeroRegistro,
         fecha: new Date().toISOString().split('T')[0],
-        tipo: body.tipo,
-        descripcion: body.descripcion,
-        valor: String(body.valor || ''),
-        unidad: body.unidad,
+        tipo: normalizeTipo(body.tipo),
+        descripcion: normalizeText(body.descripcion),
+        valor: normalizeValor(body.valor),
+        unidad: normalizeText(body.unidad),
         cumplimiento: normalizeCumplimiento(body.cumplimiento || 'conforme'),
         created_by: context.userId,
         updated_at: new Date().toISOString(),
