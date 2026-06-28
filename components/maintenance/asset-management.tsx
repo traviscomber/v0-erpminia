@@ -22,6 +22,7 @@ interface Asset {
 
 export function AssetManagement() {
   const supabase = createClient();
+  const realtimeEnabled = process.env.NEXT_PUBLIC_TELEMETRY_REALTIME === 'true';
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -45,6 +46,11 @@ export function AssetManagement() {
 
     fetchAssets();
 
+    if (!realtimeEnabled) {
+      const interval = setInterval(fetchAssets, 30000);
+      return () => clearInterval(interval);
+    }
+
     const subscription = supabase
       .channel('equipment-changes')
       .on(
@@ -63,7 +69,7 @@ export function AssetManagement() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, [supabase, realtimeEnabled]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {

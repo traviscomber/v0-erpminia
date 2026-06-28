@@ -29,6 +29,7 @@ interface StockLevelAlerts {
 
 export function StockLevelAlerts() {
   const supabase = createClient();
+  const realtimeEnabled = process.env.NEXT_PUBLIC_TELEMETRY_REALTIME === 'true';
   const [alerts, setAlerts] = useState<StockLevelAlerts>({
     critical: [],
     low: [],
@@ -86,6 +87,11 @@ export function StockLevelAlerts() {
 
     fetchStockLevels();
 
+    if (!realtimeEnabled) {
+      const interval = setInterval(fetchStockLevels, 30000);
+      return () => clearInterval(interval);
+    }
+
     const subscription = supabase
       .channel('wear-parts-updates')
       .on(
@@ -104,7 +110,7 @@ export function StockLevelAlerts() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, [supabase, realtimeEnabled]);
 
   if (loading) {
     return <div className="text-muted-foreground">Cargando niveles de stock...</div>;
