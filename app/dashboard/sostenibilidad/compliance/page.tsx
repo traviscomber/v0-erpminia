@@ -10,13 +10,64 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
 
+type AuditItem = {
+  id: string;
+  audit_name?: string;
+  status?: string;
+  progress?: number;
+  created_at?: string;
+  due_date?: string;
+  [key: string]: unknown;
+};
+
+type EventItem = {
+  id: string;
+  title?: string;
+  titulo?: string;
+  due_date?: string;
+  fecha_inicio?: string;
+  [key: string]: unknown;
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
+const toAuditItem = (value: unknown): AuditItem | null => {
+  if (!isRecord(value) || !value.id) return null;
+  return {
+    id: String(value.id),
+    audit_name: typeof value.audit_name === 'string' ? value.audit_name : undefined,
+    status: typeof value.status === 'string' ? value.status : undefined,
+    progress: typeof value.progress === 'number' ? value.progress : undefined,
+    created_at: typeof value.created_at === 'string' ? value.created_at : undefined,
+    due_date: typeof value.due_date === 'string' ? value.due_date : undefined,
+    ...value,
+  };
+};
+
+const toEventItem = (value: unknown): EventItem | null => {
+  if (!isRecord(value) || !value.id) return null;
+  return {
+    id: String(value.id),
+    title: typeof value.title === 'string' ? value.title : undefined,
+    titulo: typeof value.titulo === 'string' ? value.titulo : undefined,
+    due_date: typeof value.due_date === 'string' ? value.due_date : undefined,
+    fecha_inicio: typeof value.fecha_inicio === 'string' ? value.fecha_inicio : undefined,
+    ...value,
+  };
+};
+
 export default function CompliancePage() {
   const [auditOpen, setAuditOpen] = useState(false);
-  const { data: auditData, mutate } = useSWR('/api/sostenibilidad/audit-sessions', fetcher);
-  const { data: scoreData } = useSWR('/api/sostenibilidad/compliance/calculate-score', fetcher);
-  const { data: eventsData } = useSWR('/api/sostenibilidad/compliance-events?limit=12', fetcher);
-  const audits = Array.isArray(auditData?.data) ? auditData.data : [];
-  const events = Array.isArray(eventsData?.data) ? eventsData.data : [];
+  const { data: auditData, mutate } = useSWR<{ data?: unknown[] } | null>('/api/sostenibilidad/audit-sessions', fetcher);
+  const { data: scoreData } = useSWR<Record<string, unknown> | null>('/api/sostenibilidad/compliance/calculate-score', fetcher);
+  const { data: eventsData } = useSWR<{ data?: unknown[] } | null>('/api/sostenibilidad/compliance-events?limit=12', fetcher);
+  const audits = Array.isArray(auditData?.data)
+    ? auditData.data.map(toAuditItem).filter((audit): audit is AuditItem => audit !== null)
+    : [];
+  const events = Array.isArray(eventsData?.data)
+    ? eventsData.data.map(toEventItem).filter((event): event is EventItem => event !== null)
+    : [];
   const score = scoreData || {};
 
   return (
@@ -44,7 +95,7 @@ export default function CompliancePage() {
         <TabsContent value="audits">
           <div className="grid gap-4 md:grid-cols-2">
             {audits.length > 0 ? (
-              audits.map((audit: any) => (
+              audits.map((audit) => (
                 <Card key={audit.id}>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base">{audit.audit_name || 'Auditoría sin nombre'}</CardTitle>
@@ -84,7 +135,7 @@ export default function CompliancePage() {
               </CardHeader>
               <CardContent className="space-y-2 text-sm text-muted-foreground">
                 {events.slice(0, 4).length > 0 ? (
-                  events.slice(0, 4).map((event: any) => (
+                  events.slice(0, 4).map((event) => (
                     <div key={event.id} className="rounded-md border border-border p-2">
                       <p className="font-medium text-foreground">{event.title || event.titulo}</p>
                       <p>{event.due_date || event.fecha_inicio || 'Sin fecha'}</p>

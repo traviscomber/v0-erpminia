@@ -40,7 +40,47 @@ type DocumentApproval = {
   created_at?: string | null;
 };
 
-function getPendingApproval(doc: any, role: string | null | undefined, userId?: string) {
+type DocumentRecord = {
+  id: string;
+  title?: string;
+  documento_nombre?: string;
+  description?: string;
+  status?: string;
+  document_approvals?: unknown;
+  created_at?: string | null;
+  [key: string]: unknown;
+};
+
+type PendingApprovalItem = {
+  documentId: string;
+  title: string;
+  description: string;
+  approvalLevelName: string;
+  approvalLevel: number;
+  assignedToName: string;
+  status: string;
+  createdAt: string | null;
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
+const toDocumentRecord = (value: unknown): DocumentRecord | null => {
+  if (!isRecord(value) || !value.id) return null;
+
+  return {
+    id: String(value.id),
+    title: typeof value.title === 'string' ? value.title : undefined,
+    documento_nombre: typeof value.documento_nombre === 'string' ? value.documento_nombre : undefined,
+    description: typeof value.description === 'string' ? value.description : undefined,
+    status: typeof value.status === 'string' ? value.status : undefined,
+    document_approvals: value.document_approvals,
+    created_at: typeof value.created_at === 'string' ? value.created_at : null,
+    ...value,
+  };
+};
+
+function getPendingApproval(doc: DocumentRecord, role: string | null | undefined, userId?: string) {
   const approvals: DocumentApproval[] = Array.isArray(doc.document_approvals) ? doc.document_approvals : [];
   return approvals.find((approval) => {
     const approvalRole = normalize(approval.required_role);
@@ -57,15 +97,18 @@ export default function MisAprobacionesPage() {
   const currentRole = session?.role || null;
   const currentUserId = session?.user?.id;
 
-  const { data, isLoading } = useSWR('/api/sostenibilidad/documentos-flujo', fetcher);
+  const { data, isLoading } = useSWR<{ data?: unknown[] } | null>('/api/sostenibilidad/documentos-flujo', fetcher);
 
-  const documentos = Array.isArray(data?.data) ? data.data : [];
-  const pendingApprovals = documentos
-    .map((doc: any) => {
+  const documentos = Array.isArray(data?.data)
+    ? data.data.map(toDocumentRecord).filter((doc): doc is DocumentRecord => doc !== null)
+    : [];
+
+  const pendingApprovals: PendingApprovalItem[] = documentos
+    .map((doc) => {
       const pendingApproval = getPendingApproval(doc, currentRole, currentUserId);
       return pendingApproval
         ? {
-            documentId: doc.id,
+          documentId: doc.id,
             title: doc.title || doc.documento_nombre || 'Documento',
             description: doc.description || '',
             approvalLevelName: pendingApproval.approval_level_name || `Nivel ${pendingApproval.approval_level || 1}`,
@@ -76,19 +119,10 @@ export default function MisAprobacionesPage() {
           }
         : null;
     })
-    .filter(Boolean) as Array<{
-    documentId: string;
-    title: string;
-    description: string;
-    approvalLevelName: string;
-    approvalLevel: number;
-    assignedToName: string;
-    status: string;
-    createdAt: string | null;
-  }>;
+    .filter((item): item is PendingApprovalItem => item !== null);
 
-  const approvedCount = documentos.filter((doc: any) => normalize(doc.status) === 'approved').length;
-  const rejectedCount = documentos.filter((doc: any) => normalize(doc.status) === 'rejected').length;
+  const approvedCount = documentos.filter((doc) => normalize(doc.status) === 'approved').length;
+  const rejectedCount = documentos.filter((doc) => normalize(doc.status) === 'rejected').length;
 
   return (
     <div className="space-y-6">

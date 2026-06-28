@@ -18,10 +18,57 @@ const fetcher = async (url: string) => {
   return res.ok ? res.json() : null;
 };
 
+type NonconformanceRecord = {
+  id: string;
+  title: string;
+  nc_number: string;
+  status: string;
+  severity: string;
+  description: string;
+  root_cause?: string;
+  [key: string]: unknown;
+};
+
+type NonconformanceResponse = {
+  nonconformances?: unknown;
+  stats?: {
+    by_severity?: Record<string, number>;
+  };
+};
+
+type ReportResponse = {
+  by_severity?: Record<string, number>;
+};
+
+const severityLevels = ['critical', 'high', 'medium', 'low'] as const;
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
+const toText = (value: unknown, fallback = '') => (typeof value === 'string' ? value : fallback);
+
+const normalizeNonconformance = (value: unknown): NonconformanceRecord | null => {
+  if (!isRecord(value)) return null;
+
+  const id = toText(value.id);
+  if (!id) return null;
+
+  return {
+    id,
+    title: toText(value.title || value.nc_title || value.nc_number, 'No conformidad'),
+    nc_number: toText(value.nc_number || value.number || value.code || id, id),
+    status: toText(value.status || value.state, 'open').toLowerCase(),
+    severity: toText(value.severity, 'medium').toLowerCase(),
+    description: toText(value.description || value.detail || value.descripcion, 'Sin descripción'),
+    root_cause: toText(value.root_cause || value.causa_raiz || value.rootCause, ''),
+    ...value,
+  };
+};
+
 export default function NonconformanceDashboard() {
   const [showForm, setShowForm] = useState(false);
   const [showCAModal, setShowCAModal] = useState(false);
-  const [selectedNC, setSelectedNC] = useState<any>(null);
+  const [selectedNC, setSelectedNC] = useState<NonconformanceRecord | null>(null);
 
   const severityColors = {
     critical: 'bg-destructive/20 text-destructive',
@@ -30,20 +77,27 @@ export default function NonconformanceDashboard() {
     low: 'bg-blue-100 text-blue-800',
   };
 
-  const { data: ncData, mutate: mutateNCs } = useSWR('/api/sostenibilidad/nonconformances', fetcher);
-  const { data: reportData, mutate: mutateReport } = useSWR(
+  const { data: ncData, mutate: mutateNCs } = useSWR<NonconformanceResponse | null>(
+    '/api/sostenibilidad/nonconformances',
+    fetcher
+  );
+  const { data: reportData, mutate: mutateReport } = useSWR<ReportResponse | null>(
     '/api/sostenibilidad/compliance-report',
     fetcher
   );
 
-  const ncs = Array.isArray(ncData?.nonconformances) ? ncData.nonconformances : [];
+  const ncs = Array.isArray(ncData?.nonconformances)
+    ? ncData.nonconformances
+        .map(normalizeNonconformance)
+        .filter((nc): nc is NonconformanceRecord => nc !== null)
+    : [];
   const stats = ncData?.stats || {};
   const report = reportData || {};
 
-  const openNCs = ncs.filter((nc: any) => nc.status === 'open');
-  const inProgressNCs = ncs.filter((nc: any) => nc.status === 'in_progress');
+  const openNCs = ncs.filter((nc) => nc.status === 'open');
+  const inProgressNCs = ncs.filter((nc) => nc.status === 'in_progress');
 
-  const handleCreateNC = async (formData: any) => {
+  const handleCreateNC = async (formData: Record<string, unknown>) => {
     try {
       const res = await fetch('/api/sostenibilidad/nonconformances', {
         method: 'POST',
@@ -62,7 +116,7 @@ export default function NonconformanceDashboard() {
     }
   };
 
-  const handleCreateCA = async (caData: any) => {
+  const handleCreateCA = async (caData: Record<string, unknown>) => {
     if (!selectedNC?.id) return;
     try {
       const res = await fetch('/api/sostenibilidad/corrective-actions', {
@@ -181,13 +235,13 @@ export default function NonconformanceDashboard() {
                 <CardTitle>NC abiertas recientes</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {openNCs.slice(0, 5).map((nc: any) => (
+                {openNCs.slice(0, 5).map((nc) => (
                   <NonconformanceCard
                     key={nc.id}
                     nc={nc}
-                    onViewDetails={(id) => setSelectedNC(ncs.find((item: any) => item.id === id) || nc)}
+                    onViewDetails={(id) => setSelectedNC(ncs.find((item) => item.id === id) || nc)}
                     onCreateCA={(id) => {
-                      setSelectedNC(ncs.find((item: any) => item.id === id) || nc);
+                      setSelectedNC(ncs.find((item) => item.id === id) || nc);
                       setShowCAModal(true);
                     }}
                     severityColors={severityColors}
@@ -202,7 +256,7 @@ export default function NonconformanceDashboard() {
                 <CardTitle>Distribución por severidad</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {['critical', 'high', 'medium', 'low'].map((sev: any) => (
+                {severityLevels.map((sev) => (
                   <div key={sev} className="flex justify-between text-sm">
                     <span className="capitalize">{sev}</span>
                     <span className="font-medium">{report.by_severity?.[sev] || 0}</span>
@@ -239,8 +293,8 @@ export default function NonconformanceDashboard() {
 
         <TabsContent value="severity">
           <div className="grid gap-4 md:grid-cols-2">
-            {['critical', 'high', 'medium', 'low'].map((sev: any) => {
-              const filtered = ncs.filter((nc: any) => nc.severity === sev && nc.status !== 'closed');
+            {severityLevels.map((sev) => {
+              const filtered = ncs.filter((nc) => nc.severity === sev && nc.status !== 'closed');
               return (
                 <Card key={sev}>
                   <CardHeader>
@@ -248,7 +302,7 @@ export default function NonconformanceDashboard() {
                     <CardDescription>{filtered.length} activas</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    {filtered.slice(0, 5).map((nc: any) => (
+                    {filtered.slice(0, 5).map((nc) => (
                       <button key={nc.id} onClick={() => setSelectedNC(nc)} className="w-full rounded p-2 text-left text-sm hover:bg-muted">
                         <p className="font-medium truncate">{nc.title}</p>
                         <p className="text-xs text-muted-foreground">{nc.nc_number}</p>
