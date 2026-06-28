@@ -6,21 +6,21 @@ type QueryResult<T> = {
   error: unknown;
 };
 
-type QueryBuilderLike = {
-  select: (select: string) => QueryBuilderLike;
-  eq: (column: string, value: string | number | boolean) => QueryBuilderLike;
-  not: (column: string, operator: string, value: null) => QueryBuilderLike;
-  lte: (column: string, value: string) => QueryBuilderLike;
-  order: (column: string, options: { ascending: boolean }) => QueryBuilderLike;
-  limit: (value: number) => QueryBuilderLike;
+type QueryBuilderLike<T = unknown> = {
+  select: (select: string) => QueryBuilderLike<T>;
+  eq: (column: string, value: string | number | boolean) => QueryBuilderLike<T>;
+  not: (column: string, operator: string, value: null) => QueryBuilderLike<T>;
+  lte: (column: string, value: string) => QueryBuilderLike<T>;
+  order: (column: string, options: { ascending: boolean }) => QueryBuilderLike<T>;
+  limit: (value: number) => QueryBuilderLike<T>;
   then: <TResult1 = QueryResult<unknown>, TResult2 = never>(
-    onfulfilled?: ((value: QueryResult<unknown>) => TResult1 | PromiseLike<TResult1>) | null,
+    onfulfilled?: ((value: QueryResult<T>) => TResult1 | PromiseLike<TResult1>) | null,
     onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null
   ) => PromiseLike<TResult1 | TResult2>;
 };
 
 type SupabaseClientLike = {
-  from: (table: string) => QueryBuilderLike;
+  from: <T = unknown>(table: string) => QueryBuilderLike<T>;
 };
 
 type DocumentExpiryRow = {
@@ -176,7 +176,7 @@ export async function getDashboardSnapshot({ organizationId, supabase }: Dashboa
     DocumentService.getDashboardStats(organizationId),
     safeQuery(() =>
       supabase
-        .from('documents')
+        .from<DocumentExpiryRow[]>('documents')
         .select('id, title, expiry_date, status, created_at')
         .eq('organization_id', organizationId)
         .not('expiry_date', 'is', null)
@@ -186,7 +186,7 @@ export async function getDashboardSnapshot({ organizationId, supabase }: Dashboa
     , [] as DocumentExpiryRow[]),
     safeQuery(() =>
       supabase
-        .from('maintenance_work_orders')
+        .from<WorkOrderRow[]>('maintenance_work_orders')
         .select('id, work_order_number, title, work_type, status, priority, created_at, scheduled_date, completion_date, asset_id')
         .eq('organization_id', organizationId)
         .order('created_at', { ascending: false })
@@ -194,7 +194,7 @@ export async function getDashboardSnapshot({ organizationId, supabase }: Dashboa
     , [] as WorkOrderRow[]),
     safeQuery(() =>
       supabase
-        .from('warehouse_stock')
+        .from<StockRow[]>('warehouse_stock')
         .select('id, part_name, part_code, quantity_on_hand, reorder_level, unit_cost, created_at')
         .eq('organization_id', organizationId)
         .order('part_name', { ascending: true })
@@ -202,7 +202,7 @@ export async function getDashboardSnapshot({ organizationId, supabase }: Dashboa
     , [] as StockRow[]),
     safeQuery(() =>
       supabase
-        .from('cost_centers')
+        .from<CostCenterRow[]>('cost_centers')
         .select('id, name, code, budget_annual, budget_used')
         .eq('organization_id', organizationId)
         .order('name', { ascending: true })
@@ -210,17 +210,17 @@ export async function getDashboardSnapshot({ organizationId, supabase }: Dashboa
     listContractsForOrganization(organizationId)
       .then((result) => result.contracts as ContractRow[])
       .catch(() => [] as ContractRow[]),
-    safeQuery(() => supabase.from('equipment').select('id, name, status, created_at').order('name', { ascending: true }), [] as EquipmentRow[]),
+    safeQuery(() => supabase.from<EquipmentRow[]>('equipment').select('id, name, status, created_at').order('name', { ascending: true }), [] as EquipmentRow[]),
     safeQuery(() =>
       supabase
-        .from('maintenance_assets')
+        .from<MaintenanceAssetRow[]>('maintenance_assets')
         .select('id, asset_name, status, created_at, criticality')
         .eq('organization_id', organizationId)
         .order('asset_name', { ascending: true })
     , [] as MaintenanceAssetRow[]),
     safeQuery(() =>
       supabase
-        .from('incidents')
+        .from<IncidentRow[]>('incidents')
         .select('id, incident_type, severity, status, date_reported, description')
         .order('date_reported', { ascending: false })
         .limit(50)
