@@ -5,6 +5,20 @@ import { AlertCircle, Calendar, CheckCircle2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
+type ComplianceEvent = {
+  id: string;
+  title: string;
+  due_date: string;
+  status: 'completed' | 'pending' | 'overdue' | string;
+};
+
+type ComplianceEventStats = {
+  total: number;
+  pending: number;
+  completed: number;
+  overdue: number;
+};
+
 const fetcher = async (url: string) => {
   const response = await fetch(url, { credentials: 'include' });
   if (!response.ok) return null;
@@ -15,8 +29,8 @@ export default function ComplianceCalendar() {
   const { data: eventsData } = useSWR('/api/sostenibilidad/compliance-events?limit=10', fetcher);
   const { data: scoreData } = useSWR('/api/sostenibilidad/compliance/calculate-score', fetcher);
 
-  const events = eventsData?.data || [];
-  const eventStats = eventsData?.stats || {
+  const events: ComplianceEvent[] = Array.isArray(eventsData?.data) ? eventsData.data : [];
+  const eventStats: ComplianceEventStats = eventsData?.stats || {
     total: 0,
     pending: 0,
     completed: 0,
@@ -72,7 +86,7 @@ export default function ComplianceCalendar() {
                 No hay eventos de cumplimiento registrados todavía.
               </div>
             ) : (
-              events.map((event: any) => (
+              events.map((event) => (
                 <div key={event.id} className="flex items-start gap-3 rounded-lg border p-3">
                   {event.status === 'completed' ? (
                     <CheckCircle2 className="mt-0.5 h-5 w-5 text-green-600" />

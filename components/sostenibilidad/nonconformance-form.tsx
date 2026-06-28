@@ -9,6 +9,15 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useForm } from 'react-hook-form';
 
+interface NonconformanceFormData {
+  title: string;
+  description: string;
+  severity: 'critical' | 'high' | 'medium' | 'low';
+  category: string;
+  detectionDate: string;
+  dueDate: string;
+}
+
 interface NonconformanceFormProps {
   orgId: string;
   onClose: () => void;
@@ -17,7 +26,7 @@ interface NonconformanceFormProps {
 
 export function NonconformanceForm({ orgId, onClose, onSuccess }: NonconformanceFormProps) {
   const [loading, setLoading] = useState(false);
-  const form = useForm({
+  const form = useForm<NonconformanceFormData>({
     defaultValues: {
       title: '',
       description: '',
@@ -28,7 +37,7 @@ export function NonconformanceForm({ orgId, onClose, onSuccess }: Nonconformance
     },
   });
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: NonconformanceFormData) => {
     setLoading(true);
     try {
       const res = await fetch('/api/sostenibilidad/nonconformances', {
