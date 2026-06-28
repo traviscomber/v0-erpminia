@@ -2,7 +2,7 @@
 
 import useSWR from 'swr';
 import Link from 'next/link';
-import { AlertTriangle, BookOpen, ShieldCheck, Users } from 'lucide-react';
+import { AlertTriangle, BookOpen, ShieldCheck, Upload, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
@@ -106,6 +106,32 @@ export function HSEDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Upload className="h-4 w-4 text-primary" />
+            Cargas rapidas por Excel
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <Link href="/dashboard/hse/incidentes" className="block rounded border p-3 hover:bg-muted/40">
+            Incidentes y importacion
+          </Link>
+          <Link href="/dashboard/hse/riesgos" className="block rounded border p-3 hover:bg-muted/40">
+            Matriz de riesgos
+          </Link>
+          <Link href="/dashboard/hse/epp" className="block rounded border p-3 hover:bg-muted/40">
+            Matriz EPP
+          </Link>
+          <Link href="/dashboard/hse/investigaciones/importar" className="block rounded border p-3 hover:bg-muted/40">
+            Investigaciones
+          </Link>
+          <Link href="/dashboard/hse/capacitaciones" className="block rounded border p-3 hover:bg-muted/40">
+            Capacitaciones
+          </Link>
+        </CardContent>
+      </Card>
     </div>
   );
 }
