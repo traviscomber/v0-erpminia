@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
     const searchParams = new URL(request.url).searchParams;
     const status = searchParams.get('status');
     const criticality = searchParams.get('criticality');
+    const assetType = searchParams.get('asset_type');
 
     let query = context.supabase
       .from('maintenance_assets')
@@ -42,6 +43,10 @@ export async function GET(request: NextRequest) {
 
     if (criticality) {
       query = query.eq('criticality', criticality);
+    }
+
+    if (assetType) {
+      query = query.eq('asset_type', assetType);
     }
 
     const { data, error } = await query;
