@@ -92,7 +92,7 @@ export default function HSEIncidentsPage() {
           <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Total</CardTitle></CardHeader>
           <CardContent><div className="text-2xl font-bold">{incidents.length}</div></CardContent>
         </Card>
-        {Object.entries(bySeverity).map(([severity, count]) => (
+        {Object.entries(bySeverity).map(([severity, count]: [string, number]) => (
           <Card key={severity}>
             <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground capitalize">{severity}</CardTitle></CardHeader>
             <CardContent><div className="text-2xl font-bold">{count}</div></CardContent>
