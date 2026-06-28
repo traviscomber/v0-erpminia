@@ -32,6 +32,25 @@ function normalizeDocumentStatus(value: unknown) {
   return 'draft';
 }
 
+function normalizeText(value: unknown) {
+  return String(value ?? '').trim().replace(/\s+/g, ' ');
+}
+
+function normalizeCategory(value: unknown) {
+  const text = normalizeText(value).toLowerCase();
+  return text || 'sostenibilidad';
+}
+
+function normalizeDocumentType(value: unknown) {
+  const text = normalizeText(value).toLowerCase();
+  return text || 'document';
+}
+
+function normalizeFileUrl(value: unknown) {
+  const text = normalizeText(value);
+  return text || null;
+}
+
 export async function GET(request: NextRequest) {
   const context = await getSustainabilityContext(request);
   if (!context.ok) return context.response;
@@ -111,14 +130,14 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const title = String(body.title || body.documento_nombre || '').trim();
-    const description = String(body.description || body.descripcion || '').trim();
-    const category = String(body.category || 'sostenibilidad').trim();
-    const documentType = String(body.document_type || 'document').trim();
+    const title = normalizeText(body.title || body.documento_nombre);
+    const description = normalizeText(body.description || body.descripcion);
+    const category = normalizeCategory(body.category);
+    const documentType = normalizeDocumentType(body.document_type || body.documentType);
     const status = normalizeDocumentStatus(body.status || body.estado || 'draft');
-    const fileUrl = String(body.file_url || body.archivo_url || '').trim();
-    const fileSizeMb = body.file_size_mb ?? null;
-    const fileMimeType = body.file_mime_type ?? null;
+    const fileUrl = normalizeFileUrl(body.file_url || body.archivo_url);
+    const fileSizeMb = body.file_size_mb ?? body.fileSizeMb ?? null;
+    const fileMimeType = normalizeFileUrl(body.file_mime_type || body.fileMimeType);
 
     if (!title) {
       return NextResponse.json({ error: 'title is required' }, { status: 400 });
@@ -185,14 +204,14 @@ export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
     const id = String(body.id || '').trim();
-    const title = String(body.title || body.documento_nombre || '').trim();
-    const description = String(body.description || body.descripcion || '').trim();
-    const category = String(body.category || 'sostenibilidad').trim();
-    const documentType = String(body.document_type || 'document').trim();
+    const title = normalizeText(body.title || body.documento_nombre);
+    const description = normalizeText(body.description || body.descripcion);
+    const category = normalizeCategory(body.category);
+    const documentType = normalizeDocumentType(body.document_type || body.documentType);
     const status = normalizeDocumentStatus(body.status || body.estado || 'draft');
-    const fileUrl = String(body.file_url || body.archivo_url || '').trim();
-    const fileSizeMb = body.file_size_mb ?? null;
-    const fileMimeType = body.file_mime_type ?? null;
+    const fileUrl = normalizeFileUrl(body.file_url || body.archivo_url);
+    const fileSizeMb = body.file_size_mb ?? body.fileSizeMb ?? null;
+    const fileMimeType = normalizeFileUrl(body.file_mime_type || body.fileMimeType);
 
     if (!id) {
       return NextResponse.json({ error: 'id is required' }, { status: 400 });
