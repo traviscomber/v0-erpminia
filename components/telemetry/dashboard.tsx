@@ -28,7 +28,7 @@ export function TelemetryDashboard({ equipmentId, equipmentName }: TelemetryDash
   const { alarms, unreadCount, acknowledgeAlarm } = useRealtimeAlarms();
 
   // Format readings for charting
-  const chartData = readings
+  const chartData = [...readings]
     .reverse()
     .map((r) => ({
       timestamp: new Date(r.timestamp).toLocaleTimeString('es-CL'),
@@ -38,8 +38,8 @@ export function TelemetryDashboard({ equipmentId, equipmentName }: TelemetryDash
     .slice(-20);
 
   const lastReading = readings[0];
-  const isWarning = lastReading.status === 'warning';
-  const isCritical = lastReading.status === 'critical';
+  const isWarning = lastReading?.status === 'warning';
+  const isCritical = lastReading?.status === 'critical';
 
   return (
     <div className="space-y-6">

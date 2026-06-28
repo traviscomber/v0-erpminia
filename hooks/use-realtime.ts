@@ -16,13 +16,27 @@ interface SensorReading {
 }
 
 export function useRealtimeSensors(equipmentId: string) {
-  const supabase = createClient();
+  const [supabase] = useState(() => {
+    try {
+      return createClient();
+    } catch (error) {
+      console.error('[telemetry] Realtime sensors unavailable:', error);
+      return null;
+    }
+  });
   const [readings, setReadings] = useState<SensorReading[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Initial data fetch
   const fetchInitialData = useCallback(async () => {
+    if (!supabase) {
+      setReadings([]);
+      setIsConnected(false);
+      setError('Realtime no disponible');
+      return;
+    }
+
     try {
       const { data, error: fetchError } = await supabase
         .from('sensor_readings')
@@ -42,6 +56,10 @@ export function useRealtimeSensors(equipmentId: string) {
   // Setup realtime subscription
   useEffect(() => {
     fetchInitialData();
+
+    if (!supabase) {
+      return;
+    }
 
     const subscription = supabase
       .channel(`sensor-readings-${equipmentId}`)
@@ -74,11 +92,24 @@ export function useRealtimeSensors(equipmentId: string) {
 }
 
 export function useRealtimeAlarms() {
-  const supabase = createClient();
+  const [supabase] = useState(() => {
+    try {
+      return createClient();
+    } catch (error) {
+      console.error('[telemetry] Realtime alarms unavailable:', error);
+      return null;
+    }
+  });
   const [alarms, setAlarms] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
+    if (!supabase) {
+      setAlarms([]);
+      setUnreadCount(0);
+      return;
+    }
+
     // Fetch active alarms
     const fetchAlarms = async () => {
       const { data, error } = await supabase
@@ -118,6 +149,8 @@ export function useRealtimeAlarms() {
   }, [supabase]);
 
   const acknowledgeAlarm = async (alarmId: string) => {
+    if (!supabase) return;
+
     await supabase
       .from('alarms')
       .update({ acknowledged_at: new Date().toISOString() })
