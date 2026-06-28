@@ -1,4 +1,19 @@
-type SupabaseClientLike = any;
+type HseQueryBuilder = {
+  select: (select: string) => HseQueryBuilder;
+  eq: (column: string, value: string | number | boolean) => HseQueryBuilder;
+  in: (column: string, values: Array<string | number>) => HseQueryBuilder;
+  not: (column: string, operator: string, value: null) => HseQueryBuilder;
+  gte: (column: string, value: string | number) => HseQueryBuilder;
+  lte: (column: string, value: string | number) => HseQueryBuilder;
+  order: (column: string, options: { ascending: boolean }) => HseQueryBuilder;
+  limit: (value: number) => HseQueryBuilder;
+  error?: unknown;
+  data?: unknown;
+};
+
+type SupabaseClientLike = {
+  from: (table: string) => HseQueryBuilder;
+};
 
 type Filter =
   | { type: 'eq'; column: string; value: string | number | boolean }
@@ -14,6 +29,169 @@ type SelectOptions = {
   ascending?: boolean;
   limit?: number;
   filters?: Filter[];
+};
+
+type HseRecord = {
+  id: string;
+  [key: string]: unknown;
+};
+
+type HseIncidentSource = HseRecord & {
+  incident_type?: string | null;
+  severity?: string | null;
+  description?: string | null;
+  location?: string | null;
+  process_or_area?: string | null;
+  date_reported?: string | null;
+  date_occurred?: string | null;
+  status?: string | null;
+  injuries_count?: number | string | null;
+  people_involved?: number | string | null;
+};
+
+type HseDocumentSource = HseRecord & {
+  nombre_documento?: string | null;
+  title?: string | null;
+  tipo?: string | null;
+  document_type?: string | null;
+  version_actual?: string | null;
+  version?: string | null;
+  estado?: string | null;
+  fecha_actualizacion?: string | null;
+  updated_at?: string | null;
+  created_at?: string | null;
+  descripcion?: string | null;
+  description?: string | null;
+  url_documento?: string | null;
+  file_url?: string | null;
+  storage_url?: string | null;
+};
+
+type HseTrainingSource = HseRecord & {
+  nombre_capacitacion?: string | null;
+  tema?: string | null;
+  tipo?: string | null;
+  programa_hse?: string | null;
+  proveedor_instructor?: string | null;
+  fecha_programada?: string | null;
+  created_at?: string | null;
+  duracion_horas?: number | string | null;
+  cantidad_asistentes?: number | string | null;
+  estado?: string | null;
+};
+
+type HseEppSource = HseRecord & {
+  cargo_puesto?: string | null;
+  elemento_epp?: string | null;
+  cantidad_elemento?: number | string | null;
+  cantidad?: number | string | null;
+  marca_modelo?: string | null;
+  frecuencia_reemplazo?: string | null;
+  activo?: boolean | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+};
+
+type HseRiskSource = HseRecord & {
+  hazard_description?: string | null;
+  process_or_area?: string | null;
+  risk_level?: number | string | null;
+  residual_risk_level?: number | string | null;
+  next_review_date?: string | null;
+  status?: string | null;
+};
+
+type HseRequirementSource = HseRecord & {
+  framework_id?: string | null;
+  title?: string | null;
+  status?: string | null;
+  deadline?: string | null;
+  frequency?: string | null;
+  document_required?: boolean | null;
+  audit_required?: boolean | null;
+  training_required?: boolean | null;
+};
+
+type HseFrameworkSource = HseRecord & {
+  code?: string | null;
+  name?: string | null;
+  category?: string | null;
+  status?: string | null;
+};
+
+type HseNonconformanceSource = HseRecord & {
+  status?: string | null;
+  target_closure_date?: string | null;
+  category?: string | null;
+  severity?: string | null;
+};
+
+type HseCorrectiveActionSource = HseRecord & {
+  nc_id?: string | null;
+  status?: string | null;
+  scheduled_completion_date?: string | null;
+  actual_completion_date?: string | null;
+};
+
+type HseIncident = {
+  id: string;
+  type: string;
+  severity: 'high' | 'medium' | 'low';
+  description: string;
+  equipment: string;
+  date: string;
+  status: 'closed' | 'investigating' | 'pending_action';
+  date_reported: string | null;
+  injuries_count: number;
+  people_involved: number;
+};
+
+type HseDocument = {
+  id: string;
+  nombre: string;
+  tipo: string;
+  version: string;
+  fecha_actualizacion: string;
+  estado: 'vigente' | 'obsoleto' | 'en_revision';
+  descripcion: string;
+  url_documento: string;
+};
+
+type HseTraining = {
+  id: string;
+  nombre: string;
+  tipo: string;
+  fecha_programada: string;
+  duracion_horas: number;
+  proveedor: string | null;
+  estado: 'realizada' | 'cancelada' | 'programada';
+  asistentes_count: number;
+  cargos_aplica: string | null;
+};
+
+type HseEpp = {
+  id: string;
+  cargo: string;
+  personal_nombre: string;
+  epp_elemento: string;
+  cantidad: number;
+  fecha_entrega: string;
+  estado_anterior: 'nuevo';
+  devolucion_requerida: false;
+  fecha_devolucion: null;
+  frecuencia_reemplazo: string | null;
+  marca_modelo: string | null;
+  activo: boolean;
+};
+
+type HseKpiPoint = {
+  mes: string;
+  tasa_accidentabilidad: number;
+  tasa_frecuencia: number;
+  tasa_gravedad: number;
+  iirl: number;
+  odi: number;
+  dias_sin_accidentes: number;
 };
 
 function normalizeText(value?: string | null) {
@@ -113,12 +291,12 @@ async function runSelect(
   return query;
 }
 
-async function safeSelectRows(
+async function safeSelectRows<T extends HseRecord = HseRecord>(
   supabase: SupabaseClientLike,
   table: string,
   select: string,
   options: SelectOptions = {}
-) {
+): Promise<T[]> {
   try {
     const scoped = await runSelect(
       supabase,
@@ -129,12 +307,12 @@ async function safeSelectRows(
     );
 
     if (!scoped.error) {
-      return scoped.data || [];
+      return (scoped.data || []) as T[];
     }
 
     if (options.organizationScoped && options.organizationId) {
       const fallback = await runSelect(supabase, table, select, options, false);
-      if (!fallback.error) return fallback.data || [];
+      if (!fallback.error) return (fallback.data || []) as T[];
     }
   } catch {
     // Fallback below.
@@ -143,7 +321,7 @@ async function safeSelectRows(
   return [];
 }
 
-export function mapHseDocument(row: any) {
+export function mapHseDocument(row: HseDocumentSource): HseDocument {
   return {
     id: row.id,
     nombre: row.nombre_documento || row.title || 'Documento HSE',
@@ -160,7 +338,7 @@ export function mapHseDocument(row: any) {
   };
 }
 
-export function mapHseTraining(row: any) {
+export function mapHseTraining(row: HseTrainingSource): HseTraining {
   return {
     id: row.id,
     nombre: row.nombre_capacitacion || row.tema || 'Capacitacion HSE',
@@ -174,7 +352,7 @@ export function mapHseTraining(row: any) {
   };
 }
 
-export function mapHseEpp(row: any) {
+export function mapHseEpp(row: HseEppSource): HseEpp {
   return {
     id: row.id,
     cargo: row.cargo_puesto || 'Cargo sin definir',
@@ -191,7 +369,7 @@ export function mapHseEpp(row: any) {
   };
 }
 
-export function mapHseIncident(row: any) {
+export function mapHseIncident(row: HseIncidentSource): HseIncident {
   return {
     id: row.id,
     type: row.incident_type || 'Incidente',
@@ -206,14 +384,14 @@ export function mapHseIncident(row: any) {
   };
 }
 
-function buildKpiSeries(incidents: any[]) {
+function buildKpiSeries(incidents: HseIncident[]): HseKpiPoint[] {
   const now = new Date();
   const seriesKeys = Array.from({ length: 12 }, (_, index) => {
     const date = new Date(now.getFullYear(), now.getMonth() - (11 - index), 1);
     return monthKey(date.toISOString());
   });
 
-  return seriesKeys.map((key: any) => {
+  return seriesKeys.map((key) => {
     const monthStart = new Date(`${key}-01T00:00:00`);
     const monthEnd = endOfMonth(monthStart);
     const monthIncidents = incidents.filter((incident) => monthKey(incident.date_reported) === key);
@@ -335,7 +513,7 @@ export async function getHseModuleData(
     ),
   ]);
 
-  const ncIds = nonconformancesRaw.map((row: any) => row.id).filter(Boolean);
+  const ncIds = nonconformancesRaw.map((row) => row.id).filter(Boolean) as string[];
   const correctiveActionsRaw = ncIds.length
     ? await safeSelectRows(
         supabase,
@@ -357,8 +535,8 @@ export async function getHseModuleData(
 
   const kpis = buildKpiSeries(incidents);
   const currentMonthKey = monthKey(now.toISOString());
-  const incidentsThisMonth = incidents.filter((incident: any) => monthKey(incident.date_reported) === currentMonthKey);
-  const openCorrectiveActions = correctiveActionsRaw.filter((row: any) =>
+  const incidentsThisMonth = incidents.filter((incident) => monthKey(incident.date_reported) === currentMonthKey);
+  const openCorrectiveActions = correctiveActionsRaw.filter((row: HseCorrectiveActionSource) =>
     !['completed', 'verified', 'closed', 'cerrada'].includes(normalizeText(row.status))
   );
   const closedCorrectiveActions = correctiveActionsRaw.length - openCorrectiveActions.length;
@@ -366,24 +544,24 @@ export async function getHseModuleData(
   const documentCompliance =
     documents.length > 0
       ? Math.round(
-          (documents.filter((doc: any) => doc.estado === 'vigente').length / documents.length) * 100
+          (documents.filter((doc) => doc.estado === 'vigente').length / documents.length) * 100
         )
       : 100;
   const trainingCompliance =
     trainings.length > 0
       ? Math.round(
-          (trainings.filter((training: any) => training.estado === 'realizada').length / trainings.length) * 100
+          (trainings.filter((training) => training.estado === 'realizada').length / trainings.length) * 100
         )
       : 100;
   const eppCompliance =
     epp.length > 0
-      ? Math.round((epp.filter((item: any) => item.activo).length / epp.length) * 100)
+      ? Math.round((epp.filter((item) => item.activo).length / epp.length) * 100)
       : 100;
-  const riskItems = riskMatrixRaw.filter((row: any) => normalizeText(row.status) !== 'mitigado');
+  const riskItems = riskMatrixRaw.filter((row: HseRiskSource) => normalizeText(row.status) !== 'mitigado');
   const riskCompliance =
     riskMatrixRaw.length > 0
       ? Math.round(
-          ((riskMatrixRaw.length - riskItems.filter((row: any) => toNumber(row.risk_level) >= 15).length) /
+          ((riskMatrixRaw.length - riskItems.filter((row) => toNumber(row.risk_level) >= 15).length) /
             riskMatrixRaw.length) *
             100
         )
@@ -403,8 +581,8 @@ export async function getHseModuleData(
 
   const dueRequirements = [
     ...requirementsRaw
-      .filter((row: any) => row.deadline && String(row.deadline) <= thirtyDaysOut)
-      .map((row: any) => ({
+      .filter((row: HseRequirementSource) => row.deadline && String(row.deadline) <= thirtyDaysOut)
+      .map((row: HseRequirementSource) => ({
         id: row.id,
         name: row.title,
         count: 1,
@@ -414,14 +592,14 @@ export async function getHseModuleData(
         dueDate: row.deadline,
       })),
     ...documents
-      .filter((doc: any) => {
+      .filter((doc: HseDocument) => {
         const days = Math.floor(
           (Date.now() - new Date(doc.fecha_actualizacion).getTime()) / (1000 * 60 * 60 * 24)
         );
         return days > 300;
       })
       .slice(0, 4)
-      .map((doc: any) => ({
+      .map((doc: HseDocument) => ({
         id: doc.id,
         name: doc.nombre,
         count: 1,
@@ -430,9 +608,9 @@ export async function getHseModuleData(
         dueDate: doc.fecha_actualizacion,
       })),
     ...riskMatrixRaw
-      .filter((row: any) => row.next_review_date && String(row.next_review_date) <= thirtyDaysOut)
+      .filter((row: HseRiskSource) => row.next_review_date && String(row.next_review_date) <= thirtyDaysOut)
       .slice(0, 4)
-      .map((row: any) => ({
+      .map((row: HseRiskSource) => ({
         id: row.id,
         name: row.hazard_description || 'Revision de riesgo',
         count: 1,
@@ -447,11 +625,11 @@ export async function getHseModuleData(
 
   const frameworkCards =
     frameworksRaw.length > 0
-      ? frameworksRaw.map((framework: any) => {
+      ? frameworksRaw.map((framework: HseFrameworkSource) => {
           const relatedRequirements = requirementsRaw.filter(
-            (requirement: any) => requirement.framework_id === framework.id
+            (requirement: HseRequirementSource) => requirement.framework_id === framework.id
           );
-          const compliantRequirements = relatedRequirements.filter((requirement: any) =>
+          const compliantRequirements = relatedRequirements.filter((requirement: HseRequirementSource) =>
             ['compliant', 'vigente', 'completed'].includes(normalizeText(requirement.status))
           ).length;
           const compliance = relatedRequirements.length
@@ -478,7 +656,7 @@ export async function getHseModuleData(
             id: 'documentos',
             name: 'Documentos y Evidencia',
             requirements: documents.length,
-            incidents: documents.filter((doc: any) => doc.estado !== 'vigente').length,
+            incidents: documents.filter((doc) => doc.estado !== 'vigente').length,
             compliance: documentCompliance,
           },
           {
@@ -493,25 +671,25 @@ export async function getHseModuleData(
   const riskDistribution = [
     {
       name: 'Critico',
-      value: riskMatrixRaw.filter((row: any) => toNumber(row.risk_level) >= 20).length,
+      value: riskMatrixRaw.filter((row: HseRiskSource) => toNumber(row.risk_level) >= 20).length,
     },
     {
       name: 'Alto',
-      value: riskMatrixRaw.filter((row: any) => {
+      value: riskMatrixRaw.filter((row: HseRiskSource) => {
         const level = toNumber(row.risk_level);
         return level >= 15 && level < 20;
       }).length,
     },
     {
       name: 'Medio',
-      value: riskMatrixRaw.filter((row: any) => {
+      value: riskMatrixRaw.filter((row: HseRiskSource) => {
         const level = toNumber(row.risk_level);
         return level >= 8 && level < 15;
       }).length,
     },
     {
       name: 'Bajo',
-      value: riskMatrixRaw.filter((row: any) => toNumber(row.risk_level) < 8).length,
+      value: riskMatrixRaw.filter((row: HseRiskSource) => toNumber(row.risk_level) < 8).length,
     },
   ].filter((item) => item.value > 0);
 
@@ -519,7 +697,7 @@ export async function getHseModuleData(
     summary: {
       complianceScore,
       incidentsThisMonth: incidentsThisMonth.length,
-      openInvestigations: incidents.filter((incident: any) => incident.status === 'investigating').length,
+      openInvestigations: incidents.filter((incident) => incident.status === 'investigating').length,
       dueRequirements: dueRequirements.length,
       openCorrectiveActions: openCorrectiveActions.length,
       closedCorrectiveActions,
@@ -531,7 +709,7 @@ export async function getHseModuleData(
     frameworks: frameworkCards,
     requirementsDueData: dueRequirements,
     complianceByArea,
-    complianceByFramework: frameworkCards.map((framework: any) => ({
+    complianceByFramework: frameworkCards.map((framework) => ({
       name: framework.name,
       compliance: framework.compliance,
     })),
