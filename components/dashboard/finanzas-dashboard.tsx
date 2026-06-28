@@ -1,159 +1,215 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useFinanzasMovements } from '@/hooks/use-module-apis';
-import { useCostCenters } from '@/hooks/use-cost-centers';
-import { CostCenterSelect } from '@/components/common/cost-center-select';
+'use client';
+
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { AlertCircle, ArrowRight, Banknote, FileSpreadsheet, Loader2, TrendingDown, TrendingUp } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, TrendingUp, TrendingDown } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { formatCostCenterLabel } from '@/lib/cost-centers';
+
+type Movement = {
+  id?: string | number;
+  date?: string;
+  description?: string;
+  amount?: number;
+  type?: string;
+  category?: string;
+};
+
+type MovementSummary = {
+  total: number;
+  ingresos: number;
+  egresos: number;
+  balance: number;
+};
+
+const initialSummary: MovementSummary = {
+  total: 0,
+  ingresos: 0,
+  egresos: 0,
+  balance: 0,
+};
 
 export function FinanzasDashboard() {
-  const [selectedCostCenterId, setSelectedCostCenterId] = useState<string>('');
-  const { movements, isLoading, error, mutate } = useFinanzasMovements();
-  const { costCenters } = useCostCenters();
+  const [movements, setMovements] = useState<Movement[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  if (error) return <div className="text-red-500">Error al cargar movimientos</div>;
-  if (isLoading) return <div>Cargando...</div>;
+  useEffect(() => {
+    let active = true;
 
-  const filteredMovements = selectedCostCenterId
-    ? movements.filter((movement) => (movement as any).cost_center_id === selectedCostCenterId)
-    : movements;
+    const load = async () => {
+      try {
+        const response = await fetch('/api/finanzas/movements', { credentials: 'include' });
+        const payload = await response.json().catch(() => ({}));
 
-  const ingresos = filteredMovements.filter((movement) => movement.type === 'ingreso').reduce((sum, movement) => sum + movement.amount, 0);
-  const egresos = filteredMovements.filter((movement) => movement.type === 'egreso').reduce((sum, movement) => sum + movement.amount, 0);
-  const balance = ingresos - egresos;
+        if (!response.ok) {
+          throw new Error(payload.error || 'No se pudieron cargar los movimientos');
+        }
 
-  interface ChartDataPoint {
-    date: string;
-    ingresos: number;
-    egresos: number;
-  }
+        if (active) {
+          setMovements(Array.isArray(payload.movements) ? payload.movements : []);
+          setError(null);
+        }
+      } catch (loadError) {
+        if (active) {
+          setError(loadError instanceof Error ? loadError.message : 'Error inesperado');
+        }
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
 
-  const chartData: ChartDataPoint[] = [];
-  filteredMovements.forEach((movement) => {
-    const existing = chartData.find((point) => point.date === movement.date);
-    if (existing) {
-      if (movement.type === 'ingreso') existing.ingresos += movement.amount;
-      else existing.egresos += movement.amount;
-    } else {
-      chartData.push({
-        date: movement.date,
-        ingresos: movement.type === 'ingreso' ? movement.amount : 0,
-        egresos: movement.type === 'egreso' ? movement.amount : 0,
-      });
-    }
-  });
+    void load();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const summary = movements.reduce<MovementSummary>(
+    (acc, movement) => {
+      const amount = Number(movement.amount || 0);
+      acc.total += 1;
+      if ((movement.type || '').toLowerCase().includes('egres')) {
+        acc.egresos += amount;
+      } else {
+        acc.ingresos += amount;
+      }
+      acc.balance += (movement.type || '').toLowerCase().includes('egres') ? -amount : amount;
+      return acc;
+    },
+    { ...initialSummary }
+  );
+
+  const recentMovements = movements.slice(0, 5);
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Finanzas</h1>
-          <p className="text-muted-foreground">Movimientos y flujo de caja</p>
+          <h1 className="text-3xl font-bold tracking-tight">Finanzas</h1>
+          <p className="mt-1 max-w-2xl text-muted-foreground">
+            Seguimiento rápido de ingresos, egresos y balance para revisar el flujo financiero del proyecto.
+          </p>
         </div>
-        <Button size="sm" onClick={() => mutate()} className="gap-2">
-          <RefreshCw className="w-4 h-4" />
-          Actualizar
+        <Button asChild>
+          <Link href="/dashboard/finanzas/importar">
+            <FileSpreadsheet className="mr-2 h-4 w-4" />
+            Importar movimientos
+          </Link>
         </Button>
       </div>
 
-      <div className="max-w-xs">
-        <label className="mb-2 block text-sm font-medium">Filtrar por centro de costo</label>
-        <CostCenterSelect
-          value={selectedCostCenterId}
-          onValueChange={setSelectedCostCenterId}
-          placeholder="Todos los centros"
-        />
-        {selectedCostCenterId ? (
-          <p className="mt-2 text-xs text-muted-foreground">
-            Centro activo:{' '}
-            {formatCostCenterLabel(
-              costCenters.find((cc) => cc.id === selectedCostCenterId) ?? { code: '', name: '' }
-            )}
-          </p>
-        ) : null}
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="flex gap-2 text-sm">
-              <TrendingUp className="w-4 h-4 text-green-500" />
-              Ingresos
+            <CardDescription>Total movimientos</CardDescription>
+            <CardTitle className="text-3xl">{loading ? '...' : summary.total}</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-muted-foreground">Cargados desde el API financiero.</CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Ingresos</CardDescription>
+            <CardTitle className="flex items-center gap-2 text-3xl text-emerald-600">
+              <TrendingUp className="h-5 w-5" />
+              {loading ? '...' : summary.ingresos.toLocaleString('es-CL')}
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-green-500">${(ingresos / 1000).toFixed(0)}k</div>
-            <p className="text-xs text-muted-foreground">Total de ingresos</p>
-          </CardContent>
+          <CardContent className="text-sm text-muted-foreground">Suma de movimientos no marcados como egreso.</CardContent>
         </Card>
-
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="flex gap-2 text-sm">
-              <TrendingDown className="w-4 h-4 text-red-500" />
-              Egresos
+            <CardDescription>Egresos</CardDescription>
+            <CardTitle className="flex items-center gap-2 text-3xl text-rose-600">
+              <TrendingDown className="h-5 w-5" />
+              {loading ? '...' : summary.egresos.toLocaleString('es-CL')}
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-red-500">${(egresos / 1000).toFixed(0)}k</div>
-            <p className="text-xs text-muted-foreground">Total de egresos</p>
-          </CardContent>
+          <CardContent className="text-sm text-muted-foreground">Gastos operacionales y de soporte.</CardContent>
         </Card>
-
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Balance</CardTitle>
+            <CardDescription>Balance</CardDescription>
+            <CardTitle className="flex items-center gap-2 text-3xl">
+              <Banknote className="h-5 w-5" />
+              {loading ? '...' : summary.balance.toLocaleString('es-CL')}
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className={`text-3xl font-bold ${balance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-              ${(balance / 1000).toFixed(0)}k
-            </div>
-            <p className="text-xs text-muted-foreground">Flujo neto</p>
-          </CardContent>
+          <CardContent className="text-sm text-muted-foreground">Ingresos menos egresos.</CardContent>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Flujo de caja - Últimos movimientos</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={chartData}>
-              <CartesianGrid />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="ingresos" fill="#22c55e" name="Ingresos" />
-              <Bar dataKey="egresos" fill="#ef4444" name="Egresos" />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Movimientos recientes</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {filteredMovements.slice(0, 10).map((movement) => (
-              <div key={movement.id} className="flex justify-between border-b pb-2 text-sm">
-                <div>
-                  <div className="font-semibold">{movement.description}</div>
-                  <div className="text-xs text-muted-foreground">{movement.category}</div>
-                </div>
-                <div className={movement.type === 'ingreso' ? 'font-bold text-green-500' : 'font-bold text-red-500'}>
-                  {movement.type === 'ingreso' ? '+' : '-'}${movement.amount.toFixed(0)}
-                </div>
+      <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <FileSpreadsheet className="h-5 w-5 text-[var(--brand-verde)]" />
+              Movimientos recientes
+            </CardTitle>
+            <CardDescription>Últimos registros disponibles en el sistema.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {loading ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Cargando movimientos...
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            ) : error ? (
+              <div className="flex items-center gap-2 rounded-md border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive">
+                <AlertCircle className="h-4 w-4" />
+                {error}
+              </div>
+            ) : recentMovements.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Aún no hay movimientos cargados. Puedes importarlos desde Excel para comenzar.
+              </p>
+            ) : (
+              recentMovements.map((movement, index) => (
+                <div
+                  key={String(movement.id ?? `${movement.date}-${movement.description}-${index}`)}
+                  className="flex items-center justify-between rounded-lg border p-3"
+                >
+                  <div className="space-y-1">
+                    <p className="font-medium">{movement.description || 'Movimiento sin descripción'}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {movement.date || 'Sin fecha'} · {movement.category || 'general'}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold">{Number(movement.amount || 0).toLocaleString('es-CL')}</p>
+                    <p className="text-xs text-muted-foreground">{movement.type || 'ingreso'}</p>
+                  </div>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Siguiente paso</CardTitle>
+            <CardDescription>Completa el circuito financiero con carga masiva y revisión.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              La importación por Excel ya está lista. Desde allí puedes poblar el sistema y mantener el módulo sincronizado.
+            </p>
+            <div className="flex flex-col gap-2">
+              <Button asChild>
+                <Link href="/dashboard/finanzas/importar">
+                  <ArrowRight className="mr-2 h-4 w-4" />
+                  Ir a importar
+                </Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link href="/dashboard/finanzas/documentos">
+                  Ver documentos
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

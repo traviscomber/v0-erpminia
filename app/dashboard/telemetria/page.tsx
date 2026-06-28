@@ -132,35 +132,6 @@ export default function TelemetriaPage() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <Card className="border-border/70 bg-card/90">
-          <CardHeader>
-            <CardTitle>Integracion LAN</CardTitle>
-            <CardDescription>
-              Documentacion lista para la otra maquina de la red local.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild variant="outline" className="w-full justify-between">
-              <Link href="/dashboard/telemetria/integracion">
-                Ver guia de integracion
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border/70 bg-card/90">
-          <CardHeader>
-            <CardTitle>Operacion</CardTitle>
-            <CardDescription>Si la otra maquina manda datos, se reflejan en esta vista y en mantenimiento.</CardDescription>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            La lectura puede llegar por `equipment_id` o por `equipment_code`, y si viene en alerta se crea alarma automaticamente.
-          </CardContent>
-        </Card>
-      </div>
-
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-1">
           <CardHeader>

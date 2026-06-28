@@ -3,9 +3,92 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSustainabilityContext } from '@/lib/api/sostenibilidad-mvp';
 
+type ImportInspectionRow = {
+  tipo: 'internas' | 'externas';
+  numero_inspeccion: string;
+  fecha_planificada: string;
+  faena: string;
+  inspector: string;
+  hallazgos_count: number;
+  estado: 'planificada' | 'realizada' | 'cerrada';
+  empresa_externa?: string;
+  contacto_externo?: string;
+};
+
 function resolveInspectionTable(tipo: string | null) {
   if (tipo === 'externas') return 'inspecciones_externas';
   return 'inspecciones_internas';
+}
+
+function normalizeText(value: unknown) {
+  return String(value ?? '').trim().replace(/\s+/g, ' ');
+}
+
+function normalizeHeader(value: unknown) {
+  return normalizeText(value)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
+
+function parseRows(text: string): ImportInspectionRow[] {
+  const lines = text.split(/\r?\n/).filter((line) => line.trim());
+  if (lines.length < 2) return [];
+
+  const headers = lines[0].split(';').map(normalizeHeader);
+  const columns = {
+    tipo: headers.findIndex((h) => h.includes('tipo')),
+    numero_inspeccion: headers.findIndex((h) => h.includes('numero') || h.includes('inspeccion')),
+    fecha_planificada: headers.findIndex((h) => h.includes('fecha') && (h.includes('plan') || h.includes('program'))),
+    faena: headers.findIndex((h) => h.includes('faena')),
+    inspector: headers.findIndex((h) => h.includes('inspector')),
+    hallazgos_count: headers.findIndex((h) => h.includes('hallazgo')),
+    estado: headers.findIndex((h) => h.includes('estado')),
+    empresa_externa: headers.findIndex((h) => h.includes('empresa')),
+    contacto_externo: headers.findIndex((h) => h.includes('contacto')),
+  };
+
+  return lines.slice(1).flatMap((line) => {
+    const values = line.split(';').map(normalizeText);
+    const numero_inspeccion = values[columns.numero_inspeccion] || '';
+    const fecha_planificada = values[columns.fecha_planificada] || '';
+    const faena = values[columns.faena] || '';
+    const inspector = values[columns.inspector] || '';
+    if (!numero_inspeccion || !fecha_planificada || !faena || !inspector) return [];
+
+    return [
+      {
+        tipo: (values[columns.tipo] || 'internas').toLowerCase() as ImportInspectionRow['tipo'],
+        numero_inspeccion,
+        fecha_planificada,
+        faena,
+        inspector,
+        hallazgos_count: Number(values[columns.hallazgos_count] || 0),
+        estado: (values[columns.estado] || 'planificada').toLowerCase() as ImportInspectionRow['estado'],
+        empresa_externa: values[columns.empresa_externa] || undefined,
+        contacto_externo: values[columns.contacto_externo] || undefined,
+      },
+    ];
+  });
+}
+
+async function parseWorkbook(file: File) {
+  const xlsx = (await import('xlsx')) as any;
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const workbook = xlsx.read(buffer, { type: 'buffer', cellDates: true });
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  const rows = xlsx.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: true }) as unknown[][];
+  if (!rows.length) return [];
+
+  const csvText = [rows[0].map((value) => normalizeText(value)).join(';'), ...rows.slice(1).map((row) => row.map((value) => normalizeText(value)).join(';'))].join('\n');
+  return parseRows(csvText);
+}
+
+async function parseImportFile(file: File) {
+  const name = file.name.toLowerCase();
+  if (name.endsWith('.csv')) return parseRows(await file.text());
+  if (name.endsWith('.xls') || name.endsWith('.xlsx')) return parseWorkbook(file);
+  throw new Error('Formato no soportado. Usa CSV, XLS o XLSX.');
 }
 
 export async function GET(request: NextRequest) {
@@ -44,6 +127,70 @@ export async function POST(request: NextRequest) {
   if (!context.ok) return context.response;
 
   try {
+    const contentType = request.headers.get('content-type') || '';
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await request.formData();
+      const file = formData.get('file');
+
+      if (!(file instanceof File)) {
+        return NextResponse.json({ error: 'No se proporciono archivo', imported: 0, updated: 0 }, { status: 400 });
+      }
+
+      const rows = await parseImportFile(file);
+      if (rows.length === 0) {
+        return NextResponse.json({ error: 'No se encontraron inspecciones validas en el archivo', imported: 0, updated: 0 }, { status: 400 });
+      }
+
+      let imported = 0;
+      let updated = 0;
+
+      for (const row of rows) {
+        const table = resolveInspectionTable(row.tipo);
+        const { data: existing } = await context.supabase
+          .from(table)
+          .select('id')
+          .eq('organization_id', context.organizationId)
+          .eq('numero_inspeccion', row.numero_inspeccion)
+          .maybeSingle();
+
+        const payload: Record<string, unknown> = {
+          organization_id: context.organizationId,
+          numero_inspeccion: row.numero_inspeccion,
+          fecha_planificada: row.fecha_planificada,
+          fecha_realizada: row.estado === 'realizada' ? row.fecha_planificada : null,
+          faena: row.faena,
+          inspector: row.inspector,
+          hallazgos_count: row.hallazgos_count,
+          estado: row.estado,
+          updated_at: new Date().toISOString(),
+        };
+
+        if (table === 'inspecciones_externas') {
+          payload.empresa_externa = row.empresa_externa || null;
+          payload.contacto_externo = row.contacto_externo || null;
+        }
+
+        if (existing?.id) {
+          const { error } = await context.supabase.from(table).update(payload).eq('id', existing.id);
+          if (error) throw error;
+          updated += 1;
+        } else {
+          payload.organization_id = context.organizationId;
+          payload.created_by = context.userId;
+          const { error } = await context.supabase.from(table).insert(payload);
+          if (error) throw error;
+          imported += 1;
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: `Se procesaron ${rows.length} inspecciones`,
+        imported,
+        updated,
+      });
+    }
+
     const body = await request.json();
     const table = resolveInspectionTable(body.tipo);
 

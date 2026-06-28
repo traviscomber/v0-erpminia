@@ -82,6 +82,9 @@ export function HSEDashboard() {
             <Link href="/dashboard/hse/kpis" className="block rounded border p-3 hover:bg-muted/40">
               KPIs de seguridad
             </Link>
+            <Link href="/dashboard/hse/documentos" className="block rounded border p-3 hover:bg-muted/40">
+              Documentación HSE
+            </Link>
             <Link href="/dashboard/hse/epp" className="block rounded border p-3 hover:bg-muted/40">
               EPP
             </Link>
@@ -97,8 +100,8 @@ export function HSEDashboard() {
             <Link href="/dashboard/hse/capacitaciones" className="block rounded border p-3 hover:bg-muted/40">
               Capacitaciones
             </Link>
-            <Link href="/dashboard/hse/documentos" className="block rounded border p-3 hover:bg-muted/40">
-              Documentos HSE
+            <Link href="/dashboard/sostenibilidad/documentos-flujo" className="block rounded border p-3 hover:bg-muted/40">
+              Flujo documental
             </Link>
           </CardContent>
         </Card>

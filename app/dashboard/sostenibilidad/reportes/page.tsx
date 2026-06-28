@@ -1,9 +1,11 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { Bar, BarChart, Cell, CartesianGrid, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import useSWR from 'swr';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -109,11 +111,16 @@ export default function ReportesPage() {
 
   return (
     <div className="min-h-screen bg-background p-6">
-      <div className="mb-8">
-        <h1 className="mb-2 text-3xl font-bold text-foreground">Reportes de sostenibilidad</h1>
-        <p className="text-muted-foreground">
-          Análisis comparativo por período de inspecciones, hallazgos y KPIs.
-        </p>
+      <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <h1 className="mb-2 text-3xl font-bold text-foreground">Reportes de sostenibilidad</h1>
+          <p className="text-muted-foreground">
+            Análisis comparativo por período de inspecciones, hallazgos y KPIs.
+          </p>
+        </div>
+        <Button asChild variant="outline">
+          <Link href="/dashboard/sostenibilidad/prevencion-riesgos/inspecciones/importar">Actualizar base Excel</Link>
+        </Button>
       </div>
 
       <Tabs defaultValue="kpi" className="w-full">

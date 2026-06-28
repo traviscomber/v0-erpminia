@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
 import { AlertCircle, CheckCircle, Clock, Download, Eye, Plus, Trash2 } from 'lucide-react';
@@ -112,16 +113,21 @@ export default function InspeccionesInternasPage() {
           <p className="text-muted-foreground">Registro y seguimiento de inspecciones operacionales.</p>
         </div>
 
-        <Button
-          className="bg-primary hover:bg-primary/90"
-          onClick={() => {
-            setSelectedInspeccion(null);
-            setModalOpen(true);
-          }}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Nueva inspección
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline">
+            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/inspecciones/importar">Importar Excel</Link>
+          </Button>
+          <Button
+            className="bg-primary hover:bg-primary/90"
+            onClick={() => {
+              setSelectedInspeccion(null);
+              setModalOpen(true);
+            }}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Nueva inspección
+          </Button>
+        </div>
       </div>
 
       <InspeccionModal

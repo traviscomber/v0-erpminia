@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
 import { AlertTriangle, Building2, FileText, Filter, Heart, Leaf, Plus, Search, Trash2, Users, Users2 } from 'lucide-react';
@@ -224,26 +225,32 @@ export default function ComunidadesPage() {
           </p>
         </div>
 
-        <Dialog
-          open={isOpen}
-          onOpenChange={(nextOpen) => {
-            setIsOpen(nextOpen);
-            if (!nextOpen) setFormData({ ...BLANK_FORM });
-          }}
-        >
-          <DialogTrigger asChild>
-            <Button className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 shrink-0">
-              <Plus className="h-4 w-4" />
-              Nuevo Registro
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Nuevo Registro de Comunidad</DialogTitle>
-              <DialogDescription>Registra eventos, comunicaciones o compromisos con stakeholders</DialogDescription>
-            </DialogHeader>
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline">
+            <Link href="/dashboard/sostenibilidad/comunidades/importar">Importar Excel</Link>
+          </Button>
+          <Dialog
+            open={isOpen}
+            onOpenChange={(nextOpen) => {
+              setIsOpen(nextOpen);
+              if (!nextOpen) setFormData({ ...BLANK_FORM });
+            }}
+          >
+            <DialogTrigger asChild>
+              <Button className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 shrink-0">
+                <Plus className="h-4 w-4" />
+                Nuevo Registro
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Nuevo Registro de Comunidad</DialogTitle>
+                <DialogDescription>
+                  Registra eventos, comunicaciones o compromisos con stakeholders
+                </DialogDescription>
+              </DialogHeader>
 
-            <form onSubmit={handleSubmit} className="mt-2 space-y-4">
+              <form onSubmit={handleSubmit} className="mt-2 space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="col-span-2">
                   <Label htmlFor="stakeholder">Stakeholder *</Label>
@@ -423,8 +430,9 @@ export default function ComunidadesPage() {
                 </Button>
               </div>
             </form>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">

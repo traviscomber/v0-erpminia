@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import useSWR from 'swr';
 import { AlertCircle, CheckCircle, Clock, TrendingUp } from 'lucide-react';
@@ -85,12 +86,17 @@ export default function NonconformanceDashboard() {
     <div className="space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="mb-2 text-3xl font-bold text-foreground">GestiÃ³n de no conformidades</h1>
+          <h1 className="mb-2 text-3xl font-bold text-foreground">Gestión de no conformidades</h1>
           <p className="text-muted-foreground">
             Seguimiento, control y cierre de no conformidades con acciones correctivas.
           </p>
         </div>
-        <Button onClick={() => setShowForm(!showForm)}>{showForm ? 'Cancelar' : 'Reportar no conformidad'}</Button>
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline">
+            <Link href="/dashboard/sostenibilidad/no-conformidades/importar">Importar Excel</Link>
+          </Button>
+          <Button onClick={() => setShowForm(!showForm)}>{showForm ? 'Cancelar' : 'Reportar no conformidad'}</Button>
+        </div>
       </div>
 
       {showForm && <NonconformanceForm onSubmit={handleCreateNC} />}
@@ -193,7 +199,7 @@ export default function NonconformanceDashboard() {
 
             <Card>
               <CardHeader>
-                <CardTitle>DistribuciÃ³n por severidad</CardTitle>
+                <CardTitle>Distribución por severidad</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 {['critical', 'high', 'medium', 'low'].map((sev: any) => (

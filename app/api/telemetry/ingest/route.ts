@@ -31,13 +31,13 @@ function toNumber(value: unknown) {
 
 function normalizeStatus(status: unknown) {
   const value = String(status || '').toLowerCase();
-  if (['alert', 'alarma', 'critical', 'critico'].includes(value)) return 'alert';
+  if (['alert', 'alarma', 'critical', 'critico', 'critica', 'alto'].includes(value)) return 'alert';
   return 'normal';
 }
 
 function normalizeSeverity(value: unknown) {
   const status = String(value || '').toLowerCase();
-  if (['critical', 'critico', 'high', 'alta'].includes(status)) return 'critical';
+  if (['critical', 'critico', 'critica', 'high', 'alta'].includes(status)) return 'critical';
   if (['medium', 'media', 'warning'].includes(status)) return 'warning';
   return 'warning';
 }
@@ -50,7 +50,10 @@ function pickToken(request: NextRequest) {
   return headerToken || '';
 }
 
-async function resolveTargetEquipment(supabase: ReturnType<typeof getSupabaseServerClient>, payload: TelemetryPayload) {
+async function resolveTargetEquipment(
+  supabase: ReturnType<typeof getSupabaseServerClient>,
+  payload: TelemetryPayload
+) {
   const equipmentId = String(payload.equipment_id || '').trim();
   const equipmentCode = String(payload.equipment_code || payload.asset_code || '').trim();
   const equipmentName = String(payload.equipment_name || '').trim();
@@ -78,7 +81,7 @@ async function resolveTargetEquipment(supabase: ReturnType<typeof getSupabaseSer
     const { data: assetByCode } = await supabase
       .from('maintenance_assets')
       .select('id, asset_name, asset_code, status, organization_id')
-      .eq('asset_code', equipmentCode)
+      .or(`asset_code.eq.${equipmentCode},asset_name.eq.${equipmentCode}`)
       .maybeSingle();
     if (assetByCode) {
       return {
@@ -89,21 +92,7 @@ async function resolveTargetEquipment(supabase: ReturnType<typeof getSupabaseSer
       };
     }
 
-    const { data: assetByName } = await supabase
-      .from('maintenance_assets')
-      .select('id, asset_name, asset_code, status, organization_id')
-      .eq('asset_name', equipmentCode)
-      .maybeSingle();
-    if (assetByName) {
-      return {
-        id: assetByName.id,
-        name: assetByName.asset_name || equipmentCode,
-        status: assetByName.status || 'active',
-        organizationId: assetByName.organization_id || null,
-      };
-    }
-
-    const { data: eqByName } = await supabase.from('equipment').select('id, name, type, status').eq('name', equipmentCode).maybeSingle();
+    const { data: eqByName } = await supabase.from('equipment').select('id, name, type, status').or(`name.eq.${equipmentCode}`).maybeSingle();
     if (eqByName) {
       return { id: eqByName.id, name: eqByName.name || equipmentCode, status: eqByName.status || 'operational' };
     }
@@ -153,16 +142,14 @@ export async function POST(request: NextRequest) {
 
   const supabase = getSupabaseServerClient();
   const target = await resolveTargetEquipment(supabase, payload);
-
   if (!target) {
     return NextResponse.json({ error: 'No se pudo resolver el equipo destino' }, { status: 404 });
   }
 
-  const temperature = toNumber(payload.temperature ?? payload.value);
-  const pressure = toNumber(payload.pressure);
-  const vibration = toNumber(payload.vibration);
-  const rpm = toNumber(payload.rpm);
-  const timestamp = payload.timestamp && !Number.isNaN(new Date(payload.timestamp).getTime()) ? new Date(payload.timestamp).toISOString() : new Date().toISOString();
+  const timestamp =
+    payload.timestamp && !Number.isNaN(new Date(payload.timestamp).getTime())
+      ? new Date(payload.timestamp).toISOString()
+      : new Date().toISOString();
   const status = normalizeStatus(payload.status);
   const severity = normalizeSeverity(payload.severity || status);
   const message =
@@ -178,10 +165,10 @@ export async function POST(request: NextRequest) {
       created_at: timestamp,
       received_at: timestamp,
       value: toNumber(payload.value),
-      temperature,
-      pressure,
-      vibration,
-      rpm,
+      temperature: toNumber(payload.temperature),
+      pressure: toNumber(payload.pressure),
+      vibration: toNumber(payload.vibration),
+      rpm: toNumber(payload.rpm),
     },
   ]);
 

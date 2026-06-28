@@ -493,6 +493,12 @@ export default function LegalPage() {
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/legal/permisos-licencias">
+                Permisos y licencias
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
           </div>
         </CardContent>
       </Card>

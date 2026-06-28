@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import useSWR from 'swr';
 import { Eye, Plus, Trash2 } from 'lucide-react';
@@ -125,7 +126,11 @@ export default function MedioAmbientePage() {
           <h1 className="mb-2 text-3xl font-bold text-foreground">Medio ambiente</h1>
           <p className="text-muted-foreground">Monitoreo de emisiones, residuos, agua y ruido</p>
         </div>
-        <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline">
+            <Link href="/dashboard/sostenibilidad/medio-ambiente/importar">Importar Excel</Link>
+          </Button>
+          <Dialog open={modalOpen} onOpenChange={setModalOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
@@ -200,7 +205,8 @@ export default function MedioAmbientePage() {
               </div>
             </form>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
 
       <FilterPanel
