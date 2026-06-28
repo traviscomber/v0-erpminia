@@ -127,7 +127,7 @@ export function HSEDashboard() {
           <Link href="/dashboard/hse/investigaciones/importar" className="block rounded border p-3 hover:bg-muted/40">
             Investigaciones
           </Link>
-          <Link href="/dashboard/hse/capacitaciones" className="block rounded border p-3 hover:bg-muted/40">
+          <Link href="/dashboard/hse/capacitaciones/importar" className="block rounded border p-3 hover:bg-muted/40">
             Capacitaciones
           </Link>
         </CardContent>
