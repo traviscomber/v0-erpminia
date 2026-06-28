@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { Activity, ArrowRight, Cpu, RadioTower } from 'lucide-react';
