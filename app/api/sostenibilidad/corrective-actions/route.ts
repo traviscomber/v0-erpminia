@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
         responsible_person_name: body.responsiblePerson || context.userName || context.userEmail,
         scheduled_completion_date:
           body.scheduledCompletionDate || body.scheduled_completion_date,
-        status: 'planned',
+        status: normalizeCorrectiveActionStatus(body.status || 'planned'),
         verification_method: body.verificationMethod || body.verification_method || 'inspection',
         estimated_cost: Number(body.estimatedCost || body.estimated_cost || 0),
         updated_at: new Date().toISOString(),
