@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     const { data: topRisks } = await supabase
       .from('sostenibilidad_nonconformances')
       .select('id, nc_number, title, severity, status')
-      .eq('status', 'abierta')
+      .in('status', ['abierta', 'open'])
       .order('discovered_date', { ascending: true })
       .limit(5);
 

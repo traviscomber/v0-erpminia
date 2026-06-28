@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { getSupabaseServerClient } from '@/lib/supabase-server';
+import { normalizeNcStatus } from '@/lib/api/sostenibilidad-mvp';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
         {
           ...body,
           created_at: new Date().toISOString(),
-          status: 'abierta',
+          status: normalizeNcStatus(body.status),
         },
       ])
       .select()

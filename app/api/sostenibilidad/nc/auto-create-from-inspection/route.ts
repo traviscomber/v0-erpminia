@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { getSupabaseServerClient } from '@/lib/supabase-server';
+import { normalizeNcStatus } from '@/lib/api/sostenibilidad-mvp';
 import { NextRequest, NextResponse } from 'next/server';
 
 // POST /api/sostenibilidad/nc/auto-create-from-inspection
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest) {
             severity,
             category: hallazgo.categoria || 'procedimiento',
             source: `inspección_${inspection_type}`,
-            status: 'abierta',
+            status: normalizeNcStatus(body.status),
             discovered_date: new Date().toLocaleDateString('en-CA'),
             reported_by: hallazgo.reportado_por || 'sistema',
             target_closure_date: calculateTargetClosureDate(severity),
