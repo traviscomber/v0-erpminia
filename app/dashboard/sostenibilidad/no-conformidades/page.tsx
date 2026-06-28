@@ -40,6 +40,7 @@ type NonconformanceResponse = {
 };
 
 type ReportResponse = {
+  compliance_score?: number;
   by_severity?: Record<string, number>;
 };
 
