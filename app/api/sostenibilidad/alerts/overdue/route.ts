@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { NextRequest, NextResponse } from 'next/server';
+import { normalizeCorrectiveActionStatus, normalizeNcStatus } from '@/lib/api/sostenibilidad-mvp';
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
       .from('sostenibilidad_nonconformances')
       .select('id, nc_number, title, severity, target_closure_date, status')
       .lt('target_closure_date', new Date().toLocaleDateString('en-CA'))
-      .neq('status', 'cerrada');
+      .neq('status', 'closed');
 
     const { data: overdueCAs } = await supabase
       .from('sostenibilidad_corrective_actions')
@@ -23,11 +24,14 @@ export async function GET(request: NextRequest) {
          sostenibilidad_nonconformances!inner(nc_number, title, severity)`
       )
       .lt('scheduled_completion_date', new Date().toLocaleDateString('en-CA'))
-      .neq('status', 'verificada');
+      .neq('status', 'verified');
 
     const alerts: any[] = [];
 
-    (overdueNCs || []).forEach((nc) => {
+    (overdueNCs || []).map((nc: any) => ({
+      ...nc,
+      status: normalizeNcStatus(nc.status),
+    })).filter((nc: any) => nc.status !== 'closed').forEach((nc) => {
       const daysOverdue = calculateDaysOverdue(nc.target_closure_date);
       alerts.push({
         id: nc.id,
@@ -43,7 +47,10 @@ export async function GET(request: NextRequest) {
       });
     });
 
-    (overdueCAs || []).forEach((ca: any) => {
+    (overdueCAs || []).map((ca: any) => ({
+      ...ca,
+      status: normalizeCorrectiveActionStatus(ca.status),
+    })).filter((ca: any) => ca.status !== 'verified').forEach((ca: any) => {
       const daysOverdue = calculateDaysOverdue(ca.scheduled_completion_date);
       const ncData = ca.sostenibilidad_nonconformances[0] || { severity: 'media', nc_number: 'N/A' };
       alerts.push({
