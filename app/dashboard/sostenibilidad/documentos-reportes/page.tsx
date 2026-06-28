@@ -14,6 +14,51 @@ type DashboardDocument = {
   expiryDate: string;
 };
 
+type DocumentRecord = {
+  id?: string | number;
+  title?: string;
+  document_name?: string;
+  documento_nombre?: string;
+  status?: string;
+  created_at?: string;
+  createdAt?: string;
+  expiry_date?: string;
+  expiryDate?: string;
+};
+
+type DocumentsResponse = {
+  documents?: unknown;
+  data?: unknown;
+  totalDocuments?: number;
+  approved?: number;
+  pending?: number;
+  rejected?: number;
+  avgApprovalDays?: number;
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
+const normalizeDocument = (value: unknown): DashboardDocument | null => {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const record = value as DocumentRecord;
+  const fallbackId = [record.title, record.document_name, record.documento_nombre, record.createdAt, record.created_at]
+    .filter((part): part is string => typeof part === 'string' && part.length > 0)
+    .join('-')
+    .toLowerCase() || 'documento';
+
+  return {
+    id: String(record.id ?? fallbackId),
+    title: record.title || record.document_name || record.documento_nombre || 'Documento',
+    status: record.status || 'draft',
+    createdAt: record.created_at || record.createdAt || '',
+    expiryDate: record.expiry_date || record.expiryDate || '',
+  };
+};
+
 const fetcher = async (url: string) => {
   const response = await fetch(url);
   const payload = await response.json().catch(() => null);
@@ -23,26 +68,28 @@ const fetcher = async (url: string) => {
 
 export default function DocumentosReportesPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const { data: statsData, error: statsError } = useSWR('/api/documents/stats', fetcher, {
+  const { data: statsData, error: statsError } = useSWR<DocumentsResponse | null>('/api/documents/stats', fetcher, {
     revalidateOnFocus: false,
   });
-  const { data: documentsData, error: documentsError } = useSWR('/api/documents/list?limit=200', fetcher, {
-    revalidateOnFocus: false,
-  });
+  const { data: documentsData, error: documentsError } = useSWR<DocumentsResponse | null>(
+    '/api/documents/list?limit=200',
+    fetcher,
+    {
+      revalidateOnFocus: false,
+    }
+  );
 
   const rawDocuments = Array.isArray(documentsData)
     ? documentsData
     : Array.isArray(documentsData?.documents)
       ? documentsData.documents
-      : [];
+      : Array.isArray(documentsData?.data)
+        ? documentsData.data
+        : [];
 
-  const documents = rawDocuments.map((doc: any) => ({
-    id: doc.id,
-    title: doc.title || doc.document_name || doc.documento_nombre || 'Documento',
-    status: doc.status || 'draft',
-    createdAt: doc.created_at || doc.createdAt || '',
-    expiryDate: doc.expiry_date || doc.expiryDate || '',
-  })) as DashboardDocument[];
+  const documents = rawDocuments
+    .map(normalizeDocument)
+    .filter((document): document is DashboardDocument => document !== null);
   const filteredDocuments = documents.filter((doc) =>
     (doc.title || '').toLowerCase().includes(searchTerm.toLowerCase())
   );

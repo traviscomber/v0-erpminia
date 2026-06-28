@@ -30,6 +30,46 @@ interface ReportData {
   cumplimiento: number;
 }
 
+type InspectionRecord = {
+  fecha_planificada: string;
+  hallazgos_count: number;
+  estado: string;
+  faena: string;
+  area_faena: string;
+};
+
+type InspectionsResponse = {
+  data?: unknown;
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
+const toText = (value: unknown, fallback = '') => (typeof value === 'string' ? value : fallback);
+
+const toCount = (value: unknown) => {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const normalizeInspection = (value: unknown): InspectionRecord | null => {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  return {
+    fecha_planificada: toText(value.fecha_planificada ?? value.fechaPlanificada),
+    hallazgos_count: toCount(value.hallazgos_count ?? value.hallazgosCount),
+    estado: toText(value.estado, 'planificada').toLowerCase(),
+    faena: toText(value.faena ?? value.faena_nombre ?? value.faenaNombre, 'Sin asignar'),
+    area_faena: toText(value.area_faena ?? value.areaFaena, 'Sin asignar'),
+  };
+};
+
 const estadoColors = {
   planificada: '#f59e0b',
   realizada: '#10b981',
@@ -40,8 +80,15 @@ export default function ReportesPage() {
   const [periodoTipo, setPeriodoTipo] = useState('mes');
   const [anio, setAnio] = useState(new Date().getFullYear().toString());
 
-  const { data: inspecciones = [] } = useSWR('/api/sostenibilidad/inspecciones?tipo=internas', fetcher);
-  const inspeccionesList = (inspecciones.data || []) as any[];
+  const { data: inspecciones } = useSWR<InspectionsResponse | null>(
+    '/api/sostenibilidad/inspecciones?tipo=internas',
+    fetcher
+  );
+  const inspeccionesList = Array.isArray(inspecciones?.data)
+    ? inspecciones.data
+        .map(normalizeInspection)
+        .filter((inspection): inspection is InspectionRecord => inspection !== null)
+    : [];
 
   const generateReportData = () => {
     const reportData: ReportData[] = [];
@@ -49,7 +96,7 @@ export default function ReportesPage() {
     if (periodoTipo === 'mes') {
       const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
       for (let i = 0; i < meses.length; i += 1) {
-        const mesInspecciones = inspeccionesList.filter((insp: any) => {
+        const mesInspecciones = inspeccionesList.filter((insp) => {
           const date = new Date(insp.fecha_planificada);
           return date.getMonth() === i && date.getFullYear().toString() === anio;
         });
@@ -72,7 +119,7 @@ export default function ReportesPage() {
 
       trimestres.forEach((trim, idx) => {
         const [start, end] = mesRanges[idx];
-        const trimInspecciones = inspeccionesList.filter((insp: any) => {
+        const trimInspecciones = inspeccionesList.filter((insp) => {
           const date = new Date(insp.fecha_planificada);
           const month = date.getMonth();
           return month >= start && month <= end && date.getFullYear().toString() === anio;
@@ -98,13 +145,13 @@ export default function ReportesPage() {
     { name: 'Cerradas', value: inspeccionesList.filter((item) => item.estado === 'cerrada').length },
   ];
 
-  const faenaData = Object.entries(
-    inspeccionesList.reduce((acc: any, insp) => {
-      const faena = insp.faena || insp.area_faena || 'Sin asignar';
-      acc[faena] = (acc[faena] || 0) + 1;
-      return acc;
-    }, {})
-  ).map(([faena, count]) => ({
+  const faenaTotals = inspeccionesList.reduce<Record<string, number>>((acc, insp) => {
+    const faena = insp.faena || insp.area_faena || 'Sin asignar';
+    acc[faena] = (acc[faena] || 0) + 1;
+    return acc;
+  }, {});
+
+  const faenaData = Object.entries(faenaTotals).map(([faena, count]) => ({
     name: faena,
     inspecciones: count,
   }));
