@@ -44,9 +44,10 @@ export async function POST(request: NextRequest) {
     const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
     const uniqueFileName = `documentos-sostenibilidad/${timestamp}_${sanitizedFileName}`;
 
-    // Upload to Vercel Blob
+    // Upload as public because the app consumes the returned URL directly
+    // from document cards, previews, and workflow links.
     const blob = await put(uniqueFileName, file, {
-      access: 'private',
+      access: 'public',
       addRandomSuffix: false,
     });
 
