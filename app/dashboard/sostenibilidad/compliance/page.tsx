@@ -13,6 +13,10 @@ const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((re
 type AuditItem = {
   id: string;
   audit_name?: string;
+  category?: string;
+  compliance_status?: string;
+  auditor?: string;
+  evidence_count?: number;
   status?: string;
   progress?: number;
   created_at?: string;
@@ -37,6 +41,10 @@ const toAuditItem = (value: unknown): AuditItem | null => {
   return {
     id: String(value.id),
     audit_name: typeof value.audit_name === 'string' ? value.audit_name : undefined,
+    category: typeof value.category === 'string' ? value.category : undefined,
+    compliance_status: typeof value.compliance_status === 'string' ? value.compliance_status : undefined,
+    auditor: typeof value.auditor === 'string' ? value.auditor : undefined,
+    evidence_count: typeof value.evidence_count === 'number' ? value.evidence_count : undefined,
     status: typeof value.status === 'string' ? value.status : undefined,
     progress: typeof value.progress === 'number' ? value.progress : undefined,
     created_at: typeof value.created_at === 'string' ? value.created_at : undefined,
