@@ -8,6 +8,79 @@ interface DocumentListFilters {
   offset?: number;
 }
 
+type ProfileRecord = {
+  id: string;
+  email?: string | null;
+  full_name?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+};
+
+type DocumentApprovalRow = {
+  id: string;
+  document_id: string;
+  approval_level: number | null;
+  approval_level_name?: string | null;
+  status?: string | null;
+  assigned_to?: string | null;
+  assigned_to_name?: string | null;
+  approved_by?: string | null;
+  approved_by_name?: string | null;
+  comments?: string | null;
+  rejection_reason?: string | null;
+  approved_at?: string | null;
+  created_at?: string | null;
+};
+
+type DocumentRow = {
+  id: string;
+  title: string;
+  description?: string | null;
+  document_number?: string | null;
+  document_type?: string | null;
+  category?: string | null;
+  status?: string | null;
+  current_file_path?: string | null;
+  current_file_url?: string | null;
+  file_size_mb?: number | null;
+  created_at?: string | null;
+  created_by?: string | null;
+  expiry_date?: string | null;
+  documento_nombre?: string | null;
+};
+
+type MappedApprovalStep = {
+  id: string;
+  level: number | null;
+  levelName: string;
+  status?: string | null;
+  assignedToName?: string;
+  approvedByName?: string;
+  comments?: string;
+  rejectionReason?: string;
+  approvedAt?: string | null;
+};
+
+type MappedDocument = {
+  id: string;
+  title: string;
+  description: string;
+  documentNumber: string;
+  documentType?: string | null;
+  category?: string | null;
+  status?: string | null;
+  fileUrl?: string;
+  fileSize?: number;
+  createdAt?: string | null;
+  createdByUser?: {
+    name: string;
+    email: string;
+  };
+  expiryDate?: string | null;
+  daysUntilExpiry?: number;
+  steps: MappedApprovalStep[];
+};
+
 function getDaysUntilExpiry(expiryDate?: string | null) {
   if (!expiryDate) return undefined;
 
@@ -15,7 +88,7 @@ function getDaysUntilExpiry(expiryDate?: string | null) {
   return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
 }
 
-function buildProfileName(profile?: any) {
+function buildProfileName(profile?: ProfileRecord | null) {
   if (!profile) return undefined;
 
   return (
@@ -37,7 +110,7 @@ function getDocumentFileUrl(filePath?: string | null) {
 
 async function loadProfiles(userIds: Array<string | null | undefined>) {
   const uniqueIds = Array.from(new Set(userIds.filter(Boolean))) as string[];
-  const profileMap = new Map<string, any>();
+  const profileMap = new Map<string, ProfileRecord>();
 
   if (uniqueIds.length === 0) {
     return profileMap;
@@ -49,14 +122,14 @@ async function loadProfiles(userIds: Array<string | null | undefined>) {
     .select('id, email, full_name, first_name, last_name')
     .in('id', uniqueIds);
 
-  for (const profile of data || []) {
+  for (const profile of (data || []) as ProfileRecord[]) {
     profileMap.set(profile.id, profile);
   }
 
   return profileMap;
 }
 
-function mapApprovalStep(approval: any, profiles: Map<string, any>) {
+function mapApprovalStep(approval: DocumentApprovalRow, profiles: Map<string, ProfileRecord>): MappedApprovalStep {
   const assignedProfile = profiles.get(approval.assigned_to);
   const approvedByProfile = profiles.get(approval.approved_by);
 
@@ -75,7 +148,11 @@ function mapApprovalStep(approval: any, profiles: Map<string, any>) {
   };
 }
 
-function mapDocument(document: any, profiles: Map<string, any>, approvals: any[] = []) {
+function mapDocument(
+  document: DocumentRow,
+  profiles: Map<string, ProfileRecord>,
+  approvals: DocumentApprovalRow[] = []
+): MappedDocument {
   const creatorProfile = profiles.get(document.created_by);
 
   return {
@@ -140,29 +217,31 @@ export async function listDocumentsForOrganization(
     throw error;
   }
 
-  const documentIds = (documents || []).map((document) => document.id);
+  const typedDocuments = (documents || []) as DocumentRow[];
+  const documentIds = typedDocuments.map((document) => document.id);
   const { data: approvals } = documentIds.length
     ? await supabase
         .from('document_approvals')
         .select('*')
         .in('document_id', documentIds)
         .order('approval_level', { ascending: true })
-    : { data: [] as any[] };
+    : { data: [] as DocumentApprovalRow[] };
 
-  const approvalsByDocument = new Map<string, any[]>();
-  for (const approval of approvals || []) {
+  const typedApprovals = (approvals || []) as DocumentApprovalRow[];
+  const approvalsByDocument = new Map<string, DocumentApprovalRow[]>();
+  for (const approval of typedApprovals) {
     const current = approvalsByDocument.get(approval.document_id) || [];
     current.push(approval);
     approvalsByDocument.set(approval.document_id, current);
   }
 
   const profiles = await loadProfiles([
-    ...(documents || []).map((document) => document.created_by),
-    ...(approvals || []).flatMap((approval) => [approval.assigned_to, approval.approved_by]),
+    ...typedDocuments.map((document) => document.created_by),
+    ...typedApprovals.flatMap((approval) => [approval.assigned_to, approval.approved_by]),
   ]);
 
   return {
-    documents: (documents || []).map((document) =>
+    documents: typedDocuments.map((document) =>
       mapDocument(document, profiles, approvalsByDocument.get(document.id) || [])
     ),
     total: count || 0,
@@ -195,7 +274,7 @@ export async function listPendingApprovalsForUser(
         .select('*')
         .eq('organization_id', organizationId)
         .in('id', documentIds)
-    : { data: [] as any[] };
+    : { data: [] as DocumentRow[] };
 
   const { data: allApprovals } = documentIds.length
     ? await supabase
@@ -203,20 +282,22 @@ export async function listPendingApprovalsForUser(
         .select('*')
         .in('document_id', documentIds)
         .order('approval_level', { ascending: true })
-    : { data: [] as any[] };
+    : { data: [] as DocumentApprovalRow[] };
 
-  const documentMap = new Map((documents || []).map((document) => [document.id, document]));
-  const approvalsByDocument = new Map<string, any[]>();
+  const typedDocuments = (documents || []) as DocumentRow[];
+  const typedApprovals = (allApprovals || []) as DocumentApprovalRow[];
+  const documentMap = new Map(typedDocuments.map((document) => [document.id, document]));
+  const approvalsByDocument = new Map<string, DocumentApprovalRow[]>();
 
-  for (const approval of allApprovals || []) {
+  for (const approval of typedApprovals) {
     const current = approvalsByDocument.get(approval.document_id) || [];
     current.push(approval);
     approvalsByDocument.set(approval.document_id, current);
   }
 
   const profiles = await loadProfiles([
-    ...(documents || []).map((document) => document.created_by),
-    ...(allApprovals || []).flatMap((approval) => [approval.assigned_to, approval.approved_by]),
+    ...typedDocuments.map((document) => document.created_by),
+    ...typedApprovals.flatMap((approval) => [approval.assigned_to, approval.approved_by]),
   ]);
 
   return (pendingApprovals || [])
