@@ -36,6 +36,24 @@ async function validateNcBelongsToOrganization(
   return Boolean(data);
 }
 
+function normalizeText(value: unknown) {
+  return String(value ?? '').trim().replace(/\s+/g, ' ');
+}
+
+function normalizeStatus(value: unknown) {
+  const text = normalizeText(value).toLowerCase();
+  if (['planned', 'planificada', 'planificado', 'pending', 'pendiente'].includes(text)) return 'planned';
+  if (['in_progress', 'en progreso', 'en_progreso', 'progress'].includes(text)) return 'in_progress';
+  if (['completed', 'completada', 'completado', 'done', 'cerrada', 'cerrado'].includes(text)) return 'completed';
+  if (['cancelled', 'cancelada', 'cancelado'].includes(text)) return 'cancelled';
+  return 'planned';
+}
+
+function normalizeMoney(value: unknown) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
 export async function GET(request: NextRequest) {
   const context = await getSustainabilityContext(request);
   if (!context.ok) return context.response;
@@ -113,14 +131,14 @@ export async function POST(request: NextRequest) {
       .insert({
         nc_id: ncId,
         ca_number: caNumber,
-        action_description: body.actionDescription || body.action_description,
+        action_description: normalizeText(body.actionDescription || body.action_description),
         responsible_person: context.userId,
-        responsible_person_name: body.responsiblePerson || context.userName || context.userEmail,
+        responsible_person_name: normalizeText(body.responsiblePerson || context.userName || context.userEmail),
         scheduled_completion_date:
           body.scheduledCompletionDate || body.scheduled_completion_date,
-        status: normalizeCorrectiveActionStatus(body.status || 'planned'),
-        verification_method: body.verificationMethod || body.verification_method || 'inspection',
-        estimated_cost: Number(body.estimatedCost || body.estimated_cost || 0),
+        status: normalizeStatus(body.status || 'planned'),
+        verification_method: normalizeText(body.verificationMethod || body.verification_method || 'inspection'),
+        estimated_cost: normalizeMoney(body.estimatedCost || body.estimated_cost || 0),
         updated_at: new Date().toISOString(),
       })
       .select('*')
@@ -148,21 +166,30 @@ export async function PUT(request: NextRequest) {
     const { data, error } = await context.supabase
       .from('sostenibilidad_corrective_actions')
       .update({
-        action_description: body.action_description || body.actionDescription,
-        responsible_person_name: body.responsible_person_name || body.responsiblePerson || null,
+        action_description:
+          body.action_description || body.actionDescription
+            ? normalizeText(body.action_description || body.actionDescription)
+            : undefined,
+        responsible_person_name:
+          body.responsible_person_name || body.responsiblePerson
+            ? normalizeText(body.responsible_person_name || body.responsiblePerson)
+            : undefined,
         scheduled_completion_date:
           body.scheduled_completion_date || body.scheduledCompletionDate || null,
         actual_completion_date: body.actual_completion_date || null,
-        status: body.status ? normalizeCorrectiveActionStatus(body.status) : undefined,
-        verification_method: body.verification_method || body.verificationMethod || null,
+        status: body.status ? normalizeStatus(body.status) : undefined,
+        verification_method:
+          body.verification_method || body.verificationMethod
+            ? normalizeText(body.verification_method || body.verificationMethod)
+            : null,
         estimated_cost:
           body.estimated_cost !== undefined
-            ? Number(body.estimated_cost)
+            ? normalizeMoney(body.estimated_cost)
             : body.estimatedCost !== undefined
-              ? Number(body.estimatedCost)
+              ? normalizeMoney(body.estimatedCost)
               : undefined,
         actual_cost:
-          body.actual_cost !== undefined ? Number(body.actual_cost) : undefined,
+          body.actual_cost !== undefined ? normalizeMoney(body.actual_cost) : undefined,
         updated_at: new Date().toISOString(),
       })
       .eq('id', body.id)

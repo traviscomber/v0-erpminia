@@ -25,6 +25,39 @@ function normalizeText(value: unknown) {
   return String(value ?? '').trim().replace(/\s+/g, ' ');
 }
 
+function normalizeCategory(value: unknown) {
+  const text = normalizeText(value).toLowerCase();
+  if (['environment', 'ambiental', 'medio ambiente', 'medio_ambiente'].includes(text)) return 'environment';
+  if (['quality', 'calidad'].includes(text)) return 'quality';
+  if (['process', 'proceso', 'operational', 'operacional'].includes(text)) return 'process';
+  return 'safety';
+}
+
+function normalizeSeverity(value: unknown) {
+  const text = normalizeText(value).toLowerCase();
+  if (['critical', 'critico', 'crítico'].includes(text)) return 'critical';
+  if (['high', 'alta'].includes(text)) return 'high';
+  if (['low', 'baja'].includes(text)) return 'low';
+  return 'medium';
+}
+
+function normalizeSource(value: unknown) {
+  const text = normalizeText(value).toLowerCase();
+  if (['inspection', 'inspeccion', 'inspección'].includes(text)) return 'inspection';
+  if (['audit', 'auditoria', 'auditoría'].includes(text)) return 'internal_audit';
+  if (['complaint', 'queja', 'reclamo'].includes(text)) return 'complaint';
+  if (['incident', 'incidente'].includes(text)) return 'incident';
+  return 'internal_audit';
+}
+
+function normalizeStatus(value: unknown) {
+  const text = normalizeText(value).toLowerCase();
+  if (['open', 'abierta', 'abierto'].includes(text)) return 'open';
+  if (['in_progress', 'en progreso', 'en_progreso', 'progress'].includes(text)) return 'in_progress';
+  if (['closed', 'cerrada', 'cerrado', 'resolved', 'resuelta', 'resuelto'].includes(text)) return 'closed';
+  return 'open';
+}
+
 function normalizeHeader(value: unknown) {
   return normalizeText(value)
     .normalize('NFD')
@@ -59,14 +92,14 @@ function parseRows(text: string): ImportNcRow[] {
       {
         title,
         description: values[columns.description] || null,
-        category: values[columns.category] || 'safety',
-        severity: values[columns.severity] || 'medium',
-        source: values[columns.source] || 'internal_audit',
+        category: normalizeCategory(values[columns.category]),
+        severity: normalizeSeverity(values[columns.severity]),
+        source: normalizeSource(values[columns.source]),
         discovered_date: values[columns.discovered_date] || new Date().toISOString().split('T')[0],
         root_cause: values[columns.root_cause] || null,
         impact_description: values[columns.impact_description] || null,
         target_closure_date: values[columns.target_closure_date] || null,
-        status: values[columns.status] || 'open',
+        status: normalizeStatus(values[columns.status]),
       },
     ];
   });
@@ -191,17 +224,17 @@ export async function POST(request: NextRequest) {
 
         const payload = {
           organization_id: context.organizationId,
-          title: row.title,
-          description: row.description,
-          category: row.category,
-          severity: row.severity,
-          source: row.source,
+          title: normalizeText(row.title),
+          description: row.description ? normalizeText(row.description) : null,
+          category: normalizeCategory(row.category),
+          severity: normalizeSeverity(row.severity),
+          source: normalizeSource(row.source),
           discovered_date: row.discovered_date,
           reported_by: context.userId,
           assigned_to: context.userId,
-          status: normalizeNcStatus(row.status),
-          root_cause: row.root_cause,
-          impact_description: row.impact_description,
+          status: normalizeStatus(row.status),
+          root_cause: row.root_cause ? normalizeText(row.root_cause) : null,
+          impact_description: row.impact_description ? normalizeText(row.impact_description) : null,
           target_closure_date: row.target_closure_date,
           updated_at: new Date().toISOString(),
         };
@@ -252,18 +285,18 @@ export async function POST(request: NextRequest) {
       .insert({
         organization_id: context.organizationId,
         nc_number: ncNumber,
-        title: body.title,
-        description: body.description || null,
-        category: body.category || 'safety',
-        severity: body.severity || 'medium',
-        source: body.source || 'internal_audit',
-        discovered_date: body.discoveredDate || new Date().toISOString().split('T')[0],
+        title: normalizeText(body.title),
+        description: body.description ? normalizeText(body.description) : null,
+        category: normalizeCategory(body.category),
+        severity: normalizeSeverity(body.severity),
+        source: normalizeSource(body.source),
+        discovered_date: body.discoveredDate || body.discovered_date || new Date().toISOString().split('T')[0],
         reported_by: context.userId,
         assigned_to: context.userId,
-        status: 'open',
-        root_cause: body.rootCause || null,
-        impact_description: body.impactDescription || null,
-        target_closure_date: body.targetClosureDate || null,
+        status: normalizeStatus(body.status),
+        root_cause: body.rootCause || body.root_cause || null,
+        impact_description: body.impactDescription || body.impact_description || null,
+        target_closure_date: body.targetClosureDate || body.target_closure_date || null,
         updated_at: new Date().toISOString(),
       })
       .select('*')
@@ -291,14 +324,14 @@ export async function PUT(request: NextRequest) {
     const { data, error } = await context.supabase
       .from('sostenibilidad_nonconformances')
       .update({
-        title: body.title,
-        description: body.description,
-        category: body.category,
-        severity: body.severity,
-        source: body.source,
+        title: body.title ? normalizeText(body.title) : undefined,
+        description: body.description !== undefined ? normalizeText(body.description) : undefined,
+        category: body.category ? normalizeCategory(body.category) : undefined,
+        severity: body.severity ? normalizeSeverity(body.severity) : undefined,
+        source: body.source ? normalizeSource(body.source) : undefined,
         root_cause: body.root_cause || body.rootCause || null,
         impact_description: body.impact_description || body.impactDescription || null,
-        status: body.status ? normalizeNcStatus(body.status) : undefined,
+        status: body.status ? normalizeStatus(body.status) : undefined,
         target_closure_date: body.target_closure_date || body.targetClosureDate || null,
         actual_closure_date: body.actual_closure_date || null,
         updated_at: new Date().toISOString(),
