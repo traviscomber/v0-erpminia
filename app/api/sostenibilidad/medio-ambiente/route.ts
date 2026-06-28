@@ -131,20 +131,20 @@ export async function POST(request: NextRequest) {
       let updated = 0;
 
       for (const row of rows) {
-        const numeroRegistro = await buildOrgSequence(
+        const { data: existing } = await context.supabase
+          .from('sostenibilidad_medio_ambiente')
+          .select('id, numero_registro')
+          .eq('organization_id', context.organizationId)
+          .eq('descripcion', row.descripcion)
+          .eq('tipo', row.tipo)
+          .maybeSingle();
+
+        const numeroRegistro = existing?.numero_registro || await buildOrgSequence(
           context.supabase,
           'sostenibilidad_medio_ambiente',
           context.organizationId,
           'MA'
         );
-
-        const { data: existing } = await context.supabase
-          .from('sostenibilidad_medio_ambiente')
-          .select('id')
-          .eq('organization_id', context.organizationId)
-          .eq('descripcion', row.descripcion)
-          .eq('tipo', row.tipo)
-          .maybeSingle();
 
         const payload = {
           organization_id: context.organizationId,
