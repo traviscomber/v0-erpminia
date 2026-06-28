@@ -36,6 +36,22 @@ function mapRequestType(tipo: string | null) {
   }
 }
 
+function normalizeText(value: unknown) {
+  return String(value ?? '').trim().replace(/\s+/g, ' ');
+}
+
+function normalizeDate(value: unknown) {
+  const text = normalizeText(value);
+  return text || null;
+}
+
+function normalizePriority(value: unknown) {
+  const text = normalizeText(value).toLowerCase();
+  if (['alta', 'high'].includes(text)) return 'alta';
+  if (['baja', 'low'].includes(text)) return 'baja';
+  return 'media';
+}
+
 export async function GET(request: NextRequest) {
   const context = await getSustainabilityContext(request);
   if (!context.ok) return context.response;
@@ -89,21 +105,23 @@ export async function POST(request: NextRequest) {
       .insert({
         org_id: context.organizationId,
         event_type: mapRequestType(body.tipo_evento),
-        title: String(body.titulo).trim(),
-        description: String(body.descripcion || '').trim() || null,
-        due_date: body.fecha_inicio,
-        next_date: body.fecha_fin || null,
+        title: normalizeText(body.titulo || body.title) || 'Sin título',
+        description: normalizeText(body.descripcion || body.description) || null,
+        due_date: normalizeDate(body.fecha_inicio || body.due_date || body.fechaInicio),
+        next_date: normalizeDate(body.fecha_fin || body.next_date || body.fechaFin),
         status:
           body.estado === 'completado'
             ? 'completed'
             : body.estado === 'cancelado'
               ? 'cancelled'
               : 'pending',
-        location: String(body.ubicacion || '').trim() || null,
+        location: normalizeText(body.ubicacion || body.location) || null,
         responsible_person_id: context.userId,
         responsible_person_name:
-          String(body.responsable || '').trim() || context.userName || null,
-        priority: body.prioridad || 'media',
+          normalizeText(body.responsable || body.responsible || body.responsible_person_name) ||
+          context.userName ||
+          null,
+        priority: normalizePriority(body.prioridad || body.priority),
         updated_at: new Date().toISOString(),
       })
       .select('*')

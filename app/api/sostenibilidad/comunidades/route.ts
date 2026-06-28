@@ -57,6 +57,11 @@ function normalizeText(value: unknown) {
   return String(value ?? '').trim().replace(/\s+/g, ' ');
 }
 
+function normalizeDate(value: unknown) {
+  const text = normalizeText(value);
+  return text || null;
+}
+
 function normalizeHeader(value: unknown) {
   return normalizeText(value)
     .normalize('NFD')
@@ -198,21 +203,21 @@ export async function POST(request: NextRequest) {
         const payload = {
           organization_id: context.organizationId,
           numero_registro: numeroRegistro,
-          fecha: row.fecha,
+          fecha: normalizeDate(row.fecha) || row.fecha,
           tipo: row.tipo,
-          descripcion: row.descripcion,
-          stakeholder: row.stakeholder,
+          descripcion: normalizeText(row.descripcion),
+          stakeholder: normalizeText(row.stakeholder),
           estado: normalizeStatus(row.estado),
           tipo_stakeholder: row.tipo_stakeholder,
-          ubicacion: row.ubicacion,
-          contacto_persona: row.contacto_persona,
-          contacto_email: row.contacto_email,
-          contacto_telefono: row.contacto_telefono,
-          impactado_por: row.impactado_por,
-          fecha_seguimiento: row.fecha_seguimiento,
-          responsable: row.responsable,
-          observaciones: row.observaciones,
-          tipo_documento: row.tipo_documento,
+          ubicacion: row.ubicacion ? normalizeText(row.ubicacion) : null,
+          contacto_persona: row.contacto_persona ? normalizeText(row.contacto_persona) : null,
+          contacto_email: row.contacto_email ? normalizeText(row.contacto_email) : null,
+          contacto_telefono: row.contacto_telefono ? normalizeText(row.contacto_telefono) : null,
+          impactado_por: row.impactado_por ? normalizeText(row.impactado_por) : null,
+          fecha_seguimiento: row.fecha_seguimiento ? normalizeDate(row.fecha_seguimiento) : null,
+          responsable: row.responsable ? normalizeText(row.responsable) : null,
+          observaciones: row.observaciones ? normalizeText(row.observaciones) : null,
+          tipo_documento: row.tipo_documento ? normalizeText(row.tipo_documento) : null,
           prioridad: row.prioridad,
           created_by: context.userId,
           updated_at: new Date().toISOString(),
@@ -250,22 +255,22 @@ export async function POST(request: NextRequest) {
       .insert({
         organization_id:  context.organizationId,
         numero_registro:  numeroRegistro,
-        fecha:  body.fecha || new Date().toISOString().split('T')[0],
+        fecha:  normalizeDate(body.fecha) || new Date().toISOString().split('T')[0],
         tipo: normalizeTipo(body.tipo),
-        descripcion: body.descripcion,
-        stakeholder: body.stakeholder,
+        descripcion: normalizeText(body.descripcion),
+        stakeholder: normalizeText(body.stakeholder),
         estado: normalizeStatus(body.estado || 'pendiente'),
         tipo_stakeholder: normalizeTipoStakeholder(body.tipo_stakeholder),
-        ubicacion: body.ubicacion || null,
-        contacto_persona: body.contacto_persona || null,
-        contacto_email: body.contacto_email || null,
-        contacto_telefono: body.contacto_telefono || null,
-        impactado_por: body.impactado_por || null,
-        fecha_seguimiento: body.fecha_seguimiento || null,
-        responsable: body.responsable || null,
-        observaciones: body.observaciones || null,
+        ubicacion: normalizeText(body.ubicacion) || null,
+        contacto_persona: normalizeText(body.contacto_persona) || null,
+        contacto_email: normalizeText(body.contacto_email) || null,
+        contacto_telefono: normalizeText(body.contacto_telefono) || null,
+        impactado_por: normalizeText(body.impactado_por) || null,
+        fecha_seguimiento: normalizeDate(body.fecha_seguimiento),
+        responsable: normalizeText(body.responsable) || null,
+        observaciones: normalizeText(body.observaciones) || null,
         prioridad: normalizePrioridad(body.prioridad),
-        tipo_documento: body.tipo_documento || null,
+        tipo_documento: normalizeText(body.tipo_documento) || null,
         created_by: context.userId,
         updated_at: new Date().toISOString(),
       })

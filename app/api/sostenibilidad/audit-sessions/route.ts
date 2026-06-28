@@ -3,8 +3,12 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSustainabilityContext } from '@/lib/api/sostenibilidad-mvp';
 
+function normalizeText(value: unknown) {
+  return String(value ?? '').trim().replace(/\s+/g, ' ');
+}
+
 function normalizeComplianceStatus(value: unknown) {
-  const text = String(value || '').trim().toLowerCase();
+  const text = normalizeText(value).toLowerCase();
   if (['compliant', 'conforme', 'cumple'].includes(text)) return 'compliant';
   if (['non_compliant', 'no_conforme', 'no cumple'].includes(text)) return 'non_compliant';
   return 'in_progress';
@@ -104,9 +108,12 @@ export async function POST(request: NextRequest) {
     const context = await getSustainabilityContext(request);
     if (!context.ok) return context.response;
     const body = await request.json();
-    const auditName = String(body.audit_name || body.name || 'Auditoria sin nombre').trim();
-    const category = String(body.category || 'ISO').trim();
-    const auditor = String(body.auditor || body.responsible || context.userName || 'Por asignar').trim();
+    const auditName =
+      normalizeText(body.audit_name || body.name || body.auditName) || 'Auditoria sin nombre';
+    const category = normalizeText(body.category || body.auditCategory) || 'ISO';
+    const auditor =
+      normalizeText(body.auditor || body.responsible || body.auditor_name || context.userName) ||
+      'Por asignar';
     const evidenceCount = Number(body.evidence_count ?? body.evidenceCount ?? 0);
     const complianceStatus = normalizeComplianceStatus(body.compliance_status || body.status);
 
