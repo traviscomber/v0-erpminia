@@ -8,8 +8,18 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, L
 import { AlertTriangle, TrendingUp, Brain, Lightbulb } from 'lucide-react';
 import { detectRiskPatterns, generateRecommendations, analyzeTrends, predictClosureDate } from '@/lib/predictive-analytics';
 
+type IntelligenceNC = {
+  id: string;
+  created_at: string;
+  closed_at?: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  category: string;
+  area: string;
+  status: string;
+};
+
 interface IntelligenceDashboardProps {
-  ncs: any[];
+  ncs: IntelligenceNC[];
   showRecommendations: boolean;
   showTrends: boolean;
 }

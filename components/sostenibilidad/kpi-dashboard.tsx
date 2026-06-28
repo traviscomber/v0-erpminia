@@ -8,6 +8,13 @@ import useSWR from 'swr';
 
 const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
 
+type TopRiskItem = {
+  id: string;
+  nc_number: string;
+  title: string;
+  severity: string;
+};
+
 const getTrendLabel = (trend: string) => {
   if (trend === 'mejorando') return 'Mejorando';
   if (trend === 'empeorando') return 'Empeorando';
@@ -161,7 +168,7 @@ export function SustainabilityKPIDashboard() {
           <CardContent>
             <div className="space-y-2">
               {topRisks && topRisks.length > 0 ? (
-                topRisks.map((risk: any) => (
+                topRisks.map((risk: TopRiskItem) => (
                   <div key={risk.id} className="flex items-start gap-2 rounded bg-muted/50 p-2 text-sm">
                     <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-destructive" />
                     <div className="flex-1">

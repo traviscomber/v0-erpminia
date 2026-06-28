@@ -35,6 +35,7 @@ const inspeccionSchema = z.object({
 });
 
 type InspeccionFormData = z.infer<typeof inspeccionSchema>;
+type InspeccionEstado = InspeccionFormData['estado'];
 
 interface InspeccionModalProps {
   open: boolean;
@@ -237,7 +238,7 @@ export function InspeccionModal({ open, onOpenChange, inspeccion, onSuccess }: I
 
           <div>
             <label className="mb-1 block text-sm font-medium">Estado *</label>
-            <Select value={estado} onValueChange={(value) => setValue('estado', value as any)}>
+            <Select value={estado} onValueChange={(value) => setValue('estado', value as InspeccionEstado)}>
               <SelectTrigger className={errors.estado ? 'border-destructive' : ''}>
                 <SelectValue />
               </SelectTrigger>

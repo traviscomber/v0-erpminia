@@ -37,6 +37,7 @@ const inspeccionExternaSchema = z.object({
 });
 
 type InspeccionExternaFormData = z.infer<typeof inspeccionExternaSchema>;
+type InspeccionEstado = InspeccionExternaFormData['estado'];
 
 interface InspeccionExternaModalProps {
   open: boolean;
@@ -309,7 +310,7 @@ export function InspeccionExternaModal({
             <label className="text-sm font-medium mb-1 block">
               Estado *
             </label>
-            <Select value={estado} onValueChange={(value) => setValue('estado', value as any)}>
+            <Select value={estado} onValueChange={(value) => setValue('estado', value as InspeccionEstado)}>
               <SelectTrigger className={errors.estado ? 'border-destructive' : ''}>
                 <SelectValue />
               </SelectTrigger>
