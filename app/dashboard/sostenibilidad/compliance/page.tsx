@@ -1,13 +1,19 @@
 'use client';
 
+import useSWR from 'swr';
 import { useState } from 'react';
 import ComplianceCalendar from '@/components/sostenibilidad/compliance-calendar';
 import AuditModal from '@/components/sostenibilidad/audit-modal';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
 
 export default function CompliancePage() {
   const [auditOpen, setAuditOpen] = useState(false);
+  const { data: auditData, mutate } = useSWR('/api/sostenibilidad/audit-sessions', fetcher);
+  const audits = Array.isArray(auditData?.data) ? auditData.data : [];
 
   return (
     <div className="space-y-6">
@@ -32,8 +38,26 @@ export default function CompliancePage() {
         </TabsContent>
 
         <TabsContent value="audits">
-          <div className="rounded-lg border border-border bg-muted/20 p-4 text-sm text-muted-foreground">
-            Historial de auditorías consolidado en la siguiente entrega.
+          <div className="grid gap-4 md:grid-cols-2">
+            {audits.length > 0 ? (
+              audits.map((audit: any) => (
+                <Card key={audit.id}>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">{audit.audit_name || 'Auditoría sin nombre'}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2 text-sm text-muted-foreground">
+                    <p>Categoría: {audit.category || 'ISO'}</p>
+                    <p>Estado: {audit.compliance_status || 'in_progress'}</p>
+                    <p>Auditor: {audit.auditor || 'Por asignar'}</p>
+                    <p>Evidencias: {audit.evidence_count || 0}</p>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <div className="rounded-lg border border-border bg-muted/20 p-4 text-sm text-muted-foreground">
+                No hay auditorías registradas aún.
+              </div>
+            )}
           </div>
         </TabsContent>
 
@@ -50,7 +74,13 @@ export default function CompliancePage() {
         </TabsContent>
       </Tabs>
 
-      <AuditModal open={auditOpen} onOpenChange={setAuditOpen} />
+      <AuditModal
+        open={auditOpen}
+        onOpenChange={(open) => {
+          setAuditOpen(open);
+          if (!open) void mutate();
+        }}
+      />
     </div>
   );
 }
