@@ -31,6 +31,19 @@ function normalizeHeader(value: unknown) {
     .toLowerCase();
 }
 
+function normalizeTipo(value: unknown): ImportInspectionRow['tipo'] {
+  const text = normalizeText(value).toLowerCase();
+  if (text === 'externa' || text === 'externas') return 'externas';
+  return 'internas';
+}
+
+function normalizeEstado(value: unknown): ImportInspectionRow['estado'] {
+  const text = normalizeText(value).toLowerCase();
+  if (['realizada', 'realizado', 'ejecutada', 'ejecutado', 'completed'].includes(text)) return 'realizada';
+  if (['cerrada', 'cerrado', 'close', 'closed'].includes(text)) return 'cerrada';
+  return 'planificada';
+}
+
 function parseRows(text: string): ImportInspectionRow[] {
   const lines = text.split(/\r?\n/).filter((line) => line.trim());
   if (lines.length < 2) return [];
@@ -58,13 +71,13 @@ function parseRows(text: string): ImportInspectionRow[] {
 
     return [
       {
-        tipo: (values[columns.tipo] || 'internas').toLowerCase() as ImportInspectionRow['tipo'],
+        tipo: normalizeTipo(values[columns.tipo]),
         numero_inspeccion,
         fecha_planificada,
         faena,
         inspector,
         hallazgos_count: Number(values[columns.hallazgos_count] || 0),
-        estado: (values[columns.estado] || 'planificada').toLowerCase() as ImportInspectionRow['estado'],
+        estado: normalizeEstado(values[columns.estado]),
         empresa_externa: values[columns.empresa_externa] || undefined,
         contacto_externo: values[columns.contacto_externo] || undefined,
       },
@@ -202,7 +215,7 @@ export async function POST(request: NextRequest) {
       faena: body.faena,
       inspector: body.inspector,
       hallazgos_count: Number(body.hallazgos_count || 0),
-      estado: body.estado || 'planificada',
+      estado: normalizeEstado(body.estado),
       created_by: context.userId,
       updated_at: new Date().toISOString(),
     };
@@ -238,11 +251,11 @@ export async function PUT(request: NextRequest) {
     const payload: Record<string, unknown> = {
       fecha_planificada: body.fecha_planificada,
       fecha_realizada:
-        body.estado === 'realizada' ? body.fecha_realizada || body.fecha_planificada : null,
+        normalizeEstado(body.estado) === 'realizada' ? body.fecha_realizada || body.fecha_planificada : null,
       faena: body.faena,
       inspector: body.inspector,
       hallazgos_count: Number(body.hallazgos_count || 0),
-      estado: body.estado,
+      estado: normalizeEstado(body.estado),
       updated_at: new Date().toISOString(),
     };
 
