@@ -94,7 +94,7 @@ async function parseWorkbook(file: File): Promise<InventoryRow[]> {
   const workbook = xlsx.read(buffer, { type: 'buffer', cellDates: true });
   const sheetName = workbook.SheetNames[0];
   const sheet = workbook.Sheets[sheetName];
-  const rows = xlsx.utils.sheet_to_json<unknown[]>(sheet, { header: 1, defval: '', raw: true });
+  const rows = xlsx.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: true }) as unknown[][];
   if (!rows.length) return [];
 
   const headers = (rows[0] as unknown[]).map((header) => normalizeText(header));

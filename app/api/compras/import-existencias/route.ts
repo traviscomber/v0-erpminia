@@ -116,7 +116,7 @@ function getXlsxModule(): XlsxModule {
 }
 
 function toRows(sheet: any) {
-  return getXlsxModule().utils.sheet_to_json<unknown[]>(sheet, { header: 1, defval: '', raw: true });
+  return getXlsxModule().utils.sheet_to_json(sheet, { header: 1, defval: '', raw: true }) as unknown[][];
 }
 
 function parseSuppliers(sheet: any): SupplierRow[] {
