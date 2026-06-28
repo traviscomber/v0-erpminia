@@ -30,6 +30,14 @@ function normalizeHeader(value: unknown) {
     .toLowerCase();
 }
 
+function normalizeTipo(value: unknown): ImportRow['tipo'] {
+  const text = normalizeText(value).toLowerCase();
+  if (['residuo', 'residuos', 'waste'].includes(text)) return 'residuos';
+  if (['agua', 'water'].includes(text)) return 'agua';
+  if (['ruido', 'noise'].includes(text)) return 'ruido';
+  return 'emisiones';
+}
+
 function parseRows(text: string): ImportRow[] {
   const lines = text.split(/\r?\n/).filter((line) => line.trim());
   if (lines.length < 2) return [];
@@ -48,7 +56,7 @@ function parseRows(text: string): ImportRow[] {
     const descripcion = values[columns.descripcion] || '';
     if (!descripcion) return [];
 
-    const tipo = (values[columns.tipo] || 'emisiones').toLowerCase() as ImportRow['tipo'];
+    const tipo = normalizeTipo(values[columns.tipo]);
     const cumplimiento = normalizeCumplimiento(values[columns.cumplimiento]);
 
     return [
