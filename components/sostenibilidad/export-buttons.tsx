@@ -105,7 +105,7 @@ export function ExportButtons({ data, fileName, columns }: ExportButtonsProps) {
     setIsLoading(true);
 
     try {
-      const XLSX = await import('xlsx');
+      const XLSX = (await import('xlsx')) as any;
 
       const worksheet = XLSX.utils.json_to_sheet(
         data.map((row) =>
