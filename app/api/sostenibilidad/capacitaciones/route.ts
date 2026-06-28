@@ -24,6 +24,23 @@ function normalizeText(value: unknown) {
     .replace(/\s+/g, ' ');
 }
 
+function normalizeTipo(value: unknown) {
+  const text = normalizeText(value).toLowerCase();
+  if (['otec', 'organismo tecnico de capacitacion', 'organismo técnico de capacitación'].includes(text)) return 'OTEC';
+  if (['achs', 'mutual', 'mutualidad'].includes(text)) return 'ACHS';
+  if (['induccion', 'inducción'].includes(text)) return 'Inducción';
+  if (['especifica', 'específica'].includes(text)) return 'Específica';
+  if (['charla', 'charla de seguridad', 'seguridad'].includes(text)) return 'Charla de Seguridad';
+  if (['simulacro'].includes(text)) return 'Simulacro';
+  if (['curso', 'e-learning', 'elearning', 'curso e-learning'].includes(text)) return 'Curso E-Learning';
+  if (['taller', 'taller practico', 'taller práctico'].includes(text)) return 'Taller Práctico';
+  if (['certificacion', 'certificación'].includes(text)) return 'Certificación';
+  if (['reentrenamiento'].includes(text)) return 'Reentrenamiento';
+  if (['legal', 'normativa', 'legal/normativa'].includes(text)) return 'Legal/Normativa';
+  if (['liderazgo', 'gestion', 'gestión', 'liderazgo y gestion', 'liderazgo y gestión'].includes(text)) return 'Liderazgo y Gestión';
+  return 'ACHS';
+}
+
 function normalizeHeader(value: unknown) {
   return normalizeText(value)
     .normalize('NFD')
@@ -82,7 +99,7 @@ function parseCsvRows(text: string): ImportTrainingRow[] {
 
     return [{
       nombre_capacitacion,
-      tipo: values[columns.tipo] || 'ACHS',
+      tipo: normalizeTipo(values[columns.tipo]),
       tema: values[columns.tema] || '',
       programa_hse: values[columns.programa_hse] || '',
       proveedor_instructor: values[columns.proveedor_instructor] || '',
@@ -177,7 +194,7 @@ export async function POST(request: NextRequest) {
         const payload = {
           organization_id: context.organizationId,
           nombre_capacitacion: row.nombre_capacitacion,
-          tipo: row.tipo,
+          tipo: normalizeTipo(row.tipo),
           tema: row.tema,
           programa_hse: row.programa_hse,
           proveedor_instructor: row.proveedor_instructor,
@@ -225,11 +242,11 @@ export async function POST(request: NextRequest) {
       .from('sostenibilidad_capacitaciones')
       .insert({
         organization_id: context.organizationId,
-        nombre_capacitacion: body.nombre_capacitacion,
-        tipo: body.tipo || 'ACHS',
-        tema: body.tema,
-        programa_hse: body.programa_hse,
-        proveedor_instructor: body.proveedor_instructor,
+        nombre_capacitacion: normalizeText(body.nombre_capacitacion),
+        tipo: normalizeTipo(body.tipo),
+        tema: normalizeText(body.tema),
+        programa_hse: normalizeText(body.programa_hse),
+        proveedor_instructor: normalizeText(body.proveedor_instructor),
         fecha_programada: body.fecha_programada,
         hora_inicio: body.hora_inicio || null,
         hora_termino: body.hora_termino || null,
