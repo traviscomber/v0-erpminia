@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getOrganizationContext } from '@/lib/api/organization-context';
+import { getOrganizationContext, type OrganizationSuccessContext } from '@/lib/api/organization-context';
 
 const CANDIDATE_TABLES = ['finance_movements', 'finanzas_movements', 'movements'];
 
@@ -77,7 +77,7 @@ async function parseImportFile(file: File) {
   throw new Error('Formato no soportado. Usa CSV, XLS o XLSX.');
 }
 
-async function insertRows(context: Awaited<ReturnType<typeof getOrganizationContext>>, rows: any[]) {
+async function insertRows(context: OrganizationSuccessContext, rows: any[]) {
   for (const table of CANDIDATE_TABLES) {
     const { error } = await context.supabase.from(table).insert(
       rows.map((row) => ({

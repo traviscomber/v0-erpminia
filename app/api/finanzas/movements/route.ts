@@ -1,11 +1,11 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getOrganizationContext } from '@/lib/api/organization-context';
+import { getOrganizationContext, type OrganizationSuccessContext } from '@/lib/api/organization-context';
 
 const CANDIDATE_TABLES = ['finance_movements', 'finanzas_movements', 'movements'];
 
-async function readMovements(context: Awaited<ReturnType<typeof getOrganizationContext>>) {
+async function readMovements(context: OrganizationSuccessContext) {
   for (const table of CANDIDATE_TABLES) {
     const { data, error } = await context.supabase
       .from(table)

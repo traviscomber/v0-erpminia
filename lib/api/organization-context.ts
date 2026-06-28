@@ -16,6 +16,14 @@ export type OrganizationContext =
       supabase: ReturnType<typeof getSupabaseServerClient>;
     };
 
+export type OrganizationSuccessContext = Extract<OrganizationContext, { ok: true }>;
+
+export function isOrganizationSuccessContext(
+  context: OrganizationContext
+): context is OrganizationSuccessContext {
+  return context.ok;
+}
+
 export async function getOrganizationContext(
   request: NextRequest
 ): Promise<OrganizationContext> {
