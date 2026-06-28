@@ -76,7 +76,10 @@ export default function CompliancePage() {
   const events = Array.isArray(eventsData?.data)
     ? eventsData.data.map(toEventItem).filter((event): event is EventItem => event !== null)
     : [];
-  const score = scoreData || {};
+  const score = scoreData && typeof scoreData === 'object' ? scoreData : {};
+  const complianceScore = typeof score.compliance_score === 'number' ? score.compliance_score : 0;
+  const openNonconformities = typeof score.open_ncs === 'number' ? score.open_ncs : 0;
+  const overdueNonconformities = typeof score.overdue_cas === 'number' ? score.overdue_cas : 0;
 
   return (
     <div className="space-y-6">
@@ -131,9 +134,9 @@ export default function CompliancePage() {
                 <CardTitle className="text-base">Indicadores de cumplimiento</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm text-muted-foreground">
-                <p>Score actual: {score.compliance_score ?? 0}%</p>
-                <p>No conformidades abiertas: {score.open_ncs ?? 0}</p>
-                <p>No conformidades vencidas: {score.overdue_cas ?? 0}</p>
+                <p>Score actual: {complianceScore}%</p>
+                <p>No conformidades abiertas: {openNonconformities}</p>
+                <p>No conformidades vencidas: {overdueNonconformities}</p>
               </CardContent>
             </Card>
 
@@ -164,7 +167,7 @@ export default function CompliancePage() {
                 <CardTitle className="text-sm text-muted-foreground">Score</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">{score.compliance_score ?? 0}%</div>
+                <div className="text-3xl font-bold">{complianceScore}%</div>
               </CardContent>
             </Card>
             <Card>
@@ -172,7 +175,7 @@ export default function CompliancePage() {
                 <CardTitle className="text-sm text-muted-foreground">NC abiertas</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">{score.open_ncs ?? 0}</div>
+                <div className="text-3xl font-bold">{openNonconformities}</div>
               </CardContent>
             </Card>
             <Card>
@@ -188,7 +191,7 @@ export default function CompliancePage() {
                 <CardTitle className="text-sm text-muted-foreground">Eventos vencidos</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">{score.overdue_cas ?? 0}</div>
+                <div className="text-3xl font-bold">{overdueNonconformities}</div>
               </CardContent>
             </Card>
           </div>
