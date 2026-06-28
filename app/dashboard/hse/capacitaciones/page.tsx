@@ -30,7 +30,7 @@ export default function HSECapacitacionesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [estado, setEstado] = useState('');
 
-  const { data, error, isLoading } = useSWR(
+  const { data, error, isLoading, mutate } = useSWR(
     `/api/hse/capacitaciones${estado ? `?estado=${encodeURIComponent(estado)}` : ''}`,
     fetcher,
     { revalidateOnFocus: false, refreshInterval: 300000 }
@@ -86,7 +86,7 @@ export default function HSECapacitacionesPage() {
         </div>
       </div>
 
-      <HSECapacitacionesImport onSuccess={async () => { await mutate(); }} />
+      <HSECapacitacionesImport onSuccess={() => mutate()} />
 
       {proximasCapacitaciones.length > 0 && (
         <div className="rounded-lg border border-[var(--secondary)]/30 bg-[var(--secondary)]/5 p-4">
