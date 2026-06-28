@@ -1,10 +1,23 @@
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { Activity, ArrowRight, Cpu, RadioTower } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { EquipmentMonitor } from '@/components/telemetry/equipment-monitor';
-import { TelemetryExecutiveSummary } from '@/components/telemetry/telemetry-executive-summary';
-import { SensorAlerts } from '@/components/production/sensor-alerts';
+
+const TelemetryExecutiveSummary = dynamic(
+  () => import('@/components/telemetry/telemetry-executive-summary').then((mod) => mod.TelemetryExecutiveSummary),
+  { ssr: false, loading: () => <div className="text-sm text-muted-foreground">Cargando resumen de telemetria...</div> }
+);
+
+const EquipmentMonitor = dynamic(
+  () => import('@/components/telemetry/equipment-monitor').then((mod) => mod.EquipmentMonitor),
+  { ssr: false, loading: () => <div className="text-sm text-muted-foreground">Cargando monitoreo de equipos...</div> }
+);
+
+const SensorAlerts = dynamic(
+  () => import('@/components/production/sensor-alerts').then((mod) => mod.SensorAlerts),
+  { ssr: false, loading: () => <div className="text-sm text-muted-foreground">Cargando alertas sugeridas...</div> }
+);
 
 export default function TelemetriaPage() {
   return (
