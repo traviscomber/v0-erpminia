@@ -1,15 +1,4 @@
-type HseQueryBuilder = {
-  select: (select: string) => HseQueryBuilder;
-  eq: (column: string, value: string | number | boolean) => HseQueryBuilder;
-  in: (column: string, values: Array<string | number>) => HseQueryBuilder;
-  not: (column: string, operator: string, value: null) => HseQueryBuilder;
-  gte: (column: string, value: string | number) => HseQueryBuilder;
-  lte: (column: string, value: string | number) => HseQueryBuilder;
-  order: (column: string, options: { ascending: boolean }) => HseQueryBuilder;
-  limit: (value: number) => HseQueryBuilder;
-  error?: unknown;
-  data?: unknown;
-};
+type HseQueryBuilder = any;
 
 type SupabaseClientLike = {
   from: (table: string) => HseQueryBuilder;
