@@ -97,6 +97,9 @@ export default function NonconformanceDashboard() {
     : [];
   const stats = ncData?.stats || {};
   const report = reportData || {};
+  const openCount = stats.open ?? 0;
+  const closedCount = stats.closed ?? 0;
+  const overdueCount = stats.overdue ?? 0;
 
   const openNCs = ncs.filter((nc) => nc.status === 'open');
   const inProgressNCs = ncs.filter((nc) => nc.status === 'in_progress');
@@ -168,7 +171,7 @@ export default function NonconformanceDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{stats.open || 0}</p>
+            <p className="text-2xl font-bold">{openCount}</p>
             <p className="text-xs text-muted-foreground mt-1">Casos activos</p>
           </CardContent>
         </Card>
@@ -194,7 +197,7 @@ export default function NonconformanceDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-secondary">{stats.closed || 0}</p>
+            <p className="text-2xl font-bold text-secondary">{closedCount}</p>
             <p className="text-xs text-muted-foreground mt-1">Resueltas</p>
           </CardContent>
         </Card>
@@ -213,12 +216,12 @@ export default function NonconformanceDashboard() {
         </Card>
       </div>
 
-      {stats.overdue > 0 && (
+      {overdueCount > 0 && (
         <Card className="border-destructive/50 bg-destructive/5">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 text-destructive">
               <AlertCircle className="h-5 w-5" />
-              <span className="font-medium">{stats.overdue} no conformidades vencidas</span>
+              <span className="font-medium">{overdueCount} no conformidades vencidas</span>
             </div>
           </CardContent>
         </Card>
@@ -227,7 +230,7 @@ export default function NonconformanceDashboard() {
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">Resumen</TabsTrigger>
-          <TabsTrigger value="open">NC activas ({stats.open || 0})</TabsTrigger>
+          <TabsTrigger value="open">NC activas ({openCount})</TabsTrigger>
           <TabsTrigger value="all">Todas</TabsTrigger>
           <TabsTrigger value="severity">Por severidad</TabsTrigger>
         </TabsList>
