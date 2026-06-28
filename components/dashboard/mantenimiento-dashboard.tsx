@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import useSWR from 'swr';
@@ -246,6 +246,12 @@ export function MantenimientoDashboard() {
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/vehiculos">
                 Vehiculos y QR
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/equipos">
+                Maquinaria y equipos
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
