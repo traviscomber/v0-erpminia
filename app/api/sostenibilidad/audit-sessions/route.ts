@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseServerClient } from '@/lib/supabase-server';
+import { getSustainabilityContext } from '@/lib/api/sostenibilidad-mvp';
 
 function normalizeComplianceStatus(value: unknown) {
   const text = String(value || '').trim().toLowerCase();
@@ -12,11 +12,12 @@ function normalizeComplianceStatus(value: unknown) {
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = getSupabaseServerClient();
+    const context = await getSustainabilityContext(request);
+    if (!context.ok) return context.response;
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '20', 10);
 
-    const { data, error } = await supabase
+    const { data, error } = await context.supabase
       .from('compliance_audit_log')
       .select('*')
       .order('created_at', { ascending: false })
@@ -36,15 +37,16 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = getSupabaseServerClient();
+    const context = await getSustainabilityContext(request);
+    if (!context.ok) return context.response;
     const body = await request.json();
     const auditName = String(body.audit_name || body.name || 'Auditoria sin nombre').trim();
     const category = String(body.category || 'ISO').trim();
-    const auditor = String(body.auditor || body.responsible || 'Por asignar').trim();
+    const auditor = String(body.auditor || body.responsible || context.userName || 'Por asignar').trim();
     const evidenceCount = Number(body.evidence_count ?? body.evidenceCount ?? 0);
     const complianceStatus = normalizeComplianceStatus(body.compliance_status || body.status);
 
-    const { data, error } = await supabase
+    const { data, error } = await context.supabase
       .from('compliance_audit_log')
       .insert({
         audit_name: auditName,
