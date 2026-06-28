@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import useSWR from 'swr';
-import { AlertCircle, ArrowRight, Activity, CircleAlert, CircleCheckBig, Factory, RefreshCw, Wrench } from 'lucide-react';
+import { AlertCircle, ArrowRight, Activity, CircleAlert, CircleCheckBig, Factory, RefreshCw, Upload, Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -300,6 +300,43 @@ export function MantenimientoDashboard() {
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/componentes-mayores">
                 Ver componentes mayores
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-border/70 bg-card/90">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Upload className="h-4 w-4 text-primary" />
+            Cargas rapidas y activos
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/equipos">
+                Importar equipos
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/vehiculos">
+                Importar vehiculos
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/documentos">
+                Documentos
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/planificacion">
+                Planificacion
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
