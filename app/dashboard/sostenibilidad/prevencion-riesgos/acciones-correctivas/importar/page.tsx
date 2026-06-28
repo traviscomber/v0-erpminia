@@ -147,10 +147,10 @@ export default function CorrectiveActionsImportPage() {
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
     if (!worksheet) return [];
 
-    const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet, {
+    const rows = XLSX.utils.sheet_to_json(worksheet, {
       defval: '',
       raw: false,
-    });
+    }) as Record<string, unknown>[];
 
     return rows.map((row) => ({
       ncId: readCell(row, HEADER_ALIASES.ncId),
