@@ -31,9 +31,13 @@ function normalize(value: unknown) {
 }
 
 type DocumentApproval = {
+  approval_level?: number | null;
+  approval_level_name?: string | null;
   required_role?: string | null;
   status?: string | null;
   assigned_to?: string | null;
+  assigned_to_name?: string | null;
+  created_at?: string | null;
 };
 
 function getPendingApproval(doc: any, role: string | null | undefined, userId?: string) {
