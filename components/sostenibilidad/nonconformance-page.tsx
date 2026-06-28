@@ -14,6 +14,10 @@ interface NCPageProps {
   organizationId: string;
 }
 
+function formatDueDate(value: unknown): string {
+  return typeof value === 'string' ? value : '';
+}
+
 export function NoncConformancePage({ organizationId }: NCPageProps) {
   const [showForm, setShowForm] = useState(false);
   const [filterStatus, setFilterStatus] = useState('');
@@ -43,9 +47,10 @@ export function NoncConformancePage({ organizationId }: NCPageProps) {
 
   const nonconformances: NonconformanceRecord[] = Array.isArray(ncs?.nonconformances) ? ncs.nonconformances : [];
   const overdueItems = nonconformances.filter((nc) => {
-    if (!nc?.target_closure_date) return false;
+    const dueDate = formatDueDate(nc?.target_closure_date);
+    if (!dueDate) return false;
     if (nc.status === 'closed') return false;
-    return new Date(nc.target_closure_date) < new Date();
+    return new Date(dueDate) < new Date();
   });
 
   const visibleRows =

@@ -11,6 +11,10 @@ interface NonconformanceTableProps {
   onEdit: (nc: NonconformanceRecord) => void;
 }
 
+function formatDueDate(value: unknown): string {
+  return typeof value === 'string' ? value : '';
+}
+
 export function NonconformanceTable({ data, onRowClick, onEdit }: NonconformanceTableProps) {
   const severityColors: Record<string, string> = {
     critical: 'bg-destructive',
@@ -25,7 +29,10 @@ export function NonconformanceTable({ data, onRowClick, onEdit }: Nonconformance
     closed: 'text-green-600',
   };
 
-  const isOverdue = (nc: NonconformanceRecord) => Boolean(nc.target_closure_date) && new Date(nc.target_closure_date as string) < new Date() && nc.status !== 'closed';
+  const isOverdue = (nc: NonconformanceRecord) => {
+    const dueDate = formatDueDate(nc.target_closure_date);
+    return Boolean(dueDate) && new Date(dueDate) < new Date() && nc.status !== 'closed';
+  };
 
   return (
     <div className="border rounded-lg overflow-hidden">
@@ -58,7 +65,7 @@ export function NonconformanceTable({ data, onRowClick, onEdit }: Nonconformance
               <TableCell className="text-xs">
                 <div className="flex items-center gap-1">
                   {isOverdue(nc) && <AlertCircle className="w-4 h-4 text-destructive" />}
-                  {nc.target_closure_date ? new Date(nc.target_closure_date).toLocaleDateString() : '-'}
+                  {formatDueDate(nc.target_closure_date) ? new Date(formatDueDate(nc.target_closure_date)).toLocaleDateString() : '-'}
                 </div>
               </TableCell>
               <TableCell>

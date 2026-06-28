@@ -14,6 +14,10 @@ import type { CorrectiveActionRecord } from '@/components/sostenibilidad/nonconf
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
+function formatDate(value: unknown): string {
+  return typeof value === 'string' ? value : '';
+}
+
 export function CorrectiveActionsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [ncId] = useState<string | null>(null);
@@ -29,7 +33,11 @@ export function CorrectiveActionsPage() {
 
   const inProgressCount = actionList.filter((a) => a.status === 'in_progress').length || 0;
   const completedCount = actionList.filter((a) => a.status === 'completed' || a.status === 'verified').length || 0;
-  const overDueCount = actionList.filter((a) => Boolean(a.scheduled_completion_date) && new Date(a.scheduled_completion_date as string) < new Date() && a.status !== 'completed').length || 0;
+  const overDueCount =
+    actionList.filter((a) => {
+      const dueDate = formatDate(a.scheduled_completion_date);
+      return Boolean(dueDate) && new Date(dueDate) < new Date() && a.status !== 'completed';
+    }).length || 0;
   const totalActions = actionList.length || 0;
 
   return (
@@ -128,7 +136,10 @@ export function CorrectiveActionsPage() {
         <TabsContent value="overdue" className="space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {actionList
-              .filter((a) => Boolean(a.scheduled_completion_date) && new Date(a.scheduled_completion_date as string) < new Date() && a.status !== 'completed')
+              .filter((a) => {
+                const dueDate = formatDate(a.scheduled_completion_date);
+                return Boolean(dueDate) && new Date(dueDate) < new Date() && a.status !== 'completed';
+              })
               .map((action) => (
                 <CorrectiveActionCard key={action.id} action={action} onUpdate={() => mutate()} />
               ))}

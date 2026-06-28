@@ -14,10 +14,15 @@ interface NonconformanceCardProps {
   severityColors: Record<string, string>;
 }
 
+function formatDueDate(value: unknown): string {
+  return typeof value === 'string' ? value : '';
+}
+
 export function NonconformanceCard({ nc, onViewDetails, onCreateCA, severityColors }: NonconformanceCardProps) {
   const correctiveActions = Array.isArray(nc.corrective_actions) ? nc.corrective_actions : [];
-  const hasDueDate = !!nc.target_closure_date;
-  const isOverdue = hasDueDate && new Date(nc.target_closure_date as string) < new Date() && nc.status !== 'closed';
+  const dueDate = formatDueDate(nc.target_closure_date);
+  const hasDueDate = Boolean(dueDate);
+  const isOverdue = hasDueDate && new Date(dueDate) < new Date() && nc.status !== 'closed';
   const completedActions = correctiveActions.filter((ca: CorrectiveActionRecord) => ca.status === 'verified').length;
   const caProgress = correctiveActions.length
     ? Math.round((completedActions / correctiveActions.length) * 100)
@@ -44,7 +49,7 @@ export function NonconformanceCard({ nc, onViewDetails, onCreateCA, severityColo
         <div className="flex justify-between gap-3">
           <span>Vencimiento:</span>
           <span className={isOverdue ? 'text-red-600 font-semibold' : ''}>
-            {hasDueDate ? new Date(nc.target_closure_date).toLocaleDateString() : 'Sin fecha'}
+            {hasDueDate ? new Date(dueDate).toLocaleDateString() : 'Sin fecha'}
             {isOverdue && ' ⚠'}
           </span>
         </div>

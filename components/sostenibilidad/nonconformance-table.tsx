@@ -11,6 +11,10 @@ interface NonconformanceTableProps {
   severityColors: Record<string, string>;
 }
 
+function formatDueDate(value: unknown): string {
+  return typeof value === 'string' ? value : '';
+}
+
 export function NonconformanceTable({ data, severityColors }: NonconformanceTableProps) {
   return (
     <div className="border rounded-lg overflow-hidden">
@@ -28,7 +32,7 @@ export function NonconformanceTable({ data, severityColors }: NonconformanceTabl
         </TableHeader>
         <TableBody>
           {data.map((nc) => {
-            const dueDate = nc.target_closure_date || nc.due_date || nc.target_date || '';
+            const dueDate = formatDueDate(nc.target_closure_date || nc.due_date || nc.target_date);
             const isOverdue = dueDate ? new Date(dueDate) < new Date() : false;
             const correctiveActions = Array.isArray(nc.corrective_actions) ? nc.corrective_actions : [];
             return (

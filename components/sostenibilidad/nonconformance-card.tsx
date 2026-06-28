@@ -14,10 +14,14 @@ interface NonconformanceCardProps {
   severityColors: Record<string, string>;
 }
 
+function formatDueDate(value: unknown): string {
+  return typeof value === 'string' ? value : '';
+}
+
 export function NonconformanceCard({ nc, onViewDetails, onCreateCA, severityColors }: NonconformanceCardProps) {
   const correctiveActions = Array.isArray(nc.corrective_actions) ? nc.corrective_actions : [];
-  const hasDueDate = !!nc.target_closure_date || !!nc.due_date;
-  const dueDate = nc.target_closure_date || nc.due_date || '';
+  const dueDate = formatDueDate(nc.target_closure_date || nc.due_date);
+  const hasDueDate = Boolean(dueDate);
   const isOverdue = hasDueDate && new Date(dueDate) < new Date() && nc.status !== 'closed';
   const caProgress = correctiveActions.length
     ? Math.round((correctiveActions.filter((ca: CorrectiveActionRecord) => ca.status === 'verified').length / correctiveActions.length) * 100)
