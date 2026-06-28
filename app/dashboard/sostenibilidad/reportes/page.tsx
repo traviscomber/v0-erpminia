@@ -118,10 +118,40 @@ export default function ReportesPage() {
             Análisis comparativo por período de inspecciones, hallazgos y KPIs.
           </p>
         </div>
-        <Button asChild variant="outline">
-          <Link href="/dashboard/sostenibilidad/prevencion-riesgos/inspecciones/importar">Actualizar base Excel</Link>
-        </Button>
       </div>
+
+      <Card className="mb-8 rounded-xl border shadow-none">
+        <CardHeader>
+          <CardTitle className="text-sm">Actualización rápida por Excel</CardTitle>
+          <CardDescription>Enlaces directos para cargar o actualizar las bases operativas más usadas.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/inspecciones/importar">Inspecciones</Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/epp/importar">EPP</Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones/importar">Capacitaciones</Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/sostenibilidad/no-conformidades/importar">No conformidades</Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/acciones-correctivas/importar">Acciones correctivas</Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/sostenibilidad/medio-ambiente/importar">Medio ambiente</Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/sostenibilidad/comunidades/importar">Comunidades</Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/sostenibilidad/documentos-flujo/importar">Flujo documental</Link>
+          </Button>
+        </CardContent>
+      </Card>
 
       <Tabs defaultValue="kpi" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
