@@ -22,6 +22,16 @@ function buildApprovalChain(documentId: string) {
   ];
 }
 
+function normalizeDocumentStatus(value: unknown) {
+  const text = String(value || '').trim().toLowerCase();
+  if (!text) return 'draft';
+  if (['draft', 'borrador'].includes(text)) return 'draft';
+  if (['submitted', 'pendiente_validador1', 'pendiente', 'under_review'].includes(text)) return 'submitted';
+  if (['approved', 'aprobado_final', 'aprobado'].includes(text)) return 'approved';
+  if (['rejected', 'rechazado'].includes(text)) return 'rejected';
+  return 'draft';
+}
+
 export async function GET(request: NextRequest) {
   const context = await getSustainabilityContext(request);
   if (!context.ok) return context.response;
@@ -105,6 +115,7 @@ export async function POST(request: NextRequest) {
     const description = String(body.description || body.descripcion || '').trim();
     const category = String(body.category || 'sostenibilidad').trim();
     const documentType = String(body.document_type || 'document').trim();
+    const status = normalizeDocumentStatus(body.status || body.estado || 'draft');
     const fileUrl = String(body.file_url || body.archivo_url || '').trim();
     const fileSizeMb = body.file_size_mb ?? null;
     const fileMimeType = body.file_mime_type ?? null;
@@ -121,7 +132,7 @@ export async function POST(request: NextRequest) {
         description: description || null,
         category,
         document_type: documentType,
-        status: 'draft',
+        status,
         created_by: context.userId,
         submitted_by: context.userId,
         current_file_url: fileUrl || null,
