@@ -18,6 +18,10 @@ type ImportAssetRow = {
   acquisition_cost: number;
 };
 
+type AssetExistingRow = {
+  id: string;
+};
+
 function normalizeText(value: unknown) {
   return String(value ?? '').trim().replace(/\s+/g, ' ');
 }
@@ -92,11 +96,19 @@ async function parseWorkbook(file: File) {
   const xlsx = await loadXlsxModule();
   const buffer = Buffer.from(await file.arrayBuffer());
   const workbook = xlsx.read(buffer, { type: 'buffer', cellDates: true });
-  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  const sheetName = workbook.SheetNames[0];
+  if (!sheetName) return [];
+
+  const sheet = workbook.Sheets[sheetName];
+  if (!sheet) return [];
+
   const rows = xlsx.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: true }) as unknown[][];
   if (!rows.length) return [];
 
-  const csvText = [rows[0].map((value) => normalizeText(value)).join(';'), ...rows.slice(1).map((row) => row.map((value) => normalizeText(value)).join(';'))].join('\n');
+  const csvText = [
+    rows[0].map((value) => normalizeText(value)).join(';'),
+    ...rows.slice(1).map((row) => row.map((value) => normalizeText(value)).join(';')),
+  ].join('\n');
   return parseCsvRows(csvText);
 }
 
@@ -162,11 +174,13 @@ export async function POST(request: NextRequest) {
 
       if (lookupError) throw lookupError;
 
-      if (existing?.id) {
+      const typedExisting = existing as AssetExistingRow | null;
+
+      if (typedExisting?.id) {
         const { error } = await context.supabase
           .from('maintenance_assets')
           .update(payload)
-          .eq('id', existing.id)
+          .eq('id', typedExisting.id)
           .eq('organization_id', context.organizationId);
         if (error) throw error;
         updated += 1;
