@@ -3,7 +3,21 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 
-function getHours(row: any) {
+type WorkOrderRow = {
+  actual_duration_hours: number | string | null;
+  created_at: string | null;
+  createdAt: string | null;
+  start_time: string | null;
+  completion_date: string | null;
+  completed_at: string | null;
+  closed_at: string | null;
+};
+
+type AssetRow = {
+  status: string | null;
+};
+
+function getHours(row: WorkOrderRow) {
   if (row.actual_duration_hours !== null && row.actual_duration_hours !== undefined) {
     const value = Number(row.actual_duration_hours);
     return Number.isFinite(value) ? value : null;
@@ -38,12 +52,12 @@ export async function GET(request: NextRequest) {
         .eq('organization_id', context.organizationId),
     ]);
 
-    const workOrders = workOrdersResult.data || [];
-    const assets = assetsResult.data || [];
+    const workOrders = Array.isArray(workOrdersResult.data) ? (workOrdersResult.data as WorkOrderRow[]) : [];
+    const assets = Array.isArray(assetsResult.data) ? (assetsResult.data as AssetRow[]) : [];
     const durations = workOrders.map(getHours).filter((value): value is number => typeof value === 'number' && Number.isFinite(value));
     const averageMTTR = durations.length > 0 ? durations.reduce((sum, value) => sum + value, 0) / durations.length : 0;
     const totalDowntime30d = durations.reduce((sum, value) => sum + value, 0);
-    const availableAssets = assets.filter((asset: any) => String(asset.status || '').toLowerCase() === 'operational').length;
+    const availableAssets = assets.filter((asset) => String(asset.status || '').toLowerCase() === 'operational').length;
     const totalAssets = Math.max(assets.length, 1);
     const availability = (availableAssets / totalAssets) * 100;
 
