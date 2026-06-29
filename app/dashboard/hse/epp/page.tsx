@@ -9,6 +9,21 @@ import { Badge } from '@/components/ui/badge';
 import { Download, Shield, Plus, Search, Check } from 'lucide-react';
 import { EppImport } from '@/components/hse/epp-import';
 
+type HseEppEntry = {
+  cargo?: string | null;
+  tarea?: string | null;
+  faena?: string | null;
+  epp_elemento?: string | null;
+  cantidad?: number | string | null;
+  activo?: boolean | null;
+};
+
+type GroupSummary = {
+  total: number;
+  activos: number;
+  items: HseEppEntry[];
+};
+
 const miningEppCatalog = [
   {
     title: 'Proteccion base',
@@ -65,29 +80,30 @@ export default function HSEEPPPage() {
     { revalidateOnFocus: false, refreshInterval: 300000 }
   );
 
-  const entregas = data?.entregas || [];
+  const entregas = Array.isArray(data?.entregas) ? (data.entregas as HseEppEntry[]) : [];
 
   const filtradas = useMemo(
     () =>
-      entregas.filter((e: any) =>
-        `${e.cargo} ${e.epp_elemento}`.toLowerCase().includes(searchTerm.toLowerCase())
+      entregas.filter((e) =>
+        `${e.cargo || ''} ${e.epp_elemento || ''}`.toLowerCase().includes(searchTerm.toLowerCase())
       ),
     [entregas, searchTerm]
   );
 
-  const activas = filtradas.filter((e: any) => e.activo !== false);
-  const resumenPorElemento = filtradas.reduce((acc: any, e: any) => {
-    if (!acc[e.epp_elemento]) acc[e.epp_elemento] = { cantidad: 0, cargos: 0 };
-    acc[e.epp_elemento].cantidad += e.cantidad;
-    acc[e.epp_elemento].cargos += 1;
+  const activas = filtradas.filter((e) => e.activo !== false);
+  const resumenPorElemento = filtradas.reduce<Record<string, { cantidad: number; cargos: number }>>((acc, e) => {
+    const key = String(e.epp_elemento || 'Sin dato').trim() || 'Sin dato';
+    if (!acc[key]) acc[key] = { cantidad: 0, cargos: 0 };
+    acc[key].cantidad += Number(e.cantidad || 0);
+    acc[key].cargos += 1;
     return acc;
   }, {});
 
   const groupRecords = (field: 'cargo' | 'tarea' | 'faena') =>
-    filtradas.reduce((acc: Record<string, any>, item: any) => {
+    filtradas.reduce<Record<string, GroupSummary>>((acc, item) => {
       const key = String(item[field] || 'Sin dato').trim() || 'Sin dato';
       if (!acc[key]) {
-        acc[key] = { total: 0, activos: 0, items: [] as any[] };
+        acc[key] = { total: 0, activos: 0, items: [] };
       }
       acc[key].total += 1;
       if (item.activo !== false) acc[key].activos += 1;

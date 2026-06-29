@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
+import { loadXlsxModule } from '@/lib/xlsx';
 
 function normalizeText(value: unknown) {
   return String(value ?? '')
@@ -53,7 +54,7 @@ function parseCsvRows(text: string) {
 }
 
 async function parseWorkbook(file: File) {
-  const xlsx = (await import('xlsx')) as any;
+  const xlsx = await loadXlsxModule();
   const buffer = Buffer.from(await file.arrayBuffer());
   const workbook = xlsx.read(buffer, { type: 'buffer', cellDates: true });
   const sheet = workbook.Sheets[workbook.SheetNames[0]];

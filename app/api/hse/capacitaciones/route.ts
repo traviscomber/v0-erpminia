@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSustainabilityContext } from '@/lib/api/sostenibilidad-mvp';
 import { getHseModuleData } from '@/lib/api/hse-data';
+import { loadXlsxModule } from '@/lib/xlsx';
 
 type ImportTrainingRow = {
   nombre_capacitacion: string;
@@ -91,7 +92,7 @@ function parseCsvRows(text: string): ImportTrainingRow[] {
 }
 
 async function parseWorkbook(file: File) {
-  const xlsx = (await import('xlsx')) as any;
+  const xlsx = await loadXlsxModule();
   const buffer = Buffer.from(await file.arrayBuffer());
   const workbook = xlsx.read(buffer, { type: 'buffer', cellDates: true });
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
