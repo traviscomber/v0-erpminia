@@ -39,8 +39,8 @@ export default function WorkOrdersPage() {
 
   const workOrders = Array.isArray(data?.workOrders) ? (data.workOrders as WorkOrderItem[]) : [];
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
+  const getStatusColor = (status: string | null | undefined) => {
+    switch (String(status || '').toLowerCase()) {
       case 'completed':
         return 'bg-accent/10 text-accent';
       case 'in_progress':
@@ -52,8 +52,8 @@ export default function WorkOrdersPage() {
     }
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
+  const getPriorityColor = (priority: string | null | undefined) => {
+    switch (String(priority || '').toLowerCase()) {
       case 'critical':
         return 'border-destructive/50 bg-destructive/5';
       case 'high':
@@ -77,12 +77,14 @@ export default function WorkOrdersPage() {
         scheduledDate.setHours(0, 0, 0, 0);
         const daysUntil = Math.ceil((scheduledDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
+        const priorityValue = String(wo.priority || '').toLowerCase();
+
         return {
           id: wo.id,
           assetName: wo.asset_name || 'Sin activo asociado',
           taskName: `${wo.work_order_number || 'OT'} - ${wo.title}`,
           nextScheduledDate: wo.scheduled_date,
-          priority: ['critical', 'high'].includes(wo.priority) ? 'high' : wo.priority === 'low' ? 'low' : 'medium',
+          priority: priorityValue === 'critical' || priorityValue === 'high' ? 'high' : priorityValue === 'low' ? 'low' : 'medium',
           daysUntil,
         };
       })
@@ -112,8 +114,8 @@ export default function WorkOrdersPage() {
     }
   };
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
+  const getStatusLabel = (status: string | null | undefined) => {
+    switch (String(status || '').toLowerCase()) {
       case 'completed':
         return 'Completada';
       case 'in_progress':
@@ -125,8 +127,8 @@ export default function WorkOrdersPage() {
     }
   };
 
-  const getWorkTypeLabel = (workType: string) => {
-    switch (workType) {
+  const getWorkTypeLabel = (workType: string | null | undefined) => {
+    switch (String(workType || '').toLowerCase()) {
       case 'corrective':
         return 'Correctiva';
       case 'preventive':
