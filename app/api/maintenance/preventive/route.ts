@@ -24,7 +24,7 @@ type PreventiveScheduleRow = {
   estimated_duration_hours: number | string | null;
   priority: string | null;
   enabled: boolean | null;
-  asset?: MaintenanceAssetRow | null;
+  asset?: MaintenanceAssetRow[] | MaintenanceAssetRow | null;
 };
 
 type PreventiveScheduleItem = {
@@ -107,18 +107,19 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error;
 
-    const schedules = (Array.isArray(data) ? (data as PreventiveScheduleRow[]) : [])
+    const schedules = (Array.isArray(data) ? (data as unknown as PreventiveScheduleRow[]) : [])
       .map<PreventiveScheduleItem>((schedule) => {
         const nextScheduledDate = toDateOnly(schedule.next_scheduled_date);
         const daysUntil = calculateDaysUntil(nextScheduledDate);
+        const asset = Array.isArray(schedule.asset) ? schedule.asset[0] || null : schedule.asset;
         return {
           id: schedule.id,
           assetId: schedule.asset_id,
-          assetCode: schedule.asset?.asset_code || null,
-          assetName: schedule.asset?.asset_name || 'Sin activo',
-          assetType: schedule.asset?.asset_type || null,
-          location: schedule.asset?.location || null,
-          criticality: schedule.asset?.criticality || null,
+          assetCode: asset?.asset_code || null,
+          assetName: asset?.asset_name || 'Sin activo',
+          assetType: asset?.asset_type || null,
+          location: asset?.location || null,
+          criticality: asset?.criticality || null,
           taskName: schedule.task_name,
           description: schedule.description || null,
           frequencyDays: schedule.frequency_days || null,
