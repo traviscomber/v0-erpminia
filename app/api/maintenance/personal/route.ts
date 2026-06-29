@@ -16,6 +16,21 @@ type MaintenanceTimeEntryRow = {
   } | null;
 };
 
+type TechnicianSummary = {
+  technicianId: string;
+  name: string;
+  email: string;
+  hours: number;
+  entries: number;
+};
+
+type MaintenanceTimeEntryItem = MaintenanceTimeEntryRow & {
+  id?: string;
+  ot_id?: string | null;
+  descripcion?: string | null;
+  fecha?: string | null;
+};
+
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
@@ -41,12 +56,12 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error;
 
-    const entries = Array.isArray(data) ? (data as MaintenanceTimeEntryRow[]) : [];
-    const techniciansMap = new Map<string, { technicianId: string; name: string; email: string; hours: number; entries: number }>();
+    const entries = Array.isArray(data) ? (data as MaintenanceTimeEntryItem[]) : [];
+    const techniciansMap = new Map<string, TechnicianSummary>();
 
     for (const entry of entries) {
       const techId = String(entry.technician_id || '');
-      const current = techniciansMap.get(techId) || {
+      const current: TechnicianSummary = techniciansMap.get(techId) || {
         technicianId: techId,
         name: entry.technician?.full_name || entry.technician?.email || techId || 'Tecnico',
         email: entry.technician?.email || '',
@@ -63,7 +78,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       summary: {
-        totalHours: entries.reduce((sum: number, entry) => sum + Number(entry.horas_trabajadas || 0), 0),
+        totalHours: entries.reduce((sum, entry) => sum + Number(entry.horas_trabajadas || 0), 0),
         totalEntries: entries.length,
         technicians: technicians.length,
       },
