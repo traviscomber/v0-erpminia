@@ -12,6 +12,14 @@ type CostCenterRow = {
   status: string | null;
 };
 
+type DerivedCostCenterSource = {
+  id: string;
+  code: string;
+  name: string;
+  description?: string | null;
+  status?: string | null;
+};
+
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
@@ -25,7 +33,23 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error;
 
-    const costCenters = Array.isArray(costCentersRaw) ? (costCentersRaw as CostCenterRow[]) : [];
+    const costCenters = Array.isArray(costCentersRaw)
+      ? (costCentersRaw as CostCenterRow[]).flatMap((center): DerivedCostCenterSource[] => {
+          const code = String(center.code || '').trim();
+          const name = String(center.name || '').trim();
+          if (!code || !name) return [];
+
+          return [
+            {
+              id: String(center.id),
+              code,
+              name,
+              description: center.description || null,
+              status: center.status || null,
+            },
+          ];
+        })
+      : [];
     const machines = deriveMachinesFromCostCenters(costCenters);
     const families = new Set(machines.map((machine) => machine.family));
 
