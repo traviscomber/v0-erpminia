@@ -4,25 +4,16 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, FileText, Loader2, Sheet } from 'lucide-react';
 import { toast } from 'sonner';
+import type { XlsxLikeModule } from '@/lib/xlsx';
 
 interface ExportButtonsProps {
-  data: unknown[];
+  data: Record<string, unknown>[];
   fileName: string;
   columns: { key: string; label: string }[];
 }
 
-type XlsxLikeModule = {
-  utils: {
-    json_to_sheet: (data: Record<string, unknown>[]) => unknown;
-    book_new: () => unknown;
-    book_append_sheet: (workbook: unknown, worksheet: unknown, name: string) => void;
-  };
-  writeFile: (workbook: unknown, filename: string) => void;
-};
-
-function getCellValue(row: unknown, key: string) {
-  if (typeof row !== 'object' || row === null) return '-';
-  const value = (row as Record<string, unknown>)[key];
+function getCellValue(row: Record<string, unknown>, key: string) {
+  const value = row[key];
   return value ?? '-';
 }
 
