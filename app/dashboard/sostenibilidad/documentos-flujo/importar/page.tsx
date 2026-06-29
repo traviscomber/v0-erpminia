@@ -146,7 +146,17 @@ export default function DocumentosFlujoImportPage() {
     const workbook = xlsx.read(buffer, { type: 'array' });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     if (!sheet) return [];
-    return xlsx.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: false }) as unknown as Record<string, unknown>[];
+    const rows = xlsx.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: false }) as unknown[][];
+    if (rows.length === 0) return [];
+
+    const headers = rows[0].map((value) => String(value || '').trim());
+    return rows.slice(1).flatMap((row) => {
+      const record = Object.fromEntries(
+        headers.map((header, index) => [header, row[index] ?? ''])
+      ) as Record<string, unknown>;
+      const hasAnyValue = Object.values(record).some((value) => String(value || '').trim() !== '');
+      return hasAnyValue ? [record] : [];
+    });
   };
 
   const uploadFile = async (file: File) => {

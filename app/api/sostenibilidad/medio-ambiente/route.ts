@@ -12,6 +12,17 @@ type ImportRow = {
   cumplimiento: 'conforme' | 'no_conforme' | 'en_revision';
 };
 
+type MedioAmbienteDbRow = {
+  id: string;
+  numero_registro?: string | null;
+  tipo?: string | null;
+  descripcion?: string | null;
+  valor?: string | null;
+  unidad?: string | null;
+  cumplimiento?: string | null;
+  fecha?: string | null;
+};
+
 function normalizeCumplimiento(value: unknown): ImportRow['cumplimiento'] {
   const text = normalizeText(value).toLowerCase();
   if (['conforme', 'cumple', 'ok', 'aprobado', 'approved'].includes(text)) return 'conforme';
@@ -109,7 +120,7 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error;
 
-    const normalized = (data || []).map((row: any) => ({
+    const normalized = (Array.isArray(data) ? (data as MedioAmbienteDbRow[]) : []).map((row) => ({
       ...row,
       cumplimiento: normalizeCumplimiento(row.cumplimiento),
     }));

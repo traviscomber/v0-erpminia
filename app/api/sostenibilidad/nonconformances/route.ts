@@ -22,6 +22,20 @@ type ImportNcRow = {
   status: string;
 };
 
+type NonconformanceDbRow = {
+  id: string;
+  title?: string | null;
+  description?: string | null;
+  category?: string | null;
+  severity?: string | null;
+  source?: string | null;
+  discovered_date?: string | null;
+  root_cause?: string | null;
+  impact_description?: string | null;
+  target_closure_date?: string | null;
+  status?: string | null;
+};
+
 function normalizeText(value: unknown) {
   return String(value ?? '').trim().replace(/\s+/g, ' ');
 }
@@ -170,7 +184,7 @@ export async function GET(request: NextRequest) {
     const { data, error } = await query;
     if (error) throw error;
 
-    const rows = (data || []).map((row) => ({
+    const rows = (Array.isArray(data) ? (data as NonconformanceDbRow[]) : []).map((row) => ({
       ...row,
       status: normalizeNcStatus(row.status),
     }));
