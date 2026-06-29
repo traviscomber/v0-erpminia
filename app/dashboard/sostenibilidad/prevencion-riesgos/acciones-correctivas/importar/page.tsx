@@ -2,22 +2,12 @@
 
 import Link from 'next/link';
 import { useRef, useState, type DragEvent } from 'react';
-import * as XLSX from 'xlsx';
 import { AlertCircle, ArrowRight, CheckCircle2, Download, Loader2, Upload } from 'lucide-react';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-type XlsxLikeModule = {
-  read: (buffer: ArrayBuffer, options: { type: 'array' }) => {
-    Sheets: Record<string, unknown>;
-    SheetNames: string[];
-  };
-  utils: {
-    sheet_to_json: (worksheet: unknown, options: { defval: string; raw: boolean }) => Record<string, unknown>[];
-  };
-};
+import { loadXlsxModule, sheetToMatrix } from '@/lib/xlsx';
 
 type ImportResult = {
   success: boolean;
@@ -153,24 +143,26 @@ export default function CorrectiveActionsImportPage() {
 
   const parseFile = async (file: File) => {
     const buffer = await file.arrayBuffer();
-    const xlsx = XLSX as unknown as XlsxLikeModule;
+    const xlsx = await loadXlsxModule();
     const workbook = xlsx.read(buffer, { type: 'array' });
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
     if (!worksheet) return [];
 
-    const rows = xlsx.utils.sheet_to_json(worksheet, {
-      defval: '',
-      raw: false,
-    }) as Record<string, unknown>[];
+    const rows = sheetToMatrix(xlsx, worksheet, false);
+    if (!rows.length) return [];
 
-    return rows.map((row) => ({
-      ncId: readCell(row, HEADER_ALIASES.ncId),
-      ncNumber: readCell(row, HEADER_ALIASES.ncNumber),
-      actionDescription: readCell(row, HEADER_ALIASES.actionDescription),
-      priority: normalizePriority(readCell(row, HEADER_ALIASES.priority)),
-      scheduledCompletionDate: toIsoDate(readCell(row, HEADER_ALIASES.scheduledCompletionDate)),
-      status: normalizeStatus(readCell(row, HEADER_ALIASES.status)),
-    }));
+    const headers = rows[0].map((value) => String(value || '').trim());
+    return rows.slice(1).map((row) => {
+      const record = Object.fromEntries(headers.map((header, index) => [header, row[index] ?? '']));
+      return {
+        ncId: readCell(record, HEADER_ALIASES.ncId),
+        ncNumber: readCell(record, HEADER_ALIASES.ncNumber),
+        actionDescription: readCell(record, HEADER_ALIASES.actionDescription),
+        priority: normalizePriority(readCell(record, HEADER_ALIASES.priority)),
+        scheduledCompletionDate: toIsoDate(readCell(record, HEADER_ALIASES.scheduledCompletionDate)),
+        status: normalizeStatus(readCell(record, HEADER_ALIASES.status)),
+      };
+    });
   };
 
   const uploadFile = async (file: File) => {

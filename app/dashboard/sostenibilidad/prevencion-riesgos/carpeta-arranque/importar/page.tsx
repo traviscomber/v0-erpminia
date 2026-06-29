@@ -2,13 +2,12 @@
 
 import Link from 'next/link';
 import { useRef, useState, type DragEvent } from 'react';
-import * as XLSX from 'xlsx';
 import { AlertCircle, ArrowRight, CheckCircle2, Download, FileSpreadsheet, Loader2, Upload } from 'lucide-react';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { sheetToMatrix, type XlsxLikeModule } from '@/lib/xlsx';
+import { loadXlsxModule, sheetToMatrix } from '@/lib/xlsx';
 
 type ImportRow = {
   empresa_nombre: string;
@@ -65,7 +64,7 @@ function parseCsvRows(text: string): ImportRow[] {
 
 async function parseWorkbook(file: File) {
   const buffer = await file.arrayBuffer();
-  const xlsx = XLSX as unknown as XlsxLikeModule;
+  const xlsx = await loadXlsxModule();
   const workbook = xlsx.read(buffer, { type: 'array', cellDates: true });
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
   const rows = sheetToMatrix(xlsx, sheet, true);
