@@ -67,6 +67,8 @@ type ComponentTemplateSummary = {
   }>;
 };
 
+type ComponentInstanceSummary = ComponentTemplateSummary['nextInterventions'][number];
+
 function toDate(value?: string | null) {
   if (!value) return null;
   const date = new Date(value);
@@ -116,6 +118,7 @@ export async function GET(request: NextRequest) {
         .map((instance) => {
           const lastMaintenance = instance.last_maintenance ? new Date(instance.last_maintenance) : null;
           const daysSince = lastMaintenance ? Math.floor((Date.now() - lastMaintenance.getTime()) / (1000 * 60 * 60 * 24)) : null;
+          const vehicle = instance.vehicle_id ? vehicleMap.get(instance.vehicle_id) || null : null;
           return {
             id: instance.id,
             code: instance.code,
@@ -124,8 +127,8 @@ export async function GET(request: NextRequest) {
             hours: Number(instance.maintenance_hours || 0),
             lastMaintenance: toDate(instance.last_maintenance),
             daysSince,
-            vehicle: vehicleMap.get(instance.vehicle_id) || null,
-          };
+            vehicle,
+          } satisfies ComponentInstanceSummary;
         })
         .sort((a, b) => (a.daysSince ?? 9999) - (b.daysSince ?? 9999));
 
