@@ -3,6 +3,54 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 
+type EquipmentRow = {
+  id: string;
+  name: string | null;
+  type: string | null;
+  status: string | null;
+};
+
+type MaintenanceAssetRow = {
+  id: string;
+  asset_name: string | null;
+  asset_type: string | null;
+  status: string | null;
+};
+
+type SensorRow = {
+  id: string;
+  equipment_id: string | null;
+  sensor_type: string | null;
+  unit: string | null;
+  name: string | null;
+};
+
+type SensorReadingRow = {
+  id: string;
+  sensor_id: string | null;
+  equipment_id: string | null;
+  timestamp: string | null;
+  created_at: string | null;
+  received_at: string | null;
+  value: number | string | null;
+  temperature: number | string | null;
+  pressure: number | string | null;
+  vibration: number | string | null;
+  rpm: number | string | null;
+};
+
+type AlarmRow = {
+  id: string;
+  equipment_id: string | null;
+  severity: string | null;
+  message: string | null;
+  description: string | null;
+  created_at: string | null;
+  timestamp: string | null;
+  acknowledged_at: string | null;
+  status: string | null;
+};
+
 function toNumber(value: unknown) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
@@ -51,7 +99,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       .eq('equipment_id', equipmentId)
       .order('name', { ascending: true });
 
-    const sensorIds = (sensors || []).map((sensor: any) => sensor.id);
+    const sensorRows = Array.isArray(sensors) ? (sensors as SensorRow[]) : [];
+    const sensorIds = sensorRows.map((sensor) => sensor.id);
     const { data: directReadings } = await context.supabase
       .from('sensor_readings')
       .select('id, sensor_id, equipment_id, timestamp, created_at, received_at, value, temperature, pressure, vibration, rpm')
@@ -61,7 +110,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     const readings =
       directReadings && directReadings.length > 0
-        ? directReadings
+        ? (directReadings as SensorReadingRow[])
         : sensorIds.length > 0
           ? (
               (await context.supabase
@@ -85,18 +134,21 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const pressure = toNumber(latestReading?.pressure);
     const vibration = toNumber(latestReading?.vibration);
     const rpm = toNumber(latestReading?.rpm);
-    const activeAlarms = (alarms || []).filter(
-      (alarm: any) => !['resolved', 'resuelta', 'cerrada', 'closed'].includes(String(alarm.status || '').toLowerCase())
+    const alarmRows = Array.isArray(alarms) ? (alarms as AlarmRow[]) : [];
+    const activeAlarms = alarmRows.filter(
+      (alarm) => !['resolved', 'resuelta', 'cerrada', 'closed'].includes(String(alarm.status || '').toLowerCase())
     );
 
-    const status = activeAlarms.length > 0 ? 'alert' : normalizeStatus(equipment?.status || maintenanceAsset?.status);
+    const equipmentRow = equipment as EquipmentRow | null;
+    const maintenanceAssetRow = maintenanceAsset as MaintenanceAssetRow | null;
+    const status = activeAlarms.length > 0 ? 'alert' : normalizeStatus(equipmentRow?.status || maintenanceAssetRow?.status);
     const availability_percentage =
       status === 'alert' ? Math.max(60, 90 - activeAlarms.length * 5) : status === 'normal' ? 96 : 0;
     const mttr_hours = activeAlarms.length > 0 ? Math.min(24, 2 + activeAlarms.length * 1.5) : 0;
 
     return NextResponse.json({
       equipment_id: equipmentId,
-      equipment_name: equipment?.name || maintenanceAsset?.asset_name || 'Equipo',
+      equipment_name: equipmentRow?.name || maintenanceAssetRow?.asset_name || 'Equipo',
       status,
       availability_percentage,
       mttr_hours,
@@ -110,7 +162,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         status,
         timestamp: safeTime(latestReading?.timestamp || latestReading?.created_at || latestReading?.received_at),
       },
-      alarms: activeAlarms.map((alarm: any) => ({
+      alarms: activeAlarms.map((alarm) => ({
         id: alarm.id,
         equipment_id: alarm.equipment_id,
         severity: alarm.severity || 'medium',
