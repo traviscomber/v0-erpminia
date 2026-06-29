@@ -10,6 +10,24 @@ type ParsedCenterRow = {
   status: 'active';
 };
 
+type XlsxLikeModule = {
+  read: (buffer: Buffer, options: { type: 'buffer'; cellDates: boolean }) => {
+    SheetNames: string[];
+    Sheets: Record<string, unknown>;
+  };
+  utils: {
+    sheet_to_json: (sheet: unknown, options: { header: number; defval: string; raw: boolean }) => unknown[][];
+  };
+};
+
+type CostCenterBackupRow = {
+  organization_id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  status: string;
+};
+
 function normalizeText(value: unknown) {
   return String(value || '')
     .trim()
@@ -103,7 +121,7 @@ function parseCsvRows(text: string) {
 }
 
 async function parseWorkbookRows(file: File) {
-  const xlsx = (await import('xlsx')) as any;
+  const xlsx = (await import('xlsx')) as unknown as XlsxLikeModule;
   const buffer = Buffer.from(await file.arrayBuffer());
   const workbook = xlsx.read(buffer, { type: 'buffer', cellDates: true });
   const sheetName = workbook.SheetNames[0];
@@ -153,7 +171,7 @@ export async function POST(request: NextRequest) {
 
     if (readError) throw readError;
 
-    const backupRows = Array.isArray(existingRows) ? existingRows : [];
+    const backupRows = Array.isArray(existingRows) ? (existingRows as CostCenterBackupRow[]) : [];
 
     const { error: deleteError } = await context.supabase
       .from('cost_centers')
@@ -175,7 +193,7 @@ export async function POST(request: NextRequest) {
     if (insertError) {
       if (backupRows.length > 0) {
         const { error: restoreError } = await context.supabase.from('cost_centers').insert(
-          backupRows.map((row: any) => ({
+          backupRows.map((row) => ({
             organization_id: row.organization_id,
             code: row.code,
             name: row.name,

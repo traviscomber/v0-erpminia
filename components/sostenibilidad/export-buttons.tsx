@@ -11,6 +11,15 @@ interface ExportButtonsProps {
   columns: { key: string; label: string }[];
 }
 
+type XlsxLikeModule = {
+  utils: {
+    json_to_sheet: (data: Record<string, unknown>[]) => unknown;
+    book_new: () => unknown;
+    book_append_sheet: (workbook: unknown, worksheet: unknown, name: string) => void;
+  };
+  writeFile: (workbook: unknown, filename: string) => void;
+};
+
 function getCellValue(row: unknown, key: string) {
   if (typeof row !== 'object' || row === null) return '-';
   const value = (row as Record<string, unknown>)[key];
@@ -105,9 +114,9 @@ export function ExportButtons({ data, fileName, columns }: ExportButtonsProps) {
     setIsLoading(true);
 
     try {
-      const XLSX = (await import('xlsx')) as any;
+      const xlsx = (await import('xlsx')) as unknown as XlsxLikeModule;
 
-      const worksheet = XLSX.utils.json_to_sheet(
+      const worksheet = xlsx.utils.json_to_sheet(
         data.map((row) =>
           columns.reduce((acc, col) => {
             acc[col.label] = getCellValue(row, col.key);
@@ -116,11 +125,11 @@ export function ExportButtons({ data, fileName, columns }: ExportButtonsProps) {
         )
       );
 
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Datos');
+      const workbook = xlsx.utils.book_new();
+      xlsx.utils.book_append_sheet(workbook, worksheet, 'Datos');
 
       const fileNameXlsx = `${fileName}_${new Date().toISOString().split('T')[0]}.xlsx`;
-      XLSX.writeFile(workbook, fileNameXlsx);
+      xlsx.writeFile(workbook, fileNameXlsx);
 
       toast.success('Excel descargado exitosamente');
     } catch (error) {

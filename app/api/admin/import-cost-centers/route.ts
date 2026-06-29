@@ -13,6 +13,16 @@ type ImportCostCenterRow = {
   updated_at: string | null;
 };
 
+type XlsxLikeModule = {
+  read: (buffer: Buffer, options: { type: 'buffer'; cellDates: boolean }) => {
+    SheetNames: string[];
+    Sheets: Record<string, unknown>;
+  };
+  utils: {
+    sheet_to_json: (sheet: unknown, options: { header: number; defval: string; raw: boolean }) => unknown[][];
+  };
+};
+
 function normalizeText(value: unknown) {
   return String(value ?? '')
     .trim()
@@ -73,7 +83,7 @@ function parseCsvRows(text: string): ImportCostCenterRow[] {
 }
 
 async function parseWorkbook(file: File) {
-  const xlsx = (await import('xlsx')) as any;
+  const xlsx = (await import('xlsx')) as unknown as XlsxLikeModule;
   const buffer = Buffer.from(await file.arrayBuffer());
   const workbook = xlsx.read(buffer, { type: 'buffer', cellDates: true });
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
