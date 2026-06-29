@@ -37,6 +37,14 @@ type AlarmRow = {
   status: string | null;
 };
 
+type EquipmentSensorPayload = {
+  asset_id?: string | null;
+  temperature?: number | string | null;
+  pressure?: number | string | null;
+  vibration?: number | string | null;
+  rpm?: number | string | null;
+};
+
 function toNumber(value: unknown) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
@@ -231,19 +239,24 @@ export async function POST(request: NextRequest) {
   if (!context.ok) return context.response;
 
   try {
-    const { asset_id, temperature, pressure, vibration, rpm } = await request.json();
+    const body = (await request.json()) as EquipmentSensorPayload;
+    const assetId = body.asset_id || null;
+    const temperature = toNumber(body.temperature);
+    const pressure = toNumber(body.pressure);
+    const vibration = toNumber(body.vibration);
+    const rpm = toNumber(body.rpm);
 
     const { data, error } = await context.supabase
       .from('equipment_sensors')
       .insert([
         {
           organization_id: context.organizationId,
-          asset_id,
+          asset_id: assetId,
           temperature,
           pressure,
           vibration,
           rpm,
-          status: temperature > 75 || vibration > 2.8 ? 'alert' : 'normal',
+          status: (temperature !== null && temperature > 75) || (vibration !== null && vibration > 2.8) ? 'alert' : 'normal',
           recorded_at: new Date().toISOString(),
         },
       ])
