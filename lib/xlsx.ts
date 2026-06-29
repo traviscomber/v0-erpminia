@@ -15,6 +15,9 @@ export type XlsxLikeModule = {
   writeFile?: (workbook: unknown, filename: string) => void;
 };
 
+export type XlsxCellValue = string | number | boolean | Date | null | undefined;
+export type XlsxMatrix = XlsxCellValue[][];
+
 let cachedXlsx: Promise<XlsxLikeModule> | null = null;
 
 export function loadXlsxModule() {
@@ -23,4 +26,13 @@ export function loadXlsxModule() {
   }
 
   return cachedXlsx;
+}
+
+export function sheetToMatrix(
+  xlsx: Pick<XlsxLikeModule, 'utils'>,
+  sheet: unknown,
+  raw: boolean
+): XlsxMatrix {
+  const rows = xlsx.utils.sheet_to_json(sheet, { header: 1, defval: '', raw }) as unknown[][];
+  return rows.map((row) => row.map((value) => value as XlsxCellValue));
 }

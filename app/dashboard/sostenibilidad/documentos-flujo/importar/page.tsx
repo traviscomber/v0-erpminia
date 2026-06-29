@@ -7,7 +7,7 @@ import { AlertCircle, ArrowRight, CheckCircle2, Download, Loader2, Upload } from
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { loadXlsxModule } from '@/lib/xlsx';
+import { loadXlsxModule, sheetToMatrix } from '@/lib/xlsx';
 
 type ImportResult = {
   success: boolean;
@@ -146,7 +146,7 @@ export default function DocumentosFlujoImportPage() {
     const workbook = xlsx.read(buffer, { type: 'array' });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     if (!sheet) return [];
-    const rows = xlsx.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: false }) as unknown[][];
+    const rows = sheetToMatrix(xlsx, sheet, false);
     if (rows.length === 0) return [];
 
     const headers = rows[0].map((value) => String(value || '').trim());
