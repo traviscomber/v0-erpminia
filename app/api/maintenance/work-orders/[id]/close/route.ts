@@ -3,6 +3,17 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 
+type MaintenanceWorkOrderRow = {
+  id: string;
+  asset_id: string | null;
+  start_date: string | null;
+};
+
+type CloseWorkOrderPayload = {
+  actual_duration_hours?: number | string | null;
+  root_cause?: string | null;
+};
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -13,7 +24,7 @@ export async function POST(
   const { id } = await params;
 
   try {
-    const body = await request.json();
+    const body = (await request.json()) as CloseWorkOrderPayload;
     const { actual_duration_hours, root_cause } = body;
 
     // Obtener la orden de trabajo para calcular la detención
@@ -24,14 +35,16 @@ export async function POST(
       .eq('organization_id', context.organizationId)
       .single();
 
-    if (woError || !workOrder) {
+    const typedWorkOrder = workOrder as MaintenanceWorkOrderRow | null;
+
+    if (woError || !typedWorkOrder) {
       return NextResponse.json({ error: 'No se encontró la orden de trabajo' }, { status: 404 });
     }
 
     // Calcular detención en horas (desde start_date hasta cierre)
     let downtime = 0;
-    if (workOrder.start_date) {
-      const startTime = new Date(workOrder.start_date);
+    if (typedWorkOrder.start_date) {
+      const startTime = new Date(typedWorkOrder.start_date);
       const endTime = new Date();
       downtime = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
     }
@@ -61,7 +74,7 @@ export async function POST(
     const { error: availError } = await context.supabase
       .from('equipment_availability')
       .upsert({
-        equipment_id: workOrder.asset_id,
+        equipment_id: typedWorkOrder.asset_id,
         date: today,
         availability_percentage: availabilityPercent,
         downtime_minutes: Math.round(downtime * 60),
