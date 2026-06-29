@@ -16,6 +16,18 @@ const fetcher = async (url: string) => {
   return payload;
 };
 
+type EquipmentRecord = {
+  id?: string;
+  assetCode?: string;
+  assetName?: string;
+  assetType?: string;
+  model?: string;
+  manufacturer?: string;
+  location?: string;
+  status?: string;
+  criticality?: string;
+};
+
 export default function EquiposPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [status, setStatus] = useState('');
@@ -31,11 +43,11 @@ export default function EquiposPage() {
 
   const { data, error, isLoading, mutate } = useSWR(query, fetcher);
 
-  const equipments = Array.isArray(data?.assets) ? data.assets : [];
+  const equipments = Array.isArray(data?.assets) ? (data.assets as EquipmentRecord[]) : [];
 
   const filtered = useMemo(
     () =>
-      equipments.filter((item: any) =>
+      equipments.filter((item) =>
         `${item.assetCode || ''} ${item.assetName || ''} ${item.model || ''} ${item.location || ''}`
           .toLowerCase()
           .includes(searchTerm.toLowerCase())
@@ -46,7 +58,7 @@ export default function EquiposPage() {
   const summary = useMemo(
     () =>
       filtered.reduce(
-        (acc: Record<string, number>, item: any) => {
+        (acc: Record<string, number>, item) => {
           const normalizedStatus = String(item.status || 'active').toLowerCase();
           const normalizedCriticality = String(item.criticality || 'media').toLowerCase();
           acc.total += 1;
@@ -182,7 +194,7 @@ export default function EquiposPage() {
       </Card>
 
       <div className="space-y-3">
-        {filtered.map((item: any) => (
+        {filtered.map((item) => (
           <Card key={item.id || item.assetCode}>
             <CardContent className="pt-6">
               <div className="flex items-start justify-between gap-4">
