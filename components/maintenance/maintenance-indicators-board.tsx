@@ -12,20 +12,43 @@ function money(value: number) {
   return `$${Number(value || 0).toLocaleString('es-CL')}`;
 }
 
+type WorkOrderRow = {
+  status: string | null;
+  scheduled_date: string | null;
+};
+
+type AssetRow = {
+  status: string | null;
+};
+
+type SummaryCosts = {
+  totalCost: number;
+  totalWorkOrders: number;
+  totalRecords: number;
+  assets: number;
+  averageCostPerAsset: number;
+};
+
 export function MaintenanceIndicatorsBoard() {
   const { data: mttrData, mutate: mutateMttr } = useSWR('/api/maintenance/mttr', fetcher);
   const { data: ordersData, mutate: mutateOrders } = useSWR('/api/maintenance/work-orders', fetcher);
   const { data: assetsData, mutate: mutateAssets } = useSWR('/api/maintenance/assets', fetcher);
   const { data: costsData, mutate: mutateCosts } = useSWR('/api/maintenance/costs', fetcher);
 
-  const workOrders = Array.isArray(ordersData?.workOrders) ? ordersData.workOrders : [];
-  const assets = Array.isArray(assetsData?.assets) ? assetsData.assets : [];
-  const summaryCosts = costsData?.summary || { totalCost: 0, totalWorkOrders: 0, totalRecords: 0, assets: 0, averageCostPerAsset: 0 };
+  const workOrders = (Array.isArray(ordersData?.workOrders) ? ordersData.workOrders : []) as WorkOrderRow[];
+  const assets = (Array.isArray(assetsData?.assets) ? assetsData.assets : []) as AssetRow[];
+  const summaryCosts: SummaryCosts = costsData?.summary || {
+    totalCost: 0,
+    totalWorkOrders: 0,
+    totalRecords: 0,
+    assets: 0,
+    averageCostPerAsset: 0,
+  };
 
-  const openOrders = workOrders.filter((order: any) => ['open', 'pending', 'pendiente'].includes(String(order.status || '').toLowerCase())).length;
-  const inProgressOrders = workOrders.filter((order: any) => ['in_progress', 'en_progreso'].includes(String(order.status || '').toLowerCase())).length;
-  const completedOrders = workOrders.filter((order: any) => ['completed', 'completado', 'closed'].includes(String(order.status || '').toLowerCase())).length;
-  const overdueOrders = workOrders.filter((order: any) => {
+  const openOrders = workOrders.filter((order) => ['open', 'pending', 'pendiente'].includes(String(order.status || '').toLowerCase())).length;
+  const inProgressOrders = workOrders.filter((order) => ['in_progress', 'en_progreso'].includes(String(order.status || '').toLowerCase())).length;
+  const completedOrders = workOrders.filter((order) => ['completed', 'completado', 'closed'].includes(String(order.status || '').toLowerCase())).length;
+  const overdueOrders = workOrders.filter((order) => {
     if (!order.scheduled_date) return false;
     const due = new Date(order.scheduled_date);
     const today = new Date();
@@ -33,7 +56,7 @@ export function MaintenanceIndicatorsBoard() {
     due.setHours(0, 0, 0, 0);
     return due < today && !['completed', 'completado', 'closed'].includes(String(order.status || '').toLowerCase());
   }).length;
-  const activeAssets = assets.filter((asset: any) => String(asset.status || '').toLowerCase() === 'active').length;
+  const activeAssets = assets.filter((asset) => String(asset.status || '').toLowerCase() === 'active').length;
   const availability = assets.length > 0 ? Math.round((activeAssets / assets.length) * 100) : 0;
 
   const cards = [

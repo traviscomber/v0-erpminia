@@ -17,6 +17,44 @@ function number(value: number) {
   return Number(value || 0).toLocaleString('es-CL');
 }
 
+type AssetRow = {
+  status: string | null;
+  criticality: string | null;
+};
+
+type WorkOrderRow = {
+  id: string;
+  status: string | null;
+  priority: string | null;
+  scheduled_date: string | null;
+  work_order_number: string | null;
+  code: string | null;
+  title: string | null;
+  asset_name: string | null;
+};
+
+type FuelItem = {
+  quantity: number | string | null;
+  unit_cost: number | string | null;
+  min_stock: number | string | null;
+};
+
+type CostSummary = {
+  totalCost: number;
+  totalWorkOrders: number;
+  totalRecords: number;
+  assets: number;
+  averageCostPerAsset: number;
+};
+
+type AssetCostRow = {
+  assetId: string;
+  assetName: string | null;
+  assetCode: string | null;
+  workOrders: number;
+  totalCost: number;
+};
+
 export function MaintenanceExecutiveDashboard() {
   const { data: assetsData, mutate: mutateAssets } = useSWR('/api/maintenance/assets', fetcher);
   const { data: ordersData, mutate: mutateOrders } = useSWR('/api/maintenance/work-orders', fetcher);
@@ -27,15 +65,16 @@ export function MaintenanceExecutiveDashboard() {
   const { data: componentsData, mutate: mutateComponents } = useSWR('/api/maintenance/componentes-mayores', fetcher);
   const { data: fuelData, mutate: mutateFuel } = useSWR('/api/bodega/inventory?category=Combustible&pageSize=100', fetcher);
 
-  const assets = Array.isArray(assetsData?.assets) ? assetsData.assets : [];
-  const workOrders = Array.isArray(ordersData?.workOrders) ? ordersData.workOrders : [];
+  const assets = (Array.isArray(assetsData?.assets) ? assetsData.assets : []) as AssetRow[];
+  const workOrders = (Array.isArray(ordersData?.workOrders) ? ordersData.workOrders : []) as WorkOrderRow[];
   const tireSummary = tiresData?.summary || { totalItems: 0, lowStock: 0, totalQuantity: 0, totalValue: 0 };
   const preventiveSummary = preventiveData?.summary || { total: 0, enabled: 0, overdue: 0, dueSoon: 0 };
   const componentSummary = componentsData?.summary || { totalTemplates: 0, totalComponents: 0, degraded: 0, failures: 0 };
-  const costSummary = costsData?.summary || { totalCost: 0, totalWorkOrders: 0, totalRecords: 0, assets: 0, averageCostPerAsset: 0 };
-  const fuelItems = Array.isArray(fuelData?.inventory) ? fuelData.inventory : [];
+  const costSummary: CostSummary = costsData?.summary || { totalCost: 0, totalWorkOrders: 0, totalRecords: 0, assets: 0, averageCostPerAsset: 0 };
+  const assetCosts = Array.isArray(costsData?.assetCosts) ? (costsData.assetCosts as AssetCostRow[]) : [];
+  const fuelItems = (Array.isArray(fuelData?.inventory) ? fuelData.inventory : []) as FuelItem[];
   const fuelSummary = fuelItems.reduce(
-    (acc: { totalItems: number; totalQuantity: number; totalValue: number; lowStock: number }, item: any) => {
+    (acc: { totalItems: number; totalQuantity: number; totalValue: number; lowStock: number }, item) => {
       const quantity = Number(item.quantity || 0);
       const unitCost = Number(item.unit_cost || 0);
       const minStock = Number(item.min_stock || 0);
@@ -48,10 +87,10 @@ export function MaintenanceExecutiveDashboard() {
     { totalItems: 0, totalQuantity: 0, totalValue: 0, lowStock: 0 },
   );
 
-  const activeAssets = assets.filter((asset: any) => String(asset.status || '').toLowerCase() === 'active').length;
-  const maintenanceAssets = assets.filter((asset: any) => String(asset.status || '').toLowerCase() === 'maintenance').length;
-  const criticalAssets = assets.filter((asset: any) => ['critical', 'high'].includes(String(asset.criticality || '').toLowerCase())).length;
-  const overdueOrders = workOrders.filter((order: any) => {
+  const activeAssets = assets.filter((asset) => String(asset.status || '').toLowerCase() === 'active').length;
+  const maintenanceAssets = assets.filter((asset) => String(asset.status || '').toLowerCase() === 'maintenance').length;
+  const criticalAssets = assets.filter((asset) => ['critical', 'high'].includes(String(asset.criticality || '').toLowerCase())).length;
+  const overdueOrders = workOrders.filter((order) => {
     if (!order.scheduled_date) return false;
     const due = new Date(order.scheduled_date);
     due.setHours(0, 0, 0, 0);
@@ -59,11 +98,11 @@ export function MaintenanceExecutiveDashboard() {
     today.setHours(0, 0, 0, 0);
     return due < today && !['completed', 'completado', 'closed'].includes(String(order.status || '').toLowerCase());
   }).length;
-  const openOrders = workOrders.filter((order: any) => ['open', 'pending', 'pendiente'].includes(String(order.status || '').toLowerCase())).length;
-  const inProgressOrders = workOrders.filter((order: any) => ['in_progress', 'en_progreso'].includes(String(order.status || '').toLowerCase())).length;
-  const completedOrders = workOrders.filter((order: any) => ['completed', 'completado', 'closed'].includes(String(order.status || '').toLowerCase())).length;
+  const openOrders = workOrders.filter((order) => ['open', 'pending', 'pendiente'].includes(String(order.status || '').toLowerCase())).length;
+  const inProgressOrders = workOrders.filter((order) => ['in_progress', 'en_progreso'].includes(String(order.status || '').toLowerCase())).length;
+  const completedOrders = workOrders.filter((order) => ['completed', 'completado', 'closed'].includes(String(order.status || '').toLowerCase())).length;
   const criticalOrders = workOrders.filter(
-    (order: any) =>
+    (order) =>
       ['open', 'pending', 'pendiente', 'in_progress', 'en_progreso'].includes(String(order.status || '').toLowerCase()) &&
       ['high', 'critical', 'urgente'].includes(String(order.priority || '').toLowerCase()),
   );
@@ -251,8 +290,8 @@ export function MaintenanceExecutiveDashboard() {
             <CardTitle>Top activos de mayor costo</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            {Array.isArray(costsData?.assetCosts) && costsData.assetCosts.length > 0 ? (
-              costsData.assetCosts.slice(0, 6).map((asset: any) => (
+            {assetCosts.length > 0 ? (
+              assetCosts.slice(0, 6).map((asset) => (
                 <div key={asset.assetId} className="flex items-center justify-between rounded-lg border border-border p-3 text-sm">
                   <div>
                     <p className="font-medium">{asset.assetName || asset.assetCode || 'Equipo'}</p>
@@ -277,7 +316,7 @@ export function MaintenanceExecutiveDashboard() {
           <CardContent className="space-y-3">
             {criticalOrders.length > 0 ? (
               <div className="space-y-2">
-                {criticalOrders.slice(0, 4).map((order: any) => (
+                {criticalOrders.slice(0, 4).map((order) => (
                   <div key={order.id} className="rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-sm">
                     <div className="flex items-center justify-between gap-3">
                       <div>
