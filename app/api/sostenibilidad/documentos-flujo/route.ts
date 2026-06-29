@@ -22,7 +22,7 @@ type DocumentFlowRow = {
   title: string | null;
   description: string | null;
   current_file_url: string | null;
-  file_name: string | null;
+  file_name?: string | null;
   category: string | null;
   status: string | null;
   created_at: string | null;
@@ -142,7 +142,7 @@ export async function GET(request: NextRequest) {
     const { data, error } = await query;
     if (error) throw error;
 
-    const mapped = (Array.isArray(data) ? (data as DocumentFlowRow[]) : []).map((doc): DocumentFlowResponse => ({
+    const mapped = (Array.isArray(data) ? (data as unknown as DocumentFlowRow[]) : []).map((doc): DocumentFlowResponse => ({
       ...doc,
       documento_nombre: doc.title,
       descripcion: doc.description,
