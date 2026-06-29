@@ -9,6 +9,27 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Clock, CheckCircle2, AlertCircle, Eye, Wrench, Filter } from 'lucide-react';
 import { MaintenanceSchedule } from '@/components/maintenance/maintenance-schedule';
 
+type WorkOrderItem = {
+  id: string;
+  status: string | null;
+  priority: string | null;
+  scheduled_date: string | null;
+  asset_name: string | null;
+  work_order_number: string | null;
+  title: string | null;
+  work_type?: string | null;
+  assigned_to_name?: string | null;
+};
+
+type ScheduleItem = {
+  id: string;
+  assetName: string;
+  taskName: string;
+  nextScheduledDate: string;
+  priority: 'high' | 'medium' | 'low';
+  daysUntil: number;
+};
+
 export default function WorkOrdersPage() {
   const [updatingScheduleId, setUpdatingScheduleId] = useState<string | null>(null);
   const { data, mutate } = useSWR('/api/maintenance/work-orders', async (url: string) => {
@@ -16,7 +37,7 @@ export default function WorkOrdersPage() {
     return res.ok ? res.json() : null;
   });
 
-  const workOrders = data?.workOrders || [];
+  const workOrders = Array.isArray(data?.workOrders) ? (data.workOrders as WorkOrderItem[]) : [];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -42,15 +63,15 @@ export default function WorkOrdersPage() {
     }
   };
 
-  const inProgress = workOrders.filter((wo: any) => wo.status === 'in_progress').length;
-  const critical = workOrders.filter((wo: any) => wo.priority === 'critical').length;
-  const completed = workOrders.filter((wo: any) => wo.status === 'completed').length;
+  const inProgress = workOrders.filter((wo) => wo.status === 'in_progress').length;
+  const critical = workOrders.filter((wo) => wo.priority === 'critical').length;
+  const completed = workOrders.filter((wo) => wo.status === 'completed').length;
 
   const scheduleItems = useMemo(() => {
     return workOrders
-      .filter((wo: any) => wo.scheduled_date)
-      .map((wo: any) => {
-        const scheduledDate = new Date(wo.scheduled_date);
+      .filter((wo) => wo.scheduled_date)
+      .map((wo): ScheduleItem => {
+        const scheduledDate = new Date(wo.scheduled_date as string);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         scheduledDate.setHours(0, 0, 0, 0);
@@ -65,7 +86,7 @@ export default function WorkOrdersPage() {
           daysUntil,
         };
       })
-      .sort((a: any, b: any) => a.daysUntil - b.daysUntil)
+      .sort((a, b) => a.daysUntil - b.daysUntil)
       .slice(0, 7);
   }, [workOrders]);
 
@@ -221,7 +242,7 @@ export default function WorkOrdersPage() {
               </div>
             )}
 
-            {workOrders.map((wo: any) => (
+            {workOrders.map((wo) => (
               <Link key={wo.id} href={`/dashboard/work-orders/${wo.id}`}>
                 <div
                   className={`cursor-pointer rounded-lg border-2 p-4 transition-colors hover:bg-muted/30 ${getPriorityColor(wo.priority)}`}
