@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import useSWR from 'swr';
 import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -10,16 +10,47 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
+type SupplierRow = {
+  id: string;
+  name: string | null;
+  rut: string | null;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  contact_person: string | null;
+};
+
+type SuppliersResponse = {
+  suppliers?: SupplierRow[];
+  pagination?: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  };
+};
+
 export function SuppliersList() {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [page, setPage] = useState(0);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
 
   // Debounce search to avoid excessive API calls
   const handleSearchChange = (value: string) => {
     setSearch(value);
-    clearTimeout((handleSearchChange as any)._t);
-    (handleSearchChange as any)._t = setTimeout(() => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    debounceRef.current = setTimeout(() => {
       setDebouncedSearch(value);
       setPage(0);
     }, 400);
@@ -31,9 +62,9 @@ export function SuppliersList() {
     ...(debouncedSearch && { search: debouncedSearch }),
   });
 
-  const { data, isLoading, error } = useSWR(`/api/compras/suppliers?${params}`, fetcher);
+  const { data, isLoading, error } = useSWR<SuppliersResponse>(`/api/compras/suppliers?${params}`, fetcher);
 
-  const suppliers = data?.suppliers || [];
+  const suppliers = Array.isArray(data?.suppliers) ? data.suppliers : [];
   const pagination = data?.pagination || { page: 0, pageSize: 50, total: 0, totalPages: 0 };
 
   return (
@@ -79,7 +110,7 @@ export function SuppliersList() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {suppliers.map((s: any) => (
+                {suppliers.map((s) => (
                   <TableRow key={s.id}>
                     <TableCell className="font-medium">{s.name}</TableCell>
                     <TableCell className="font-mono text-xs">{s.rut || '-'}</TableCell>
