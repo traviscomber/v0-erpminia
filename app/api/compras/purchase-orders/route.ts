@@ -4,7 +4,46 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { resolveAuthContext } from '@/lib/api/auth-session';
 
-function normalizeOrder(row: any) {
+type PurchaseOrderRow = {
+  id: string;
+  po_number: string | null;
+  purchase_order_number?: string | null;
+  number?: string | null;
+  code?: string | null;
+  vendor_name: string | null;
+  vendor?: string | null;
+  supplier_name?: string | null;
+  supplier?: string | null;
+  item_code: string | null;
+  reference?: string | null;
+  description?: string | null;
+  status: string | null;
+  total_amount: number | string | null;
+  amount?: number | string | null;
+  cost?: number | string | null;
+  delivery_date: string | null;
+  expected_delivery_date?: string | null;
+  quantity: number | string | null;
+  qty?: number | string | null;
+  unit_price: number | string | null;
+  price?: number | string | null;
+  created_at: string | null;
+};
+
+type NormalizedPurchaseOrder = {
+  id: string;
+  po_number: string;
+  vendor_name: string;
+  item_code: string;
+  status: string;
+  total_amount: number;
+  delivery_date: string;
+  quantity: number;
+  unit_price: number;
+  created_at: string | null;
+};
+
+function normalizeOrder(row: PurchaseOrderRow): NormalizedPurchaseOrder {
   return {
     id: row.id,
     po_number: row.po_number || row.purchase_order_number || row.number || row.code || row.id,
@@ -52,7 +91,7 @@ export async function GET(request: NextRequest) {
     if (error) throw error;
 
     return NextResponse.json({
-      orders: (data || []).map(normalizeOrder),
+      orders: ((data || []) as PurchaseOrderRow[]).map(normalizeOrder),
       pagination: {
         page: validPage,
         pageSize: validPageSize,
@@ -118,7 +157,7 @@ export async function POST(request: NextRequest) {
 
     if (error) throw error;
 
-    return NextResponse.json({ data: normalizeOrder(data) }, { status: 201 });
+    return NextResponse.json({ data: normalizeOrder(data as PurchaseOrderRow) }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudo crear la orden de compra';
     return NextResponse.json({ error: message }, { status: 500 });
