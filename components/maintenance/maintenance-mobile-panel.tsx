@@ -16,6 +16,69 @@ import { inferMachineFamilyFromText } from '@/lib/maintenance/cost-center-machin
 
 const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
 
+type AssetRow = {
+  id: string;
+  asset_name: string | null;
+  asset_code: string | null;
+  asset_type: string | null;
+  location: string | null;
+  model: string | null;
+  manufacturer: string | null;
+  mtbf_hours: number | string | null;
+};
+
+type WorkOrderRow = {
+  id: string;
+  status: string | null;
+  priority: string | null;
+  work_order_number: string | null;
+  code: string | null;
+  title: string | null;
+  asset_name: string | null;
+  scheduled_date: string | null;
+};
+
+type SelectedHistoryRow = {
+  id: string;
+  created_at: string | null;
+  notes: string | null;
+  parts_replaced: string | null;
+  work_order?: {
+    work_order_number: string | null;
+  } | null;
+};
+
+type TimeEntryRow = {
+  id: string;
+  horas_trabajadas: number | string | null;
+  descripcion: string | null;
+  fecha: string | null;
+};
+
+type EvidenceRow = {
+  id: string;
+  file_name: string | null;
+  file_type: string | null;
+};
+
+type TechnicianRow = {
+  technicianId: string;
+  name: string | null;
+  hours: number | string | null;
+  entries: number | string | null;
+};
+
+type PersonalSummary = {
+  totalHours: number;
+  totalEntries: number;
+  technicians: number;
+};
+
+type AssetHistoryResponse = {
+  asset?: AssetRow | null;
+  history?: SelectedHistoryRow[];
+};
+
 function statusLabel(status: string) {
   const labels: Record<string, string> = {
     open: 'Abierta',
@@ -37,17 +100,17 @@ export function MaintenanceMobilePanel() {
   const { data: assetHistoryData } = useSWR(assetId ? `/api/maintenance/assets/${assetId}/history` : null, fetcher);
   const { data: personalData, mutate: mutatePersonal } = useSWR('/api/maintenance/personal', fetcher);
 
-  const assets = Array.isArray(assetsData?.assets) ? assetsData.assets : [];
-  const workOrders = Array.isArray(ordersData?.workOrders) ? ordersData.workOrders : [];
-  const selectedAsset = assetHistoryData?.asset || null;
-  const selectedHistory = Array.isArray(assetHistoryData?.history) ? assetHistoryData.history : [];
+  const assets = (Array.isArray(assetsData?.assets) ? assetsData.assets : []) as AssetRow[];
+  const workOrders = (Array.isArray(ordersData?.workOrders) ? ordersData.workOrders : []) as WorkOrderRow[];
+  const selectedAsset = (assetHistoryData as AssetHistoryResponse | undefined)?.asset || null;
+  const selectedHistory = ((assetHistoryData as AssetHistoryResponse | undefined)?.history || []) as SelectedHistoryRow[];
 
   const openOrders = useMemo(
-    () => workOrders.filter((order: any) => ['open', 'pending', 'pendiente', 'in_progress'].includes(String(order.status || '').toLowerCase())).slice(0, 5),
+    () => workOrders.filter((order) => ['open', 'pending', 'pendiente', 'in_progress'].includes(String(order.status || '').toLowerCase())).slice(0, 5),
     [workOrders],
   );
   const urgentOrders = useMemo(
-    () => workOrders.filter((order: any) => ['high', 'critical', 'urgente'].includes(String(order.priority || '').toLowerCase())).slice(0, 3),
+    () => workOrders.filter((order) => ['high', 'critical', 'urgente'].includes(String(order.priority || '').toLowerCase())).slice(0, 3),
     [workOrders],
   );
 
@@ -59,7 +122,7 @@ export function MaintenanceMobilePanel() {
   const [uploadingTime, setUploadingTime] = useState(false);
   const [uploadingEvidence, setUploadingEvidence] = useState(false);
 
-  const currentOrder = workOrders.find((order: any) => order.id === selectedOtId) || openOrders[0] || workOrders[0] || null;
+  const currentOrder = workOrders.find((order) => order.id === selectedOtId) || openOrders[0] || workOrders[0] || null;
 
   useEffect(() => {
     if (!selectedOtId && currentOrder?.id) {
@@ -76,11 +139,11 @@ export function MaintenanceMobilePanel() {
     fetcher,
   );
 
-  const personalSummary = personalData?.summary || { totalHours: 0, totalEntries: 0, technicians: 0 };
-  const technicians = Array.isArray(personalData?.technicians) ? personalData.technicians : [];
-  const recentEntries = Array.isArray(personalData?.recentEntries) ? personalData.recentEntries : [];
-  const timeEntries = Array.isArray(selectedTimeData?.time_entries) ? selectedTimeData.time_entries : [];
-  const evidenceEntries = Array.isArray(selectedEvidenceData?.evidence) ? selectedEvidenceData.evidence : [];
+  const personalSummary: PersonalSummary = personalData?.summary || { totalHours: 0, totalEntries: 0, technicians: 0 };
+  const technicians = (Array.isArray(personalData?.technicians) ? personalData.technicians : []) as TechnicianRow[];
+  const recentEntries = (Array.isArray(personalData?.recentEntries) ? personalData.recentEntries : []) as TimeEntryRow[];
+  const timeEntries = (Array.isArray(selectedTimeData?.time_entries) ? selectedTimeData.time_entries : []) as TimeEntryRow[];
+  const evidenceEntries = (Array.isArray(selectedEvidenceData?.evidence) ? selectedEvidenceData.evidence : []) as EvidenceRow[];
 
   const stats = [
     { label: 'Equipos', value: String(assets.length), icon: Smartphone },
@@ -335,7 +398,7 @@ export function MaintenanceMobilePanel() {
               onChange={(event) => setSelectedOtId(event.target.value)}
             >
               <option value="">Selecciona una OT</option>
-              {workOrders.map((order: any) => (
+              {workOrders.map((order) => (
                 <option key={order.id} value={order.id}>
                   {order.work_order_number || order.code || order.title}
                 </option>
@@ -376,7 +439,7 @@ export function MaintenanceMobilePanel() {
           {timeEntries.length > 0 ? (
             <div className="space-y-2 rounded-lg border border-border p-3 text-sm">
               <p className="font-semibold">Ultimos registros de esta OT</p>
-              {timeEntries.slice(0, 3).map((entry: any) => (
+              {timeEntries.slice(0, 3).map((entry) => (
                 <div key={entry.id} className="rounded-md bg-muted/40 p-2">
                   <p className="font-medium">{Number(entry.horas_trabajadas || 0).toFixed(1)} h</p>
                   <p className="text-xs text-muted-foreground">{entry.descripcion || 'Sin descripcion'}</p>
@@ -416,7 +479,7 @@ export function MaintenanceMobilePanel() {
 
           {evidenceEntries.length > 0 ? (
             <div className="space-y-2">
-              {evidenceEntries.slice(0, 3).map((item: any) => (
+              {evidenceEntries.slice(0, 3).map((item) => (
                 <div key={item.id} className="rounded-lg border border-border p-3 text-sm">
                   <p className="font-semibold">{item.file_name}</p>
                   <p className="text-muted-foreground">{item.file_type || 'Archivo'}</p>
@@ -486,7 +549,7 @@ export function MaintenanceMobilePanel() {
               No hay ordenes abiertas en este momento.
             </div>
           ) : (
-            openOrders.map((order: any) => (
+            openOrders.map((order) => (
               <div key={order.id} className="rounded-lg border border-border p-3 text-sm">
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -506,7 +569,7 @@ export function MaintenanceMobilePanel() {
           {urgentOrders.length > 0 ? (
             <div className="space-y-2 pt-2">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Urgentes</p>
-              {urgentOrders.map((order: any) => (
+              {urgentOrders.map((order) => (
                 <div key={order.id} className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-sm text-amber-700">
                   <p className="font-medium">{order.work_order_number || order.code || order.title}</p>
                   <p className="text-xs">{order.title}</p>
@@ -539,7 +602,7 @@ export function MaintenanceMobilePanel() {
 
           {technicians.length > 0 ? (
             <div className="space-y-2">
-              {technicians.slice(0, 3).map((tech: any) => (
+              {technicians.slice(0, 3).map((tech) => (
                 <div key={tech.technicianId} className="rounded-lg border border-border p-3">
                   <div className="flex items-center justify-between">
                     <p className="font-semibold">{tech.name || 'Tecnico'}</p>
@@ -564,7 +627,7 @@ export function MaintenanceMobilePanel() {
             <CardTitle>Ultimos registros de tiempo</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
-            {recentEntries.slice(0, 3).map((item: any) => (
+            {recentEntries.slice(0, 3).map((item) => (
               <div key={item.id} className="rounded-lg border border-border p-3">
                 <p className="font-semibold">{item.descripcion || 'Tiempo registrado'}</p>
                 <p className="text-muted-foreground">{Number(item.horas_trabajadas || 0).toFixed(1)} h</p>
@@ -581,7 +644,7 @@ export function MaintenanceMobilePanel() {
             <CardTitle>Ultima trazabilidad</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
-            {selectedHistory.slice(0, 3).map((item: any) => (
+            {selectedHistory.slice(0, 3).map((item) => (
               <div key={item.id} className="rounded-lg border border-border p-3">
                 <p className="font-semibold">{item.work_order?.work_order_number || 'Sin OT'}</p>
                 <p className="text-muted-foreground">{item.notes || item.parts_replaced || 'Mantencion registrada'}</p>
