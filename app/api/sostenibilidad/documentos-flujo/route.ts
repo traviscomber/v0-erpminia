@@ -34,6 +34,8 @@ type DocumentFlowResponse = DocumentFlowRow & {
   documento_nombre: string;
   descripcion: string | null;
   archivo_url: string | null;
+  estado: string | null;
+  creador_nombre: string | null;
   nombre_archivo: string | null;
   tipo: string | null;
 };
