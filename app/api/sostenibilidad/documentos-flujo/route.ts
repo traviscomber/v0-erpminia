@@ -144,7 +144,7 @@ export async function GET(request: NextRequest) {
 
     const mapped = (Array.isArray(data) ? (data as unknown as DocumentFlowRow[]) : []).map((doc): DocumentFlowResponse => ({
       ...doc,
-      documento_nombre: doc.title,
+      documento_nombre: doc.title || doc.file_name || 'Documento',
       descripcion: doc.description,
       archivo_url: doc.current_file_url,
       estado: doc.status,
