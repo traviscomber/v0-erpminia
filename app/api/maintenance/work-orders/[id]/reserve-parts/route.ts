@@ -67,9 +67,10 @@ export async function POST(
       return NextResponse.json({ error: 'No se encontró la pieza' }, { status: 404 });
     }
 
-    const available =
+    const available = Number(
       typedStock.quantity_available ??
-      Math.max(0, Number(typedStock.quantity_on_hand || 0) - Number(typedStock.quantity_reserved || 0));
+        Math.max(0, Number(typedStock.quantity_on_hand || 0) - Number(typedStock.quantity_reserved || 0))
+    );
     if (available < quantity) {
       return NextResponse.json(
         { error: `Stock insuficiente. Disponible: ${available}` },
