@@ -146,7 +146,7 @@ export default function DocumentosFlujoImportPage() {
     const workbook = xlsx.read(buffer, { type: 'array' });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     if (!sheet) return [];
-    return xlsx.utils.sheet_to_json(sheet, { defval: '', raw: false }) as unknown as Record<string, unknown>[];
+    return xlsx.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: false }) as unknown as Record<string, unknown>[];
   };
 
   const uploadFile = async (file: File) => {
