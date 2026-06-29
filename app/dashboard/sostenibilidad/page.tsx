@@ -42,11 +42,11 @@ type OverviewResponse = {
   generated_at: string;
 };
 
-type ListResponse = {
-  data: unknown[];
-  total: number;
-  items: unknown[];
-  count: number;
+type ListResponse<T = unknown> = {
+  data?: T[];
+  total?: number;
+  items?: T[];
+  count?: number;
 };
 
 type ModuleItem = {
@@ -69,7 +69,7 @@ const normalizeCount = (payload: ListResponse | unknown): number => {
   if (!payload) return 0;
   if (Array.isArray(payload)) return payload.length;
   if (typeof payload === 'object') {
-    const typed = payload as ListResponse & { data: unknown[]; items: unknown[] };
+    const typed = payload as ListResponse;
     if (Array.isArray(typed.data)) return typed.data.length;
     if (Array.isArray(typed.items)) return typed.items.length;
     if (typeof typed.total === 'number') return typed.total;

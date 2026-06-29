@@ -10,6 +10,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
 
+type ListResponse<T = unknown> = {
+  data?: T[];
+  items?: T[];
+  total?: number;
+  count?: number;
+};
+
 type AuditItem = {
   id: string;
   audit_name?: string;
@@ -67,9 +74,9 @@ const toEventItem = (value: unknown): EventItem | null => {
 
 export default function CompliancePage() {
   const [auditOpen, setAuditOpen] = useState(false);
-  const { data: auditData, mutate } = useSWR<{ data?: unknown[] } | null>('/api/sostenibilidad/audit-sessions', fetcher);
+  const { data: auditData, mutate } = useSWR<ListResponse<unknown> | null>('/api/sostenibilidad/audit-sessions', fetcher);
   const { data: scoreData } = useSWR<Record<string, unknown> | null>('/api/sostenibilidad/compliance/calculate-score', fetcher);
-  const { data: eventsData } = useSWR<{ data?: unknown[] } | null>('/api/sostenibilidad/compliance-events?limit=12', fetcher);
+  const { data: eventsData } = useSWR<ListResponse<unknown> | null>('/api/sostenibilidad/compliance-events?limit=12', fetcher);
   const audits = Array.isArray(auditData?.data)
     ? auditData.data.map(toAuditItem).filter((audit): audit is AuditItem => audit !== null)
     : [];

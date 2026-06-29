@@ -26,11 +26,11 @@ const fetcher = async (url: string) => {
   return data;
 };
 
-type ListResponse = {
-  data: unknown[];
-  total: number;
-  items: unknown[];
-  count: number;
+type ListResponse<T = unknown> = {
+  data?: T[];
+  total?: number;
+  items?: T[];
+  count?: number;
 };
 
 const normalizeCount = (payload: ListResponse | unknown): number => {

@@ -18,6 +18,10 @@ type SessionData = {
   role?: string | null;
 };
 
+type DocumentFlowResponse<T = unknown> = {
+  data?: T[];
+};
+
 function daysSince(dateValue?: string | null) {
   if (!dateValue) return 0;
   const date = new Date(dateValue);
@@ -97,7 +101,7 @@ export default function MisAprobacionesPage() {
   const currentRole = session?.role || null;
   const currentUserId = session?.user?.id;
 
-  const { data, isLoading } = useSWR<{ data?: unknown[] } | null>('/api/sostenibilidad/documentos-flujo', fetcher);
+  const { data, isLoading } = useSWR<DocumentFlowResponse<unknown> | null>('/api/sostenibilidad/documentos-flujo', fetcher);
 
   const documentos = Array.isArray(data?.data)
     ? data.data.map(toDocumentRecord).filter((doc): doc is DocumentRecord => doc !== null)
