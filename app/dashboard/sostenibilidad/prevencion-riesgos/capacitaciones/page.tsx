@@ -56,9 +56,20 @@ export default function CapacitacionesPage() {
   const [dragActive, setDragActive] = useState(false);
   const [importResult, setImportResult] = useState<{ success: boolean; message: string; imported?: number; updated?: number; error?: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    nombre_capacitacion: string;
+    tipo: Capacitacion['tipo'];
+    tema: string;
+    programa_hse: string;
+    proveedor_instructor: string;
+    fecha_programada: string;
+    hora_inicio: string;
+    hora_termino: string;
+    duracion_horas: number;
+    cantidad_asistentes: number;
+  }>({
     nombre_capacitacion: '',
-    tipo: 'ACHS' as const,
+    tipo: 'ACHS',
     tema: '',
     programa_hse: '',
     proveedor_instructor: '',
