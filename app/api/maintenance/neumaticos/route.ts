@@ -4,6 +4,39 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { normalizeText } from '@/lib/bodega-normalization';
 
+type WarehouseStockRow = {
+  id: string;
+  part_code: string | null;
+  part_name: string | null;
+  quantity_on_hand: number | string | null;
+  quantity_reserved: number | string | null;
+  quantity_available: number | string | null;
+  reorder_level: number | string | null;
+  reorder_quantity: number | string | null;
+  unit_cost: number | string | null;
+  bin?: {
+    bin_code: string | null;
+    bin_location: string | null;
+  } | null;
+};
+
+type TireItem = {
+  id: string;
+  partCode: string | null;
+  partName: string | null;
+  quantityOnHand: number;
+  quantityReserved: number;
+  quantityAvailable: number;
+  reorderLevel: number;
+  reorderQuantity: number;
+  unitCost: number;
+  binCode: string | null;
+  binLocation: string | null;
+  totalValue: number;
+  lowStock: boolean;
+  isTire: boolean;
+};
+
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
@@ -17,8 +50,8 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error;
 
-    const items = (data || [])
-      .map((item: any) => {
+    const items = (Array.isArray(data) ? (data as WarehouseStockRow[]) : [])
+      .map<TireItem>((item) => {
         const searchable = normalizeText(`${item.part_code || ''} ${item.part_name || ''}`);
         const isTire =
           searchable.includes('neumatic') ||
@@ -47,13 +80,13 @@ export async function GET(request: NextRequest) {
           isTire,
         };
       })
-      .filter((item: any) => item.isTire);
+      .filter((item) => item.isTire);
 
     const summary = {
       totalItems: items.length,
-      lowStock: items.filter((item: any) => item.lowStock).length,
-      totalQuantity: items.reduce((sum: number, item: any) => sum + item.quantityOnHand, 0),
-      totalValue: items.reduce((sum: number, item: any) => sum + item.totalValue, 0),
+      lowStock: items.filter((item) => item.lowStock).length,
+      totalQuantity: items.reduce((sum, item) => sum + item.quantityOnHand, 0),
+      totalValue: items.reduce((sum, item) => sum + item.totalValue, 0),
     };
 
     return NextResponse.json({ items, summary });

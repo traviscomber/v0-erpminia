@@ -3,6 +3,50 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 
+type MaintenanceAssetRow = {
+  asset_code: string | null;
+  asset_name: string | null;
+  asset_type: string | null;
+  location: string | null;
+  status: string | null;
+  criticality: string | null;
+};
+
+type PreventiveScheduleRow = {
+  id: string;
+  asset_id: string | null;
+  task_name: string | null;
+  description: string | null;
+  frequency_days: number | string | null;
+  frequency_hours: number | string | null;
+  last_executed_date: string | null;
+  next_scheduled_date: string | null;
+  estimated_duration_hours: number | string | null;
+  priority: string | null;
+  enabled: boolean | null;
+  asset?: MaintenanceAssetRow | null;
+};
+
+type PreventiveScheduleItem = {
+  id: string;
+  assetId: string | null;
+  assetCode: string | null;
+  assetName: string;
+  assetType: string | null;
+  location: string | null;
+  criticality: string | null;
+  taskName: string | null;
+  description: string | null;
+  frequencyDays: number | string | null;
+  frequencyHours: number | string | null;
+  lastExecutedDate: string | null;
+  nextScheduledDate: string | null;
+  estimatedDurationHours: number | string | null;
+  priority: string;
+  enabled: boolean;
+  daysUntil: number | null;
+};
+
 function toDateOnly(value?: string | null) {
   if (!value) return null;
   const date = new Date(value);
@@ -63,8 +107,8 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error;
 
-    const schedules = (data || [])
-      .map((schedule: any) => {
+    const schedules = (Array.isArray(data) ? (data as PreventiveScheduleRow[]) : [])
+      .map<PreventiveScheduleItem>((schedule) => {
         const nextScheduledDate = toDateOnly(schedule.next_scheduled_date);
         const daysUntil = calculateDaysUntil(nextScheduledDate);
         return {
@@ -87,7 +131,7 @@ export async function GET(request: NextRequest) {
           daysUntil,
         };
       })
-      .filter((schedule: any) => {
+      .filter((schedule) => {
         if (!schedule.nextScheduledDate) return true;
         const dueDate = new Date(schedule.nextScheduledDate);
         const today = new Date();
@@ -96,9 +140,9 @@ export async function GET(request: NextRequest) {
         return dueDate <= futureDate;
       });
 
-    const enabledSchedules = schedules.filter((schedule: any) => schedule.enabled);
-    const overdue = enabledSchedules.filter((schedule: any) => (schedule.daysUntil ?? 9999) < 0).length;
-    const dueSoon = enabledSchedules.filter((schedule: any) => (schedule.daysUntil ?? 9999) >= 0 && (schedule.daysUntil ?? 9999) <= 30).length;
+    const enabledSchedules = schedules.filter((schedule) => schedule.enabled);
+    const overdue = enabledSchedules.filter((schedule) => (schedule.daysUntil ?? 9999) < 0).length;
+    const dueSoon = enabledSchedules.filter((schedule) => (schedule.daysUntil ?? 9999) >= 0 && (schedule.daysUntil ?? 9999) <= 30).length;
 
     return NextResponse.json({
       schedules,
