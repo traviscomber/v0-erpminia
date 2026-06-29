@@ -151,6 +151,8 @@ export async function GET(request: NextRequest) {
       archivo_url: doc.current_file_url,
       estado: doc.status,
       creador_nombre: context.userName || context.userEmail || context.userId,
+      nombre_archivo: doc.file_name || doc.title || null,
+      tipo: doc.category,
     }));
 
     return NextResponse.json({ success: true, data: mapped });
