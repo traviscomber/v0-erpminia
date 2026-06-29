@@ -8,6 +8,15 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useCostCenters } from '@/hooks/use-cost-centers';
 import { formatCostCenterLabel, sortCostCenters } from '@/lib/cost-centers';
 
+type WorkOrderRecord = {
+  id: string;
+  cost_center_id: string | null;
+  status: string;
+  work_order_number?: string | null;
+  code?: string | null;
+  title?: string | null;
+};
+
 const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
 
 function statusLabel(status: string) {
@@ -26,11 +35,11 @@ export function MaintenanceDashboardByCC() {
   const { data: workOrdersData } = useSWR('/api/maintenance/work-orders', fetcher);
   const [expandedCC, setExpandedCC] = useState<string | null>(null);
   const orderedCostCenters = sortCostCenters(costCenters);
-  const workOrders = Array.isArray(workOrdersData?.workOrders) ? workOrdersData.workOrders : [];
+  const workOrders = Array.isArray(workOrdersData?.workOrders) ? (workOrdersData.workOrders as WorkOrderRecord[]) : [];
   const summary = useMemo(() => {
-    const open = workOrders.filter((order: any) => order.status === 'open' || order.status === 'pending').length;
-    const inProgress = workOrders.filter((order: any) => order.status === 'in_progress').length;
-    const completed = workOrders.filter((order: any) => order.status === 'completed').length;
+    const open = workOrders.filter((order) => order.status === 'open' || order.status === 'pending').length;
+    const inProgress = workOrders.filter((order) => order.status === 'in_progress').length;
+    const completed = workOrders.filter((order) => order.status === 'completed').length;
     return {
       totalCostCenters: orderedCostCenters.length,
       totalOrders: workOrders.length,
@@ -90,10 +99,10 @@ export function MaintenanceDashboardByCC() {
             </CardContent>
           </Card>
         ) : orderedCostCenters.map((cc) => {
-          const ccOrders = workOrders.filter((order: any) => order.cost_center_id === cc.id);
-          const completed = ccOrders.filter((order: any) => order.status === 'completed').length;
-          const inProgress = ccOrders.filter((order: any) => order.status === 'in_progress').length;
-          const open = ccOrders.filter((order: any) => order.status === 'open' || order.status === 'pending').length;
+          const ccOrders = workOrders.filter((order) => order.cost_center_id === cc.id);
+          const completed = ccOrders.filter((order) => order.status === 'completed').length;
+          const inProgress = ccOrders.filter((order) => order.status === 'in_progress').length;
+          const open = ccOrders.filter((order) => order.status === 'open' || order.status === 'pending').length;
 
           return (
             <Card key={cc.id}>
@@ -125,7 +134,7 @@ export function MaintenanceDashboardByCC() {
                         {open} abiertas, {inProgress} en progreso y {completed} completadas.
                       </p>
                       <div className="max-h-96 space-y-2 overflow-y-auto pr-1">
-                        {ccOrders.map((order: any) => (
+                        {ccOrders.map((order) => (
                           <div key={order.id} className="flex items-center justify-between rounded border border-border p-3 text-sm">
                             <div className="min-w-0">
                               <p className="font-medium">{order.work_order_number || order.code || order.title}</p>

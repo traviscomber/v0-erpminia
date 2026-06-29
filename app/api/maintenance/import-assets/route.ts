@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
+import { loadXlsxModule } from '@/lib/xlsx';
 
 type ImportAssetRow = {
   asset_code: string;
@@ -88,7 +89,7 @@ function parseCsvRows(text: string): ImportAssetRow[] {
 }
 
 async function parseWorkbook(file: File) {
-  const xlsx = (await import('xlsx')) as any;
+  const xlsx = await loadXlsxModule();
   const buffer = Buffer.from(await file.arrayBuffer());
   const workbook = xlsx.read(buffer, { type: 'buffer', cellDates: true });
   const sheet = workbook.Sheets[workbook.SheetNames[0]];

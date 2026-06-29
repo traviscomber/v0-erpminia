@@ -3,6 +3,33 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 
+type MaintenanceAssetRow = {
+  id: string;
+  asset_code: string | null;
+  asset_name: string | null;
+  criticality: string | null;
+  status: string | null;
+};
+
+type MaintenanceWorkOrderRow = {
+  asset_id: string | null;
+  actual_cost: number | string | null;
+  completion_date: string | null;
+  asset?: {
+    id?: string | null;
+    asset_code?: string | null;
+    asset_name?: string | null;
+    criticality?: string | null;
+  } | null;
+};
+
+type MaintenanceHistoryRow = {
+  asset_id: string | null;
+  parts_cost: number | string | null;
+  labor_cost: number | string | null;
+  created_at: string | null;
+};
+
 function toNumber(value: unknown) {
   const parsed = Number(value || 0);
   return Number.isFinite(parsed) ? parsed : 0;
@@ -63,12 +90,12 @@ export async function GET(request: NextRequest) {
         .eq('organization_id', context.organizationId),
     ]);
 
-    const workOrders = workOrdersResult.data || [];
-    const history = historyResult.data || [];
-    const assets = assetsResult.data || [];
+    const workOrders = Array.isArray(workOrdersResult.data) ? (workOrdersResult.data as MaintenanceWorkOrderRow[]) : [];
+    const history = Array.isArray(historyResult.data) ? (historyResult.data as MaintenanceHistoryRow[]) : [];
+    const assets = Array.isArray(assetsResult.data) ? (assetsResult.data as MaintenanceAssetRow[]) : [];
 
     const assetMap = new Map(
-      assets.map((asset: any) => [
+      assets.map((asset) => [
         asset.id,
         {
           id: asset.id,
@@ -89,7 +116,7 @@ export async function GET(request: NextRequest) {
 
     const monthlyTotals = new Map<string, number>();
 
-    for (const order of workOrders as any[]) {
+    for (const order of workOrders) {
       const assetId = order.asset_id || order.asset?.id || null;
       if (!assetId) continue;
       const bucket = assetMap.get(assetId) || {
@@ -119,7 +146,7 @@ export async function GET(request: NextRequest) {
       if (key) monthlyTotals.set(key, (monthlyTotals.get(key) || 0) + orderCost);
     }
 
-    for (const record of history as any[]) {
+    for (const record of history) {
       const assetId = record.asset_id || null;
       if (!assetId) continue;
       const bucket = assetMap.get(assetId) || {

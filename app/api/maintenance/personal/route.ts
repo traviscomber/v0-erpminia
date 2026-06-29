@@ -3,6 +3,19 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 
+type MaintenanceWorkOrderIdRow = {
+  id: string;
+};
+
+type MaintenanceTimeEntryRow = {
+  technician_id: string | null;
+  horas_trabajadas: number | string | null;
+  technician?: {
+    full_name?: string | null;
+    email?: string | null;
+  } | null;
+};
+
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
@@ -15,7 +28,7 @@ export async function GET(request: NextRequest) {
 
     if (woError) throw woError;
 
-    const otIds = (workOrders || []).map((order: any) => order.id).filter(Boolean);
+    const otIds = Array.isArray(workOrders) ? (workOrders as MaintenanceWorkOrderIdRow[]).map((order) => order.id).filter(Boolean) : [];
     if (otIds.length === 0) {
       return NextResponse.json({ summary: { totalHours: 0, totalEntries: 0, technicians: 0 }, technicians: [], recentEntries: [] });
     }
@@ -28,10 +41,10 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error;
 
-    const entries = data || [];
+    const entries = Array.isArray(data) ? (data as MaintenanceTimeEntryRow[]) : [];
     const techniciansMap = new Map<string, { technicianId: string; name: string; email: string; hours: number; entries: number }>();
 
-    for (const entry of entries as any[]) {
+    for (const entry of entries) {
       const techId = String(entry.technician_id || '');
       const current = techniciansMap.get(techId) || {
         technicianId: techId,
@@ -50,7 +63,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       summary: {
-        totalHours: entries.reduce((sum: number, entry: any) => sum + Number(entry.horas_trabajadas || 0), 0),
+        totalHours: entries.reduce((sum: number, entry) => sum + Number(entry.horas_trabajadas || 0), 0),
         totalEntries: entries.length,
         technicians: technicians.length,
       },

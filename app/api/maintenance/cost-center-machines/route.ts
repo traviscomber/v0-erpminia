@@ -4,12 +4,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { deriveMachinesFromCostCenters } from '@/lib/maintenance/cost-center-machines';
 
+type CostCenterRow = {
+  id: string;
+  code: string | null;
+  name: string | null;
+  description: string | null;
+  status: string | null;
+};
+
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
 
   try {
-    const { data: costCenters, error } = await context.supabase
+    const { data: costCentersRaw, error } = await context.supabase
       .from('cost_centers')
       .select('id, code, name, description, status')
       .eq('organization_id', context.organizationId)
@@ -17,7 +25,8 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error;
 
-    const machines = deriveMachinesFromCostCenters(costCenters || []);
+    const costCenters = Array.isArray(costCentersRaw) ? (costCentersRaw as CostCenterRow[]) : [];
+    const machines = deriveMachinesFromCostCenters(costCenters);
     const families = new Set(machines.map((machine) => machine.family));
 
     return NextResponse.json({
