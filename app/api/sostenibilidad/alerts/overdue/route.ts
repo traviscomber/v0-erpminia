@@ -1,15 +1,49 @@
 export const dynamic = 'force-dynamic';
 
-import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { NextRequest, NextResponse } from 'next/server';
+import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { normalizeCorrectiveActionStatus, normalizeNcStatus } from '@/lib/api/sostenibilidad-mvp';
+
+type OverdueNcRow = {
+  id: string;
+  nc_number: string | null;
+  title: string | null;
+  severity: string | null;
+  target_closure_date: string | null;
+  status: string | null;
+};
+
+type OverdueCaRow = {
+  id: string;
+  ca_number: string | null;
+  action_description: string | null;
+  status: string | null;
+  scheduled_completion_date: string | null;
+  sostenibilidad_nonconformances: Array<{
+    severity: string | null;
+    nc_number: string | null;
+  }> | null;
+};
+
+type AlertRecord = {
+  id: string;
+  type: 'nc_overdue' | 'ca_overdue';
+  number: string | null;
+  title: string | null;
+  severity: string | null;
+  days_overdue: number;
+  status: 'active';
+  related_entity: string;
+  related_nc?: string | null;
+  action_required: boolean;
+  priority: string;
+};
 
 export async function GET(request: NextRequest) {
   try {
     const supabase = getSupabaseServerClient();
     const { searchParams } = new URL(request.url);
     const severity = searchParams.get('severity');
-    const status = searchParams.get('status') || 'activa';
 
     const { data: overdueNCs } = await supabase
       .from('sostenibilidad_nonconformances')
@@ -26,12 +60,16 @@ export async function GET(request: NextRequest) {
       .lt('scheduled_completion_date', new Date().toLocaleDateString('en-CA'))
       .neq('status', 'verified');
 
-    const alerts: any[] = [];
+    const alerts: AlertRecord[] = [];
 
-    (overdueNCs || []).map((nc: any) => ({
-      ...nc,
-      status: normalizeNcStatus(nc.status),
-    })).filter((nc: any) => nc.status !== 'closed').forEach((nc) => {
+    const normalizedNCs = (Array.isArray(overdueNCs) ? (overdueNCs as OverdueNcRow[]) : [])
+      .map((nc) => ({
+        ...nc,
+        status: normalizeNcStatus(nc.status),
+      }))
+      .filter((nc) => nc.status !== 'closed');
+
+    normalizedNCs.forEach((nc) => {
       const daysOverdue = calculateDaysOverdue(nc.target_closure_date);
       alerts.push({
         id: nc.id,
@@ -47,12 +85,16 @@ export async function GET(request: NextRequest) {
       });
     });
 
-    (overdueCAs || []).map((ca: any) => ({
-      ...ca,
-      status: normalizeCorrectiveActionStatus(ca.status),
-    })).filter((ca: any) => ca.status !== 'verified').forEach((ca: any) => {
+    const normalizedCAs = (Array.isArray(overdueCAs) ? (overdueCAs as OverdueCaRow[]) : [])
+      .map((ca) => ({
+        ...ca,
+        status: normalizeCorrectiveActionStatus(ca.status),
+      }))
+      .filter((ca) => ca.status !== 'verified');
+
+    normalizedCAs.forEach((ca) => {
       const daysOverdue = calculateDaysOverdue(ca.scheduled_completion_date);
-      const ncData = ca.sostenibilidad_nonconformances[0] || { severity: 'media', nc_number: 'N/A' };
+      const ncData = ca.sostenibilidad_nonconformances?.[0] || { severity: 'media', nc_number: 'N/A' };
       alerts.push({
         id: ca.id,
         type: 'ca_overdue',
@@ -68,22 +110,17 @@ export async function GET(request: NextRequest) {
       });
     });
 
-    let filteredAlerts = alerts;
-    if (severity) {
-      filteredAlerts = alerts.filter((a) => a.severity === severity);
-    }
+    const filteredAlerts = severity ? alerts.filter((alert) => alert.severity === severity) : alerts;
 
     filteredAlerts.sort((a, b) => {
       const priorityOrder: Record<string, number> = { crítica: 3, alta: 2, media: 1, baja: 0 };
-      return (
-        (priorityOrder[b.priority] || 0) - (priorityOrder[a.priority] || 0)
-      );
+      return (priorityOrder[b.priority] || 0) - (priorityOrder[a.priority] || 0);
     });
 
     return NextResponse.json({
       total_alerts: alerts.length,
-      critical_alerts: alerts.filter((a) => a.priority === 'crítica').length,
-      high_alerts: alerts.filter((a) => a.priority === 'alta').length,
+      critical_alerts: alerts.filter((alert) => alert.priority === 'crítica').length,
+      high_alerts: alerts.filter((alert) => alert.priority === 'alta').length,
       alerts: filteredAlerts,
       last_updated: new Date().toISOString(),
     });
@@ -102,7 +139,11 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = getSupabaseServerClient();
-    const body = await request.json();
+    const body = (await request.json()) as {
+      alert_id?: string;
+      alert_type?: string;
+      resolved_notes?: string;
+    };
     const { alert_id, alert_type, resolved_notes } = body;
 
     if (!alert_id || !alert_type) {
@@ -159,14 +200,15 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function calculateDaysOverdue(targetDate: string): number {
+function calculateDaysOverdue(targetDate: string | null): number {
+  if (!targetDate) return 0;
   const target = new Date(targetDate);
   const today = new Date();
   const diffTime = today.getTime() - target.getTime();
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 }
 
-function calculatePriority(severity: string, daysOverdue: number): string {
+function calculatePriority(severity: string | null, daysOverdue: number): string {
   if (severity === 'crítica' || daysOverdue > 14) return 'crítica';
   if (severity === 'alta' || daysOverdue > 7) return 'alta';
   if (severity === 'media' || daysOverdue > 3) return 'media';
