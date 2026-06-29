@@ -20,6 +20,37 @@ export interface ApprovalWorkflowStep {
   description: string;
 }
 
+export interface DocumentApprovalRecord {
+  approval_level: number;
+  approval_level_name?: string | null;
+  status: 'pending' | 'approved' | 'rejected' | 'under_review' | string;
+  comments?: string | null;
+  rejection_reason?: string | null;
+  approved_at?: string | null;
+  submitted_for_review_at?: string | null;
+}
+
+export interface WorkflowSummary {
+  totalSteps: number;
+  completedSteps: number;
+  currentStep: number;
+  status: 'pending' | 'in_progress' | 'approved' | 'rejected';
+  progress: number;
+  steps: ApprovalWorkflowStep[];
+}
+
+export interface ApprovalHistoryEntry {
+  level?: number | null;
+  levelName?: string | null;
+  status?: string | null;
+  assignedTo?: string | null;
+  approvedBy?: string | null;
+  comments?: string | null;
+  rejectionReason?: string | null;
+  approvedAt?: string | null;
+  submittedAt?: string | null;
+}
+
 export class DocumentApprovalWorkflowService {
   private static readonly WORKFLOW_STEPS: ApprovalWorkflowStep[] = [
     {
@@ -112,7 +143,12 @@ export class DocumentApprovalWorkflowService {
       .eq('document_id', documentId)
       .order('approval_level', { ascending: true });
 
-    return (approvals || []).map((approval: any) => ({
+    return (approvals || []).map((approval: DocumentApprovalRecord & {
+      assigned_to_name?: string | null;
+      approved_by_name?: string | null;
+      assigned_to?: string | null;
+      approved_by?: string | null;
+    }) => ({
       level: approval.approval_level,
       levelName: approval.approval_level_name,
       status: approval.status,
@@ -122,20 +158,20 @@ export class DocumentApprovalWorkflowService {
       rejectionReason: approval.rejection_reason,
       approvedAt: approval.approved_at,
       submittedAt: approval.submitted_for_review_at,
-    }));
+    })) as ApprovalHistoryEntry[];
   }
 
   /**
    * Obtener resumen del estado del workflow
    */
-  static getWorkflowSummary(approvals: any[]) {
-    const summary = {
+  static getWorkflowSummary(approvals: DocumentApprovalRecord[]): WorkflowSummary {
+    const summary: WorkflowSummary = {
       totalSteps: 3,
       completedSteps: 0,
       currentStep: 0,
       status: 'pending' as 'pending' | 'in_progress' | 'approved' | 'rejected',
       progress: 0,
-      steps: [] as any[],
+      steps: [],
     };
 
     for (const approval of approvals) {
@@ -148,7 +184,7 @@ export class DocumentApprovalWorkflowService {
     }
 
     // Calcular estado general
-    if (approvals.some((a: any) => a.status === 'rejected')) {
+    if (approvals.some((approval) => approval.status === 'rejected')) {
       summary.status = 'rejected';
     } else if (summary.completedSteps === 3) {
       summary.status = 'approved';
