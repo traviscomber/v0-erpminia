@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, FileText, Loader2, Sheet } from 'lucide-react';
 import { toast } from 'sonner';
-import type { XlsxLikeModule } from '@/lib/xlsx';
 
 interface ExportButtonsProps<T extends object = Record<string, unknown>> {
   data: T[];
@@ -16,6 +15,15 @@ function getCellValue(row: Record<string, unknown>, key: string) {
   const value = row[key];
   return value ?? '-';
 }
+
+type XlsxExportModule = {
+  utils: {
+    json_to_sheet: (data: Record<string, unknown>[]) => unknown;
+    book_new: () => unknown;
+    book_append_sheet: (workbook: unknown, worksheet: unknown, name: string) => void;
+  };
+  writeFile: (workbook: unknown, filename: string) => void;
+};
 
 export function ExportButtons<T extends object>({ data, fileName, columns }: ExportButtonsProps<T>) {
   const [isLoading, setIsLoading] = useState(false);
@@ -106,7 +114,7 @@ export function ExportButtons<T extends object>({ data, fileName, columns }: Exp
     setIsLoading(true);
 
     try {
-      const xlsx = (await import('xlsx')) as unknown as XlsxLikeModule;
+      const xlsx = (await import('xlsx')) as unknown as XlsxExportModule;
 
       const worksheet = xlsx.utils.json_to_sheet(
         data.map((row) =>
