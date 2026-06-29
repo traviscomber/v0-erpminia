@@ -4,6 +4,11 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
+type IncidenteRow = {
+  gravedad: string | null;
+  tipo: string | null;
+};
+
 export async function POST(request: NextRequest) {
   const { titulo, tipo, gravedad, descripcion } = await request.json();
 
@@ -63,11 +68,13 @@ export async function GET(request: NextRequest) {
     });
   }
 
+  const incidents = Array.isArray(data) ? (data as IncidenteRow[]) : [];
+
   const stats = {
-    total: data?.length || 0,
-    lesiones: data?.filter((d: any) => d.gravedad === 'lesion_grave').length || 0,
-    near_miss: data?.filter((d: any) => d.tipo === 'near_miss').length || 0,
+    total: incidents.length,
+    lesiones: incidents.filter((d) => d.gravedad === 'lesion_grave').length,
+    near_miss: incidents.filter((d) => d.tipo === 'near_miss').length,
   };
 
-  return NextResponse.json({ incidents: data || [], stats });
+  return NextResponse.json({ incidents, stats });
 }

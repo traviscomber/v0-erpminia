@@ -90,10 +90,10 @@ export default function FlujDocumentalPage() {
   const { data: documentos, mutate } = useSWR('/api/sostenibilidad/documentos-flujo', fetcher);
   const docList = Array.isArray(documentos?.data) ? (documentos.data as DocumentoFlujo[]) : [];
 
-  const filteredDocs = docList.filter((doc: any) => {
+  const filteredDocs = docList.filter((doc) => {
     const title = doc.title || '';
     const id = doc.id || '';
-    const status = getDocumentoStage(doc as DocumentoFlujo);
+    const status = getDocumentoStage(doc);
     
     return (
       (title.toLowerCase().includes(searchTerm.toLowerCase()) ||
