@@ -3,6 +3,70 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 
+type TemplateRow = {
+  id: string;
+  vehicle_type: string | null;
+  name: string | null;
+  code: string | null;
+  parent_id: string | null;
+  level: number | string | null;
+  description: string | null;
+};
+
+type ComponentRow = {
+  id: string;
+  vehicle_id: string | null;
+  template_id: string | null;
+  code: string | null;
+  name: string | null;
+  parent_id: string | null;
+  status: string | null;
+  last_maintenance: string | null;
+  maintenance_hours: number | string | null;
+  created_at: string | null;
+};
+
+type VehicleRow = {
+  id: string;
+  code: string | null;
+  name: string | null;
+  vehicle_type: string | null;
+  model: string | null;
+  status: string | null;
+  site: string | null;
+};
+
+type FaultModeRow = {
+  id: string;
+  component_template_id: string | null;
+  fault_code: string | null;
+  fault_name: string | null;
+  severity: string | null;
+};
+
+type ComponentTemplateSummary = {
+  id: string;
+  code: string | null;
+  name: string | null;
+  vehicleType: string | null;
+  level: number | string | null;
+  description: string | null;
+  totalInstances: number;
+  degraded: number;
+  failures: number;
+  faultModes: number;
+  nextInterventions: Array<{
+    id: string;
+    code: string | null;
+    name: string | null;
+    status: string | null;
+    hours: number;
+    lastMaintenance: string | null;
+    daysSince: number | null;
+    vehicle: VehicleRow | null;
+  }>;
+};
+
 function toDate(value?: string | null) {
   if (!value) return null;
   const date = new Date(value);
@@ -27,24 +91,29 @@ export async function GET(request: NextRequest) {
     if (vehiclesResult.error) throw vehiclesResult.error;
     if (faultModesResult.error) throw faultModesResult.error;
 
-    const templates = templatesResult.data || [];
-    const components = componentsResult.data || [];
-    const vehicles = vehiclesResult.data || [];
-    const faultModes = faultModesResult.data || [];
+    const templates = (templatesResult.data || []) as TemplateRow[];
+    const components = (componentsResult.data || []) as ComponentRow[];
+    const vehicles = (vehiclesResult.data || []) as VehicleRow[];
+    const faultModes = (faultModesResult.data || []) as FaultModeRow[];
 
-    const vehicleMap = new Map(vehicles.map((vehicle: any) => [vehicle.id, vehicle]));
-    const templateMap = new Map(templates.map((template: any) => [template.id, template]));
+    const vehicleMap = new Map(vehicles.map((vehicle) => [vehicle.id, vehicle] as const));
 
-    const majorTemplates = templates.filter((template: any) => Number(template.level || 0) <= 1 || ['motor', 'transmision', 'diferenciales', 'bombas', 'cilindros', 'enfriadores', 'perforadoras', 'baldes'].some((part) => String(template.name || '').toLowerCase().includes(part)));
+    const majorTemplates = templates.filter(
+      (template) =>
+        Number(template.level || 0) <= 1 ||
+        ['motor', 'transmision', 'diferenciales', 'bombas', 'cilindros', 'enfriadores', 'perforadoras', 'baldes'].some((part) =>
+          String(template.name || '').toLowerCase().includes(part)
+        )
+    );
 
-    const componentsByTemplate = majorTemplates.map((template: any) => {
-      const instances = components.filter((component: any) => component.template_id === template.id);
-      const faultCount = faultModes.filter((fault: any) => fault.component_template_id === template.id).length;
-      const degraded = instances.filter((instance: any) => String(instance.status || '').toLowerCase() === 'degradado').length;
-      const failure = instances.filter((instance: any) => String(instance.status || '').toLowerCase() === 'fallo').length;
+    const componentsByTemplate: ComponentTemplateSummary[] = majorTemplates.map((template) => {
+      const instances = components.filter((component) => component.template_id === template.id);
+      const faultCount = faultModes.filter((fault) => fault.component_template_id === template.id).length;
+      const degraded = instances.filter((instance) => String(instance.status || '').toLowerCase() === 'degradado').length;
+      const failure = instances.filter((instance) => String(instance.status || '').toLowerCase() === 'fallo').length;
 
       const nextInterventions = instances
-        .map((instance: any) => {
+        .map((instance) => {
           const lastMaintenance = instance.last_maintenance ? new Date(instance.last_maintenance) : null;
           const daysSince = lastMaintenance ? Math.floor((Date.now() - lastMaintenance.getTime()) / (1000 * 60 * 60 * 24)) : null;
           return {
@@ -58,7 +127,7 @@ export async function GET(request: NextRequest) {
             vehicle: vehicleMap.get(instance.vehicle_id) || null,
           };
         })
-        .sort((a: any, b: any) => (a.daysSince ?? 9999) - (b.daysSince ?? 9999));
+        .sort((a, b) => (a.daysSince ?? 9999) - (b.daysSince ?? 9999));
 
       return {
         id: template.id,
