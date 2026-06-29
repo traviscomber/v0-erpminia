@@ -25,6 +25,18 @@ type ReadingRow = {
   rpm: number | string | null;
 };
 
+type AlarmRow = {
+  id: string;
+  equipment_id: string | null;
+  severity: string | null;
+  message: string | null;
+  description: string | null;
+  created_at: string | null;
+  timestamp: string | null;
+  acknowledged_at: string | null;
+  status: string | null;
+};
+
 function toNumber(value: unknown) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
@@ -167,8 +179,9 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false })
       .limit(20);
 
-    const activeAlarms = (alarms || []).filter(
-      (alarm: any) => !['resolved', 'resuelta', 'cerrada', 'closed'].includes(String(alarm.status || '').toLowerCase())
+    const alarmRows = Array.isArray(alarms) ? (alarms as AlarmRow[]) : [];
+    const activeAlarms = alarmRows.filter(
+      (alarm) => !['resolved', 'resuelta', 'cerrada', 'closed'].includes(String(alarm.status || '').toLowerCase())
     );
 
     const currentStatus = normalizeStatusFromReadings(
@@ -198,7 +211,7 @@ export async function GET(request: NextRequest) {
         timestamp: sensorSummary.timestamp,
       },
       availability_percentage: availability,
-      alarms: activeAlarms.map((alarm: any) => ({
+      alarms: activeAlarms.map((alarm) => ({
         id: alarm.id,
         equipment_id: alarm.equipment_id,
         severity: alarm.severity || 'medium',
