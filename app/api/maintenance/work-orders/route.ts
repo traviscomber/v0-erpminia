@@ -50,14 +50,14 @@ type WorkOrderPayload = {
 };
 
 function mapWorkOrder(row: MaintenanceWorkOrderRow) {
-  const asset = row.asset || {};
+  const asset = row.asset ?? null;
   return {
     id: row.id,
     work_order_number: row.work_order_number,
-    asset_id: row.asset_id || asset.id || null,
-    asset_name: asset.asset_name || null,
-    asset_code: asset.asset_code || null,
-    asset_type: asset.asset_type || null,
+    asset_id: row.asset_id || asset?.id || null,
+    asset_name: asset?.asset_name || null,
+    asset_code: asset?.asset_code || null,
+    asset_type: asset?.asset_type || null,
     title: row.title,
     description: row.description,
     work_type: row.work_type,
