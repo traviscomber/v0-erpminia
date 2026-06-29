@@ -3,14 +3,51 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 
-function mapWorkOrder(row: any) {
+type MaintenanceAssetRow = {
+  id: string | null;
+  asset_name: string | null;
+  asset_code: string | null;
+  asset_type: string | null;
+};
+
+type MaintenanceWorkOrderRow = {
+  id: string;
+  work_order_number: string;
+  asset_id: string | null;
+  title: string | null;
+  description: string | null;
+  work_type: string | null;
+  status: string | null;
+  priority: string | null;
+  assigned_to_name: string | null;
+  planned_duration_hours: number | string | null;
+  actual_duration_hours: number | string | null;
+  scheduled_date: string | null;
+  completion_date: string | null;
+  root_cause: string | null;
+  preventive_actions: string | null;
+  created_at: string;
+  updated_at: string | null;
+  asset?: MaintenanceAssetRow | null;
+};
+
+type WorkOrderPatchPayload = {
+  status?: string;
+  assigned_to_name?: string | null;
+  actual_duration_hours?: number | string | null;
+  root_cause?: string | null;
+  actual_cost?: number | string | null;
+};
+
+function mapWorkOrder(row: MaintenanceWorkOrderRow) {
+  const asset = row.asset || {};
   return {
     id: row.id,
     work_order_number: row.work_order_number,
-    asset_id: row.asset_id || row.asset.id || null,
-    asset_name: row.asset.asset_name || null,
-    asset_code: row.asset.asset_code || null,
-    asset_type: row.asset.asset_type || null,
+    asset_id: row.asset_id || asset.id || null,
+    asset_name: asset.asset_name || null,
+    asset_code: asset.asset_code || null,
+    asset_type: asset.asset_type || null,
     title: row.title,
     description: row.description,
     work_type: row.work_type,
@@ -70,10 +107,18 @@ export async function PATCH(
   const { id } = await params;
 
   try {
-    const body = await request.json();
+    const body = (await request.json()) as WorkOrderPatchPayload;
     const { status, assigned_to_name, actual_duration_hours, root_cause, actual_cost } = body;
 
-    const updateData: any = {};
+    const updateData: Partial<{
+      status: string;
+      assigned_to_name: string | null;
+      actual_duration_hours: number | string | null;
+      root_cause: string | null;
+      actual_cost: number | string | null;
+      completion_date: string | null;
+      updated_at: string;
+    }> = {};
     if (status) updateData.status = status;
     if (assigned_to_name) updateData.assigned_to_name = assigned_to_name;
     if (actual_duration_hours !== undefined) updateData.actual_duration_hours = actual_duration_hours;

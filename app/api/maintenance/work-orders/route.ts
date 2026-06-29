@@ -3,7 +3,53 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 
-function mapWorkOrder(row: any) {
+type MaintenanceAssetRow = {
+  id: string | null;
+  asset_name: string | null;
+  asset_code: string | null;
+  asset_type: string | null;
+};
+
+type MaintenanceWorkOrderRow = {
+  id: string;
+  work_order_number: string;
+  asset_id: string | null;
+  title: string | null;
+  description: string | null;
+  work_type: string | null;
+  status: string | null;
+  priority: string | null;
+  assigned_to_name: string | null;
+  cost_center_id: string | null;
+  planned_duration_hours: number | string | null;
+  actual_duration_hours: number | string | null;
+  scheduled_date: string | null;
+  completion_date: string | null;
+  root_cause: string | null;
+  preventive_actions: string | null;
+  created_at: string;
+  asset?: MaintenanceAssetRow | null;
+};
+
+type WorkOrderPayload = {
+  assetId?: string;
+  asset_id?: string;
+  title?: string;
+  description?: string | null;
+  workType?: string;
+  work_type?: string;
+  priority?: string;
+  scheduledDate?: string | null;
+  scheduled_date?: string | null;
+  plannedDurationHours?: number | string;
+  planned_duration_hours?: number | string;
+  assignedToName?: string | null;
+  assigned_to_name?: string | null;
+  costCenterId?: string | null;
+  cost_center_id?: string | null;
+};
+
+function mapWorkOrder(row: MaintenanceWorkOrderRow) {
   const asset = row.asset || {};
   return {
     id: row.id,
@@ -55,7 +101,7 @@ export async function POST(request: NextRequest) {
   if (!context.ok) return context.response;
 
   try {
-    const body = await request.json();
+    const body = (await request.json()) as WorkOrderPayload;
     const { count } = await context.supabase
       .from('maintenance_work_orders')
       .select('*', { head: true, count: 'exact' })
@@ -69,7 +115,7 @@ export async function POST(request: NextRequest) {
         organization_id: context.organizationId,
         work_order_number: workOrderNumber,
         asset_id: body.assetId || body.asset_id || null,
-        title: body.title,
+        title: body.title || null,
         description: body.description || null,
         work_type: body.workType || body.work_type || 'preventive',
         status: 'open',
