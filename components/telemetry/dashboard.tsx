@@ -1,243 +1,219 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRealtimeSensors, useRealtimeAlarms } from '@/hooks/use-realtime';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import useSWR from 'swr';
+import { AlertCircle, Clock, Zap } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { AlertCircle, TrendingUp, Gauge, Zap, Clock } from 'lucide-react';
-import { isTelemetryRealtimeEnabled } from '@/lib/telemetry-realtime';
-import {
-  LineChart,
-  Line,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface TelemetryDashboardProps {
   equipmentId: string;
   equipmentName: string;
 }
 
-export function TelemetryDashboard({ equipmentId, equipmentName }: TelemetryDashboardProps) {
-  const [telemetryRealtimeEnabled, setTelemetryRealtimeEnabled] = useState(false);
+type TelemetryAlarm = {
+  id: string;
+  message?: string | null;
+  severity?: string | null;
+  created_at?: string | null;
+  timestamp?: string | null;
+};
 
-  useEffect(() => {
-    setTelemetryRealtimeEnabled(isTelemetryRealtimeEnabled());
-  }, []);
+type TelemetrySnapshot = {
+  equipment_name?: string;
+  sensor_data?: {
+    temperature?: number | null;
+    pressure?: number | null;
+    vibration?: number | null;
+    rpm?: number | null;
+    status?: 'normal' | 'alert' | null;
+    timestamp?: string | null;
+  } | null;
+  availability_percentage?: number | null;
+  alarms?: TelemetryAlarm[];
+  error?: string;
+};
 
-  return telemetryRealtimeEnabled ? (
-    <TelemetryDashboardLive equipmentId={equipmentId} equipmentName={equipmentName} />
-  ) : (
-    <TelemetryDashboardSafe equipmentName={equipmentName} />
-  );
+const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
+
+function formatStatus(value?: string | null) {
+  const status = String(value || '').toLowerCase();
+  if (status === 'alert') return 'Alerta';
+  return 'Operativo';
 }
 
-function TelemetryDashboardSafe({ equipmentName }: Pick<TelemetryDashboardProps, 'equipmentName'>) {
-  return (
-    <div className="space-y-4">
+export function TelemetryDashboard({ equipmentId, equipmentName }: TelemetryDashboardProps) {
+  const { data, error, isLoading } = useSWR<TelemetrySnapshot>(
+    equipmentId ? `/api/production/sensors?equipment_id=${encodeURIComponent(equipmentId)}` : null,
+    fetcher,
+    { revalidateOnFocus: false, refreshInterval: 30000 }
+  );
+
+  if (isLoading) {
+    return <div className="text-sm text-muted-foreground">Cargando telemetria segura...</div>;
+  }
+
+  if (error) {
+    return (
       <Card className="border-dashed border-border/70 bg-card/80">
         <CardHeader>
           <CardTitle className="text-sm">Telemetria segura</CardTitle>
           <CardDescription>{equipmentName}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-muted-foreground">
-          <p>
-            El monitoreo realtime esta desactivado en este entorno para evitar bloqueos por CSP o redes locales.
-          </p>
-          <p>
-            Cuando se active `NEXT_PUBLIC_TELEMETRY_REALTIME=true`, esta vista volvera a consumir lecturas vivas.
-          </p>
+          <p>No se pudo cargar la lectura del equipo desde la API.</p>
+          <p>Este panel no abre WebSockets ni realtime, por lo que no se cae por CSP.</p>
         </CardContent>
       </Card>
-    </div>
-  );
-}
+    );
+  }
 
-function TelemetryDashboardLive({ equipmentId, equipmentName }: TelemetryDashboardProps) {
-  const { readings, isConnected, error } = useRealtimeSensors(equipmentId);
-  const { alarms, unreadCount, acknowledgeAlarm } = useRealtimeAlarms();
-
-  // Format readings for charting
-  const chartData = [...readings]
-    .reverse()
-    .map((r) => ({
-      timestamp: new Date(r.timestamp).toLocaleTimeString('es-CL'),
-      value: r.value,
-      status: r.status,
-    }))
-    .slice(-20);
-
-  const lastReading = readings[0];
-  const isWarning = lastReading?.status === 'warning';
-  const isCritical = lastReading?.status === 'critical';
+  const sensor = data?.sensor_data || null;
+  const alarms = Array.isArray(data?.alarms) ? data.alarms : [];
+  const availability = Number.isFinite(Number(data?.availability_percentage))
+    ? Number(data?.availability_percentage)
+    : sensor?.status === 'alert'
+      ? 75
+      : 96;
+  const temperature = sensor?.temperature ?? null;
+  const pressure = sensor?.pressure ?? null;
+  const vibration = sensor?.vibration ?? null;
+  const rpm = sensor?.rpm ?? null;
+  const statusText = formatStatus(sensor?.status);
 
   return (
     <div className="space-y-6">
-      {/* Status Header */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card className="border-border overflow-hidden">
-          <CardHeader className="pb-3 relative z-10">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Estado
-            </CardTitle>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Estado</CardTitle>
           </CardHeader>
-          <CardContent className="relative z-10">
+          <CardContent>
             <div className="flex items-center gap-2">
-              <div
-                className={`h-3 w-3 rounded-full ${
-                  isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'
-                }`}
-              />
-              <span className="font-semibold">
-                {isConnected ? 'En vivo' : 'Desconectado'}
-              </span>
+              <div className={`h-3 w-3 rounded-full ${sensor?.status === 'alert' ? 'bg-yellow-500' : 'bg-green-500'}`} />
+              <span className="font-semibold">{statusText}</span>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {lastReading ? 'Datos actualizándose' : 'Esperando datos'}
-            </p>
+            <p className="mt-1 text-xs text-muted-foreground">{sensor ? 'Lectura API actualizada' : 'Esperando datos'}</p>
           </CardContent>
         </Card>
 
-        <Card
-          className={`border-border overflow-hidden ${
-            isCritical ? 'bg-destructive/5' : isWarning ? 'bg-yellow-500/5' : ''
-          }`}
-        >
-          <CardHeader className="pb-3 relative z-10">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Temperatura
-            </CardTitle>
+        <Card className={`border-border overflow-hidden ${sensor?.status === 'alert' ? 'bg-yellow-500/5' : ''}`}>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Temperatura</CardTitle>
           </CardHeader>
-          <CardContent className="relative z-10">
-            <div
-              className={`text-2xl font-bold ${
-                isCritical ? 'text-destructive' : isWarning ? 'text-yellow-600' : ''
-              }`}
-            >
-              {lastReading ? `${Math.round(lastReading.value)}°C` : '--'}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">última lectura</p>
+          <CardContent>
+            <div className="text-2xl font-bold">{temperature !== null ? `${Math.round(temperature)} C` : '--'}</div>
+            <p className="mt-1 text-xs text-muted-foreground">Ultima lectura</p>
           </CardContent>
         </Card>
 
         <Card className="border-border overflow-hidden">
-          <CardHeader className="pb-3 relative z-10">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
               <AlertCircle className="h-4 w-4 text-yellow-600" />
               Alarmas
             </CardTitle>
           </CardHeader>
-          <CardContent className="relative z-10">
-            <div className="text-2xl font-bold text-yellow-600">{unreadCount}</div>
-            <p className="text-xs text-muted-foreground mt-1">sin reconocer</p>
+          <CardContent>
+            <div className="text-2xl font-bold text-yellow-600">{alarms.length}</div>
+            <p className="mt-1 text-xs text-muted-foreground">activas</p>
           </CardContent>
         </Card>
 
         <Card className="border-border overflow-hidden">
-          <CardHeader className="pb-3 relative z-10">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Actualización
-            </CardTitle>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Actualizacion</CardTitle>
           </CardHeader>
-          <CardContent className="relative z-10">
+          <CardContent>
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4 text-primary" />
-              <span className="font-semibold text-sm">En vivo</span>
+              <span className="text-sm font-semibold">API</span>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {lastReading ? 'Hace segundos' : '--'}
-            </p>
+            <p className="mt-1 text-xs text-muted-foreground">{sensor?.timestamp ? 'Hace segundos' : '--'}</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Main Chart */}
       <Card className="border-border">
         <CardHeader>
-          <CardTitle>Telemetría en Vivo</CardTitle>
-          <CardDescription>{equipmentName}</CardDescription>
+          <CardTitle>Telemetria segura</CardTitle>
+          <CardDescription>{data?.equipment_name || equipmentName}</CardDescription>
         </CardHeader>
         <CardContent>
-          {chartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={chartData}>
-                <defs>
-                  <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
-                <XAxis dataKey="timestamp" />
-                <YAxis />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    border: 'none',
-                    borderRadius: '8px',
-                  }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="value"
-                  stroke="#3b82f6"
-                  fillOpacity={1}
-                  fill="url(#colorValue)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+          {sensor ? (
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+              <div>
+                <p className="text-xs text-muted-foreground">Temperatura</p>
+                <p className="text-lg font-semibold">{temperature !== null ? `${Math.round(temperature)} C` : '--'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Presion</p>
+                <p className="text-lg font-semibold">{pressure !== null ? `${Math.round(pressure)} PSI` : '--'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Vibracion</p>
+                <p className="text-lg font-semibold">{vibration !== null ? `${Number(vibration).toFixed(1)} m/s2` : '--'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">RPM</p>
+                <p className="text-lg font-semibold">{rpm !== null ? Math.round(rpm) : '--'}</p>
+              </div>
+              <div className="md:col-span-4 rounded-lg border border-border/60 bg-muted/30 p-3">
+                <p className="text-xs text-muted-foreground">Disponibilidad</p>
+                <p className="text-2xl font-bold">{Math.round(availability)}%</p>
+              </div>
+            </div>
           ) : (
-            <div className="flex items-center justify-center h-64 text-muted-foreground">
-              Esperando datos...
+            <div className="flex h-64 items-center justify-center text-muted-foreground">
+              Esperando lectura de API...
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Alarms List */}
-      {alarms.length > 0 && (
+      {alarms.length > 0 ? (
         <Card className="border-destructive/30 bg-destructive/5">
           <CardHeader>
             <CardTitle className="text-destructive">Alarmas Activas</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {alarms.slice(0, 5).map((alarm: any) => (
+              {alarms.slice(0, 5).map((alarm) => (
                 <div
                   key={alarm.id}
-                  className="flex items-start justify-between gap-3 p-3 bg-background/50 rounded-lg border border-border/50"
+                  className="flex items-start justify-between gap-3 rounded-lg border border-border/50 bg-background/50 p-3"
                 >
-                  <div className="flex items-start gap-2 flex-1">
-                    <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0 mt-0.5" />
+                  <div className="flex flex-1 items-start gap-2">
+                    <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-destructive" />
                     <div>
-                      <p className="text-sm font-medium">{alarm.message}</p>
+                      <p className="text-sm font-medium">{alarm.message || 'Alerta operacional'}</p>
                       <p className="text-xs text-muted-foreground">
-                        {alarm.severity} - {new Date(alarm.created_at).toLocaleTimeString('es-CL')}
+                        {alarm.severity || 'media'} -{' '}
+                        {new Date(alarm.created_at || alarm.timestamp || new Date().toISOString()).toLocaleTimeString('es-CL')}
                       </p>
                     </div>
                   </div>
-                  {!alarm.acknowledged_at && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => acknowledgeAlarm(alarm.id)}
-                    >
-                      OK
-                    </Button>
-                  )}
+                  <Badge variant={String(alarm.severity || '').toLowerCase() === 'critical' ? 'destructive' : 'outline'}>
+                    {alarm.severity || 'media'}
+                  </Badge>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
-      )}
+      ) : null}
+
+      <Card className="border-border/70 bg-card/80">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-sm">
+            <Zap className="h-4 w-4 text-[var(--brand-naranja)]" />
+            Sin WebSocket
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="text-sm text-muted-foreground">
+          Este panel funciona solo con API y no depende de realtime. Eso lo hace seguro para la red local y para CSP
+          estrictas en produccion.
+        </CardContent>
+      </Card>
     </div>
   );
 }
