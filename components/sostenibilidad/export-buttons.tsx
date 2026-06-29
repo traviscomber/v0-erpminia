@@ -6,8 +6,8 @@ import { Download, FileText, Loader2, Sheet } from 'lucide-react';
 import { toast } from 'sonner';
 import type { XlsxLikeModule } from '@/lib/xlsx';
 
-interface ExportButtonsProps {
-  data: Record<string, unknown>[];
+interface ExportButtonsProps<T extends object = Record<string, unknown>> {
+  data: T[];
   fileName: string;
   columns: { key: string; label: string }[];
 }
@@ -17,7 +17,7 @@ function getCellValue(row: Record<string, unknown>, key: string) {
   return value ?? '-';
 }
 
-export function ExportButtons({ data, fileName, columns }: ExportButtonsProps) {
+export function ExportButtons<T extends object>({ data, fileName, columns }: ExportButtonsProps<T>) {
   const [isLoading, setIsLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -69,10 +69,11 @@ export function ExportButtons({ data, fileName, columns }: ExportButtonsProps) {
 
       const tbody = document.createElement('tbody');
       data.forEach((row) => {
+        const record = row as Record<string, unknown>;
         const tr = document.createElement('tr');
         columns.forEach((col) => {
           const td = document.createElement('td');
-          td.textContent = String(getCellValue(row, col.key));
+          td.textContent = String(getCellValue(record, col.key));
           td.style.border = '1px solid #ddd';
           td.style.padding = '8px';
           tr.appendChild(td);
@@ -110,7 +111,7 @@ export function ExportButtons({ data, fileName, columns }: ExportButtonsProps) {
       const worksheet = xlsx.utils.json_to_sheet(
         data.map((row) =>
           columns.reduce((acc, col) => {
-            acc[col.label] = getCellValue(row, col.key);
+            acc[col.label] = getCellValue(row as Record<string, unknown>, col.key);
             return acc;
           }, {} as Record<string, unknown>)
         )
