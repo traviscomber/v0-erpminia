@@ -26,13 +26,24 @@ const PARENT_CODES = Object.keys(MACHINERY_GROUPS);
 
 type MachineryExportRow = Record<string, string | number | null | undefined>;
 
+type MachinerySourceRow = {
+  code: string;
+  name: string;
+  status: string | null;
+};
+
+type XlsxWorksheet = {
+  [key: string]: unknown;
+  '!cols'?: Array<{ wch: number }>;
+};
+
 type XlsxExportModule = {
   read?: never;
   write: (workbook: unknown, options: { type: 'buffer'; bookType: 'xlsx' }) => Buffer;
   utils: {
-    json_to_sheet: (data: MachineryExportRow[]) => unknown;
+    json_to_sheet: (data: MachineryExportRow[]) => XlsxWorksheet;
     book_new: () => unknown;
-    book_append_sheet: (workbook: unknown, worksheet: unknown, name: string) => void;
+    book_append_sheet: (workbook: unknown, worksheet: XlsxWorksheet, name: string) => void;
   };
 };
 
@@ -56,9 +67,9 @@ export async function GET(request: NextRequest) {
     { wch: 14 }, { wch: 6 }, { wch: 10 },
   ];
 
-  const rows = (data || [])
-    .filter((row: any) => PARENT_CODES.includes(row.code.split('-')[0]))
-    .map((row: any) => {
+  const rows: MachineryExportRow[] = (Array.isArray(data) ? (data as MachinerySourceRow[]) : [])
+    .filter((row) => PARENT_CODES.includes(row.code.split('-')[0]))
+    .map((row) => {
       const parentCode = row.code.split('-')[0];
       const yearMatch = row.name.match(/\b(19|20)\d{2}\b/);
       const plateMatch = row.name.match(/[-–]\s*([A-Z0-9]{4,10})\s*$/);
