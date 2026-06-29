@@ -1,13 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
-import { nanoid } from 'nanoid';
 
 function getSupabaseClient() {
-  const { createClient } = require("@supabase/supabase-js");
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!supabaseUrl || !supabaseKey) throw new Error("Missing Supabase env vars");
+  if (!supabaseUrl || !supabaseKey) throw new Error('Missing Supabase env vars');
   return createClient(supabaseUrl, supabaseKey);
 }
+
+type MaintenanceHistoryRow = {
+  labor_hours?: number | null;
+  parts_cost?: number | null;
+  labor_cost?: number | null;
+};
 
 export class AssetTrackingService {
   static async registerAsset(data: {
@@ -84,16 +88,17 @@ export class AssetTrackingService {
       .select('labor_hours, parts_cost, labor_cost')
       .eq('asset_id', assetId);
 
-    const totalLabor = (history as any[]).reduce((sum: number, h: any) => sum + (h.labor_hours || 0), 0);
-    const totalPartsSpent = (history as any[]).reduce((sum: number, h: any) => sum + (h.parts_cost || 0), 0);
-    const totalLaborCost = (history as any[]).reduce((sum: number, h: any) => sum + (h.labor_cost || 0), 0);
+    const typedHistory = history as MaintenanceHistoryRow[];
+    const totalLabor = typedHistory.reduce((sum, item) => sum + (item.labor_hours || 0), 0);
+    const totalPartsSpent = typedHistory.reduce((sum, item) => sum + (item.parts_cost || 0), 0);
+    const totalLaborCost = typedHistory.reduce((sum, item) => sum + (item.labor_cost || 0), 0);
     const totalCost = totalPartsSpent + totalLaborCost;
 
     return {
-      totalMaintenanceActions: history.length,
-      totalLabor: totalLabor,
-      totalCost: totalCost,
-      avgCostPerMaintenance: totalCost / (history?.length || 1),
+      totalMaintenanceActions: typedHistory.length,
+      totalLabor,
+      totalCost,
+      avgCostPerMaintenance: totalCost / (typedHistory.length || 1),
     };
   }
 
