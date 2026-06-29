@@ -3,6 +3,22 @@ import { getOrganizationContext } from '@/lib/api/organization-context';
 
 export const dynamic = 'force-dynamic';
 
+type CostCenterRow = {
+  id: string;
+  code: string | null;
+  name: string | null;
+  description: string | null;
+  status: string | null;
+};
+
+type CostCenterResponse = {
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  status: 'active' | 'inactive';
+};
+
 export async function GET(request: NextRequest) {
   try {
     const context = await getOrganizationContext(request);
@@ -20,7 +36,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json(costCenters || []);
+    const normalized = (Array.isArray(costCenters) ? (costCenters as CostCenterRow[]) : [])
+      .filter((center) => Boolean(center.id && center.code && center.name))
+      .map<CostCenterResponse>((center) => ({
+        id: center.id,
+        code: String(center.code || '').trim(),
+        name: String(center.name || '').trim(),
+        description: center.description || null,
+        status: String(center.status || 'inactive').toLowerCase() === 'active' ? 'active' : 'inactive',
+      }));
+
+    return NextResponse.json(normalized);
   } catch (error) {
     console.error('[API] Unexpected error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
