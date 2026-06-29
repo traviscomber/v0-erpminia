@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { resolveAuthContext } from '@/lib/api/auth-session';
+import { loadXlsxModule } from '@/lib/xlsx';
 
 
 const MACHINERY_GROUPS: Record<string, string> = {
@@ -23,12 +24,24 @@ const MACHINERY_GROUPS: Record<string, string> = {
 
 const PARENT_CODES = Object.keys(MACHINERY_GROUPS);
 
+type MachineryExportRow = Record<string, string | number | null | undefined>;
+
+type XlsxExportModule = {
+  read?: never;
+  write: (workbook: unknown, options: { type: 'buffer'; bookType: 'xlsx' }) => Buffer;
+  utils: {
+    json_to_sheet: (data: MachineryExportRow[]) => unknown;
+    book_new: () => unknown;
+    book_append_sheet: (workbook: unknown, worksheet: unknown, name: string) => void;
+  };
+};
+
 export async function GET(request: NextRequest) {
   const auth = await resolveAuthContext(request);
   if (!auth) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
   const supabase = getSupabaseServerClient();
-  const xlsx = (await import('xlsx')) as any;
+  const xlsx = (await loadXlsxModule()) as unknown as XlsxExportModule;
 
   const { data, error } = await supabase
     .from('cost_centers')
@@ -73,7 +86,7 @@ export async function GET(request: NextRequest) {
   xlsx.utils.book_append_sheet(wb, wsAll, 'Todos');
 
   for (const [code, label] of Object.entries(MACHINERY_GROUPS)) {
-    const catRows = rows.filter((r: any) => r['Código CC'].split('-')[0] === code);
+    const catRows = rows.filter((r) => String(r['Código CC'] || '').split('-')[0] === code);
     if (catRows.length === 0) continue;
     const ws = xlsx.utils.json_to_sheet(catRows);
     ws['!cols'] = cols;
