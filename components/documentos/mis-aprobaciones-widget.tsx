@@ -24,6 +24,23 @@ type ApprovalItem = {
   submitted_at: string;
 };
 
+type DocumentApprovalRow = {
+  approval_level: number;
+  approval_level_name: string | null;
+  required_role: string | null;
+  status: string | null;
+  assigned_to: string | null;
+  created_at: string | null;
+};
+
+type DocumentRow = {
+  id: string;
+  title?: string | null;
+  documento_nombre?: string | null;
+  created_at?: string | null;
+  document_approvals?: DocumentApprovalRow[] | null;
+};
+
 const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
 
 function normalize(value: unknown) {
@@ -46,16 +63,16 @@ export function MisAprobacionesWidget() {
   const { data: docsData, isLoading, error } = useSWR('/api/sostenibilidad/documentos-flujo', fetcher);
 
   const approvals = useMemo(() => {
-    const documentos = Array.isArray(docsData?.data) ? docsData.data : [];
-    return documentos.flatMap((doc: any): ApprovalItem[] => {
+    const documentos = Array.isArray(docsData?.data) ? (docsData.data as DocumentRow[]) : [];
+    return documentos.flatMap((doc): ApprovalItem[] => {
       const approvalsList = Array.isArray(doc.document_approvals) ? doc.document_approvals : [];
       return approvalsList
-        .filter((approval: any) => {
+        .filter((approval) => {
           const roleMatches = currentRole ? normalize(approval.required_role) === normalize(currentRole) : false;
           const userMatches = currentUserId ? String(approval.assigned_to || '') === currentUserId : false;
           return normalize(approval.status) === 'pending' && (roleMatches || userMatches);
         })
-        .map((approval: any) => ({
+        .map((approval) => ({
           id: `${doc.id}-${approval.approval_level}`,
           title: doc.title || doc.documento_nombre || 'Documento',
           document_id: doc.id,

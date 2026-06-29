@@ -3,6 +3,41 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSustainabilityContext } from '@/lib/api/sostenibilidad-mvp';
 
+type DocumentApprovalRow = {
+  approval_level: number;
+  approval_level_name: string | null;
+  required_role: string | null;
+  status: string | null;
+  assigned_to: string | null;
+  assigned_to_name: string | null;
+  approved_by: string | null;
+  approved_by_name: string | null;
+  comments: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
+type DocumentFlowRow = {
+  id: string;
+  title: string | null;
+  description: string | null;
+  current_file_url: string | null;
+  file_name: string | null;
+  category: string | null;
+  status: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  document_approvals?: DocumentApprovalRow[] | null;
+};
+
+type DocumentFlowResponse = DocumentFlowRow & {
+  documento_nombre: string;
+  descripcion: string | null;
+  archivo_url: string | null;
+  nombre_archivo: string | null;
+  tipo: string | null;
+};
+
 function buildApprovalChain(documentId: string) {
   return [
     {
@@ -107,7 +142,7 @@ export async function GET(request: NextRequest) {
     const { data, error } = await query;
     if (error) throw error;
 
-    const mapped = (data || []).map((doc: any) => ({
+    const mapped = (Array.isArray(data) ? (data as DocumentFlowRow[]) : []).map((doc): DocumentFlowResponse => ({
       ...doc,
       documento_nombre: doc.title,
       descripcion: doc.description,

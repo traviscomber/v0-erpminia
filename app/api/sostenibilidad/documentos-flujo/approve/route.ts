@@ -23,6 +23,11 @@ interface ApprovalRequest {
   user_role: string;
 }
 
+interface ApprovalRecord {
+  approval_level: number;
+  status: string | null;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = getSupabaseClient();
@@ -85,11 +90,12 @@ export async function POST(request: NextRequest) {
         let newDocStatus = 'under_review';
 
         if (allApprovals && allApprovals.length > 0) {
-          const isLastLevel = approval_level === Math.max(...allApprovals.map((a: any) => a.approval_level));
+          const approvalsList = Array.isArray(allApprovals) ? (allApprovals as ApprovalRecord[]) : [];
+          const isLastLevel = approval_level === Math.max(...approvalsList.map((approval) => approval.approval_level));
 
           if (isLastLevel) {
-            const previousApprovals = allApprovals.filter((a: any) => a.approval_level < approval_level);
-            const allPreviousApproved = previousApprovals.every((a: any) => a.status === 'approved');
+            const previousApprovals = approvalsList.filter((approval) => approval.approval_level < approval_level);
+            const allPreviousApproved = previousApprovals.every((approval) => approval.status === 'approved');
 
             if (allPreviousApproved) {
               newDocStatus = 'approved';
