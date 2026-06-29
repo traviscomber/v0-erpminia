@@ -14,10 +14,10 @@ type WarehouseStockRow = {
   reorder_level: number | string | null;
   reorder_quantity: number | string | null;
   unit_cost: number | string | null;
-  bin?: {
+  bin?: Array<{
     bin_code: string | null;
     bin_location: string | null;
-  } | null;
+  }> | null;
 };
 
 type TireItem = {
@@ -73,8 +73,8 @@ export async function GET(request: NextRequest) {
           reorderLevel: Number(item.reorder_level || 0),
           reorderQuantity: Number(item.reorder_quantity || 0),
           unitCost: Number(item.unit_cost || 0),
-          binCode: item.bin?.bin_code || null,
-          binLocation: item.bin?.bin_location || null,
+          binCode: item.bin?.[0]?.bin_code || null,
+          binLocation: item.bin?.[0]?.bin_location || null,
           totalValue: Number((quantityOnHand * Number(item.unit_cost || 0)).toFixed(2)),
           lowStock: quantityAvailable <= Number(item.reorder_level || 0),
           isTire,
