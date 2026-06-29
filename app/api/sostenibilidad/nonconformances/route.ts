@@ -7,6 +7,7 @@ import {
   isPastDue,
   normalizeNcStatus,
 } from '@/lib/api/sostenibilidad-mvp';
+import { loadXlsxModule } from '@/lib/xlsx';
 
 type ImportNcRow = {
   title: string;
@@ -111,7 +112,7 @@ function parseRows(text: string): ImportNcRow[] {
 }
 
 async function parseWorkbook(file: File) {
-  const xlsx = (await import('xlsx')) as any;
+  const xlsx = await loadXlsxModule();
   const buffer = Buffer.from(await file.arrayBuffer());
   const workbook = xlsx.read(buffer, { type: 'buffer', cellDates: true });
   const sheet = workbook.Sheets[workbook.SheetNames[0]];

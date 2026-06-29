@@ -108,12 +108,13 @@ export default function EPPPage() {
   );
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target as any;
+    const target = e.currentTarget;
+    const { name, value, type } = target;
     setFormData(prev => ({
       ...prev,
       [name]:
         type === 'checkbox'
-          ? (e.target as HTMLInputElement).checked
+          ? 'checked' in target && target.checked
           : name === 'cantidad_elemento'
             ? parseInt(value) || 1
             : value,

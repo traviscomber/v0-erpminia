@@ -3,6 +3,10 @@ export const dynamic = 'force-dynamic';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { NextRequest, NextResponse } from 'next/server';
 
+type NumericStatsRow = {
+  [key: string]: number | string | null | undefined;
+};
+
 export async function GET(request: NextRequest) {
   try {
     const supabase = getSupabaseServerClient();
@@ -38,8 +42,8 @@ export async function GET(request: NextRequest) {
       .select('id', { count: 'exact', head: true })
       .eq('estado', 'completada');
 
-    const nc = (ncStats as any)?.[0] ?? {};
-    const ca = (caStats as any)?.[0] ?? {};
+    const nc = ((ncStats as NumericStatsRow[] | null | undefined)?.[0] ?? {}) as NumericStatsRow;
+    const ca = ((caStats as NumericStatsRow[] | null | undefined)?.[0] ?? {}) as NumericStatsRow;
 
     return NextResponse.json({
       period,

@@ -7,6 +7,7 @@ import { AlertCircle, ArrowRight, CheckCircle2, Download, Loader2, Upload } from
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { loadXlsxModule } from '@/lib/xlsx';
 
 type ImportResult = {
   success: boolean;
@@ -140,7 +141,7 @@ export default function DocumentosFlujoImportPage() {
       });
     }
 
-    const xlsx = (await import('xlsx')) as any;
+    const xlsx = await loadXlsxModule();
     const buffer = await file.arrayBuffer();
     const workbook = xlsx.read(buffer, { type: 'array' });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];

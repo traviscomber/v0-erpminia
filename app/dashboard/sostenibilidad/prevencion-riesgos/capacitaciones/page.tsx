@@ -268,7 +268,7 @@ export default function CapacitacionesPage() {
                   <Label htmlFor="tipo">Tipo</Label>
                   <Select 
                     value={formData.tipo}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, tipo: value as any }))}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, tipo: value as Capacitacion['tipo'] }))}
                   >
                     <SelectTrigger>
                       <SelectValue />

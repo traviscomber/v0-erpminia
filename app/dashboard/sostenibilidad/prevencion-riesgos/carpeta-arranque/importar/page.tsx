@@ -8,6 +8,7 @@ import { AlertCircle, ArrowRight, CheckCircle2, Download, FileSpreadsheet, Loade
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import type { XlsxLikeModule } from '@/lib/xlsx';
 
 type ImportRow = {
   empresa_nombre: string;
@@ -64,7 +65,7 @@ function parseCsvRows(text: string): ImportRow[] {
 
 async function parseWorkbook(file: File) {
   const buffer = await file.arrayBuffer();
-  const xlsx = XLSX as any;
+  const xlsx = XLSX as unknown as XlsxLikeModule;
   const workbook = xlsx.read(buffer, { type: 'array', cellDates: true });
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
   const rows = xlsx.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: true }) as unknown[][];

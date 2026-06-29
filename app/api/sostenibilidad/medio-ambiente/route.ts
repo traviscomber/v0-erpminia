@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { buildOrgSequence, getSustainabilityContext } from '@/lib/api/sostenibilidad-mvp';
+import { loadXlsxModule } from '@/lib/xlsx';
 
 type ImportRow = {
   tipo: 'emisiones' | 'residuos' | 'agua' | 'ruido';
@@ -77,7 +78,7 @@ function parseRows(text: string): ImportRow[] {
 }
 
 async function parseWorkbook(file: File) {
-  const xlsx = (await import('xlsx')) as any;
+  const xlsx = await loadXlsxModule();
   const buffer = Buffer.from(await file.arrayBuffer());
   const workbook = xlsx.read(buffer, { type: 'buffer', cellDates: true });
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
