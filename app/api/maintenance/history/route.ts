@@ -10,6 +10,38 @@ function toDateOnly(value?: string | null) {
   return date.toISOString().split('T')[0];
 }
 
+type AssetRow = {
+  id: string;
+  asset_code: string | null;
+  asset_name: string | null;
+  asset_type: string | null;
+  location: string | null;
+  criticality: string | null;
+};
+
+type HistoryRow = {
+  id: string;
+  work_order_id: string | null;
+  asset_id: string | null;
+  maintenance_type: string | null;
+  performed_by_name: string | null;
+  start_time: string | null;
+  end_time: string | null;
+  parts_replaced: string | null;
+  parts_cost: number | string | null;
+  labor_hours: number | string | null;
+  labor_cost: number | string | null;
+  notes: string | null;
+  created_at: string | null;
+  work_order?: {
+    work_order_number: string | null;
+    title: string | null;
+    status: string | null;
+    priority: string | null;
+    scheduled_date: string | null;
+  } | null;
+};
+
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
@@ -32,7 +64,8 @@ export async function GET(request: NextRequest) {
     const { data: assets, error: assetsError } = await assetQuery;
     if (assetsError) throw assetsError;
 
-    const assetIds = (assets || []).map((asset: any) => asset.id);
+    const assetRows = (Array.isArray(assets) ? (assets as AssetRow[]) : []);
+    const assetIds = assetRows.map((asset) => asset.id);
     if (assetIds.length === 0) {
       return NextResponse.json({ entries: [], assets: [], summary: { total: 0, assets: 0 } });
     }
@@ -68,23 +101,27 @@ export async function GET(request: NextRequest) {
     const { data: history, error: historyError } = await historyQuery;
     if (historyError) throw historyError;
 
-    const entries = (history || []).map((row: any) => ({
+    const assetById = new Map(assetRows.map((asset) => [asset.id, asset]));
+    const historyRows = Array.isArray(history) ? (history as HistoryRow[]) : [];
+    const entries = historyRows.map((row) => {
+      const asset = row.asset_id ? assetById.get(row.asset_id) : null;
+      return {
       id: row.id,
       workOrderId: row.work_order_id,
       assetId: row.asset_id,
-      assetName: (assets || []).find((asset: any) => asset.id === row.asset_id)?.asset_name || 'Sin activo',
-      assetCode: (assets || []).find((asset: any) => asset.id === row.asset_id)?.asset_code || null,
-      assetType: (assets || []).find((asset: any) => asset.id === row.asset_id)?.asset_type || null,
-      location: (assets || []).find((asset: any) => asset.id === row.asset_id)?.location || null,
-      criticality: (assets || []).find((asset: any) => asset.id === row.asset_id)?.criticality || null,
+      assetName: asset?.asset_name || 'Sin activo',
+      assetCode: asset?.asset_code || null,
+      assetType: asset?.asset_type || null,
+      location: asset?.location || null,
+      criticality: asset?.criticality || null,
       maintenanceType: row.maintenance_type || null,
       performedByName: row.performed_by_name || null,
       startTime: row.start_time ? new Date(row.start_time).toISOString() : null,
       endTime: row.end_time ? new Date(row.end_time).toISOString() : null,
       partsReplaced: row.parts_replaced || null,
-      partsCost: row.parts_cost || 0,
-      laborHours: row.labor_hours || 0,
-      laborCost: row.labor_cost || 0,
+      partsCost: Number(row.parts_cost || 0),
+      laborHours: Number(row.labor_hours || 0),
+      laborCost: Number(row.labor_cost || 0),
       notes: row.notes || null,
       createdAt: row.created_at ? new Date(row.created_at).toISOString() : null,
       createdDate: toDateOnly(row.created_at),
@@ -97,14 +134,15 @@ export async function GET(request: NextRequest) {
             scheduledDate: toDateOnly(row.work_order.scheduled_date),
           }
         : null,
-    }));
+      };
+    });
 
     return NextResponse.json({
       entries,
-      assets,
+      assets: assetRows,
       summary: {
         total: entries.length,
-        assets: assets.length,
+        assets: assetRows.length,
       },
     });
   } catch (error) {

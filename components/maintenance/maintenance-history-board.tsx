@@ -11,6 +11,46 @@ import { Input } from '@/components/ui/input';
 
 const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
 
+type WorkOrderSummary = {
+  workOrderNumber: string | null;
+  title: string | null;
+  status: string | null;
+  priority: string | null;
+  scheduledDate: string | null;
+};
+
+type MaintenanceHistoryEntry = {
+  id: string;
+  workOrderId: string | null;
+  assetId: string | null;
+  assetName: string;
+  assetCode: string | null;
+  assetType: string | null;
+  location: string | null;
+  criticality: string | null;
+  maintenanceType: string | null;
+  performedByName: string | null;
+  startTime: string | null;
+  endTime: string | null;
+  partsReplaced: string | null;
+  partsCost: number;
+  laborHours: number;
+  laborCost: number;
+  notes: string | null;
+  createdAt: string | null;
+  createdDate: string | null;
+  workOrder: WorkOrderSummary | null;
+};
+
+type MaintenanceHistoryResponse = {
+  entries?: MaintenanceHistoryEntry[];
+  assets?: unknown[];
+  summary?: {
+    total?: number;
+    assets?: number;
+  };
+};
+
 function maintenanceTypeLabel(type?: string | null) {
   const labels: Record<string, string> = {
     preventive: 'Preventiva',
@@ -26,12 +66,15 @@ function formatCurrency(value: number) {
 
 export function MaintenanceHistoryBoard() {
   const [searchTerm, setSearchTerm] = useState('');
-  const { data, error, isLoading, mutate } = useSWR('/api/maintenance/history?limit=200', fetcher);
+  const { data, error, isLoading, mutate } = useSWR<MaintenanceHistoryResponse>(
+    '/api/maintenance/history?limit=200',
+    fetcher
+  );
 
   const entries = Array.isArray(data?.entries) ? data.entries : [];
   const groupedByAsset = useMemo(() => {
-    const groups = new Map<string, any[]>();
-    entries.forEach((entry: any) => {
+    const groups = new Map<string, MaintenanceHistoryEntry[]>();
+    entries.forEach((entry) => {
       const key = entry.assetId || entry.assetCode || entry.assetName || 'sin-activo';
       const bucket = groups.get(key) || [];
       bucket.push(entry);
@@ -51,7 +94,7 @@ export function MaintenanceHistoryBoard() {
           assetType: first.assetType,
           location: first.location,
           criticality: first.criticality,
-          rows: rows.filter((row: any) => {
+          rows: rows.filter((row) => {
             if (!query) return true;
             const searchable = [
               row.assetName,
@@ -77,8 +120,8 @@ export function MaintenanceHistoryBoard() {
   const summary = {
     total: entries.length,
     assets: groupedByAsset.length,
-    totalPartsCost: entries.reduce((sum: number, entry: any) => sum + Number(entry.partsCost || 0), 0),
-    totalLaborHours: entries.reduce((sum: number, entry: any) => sum + Number(entry.laborHours || 0), 0),
+    totalPartsCost: entries.reduce((sum, entry) => sum + Number(entry.partsCost || 0), 0),
+    totalLaborHours: entries.reduce((sum, entry) => sum + Number(entry.laborHours || 0), 0),
   };
 
   return (
@@ -208,7 +251,7 @@ export function MaintenanceHistoryBoard() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                {group.rows.slice(0, 5).map((entry: any) => (
+                {group.rows.slice(0, 5).map((entry) => (
                   <div key={entry.id} className="rounded-lg border border-border bg-background p-4">
                     <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                       <div className="space-y-2">
