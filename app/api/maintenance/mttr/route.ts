@@ -4,13 +4,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 
 type WorkOrderRow = {
-  actual_duration_hours: number | string | null;
-  created_at: string | null;
-  createdAt: string | null;
-  start_time: string | null;
-  completion_date: string | null;
-  completed_at: string | null;
-  closed_at: string | null;
+  status?: string | null;
+  actual_duration_hours?: number | string | null;
+  created_at?: string | null;
+  createdAt?: string | null;
+  start_time?: string | null;
+  completion_date?: string | null;
+  completed_at?: string | null;
+  closed_at?: string | null;
 };
 
 type AssetRow = {
