@@ -144,10 +144,15 @@ async function parseImportFile(file: File) {
   throw new Error('Formato no soportado. Usa CSV, XLS o XLSX.');
 }
 
-function buildStats(rows: Array<{ status: string | null; target_closure_date: string | null }>) {
+type NonconformanceStatsRow = {
+  status: string | null;
+  target_closure_date?: string | null;
+};
+
+function buildStats(rows: NonconformanceStatsRow[]) {
   const normalized = rows.map((row) => ({
-    ...row,
     status: normalizeNcStatus(row.status),
+    target_closure_date: row.target_closure_date ?? null,
   }));
 
   return {
