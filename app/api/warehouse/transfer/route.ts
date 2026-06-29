@@ -1,9 +1,43 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getOrganizationContext } from '@/lib/api/organization-context';
+import { getOrganizationContext, type OrganizationSuccessContext } from '@/lib/api/organization-context';
 
-async function getOrganizationBins(supabase: any, organizationId: string) {
+type WarehouseZoneRow = {
+  id: string;
+};
+
+type WarehouseRackRow = {
+  id: string;
+};
+
+type WarehouseBinRow = {
+  id: string;
+};
+
+type WarehouseStockRow = {
+  id: string;
+  organization_id: string;
+  part_id: string | null;
+  part_code: string | null;
+  part_name: string | null;
+  quantity_on_hand: number | string | null;
+  quantity_reserved: number | string | null;
+  quantity_available: number | string | null;
+  reorder_level: number | string | null;
+  reorder_quantity: number | string | null;
+  unit_cost: number | string | null;
+  last_counted_date: string | null;
+  expiry_date: string | null;
+  batch_number: string | null;
+  supplier_lot: string | null;
+  bin_id: string | null;
+};
+
+async function getOrganizationBins(
+  supabase: OrganizationSuccessContext['supabase'],
+  organizationId: string
+): Promise<string[]> {
   const { data: zones, error: zonesError } = await supabase
     .from('warehouse_zones')
     .select('id')
@@ -11,7 +45,8 @@ async function getOrganizationBins(supabase: any, organizationId: string) {
 
   if (zonesError) throw zonesError;
 
-  const zoneIds = (zones || []).map((zone: any) => zone.id);
+  const zoneRows = Array.isArray(zones) ? (zones as WarehouseZoneRow[]) : [];
+  const zoneIds = zoneRows.map((zone) => zone.id);
   if (zoneIds.length === 0) return [];
 
   const { data: racks, error: racksError } = await supabase
@@ -21,7 +56,8 @@ async function getOrganizationBins(supabase: any, organizationId: string) {
 
   if (racksError) throw racksError;
 
-  const rackIds = (racks || []).map((rack: any) => rack.id);
+  const rackRows = Array.isArray(racks) ? (racks as WarehouseRackRow[]) : [];
+  const rackIds = rackRows.map((rack) => rack.id);
   if (rackIds.length === 0) return [];
 
   const { data: bins, error: binsError } = await supabase
@@ -30,7 +66,9 @@ async function getOrganizationBins(supabase: any, organizationId: string) {
     .in('rack_id', rackIds);
 
   if (binsError) throw binsError;
-  return (bins || []).map((bin: any) => bin.id);
+
+  const binRows = Array.isArray(bins) ? (bins as WarehouseBinRow[]) : [];
+  return binRows.map((bin) => bin.id);
 }
 
 export async function POST(request: NextRequest) {
@@ -38,7 +76,15 @@ export async function POST(request: NextRequest) {
   if (!context.ok) return context.response;
 
   try {
-    const body = await request.json();
+    const body = (await request.json()) as {
+      stockId?: string;
+      stock_id?: string;
+      toBinId?: string;
+      to_bin_id?: string;
+      quantity?: number | string;
+      reason?: string;
+    };
+
     const stockId = body.stockId || body.stock_id;
     const toBinId = body.toBinId || body.to_bin_id;
     const quantity = Number(body.quantity || 0);
@@ -64,36 +110,40 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     if (sourceError) throw sourceError;
-    if (!sourceStock) {
+
+    const source = sourceStock as WarehouseStockRow | null;
+    if (!source) {
       return NextResponse.json({ error: 'No se encontró el stock de origen' }, { status: 404 });
     }
 
-    if (sourceStock.bin_id === toBinId) {
+    if (source.bin_id === toBinId) {
       return NextResponse.json(
         { error: 'El bin de destino debe ser diferente al bin de origen' },
         { status: 400 }
       );
     }
 
-    if (quantity > Number(sourceStock.quantity_available || sourceStock.quantity_on_hand || 0)) {
+    const sourceAvailable = Number(source.quantity_available || source.quantity_on_hand || 0);
+    if (quantity > sourceAvailable) {
       return NextResponse.json({ error: 'Stock disponible insuficiente' }, { status: 400 });
     }
 
-    const movingAll = quantity === Number(sourceStock.quantity_on_hand || 0);
+    const sourceOnHand = Number(source.quantity_on_hand || 0);
+    const movingAll = quantity === sourceOnHand;
 
-    let destinationStock = null;
+    let destinationStock: WarehouseStockRow | null = null;
     if (!movingAll) {
       const { data: existingDest, error: destError } = await context.supabase
         .from('warehouse_stock')
         .select('*')
         .eq('organization_id', context.organizationId)
         .eq('bin_id', toBinId)
-        .eq('part_code', sourceStock.part_code)
-        .is('batch_number', sourceStock.batch_number || null)
+        .eq('part_code', source.part_code)
+        .is('batch_number', source.batch_number || null)
         .maybeSingle();
 
       if (destError) throw destError;
-      destinationStock = existingDest;
+      destinationStock = (existingDest as WarehouseStockRow | null) || null;
     }
 
     if (movingAll) {
@@ -103,11 +153,11 @@ export async function POST(request: NextRequest) {
           bin_id: toBinId,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', sourceStock.id);
+        .eq('id', source.id);
 
       if (moveError) throw moveError;
     } else {
-      const sourceNewQuantity = Number(sourceStock.quantity_on_hand || 0) - quantity;
+      const sourceNewQuantity = sourceOnHand - quantity;
 
       const { error: sourceUpdateError } = await context.supabase
         .from('warehouse_stock')
@@ -115,7 +165,7 @@ export async function POST(request: NextRequest) {
           quantity_on_hand: sourceNewQuantity,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', sourceStock.id);
+        .eq('id', source.id);
 
       if (sourceUpdateError) throw sourceUpdateError;
 
@@ -134,19 +184,19 @@ export async function POST(request: NextRequest) {
           .from('warehouse_stock')
           .insert({
             organization_id: context.organizationId,
-            part_id: sourceStock.part_id,
-            part_code: sourceStock.part_code,
-            part_name: sourceStock.part_name,
+            part_id: source.part_id,
+            part_code: source.part_code,
+            part_name: source.part_name,
             bin_id: toBinId,
             quantity_on_hand: quantity,
             quantity_reserved: 0,
-            reorder_level: sourceStock.reorder_level,
-            reorder_quantity: sourceStock.reorder_quantity,
-            unit_cost: sourceStock.unit_cost,
-            last_counted_date: sourceStock.last_counted_date,
-            expiry_date: sourceStock.expiry_date,
-            batch_number: sourceStock.batch_number,
-            supplier_lot: sourceStock.supplier_lot,
+            reorder_level: source.reorder_level,
+            reorder_quantity: source.reorder_quantity,
+            unit_cost: source.unit_cost,
+            last_counted_date: source.last_counted_date,
+            expiry_date: source.expiry_date,
+            batch_number: source.batch_number,
+            supplier_lot: source.supplier_lot,
             updated_at: new Date().toISOString(),
           });
 
@@ -158,7 +208,7 @@ export async function POST(request: NextRequest) {
       success: true,
       transfer: {
         stockId,
-        fromBinId: sourceStock.bin_id,
+        fromBinId: source.bin_id,
         toBinId,
         quantity,
         reason,
