@@ -33,13 +33,13 @@ type HistoryRow = {
   labor_cost: number | string | null;
   notes: string | null;
   created_at: string | null;
-  work_order?: {
+  work_order?: Array<{
     work_order_number: string | null;
     title: string | null;
     status: string | null;
     priority: string | null;
     scheduled_date: string | null;
-  } | null;
+  }> | null;
 };
 
 export async function GET(request: NextRequest) {
@@ -102,9 +102,10 @@ export async function GET(request: NextRequest) {
     if (historyError) throw historyError;
 
     const assetById = new Map(assetRows.map((asset) => [asset.id, asset]));
-    const historyRows = Array.isArray(history) ? (history as HistoryRow[]) : [];
+    const historyRows = Array.isArray(history) ? (history as unknown as HistoryRow[]) : [];
     const entries = historyRows.map((row) => {
       const asset = row.asset_id ? assetById.get(row.asset_id) : null;
+      const workOrder = Array.isArray(row.work_order) ? row.work_order[0] : null;
       return {
       id: row.id,
       workOrderId: row.work_order_id,
@@ -125,13 +126,13 @@ export async function GET(request: NextRequest) {
       notes: row.notes || null,
       createdAt: row.created_at ? new Date(row.created_at).toISOString() : null,
       createdDate: toDateOnly(row.created_at),
-      workOrder: row.work_order
+      workOrder: workOrder
         ? {
-            workOrderNumber: row.work_order.work_order_number || null,
-            title: row.work_order.title || null,
-            status: row.work_order.status || null,
-            priority: row.work_order.priority || null,
-            scheduledDate: toDateOnly(row.work_order.scheduled_date),
+            workOrderNumber: workOrder.work_order_number || null,
+            title: workOrder.title || null,
+            status: workOrder.status || null,
+            priority: workOrder.priority || null,
+            scheduledDate: toDateOnly(workOrder.scheduled_date),
           }
         : null,
       };
