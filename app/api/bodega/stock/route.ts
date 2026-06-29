@@ -3,6 +3,40 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 
+type WarehouseBinRow = {
+  bin_code: string | null;
+  bin_location: string | null;
+};
+
+type WarehouseStockRow = {
+  id: string;
+  part_code: string | null;
+  part_name: string | null;
+  quantity_on_hand: number | string | null;
+  quantity_reserved: number | string | null;
+  reorder_level: number | string | null;
+  reorder_quantity: number | string | null;
+  unit_cost: number | string | null;
+  bin_location: string | null;
+  bin?: WarehouseBinRow | null;
+};
+
+type WarehouseStockItem = {
+  id: string;
+  part_code: string | null;
+  part_name: string | null;
+  quantity_on_hand: number;
+  quantity_reserved: number;
+  quantity_available: number;
+  reorder_level: number;
+  reorder_quantity: number;
+  unit_cost: number;
+  total_value: number;
+  bin_location: string;
+  is_low_stock: boolean;
+  is_critical: boolean;
+};
+
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
@@ -16,28 +50,37 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error;
 
-    const items = (stock || []).map((item: any) => ({
-      id: item.id,
-      part_code: item.part_code,
-      part_name: item.part_name,
-      quantity_on_hand: item.quantity_on_hand || 0,
-      quantity_reserved: item.quantity_reserved || 0,
-      quantity_available: (item.quantity_on_hand || 0) - (item.quantity_reserved || 0),
-      reorder_level: item.reorder_level || 0,
-      reorder_quantity: item.reorder_quantity || 0,
-      unit_cost: item.unit_cost || 0,
-      total_value: (item.quantity_on_hand || 0) * (item.unit_cost || 0),
-      bin_location: item.bin?.bin_location || item.bin_location || 'N/A',
-      is_low_stock: (item.quantity_on_hand || 0) <= (item.reorder_level || 0),
-      is_critical: (item.quantity_on_hand || 0) === 0,
-    }));
+    const rows = Array.isArray(stock) ? (stock as WarehouseStockRow[]) : [];
+    const items: WarehouseStockItem[] = rows.map((item) => {
+      const quantityOnHand = Number(item.quantity_on_hand || 0);
+      const quantityReserved = Number(item.quantity_reserved || 0);
+      const reorderLevel = Number(item.reorder_level || 0);
+      const reorderQuantity = Number(item.reorder_quantity || 0);
+      const unitCost = Number(item.unit_cost || 0);
+
+      return {
+        id: item.id,
+        part_code: item.part_code,
+        part_name: item.part_name,
+        quantity_on_hand: quantityOnHand,
+        quantity_reserved: quantityReserved,
+        quantity_available: quantityOnHand - quantityReserved,
+        reorder_level: reorderLevel,
+        reorder_quantity: reorderQuantity,
+        unit_cost: unitCost,
+        total_value: quantityOnHand * unitCost,
+        bin_location: item.bin?.bin_location || item.bin_location || 'N/A',
+        is_low_stock: quantityOnHand <= reorderLevel,
+        is_critical: quantityOnHand === 0,
+      };
+    });
 
     const summary = {
       total_items: items.length,
-      total_quantity: items.reduce((sum: number, i: any) => sum + i.quantity_on_hand, 0),
-      total_value: items.reduce((sum: number, i: any) => sum + i.total_value, 0),
-      low_stock_count: items.filter((i: any) => i.is_low_stock).length,
-      critical_count: items.filter((i: any) => i.is_critical).length,
+      total_quantity: items.reduce((sum, i) => sum + i.quantity_on_hand, 0),
+      total_value: items.reduce((sum, i) => sum + i.total_value, 0),
+      low_stock_count: items.filter((i) => i.is_low_stock).length,
+      critical_count: items.filter((i) => i.is_critical).length,
     };
 
     return NextResponse.json({ items, summary });
