@@ -16,7 +16,18 @@ const fetcher = async (url: string) => {
   return Array.isArray(payload) ? payload : payload.documents || payload.data || [];
 };
 
-function matchesPermitLicense(document: any) {
+type LegalDocumentItem = {
+  id: string | number;
+  title?: string | null;
+  category?: string | null;
+  description?: string | null;
+  tags?: string[] | null;
+  status?: string | null;
+  expiryDate?: string | null;
+  expiry_date?: string | null;
+};
+
+function matchesPermitLicense(document: LegalDocumentItem) {
   const text = [
     document.title,
     document.category,
@@ -36,21 +47,21 @@ export default function PermisosLicenciasPage() {
 
   const documents = useMemo(() => {
     const source = Array.isArray(data) ? data : [];
-    return source.filter(matchesPermitLicense);
+    return source.filter((doc): doc is LegalDocumentItem => matchesPermitLicense(doc as LegalDocumentItem));
   }, [data]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return documents.filter((doc: any) => !q || [doc.title, doc.category, doc.status].filter(Boolean).join(' ').toLowerCase().includes(q));
+    return documents.filter((doc) => !q || [doc.title, doc.category, doc.status].filter(Boolean).join(' ').toLowerCase().includes(q));
   }, [documents, query]);
 
   const active = filtered.filter(
-    (doc: any) =>
+    (doc) =>
       String(doc.status || '').toLowerCase().includes('active') ||
       String(doc.status || '').toLowerCase().includes('vigente')
   ).length;
 
-  const expiring = filtered.filter((doc: any) => {
+  const expiring = filtered.filter((doc) => {
     if (!doc.expiryDate && !doc.expiry_date) return false;
     const expiry = new Date(doc.expiryDate || doc.expiry_date);
     if (Number.isNaN(expiry.getTime())) return false;
@@ -143,7 +154,7 @@ export default function PermisosLicenciasPage() {
           {filtered.length === 0 ? (
             <p className="text-sm text-muted-foreground">No hay permisos o licencias detectados todavía.</p>
           ) : (
-            filtered.map((doc: any) => (
+            filtered.map((doc) => (
               <div key={doc.id} className="flex items-center justify-between rounded-lg border p-3">
                 <div className="space-y-1">
                   <p className="font-medium">{doc.title}</p>
