@@ -10,6 +10,21 @@ import { useMantenimientoOrdenes } from '@/hooks/use-module-apis';
 
 const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
 
+type MaintenanceAsset = {
+  status?: string | null;
+  criticality?: string | null;
+  id?: string | number;
+  name?: string | null;
+};
+
+type MaintenanceOrder = {
+  status: string;
+  priority: string;
+  scheduled_date?: string | null;
+  id?: string | number;
+  description?: string | null;
+};
+
 function statusLabel(status: string) {
   const labels: Record<string, string> = {
     pendiente: 'Pendiente',
@@ -71,11 +86,11 @@ export function MantenimientoDashboard() {
 
   const isLoading = ordersLoading || assetsLoading;
 
-  const assets = Array.isArray(assetsData?.assets) ? assetsData.assets : [];
+  const assets = (Array.isArray(assetsData?.assets) ? assetsData.assets : []) as MaintenanceAsset[];
   const totalAssets = assets.length;
-  const activeAssets = assets.filter((asset: any) => String(asset.status || '').toLowerCase() === 'active').length;
-  const maintenanceAssets = assets.filter((asset: any) => String(asset.status || '').toLowerCase() === 'maintenance').length;
-  const inactiveAssets = assets.filter((asset: any) =>
+  const activeAssets = assets.filter((asset) => String(asset.status || '').toLowerCase() === 'active').length;
+  const maintenanceAssets = assets.filter((asset) => String(asset.status || '').toLowerCase() === 'maintenance').length;
+  const inactiveAssets = assets.filter((asset) =>
     ['inactive', 'decommissioned'].includes(String(asset.status || '').toLowerCase()),
   ).length;
 
@@ -83,7 +98,7 @@ export function MantenimientoDashboard() {
   const inProgressOrders = ordenes.filter((o) => ['en_progreso', 'in_progress'].includes(o.status)).length;
   const completedOrders = ordenes.filter((o) => ['completado', 'completed'].includes(o.status)).length;
   const urgentOrders = ordenes.filter((o) => ['urgente', 'critical'].includes(o.priority)).length;
-  const overdueOrders = ordenes.filter((order: any) => {
+  const overdueOrders = (ordenes as MaintenanceOrder[]).filter((order) => {
     if (!order.scheduled_date) return false;
     if (['completado', 'completed'].includes(order.status)) return false;
     const scheduled = new Date(order.scheduled_date);
@@ -97,7 +112,7 @@ export function MantenimientoDashboard() {
   const availability = totalAssets > 0 ? Math.round((activeAssets / totalAssets) * 100) : 0;
   const recentOrders = [...ordenes].slice(0, 6);
   const criticalAssets = assets
-    .filter((asset: any) => ['critical', 'high'].includes(String(asset.criticality || '').toLowerCase()))
+    .filter((asset) => ['critical', 'high'].includes(String(asset.criticality || '').toLowerCase()))
     .slice(0, 6);
 
   if (ordersError || assetsError) {
@@ -376,7 +391,7 @@ export function MantenimientoDashboard() {
                   No hay equipos criticos visibles.
                 </div>
               ) : (
-                criticalAssets.map((asset: any) => (
+                criticalAssets.map((asset) => (
                   <div key={asset.id} className="flex items-center justify-between rounded-lg border border-border p-3">
                     <div>
                       <p className="font-semibold">{asset.assetName || asset.assetCode || 'Equipo'}</p>

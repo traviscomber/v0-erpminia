@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import type { LucideIcon } from 'lucide-react';
 
 export interface Document {
   id: string;
@@ -37,7 +38,7 @@ export interface Document {
   expiryDate: string;
   daysUntilExpiry: number;
   // Allow any additional fields from legacy systems
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface DocumentListProps {
@@ -48,7 +49,7 @@ interface DocumentListProps {
   showSearch?: boolean;
 }
 
-const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
+const statusConfig: Record<string, { label: string; color: string; icon: LucideIcon }> = {
   draft: { label: 'Borrador', color: 'bg-muted text-muted-foreground border border-border', icon: Clock },
   pending_l1:  { label: 'Revision L1', color: 'bg-blue-500/10 text-blue-400 border border-blue-500/30',  icon: Clock },
   pending_l2:  { label: 'Revision L2', color: 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/30',  icon: Clock },

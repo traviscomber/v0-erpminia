@@ -13,13 +13,18 @@ const fetcher = async (url: string) => {
   return payload;
 };
 
+type HseKpiItem = {
+  mes?: string | null;
+  iirl?: number | string | null;
+};
+
 export function HSEDashboard() {
   const { data } = useSWR('/api/dashboard/hse', fetcher, {
     revalidateOnFocus: false,
   });
 
   const summary = data?.summary || {};
-  const kpis = Array.isArray(data?.kpis) ? data.kpis : [];
+  const kpis = (Array.isArray(data?.kpis) ? data.kpis : []) as HseKpiItem[];
   const trainings = Array.isArray(data?.trainings) ? data.trainings : [];
   const epp = Array.isArray(data?.epp) ? data.epp : [];
   const incidents = Array.isArray(data?.incidents) ? data.incidents : [];
@@ -60,7 +65,7 @@ export function HSEDashboard() {
             <CardTitle>KPIs recientes</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            {kpis.slice(-6).map((item: any, index: number) => (
+            {kpis.slice(-6).map((item, index: number) => (
               <div key={index} className="flex items-center justify-between rounded border p-3">
                 <div>
                   <p className="font-medium">{item.mes}</p>
