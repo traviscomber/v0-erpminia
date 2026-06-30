@@ -11,6 +11,24 @@ import { Input } from '@/components/ui/input';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
+type DocumentCategory = {
+  id: string;
+  name?: string | null;
+  description?: string | null;
+  pendingApprovals?: number | null;
+  count?: number | null;
+};
+
+type DocumentSummaryItem = {
+  id: string | number;
+  nombre?: string | null;
+  documentId?: string | null;
+  version?: string | number | null;
+  estado?: string | null;
+  pendingBy?: string | null;
+  creador?: string | null;
+};
+
 function statusBadge(estado: string) {
   switch (estado) {
     case 'aprobado':
@@ -55,17 +73,17 @@ export default function DocumentosGestionPage() {
     refreshInterval: 300000,
   });
 
-  const categories = data?.categories || [];
-  const pendingApprovals = data?.pendingApprovals || [];
-  const recentDocuments = data?.recentDocuments || [];
-  const expiringDocuments = data?.expiringDocuments || [];
+  const categories = (data?.categories || []) as DocumentCategory[];
+  const pendingApprovals = (data?.pendingApprovals || []) as DocumentSummaryItem[];
+  const recentDocuments = (data?.recentDocuments || []) as DocumentSummaryItem[];
+  const expiringDocuments = (data?.expiringDocuments || []) as DocumentSummaryItem[];
   const stats = data?.stats || { total: 0, pending: 0, expiring: 0 };
 
   const filteredCategories = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
     if (!query) return categories;
 
-    return categories.filter((cat: any) =>
+    return categories.filter((cat) =>
       String(cat.name || '').toLowerCase().includes(query) ||
       String(cat.description || '').toLowerCase().includes(query)
     );
@@ -172,7 +190,7 @@ export default function DocumentosGestionPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             {expiringPreview.length > 0 ? (
-              expiringPreview.map((doc: any) => (
+              expiringPreview.map((doc) => (
                 <div key={doc.id} className="rounded-lg border border-amber-500/20 bg-background/70 p-3">
                   <div className="flex items-center justify-between gap-3">
                     <div>
@@ -239,7 +257,7 @@ export default function DocumentosGestionPage() {
             <CardDescription>{pendingApprovals.length} documentos requieren revision</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {pendingApprovals.map((doc: any) => (
+            {pendingApprovals.map((doc) => (
               <div
                 key={doc.id}
                 className="flex items-center justify-between rounded border border-[var(--secondary)]/20 bg-background/50 p-3"
@@ -266,7 +284,7 @@ export default function DocumentosGestionPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {recentDocuments.map((doc: any, idx: number) => (
+              {recentDocuments.map((doc, idx: number) => (
                 <div key={idx} className="flex items-center justify-between rounded border p-3 hover:bg-accent">
                   <div className="flex-1">
                     <div className="text-sm font-medium">{doc.nombre}</div>
@@ -304,7 +322,7 @@ export default function DocumentosGestionPage() {
       </Card>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {filteredCategories.map((category: any) => (
+        {filteredCategories.map((category) => (
           <Link key={category.id} href={`/dashboard/documentos-gestion/${category.id}`}>
             <Card className="h-full cursor-pointer transition-all hover:shadow-lg">
               <CardHeader>
