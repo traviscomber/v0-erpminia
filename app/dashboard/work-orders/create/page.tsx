@@ -36,6 +36,10 @@ type ComponentTemplate = {
 
 type AssetCard = MaintenanceAsset & { family: string };
 
+type MachineCatalogItem = {
+  family?: string | null;
+};
+
 const COMPONENT_TEMPLATES: Record<string, ComponentTemplate[]> = {
   excavator: [
     { id: 'motor', name: 'Sistema motor y transmision', code: 'EXC-MOTOR', estimatedHours: 4 },
@@ -148,8 +152,10 @@ export default function CreateWorkOrderPage() {
   }, [assets]);
   const machineFamilies = useMemo(() => {
     const derivedFamilies = new Set<string>();
-    const catalogItems = Array.isArray(machineCatalogData?.machines) ? machineCatalogData.machines : [];
-    catalogItems.forEach((item: any) => {
+    const catalogItems = Array.isArray(machineCatalogData?.machines)
+      ? (machineCatalogData.machines as MachineCatalogItem[])
+      : [];
+    catalogItems.forEach((item) => {
       if (item?.family) derivedFamilies.add(String(item.family));
     });
     assetCards.forEach((asset) => {

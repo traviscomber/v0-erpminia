@@ -22,7 +22,7 @@ export default function DocumentosMantenimientoPage() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedDoc, setSelectedDoc] = useState<any>(null);
+  const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [stats, setStats] = useState<DocumentStats>({
     total: 0,
@@ -62,7 +62,7 @@ export default function DocumentosMantenimientoPage() {
     const query = searchTerm.trim().toLowerCase();
     if (!query) return documents;
 
-    return documents.filter((doc: any) => {
+    return documents.filter((doc) => {
       const searchable = [
         doc.id,
         doc.title,

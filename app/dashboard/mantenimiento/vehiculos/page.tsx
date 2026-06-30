@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { BrandCard } from '@/components/ui/brand-card';
 import { ChevronRight, FileSearch, Plus, Wrench } from 'lucide-react';
 import { AssetImport } from '@/components/mantenimiento/asset-import';
+import type { DerivedCostCenterMachine } from '@/lib/maintenance/cost-center-machines';
 
 type MaintenanceAsset = {
   id: string;
@@ -33,7 +34,9 @@ export default function VehiclesPage() {
   const { data, error, isLoading } = useSWR('/api/maintenance/assets', fetcher);
   const { data: machineCatalogData } = useSWR('/api/maintenance/cost-center-machines', fetcher);
   const vehicles = (data?.assets || []) as MaintenanceAsset[];
-  const derivedMachines = Array.isArray(machineCatalogData?.machines) ? machineCatalogData.machines : [];
+  const derivedMachines = Array.isArray(machineCatalogData?.machines)
+    ? (machineCatalogData.machines as DerivedCostCenterMachine[])
+    : [];
 
   return (
     <div className="space-y-6">
@@ -153,7 +156,7 @@ export default function VehiclesPage() {
           {derivedMachines.length > 0 ? (
             <div className="max-h-[720px] overflow-y-auto pr-1">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {derivedMachines.map((machine: any) => (
+                {derivedMachines.map((machine) => (
                 <div key={machine.id} className="rounded-lg border border-border p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
