@@ -29,6 +29,19 @@ const MINING_ROLES = [
   { id: 'viewer', label: 'Lectura', description: 'Solo consulta' },
 ];
 
+type AdminUser = {
+  id: string;
+  email?: string | null;
+};
+
+type PermissionItem = {
+  id: string;
+  module?: string | null;
+  action?: string | null;
+  role?: string | null;
+  expires_at?: string | null;
+};
+
 export default function PermissionsPage() {
   const [selectedUser, setSelectedUser] = useState<string>('');
   const [selectedRole, setSelectedRole] = useState<string>('viewer');
@@ -94,8 +107,8 @@ export default function PermissionsPage() {
     }
   };
 
-  const userPermissions = permissionsData?.permissions || [];
-  const users = usersData?.users || [];
+  const userPermissions = (permissionsData?.permissions || []) as PermissionItem[];
+  const users = (usersData?.users || []) as AdminUser[];
 
   return (
     <div className="space-y-6">
@@ -122,7 +135,7 @@ export default function PermissionsPage() {
                   <SelectValue placeholder="Seleccionar usuario" />
                 </SelectTrigger>
                 <SelectContent>
-                  {users.map((user: any) => (
+                  {users.map((user) => (
                     <SelectItem key={user.id} value={user.id}>
                       {user.email}
                     </SelectItem>
@@ -236,7 +249,7 @@ export default function PermissionsPage() {
                       </td>
                     </tr>
                   ) : (
-                    userPermissions.map((permission: any) => (
+                    userPermissions.map((permission) => (
                       <tr key={permission.id} className="border-b hover:bg-muted/50">
                         <td className="px-4 py-2">
                           <Badge variant="outline">{permission.module}</Badge>

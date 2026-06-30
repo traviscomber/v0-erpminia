@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { ROLE_PERMISSIONS, UserRole } from '@/lib/roles-config';
 import { CheckCircle2, Lock } from 'lucide-react';
 
+type RoleConfig = (typeof ROLE_PERMISSIONS)[UserRole];
+
 export default function RolesPage() {
   const roles: UserRole[] = [
     'operador_produccion',
@@ -18,7 +20,7 @@ export default function RolesPage() {
 
   const [selectedRole, setSelectedRole] = useState<UserRole>('supervisor_gerencia');
 
-  const roleConfig = ROLE_PERMISSIONS[selectedRole];
+  const roleConfig: RoleConfig = ROLE_PERMISSIONS[selectedRole];
 
   return (
     <div className="space-y-8">
@@ -31,7 +33,7 @@ export default function RolesPage() {
 
       {/* Roles Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        {roles.map((role: any) => {
+        {roles.map((role) => {
           const config = ROLE_PERMISSIONS[role as keyof typeof ROLE_PERMISSIONS];
           const isSelected = role === selectedRole;
 
@@ -64,7 +66,7 @@ export default function RolesPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {roleConfig.accessibleModules.map((module: any) => (
+              {roleConfig.accessibleModules.map((module) => (
                 <div key={module} className="flex items-center gap-2 text-sm">
                   <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
                   <code className="text-xs bg-muted px-2 py-1 rounded flex-1">{module}</code>
@@ -105,7 +107,7 @@ export default function RolesPage() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {roleConfig.dashboardWidgets.map((widget: any) => (
+            {roleConfig.dashboardWidgets.map((widget) => (
               <div
                 key={widget}
                 className="bg-muted p-3 rounded border border-border hover:border-[var(--brand-naranja)]/50 transition-colors"
@@ -130,7 +132,7 @@ export default function RolesPage() {
             <thead>
               <tr className="border-b">
                 <th className="text-left py-2 px-2 font-semibold">Módulo</th>
-                {roles.map((role: any) => (
+                {roles.map((role) => (
                   <th key={role} className="text-center py-2 px-1">
                     <span className="text-xs">{ROLE_PERMISSIONS[role as keyof typeof ROLE_PERMISSIONS].icon}</span>
                   </th>
@@ -148,12 +150,12 @@ export default function RolesPage() {
                 '/dashboard/finanzas',
                 '/dashboard/reportes',
                 '/dashboard/integracion-completa',
-              ].map((module: any) => (
+              ].map((module) => (
                 <tr key={module} className="border-b hover:bg-muted/30">
                   <td className="text-left py-2 px-2 text-xs">
                     <code className="bg-muted px-2 py-1 rounded">{module}</code>
                   </td>
-                  {roles.map((role: any) => {
+                  {roles.map((role) => {
                     const canAccess = ROLE_PERMISSIONS[role as keyof typeof ROLE_PERMISSIONS].accessibleModules.some(m =>
                       module.startsWith(m)
                     );
@@ -178,7 +180,7 @@ export default function RolesPage() {
       <div className="space-y-4">
         <h2 className="text-2xl font-bold">Resumen por Rol</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {roles.map((role: any) => {
+          {roles.map((role) => {
             const config = ROLE_PERMISSIONS[role as keyof typeof ROLE_PERMISSIONS];
             return (
               <Card key={role} className="border-l-4" style={{ borderLeftColor: 'var(--brand-naranja)' }}>
@@ -194,7 +196,7 @@ export default function RolesPage() {
                   <div>
                     <p className="text-xs font-semibold text-muted-foreground mb-1">Módulos:</p>
                     <div className="flex flex-wrap gap-1">
-                      {config.accessibleModules.slice(0, 3).map((m: any) => (
+                      {config.accessibleModules.slice(0, 3).map((m) => (
                         <Badge key={m} variant="secondary" className="text-xs">
                           {m.split('/').pop()}
                         </Badge>
