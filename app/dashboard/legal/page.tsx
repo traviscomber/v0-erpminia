@@ -55,13 +55,19 @@ type CompliancePayload = {
     expired_contracts: number;
     legal_documents: number;
     expiring_documents: number;
-    approved_documents: number;
+  approved_documents: number;
   };
   contracts_pending_review: Array<{ id: string; title: string }>;
   contracts_missing_file: Array<{ id: string; title: string }>;
   expiring_contracts: Array<{ id: string; title: string; days_until_expiry: number }>;
   expiring_documents: Array<{ id: string; title: string; expiry_date: string }>;
 };
+
+type LegalDocumentForm = {
+  [key: string]: string | number | boolean | File | null | undefined;
+};
+
+type LegalContractForm = LegalDocumentForm;
 
 function getStatusBadge(status: string) {
   switch (status) {
@@ -195,7 +201,7 @@ export default function LegalPage() {
     }
   };
 
-  const handleAddDocument = async (doc: any) => {
+  const handleAddDocument = async (doc: LegalDocumentForm) => {
     const hasFile = doc.file instanceof File;
     let body: BodyInit;
     let headers: HeadersInit | undefined;
@@ -226,7 +232,7 @@ export default function LegalPage() {
     }
   };
 
-  const handleAddContract = async (contract: any) => {
+  const handleAddContract = async (contract: LegalContractForm) => {
     const hasFile = contract.file instanceof File;
     let body: BodyInit;
     let headers: HeadersInit | undefined;

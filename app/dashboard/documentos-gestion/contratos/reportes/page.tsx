@@ -29,6 +29,19 @@ const fetcher = async (url: string) => {
 
 const COLORS = ['#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
+type ReportEntry = {
+  name?: string | null;
+  monto_pagado?: number | string | null;
+  monto_pendiente?: number | string | null;
+  cantidad?: number | string | null;
+  estado?: string | null;
+  monto_total?: number | string | null;
+  mes?: string | null;
+  propiedad_1?: number | string | null;
+  propiedad_2?: number | string | null;
+  propiedad_3?: number | string | null;
+};
+
 export default function ContratosReportesPage() {
   const [periodo, setPeriodo] = useState('mes');
 
@@ -37,7 +50,12 @@ export default function ContratosReportesPage() {
     refreshInterval: 300000,
   });
 
-  const reportes = reportData || {};
+  const reportes = (reportData || {}) as {
+    pagos_por_contratista?: ReportEntry[];
+    garantias_activas?: ReportEntry[];
+    regalias_por_propiedad?: ReportEntry[];
+    estado_pagos?: ReportEntry[];
+  };
   const pagosPorContratista = reportes.pagos_por_contratista || [];
   const garantiasActivas = reportes.garantias_activas || [];
   const regaliasPorPropiedad = reportes.regalias_por_propiedad || [];
@@ -139,7 +157,7 @@ export default function ContratosReportesPage() {
                         fill="#8884d8"
                         dataKey="cantidad"
                       >
-                        {garantiasActivas.map((_: unknown, index: number) => (
+                        {garantiasActivas.map((_, index: number) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
@@ -184,7 +202,7 @@ export default function ContratosReportesPage() {
 
         <TabsContent value="estado" className="space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {estadoPagos.map((estado: any, idx: number) => (
+            {estadoPagos.map((estado, idx: number) => (
               <Card key={idx}>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm">{estado.estado}</CardTitle>
