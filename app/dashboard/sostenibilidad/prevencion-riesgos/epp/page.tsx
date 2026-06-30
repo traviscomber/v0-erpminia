@@ -31,6 +31,15 @@ interface EPP {
   activo: boolean;
 }
 
+type AdminUser = {
+  id: string;
+  full_name?: string | null;
+  nombre?: string | null;
+  email?: string | null;
+  role?: string | null;
+  active?: boolean | null;
+};
+
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 const authFetcher = async (url: string) => {
   const response = await fetch(url, { credentials: 'include' });
@@ -74,7 +83,7 @@ export default function EPPPage() {
   const activeEppCount = eppData.filter((item: EPP) => item.activo).length;
   const inactiveEppCount = eppData.length - activeEppCount;
   const users = Array.isArray(usersData?.users)
-    ? usersData.users.map((user: any) => ({
+    ? (usersData.users as AdminUser[]).map((user) => ({
         id: user.id,
         nombre: user.full_name || user.nombre || user.email,
         cargo: user.role || 'Usuario',
@@ -102,8 +111,8 @@ export default function EPPPage() {
   ];
 
   const filteredEPP = eppData.filter((item: EPP) =>
-    (item.elemento_epp.toLowerCase().includes(searchTerm.toLowerCase()) ||
-     item.cargo_puesto.toLowerCase().includes(searchTerm.toLowerCase())) &&
+    ((item.elemento_epp || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+     (item.cargo_puesto || '').toLowerCase().includes(searchTerm.toLowerCase())) &&
     (!selectedCargo || item.cargo_puesto === selectedCargo)
   );
 
