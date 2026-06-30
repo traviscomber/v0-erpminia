@@ -19,16 +19,18 @@ type RiskItem = {
   status?: string | null;
 };
 
-type RiskResponse = {
-  data?: unknown;
+type RiskApiResponse = {
+  data: RiskItem[];
+  count: number;
+  warning?: string;
 };
 
-const fetcher = async (url: string): Promise<RiskResponse | null> => {
+const fetcher = async (url: string): Promise<RiskApiResponse | null> => {
   const response = await fetch(url, { credentials: 'include' });
   if (!response.ok) {
     return null;
   }
-  return response.json();
+  return (await response.json()) as RiskApiResponse;
 };
 
 export default function HSERiskMatrixPage() {
@@ -41,8 +43,7 @@ export default function HSERiskMatrixPage() {
     { revalidateOnFocus: false, refreshInterval: 300000 }
   );
 
-  const riskData = data?.data;
-  const risks = Array.isArray(riskData) ? (riskData as RiskItem[]) : [];
+  const risks = data?.data ?? [];
 
   const filtered = useMemo(
     () =>
