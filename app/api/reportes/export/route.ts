@@ -60,9 +60,11 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function generateCSV(data: any[], type: string): string {
+type ReportRow = Record<string, string | number | boolean | null | undefined>;
+
+function generateCSV(data: ReportRow[], _type: string): string {
   if (!data.length) return '';
   const headers = Object.keys(data[0]);
-  const rows = data.map(row => headers.map(h => row[h] || '').join(','));
+  const rows = data.map((row) => headers.map((header) => String(row[header] ?? '')).join(','));
   return [headers.join(','), ...rows].join('\n');
 }
