@@ -41,7 +41,8 @@ export default function HSERiskMatrixPage() {
     { revalidateOnFocus: false, refreshInterval: 300000 }
   );
 
-  const risks = Array.isArray(data?.data) ? (data.data as RiskItem[]) : [];
+  const riskData = data?.data;
+  const risks = Array.isArray(riskData) ? (riskData as RiskItem[]) : [];
 
   const filtered = useMemo(
     () =>
