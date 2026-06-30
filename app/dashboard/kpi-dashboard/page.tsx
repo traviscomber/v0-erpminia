@@ -17,6 +17,17 @@ interface KPI {
   description: string;
 }
 
+type AlertDistributionEntry = {
+  name: string;
+  value: number;
+  color: string;
+};
+
+type RecommendationEntry = {
+  message?: string | null;
+  description?: string | null;
+};
+
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const getStatusBg = (status: string) => {
@@ -53,7 +64,8 @@ export default function KPIDashboardPage() {
 
   const kpisData = data?.kpis || {};
   const trendData = data?.trendData || [];
-  const alertDistribution = data?.alertsDistribution || [];
+  const alertDistribution = (data?.alertsDistribution || []) as AlertDistributionEntry[];
+  const recommendations = (data?.recommendations || []) as RecommendationEntry[];
 
   const kpis: KPI[] = [
     {
@@ -216,7 +228,7 @@ export default function KPIDashboardPage() {
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {alertDistribution.map((entry: any, index: number) => (
+                  {alertDistribution.map((entry, index: number) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
@@ -302,7 +314,7 @@ export default function KPIDashboardPage() {
           </CardHeader>
           <CardContent>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              {recommendations.slice(0, 4).map((item: any, index: number) => (
+              {recommendations.slice(0, 4).map((item, index: number) => (
                 <li key={index}>- {item.message || item.description || 'Sin detalle'}</li>
               ))}
             </ul>

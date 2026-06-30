@@ -20,6 +20,15 @@ interface AIInsight {
   affected_resource: string;
 }
 
+type CriticalEquipmentItem = {
+  name?: string | null;
+  title?: string | null;
+  description?: string | null;
+  issue?: string | null;
+  status?: string | null;
+  action?: string | null;
+};
+
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const severityConfig = {
@@ -63,7 +72,7 @@ export default function IAOperacionalPage() {
   const predictions = insightsData.pending_maintenance || 0;
 
   // Get detailed lists
-  const criticalEquipment = detailsData.critical_equipment || [];
+  const criticalEquipment = (detailsData.critical_equipment || []) as CriticalEquipmentItem[];
   const expiringDocs = detailsData.expiring_documents || [];
   const criticalStock = detailsData.critical_stock || [];
   const pendingMaint = detailsData.pending_maintenance || [];
@@ -135,7 +144,7 @@ export default function IAOperacionalPage() {
             {criticalEquipment.length === 0 ? (
               <p className="text-muted-foreground text-center py-4">No hay insights disponibles</p>
             ) : (
-              criticalEquipment.map((item: any, idx: number) => (
+              criticalEquipment.map((item, idx: number) => (
                 <Alert key={idx} className="border-[var(--brand-rojo)]/30 bg-[var(--brand-rojo)]/5">
                   <div className="flex items-start gap-4">
                     <div className="mt-0.5 text-[var(--brand-rojo)]">⚠️</div>
@@ -148,7 +157,7 @@ export default function IAOperacionalPage() {
                       </AlertDescription>
                       <div className="flex items-center gap-2">
                         <Badge variant="outline" className="text-xs">
-                          {item.status.toUpperCase() || 'CRÍTICO'}
+                          {String(item.status || 'CRITICO').toUpperCase()}
                         </Badge>
                         {item.action && (
                           <button className="text-xs font-semibold hover:underline">
