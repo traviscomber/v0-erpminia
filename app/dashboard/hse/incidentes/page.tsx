@@ -9,10 +9,26 @@ import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, Search, Download } from 'lucide-react';
 import { IncidentsImport } from '@/components/hse/incidents-import';
 
+type IncidentItem = {
+  id?: string | number | null;
+  title?: string | null;
+  description?: string | null;
+  severity?: string | null;
+  status?: string | null;
+  location?: string | null;
+  date_reported?: string | null;
+};
+
+type IncidentsApiResponse = {
+  data: IncidentItem[];
+  count: number;
+  warning?: string;
+};
+
 const fetcher = async (url: string) => {
   const response = await fetch(url);
   if (!response.ok) return null;
-  return response.json();
+  return (await response.json()) as IncidentsApiResponse;
 };
 
 export default function HSEIncidentsPage() {
@@ -29,14 +45,14 @@ export default function HSEIncidentsPage() {
 
   const filtered = useMemo(
     () =>
-      incidents.filter((item: any) =>
+      incidents.filter((item) =>
         `${item.title || ''} ${item.description || ''} ${item.location || ''}`.toLowerCase().includes(searchTerm.toLowerCase())
       ),
     [incidents, searchTerm]
   );
 
   const bySeverity = useMemo(() => {
-    return filtered.reduce((acc: Record<string, number>, item: any) => {
+    return filtered.reduce((acc: Record<string, number>, item) => {
       const key = String(item.severity || 'media');
       acc[key] = (acc[key] || 0) + 1;
       return acc;
@@ -122,7 +138,7 @@ export default function HSEIncidentsPage() {
       </Card>
 
       <div className="space-y-2">
-        {filtered.map((item: any) => (
+        {filtered.map((item) => (
           <Card key={item.id || `${item.title}-${item.date_reported}`}>
             <CardContent className="pt-6">
               <div className="flex items-start justify-between gap-4">

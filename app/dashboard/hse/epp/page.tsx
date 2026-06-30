@@ -10,12 +10,19 @@ import { Download, Shield, Plus, Search, Check } from 'lucide-react';
 import { EppImport } from '@/components/hse/epp-import';
 
 type HseEppEntry = {
+  id?: string | number | null;
   cargo?: string | null;
   tarea?: string | null;
   faena?: string | null;
   epp_elemento?: string | null;
   cantidad?: number | string | null;
   activo?: boolean | null;
+};
+
+type HseEppApiResponse = {
+  entregas: HseEppEntry[];
+  total: number;
+  warning?: string;
 };
 
 type GroupSummary = {
@@ -67,7 +74,7 @@ const fetcher = async (url: string) => {
   if (!response.ok) {
     return null;
   }
-  return response.json();
+  return (await response.json()) as HseEppApiResponse;
 };
 
 export default function HSEEPPPage() {
@@ -80,7 +87,7 @@ export default function HSEEPPPage() {
     { revalidateOnFocus: false, refreshInterval: 300000 }
   );
 
-  const entregas = Array.isArray(data?.entregas) ? (data.entregas as HseEppEntry[]) : [];
+  const entregas = data?.entregas || [];
 
   const filtradas = useMemo(
     () =>
@@ -190,7 +197,7 @@ export default function HSEEPPPage() {
             <CardTitle className="text-base">Por cargo</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {Object.entries(cargosGroup).slice(0, 6).map(([cargoName, stats]: [string, any]) => (
+            {Object.entries(cargosGroup).slice(0, 6).map(([cargoName, stats]) => (
               <div key={cargoName} className="rounded border border-border p-3">
                 <div className="flex items-center justify-between gap-2">
                   <p className="font-semibold">{cargoName}</p>
@@ -208,7 +215,7 @@ export default function HSEEPPPage() {
             <CardTitle className="text-base">Por tarea</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {Object.entries(tareasGroup).slice(0, 6).map(([taskName, stats]: [string, any]) => (
+            {Object.entries(tareasGroup).slice(0, 6).map(([taskName, stats]) => (
               <div key={taskName} className="rounded border border-border p-3">
                 <div className="flex items-center justify-between gap-2">
                   <p className="font-semibold">{taskName}</p>
@@ -226,7 +233,7 @@ export default function HSEEPPPage() {
             <CardTitle className="text-base">Por faena</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {Object.entries(faenasGroup).slice(0, 6).map(([siteName, stats]: [string, any]) => (
+            {Object.entries(faenasGroup).slice(0, 6).map(([siteName, stats]) => (
               <div key={siteName} className="rounded border border-border p-3">
                 <div className="flex items-center justify-between gap-2">
                   <p className="font-semibold">{siteName}</p>
@@ -262,7 +269,7 @@ export default function HSEEPPPage() {
             <CardTitle className="text-sm text-muted-foreground">Cargos cubiertos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-[var(--secondary)]">{new Set(entregas.map((e: any) => e.cargo)).size}</div>
+            <div className="text-2xl font-bold text-[var(--secondary)]">{new Set(entregas.map((e) => e.cargo)).size}</div>
           </CardContent>
         </Card>
         <Card>
@@ -281,7 +288,7 @@ export default function HSEEPPPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            {Object.entries(resumenPorElemento).map(([elemento, datos]: [string, any]) => (
+            {Object.entries(resumenPorElemento).map(([elemento, datos]) => (
               <div key={elemento} className="flex items-center justify-between rounded bg-muted p-3">
                 <div>
                   <p className="font-semibold">{elemento}</p>
@@ -317,7 +324,7 @@ export default function HSEEPPPage() {
       </Card>
 
       <div className="space-y-2">
-        {filtradas.map((entrega: any) => (
+        {filtradas.map((entrega) => (
           <Card key={entrega.id}>
             <CardContent className="pt-6">
               <div className="flex items-start justify-between gap-4">

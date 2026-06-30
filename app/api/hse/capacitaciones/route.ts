@@ -126,7 +126,7 @@ export async function GET(request: NextRequest) {
 
     const capacitaciones = estado
       ? data.trainings.filter(
-          (training: any) => String(training.estado || '').toLowerCase() === estado.toLowerCase()
+          (training) => String(training.estado || '').toLowerCase() === estado.toLowerCase()
         )
       : data.trainings;
 

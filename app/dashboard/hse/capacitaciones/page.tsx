@@ -12,12 +12,31 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 import { HSECapacitacionesImport } from '@/components/hse/hse-capacitaciones-import';
 
+type CapacitacionItem = {
+  id?: string | number | null;
+  nombre?: string | null;
+  tipo?: string | null;
+  tema?: string | null;
+  proveedor?: string | null;
+  estado?: string | null;
+  fecha_programada?: string | null;
+  duracion_horas?: number | string | null;
+  asistentes_count?: number | string | null;
+  cargos_aplica?: string | null;
+};
+
+type CapacitacionesApiResponse = {
+  capacitaciones: CapacitacionItem[];
+  total: number;
+  warning?: string;
+};
+
 const fetcher = async (url: string) => {
   const response = await fetch(url);
   if (!response.ok) {
     return null;
   }
-  return response.json();
+  return (await response.json()) as CapacitacionesApiResponse;
 };
 
 const estadoColores: Record<string, string> = {
@@ -39,20 +58,21 @@ export default function HSECapacitacionesPage() {
   const capacitaciones = data?.capacitaciones || [];
   const filtradas = useMemo(
     () =>
-      capacitaciones.filter((c: any) =>
+      capacitaciones.filter((c) =>
         `${c.nombre} ${c.tipo} ${c.proveedor || ''}`.toLowerCase().includes(searchTerm.toLowerCase())
       ),
     [capacitaciones, searchTerm]
   );
 
-  const proximasCapacitaciones = filtradas.filter((c: any) => {
+  const proximasCapacitaciones = filtradas.filter((c) => {
     const fecha = new Date(c.fecha_programada);
     return fecha >= new Date() && c.estado === 'programada';
   });
 
   const chartData = Object.entries(
-    filtradas.reduce((acc: Record<string, number>, item: any) => {
-      acc[item.tipo] = (acc[item.tipo] || 0) + 1;
+    filtradas.reduce((acc: Record<string, number>, item) => {
+      const key = String(item.tipo || 'Sin tipo');
+      acc[key] = (acc[key] || 0) + 1;
       return acc;
     }, {})
   ).map(([tipo, cantidad]) => ({ tipo, cantidad }));
@@ -92,7 +112,7 @@ export default function HSECapacitacionesPage() {
         <div className="rounded-lg border border-[var(--secondary)]/30 bg-[var(--secondary)]/5 p-4">
           <h3 className="mb-3 font-semibold text-blue-900">Proximas capacitaciones</h3>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-            {proximasCapacitaciones.slice(0, 3).map((cap: any) => (
+            {proximasCapacitaciones.slice(0, 3).map((cap) => (
               <div key={cap.id} className="rounded border border-blue-100 bg-white p-3">
                 <p className="text-sm font-semibold">{cap.nombre}</p>
                 <p className="text-xs text-muted-foreground">
@@ -123,7 +143,7 @@ export default function HSECapacitacionesPage() {
             <CardTitle className="text-sm text-muted-foreground">Programadas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-[var(--secondary)]">{capacitaciones.filter((c: any) => c.estado === 'programada').length}</div>
+            <div className="text-2xl font-bold text-[var(--secondary)]">{capacitaciones.filter((c) => c.estado === 'programada').length}</div>
           </CardContent>
         </Card>
         <Card>
@@ -131,7 +151,7 @@ export default function HSECapacitacionesPage() {
             <CardTitle className="text-sm text-muted-foreground">Realizadas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-[var(--brand-verde)]">{capacitaciones.filter((c: any) => c.estado === 'realizada').length}</div>
+            <div className="text-2xl font-bold text-[var(--brand-verde)]">{capacitaciones.filter((c) => c.estado === 'realizada').length}</div>
           </CardContent>
         </Card>
         <Card>
@@ -139,7 +159,7 @@ export default function HSECapacitacionesPage() {
             <CardTitle className="text-sm text-muted-foreground">Horas acumuladas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{capacitaciones.reduce((sum: number, c: any) => sum + (Number(c.duracion_horas) || 0), 0)}h</div>
+            <div className="text-2xl font-bold">{capacitaciones.reduce((sum: number, c) => sum + (Number(c.duracion_horas) || 0), 0)}h</div>
           </CardContent>
         </Card>
       </div>
@@ -190,7 +210,7 @@ export default function HSECapacitacionesPage() {
       </Card>
 
       <div className="space-y-2">
-        {filtradas.map((cap: any) => (
+        {filtradas.map((cap) => (
           <Card key={cap.id} className="cursor-pointer transition-shadow hover:shadow-md">
             <CardContent className="pt-6">
               <div className="flex items-start justify-between gap-4">

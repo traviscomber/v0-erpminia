@@ -10,10 +10,27 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { InvestigationsImport } from '@/components/hse/investigations-import';
 
+type InvestigationItem = {
+  id?: string | number | null;
+  incident_id?: string | null;
+  root_cause?: string | null;
+  corrective_actions?: string | null;
+  assigned_to?: string | null;
+  target_date?: string | null;
+  status?: string | null;
+  created_at?: string | null;
+};
+
+type InvestigationsApiResponse = {
+  investigations: InvestigationItem[];
+  total: number;
+  warning?: string;
+};
+
 const fetcher = async (url: string) => {
   const response = await fetch(url);
   if (!response.ok) return null;
-  return response.json();
+  return (await response.json()) as InvestigationsApiResponse;
 };
 
 export default function HSEInvestigacionesPage() {
@@ -37,7 +54,7 @@ export default function HSEInvestigacionesPage() {
 
   const filtered = useMemo(
     () =>
-      investigations.filter((item: any) =>
+      investigations.filter((item) =>
         `${item.incident_id || ''} ${item.root_cause || ''} ${item.corrective_actions || ''} ${item.assigned_to || ''}`
           .toLowerCase()
           .includes(searchTerm.toLowerCase())
@@ -47,7 +64,7 @@ export default function HSEInvestigacionesPage() {
 
   const summary = useMemo(() => {
     return filtered.reduce(
-      (acc: Record<string, number>, item: any) => {
+      (acc: Record<string, number>, item) => {
         const status = String(item.status || 'open').toLowerCase();
         acc.total += 1;
         acc[status] = (acc[status] || 0) + 1;
@@ -231,7 +248,7 @@ export default function HSEInvestigacionesPage() {
       </Card>
 
       <div className="space-y-3">
-        {filtered.map((item: any) => (
+        {filtered.map((item) => (
           <Card key={item.id || `${item.incident_id}-${item.created_at}`}>
             <CardContent className="pt-6">
               <div className="flex items-start justify-between gap-4">

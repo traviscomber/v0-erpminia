@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     const data = await getHseModuleData(context.organizationId, context.supabase);
 
     const entregas = cargo
-      ? data.epp.filter((item: any) =>
+      ? data.epp.filter((item) =>
           String(item.cargo || item.cargo_puesto || '')
             .toLowerCase()
             .includes(cargo.toLowerCase())

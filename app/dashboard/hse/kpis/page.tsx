@@ -7,12 +7,28 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle, TrendingDown, TrendingUp } from 'lucide-react';
 import { HSEKPIsSeguridad } from '@/components/hse/hse-kpis-seguridad';
 
+type HseKpiPoint = {
+  mes: string;
+  tasa_accidentabilidad: number;
+  tasa_frecuencia: number;
+  tasa_gravedad: number;
+  iirl: number;
+  odi: number;
+  dias_sin_accidentes: number;
+};
+
+type HSEKpisApiResponse = {
+  kpis: HseKpiPoint[];
+  meta_iirl: number;
+  warning?: string;
+};
+
 const fetcher = async (url: string) => {
   const response = await fetch(url);
   if (!response.ok) {
     return null;
   }
-  return response.json();
+  return (await response.json()) as HSEKpisApiResponse;
 };
 
 export default function HSEKPIsPage() {
@@ -105,7 +121,7 @@ export default function HSEKPIsPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {kpis.slice(-6).map((mes: any, idx: number) => (
+            {kpis.slice(-6).map((mes, idx: number) => (
               <div key={idx} className="flex items-center justify-between rounded bg-muted p-3">
                 <div>
                   <p className="font-semibold">{mes.mes}</p>
