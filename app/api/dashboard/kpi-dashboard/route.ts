@@ -4,7 +4,30 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { getDashboardSnapshot } from '@/lib/api/dashboard-snapshot';
 
-function averageHours(rows: any[]) {
+type WorkOrderRow = {
+  created_at?: string | null;
+  createdAt?: string | null;
+  start_time?: string | null;
+  startDate?: string | null;
+  completion_date?: string | null;
+  completed_at?: string | null;
+  closed_at?: string | null;
+  end_time?: string | null;
+  endDate?: string | null;
+  status?: string | null;
+  actual_duration_hours?: number | string | null;
+};
+
+type IncidentRow = {
+  date_reported?: string | null;
+};
+
+type CostCenterRow = {
+  budget_annual?: number | string | null;
+  budget_used?: number | string | null;
+};
+
+function averageHours(rows: WorkOrderRow[]) {
   const values = rows
     .map((row) => {
       const start = new Date(row.created_at || row.createdAt || row.start_time || row.startDate || 0).getTime();
@@ -33,8 +56,8 @@ export async function GET(request: NextRequest) {
         .limit(100),
     ]);
 
-    const incidents = incidentsResult.data || [];
-    const completedWorkOrders = snapshot.workOrders.filter((item: any) => {
+    const incidents = (incidentsResult.data || []) as IncidentRow[];
+    const completedWorkOrders = (snapshot.workOrders as WorkOrderRow[]).filter((item) => {
       const status = String(item.status || '').toLowerCase();
       return ['completed', 'closed', 'done', 'finalizado', 'cerrado', 'resuelto'].includes(status);
     });
@@ -44,12 +67,12 @@ export async function GET(request: NextRequest) {
       ? Math.max(0, Math.floor((Date.now() - new Date(latestIncidentDate).getTime()) / (1000 * 60 * 60 * 24)))
       : snapshot.daysNoIncidents;
 
-    const budgetAnnual = snapshot.costCenters.reduce(
-      (sum: number, item: any) => sum + Number(item.budget_annual || 0),
+    const budgetAnnual = (snapshot.costCenters as CostCenterRow[]).reduce(
+      (sum: number, item) => sum + Number(item.budget_annual || 0),
       0
     );
-    const budgetUsed = snapshot.costCenters.reduce(
-      (sum: number, item: any) => sum + Number(item.budget_used || 0),
+    const budgetUsed = (snapshot.costCenters as CostCenterRow[]).reduce(
+      (sum: number, item) => sum + Number(item.budget_used || 0),
       0
     );
     const budgetVariance = budgetAnnual > 0 ? Number((((budgetUsed - budgetAnnual) / budgetAnnual) * 100).toFixed(1)) : 0;
@@ -65,7 +88,7 @@ export async function GET(request: NextRequest) {
         mtbf_hours: snapshot.mtbfHours,
         mttr_hours: mttrHours,
         availability_percent: availabilityPercent,
-        incidents_this_month: incidents.filter((item: any) => {
+        incidents_this_month: incidents.filter((item) => {
           const reported = new Date(item.date_reported || 0).getTime();
           const monthStart = new Date();
           monthStart.setDate(1);
@@ -83,7 +106,7 @@ export async function GET(request: NextRequest) {
       },
       trendData: snapshot.trendData,
       alertsDistribution: snapshot.alertsDistribution,
-      recommendations: snapshot.recommendations.map((item: any) => item.description),
+      recommendations: snapshot.recommendations.map((item: { description?: string | null }) => item.description),
       lastUpdated: new Date().toISOString(),
     });
   } catch (error) {

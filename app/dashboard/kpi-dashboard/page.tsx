@@ -150,8 +150,6 @@ export default function KPIDashboardPage() {
     },
   ];
 
-  const recommendations = data?.recommendations || [];
-
   return (
     <div className="space-y-6">
       <div>

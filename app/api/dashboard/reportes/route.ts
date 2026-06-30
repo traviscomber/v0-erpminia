@@ -8,6 +8,16 @@ function clamp(value: number, min = 0, max = 100) {
   return Math.max(min, Math.min(max, value));
 }
 
+type TrendMonthRow = { mes?: string | null };
+type TrendDataRow = { date?: string | null; equipos?: number | null };
+type AssetRow = { name?: string | null };
+type CostCenterRow = {
+  name?: string | null;
+  budget_used?: number | string | null;
+  budget_annual?: number | string | null;
+};
+type RecommendationRow = { severity?: string | null };
+
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
@@ -23,7 +33,7 @@ export async function GET(request: NextRequest) {
 
     const maintenance = {
       title: 'Reporte de Mantenimiento',
-      data: snapshot.trendByMonth.map((item: any) => ({
+      data: (snapshot.trendByMonth as TrendMonthRow[]).map((item) => ({
         month: item.mes,
         completed: snapshot.summary.correctiveOrders,
         pending: snapshot.summary.preventiveOrders,
@@ -39,7 +49,7 @@ export async function GET(request: NextRequest) {
 
     const production = {
       title: 'Reporte de Produccion',
-      data: snapshot.trendData.map((item: any) => ({
+      data: (snapshot.trendData as TrendDataRow[]).map((item) => ({
         month: item.date,
         actual: item.equipos,
         target: clamp(item.equipos + 2, 0, 100),
@@ -53,7 +63,7 @@ export async function GET(request: NextRequest) {
 
     const equipment = {
       title: 'Reporte de Equipos',
-      data: snapshot.assets.slice(0, 5).map((asset: any) => ({
+      data: (snapshot.assets as AssetRow[]).slice(0, 5).map((asset) => ({
         equipment: asset.name,
         availability: snapshot.operationalEquipment > 0 ? clamp((snapshot.operationalEquipment / snapshot.assets.length) * 100) : 100,
         MTBF: snapshot.mtbfHours,
@@ -71,15 +81,15 @@ export async function GET(request: NextRequest) {
 
     const financial = {
       title: 'Reporte Financiero',
-      data: snapshot.costCenters.slice(0, 5).map((center: any) => ({
+      data: (snapshot.costCenters as CostCenterRow[]).slice(0, 5).map((center) => ({
         category: center.name,
         value: Number(center.budget_used || 0),
       })),
       summary: {
-        totalCosts: snapshot.costCenters.reduce((sum: number, center: any) => sum + Number(center.budget_used || 0), 0),
-        totalIncome: snapshot.costCenters.reduce((sum: number, center: any) => sum + Number(center.budget_annual || 0), 0),
+        totalCosts: (snapshot.costCenters as CostCenterRow[]).reduce((sum: number, center) => sum + Number(center.budget_used || 0), 0),
+        totalIncome: (snapshot.costCenters as CostCenterRow[]).reduce((sum: number, center) => sum + Number(center.budget_annual || 0), 0),
         profit: snapshot.costCenters.reduce(
-          (sum: number, center: any) => sum + Number(center.budget_annual || 0) - Number(center.budget_used || 0),
+          (sum: number, center: CostCenterRow) => sum + Number(center.budget_annual || 0) - Number(center.budget_used || 0),
           0
         ),
       },
@@ -87,7 +97,7 @@ export async function GET(request: NextRequest) {
 
     const hse = {
       title: 'Reporte HSE',
-      data: snapshot.recommendations.slice(0, 4).map((item: any, index: number) => ({
+      data: (snapshot.recommendations as RecommendationRow[]).slice(0, 4).map((item, index: number) => ({
         month: `M${index + 1}`,
         incidents: item.severity === 'critical' ? 1 : 0,
         nearmiss: item.severity === 'warning' ? 1 : 0,
