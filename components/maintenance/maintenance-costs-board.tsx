@@ -7,18 +7,55 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
+interface MaintenanceCostsSummary {
+  totalCost?: number | string;
+  totalWorkOrders?: number | string;
+  totalRecords?: number | string;
+  assets?: number | string;
+  averageCostPerAsset?: number | string;
+}
 
-function money(value: number) {
+interface AssetCostRow {
+  id: string;
+  assetName: string;
+  assetCode?: string | null;
+  partsCost?: number | string | null;
+  laborCost?: number | string | null;
+  workOrderCost?: number | string | null;
+  totalCost?: number | string | null;
+}
+
+interface MonthlyCostRow {
+  month: string;
+  value: number | string;
+}
+
+interface MaintenanceCostsResponse {
+  summary?: MaintenanceCostsSummary;
+  assetCosts?: AssetCostRow[];
+  monthlyCosts?: MonthlyCostRow[];
+}
+
+const fetcher = async (url: string): Promise<MaintenanceCostsResponse> => {
+  const response = await fetch(url, { credentials: 'include' });
+  return response.json();
+};
+
+function toNumber(value: unknown) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function money(value: unknown) {
   return `$${Number(value || 0).toLocaleString('es-CL')}`;
 }
 
 export function MaintenanceCostsBoard() {
-  const { data, error, isLoading, mutate } = useSWR('/api/maintenance/costs', fetcher);
+  const { data, error, isLoading, mutate } = useSWR<MaintenanceCostsResponse>('/api/maintenance/costs', fetcher);
 
-  const summary = data?.summary || { totalCost: 0, totalWorkOrders: 0, totalRecords: 0, assets: 0, averageCostPerAsset: 0 };
-  const assetCosts = Array.isArray(data?.assetCosts) ? data.assetCosts : [];
-  const monthlyCosts = Array.isArray(data?.monthlyCosts) ? data.monthlyCosts : [];
+  const summary: MaintenanceCostsSummary = data?.summary || { totalCost: 0, totalWorkOrders: 0, totalRecords: 0, assets: 0, averageCostPerAsset: 0 };
+  const assetCosts: AssetCostRow[] = Array.isArray(data?.assetCosts) ? data.assetCosts : [];
+  const monthlyCosts: MonthlyCostRow[] = Array.isArray(data?.monthlyCosts) ? data.monthlyCosts : [];
 
   return (
     <div className="space-y-6">
@@ -67,7 +104,7 @@ export function MaintenanceCostsBoard() {
             <CardTitle className="text-sm">Equipos con costo</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{summary.assets}</div>
+            <div className="text-2xl font-bold">{toNumber(summary.assets)}</div>
           </CardContent>
         </Card>
         <Card>
@@ -75,7 +112,7 @@ export function MaintenanceCostsBoard() {
             <CardTitle className="text-sm">OT con costo</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{summary.totalWorkOrders}</div>
+            <div className="text-2xl font-bold">{toNumber(summary.totalWorkOrders)}</div>
           </CardContent>
         </Card>
         <Card>
@@ -140,7 +177,7 @@ export function MaintenanceCostsBoard() {
                 No hay costos registrados todavia.
               </div>
             ) : (
-              assetCosts.slice(0, 8).map((asset: any) => (
+              assetCosts.slice(0, 8).map((asset) => (
                 <div key={asset.id} className="rounded-lg border border-border p-3">
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -168,13 +205,13 @@ export function MaintenanceCostsBoard() {
                 Sin datos mensuales todavia.
               </div>
             ) : (
-              monthlyCosts.map((row: any) => (
+              monthlyCosts.map((row) => (
                 <div key={row.month} className="flex items-center justify-between rounded-lg border border-border p-3">
                   <div>
                     <p className="font-medium">{row.month}</p>
                     <p className="text-xs text-muted-foreground">Costo acumulado del mes</p>
                   </div>
-                  <Badge variant="outline">{money(row.value)}</Badge>
+                      <Badge variant="outline">{money(row.value)}</Badge>
                 </div>
               ))
             )}
