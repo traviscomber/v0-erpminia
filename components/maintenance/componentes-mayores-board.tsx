@@ -7,7 +7,49 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
+type ComponentIntervention = {
+  id: string;
+  name?: string | null;
+  code?: string | null;
+  status?: string | null;
+  lastMaintenance?: string | null;
+  daysSince?: number | null;
+  vehicle?: {
+    name?: string | null;
+    code?: string | null;
+  } | null;
+};
+
+type ComponentGroup = {
+  id: string;
+  name?: string | null;
+  code?: string | null;
+  vehicleType?: string | null;
+  level?: string | number | null;
+  totalInstances?: number | string | null;
+  faultModes?: number | string | null;
+  description?: string | null;
+  degraded?: number | string | null;
+  failures?: number | string | null;
+  nextInterventions?: ComponentIntervention[];
+};
+
+type ComponentSummary = {
+  totalTemplates?: number | string;
+  totalComponents?: number | string;
+  degraded?: number | string;
+  failures?: number | string;
+};
+
+type ComponentsMayoresResponse = {
+  summary?: ComponentSummary;
+  componentsByTemplate?: ComponentGroup[];
+};
+
+const fetcher = async (url: string): Promise<ComponentsMayoresResponse> => {
+  const response = await fetch(url, { credentials: 'include' });
+  return response.json();
+};
 
 function daysLabel(days?: number | null) {
   if (days === null || days === undefined) return 'Sin dato';
@@ -17,9 +59,9 @@ function daysLabel(days?: number | null) {
 }
 
 export function ComponentesMayoresBoard() {
-  const { data, error, isLoading, mutate } = useSWR('/api/maintenance/componentes-mayores', fetcher);
-  const summary = data?.summary || { totalTemplates: 0, totalComponents: 0, degraded: 0, failures: 0 };
-  const groups = Array.isArray(data?.componentsByTemplate) ? data.componentsByTemplate : [];
+  const { data, error, isLoading, mutate } = useSWR<ComponentsMayoresResponse>('/api/maintenance/componentes-mayores', fetcher);
+  const summary: ComponentSummary = data?.summary || { totalTemplates: 0, totalComponents: 0, degraded: 0, failures: 0 };
+  const groups: ComponentGroup[] = Array.isArray(data?.componentsByTemplate) ? data.componentsByTemplate : [];
 
   return (
     <div className="space-y-6">
@@ -132,7 +174,7 @@ export function ComponentesMayoresBoard() {
             </CardContent>
           </Card>
         ) : (
-          groups.map((group: any) => (
+          groups.map((group) => (
             <Card key={group.id}>
               <CardHeader>
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
@@ -163,12 +205,12 @@ export function ComponentesMayoresBoard() {
 
                 <div className="space-y-2">
                   <h3 className="text-sm font-semibold">Ultima mantencion y estado</h3>
-                  {group.nextInterventions.length === 0 ? (
+                  {(group.nextInterventions || []).length === 0 ? (
                     <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
                       No hay instancias registradas para este componente.
                     </div>
                   ) : (
-                    group.nextInterventions.map((component: any) => (
+                    (group.nextInterventions || []).map((component) => (
                       <div key={component.id} className="rounded-lg border border-border p-3 text-sm">
                         <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                           <div>
