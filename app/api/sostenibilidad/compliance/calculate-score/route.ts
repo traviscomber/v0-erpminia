@@ -12,7 +12,9 @@ interface NonConformance {
   created_at: string;
 }
 
-async function calculateComplianceScore(supabase: any, organization_id: string) {
+type SupabaseClientLike = ReturnType<typeof getSupabaseServerClient>;
+
+async function calculateComplianceScore(supabase: SupabaseClientLike, organization_id: string) {
   let query = supabase
     .from('sostenibilidad_nonconformances')
     .select('id, status, severity, created_at');
