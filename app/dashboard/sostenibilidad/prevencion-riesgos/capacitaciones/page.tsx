@@ -246,6 +246,12 @@ export default function CapacitacionesPage() {
         <div className="flex gap-2">
           <Button asChild variant="outline">
             <Link href="/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones/importar">
+              <Download className="mr-2 h-4 w-4" />
+              Plantilla
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones/importar">
               <Upload className="mr-2 h-4 w-4" />
               Importar Excel
             </Link>
