@@ -27,6 +27,12 @@ type AlertDistributionEntry = {
 type KPIDashboardMetrics = {
   operating_equipment?: number;
   mtbf_hours?: number;
+  critical_stock_items?: number;
+  valid_documents_pct?: number;
+  days_no_incidents?: number;
+  on_time_purchase_orders_pct?: number;
+  operational_costs_monthly?: number;
+  active_alerts?: number;
   mttr_hours?: number;
   availability_percent?: number;
   incidents_this_month?: number;
