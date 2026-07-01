@@ -2,6 +2,22 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 
+type FlujoDocumentoRow = {
+  id: string | number;
+  documento_id?: string | number | null;
+  documento_nombre?: string | null;
+  version?: string | number | null;
+  estado?: string | null;
+  creador_nombre?: string | null;
+  validador1_nombre?: string | null;
+  validador1_rol?: string | null;
+  validador1_accion?: string | null;
+  validador2_nombre?: string | null;
+  validador2_rol?: string | null;
+  validador2_accion?: string | null;
+  activo?: boolean | null;
+};
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ categoria: string }> }
@@ -22,7 +38,7 @@ export async function GET(
       },
     });
 
-    const allDocs = await response.json();
+    const allDocs = (await response.json()) as FlujoDocumentoRow[] | { error?: string };
 
     if (!Array.isArray(allDocs)) {
       return NextResponse.json({ error: 'Invalid response' }, { status: 500 });
@@ -38,11 +54,11 @@ export async function GET(
     const keywords = categoryMap[categoria] || [];
 
     const documents = allDocs
-      .filter((doc: any) => {
+      .filter((doc) => {
         const name = String(doc.documento_nombre || '').toLowerCase();
         return keywords.some((kw) => name.includes(kw.toLowerCase()));
       })
-      .map((doc: any) => ({
+      .map((doc) => ({
         id: doc.id,
         documentId: doc.documento_id,
         nombre: doc.documento_nombre,
@@ -64,9 +80,9 @@ export async function GET(
 
     const aprobados = documents.filter((d: any) => d.estado === 'aprobado');
     const pendientes = documents.filter(
-      (d: any) => d.estado === 'pendiente_validador1' || d.estado === 'pendiente_validador2'
+      (d) => d.estado === 'pendiente_validador1' || d.estado === 'pendiente_validador2'
     );
-    const rechazados = documents.filter((d: any) => d.estado === 'rechazado');
+    const rechazados = documents.filter((d) => d.estado === 'rechazado');
 
     return NextResponse.json({
       categoria,
