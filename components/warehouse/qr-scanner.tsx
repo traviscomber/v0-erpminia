@@ -6,14 +6,24 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 
+interface QRScanResult {
+  stock: {
+    part_name: string;
+    quantity_on_hand: number;
+  };
+  bin: {
+    bin_location: string;
+  };
+}
+
 interface QRScannerProps {
-  onScan?: (data: any) => void;
+  onScan?: (data: QRScanResult) => void;
 }
 
 export function QRScanner({ onScan }: QRScannerProps) {
   const [scanning, setScanning] = useState(false);
   const [qrValue, setQrValue] = useState('');
-  const [scanResult, setScanResult] = useState<any>(null);
+  const [scanResult, setScanResult] = useState<QRScanResult | null>(null);
 
   const handleScan = async () => {
     if (!qrValue.trim()) {
@@ -26,7 +36,7 @@ export function QRScanner({ onScan }: QRScannerProps) {
       const res = await fetch(`/api/warehouse/qr?value=${encodeURIComponent(qrValue)}`);
       if (!res.ok) throw new Error('QR no encontrado');
 
-      const data = await res.json();
+      const data = (await res.json()) as QRScanResult;
       setScanResult(data);
       onScan?.(data);
       toast.success('Código QR leído correctamente');
