@@ -37,6 +37,13 @@ interface MachineRow {
   status: string;
 }
 
+type XlsxModule = {
+  read: (buffer: Buffer, options: { type: 'buffer'; cellDates: boolean }) => { Sheets: Record<string, unknown>; SheetNames: string[] };
+  utils: {
+    sheet_to_json: (sheet: unknown, options: { header: number; defval: string; raw: boolean }) => unknown[][];
+  };
+};
+
 function parseRows(rows: unknown[][]): { valid: MachineRow[]; errors: string[] } {
   if (!rows.length) return { valid: [], errors: ['Archivo vacio'] };
 
@@ -52,9 +59,10 @@ function parseRows(rows: unknown[][]): { valid: MachineRow[]; errors: string[] }
   const errors: string[] = [];
 
   rows.slice(1).forEach((row, i) => {
-    const code = cleanText((row as any[])[codeIdx]);
-    const name = cleanText((row as any[])[nameIdx]);
-    const status = cleanText((row as any[])[statusIdx ?? -1]) || 'active';
+    const rowValues = row as unknown[];
+    const code = cleanText(rowValues[codeIdx]);
+    const name = cleanText(rowValues[nameIdx]);
+    const status = cleanText(rowValues[statusIdx ?? -1]) || 'active';
 
     if (!code || !name) return;
 
@@ -90,7 +98,7 @@ export async function POST(request: NextRequest) {
     let rows: unknown[][] = [];
 
     if (filename.endsWith('.xlsx') || filename.endsWith('.xls')) {
-      const xlsx = (await import('xlsx')) as any;
+      const xlsx = (await import('xlsx')) as unknown as XlsxModule;
       const buffer = Buffer.from(await file.arrayBuffer());
       const wb = xlsx.read(buffer, { type: 'buffer', cellDates: true });
       const ws = wb.Sheets[wb.SheetNames[0]];
@@ -128,8 +136,8 @@ export async function POST(request: NextRequest) {
       imported: valid.length,
       warnings: errors,
     });
-  } catch (err: any) {
+  } catch (err) {
     console.error('[v0] import-machinery error:', err);
-    return NextResponse.json({ error: err.message || 'Error importando maquinaria' }, { status: 500 });
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'Error importando maquinaria' }, { status: 500 });
   }
 }
