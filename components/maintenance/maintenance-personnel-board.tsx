@@ -7,14 +7,43 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
+interface PersonnelSummary {
+  totalHours?: number | string;
+  totalEntries?: number | string;
+  technicians?: number | string;
+}
+
+interface PersonnelTechnician {
+  technicianId: string;
+  name?: string | null;
+  entries?: number | string | null;
+  hours?: number | string | null;
+}
+
+interface PersonnelEntry {
+  id: string;
+  descripcion?: string | null;
+  horas_trabajadas?: number | string | null;
+  fecha?: string | null;
+}
+
+interface PersonnelResponse {
+  summary?: PersonnelSummary;
+  technicians?: PersonnelTechnician[];
+  recentEntries?: PersonnelEntry[];
+}
+
+const fetcher = async (url: string): Promise<PersonnelResponse> => {
+  const response = await fetch(url, { credentials: 'include' });
+  return response.json();
+};
 
 export function MaintenancePersonnelBoard() {
-  const { data, error, isLoading, mutate } = useSWR('/api/maintenance/personal', fetcher);
+  const { data, error, isLoading, mutate } = useSWR<PersonnelResponse>('/api/maintenance/personal', fetcher);
 
-  const summary = data?.summary || { totalHours: 0, totalEntries: 0, technicians: 0 };
-  const technicians = Array.isArray(data?.technicians) ? data.technicians : [];
-  const recentEntries = Array.isArray(data?.recentEntries) ? data.recentEntries : [];
+  const summary: PersonnelSummary = data?.summary || { totalHours: 0, totalEntries: 0, technicians: 0 };
+  const technicians: PersonnelTechnician[] = Array.isArray(data?.technicians) ? data.technicians : [];
+  const recentEntries: PersonnelEntry[] = Array.isArray(data?.recentEntries) ? data.recentEntries : [];
 
   return (
     <div className="space-y-6">
@@ -119,7 +148,7 @@ export function MaintenancePersonnelBoard() {
               No fue posible cargar el personal de mantencion.
             </div>
           ) : technicians.length > 0 ? (
-            technicians.map((tech: any) => (
+            technicians.map((tech) => (
               <div key={tech.technicianId} className="flex items-center justify-between rounded-lg border border-border p-3">
                 <div>
                   <p className="font-semibold">{tech.name || 'Tecnico'}</p>
@@ -142,7 +171,7 @@ export function MaintenancePersonnelBoard() {
         </CardHeader>
         <CardContent className="space-y-2">
           {recentEntries.length > 0 ? (
-            recentEntries.map((entry: any) => (
+            recentEntries.map((entry) => (
               <div key={entry.id} className="rounded-lg border border-border p-3 text-sm">
                 <div className="flex items-center justify-between gap-3">
                   <p className="font-semibold">{entry.descripcion || 'Tiempo registrado'}</p>

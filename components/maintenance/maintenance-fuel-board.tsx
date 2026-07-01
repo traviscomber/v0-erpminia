@@ -8,7 +8,23 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
+interface FuelInventoryItem {
+  id: string;
+  name?: string | null;
+  sku?: string | null;
+  quantity?: number | string | null;
+  unit_cost?: number | string | null;
+  min_stock?: number | string | null;
+}
+
+interface FuelInventoryResponse {
+  inventory?: FuelInventoryItem[];
+}
+
+const fetcher = async (url: string): Promise<FuelInventoryResponse> => {
+  const response = await fetch(url, { credentials: 'include' });
+  return response.json();
+};
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat('es-CL', {
@@ -23,14 +39,14 @@ function formatNumber(value: number) {
 }
 
 export function MaintenanceFuelBoard() {
-  const { data, error, isLoading, mutate } = useSWR('/api/bodega/inventory?category=Combustible&pageSize=100', fetcher);
+  const { data, error, isLoading, mutate } = useSWR<FuelInventoryResponse>('/api/bodega/inventory?category=Combustible&pageSize=100', fetcher);
 
-  const fuelItems = Array.isArray(data?.inventory) ? data.inventory : [];
+  const fuelItems: FuelInventoryItem[] = Array.isArray(data?.inventory) ? data.inventory : [];
 
   const summary = useMemo(() => {
-    const totalQuantity = fuelItems.reduce((sum: number, item: any) => sum + Number(item.quantity || 0), 0);
-    const totalValue = fuelItems.reduce((sum: number, item: any) => sum + Number(item.quantity || 0) * Number(item.unit_cost || 0), 0);
-    const lowStock = fuelItems.filter((item: any) => Number(item.quantity || 0) <= Number(item.min_stock || 0)).length;
+    const totalQuantity = fuelItems.reduce((sum: number, item: FuelInventoryItem) => sum + Number(item.quantity || 0), 0);
+    const totalValue = fuelItems.reduce((sum: number, item: FuelInventoryItem) => sum + Number(item.quantity || 0) * Number(item.unit_cost || 0), 0);
+    const lowStock = fuelItems.filter((item: FuelInventoryItem) => Number(item.quantity || 0) <= Number(item.min_stock || 0)).length;
 
     return {
       totalItems: fuelItems.length,
@@ -41,7 +57,7 @@ export function MaintenanceFuelBoard() {
   }, [fuelItems]);
 
   const topItems = [...fuelItems]
-    .sort((a: any, b: any) => Number(b.quantity || 0) - Number(a.quantity || 0))
+    .sort((a: FuelInventoryItem, b: FuelInventoryItem) => Number(b.quantity || 0) - Number(a.quantity || 0))
     .slice(0, 6);
 
   if (error) {
@@ -140,7 +156,7 @@ export function MaintenanceFuelBoard() {
             </div>
           ) : (
             <div className="space-y-3">
-              {topItems.map((item: any) => (
+              {topItems.map((item) => (
                 <div key={item.id} className="rounded-lg border border-border p-4">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
