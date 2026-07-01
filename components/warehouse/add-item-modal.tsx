@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 interface AddItemModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (item: any) => void;
+  onSubmit: (item: unknown) => void;
 }
 
 export function AddItemModal({ open, onOpenChange, onSubmit }: AddItemModalProps) {

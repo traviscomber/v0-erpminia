@@ -9,8 +9,27 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import useSWR from 'swr';
 import { toast } from 'sonner';
 
+interface WarehouseStockItem {
+  id: string;
+  part_name: string;
+  part_code: string;
+  quantity_on_hand: number;
+}
+
+interface WarehouseBin {
+  id: string;
+  label: string;
+}
+
+interface WarehouseTransferPayload {
+  stockId: string;
+  toBinId: string;
+  quantity: number;
+  reason: string;
+}
+
 interface TransferModalProps {
-  onTransfer: (data: any) => void;
+  onTransfer: (data: unknown) => void;
 }
 
 export function TransferModal({ onTransfer }: TransferModalProps) {
@@ -22,7 +41,7 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
     reason: '',
   });
 
-  const { data } = useSWR('/api/warehouse/stock', async (url: string) => {
+  const { data } = useSWR<{ items?: WarehouseStockItem[]; bins?: WarehouseBin[] }>('/api/warehouse/stock', async (url: string) => {
     const res = await fetch(url);
     return res.ok ? res.json() : null;
   });
@@ -43,7 +62,7 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
           toBinId: formData.toBinId,
           quantity: Number(formData.quantity || 0),
           reason: formData.reason,
-        }),
+        } satisfies WarehouseTransferPayload),
       });
 
       const result = await response.json();
@@ -58,7 +77,7 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
         quantity: '',
         reason: '',
       });
-      onTransfer(result);
+      onTransfer(result as unknown);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'La transferencia fallo');
     } finally {
