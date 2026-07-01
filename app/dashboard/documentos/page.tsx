@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DocumentUploadModal } from '@/components/documents/document-upload-modal';
-import { DocumentViewer } from '@/components/documents/document-viewer';
+import { DocumentViewer, type DocumentViewerDocument } from '@/components/documents/document-viewer';
 import { DocumentList, type Document } from '@/components/documents/document-list';
 import { ApprovalWorkflowCard } from '@/components/documents/approval-workflow-card';
 
@@ -39,7 +39,7 @@ const fetcher = async (url: string) => {
 export default function DocumentosDashboard() {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [viewerOpen, setViewerOpen] = useState(false);
-  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
+  const [selectedDocument, setSelectedDocument] = useState<DocumentViewerDocument | null>(null);
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -78,12 +78,31 @@ export default function DocumentosDashboard() {
   };
 
   const handleViewDocument = (document: Document | string) => {
+    const toViewerDocument = (doc: Document): DocumentViewerDocument => ({
+      createdByUser: (() => {
+        const createdByUser = doc.createdByUser as { name?: string; email?: string } | undefined;
+        return {
+          name: createdByUser?.name || doc.uploaded_by || 'Desconocido',
+          email: createdByUser?.email || '',
+        };
+      })(),
+      id: String(doc.id),
+      title: doc.document_name || doc.title || 'Documento sin título',
+      documentNumber: doc.document_code || doc.documentNumber || 'Sin código',
+      documentType: doc.document_type_category || doc.documentType || 'Documento',
+      category: doc.document_type_category || doc.category || 'General',
+      status: doc.status || 'draft',
+      fileUrl: String(doc.file_url || doc.fileUrl || ''),
+      fileSize: Number(doc.file_size_bytes || doc.fileSize || 0),
+      createdAt: doc.createdAt || doc.uploaded_at || new Date().toISOString(),
+    });
+
     if (typeof document === 'string') {
       // Si es solo un ID, buscar el documento en la lista
-      const doc = documents.find((d: any) => d.id === document);
-      if (doc) setSelectedDocument(doc);
+      const doc = documents.find((d: Document) => String(d.id) === document);
+      if (doc) setSelectedDocument(toViewerDocument(doc));
     } else {
-      setSelectedDocument(document);
+      setSelectedDocument(toViewerDocument(document));
     }
     setViewerOpen(true);
   };
@@ -284,7 +303,7 @@ export default function DocumentosDashboard() {
         <DocumentViewer
           open={viewerOpen}
           onOpenChange={setViewerOpen}
-          document={selectedDocument as any}
+          document={selectedDocument}
         />
       )}
     </div>

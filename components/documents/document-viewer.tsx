@@ -80,21 +80,25 @@ export function PDFViewer({ fileUrl, fileName, fileType, maxHeight = 'max-h-96' 
   return null;
 }
 
+export interface DocumentViewerDocument {
+  id: string;
+  title: string;
+  documentNumber: string;
+  documentType: string;
+  category: string;
+  status: string;
+  fileUrl?: string;
+  file_url?: string;
+  fileSize?: number;
+  file_size_bytes?: number;
+  createdAt: string;
+  createdByUser: { name: string; email?: string };
+}
+
 export interface DocumentViewerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  document: {
-    id: string;
-    title: string;
-    documentNumber: string;
-    documentType: string;
-    category: string;
-    status: string;
-    fileUrl: string;
-    fileSize: number;
-    createdAt: string;
-    createdByUser: { name: string; email: string };
-  };
+  document: DocumentViewerDocument;
 }
 
 export function DocumentViewer({ open, onOpenChange, document }: DocumentViewerProps) {
@@ -103,6 +107,9 @@ export function DocumentViewer({ open, onOpenChange, document }: DocumentViewerP
   const { X } = require('lucide-react');
 
   if (!document) return null;
+  const fileUrl = document.fileUrl || document.file_url || '';
+  const fileSize = document.fileSize ?? document.file_size_bytes ?? 0;
+  const createdByEmail = document.createdByUser.email || '';
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -156,7 +163,7 @@ export function DocumentViewer({ open, onOpenChange, document }: DocumentViewerP
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground">Creado por</p>
               <p className="text-sm font-medium">{document.createdByUser.name || 'Desconocido'}</p>
-              <p className="text-xs text-muted-foreground">{document.createdByUser.email}</p>
+              {createdByEmail ? <p className="text-xs text-muted-foreground">{createdByEmail}</p> : null}
             </div>
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground">Fecha de creacion</p>
@@ -171,13 +178,13 @@ export function DocumentViewer({ open, onOpenChange, document }: DocumentViewerP
               <div className="text-center">
                 <p className="font-medium text-foreground">Archivo: {document.title}</p>
                 <p className="text-sm text-muted-foreground">
-                  {document.fileSize ? `${(document.fileSize / 1024 / 1024).toFixed(2)} MB` : 'Tamano desconocido'}
+                  {fileSize ? `${(fileSize / 1024 / 1024).toFixed(2)} MB` : 'Tamano desconocido'}
                 </p>
               </div>
 
-              {document.fileUrl && (
+              {fileUrl && (
                 <Button variant="outline" size="sm" asChild>
-                  <a href={document.fileUrl} target="_blank" rel="noopener noreferrer">
+                  <a href={fileUrl} target="_blank" rel="noopener noreferrer">
                     <Download className="mr-2 h-4 w-4" />
                     Descargar archivo
                   </a>
