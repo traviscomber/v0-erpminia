@@ -24,12 +24,36 @@ type AlertDistributionEntry = {
   color: string;
 };
 
-type RecommendationEntry = {
-  message?: string | null;
-  description?: string | null;
+type KPIDashboardMetrics = {
+  operating_equipment?: number;
+  mtbf_hours?: number;
+  mttr_hours?: number;
+  availability_percent?: number;
+  incidents_this_month?: number;
+  critical_alerts?: number;
+  stock_critical?: number;
+  budget_variance?: number;
 };
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+type TrendDataPoint = {
+  date: string;
+  equipos: number;
+  mtbf: number;
+  stock: number;
+};
+
+type KPIDashboardResponse = {
+  kpis?: KPIDashboardMetrics;
+  trendData?: TrendDataPoint[];
+  alertsDistribution?: AlertDistributionEntry[];
+  recommendations?: string[];
+  lastUpdated?: string;
+};
+
+const fetcher = async (url: string): Promise<KPIDashboardResponse> => {
+  const response = await fetch(url);
+  return response.json();
+};
 
 const getStatusBg = (status: string) => {
   const colors: Record<string, string> = {
@@ -54,7 +78,7 @@ const getStatusColor = (status: string) => {
 export default function KPIDashboardPage() {
   const [selectedKPI, setSelectedKPI] = useState<string | null>(null);
 
-  const { data, error, isLoading, mutate } = useSWR('/api/dashboard/kpi-dashboard', fetcher, {
+  const { data, error, isLoading, mutate } = useSWR<KPIDashboardResponse>('/api/dashboard/kpi-dashboard', fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: true,
     refreshInterval: 60000,
@@ -63,10 +87,10 @@ export default function KPIDashboardPage() {
   if (error) return <div className="text-red-500">Error al cargar datos KPI</div>;
   if (isLoading) return <div className="text-gray-500">Cargando panel KPI...</div>;
 
-  const kpisData = data?.kpis || {};
-  const trendData = data?.trendData || [];
-  const alertDistribution = (data?.alertsDistribution || []) as AlertDistributionEntry[];
-  const recommendations = (data?.recommendations || []) as RecommendationEntry[];
+  const kpisData: KPIDashboardMetrics = data?.kpis || {};
+  const trendData: TrendDataPoint[] = data?.trendData || [];
+  const alertDistribution: AlertDistributionEntry[] = data?.alertsDistribution || [];
+  const recommendations: string[] = data?.recommendations || [];
 
   const kpis: KPI[] = [
     {
@@ -160,7 +184,7 @@ export default function KPIDashboardPage() {
           8 KPIs criticos de operacion minera con visualizacion en vivo y analisis de tendencias.
         </p>
       </div>
-        <Button variant="outline" onClick={() => void mutate()} className="gap-2">
+        <Button variant="outline" onClick={() => { void mutate(); }} className="gap-2">
           <RefreshCw className="h-4 w-4" />
           Actualizar
         </Button>
@@ -320,7 +344,7 @@ export default function KPIDashboardPage() {
           <CardContent>
             <ul className="space-y-2 text-sm text-muted-foreground">
               {recommendations.slice(0, 4).map((item, index: number) => (
-                <li key={index}>- {item.message || item.description || 'Sin detalle'}</li>
+                <li key={index}>- {item || 'Sin detalle'}</li>
               ))}
             </ul>
           </CardContent>

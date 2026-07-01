@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DocumentUpload } from '@/components/documents/document-upload';
 import { DocumentList, Document } from '@/components/documents/document-list';
-import { DocumentReviewModal } from '@/components/documents/document-review-modal';
+import { DocumentReviewModal, type DocumentReviewDocument } from '@/components/documents/document-review-modal';
 
 interface DocumentStats {
   total: number;
@@ -20,7 +20,7 @@ interface DocumentStats {
 export default function DocumentosLegalPage() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedDoc, setSelectedDoc] = useState<any>(null);
+  const [selectedDoc, setSelectedDoc] = useState<DocumentReviewDocument | null>(null);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [stats, setStats] = useState<DocumentStats>({
     total: 0,
