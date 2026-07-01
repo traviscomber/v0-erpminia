@@ -4,6 +4,20 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
+type MaintenancePartRow = {
+  quantity_consumed?: number | null;
+  sku?: {
+    unit_cost?: number | null;
+  } | Array<{
+    unit_cost?: number | null;
+  }> | null;
+};
+
+type CompletedOrderRow = {
+  created_at: string;
+  completed_at: string;
+};
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const otId = searchParams.get('otId');
@@ -93,8 +107,8 @@ export async function GET(request: NextRequest) {
 
   let totalCostoPiezas = 0;
   if (parts && Array.isArray(parts)) {
-    parts.forEach((part: any) => {
-      const unitCost = part.sku?.unit_cost || 0;
+    parts.forEach((part: MaintenancePartRow) => {
+      const unitCost = Array.isArray(part.sku) ? part.sku[0]?.unit_cost || 0 : part.sku?.unit_cost || 0;
       totalCostoPiezas += (part.quantity_consumed || 0) * unitCost;
     });
   }
@@ -137,10 +151,11 @@ export async function POST(request: NextRequest) {
     .eq('status', 'completado')
     .gte('completed_at', startOfMonth)
     .lte('completed_at', endOfMonth);
+  const completedOrders = (completedOts || []) as CompletedOrderRow[];
 
   const mes = new Date(today.getFullYear(), today.getMonth(), 1).toISOString();
 
-  if (!completedOts || completedOts.length === 0) {
+  if (completedOrders.length === 0) {
     return NextResponse.json({
       kpi: {
         mes,
@@ -150,7 +165,7 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  const mttrValues = completedOts.map((ot) => {
+  const mttrValues = completedOrders.map((ot) => {
     const created = new Date(ot.created_at).getTime();
     const completed = new Date(ot.completed_at).getTime();
     return (completed - created) / (1000 * 60 * 60);
@@ -162,7 +177,7 @@ export async function POST(request: NextRequest) {
     .from('mantenimiento_kpi')
     .upsert({
       mes,
-      ot_completadas: completedOts.length,
+      ot_completadas: completedOrders.length,
       mttr_promedio: mttrPromedio,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'mes' })
@@ -172,7 +187,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       kpi: {
         mes,
-        ot_completadas: completedOts.length,
+        ot_completadas: completedOrders.length,
         mttr_promedio: mttrPromedio,
       },
       warning: error.message,
