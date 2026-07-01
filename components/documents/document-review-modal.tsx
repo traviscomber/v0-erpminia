@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { PDFViewer } from './document-viewer';
 
-interface Document {
+export interface DocumentReviewDocument {
   id: string;
   document_name: string;
   document_type: string;
@@ -21,7 +21,7 @@ interface Document {
 }
 
 interface DocumentReviewModalProps {
-  document: Document | null;
+  document: DocumentReviewDocument | null;
   isOpen: boolean;
   onClose: () => void;
   onApprove: (documentId: string, observations: string) => Promise<void>;

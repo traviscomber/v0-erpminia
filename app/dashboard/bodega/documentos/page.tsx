@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DocumentUpload } from '@/components/documents/document-upload';
 import { DocumentList, Document } from '@/components/documents/document-list';
-import { DocumentReviewModal } from '@/components/documents/document-review-modal';
+import { DocumentReviewModal, type DocumentReviewDocument } from '@/components/documents/document-review-modal';
 import { BodegaImportXls } from '@/components/bodega/bodega-import-xls';
 import { FileText, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
 
@@ -19,7 +19,7 @@ interface DocumentStats {
 export default function DocumentosBodegaPage() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedDoc, setSelectedDoc] = useState<any>(null);
+  const [selectedDoc, setSelectedDoc] = useState<DocumentReviewDocument | null>(null);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [stats, setStats] = useState<DocumentStats>({
     total: 0,
