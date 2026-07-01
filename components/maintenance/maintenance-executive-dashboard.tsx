@@ -266,7 +266,7 @@ export function MaintenanceExecutiveDashboard() {
             </div>
             <div className="flex items-center justify-between rounded-lg border border-border p-3">
               <span className="text-muted-foreground">OT completadas</span>
-              <Badge variant="outline">{number(workOrders.filter((order: any) => ['completed', 'completado', 'closed'].includes(String(order.status || '').toLowerCase())).length)}</Badge>
+              <Badge variant="outline">{number(workOrders.filter((order) => ['completed', 'completado', 'closed'].includes(String(order.status || '').toLowerCase())).length)}</Badge>
             </div>
             <div className="flex items-center justify-between rounded-lg border border-border p-3">
               <span className="text-muted-foreground">Preventivos vencidos</span>
