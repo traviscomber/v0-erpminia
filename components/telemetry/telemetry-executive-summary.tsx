@@ -5,7 +5,42 @@ import { AlertCircle, Bell, Gauge, Signal, TriangleAlert, Zap } from 'lucide-rea
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
-const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
+interface TelemetryEquipment {
+  id: string;
+  name: string;
+  type?: string | null;
+  status?: string | null;
+  availability?: number | string | null;
+  activeAlarms?: number | string | null;
+}
+
+interface TelemetryAlarm {
+  id: string;
+  message?: string | null;
+  equipment?: string | null;
+  time?: string | null;
+  severity?: string | null;
+}
+
+interface TelemetrySummary {
+  total_equipment?: number | string | null;
+  operational_equipment?: number | string | null;
+  availability_percentage?: number | string | null;
+  active_alarms?: number | string | null;
+  critical_alarms?: number | string | null;
+  downtime_minutes?: number | string | null;
+}
+
+interface TelemetryDashboardResponse {
+  summary?: TelemetrySummary;
+  equipment?: TelemetryEquipment[];
+  alarms?: TelemetryAlarm[];
+}
+
+const fetcher = async (url: string): Promise<TelemetryDashboardResponse> => {
+  const response = await fetch(url, { credentials: 'include' });
+  return response.json();
+};
 
 function toNumber(value: unknown) {
   const parsed = Number(value);
@@ -23,7 +58,7 @@ function statusLabel(status: string) {
 }
 
 export function TelemetryExecutiveSummary() {
-  const { data, isLoading, error } = useSWR('/api/dashboard/produccion', fetcher, {
+  const { data, isLoading, error } = useSWR<TelemetryDashboardResponse>('/api/dashboard/produccion', fetcher, {
     revalidateOnFocus: false,
   });
 
@@ -36,12 +71,12 @@ export function TelemetryExecutiveSummary() {
   }
 
   const summary = data?.summary || {};
-  const equipment = Array.isArray(data?.equipment) ? data.equipment : [];
-  const alarms = Array.isArray(data?.alarms) ? data.alarms : [];
+  const equipment: TelemetryEquipment[] = Array.isArray(data?.equipment) ? data.equipment : [];
+  const alarms: TelemetryAlarm[] = Array.isArray(data?.alarms) ? data.alarms : [];
 
   const criticalEquipment = equipment
-    .filter((item: any) => ['critical', 'warning', 'offline'].includes(String(item.status || '').toLowerCase()))
-    .sort((a: any, b: any) => {
+    .filter((item) => ['critical', 'warning', 'offline'].includes(String(item.status || '').toLowerCase()))
+    .sort((a, b) => {
       const order = { critical: 0, warning: 1, offline: 2 };
       return (order[String(a.status || '').toLowerCase() as keyof typeof order] ?? 3) - (order[String(b.status || '').toLowerCase() as keyof typeof order] ?? 3);
     })
@@ -82,7 +117,7 @@ export function TelemetryExecutiveSummary() {
           </CardHeader>
           <CardContent className="space-y-3">
             {criticalEquipment.length > 0 ? (
-              criticalEquipment.map((item: any) => (
+              criticalEquipment.map((item) => (
                 <div key={item.id} className="rounded-lg border border-border p-3">
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -117,7 +152,7 @@ export function TelemetryExecutiveSummary() {
           </CardHeader>
           <CardContent className="space-y-3">
             {alarms.length > 0 ? (
-              alarms.slice(0, 5).map((alarm: any) => (
+              alarms.slice(0, 5).map((alarm) => (
                 <div key={alarm.id} className="rounded-lg border border-border p-3">
                   <div className="flex items-start justify-between gap-3">
                     <div>
