@@ -38,17 +38,17 @@ export function IncidentsDashboard() {
         ]);
 
         if (incidentsRes.ok) {
-          const { data: inc } = await incidentsRes.json();
+          const { data: inc } = (await incidentsRes.json()) as { data?: Incident[] };
           setIncidents(inc || []);
           setStats({
-            open: inc.filter((i: any) => i.status === 'open').length || 0,
-            investigating: inc.filter((i: any) => i.status === 'investigating').length || 0,
-            resolved: inc.filter((i: any) => i.status === 'resolved').length || 0,
+            open: (inc || []).filter((i: Incident) => i.status === 'open').length || 0,
+            investigating: (inc || []).filter((i: Incident) => i.status === 'investigating').length || 0,
+            resolved: (inc || []).filter((i: Incident) => i.status === 'resolved').length || 0,
           });
         }
 
         if (investigationsRes.ok) {
-          const { investigations: inv } = await investigationsRes.json();
+          const { investigations: inv } = (await investigationsRes.json()) as { investigations?: Investigation[] };
           setInvestigations(inv || []);
         }
       } catch (err) {
@@ -146,11 +146,11 @@ export function IncidentsDashboard() {
           <CardTitle>Investigaciones Abiertas</CardTitle>
         </CardHeader>
         <CardContent>
-          {investigations.filter(i => i.status !== 'verified').length === 0 ? (
+          {investigations.filter((i: Investigation) => i.status !== 'verified').length === 0 ? (
             <p className="text-muted-foreground text-sm">Todas las investigaciones verificadas.</p>
           ) : (
             <div className="space-y-3">
-              {investigations.filter(i => i.status !== 'verified').slice(0, 3).map(inv => (
+              {investigations.filter((i: Investigation) => i.status !== 'verified').slice(0, 3).map((inv: Investigation) => (
                 <div key={inv.id} className="p-2 border rounded">
                   <p className="font-semibold text-sm">Causa Raíz: {inv.root_cause}</p>
                   <p className="text-xs text-muted-foreground mt-1">Acciones: {inv.corrective_actions}</p>
