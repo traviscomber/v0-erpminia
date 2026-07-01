@@ -14,7 +14,9 @@ function normalizeComplianceStatus(value: unknown) {
   return 'in_progress';
 }
 
-async function selectAuditSessions(supabase: any, organizationId: string, limit: number) {
+type SustainabilitySupabaseClient = Extract<Awaited<ReturnType<typeof getSustainabilityContext>>, { ok: true }>['supabase'];
+
+async function selectAuditSessions(supabase: SustainabilitySupabaseClient, organizationId: string, limit: number) {
   const candidateColumns = ['organization_id', 'org_id'] as const;
 
   for (const column of candidateColumns) {
@@ -46,7 +48,7 @@ async function selectAuditSessions(supabase: any, organizationId: string, limit:
 }
 
 async function insertAuditSession(
-  supabase: any,
+  supabase: SustainabilitySupabaseClient,
   organizationId: string,
   payload: Record<string, unknown>
 ) {
