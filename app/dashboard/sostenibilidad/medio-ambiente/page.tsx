@@ -140,6 +140,9 @@ export default function MedioAmbientePage() {
         </div>
         <div className="flex items-center gap-2">
           <Button asChild variant="outline">
+            <Link href="/dashboard/sostenibilidad/medio-ambiente/importar">Plantilla</Link>
+          </Button>
+          <Button asChild variant="outline">
             <Link href="/dashboard/sostenibilidad/medio-ambiente/importar">Importar Excel</Link>
           </Button>
           <Dialog open={modalOpen} onOpenChange={setModalOpen}>

@@ -154,6 +154,9 @@ export default function NonconformanceDashboard() {
         </div>
         <div className="flex items-center gap-2">
           <Button asChild variant="outline">
+            <Link href="/dashboard/sostenibilidad/no-conformidades/importar">Plantilla</Link>
+          </Button>
+          <Button asChild variant="outline">
             <Link href="/dashboard/sostenibilidad/no-conformidades/importar">Importar Excel</Link>
           </Button>
           <Button onClick={() => setShowForm(!showForm)}>{showForm ? 'Cancelar' : 'Reportar no conformidad'}</Button>
