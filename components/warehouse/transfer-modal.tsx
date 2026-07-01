@@ -46,8 +46,8 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
     return res.ok ? res.json() : null;
   });
 
-  const stockList = data?.items || [];
-  const bins = data?.bins || [];
+  const stockList: WarehouseStockItem[] = data?.items || [];
+  const bins: WarehouseBin[] = data?.bins || [];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,7 +102,7 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
                 <SelectValue placeholder="Selecciona un item" />
               </SelectTrigger>
               <SelectContent>
-                {stockList.map((item: any) => (
+                {stockList.map((item) => (
                   <SelectItem key={item.id} value={item.id}>
                     {item.part_name} ({item.part_code}) - {item.quantity_on_hand} u.
                   </SelectItem>
@@ -121,7 +121,7 @@ export function TransferModal({ onTransfer }: TransferModalProps) {
                 <SelectValue placeholder="Selecciona un bin de destino" />
               </SelectTrigger>
               <SelectContent>
-                {bins.map((bin: any) => (
+                {bins.map((bin) => (
                   <SelectItem key={bin.id} value={bin.id}>
                     {bin.label}
                   </SelectItem>
