@@ -271,6 +271,9 @@ export default function FlujDocumentalPage() {
         </div>
         <div className="flex gap-2">
           <Button asChild variant="outline">
+            <Link href="/dashboard/sostenibilidad/documentos-flujo/importar">Plantilla</Link>
+          </Button>
+          <Button asChild variant="outline">
             <Link href="/dashboard/sostenibilidad/documentos-flujo/importar">
               <Upload className="mr-2 h-4 w-4" />
               Importar Excel

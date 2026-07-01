@@ -235,6 +235,9 @@ export default function ComunidadesPage() {
 
         <div className="flex items-center gap-2">
           <Button asChild variant="outline">
+            <Link href="/dashboard/sostenibilidad/comunidades/importar">Plantilla</Link>
+          </Button>
+          <Button asChild variant="outline">
             <Link href="/dashboard/sostenibilidad/comunidades/importar">Importar Excel</Link>
           </Button>
           <Dialog
