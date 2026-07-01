@@ -61,6 +61,13 @@ type HistoryRow = {
   } | null;
 };
 
+type MachineCatalogItem = {
+  id: string;
+  family?: string | null;
+  name?: string | null;
+  code?: string | null;
+};
+
 const fetcher = async (url: string) => {
   const response = await fetch(url, { credentials: 'include' });
   const payload = await response.json().catch(() => null);
@@ -152,7 +159,7 @@ export function AssetDetailView() {
     () => workOrders.filter((order) => String(order.asset_id || '') === assetId),
     [assetId, workOrders],
   );
-  const machineCatalog = Array.isArray(machineCatalogData?.machines) ? machineCatalogData.machines : [];
+  const machineCatalog: MachineCatalogItem[] = Array.isArray(machineCatalogData?.machines) ? machineCatalogData.machines : [];
   const machineFamily = useMemo(() => {
     const text = `${asset?.asset_name || ''} ${asset?.asset_type || ''} ${asset?.model || ''} ${asset?.manufacturer || ''}`;
     return inferMachineFamilyFromText(text);
@@ -160,7 +167,7 @@ export function AssetDetailView() {
   const relatedMachines = useMemo(
     () =>
       machineFamily
-        ? machineCatalog.filter((machine: any) => String(machine.family || '').toLowerCase() === machineFamily.toLowerCase()).slice(0, 6)
+        ? machineCatalog.filter((machine) => String(machine.family || '').toLowerCase() === machineFamily.toLowerCase()).slice(0, 6)
         : [],
     [machineCatalog, machineFamily],
   );
@@ -449,7 +456,7 @@ export function AssetDetailView() {
         <CardContent>
           {machineFamily && relatedMachines.length > 0 ? (
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {relatedMachines.map((machine: any) => (
+              {relatedMachines.map((machine) => (
                 <div key={machine.id} className="rounded-lg border border-border p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
