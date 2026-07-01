@@ -9,7 +9,39 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 
-const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
+interface PreventiveSummary {
+  total?: number | string;
+  enabled?: number | string;
+  overdue?: number | string;
+  dueSoon?: number | string;
+}
+
+interface PreventiveSchedule {
+  id: string;
+  assetName?: string | null;
+  assetCode?: string | null;
+  assetType?: string | null;
+  location?: string | null;
+  taskName?: string | null;
+  description?: string | null;
+  priority?: string | null;
+  daysUntil?: number | null;
+  frequencyDays?: number | string | null;
+  frequencyHours?: number | string | null;
+  estimatedDurationHours?: number | string | null;
+  nextScheduledDate?: string | null;
+  enabled?: boolean;
+}
+
+interface PreventivePlanResponse {
+  summary?: PreventiveSummary;
+  schedules?: PreventiveSchedule[];
+}
+
+const fetcher = async (url: string): Promise<PreventivePlanResponse> => {
+  const response = await fetch(url, { credentials: 'include' });
+  return response.json();
+};
 
 function priorityLabel(priority?: string | null) {
   const labels: Record<string, string> = {
@@ -39,14 +71,14 @@ function bucketLabel(daysUntil?: number | null) {
 
 export function PreventivePlanBoard() {
   const [searchTerm, setSearchTerm] = useState('');
-  const { data, error, isLoading, mutate } = useSWR('/api/maintenance/preventive?days=365', fetcher);
+  const { data, error, isLoading, mutate } = useSWR<PreventivePlanResponse>('/api/maintenance/preventive?days=365', fetcher);
 
-  const schedules = Array.isArray(data?.schedules) ? data.schedules : [];
+  const schedules: PreventiveSchedule[] = Array.isArray(data?.schedules) ? data.schedules : [];
   const filteredSchedules = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
     if (!query) return schedules;
 
-    return schedules.filter((schedule: any) => {
+    return schedules.filter((schedule) => {
       const searchable = [
         schedule.assetName,
         schedule.assetCode,
@@ -62,11 +94,11 @@ export function PreventivePlanBoard() {
     });
   }, [schedules, searchTerm]);
 
-  const summary = data?.summary || { total: 0, enabled: 0, overdue: 0, dueSoon: 0 };
+  const summary: PreventiveSummary = data?.summary || { total: 0, enabled: 0, overdue: 0, dueSoon: 0 };
 
   const grouped = useMemo(() => {
-    const groups: Record<string, any[]> = {};
-    filteredSchedules.forEach((schedule: any) => {
+    const groups: Record<string, PreventiveSchedule[]> = {};
+    filteredSchedules.forEach((schedule) => {
       const bucket = bucketLabel(schedule.daysUntil);
       groups[bucket] = groups[bucket] || [];
       groups[bucket].push(schedule);
@@ -209,7 +241,7 @@ export function PreventivePlanBoard() {
                   <CardTitle className="text-lg">{bucket}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {grouped[bucket].map((schedule: any) => (
+                  {grouped[bucket].map((schedule) => (
                     <div key={schedule.id} className="rounded-lg border border-border bg-background p-4">
                       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                         <div className="space-y-2">
@@ -230,7 +262,7 @@ export function PreventivePlanBoard() {
                           </div>
                         </div>
                         <div className="text-right text-sm text-muted-foreground">
-                          <p className={schedule.daysUntil < 0 ? 'text-destructive font-semibold' : 'font-medium'}>
+                          <p className={(schedule.daysUntil ?? 0) < 0 ? 'text-destructive font-semibold' : 'font-medium'}>
                             {daysLabel(schedule.daysUntil)}
                           </p>
                           <p className="mt-1">{schedule.nextScheduledDate || 'Sin fecha'}</p>
