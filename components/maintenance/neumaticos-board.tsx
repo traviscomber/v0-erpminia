@@ -6,16 +6,44 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
+type TireItem = {
+  id: string;
+  partName?: string | null;
+  partCode?: string | null;
+  lowStock?: boolean | null;
+  binCode?: string | null;
+  binLocation?: string | null;
+  quantityAvailable?: number | string | null;
+  quantityReserved?: number | string | null;
+  unitCost?: number | string | null;
+  totalValue?: number | string | null;
+};
 
-function money(value: number) {
+type TireSummary = {
+  totalItems?: number | string;
+  lowStock?: number | string;
+  totalQuantity?: number | string;
+  totalValue?: number | string;
+};
+
+type NeumaticosResponse = {
+  items?: TireItem[];
+  summary?: TireSummary;
+};
+
+const fetcher = async (url: string): Promise<NeumaticosResponse> => {
+  const response = await fetch(url, { credentials: 'include' });
+  return response.json();
+};
+
+function money(value: unknown) {
   return `$${Number(value || 0).toLocaleString('es-CL')}`;
 }
 
 export function NeumaticosBoard() {
-  const { data, error, isLoading, mutate } = useSWR('/api/maintenance/neumaticos', fetcher);
-  const items = Array.isArray(data?.items) ? data.items : [];
-  const summary = data?.summary || { totalItems: 0, lowStock: 0, totalQuantity: 0, totalValue: 0 };
+  const { data, error, isLoading, mutate } = useSWR<NeumaticosResponse>('/api/maintenance/neumaticos', fetcher);
+  const items: TireItem[] = Array.isArray(data?.items) ? data.items : [];
+  const summary: TireSummary = data?.summary || { totalItems: 0, lowStock: 0, totalQuantity: 0, totalValue: 0 };
 
   return (
     <div className="space-y-6">
@@ -57,7 +85,7 @@ export function NeumaticosBoard() {
               No hay neumaticos detectados en la base real.
             </div>
           ) : (
-            items.map((item: any) => (
+            items.map((item) => (
               <div key={item.id} className="rounded-lg border border-border p-4">
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                   <div>
@@ -73,11 +101,11 @@ export function NeumaticosBoard() {
                   <div className="grid grid-cols-2 gap-3 text-sm md:min-w-80">
                     <div>
                       <p className="text-xs text-muted-foreground">Disponible</p>
-                      <p className="font-medium">{item.quantityAvailable}</p>
+                      <p className="font-medium">{Number(item.quantityAvailable || 0)}</p>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Reservado</p>
-                      <p className="font-medium">{item.quantityReserved}</p>
+                      <p className="font-medium">{Number(item.quantityReserved || 0)}</p>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Costo unitario</p>
