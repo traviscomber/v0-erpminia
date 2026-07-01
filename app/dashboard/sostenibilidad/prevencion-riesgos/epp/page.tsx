@@ -198,9 +198,16 @@ export default function EPPPage() {
           </div>
           <p className="text-muted-foreground">Equipos de Protección Personal por puesto de trabajo</p>
         </div>
-        <Button asChild variant="outline" className="mr-2">
-          <Link href="/dashboard/sostenibilidad/prevencion-riesgos/epp/importar">Importar Excel</Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button asChild variant="outline">
+            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/epp/importar">
+              Plantilla
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="mr-2">
+            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/epp/importar">Importar Excel</Link>
+          </Button>
+        </div>
         <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild>
             <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
