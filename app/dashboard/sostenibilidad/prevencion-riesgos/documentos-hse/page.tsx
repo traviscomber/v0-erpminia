@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { DocumentUpload } from '@/components/documents/document-upload';
 import { DocumentList, Document } from '@/components/documents/document-list';
-import { DocumentReviewModal } from '@/components/documents/document-review-modal';
+import { DocumentReviewModal, type DocumentReviewDocument } from '@/components/documents/document-review-modal';
 import { FileText, CheckCircle2, AlertCircle, Clock, Upload } from 'lucide-react';
 
 interface DocumentStats {
@@ -20,7 +20,7 @@ interface DocumentStats {
 export default function DocumentosHSEPage() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedDoc, setSelectedDoc] = useState<any>(null);
+  const [selectedDoc, setSelectedDoc] = useState<DocumentReviewDocument | null>(null);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [stats, setStats] = useState<DocumentStats>({
     total: 0,
@@ -78,9 +78,9 @@ export default function DocumentosHSEPage() {
   const handleView = (document: Document | string) => {
     if (typeof document === 'string') {
       const doc = documents.find((d) => d.id === document);
-      if (doc) setSelectedDoc(doc);
+      if (doc) setSelectedDoc(doc as DocumentReviewDocument);
     } else {
-      setSelectedDoc(document);
+      setSelectedDoc(document as DocumentReviewDocument);
     }
     setReviewOpen(true);
   };
