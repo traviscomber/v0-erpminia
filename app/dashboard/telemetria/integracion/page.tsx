@@ -6,6 +6,7 @@ import { ArrowRight, CheckCircle2, Download, RadioTower, RefreshCw } from 'lucid
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 
 type ConnectionCheck = {
   ok: boolean;
@@ -20,10 +21,15 @@ type ConnectionCheck = {
 export default function TelemetriaIntegracionPage() {
   const [checking, setChecking] = useState(false);
   const [checkResult, setCheckResult] = useState<ConnectionCheck | null>(null);
+  const [gatewayUrl, setGatewayUrl] = useState(typeof window !== 'undefined' ? window.location.origin : '');
+  const [telemetryToken, setTelemetryToken] = useState('TU_TOKEN');
 
-  const code = `curl -X POST https://TU-DOMINIO/api/telemetry/ingest \\
+  const normalizedGatewayUrl = gatewayUrl.trim().replace(/\/+$/, '');
+  const ingestUrl = `${normalizedGatewayUrl || ''}/api/telemetry/ingest`;
+
+  const code = `curl -X POST ${ingestUrl || 'https://TU-DOMINIO/api/telemetry/ingest'} \\
   -H "Content-Type: application/json" \\
-  -H "x-telemetry-token: TU_TOKEN" \\
+  -H "x-telemetry-token: ${telemetryToken || 'TU_TOKEN'}" \\
   -d '{
     "readings": [
       {
@@ -77,7 +83,7 @@ export default function TelemetriaIntegracionPage() {
     setCheckResult(null);
 
     try {
-      const response = await fetch('/api/telemetry/ingest', {
+      const response = await fetch(ingestUrl || '/api/telemetry/ingest', {
         method: 'GET',
         cache: 'no-store',
       });
@@ -106,7 +112,26 @@ export default function TelemetriaIntegracionPage() {
             Esta pagina define el contrato minimo para conectar una segunda maquina de la red local de la Patagua.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-2 lg:min-w-[32rem]">
+          <div className="grid gap-2 md:grid-cols-2">
+            <Input
+              value={gatewayUrl}
+              onChange={(event) => setGatewayUrl(event.target.value)}
+              placeholder="https://patagua.local o http://192.168.1.20:3000"
+              aria-label="URL del gateway"
+            />
+            <Input
+              value={telemetryToken}
+              onChange={(event) => setTelemetryToken(event.target.value)}
+              placeholder="x-telemetry-token"
+              aria-label="Token de telemetria"
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            La prueba usa el host ingresado. Si apuntas a otra maquina, ese endpoint debe permitir acceso desde la red local.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={downloadSpec}>
             <Download className="mr-2 h-4 w-4" />
             Descargar especificacion
@@ -163,7 +188,7 @@ export default function TelemetriaIntegracionPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="font-semibold">POST /api/telemetry/ingest</div>
+            <div className="font-semibold">POST {normalizedGatewayUrl || 'https://TU-DOMINIO'}/api/telemetry/ingest</div>
             <p className="text-sm text-muted-foreground">Acepta JSON desde un gateway local o lotes de lecturas.</p>
           </CardContent>
         </Card>
@@ -176,7 +201,7 @@ export default function TelemetriaIntegracionPage() {
           </CardHeader>
           <CardContent>
             <div className="font-semibold">x-telemetry-token</div>
-            <p className="text-sm text-muted-foreground">Se valida contra `TELEMETRY_INGEST_TOKEN`.</p>
+            <p className="text-sm text-muted-foreground">Se valida contra `TELEMETRY_INGEST_TOKEN` y se incluye en los ejemplos.</p>
           </CardContent>
         </Card>
         <Card>
@@ -193,10 +218,10 @@ export default function TelemetriaIntegracionPage() {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Ejemplo de envio</CardTitle>
-          <CardDescription>Este ejemplo sirve para pruebas desde una PC o gateway de la red local.</CardDescription>
+        <Card>
+          <CardHeader>
+            <CardTitle>Ejemplo de envio</CardTitle>
+            <CardDescription>Este ejemplo sirve para pruebas desde una PC o gateway de la red local.</CardDescription>
         </CardHeader>
         <CardContent>
           <pre className="overflow-x-auto rounded-lg border bg-muted p-4 text-sm leading-6">{code}</pre>
