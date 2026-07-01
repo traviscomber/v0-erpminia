@@ -18,7 +18,7 @@ interface DocumentStats {
 export default function DocumentosHSEPage() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedDoc, setSelectedDoc] = useState<any>(null);
+  const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [stats, setStats] = useState<DocumentStats>({
     total: 0,
