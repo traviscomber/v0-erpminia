@@ -24,6 +24,50 @@ type ReadingLike = {
   vibration: number | string | null;
 };
 
+type EquipmentRow = {
+  id: string;
+  name: string | null;
+  type?: string | null;
+  status: string | null;
+  location?: string | null;
+  criticality?: string | null;
+};
+
+type MaintenanceAssetRow = {
+  id: string;
+  asset_name: string | null;
+  asset_type?: string | null;
+  status: string | null;
+  location?: string | null;
+  criticality?: string | null;
+};
+
+type WorkOrderRow = {
+  id: string;
+  asset_id: string | null;
+  status: string | null;
+};
+
+type DetencionRow = {
+  id: string;
+  start_time: string | null;
+};
+
+type AlarmRow = {
+  id: string;
+  equipment_id: string | null;
+  severity: string | null;
+  status: string | null;
+  created_at?: string | null;
+};
+
+type AvailabilityRow = {
+  id: string;
+  equipment_id: string | null;
+  availability_percentage?: number | string | null;
+  date?: string | null;
+};
+
 type ChartReading = {
   id: string;
   equipment_id: string | null;
@@ -130,7 +174,7 @@ async function querySensorReadings(
   context: Awaited<ReturnType<typeof getOrganizationContext>>,
   sensorIds: string[]
 ) {
-  if (!context.ok || sensorIds.length === 0) return [] as any[];
+  if (!context.ok || sensorIds.length === 0) return [] as ReadingLike[];
 
   const byTimestamp = await safeQuery(
     async () =>
@@ -140,7 +184,7 @@ async function querySensorReadings(
         .in('sensor_id', sensorIds)
         .order('timestamp', { ascending: false })
         .limit(250),
-    [] as any[]
+    [] as ReadingLike[]
   );
 
   if (byTimestamp.length > 0) return byTimestamp;
@@ -153,7 +197,7 @@ async function querySensorReadings(
         .in('sensor_id', sensorIds)
         .order('received_at', { ascending: false })
         .limit(250),
-    [] as any[]
+    [] as ReadingLike[]
   );
 }
 
@@ -204,7 +248,7 @@ export async function GET(request: NextRequest) {
     const [productionEquipment, maintenanceAssets, workOrders, detenciones] = await Promise.all([
       safeQuery(
         async () => context.supabase.from('equipment').select('*').order('name', { ascending: true }),
-        [] as any[]
+        [] as EquipmentRow[]
       ),
       safeQuery(
         async () =>
@@ -213,7 +257,7 @@ export async function GET(request: NextRequest) {
             .select('*')
             .eq('organization_id', context.organizationId)
             .order('asset_name', { ascending: true }),
-        [] as any[]
+        [] as MaintenanceAssetRow[]
       ),
       safeQuery(
         async () =>
@@ -223,7 +267,7 @@ export async function GET(request: NextRequest) {
             .eq('organization_id', context.organizationId)
             .in('status', ['open', 'in_progress'])
             .order('created_at', { ascending: false }),
-        [] as any[]
+        [] as WorkOrderRow[]
       ),
       safeQuery(
         async () =>
@@ -232,7 +276,7 @@ export async function GET(request: NextRequest) {
             .select('*')
             .order('start_time', { ascending: false })
             .limit(100),
-        [] as any[]
+        [] as DetencionRow[]
       ),
     ]);
 
@@ -247,11 +291,11 @@ export async function GET(request: NextRequest) {
                 .select('*')
                 .in('equipment_id', productionEquipmentIds)
                 .order('name', { ascending: true }),
-            [] as any[]
+            [] as SensorLike[]
           )
-        : Promise.resolve([] as any[]),
+        : Promise.resolve([] as SensorLike[]),
       productionEquipmentIds.length > 0
-        ? Promise.resolve([] as any[]) // populated below after sensors resolve
+        ? Promise.resolve([] as ReadingLike[]) // populated below after sensors resolve
         : safeQuery(
             async () =>
               context.supabase
@@ -259,7 +303,7 @@ export async function GET(request: NextRequest) {
                 .select('*')
                 .order('timestamp', { ascending: false })
                 .limit(100),
-            [] as any[]
+            [] as ReadingLike[]
           ),
       productionEquipmentIds.length > 0
         ? safeQuery(
@@ -270,7 +314,7 @@ export async function GET(request: NextRequest) {
                 .in('equipment_id', productionEquipmentIds)
                 .order('created_at', { ascending: false })
                 .limit(50),
-            [] as any[]
+            [] as AlarmRow[]
           )
         : safeQuery(
             async () =>
@@ -279,7 +323,7 @@ export async function GET(request: NextRequest) {
                 .select('*')
                 .order('created_at', { ascending: false })
                 .limit(20),
-            [] as any[]
+            [] as AlarmRow[]
           ),
       productionEquipmentIds.length > 0
         ? safeQuery(
@@ -289,9 +333,9 @@ export async function GET(request: NextRequest) {
                 .select('*')
                 .in('equipment_id', productionEquipmentIds)
                 .order('date', { ascending: false }),
-            [] as any[]
+            [] as AvailabilityRow[]
           )
-        : Promise.resolve([] as any[]),
+        : Promise.resolve([] as AvailabilityRow[]),
     ]);
 
     const readings =
@@ -329,7 +373,7 @@ export async function GET(request: NextRequest) {
 
     const liveAlarms = rawAlarms.filter((alarm) => isActiveAlarm(alarm.status));
 
-    const alarmsByEquipment = new Map<string, any[]>();
+    const alarmsByEquipment = new Map<string, AlarmRow[]>();
     for (const alarm of liveAlarms) {
       const equipmentId = alarm.equipment_id;
       if (!equipmentId) continue;
@@ -338,7 +382,7 @@ export async function GET(request: NextRequest) {
       alarmsByEquipment.set(equipmentId, current);
     }
 
-    const workOrdersByAsset = new Map<string, any[]>();
+    const workOrdersByAsset = new Map<string, WorkOrderRow[]>();
     for (const workOrder of workOrders) {
       if (!workOrder.asset_id) continue;
       const current = workOrdersByAsset.get(workOrder.asset_id) || [];
@@ -346,7 +390,7 @@ export async function GET(request: NextRequest) {
       workOrdersByAsset.set(workOrder.asset_id, current);
     }
 
-    const availabilityByEquipment = new Map<string, any>();
+    const availabilityByEquipment = new Map<string, AvailabilityRow>();
     for (const row of availabilityRows) {
       if (!row.equipment_id || availabilityByEquipment.has(row.equipment_id)) continue;
       availabilityByEquipment.set(row.equipment_id, row);
