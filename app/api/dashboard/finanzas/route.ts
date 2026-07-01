@@ -21,7 +21,25 @@ function monthLabel(date: Date) {
   return date.toLocaleDateString('es-CL', { month: 'short' }).replace('.', '');
 }
 
-function getExpenseDate(expense: any) {
+type ExpenseRow = {
+  created_at?: string | null;
+  date?: string | null;
+  expense_date?: string | null;
+  due_date?: string | null;
+  amount?: number | string | null;
+  total_amount?: number | string | null;
+  value?: number | string | null;
+  cost?: number | string | null;
+  department?: string | null;
+  cost_center?: string | null;
+  category?: string | null;
+  vendor?: string | null;
+  vendor_name?: string | null;
+};
+
+type NormalizedExpenseRow = ExpenseRow & { amount: number };
+
+function getExpenseDate(expense: ExpenseRow) {
   return (
     normalizeDate(expense.created_at) ||
     normalizeDate(expense.date) ||
@@ -31,11 +49,11 @@ function getExpenseDate(expense: any) {
   );
 }
 
-function getExpenseAmount(expense: any) {
+function getExpenseAmount(expense: ExpenseRow) {
   return toNumber(expense.amount || expense.total_amount || expense.value || expense.cost);
 }
 
-function getExpenseGroup(expense: any) {
+function getExpenseGroup(expense: ExpenseRow) {
   return (
     expense.department ||
     expense.cost_center ||
@@ -46,7 +64,7 @@ function getExpenseGroup(expense: any) {
   );
 }
 
-function buildBudgetSeries(expenses: any[], budgetTotal: number) {
+function buildBudgetSeries(expenses: NormalizedExpenseRow[], budgetTotal: number) {
   const months = Array.from({ length: 6 }, (_, index) => {
     const date = new Date();
     date.setMonth(date.getMonth() - (5 - index), 1);
@@ -72,7 +90,7 @@ function buildBudgetSeries(expenses: any[], budgetTotal: number) {
   });
 }
 
-function buildForecast(expenses: any[]) {
+function buildForecast(expenses: NormalizedExpenseRow[]) {
   const monthlyTotals = new Map<string, number>();
 
   for (const expense of expenses) {
@@ -93,7 +111,7 @@ function buildForecast(expenses: any[]) {
   }));
 }
 
-function buildDepartmentSpend(expenses: any[]) {
+function buildDepartmentSpend(expenses: NormalizedExpenseRow[]) {
   const totals = new Map<string, number>();
 
   for (const expense of expenses) {
@@ -138,10 +156,10 @@ export async function GET(request: Request) {
       supabase.from('expenses').select('*').order('created_at', { ascending: false }),
     ]);
 
-    const expenses = (expensesData || []).map((expense: any) => ({
+    const expenses = ((expensesData || []) as ExpenseRow[]).map((expense) => ({
       ...expense,
       amount: getExpenseAmount(expense),
-    }));
+    })) as NormalizedExpenseRow[];
 
     const budgetTotal = toNumber(
       budgetData?.total ||
@@ -150,7 +168,7 @@ export async function GET(request: Request) {
         budgetData?.amount ||
         0
     );
-    const spent = expenses.reduce((sum: number, expense: any) => sum + toNumber(expense.amount), 0);
+    const spent = expenses.reduce((sum: number, expense) => sum + toNumber(expense.amount), 0);
     const remaining = Math.max(budgetTotal - spent, 0);
 
     const budgetVsActual = buildBudgetSeries(expenses, budgetTotal);
