@@ -10,12 +10,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DocumentUploadModal } from '@/components/documents/document-upload-modal';
 import { DocumentViewer, type DocumentViewerDocument } from '@/components/documents/document-viewer';
 import { DocumentList, type Document } from '@/components/documents/document-list';
-import { ApprovalWorkflowCard } from '@/components/documents/approval-workflow-card';
+import { ApprovalWorkflowCard, type ApprovalStep } from '@/components/documents/approval-workflow-card';
 
 interface PendingApproval {
   id: string;
   documentId: string;
-  steps: any[];
+  steps: ApprovalStep[];
   document: {
     id: string;
     title: string;
