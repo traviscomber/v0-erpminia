@@ -54,12 +54,19 @@ export default function CarpetaArranquePage() {
         <h1 className="text-3xl font-bold tracking-tight">Carpeta de Arranque</h1>
         <p className="text-muted-foreground">Sistema de validacion de documentos para empresas contratistas (EECC)</p>
         </div>
-        <Button asChild variant="outline" className="gap-2">
-          <Link href="/dashboard/sostenibilidad/prevencion-riesgos/carpeta-arranque/importar">
-            <Plus className="h-4 w-4" />
-            Importar Excel
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button asChild variant="outline" className="gap-2">
+            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/carpeta-arranque/importar">
+              Plantilla
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="gap-2">
+            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/carpeta-arranque/importar">
+              <Plus className="h-4 w-4" />
+              Importar Excel
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">

@@ -115,6 +115,9 @@ export default function InspeccionesInternasPage() {
 
         <div className="flex items-center gap-2">
           <Button asChild variant="outline">
+            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/inspecciones/importar">Plantilla</Link>
+          </Button>
+          <Button asChild variant="outline">
             <Link href="/dashboard/sostenibilidad/prevencion-riesgos/inspecciones/importar">Importar Excel</Link>
           </Button>
           <Button
