@@ -70,10 +70,10 @@ export function HSEDashboard() {
                 <div>
                   <p className="font-medium">{item.mes}</p>
                   <p className="text-xs text-muted-foreground">
-                    IIRL {item.iirl?.toFixed?.(2) ?? item.iirl ?? 0}
+                    IIRL {Number(item.iirl || 0).toFixed(2)}
                   </p>
                 </div>
-                <Badge variant="outline">{item.iirl <= (data?.meta_iirl || 1) ? 'OK' : 'Revisar'}</Badge>
+                <Badge variant="outline">{Number(item.iirl || 0) <= (data?.meta_iirl || 1) ? 'OK' : 'Revisar'}</Badge>
               </div>
             ))}
           </CardContent>

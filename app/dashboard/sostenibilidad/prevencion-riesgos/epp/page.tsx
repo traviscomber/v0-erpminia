@@ -85,7 +85,7 @@ export default function EPPPage() {
   const users = Array.isArray(usersData?.users)
     ? (usersData.users as AdminUser[]).map((user) => ({
         id: user.id,
-        nombre: user.full_name || user.nombre || user.email,
+        nombre: user.full_name || user.nombre || user.email || 'Sin nombre',
         cargo: user.role || 'Usuario',
         activo: user.active ?? true,
       }))

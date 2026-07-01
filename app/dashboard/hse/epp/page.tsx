@@ -17,6 +17,9 @@ type HseEppEntry = {
   epp_elemento?: string | null;
   cantidad?: number | string | null;
   activo?: boolean | null;
+  frecuencia_reemplazo?: string | null;
+  marca_modelo?: string | null;
+  fecha_entrega?: string | null;
 };
 
 type HseEppApiResponse = {
@@ -340,7 +343,7 @@ export default function HSEEPPPage() {
                     {entrega.marca_modelo ? <Badge variant="outline">{entrega.marca_modelo}</Badge> : null}
                   </div>
                   <p className="mt-2 text-xs text-muted-foreground">
-                    Actualizado: {new Date(entrega.fecha_entrega).toLocaleDateString('es-CL')}
+                    Actualizado: {new Date(entrega.fecha_entrega || 0).toLocaleDateString('es-CL')}
                   </p>
                 </div>
                 <Badge className={entrega.activo !== false ? 'bg-[var(--brand-verde)]/10 text-[var(--brand-verde)]' : 'bg-[var(--brand-rojo)]/10 text-[var(--brand-rojo)]'}>

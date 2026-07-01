@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
       },
       trendData: snapshot.trendData,
       alertsDistribution: snapshot.alertsDistribution,
-      recommendations: snapshot.recommendations.map((item: { description?: string | null }) => item.description),
+      recommendations: snapshot.recommendations.map((item) => item?.description ?? ''),
       lastUpdated: new Date().toISOString(),
     });
   } catch (error) {

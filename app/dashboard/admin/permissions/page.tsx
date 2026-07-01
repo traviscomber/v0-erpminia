@@ -40,6 +40,7 @@ type PermissionItem = {
   action?: string | null;
   role?: string | null;
   expires_at?: string | null;
+  is_active?: boolean | null;
 };
 
 export default function PermissionsPage() {

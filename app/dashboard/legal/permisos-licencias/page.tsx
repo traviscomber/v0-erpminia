@@ -63,7 +63,7 @@ export default function PermisosLicenciasPage() {
 
   const expiring = filtered.filter((doc) => {
     if (!doc.expiryDate && !doc.expiry_date) return false;
-    const expiry = new Date(doc.expiryDate || doc.expiry_date);
+    const expiry = new Date(doc.expiryDate || doc.expiry_date || 0);
     if (Number.isNaN(expiry.getTime())) return false;
     const days = (expiry.getTime() - Date.now()) / (1000 * 60 * 60 * 24);
     return days >= 0 && days <= 30;

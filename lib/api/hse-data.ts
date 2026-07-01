@@ -161,6 +161,7 @@ type HseTraining = {
 type HseEpp = {
   id: string;
   cargo: string;
+  cargo_puesto?: string | null;
   personal_nombre: string;
   epp_elemento: string;
   cantidad: number;

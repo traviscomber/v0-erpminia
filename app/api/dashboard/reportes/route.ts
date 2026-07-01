@@ -51,8 +51,8 @@ export async function GET(request: NextRequest) {
       title: 'Reporte de Produccion',
       data: (snapshot.trendData as TrendDataRow[]).map((item) => ({
         month: item.date,
-        actual: item.equipos,
-        target: clamp(item.equipos + 2, 0, 100),
+        actual: Number(item.equipos || 0),
+        target: clamp(Number(item.equipos || 0) + 2, 0, 100),
       })),
       summary: {
         totalProduction: snapshot.operationalEquipment,

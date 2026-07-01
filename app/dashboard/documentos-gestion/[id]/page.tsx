@@ -43,7 +43,7 @@ type DocumentCategoriesResponse = {
   };
 };
 
-function statusBadge(estado: string) {
+function statusBadge(estado?: string | null) {
   if (estado === 'aprobado') return <Badge className="bg-[var(--brand-verde)]">Aprobado</Badge>;
   if ((estado || '').includes('pendiente')) return <Badge className="bg-[var(--secondary)]">Pendiente</Badge>;
   if (estado === 'rechazado') return <Badge className="bg-[var(--brand-rojo)]">Rechazado</Badge>;

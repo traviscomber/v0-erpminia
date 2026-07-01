@@ -29,7 +29,7 @@ type DocumentSummaryItem = {
   creador?: string | null;
 };
 
-function statusBadge(estado: string) {
+function statusBadge(estado?: string | null) {
   switch (estado) {
     case 'aprobado':
     case 'active':
@@ -331,7 +331,7 @@ export default function DocumentosGestionPage() {
                     <CardTitle className="text-lg">{category.name}</CardTitle>
                     <CardDescription className="mt-1 text-xs">{category.description}</CardDescription>
                   </div>
-                  {category.pendingApprovals > 0 && (
+                  {(category.pendingApprovals || 0) > 0 && (
                     <Badge variant="destructive" className="ml-2">
                       {category.pendingApprovals}
                     </Badge>

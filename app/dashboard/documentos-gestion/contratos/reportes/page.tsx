@@ -209,7 +209,7 @@ export default function ContratosReportesPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold">{estado.cantidad}</div>
-                  <p className="mt-1 text-xs text-muted-foreground">CLP {(estado.monto_total / 1000000).toFixed(1)}M</p>
+                  <p className="mt-1 text-xs text-muted-foreground">CLP {(Number(estado.monto_total || 0) / 1000000).toFixed(1)}M</p>
                 </CardContent>
               </Card>
             ))}

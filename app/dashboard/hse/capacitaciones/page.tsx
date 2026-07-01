@@ -65,7 +65,7 @@ export default function HSECapacitacionesPage() {
   );
 
   const proximasCapacitaciones = filtradas.filter((c) => {
-    const fecha = new Date(c.fecha_programada);
+    const fecha = new Date(c.fecha_programada || 0);
     return fecha >= new Date() && c.estado === 'programada';
   });
 
@@ -106,7 +106,7 @@ export default function HSECapacitacionesPage() {
         </div>
       </div>
 
-      <HSECapacitacionesImport onSuccess={() => mutate()} />
+      <HSECapacitacionesImport onSuccess={() => { void mutate(); }} />
 
       {proximasCapacitaciones.length > 0 && (
         <div className="rounded-lg border border-[var(--secondary)]/30 bg-[var(--secondary)]/5 p-4">
@@ -116,7 +116,7 @@ export default function HSECapacitacionesPage() {
               <div key={cap.id} className="rounded border border-blue-100 bg-white p-3">
                 <p className="text-sm font-semibold">{cap.nombre}</p>
                 <p className="text-xs text-muted-foreground">
-                  {new Date(cap.fecha_programada).toLocaleDateString('es-CL', {
+                  {new Date(cap.fecha_programada || 0).toLocaleDateString('es-CL', {
                     weekday: 'short',
                     day: 'numeric',
                     month: 'short',
@@ -218,14 +218,14 @@ export default function HSECapacitacionesPage() {
                   <h3 className="font-semibold">{cap.nombre}</h3>
                   <p className="text-sm text-muted-foreground">{cap.proveedor || 'Interno'}</p>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    <Badge className={estadoColores[cap.estado] || estadoColores.programada}>{cap.estado}</Badge>
+                    <Badge className={estadoColores[cap.estado || 'programada'] || estadoColores.programada}>{cap.estado || 'programada'}</Badge>
                     <Badge variant="outline">{cap.tipo}</Badge>
                     {cap.cargos_aplica ? <Badge variant="outline">{cap.cargos_aplica}</Badge> : null}
                   </div>
                   <div className="mt-3 flex flex-wrap gap-4 text-xs text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      {new Date(cap.fecha_programada).toLocaleDateString('es-CL')}
+                      {new Date(cap.fecha_programada || 0).toLocaleDateString('es-CL')}
                     </div>
                     <div className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />

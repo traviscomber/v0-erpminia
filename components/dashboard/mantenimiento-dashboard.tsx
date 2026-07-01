@@ -15,6 +15,10 @@ type MaintenanceAsset = {
   criticality?: string | null;
   id?: string | number;
   name?: string | null;
+  assetName?: string | null;
+  assetCode?: string | null;
+  assetType?: string | null;
+  location?: string | null;
 };
 
 type MaintenanceOrder = {

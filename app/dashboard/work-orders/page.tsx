@@ -19,6 +19,7 @@ type WorkOrderItem = {
   title: string | null;
   work_type?: string | null;
   assigned_to_name?: string | null;
+  progress_percentage?: number | string | null;
 };
 
 type ScheduleItem = {
@@ -83,7 +84,7 @@ export default function WorkOrdersPage() {
           id: wo.id,
           assetName: wo.asset_name || 'Sin activo asociado',
           taskName: `${wo.work_order_number || 'OT'} - ${wo.title}`,
-          nextScheduledDate: wo.scheduled_date,
+          nextScheduledDate: wo.scheduled_date || '',
           priority: priorityValue === 'critical' || priorityValue === 'high' ? 'high' : priorityValue === 'low' ? 'low' : 'medium',
           daysUntil,
         };
