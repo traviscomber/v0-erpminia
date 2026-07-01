@@ -4,6 +4,42 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { getDashboardSnapshot } from '@/lib/api/dashboard-snapshot';
 
+type AssetRow = {
+  id?: string | number;
+  name?: string | null;
+  status?: string | null;
+  criticality?: string | null;
+  created_at?: string | null;
+};
+
+type ExpiringDocumentRow = {
+  id?: string | number;
+  title?: string | null;
+  days_until_expiry?: number | null;
+};
+
+type StockItemRow = {
+  id?: string | number;
+  part_name?: string | null;
+  part_code?: string | null;
+  quantity_on_hand?: number | string | null;
+};
+
+type WorkOrderRow = {
+  id?: string | number;
+  title?: string | null;
+  status?: string | null;
+  scheduled_date?: string | null;
+  created_at?: string | null;
+};
+
+type ContractRow = {
+  id?: string | number;
+  contractor_name?: string | null;
+  title?: string | null;
+  days_until_expiry?: number | string | null;
+};
+
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
@@ -11,14 +47,14 @@ export async function GET(request: NextRequest) {
   try {
     const snapshot = await getDashboardSnapshot({ organizationId: context.organizationId, supabase: context.supabase });
 
-    const criticalEquipment = snapshot.assets
-      .filter((asset: any) => {
+    const criticalEquipment = (snapshot.assets as AssetRow[])
+      .filter((asset) => {
         const status = String(asset.status || '').toLowerCase();
         const criticality = String(asset.criticality || '').toLowerCase();
         return ['critical', 'maintenance'].includes(status) || criticality === 'critical';
       })
       .slice(0, 5)
-      .map((asset: any) => ({
+      .map((asset) => ({
         id: asset.id,
         name: asset.name,
         risk: String(asset.criticality || 'warning').toLowerCase() === 'critical' ? 'critical' : 'warning',
@@ -34,32 +70,32 @@ export async function GET(request: NextRequest) {
         timestamp: asset.created_at || new Date().toISOString(),
       }));
 
-    const expiringDocuments = snapshot.expiringDocuments.slice(0, 5).map((doc: any) => ({
+    const expiringDocuments = (snapshot.expiringDocuments as ExpiringDocumentRow[]).slice(0, 5).map((doc) => ({
       id: doc.id,
       title: doc.title,
       expiresIn: doc.days_until_expiry ?? 0,
     }));
 
-    const criticalStock = snapshot.lowStockItems.slice(0, 5).map((item: any) => ({
+    const criticalStock = (snapshot.lowStockItems as StockItemRow[]).slice(0, 5).map((item) => ({
       id: item.id,
       item: item.part_name || item.part_code,
       level: Number(item.quantity_on_hand || 0) === 0 ? 'critical' : 'warning',
       qty: Number(item.quantity_on_hand || 0),
     }));
 
-    const pendingMaintenance = snapshot.workOrders
-      .filter((order: any) => ['open', 'in_progress'].includes(String(order.status || '').toLowerCase()))
+    const pendingMaintenance = (snapshot.workOrders as WorkOrderRow[])
+      .filter((order) => ['open', 'in_progress'].includes(String(order.status || '').toLowerCase()))
       .slice(0, 5)
-      .map((order: any) => ({
+      .map((order) => ({
         id: order.id,
         task: order.title,
         dueDate: order.scheduled_date || order.created_at || null,
       }));
 
-    const overdueOrders = snapshot.contracts
-      .filter((contract: any) => Number(contract.days_until_expiry || 0) >= 0 && Number(contract.days_until_expiry || 0) <= 7)
+    const overdueOrders = (snapshot.contracts as ContractRow[])
+      .filter((contract) => Number(contract.days_until_expiry || 0) >= 0 && Number(contract.days_until_expiry || 0) <= 7)
       .slice(0, 5)
-      .map((contract: any) => ({
+      .map((contract) => ({
         id: contract.id,
         supplier: contract.contractor_name || contract.title || 'Proveedor',
         days: Number(contract.days_until_expiry || 0),
