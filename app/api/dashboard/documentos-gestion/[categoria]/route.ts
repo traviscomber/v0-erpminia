@@ -78,7 +78,7 @@ export async function GET(
         activo: doc.activo,
       }));
 
-    const aprobados = documents.filter((d: any) => d.estado === 'aprobado');
+    const aprobados = documents.filter((d) => d.estado === 'aprobado');
     const pendientes = documents.filter(
       (d) => d.estado === 'pendiente_validador1' || d.estado === 'pendiente_validador2'
     );
