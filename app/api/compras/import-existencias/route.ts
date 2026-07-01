@@ -43,6 +43,11 @@ type PurchaseAggregate = {
   status: string;
 };
 
+type WorkbookLike = {
+  SheetNames: string[];
+  Sheets: Record<string, unknown>;
+};
+
 function normalizeHeader(value: unknown) {
   return normalizeText(value)
     .replace(/\s+/g, ' ')
@@ -98,13 +103,18 @@ function parseDateValue(value: unknown) {
   return null;
 }
 
-function getSheetByName(workbook: any, contains: string) {
+function getSheetByName(workbook: WorkbookLike, contains: string) {
   const target = normalizeHeader(contains);
   const name = workbook.SheetNames.find((sheetName: string) => normalizeHeader(sheetName).includes(target));
   return name ? workbook.Sheets[name] : null;
 }
 
-type XlsxModule = any;
+type XlsxModule = {
+  read: (buffer: Buffer, options: { type: 'buffer'; cellDates: boolean }) => WorkbookLike;
+  utils: {
+    sheet_to_json: (sheet: unknown, options: { header: number; defval: string; raw: boolean }) => unknown[][];
+  };
+};
 
 function getXlsxModule(): XlsxModule {
   const moduleCache = globalThis as typeof globalThis & { __xlsxModule?: XlsxModule };
@@ -115,11 +125,11 @@ function getXlsxModule(): XlsxModule {
   return moduleCache.__xlsxModule;
 }
 
-function toRows(sheet: any) {
+function toRows(sheet: unknown) {
   return getXlsxModule().utils.sheet_to_json(sheet, { header: 1, defval: '', raw: true }) as unknown[][];
 }
 
-function parseSuppliers(sheet: any): SupplierRow[] {
+function parseSuppliers(sheet: unknown): SupplierRow[] {
   if (!sheet) return [];
   const rows = toRows(sheet);
   if (!rows.length) return [];
@@ -186,7 +196,7 @@ function deriveStockCategory(partCode: string, partName: string) {
   return canonicalCategory(partName || partCode || 'Sin categoria');
 }
 
-function parseStock(sheet: any): StockRow[] {
+function parseStock(sheet: unknown): StockRow[] {
   if (!sheet) return [];
   const rows = toRows(sheet);
   if (!rows.length) return [];
@@ -236,7 +246,7 @@ function parseStock(sheet: any): StockRow[] {
   });
 }
 
-function parsePurchases(sheet: any): PurchaseAggregate[] {
+function parsePurchases(sheet: unknown): PurchaseAggregate[] {
   if (!sheet) return [];
   const rows = toRows(sheet);
   if (!rows.length) return [];
@@ -322,7 +332,7 @@ function parsePurchases(sheet: any): PurchaseAggregate[] {
 }
 
 async function parseWorkbook(file: File) {
-  const xlsx = (await import('xlsx')) as any;
+  const xlsx = (await import('xlsx')) as unknown as XlsxModule;
   (globalThis as typeof globalThis & { __xlsxModule?: XlsxModule }).__xlsxModule = xlsx;
 
   const buffer = Buffer.from(await file.arrayBuffer());
@@ -427,8 +437,10 @@ async function formatError(error: unknown) {
   }
 }
 
+type ImportDataClient = Extract<Awaited<ReturnType<typeof getOrganizationContext>>, { ok: true }>['supabase'];
+
 async function importData(
-  supabase: any,
+  supabase: ImportDataClient,
   organizationId: string,
   userId: string | null,
   suppliers: SupplierRow[],
@@ -478,7 +490,7 @@ async function importData(
         if (existingNamesError) throw existingNamesError;
 
         const existingNameSet = new Set(
-          (existingNames || []).map((row: any) => normalizeText(row.name)),
+          (existingNames || []).map((row: { name: string }) => normalizeText(row.name)),
         );
 
         const pending = suppliersWithoutRut.filter((item) => !existingNameSet.has(normalizeText(item.name)));
