@@ -3,6 +3,13 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 
+type MaintenanceWorkOrderRow = {
+  actual_duration_hours?: number | null;
+  planned_duration_hours?: number | null;
+  completion_date?: string | null;
+  status?: string;
+};
+
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
@@ -20,14 +27,14 @@ export async function GET(request: NextRequest) {
       .select('id, status')
       .eq('organization_id', context.organizationId);
 
-    const closedWorkOrders = workOrders || [];
+    const closedWorkOrders = (workOrders || []) as MaintenanceWorkOrderRow[];
     const totalWO = closedWorkOrders.length || 0;
     const mttr = totalWO > 0 
-      ? (closedWorkOrders.reduce((sum: number, wo: any) => sum + (wo.actual_duration_hours || 0), 0) || 0) / totalWO
+      ? (closedWorkOrders.reduce((sum: number, wo) => sum + (wo.actual_duration_hours || 0), 0) || 0) / totalWO
       : 0;
     
     const assetRows = assets || [];
-    const availableAssets = assetRows.filter(a => a.status === 'operational').length || 0;
+    const availableAssets = assetRows.filter((a) => a.status === 'operational').length || 0;
     const totalAssets = assetRows.length || 1;
     const availability = ((availableAssets / totalAssets) * 100).toFixed(1);
 

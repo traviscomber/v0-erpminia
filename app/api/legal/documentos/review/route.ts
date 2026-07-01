@@ -6,6 +6,12 @@ import { resolveAuthContext } from '@/lib/api/auth-session';
 
 type ReviewLevel = 'L1' | 'L2';
 type ReviewStatus = 'cumple' | 'no_cumple' | null;
+type ReviewRequestBody = {
+  docId?: string;
+  level?: ReviewLevel | string;
+  status?: ReviewStatus;
+  observations?: string;
+};
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -15,7 +21,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
-  const { docId, level, status, observations } = await request.json();
+  const { docId, level, status, observations } = (await request.json()) as ReviewRequestBody;
 
   if (!docId || !level || status === null || status === undefined) {
     return NextResponse.json(
@@ -31,7 +37,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const updateData: Record<string, any> = {
+  const updateData: Record<string, string | null> = {
     [`${level.toLowerCase()}_status`]: status,
     [`${level.toLowerCase()}_observations`]: observations || null,
     [`reviewed_by_${level.toLowerCase()}`]: auth.user.id,
