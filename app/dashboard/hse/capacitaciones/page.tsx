@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, Calendar, Plus, Search, Users, Clock } from 'lucide-react';
+import { ArrowRight, Calendar, Plus, Search, Users, Clock, Download } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 import { HSECapacitacionesImport } from '@/components/hse/hse-capacitaciones-import';
@@ -93,6 +93,12 @@ export default function HSECapacitacionesPage() {
           <p className="text-muted-foreground">Programacion, avance y trazabilidad de actividades de formacion.</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline">
+            <Link href="/dashboard/hse/capacitaciones/importar">
+              <Download className="mr-2 h-4 w-4" />
+              Plantilla Excel
+            </Link>
+          </Button>
           <Button asChild variant="outline">
             <Link href="/dashboard/hse/capacitaciones/importar">
               <ArrowRight className="mr-2 h-4 w-4" />
