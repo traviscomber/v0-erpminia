@@ -185,6 +185,9 @@ export default function InspeccionesExternasImportPage() {
               <p className="mt-2 text-sm text-muted-foreground">
                 Usa <span className="font-medium">externas</span> en la columna TIPO para que el sistema guarde los registros en el módulo externo.
               </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                FECHA_PLANIFICADA acepta fechas de Excel o texto en formato YYYY-MM-DD, DD/MM/YYYY o DD-MM-YYYY.
+              </p>
             </AlertDescription>
           </Alert>
 
