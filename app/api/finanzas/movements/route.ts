@@ -5,6 +5,8 @@ import { getOrganizationContext, type OrganizationSuccessContext } from '@/lib/a
 
 const CANDIDATE_TABLES = ['finance_movements', 'finanzas_movements', 'movements'];
 
+type FinanceMovementRow = Record<string, string | number | boolean | null>;
+
 async function readMovements(context: OrganizationSuccessContext) {
   for (const table of CANDIDATE_TABLES) {
     const { data, error } = await context.supabase
@@ -14,10 +16,10 @@ async function readMovements(context: OrganizationSuccessContext) {
       .order('date', { ascending: false })
       .limit(500);
 
-    if (!error) return { table, data: data || [] };
+    if (!error) return { table, data: (data || []) as FinanceMovementRow[] };
   }
 
-  return { table: null, data: [] as any[] };
+  return { table: null, data: [] as FinanceMovementRow[] };
 }
 
 export async function GET(request: NextRequest) {

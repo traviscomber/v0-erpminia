@@ -6,6 +6,15 @@ import { loadXlsxModule, sheetToMatrix } from '@/lib/xlsx';
 
 const CANDIDATE_TABLES = ['finance_movements', 'finanzas_movements', 'movements'];
 
+type FinanceImportRow = {
+  date: string;
+  description: string;
+  amount: number;
+  type: string;
+  category: string;
+  cost_center_id: string | null;
+};
+
 function normalizeText(value: unknown) {
   return String(value ?? '').trim().replace(/\s+/g, ' ');
 }
@@ -27,7 +36,7 @@ function pickIndex(headers: string[], variants: string[]) {
   return headers.findIndex((header) => variants.some((variant) => header.includes(variant)));
 }
 
-function parseCsvRows(text: string) {
+function parseCsvRows(text: string): FinanceImportRow[] {
   const lines = text.split(/\r?\n/).filter((line) => line.trim());
   if (lines.length < 2) return [];
 
@@ -78,7 +87,7 @@ async function parseImportFile(file: File) {
   throw new Error('Formato no soportado. Usa CSV, XLS o XLSX.');
 }
 
-async function insertRows(context: OrganizationSuccessContext, rows: any[]) {
+async function insertRows(context: OrganizationSuccessContext, rows: FinanceImportRow[]) {
   for (const table of CANDIDATE_TABLES) {
     const { error } = await context.supabase.from(table).insert(
       rows.map((row) => ({

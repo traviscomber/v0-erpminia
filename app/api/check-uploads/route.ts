@@ -3,6 +3,14 @@ import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
+type ModuleDocumentUploadRecord = {
+  module?: string | null;
+  document_name?: string | null | undefined;
+  category?: string | null | undefined;
+  status?: string | null | undefined;
+  document_type_category?: string | null | undefined;
+};
+
 export async function GET() {
   try {
     const supabase = getSupabaseServerClient();
@@ -19,23 +27,23 @@ export async function GET() {
     }
 
     // Get unique modules from documents
-    const uniqueModules = [...new Set(allDocuments.map((d) => d.module).filter(Boolean) || [])];
+    const uniqueModules = [...new Set((allDocuments as ModuleDocumentUploadRecord[]).map((d) => d.module).filter(Boolean) || [])];
 
     // Count by module
     const byModule: Record<string, number> = {};
-    const documentsByModule: Record<string, any[]> = {};
+    const documentsByModule: Record<string, Array<{ name: string | null; category?: string | null; type?: string | null; status?: string | null }>> = {};
     
-    allDocuments.forEach((doc) => {
+    (allDocuments as ModuleDocumentUploadRecord[]).forEach((doc) => {
       const mod = doc.module || 'sin_modulo';
       byModule[mod] = (byModule[mod] || 0) + 1;
       if (!documentsByModule[mod]) {
         documentsByModule[mod] = [];
       }
       documentsByModule[mod].push({
-        name: doc.document_name,
-        category: doc.category,
-        type: doc.document_type_category,
-        status: doc.status,
+        name: doc.document_name ?? null,
+        category: doc.category ?? null,
+        type: doc.document_type_category ?? null,
+        status: doc.status ?? null,
       });
     });
 
