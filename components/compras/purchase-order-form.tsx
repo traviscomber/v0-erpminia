@@ -25,6 +25,11 @@ type PurchaseOrderFormState = {
   delivery_date: string;
 };
 
+type PurchaseOrderResult = {
+  po_number?: string;
+  total_amount?: number | string;
+} | null;
+
 export function PurchaseOrderForm() {
   const searchParams = useSearchParams();
   const prefilledRef = searchParams.get('ref') || '';
@@ -46,7 +51,7 @@ export function PurchaseOrderForm() {
     delivery_date: '',
   });
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<PurchaseOrderResult>(null);
   const [error, setError] = useState('');
 
   useEffect(() => {

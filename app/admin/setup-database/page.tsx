@@ -8,7 +8,7 @@ import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 export default function SetupPage() {
   const [step, setStep] = useState<'idle' | 'creating' | 'syncing' | 'complete' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<{ synced?: number; errors?: string[] } | null>(null);
 
   const handleSetupProfiles = async () => {
     setStep('creating');
