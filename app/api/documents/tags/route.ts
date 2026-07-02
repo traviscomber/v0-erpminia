@@ -13,6 +13,10 @@ const SYSTEM_TAGS = {
   Audiencia: ['Gerencia', 'Supervisores', 'Operarios', 'Todo el Personal'],
 };
 
+type DocumentTagsRow = {
+  tags?: string[] | null;
+};
+
 export async function GET(req: NextRequest) {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -43,7 +47,7 @@ export async function GET(req: NextRequest) {
 
     // Aggregate tags
     const uniqueTags = new Set<string>();
-    (docs || []).forEach((doc: any) => {
+    (docs || []).forEach((doc: DocumentTagsRow) => {
       if (Array.isArray(doc.tags)) {
         doc.tags.forEach((tag: string) => uniqueTags.add(tag));
       }

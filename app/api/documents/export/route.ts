@@ -16,7 +16,20 @@ const exportSchema = z.object({
   }),
 });
 
-function convertToCSV(data: any[]): string {
+type ModuleDocumentExportRow = {
+  id: string;
+  document_name?: string | null;
+  category?: string | null;
+  status?: string | null;
+  valid_from?: string | null;
+  valid_until?: string | null;
+  tags?: string[] | null;
+  version?: string | number | null;
+  created_at?: string | null;
+  file_url?: string | null;
+};
+
+function convertToCSV(data: ModuleDocumentExportRow[]): string {
   if (data.length === 0) return '';
 
   const headers = [
@@ -93,7 +106,7 @@ export async function POST(req: NextRequest) {
     const { data, error } = await query;
     if (error) throw error;
 
-    const exportData = data || [];
+    const exportData = (data || []) as ModuleDocumentExportRow[];
 
     if (format === 'csv') {
       const csv = convertToCSV(exportData);

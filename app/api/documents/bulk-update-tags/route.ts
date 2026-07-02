@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     if (fetchError) throw fetchError;
 
     // Update each document
-    const updates = (docs || []).map((doc: any) => {
+    const updates = (docs || []).map((doc: { id: string; tags?: string[] | null }) => {
       let updatedTags = Array.isArray(doc.tags) ? [...doc.tags] : [];
 
       // Remove tags
