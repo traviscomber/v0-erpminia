@@ -5,6 +5,7 @@ import { buildOrgSequence, getSustainabilityContext } from '@/lib/api/sostenibil
 import { loadXlsxModule, sheetToMatrix } from '@/lib/xlsx';
 
 type ImportRow = {
+  fecha: string;
   tipo: 'emisiones' | 'residuos' | 'agua' | 'ruido';
   descripcion: string;
   valor: string;
@@ -55,12 +56,21 @@ function normalizeValor(value: unknown) {
   return text === '' ? '' : text;
 }
 
+function normalizeFecha(value: unknown) {
+  const text = normalizeText(value);
+  if (!text) return new Date().toISOString().split('T')[0];
+  const parsed = new Date(text);
+  if (Number.isNaN(parsed.getTime())) return text;
+  return parsed.toISOString().split('T')[0];
+}
+
 function parseRows(text: string): ImportRow[] {
   const lines = text.split(/\r?\n/).filter((line) => line.trim());
   if (lines.length < 2) return [];
 
   const headers = lines[0].split(';').map(normalizeHeader);
   const columns = {
+    fecha: headers.findIndex((h) => h.includes('fecha') || h.includes('date')),
     tipo: headers.findIndex((h) => h.includes('tipo')),
     descripcion: headers.findIndex((h) => h.includes('descrip')),
     valor: headers.findIndex((h) => h.includes('valor')),
@@ -73,11 +83,13 @@ function parseRows(text: string): ImportRow[] {
     const descripcion = values[columns.descripcion] || '';
     if (!descripcion) return [];
 
+    const fecha = normalizeFecha(values[columns.fecha]);
     const tipo = normalizeTipo(values[columns.tipo]);
     const cumplimiento = normalizeCumplimiento(values[columns.cumplimiento]);
 
     return [
       {
+        fecha,
         tipo,
         descripcion,
         valor: values[columns.valor] || '',
@@ -174,7 +186,7 @@ export async function POST(request: NextRequest) {
         const payload = {
           organization_id: context.organizationId,
           numero_registro: numeroRegistro,
-          fecha: new Date().toISOString().split('T')[0],
+          fecha: row.fecha,
           tipo: normalizeTipo(row.tipo),
           descripcion: normalizeText(row.descripcion),
           valor: normalizeValor(row.valor),

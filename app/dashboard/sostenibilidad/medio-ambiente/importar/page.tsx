@@ -22,10 +22,10 @@ export default function MedioAmbienteImportPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const downloadTemplate = () => {
-    const headers = ['TIPO', 'DESCRIPCION', 'VALOR', 'UNIDAD', 'CUMPLIMIENTO'];
+    const headers = ['FECHA', 'TIPO', 'DESCRIPCION', 'VALOR', 'UNIDAD', 'CUMPLIMIENTO'];
     const rows = [
-      ['emisiones', 'Consumo de combustible mensual', '1200', 'L', 'conforme'],
-      ['residuos', 'Retiro de residuos no peligrosos', '560', 'kg', 'en_revision'],
+      ['2026-06-27', 'emisiones', 'Consumo de combustible mensual', '1200', 'L', 'conforme'],
+      ['2026-06-27', 'residuos', 'Retiro de residuos no peligrosos', '560', 'kg', 'en_revision'],
     ];
     const csv = [headers, ...rows]
       .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(';'))
