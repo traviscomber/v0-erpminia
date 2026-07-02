@@ -126,7 +126,22 @@ export default function HSEEPPPage() {
   const faenasGroup = groupRecords('faena');
 
   const downloadTemplate = () => {
-    const csv = [templateHeaders, ...templateRows]
+    const headers = [
+      'CARGO_PUESTO',
+      'ELEMENTO_EPP',
+      'CANTIDAD_ELEMENTO',
+      'MARCA_MODELO',
+      'FICHA_TECNICA_URL',
+      'FRECUENCIA_REEMPLAZO',
+      'ACTIVO',
+    ];
+    const rows = [
+      ['Operador mina', 'Casco con barbiquejo', '1', 'Norma minera', '', '12 meses', 'si'],
+      ['Operador mina', 'Lentes de seguridad', '1', 'Antifog', '', '6 meses', 'si'],
+      ['Mecanico mantenimiento', 'Guantes de trabajo', '2', 'Refuerzo cuero', '', '3 meses', 'si'],
+      ['Electricista', 'Guantes dielectricos', '1', 'Clase 0 o superior', '', '12 meses', 'si'],
+    ];
+    const csv = [headers, ...rows]
       .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(';'))
       .join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -153,7 +168,7 @@ export default function HSEEPPPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Matriz EPP</h1>
-          <p className="text-muted-foreground">Requerimientos de EPP por cargo, elemento y frecuencia de recambio.</p>
+          <p className="text-muted-foreground">Requerimientos de EPP por cargo y elemento, listos para reimportar sin duplicar.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={downloadTemplate}>
