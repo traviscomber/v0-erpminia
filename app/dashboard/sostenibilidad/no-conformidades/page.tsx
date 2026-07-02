@@ -12,21 +12,11 @@ import { NonconformanceForm } from '@/components/sostenibilidad/nonconformances/
 import { NonconformanceCard } from '@/components/sostenibilidad/nonconformances/nonconformance-card';
 import { CorrectiveActionModal } from '@/components/sostenibilidad/nonconformances/corrective-action-modal';
 import { NonconformanceTable } from '@/components/sostenibilidad/nonconformances/nonconformance-table';
+import type { NonconformanceRecord } from '@/components/sostenibilidad/nonconformance-types';
 
 const fetcher = async (url: string) => {
   const res = await fetch(url);
   return res.ok ? res.json() : null;
-};
-
-type NonconformanceRecord = {
-  id: string;
-  title: string;
-  nc_number: string;
-  status: string;
-  severity: string;
-  description: string;
-  root_cause?: string;
-  [key: string]: unknown;
 };
 
 type NonconformanceResponse = {
