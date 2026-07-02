@@ -20,26 +20,7 @@ type ImportTrainingRow = {
 };
 
 function normalizeText(value: unknown) {
-  return String(value ?? '')
-    .trim()
-    .replace(/\s+/g, ' ');
-}
-
-function normalizeTipo(value: unknown) {
-  const text = normalizeText(value).toLowerCase();
-  if (['otec', 'organismo tecnico de capacitacion', 'organismo técnico de capacitación'].includes(text)) return 'OTEC';
-  if (['achs', 'mutual', 'mutualidad'].includes(text)) return 'ACHS';
-  if (['induccion', 'inducción'].includes(text)) return 'Inducción';
-  if (['especifica', 'específica'].includes(text)) return 'Específica';
-  if (['charla', 'charla de seguridad', 'seguridad'].includes(text)) return 'Charla de Seguridad';
-  if (['simulacro'].includes(text)) return 'Simulacro';
-  if (['curso', 'e-learning', 'elearning', 'curso e-learning'].includes(text)) return 'Curso E-Learning';
-  if (['taller', 'taller practico', 'taller práctico'].includes(text)) return 'Taller Práctico';
-  if (['certificacion', 'certificación'].includes(text)) return 'Certificación';
-  if (['reentrenamiento'].includes(text)) return 'Reentrenamiento';
-  if (['legal', 'normativa', 'legal/normativa'].includes(text)) return 'Legal/Normativa';
-  if (['liderazgo', 'gestion', 'gestión', 'liderazgo y gestion', 'liderazgo y gestión'].includes(text)) return 'Liderazgo y Gestión';
-  return 'ACHS';
+  return String(value ?? '').trim().replace(/\s+/g, ' ');
 }
 
 function normalizeHeader(value: unknown) {
@@ -47,6 +28,57 @@ function normalizeHeader(value: unknown) {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
+}
+
+function normalizeDate(value: unknown) {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    const day = String(value.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  const text = normalizeText(value);
+  if (!text) return '';
+
+  const isoMatch = text.match(/^(\d{4})[-/](\d{2})[-/](\d{2})/);
+  if (isoMatch) {
+    return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+  }
+
+  const dayMonthYearMatch = text.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+  if (dayMonthYearMatch) {
+    const day = dayMonthYearMatch[1].padStart(2, '0');
+    const month = dayMonthYearMatch[2].padStart(2, '0');
+    return `${dayMonthYearMatch[3]}-${month}-${day}`;
+  }
+
+  const parsed = new Date(text);
+  if (!Number.isNaN(parsed.getTime())) {
+    const year = parsed.getFullYear();
+    const month = String(parsed.getMonth() + 1).padStart(2, '0');
+    const day = String(parsed.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  return text;
+}
+
+function normalizeTipo(value: unknown) {
+  const text = normalizeText(value).toLowerCase();
+  if (['otec', 'organismo tecnico de capacitacion'].includes(text)) return 'OTEC';
+  if (['achs', 'mutual', 'mutualidad'].includes(text)) return 'ACHS';
+  if (['induccion'].includes(text)) return 'Induccion';
+  if (['especifica'].includes(text)) return 'Especifica';
+  if (['charla', 'charla de seguridad', 'seguridad'].includes(text)) return 'Charla de Seguridad';
+  if (['simulacro'].includes(text)) return 'Simulacro';
+  if (['curso', 'e-learning', 'elearning', 'curso e-learning'].includes(text)) return 'Curso E-Learning';
+  if (['taller', 'taller practico'].includes(text)) return 'Taller Practico';
+  if (['certificacion'].includes(text)) return 'Certificacion';
+  if (['reentrenamiento'].includes(text)) return 'Reentrenamiento';
+  if (['legal', 'normativa', 'legal/normativa'].includes(text)) return 'Legal/Normativa';
+  if (['liderazgo', 'gestion', 'liderazgo y gestion'].includes(text)) return 'Liderazgo y Gestion';
+  return 'ACHS';
 }
 
 function parseList(value: unknown) {
@@ -84,7 +116,7 @@ function parseCsvRows(text: string): ImportTrainingRow[] {
     proveedor_instructor: headers.findIndex((h) => h.includes('proveedor') || h.includes('instructor')),
     fecha_programada: headers.findIndex((h) => h.includes('fecha') && h.includes('program')),
     hora_inicio: headers.findIndex((h) => h.includes('hora') && h.includes('inicio')),
-    hora_termino: headers.findIndex((h) => h.includes('hora') && (h.includes('termino') || h.includes('término'))),
+    hora_termino: headers.findIndex((h) => h.includes('hora') && h.includes('termino')),
     duracion_horas: headers.findIndex((h) => h.includes('duracion')),
     cantidad_asistentes: headers.findIndex((h) => h.includes('asistente')),
     faenas_cargos: headers.findIndex((h) => h.includes('faena') || h.includes('cargo')),
@@ -93,25 +125,27 @@ function parseCsvRows(text: string): ImportTrainingRow[] {
 
   return lines.slice(1).flatMap((line) => {
     const values = line.split(';').map(normalizeText);
-    const nombre_capacitacion = values[columns.nombre_capacitacion] || values[0] || '';
-    const fecha_programada = values[columns.fecha_programada] || '';
+    const nombreCapacitacion = values[columns.nombre_capacitacion] || values[0] || '';
+    const fechaProgramada = normalizeDate(values[columns.fecha_programada]);
 
-    if (!nombre_capacitacion || !fecha_programada) return [];
+    if (!nombreCapacitacion || !fechaProgramada) return [];
 
-    return [{
-      nombre_capacitacion,
-      tipo: normalizeTipo(values[columns.tipo]),
-      tema: values[columns.tema] || '',
-      programa_hse: values[columns.programa_hse] || '',
-      proveedor_instructor: values[columns.proveedor_instructor] || '',
-      fecha_programada,
-      hora_inicio: values[columns.hora_inicio] || null,
-      hora_termino: values[columns.hora_termino] || null,
-      duracion_horas: Number(values[columns.duracion_horas] || 0),
-      cantidad_asistentes: Number(values[columns.cantidad_asistentes] || 0),
-      faenas_cargos: parseList(values[columns.faenas_cargos]),
+    return [
+      {
+        nombre_capacitacion: nombreCapacitacion,
+        tipo: normalizeTipo(values[columns.tipo]),
+        tema: values[columns.tema] || '',
+        programa_hse: values[columns.programa_hse] || '',
+        proveedor_instructor: values[columns.proveedor_instructor] || '',
+        fecha_programada: fechaProgramada,
+        hora_inicio: values[columns.hora_inicio] || null,
+        hora_termino: values[columns.hora_termino] || null,
+        duracion_horas: Number(values[columns.duracion_horas] || 0),
+        cantidad_asistentes: Number(values[columns.cantidad_asistentes] || 0),
+        faenas_cargos: parseFaenasCargos(values[columns.faenas_cargos]),
         estado: normalizeEstado(values[columns.estado]),
-      }];
+      },
+    ];
   });
 }
 
@@ -184,12 +218,14 @@ export async function POST(request: NextRequest) {
       let updated = 0;
 
       for (const row of rows) {
+        const fechaProgramada = normalizeDate(row.fecha_programada);
+
         const { data: existing } = await context.supabase
           .from('sostenibilidad_capacitaciones')
           .select('id')
           .eq('organization_id', context.organizationId)
           .eq('nombre_capacitacion', row.nombre_capacitacion)
-          .eq('fecha_programada', row.fecha_programada)
+          .eq('fecha_programada', fechaProgramada)
           .maybeSingle();
 
         const payload = {
@@ -199,7 +235,7 @@ export async function POST(request: NextRequest) {
           tema: normalizeText(row.tema),
           programa_hse: normalizeText(row.programa_hse),
           proveedor_instructor: normalizeText(row.proveedor_instructor),
-          fecha_programada: normalizeText(row.fecha_programada),
+          fecha_programada: fechaProgramada,
           hora_inicio: row.hora_inicio ? normalizeText(row.hora_inicio) : null,
           hora_termino: row.hora_termino ? normalizeText(row.hora_termino) : null,
           duracion_horas: row.duracion_horas,
@@ -220,10 +256,7 @@ export async function POST(request: NextRequest) {
           if (error) throw error;
           updated += 1;
         } else {
-          const { error } = await context.supabase
-            .from('sostenibilidad_capacitaciones')
-            .insert(payload);
-
+          const { error } = await context.supabase.from('sostenibilidad_capacitaciones').insert(payload);
           if (error) throw error;
           imported += 1;
         }
@@ -238,6 +271,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    const fechaProgramada = normalizeDate(body.fecha_programada);
 
     const { data, error } = await context.supabase
       .from('sostenibilidad_capacitaciones')
@@ -248,7 +282,7 @@ export async function POST(request: NextRequest) {
         tema: normalizeText(body.tema),
         programa_hse: normalizeText(body.programa_hse),
         proveedor_instructor: normalizeText(body.proveedor_instructor),
-        fecha_programada: normalizeText(body.fecha_programada),
+        fecha_programada: fechaProgramada,
         hora_inicio: normalizeText(body.hora_inicio) || null,
         hora_termino: normalizeText(body.hora_termino) || null,
         duracion_horas: Number(body.duracion_horas || 0),
@@ -265,7 +299,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'No se pudo crear la capacitacin';
+    const message = error instanceof Error ? error.message : 'No se pudo crear la capacitacion';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -292,7 +326,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'No se pudo eliminar la capacitacin';
+    const message = error instanceof Error ? error.message : 'No se pudo eliminar la capacitacion';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

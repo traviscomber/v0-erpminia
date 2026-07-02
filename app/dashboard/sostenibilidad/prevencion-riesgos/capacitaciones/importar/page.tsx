@@ -131,6 +131,7 @@ export default function CapacitacionesImportPage() {
           <h1 className="text-3xl font-bold">Importar capacitaciones</h1>
           <p className="mt-2 max-w-3xl text-muted-foreground">
             Sube tu base de capacitaciones desde Excel para mantener el plan HSE sincronizado y evitar duplicados.
+            Si repites el mismo nombre de capacitación y fecha programada, el sistema actualiza el registro existente.
           </p>
         </div>
         <div className="flex gap-2">
@@ -191,7 +192,7 @@ export default function CapacitacionesImportPage() {
                 Opcionales: HORA_INICIO, HORA_TERMINO, DURACION_HORAS, CANTIDAD_ASISTENTES, FAENAS_CARGOS, ESTADO.
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
-                FECHA_PROGRAMADA acepta fechas de Excel o texto en formato YYYY-MM-DD, DD/MM/YYYY o DD-MM-YYYY.
+                Reimportación por NOMBRE_CAPACITACION + FECHA_PROGRAMADA. FECHA_PROGRAMADA acepta fechas de Excel o texto en formato YYYY-MM-DD, DD/MM/YYYY o DD-MM-YYYY.
               </p>
             </AlertDescription>
           </Alert>
