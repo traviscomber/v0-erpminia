@@ -18,6 +18,7 @@ interface PreventiveSummary {
 
 interface PreventiveSchedule {
   id: string;
+  assetId?: string | null;
   assetName?: string | null;
   assetCode?: string | null;
   assetType?: string | null;
@@ -67,6 +68,20 @@ function bucketLabel(daysUntil?: number | null) {
   if (daysUntil <= 30) return 'Proximas 30 dias';
   if (daysUntil <= 90) return 'Proximos 3 meses';
   return 'Resto del ano';
+}
+
+function buildWorkOrderHref(schedule: PreventiveSchedule) {
+  const params = new URLSearchParams();
+  if (schedule.assetId) params.set('assetId', schedule.assetId);
+  if (schedule.taskName) params.set('title', schedule.taskName);
+  if (schedule.description) params.set('description', schedule.description);
+  params.set('workType', 'preventive');
+  if (schedule.priority) params.set('priority', String(schedule.priority));
+  if (schedule.nextScheduledDate) params.set('scheduledDate', schedule.nextScheduledDate);
+  if (schedule.estimatedDurationHours !== null && schedule.estimatedDurationHours !== undefined) {
+    params.set('plannedDurationHours', String(schedule.estimatedDurationHours));
+  }
+  return `/dashboard/work-orders/create?${params.toString()}`;
 }
 
 export function PreventivePlanBoard() {
@@ -259,6 +274,22 @@ export function PreventivePlanBoard() {
                             {schedule.frequencyDays ? <span>Cada {schedule.frequencyDays} dias</span> : null}
                             {schedule.frequencyHours ? <span>Cada {schedule.frequencyHours} horas</span> : null}
                             {schedule.estimatedDurationHours ? <span>Duracion estimada: {schedule.estimatedDurationHours} h</span> : null}
+                          </div>
+                          <div className="flex flex-wrap gap-2 pt-1">
+                            <Button asChild size="sm" className="gap-2">
+                              <Link href={buildWorkOrderHref(schedule)}>
+                                Crear OT
+                                <ArrowRight className="h-4 w-4" />
+                              </Link>
+                            </Button>
+                            {schedule.assetId ? (
+                              <Button asChild size="sm" variant="outline" className="gap-2">
+                                <Link href={`/dashboard/mantenimiento/vehiculos/${schedule.assetId}/ficha`}>
+                                  Ver activo
+                                  <ArrowRight className="h-4 w-4" />
+                                </Link>
+                              </Button>
+                            ) : null}
                           </div>
                         </div>
                         <div className="text-right text-sm text-muted-foreground">

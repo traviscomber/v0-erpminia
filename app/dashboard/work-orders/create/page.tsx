@@ -113,20 +113,30 @@ export default function CreateWorkOrderPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialAssetId = searchParams.get('assetId') || '';
+  const initialTitle = searchParams.get('title') || '';
+  const initialDescription = searchParams.get('description') || '';
+  const initialWorkType = searchParams.get('workType') || 'preventive';
+  const initialPriority = searchParams.get('priority') || 'high';
+  const initialScheduledDate = searchParams.get('scheduledDate') || '';
+  const initialPlannedDurationHours = searchParams.get('plannedDurationHours') || '';
   // Pre-fill from maquinaria page: ?cost_center=10-3&machine=Scoop+Atlas+Copco
   const prefilledCostCenter = searchParams.get('cost_center') || '';
   const prefilledMachine = searchParams.get('machine') || '';
 
   // If coming from maquinaria, start at step 2 (skip asset picker — machine is known)
   const fromMaquinaria = !!prefilledCostCenter && !!prefilledMachine;
-  const [step, setStep] = useState(fromMaquinaria ? 2 : 1);
+  const [step, setStep] = useState(initialAssetId || fromMaquinaria ? 2 : 1);
   const [selectedAssetId, setSelectedAssetId] = useState(initialAssetId);
   const [selectedComponents, setSelectedComponents] = useState<string[]>([]);
-  const [orderType, setOrderType] = useState('preventive');
-  const [priority, setPriority] = useState('high');
+  const [orderType, setOrderType] = useState(initialWorkType);
+  const [priority, setPriority] = useState(initialPriority);
+  const [title, setTitle] = useState(initialTitle);
   const [description, setDescription] = useState(
-    prefilledMachine ? `Mantenimiento de ${prefilledMachine}${prefilledCostCenter ? ` (CC: ${prefilledCostCenter})` : ''}` : ''
+    initialDescription ||
+      (prefilledMachine ? `Mantenimiento de ${prefilledMachine}${prefilledCostCenter ? ` (CC: ${prefilledCostCenter})` : ''}` : '')
   );
+  const [scheduledDate, setScheduledDate] = useState(initialScheduledDate || new Date().toISOString().split('T')[0]);
+  const [plannedDurationHours, setPlannedDurationHours] = useState(initialPlannedDurationHours);
   const [submitting, setSubmitting] = useState(false);
   const [familyFilter, setFamilyFilter] = useState('all');
 
@@ -181,13 +191,19 @@ export default function CreateWorkOrderPage() {
     }
   }, [assets, initialAssetId, selectedAssetId]);
 
+  useEffect(() => {
+    if (initialAssetId && assets.some((asset) => asset.id === initialAssetId)) {
+      setStep(2);
+    }
+  }, [assets, initialAssetId]);
+
   const handleComponentToggle = (componentId: string) => {
     setSelectedComponents((prev) =>
       prev.includes(componentId) ? prev.filter((id) => id !== componentId) : [...prev, componentId],
     );
   };
 
-    const handleCreateOT = async () => {
+  const handleCreateOT = async () => {
     if (!fromMaquinaria && !selectedAsset) {
       toast.error('Selecciona un activo');
       return;
@@ -205,6 +221,7 @@ export default function CreateWorkOrderPage() {
         : (selectedAsset?.asset_name || 'Activo');
       const assetId = fromMaquinaria ? null : selectedAsset?.id;
       const componentNames = selectedComponentsData.map((component) => component.name).join(', ');
+      const resolvedTitle = title.trim() || `${assetName} - ${componentNames || 'Mantenimiento preventivo'}`;
 
       const response = await fetch('/api/maintenance/work-orders', {
         method: 'POST',
@@ -212,12 +229,12 @@ export default function CreateWorkOrderPage() {
         body: JSON.stringify({
           ...(assetId ? { assetId } : {}),
           costCenterCode: fromMaquinaria ? prefilledCostCenter : undefined,
-          title: `${assetName} - ${componentNames}`,
+          title: resolvedTitle,
           description: description || `Mantenimiento ${orderType} para ${assetName}. Componentes: ${componentNames}`,
           workType: orderType,
           priority,
-          plannedDurationHours: totalHours,
-          scheduledDate: new Date().toISOString().split('T')[0],
+          plannedDurationHours: plannedDurationHours ? Number(plannedDurationHours) : totalHours,
+          scheduledDate: scheduledDate || new Date().toISOString().split('T')[0],
         }),
       });
 
@@ -244,6 +261,15 @@ export default function CreateWorkOrderPage() {
         <h1 className="text-3xl font-bold">Crear orden de mantenimiento</h1>
         <p className="mt-2 text-muted-foreground">Flujo base del MVP con activos reales de mantenimiento.</p>
       </div>
+
+      {initialTitle && (
+        <div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-sm">
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
+          <span>
+            OT prellenada desde planificacion: <span className="font-semibold">{initialTitle}</span>
+          </span>
+        </div>
+      )}
 
       {prefilledMachine && (
         <div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-sm">
@@ -409,6 +435,41 @@ export default function CreateWorkOrderPage() {
                   <SelectItem value="low">Baja</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Fecha programada</label>
+                <input
+                  type="date"
+                  value={scheduledDate}
+                  onChange={(event) => setScheduledDate(event.target.value)}
+                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Horas planificadas</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.5"
+                  value={plannedDurationHours}
+                  onChange={(event) => setPlannedDurationHours(event.target.value)}
+                  placeholder={String(totalHours || 0)}
+                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Titulo</label>
+              <input
+                type="text"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                placeholder="Titulo de la orden"
+                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+              />
             </div>
 
             <div className="space-y-2">
