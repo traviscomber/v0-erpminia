@@ -9,6 +9,7 @@ import { Upload, FileSpreadsheet, CheckCircle, AlertTriangle, X, Download } from
 interface ImportResult {
   success: boolean;
   imported: number;
+  updated?: number;
   warnings: string[];
   error?: string;
   details?: string[];
@@ -56,8 +57,12 @@ export function MaquinariaImport({ onSuccess }: { onSuccess?: () => void }) {
   };
 
   const downloadTemplate = () => {
-    const headers = ['codigo', 'nombre', 'estado'];
-    const csv = [headers].map((r) => r.join(';')).join('\n');
+    const headers = ['codigo', 'nombre', 'estado', 'descripcion', 'modelo', 'patente', 'anio'];
+    const exampleRows = [
+      ['8-1', 'Camioneta Ford Ranger', 'activo', 'Unidad de apoyo mina', 'Ford Ranger', 'ABC123', '2024'],
+      ['9-2', 'Camion Iveco Tector', 'activo', 'Camion de transporte interno', 'Iveco Tector', 'JJK567', '2023'],
+    ];
+    const csv = [headers, ...exampleRows].map((r) => r.join(';')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -73,19 +78,20 @@ export function MaquinariaImport({ onSuccess }: { onSuccess?: () => void }) {
         <CardHeader className="pb-3">
           <CardTitle className="text-base">Formato del archivo</CardTitle>
           <CardDescription>
-            El archivo debe incluir solo estas columnas: <strong>codigo</strong>, <strong>nombre</strong> y
-            <strong>estado</strong>. El codigo debe venir en formato <strong>X-Y</strong>.
+            El archivo puede incluir <strong>codigo</strong>, <strong>nombre</strong>, <strong>estado</strong>,
+            <strong>descripcion</strong>, <strong>modelo</strong>, <strong>patente</strong> y <strong>anio</strong>.
+            El codigo debe venir en formato <strong>X-Y</strong>.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4 md:flex-row md:items-start">
             <div className="flex-1 rounded-md border border-border bg-background p-3 font-mono text-xs text-muted-foreground">
-              <div className="mb-1 font-semibold text-foreground">codigo;nombre;estado</div>
-              <div>Completa tu archivo con datos reales antes de importarlo.</div>
+              <div className="mb-1 font-semibold text-foreground">codigo;nombre;estado;descripcion;modelo;patente;anio</div>
+              <div>Si vuelves a subir el mismo codigo, el sistema actualiza el registro existente.</div>
             </div>
             <Button variant="outline" size="sm" onClick={downloadTemplate} className="shrink-0">
               <Download className="mr-2 h-4 w-4" />
-              Descargar plantilla vacia
+              Descargar plantilla
             </Button>
           </div>
           <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-muted-foreground md:grid-cols-4">
@@ -172,7 +178,9 @@ export function MaquinariaImport({ onSuccess }: { onSuccess?: () => void }) {
               ) : (
                 <AlertTriangle className="h-5 w-5 text-red-600" />
               )}
-              {result.success ? `${result.imported} equipos importados correctamente` : result.error || 'Error al importar'}
+              {result.success
+                ? `${result.imported} equipos importados${result.updated ? `, ${result.updated} actualizados` : ''}`
+                : result.error || 'Error al importar'}
             </CardTitle>
           </CardHeader>
           {(result.warnings?.length ?? 0) > 0 && (

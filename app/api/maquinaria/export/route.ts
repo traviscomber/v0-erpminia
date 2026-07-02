@@ -29,6 +29,7 @@ type MachineryExportRow = Record<string, string | number | null | undefined>;
 type MachinerySourceRow = {
   code: string;
   name: string;
+  description: string | null;
   status: string | null;
 };
 
@@ -56,7 +57,7 @@ export async function GET(request: NextRequest) {
 
   const { data, error } = await supabase
     .from('cost_centers')
-    .select('code, name, status')
+    .select('code, name, description, status')
     .like('code', '%-%')
     .order('code');
 
@@ -81,6 +82,7 @@ export async function GET(request: NextRequest) {
       return {
         'Código CC':       row.code,
         'Nombre Completo': row.name,
+        'Descripción':     row.description || '',
         'Modelo':          model,
         'Categoría':       MACHINERY_GROUPS[parentCode] || '',
         'Patente/Serie':   plateMatch ? plateMatch[1] : '',
