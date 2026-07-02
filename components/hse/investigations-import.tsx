@@ -136,7 +136,7 @@ export function InvestigationsImport({ onSuccess }: InvestigationsImportProps) {
           <AlertDescription>
             <p className="mb-2 font-semibold">Columnas esperadas:</p>
             <div className="rounded bg-muted p-2 font-mono text-sm">
-              INCIDENT_ID | ROOT_CAUSE | CORRECTIVE_ACTIONS | ASSIGNED_TO | TARGET_DATE
+              INCIDENT_ID | ROOT_CAUSE | CORRECTIVE_ACTIONS | ASSIGNED_TO | TARGET_DATE | SEVERITY | STATUS | EVIDENCE
             </div>
           </AlertDescription>
         </Alert>

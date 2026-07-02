@@ -10,16 +10,70 @@ function normalizeText(value: unknown) {
     .replace(/\s+/g, ' ');
 }
 
-function normalizeHeader(value: unknown) {
+function normalizeKey(value: unknown) {
   return normalizeText(value)
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
 }
 
+function normalizeHeader(value: unknown) {
+  return normalizeKey(value);
+}
+
 function pickIndex(headers: string[], variants: string[]) {
   return headers.findIndex((header) => variants.some((variant) => header.includes(variant)));
 }
+
+function normalizeDateValue(value: unknown) {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toISOString();
+  }
+
+  const text = normalizeText(value);
+  if (!text) return '';
+
+  const iso = text.match(/^(\d{4})[-/](\d{2})[-/](\d{2})/);
+  if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
+
+  const dmy = text.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+  if (dmy) {
+    const day = dmy[1].padStart(2, '0');
+    const month = dmy[2].padStart(2, '0');
+    return `${dmy[3]}-${month}-${day}`;
+  }
+
+  const parsed = new Date(text);
+  if (!Number.isNaN(parsed.getTime())) return parsed.toISOString();
+  return text;
+}
+
+function normalizeStatus(value: unknown) {
+  const status = normalizeKey(value);
+  if (status.includes('cerr')) return 'cerrado';
+  if (status.includes('abier') || status.includes('open')) return 'abierto';
+  if (status.includes('en curso') || status.includes('proceso')) return 'en_proceso';
+  return status || 'abierto';
+}
+
+function normalizeSeverity(value: unknown) {
+  const severity = normalizeKey(value);
+  if (severity.includes('crit')) return 'critica';
+  if (severity.includes('alta')) return 'alta';
+  if (severity.includes('media')) return 'media';
+  if (severity.includes('baja')) return 'baja';
+  return severity || 'media';
+}
+
+type InvestigationRow = {
+  incident_id: string;
+  root_cause: string;
+  corrective_actions: string;
+  assigned_to: string;
+  target_date: string;
+  severity: string;
+  status: string;
+};
 
 function parseCsvRows(text: string) {
   const lines = text.split(/\r?\n/).filter((line) => line.trim());
@@ -32,6 +86,8 @@ function parseCsvRows(text: string) {
     corrective_actions: pickIndex(headers, ['corrective_actions', 'acciones', 'acciones_correctivas']),
     assigned_to: pickIndex(headers, ['assigned_to', 'responsable', 'asignado']),
     target_date: pickIndex(headers, ['target_date', 'fecha', 'objetivo']),
+    severity: pickIndex(headers, ['severity', 'severidad', 'gravedad']),
+    status: pickIndex(headers, ['status', 'estado']),
   };
 
   return lines.slice(1).flatMap((line) => {
@@ -46,7 +102,9 @@ function parseCsvRows(text: string) {
         root_cause,
         corrective_actions: values[columns.corrective_actions] || '',
         assigned_to: values[columns.assigned_to] || '',
-        target_date: values[columns.target_date] || new Date().toISOString(),
+        target_date: normalizeDateValue(values[columns.target_date]) || new Date().toISOString(),
+        severity: normalizeSeverity(values[columns.severity]),
+        status: normalizeStatus(values[columns.status]),
       },
     ];
   });
@@ -95,7 +153,7 @@ export async function POST(request: NextRequest) {
     let imported = 0;
     let updated = 0;
 
-    for (const row of rows) {
+    for (const row of rows as InvestigationRow[]) {
       const payload = {
         organization_id: context.organizationId,
         incident_id: row.incident_id,
@@ -103,8 +161,9 @@ export async function POST(request: NextRequest) {
         corrective_actions: row.corrective_actions,
         assigned_to: row.assigned_to,
         target_date: row.target_date,
-        status: 'open',
-        created_at: new Date().toISOString(),
+        severity: row.severity,
+        status: row.status,
+        updated_at: new Date().toISOString(),
       };
 
       const { data: existing, error: lookupError } = await context.supabase
@@ -126,7 +185,10 @@ export async function POST(request: NextRequest) {
         if (error) throw error;
         updated += 1;
       } else {
-        const { error } = await context.supabase.from('hse_investigations').insert(payload);
+        const { error } = await context.supabase.from('hse_investigations').insert({
+          ...payload,
+          created_at: new Date().toISOString(),
+        });
         if (error) throw error;
         imported += 1;
       }

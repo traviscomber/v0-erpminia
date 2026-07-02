@@ -8,10 +8,10 @@ import { InvestigationsImport } from '@/components/hse/investigations-import';
 
 export default function HSEInvestigacionesImportPage() {
   const downloadTemplate = () => {
-    const headers = ['INCIDENT_ID', 'ROOT_CAUSE', 'CORRECTIVE_ACTIONS', 'ASSIGNED_TO', 'TARGET_DATE'];
+    const headers = ['INCIDENT_ID', 'ROOT_CAUSE', 'CORRECTIVE_ACTIONS', 'ASSIGNED_TO', 'TARGET_DATE', 'SEVERITY', 'STATUS', 'EVIDENCE'];
     const rows = [
-      ['INC-001', 'Falta de procedimiento', 'Actualizar procedimiento y capacitar', 'Supervisor HSE', '2026-07-15'],
-      ['INC-002', 'Condicion insegura', 'Instalar barrera fisica', 'Jefe de turno', '2026-07-20'],
+      ['INC-001', 'Falta de procedimiento', 'Actualizar procedimiento y capacitar', 'Supervisor HSE', '2026-07-15', 'alta', 'abierto', 'Informe interno'],
+      ['INC-002', 'Condicion insegura', 'Instalar barrera fisica', 'Jefe de turno', '2026-07-20', 'media', 'en_proceso', 'Fotografias'],
     ];
     const csv = [headers, ...rows]
       .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(';'))
@@ -49,11 +49,11 @@ export default function HSEInvestigacionesImportPage() {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Como funciona</CardTitle>
-          <CardDescription>
+          <CardHeader>
+            <CardTitle>Como funciona</CardTitle>
+            <CardDescription>
             Cada fila debe traer al menos `INCIDENT_ID` y `ROOT_CAUSE`. Si ya existe una investigacion similar, se actualiza.
-          </CardDescription>
+            </CardDescription>
         </CardHeader>
       </Card>
 
