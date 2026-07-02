@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Plus, Upload } from 'lucide-react';
 import useSWR from 'swr';
 
@@ -20,7 +21,8 @@ function formatDate(value: unknown): string {
 
 export function CorrectiveActionsPage() {
   const [modalOpen, setModalOpen] = useState(false);
-  const [ncId] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const ncId = searchParams.get('ncId');
 
   const { data: stats } = useSWR('/api/sostenibilidad/corrective-actions/stats', fetcher);
   const { data: actions, mutate } = useSWR(
@@ -29,7 +31,8 @@ export function CorrectiveActionsPage() {
   );
 
   const actionList: CorrectiveActionRecord[] = Array.isArray(actions?.data) ? actions.data : [];
-  const statsData: Record<string, number> = stats?.data && typeof stats.data === 'object' ? (stats.data as Record<string, number>) : {};
+  const statsData: Record<string, number> =
+    stats?.data && typeof stats.data === 'object' ? (stats.data as Record<string, number>) : {};
 
   const inProgressCount = actionList.filter((a) => a.status === 'in_progress').length || 0;
   const completedCount = actionList.filter((a) => a.status === 'completed' || a.status === 'verified').length || 0;
@@ -54,20 +57,29 @@ export function CorrectiveActionsPage() {
               Importar Excel
             </Link>
           </Button>
-          <Button onClick={() => setModalOpen(true)} className="bg-primary" variant="default">
+          <Button onClick={() => setModalOpen(true)} className="bg-primary" variant="default" disabled={!ncId}>
             <Plus className="mr-2 h-4 w-4" />
-            Nueva acción
+            {ncId ? 'Nueva acciÃ³n' : 'Selecciona una NC'}
           </Button>
         </div>
       </div>
 
-      {!ncId && (
-        <Card className="border-border">
-          <CardContent className="pt-6 text-sm text-muted-foreground">
-            Crea acciones correctivas desde una no conformidad seleccionada para mantener el vínculo con su hallazgo.
-          </CardContent>
-        </Card>
-      )}
+      <Card className="border-border">
+        <CardContent className="space-y-2 pt-6 text-sm text-muted-foreground">
+          {!ncId ? (
+            <>
+              <p>Crea acciones correctivas desde una no conformidad seleccionada para mantener el vinculo con su hallazgo.</p>
+              <p>
+                Abre esta vista desde una NC o agrega <code>?ncId=...</code> a la URL para trabajar sobre un caso especifico.
+              </p>
+            </>
+          ) : (
+            <p>
+              Trabajando sobre la no conformidad <span className="font-mono font-medium text-foreground">{ncId}</span>.
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card>
