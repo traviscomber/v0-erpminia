@@ -89,6 +89,10 @@ function toIsoDate(value: string) {
   return parsed.toISOString().slice(0, 10);
 }
 
+function normalizeDateText(value: string) {
+  return toIsoDate(value || '');
+}
+
 function buildTemplateCsv() {
   const headers = [
     'NC_ID',
@@ -187,8 +191,9 @@ export default function CorrectiveActionsImportPage() {
 
       for (const row of rows) {
         const resolvedNcId = row.ncId || (row.ncNumber ? ncMap.get(normalizeKey(row.ncNumber)) || '' : '');
+        const resolvedNcNumber = row.ncNumber || '';
 
-        if (!resolvedNcId || !row.actionDescription) {
+        if ((!resolvedNcId && !resolvedNcNumber) || !row.actionDescription) {
           failed += 1;
           continue;
         }
@@ -204,11 +209,15 @@ export default function CorrectiveActionsImportPage() {
         }
 
         const existingAction = existingActions.find(
-          (action) => normalizeText(String(action.action_description || '')) === normalizeText(row.actionDescription)
+          (action) =>
+            normalizeText(String(action.action_description || '')) === normalizeText(row.actionDescription) &&
+            normalizeDateText(String((action as { scheduled_completion_date?: string | null }).scheduled_completion_date || '')) ===
+              normalizeDateText(row.scheduledCompletionDate)
         );
 
         const payload = {
           nc_id: resolvedNcId,
+          nc_number: resolvedNcNumber || row.ncNumber || '',
           action_description: row.actionDescription,
           priority: row.priority || 'media',
           scheduled_completion_date: row.scheduledCompletionDate || null,
@@ -277,6 +286,7 @@ export default function CorrectiveActionsImportPage() {
           <h1 className="text-3xl font-bold">Importar acciones correctivas</h1>
           <p className="mt-2 max-w-3xl text-muted-foreground">
             Carga planes correctivos desde Excel para mantener trazabilidad con la no conformidad de origen.
+            Si reimportas la misma no conformidad y la misma acción, el sistema actualiza el registro existente.
           </p>
         </div>
         <div className="flex gap-2">
@@ -335,6 +345,7 @@ export default function CorrectiveActionsImportPage() {
               </div>
               <p className="mt-2 text-sm text-muted-foreground">
                 Usa <span className="font-medium">NC_ID</span> si lo tienes disponible. Si no, puedes usar <span className="font-medium">NC_NUMBER</span> para buscar la no conformidad.
+                La deduplicación se hace por no conformidad + acción + fecha programada.
               </p>
             </AlertDescription>
           </Alert>

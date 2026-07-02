@@ -36,6 +36,32 @@ async function validateNcBelongsToOrganization(
   return Boolean(data);
 }
 
+async function resolveNcId(
+  supabase: SupabaseServerClient,
+  organizationId: string,
+  ncId?: string | null,
+  ncNumber?: string | null
+) {
+  const normalizedNcId = normalizeText(ncId);
+  if (normalizedNcId) {
+    const belongsToOrg = await validateNcBelongsToOrganization(supabase, normalizedNcId, organizationId);
+    return belongsToOrg ? normalizedNcId : '';
+  }
+
+  const normalizedNcNumber = normalizeText(ncNumber);
+  if (!normalizedNcNumber) return '';
+
+  const { data, error } = await supabase
+    .from('sostenibilidad_nonconformances')
+    .select('id')
+    .eq('organization_id', organizationId)
+    .eq('nc_number', normalizedNcNumber)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data?.id || '';
+}
+
 function normalizeText(value: unknown) {
   return String(value ?? '').trim().replace(/\s+/g, ' ');
 }
@@ -108,10 +134,15 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const ncId = body.ncId || body.nc_id;
+    const ncId = await resolveNcId(
+      context.supabase,
+      context.organizationId,
+      body.ncId || body.nc_id,
+      body.ncNumber || body.nc_number
+    );
 
     if (!ncId) {
-      return NextResponse.json({ error: 'ncId is required' }, { status: 400 });
+      return NextResponse.json({ error: 'ncId or ncNumber is required' }, { status: 400 });
     }
 
     const belongsToOrg = await validateNcBelongsToOrganization(
@@ -164,6 +195,13 @@ export async function PUT(request: NextRequest) {
 
   try {
     const body = await request.json();
+    const ncId = await resolveNcId(
+      context.supabase,
+      context.organizationId,
+      body.ncId || body.nc_id,
+      body.ncNumber || body.nc_number
+    );
+
     if (!body.id) {
       return NextResponse.json({ error: 'id is required' }, { status: 400 });
     }
@@ -201,7 +239,7 @@ export async function PUT(request: NextRequest) {
         updated_at: new Date().toISOString(),
       })
       .eq('id', body.id)
-      .in('nc_id', await getOrganizationNcIds(context.supabase, context.organizationId))
+      .in('nc_id', ncId ? [ncId] : await getOrganizationNcIds(context.supabase, context.organizationId))
       .select('*')
       .single();
 
