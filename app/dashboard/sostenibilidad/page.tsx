@@ -54,6 +54,7 @@ type ModuleItem = {
   path: string;
   count: number;
   status: 'pending' | 'active' | 'completed';
+  importPath?: string | null;
 };
 
 type PillarCard = {
@@ -140,10 +141,34 @@ export default function SostenibilidadDashboard() {
         bgClass: 'bg-primary/10',
         borderClass: 'border-l-primary',
         modules: [
-          { name: 'Documentos HSE', path: '/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse', count: docCount, status: makeStatus(docCount) },
-          { name: 'Capacitaciones', path: '/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones', count: capCount, status: makeStatus(capCount) },
-          { name: 'Elementos de EPP', path: '/dashboard/sostenibilidad/prevencion-riesgos/epp', count: eppCount, status: makeStatus(eppCount) },
-          { name: 'Inspecciones', path: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones', count: inspeccionesCount, status: makeStatus(inspeccionesCount) },
+          {
+            name: 'Documentos HSE',
+            path: '/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse',
+            importPath: '/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse/cargar',
+            count: docCount,
+            status: makeStatus(docCount),
+          },
+          {
+            name: 'Capacitaciones',
+            path: '/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones',
+            importPath: '/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones/importar',
+            count: capCount,
+            status: makeStatus(capCount),
+          },
+          {
+            name: 'Elementos de EPP',
+            path: '/dashboard/sostenibilidad/prevencion-riesgos/epp',
+            importPath: '/dashboard/sostenibilidad/prevencion-riesgos/epp/importar',
+            count: eppCount,
+            status: makeStatus(eppCount),
+          },
+          {
+            name: 'Inspecciones',
+            path: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones',
+            importPath: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones/importar',
+            count: inspeccionesCount,
+            status: makeStatus(inspeccionesCount),
+          },
         ],
       },
       {
@@ -153,9 +178,27 @@ export default function SostenibilidadDashboard() {
         bgClass: 'bg-secondary/10',
         borderClass: 'border-l-secondary',
         modules: [
-          { name: 'Monitoreos', path: '/dashboard/sostenibilidad/medio-ambiente', count: ambienteCount, status: makeStatus(ambienteCount) },
-          { name: 'Permisos', path: '/dashboard/sostenibilidad/medio-ambiente', count: ambienteCount, status: makeStatus(ambienteCount) },
-          { name: 'Planes de accion', path: '/dashboard/sostenibilidad/medio-ambiente', count: overdueCas, status: makeStatus(overdueCas) },
+          {
+            name: 'Monitoreos',
+            path: '/dashboard/sostenibilidad/medio-ambiente',
+            importPath: '/dashboard/sostenibilidad/medio-ambiente/importar',
+            count: ambienteCount,
+            status: makeStatus(ambienteCount),
+          },
+          {
+            name: 'Permisos',
+            path: '/dashboard/sostenibilidad/medio-ambiente',
+            importPath: '/dashboard/sostenibilidad/medio-ambiente/importar',
+            count: ambienteCount,
+            status: makeStatus(ambienteCount),
+          },
+          {
+            name: 'Planes de accion',
+            path: '/dashboard/sostenibilidad/medio-ambiente',
+            importPath: '/dashboard/sostenibilidad/medio-ambiente/importar',
+            count: overdueCas,
+            status: makeStatus(overdueCas),
+          },
         ],
       },
       {
@@ -165,9 +208,27 @@ export default function SostenibilidadDashboard() {
         bgClass: 'bg-muted',
         borderClass: 'border-l-muted-foreground',
         modules: [
-          { name: 'Partes interesadas', path: '/dashboard/sostenibilidad/comunidades', count: comunidadesCount, status: makeStatus(comunidadesCount) },
-          { name: 'Compromisos', path: '/dashboard/sostenibilidad/comunidades', count: comunidadesCount, status: makeStatus(comunidadesCount) },
-          { name: 'Licencia Social', path: '/dashboard/sostenibilidad/comunidades', count: comunidadesCount, status: makeStatus(comunidadesCount) },
+          {
+            name: 'Partes interesadas',
+            path: '/dashboard/sostenibilidad/comunidades',
+            importPath: '/dashboard/sostenibilidad/comunidades/importar',
+            count: comunidadesCount,
+            status: makeStatus(comunidadesCount),
+          },
+          {
+            name: 'Compromisos',
+            path: '/dashboard/sostenibilidad/comunidades',
+            importPath: '/dashboard/sostenibilidad/comunidades/importar',
+            count: comunidadesCount,
+            status: makeStatus(comunidadesCount),
+          },
+          {
+            name: 'Licencia Social',
+            path: '/dashboard/sostenibilidad/comunidades',
+            importPath: '/dashboard/sostenibilidad/comunidades/importar',
+            count: comunidadesCount,
+            status: makeStatus(comunidadesCount),
+          },
         ],
       },
       {
@@ -313,21 +374,31 @@ export default function SostenibilidadDashboard() {
                 <h3 className="mb-3 text-sm font-semibold text-foreground">Modulos</h3>
                 <div className="space-y-2">
                   {pillar.modules.map((module) => (
-                    <Link key={module.name} href={module.path}>
-                      <div className="flex cursor-pointer items-center justify-between rounded-xl border border-border px-3 py-3 transition hover:bg-muted/40">
-                        <span className="text-sm font-medium">{module.name}</span>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="rounded-full text-xs">
-                            {module.count}
-                          </Badge>
-                          {module.status === 'active' ? (
-                            <CheckCircle className="h-4 w-4 text-secondary" />
-                          ) : (
-                            <Clock className="h-4 w-4 text-primary" />
-                          )}
+                    <div className="flex items-center justify-between gap-3 rounded-xl border border-border px-3 py-3 transition hover:bg-muted/40">
+                      <Link href={module.path} className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="truncate text-sm font-medium">{module.name}</span>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="rounded-full text-xs">
+                              {module.count}
+                            </Badge>
+                            {module.status === 'active' ? (
+                              <CheckCircle className="h-4 w-4 text-secondary" />
+                            ) : (
+                              <Clock className="h-4 w-4 text-primary" />
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </Link>
+                      </Link>
+                      {module.importPath ? (
+                        <Button asChild size="sm" variant="ghost" className="shrink-0 gap-1">
+                          <Link href={module.importPath}>
+                            Excel
+                            <Upload className="h-3.5 w-3.5" />
+                          </Link>
+                        </Button>
+                      ) : null}
+                    </div>
                   ))}
                 </div>
               </div>
