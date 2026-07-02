@@ -136,7 +136,7 @@ export function HSECapacitacionesImport({ onSuccess }: HSECapacitacionesImportPr
           <AlertDescription>
             <p className="mb-2 font-semibold">Columnas esperadas:</p>
             <div className="rounded bg-muted p-2 font-mono text-sm">
-              NOMBRE_CAPACITACION | TIPO | TEMA | PROGRAMA_HSE | PROVEEDOR_INSTRUCTOR | FECHA_PROGRAMADA
+              NOMBRE_CAPACITACION | TIPO | TEMA | PROGRAMA_HSE | PROVEEDOR_INSTRUCTOR | FECHA_PROGRAMADA | HORA_INICIO | HORA_TERMINO | DURACION_HORAS | CANTIDAD_ASISTENTES | FAENAS_CARGOS | ESTADO
             </div>
           </AlertDescription>
         </Alert>

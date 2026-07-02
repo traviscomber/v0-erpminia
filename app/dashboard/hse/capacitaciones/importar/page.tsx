@@ -8,11 +8,52 @@ import { HSECapacitacionesImport } from '@/components/hse/hse-capacitaciones-imp
 
 export default function HSECapacitacionesImportPage() {
   const downloadTemplate = () => {
-    const headers = ['NOMBRE_CAPACITACION', 'TIPO', 'TEMA', 'PROGRAMA_HSE', 'PROVEEDOR_INSTRUCTOR', 'FECHA_PROGRAMADA'];
-    const rows = [
-      ['Induccion HSE', 'HSE', 'Seguridad basica', 'Programa 2026', 'Interno', '2026-07-15'],
-      ['Trabajo en altura', 'Operacional', 'Proteccion contra caidas', 'Programa 2026', 'Mutual', '2026-07-20'],
+    const headers = [
+      'NOMBRE_CAPACITACION',
+      'TIPO',
+      'TEMA',
+      'PROGRAMA_HSE',
+      'PROVEEDOR_INSTRUCTOR',
+      'FECHA_PROGRAMADA',
+      'HORA_INICIO',
+      'HORA_TERMINO',
+      'DURACION_HORAS',
+      'CANTIDAD_ASISTENTES',
+      'FAENAS_CARGOS',
+      'ESTADO',
     ];
+
+    const rows = [
+      [
+        'Induccion HSE',
+        'HSE',
+        'Seguridad basica',
+        'Programa 2026',
+        'Interno',
+        '2026-07-15',
+        '08:00',
+        '12:00',
+        '4',
+        '18',
+        'Operadores;Supervisores',
+        'programada',
+      ],
+      [
+        'Trabajo en altura',
+        'Operacional',
+        'Proteccion contra caidas',
+        'Programa 2026',
+        'Mutual',
+        '2026-07-20',
+        '09:00',
+        '13:00',
+        '4',
+        '12',
+        'Mantenimiento;Faena',
+        'programada',
+      ],
+    ];
+
     const csv = [headers, ...rows]
       .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(';'))
       .join('\n');
@@ -54,7 +95,7 @@ export default function HSECapacitacionesImportPage() {
         <CardHeader>
           <CardTitle>Como funciona</CardTitle>
           <CardDescription>
-            Cada fila debe traer al menos nombre y fecha programada. Si ya existe una capacitación similar, se actualiza.
+            Cada fila debe traer al menos nombre y fecha programada. Si ya existe una capacitacion similar, se actualiza.
           </CardDescription>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
