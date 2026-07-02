@@ -17,14 +17,14 @@ interface FilterConfig {
 
 interface AdvancedFilterProps {
   filters: FilterConfig[];
-  onFilterChange: (filters: Record<string, any>) => void;
+  onFilterChange: (filters: Record<string, string | number | null | undefined>) => void;
 }
 
 export function AdvancedFilter({ filters, onFilterChange }: AdvancedFilterProps) {
-  const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
+  const [activeFilters, setActiveFilters] = useState<Record<string, string | number | null | undefined>>({});
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleFilterChange = (id: string, value: any) => {
+  const handleFilterChange = (id: string, value: string | number | null | undefined) => {
     const newFilters = { ...activeFilters, [id]: value };
     setActiveFilters(newFilters);
     onFilterChange(newFilters);
@@ -53,7 +53,7 @@ export function AdvancedFilter({ filters, onFilterChange }: AdvancedFilterProps)
                   <label className="mb-2 block text-sm font-medium">{filter.label}</label>
                   {filter.type === 'select' ? (
                     <Select
-                      value={activeFilters[filter.id] || ''}
+                      value={String(activeFilters[filter.id] ?? '')}
                       onValueChange={(value) => handleFilterChange(filter.id, value)}
                     >
                       <SelectTrigger>

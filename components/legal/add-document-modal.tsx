@@ -11,7 +11,7 @@ import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface AddDocumentModalProps {
-  onSubmit: (doc: any) => Promise<void>;
+  onSubmit: (doc: { title: string; description: string; category: string; file: File | null }) => Promise<void>;
 }
 
 const ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx', 'xls', 'xlsx'];

@@ -9,7 +9,14 @@ import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface AddContractModalProps {
-  onSubmit: (contract: any) => Promise<void>;
+  onSubmit: (contract: {
+    title: string;
+    contractor_name: string;
+    start_date: string;
+    end_date: string;
+    contract_value: number;
+    file: File | null;
+  }) => Promise<void>;
 }
 
 const ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx'];

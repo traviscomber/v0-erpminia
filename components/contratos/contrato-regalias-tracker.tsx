@@ -12,6 +12,12 @@ interface RegaliaControl {
   estado: 'pendiente' | 'pagado';
 }
 
+type RegaliaSummary = {
+  neto: number;
+  retenido: number;
+  count: number;
+};
+
 export function ContratoRegaliasTracker({ regalias }: { regalias: RegaliaControl[] }) {
   const totalBruto = regalias.reduce((sum, r) => sum + r.monto_bruto, 0);
   const totalNeto = regalias.reduce((sum, r) => sum + r.monto_neto, 0);
@@ -23,7 +29,7 @@ export function ContratoRegaliasTracker({ regalias }: { regalias: RegaliaControl
     acc[r.propiedad].retenido += r.monto_retenido;
     acc[r.propiedad].count += 1;
     return acc;
-  }, {} as Record<number, any>);
+  }, {} as Record<number, RegaliaSummary>);
 
   return (
     <Card>
