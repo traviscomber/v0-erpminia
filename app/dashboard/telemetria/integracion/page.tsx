@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowRight, CheckCircle2, Download, RadioTower, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,11 +21,36 @@ type ConnectionCheck = {
 export default function TelemetriaIntegracionPage() {
   const [checking, setChecking] = useState(false);
   const [checkResult, setCheckResult] = useState<ConnectionCheck | null>(null);
-  const [gatewayUrl, setGatewayUrl] = useState(typeof window !== 'undefined' ? window.location.origin : '');
+  const [gatewayUrl, setGatewayUrl] = useState(process.env.NEXT_PUBLIC_TELEMETRY_GATEWAY_URL || '');
   const [telemetryToken, setTelemetryToken] = useState('TU_TOKEN');
+  const [currentOrigin, setCurrentOrigin] = useState('');
+
+  useEffect(() => {
+    const savedGateway = window.localStorage.getItem('telemetry-gateway-url');
+    if (savedGateway) {
+      setGatewayUrl(savedGateway);
+      return;
+    }
+
+    if (!gatewayUrl) {
+      setGatewayUrl(window.location.origin);
+    }
+
+    setCurrentOrigin(window.location.origin);
+  }, [gatewayUrl]);
+
+  useEffect(() => {
+    if (!gatewayUrl) return;
+    window.localStorage.setItem('telemetry-gateway-url', gatewayUrl);
+  }, [gatewayUrl]);
 
   const normalizedGatewayUrl = gatewayUrl.trim().replace(/\/+$/, '');
   const ingestUrl = `${normalizedGatewayUrl || ''}/api/telemetry/ingest`;
+  const quickHosts = [
+    { label: 'Este host', value: currentOrigin },
+    { label: 'Localhost', value: 'http://localhost:3000' },
+    { label: 'LAN ejemplo', value: 'http://192.168.1.20:3000' },
+  ].filter((item) => item.value);
 
   const code = `curl -X POST ${ingestUrl || 'https://TU-DOMINIO/api/telemetry/ingest'} \\
   -H "Content-Type: application/json" \\
@@ -126,6 +151,13 @@ export default function TelemetriaIntegracionPage() {
               placeholder="x-telemetry-token"
               aria-label="Token de telemetria"
             />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {quickHosts.map((host) => (
+              <Button key={host.label} type="button" variant="ghost" size="sm" onClick={() => setGatewayUrl(host.value)}>
+                {host.label}
+              </Button>
+            ))}
           </div>
           <p className="text-xs text-muted-foreground">
             La prueba usa el host ingresado. Si apuntas a otra maquina, ese endpoint debe permitir acceso desde la red local.
