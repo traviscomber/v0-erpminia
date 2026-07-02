@@ -168,7 +168,7 @@ export default function NonconformancesImportPage() {
                 TITLE | DESCRIPTION | CATEGORY | SEVERITY | SOURCE | DISCOVERED_DATE | ROOT_CAUSE | IMPACT_DESCRIPTION | TARGET_CLOSURE_DATE | STATUS
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
-                DISCOVERED_DATE y TARGET_CLOSURE_DATE aceptan fechas de Excel o texto en formato YYYY-MM-DD, DD/MM/YYYY o DD-MM-YYYY.
+                Reimportacion por TITLE + CATEGORY + SOURCE. DISCOVERED_DATE y TARGET_CLOSURE_DATE aceptan fechas de Excel o texto en formato YYYY-MM-DD, DD/MM/YYYY o DD-MM-YYYY.
               </p>
             </AlertDescription>
           </Alert>

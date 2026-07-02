@@ -41,8 +41,37 @@ function normalizeText(value: unknown) {
 }
 
 function normalizeDate(value: unknown) {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    const day = String(value.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   const text = normalizeText(value);
-  return text || null;
+  if (!text) return null;
+
+  const isoMatch = text.match(/^(\d{4})[-/](\d{2})[-/](\d{2})/);
+  if (isoMatch) {
+    return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+  }
+
+  const dayMonthYearMatch = text.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+  if (dayMonthYearMatch) {
+    const day = dayMonthYearMatch[1].padStart(2, '0');
+    const month = dayMonthYearMatch[2].padStart(2, '0');
+    return `${dayMonthYearMatch[3]}-${month}-${day}`;
+  }
+
+  const parsed = new Date(text);
+  if (!Number.isNaN(parsed.getTime())) {
+    const year = parsed.getFullYear();
+    const month = String(parsed.getMonth() + 1).padStart(2, '0');
+    const day = String(parsed.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  return text;
 }
 
 function normalizeCategory(value: unknown) {
@@ -244,7 +273,8 @@ export async function POST(request: NextRequest) {
           .select('id')
           .eq('organization_id', context.organizationId)
           .eq('title', row.title)
-          .eq('discovered_date', row.discovered_date)
+          .eq('category', normalizeCategory(row.category))
+          .eq('source', normalizeSource(row.source))
           .maybeSingle();
 
         const payload = {
