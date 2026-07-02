@@ -1,6 +1,23 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 
+const CONTENT_SECURITY_POLICY = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'self'",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' data: https:",
+  "style-src 'self' 'unsafe-inline' https:",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:",
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://vercel.live wss://ws-us3.pusher.com https://*.blob.vercel-storage.com https://*.private.blob.vercel-storage.com https://*.public.blob.vercel-storage.com https://blob.vercel-storage.com",
+].join('; ');
+
+function withSecurityHeaders(response: NextResponse) {
+  response.headers.set('Content-Security-Policy', CONTENT_SECURITY_POLICY);
+  return response;
+}
+
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
     request: {
@@ -42,9 +59,9 @@ export async function middleware(request: NextRequest) {
 
     if (error) {
       console.error('[v0] Auth callback error:', error, error_description);
-      return NextResponse.redirect(
+      return withSecurityHeaders(NextResponse.redirect(
         new URL(`/auth/login?error=${encodeURIComponent(error_description || error)}`, request.url)
-      );
+      ));
     }
 
     if (code) {
@@ -52,18 +69,18 @@ export async function middleware(request: NextRequest) {
         const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
         if (exchangeError) {
           console.error('[v0] Code exchange error:', exchangeError);
-          return NextResponse.redirect(
+          return withSecurityHeaders(NextResponse.redirect(
             new URL(`/auth/login?error=${encodeURIComponent(exchangeError.message)}`, request.url)
-          );
+          ));
         }
 
         // Session established successfully
-        return NextResponse.redirect(new URL('/dashboard', request.url));
+        return withSecurityHeaders(NextResponse.redirect(new URL('/dashboard', request.url)));
       } catch (err) {
         console.error('[v0] Callback error:', err);
-        return NextResponse.redirect(
+        return withSecurityHeaders(NextResponse.redirect(
           new URL('/auth/login?error=authentication_failed', request.url)
-        );
+        ));
       }
     }
   }
@@ -106,10 +123,10 @@ export async function middleware(request: NextRequest) {
       const providedKey = request.headers.get('x-dev-admin-key');
       
       if (!devAdminKey || providedKey !== devAdminKey) {
-        return NextResponse.json(
+        return withSecurityHeaders(NextResponse.json(
           { error: 'Not found' },
           { status: 404 }
-        );
+        ));
       }
     }
     
@@ -120,19 +137,19 @@ export async function middleware(request: NextRequest) {
       const hasValidDevKey = devWriteKey && providedWriteKey === devWriteKey;
       
       if (!isAuthenticated && !hasValidDevKey) {
-        return NextResponse.json(
+        return withSecurityHeaders(NextResponse.json(
           { error: 'Unauthorized - Write operations require authentication or dev key' },
           { status: 401 }
-        );
+        ));
       }
     }
     
     // For read operations in non-demo mode, require auth
     if (isReadRequest && !isPublicRoute && !isDemoMode && !isAuthenticated) {
-      return NextResponse.json(
+      return withSecurityHeaders(NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
-      );
+      ));
     }
   }
 
@@ -140,21 +157,21 @@ export async function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith('/setup') || 
       request.nextUrl.pathname.startsWith('/admin')) {
     if (!isAuthenticated) {
-      return NextResponse.redirect(new URL('/auth/login', request.url));
+      return withSecurityHeaders(NextResponse.redirect(new URL('/auth/login', request.url)));
     }
   }
 
   // Protected dashboard - redirect to login
   if (request.nextUrl.pathname.startsWith('/dashboard')) {
     if (!isAuthenticated) {
-      return NextResponse.redirect(new URL('/auth/login', request.url));
+      return withSecurityHeaders(NextResponse.redirect(new URL('/auth/login', request.url)));
     }
   }
 
   // Protected routes - setup only accessible before auth
   if (request.nextUrl.pathname === '/setup') {
     if (isAuthenticated) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+      return withSecurityHeaders(NextResponse.redirect(new URL('/dashboard', request.url)));
     }
   }
 
@@ -164,11 +181,11 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname === '/auth/register'
   ) {
     if (isAuthenticated) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+      return withSecurityHeaders(NextResponse.redirect(new URL('/dashboard', request.url)));
     }
   }
 
-  return response;
+  return withSecurityHeaders(response);
 }
 
 export const config = {
