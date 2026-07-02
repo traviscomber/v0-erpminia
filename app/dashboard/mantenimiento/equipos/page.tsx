@@ -100,6 +100,9 @@ export default function EquiposPage() {
         <div>
           <h1 className="text-3xl font-bold">Maquinaria y equipos</h1>
           <p className="text-muted-foreground">Catastro operativo con importacion Excel y filtrado por criticidad.</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            La reimportacion actualiza por CODIGO normalizado para evitar duplicados por mayusculas, espacios o variantes de formato.
+          </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={downloadTemplate}>

@@ -26,6 +26,10 @@ function normalizeText(value: unknown) {
   return String(value ?? '').trim().replace(/\s+/g, ' ');
 }
 
+function normalizeAssetCode(value: unknown) {
+  return normalizeText(value).toUpperCase().replace(/\s+/g, '');
+}
+
 function normalizeHeader(value: unknown) {
   return normalizeText(value)
     .normalize('NFD')
@@ -70,7 +74,7 @@ function parseCsvRows(text: string): ImportAssetRow[] {
 
   return lines.slice(1).flatMap((line) => {
     const values = line.split(';').map(normalizeText);
-    const asset_code = values[columns.asset_code] || '';
+    const asset_code = normalizeAssetCode(values[columns.asset_code]);
     const asset_name = values[columns.asset_name] || '';
     if (!asset_code || !asset_name) return [];
 
@@ -152,7 +156,7 @@ export async function POST(request: NextRequest) {
     for (const row of rows) {
       const payload = {
         organization_id: context.organizationId,
-        asset_code: row.asset_code,
+        asset_code: normalizeAssetCode(row.asset_code),
         asset_name: row.asset_name,
         asset_type: row.asset_type,
         location: row.location,
@@ -169,7 +173,7 @@ export async function POST(request: NextRequest) {
         .from('maintenance_assets')
         .select('id')
         .eq('organization_id', context.organizationId)
-        .eq('asset_code', row.asset_code)
+        .eq('asset_code', normalizeAssetCode(row.asset_code))
         .maybeSingle();
 
       if (lookupError) throw lookupError;
