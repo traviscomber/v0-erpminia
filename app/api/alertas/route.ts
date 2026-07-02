@@ -25,13 +25,104 @@ type AlertItem = {
   actionUrl: string;
 };
 
-function safeDate(value: string | null) {
+type PendingApprovalItem = {
+  id: string;
+  levelName: string;
+  document: {
+    title: string;
+    documentNumber?: string | null;
+    createdAt?: string | null;
+  };
+};
+
+type LegalComplianceOverview = {
+  contracts_pending_review: Array<{
+    id: string;
+    title: string;
+    days_until_expiry?: number | null;
+    end_date?: string | null;
+  }>;
+  expiring_contracts: Array<{
+    id: string;
+    title: string;
+    days_until_expiry?: number | null;
+    end_date?: string | null;
+  }>;
+  expiring_documents: Array<{
+    id: string;
+    title: string;
+    expiry_date?: string | null;
+  }>;
+};
+
+type WorkOrderAlertRow = {
+  id: string;
+  work_order_number?: string | null;
+  title: string;
+  description?: string | null;
+  priority?: string | null;
+  status?: string | null;
+  created_at?: string | null;
+  scheduled_date?: string | null;
+  asset?: {
+    asset_name?: string | null;
+  } | null;
+};
+
+type WarehouseStockAlertRow = {
+  id: string;
+  part_code?: string | null;
+  part_name?: string | null;
+  quantity_on_hand?: number | null;
+  reorder_level?: number | null;
+  bin?:
+    | {
+        bin_code?: string | null;
+        bin_location?: string | null;
+      }
+    | Array<{
+        bin_code?: string | null;
+        bin_location?: string | null;
+      }>
+    | null;
+};
+
+type OverdueNCRow = {
+  id: string;
+  nc_number?: string | null;
+  title: string;
+  severity?: string | null;
+  target_closure_date?: string | null;
+  status?: string | null;
+};
+
+type OverdueCARow = {
+  id: string;
+  ca_number?: string | null;
+  action_description?: string | null;
+  scheduled_completion_date?: string | null;
+  status?: string | null;
+  nonconformance?:
+    | {
+        title?: string | null;
+        severity?: string | null;
+        organization_id?: string | null;
+      }
+    | Array<{
+        title?: string | null;
+        severity?: string | null;
+        organization_id?: string | null;
+      }>
+    | null;
+};
+
+function safeDate(value: string | null | undefined) {
   if (!value) return new Date().toISOString();
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString();
 }
 
-function daysOverdue(value: string | null) {
+function daysOverdue(value: string | null | undefined) {
   if (!value) return 0;
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return 0;
@@ -41,7 +132,7 @@ function daysOverdue(value: string | null) {
   );
 }
 
-function severityFromPriority(priority: string | null): AlertSeverity {
+function severityFromPriority(priority: string | null | undefined): AlertSeverity {
   const normalized = String(priority || '').toLowerCase();
   if (normalized.includes('crit')) return 'critica';
   if (normalized.includes('high') || normalized.includes('alta')) return 'alta';
@@ -73,16 +164,16 @@ export async function GET(request: NextRequest) {
     const [pendingApprovals, legalCompliance, workOrders, lowStockRows, overdueNCs, overdueCAs] =
       await Promise.all([
         safeQuery(
-          () => listPendingApprovalsForUser(context.organizationId, context.userId),
-          [] as any[]
+          () => listPendingApprovalsForUser(context.organizationId, context.userId) as Promise<PendingApprovalItem[]>,
+          [] as PendingApprovalItem[]
         ),
         safeQuery(
-          () => getLegalComplianceOverview(context.organizationId),
+          () => getLegalComplianceOverview(context.organizationId) as Promise<LegalComplianceOverview>,
           {
             contracts_pending_review: [],
             expiring_contracts: [],
             expiring_documents: [],
-          } as any
+          } as LegalComplianceOverview
         ),
         safeQuery(
           async () => {
@@ -95,9 +186,9 @@ export async function GET(request: NextRequest) {
               .limit(20);
 
             if (error) throw error;
-            return data || [];
+            return (data || []) as WorkOrderAlertRow[];
           },
-          [] as any[]
+          [] as WorkOrderAlertRow[]
         ),
         safeQuery(
           async () => {
@@ -108,14 +199,15 @@ export async function GET(request: NextRequest) {
               .order('quantity_on_hand', { ascending: true });
 
             if (error) throw error;
-            return (data || []).filter(
-              (item: any) =>
+            const stockRows = (data || []) as WarehouseStockAlertRow[];
+            return stockRows.filter(
+              (item) =>
                 item.reorder_level !== null &&
                 item.reorder_level !== undefined &&
                 Number(item.quantity_on_hand || 0) <= Number(item.reorder_level || 0)
             );
           },
-          [] as any[]
+          [] as WarehouseStockAlertRow[]
         ),
         safeQuery(
           async () => {
@@ -128,9 +220,9 @@ export async function GET(request: NextRequest) {
               .limit(20);
 
             if (error) throw error;
-            return data || [];
+            return (data || []) as OverdueNCRow[];
           },
-          [] as any[]
+          [] as OverdueNCRow[]
         ),
         safeQuery(
           async () => {
@@ -144,14 +236,14 @@ export async function GET(request: NextRequest) {
               .limit(20);
 
             if (error) throw error;
-            return (data || []).filter((item: any) => {
+            return (data || []).filter((item: OverdueCARow) => {
               const nc = Array.isArray(item.nonconformance)
                 ? item.nonconformance[0]
                 : item.nonconformance;
-              return nc.organization_id === context.organizationId;
-            });
+              return nc?.organization_id === context.organizationId;
+            }) as OverdueCARow[];
           },
-          [] as any[]
+          [] as OverdueCARow[]
         ),
       ]);
 
@@ -201,7 +293,8 @@ export async function GET(request: NextRequest) {
     }
 
     for (const document of legalCompliance.expiring_documents || []) {
-      const days = Math.max(0, Math.ceil((new Date(document.expiry_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+      const expiryDate = document.expiry_date || null;
+      const days = Math.max(0, Math.ceil((new Date(expiryDate || Date.now()).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
       alerts.push({
         id: `document-expiring-${document.id}`,
         title: `Documento por vencer - ${document.title}`,
@@ -237,10 +330,11 @@ export async function GET(request: NextRequest) {
     for (const stock of lowStockRows) {
       const current = Number(stock.quantity_on_hand || 0);
       const reorder = Number(stock.reorder_level || 0);
+      const bin = Array.isArray(stock.bin) ? stock.bin[0] : stock.bin;
       alerts.push({
         id: `stock-${stock.id}`,
         title: `${current === 0 ? 'Stock agotado' : 'Stock bajo'} - ${stock.part_name || stock.part_code}`,
-        description: `${stock.part_code || 'Item'} en ${stock.bin?.bin_code || stock.bin?.bin_location || 'bodega'} con ${current} unidad(es). Nivel de reorden: ${reorder}.`,
+        description: `${stock.part_code || 'Item'} en ${bin?.bin_code || bin?.bin_location || 'bodega'} con ${current} unidad(es). Nivel de reorden: ${reorder}.`,
         severity: current === 0 ? 'critica' : 'alta',
         type: 'inventario',
         timestamp: new Date().toISOString(),
@@ -268,6 +362,7 @@ export async function GET(request: NextRequest) {
     for (const ca of overdueCAs) {
       const overdueDays = daysOverdue(ca.scheduled_completion_date);
       const nc = Array.isArray(ca.nonconformance) ? ca.nonconformance[0] : ca.nonconformance;
+      if (!nc) continue;
       alerts.push({
         id: `ca-${ca.id}`,
         title: `Acción correctiva vencida - ${ca.ca_number || ca.action_description}`,
