@@ -3,6 +3,35 @@ import { createClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
 
+type BulkImportType = 'inventory';
+
+type InventoryImportRow = {
+  codigo?: string;
+  producto?: string;
+  familia?: string;
+  sub_familia?: string;
+  equipo?: string;
+};
+
+type BulkImportBody = {
+  type?: BulkImportType | string;
+  data?: InventoryImportRow[];
+};
+
+type BodegaInventoryUpsertRow = {
+  sku: string;
+  name: string;
+  category: string;
+  description: string;
+  quantity: number;
+  unit_cost: number;
+  min_stock: number;
+  max_stock: number;
+  location: string;
+  created_at: string;
+  updated_at: string;
+};
+
 export async function POST(request: NextRequest) {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -19,8 +48,8 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const body = await request.json().catch(() => ({}));
-    const { type, data } = body as { type?: string; data?: any[] };
+    const body = (await request.json().catch(() => ({}))) as BulkImportBody;
+    const { type, data } = body;
 
     if (type !== 'inventory') {
       return NextResponse.json(
@@ -34,7 +63,7 @@ export async function POST(request: NextRequest) {
     }
 
     const mappedData = data
-      .map((item: any) => ({
+      .map((item): BodegaInventoryUpsertRow => ({
         sku: item.codigo || '',
         name: item.producto || '',
         category: item.familia || '',
@@ -47,7 +76,7 @@ export async function POST(request: NextRequest) {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }))
-      .filter((item: any) => item.sku && item.name);
+      .filter((item) => item.sku && item.name);
 
     if (mappedData.length === 0) {
       return NextResponse.json({ error: 'No se encontraron registros validos para importar', count: 0 }, { status: 400 });
@@ -69,10 +98,11 @@ export async function POST(request: NextRequest) {
       message: `${mappedData.length} articulos importados exitosamente a Supabase`,
       count: mappedData.length,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Bulk import error:', error);
+    const message = error instanceof Error ? error.message : 'Error al importar datos';
     return NextResponse.json(
-      { error: error.message || 'Error al importar datos' },
+      { error: message },
       { status: 500 },
     );
   }
