@@ -143,6 +143,12 @@ export function PreventivePlanBoard() {
               <CalendarClock className="h-4 w-4" />
             </Link>
           </Button>
+          <Button asChild variant="outline" className="gap-2">
+            <Link href="/dashboard/mantenimiento/planificacion/importar">
+              Importar Excel
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
           <Button asChild className="gap-2">
             <Link href="/dashboard/mantenimiento/bitacora">
               <CalendarClock className="h-4 w-4" />
