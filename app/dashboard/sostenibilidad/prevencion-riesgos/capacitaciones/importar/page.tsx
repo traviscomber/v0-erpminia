@@ -190,6 +190,9 @@ export default function CapacitacionesImportPage() {
               <p className="mt-2 text-xs text-muted-foreground">
                 Opcionales: HORA_INICIO, HORA_TERMINO, DURACION_HORAS, CANTIDAD_ASISTENTES, FAENAS_CARGOS, ESTADO.
               </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                FECHA_PROGRAMADA acepta fechas de Excel o texto en formato YYYY-MM-DD, DD/MM/YYYY o DD-MM-YYYY.
+              </p>
             </AlertDescription>
           </Alert>
 

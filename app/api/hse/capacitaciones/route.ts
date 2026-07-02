@@ -26,6 +26,41 @@ function normalizeText(value: unknown) {
     .replace(/\s+/g, ' ');
 }
 
+function normalizeDateValue(value: unknown) {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    const day = String(value.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  const text = normalizeText(value);
+  if (!text) return '';
+
+  const isoMatch = text.match(/^(\d{4})[-/](\d{2})[-/](\d{2})/);
+  if (isoMatch) {
+    return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+  }
+
+  const dmYMatch = text.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+  if (dmYMatch) {
+    const day = dmYMatch[1].padStart(2, '0');
+    const month = dmYMatch[2].padStart(2, '0');
+    const year = dmYMatch[3];
+    return `${year}-${month}-${day}`;
+  }
+
+  const parsed = new Date(text);
+  if (!Number.isNaN(parsed.getTime())) {
+    const year = parsed.getFullYear();
+    const month = String(parsed.getMonth() + 1).padStart(2, '0');
+    const day = String(parsed.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  return text;
+}
+
 function normalizeHeader(value: unknown) {
   return normalizeText(value)
     .normalize('NFD')
@@ -70,7 +105,7 @@ function parseCsvRows(text: string): ImportTrainingRow[] {
   return lines.slice(1).flatMap((line) => {
     const values = line.split(';').map(normalizeText);
     const nombre_capacitacion = values[columns.nombre_capacitacion] || values[0] || '';
-    const fecha_programada = values[columns.fecha_programada] || '';
+    const fecha_programada = normalizeDateValue(values[columns.fecha_programada]);
 
     if (!nombre_capacitacion || !fecha_programada) return [];
 
