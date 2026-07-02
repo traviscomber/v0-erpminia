@@ -59,6 +59,59 @@ function buildApprovalChain(documentId: string) {
   ];
 }
 
+function buildApprovalChainForStatus(
+  documentId: string,
+  status: string,
+  actorId: string,
+  actorName: string | null
+) {
+  const normalizedStatus = normalizeDocumentStatus(status);
+  const now = new Date().toISOString();
+
+  return buildApprovalChain(documentId).map((approval) => {
+    if (normalizedStatus === 'approved') {
+      return {
+        ...approval,
+        status: 'approved',
+        approved_by: actorId,
+        approved_by_name: actorName,
+        approved_at: now,
+      };
+    }
+
+    if (normalizedStatus === 'rejected') {
+      return {
+        ...approval,
+        status: 'rejected',
+        approved_by: actorId,
+        approved_by_name: actorName,
+        approved_at: now,
+      };
+    }
+
+    return {
+      ...approval,
+      status: 'pending',
+      approved_by: null,
+      approved_by_name: null,
+      approved_at: null,
+    };
+  });
+}
+
+async function syncApprovalChain(
+  supabase: any,
+  documentId: string,
+  status: string,
+  actorId: string,
+  actorName: string | null
+) {
+  await supabase.from('document_approvals').delete().eq('document_id', documentId);
+  return supabase.from('document_approvals').insert(
+    buildApprovalChainForStatus(documentId, status, actorId, actorName)
+  );
+}
+
 function normalizeDocumentStatus(value: unknown) {
   const text = String(value || '').trim().toLowerCase();
   if (!text) return 'draft';
@@ -203,9 +256,13 @@ export async function POST(request: NextRequest) {
 
     if (documentError) throw documentError;
 
-    const { error: approvalError } = await context.supabase
-      .from('document_approvals')
-      .insert(buildApprovalChain(document.id));
+    const { error: approvalError } = await syncApprovalChain(
+      context.supabase,
+      document.id,
+      status,
+      context.userId,
+      context.userName || context.userEmail || null
+    );
 
     if (approvalError) throw approvalError;
 
@@ -279,6 +336,16 @@ export async function PUT(request: NextRequest) {
       .single();
 
     if (documentError) throw documentError;
+
+    const { error: approvalError } = await syncApprovalChain(
+      context.supabase,
+      document.id,
+      status,
+      context.userId,
+      context.userName || context.userEmail || null
+    );
+
+    if (approvalError) throw approvalError;
 
     await context.supabase.from('document_audit_logs').insert({
       document_id: document.id,
