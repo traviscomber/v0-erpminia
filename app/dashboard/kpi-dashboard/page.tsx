@@ -10,7 +10,8 @@ import { TrendingUp, TrendingDown, AlertCircle, RefreshCw, Target } from 'lucide
 interface KPI {
   id: string;
   name: string;
-  value: number | string;
+  value: number;
+  displayValue?: string;
   unit: string;
   trend: 'up' | 'down' | 'stable';
   status: 'success' | 'warning' | 'danger' | 'neutral';
@@ -132,7 +133,8 @@ export default function KPIDashboardPage() {
     {
       id: '4',
       name: 'Documentos validos',
-      value: `${kpisData.valid_documents_pct || 0}%`,
+      value: kpisData.valid_documents_pct || 0,
+      displayValue: `${kpisData.valid_documents_pct || 0}%`,
       unit: 'validez',
       status: (kpisData.valid_documents_pct || 0) > 90 ? 'success' : 'warning',
       description: 'Documentos vigentes',
@@ -152,7 +154,8 @@ export default function KPIDashboardPage() {
     {
       id: '6',
       name: 'OCs a tiempo',
-      value: `${kpisData.on_time_purchase_orders_pct || 0}%`,
+      value: kpisData.on_time_purchase_orders_pct || 0,
+      displayValue: `${kpisData.on_time_purchase_orders_pct || 0}%`,
       unit: 'puntualidad',
       status: (kpisData.on_time_purchase_orders_pct || 0) > 85 ? 'success' : 'warning',
       description: 'Ordenes de compra cumplidas',
@@ -162,7 +165,8 @@ export default function KPIDashboardPage() {
     {
       id: '7',
       name: 'Costos operacionales',
-      value: `$${(kpisData.operational_costs_monthly || 0).toLocaleString()}`,
+      value: kpisData.operational_costs_monthly || 0,
+      displayValue: `$${(kpisData.operational_costs_monthly || 0).toLocaleString()}`,
       unit: 'CLP',
       status: 'neutral',
       description: 'Gastos del mes',
@@ -208,7 +212,7 @@ export default function KPIDashboardPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <div className="text-2xl font-bold">{kpi.value}</div>
+                <div className="text-2xl font-bold">{kpi.displayValue ?? kpi.value}</div>
                 <p className="text-xs text-muted-foreground">{kpi.unit}</p>
               </div>
               <div className="flex items-center justify-between border-t pt-2">
