@@ -16,6 +16,55 @@ function normalizeRut(value: unknown) {
   return String(value ?? '').trim().replace(/\s+/g, '');
 }
 
+async function ensureDocumentSlots(supabase: ReturnType<typeof getSupabaseServerClient>, carpetaId: string) {
+  const DOCUMENTOS = [
+    'Certificado de afiliacion y cotizacion a Organismo Administrador',
+    'Certificado de Accidentabilidad (ultimos 2 anos)',
+    'Reglamento interno de orden, higiene y seguridad',
+    'Copia IRL de todos sus colaboradores',
+    'Contratos de trabajos de su personal',
+    'Registro de entrega de EPP',
+    'Registro interno de la empresa contratista',
+    'Recepcion firmada del Sistema de Gestion y Seguridad en el Trabajo',
+    'Examenes pre-ocupacionales (ultimos 3 anos)',
+    'Examenes ocupacionales (agentes como ruido, silice)',
+    'Documentacion de trabajadores extranjeros',
+    'Procedimientos de trabajos actualizados con NRCT',
+    'Procedimiento en caso de accidente',
+    'Politica de empresa contratista en control de riesgos',
+    'Copia carnet de identidad de todos los colaboradores',
+    'Licencias de conduccion vigentes',
+    'Recepcion de conductores por reglamento interno',
+    'Programa de supervision a cargo personal',
+    'Matriz de Identificacion de Peligros (MIPER)',
+  ];
+
+  const { data: existingSlots, error: slotsLookupError } = await supabase
+    .from('carpeta_documentos')
+    .select('slot_index')
+    .eq('carpeta_id', carpetaId);
+
+  if (slotsLookupError) {
+    throw slotsLookupError;
+  }
+
+  const usedSlots = new Set((existingSlots || []).map((slot) => Number(slot.slot_index)));
+  const slots = DOCUMENTOS
+    .map((nombre, i) => ({ carpeta_id: carpetaId, slot_index: i + 1, documento_nombre: nombre }))
+    .filter((slot) => !usedSlots.has(slot.slot_index));
+
+  if (slots.length === 0) {
+    return { inserted: 0, total: DOCUMENTOS.length };
+  }
+
+  const { error: insertError } = await supabase.from('carpeta_documentos').insert(slots);
+  if (insertError) {
+    throw insertError;
+  }
+
+  return { inserted: slots.length, total: DOCUMENTOS.length };
+}
+
 // GET  /api/carpeta-arranque  — list all carpetas (with doc counts per carpeta)
 export async function GET(request: NextRequest) {
   const auth = await resolveAuthContext(request);
@@ -57,53 +106,57 @@ export async function POST(request: NextRequest) {
 
   const supabase = getSupabaseServerClient();
 
-  const { data: carpeta, error: carpetaError } = await supabase
-    .from('carpetas_arranque')
-    .insert({
-      empresa_nombre: normalizedNombre,
-      empresa_rut: normalizedRut || null,
-      contacto_email: normalizedEmail,
-      created_by: auth.user.id,
-      status: 'pendiente',
-    })
-    .select()
-    .single();
+  const buildExistingQuery = () =>
+    supabase
+      .from('carpetas_arranque')
+      .select('id, empresa_nombre, empresa_rut, contacto_email, status')
+      .order('created_at', { ascending: false })
+      .limit(1);
 
-  if (carpetaError) return NextResponse.json({ error: carpetaError.message }, { status: 500 });
+  const { data: existingByRut, error: rutLookupError } = normalizedRut
+    ? await buildExistingQuery().eq('empresa_rut', normalizedRut)
+    : { data: [], error: null };
 
-  const DOCUMENTOS = [
-    'Certificado de afiliacion y cotizacion a Organismo Administrador',
-    'Certificado de Accidentabilidad (ultimos 2 anos)',
-    'Reglamento interno de orden, higiene y seguridad',
-    'Copia IRL de todos sus colaboradores',
-    'Contratos de trabajos de su personal',
-    'Registro de entrega de EPP',
-    'Registro interno de la empresa contratista',
-    'Recepcion firmada del Sistema de Gestion y Seguridad en el Trabajo',
-    'Examenes pre-ocupacionales (ultimos 3 anos)',
-    'Examenes ocupacionales (agentes como ruido, silice)',
-    'Documentacion de trabajadores extranjeros',
-    'Procedimientos de trabajos actualizados con NRCT',
-    'Procedimiento en caso de accidente',
-    'Politica de empresa contratista en control de riesgos',
-    'Copia carnet de identidad de todos los colaboradores',
-    'Licencias de conduccion vigentes',
-    'Recepcion de conductores por reglamento interno',
-    'Programa de supervision a cargo personal',
-    'Matriz de Identificacion de Peligros (MIPER)',
-  ];
-
-  const slots = DOCUMENTOS.map((nombre, i) => ({
-    carpeta_id: carpeta.id,
-    slot_index: i + 1,
-    documento_nombre: nombre,
-  }));
-
-  const { error: slotsError } = await supabase.from('carpeta_documentos').insert(slots);
-  if (slotsError) {
-    await supabase.from('carpetas_arranque').delete().eq('id', carpeta.id);
-    return NextResponse.json({ error: slotsError.message }, { status: 500 });
+  if (rutLookupError) {
+    return NextResponse.json({ error: rutLookupError.message }, { status: 500 });
   }
 
-  return NextResponse.json({ carpeta }, { status: 201 });
+  const { data: existingByName, error: nameLookupError } = !normalizedRut && !(existingByRut || []).length
+    ? await buildExistingQuery().eq('empresa_nombre', normalizedNombre).eq('contacto_email', normalizedEmail)
+    : { data: [], error: null };
+
+  if (nameLookupError) {
+    return NextResponse.json({ error: nameLookupError.message }, { status: 500 });
+  }
+
+  const existingCarpeta = ((existingByRut || existingByName || [])[0] || null) as { id: string } | null;
+  let carpetaId = existingCarpeta?.id || '';
+  let created = false;
+
+  if (!carpetaId) {
+    const { data: carpeta, error: carpetaError } = await supabase
+      .from('carpetas_arranque')
+      .insert({
+        empresa_nombre: normalizedNombre,
+        empresa_rut: normalizedRut || null,
+        contacto_email: normalizedEmail,
+        created_by: auth.user.id,
+        status: 'pendiente',
+      })
+      .select('id, empresa_nombre, empresa_rut, contacto_email, status')
+      .single();
+
+    if (carpetaError) return NextResponse.json({ error: carpetaError.message }, { status: 500 });
+    carpetaId = carpeta.id;
+    created = true;
+  }
+
+  const slotResult = await ensureDocumentSlots(supabase, carpetaId);
+
+  return NextResponse.json({
+    carpeta: existingCarpeta || { id: carpetaId, empresa_nombre: normalizedNombre, empresa_rut: normalizedRut || null, contacto_email: normalizedEmail, status: 'pendiente' },
+    created,
+    inserted_slots: slotResult.inserted,
+    total_slots: slotResult.total,
+  }, { status: created ? 201 : 200 });
 }

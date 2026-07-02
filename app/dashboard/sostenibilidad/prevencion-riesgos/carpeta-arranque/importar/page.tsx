@@ -20,6 +20,9 @@ type ImportResult = {
   message: string;
   created?: number;
   failed?: number;
+  reused?: number;
+  inserted_slots?: number;
+  total_slots?: number;
   error?: string;
 };
 
@@ -141,7 +144,10 @@ export default function CarpetaArranqueImportPage() {
       setPreview(rows.slice(0, 5));
 
       let created = 0;
+      let reused = 0;
       let failed = 0;
+      let insertedSlots = 0;
+      let totalSlots = 0;
 
       for (const row of rows) {
         const response = await fetch('/api/carpeta-arranque', {
@@ -159,7 +165,13 @@ export default function CarpetaArranqueImportPage() {
         }
 
         if (payload?.carpeta?.id) {
-          created += 1;
+          if (payload?.created) {
+            created += 1;
+          } else {
+            reused += 1;
+          }
+          insertedSlots += Number(payload?.inserted_slots || 0);
+          totalSlots = Number(payload?.total_slots || totalSlots || 0);
         }
       }
 
@@ -167,7 +179,10 @@ export default function CarpetaArranqueImportPage() {
         success: failed === 0,
         message: `Se procesaron ${rows.length} carpetas de arranque`,
         created,
+        reused,
         failed,
+        inserted_slots: insertedSlots,
+        total_slots: totalSlots || undefined,
       });
     } catch (error) {
       setResult({
@@ -201,7 +216,7 @@ export default function CarpetaArranqueImportPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Importar Carpeta de Arranque</h1>
           <p className="mt-2 max-w-3xl text-muted-foreground">
-            Carga empresas contratistas desde Excel para crear carpetas base y dejar listo el flujo de revision documental.
+            Carga empresas contratistas desde Excel para crear carpetas base o reutilizar una carpeta existente y completar el flujo de revision documental.
           </p>
         </div>
         <div className="flex gap-2">
@@ -262,7 +277,7 @@ export default function CarpetaArranqueImportPage() {
                 EMPRESA_NOMBRE | EMPRESA_RUT | CONTACTO_EMAIL
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
-                Cada fila crea una carpeta nueva y deja preparados los 19 documentos obligatorios.
+                Cada fila crea una carpeta nueva solo si no existe una previa para la misma empresa; si ya existe, se reutiliza y se completan los 19 documentos obligatorios.
               </p>
             </AlertDescription>
           </Alert>
@@ -296,7 +311,10 @@ export default function CarpetaArranqueImportPage() {
                   {result.message}
                 </p>
                 {result.created !== undefined ? <p className="mt-1 text-sm">Creadas: {result.created}</p> : null}
+                {result.reused !== undefined ? <p className="text-sm">Reutilizadas: {result.reused}</p> : null}
                 {result.failed !== undefined ? <p className="text-sm">Fallidas: {result.failed}</p> : null}
+                {result.inserted_slots !== undefined ? <p className="text-sm">Documentos agregados: {result.inserted_slots}</p> : null}
+                {result.total_slots !== undefined ? <p className="text-sm">Documentos estándar por carpeta: {result.total_slots}</p> : null}
                 {result.error ? <p className="mt-1 text-sm text-red-700">{result.error}</p> : null}
               </AlertDescription>
             </Alert>
