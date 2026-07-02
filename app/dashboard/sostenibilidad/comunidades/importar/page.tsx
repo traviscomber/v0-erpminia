@@ -128,6 +128,7 @@ export default function ComunidadesImportPage() {
           <h1 className="text-3xl font-bold">Importar comunidades</h1>
           <p className="mt-2 max-w-3xl text-muted-foreground">
             Carga eventos, comunicaciones y compromisos con stakeholders desde Excel para mantener trazabilidad operativa.
+            Si repites la misma fecha, tipo, stakeholder y descripcion, el sistema actualiza el registro existente.
           </p>
         </div>
         <div className="flex gap-2">

@@ -23,6 +23,35 @@ type ImportCommunityRow = {
   prioridad: 'alta' | 'media' | 'baja';
 };
 
+type CommunityRecord = {
+  id: string;
+  numero_registro?: string | null;
+  fecha?: string | null;
+  tipo?: string | null;
+  stakeholder?: string | null;
+  descripcion?: string | null;
+};
+
+function normalizeText(value: unknown) {
+  return String(value ?? '').trim().replace(/\s+/g, ' ');
+}
+
+function normalizeHeader(value: unknown) {
+  return normalizeText(value)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
+
+function normalizeDate(value: unknown) {
+  const text = normalizeText(value);
+  if (!text) return null;
+
+  const parsed = new Date(text);
+  if (Number.isNaN(parsed.getTime())) return text;
+  return parsed.toISOString().split('T')[0];
+}
+
 function normalizeStatus(value: unknown) {
   const text = normalizeText(value).toLowerCase();
   if (['pendiente', 'pending', 'abierto', 'open'].includes(text)) return 'pendiente';
@@ -54,20 +83,8 @@ function normalizePrioridad(value: unknown) {
   return 'media';
 }
 
-function normalizeText(value: unknown) {
-  return String(value ?? '').trim().replace(/\s+/g, ' ');
-}
-
-function normalizeDate(value: unknown) {
-  const text = normalizeText(value);
-  return text || null;
-}
-
-function normalizeHeader(value: unknown) {
-  return normalizeText(value)
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase();
+function findColumn(headers: string[], predicate: (value: string) => boolean) {
+  return headers.findIndex(predicate);
 }
 
 function parseRows(text: string): ImportCommunityRow[] {
@@ -76,33 +93,34 @@ function parseRows(text: string): ImportCommunityRow[] {
 
   const headers = lines[0].split(';').map(normalizeHeader);
   const columns = {
-    fecha: headers.findIndex((h) => h.includes('fecha') && !h.includes('seguimiento')),
-    tipo: headers.findIndex((h) => h.includes('tipo')),
-    descripcion: headers.findIndex((h) => h.includes('descrip')),
-    stakeholder: headers.findIndex((h) => h.includes('stakeholder')),
-    estado: headers.findIndex((h) => h.includes('estado')),
-    tipo_stakeholder: headers.findIndex((h) => h.includes('tipo') && h.includes('stakeholder')),
-    ubicacion: headers.findIndex((h) => h.includes('ubicacion')),
-    contacto_persona: headers.findIndex((h) => h.includes('contacto') && h.includes('persona')),
-    contacto_email: headers.findIndex((h) => h.includes('email')),
-    contacto_telefono: headers.findIndex((h) => h.includes('telefono')),
-    impactado_por: headers.findIndex((h) => h.includes('impactado')),
-    fecha_seguimiento: headers.findIndex((h) => h.includes('seguimiento')),
-    responsable: headers.findIndex((h) => h.includes('responsable')),
-    observaciones: headers.findIndex((h) => h.includes('observa')),
-    tipo_documento: headers.findIndex((h) => h.includes('documento')),
-    prioridad: headers.findIndex((h) => h.includes('prioridad')),
+    fecha: findColumn(headers, (h) => h === 'fecha' || (h.includes('fecha') && !h.includes('seguimiento'))),
+    tipo: findColumn(headers, (h) => h === 'tipo' || (h.includes('tipo') && !h.includes('stakeholder'))),
+    descripcion: findColumn(headers, (h) => h === 'descripcion' || h.includes('descrip')),
+    stakeholder: findColumn(headers, (h) => h.includes('stakeholder') && !h.includes('tipo')),
+    estado: findColumn(headers, (h) => h === 'estado' || h.includes('estado')),
+    tipo_stakeholder: findColumn(headers, (h) => h.includes('tipo') && h.includes('stakeholder')),
+    ubicacion: findColumn(headers, (h) => h.includes('ubicacion')),
+    contacto_persona: findColumn(headers, (h) => h.includes('contacto') && h.includes('persona')),
+    contacto_email: findColumn(headers, (h) => h.includes('email')),
+    contacto_telefono: findColumn(headers, (h) => h.includes('telefono')),
+    impactado_por: findColumn(headers, (h) => h.includes('impactado')),
+    fecha_seguimiento: findColumn(headers, (h) => h.includes('seguimiento')),
+    responsable: findColumn(headers, (h) => h.includes('responsable')),
+    observaciones: findColumn(headers, (h) => h.includes('observa')),
+    tipo_documento: findColumn(headers, (h) => h.includes('documento')),
+    prioridad: findColumn(headers, (h) => h.includes('prioridad')),
   };
 
   return lines.slice(1).flatMap((line) => {
     const values = line.split(';').map(normalizeText);
     const stakeholder = values[columns.stakeholder] || '';
     const descripcion = values[columns.descripcion] || '';
+
     if (!stakeholder || !descripcion) return [];
 
     return [
       {
-        fecha: values[columns.fecha] || new Date().toISOString().split('T')[0],
+        fecha: normalizeDate(values[columns.fecha]) || new Date().toISOString().split('T')[0],
         tipo: normalizeTipo(values[columns.tipo]),
         descripcion,
         stakeholder,
@@ -131,7 +149,10 @@ async function parseWorkbook(file: File) {
   const rows = sheetToMatrix(xlsx, sheet, true);
   if (!rows.length) return [];
 
-  const csvText = [rows[0].map((value) => normalizeText(value)).join(';'), ...rows.slice(1).map((row) => row.map((value) => normalizeText(value)).join(';'))].join('\n');
+  const csvText = [
+    rows[0].map((value) => normalizeText(value)).join(';'),
+    ...rows.slice(1).map((row) => row.map((value) => normalizeText(value)).join(';')),
+  ].join('\n');
   return parseRows(csvText);
 }
 
@@ -140,6 +161,22 @@ async function parseImportFile(file: File) {
   if (name.endsWith('.csv')) return parseRows(await file.text());
   if (name.endsWith('.xls') || name.endsWith('.xlsx')) return parseWorkbook(file);
   throw new Error('Formato no soportado. Usa CSV, XLS o XLSX.');
+}
+
+async function findExistingCommunity(
+  supabase: any,
+  organizationId: string,
+  row: ImportCommunityRow
+) {
+  return supabase
+    .from('sostenibilidad_comunidades')
+    .select('id, numero_registro')
+    .eq('organization_id', organizationId)
+    .eq('fecha', row.fecha)
+    .eq('tipo', row.tipo)
+    .eq('stakeholder', row.stakeholder)
+    .eq('descripcion', row.descripcion)
+    .maybeSingle();
 }
 
 export async function GET(request: NextRequest) {
@@ -186,30 +223,21 @@ export async function POST(request: NextRequest) {
       let updated = 0;
 
       for (const row of rows) {
-        const { data: existing } = await context.supabase
-          .from('sostenibilidad_comunidades')
-          .select('id, numero_registro')
-          .eq('organization_id', context.organizationId)
-          .eq('stakeholder', row.stakeholder)
-          .eq('descripcion', row.descripcion)
-          .maybeSingle();
+        const { data: existing } = await findExistingCommunity(context.supabase, context.organizationId, row);
 
-        const numeroRegistro = existing?.numero_registro || await buildOrgSequence(
-          context.supabase,
-          'sostenibilidad_comunidades',
-          context.organizationId,
-          'COM'
-        );
+        const numeroRegistro =
+          existing?.numero_registro ||
+          (await buildOrgSequence(context.supabase, 'sostenibilidad_comunidades', context.organizationId, 'COM'));
 
         const payload = {
           organization_id: context.organizationId,
           numero_registro: numeroRegistro,
-          fecha: normalizeDate(row.fecha) || row.fecha,
+          fecha: row.fecha,
           tipo: row.tipo,
           descripcion: normalizeText(row.descripcion),
           stakeholder: normalizeText(row.stakeholder),
           estado: normalizeStatus(row.estado),
-          tipo_stakeholder: row.tipo_stakeholder,
+          tipo_stakeholder: normalizeTipoStakeholder(row.tipo_stakeholder),
           ubicacion: row.ubicacion ? normalizeText(row.ubicacion) : null,
           contacto_persona: row.contacto_persona ? normalizeText(row.contacto_persona) : null,
           contacto_email: row.contacto_email ? normalizeText(row.contacto_email) : null,
@@ -219,7 +247,7 @@ export async function POST(request: NextRequest) {
           responsable: row.responsable ? normalizeText(row.responsable) : null,
           observaciones: row.observaciones ? normalizeText(row.observaciones) : null,
           tipo_documento: row.tipo_documento ? normalizeText(row.tipo_documento) : null,
-          prioridad: row.prioridad,
+          prioridad: normalizePrioridad(row.prioridad),
           created_by: context.userId,
           updated_at: new Date().toISOString(),
         };
@@ -254,9 +282,9 @@ export async function POST(request: NextRequest) {
     const { data, error } = await context.supabase
       .from('sostenibilidad_comunidades')
       .insert({
-        organization_id:  context.organizationId,
-        numero_registro:  numeroRegistro,
-        fecha:  normalizeDate(body.fecha) || new Date().toISOString().split('T')[0],
+        organization_id: context.organizationId,
+        numero_registro: numeroRegistro,
+        fecha: normalizeDate(body.fecha) || new Date().toISOString().split('T')[0],
         tipo: normalizeTipo(body.tipo),
         descripcion: normalizeText(body.descripcion),
         stakeholder: normalizeText(body.stakeholder),
