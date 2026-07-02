@@ -9,16 +9,69 @@ function normalizeText(value: unknown) {
     .replace(/\s+/g, ' ');
 }
 
-function normalizeHeader(value: unknown) {
+function normalizeKey(value: unknown) {
   return normalizeText(value)
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
 }
 
+function normalizeHeader(value: unknown) {
+  return normalizeKey(value);
+}
+
 function pickIndex(headers: string[], variants: string[]) {
   return headers.findIndex((header) => variants.some((variant) => header.includes(variant)));
 }
+
+function normalizeSeverity(value: unknown) {
+  const severity = normalizeKey(value);
+  if (severity.includes('crit')) return 'critica';
+  if (severity.includes('alta')) return 'alta';
+  if (severity.includes('media')) return 'media';
+  if (severity.includes('baja')) return 'baja';
+  return severity || 'media';
+}
+
+function normalizeStatus(value: unknown) {
+  const status = normalizeKey(value);
+  if (status.includes('cerr')) return 'cerrado';
+  if (status.includes('abier') || status.includes('open')) return 'abierto';
+  if (status.includes('invest')) return 'en_investigacion';
+  return status || 'abierto';
+}
+
+function normalizeDateValue(value: unknown) {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toISOString();
+  }
+
+  const text = normalizeText(value);
+  if (!text) return '';
+
+  const iso = text.match(/^(\d{4})[-/](\d{2})[-/](\d{2})/);
+  if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
+
+  const dmy = text.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+  if (dmy) {
+    const day = dmy[1].padStart(2, '0');
+    const month = dmy[2].padStart(2, '0');
+    return `${dmy[3]}-${month}-${day}`;
+  }
+
+  const parsed = new Date(text);
+  if (!Number.isNaN(parsed.getTime())) return parsed.toISOString();
+  return text;
+}
+
+type IncidentRow = {
+  title: string;
+  description: string;
+  severity: string;
+  status: string;
+  date_reported: string;
+  location: string;
+};
 
 function parseCsvRows(text: string) {
   const lines = text.split(/\r?\n/).filter((line) => line.trim());
@@ -27,7 +80,7 @@ function parseCsvRows(text: string) {
   const headers = lines[0].split(';').map(normalizeHeader);
   const columns = {
     title: pickIndex(headers, ['title', 'titulo', 'incidente']),
-    description: pickIndex(headers, ['description', 'descripcion', 'detalle']),
+    description: pickIndex(headers, ['description', 'descripcion', 'detalle', 'observacion']),
     severity: pickIndex(headers, ['severity', 'severidad', 'gravedad']),
     status: pickIndex(headers, ['status', 'estado']),
     date_reported: pickIndex(headers, ['date_reported', 'fecha', 'report']),
@@ -36,20 +89,19 @@ function parseCsvRows(text: string) {
 
   return lines.slice(1).flatMap((line) => {
     const values = line.split(';').map(normalizeText);
-    const title = values[columns.title] || '';
+    const title = values[columns.title] || values[0] || '';
     const description = values[columns.description] || '';
-    if (!title || !description) return [];
+    const date_reported = normalizeDateValue(values[columns.date_reported]);
+    if (!title || !date_reported) return [];
 
-    return [
-      {
-        title,
-        description,
-        severity: values[columns.severity] || 'media',
-        status: values[columns.status] || 'abierto',
-        date_reported: values[columns.date_reported] || new Date().toISOString(),
-        location: values[columns.location] || '',
-      },
-    ];
+    return [{
+      title,
+      description,
+      severity: normalizeSeverity(values[columns.severity]),
+      status: normalizeStatus(values[columns.status]),
+      date_reported,
+      location: values[columns.location] || '',
+    }];
   });
 }
 
@@ -72,13 +124,6 @@ async function parseImportFile(file: File) {
   throw new Error('Formato no soportado. Usa CSV, XLS o XLSX.');
 }
 
-function getClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) throw new Error('Missing config');
-  return { url, key };
-}
-
 export async function POST(request: NextRequest) {
   try {
     const contentType = request.headers.get('content-type') || '';
@@ -97,11 +142,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No se encontraron incidentes validos en el archivo', imported: 0, updated: 0 }, { status: 400 });
     }
 
-    const { url, key } = getClient();
+    const { url, key } = (() => {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      if (!supabaseUrl || !supabaseKey) throw new Error('Missing config');
+      return { url: supabaseUrl, key: supabaseKey };
+    })();
+
     let imported = 0;
     let updated = 0;
 
-    for (const row of rows) {
+    for (const row of rows as IncidentRow[]) {
       const body = {
         title: row.title,
         description: row.description,
@@ -109,29 +160,33 @@ export async function POST(request: NextRequest) {
         status: row.status,
         date_reported: row.date_reported,
         location: row.location,
-      } as Record<string, unknown>;
+      };
+      const query = [
+        `title=eq.${encodeURIComponent(row.title)}`,
+        `date_reported=eq.${encodeURIComponent(row.date_reported)}`,
+        `location=eq.${encodeURIComponent(row.location || '')}`,
+      ].join('&');
 
-      const lookup = await fetch(
-        `${url}/rest/v1/incidents?select=id&title=eq.${encodeURIComponent(row.title)}&date_reported=eq.${encodeURIComponent(row.date_reported)}`,
-        { headers: { apikey: key, Authorization: `Bearer ${key}` } }
-      );
-      if (!lookup.ok) throw new Error(await lookup.text());
-      const existing = (await lookup.json()) as Array<{ id: string }>;
+      const existingResponse = await fetch(`${url}/rest/v1/incidents?${query}&select=id`, {
+        headers: {
+          apikey: key,
+          Authorization: `Bearer ${key}`,
+        },
+      });
+      if (!existingResponse.ok) throw new Error(await existingResponse.text());
+      const existing = (await existingResponse.json()) as Array<{ id: string }>;
 
       if (existing.length > 0) {
-        const response = await fetch(
-          `${url}/rest/v1/incidents?id=eq.${encodeURIComponent(existing[0].id)}`,
-          {
-            method: 'PATCH',
-            headers: {
-              apikey: key,
-              Authorization: `Bearer ${key}`,
-              'Content-Type': 'application/json',
-              Prefer: 'return=minimal',
-            },
-            body: JSON.stringify(body),
-          }
-        );
+        const response = await fetch(`${url}/rest/v1/incidents?id=eq.${encodeURIComponent(existing[0].id)}`, {
+          method: 'PATCH',
+          headers: {
+            apikey: key,
+            Authorization: `Bearer ${key}`,
+            'Content-Type': 'application/json',
+            Prefer: 'return=minimal',
+          },
+          body: JSON.stringify(body),
+        });
         if (!response.ok) throw new Error(await response.text());
         updated += 1;
       } else {
