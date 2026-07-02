@@ -268,6 +268,9 @@ export async function POST(request: NextRequest) {
       let updated = 0;
 
       for (const row of rows) {
+        const discoveredDate =
+          normalizeDate(row.discovered_date) || new Date().toISOString().split('T')[0];
+
         const { data: existing } = await context.supabase
           .from('sostenibilidad_nonconformances')
           .select('id')
@@ -275,6 +278,7 @@ export async function POST(request: NextRequest) {
           .eq('title', row.title)
           .eq('category', normalizeCategory(row.category))
           .eq('source', normalizeSource(row.source))
+          .eq('discovered_date', discoveredDate)
           .maybeSingle();
 
         const payload = {
@@ -284,7 +288,7 @@ export async function POST(request: NextRequest) {
           category: normalizeCategory(row.category),
           severity: normalizeSeverity(row.severity),
           source: normalizeSource(row.source),
-          discovered_date: normalizeDate(row.discovered_date) || new Date().toISOString().split('T')[0],
+          discovered_date: discoveredDate,
           reported_by: context.userId,
           assigned_to: context.userId,
           status: normalizeStatus(row.status),
