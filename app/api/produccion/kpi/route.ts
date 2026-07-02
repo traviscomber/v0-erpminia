@@ -4,6 +4,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { resolveAuthContext } from '@/lib/api/auth-session';
 
+type ProduccionKpiRow = {
+  date?: string | null;
+  production_tons?: number | null;
+  equipment_uptime?: number | null;
+  safety_incidents?: number | null;
+  environmental_compliance?: number | null;
+  workforce_efficiency?: number | null;
+};
+
 export async function GET(request: NextRequest) {
   const supabase = await createClient();
   const auth = await resolveAuthContext(request);
@@ -19,10 +28,13 @@ export async function GET(request: NextRequest) {
     .limit(30);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({
+      kpis: [] as ProduccionKpiRow[],
+      warning: error.message,
+    });
   }
 
-  return NextResponse.json({ kpis: data });
+  return NextResponse.json({ kpis: (data || []) as ProduccionKpiRow[] });
 }
 
 export async function POST(request: NextRequest) {
