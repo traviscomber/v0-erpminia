@@ -167,6 +167,9 @@ export default function InspeccionesImportPage() {
               <div className="rounded bg-muted p-2 font-mono text-sm">
                 TIPO | NUMERO_INSPECCION | FECHA_PLANIFICADA | FAENA | INSPECTOR | HALLAZGOS_COUNT | ESTADO | EMPRESA_EXTERNA | CONTACTO_EXTERNO
               </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                FECHA_PLANIFICADA acepta fechas de Excel o texto en formato YYYY-MM-DD, DD/MM/YYYY o DD-MM-YYYY.
+              </p>
             </AlertDescription>
           </Alert>
 
