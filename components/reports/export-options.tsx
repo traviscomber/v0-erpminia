@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 interface ExportOptionsProps {
-  data: any[];
+  data: Array<Record<string, unknown>>;
   filename: string;
   formats: Array<'csv' | 'excel' | 'pdf' | 'json'>;
 }

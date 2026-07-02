@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { Client } from 'pg';
+import { read, utils } from 'xlsx/xlsx.mjs';
 import { canonicalCategory, normalizeText } from '@/lib/bodega-normalization';
 
 type InventoryRow = {
@@ -89,12 +90,11 @@ function parseCsvText(text: string): InventoryRow[] {
 }
 
 async function parseWorkbook(file: File): Promise<InventoryRow[]> {
-  const xlsx = (await import('xlsx')) as any;
   const buffer = Buffer.from(await file.arrayBuffer());
-  const workbook = xlsx.read(buffer, { type: 'buffer', cellDates: true });
+  const workbook = read(buffer, { type: 'buffer', cellDates: true });
   const sheetName = workbook.SheetNames[0];
   const sheet = workbook.Sheets[sheetName];
-  const rows = xlsx.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: true }) as unknown[][];
+  const rows = utils.sheet_to_json(sheet, { header: 1, defval: '', raw: true }) as unknown[][];
   if (!rows.length) return [];
 
   const headers = (rows[0] as unknown[]).map((header) => normalizeText(header));

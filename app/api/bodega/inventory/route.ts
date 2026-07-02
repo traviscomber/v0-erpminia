@@ -5,6 +5,20 @@ import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { resolveAuthContext } from '@/lib/api/auth-session';
 import { canonicalCategory } from '@/lib/bodega-normalization';
 
+type WarehouseStockRow = {
+  id: string;
+  part_code?: string | null;
+  part_name?: string | null;
+  quantity_on_hand?: number | null;
+  quantity_available?: number | null;
+  quantity_reserved?: number | null;
+  reorder_level?: number | null;
+  reorder_quantity?: number | null;
+  unit_cost?: number | null;
+  batch_number?: string | null;
+  bin_id?: string | null;
+};
+
 export async function GET(request: NextRequest) {
   const auth = await resolveAuthContext(request);
   if (!auth) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
@@ -86,7 +100,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Map warehouse_stock â†’ InventoryItem shape expected by the UI hook
-  const inventory = (data || []).map((item: any) => ({
+  const inventory = (data || [] as WarehouseStockRow[]).map((item) => ({
     id: item.id,
     sku: item.part_code,
     name: item.part_name || item.batch_number || item.part_code,
