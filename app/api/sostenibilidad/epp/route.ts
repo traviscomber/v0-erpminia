@@ -23,6 +23,11 @@ function normalizeUrl(value: unknown) {
   return text || null;
 }
 
+function normalizeOptionalText(value: unknown) {
+  const text = normalizeText(value);
+  return text || null;
+}
+
 function normalizeHeader(value: unknown) {
   return normalizeText(value)
     .normalize('NFD')
@@ -136,19 +141,20 @@ export async function POST(request: NextRequest) {
 
       for (const row of rows) {
         const { data: existing } = await context.supabase
-          .from('sostenibilidad_epp')
-          .select('id')
-          .eq('organization_id', context.organizationId)
-          .eq('cargo_puesto', row.cargo_puesto)
-          .eq('elemento_epp', row.elemento_epp)
-          .maybeSingle();
+        .from('sostenibilidad_epp')
+        .select('id')
+        .eq('organization_id', context.organizationId)
+        .eq('cargo_puesto', row.cargo_puesto)
+        .eq('elemento_epp', row.elemento_epp)
+        .eq('marca_modelo', normalizeOptionalText(row.marca_modelo))
+        .maybeSingle();
 
       const payload = {
         organization_id: context.organizationId,
         cargo_puesto: normalizeText(row.cargo_puesto),
         elemento_epp: normalizeText(row.elemento_epp),
         cantidad_elemento: row.cantidad_elemento,
-        marca_modelo: normalizeText(row.marca_modelo),
+        marca_modelo: normalizeOptionalText(row.marca_modelo),
         ficha_tecnica_url: normalizeUrl(row.ficha_tecnica_url),
         frecuencia_reemplazo: normalizeText(row.frecuencia_reemplazo) || 'semestral',
         activo: row.activo,
@@ -184,7 +190,7 @@ export async function POST(request: NextRequest) {
         cargo_puesto: normalizeText(body.cargo_puesto),
         elemento_epp: normalizeText(body.elemento_epp),
         cantidad_elemento: Number(body.cantidad_elemento || 1),
-        marca_modelo: normalizeText(body.marca_modelo) || null,
+        marca_modelo: normalizeOptionalText(body.marca_modelo),
         ficha_tecnica_url: normalizeUrl(body.ficha_tecnica_url),
         frecuencia_reemplazo: normalizeText(body.frecuencia_reemplazo) || 'semestral',
         activo: body.activo !== false,
@@ -220,7 +226,7 @@ export async function PUT(request: NextRequest) {
         cargo_puesto: normalizeText(body.cargo_puesto),
         elemento_epp: normalizeText(body.elemento_epp),
         cantidad_elemento: Number(body.cantidad_elemento || 1),
-        marca_modelo: normalizeText(body.marca_modelo) || null,
+        marca_modelo: normalizeOptionalText(body.marca_modelo),
         ficha_tecnica_url: normalizeUrl(body.ficha_tecnica_url),
         frecuencia_reemplazo: normalizeText(body.frecuencia_reemplazo) || 'semestral',
         activo: body.activo !== false,

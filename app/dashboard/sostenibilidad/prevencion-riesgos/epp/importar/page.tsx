@@ -167,6 +167,9 @@ export default function EPPImportPage() {
               <div className="rounded bg-muted p-2 font-mono text-sm">
                 CARGO_PUESTO | ELEMENTO_EPP | CANTIDAD_ELEMENTO | MARCA_MODELO | FICHA_TECNICA_URL | FRECUENCIA_REEMPLAZO | ACTIVO
               </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                La reimportacion actualiza por CARGO_PUESTO + ELEMENTO_EPP + MARCA_MODELO para evitar mezclar variantes distintas.
+              </p>
             </AlertDescription>
           </Alert>
 
