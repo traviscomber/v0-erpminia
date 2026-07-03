@@ -193,6 +193,7 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error' | 'duplicate'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [documentType, setDocumentType] = useState<string>('');
+  const [title, setTitle] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [isDuplicateConfirmed, setIsDuplicateConfirmed] = useState(false);
   const [formData, setFormData] = useState({
@@ -288,22 +289,26 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
       return;
     }
 
+    const resolvedTitle = title.trim() || file.name;
+
     setIsUploading(true);
     setUploadStatus('uploading');
     setErrorMessage('');
 
     try {
+      const isLegalModule = normalizedModule === 'legal';
       const uploadFormData = new FormData();
       uploadFormData.append('file', file);
       uploadFormData.append('module', module);
       uploadFormData.append('category', category);
+      uploadFormData.append('title', resolvedTitle);
       uploadFormData.append('documentType', documentType);
       uploadFormData.append('description', formData.description);
       uploadFormData.append('validFrom', formData.validFrom);
       uploadFormData.append('validUntil', formData.validUntil);
       uploadFormData.append('bypassDuplicate', isDuplicateConfirmed ? 'true' : 'false');
 
-      const response = await fetch('/api/documents/upload', {
+      const response = await fetch(isLegalModule ? '/api/legal/documentos' : '/api/sostenibilidad/upload-documento', {
         method: 'POST',
         body: uploadFormData,
         credentials: 'include',
@@ -322,16 +327,21 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
         throw new Error(responseData.error || 'Error desconocido al cargar el archivo');
       }
 
-      const { documentId } = responseData;
+      const documentId =
+        responseData.documentId ||
+        responseData.document?.id ||
+        responseData.fileUrl ||
+        '';
 
       setUploadStatus('success');
       setIsDuplicateConfirmed(false);
       setTimeout(() => {
         if (onUploadSuccess) {
-          onUploadSuccess(documentId, file.name);
+          onUploadSuccess(documentId, resolvedTitle);
         }
         setFile(null);
         setDocumentType('');
+        setTitle('');
         setFormData({ description: '', validFrom: '', validUntil: '' });
       }, 2000);
     } catch (err) {
@@ -340,7 +350,7 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
       setUploadStatus('error');
       setIsUploading(false);
     }
-  }, [file, module, category, documentType, formData, isDuplicateConfirmed, onUploadSuccess]);
+  }, [file, module, category, documentType, formData, isDuplicateConfirmed, onUploadSuccess, normalizedModule, title]);
 
   return (
     <Card className="w-full p-6">
@@ -410,6 +420,18 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
               </label>
             </>
           )}
+        </div>
+
+        {/* Title */}
+        <div className="space-y-3">
+          <label className="text-sm font-semibold text-foreground">Titulo del documento</label>
+          <Input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Ej: Politica de Cumplimiento Contractual"
+            className="border-primary/30 focus:border-primary/70"
+            disabled={isUploading}
+          />
         </div>
 
         {/* Document Type Selector */}
