@@ -8,11 +8,31 @@ import useSWR from 'swr';
 
 const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
 
+type PieLabelProps = {
+  name?: string | number;
+  value?: string | number;
+};
+
 type TopRiskItem = {
   id: string;
   nc_number: string;
   title: string;
   severity: string;
+};
+
+type SustainabilityOverview = {
+  compliance_score: number;
+  trend: string;
+  open_ncs: number;
+  closed_ncs: number;
+  total_ncs: number;
+  overdue_cas: number;
+};
+
+type SustainabilityDashboardResponse = {
+  overview?: SustainabilityOverview;
+  trends?: Array<{ month: string; nc: number; closure_rate: number }>;
+  top_risks?: TopRiskItem[];
 };
 
 const getTrendLabel = (trend: string) => {
@@ -22,7 +42,10 @@ const getTrendLabel = (trend: string) => {
 };
 
 export function SustainabilityKPIDashboard() {
-  const { data: dashboardData, isLoading } = useSWR('/api/sostenibilidad/dashboard/overview', fetcher);
+  const { data: dashboardData, isLoading } = useSWR<SustainabilityDashboardResponse>(
+    '/api/sostenibilidad/dashboard/overview',
+    fetcher
+  );
 
   if (isLoading) {
     return (
@@ -36,9 +59,9 @@ export function SustainabilityKPIDashboard() {
     );
   }
 
-  if (!dashboardData || !dashboardData.overview) return null;
+  if (!dashboardData?.overview) return null;
 
-  const overview = dashboardData.overview ?? {};
+  const overview = dashboardData.overview;
   const trends = dashboardData.trends ?? [];
   const topRisks = dashboardData.top_risks ?? [];
 
@@ -146,7 +169,7 @@ export function SustainabilityKPIDashboard() {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, value }) => `${name}: ${value}`}
+                  label={({ name, value }: PieLabelProps) => `${name}: ${value}`}
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
