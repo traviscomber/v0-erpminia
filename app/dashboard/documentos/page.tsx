@@ -11,6 +11,7 @@ import { DocumentUploadModal } from '@/components/documents/document-upload-moda
 import { DocumentViewer, type DocumentViewerDocument } from '@/components/documents/document-viewer';
 import { DocumentList, type Document } from '@/components/documents/document-list';
 import { ApprovalWorkflowCard, type ApprovalStep } from '@/components/documents/approval-workflow-card';
+import { AdvancedDocumentSearch } from '@/components/documents/advanced-search';
 
 interface PendingApproval {
   id: string;
@@ -215,6 +216,7 @@ export default function DocumentosDashboard() {
           <TabsTrigger value="all">Todos los Documentos</TabsTrigger>
           <TabsTrigger value="pending">Pendientes ({stats.pending})</TabsTrigger>
           <TabsTrigger value="approved">Aprobados ({stats.approved})</TabsTrigger>
+          <TabsTrigger value="search">Busqueda avanzada</TabsTrigger>
           {pendingApprovals.length > 0 && (
             <TabsTrigger value="my-approvals" className="relative">
               Mis Aprobaciones
@@ -239,6 +241,10 @@ export default function DocumentosDashboard() {
 
         <TabsContent value="approved" className="space-y-4">
           <DocumentList documents={documents} isLoading={docsLoading} onView={handleViewDocument} />
+        </TabsContent>
+
+        <TabsContent value="search" className="space-y-4">
+          <AdvancedDocumentSearch />
         </TabsContent>
 
         {pendingApprovals.length > 0 && (
