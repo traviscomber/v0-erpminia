@@ -34,9 +34,9 @@ export function IntelligenceDashboard({
   const trends = useMemo(() => analyzeTrends(ncs), [ncs]);
 
   const trendChartData = useMemo(() => {
-    return Object.entries(trends.byDay || {}).map(([day, count]) => ({
+    return Object.entries(trends.byDay || {}).map(([day, count]: [string, number]) => ({
       day,
-      count,
+      count: Number(count),
     }));
   }, [trends]);
 

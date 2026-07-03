@@ -59,7 +59,7 @@ export function ContratoRegaliasTracker({ regalias }: { regalias: RegaliaControl
 
         {/* By Property */}
         <div className="space-y-2">
-          {Object.entries(porPropiedad).map(([prop, data]) => (
+          {Object.entries(porPropiedad).map(([prop, data]: [string, RegaliaSummary]) => (
             <div key={prop} className="border rounded p-3">
               <div className="flex justify-between items-center mb-2">
                 <h4 className="font-semibold">Propiedad {prop}</h4>
