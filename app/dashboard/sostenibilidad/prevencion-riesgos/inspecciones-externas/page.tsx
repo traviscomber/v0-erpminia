@@ -38,6 +38,9 @@ export default function InspeccionesExternasPage() {
     '/api/sostenibilidad/inspecciones?tipo=externas',
     fetcher
   );
+  const handleReload = () => {
+    void mutate();
+  };
 
   const inspeccionesList = (inspecciones.data || inspecciones || []) as InspeccionExterna[];
 
@@ -60,7 +63,7 @@ export default function InspeccionesExternasPage() {
 
       if (!response.ok) throw new Error('Error al eliminar');
 
-      await mutate();
+      handleReload();
       setDeleteOpen(false);
       setSelectedInspeccion(null);
     } catch (error) {
@@ -82,7 +85,7 @@ export default function InspeccionesExternasPage() {
   };
 
   const handleModalSuccess = () => {
-    void mutate();
+    handleReload();
     setSelectedInspeccion(null);
   };
 

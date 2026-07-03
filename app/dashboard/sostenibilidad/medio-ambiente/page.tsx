@@ -53,6 +53,9 @@ export default function MedioAmbientePage() {
   });
 
   const { data: registros, mutate } = useSWR('/api/sostenibilidad/medio-ambiente', fetcher);
+  const handleReload = () => {
+    void mutate();
+  };
   const registrosList = (registros?.data || []) as MedioAmbienteRecord[];
 
   const filtered = registrosList.filter((r) => {
@@ -73,7 +76,7 @@ export default function MedioAmbientePage() {
       });
       if (!res.ok) throw new Error('Error');
       toast.success('Registro eliminado');
-      await mutate();
+      handleReload();
       setDeleteOpen(false);
       setSelected(null);
     } catch {
@@ -108,7 +111,7 @@ export default function MedioAmbientePage() {
           unidad: 'kg',
           cumplimiento: 'conforme',
         });
-        void mutate();
+        handleReload();
       } else {
         toast.error('Error al crear registro');
       }

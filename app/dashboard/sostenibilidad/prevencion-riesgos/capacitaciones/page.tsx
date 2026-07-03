@@ -84,6 +84,9 @@ export default function CapacitacionesPage() {
     '/api/sostenibilidad/capacitaciones',
     fetcher
   );
+  const handleReload = () => {
+    void mutate();
+  };
   const capacitacionesList = capacitaciones?.data || [];
 
   const filteredCapacitaciones = capacitacionesList.filter((cap: Capacitacion) =>
@@ -123,7 +126,7 @@ export default function CapacitacionesPage() {
           duracion_horas: 0,
           cantidad_asistentes: 0,
         });
-        await mutate();
+        handleReload();
         toast.success('CapacitaciÃ³n creada exitosamente');
       } else {
         toast.error('Error al crear capacitaciÃ³n');
@@ -144,7 +147,7 @@ export default function CapacitacionesPage() {
       });
 
       if (response.ok) {
-        await mutate();
+        handleReload();
         toast.success('CapacitaciÃ³n eliminada exitosamente');
       } else {
         toast.error('Error al eliminar capacitaciÃ³n');
@@ -197,7 +200,7 @@ export default function CapacitacionesPage() {
         imported: data.imported,
         updated: data.updated,
       });
-      await mutate();
+      handleReload();
     } catch (error) {
       setImportResult({
         success: false,

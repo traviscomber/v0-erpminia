@@ -41,6 +41,9 @@ export default function InspeccionesInternasPage() {
     '/api/sostenibilidad/inspecciones?tipo=internas',
     fetcher
   );
+  const handleReload = () => {
+    void mutate();
+  };
 
   const inspeccionesList = useMemo(() => {
     if (Array.isArray(inspecciones)) return inspecciones;
@@ -74,7 +77,7 @@ export default function InspeccionesInternasPage() {
 
       if (!response.ok) throw new Error('Error al eliminar');
 
-      await mutate();
+      handleReload();
       setDeleteOpen(false);
       setSelectedInspeccion(null);
     } finally {
@@ -93,7 +96,7 @@ export default function InspeccionesInternasPage() {
   };
 
   const handleModalSuccess = () => {
-    void mutate();
+    handleReload();
     setSelectedInspeccion(null);
   };
 
