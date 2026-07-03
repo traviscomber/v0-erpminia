@@ -161,8 +161,25 @@ async function withPgClient<T>(handler: (client: Client) => Promise<T>) {
   }
 }
 
-async function replaceInventoryWithStaging(rows: InventoryRow[]) {
-  await withPgClient(async (client) => {
+async function tableHasColumn(client: Client, tableName: string, columnName: string) {
+  const result = await client.query(
+    `
+      SELECT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = $1
+          AND column_name = $2
+      ) AS present;
+    `,
+    [tableName, columnName],
+  );
+
+  return Boolean(result.rows[0]?.present);
+}
+
+async function replaceInventoryWithStaging(rows: InventoryRow[], costCenterId?: string | null) {
+  return withPgClient(async (client) => {
     await client.query('BEGIN');
 
     try {
@@ -178,45 +195,21 @@ async function replaceInventoryWithStaging(rows: InventoryRow[]) {
         ) ON COMMIT DROP;
       `);
 
-      await client.query(`
-        CREATE TABLE IF NOT EXISTS public.bodega_inventory_backup (
-          LIKE public.bodega_inventory INCLUDING DEFAULTS INCLUDING CONSTRAINTS
-        );
-      `);
-
-      await client.query(`
-        ALTER TABLE public.bodega_inventory_backup
-          ADD COLUMN IF NOT EXISTS backup_created_at timestamptz DEFAULT now();
-      `);
-
-      await client.query(`
-        INSERT INTO public.bodega_inventory_backup (
-          sku,
-          name,
-          category,
-          description,
-          quantity,
-          unit_cost,
-          min_stock,
-          max_stock,
-          location
-        )
-        SELECT
-          sku,
-          name,
-          category,
-          description,
-          quantity,
-          unit_cost,
-          min_stock,
-          max_stock,
-          location
-        FROM public.bodega_inventory;
-      `);
-
-      await client.query(
-        `
-          INSERT INTO inventory_stage (
+      const hasCostCenterColumn = costCenterId ? await tableHasColumn(client, 'bodega_inventory', 'cost_center_id') : false;
+      const stageColumns = hasCostCenterColumn
+        ? `
+            sku,
+            name,
+            category,
+            description,
+            quantity,
+            unit_cost,
+            min_stock,
+            max_stock,
+            location,
+            cost_center_id
+          `
+        : `
             sku,
             name,
             category,
@@ -226,18 +219,21 @@ async function replaceInventoryWithStaging(rows: InventoryRow[]) {
             min_stock,
             max_stock,
             location
-          )
-          SELECT
-            sku,
-            name,
-            category,
-            description,
-            quantity,
-            unit_cost,
-            min_stock,
-            max_stock,
-            location
-          FROM jsonb_to_recordset($1::jsonb) AS item(
+          `;
+      const recordsetColumns = hasCostCenterColumn
+        ? `
+            sku text,
+            name text,
+            category text,
+            description text,
+            quantity numeric,
+            unit_cost numeric,
+            min_stock numeric,
+            max_stock numeric,
+            location text,
+            cost_center_id uuid
+          `
+        : `
             sku text,
             name text,
             category text,
@@ -247,11 +243,33 @@ async function replaceInventoryWithStaging(rows: InventoryRow[]) {
             min_stock numeric,
             max_stock numeric,
             location text
-          );
+          `;
+
+      const dedupedRows = Array.from(
+        rows.reduce((acc, row) => {
+          acc.set(row.sku, row);
+          return acc;
+        }, new Map<string, InventoryRow>()).values()
+      );
+
+      await client.query(
+        `
+          INSERT INTO inventory_stage (${stageColumns})
+          SELECT
+            sku,
+            name,
+            category,
+            description,
+            quantity,
+            unit_cost,
+            min_stock,
+            max_stock,
+            location${hasCostCenterColumn ? ', cost_center_id' : ''}
+          FROM jsonb_to_recordset($1::jsonb) AS item(${recordsetColumns});
         `,
         [
           JSON.stringify(
-            rows.map((item) => ({
+            dedupedRows.map((item) => ({
               sku: item.sku,
               name: item.name,
               category: item.category,
@@ -261,39 +279,80 @@ async function replaceInventoryWithStaging(rows: InventoryRow[]) {
               min_stock: item.min_stock,
               max_stock: item.max_stock,
               location: item.location,
+              ...(hasCostCenterColumn && costCenterId ? { cost_center_id: costCenterId } : {}),
             })),
           ),
         ],
       );
 
-      await client.query('DELETE FROM public.bodega_inventory');
+      const updateColumns = [
+        'name = stage.name',
+        'category = stage.category',
+        'description = stage.description',
+        'quantity = stage.quantity',
+        'unit_cost = stage.unit_cost',
+        'min_stock = stage.min_stock',
+        'max_stock = stage.max_stock',
+        'location = stage.location',
+      ];
 
-      await client.query(`
-        INSERT INTO public.bodega_inventory (
-          sku,
-          name,
-          category,
-          description,
-          quantity,
-          unit_cost,
-          min_stock,
-          max_stock,
-          location
-        )
-        SELECT
-          sku,
-          name,
-          category,
-          description,
-          quantity,
-          unit_cost,
-          min_stock,
-          max_stock,
-          location
-        FROM inventory_stage;
+      if (hasCostCenterColumn) {
+        updateColumns.push('cost_center_id = stage.cost_center_id');
+      }
+
+      const updateResult = await client.query(`
+        UPDATE public.bodega_inventory AS target
+        SET ${updateColumns.join(', ')}
+        FROM inventory_stage AS stage
+        WHERE target.sku = stage.sku;
+      `);
+
+      const insertColumns = [
+        'sku',
+        'name',
+        'category',
+        'description',
+        'quantity',
+        'unit_cost',
+        'min_stock',
+        'max_stock',
+        'location',
+      ];
+      const insertSelectColumns = [
+        'stage.sku',
+        'stage.name',
+        'stage.category',
+        'stage.description',
+        'stage.quantity',
+        'stage.unit_cost',
+        'stage.min_stock',
+        'stage.max_stock',
+        'stage.location',
+      ];
+
+      if (hasCostCenterColumn) {
+        insertColumns.push('cost_center_id');
+        insertSelectColumns.push('stage.cost_center_id');
+      }
+
+      const insertResult = await client.query(`
+        INSERT INTO public.bodega_inventory (${insertColumns.join(', ')})
+        SELECT ${insertSelectColumns.join(', ')}
+        FROM inventory_stage AS stage
+        WHERE NOT EXISTS (
+          SELECT 1
+          FROM public.bodega_inventory AS target
+          WHERE target.sku = stage.sku
+        );
       `);
 
       await client.query('COMMIT');
+
+      return {
+        imported: dedupedRows.length,
+        updated: updateResult.rowCount ?? 0,
+        inserted: insertResult.rowCount ?? 0,
+      };
     } catch (error) {
       await client.query('ROLLBACK');
       throw error;
@@ -329,12 +388,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No se encontraron datos válidos en el archivo' }, { status: 400 });
     }
 
-    await replaceInventoryWithStaging(data);
+    const costCenterId = String(formData.get('costCenterId') || '').trim() || null;
+    const result = await replaceInventoryWithStaging(data, costCenterId);
 
     return NextResponse.json({
       success: true,
-      message: `Se importaron correctamente ${data.length} items de inventario`,
-      imported: data.length,
+      message: `Se sincronizaron correctamente ${result.imported} items de inventario`,
+      imported: result.imported,
+      updated: result.updated,
+      inserted: result.inserted,
     });
   } catch (error) {
     console.error('[v0] Bodega inventory import error:', error);

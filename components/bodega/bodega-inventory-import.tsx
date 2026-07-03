@@ -13,6 +13,8 @@ interface ImportResult {
   success: boolean;
   message: string;
   imported?: number;
+  updated?: number;
+  inserted?: number;
   error?: string;
 }
 
@@ -57,8 +59,10 @@ export function BodegaInventoryImportComponent() {
       if (response.ok) {
         setResult({
           success: true,
-          message: data?.message || 'Inventario importado correctamente',
+          message: data?.message || 'Inventario sincronizado correctamente',
           imported: data?.imported,
+          updated: data?.updated,
+          inserted: data?.inserted,
         });
       } else {
         setResult({
@@ -106,7 +110,7 @@ export function BodegaInventoryImportComponent() {
             <Upload className="h-5 w-5" />
             Importar inventario de bodega
           </CardTitle>
-          <CardDescription>Sube tu archivo CSV, XLS o XLSX con codigo, familia, cantidad y precio. La carga se procesa en etapa segura para no vaciar la tabla si falla.</CardDescription>
+          <CardDescription>Sube tu archivo CSV, XLS o XLSX con codigo, familia, cantidad y precio. La carga sincroniza por SKU y no vacia la tabla si falla.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
@@ -177,7 +181,12 @@ export function BodegaInventoryImportComponent() {
                 <p className={result.success ? 'font-semibold text-green-900' : 'font-semibold text-red-900'}>
                   {result.message}
                 </p>
-                {result.imported ? <p className="mt-1 text-sm">{result.imported} items importados</p> : null}
+                {result.imported ? <p className="mt-1 text-sm">{result.imported} items procesados</p> : null}
+                {result.updated || result.inserted ? (
+                  <p className="mt-1 text-sm">
+                    {result.updated || 0} actualizados, {result.inserted || 0} nuevos
+                  </p>
+                ) : null}
                 {result.error ? <p className="mt-1 text-sm text-red-700">{result.error}</p> : null}
               </AlertDescription>
             </Alert>
