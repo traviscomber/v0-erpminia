@@ -149,9 +149,9 @@ export default function ReportesPage() {
     const faena = insp.faena || insp.area_faena || 'Sin asignar';
     acc[faena] = (acc[faena] || 0) + 1;
     return acc;
-  }, {});
+  }, {} as Record<string, number>);
 
-  const faenaData = Object.entries(faenaTotals).map(([faena, count]) => ({
+  const faenaData = Object.entries(faenaTotals).map(([faena, count]: [string, number]) => ({
     name: faena,
     inspecciones: count,
   }));

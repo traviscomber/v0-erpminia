@@ -78,8 +78,8 @@ export default function HSECapacitacionesPage() {
       const key = String(item.tipo || 'Sin tipo');
       acc[key] = (acc[key] || 0) + 1;
       return acc;
-    }, {})
-  ).map(([tipo, cantidad]) => ({ tipo, cantidad }));
+    }, {} as Record<string, number>)
+  ).map(([tipo, cantidad]) => ({ tipo, cantidad: Number(cantidad) }));
 
   if (error) {
     return <div className="text-red-500">Error al cargar capacitaciones HSE.</div>;

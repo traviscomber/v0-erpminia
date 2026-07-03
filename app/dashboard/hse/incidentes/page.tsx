@@ -60,9 +60,9 @@ export default function HSEIncidentsPage() {
       const key = String(item.severity || 'media');
       acc[key] = (acc[key] || 0) + 1;
       return acc;
-    }, {});
+    }, {} as Record<string, number>);
   }, [filtered]);
-  const severityEntries = Object.entries(bySeverity).map(([severity, count]) => [severity, count] as [string, number]);
+  const severityEntries = Object.entries(bySeverity) as [string, number][];
 
   const downloadTemplate = () => {
     const headers = ['TITLE', 'DESCRIPTION', 'SEVERITY', 'STATUS', 'DATE_REPORTED', 'LOCATION'];
