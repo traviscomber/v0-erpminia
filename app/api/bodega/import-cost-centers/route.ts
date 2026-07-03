@@ -20,14 +20,6 @@ type XlsxLikeModule = {
   };
 };
 
-type CostCenterBackupRow = {
-  organization_id: string;
-  code: string;
-  name: string;
-  description: string | null;
-  status: string;
-};
-
 function normalizeText(value: unknown) {
   return String(value || '')
     .trim()
@@ -164,23 +156,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No se encontraron centros de costo validos en el archivo', imported: 0 }, { status: 400 });
     }
 
-    const { data: existingRows, error: readError } = await context.supabase
-      .from('cost_centers')
-      .select('id, organization_id, code, name, description, status')
-      .eq('organization_id', context.organizationId);
+    const dedupedRows = Array.from(
+      parsedRows.reduce((acc, row) => {
+        acc.set(row.code, row);
+        return acc;
+      }, new Map<string, (typeof parsedRows)[number]>()).values()
+    );
 
-    if (readError) throw readError;
-
-    const backupRows = Array.isArray(existingRows) ? (existingRows as CostCenterBackupRow[]) : [];
-
-    const { error: deleteError } = await context.supabase
-      .from('cost_centers')
-      .delete()
-      .eq('organization_id', context.organizationId);
-
-    if (deleteError) throw deleteError;
-
-    const payload = parsedRows.map((row) => ({
+    const payload = dedupedRows.map((row) => ({
       organization_id: context.organizationId,
       code: row.code,
       name: row.name,
@@ -188,31 +171,15 @@ export async function POST(request: NextRequest) {
       status: row.status,
     }));
 
-    const { error: insertError } = await context.supabase.from('cost_centers').insert(payload);
+    const { error: upsertError } = await context.supabase
+      .from('cost_centers')
+      .upsert(payload, { onConflict: 'organization_id,code' });
 
-    if (insertError) {
-      if (backupRows.length > 0) {
-        const { error: restoreError } = await context.supabase.from('cost_centers').insert(
-          backupRows.map((row) => ({
-            organization_id: row.organization_id,
-            code: row.code,
-            name: row.name,
-            description: row.description,
-            status: row.status,
-          })),
-        );
-
-        if (restoreError) {
-          console.error('[v0] Cost centers restore error:', restoreError);
-        }
-      }
-
-      throw insertError;
-    }
+    if (upsertError) throw upsertError;
 
     return NextResponse.json({
       success: true,
-      message: `Se importaron ${payload.length} centros de costo`,
+      message: `Se sincronizaron ${payload.length} centros de costo`,
       imported: payload.length,
     });
   } catch (error) {

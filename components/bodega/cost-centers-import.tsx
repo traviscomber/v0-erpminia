@@ -93,13 +93,13 @@ export function CostCentersImportComponent() {
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Upload className="h-5 w-5" />
-            Importar centros de costo
-          </CardTitle>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Upload className="h-5 w-5" />
+              Importar centros de costo
+            </CardTitle>
           <CardDescription>
-            Sube tu archivo CSV, XLS o XLSX con la estructura de centros de costo. El proceso usa carga segura y no borra la tabla si falla.
+            Sube tu archivo CSV, XLS o XLSX con la estructura de centros de costo. El proceso sincroniza por codigo y no borra la tabla si falla.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
