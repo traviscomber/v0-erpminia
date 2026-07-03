@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import useSWR from 'swr';
-import { AlertCircle, ArrowRight, RefreshCw, Wrench } from 'lucide-react';
+import { AlertCircle, ArrowRight, Download, RefreshCw, Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -71,6 +71,12 @@ export function ComponentesMayoresBoard() {
           <p className="mt-2 text-muted-foreground">Estado real de componentes criticos por vehiculo y plantilla tecnica.</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline" className="gap-2">
+            <Link href="/dashboard/mantenimiento/componentes-mayores/importar">
+              <Download className="h-4 w-4" />
+              Importar Excel
+            </Link>
+          </Button>
           <Button variant="outline" onClick={() => void mutate()} className="gap-2">
             <RefreshCw className="h-4 w-4" />
             Recargar
