@@ -4,8 +4,8 @@ import { useState } from 'react';
 import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, TrendingDown, AlertCircle, RefreshCw, Target } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { TrendingUp, TrendingDown, AlertCircle, RefreshCw } from 'lucide-react';
 
 interface KPI {
   id: string;
@@ -23,6 +23,11 @@ type AlertDistributionEntry = {
   name: string;
   value: number;
   color: string;
+};
+
+type PieLabelProps = {
+  name?: string | number;
+  value?: string | number;
 };
 
 type KPIDashboardMetrics = {
@@ -98,6 +103,9 @@ export default function KPIDashboardPage() {
   const trendData: TrendDataPoint[] = data?.trendData || [];
   const alertDistribution: AlertDistributionEntry[] = data?.alertsDistribution || [];
   const recommendations: string[] = data?.recommendations || [];
+  const handleRefresh = () => {
+    void mutate();
+  };
 
   const kpis: KPI[] = [
     {
@@ -189,12 +197,12 @@ export default function KPIDashboardPage() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-        <h1 className="text-3xl font-bold">Dashboard de KPIs Mineros</h1>
-        <p className="mt-2 text-muted-foreground">
-          8 KPIs criticos de operacion minera con visualizacion en vivo y analisis de tendencias.
-        </p>
-      </div>
-        <Button variant="outline" onClick={() => { void mutate(); }} className="gap-2">
+          <h1 className="text-3xl font-bold">Dashboard de KPIs Mineros</h1>
+          <p className="mt-2 text-muted-foreground">
+            8 KPIs criticos de operacion minera con visualizacion en vivo y analisis de tendencias.
+          </p>
+        </div>
+        <Button variant="outline" onClick={handleRefresh} className="gap-2">
           <RefreshCw className="h-4 w-4" />
           Actualizar
         </Button>
@@ -262,7 +270,7 @@ export default function KPIDashboardPage() {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, value }) => `${name}: ${value}`}
+                  label={({ name, value }: PieLabelProps) => `${name ?? 'Sin nombre'}: ${value ?? 0}`}
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"

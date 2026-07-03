@@ -41,6 +41,10 @@ export default function HSEIncidentsPage() {
     { revalidateOnFocus: false, refreshInterval: 300000 }
   );
 
+  const handleReload = () => {
+    void mutate();
+  };
+
   const incidents = data?.data || [];
 
   const filtered = useMemo(
@@ -95,14 +99,14 @@ export default function HSEIncidentsPage() {
             <Download className="mr-2 h-4 w-4" />
             Plantilla Excel
           </Button>
-          <Button variant="outline" onClick={() => mutate()}>
+          <Button variant="outline" onClick={handleReload}>
             <Search className="mr-2 h-4 w-4" />
             Recargar
           </Button>
         </div>
       </div>
 
-      <IncidentsImport onSuccess={() => mutate()} />
+      <IncidentsImport onSuccess={handleReload} />
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card>

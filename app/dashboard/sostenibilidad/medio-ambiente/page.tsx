@@ -108,7 +108,7 @@ export default function MedioAmbientePage() {
           unidad: 'kg',
           cumplimiento: 'conforme',
         });
-        mutate();
+        void mutate();
       } else {
         toast.error('Error al crear registro');
       }

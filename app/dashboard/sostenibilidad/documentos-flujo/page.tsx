@@ -249,7 +249,7 @@ export default function FlujDocumentalPage() {
           descripcion: '',
           archivo_url: '',
         });
-        mutate();
+        void mutate();
       } else {
         toast.error('Error al crear documento');
       }

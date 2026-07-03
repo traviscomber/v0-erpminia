@@ -82,7 +82,7 @@ export default function InspeccionesExternasPage() {
   };
 
   const handleModalSuccess = () => {
-    mutate();
+    void mutate();
     setSelectedInspeccion(null);
   };
 

@@ -148,7 +148,7 @@ export default function EPPPage() {
         toast.success(editingId ? 'EPP actualizado correctamente' : 'EPP registrado correctamente');
         setIsOpen(false);
         resetForm();
-        mutate();
+        void mutate();
       } else {
         toast.error(editingId ? 'Error al actualizar EPP' : 'Error al registrar EPP');
       }
@@ -178,7 +178,7 @@ export default function EPPPage() {
       const response = await fetch(`/api/sostenibilidad/epp?id=${id}`, { method: 'DELETE' });
       if (response.ok) {
         toast.success('EPP eliminado correctamente');
-        mutate();
+        void mutate();
       } else {
         toast.error('Error al eliminar EPP');
       }

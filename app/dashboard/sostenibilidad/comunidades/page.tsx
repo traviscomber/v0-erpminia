@@ -138,6 +138,9 @@ export default function ComunidadesPage() {
   const [formData, setFormData] = useState<ComunidadForm>({ ...BLANK_FORM });
 
   const { data: res, mutate } = useSWR<ApiResponse>('/api/sostenibilidad/comunidades', fetcher);
+  const handleReload = () => {
+    void mutate();
+  };
   const allRecords = res?.data || [];
 
   const filteredRecords = useMemo(() => {
@@ -185,7 +188,7 @@ export default function ComunidadesPage() {
       toast.success('Registro creado');
       setIsOpen(false);
       setFormData({ ...BLANK_FORM });
-      mutate();
+      handleReload();
     } else {
       toast.error('Error al crear registro');
     }
@@ -200,7 +203,7 @@ export default function ComunidadesPage() {
 
     if (response.ok) {
       toast.success('Registro eliminado');
-      mutate();
+      handleReload();
     } else {
       toast.error('Error al eliminar registro');
     }

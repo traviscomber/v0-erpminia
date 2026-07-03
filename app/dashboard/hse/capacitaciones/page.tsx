@@ -55,6 +55,10 @@ export default function HSECapacitacionesPage() {
     { revalidateOnFocus: false, refreshInterval: 300000 }
   );
 
+  const handleReload = () => {
+    void mutate();
+  };
+
   const capacitaciones = data?.capacitaciones || [];
   const filtradas = useMemo(
     () =>
@@ -112,7 +116,7 @@ export default function HSECapacitacionesPage() {
         </div>
       </div>
 
-      <HSECapacitacionesImport onSuccess={() => { void mutate(); }} />
+      <HSECapacitacionesImport onSuccess={handleReload} />
 
       {proximasCapacitaciones.length > 0 && (
         <div className="rounded-lg border border-[var(--secondary)]/30 bg-[var(--secondary)]/5 p-4">

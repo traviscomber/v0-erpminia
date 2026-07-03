@@ -93,7 +93,7 @@ export default function InspeccionesInternasPage() {
   };
 
   const handleModalSuccess = () => {
-    mutate();
+    void mutate();
     setSelectedInspeccion(null);
   };
 

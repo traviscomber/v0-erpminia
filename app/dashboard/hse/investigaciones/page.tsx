@@ -50,6 +50,10 @@ export default function HSEInvestigacionesPage() {
     refreshInterval: 300000,
   });
 
+  const handleReload = () => {
+    void mutate();
+  };
+
   const investigations = data?.investigations || [];
 
   const filtered = useMemo(
@@ -147,14 +151,14 @@ export default function HSEInvestigacionesPage() {
               Importar Excel
             </Link>
           </Button>
-          <Button variant="outline" onClick={() => mutate()}>
+          <Button variant="outline" onClick={handleReload}>
             <Search className="mr-2 h-4 w-4" />
             Recargar
           </Button>
         </div>
       </div>
 
-      <InvestigationsImport onSuccess={() => mutate()} />
+      <InvestigationsImport onSuccess={handleReload} />
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>

@@ -85,6 +85,9 @@ export default function CalendarioPage() {
   const [formData, setFormData]       = useState({ ...BLANK_FORM });
 
   const { data: res, mutate } = useSWR('/api/sostenibilidad/calendario', fetcher);
+  const handleReload = () => {
+    void mutate();
+  };
   const allEvents: CalendarEvent[] = res?.data || [];
 
   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
@@ -136,14 +139,14 @@ export default function CalendarioPage() {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       credentials: 'include', body: JSON.stringify(formData),
     });
-    if (r.ok) { toast.success('Evento creado'); setIsOpen(false); setFormData({ ...BLANK_FORM }); mutate(); }
+    if (r.ok) { toast.success('Evento creado'); setIsOpen(false); setFormData({ ...BLANK_FORM }); handleReload(); }
     else toast.error('Error al crear evento');
   };
 
   const handleDelete = async (id: string, titulo: string) => {
     if (!confirm(`¿Eliminar "${titulo}"`)) return;
     const r = await fetch(`/api/sostenibilidad/calendario?id=${id}`, { method: 'DELETE', credentials: 'include' });
-    if (r.ok) { toast.success('Evento eliminado'); mutate(); }
+    if (r.ok) { toast.success('Evento eliminado'); handleReload(); }
     else toast.error('Error al eliminar evento');
   };
 
