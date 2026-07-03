@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import useSWR from 'swr';
-import { AlertCircle, ArrowRight, Activity, CircleAlert, CircleCheckBig, Factory, RefreshCw, Upload, Wrench } from 'lucide-react';
+import { AlertCircle, ArrowRight, CircleAlert, CircleCheckBig, Factory, RefreshCw, Upload, Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -118,6 +118,33 @@ export function MantenimientoDashboard() {
   const criticalAssets = assets
     .filter((asset) => ['critical', 'high'].includes(String(asset.criticality || '').toLowerCase()))
     .slice(0, 6);
+  const handleRefreshOrders = () => {
+    void mutateOrders();
+  };
+  const handleRefreshAssets = () => {
+    void mutateAssets();
+  };
+  const nextAction =
+    overdueOrders > 0
+      ? {
+          title: 'Atender OT vencidas',
+          description: 'Revisa las ordenes atrasadas antes de abrir nuevas tareas.',
+          href: '/dashboard/work-orders',
+          cta: 'Ver ordenes atrasadas',
+        }
+      : criticalAssets.length > 0
+        ? {
+            title: 'Revisar activos criticos',
+            description: 'Enlaza la planificacion preventiva con los equipos de mayor riesgo.',
+            href: '/dashboard/mantenimiento/planificacion',
+            cta: 'Abrir planificacion',
+          }
+        : {
+            title: 'Crear una OT preventiva',
+            description: 'Inicia el flujo operativo con una orden nueva y un activo real.',
+            href: '/dashboard/work-orders/create',
+            cta: 'Crear OT',
+          };
 
   if (ordersError || assetsError) {
     return (
@@ -145,16 +172,34 @@ export function MantenimientoDashboard() {
           <p className="text-muted-foreground">Panel ejecutivo con equipos, OT y disponibilidad real.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button size="sm" onClick={() => void mutateOrders()} className="gap-2">
+          <Button size="sm" onClick={handleRefreshOrders} className="gap-2">
             <RefreshCw className="h-4 w-4" />
             Actualizar OT
           </Button>
-          <Button size="sm" variant="outline" onClick={() => void mutateAssets()} className="gap-2">
+          <Button size="sm" variant="outline" onClick={handleRefreshAssets} className="gap-2">
             <RefreshCw className="h-4 w-4" />
             Actualizar equipos
           </Button>
         </div>
       </div>
+
+      <Card className="border-border/70 bg-card/90">
+        <CardHeader className="pb-3">
+          <CardTitle>Siguiente accion recomendada</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-1">
+            <p className="font-semibold text-foreground">{nextAction.title}</p>
+            <p className="text-sm text-muted-foreground">{nextAction.description}</p>
+          </div>
+          <Button asChild className="gap-2">
+            <Link href={nextAction.href}>
+              {nextAction.cta}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card>
@@ -229,8 +274,8 @@ export function MantenimientoDashboard() {
               </Link>
             </Button>
             <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/legal">
-                Modulo legal
+              <Link href="/dashboard/mantenimiento/planificacion">
+                Planificacion preventiva
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -294,7 +339,7 @@ export function MantenimientoDashboard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/movil">
-                Ver panel movil
+                Panel movil
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
