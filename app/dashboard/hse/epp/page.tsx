@@ -37,11 +37,25 @@ type GroupSummary = {
 const miningEppCatalog = [
   {
     title: 'Proteccion base',
-    items: ['Casco con barbiquejo', 'Lentes de seguridad', 'Guantes de trabajo', 'Botas de seguridad', 'Chaleco alta visibilidad'],
+    items: [
+      'Casco con barbiquejo',
+      'Lentes de seguridad',
+      'Proteccion auditiva',
+      'Guantes de trabajo',
+      'Botas de seguridad',
+      'Chaleco alta visibilidad',
+    ],
   },
   {
     title: 'Exposicion ambiental',
-    items: ['Proteccion auditiva', 'Respirador segun polvo/fibra', 'Antiparras cerradas', 'Proteccion solar'],
+    items: [
+      'Proteccion auditiva',
+      'Respirador segun polvo/fibra',
+      'Antiparras cerradas',
+      'Proteccion solar',
+      'Capa impermeable',
+      'Proteccion termica',
+    ],
   },
   {
     title: 'Tareas criticas',
@@ -68,8 +82,11 @@ const templateHeaders = [
 const templateRows = [
   ['Operador mina', 'Perforacion', 'Mina central', 'Casco con barbiquejo', '1', '12 meses', 'Norma minera', '2026-06-27', 'si'],
   ['Operador mina', 'Perforacion', 'Mina central', 'Lentes de seguridad', '1', '6 meses', 'Antifog', '2026-06-27', 'si'],
+  ['Operador mina', 'Perforacion', 'Mina central', 'Proteccion auditiva', '1', '12 meses', 'Ruido alto', '2026-06-27', 'si'],
   ['Mecanico mantenimiento', 'Intervencion equipos', 'Planta', 'Guantes de trabajo', '2', '3 meses', 'Refuerzo cuero', '2026-06-27', 'si'],
   ['Electricista', 'Trabajo electrico', 'Faena subteranea', 'Guantes dieléctricos', '1', '12 meses', 'Clase 0 o superior', '2026-06-27', 'si'],
+  ['Operador mina', 'Trabajo en altura', 'Rajo abierto', 'Arnes de seguridad', '1', '12 meses', 'Sistema anticaida', '2026-06-27', 'si'],
+  ['Operador mina', 'Corte y soldadura', 'Taller', 'Careta facial', '1', '6 meses', 'Proteccion facial', '2026-06-27', 'si'],
 ];
 
 const fetcher = async (url: string) => {

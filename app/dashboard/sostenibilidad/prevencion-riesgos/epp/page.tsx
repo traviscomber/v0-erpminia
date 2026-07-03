@@ -94,19 +94,19 @@ export default function EPPPage() {
   const miningEppRecommendations = [
     {
       role: 'Operador de equipo pesado',
-      items: ['Casco minero con barboquejo', 'Lentes sellados', 'Guantes anticorte', 'Botas dieléctricas'],
+      items: ['Casco minero con barboquejo', 'Lentes sellados', 'Proteccion auditiva', 'Guantes anticorte', 'Botas dieléctricas'],
     },
     {
       role: 'Perforista / sondaje',
-      items: ['Proteccion auditiva', 'Respirador segun polvo', 'Lentes de seguridad', 'Rodilleras resistentes'],
+      items: ['Proteccion auditiva', 'Respirador segun polvo', 'Lentes de seguridad', 'Rodilleras resistentes', 'Proteccion facial'],
     },
     {
       role: 'Mantenimiento mecanico',
-      items: ['Guantes de cuero o anticorte', 'Careta facial', 'Overol ignifugo', 'Proteccion auditiva'],
+      items: ['Guantes de cuero o anticorte', 'Careta facial', 'Overol ignifugo', 'Proteccion auditiva', 'Arnes de seguridad'],
     },
     {
       role: 'Supervision de faena',
-      items: ['Casco con lampara', 'Chaleco reflectante', 'Lentes de seguridad', 'Botas de seguridad'],
+      items: ['Casco con lampara', 'Chaleco reflectante', 'Lentes de seguridad', 'Botas de seguridad', 'Radio y kit de emergencia'],
     },
   ];
 
