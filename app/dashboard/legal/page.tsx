@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
-import { AlertCircle, ArrowRight, CheckCircle2, Download, Eye, FileText, Scale, Search } from 'lucide-react';
+import { AlertCircle, ArrowRight, CheckCircle2, Download, Eye, FileText, Scale, Search, Upload } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -383,6 +383,12 @@ export default function LegalPage() {
           Vista ejecutiva para documentos, contratos y cumplimiento normativo, con foco en respaldo, vencimientos y revision.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
+          <Button asChild variant="outline">
+            <Link href="/dashboard/legal/importar">
+              <Upload className="mr-2 h-4 w-4" />
+              Importar Excel
+            </Link>
+          </Button>
           <Button variant="outline" onClick={() => downloadTemplate('documents')}>
             <Download className="mr-2 h-4 w-4" />
             Plantilla documentos
