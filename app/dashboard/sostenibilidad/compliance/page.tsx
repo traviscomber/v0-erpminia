@@ -1,7 +1,9 @@
 'use client';
 
-import useSWR from 'swr';
+import Link from 'next/link';
 import { useState } from 'react';
+import useSWR from 'swr';
+import { Download, Upload } from 'lucide-react';
 import ComplianceCalendar from '@/components/sostenibilidad/compliance-calendar';
 import AuditModal from '@/components/sostenibilidad/audit-modal';
 import { Button } from '@/components/ui/button';
@@ -77,6 +79,7 @@ export default function CompliancePage() {
   const { data: auditData, mutate } = useSWR<ListResponse<unknown> | null>('/api/sostenibilidad/audit-sessions', fetcher);
   const { data: scoreData } = useSWR<Record<string, unknown> | null>('/api/sostenibilidad/compliance/calculate-score', fetcher);
   const { data: eventsData } = useSWR<ListResponse<unknown> | null>('/api/sostenibilidad/compliance-events?limit=12', fetcher);
+
   const audits = Array.isArray(auditData?.data)
     ? auditData.data.map(toAuditItem).filter((audit): audit is AuditItem => audit !== null)
     : [];
@@ -93,10 +96,24 @@ export default function CompliancePage() {
     <div className="space-y-6">
       <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-3xl font-bold">Gestión de cumplimiento</h1>
+          <h1 className="text-3xl font-bold">Gestion de cumplimiento</h1>
           <p className="text-muted-foreground">ISO 45001 y SERNAGEOMIN</p>
         </div>
-        <Button onClick={() => setAuditOpen(true)}>Iniciar auditoría</Button>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline">
+            <Link href="/dashboard/sostenibilidad/compliance/importar">
+              <Download className="mr-2 h-4 w-4" />
+              Plantilla
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/dashboard/sostenibilidad/compliance/importar">
+              <Upload className="mr-2 h-4 w-4" />
+              Importar Excel
+            </Link>
+          </Button>
+          <Button onClick={() => setAuditOpen(true)}>Iniciar auditoria</Button>
+        </div>
       </div>
 
       <Tabs defaultValue="calendar" className="w-full">
@@ -117,10 +134,10 @@ export default function CompliancePage() {
               audits.map((audit) => (
                 <Card key={audit.id}>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-base">{audit.audit_name || 'Auditoría sin nombre'}</CardTitle>
+                    <CardTitle className="text-base">{audit.audit_name || 'Auditoria sin nombre'}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2 text-sm text-muted-foreground">
-                    <p>Categoría: {audit.category || 'ISO'}</p>
+                    <p>Categoria: {audit.category || 'ISO'}</p>
                     <p>Estado: {audit.compliance_status || 'in_progress'}</p>
                     <p>Auditor: {audit.auditor || 'Por asignar'}</p>
                     <p>Evidencias: {audit.evidence_count || 0}</p>
@@ -129,7 +146,7 @@ export default function CompliancePage() {
               ))
             ) : (
               <div className="rounded-lg border border-border bg-muted/20 p-4 text-sm text-muted-foreground">
-                No hay auditorías registradas aún.
+                No hay auditorias registradas aun.
               </div>
             )}
           </div>
@@ -150,7 +167,7 @@ export default function CompliancePage() {
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">Eventos próximos</CardTitle>
+                <CardTitle className="text-base">Eventos proximos</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm text-muted-foreground">
                 {events.slice(0, 4).length > 0 ? (

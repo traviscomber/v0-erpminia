@@ -3,6 +3,17 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/api/guard';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
+import { loadXlsxModule, sheetToMatrix } from '@/lib/xlsx';
+
+type ComplianceEventImportRow = {
+  title: string;
+  description: string;
+  event_type: string;
+  due_date: string;
+  frequency: string;
+  next_date: string | null;
+  status: string;
+};
 
 function normalizeEventStatus(dueDate: string, status: string | null) {
   if (status === 'completed') return 'completed';
@@ -11,6 +22,13 @@ function normalizeEventStatus(dueDate: string, status: string | null) {
 
 function normalizeText(value: unknown) {
   return String(value ?? '').trim().replace(/\s+/g, ' ');
+}
+
+function normalizeHeader(value: unknown) {
+  return normalizeText(value)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
 }
 
 function normalizeFrequency(value: unknown) {
@@ -39,7 +57,76 @@ function normalizeEventType(value: unknown) {
 
 function normalizeDate(value: unknown) {
   const text = normalizeText(value);
-  return text || null;
+  if (!text) return null;
+  const parsed = new Date(text);
+  if (Number.isNaN(parsed.getTime())) return text;
+  return parsed.toISOString().split('T')[0];
+}
+
+function normalizeStoredStatus(value: unknown) {
+  const text = normalizeText(value).toLowerCase();
+  if (['completed', 'completado', 'cumplido'].includes(text)) return 'completed';
+  return 'pending';
+}
+
+function pickIndex(headers: string[], variants: string[]) {
+  return headers.findIndex((header) => variants.some((variant) => header.includes(variant)));
+}
+
+function parseComplianceEventRows(text: string): ComplianceEventImportRow[] {
+  const lines = text.split(/\r?\n/).filter((line) => line.trim());
+  if (lines.length < 2) return [];
+
+  const headers = lines[0].split(';').map(normalizeHeader);
+  const columns = {
+    title: pickIndex(headers, ['title', 'titulo', 'nombre']),
+    description: pickIndex(headers, ['description', 'descripcion', 'detalle']),
+    event_type: pickIndex(headers, ['event_type', 'tipo_evento', 'tipo']),
+    due_date: pickIndex(headers, ['due_date', 'fecha_vencimiento', 'fecha', 'fecha_inicio']),
+    frequency: pickIndex(headers, ['frequency', 'frecuencia']),
+    next_date: pickIndex(headers, ['next_date', 'proxima_fecha', 'fecha_fin']),
+    status: pickIndex(headers, ['status', 'estado']),
+  };
+
+  return lines.slice(1).flatMap((line) => {
+    const values = line.split(';').map(normalizeText);
+    const title = values[columns.title] || '';
+    const dueDate = normalizeDate(values[columns.due_date]);
+    if (!title || !dueDate) return [];
+
+    return [{
+      title,
+      description: values[columns.description] || '',
+      event_type: values[columns.event_type] || '',
+      due_date: dueDate,
+      frequency: values[columns.frequency] || '',
+      next_date: normalizeDate(values[columns.next_date]),
+      status: values[columns.status] || '',
+    }];
+  });
+}
+
+async function parseComplianceEventWorkbook(file: File) {
+  const xlsx = await loadXlsxModule();
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const workbook = xlsx.read(buffer, { type: 'buffer', cellDates: true });
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  const rows = sheetToMatrix(xlsx, sheet, true);
+  if (!rows.length) return [];
+
+  const csvText = [
+    rows[0].map((value) => normalizeText(value)).join(';'),
+    ...rows.slice(1).map((row) => row.map((value) => normalizeText(value)).join(';')),
+  ].join('\n');
+
+  return parseComplianceEventRows(csvText);
+}
+
+async function parseComplianceEventImportFile(file: File) {
+  const name = file.name.toLowerCase();
+  if (name.endsWith('.csv')) return parseComplianceEventRows(await file.text());
+  if (name.endsWith('.xls') || name.endsWith('.xlsx')) return parseComplianceEventWorkbook(file);
+  throw new Error('Formato no soportado. Usa CSV, XLS o XLSX.');
 }
 
 export async function GET(request: NextRequest) {
@@ -98,8 +185,79 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const body = await request.json();
     const supabase = getSupabaseServerClient();
+    const contentType = request.headers.get('content-type') || '';
+
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await request.formData();
+      const file = formData.get('file');
+
+      if (!(file instanceof File)) {
+        return NextResponse.json({ error: 'No se proporciono archivo', imported: 0, updated: 0 }, { status: 400 });
+      }
+
+      const rows = await parseComplianceEventImportFile(file);
+      if (rows.length === 0) {
+        return NextResponse.json({ error: 'No se encontraron eventos validos en el archivo', imported: 0, updated: 0 }, { status: 400 });
+      }
+
+      let imported = 0;
+      let updated = 0;
+
+      for (const row of rows) {
+        const title = normalizeText(row.title);
+        const dueDate = normalizeDate(row.due_date);
+        const eventType = normalizeEventType(row.event_type);
+
+        const { data: existing, error: lookupError } = await supabase
+          .from('compliance_events')
+          .select('id')
+          .eq('org_id', auth.organizationId)
+          .eq('title', title)
+          .eq('event_type', eventType)
+          .eq('due_date', dueDate)
+          .maybeSingle();
+
+        if (lookupError) throw lookupError;
+
+        const payload = {
+          org_id: auth.organizationId,
+          title,
+          description: normalizeText(row.description) || null,
+          event_type: eventType,
+          due_date: dueDate,
+          frequency: normalizeFrequency(row.frequency),
+          next_date: normalizeDate(row.next_date),
+          status: normalizeStoredStatus(row.status),
+          responsible_person_id: auth.user.id,
+          related_documents: [],
+          updated_at: new Date().toISOString(),
+        };
+
+        if (existing?.id) {
+          const { error } = await supabase
+            .from('compliance_events')
+            .update(payload)
+            .eq('id', existing.id)
+            .eq('org_id', auth.organizationId);
+          if (error) throw error;
+          updated += 1;
+        } else {
+          const { error } = await supabase.from('compliance_events').insert(payload);
+          if (error) throw error;
+          imported += 1;
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: `Se procesaron ${rows.length} eventos de cumplimiento`,
+        imported,
+        updated,
+      });
+    }
+
+    const body = await request.json();
     const dueDate = normalizeDate(body.due_date || body.dueDate);
 
     if (!body.title || !dueDate || !body.event_type) {
