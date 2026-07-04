@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import useSWR from 'swr';
-import { Clock3, RefreshCw, Users, Wrench } from 'lucide-react';
+import { Clock3, Download, RefreshCw, Users, Wrench } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -124,6 +124,12 @@ export function MaintenancePersonnelBoard() {
           <p className="mt-2 text-muted-foreground">Horas reales, tecnicos activos y registros recientes del modulo.</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline" className="gap-2">
+            <Link href="/dashboard/mantenimiento/personal/importar">
+              <Download className="h-4 w-4" />
+              Importar Excel
+            </Link>
+          </Button>
           <Button variant="outline" className="gap-2" onClick={() => void mutate()}>
             <RefreshCw className="h-4 w-4" />
             Recargar
