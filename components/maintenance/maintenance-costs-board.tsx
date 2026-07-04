@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import useSWR from 'swr';
-import { AlertCircle, ArrowRight, DollarSign, RefreshCw } from 'lucide-react';
+import { AlertCircle, ArrowRight, DollarSign, Download, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -65,6 +65,12 @@ export function MaintenanceCostsBoard() {
           <p className="mt-2 text-muted-foreground">Costos reales acumulados por equipo, repuestos y mano de obra.</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline" className="gap-2">
+            <Link href="/dashboard/mantenimiento/costos/importar">
+              <Download className="h-4 w-4" />
+              Importar Excel
+            </Link>
+          </Button>
           <Button variant="outline" onClick={() => void mutate()} className="gap-2">
             <RefreshCw className="h-4 w-4" />
             Recargar
