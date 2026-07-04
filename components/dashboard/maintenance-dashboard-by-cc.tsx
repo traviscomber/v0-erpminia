@@ -1,10 +1,12 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import useSWR from 'swr';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useCostCenters } from '@/hooks/use-cost-centers';
 import { formatCostCenterLabel, sortCostCenters } from '@/lib/cost-centers';
 
@@ -54,6 +56,15 @@ export function MaintenanceDashboardByCC() {
       <div>
         <h1 className="text-3xl font-bold">Mantenimiento por centro de costos</h1>
         <p className="text-muted-foreground">Seguimiento real de ordenes agrupadas por centro de costos.</p>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <Button asChild variant="outline" className="gap-2">
+          <Link href="/dashboard/mantenimiento/centro-costo/importar">
+            <Download className="h-4 w-4" />
+            Importar Excel
+          </Link>
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
