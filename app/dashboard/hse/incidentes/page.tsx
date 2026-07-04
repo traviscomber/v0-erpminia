@@ -1,12 +1,13 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, Search, Download } from 'lucide-react';
+import { AlertTriangle, Search, Download, Upload } from 'lucide-react';
 import { IncidentsImport } from '@/components/hse/incidents-import';
 
 type IncidentItem = {
@@ -98,6 +99,12 @@ export default function HSEIncidentsPage() {
           <Button variant="outline" onClick={downloadTemplate}>
             <Download className="mr-2 h-4 w-4" />
             Plantilla Excel
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/dashboard/hse/incidentes/importar">
+              <Upload className="mr-2 h-4 w-4" />
+              Importar Excel
+            </Link>
           </Button>
           <Button variant="outline" onClick={handleReload}>
             <Search className="mr-2 h-4 w-4" />
