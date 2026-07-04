@@ -131,9 +131,9 @@ export default function DocumentosHSEPage() {
           </p>
         </div>
         <Button asChild variant="outline">
-          <Link href="/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse/cargar">
+          <Link href="/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse/importar">
             <Upload className="mr-2 h-4 w-4" />
-            Cargar documentos
+            Importar documentos
           </Link>
         </Button>
       </div>
