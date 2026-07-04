@@ -1,8 +1,9 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
-import { Download, Search, Factory } from 'lucide-react';
+import { Download, Factory, Search, Upload } from 'lucide-react';
 import { AssetImport } from '@/components/mantenimiento/asset-import';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -108,6 +109,12 @@ export default function EquiposPage() {
           <Button variant="outline" onClick={downloadTemplate}>
             <Download className="mr-2 h-4 w-4" />
             Plantilla Excel
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/dashboard/mantenimiento/equipos/importar">
+              <Upload className="mr-2 h-4 w-4" />
+              Importar equipos
+            </Link>
           </Button>
           <Button variant="outline" onClick={() => mutate()}>
             <Search className="mr-2 h-4 w-4" />
