@@ -25,7 +25,17 @@ type TelemetryReadingPayload = {
 };
 
 type TelemetryPayload = TelemetryReadingPayload & {
+  dry_run?: boolean;
+  validate_only?: boolean;
   readings?: TelemetryReadingPayload[];
+};
+
+type ValidatedReading = {
+  index: number;
+  equipment_id: string;
+  equipment_name: string;
+  status: string;
+  timestamp: string;
 };
 
 function toNumber(value: unknown) {
@@ -114,6 +124,34 @@ function buildReadingList(payload: TelemetryPayload) {
   return [singleReading];
 }
 
+function isDryRun(payload: TelemetryPayload, request: NextRequest) {
+  const searchValue = request.nextUrl.searchParams.get('dry_run') || request.nextUrl.searchParams.get('validate_only');
+  const queryFlag = searchValue === '1' || searchValue === 'true';
+  return Boolean(payload.dry_run || payload.validate_only || queryFlag);
+}
+
+function hasDestination(reading: TelemetryReadingPayload) {
+  return Boolean(
+    String(reading.equipment_id || '').trim() ||
+      String(reading.equipment_code || '').trim() ||
+      String(reading.asset_code || '').trim() ||
+      String(reading.equipment_name || '').trim()
+  );
+}
+
+function hasSignalData(reading: TelemetryReadingPayload) {
+  return (
+    toNumber(reading.value) !== null ||
+    toNumber(reading.temperature) !== null ||
+    toNumber(reading.pressure) !== null ||
+    toNumber(reading.vibration) !== null ||
+    toNumber(reading.rpm) !== null ||
+    Boolean(String(reading.status || '').trim()) ||
+    Boolean(String(reading.message || '').trim()) ||
+    Boolean(String(reading.description || '').trim())
+  );
+}
+
 export async function GET() {
   const configured = Boolean(process.env.TELEMETRY_INGEST_TOKEN);
 
@@ -122,6 +160,7 @@ export async function GET() {
     endpoint: '/api/telemetry/ingest',
     method: 'POST',
     required_header: 'x-telemetry-token',
+    supports_dry_run: true,
     accepted_payload: ['equipment_id', 'equipment_code', 'sensor_id', 'temperature', 'pressure', 'vibration', 'rpm', 'status', 'readings[]'],
     example: {
       equipment_id: 'eq-123',
@@ -155,15 +194,33 @@ export async function POST(request: NextRequest) {
 
   const supabase = getSupabaseServerClient();
   const readings = buildReadingList(payload);
+  const dryRun = isDryRun(payload, request);
   const defaultTarget = await resolveTargetEquipment(supabase, payload);
   const inserted: Array<{ equipment_id: string; equipment_name: string; status: string; timestamp: string }> = [];
+  const validated: ValidatedReading[] = [];
   const errors: string[] = [];
   let alarmCount = 0;
 
-  for (const reading of readings) {
+  if (readings.length === 0) {
+    return NextResponse.json({ error: 'No se recibieron lecturas' }, { status: 400 });
+  }
+
+  for (const [index, reading] of readings.entries()) {
+    if (!hasDestination(reading) && !defaultTarget) {
+      errors.push(`Lectura ${index + 1}: falta equipment_id, equipment_code, asset_code o equipment_name`);
+      continue;
+    }
+
+    if (!hasSignalData(reading)) {
+      errors.push(`Lectura ${index + 1}: falta al menos una senal o estado para procesar`);
+      continue;
+    }
+
     const target = (await resolveTargetEquipment(supabase, reading)) || defaultTarget;
     if (!target) {
-      errors.push(`No se pudo resolver el equipo destino para ${reading.equipment_id || reading.equipment_code || reading.asset_code || reading.equipment_name || 'lectura'}`);
+      errors.push(
+        `Lectura ${index + 1}: no se pudo resolver el equipo destino para ${reading.equipment_id || reading.equipment_code || reading.asset_code || reading.equipment_name || 'lectura'}`
+      );
       continue;
     }
 
@@ -179,6 +236,24 @@ export async function POST(request: NextRequest) {
       payload.message ||
       payload.description ||
       `Lectura ${status === 'alert' ? 'critica' : 'normal'} recibida desde ${reading.source_machine || payload.source_machine || 'gateway'}`;
+
+    validated.push({
+      index,
+      equipment_id: target.id,
+      equipment_name: target.name,
+      status,
+      timestamp,
+    });
+
+    if (dryRun) {
+      inserted.push({
+        equipment_id: target.id,
+        equipment_name: target.name,
+        status,
+        timestamp,
+      });
+      continue;
+    }
 
     const { error: readingError } = await supabase.from('sensor_readings').insert([
       {
@@ -236,13 +311,16 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({
     success: true,
+    dry_run: dryRun,
     batch: inserted.length > 1,
     ingested_count: inserted.length,
+    validated_count: validated.length,
     alarm_count: alarmCount,
     equipment_id: inserted[0]?.equipment_id || null,
     equipment_name: inserted[0]?.equipment_name || null,
     status: inserted[0]?.status || 'normal',
     timestamp: inserted[inserted.length - 1]?.timestamp || new Date().toISOString(),
+    validated,
     errors,
   });
 }

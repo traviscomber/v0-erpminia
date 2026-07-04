@@ -20,12 +20,65 @@ type ConnectionCheck = {
   message?: string;
 };
 
+type IngestCheck = {
+  success?: boolean;
+  dry_run?: boolean;
+  batch?: boolean;
+  ingested_count?: number;
+  validated_count?: number;
+  alarm_count?: number;
+  equipment_id?: string | null;
+  equipment_name?: string | null;
+  status?: string;
+  timestamp?: string;
+  validated?: Array<{
+    index: number;
+    equipment_id: string;
+    equipment_name: string;
+    status: string;
+    timestamp: string;
+  }>;
+  errors?: string[];
+  error?: string;
+};
+
+const SAMPLE_PAYLOAD = {
+  readings: [
+    {
+      equipment_code: 'EQ-001',
+      temperature: 72.4,
+      pressure: 81.2,
+      vibration: 1.8,
+      rpm: 1480,
+      status: 'normal',
+      source_machine: 'patagua-gateway-01',
+    },
+    {
+      equipment_code: 'EQ-002',
+      temperature: 84.1,
+      pressure: 93.6,
+      vibration: 3.2,
+      rpm: 1605,
+      status: 'alert',
+      source_machine: 'patagua-gateway-01',
+      message: 'Temperatura y vibracion fuera de rango',
+    },
+  ],
+};
+
+function formatJson(value: unknown) {
+  return JSON.stringify(value, null, 2);
+}
+
 export default function TelemetriaIntegracionPage() {
   const [checking, setChecking] = useState(false);
   const [checkResult, setCheckResult] = useState<ConnectionCheck | null>(null);
   const [gatewayUrl, setGatewayUrl] = useState(process.env.NEXT_PUBLIC_TELEMETRY_GATEWAY_URL || '');
   const [telemetryToken, setTelemetryToken] = useState('TU_TOKEN');
   const [currentOrigin, setCurrentOrigin] = useState('');
+  const [samplePayload, setSamplePayload] = useState(() => formatJson(SAMPLE_PAYLOAD));
+  const [sampleRunning, setSampleRunning] = useState<'validate' | 'send' | null>(null);
+  const [sampleResult, setSampleResult] = useState<IngestCheck | null>(null);
 
   useEffect(() => {
     const savedGateway = window.localStorage.getItem('telemetry-gateway-url');
@@ -58,28 +111,7 @@ export default function TelemetriaIntegracionPage() {
   const code = `curl -X POST ${ingestUrl || 'https://TU-DOMINIO/api/telemetry/ingest'} \\
   -H "Content-Type: application/json" \\
   -H "x-telemetry-token: ${telemetryToken || 'TU_TOKEN'}" \\
-  -d '{
-    "readings": [
-      {
-        "equipment_code": "EQ-001",
-        "temperature": 72.4,
-        "pressure": 81.2,
-        "vibration": 1.8,
-        "rpm": 1480,
-        "status": "normal",
-        "source_machine": "patagua-gateway-01"
-      },
-      {
-        "equipment_code": "EQ-002",
-        "temperature": 84.1,
-        "pressure": 93.6,
-        "vibration": 3.2,
-        "rpm": 1605,
-        "status": "alert",
-        "source_machine": "patagua-gateway-01"
-      }
-    ]
-  }'`;
+  -d '${formatJson(SAMPLE_PAYLOAD)}'`;
 
   const downloadSpec = () => {
     const lines = [
@@ -131,6 +163,45 @@ export default function TelemetriaIntegracionPage() {
       });
     } finally {
       setChecking(false);
+    }
+  };
+
+  const runSample = async (mode: 'validate' | 'send') => {
+    setSampleRunning(mode);
+    setSampleResult(null);
+
+    try {
+      const parsedPayload = JSON.parse(samplePayload) as Record<string, unknown>;
+      const requestPayload =
+        mode === 'validate'
+          ? {
+              ...parsedPayload,
+              validate_only: true,
+            }
+          : parsedPayload;
+
+      const response = await fetch(ingestUrl || '/api/telemetry/ingest', {
+        method: 'POST',
+        cache: 'no-store',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-telemetry-token': telemetryToken,
+        },
+        body: JSON.stringify(requestPayload),
+      });
+
+      const payload = (await response.json().catch(() => null)) as IngestCheck | null;
+      setSampleResult({
+        success: response.ok,
+        ...payload,
+      });
+    } catch (error) {
+      setSampleResult({
+        success: false,
+        error: error instanceof Error ? error.message : 'No se pudo procesar la muestra',
+      });
+    } finally {
+      setSampleRunning(null);
     }
   };
 
@@ -269,13 +340,72 @@ export default function TelemetriaIntegracionPage() {
         </Card>
       </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Ejemplo de envio</CardTitle>
-            <CardDescription>Este ejemplo sirve para pruebas desde una PC o gateway de la red local.</CardDescription>
+      <Card>
+        <CardHeader>
+          <CardTitle>Ejemplo de envio</CardTitle>
+          <CardDescription>Este ejemplo sirve para pruebas desde una PC o gateway de la red local.</CardDescription>
         </CardHeader>
         <CardContent>
           <pre className="overflow-x-auto rounded-lg border bg-muted p-4 text-sm leading-6">{code}</pre>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Prueba directa del payload</CardTitle>
+          <CardDescription>
+            Valida primero sin escribir datos. Cuando el payload quede correcto, puedes enviarlo al endpoint real.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <textarea
+            value={samplePayload}
+            onChange={(event) => setSamplePayload(event.target.value)}
+            className="min-h-[20rem] w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm"
+            spellCheck={false}
+            aria-label="Payload JSON de telemetria"
+          />
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="outline" onClick={() => setSamplePayload(formatJson(SAMPLE_PAYLOAD))}>
+              Cargar ejemplo
+            </Button>
+            <Button type="button" variant="outline" onClick={() => runSample('validate')} disabled={sampleRunning !== null}>
+              {sampleRunning === 'validate' ? 'Validando...' : 'Validar payload'}
+            </Button>
+            <Button type="button" onClick={() => runSample('send')} disabled={sampleRunning !== null}>
+              {sampleRunning === 'send' ? 'Enviando...' : 'Enviar muestra'}
+            </Button>
+          </div>
+          {sampleResult && (
+            <div className="space-y-3 rounded-lg border border-border/70 bg-muted/30 p-4">
+              <div className="flex flex-wrap gap-2">
+                <Badge variant={sampleResult.success ? 'default' : 'destructive'}>
+                  {sampleResult.success ? 'Procesado' : 'Con error'}
+                </Badge>
+                {sampleResult.dry_run ? <Badge variant="outline">Dry run</Badge> : null}
+                {typeof sampleResult.validated_count === 'number' ? (
+                  <Badge variant="outline">Validadas: {sampleResult.validated_count}</Badge>
+                ) : null}
+                {typeof sampleResult.ingested_count === 'number' ? (
+                  <Badge variant="outline">Insertadas: {sampleResult.ingested_count}</Badge>
+                ) : null}
+                {typeof sampleResult.alarm_count === 'number' ? (
+                  <Badge variant="outline">Alarmas: {sampleResult.alarm_count}</Badge>
+                ) : null}
+              </div>
+              {sampleResult.error ? <p className="text-sm text-destructive">{sampleResult.error}</p> : null}
+              {Array.isArray(sampleResult.errors) && sampleResult.errors.length > 0 ? (
+                <div className="space-y-1 text-sm text-amber-700">
+                  {sampleResult.errors.map((item, index) => (
+                    <div key={`${item}-${index}`}>{item}</div>
+                  ))}
+                </div>
+              ) : null}
+              <pre className="overflow-x-auto rounded-lg border bg-background p-4 text-xs leading-6">
+                {formatJson(sampleResult)}
+              </pre>
+            </div>
+          )}
         </CardContent>
       </Card>
 
