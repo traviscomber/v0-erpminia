@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,7 +8,8 @@ import { DocumentUpload } from '@/components/documents/document-upload';
 import { DocumentList, Document } from '@/components/documents/document-list';
 import { DocumentReviewModal, type DocumentReviewDocument } from '@/components/documents/document-review-modal';
 import { BodegaImportXls } from '@/components/bodega/bodega-import-xls';
-import { FileText, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
+import { FileText, CheckCircle2, AlertCircle, ArrowRight, Clock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface DocumentStats {
   total: number;
@@ -124,9 +126,25 @@ export default function DocumentosBodegaPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Documentos de bodega</h1>
-        <p className="mt-2 text-muted-foreground">Gestion de procedimientos, instructivos y respaldo operativo de bodega.</p>
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Documentos de bodega</h1>
+          <p className="mt-2 text-muted-foreground">Gestion de procedimientos, instructivos y respaldo operativo de bodega.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild>
+            <Link href="/dashboard/bodega/documentos/importar">Importar documentos</Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/dashboard/bodega/importar-datos">Importar datos</Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/dashboard/bodega">
+              <ArrowRight className="mr-2 h-4 w-4" />
+              Volver a bodega
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
@@ -226,6 +244,14 @@ export default function DocumentosBodegaPage() {
               <CardDescription>Sube procedimientos e instructivos de bodega.</CardDescription>
             </CardHeader>
             <CardContent>
+              <div className="mb-4 flex flex-wrap gap-2">
+                <Button size="sm" variant="outline" asChild>
+                  <Link href="/dashboard/bodega/documentos/importar">Abrir importador dedicado</Link>
+                </Button>
+                <Button size="sm" variant="ghost" asChild>
+                  <Link href="/dashboard/bodega/importar-datos">Ir al importador tabular</Link>
+                </Button>
+              </div>
               <DocumentUpload module="bodega" category="documentos" onUploadSuccess={loadDocuments} />
             </CardContent>
           </Card>
