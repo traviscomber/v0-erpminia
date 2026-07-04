@@ -1,12 +1,13 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Download, Shield, Plus, Search, Check } from 'lucide-react';
+import { Download, Shield, Plus, Search, Check, Upload } from 'lucide-react';
 import { EppImport } from '@/components/hse/epp-import';
 
 type HseEppEntry = {
@@ -191,6 +192,12 @@ export default function HSEEPPPage() {
           <Button variant="outline" onClick={downloadTemplate}>
             <Download className="mr-1 h-4 w-4" />
             Plantilla Excel
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/dashboard/hse/epp/importar">
+              <Upload className="mr-1 h-4 w-4" />
+              Importar desde Excel
+            </Link>
           </Button>
           <Button>
             <Plus className="mr-1 h-4 w-4" />

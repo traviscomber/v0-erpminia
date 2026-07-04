@@ -44,7 +44,7 @@ export function EppImport({ onSuccess }: EppImportProps) {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/sostenibilidad/epp', {
+      const response = await fetch('/api/hse/epp/import', {
         method: 'POST',
         credentials: 'include',
         body: formData,
@@ -101,7 +101,7 @@ export function EppImport({ onSuccess }: EppImportProps) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <Upload className="h-5 w-5" />
-          Importar matriz EPP desde Excel
+          Importar matriz EPP HSE desde Excel
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -117,7 +117,7 @@ export function EppImport({ onSuccess }: EppImportProps) {
         >
           <Upload className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
           <p className="font-semibold text-foreground">Arrastra tu archivo o haz clic para seleccionar</p>
-          <p className="mt-1 text-sm text-muted-foreground">Formato: CSV, XLS o XLSX</p>
+          <p className="mt-1 text-sm text-muted-foreground">Formato: CSV, XLS o XLSX para la matriz HSE de EPP</p>
 
           <input
             ref={fileInputRef}
