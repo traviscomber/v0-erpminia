@@ -1,20 +1,14 @@
 import type { Metadata } from 'next';
 export const dynamic = 'force-dynamic';
 
-import { Geist, Geist_Mono, Montserrat } from 'next/font/google';
-import { Analytics } from '@vercel/analytics/next';
 import { ThemeProvider } from 'next-themes';
 import { Toaster } from 'sonner';
 import './globals.css';
 
-const _geist = Geist({ subsets: ['latin', 'latin-ext'] });
-const _geistMono = Geist_Mono({ subsets: ['latin', 'latin-ext'] });
-const _montserrat = Montserrat({ subsets: ['latin', 'latin-ext'], variable: '--font-heading' });
-
 export const metadata: Metadata = {
-  title: 'Motil - Plataforma Operacional Minera',
+  title: 'Motil | Plataforma Operacional Minera',
   description:
-    'Plataforma operacional minera para conectar producción, mantención, bodega, HSE, documentos y gerencia con trazabilidad operacional y KPIs en tiempo real.',
+    'Plataforma operacional minera para conectar produccion, mantencion, bodega, HSE, documentos y gerencia con trazabilidad operacional y KPIs en tiempo real.',
   generator: 'v0.app',
   icons: {
     icon: [
@@ -41,16 +35,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className="dark" suppressHydrationWarning>
+    <html lang="es-CL" className="dark scroll-smooth" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
       </head>
-      <body className="font-sans antialiased bg-background text-foreground">
+      <body className="font-sans antialiased bg-background text-foreground selection:bg-primary/20 selection:text-foreground">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} forcedTheme="dark">
           {children}
           <Toaster position="top-right" />
-          {/* Analytics disabled in dev mode - causes script tag error. Re-enable for production. */}
-          {/* {process.env.NODE_ENV === 'production' && <Analytics />} */}
         </ThemeProvider>
       </body>
     </html>
