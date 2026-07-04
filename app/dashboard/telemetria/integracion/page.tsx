@@ -10,8 +10,10 @@ import { Input } from '@/components/ui/input';
 
 type ConnectionCheck = {
   ok: boolean;
+  status?: 'ok' | 'degraded' | 'error';
   configured?: boolean;
   endpoint?: string;
+  ingest_endpoint?: string;
   required_header?: string;
   accepted_payload?: string[];
   error?: string;
@@ -46,6 +48,7 @@ export default function TelemetriaIntegracionPage() {
 
   const normalizedGatewayUrl = gatewayUrl.trim().replace(/\/+$/, '');
   const ingestUrl = `${normalizedGatewayUrl || ''}/api/telemetry/ingest`;
+  const healthUrl = `${normalizedGatewayUrl || ''}/api/telemetry/health`;
   const quickHosts = [
     { label: 'Este host', value: currentOrigin },
     { label: 'Localhost', value: 'http://localhost:3000' },
@@ -108,9 +111,12 @@ export default function TelemetriaIntegracionPage() {
     setCheckResult(null);
 
     try {
-      const response = await fetch(ingestUrl || '/api/telemetry/ingest', {
+      const response = await fetch(healthUrl || '/api/telemetry/health', {
         method: 'GET',
         cache: 'no-store',
+        headers: {
+          'x-telemetry-token': telemetryToken,
+        },
       });
       const payload = (await response.json().catch(() => null)) as ConnectionCheck | null;
 
@@ -194,12 +200,13 @@ export default function TelemetriaIntegracionPage() {
             </CardTitle>
             <CardDescription>
               {checkResult.ok
-                ? 'El endpoint responde y la ruta de telemetria esta disponible.'
+                ? 'El endpoint de salud responde y la ruta de telemetria esta disponible.'
                 : checkResult.error || 'El endpoint responde, pero requiere ajuste antes de enviar lecturas.'}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2 text-sm">
-            <Badge variant="outline">Endpoint: {checkResult.endpoint || '/api/telemetry/ingest'}</Badge>
+            <Badge variant="outline">Endpoint: {checkResult.endpoint || '/api/telemetry/health'}</Badge>
+            <Badge variant="outline">Ingest: {checkResult.ingest_endpoint || '/api/telemetry/ingest'}</Badge>
             <Badge variant="outline">
               Configurado: {checkResult.configured ? 'si' : 'no'}
             </Badge>
@@ -222,6 +229,18 @@ export default function TelemetriaIntegracionPage() {
           <CardContent>
             <div className="font-semibold">POST {normalizedGatewayUrl || 'https://TU-DOMINIO'}/api/telemetry/ingest</div>
             <p className="text-sm text-muted-foreground">Acepta JSON desde un gateway local o lotes de lecturas.</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <CheckCircle2 className="h-5 w-5 text-[var(--brand-verde)]" />
+              Salud
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="font-semibold">GET {normalizedGatewayUrl || 'https://TU-DOMINIO'}/api/telemetry/health</div>
+            <p className="text-sm text-muted-foreground">Verifica conectividad y token sin escribir lecturas.</p>
           </CardContent>
         </Card>
         <Card>
