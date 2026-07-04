@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
-import { AlertCircle, ArrowRight, CalendarClock, Filter, History } from 'lucide-react';
+import { AlertCircle, ArrowRight, CalendarClock, Download, Filter, History } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -134,6 +134,12 @@ export function MaintenanceHistoryBoard() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline" className="gap-2">
+            <Link href="/dashboard/mantenimiento/bitacora/importar">
+              <Download className="h-4 w-4" />
+              Importar Excel
+            </Link>
+          </Button>
           <Button variant="outline" onClick={() => void mutate()} className="gap-2">
             <History className="h-4 w-4" />
             Recargar bitacora
