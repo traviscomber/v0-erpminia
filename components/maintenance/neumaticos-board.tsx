@@ -1,7 +1,8 @@
 'use client';
 
 import useSWR from 'swr';
-import { AlertCircle, RefreshCw, Truck } from 'lucide-react';
+import { AlertCircle, Download, RefreshCw, Truck } from 'lucide-react';
+import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -52,10 +53,18 @@ export function NeumaticosBoard() {
           <h1 className="text-3xl font-bold tracking-tight">Gestion de neumaticos</h1>
           <p className="mt-2 text-muted-foreground">Stock real de neumaticos, llantas y repuestos asociados en bodega.</p>
         </div>
-        <Button variant="outline" onClick={() => void mutate()} className="gap-2">
-          <RefreshCw className="h-4 w-4" />
-          Recargar
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline" className="gap-2">
+            <Link href="/dashboard/mantenimiento/neumaticos/importar">
+              <Download className="h-4 w-4" />
+              Importar Excel
+            </Link>
+          </Button>
+          <Button variant="outline" onClick={() => void mutate()} className="gap-2">
+            <RefreshCw className="h-4 w-4" />
+            Recargar
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
