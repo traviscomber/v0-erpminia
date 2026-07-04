@@ -44,6 +44,9 @@ function matchesPermitLicense(document: LegalDocumentItem) {
 export default function PermisosLicenciasPage() {
   const [query, setQuery] = useState('');
   const { data } = useSWR('/api/legal/documentos', fetcher);
+  const handleUploadSuccess = () => {
+    window.location.reload();
+  };
 
   const documents = useMemo(() => {
     const source = Array.isArray(data) ? data : [];
@@ -78,7 +81,17 @@ export default function PermisosLicenciasPage() {
             Vista dedicada para permisos, licencias y autorizaciones criticas del proyecto.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Button asChild>
+            <Link href="/dashboard/legal/permisos-licencias/importar">
+              Importar documentos
+            </Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/dashboard/legal/importar">
+              Excel legal
+            </Link>
+          </Button>
           <Button variant="outline" asChild>
             <Link href="/dashboard/legal">
               <ArrowRight className="mr-2 h-4 w-4" />
@@ -99,7 +112,15 @@ export default function PermisosLicenciasPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <DocumentUpload module="legal" category="documentos" onUploadSuccess={() => window.location.reload()} />
+          <div className="mb-4 flex flex-wrap gap-2">
+            <Button size="sm" variant="outline" asChild>
+              <Link href="/dashboard/legal/permisos-licencias/importar">Abrir importador dedicado</Link>
+            </Button>
+            <Button size="sm" variant="ghost" asChild>
+              <Link href="/dashboard/legal/importar">Ir al importador general</Link>
+            </Button>
+          </div>
+          <DocumentUpload module="legal" category="documentos" onUploadSuccess={handleUploadSuccess} />
         </CardContent>
       </Card>
 

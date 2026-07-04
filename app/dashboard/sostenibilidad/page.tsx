@@ -144,7 +144,7 @@ export default function SostenibilidadDashboard() {
           {
             name: 'Documentos HSE',
             path: '/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse',
-            importPath: '/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse/cargar',
+            importPath: '/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse/importar',
             count: docCount,
             status: makeStatus(docCount),
           },
