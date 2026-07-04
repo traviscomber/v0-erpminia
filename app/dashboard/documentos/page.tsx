@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import useSWR from 'swr';
 import { toast } from 'sonner';
-import { AlertCircle, CheckCircle, Clock, FileText, Plus } from 'lucide-react';
+import { AlertCircle, ArrowRight, CheckCircle, Clock, FileText, Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -152,13 +153,21 @@ export default function DocumentosDashboard() {
             Administra documentos y aprobaciones con compliance SERNAGEOMIN
           </p>
         </div>
-        <Button
-          className="bg-primary hover:bg-primary/90"
-          onClick={() => setUploadModalOpen(true)}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Subir Documento
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild>
+            <Link href="/dashboard/documentos/importar">
+              <ArrowRight className="w-4 h-4 mr-2" />
+              Importar documentos
+            </Link>
+          </Button>
+          <Button
+            className="bg-primary hover:bg-primary/90"
+            onClick={() => setUploadModalOpen(true)}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Subir Documento
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
