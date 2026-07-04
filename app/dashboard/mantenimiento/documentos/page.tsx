@@ -173,6 +173,12 @@ export default function DocumentosMantenimientoPage() {
           <p className="mt-2 text-muted-foreground">Gestion de manuales, procedimientos e instructivos de mantenimiento.</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Button asChild>
+            <Link href="/dashboard/mantenimiento/documentos/importar">
+              Importar documentos
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
           <Button asChild variant="outline">
             <Link href="/dashboard/mantenimiento/bitacora">
               Bitacora
@@ -315,6 +321,11 @@ export default function DocumentosMantenimientoPage() {
               <CardDescription>Sube manuales, procedimientos e instructivos de mantenimiento</CardDescription>
             </CardHeader>
             <CardContent>
+              <div className="mb-4 flex flex-wrap gap-2">
+                <Button size="sm" variant="outline" asChild>
+                  <Link href="/dashboard/mantenimiento/documentos/importar">Abrir importador dedicado</Link>
+                </Button>
+              </div>
               <DocumentUpload module="mantenimiento" category="documentos" onUploadSuccess={loadDocuments} />
             </CardContent>
           </Card>

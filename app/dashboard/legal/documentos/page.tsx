@@ -124,9 +124,19 @@ export default function DocumentosLegalPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Documentos legales</h1>
-        <p className="mt-2 text-muted-foreground">Gestion de contratos, politicas y documentos legales.</p>
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Documentos legales</h1>
+          <p className="mt-2 text-muted-foreground">Gestion de contratos, politicas y documentos legales.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild>
+            <Link href="/dashboard/legal/documentos/importar">Importar documentos</Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/dashboard/legal/importar">Excel legal</Link>
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -256,6 +266,14 @@ export default function DocumentosLegalPage() {
               <CardDescription>Sube contratos, politicas y documentos legales.</CardDescription>
             </CardHeader>
             <CardContent>
+              <div className="mb-4 flex flex-wrap gap-2">
+                <Button size="sm" variant="outline" asChild>
+                  <Link href="/dashboard/legal/documentos/importar">Abrir importador dedicado</Link>
+                </Button>
+                <Button size="sm" variant="ghost" asChild>
+                  <Link href="/dashboard/legal/importar">Ir al importador tabular</Link>
+                </Button>
+              </div>
               <DocumentUpload module="legal" category="documentos" onUploadSuccess={loadDocuments} />
             </CardContent>
           </Card>
