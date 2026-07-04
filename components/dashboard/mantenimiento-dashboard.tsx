@@ -375,32 +375,68 @@ export function MantenimientoDashboard() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Upload className="h-4 w-4 text-primary" />
-            Cargas rapidas y activos
+            Importaciones estandarizadas
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/equipos">
-                Importar equipos
+                Equipos
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/vehiculos">
-                Importar vehiculos
+                Vehiculos
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
             <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/documentos">
-                Documentos
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/planificacion">
+              <Link href="/dashboard/mantenimiento/planificacion/importar">
                 Planificacion
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/componentes-mayores/importar">
+                Componentes
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/neumaticos/importar">
+                Neumaticos
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/combustible/importar">
+                Combustible
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/centro-costo/importar">
+                Centro de costo
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/costos/importar">
+                Costos
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/bitacora/importar">
+                Bitacora
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/personal/importar">
+                Personal
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
