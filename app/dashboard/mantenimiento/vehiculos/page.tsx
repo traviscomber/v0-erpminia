@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { BrandCard } from '@/components/ui/brand-card';
-import { ChevronRight, FileSearch, Plus, Wrench } from 'lucide-react';
+import { ChevronRight, FileSearch, Plus, Upload, Wrench } from 'lucide-react';
 import { AssetImport } from '@/components/mantenimiento/asset-import';
 import type { DerivedCostCenterMachine } from '@/lib/maintenance/cost-center-machines';
 
@@ -45,6 +45,20 @@ export default function VehiclesPage() {
         <p className="mt-2 text-muted-foreground">
           Administra vehiculos y arbol de fallas con datos reales del sistema.
         </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Button asChild variant="outline">
+            <Link href="/dashboard/mantenimiento/vehiculos/importar">
+              <Upload className="mr-2 h-4 w-4" />
+              Importar vehiculos
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/dashboard/mantenimiento/equipos">
+              <FileSearch className="mr-2 h-4 w-4" />
+              Ver equipos
+            </Link>
+          </Button>
+        </div>
         <div className="mt-4 rounded-lg border border-[var(--secondary)]/30 bg-[var(--secondary)]/5 p-4 dark:border-blue-800 dark:bg-blue-950">
           <p className="text-sm text-blue-900 dark:text-blue-100">
             <strong>Como funciona:</strong> cada activo trae su informacion operacional y puedes abrir el
