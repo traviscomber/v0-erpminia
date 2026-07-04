@@ -1,8 +1,9 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
-import { Download, Search, ShieldAlert } from 'lucide-react';
+import { Download, Search, ShieldAlert, Upload } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -112,6 +113,12 @@ export default function HSERiskMatrixPage() {
           <Button variant="outline" onClick={downloadTemplate}>
             <Download className="mr-1 h-4 w-4" />
             Plantilla Excel
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/dashboard/hse/riesgos/importar">
+              <Upload className="mr-1 h-4 w-4" />
+              Importar Excel
+            </Link>
           </Button>
           <Button variant="outline" onClick={() => window.location.reload()}>
             <ShieldAlert className="mr-1 h-4 w-4" />
