@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { SilentWebSocket } from '@/lib/supabase/noop-websocket';
 
 export function getSupabaseServerClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -8,5 +9,9 @@ export function getSupabaseServerClient() {
     throw new Error('Faltan variables de entorno de Supabase');
   }
 
-  return createClient(url, key);
+  return createClient(url, key, {
+    realtime: {
+      transport: SilentWebSocket as unknown as typeof WebSocket,
+    },
+  });
 }
