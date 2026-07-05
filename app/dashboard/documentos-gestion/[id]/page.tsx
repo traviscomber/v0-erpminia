@@ -10,7 +10,16 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = async (url: string) => {
+  const response = await fetch(url, { credentials: 'include' });
+  const payload = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    return null;
+  }
+
+  return payload;
+};
 
 const CATEGORY_DISPLAY: Record<string, { name: string; icon: string }> = {
   seguridad: { name: 'Documentos de seguridad', icon: 'Seguridad' },
