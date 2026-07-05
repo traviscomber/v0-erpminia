@@ -6,11 +6,9 @@ import useSWR from 'swr';
 import { Download, Package, Search, Truck, Upload, Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MaquinariaImport } from '@/components/maquinaria/machinery-import';
 
 interface Machine {
   id: string;
@@ -50,7 +48,7 @@ export default function MaquinariaPage() {
   }, [search]);
 
   const params = new URLSearchParams({ search: debouncedSearch, category: selectedCategory });
-  const { data, error, isLoading, mutate } = useSWR(`/api/maquinaria/machinery?${params.toString()}`, fetcher);
+  const { data, error, isLoading } = useSWR(`/api/maquinaria/machinery?${params.toString()}`, fetcher);
 
   const machinery: Machine[] = data?.machinery || [];
   const categories: Category[] = data?.categories || [];
@@ -85,28 +83,28 @@ export default function MaquinariaPage() {
         </div>
       </div>
 
-      <Tabs defaultValue="lista" className="w-full">
-        <TabsList>
-          <TabsTrigger value="lista">
-            <Truck className="mr-2 h-4 w-4" />
-            Lista
-          </TabsTrigger>
-          <TabsTrigger value="importar">
-            <Upload className="mr-2 h-4 w-4" />
-            Importar / Actualizar
-          </TabsTrigger>
-        </TabsList>
+      <Card className="border-border/70 bg-card/80">
+        <CardHeader>
+          <CardTitle>Importacion operativa de maquinaria</CardTitle>
+          <CardDescription>
+            La carga y actualizacion del maestro se realiza desde una ruta dedicada para no mezclar administracion del catalogo con ingreso de archivos.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-wrap gap-2">
+          <Button asChild>
+            <Link href="/dashboard/maquinaria/importar">
+              <Upload className="mr-2 h-4 w-4" />
+              Abrir importador de maquinaria
+            </Link>
+          </Button>
+          <Button variant="outline" onClick={() => window.open('/api/maquinaria/export', '_blank')}>
+            <Download className="mr-2 h-4 w-4" />
+            Descargar Excel maestro
+          </Button>
+        </CardContent>
+      </Card>
 
-        <TabsContent value="importar" className="mt-6">
-          <div className="mb-4 flex justify-end">
-            <Button size="sm" variant="outline" asChild>
-              <Link href="/dashboard/maquinaria/importar">Abrir ruta dedicada</Link>
-            </Button>
-          </div>
-          <MaquinariaImport onSuccess={() => mutate()} />
-        </TabsContent>
-
-        <TabsContent value="lista" className="mt-6 space-y-5">
+      <div className="space-y-5">
           <div className="grid gap-4 md:grid-cols-4">
             <Card>
               <CardHeader className="pb-2">
@@ -296,8 +294,7 @@ export default function MaquinariaPage() {
             {selectedCategory ? ` | Filtro activo: ${categories.find((category) => category.code === selectedCategory)?.name}` : ''}
             {selectedStatus ? ` | Estado: ${selectedStatus}` : ''}
           </p>
-        </TabsContent>
-      </Tabs>
+      </div>
     </div>
   );
 }

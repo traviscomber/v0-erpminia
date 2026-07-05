@@ -4,10 +4,9 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
 import { Download, Factory, Search, Upload } from 'lucide-react';
-import { AssetImport } from '@/components/mantenimiento/asset-import';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 
 const fetcher = async (url: string) => {
@@ -123,7 +122,26 @@ export default function EquiposPage() {
         </div>
       </div>
 
-      <AssetImport onSuccess={() => mutate()} />
+      <Card className="border-border/70 bg-card/80">
+        <CardHeader>
+          <CardTitle>Importacion operativa de equipos</CardTitle>
+          <CardDescription>
+            La carga masiva se ejecuta desde la ruta dedicada para mantener esta vista enfocada en consulta, filtros y seguimiento.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-wrap gap-2">
+          <Button asChild>
+            <Link href="/dashboard/mantenimiento/equipos/importar">
+              <Upload className="mr-2 h-4 w-4" />
+              Abrir importador de equipos
+            </Link>
+          </Button>
+          <Button variant="outline" onClick={() => mutate()}>
+            <Search className="mr-2 h-4 w-4" />
+            Recargar catalogo
+          </Button>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 md:grid-cols-4">
         <Card>

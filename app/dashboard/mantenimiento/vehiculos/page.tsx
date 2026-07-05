@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { BrandCard } from '@/components/ui/brand-card';
 import { ChevronRight, FileSearch, Plus, Upload, Wrench } from 'lucide-react';
-import { AssetImport } from '@/components/mantenimiento/asset-import';
 import type { DerivedCostCenterMachine } from '@/lib/maintenance/cost-center-machines';
 
 type MaintenanceAsset = {
@@ -67,7 +66,28 @@ export default function VehiclesPage() {
         </div>
       </div>
 
-      <AssetImport onSuccess={() => window.location.reload()} />
+      <Card className="border-border/70 bg-card/80">
+        <CardHeader>
+          <CardTitle>Importacion operativa de vehiculos</CardTitle>
+          <CardDescription>
+            La carga masiva se ejecuta desde una ruta dedicada para separar el maestro operativo de la vista de consulta.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-wrap gap-2">
+          <Button asChild>
+            <Link href="/dashboard/mantenimiento/vehiculos/importar">
+              <Upload className="mr-2 h-4 w-4" />
+              Abrir importador de vehiculos
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/dashboard/mantenimiento/equipos">
+              <FileSearch className="mr-2 h-4 w-4" />
+              Ver equipos relacionados
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
 
       <BrandCard variant="default">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
