@@ -275,18 +275,13 @@ export default function WorkOrdersPage() {
                           <Eye className="h-4 w-4" />
                         </Link>
                       </Button>
-                      <Button variant="ghost" size="sm" disabled title="Edicion pendiente de definir">
-                        Ver
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link href={`/dashboard/work-orders/${wo.id}`}>
+                          Detalle
+                        </Link>
                       </Button>
                     </div>
                   </div>
-                  <div className="h-2 w-full rounded-full bg-muted">
-                    <div
-                      className="h-2 rounded-full bg-primary transition-all"
-                      style={{ width: `${wo.progress_percentage || 0}%` }}
-                    />
-                  </div>
-                  <p className="mt-1 text-xs text-muted-foreground">{wo.progress_percentage || 0}% completado</p>
                 </div>
               </Link>
             ))}
