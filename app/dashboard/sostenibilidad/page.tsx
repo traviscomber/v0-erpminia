@@ -374,7 +374,7 @@ export default function SostenibilidadDashboard() {
                 <h3 className="mb-3 text-sm font-semibold text-foreground">Modulos</h3>
                 <div className="space-y-2">
                   {pillar.modules.map((module) => (
-                    <div className="flex items-center justify-between gap-3 rounded-xl border border-border px-3 py-3 transition hover:bg-muted/40">
+                    <div key={`${module.name}-${module.path}`} className="flex items-center justify-between gap-3 rounded-xl border border-border px-3 py-3 transition hover:bg-muted/40">
                       <Link href={module.path} className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">
                           <span className="truncate text-sm font-medium">{module.name}</span>
