@@ -100,8 +100,19 @@ export default function WorkOrderDetailPage() {
 
       {!hasWorkOrder && (
         <Card>
-          <CardContent className="pt-6 text-muted-foreground">
-            No se encontro informacion para esta orden de trabajo.
+          <CardHeader>
+            <CardTitle>Orden no disponible</CardTitle>
+            <CardDescription>
+              No se encontro informacion para esta orden. Puedes volver al listado o crear una nueva orden desde el flujo principal.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-2">
+            <Button asChild variant="outline">
+              <Link href="/dashboard/work-orders">Volver a ordenes</Link>
+            </Button>
+            <Button asChild>
+              <Link href="/dashboard/work-orders/create">Crear nueva orden</Link>
+            </Button>
           </CardContent>
         </Card>
       )}
@@ -133,8 +144,8 @@ export default function WorkOrderDetailPage() {
                 <p className="text-sm text-muted-foreground">Tipo</p>
                 <p className="font-medium">{getWorkTypeLabel(workOrder.work_type)}</p>
               </div>
-              </CardContent>
-            </Card>
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader>
