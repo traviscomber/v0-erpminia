@@ -17,7 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 const fetcher = async (url: string) => {
   const response = await fetch(url, { credentials: 'include' });
-  const data = await response.json();
+  const data = await response.json().catch(() => null);
 
   if (!response.ok) {
     return null;

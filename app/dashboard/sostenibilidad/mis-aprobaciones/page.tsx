@@ -7,7 +7,16 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
-const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
+const fetcher = async (url: string) => {
+  const response = await fetch(url, { credentials: 'include' });
+  const payload = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    return null;
+  }
+
+  return payload;
+};
 
 type SessionData = {
   user?: {
