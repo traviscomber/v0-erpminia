@@ -19,7 +19,7 @@ Current audit status for authenticated live routes. This backlog only records co
 | `/dashboard/documentos-gestion/procedimientos` | healthy | low | Keep as operational procedures view |
 | `/dashboard/documentos-gestion/seguridad` | healthy | low | Keep as live security document view |
 | `/dashboard/documentos-gestion/adquisiciones` | healthy | low | Keep as read-only OC traceability view |
-| `/dashboard/documentos` | broken in live, fixed in code pending deploy refresh | high | Keep the null-safe document defaults and refresh the deployment until production serves the patched bundle |
+| `/dashboard/documentos` | healthy | medium | Keep the null-safe document defaults and document-list rendering stable |
 | `/dashboard/sostenibilidad/prevencion-riesgos/kpi` | healthy | low | Keep empty-state messaging and data binding |
 | `/dashboard/sostenibilidad/prevencion-riesgos/epp` | healthy | low | Keep the EPP matrix and cargo coverage intact |
 | `/dashboard/sostenibilidad/documentos-reportes` | healthy | low | Keep the report view and empty states intact |
