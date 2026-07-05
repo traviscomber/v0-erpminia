@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { DocumentUpload } from '@/components/documents/document-upload';
 import { DocumentList, Document } from '@/components/documents/document-list';
 import { DocumentReviewModal, type DocumentReviewDocument } from '@/components/documents/document-review-modal';
-import { BodegaImportXls } from '@/components/bodega/bodega-import-xls';
 import { FileText, CheckCircle2, AlertCircle, ArrowRight, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -215,9 +214,6 @@ export default function DocumentosBodegaPage() {
           <TabsTrigger value="upload" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             Subir documentos
           </TabsTrigger>
-          <TabsTrigger value="import" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-            Importar datos
-          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
@@ -255,10 +251,23 @@ export default function DocumentosBodegaPage() {
               <DocumentUpload module="bodega" category="documentos" onUploadSuccess={loadDocuments} />
             </CardContent>
           </Card>
-        </TabsContent>
 
-        <TabsContent value="import" className="space-y-4">
-          <BodegaImportXls />
+          <Card className="border-border/70 bg-card/80">
+            <CardHeader>
+              <CardTitle>Importacion tabular de bodega</CardTitle>
+              <CardDescription>
+                La carga de inventario y centros de costo ahora vive en una ruta operativa dedicada para mantener separado el flujo documental.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-wrap gap-2">
+              <Button size="sm" variant="outline" asChild>
+                <Link href="/dashboard/bodega/importar-datos">Abrir importador de datos</Link>
+              </Button>
+              <Button size="sm" variant="ghost" asChild>
+                <Link href="/dashboard/bodega">Volver al modulo bodega</Link>
+              </Button>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 
