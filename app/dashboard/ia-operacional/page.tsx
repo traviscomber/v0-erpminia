@@ -68,7 +68,7 @@ export default function IAOperacionalPage() {
   // Get counts from insights
   const criticalCount = insightsData.equipment_risks || 0;
   const warningCount = insightsData.expiring_documents || 0;
-  const efficiency = 87; // Calculated as (total_systems - problems) / total_systems * 100
+  const efficiency = insightsData.operational_efficiency || 0;
   const predictions = insightsData.pending_maintenance || 0;
 
   // Get detailed lists
