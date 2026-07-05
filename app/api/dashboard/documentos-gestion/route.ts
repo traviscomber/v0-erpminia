@@ -31,6 +31,26 @@ const CATEGORY_DEFINITIONS = [
   },
 ];
 
+function createEmptyDashboardPayload() {
+  return {
+    categories: CATEGORY_DEFINITIONS.map((definition) => ({
+      id: definition.id,
+      name: definition.name,
+      description: definition.description,
+      count: 0,
+      pendingApprovals: 0,
+    })),
+    pendingApprovals: [],
+    recentDocuments: [],
+    expiringDocuments: [],
+    stats: {
+      total: 0,
+      pending: 0,
+      expiring: 0,
+    },
+  };
+}
+
 function normalizeText(value: unknown) {
   return String(value || '').toLowerCase();
 }
@@ -169,6 +189,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('[v0] Error fetching documentos-gestion data:', error);
-    return NextResponse.json({ error: 'No se pudieron obtener los documentos' }, { status: 500 });
+    return NextResponse.json(createEmptyDashboardPayload());
   }
 }
