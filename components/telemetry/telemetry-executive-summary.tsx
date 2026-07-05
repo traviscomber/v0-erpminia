@@ -47,6 +47,15 @@ function toNumber(value: unknown) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function formatAlarmTime(value?: string | null) {
+  if (!value) return 'Sin fecha';
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Sin fecha';
+
+  return date.toLocaleString('es-CL');
+}
+
 function statusLabel(status: string) {
   const labels: Record<string, string> = {
     operational: 'Operativo',
@@ -158,7 +167,7 @@ export function TelemetryExecutiveSummary() {
                     <div>
                       <p className="font-semibold">{alarm.message || 'Alerta operacional'}</p>
                       <p className="text-xs text-muted-foreground">
-                        {alarm.equipment || 'Sin equipo'} - {alarm.time ? new Date(alarm.time).toLocaleString('es-CL') : 'Sin fecha'}
+                        {alarm.equipment || 'Sin equipo'} - {formatAlarmTime(alarm.time)}
                       </p>
                     </div>
                     <Badge variant={String(alarm.severity || '').toLowerCase() === 'critical' ? 'destructive' : 'outline'}>
