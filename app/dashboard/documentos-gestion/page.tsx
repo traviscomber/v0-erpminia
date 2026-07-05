@@ -107,9 +107,11 @@ export default function DocumentosGestionPage() {
             Centraliza, revisa y organiza los documentos operativos en una sola vista, con alertas de revision y vencimiento.
           </p>
         </div>
-        <Button className="gap-2 bg-[var(--brand-naranja)] hover:bg-[var(--brand-naranja)]/90">
-          <Plus className="h-4 w-4" />
-          Nuevo documento
+        <Button asChild className="gap-2 bg-[var(--brand-naranja)] hover:bg-[var(--brand-naranja)]/90">
+          <Link href="/dashboard/documentos-gestion/contratos">
+            <Plus className="h-4 w-4" />
+            Gestionar contratos
+          </Link>
         </Button>
       </div>
 
