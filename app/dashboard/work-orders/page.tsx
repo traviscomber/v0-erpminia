@@ -246,44 +246,43 @@ export default function WorkOrdersPage() {
             )}
 
             {workOrders.map((wo) => (
-              <Link key={wo.id} href={`/dashboard/work-orders/${wo.id}`}>
-                <div
-                  className={`cursor-pointer rounded-lg border-2 p-4 transition-colors hover:bg-muted/30 ${getPriorityColor(wo.priority)}`}
-                >
-                  <div className="mb-3 flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="mb-1 flex items-center gap-2">
-                        <code className="rounded bg-muted px-2 py-1 font-mono text-xs">{wo.work_order_number}</code>
-                        <Badge className={getStatusColor(wo.status)} variant="outline">
-                          {getStatusLabel(wo.status)}
-                        </Badge>
-                        <Badge variant="outline">{getWorkTypeLabel(wo.work_type || 'preventive')}</Badge>
-                      </div>
-                      <h3 className="font-semibold">{wo.title}</h3>
-                      <div className="mt-2 flex items-center gap-4 text-sm text-muted-foreground">
-                        <span>Activo: {wo.asset_name || 'Sin activo asociado'}</span>
-                        <span>Asignado: {wo.assigned_to_name || 'Sin asignar'}</span>
-                        <span>
-                          Programada:{' '}
-                          {wo.scheduled_date ? new Date(wo.scheduled_date).toLocaleDateString('es-CL') : 'Sin fecha'}
-                        </span>
-                      </div>
+              <div
+                key={wo.id}
+                className={`rounded-lg border-2 p-4 transition-colors hover:bg-muted/30 ${getPriorityColor(wo.priority)}`}
+              >
+                <div className="mb-3 flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="mb-1 flex items-center gap-2">
+                      <code className="rounded bg-muted px-2 py-1 font-mono text-xs">{wo.work_order_number}</code>
+                      <Badge className={getStatusColor(wo.status)} variant="outline">
+                        {getStatusLabel(wo.status)}
+                      </Badge>
+                      <Badge variant="outline">{getWorkTypeLabel(wo.work_type || 'preventive')}</Badge>
                     </div>
-                    <div className="flex gap-2">
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link href={`/dashboard/work-orders/${wo.id}`}>
-                          <Eye className="h-4 w-4" />
-                        </Link>
-                      </Button>
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link href={`/dashboard/work-orders/${wo.id}`}>
-                          Detalle
-                        </Link>
-                      </Button>
+                    <h3 className="font-semibold">{wo.title}</h3>
+                    <div className="mt-2 flex items-center gap-4 text-sm text-muted-foreground">
+                      <span>Activo: {wo.asset_name || 'Sin activo asociado'}</span>
+                      <span>Asignado: {wo.assigned_to_name || 'Sin asignar'}</span>
+                      <span>
+                        Programada:{' '}
+                        {wo.scheduled_date ? new Date(wo.scheduled_date).toLocaleDateString('es-CL') : 'Sin fecha'}
+                      </span>
                     </div>
                   </div>
+                  <div className="flex gap-2">
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link href={`/dashboard/work-orders/${wo.id}`}>
+                        <Eye className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link href={`/dashboard/work-orders/${wo.id}`}>
+                        Detalle
+                      </Link>
+                    </Button>
+                  </div>
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         </CardContent>
