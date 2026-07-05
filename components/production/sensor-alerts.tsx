@@ -45,6 +45,15 @@ async function fetchJson(url: string) {
   return payload;
 }
 
+function formatDateTime(value?: string | null) {
+  if (!value) return 'Sin fecha';
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Sin fecha';
+
+  return date.toLocaleString('es-CL');
+}
+
 export function SensorAlerts({ equipmentId }: SensorAlertProps) {
   const [sensors, setSensors] = useState<SensorReading[]>([]);
   const [alerts, setAlerts] = useState<AlarmItem[]>([]);
@@ -194,7 +203,7 @@ export function SensorAlerts({ equipmentId }: SensorAlertProps) {
               <p className="text-lg font-semibold">{sensor.rpm ?? '--'}</p>
             </div>
           </div>
-          <p className="mt-3 text-xs text-muted-foreground">Ultima lectura: {new Date(sensor.timestamp).toLocaleString('es-CL')}</p>
+          <p className="mt-3 text-xs text-muted-foreground">Ultima lectura: {formatDateTime(sensor.timestamp)}</p>
           <div className="mt-4 flex flex-wrap gap-2">
             <Button size="sm" onClick={createSuggestedOt} disabled={!canCreateOt || creatingOt}>
               {creatingOt ? 'Generando OT...' : 'Crear OT sugerida'}
@@ -228,7 +237,7 @@ export function SensorAlerts({ equipmentId }: SensorAlertProps) {
                 <div>
                   <p className="text-sm font-medium">{alarm.message}</p>
                   <p className="text-xs text-muted-foreground">
-                    {alarm.severity || 'media'} - {new Date(alarm.created_at || new Date().toISOString()).toLocaleTimeString('es-CL')}
+                    {alarm.severity || 'media'} - {formatDateTime(alarm.created_at)}
                   </p>
                 </div>
               </div>
