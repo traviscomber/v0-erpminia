@@ -1,8 +1,7 @@
 'use client';
 
 import useSWR from 'swr';
-import { AlertCircle, AlertTriangle, FileCheck, Package, TrendingDown, Zap } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -100,7 +99,7 @@ export default function IAOperacionalPage() {
         ) : (
           <div className="space-y-4">
             {criticalEquipment.map((item, idx: number) => (
-              <Alert key={idx} className="border-[var(--brand-rojo)]/30 bg-[var(--brand-rojo)]/5">
+              <div key={idx} className="rounded-lg border border-[var(--brand-rojo)]/30 bg-[var(--brand-rojo)]/5 p-4">
                 <div className="flex items-start gap-4">
                   <div className="mt-0.5 text-[var(--brand-rojo)]">⚠️</div>
                   <div className="flex-1">
@@ -118,7 +117,7 @@ export default function IAOperacionalPage() {
                     </div>
                   </div>
                 </div>
-              </Alert>
+              </div>
             ))}
           </div>
         )}
