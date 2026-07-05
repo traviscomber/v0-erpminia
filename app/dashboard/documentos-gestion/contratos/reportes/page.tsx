@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import useSWR from 'swr';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,6 +29,13 @@ const fetcher = async (url: string) => {
 
 const COLORS = ['#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
+const EMPTY_REPORT = {
+  pagos_por_contratista: [],
+  garantias_activas: [],
+  regalias_por_propiedad: [],
+  estado_pagos: [],
+};
+
 type ReportEntry = {
   name?: string | null;
   monto_pagado?: number | string | null;
@@ -44,13 +51,23 @@ type ReportEntry = {
 
 export default function ContratosReportesPage() {
   const [periodo, setPeriodo] = useState('mes');
+  const [requestTimedOut, setRequestTimedOut] = useState(false);
 
   const { data: reportData, error, isLoading } = useSWR(`/api/contratos/reportes?periodo=${periodo}`, fetcher, {
     revalidateOnFocus: false,
     refreshInterval: 300000,
   });
 
-  const reportes = (reportData || {}) as {
+  useEffect(() => {
+    setRequestTimedOut(false);
+    const timer = window.setTimeout(() => {
+      setRequestTimedOut(true);
+    }, 12000);
+
+    return () => window.clearTimeout(timer);
+  }, [periodo]);
+
+  const reportes = (reportData || EMPTY_REPORT) as {
     pagos_por_contratista?: ReportEntry[];
     garantias_activas?: ReportEntry[];
     regalias_por_propiedad?: ReportEntry[];
@@ -61,7 +78,7 @@ export default function ContratosReportesPage() {
   const regaliasPorPropiedad = reportes.regalias_por_propiedad || [];
   const estadoPagos = reportes.estado_pagos || [];
 
-  if (isLoading) {
+  if (isLoading && !requestTimedOut) {
     return <div className="text-muted-foreground">Cargando reportes de contratos...</div>;
   }
 
@@ -78,6 +95,15 @@ export default function ContratosReportesPage() {
 
   return (
     <div className="space-y-6">
+      {requestTimedOut && !reportData && !error && (
+        <Card className="border-amber-500/30 bg-amber-500/5">
+          <CardContent className="pt-6 text-sm text-muted-foreground">
+            La carga de reportes tardó más de lo esperado. Se muestran los accesos y los estados disponibles
+            mientras el módulo termina de responder.
+          </CardContent>
+        </Card>
+      )}
+
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-3xl font-bold">Reportes de contratos</h1>
