@@ -1,75 +1,112 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Calendar, Clock, Download, Eye, Trash2, Upload, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import useSWR from 'swr';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
+import {
+  AlertCircle,
+  Calendar,
+  CheckCircle2,
+  Clock,
+  Download,
+  Eye,
+  Loader2,
+  Plus,
+  Search,
+  Trash2,
+  Upload,
+} from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-interface Capacitacion {
+type Capacitacion = {
   id: string;
-  nombre_capacitacion: string;
-  tipo: 'ACHS' | 'OTEC' | 'InducciÃ³n' | 'EspecÃ­fica' | 'Charla de Seguridad' | 'Simulacro' | 'Curso E-Learning' | 'Taller PrÃ¡ctico' | 'CertificaciÃ³n' | 'Reentrenamiento' | 'Legal/Normativa' | 'Liderazgo y GestiÃ³n';
-  tema: string;
-  programa_hse: string;
-  proveedor_instructor: string;
-  fecha_programada: string;
-  duracion_horas: number;
-  faenas_cargos: string[];
-  estado: 'planificada' | 'realizada' | 'cancelada';
-}
+  nombre_capacitacion?: string | null;
+  tipo?: string | null;
+  tema?: string | null;
+  programa_hse?: string | null;
+  proveedor_instructor?: string | null;
+  fecha_programada?: string | null;
+  duracion_horas?: number | null;
+  estado?: string | null;
+};
 
-type CapacitacionesResponse = {
+type ResponseData = {
   data?: Capacitacion[];
 };
 
-const fetcher = async (url: string): Promise<CapacitacionesResponse> => {
+const tipoOptions = [
+  'ACHS',
+  'OTEC',
+  'Induccion',
+  'Especifica',
+  'Charla de Seguridad',
+  'Simulacro',
+  'Curso E-Learning',
+  'Taller Practico',
+  'Certificacion',
+  'Reentrenamiento',
+  'Legal/Normativa',
+  'Liderazgo y Gestion',
+] as const;
+
+const estadoStyles: Record<string, string> = {
+  planificada: 'bg-primary/10 text-primary',
+  realizada: 'bg-[var(--brand-verde)]/10 text-[var(--brand-verde)]',
+  cancelada: 'bg-destructive/10 text-destructive',
+};
+
+function cleanText(value?: string | null) {
+  return String(value ?? '')
+    .replace(/Ã¡/g, 'a')
+    .replace(/Ã©/g, 'e')
+    .replace(/Ã­/g, 'i')
+    .replace(/Ã³/g, 'o')
+    .replace(/Ãº/g, 'u')
+    .replace(/Ã±/g, 'n')
+    .replace(/Ã/g, 'A')
+    .replace(/Ã‰/g, 'E')
+    .replace(/Ã/g, 'I')
+    .replace(/Ã“/g, 'O')
+    .replace(/Ãš/g, 'U')
+    .replace(/Ã‘/g, 'N')
+    .replace(/Â¿/g, '')
+    .replace(/Â¡/g, '')
+    .trim();
+}
+
+function formatTipo(value?: string | null) {
+  return cleanText(value) || 'Sin tipo';
+}
+
+const fetcher = async (url: string): Promise<ResponseData> => {
   const response = await fetch(url, { credentials: 'include' });
   return response.json();
 };
 
 export default function CapacitacionesPage() {
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [dragActive, setDragActive] = useState(false);
-  const [importResult, setImportResult] = useState<{ success: boolean; message: string; imported?: number; updated?: number; error?: string } | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [formData, setFormData] = useState<{
-    nombre_capacitacion: string;
-    tipo: Capacitacion['tipo'];
-    tema: string;
-    programa_hse: string;
-    proveedor_instructor: string;
-    fecha_programada: string;
-    hora_inicio: string;
-    hora_termino: string;
-    duracion_horas: number;
-    cantidad_asistentes: number;
-  }>({
+  const [importResult, setImportResult] = useState<{
+    success: boolean;
+    message: string;
+    imported?: number;
+    updated?: number;
+    error?: string;
+  } | null>(null);
+  const [formData, setFormData] = useState({
     nombre_capacitacion: '',
-    tipo: 'ACHS',
+    tipo: 'ACHS' as (typeof tipoOptions)[number],
     tema: '',
     programa_hse: '',
     proveedor_instructor: '',
@@ -80,30 +117,26 @@ export default function CapacitacionesPage() {
     cantidad_asistentes: 0,
   });
 
-  const { data: capacitaciones, isLoading, mutate } = useSWR<CapacitacionesResponse>(
-    '/api/sostenibilidad/capacitaciones',
-    fetcher
-  );
-  const handleReload = () => {
-    void mutate();
-  };
-  const capacitacionesList = capacitaciones?.data || [];
+  const { data, isLoading, mutate } = useSWR<ResponseData>('/api/sostenibilidad/capacitaciones', fetcher);
+  const capacitaciones = data?.data ?? [];
 
-  const filteredCapacitaciones = capacitacionesList.filter((cap: Capacitacion) =>
-    cap.nombre_capacitacion.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    cap.tema.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCapacitaciones = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+    if (!query) return capacitaciones;
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'duracion_horas' ? parseInt(value) || 0 : value,
-    }));
-  };
+    return capacitaciones.filter((cap) => {
+      const fields = [cap.nombre_capacitacion, cap.tema, cap.programa_hse, cap.proveedor_instructor, cap.tipo]
+        .map((item) => cleanText(item).toLowerCase())
+        .join(' ');
+      return fields.includes(query);
+    });
+  }, [capacitaciones, searchTerm]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const reload = () => void mutate();
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
     try {
       const response = await fetch('/api/sostenibilidad/capacitaciones', {
         method: 'POST',
@@ -112,56 +145,56 @@ export default function CapacitacionesPage() {
         body: JSON.stringify(formData),
       });
 
-      if (response.ok) {
-        setIsOpen(false);
-        setFormData({
-          nombre_capacitacion: '',
-          tipo: 'ACHS',
-          tema: '',
-          programa_hse: '',
-          proveedor_instructor: '',
-          fecha_programada: '',
-          hora_inicio: '',
-          hora_termino: '',
-          duracion_horas: 0,
-          cantidad_asistentes: 0,
-        });
-        handleReload();
-        toast.success('CapacitaciÃ³n creada exitosamente');
-      } else {
-        toast.error('Error al crear capacitaciÃ³n');
+      if (!response.ok) {
+        toast.error('Error al crear capacitacion');
+        return;
       }
+
+      setIsOpen(false);
+      setFormData({
+        nombre_capacitacion: '',
+        tipo: 'ACHS',
+        tema: '',
+        programa_hse: '',
+        proveedor_instructor: '',
+        fecha_programada: '',
+        hora_inicio: '',
+        hora_termino: '',
+        duracion_horas: 0,
+        cantidad_asistentes: 0,
+      });
+      reload();
+      toast.success('Capacitacion creada');
     } catch (error) {
-      console.error('[v0] Error creating capacitacion:', error);
-      toast.error('Error al crear capacitaciÃ³n');
+      console.error('[capacitaciones] create failed', error);
+      toast.error('Error al crear capacitacion');
     }
   };
 
-  const handleDelete = async (id: string, nombre: string) => {
-    if (!confirm(`Â¿Eliminar capacitaciÃ³n "${nombre}"`)) return;
-    
+  const handleDelete = async (id: string, nombre?: string | null) => {
+    if (!confirm(`Eliminar capacitacion "${cleanText(nombre)}"?`)) return;
+
     try {
       const response = await fetch(`/api/sostenibilidad/capacitaciones?id=${id}`, {
         method: 'DELETE',
         credentials: 'include',
       });
 
-      if (response.ok) {
-        handleReload();
-        toast.success('CapacitaciÃ³n eliminada exitosamente');
-      } else {
-        toast.error('Error al eliminar capacitaciÃ³n');
+      if (!response.ok) {
+        toast.error('Error al eliminar capacitacion');
+        return;
       }
+
+      reload();
+      toast.success('Capacitacion eliminada');
     } catch (error) {
-      console.error('[v0] Error deleting capacitacion:', error);
-      toast.error('Error al eliminar capacitaciÃ³n');
+      console.error('[capacitaciones] delete failed', error);
+      toast.error('Error al eliminar capacitacion');
     }
   };
 
   const handleImportFile = async (file: File) => {
-    const lowerName = file.name.toLowerCase();
-    const valid = lowerName.endsWith('.csv') || lowerName.endsWith('.xls') || lowerName.endsWith('.xlsx');
-
+    const valid = /\.(csv|xls|xlsx)$/i.test(file.name);
     if (!valid) {
       setImportResult({
         success: false,
@@ -175,32 +208,31 @@ export default function CapacitacionesPage() {
     setImportResult(null);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
+      const form = new FormData();
+      form.append('file', file);
 
       const response = await fetch('/api/sostenibilidad/capacitaciones', {
         method: 'POST',
-        body: formData,
+        body: form,
       });
-
-      const data = await response.json().catch(() => ({}));
+      const payload = await response.json().catch(() => ({}));
 
       if (!response.ok) {
         setImportResult({
           success: false,
           message: 'No se pudo importar capacitaciones',
-          error: data.error || 'Error desconocido',
+          error: payload.error || 'Error desconocido',
         });
         return;
       }
 
       setImportResult({
         success: true,
-        message: data.message || 'Capacitaciones importadas correctamente',
-        imported: data.imported,
-        updated: data.updated,
+        message: payload.message || 'Capacitaciones importadas correctamente',
+        imported: payload.imported,
+        updated: payload.updated,
       });
-      handleReload();
+      reload();
     } catch (error) {
       setImportResult({
         success: false,
@@ -212,41 +244,29 @@ export default function CapacitacionesPage() {
     }
   };
 
-  const handleImportDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === 'dragenter' || e.type === 'dragover') {
-      setDragActive(true);
-    } else if (e.type === 'dragleave') {
-      setDragActive(false);
-    }
-  };
-
-  const handleImportDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
     setDragActive(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) handleImportFile(file);
+    const file = event.dataTransfer.files?.[0];
+    if (file) void handleImportFile(file);
   };
 
-  const estadoColor = {
-    planificada: 'bg-primary/10 text-primary',
-    realizada: 'bg-secondary/10 text-secondary',
-    cancelada: 'bg-destructive/10 text-destructive',
+  const stats = {
+    total: filteredCapacitaciones.length,
+    planificadas: filteredCapacitaciones.filter((item) => item.estado === 'planificada').length,
+    realizadas: filteredCapacitaciones.filter((item) => item.estado === 'realizada').length,
+    horas: filteredCapacitaciones.reduce((sum, item) => sum + (item.duracion_horas || 0), 0),
   };
 
   return (
     <div className="min-h-screen bg-background p-6">
-      {/* Header */}
-      <div className="mb-8 flex justify-between items-start">
+      <div className="mb-8 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
         <div>
-          <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-3xl font-bold text-foreground">GestiÃ³n de Capacitaciones</h1>
-          </div>
-          <p className="text-muted-foreground">Registra y gestiona todas las capacitaciones del personal</p>
+          <h1 className="text-3xl font-bold text-foreground">Gestion de Capacitaciones</h1>
+          <p className="text-muted-foreground">Registra, importa y administra las capacitaciones del personal.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline">
             <Link href="/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones/importar">
               <Download className="mr-2 h-4 w-4" />
@@ -262,168 +282,141 @@ export default function CapacitacionesPage() {
           <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
               <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-                <Plus className="w-4 h-4 mr-2" />
-                Nueva CapacitaciÃ³n
+                <Plus className="mr-2 h-4 w-4" />
+                Nueva capacitacion
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Nueva CapacitaciÃ³n</DialogTitle>
-              <DialogDescription>Registra una nueva capacitaciÃ³n para el personal</DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="nombre">Nombre de la CapacitaciÃ³n</Label>
-                  <Input
-                    id="nombre"
-                    name="nombre_capacitacion"
-                    value={formData.nombre_capacitacion}
-                    onChange={handleInputChange}
-                    placeholder="Ej: Seguridad en alturas"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="tipo">Tipo</Label>
-                  <Select 
-                    value={formData.tipo}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, tipo: value as Capacitacion['tipo'] }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                  <SelectItem value="ACHS">ACHS</SelectItem>
-                  <SelectItem value="OTEC">OTEC</SelectItem>
-                  <SelectItem value="InducciÃ³n">InducciÃ³n</SelectItem>
-                  <SelectItem value="EspecÃ­fica">EspecÃ­fica</SelectItem>
-                  <SelectItem value="Charla de Seguridad">Charla de Seguridad</SelectItem>
-                  <SelectItem value="Simulacro">Simulacro</SelectItem>
-                  <SelectItem value="Curso E-Learning">Curso E-Learning</SelectItem>
-                  <SelectItem value="Taller PrÃ¡ctico">Taller PrÃ¡ctico</SelectItem>
-                  <SelectItem value="CertificaciÃ³n">CertificaciÃ³n</SelectItem>
-                  <SelectItem value="Reentrenamiento">Reentrenamiento</SelectItem>
-                  <SelectItem value="Legal/Normativa">Legal / Normativa</SelectItem>
-                  <SelectItem value="Liderazgo y GestiÃ³n">Liderazgo y GestiÃ³n</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+              <DialogHeader>
+                <DialogTitle>Nueva capacitacion</DialogTitle>
+                <DialogDescription>Registra una nueva capacitacion para el personal.</DialogDescription>
+              </DialogHeader>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="tema">Tema</Label>
-                  <Input
-                    id="tema"
-                    name="tema"
-                    value={formData.tema}
-                    onChange={handleInputChange}
-                    placeholder="Ej: PrevenciÃ³n de caÃ­das"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="programa">Programa HSE</Label>
-                  <Input
-                    id="programa"
-                    name="programa_hse"
-                    value={formData.programa_hse}
-                    onChange={handleInputChange}
-                    placeholder="Ej: Programa anual 2026"
-                    required
-                  />
-                </div>
-              </div>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="nombre_capacitacion">Nombre</Label>
+                    <Input
+                      id="nombre_capacitacion"
+                      value={formData.nombre_capacitacion}
+                      onChange={(event) => setFormData((prev) => ({ ...prev, nombre_capacitacion: event.target.value }))}
+                      placeholder="Ej: Seguridad en alturas"
+                      required
+                    />
+                  </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="proveedor">Proveedor/Instructor</Label>
-                  <Input
-                    id="proveedor"
-                    name="proveedor_instructor"
-                    value={formData.proveedor_instructor}
-                    onChange={handleInputChange}
-                    placeholder="Ej: Juan PÃ©rez"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="fecha">Fecha Programada</Label>
-                  <Input
-                    id="fecha"
-                    type="date"
-                    name="fecha_programada"
-                    value={formData.fecha_programada}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="tipo">Tipo</Label>
+                    <Select value={formData.tipo} onValueChange={(value) => setFormData((prev) => ({ ...prev, tipo: value as typeof formData.tipo }))}>
+                      <SelectTrigger id="tipo">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {tipoOptions.map((option) => (
+                          <SelectItem key={option} value={option}>
+                            {option}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="hora_inicio">Hora de Inicio</Label>
-                  <Input
-                    id="hora_inicio"
-                    type="time"
-                    name="hora_inicio"
-                    value={formData.hora_inicio}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="hora_termino">Hora de TÃ©rmino</Label>
-                  <Input
-                    id="hora_termino"
-                    type="time"
-                    name="hora_termino"
-                    value={formData.hora_termino}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="fecha_programada">Fecha programada</Label>
+                    <Input
+                      id="fecha_programada"
+                      type="date"
+                      value={formData.fecha_programada}
+                      onChange={(event) => setFormData((prev) => ({ ...prev, fecha_programada: event.target.value }))}
+                      required
+                    />
+                  </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="duracion">DuraciÃ³n (horas)</Label>
-                  <Input
-                    id="duracion"
-                    type="number"
-                    name="duracion_horas"
-                    value={formData.duracion_horas}
-                    onChange={handleInputChange}
-                    placeholder="Ej: 8"
-                    min="0"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="asistentes">Cantidad de Asistentes</Label>
-                  <Input
-                    id="asistentes"
-                    type="number"
-                    name="cantidad_asistentes"
-                    value={formData.cantidad_asistentes}
-                    onChange={handleInputChange}
-                    placeholder="Ej: 25"
-                    min="0"
-                    required
-                  />
-                </div>
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="tema">Tema</Label>
+                    <Input
+                      id="tema"
+                      value={formData.tema}
+                      onChange={(event) => setFormData((prev) => ({ ...prev, tema: event.target.value }))}
+                      placeholder="Ej: Prevencion de caidas"
+                      required
+                    />
+                  </div>
 
-              <div className="flex gap-2 justify-end pt-4">
-                <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                  Crear CapacitaciÃ³n
-                </Button>
-              </div>
-            </form>
+                  <div className="space-y-2">
+                    <Label htmlFor="programa_hse">Programa HSE</Label>
+                    <Input
+                      id="programa_hse"
+                      value={formData.programa_hse}
+                      onChange={(event) => setFormData((prev) => ({ ...prev, programa_hse: event.target.value }))}
+                      placeholder="Ej: Programa anual 2026"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="proveedor_instructor">Proveedor o instructor</Label>
+                    <Input
+                      id="proveedor_instructor"
+                      value={formData.proveedor_instructor}
+                      onChange={(event) => setFormData((prev) => ({ ...prev, proveedor_instructor: event.target.value }))}
+                      placeholder="Ej: Juan Perez"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="hora_inicio">Hora inicio</Label>
+                    <Input
+                      id="hora_inicio"
+                      type="time"
+                      value={formData.hora_inicio}
+                      onChange={(event) => setFormData((prev) => ({ ...prev, hora_inicio: event.target.value }))}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="hora_termino">Hora termino</Label>
+                    <Input
+                      id="hora_termino"
+                      type="time"
+                      value={formData.hora_termino}
+                      onChange={(event) => setFormData((prev) => ({ ...prev, hora_termino: event.target.value }))}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="duracion_horas">Duracion (horas)</Label>
+                    <Input
+                      id="duracion_horas"
+                      type="number"
+                      min="0"
+                      value={formData.duracion_horas}
+                      onChange={(event) => setFormData((prev) => ({ ...prev, duracion_horas: Number(event.target.value) || 0 }))}
+                      placeholder="8"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="cantidad_asistentes">Cantidad de asistentes</Label>
+                    <Input
+                      id="cantidad_asistentes"
+                      type="number"
+                      min="0"
+                      value={formData.cantidad_asistentes}
+                      onChange={(event) => setFormData((prev) => ({ ...prev, cantidad_asistentes: Number(event.target.value) || 0 }))}
+                      placeholder="25"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit">Crear capacitacion</Button>
+                </div>
+              </form>
             </DialogContent>
           </Dialog>
         </div>
@@ -435,34 +428,43 @@ export default function CapacitacionesPage() {
             <Upload className="h-5 w-5" />
             Importar capacitaciones desde Excel
           </CardTitle>
-          <CardDescription>
-            Carga capacitaciones en CSV, XLS o XLSX. Si el registro ya existe por nombre y fecha, se actualiza en lugar de duplicarse.
-          </CardDescription>
+          <CardDescription>Carga archivos CSV, XLS o XLSX. Si ya existe un registro por nombre y fecha, se actualiza.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div
-            onDragEnter={handleImportDrag}
-            onDragLeave={handleImportDrag}
-            onDragOver={handleImportDrag}
-            onDrop={handleImportDrop}
+            onDragEnter={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              setDragActive(true);
+            }}
+            onDragOver={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              setDragActive(true);
+            }}
+            onDragLeave={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              setDragActive(false);
+            }}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
             className={`cursor-pointer rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
               dragActive ? 'border-primary bg-primary/5' : 'border-muted-foreground/25 hover:border-muted-foreground/50'
             }`}
-            onClick={() => fileInputRef.current?.click()}
           >
             <Upload className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
             <p className="font-semibold text-foreground">Arrastra tu archivo o haz clic para seleccionar</p>
             <p className="mt-1 text-sm text-muted-foreground">Formato: CSV, XLS o XLSX</p>
-
             <input
               ref={fileInputRef}
               type="file"
               accept=".csv,.xls,.xlsx"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) handleImportFile(file);
-              }}
               className="hidden"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file) void handleImportFile(file);
+              }}
             />
           </div>
 
@@ -479,57 +481,50 @@ export default function CapacitacionesPage() {
             </AlertDescription>
           </Alert>
 
-          {importResult && (
+          {importResult ? (
             <Alert className={importResult.success ? 'border-green-500' : 'border-red-500'}>
-              {importResult.success ? (
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
-              ) : (
-                <AlertCircle className="h-4 w-4 text-red-600" />
-              )}
+              {importResult.success ? <CheckCircle2 className="h-4 w-4 text-green-600" /> : <AlertCircle className="h-4 w-4 text-red-600" />}
               <AlertDescription>
-                <p className={importResult.success ? 'font-semibold text-green-900' : 'font-semibold text-red-900'}>
-                  {importResult.message}
-                </p>
+                <p className={importResult.success ? 'font-semibold text-green-900' : 'font-semibold text-red-900'}>{importResult.message}</p>
                 {importResult.imported !== undefined ? <p className="mt-1 text-sm">Importadas: {importResult.imported}</p> : null}
                 {importResult.updated !== undefined ? <p className="text-sm">Actualizadas: {importResult.updated}</p> : null}
                 {importResult.error ? <p className="mt-1 text-sm text-red-700">{importResult.error}</p> : null}
               </AlertDescription>
             </Alert>
-          )}
+          ) : null}
 
-          {isImporting && (
+          {isImporting ? (
             <div className="flex items-center justify-center gap-2 p-4 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
               Procesando archivo...
             </div>
-          )}
+          ) : null}
         </CardContent>
       </Card>
 
-      {/* Search */}
-      <div className="mb-6">
-        <div className="flex gap-2">
+      <div className="mb-6 flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por nombre, tema o programa..."
+            className="pl-10"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1"
+            onChange={(event) => setSearchTerm(event.target.value)}
+            placeholder="Buscar por nombre, tema o programa..."
           />
-          <Button variant="outline" size="icon">
-            <Search className="w-4 h-4" />
-          </Button>
         </div>
+        <Button variant="outline" size="icon" aria-label="Buscar">
+          <Search className="h-4 w-4" />
+        </Button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Capacitaciones</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total capacitaciones</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{filteredCapacitaciones.length}</div>
-            <p className="text-xs text-muted-foreground">Este año</p>
+            <div className="text-2xl font-bold">{stats.total}</div>
+            <p className="text-xs text-muted-foreground">Este ano</p>
           </CardContent>
         </Card>
         <Card>
@@ -537,7 +532,7 @@ export default function CapacitacionesPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Planificadas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{filteredCapacitaciones.filter((c: Capacitacion) => c.estado === 'planificada').length}</div>
+            <div className="text-2xl font-bold">{stats.planificadas}</div>
             <p className="text-xs text-muted-foreground">Por realizar</p>
           </CardContent>
         </Card>
@@ -546,89 +541,80 @@ export default function CapacitacionesPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Realizadas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{filteredCapacitaciones.filter((c: Capacitacion) => c.estado === 'realizada').length}</div>
+            <div className="text-2xl font-bold">{stats.realizadas}</div>
             <p className="text-xs text-muted-foreground">Completadas</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Horas Totales</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Horas totales</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{filteredCapacitaciones.reduce((sum: number, c: Capacitacion) => sum + (c.duracion_horas || 0), 0)}</div>
-            <p className="text-xs text-muted-foreground">Horas capacitación</p>
+            <div className="text-2xl font-bold">{stats.horas}</div>
+            <p className="text-xs text-muted-foreground">Horas de capacitacion</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Capacitaciones Table */}
-      <Card>
+      <Card className="mt-6">
         <CardHeader>
-          <CardTitle>Capacitaciones Registradas</CardTitle>
-          <CardDescription>Lista completa de capacitaciones planificadas y realizadas</CardDescription>
+          <CardTitle>Capacitaciones registradas</CardTitle>
+          <CardDescription>Lista completa de capacitaciones planificadas y realizadas.</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <p className="text-muted-foreground">Cargando...</p>
           ) : filteredCapacitaciones.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">No hay capacitaciones registradas</p>
+            <p className="py-8 text-center text-muted-foreground">No hay capacitaciones registradas</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="text-left py-3 px-4 font-medium">Nombre</th>
-                    <th className="text-left py-3 px-4 font-medium">Tipo</th>
-                    <th className="text-left py-3 px-4 font-medium">Proveedor</th>
-                    <th className="text-left py-3 px-4 font-medium">Fecha</th>
-                    <th className="text-left py-3 px-4 font-medium">Duración</th>
-                    <th className="text-left py-3 px-4 font-medium">Estado</th>
-                    <th className="text-right py-3 px-4 font-medium">Accines</th>
+                    <th className="px-4 py-3 text-left font-medium">Nombre</th>
+                    <th className="px-4 py-3 text-left font-medium">Tipo</th>
+                    <th className="px-4 py-3 text-left font-medium">Proveedor</th>
+                    <th className="px-4 py-3 text-left font-medium">Fecha</th>
+                    <th className="px-4 py-3 text-left font-medium">Duracion</th>
+                    <th className="px-4 py-3 text-left font-medium">Estado</th>
+                    <th className="px-4 py-3 text-right font-medium">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredCapacitaciones.map((cap: Capacitacion) => (
-                    <tr key={cap.id} className="border-b border-border hover:bg-muted transition">
-                      <td className="py-3 px-4">
-                        <div className="font-medium">{cap.nombre_capacitacion}</div>
-                        <div className="text-xs text-muted-foreground">{cap.tema}</div>
+                  {filteredCapacitaciones.map((cap) => (
+                    <tr key={cap.id} className="border-b border-border transition hover:bg-muted">
+                      <td className="px-4 py-3">
+                        <div className="font-medium">{cleanText(cap.nombre_capacitacion) || 'Sin nombre'}</div>
+                        <div className="text-xs text-muted-foreground">{cleanText(cap.tema)}</div>
                       </td>
-                      <td className="py-3 px-4">
-                        <Badge variant="outline">{cap.tipo}</Badge>
+                      <td className="px-4 py-3">
+                        <Badge variant="outline">{formatTipo(cap.tipo)}</Badge>
                       </td>
-                      <td className="py-3 px-4 text-muted-foreground">{cap.proveedor_instructor}</td>
-                      <td className="py-3 px-4">
+                      <td className="px-4 py-3 text-muted-foreground">{cleanText(cap.proveedor_instructor) || 'Sin proveedor'}</td>
+                      <td className="px-4 py-3">
                         <div className="flex items-center gap-1 text-muted-foreground">
-                          <Calendar className="w-4 h-4" />
-                          {new Date(cap.fecha_programada).toLocaleDateString('es-CL')}
+                          <Calendar className="h-4 w-4" />
+                          {cap.fecha_programada ? new Date(cap.fecha_programada).toLocaleDateString('es-CL') : 'Sin fecha'}
                         </div>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
-                          <Clock className="w-4 h-4 text-muted-foreground" />
-                          {cap.duracion_horas}h
+                          <Clock className="h-4 w-4 text-muted-foreground" />
+                          {cap.duracion_horas || 0}h
                         </div>
                       </td>
-                      <td className="py-3 px-4">
-                        <Badge className={estadoColor[cap.estado]}>
-                          {cap.estado}
+                      <td className="px-4 py-3">
+                        <Badge className={estadoStyles[cap.estado || ''] || 'bg-muted text-muted-foreground'}>
+                          {cleanText(cap.estado) || 'Sin estado'}
                         </Badge>
                       </td>
-                      <td className="py-3 px-4 text-right">
+                      <td className="px-4 py-3 text-right">
                         <div className="flex justify-end gap-2">
-                          <Button variant="ghost" size="sm" title="Ver detalles">
-                            <Eye className="w-4 h-4" />
+                          <Button variant="ghost" size="sm" aria-label="Ver detalle">
+                            <Eye className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm" title="Descargar">
-                            <Download className="w-4 h-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            title="Eliminar"
-                            onClick={() => handleDelete(cap.id, cap.nombre_capacitacion)}
-                          >
-                            <Trash2 className="w-4 h-4 text-destructive" />
+                          <Button variant="ghost" size="sm" aria-label="Eliminar" onClick={() => handleDelete(cap.id, cap.nombre_capacitacion)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </div>
                       </td>
