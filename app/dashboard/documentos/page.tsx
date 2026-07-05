@@ -71,8 +71,8 @@ export default function DocumentosDashboard() {
   );
   const { data: statsData, mutate: mutateStats } = useSWR('/api/documents/stats', fetcher);
 
-  const documents = documentsData.documents || [];
-  const pendingApprovals = approvalsData.approvals || [];
+  const documents = Array.isArray(documentsData?.documents) ? documentsData.documents : [];
+  const pendingApprovals = Array.isArray(approvalsData?.approvals) ? approvalsData.approvals : [];
   const stats = statsData || { total: 0, approved: 0, pending: 0, expired: 0 };
 
   const refreshAll = async () => {
