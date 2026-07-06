@@ -98,7 +98,7 @@ export default function DocumentosBodegaPage() {
             ? data
             : []
         : [];
-      const normalizedDocs = docs.map((doc: Document) => normalizeDocument(doc));
+      const normalizedDocs: Document[] = docs.map((doc: Document) => normalizeDocument(doc));
 
       setDocuments(normalizedDocs);
       setStats({
