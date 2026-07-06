@@ -16,7 +16,8 @@ import type { NonconformanceRecord } from '@/components/sostenibilidad/nonconfor
 
 const fetcher = async (url: string) => {
   const res = await fetch(url);
-  return res.ok ? res.json() : null;
+  const payload = await res.json().catch(() => null);
+  return res.ok ? payload : null;
 };
 
 type NonconformanceResponse = {

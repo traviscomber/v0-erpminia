@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -46,43 +46,43 @@ const rolePermissions: Record<string, string[]> = {
   Inicio: ['superadmin', 'admin', 'manager', 'supervisor', 'viewer', 'jefe_mantencion'],
   Alertas: ['superadmin', 'admin', 'manager', 'supervisor', 'jefe_mantencion'],
   'Centros de Costos': ['superadmin', 'admin', 'manager', 'Operaciones-Supervisor', 'Finanzas-Supervisor', 'jefe_mantencion'],
-  Produccion: ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
-  'Telemetria de Sensores': ['superadmin', 'admin', 'Operaciones-Supervisor'],
+  Producción: ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
+  'Telemetría de Sensores': ['superadmin', 'admin', 'Operaciones-Supervisor'],
   Mantenimiento: ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
   'Mantenimiento por Centro de Costo': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
-  'Bitacora de Mantenimiento': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
-  'Planificacion Preventiva': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
-  'Dashboard Gerencial Mantencion': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
-  'Panel Movil Mantencion': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
-  'Personal Mantencion': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
+  'Bitácora de Mantenimiento': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
+  'Planificación Preventiva': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
+  'Dashboard Gerencial Mantención': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
+  'Panel Móvil Mantención': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
+  'Personal Mantención': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
   'Combustible': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
   'Costo por Equipo': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
-  'Indicadores de Mantencion': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
-  'Gestion de Neumaticos': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
+  'Indicadores de Mantención': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
+  'Gestión de Neumáticos': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
   'Componentes Mayores': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
   'Documentos Mantenimiento': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
-  'Ordenes de Trabajo': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
-  'Maquinaria y Vehiculos': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
+  'Órdenes de Trabajo': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
+  'Maquinaria y Vehículos': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
   'Bodega e Inventario': ['superadmin', 'admin', 'Bodega-Supervisor', 'jefe_mantencion'],
   'Documentos Bodega': ['superadmin', 'admin', 'Bodega-Supervisor', 'jefe_mantencion'],
-  'Gestion Documental': ['superadmin', 'admin', 'manager'],
+  'Gestión Documental': ['superadmin', 'admin', 'manager'],
   'Compras y OCs': ['superadmin', 'admin', 'Compras-Supervisor'],
   'Documentos Compras': ['superadmin', 'admin', 'Compras-Supervisor'],
   'Finanzas y Presupuesto': ['superadmin', 'admin', 'Finanzas-Supervisor'],
   'Documentos Finanzas': ['superadmin', 'admin', 'Finanzas-Supervisor'],
-  'Reportes y Analisis': ['superadmin', 'admin', 'manager', 'supervisor', 'jefe_mantencion'],
+  'Reportes y Análisis': ['superadmin', 'admin', 'manager', 'supervisor', 'jefe_mantencion'],
   'IA Operacional Minera': ['superadmin', 'admin'],
   'Tablero de KPIs': ['superadmin', 'admin', 'manager'],
-  'Gestion de Usuarios': ['superadmin', 'admin'],
-  'Gestion de Permisos': ['superadmin', 'admin'],
-  'Modulo Legal': ['superadmin', 'admin', 'manager'],
-  'Guias de Uso': ['superadmin', 'admin', 'manager', 'supervisor', 'viewer', 'jefe_mantencion'],
+  'Gestión de Usuarios': ['superadmin', 'admin'],
+  'Gestión de Permisos': ['superadmin', 'admin'],
+  'Módulo Legal': ['superadmin', 'admin', 'manager'],
+  'Guías de Uso': ['superadmin', 'admin', 'manager', 'supervisor', 'viewer', 'jefe_mantencion'],
   'Tablero Sostenibilidad': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
-  'Prevencion de Riesgos': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
-  'Documentos Prevencion': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
+  'Prevención de Riesgos': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
+  'Documentos Prevención': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
   Capacitaciones: ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor', 'manager'],
-  'Articulos EPP': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor', 'Bodega-Supervisor'],
-  'KPI Prevencion': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor', 'manager'],
+  'Artículos EPP': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor', 'Bodega-Supervisor'],
+  'KPI Prevención': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor', 'manager'],
   Inspecciones: ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
   'Carpeta de Arranque': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
   Calendario: ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor', 'manager', 'supervisor'],
@@ -90,57 +90,57 @@ const rolePermissions: Record<string, string[]> = {
   Comunidades: ['superadmin', 'admin', 'Sostenibilidad-Supervisor'],
   'Flujo Documental': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'manager'],
   'Documentos HSE': ['superadmin', 'admin', 'HSE-Supervisor', 'Sostenibilidad-Supervisor'],
-  'Documentos Legal': ['superadmin', 'admin', 'manager'],
+  'Documentos Legales': ['superadmin', 'admin', 'manager'],
 };
 
 const menuItems = [
   { label: 'Inicio', href: '/dashboard', icon: BarChart3, group: 'Core' },
   { label: 'Alertas', href: '/dashboard/alertas', icon: Bell, badge: 3, group: 'Core' },
   { label: 'Centros de Costos', href: '/dashboard/centros-costos', icon: Building2, group: 'Core' },
-  { label: 'Produccion', href: '/dashboard/produccion', icon: Zap, group: 'Produccion' },
-  { label: 'Telemetria de Sensores', href: '/dashboard/telemetria', icon: Activity, group: 'Produccion' },
+  { label: 'Producción', href: '/dashboard/produccion', icon: Zap, group: 'Producción' },
+  { label: 'Telemetría de Sensores', href: '/dashboard/telemetria', icon: Activity, group: 'Producción' },
   { label: 'Mantenimiento', href: '/dashboard/mantenimiento', icon: Wrench, group: 'Mantenimiento' },
   { label: 'Mantenimiento por Centro de Costo', href: '/dashboard/mantenimiento/centro-costo', icon: Wrench, group: 'Mantenimiento' },
-  { label: 'Bitacora de Mantenimiento', href: '/dashboard/mantenimiento/bitacora', icon: File, group: 'Mantenimiento' },
-  { label: 'Planificacion Preventiva', href: '/dashboard/mantenimiento/planificacion', icon: Calendar, group: 'Mantenimiento' },
-  { label: 'Dashboard Gerencial Mantencion', href: '/dashboard/mantenimiento/gerencial', icon: BarChart3, group: 'Mantenimiento' },
-  { label: 'Panel Movil Mantencion', href: '/dashboard/mantenimiento/movil', icon: Smartphone, group: 'Mantenimiento' },
-  { label: 'Personal Mantencion', href: '/dashboard/mantenimiento/personal', icon: Users, group: 'Mantenimiento' },
+  { label: 'Bitácora de Mantenimiento', href: '/dashboard/mantenimiento/bitacora', icon: File, group: 'Mantenimiento' },
+  { label: 'Planificación Preventiva', href: '/dashboard/mantenimiento/planificacion', icon: Calendar, group: 'Mantenimiento' },
+  { label: 'Dashboard Gerencial Mantención', href: '/dashboard/mantenimiento/gerencial', icon: BarChart3, group: 'Mantenimiento' },
+  { label: 'Panel Móvil Mantención', href: '/dashboard/mantenimiento/movil', icon: Smartphone, group: 'Mantenimiento' },
+  { label: 'Personal Mantención', href: '/dashboard/mantenimiento/personal', icon: Users, group: 'Mantenimiento' },
   { label: 'Combustible', href: '/dashboard/mantenimiento/combustible', icon: Fuel, group: 'Mantenimiento' },
   { label: 'Costo por Equipo', href: '/dashboard/mantenimiento/costos', icon: DollarSign, group: 'Mantenimiento' },
-  { label: 'Indicadores de Mantencion', href: '/dashboard/mantenimiento/indicadores', icon: BarChart3, group: 'Mantenimiento' },
-  { label: 'Gestion de Neumaticos', href: '/dashboard/mantenimiento/neumaticos', icon: Boxes, group: 'Mantenimiento' },
+  { label: 'Indicadores de Mantención', href: '/dashboard/mantenimiento/indicadores', icon: BarChart3, group: 'Mantenimiento' },
+  { label: 'Gestión de Neumáticos', href: '/dashboard/mantenimiento/neumaticos', icon: Boxes, group: 'Mantenimiento' },
   { label: 'Componentes Mayores', href: '/dashboard/mantenimiento/componentes-mayores', icon: Wrench, group: 'Mantenimiento' },
   { label: 'Documentos Mantenimiento', href: '/dashboard/mantenimiento/documentos', icon: File, group: 'Mantenimiento' },
-  { label: 'Maquinaria y Vehiculos', href: '/dashboard/maquinaria', icon: Truck, group: 'Mantenimiento' },
-  { label: 'Ordenes de Trabajo', href: '/dashboard/work-orders', icon: Plus, group: 'Operaciones' },
+  { label: 'Maquinaria y Vehículos', href: '/dashboard/maquinaria', icon: Truck, group: 'Mantenimiento' },
+  { label: 'Órdenes de Trabajo', href: '/dashboard/work-orders', icon: Plus, group: 'Operaciones' },
   { label: 'Bodega e Inventario', href: '/dashboard/bodega', icon: Boxes, group: 'Bodega e Inventario' },
   { label: 'Documentos Bodega', href: '/dashboard/bodega/documentos', icon: File, group: 'Bodega e Inventario' },
   { label: 'Tablero Sostenibilidad', href: '/dashboard/sostenibilidad', icon: Leaf, group: 'Sostenibilidad' },
-  { label: 'Prevencion de Riesgos', href: '/dashboard/sostenibilidad/prevencion-riesgos', icon: Shield, group: 'Sostenibilidad' },
-  { label: 'Documentos Prevencion', href: '/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse', icon: File, group: 'Sostenibilidad' },
+  { label: 'Prevención de Riesgos', href: '/dashboard/sostenibilidad/prevencion-riesgos', icon: Shield, group: 'Sostenibilidad' },
+  { label: 'Documentos Prevención', href: '/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse', icon: File, group: 'Sostenibilidad' },
   { label: 'Capacitaciones', href: '/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones', icon: GraduationCap, group: 'Sostenibilidad' },
-  { label: 'Articulos EPP', href: '/dashboard/sostenibilidad/prevencion-riesgos/epp', icon: HardHat, group: 'Sostenibilidad' },
-  { label: 'KPI Prevencion', href: '/dashboard/sostenibilidad/prevencion-riesgos/kpi', icon: Activity, group: 'Sostenibilidad' },
+  { label: 'Artículos EPP', href: '/dashboard/sostenibilidad/prevencion-riesgos/epp', icon: HardHat, group: 'Sostenibilidad' },
+  { label: 'KPI Prevención', href: '/dashboard/sostenibilidad/prevencion-riesgos/kpi', icon: Activity, group: 'Sostenibilidad' },
   { label: 'Inspecciones', href: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones', icon: ClipboardCheck, group: 'Sostenibilidad' },
   { label: 'Carpeta de Arranque', href: '/dashboard/sostenibilidad/prevencion-riesgos/carpeta-arranque', icon: FolderOpen, group: 'Sostenibilidad' },
   { label: 'Calendario', href: '/dashboard/sostenibilidad/calendario', icon: Calendar, group: 'Sostenibilidad' },
   { label: 'Medio Ambiente', href: '/dashboard/sostenibilidad/medio-ambiente', icon: TreePine, group: 'Sostenibilidad' },
   { label: 'Comunidades', href: '/dashboard/sostenibilidad/comunidades', icon: Building2, group: 'Sostenibilidad' },
   { label: 'Flujo Documental', href: '/dashboard/sostenibilidad/documentos-flujo', icon: FileCheck, group: 'Sostenibilidad' },
-  { label: 'Reporteria Documentos', href: '/dashboard/sostenibilidad/documentos-reportes', icon: BarChart3, group: 'Sostenibilidad' },
+  { label: 'Reportería Documentos', href: '/dashboard/sostenibilidad/documentos-reportes', icon: BarChart3, group: 'Sostenibilidad' },
   { label: 'Compras y OCs', href: '/dashboard/compras', icon: ShoppingCart, group: 'Finanzas' },
-  { label: 'Importar existencias', href: '/dashboard/compras/importar-existencias', icon: Upload, group: 'Finanzas' },
+  { label: 'Importar Existencias', href: '/dashboard/compras/importar-existencias', icon: Upload, group: 'Finanzas' },
   { label: 'Documentos Compras', href: '/dashboard/compras/documentos', icon: File, group: 'Finanzas' },
   { label: 'Finanzas y Presupuesto', href: '/dashboard/finanzas', icon: DollarSign, group: 'Finanzas' },
   { label: 'Documentos Finanzas', href: '/dashboard/finanzas/documentos', icon: File, group: 'Finanzas' },
-  { label: 'Gestion Documental', href: '/dashboard/documentos-gestion', icon: FolderOpen, group: 'Finanzas' },
-  { label: 'Reportes y Analisis', href: '/dashboard/reportes', icon: BarChart3, group: 'Finanzas' },
-  { label: 'Modulo Legal', href: '/dashboard/legal', icon: Scale, group: 'Legal' },
-  { label: 'Documentos Legal', href: '/dashboard/legal/documentos', icon: File, group: 'Legal' },
+  { label: 'Gestión Documental', href: '/dashboard/documentos-gestion', icon: FolderOpen, group: 'Finanzas' },
+  { label: 'Reportes y Análisis', href: '/dashboard/reportes', icon: BarChart3, group: 'Finanzas' },
+  { label: 'Módulo Legal', href: '/dashboard/legal', icon: Scale, group: 'Legal' },
+  { label: 'Documentos Legales', href: '/dashboard/legal/documentos', icon: File, group: 'Legal' },
   { label: 'HSE', href: '/dashboard/hse', icon: Shield, group: 'HSE' },
   { label: 'Documentos HSE', href: '/dashboard/hse/documentos', icon: File, group: 'HSE' },
-  { label: 'Guias de Uso', href: '/dashboard/guias', icon: HelpCircle, group: 'Ayuda' },
+  { label: 'Guías de Uso', href: '/dashboard/guias', icon: HelpCircle, group: 'Ayuda' },
 ];
 
 export function Sidebar() {
@@ -150,7 +150,7 @@ export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     Core: true,
-    Produccion: true,
+    Producción: true,
     Operaciones: true,
     Mantenimiento: true,
     'Bodega e Inventario': true,
@@ -159,7 +159,7 @@ export function Sidebar() {
     Legal: true,
     HSE: true,
     'Inteligencia Artificial': true,
-    Administracion: true,
+    Administración: true,
     Ayuda: true,
   });
   const [isMounted, setIsMounted] = useState(false);
@@ -234,7 +234,7 @@ export function Sidebar() {
 
         <nav className="flex-1 px-4 py-6 overflow-y-auto">
           <div className="space-y-2">
-            {['Core', 'Produccion', 'Operaciones', 'Mantenimiento', 'Bodega e Inventario', 'Sostenibilidad', 'Finanzas', 'Legal', 'Inteligencia Artificial', 'Administracion', 'Ayuda'].map(
+            {['Core', 'Producción', 'Operaciones', 'Mantenimiento', 'Bodega e Inventario', 'Sostenibilidad', 'Finanzas', 'Legal', 'Inteligencia Artificial', 'Administración', 'Ayuda'].map(
               (group) => {
                 const groupItems = filteredMenuItems.filter((item) => item.group === group);
                 if (groupItems.length === 0) return null;
@@ -308,7 +308,7 @@ export function Sidebar() {
             onClick={logout}
           >
             <LogOut className="w-5 h-5" />
-            <span>Cerrar Sesion</span>
+            <span>Cerrar sesión</span>
           </Button>
 
           <div className="border-t border-sidebar-border pt-4 mt-4">

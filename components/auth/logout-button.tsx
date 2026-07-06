@@ -27,7 +27,7 @@ export function LogoutButton() {
       
       // Force redirect anyway
       setTimeout(() => {
-        router.push('/auth/login');
+        router.push('/login');
       }, 1000);
     }
   };

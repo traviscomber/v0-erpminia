@@ -110,7 +110,7 @@ export function AssetManagement() {
 
         <Card className="border-border bg-yellow-500/5">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm text-yellow-700">Requieren mantencion</CardTitle>
+            <CardTitle className="text-sm text-yellow-700">Requieren mantención</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-yellow-600">
@@ -163,7 +163,7 @@ export function AssetManagement() {
                   <div>
                     <p className="flex items-center gap-1 text-muted-foreground">
                       <Calendar className="h-3 w-3" />
-                      Ultima mantencion
+                      Última mantención
                     </p>
                     <p className="font-medium">
                       {asset.last_maintenance ? new Date(asset.last_maintenance).toLocaleDateString('es-CL') : 'Sin registro'}
@@ -172,7 +172,7 @@ export function AssetManagement() {
                   <div>
                     <p className="flex items-center gap-1 text-muted-foreground">
                       <Wrench className="h-3 w-3" />
-                      Proxima mantencion
+                      Próxima mantención
                     </p>
                     <p className={`font-medium ${maintenance?.urgent ? 'text-yellow-600' : ''}`}>
                       {maintenance ? `${Math.round(maintenance.hours)}h` : '-'}

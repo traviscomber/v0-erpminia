@@ -129,7 +129,7 @@ export default function DocumentosFinanzasPage() {
         <div>
           <h1 className="text-3xl font-bold">Documentos Finanzas</h1>
           <p className="mt-2 text-muted-foreground">
-            Gestion de politicas, procedimientos e instructivos financieros
+            Gestión de políticas, procedimientos e instructivos financieros
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -178,7 +178,7 @@ export default function DocumentosFinanzasPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center justify-between text-sm font-medium">
-              <span>En revision</span>
+               <span>En revisión</span>
               <Clock className="h-4 w-4 text-yellow-500" />
             </CardTitle>
           </CardHeader>
@@ -197,7 +197,7 @@ export default function DocumentosFinanzasPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-red-500">{stats.rechazados}</p>
-            <p className="text-xs text-muted-foreground">pendientes de correccion</p>
+            <p className="text-xs text-muted-foreground">Pendientes de corrección</p>
           </CardContent>
         </Card>
       </div>
@@ -206,7 +206,7 @@ export default function DocumentosFinanzasPage() {
         <TabsList className="border-b-2 border-border bg-muted/60 p-1">
           <TabsTrigger value="all" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Todos</TabsTrigger>
           <TabsTrigger value="vigentes" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Vigentes</TabsTrigger>
-          <TabsTrigger value="revision" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">En revision</TabsTrigger>
+          <TabsTrigger value="revision" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">En revisión</TabsTrigger>
           <TabsTrigger value="upload" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Subir Documentos</TabsTrigger>
         </TabsList>
 

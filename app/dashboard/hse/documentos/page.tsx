@@ -126,7 +126,7 @@ export default function DocumentosHSEPage() {
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <h1 className="text-3xl font-bold">Documentos HSE</h1>
-          <p className="mt-2 text-muted-foreground">Gestion de documentos de Higiene, Seguridad y Ambiente</p>
+          <p className="mt-2 text-muted-foreground">Gestión de documentos de Higiene, Seguridad y Ambiente</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild>
@@ -190,7 +190,7 @@ export default function DocumentosHSEPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-red-500">{stats.rechazados}</p>
-            <p className="text-xs text-muted-foreground">pendientes de corrección</p>
+            <p className="text-xs text-muted-foreground">Pendientes de corrección</p>
           </CardContent>
         </Card>
       </div>

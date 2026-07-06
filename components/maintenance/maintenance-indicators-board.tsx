@@ -70,7 +70,7 @@ export function MaintenanceIndicatorsBoard() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Indicadores de mantencion</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Indicadores de mantención</h1>
           <p className="mt-2 text-muted-foreground">Visibilidad ejecutiva con MTTR, disponibilidad, OT y costo real.</p>
         </div>
         <Button

@@ -120,7 +120,12 @@ const BLANK_FORM: ComunidadForm = {
   fecha: new Date().toISOString().split('T')[0],
 };
 
-const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((r) => r.json());
+const fetcher = async (url: string) => {
+  const response = await fetch(url, { credentials: 'include' });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) return null;
+  return payload;
+};
 
 function normalizeEstado(value: string) {
   const text = value.trim().toLowerCase();

@@ -210,7 +210,7 @@ export function ComponentesMayoresBoard() {
                 </div>
 
                 <div className="space-y-2">
-                  <h3 className="text-sm font-semibold">Ultima mantencion y estado</h3>
+                  <h3 className="text-sm font-semibold">Última mantención y estado</h3>
                   {(group.nextInterventions || []).length === 0 ? (
                     <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
                       No hay instancias registradas para este componente.
@@ -231,7 +231,7 @@ export function ComponentesMayoresBoard() {
                           <div className="text-right">
                             <Badge variant="outline">{component.status || 'Sin estado'}</Badge>
                             <p className="mt-1 text-xs text-muted-foreground">
-                              Ultima mantencion: {component.lastMaintenance ? new Date(component.lastMaintenance).toLocaleDateString('es-CL') : 'Sin dato'}
+                              Última mantención: {component.lastMaintenance ? new Date(component.lastMaintenance).toLocaleDateString('es-CL') : 'Sin dato'}
                             </p>
                             <p className="text-xs text-muted-foreground">Hace {daysLabel(component.daysSince)}</p>
                           </div>
@@ -243,7 +243,7 @@ export function ComponentesMayoresBoard() {
 
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Wrench className="h-3 w-3" />
-                  La prioridad se define con el estado real del componente y la fecha de ultima mantencion.
+                  La prioridad se define con el estado real del componente y la fecha de última mantención.
                 </div>
               </CardContent>
             </Card>

@@ -112,7 +112,7 @@ export default function HSEInvestigacionesPage() {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload.error || 'No se pudo crear la investigacion');
+        throw new Error(payload.error || 'No se pudo crear la investigación');
       }
 
       setForm({
@@ -138,7 +138,7 @@ export default function HSEInvestigacionesPage() {
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <h1 className="text-3xl font-bold">Investigaciones HSE</h1>
-          <p className="text-muted-foreground">Seguimiento de causas raiz y acciones correctivas.</p>
+          <p className="text-muted-foreground">Seguimiento de causas raíz y acciones correctivas.</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={downloadTemplate}>
@@ -191,7 +191,7 @@ export default function HSEInvestigacionesPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <ClipboardCheck className="h-5 w-5" />
-            Crear investigacion
+            Crear investigación
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -215,7 +215,7 @@ export default function HSEInvestigacionesPage() {
             <div />
             <textarea
               className="min-h-[110px] rounded-md border border-input bg-background p-3 text-sm shadow-sm outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 md:col-span-2"
-              placeholder="Causa raiz"
+              placeholder="Causa raíz"
               value={form.root_cause}
               onChange={(e) => setForm((current) => ({ ...current, root_cause: e.target.value }))}
             />
@@ -230,7 +230,7 @@ export default function HSEInvestigacionesPage() {
             ) : null}
             <div className="md:col-span-2">
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Guardando...' : 'Guardar investigacion'}
+                {isSubmitting ? 'Guardando...' : 'Guardar investigación'}
               </Button>
             </div>
           </form>
@@ -242,7 +242,7 @@ export default function HSEInvestigacionesPage() {
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar investigacion..."
+              placeholder="Buscar investigación..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-8"
@@ -261,7 +261,7 @@ export default function HSEInvestigacionesPage() {
                     <ClipboardCheck className="h-4 w-4 text-[var(--brand-rojo)]" />
                     <h3 className="font-semibold">{item.incident_id || 'Sin incidente asociado'}</h3>
                   </div>
-                  <p className="mt-2 text-sm text-muted-foreground">{item.root_cause || 'Sin causa raiz registrada'}</p>
+                  <p className="mt-2 text-sm text-muted-foreground">{item.root_cause || 'Sin causa raíz registrada'}</p>
                   <p className="mt-2 text-sm text-muted-foreground">
                     {item.corrective_actions || 'Sin acciones correctivas registradas'}
                   </p>

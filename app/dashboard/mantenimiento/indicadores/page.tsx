@@ -1,7 +1,7 @@
 import { MaintenanceIndicatorsBoard } from '@/components/maintenance/maintenance-indicators-board';
 
 export const metadata = {
-  title: 'Indicadores de mantencion',
+  title: 'Indicadores de mantenimiento',
   description: 'MTTR, disponibilidad, OT y costos reales',
 };
 

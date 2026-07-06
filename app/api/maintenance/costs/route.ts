@@ -83,6 +83,7 @@ export async function GET(request: NextRequest) {
           work_order_id,
           work_order:maintenance_work_orders(id, work_order_number, title, status, completion_date)
         `)
+        .eq('organization_id', context.organizationId)
         .order('created_at', { ascending: false }),
       context.supabase
         .from('maintenance_assets')

@@ -27,7 +27,7 @@ export default function AdquisicionesPage() {
     const loadOrders = async () => {
       try {
         const response = await fetch('/api/compras/purchase-orders', { credentials: 'include' });
-        const data = await response.json();
+        const data = await response.json().catch(() => null);
         const purchaseOrders = Array.isArray(data?.purchase_orders) ? data.purchase_orders : [];
         setOrders(purchaseOrders);
       } catch (error) {
@@ -106,7 +106,7 @@ export default function AdquisicionesPage() {
           <div className="flex items-center justify-between gap-4">
             <div>
               <CardTitle>Ordenes de compra reales</CardTitle>
-              <CardDescription>La creacion de OC se gestiona desde el modulo Compras</CardDescription>
+              <CardDescription>La creación de OC se gestiona desde el módulo Compras</CardDescription>
             </div>
             <div className="text-sm text-muted-foreground">Vista de solo lectura</div>
           </div>
@@ -130,7 +130,7 @@ export default function AdquisicionesPage() {
               <p className="text-sm text-muted-foreground">Cargando ordenes de compra...</p>
             ) : filteredOrders.length === 0 ? (
               <div className="rounded-lg border border-dashed p-6 text-center text-muted-foreground">
-                No hay ordenes de compra que coincidan con la busqueda.
+                No hay órdenes de compra que coincidan con la búsqueda.
               </div>
             ) : (
               <div className="space-y-3">

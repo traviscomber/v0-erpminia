@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
@@ -127,9 +127,9 @@ export default function ReportesGestionDocumentalPage() {
           <Sparkles className="h-4 w-4 text-primary" />
           <span className="text-sm font-medium">Resumen real</span>
         </div>
-        <h1 className="text-3xl font-bold">Reportes de gestion documental</h1>
+        <h1 className="text-3xl font-bold">Reportes de gestión documental</h1>
         <p className="text-muted-foreground">
-          Vista ejecutiva con categorias, aprobaciones pendientes, documentos recientes y vencimientos.
+          Vista ejecutiva con categorías, aprobaciones pendientes, documentos recientes y vencimientos.
         </p>
       </div>
 
@@ -146,7 +146,7 @@ export default function ReportesGestionDocumentalPage() {
 
         <Card className="border-primary/30 bg-primary/5">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-primary">Pendientes de aprobacion</CardTitle>
+            <CardTitle className="text-sm text-primary">Pendientes de aprobación</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary">{stats.pending}</div>
@@ -166,7 +166,7 @@ export default function ReportesGestionDocumentalPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Categorias activas</CardTitle>
+            <CardTitle className="text-sm">Categorías activas</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{categories.length}</div>
@@ -177,8 +177,8 @@ export default function ReportesGestionDocumentalPage() {
 
       <Card className="border-border/70 bg-card/80">
         <CardHeader>
-          <CardTitle>Acceso rapido al modulo</CardTitle>
-          <CardDescription>Subrutas utiles para revisar el detalle sin perder contexto.</CardDescription>
+          <CardTitle>Acceso rápido al módulo</CardTitle>
+          <CardDescription>Subrutas útiles para revisar el detalle sin perder contexto.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -202,7 +202,7 @@ export default function ReportesGestionDocumentalPage() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/documentos-gestion">
-                Gestion documental
+                Gestión documental
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -214,7 +214,7 @@ export default function ReportesGestionDocumentalPage() {
         <Card>
           <CardHeader>
             <CardTitle>Documentos recientes</CardTitle>
-            <CardDescription>Ultimos registros que entraron al sistema</CardDescription>
+            <CardDescription>Últimos registros que entraron al sistema</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {recentDocuments.length === 0 ? (
@@ -249,7 +249,7 @@ export default function ReportesGestionDocumentalPage() {
         <Card className="border-amber-500/30 bg-amber-500/5">
           <CardHeader>
             <CardTitle>Documentos por vencer</CardTitle>
-            <CardDescription>{expiringDocuments.length} documentos proximos a vencerse</CardDescription>
+            <CardDescription>{expiringDocuments.length} documentos próximos a vencerse</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
             {expiringDocuments.length > 0 ? (
@@ -272,14 +272,14 @@ export default function ReportesGestionDocumentalPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Buscar categorias</CardTitle>
-          <CardDescription>Filtra el resumen por nombre, descripcion o id de categoria.</CardDescription>
+          <CardTitle>Buscar categorías</CardTitle>
+          <CardDescription>Filtra el resumen por nombre, descripción o id de categoría.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar categoria o descripcion..."
+              placeholder="Buscar categoría o descripción..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -321,7 +321,7 @@ export default function ReportesGestionDocumentalPage() {
       {filteredCategories.length === 0 && (
         <Card>
           <CardContent className="py-8 text-center text-sm text-muted-foreground">
-            No se encontraron categorias que coincidan con la busqueda.
+            No se encontraron categorías que coincidan con la búsqueda.
           </CardContent>
         </Card>
       )}
@@ -330,7 +330,7 @@ export default function ReportesGestionDocumentalPage() {
         <Card>
           <CardHeader>
             <CardTitle>Documentos pendientes</CardTitle>
-            <CardDescription>{pendingApprovals.length} documentos en revision</CardDescription>
+            <CardDescription>{pendingApprovals.length} documentos en revisión</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {pendingApprovals.length === 0 ? (
@@ -361,3 +361,5 @@ export default function ReportesGestionDocumentalPage() {
     </div>
   );
 }
+
+

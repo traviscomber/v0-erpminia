@@ -115,9 +115,9 @@ export default function TelemetriaIntegracionPage() {
 
   const downloadSpec = () => {
     const lines = [
-      ['Campo', 'Requerido', 'Descripcion'],
+      ['Campo', 'Requerido', 'Descripción'],
       ['equipment_id', 'No', 'ID interno del equipo o activo'],
-      ['equipment_code', 'No', 'Codigo operativo del equipo'],
+      ['equipment_code', 'No', 'Código operativo del equipo'],
       ['temperature', 'No', 'Temperatura en grados'],
       ['pressure', 'No', 'Presion en PSI'],
       ['vibration', 'No', 'Vibracion en m/s2'],
@@ -209,7 +209,7 @@ export default function TelemetriaIntegracionPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Integracion LAN de telemetria</h1>
+          <h1 className="text-3xl font-bold">Integración LAN de telemetría</h1>
           <p className="mt-2 max-w-3xl text-muted-foreground">
             Esta pagina define el contrato minimo para conectar una segunda maquina de la red local de la Patagua.
           </p>
@@ -226,7 +226,7 @@ export default function TelemetriaIntegracionPage() {
               value={telemetryToken}
               onChange={(event) => setTelemetryToken(event.target.value)}
               placeholder="x-telemetry-token"
-              aria-label="Token de telemetria"
+              aria-label="Token de telemetría"
             />
           </div>
           <div className="flex flex-wrap gap-2">
@@ -252,7 +252,7 @@ export default function TelemetriaIntegracionPage() {
           <Button asChild>
             <Link href="/dashboard/telemetria">
               <ArrowRight className="mr-2 h-4 w-4" />
-              Volver a telemetria
+               Volver a telemetría
             </Link>
           </Button>
         </div>
@@ -271,7 +271,7 @@ export default function TelemetriaIntegracionPage() {
             </CardTitle>
             <CardDescription>
               {checkResult.ok
-                ? 'El endpoint de salud responde y la ruta de telemetria esta disponible.'
+                 ? 'El endpoint de salud responde y la ruta de telemetría está disponible.'
                 : checkResult.error || 'El endpoint responde, pero requiere ajuste antes de enviar lecturas.'}
             </CardDescription>
           </CardHeader>
@@ -363,7 +363,7 @@ export default function TelemetriaIntegracionPage() {
             onChange={(event) => setSamplePayload(event.target.value)}
             className="min-h-[20rem] w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm"
             spellCheck={false}
-            aria-label="Payload JSON de telemetria"
+             aria-label="Payload JSON de telemetría"
           />
           <div className="flex flex-wrap gap-2">
             <Button type="button" variant="outline" onClick={() => setSamplePayload(formatJson(SAMPLE_PAYLOAD))}>
@@ -419,7 +419,7 @@ export default function TelemetriaIntegracionPage() {
             <div>2. Asegurar que la otra maquina resuelva la URL del sistema en la red local.</div>
             <div>3. Enviar `equipment_id` o `equipment_code` para identificar el destino, o `readings` para lotes.</div>
             <div>4. Probar una lectura normal y una de alerta.</div>
-            <div>5. Verificar que la lectura aparezca en telemetria y, si corresponde, que cree alarma.</div>
+             <div>5. Verificar que la lectura aparezca en telemetría y, si corresponde, que cree alarma.</div>
           </CardContent>
         </Card>
 

@@ -45,7 +45,7 @@ export default function WorkOrderDetailPage() {
       case 'high':
         return 'Alta';
       case 'critical':
-        return 'Critica';
+        return 'Crítica';
       default:
         return priority || 'Sin prioridad';
     }
@@ -103,12 +103,12 @@ export default function WorkOrderDetailPage() {
           <CardHeader>
             <CardTitle>Orden no disponible</CardTitle>
             <CardDescription>
-              No se encontro informacion para esta orden. Puedes volver al listado o crear una nueva orden desde el flujo principal.
+              No se encontró información para esta orden. Puedes volver al listado o crear una nueva orden desde el flujo principal.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
             <Button asChild variant="outline">
-              <Link href="/dashboard/work-orders">Volver a ordenes</Link>
+              <Link href="/dashboard/work-orders">Volver a órdenes</Link>
             </Button>
             <Button asChild>
               <Link href="/dashboard/work-orders/create">Crear nueva orden</Link>
@@ -122,10 +122,10 @@ export default function WorkOrderDetailPage() {
           <Card className="border-border/70 bg-card/90">
             <CardHeader>
               <CardTitle className="flex items-center justify-between gap-4">
-                Resumen rapido
+                Resumen rápido
                 <Badge variant="outline">{progress}%</Badge>
               </CardTitle>
-              <CardDescription>Visibilidad rapida para operacion y supervision</CardDescription>
+              <CardDescription>Visibilidad rápida para operación y supervisión</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-4">
               <div>
@@ -210,7 +210,7 @@ export default function WorkOrderDetailPage() {
                 </p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Codigo activo</p>
+                <p className="text-sm text-muted-foreground">Código activo</p>
                 <p className="font-medium">{workOrder.asset_code || 'No disponible'}</p>
               </div>
               <div>
@@ -226,10 +226,10 @@ export default function WorkOrderDetailPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Descripcion</CardTitle>
+              <CardTitle>Descripción</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-sm">{workOrder.description || 'Sin descripcion adicional.'}</p>
+              <p className="text-sm">{workOrder.description || 'Sin descripción adicional.'}</p>
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
                   <p className="text-sm text-muted-foreground">Causa raiz</p>

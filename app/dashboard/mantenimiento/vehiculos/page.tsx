@@ -40,15 +40,15 @@ export default function VehiclesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Gestion de vehiculos</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Gestión de vehículos</h1>
         <p className="mt-2 text-muted-foreground">
-          Administra vehiculos y arbol de fallas con datos reales del sistema.
+          Administra vehículos y árbol de fallas con datos reales del sistema.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <Button asChild variant="outline">
             <Link href="/dashboard/mantenimiento/vehiculos/importar">
               <Upload className="mr-2 h-4 w-4" />
-              Importar vehiculos
+               Importar vehículos
             </Link>
           </Button>
           <Button asChild variant="outline">
@@ -60,7 +60,7 @@ export default function VehiclesPage() {
         </div>
         <div className="mt-4 rounded-lg border border-[var(--secondary)]/30 bg-[var(--secondary)]/5 p-4 dark:border-blue-800 dark:bg-blue-950">
           <p className="text-sm text-blue-900 dark:text-blue-100">
-            <strong>Como funciona:</strong> cada activo trae su informacion operacional y puedes abrir el
+            <strong>Cómo funciona:</strong> cada activo trae su información operacional y puedes abrir el
             arbol de fallas para diagnosticar problemas y crear ordenes de trabajo.
           </p>
         </div>
@@ -68,7 +68,7 @@ export default function VehiclesPage() {
 
       <Card className="border-border/70 bg-card/80">
         <CardHeader>
-          <CardTitle>Importacion operativa de vehiculos</CardTitle>
+          <CardTitle>Importación operativa de vehículos</CardTitle>
           <CardDescription>
             La carga masiva se ejecuta desde una ruta dedicada para separar el maestro operativo de la vista de consulta.
           </CardDescription>
@@ -77,7 +77,7 @@ export default function VehiclesPage() {
           <Button asChild>
             <Link href="/dashboard/mantenimiento/vehiculos/importar">
               <Upload className="mr-2 h-4 w-4" />
-              Abrir importador de vehiculos
+               Abrir importador de vehículos
             </Link>
           </Button>
           <Button asChild variant="outline">
@@ -96,7 +96,7 @@ export default function VehiclesPage() {
               <Wrench className="h-4 w-4" />
             </div>
             <div>
-              <p className="text-sm font-medium">Alta de vehiculos</p>
+              <p className="text-sm font-medium">Alta de vehículos</p>
               <p className="text-xs text-muted-foreground">Disponible cuando el flujo operativo lo habilite</p>
             </div>
           </div>
@@ -109,15 +109,15 @@ export default function VehiclesPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Vehiculos en sistema</CardTitle>
+          <CardTitle>Vehículos en sistema</CardTitle>
           <CardDescription>
-            {isLoading ? 'Cargando activos...' : `${vehicles.length} vehiculos registrados`}
+            {isLoading ? 'Cargando activos...' : `${vehicles.length} vehículos registrados`}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {error ? (
             <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-              No fue posible cargar los vehiculos reales.
+              No fue posible cargar los vehículos reales.
             </div>
           ) : (
             <div className="space-y-4">
@@ -134,7 +134,7 @@ export default function VehiclesPage() {
                     <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground md:grid-cols-4">
                       <div>
                         <span className="font-medium text-foreground">{vehicle.assetCode}</span>
-                        <p>Codigo</p>
+                        <p>Código</p>
                       </div>
                       <div>
                         <span className="font-medium text-foreground">{vehicle.assetType || '-'}</span>
@@ -169,7 +169,7 @@ export default function VehiclesPage() {
 
               {!isLoading && vehicles.length === 0 && (
                 <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
-                  Todavia no hay vehiculos cargados desde la base real.
+                  Todavía no hay vehículos cargados desde la base real.
                 </div>
               )}
             </div>
@@ -183,7 +183,7 @@ export default function VehiclesPage() {
           <CardDescription>
             {derivedMachines.length > 0
               ? `${derivedMachines.length} modelos detectados desde la base de centros de costo`
-              : 'Todavia no se detectaron modelos en los centros de costo'}
+              : 'Todavía no se detectaron modelos en los centros de costo'}
           </CardDescription>
         </CardHeader>
         <CardContent>

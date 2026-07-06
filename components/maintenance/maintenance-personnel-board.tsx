@@ -120,7 +120,7 @@ export function MaintenancePersonnelBoard() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Personal de mantencion</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Personal de mantención</h1>
           <p className="mt-2 text-muted-foreground">Horas reales, tecnicos activos y registros recientes del modulo.</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -272,7 +272,7 @@ export function MaintenancePersonnelBoard() {
             <div className="text-sm text-muted-foreground">Cargando personal...</div>
           ) : error ? (
             <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-              No fue posible cargar el personal de mantencion.
+              No fue posible cargar el personal de mantención.
             </div>
           ) : technicians.length > 0 ? (
             technicians.map((tech) => (

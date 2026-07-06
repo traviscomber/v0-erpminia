@@ -45,16 +45,16 @@ type ResponseData = {
 const tipoOptions = [
   'ACHS',
   'OTEC',
-  'Induccion',
-  'Especifica',
+  'Inducción',
+  'Específica',
   'Charla de Seguridad',
   'Simulacro',
   'Curso E-Learning',
-  'Taller Practico',
-  'Certificacion',
+  'Taller Práctico',
+  'Certificación',
   'Reentrenamiento',
   'Legal/Normativa',
-  'Liderazgo y Gestion',
+  'Liderazgo y Gestión',
 ] as const;
 
 const estadoStyles: Record<string, string> = {
@@ -88,7 +88,9 @@ function formatTipo(value?: string | null) {
 
 const fetcher = async (url: string): Promise<ResponseData> => {
   const response = await fetch(url, { credentials: 'include' });
-  return response.json();
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) return {} as ResponseData;
+  return (payload || {}) as ResponseData;
 };
 
 export default function CapacitacionesPage() {
@@ -146,7 +148,7 @@ export default function CapacitacionesPage() {
       });
 
       if (!response.ok) {
-        toast.error('Error al crear capacitacion');
+        toast.error('Error al crear capacitación');
         return;
       }
 
@@ -164,15 +166,15 @@ export default function CapacitacionesPage() {
         cantidad_asistentes: 0,
       });
       reload();
-      toast.success('Capacitacion creada');
+      toast.success('Capacitación creada');
     } catch (error) {
       console.error('[capacitaciones] create failed', error);
-      toast.error('Error al crear capacitacion');
+      toast.error('Error al crear capacitación');
     }
   };
 
   const handleDelete = async (id: string, nombre?: string | null) => {
-    if (!confirm(`Eliminar capacitacion "${cleanText(nombre)}"?`)) return;
+    if (!confirm(`Eliminar capacitación "${cleanText(nombre)}"?`)) return;
 
     try {
       const response = await fetch(`/api/sostenibilidad/capacitaciones?id=${id}`, {
@@ -181,15 +183,15 @@ export default function CapacitacionesPage() {
       });
 
       if (!response.ok) {
-        toast.error('Error al eliminar capacitacion');
+        toast.error('Error al eliminar capacitación');
         return;
       }
 
       reload();
-      toast.success('Capacitacion eliminada');
+      toast.success('Capacitación eliminada');
     } catch (error) {
       console.error('[capacitaciones] delete failed', error);
-      toast.error('Error al eliminar capacitacion');
+      toast.error('Error al eliminar capacitación');
     }
   };
 
@@ -220,7 +222,7 @@ export default function CapacitacionesPage() {
       if (!response.ok) {
         setImportResult({
           success: false,
-          message: 'No se pudo importar capacitaciones',
+          message: 'No se pudo importar capacitaciónes',
           error: payload.error || 'Error desconocido',
         });
         return;
@@ -263,7 +265,7 @@ export default function CapacitacionesPage() {
     <div className="min-h-screen bg-background p-6">
       <div className="mb-8 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Gestion de Capacitaciones</h1>
+          <h1 className="text-3xl font-bold text-foreground">Gestión de Capacitaciones</h1>
           <p className="text-muted-foreground">Registra, importa y administra las capacitaciones del personal.</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -283,13 +285,13 @@ export default function CapacitacionesPage() {
             <DialogTrigger asChild>
               <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
                 <Plus className="mr-2 h-4 w-4" />
-                Nueva capacitacion
+                Nueva capacitación
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
-                <DialogTitle>Nueva capacitacion</DialogTitle>
-                <DialogDescription>Registra una nueva capacitacion para el personal.</DialogDescription>
+                <DialogTitle>Nueva capacitación</DialogTitle>
+                <DialogDescription>Registra una nueva capacitación para el personal.</DialogDescription>
               </DialogHeader>
 
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -338,7 +340,7 @@ export default function CapacitacionesPage() {
                       id="tema"
                       value={formData.tema}
                       onChange={(event) => setFormData((prev) => ({ ...prev, tema: event.target.value }))}
-                      placeholder="Ej: Prevencion de caidas"
+                      placeholder="Ej: Prevención de caídas"
                       required
                     />
                   </div>
@@ -360,7 +362,7 @@ export default function CapacitacionesPage() {
                       id="proveedor_instructor"
                       value={formData.proveedor_instructor}
                       onChange={(event) => setFormData((prev) => ({ ...prev, proveedor_instructor: event.target.value }))}
-                      placeholder="Ej: Juan Perez"
+                      placeholder="Ej: Juan Pérez"
                       required
                     />
                   </div>
@@ -376,7 +378,7 @@ export default function CapacitacionesPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="hora_termino">Hora termino</Label>
+                    <Label htmlFor="hora_termino">Hora término</Label>
                     <Input
                       id="hora_termino"
                       type="time"
@@ -386,7 +388,7 @@ export default function CapacitacionesPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="duracion_horas">Duracion (horas)</Label>
+                    <Label htmlFor="duracion_horas">Duración (horas)</Label>
                     <Input
                       id="duracion_horas"
                       type="number"
@@ -414,7 +416,7 @@ export default function CapacitacionesPage() {
                   <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
                     Cancelar
                   </Button>
-                  <Button type="submit">Crear capacitacion</Button>
+                  <Button type="submit">Crear capacitación</Button>
                 </div>
               </form>
             </DialogContent>
@@ -551,7 +553,7 @@ export default function CapacitacionesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.horas}</div>
-            <p className="text-xs text-muted-foreground">Horas de capacitacion</p>
+            <p className="text-xs text-muted-foreground">Horas de capacitación</p>
           </CardContent>
         </Card>
       </div>
@@ -575,7 +577,7 @@ export default function CapacitacionesPage() {
                     <th className="px-4 py-3 text-left font-medium">Tipo</th>
                     <th className="px-4 py-3 text-left font-medium">Proveedor</th>
                     <th className="px-4 py-3 text-left font-medium">Fecha</th>
-                    <th className="px-4 py-3 text-left font-medium">Duracion</th>
+                    <th className="px-4 py-3 text-left font-medium">Duración</th>
                     <th className="px-4 py-3 text-left font-medium">Estado</th>
                     <th className="px-4 py-3 text-right font-medium">Acciones</th>
                   </tr>

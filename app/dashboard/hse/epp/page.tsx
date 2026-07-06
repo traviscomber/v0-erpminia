@@ -210,11 +210,11 @@ export default function HSEEPPPage() {
 
       <Card className="border-[var(--secondary)]/25 bg-[var(--secondary)]/5">
         <CardHeader>
-          <CardTitle className="text-base">EPP base recomendado para mineria</CardTitle>
+          <CardTitle className="text-base">EPP base recomendado para minería</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Este catalogo es una base operativa para la matriz EPP. Debe ajustarse por cargo, tarea, ubicacion y matriz de riesgo.
+            Este catálogo es una base operativa para la matriz EPP. Debe ajustarse por cargo, tarea, ubicación y matriz de riesgo.
           </p>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {miningEppCatalog.map((group) => (

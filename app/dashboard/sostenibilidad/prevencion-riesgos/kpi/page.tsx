@@ -37,7 +37,12 @@ interface KPIData {
   dias_sin_accidentes: number;
 }
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+const fetcher = async (url: string) => {
+  const response = await fetch(url, { credentials: 'include' });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) return null;
+  return payload;
+};
 
 export default function KPIPrevenccionPage() {
   const [isOpen, setIsOpen] = useState(false);

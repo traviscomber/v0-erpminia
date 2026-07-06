@@ -12,7 +12,7 @@ export default async function SetupPage() {
 
   // Redirect non-authenticated users
   if (!user) {
-    redirect('/auth/login');
+    redirect('/login');
   }
 
   // Check admin role

@@ -104,7 +104,7 @@ export default function MaintenancePersonnelImportPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Importar personal</h1>
           <p className="mt-2 text-muted-foreground">
-            Carga horas de mantencion por orden de trabajo desde CSV/XLS/XLSX y las deja visibles en el tablero de personal.
+            Carga horas de mantención por orden de trabajo desde CSV/XLS/XLSX y las deja visibles en el tablero de personal.
           </p>
         </div>
         <Button asChild variant="outline" className="gap-2">

@@ -17,8 +17,8 @@ export default function Home() {
       <nav className="border-b border-border sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <div className="font-bold text-xl text-[var(--brand-cobre)]">Motil</div>
-          <Link href="/auth/login">
-            <Button className="bg-[var(--brand-cobre)] hover:bg-[var(--brand-cobre)]/90">Iniciar Sesion</Button>
+          <Link href="/login">
+            <Button className="bg-[var(--brand-cobre)] hover:bg-[var(--brand-cobre)]/90">{'Iniciar sesi\u00f3n'}</Button>
           </Link>
         </div>
       </nav>
@@ -30,10 +30,10 @@ export default function Home() {
           </div>
           <h1 className="text-6xl md:text-7xl font-bold text-foreground leading-tight">Control Operacional Minero en Tiempo Real</h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Conecta produccion, mantencion, bodega, HSE, documentos y gerencia en un flujo trazable desde terreno hasta direccion.
+            {'Conecta producci\u00f3n, mantenci\u00f3n, bodega, HSE, documentos y gerencia en un flujo trazable desde terreno hasta direcci\u00f3n.'}
           </p>
           <div className="flex gap-4 justify-center pt-8">
-            <Link href="/auth/login">
+            <Link href="/login">
               <Button size="lg" className="gap-2 bg-[var(--brand-cobre)] hover:bg-[var(--brand-cobre)]/90 text-base px-8">
                 Solicitar Demo
                 <ArrowRight className="h-4 w-4" />
@@ -41,7 +41,7 @@ export default function Home() {
             </Link>
             <Link href="#modules">
               <Button size="lg" variant="outline" className="gap-2 text-base px-8">
-                Explorar Modulos
+                {'Explorar M\u00f3dulos'}
               </Button>
             </Link>
           </div>
@@ -50,15 +50,15 @@ export default function Home() {
 
       <section className="max-w-7xl mx-auto px-4 py-16 border-t border-border">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-foreground mb-4">El Problema: Informacion Fragmentada en Faena</h2>
+          <h2 className="text-4xl font-bold text-foreground mb-4">{'El Problema: Informaci\u00f3n Fragmentada en Faena'}</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Sensores dispersos. Ordenes de trabajo perdidas. Repuestos no localizados. HSE desconectado. Auditoria imposible.
+            {'Sensores dispersos. \u00d3rdenes de trabajo perdidas. Repuestos no localizados. HSE desconectado. Auditor\u00eda imposible.'}
           </p>
         </div>
         <div className="grid md:grid-cols-5 gap-4">
           {[
             { icon: Cpu, label: 'Sensores aislados', desc: 'Sin integracion' },
-            { icon: Wrench, label: 'Ordenes manuales', desc: 'Sin trazabilidad' },
+            { icon: Wrench, label: '\u00d3rdenes manuales', desc: 'Sin trazabilidad' },
             { icon: Package, label: 'Bodega ciega', desc: 'Stock descontrolado' },
             { icon: Shield, label: 'HSE tardio', desc: 'Respuesta lenta' },
             { icon: FileText, label: 'Sin auditoria', desc: 'Cumplimiento manual' },
@@ -77,7 +77,7 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 py-16 border-t border-border">
         <h2 className="text-4xl font-bold text-foreground mb-12 text-center">Flujo Operacional Integrado</h2>
         <p className="text-center text-muted-foreground max-w-4xl mx-auto mb-8">
-          Evento operacional &gt; Alerta &gt; Orden de trabajo &gt; Repuestos &gt; HSE &gt; Evidencia &gt; Auditoria &gt; KPIs
+          {'Evento operacional > Alerta > Orden de trabajo > Repuestos > HSE > Evidencia > Auditor\u00eda > KPIs'}
         </p>
         <div className="grid md:grid-cols-11 gap-2 items-center">
           {[
@@ -110,11 +110,11 @@ export default function Home() {
       </section>
 
       <section id="modules" className="max-w-7xl mx-auto px-4 py-16 border-t border-border">
-        <h2 className="text-4xl font-bold text-foreground mb-12 text-center">Modulos Operacionales</h2>
+        <h2 className="text-4xl font-bold text-foreground mb-12 text-center">{'M\u00f3dulos Operacionales'}</h2>
         <div className="grid md:grid-cols-5 gap-6">
           {[
-            { icon: BarChart3, name: 'Produccion', desc: 'KPIs en tiempo real, sensores integrados' },
-            { icon: Wrench, name: 'Mantencion', desc: 'Ordenes de trabajo, preventivo, MTTR' },
+            { icon: BarChart3, name: 'Producci\u00f3n', desc: 'KPIs en tiempo real, sensores integrados' },
+            { icon: Wrench, name: 'Mantenci\u00f3n', desc: '\u00d3rdenes de trabajo, preventivo, MTTR' },
             { icon: Package, name: 'Bodega', desc: 'Stock, reorden automatico, trazabilidad' },
             { icon: Shield, name: 'HSE', desc: 'Incidentes, auditoria, cumplimiento' },
             { icon: FileText, name: 'Documentos', desc: 'Contratos, normativas, evidencia auditada' },
@@ -136,9 +136,9 @@ export default function Home() {
         <h2 className="text-4xl font-bold text-foreground mb-12 text-center">Para Cada Rol</h2>
         <div className="grid md:grid-cols-3 gap-6">
           {[
-            { role: 'Operador de terreno', items: ['Alertas en tiempo real', 'Checklists HSE', 'Ordenes de trabajo'] },
-            { role: 'Tecnico / Jefe de mantencion', items: ['MTTR optimizado', 'Stock de repuestos', 'Preventivo planificado'] },
-            { role: 'Gerencia', items: ['Dashboard KPI', 'Auditoria trazable', 'Disponibilidad de equipo'] },
+            { role: 'Operador de terreno', items: ['Alertas en tiempo real', 'Checklists HSE', '\u00d3rdenes de trabajo'] },
+            { role: 'T\u00e9cnico / Jefe de mantenci\u00f3n', items: ['MTTR optimizado', 'Stock de repuestos', 'Preventivo planificado'] },
+            { role: 'Gerencia', items: ['Dashboard KPI', 'Auditor\u00eda trazable', 'Disponibilidad de equipo'] },
           ].map((section, i) => (
             <Card key={i} className="border-border bg-card">
               <CardHeader>
@@ -165,7 +165,7 @@ export default function Home() {
           {[
             { metric: '+15%', label: 'Disponibilidad de equipos' },
             { metric: '-40%', label: 'MTTR promedio' },
-            { metric: '-25%', label: 'Costos de mantencion' },
+            { metric: '-25%', label: 'Costos de mantenci\u00f3n' },
             { metric: '100%', label: 'Trazabilidad auditada' },
           ].map((item, i) => (
             <Card key={i} className="border-border bg-card text-center">
@@ -181,9 +181,9 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 py-20 border-t border-border text-center">
         <h2 className="text-4xl font-bold text-foreground mb-6">Listo para transformar tu operacion</h2>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-          Conecta produccion, mantencion, bodega, HSE, documentos y gerencia en una sola plataforma trazable.
+          {'Conecta producci\u00f3n, mantenci\u00f3n, bodega, HSE, documentos y gerencia en una sola plataforma trazable.'}
         </p>
-        <Link href="/auth/login">
+        <Link href="/login">
           <Button size="lg" className="gap-2 bg-[var(--brand-cobre)] hover:bg-[var(--brand-cobre)]/90 text-base px-8">
             Solicitar Demo
             <ArrowRight className="h-4 w-4" />

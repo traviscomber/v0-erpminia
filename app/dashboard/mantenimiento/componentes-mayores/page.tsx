@@ -2,7 +2,7 @@ import { ComponentesMayoresBoard } from '@/components/maintenance/componentes-ma
 
 export const metadata = {
   title: 'Componentes mayores',
-  description: 'Estado real de componentes mayores por vehiculo',
+  description: 'Estado real de componentes mayores por vehículo',
 };
 
 export default function MantenimientoComponentesMayoresPage() {

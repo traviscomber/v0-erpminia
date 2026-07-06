@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { useMemo, useRef, useState, type DragEvent, type RefObject } from 'react';
@@ -22,8 +22,8 @@ function buildTemplateCsv(mode: ImportMode) {
   if (mode === 'audits') {
     const headers = ['AUDIT_NAME', 'CATEGORY', 'COMPLIANCE_STATUS', 'AUDITOR', 'EVIDENCE_COUNT'];
     const rows = [
-      ['Auditoria ISO 45001 julio', 'ISO', 'in_progress', 'Maria Perez', '3'],
-      ['Revision SERNAGEOMIN Q3', 'SERNAGEOMIN', 'compliant', 'Carlos Diaz', '5'],
+      ['Auditoría ISO 45001 julio', 'ISO', 'in_progress', 'Maria Perez', '3'],
+      ['Revisión SERNAGEOMIN Q3', 'SERNAGEOMIN', 'compliant', 'Carlos Diaz', '5'],
     ];
     return [headers, ...rows]
       .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(';'))
@@ -32,8 +32,8 @@ function buildTemplateCsv(mode: ImportMode) {
 
   const headers = ['TITLE', 'DESCRIPTION', 'EVENT_TYPE', 'DUE_DATE', 'FREQUENCY', 'NEXT_DATE', 'STATUS'];
   const rows = [
-    ['Revision legal de permisos', 'Control mensual de vencimientos', 'legal', '2026-07-15', 'monthly', '2026-08-15', 'pending'],
-    ['Auditoria interna HSE', 'Preparacion de hallazgos y evidencia', 'audit', '2026-07-20', 'quarterly', '2026-10-20', 'completed'],
+    ['Revisión legal de permisos', 'Control mensual de vencimientos', 'legal', '2026-07-15', 'monthly', '2026-08-15', 'pending'],
+    ['Auditoría interna HSE', 'Preparación de hallazgos y evidencia', 'audit', '2026-07-20', 'quarterly', '2026-10-20', 'completed'],
   ];
 
   return [headers, ...rows]
@@ -52,14 +52,14 @@ export default function ComplianceImportPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const currentResult = result[activeMode];
-  const modeTitle = useMemo(() => (activeMode === 'audits' ? 'auditorias de cumplimiento' : 'eventos de cumplimiento'), [activeMode]);
+  const modeTitle = useMemo(() => (activeMode === 'audits' ? 'auditorías de cumplimiento' : 'eventos de cumplimiento'), [activeMode]);
 
   const downloadTemplate = () => {
     const blob = new Blob([buildTemplateCsv(activeMode)], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
-    anchor.download = activeMode === 'audits' ? 'plantilla-auditorias-compliance.csv' : 'plantilla-eventos-compliance.csv';
+    anchor.download = activeMode === 'audits' ? 'plantilla-auditorías-compliance.csv' : 'plantilla-eventos-compliance.csv';
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
@@ -132,7 +132,7 @@ export default function ComplianceImportPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Importar compliance</h1>
           <p className="mt-2 text-muted-foreground">
-            Carga auditorias y eventos de cumplimiento desde CSV/XLS/XLSX usando los mismos contratos reales del modulo.
+            Carga auditorías y eventos de cumplimiento desde CSV/XLS/XLSX usando los mismos contratos reales del módulo.
           </p>
         </div>
         <Button asChild variant="outline" className="gap-2">
@@ -145,14 +145,14 @@ export default function ComplianceImportPage() {
 
       <Tabs value={activeMode} onValueChange={(value) => setActiveMode(value as ImportMode)}>
         <TabsList>
-          <TabsTrigger value="audits">Auditorias</TabsTrigger>
+          <TabsTrigger value="audits">Auditorías</TabsTrigger>
           <TabsTrigger value="events">Eventos</TabsTrigger>
         </TabsList>
 
         <TabsContent value="audits" className="mt-4">
           <ImportPanel
-            title="Importar auditorias de cumplimiento"
-            description="Carga auditorias ISO 45001, SERNAGEOMIN u otras revisiones de cumplimiento."
+            title="Importar auditorías de cumplimiento"
+            description="Carga auditorías ISO 45001, SERNAGEOMIN u otras revisiones de cumplimiento."
             activeMode="audits"
             modeTitle={modeTitle}
             downloadTemplate={downloadTemplate}
@@ -170,7 +170,7 @@ export default function ComplianceImportPage() {
         <TabsContent value="events" className="mt-4">
           <ImportPanel
             title="Importar eventos de cumplimiento"
-            description="Carga vencimientos legales, auditorias planificadas y controles programados desde Excel."
+            description="Carga vencimientos legales, auditorías planificadas y controles programados desde Excel."
             activeMode="events"
             modeTitle={modeTitle}
             downloadTemplate={downloadTemplate}
@@ -286,7 +286,7 @@ function ImportPanel({
             <>
               <p>Campos obligatorios: `AUDIT_NAME`.</p>
               <p>Campos recomendados: `CATEGORY`, `COMPLIANCE_STATUS`, `AUDITOR`, `EVIDENCE_COUNT`.</p>
-              <p>Si repites auditoria y categoria, el sistema actualiza el registro existente.</p>
+              <p>Si repites auditoría y categoría, el sistema actualiza el registro existente.</p>
             </>
           ) : (
             <>
@@ -317,3 +317,5 @@ function ImportPanel({
     </div>
   );
 }
+
+

@@ -136,7 +136,7 @@ export default function ComprasDocumentosPage() {
         <div>
           <h1 className="text-3xl font-bold">Documentos de Compras</h1>
           <p className="mt-2 text-muted-foreground">
-            Gestiona ordenes, respaldos, cotizaciones, contratos y anexos del modulo de compras.
+            Gestiona órdenes, respaldos, cotizaciones, contratos y anexos del módulo de compras.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -185,7 +185,7 @@ export default function ComprasDocumentosPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center justify-between text-sm font-medium">
-              <span>En revision</span>
+               <span>En revisión</span>
               <Clock className="h-4 w-4 text-yellow-500" />
             </CardTitle>
           </CardHeader>
@@ -204,7 +204,7 @@ export default function ComprasDocumentosPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-red-500">{stats.rechazados}</p>
-            <p className="text-xs text-muted-foreground">pendientes de correccion</p>
+            <p className="text-xs text-muted-foreground">Pendientes de corrección</p>
           </CardContent>
         </Card>
       </div>
@@ -218,7 +218,7 @@ export default function ComprasDocumentosPage() {
             Vigentes
           </TabsTrigger>
           <TabsTrigger value="revision" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-            En revision
+             En revisión
           </TabsTrigger>
           <TabsTrigger value="upload" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             Subir documentos

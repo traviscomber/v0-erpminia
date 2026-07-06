@@ -198,7 +198,7 @@ export function MaintenanceHistoryBoard() {
         <CardHeader className="space-y-3">
           <CardTitle className="flex items-center gap-2">
             <Filter className="h-4 w-4" />
-            Buscar equipo o mantencion
+            Buscar equipo o mantención
           </CardTitle>
           <Input
             value={searchTerm}

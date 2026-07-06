@@ -378,9 +378,9 @@ export default function LegalPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Modulo Legal</h1>
+        <h1 className="text-3xl font-bold text-foreground">Módulo Legal</h1>
         <p className="mt-2 max-w-3xl text-muted-foreground">
-          Vista ejecutiva para documentos, contratos y cumplimiento normativo, con foco en respaldo, vencimientos y revision.
+          Vista ejecutiva para documentos, contratos y cumplimiento normativo, con foco en respaldo, vencimientos y revisión.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <Button asChild variant="outline">
@@ -443,11 +443,11 @@ export default function LegalPage() {
 
         <Card className="border-primary/30 bg-primary/5">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-primary">Pendientes de revision</CardTitle>
+            <CardTitle className="text-sm font-medium text-primary">Pendientes de revisión</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-primary">{pendingReviewCount}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Contratos en cola de validacion</p>
+            <p className="mt-1 text-xs text-muted-foreground">Contratos en cola de validación</p>
           </CardContent>
         </Card>
 
@@ -474,9 +474,9 @@ export default function LegalPage() {
 
       <Card className="border-border/70 bg-card/90">
         <CardHeader>
-          <CardTitle>Acceso rapido al flujo documental</CardTitle>
+          <CardTitle>Acceso rápido al flujo documental</CardTitle>
           <CardDescription>
-            Legal trabaja conectado a mantenimiento, bodega y telemetria para cerrar trazabilidad.
+            Legal trabaja conectado a mantenimiento, bodega y telemetría para cerrar trazabilidad.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -495,7 +495,7 @@ export default function LegalPage() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/telemetria">
-                Telemetria
+                Telemetría
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -520,7 +520,7 @@ export default function LegalPage() {
           <CardContent className="flex items-center justify-between gap-4 pt-6">
             <div className="flex items-center gap-3 text-sm">
               <AlertCircle className="h-4 w-4 text-destructive" />
-              <span>No fue posible cargar una parte del modulo legal.</span>
+              <span>No fue posible cargar una parte del módulo legal.</span>
             </div>
             <Button
               variant="outline"
@@ -558,7 +558,7 @@ export default function LegalPage() {
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <CardTitle>Documentos legales</CardTitle>
-                  <CardDescription>Politicas, procedimientos, protocolos y respaldo regulatorio.</CardDescription>
+                  <CardDescription>Políticas, procedimientos, protocolos y respaldo regulatorio.</CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
                   <AddDocumentModal onSubmit={handleAddDocument} />
@@ -578,7 +578,7 @@ export default function LegalPage() {
               <div className="space-y-3">
                 {legalDocs.length === 0 && (
                   <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
-                    No hay documentos legales cargados todavia.
+                    No hay documentos legales cargados todavía.
                   </div>
                 )}
 
@@ -592,7 +592,7 @@ export default function LegalPage() {
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-medium">{doc.title}</p>
                         <p className="truncate text-xs text-muted-foreground">
-                          {(doc.documentType || 'Documento').replace(/_/g, ' ')} - {doc.description || 'Sin descripcion'}
+                          {(doc.documentType || 'Documento').replace(/_/g, ' ')} - {doc.description || 'Sin descripción'}
                         </p>
                       </div>
                     </div>
@@ -636,7 +636,7 @@ export default function LegalPage() {
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <CardTitle>Contratos vigentes</CardTitle>
-                  <CardDescription>Seguimiento de contratos activos y vencimientos proximos.</CardDescription>
+                  <CardDescription>Seguimiento de contratos activos y vencimientos próximos.</CardDescription>
                 </div>
                 <AddContractModal onSubmit={handleAddContract} />
               </div>
@@ -676,7 +676,7 @@ export default function LegalPage() {
                       <li key={item.id}>{item.title}</li>
                     ))}
                     {(compliance.contracts_pending_review || []).length === 0 && (
-                      <li>No hay contratos pendientes de revision.</li>
+                      <li>No hay contratos pendientes de revisión.</li>
                     )}
                   </ul>
                 </div>

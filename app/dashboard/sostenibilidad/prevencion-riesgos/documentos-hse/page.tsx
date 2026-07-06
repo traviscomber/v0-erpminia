@@ -35,7 +35,7 @@ export default function DocumentosHSEPage() {
       const response = await fetch('/api/documents/list?module=prevenci%C3%B3n&category=documentos-hse', {
         credentials: 'include',
       });
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
       const docs = Array.isArray(data?.documents) ? data.documents : Array.isArray(data) ? data : [];
 
       setDocuments(docs);
@@ -127,7 +127,7 @@ export default function DocumentosHSEPage() {
         <div>
           <h1 className="text-3xl font-bold">Documentos HSE</h1>
           <p className="mt-2 text-muted-foreground">
-            Gestion de politicas, procedimientos, instructivos y programas de seguridad
+            Gestión de políticas, procedimientos, instructivos y programas de seguridad
           </p>
         </div>
         <Button asChild variant="outline">
@@ -168,7 +168,7 @@ export default function DocumentosHSEPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center justify-between text-sm font-medium">
-              <span>En revision</span>
+              <span>En revisión</span>
               <Clock className="h-4 w-4 text-yellow-500" />
             </CardTitle>
           </CardHeader>
@@ -187,7 +187,7 @@ export default function DocumentosHSEPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-red-500">{stats.rechazados}</p>
-            <p className="text-xs text-muted-foreground">pendientes de correccion</p>
+            <p className="text-xs text-muted-foreground">Pendientes de corrección</p>
           </CardContent>
         </Card>
       </div>
@@ -200,8 +200,8 @@ export default function DocumentosHSEPage() {
           <TabsTrigger value="vigentes" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             Vigentes ({vigentesDocs.length})
           </TabsTrigger>
-          <TabsTrigger value="Revision" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-            En revision ({revisionDocs.length})
+            <TabsTrigger value="Revision" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+             En revisión ({revisionDocs.length})
           </TabsTrigger>
           <TabsTrigger value="upload" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             Subir
@@ -243,7 +243,7 @@ export default function DocumentosHSEPage() {
             <CardHeader>
               <CardTitle>Subir nuevo documento</CardTitle>
               <CardDescription>
-                Sube documentos HSE: politicas, procedimientos, instructivos y programas de seguridad
+                Sube documentos HSE: políticas, procedimientos, instructivos y programas de seguridad
               </CardDescription>
             </CardHeader>
             <CardContent>

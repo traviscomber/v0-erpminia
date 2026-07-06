@@ -78,7 +78,7 @@ export default function PermisosLicenciasPage() {
         <div>
           <h1 className="text-3xl font-bold">Permisos y licencias</h1>
           <p className="mt-2 max-w-2xl text-muted-foreground">
-            Vista dedicada para permisos, licencias y autorizaciones criticas del proyecto.
+            Vista dedicada para permisos, licencias y autorizaciones críticas del proyecto.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -140,7 +140,7 @@ export default function PermisosLicenciasPage() {
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm text-muted-foreground">
               <Clock className="h-4 w-4" />
-              Proximos a vencer
+              Próximos a vencer
             </CardTitle>
           </CardHeader>
           <CardContent>

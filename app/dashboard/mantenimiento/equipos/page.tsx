@@ -99,9 +99,9 @@ export default function EquiposPage() {
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <h1 className="text-3xl font-bold">Maquinaria y equipos</h1>
-          <p className="text-muted-foreground">Catastro operativo con importacion Excel y filtrado por criticidad.</p>
+          <p className="text-muted-foreground">Catastro operativo con importación Excel y filtrado por criticidad.</p>
           <p className="mt-2 text-sm text-muted-foreground">
-            La reimportacion actualiza por CODIGO normalizado para evitar duplicados por mayusculas, espacios o variantes de formato.
+            La reimportación actualiza por CÓDIGO normalizado para evitar duplicados por mayúsculas, espacios o variantes de formato.
           </p>
         </div>
         <div className="flex gap-2">
@@ -124,7 +124,7 @@ export default function EquiposPage() {
 
       <Card className="border-border/70 bg-card/80">
         <CardHeader>
-          <CardTitle>Importacion operativa de equipos</CardTitle>
+          <CardTitle>Importación operativa de equipos</CardTitle>
           <CardDescription>
             La carga masiva se ejecuta desde la ruta dedicada para mantener esta vista enfocada en consulta, filtros y seguimiento.
           </CardDescription>
@@ -162,7 +162,7 @@ export default function EquiposPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">En mantencion</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground">En mantención</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{summary.maintenance || 0}</div>
@@ -232,7 +232,7 @@ export default function EquiposPage() {
                     <h3 className="font-semibold">{item.assetName || 'Sin nombre'}</h3>
                   </div>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    {item.assetCode || 'Sin codigo'} · {item.assetType || 'equipment'}
+                    {item.assetCode || 'Sin código'} · {item.assetType || 'equipment'}
                   </p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     <Badge variant="outline">{item.status || 'active'}</Badge>

@@ -59,15 +59,14 @@ interface CalendarEvent {
   estado: 'programado' | 'completado' | 'cancelado' | 'en_progreso';
   prioridad: 'alta' | 'media' | 'baja';
 }
-
 const EVENT_TYPES: Record<string, { label: string; color: string; dot: string; icon: React.ElementType }> = {
-  inspeccion_interna: { label: 'Inspeccion Interna', color: 'bg-blue-500/15 text-blue-400 border-blue-500/30', dot: 'bg-blue-400', icon: ClipboardCheck },
-  inspeccion_externa: { label: 'Inspeccion Externa', color: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30', dot: 'bg-cyan-400', icon: ClipboardCheck },
-  capacitacion: { label: 'Capacitacion', color: 'bg-green-500/15 text-green-400 border-green-500/30', dot: 'bg-green-400', icon: GraduationCap },
-  auditoria: { label: 'Auditoria', color: 'bg-purple-500/15 text-purple-400 border-purple-500/30', dot: 'bg-purple-400', icon: ShieldAlert },
+  inspeccion_interna: { label: 'Inspección Interna', color: 'bg-blue-500/15 text-blue-400 border-blue-500/30', dot: 'bg-blue-400', icon: ClipboardCheck },
+  inspeccion_externa: { label: 'Inspección Externa', color: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30', dot: 'bg-cyan-400', icon: ClipboardCheck },
+  capacitacion: { label: 'Capacitación', color: 'bg-green-500/15 text-green-400 border-green-500/30', dot: 'bg-green-400', icon: GraduationCap },
+  auditoria: { label: 'Auditoría', color: 'bg-purple-500/15 text-purple-400 border-purple-500/30', dot: 'bg-purple-400', icon: ShieldAlert },
   monitoreo: { label: 'Monitoreo Ambiental', color: 'bg-teal-500/15 text-teal-400 border-teal-500/30', dot: 'bg-teal-400', icon: Leaf },
   legal: { label: 'Vencimiento Legal', color: 'bg-red-500/15 text-red-400 border-red-500/30', dot: 'bg-red-400', icon: Gavel },
-  reunion: { label: 'Reunion', color: 'bg-amber-500/15 text-amber-400 border-amber-500/30', dot: 'bg-amber-400', icon: Coffee },
+  reunion: { label: 'Reunión', color: 'bg-amber-500/15 text-amber-400 border-amber-500/30', dot: 'bg-amber-400', icon: Coffee },
   tarea: { label: 'Tarea', color: 'bg-slate-500/15 text-slate-400 border-slate-500/30', dot: 'bg-slate-400', icon: BarChart2 },
 };
 
@@ -84,7 +83,7 @@ const STATUS_BADGE: Record<string, string> = {
   cancelado: 'bg-slate-500/15 text-slate-400',
 };
 
-const WEEKDAYS = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'];
+const WEEKDAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
 const BLANK_FORM = {
   titulo: '',
@@ -98,7 +97,12 @@ const BLANK_FORM = {
   prioridad: 'media',
 };
 
-const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((r) => r.json());
+const fetcher = async (url: string) => {
+  const response = await fetch(url, { credentials: 'include' });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) return null;
+  return payload;
+};
 
 export default function CalendarioPage() {
   const today = new Date();
@@ -208,7 +212,7 @@ export default function CalendarioPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Calendario de Sostenibilidad</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Inspecciones, auditorias, capacitaciones y vencimientos legales</p>
+          <p className="text-sm text-muted-foreground mt-0.5">Inspecciones, auditorías, capacitaciones y vencimientos legales</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline">
@@ -244,8 +248,8 @@ export default function CalendarioPage() {
               <form onSubmit={handleSubmit} className="space-y-4 mt-2">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="col-span-2">
-                    <Label htmlFor="titulo">Titulo *</Label>
-                    <Input id="titulo" name="titulo" value={formData.titulo} onChange={handleInput} placeholder="Ej: Inspeccion EPP sector norte" required />
+                    <Label htmlFor="titulo">Título *</Label>
+                    <Input id="titulo" name="titulo" value={formData.titulo} onChange={handleInput} placeholder="Ej: Inspección EPP sector norte" required />
                   </div>
                   <div>
                     <Label>Tipo de Evento</Label>
@@ -274,11 +278,11 @@ export default function CalendarioPage() {
                     <Input id="fecha_inicio" type="date" name="fecha_inicio" value={formData.fecha_inicio} onChange={handleInput} required />
                   </div>
                   <div>
-                    <Label htmlFor="fecha_fin">Proxima fecha</Label>
+                    <Label htmlFor="fecha_fin">Próxima fecha</Label>
                     <Input id="fecha_fin" type="date" name="fecha_fin" value={formData.fecha_fin} onChange={handleInput} />
                   </div>
                   <div>
-                    <Label htmlFor="ubicacion">Ubicacion</Label>
+                    <Label htmlFor="ubicacion">Ubicación</Label>
                     <Input id="ubicacion" name="ubicacion" value={formData.ubicacion} onChange={handleInput} placeholder="Sector / Sala" />
                   </div>
                   <div>
@@ -286,7 +290,7 @@ export default function CalendarioPage() {
                     <Input id="responsable" name="responsable" value={formData.responsable} onChange={handleInput} placeholder="Nombre responsable" />
                   </div>
                   <div className="col-span-2">
-                    <Label htmlFor="descripcion">Descripcion</Label>
+                    <Label htmlFor="descripcion">Descripción</Label>
                     <textarea
                       id="descripcion"
                       name="descripcion"
@@ -312,7 +316,7 @@ export default function CalendarioPage() {
         {[
           { label: 'Total eventos', value: stats.total, color: 'text-foreground' },
           { label: 'Este mes', value: stats.thisMonth, color: 'text-blue-400' },
-          { label: 'Proximos 7 dias', value: stats.upcoming7, color: 'text-amber-400' },
+          { label: 'Próximos 7 días', value: stats.upcoming7, color: 'text-amber-400' },
           { label: 'Prioridad alta', value: stats.alta, color: 'text-red-400' },
           { label: 'Vencidos', value: stats.overdue, color: 'text-red-400' },
         ].map((item) => (
@@ -440,7 +444,7 @@ export default function CalendarioPage() {
                     {selectedDay ? (
                       <>{selectedDay} de {currentDate.toLocaleDateString('es-CL', { month: 'long' })}</>
                     ) : (
-                      <><AlertTriangle className="w-4 h-4 text-amber-400" />Proximos eventos</>
+                      <><AlertTriangle className="w-4 h-4 text-amber-400" />Próximos eventos</>
                     )}
                   </CardTitle>
                   <div className="flex items-center gap-1">

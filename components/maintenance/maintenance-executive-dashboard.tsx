@@ -139,7 +139,7 @@ export function MaintenanceExecutiveDashboard() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard gerencial de mantencion</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard gerencial de mantención</h1>
           <p className="mt-2 max-w-2xl text-muted-foreground">
             Vista ejecutiva real para gerencia: estado del dia, riesgos, costos, OT criticas y foco operativo en una sola pantalla.
           </p>
@@ -154,7 +154,7 @@ export function MaintenanceExecutiveDashboard() {
           <Button asChild variant="outline" className="gap-2">
             <Link href="/dashboard/mantenimiento/movil">
               <Smartphone className="h-4 w-4" />
-              Vista movil
+              Vista móvil
             </Link>
           </Button>
           <Button asChild variant="outline" className="gap-2">
@@ -225,7 +225,7 @@ export function MaintenanceExecutiveDashboard() {
                 <p className="text-2xl font-bold text-green-500">{activeAssets}</p>
               </div>
               <div className="rounded-lg border border-border p-3">
-                <p className="text-xs text-muted-foreground">En mantencion</p>
+                <p className="text-xs text-muted-foreground">En mantención</p>
                 <p className="text-2xl font-bold text-blue-500">{maintenanceAssets}</p>
               </div>
               <div className="rounded-lg border border-border p-3">
@@ -370,7 +370,7 @@ export function MaintenanceExecutiveDashboard() {
               </Button>
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/personal">
-                  Personal mantencion
+                  Personal mantención
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>

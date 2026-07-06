@@ -1,7 +1,7 @@
 import { MaintenanceMobilePanel } from '@/components/maintenance/maintenance-mobile-panel';
 
 export const metadata = {
-  title: 'Panel movil de mantencion',
+  title: 'Panel móvil de mantenimiento',
   description: 'Vista rapida para terreno y tecnicos',
 };
 

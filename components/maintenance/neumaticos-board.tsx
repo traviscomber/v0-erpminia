@@ -50,8 +50,8 @@ export function NeumaticosBoard() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Gestion de neumaticos</h1>
-          <p className="mt-2 text-muted-foreground">Stock real de neumaticos, llantas y repuestos asociados en bodega.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Gestión de neumáticos</h1>
+          <p className="mt-2 text-muted-foreground">Stock real de neumáticos, llantas y repuestos asociados en bodega.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline" className="gap-2">
@@ -78,20 +78,20 @@ export function NeumaticosBoard() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Truck className="h-4 w-4" />
-            Detalle de neumaticos
+            Detalle de neumáticos
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {isLoading ? (
-            <div className="text-sm text-muted-foreground">Cargando neumaticos...</div>
+            <div className="text-sm text-muted-foreground">Cargando neumáticos...</div>
           ) : error ? (
             <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
               <AlertCircle className="h-4 w-4" />
-              No fue posible cargar la gestion de neumaticos.
+              No fue posible cargar la gestión de neumáticos.
             </div>
           ) : items.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-              No hay neumaticos detectados en la base real.
+              No hay neumáticos detectados en la base real.
             </div>
           ) : (
             items.map((item) => (

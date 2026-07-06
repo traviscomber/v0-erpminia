@@ -26,7 +26,7 @@ export default function CarpetaArranquePage() {
   const fetchStats = useCallback(async () => {
     const res = await fetch('/api/carpeta-arranque', { credentials: 'include' });
     if (!res.ok) return;
-    const data = await res.json();
+    const data = await res.json().catch(() => null);
     const carpetas: Array<{ status: string }> = data.carpetas || [];
     setStats({
       total: carpetas.length,
@@ -52,7 +52,7 @@ export default function CarpetaArranquePage() {
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
         <h1 className="text-3xl font-bold tracking-tight">Carpeta de Arranque</h1>
-        <p className="text-muted-foreground">Sistema de validacion de documentos para empresas contratistas (EECC)</p>
+        <p className="text-muted-foreground">Sistema de validación de documentos para empresas contratistas (EECC)</p>
         </div>
         <div className="flex gap-2">
           <Button asChild variant="outline" className="gap-2">
@@ -93,7 +93,7 @@ export default function CarpetaArranquePage() {
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm font-medium">
               <CircleDot className="h-4 w-4 text-blue-500" />
-              En revision
+              En revisión
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -127,8 +127,8 @@ export default function CarpetaArranquePage() {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="mis-carpetas">Mis Carpetas</TabsTrigger>
-          <TabsTrigger value="en-revision" className="gap-2">
-            En revision
+            <TabsTrigger value="en-revision" className="gap-2">
+             En revisión
             {stats.en_revision > 0 && (
               <span className="rounded-full bg-blue-500 px-1.5 py-0.5 text-xs font-bold leading-none text-white">
                 {stats.en_revision}
@@ -164,9 +164,9 @@ export default function CarpetaArranquePage() {
 
         <TabsContent value="en-revision" className="space-y-4">
           <div>
-            <h2 className="text-lg font-semibold">Carpetas en revision</h2>
+            <h2 className="text-lg font-semibold">Carpetas en revisión</h2>
             <p className="text-sm text-muted-foreground">
-              Documentos pendientes de validacion por los revisores asignados.
+              Documentos pendientes de validación por los revisores asignados.
             </p>
           </div>
           <CarpetaArranqueList key={`rev-${listKey}`} status="en-revision" />
@@ -185,19 +185,19 @@ export default function CarpetaArranquePage() {
               <div className="space-y-2">
                 {[
                   'Certificado de afiliacion y cotizacion a Organismo Administrador',
-                  'Certificado de Accidentabilidad (ultimos 2 anos)',
+                  'Certificado de Accidentabilidad (últimos 2 años)',
                   'Reglamento interno de orden, higiene y seguridad',
                   'Copia IRL de todos sus colaboradores',
                   'Contratos de trabajos de su personal',
                   'Registro de entrega de EPP',
                   'Registro interno de la empresa contratista',
-                  'Recepcion firmada del Sistema de Gestion y Seguridad en el Trabajo',
-                  'Examenes pre-ocupacionales (ultimos 3 anos)',
+                  'Recepción firmada del Sistema de Gestión y Seguridad en el Trabajo',
+                  'Exámenes pre-ocupacionales (últimos 3 años)',
                   'Examenes ocupacionales (agentes como ruido, silice)',
                   'Documentacion de trabajadores extranjeros',
                   'Procedimientos de trabajos actualizados con NRCT',
                   'Procedimiento en caso de accidente',
-                  'Politica de empresa contratista en control de riesgos',
+                  'Política de empresa contratista en control de riesgos',
                   'Copia carnet de identidad de todos los colaboradores',
                   'Licencias de conduccion vigentes',
                   'Recepcion de conductores por reglamento interno',

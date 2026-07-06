@@ -145,8 +145,8 @@ export default function WorkOrdersPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Ordenes de trabajo</h1>
-          <p className="text-muted-foreground">Gestion de mantenimiento y seguimiento operativo con datos reales.</p>
+          <h1 className="text-3xl font-bold">{'\u00d3rdenes de trabajo'}</h1>
+          <p className="text-muted-foreground">{'Gesti\u00f3n de mantenimiento y seguimiento operativo con datos reales.'}</p>
         </div>
         <Link href="/dashboard/work-orders/create">
           <Button className="gap-2">
@@ -184,7 +184,7 @@ export default function WorkOrdersPage() {
           <CardContent className="pt-6">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Criticas</p>
+                <p className="text-sm text-muted-foreground">{'Cr\u00edticas'}</p>
                 <p className="mt-2 text-3xl font-bold text-destructive">{critical}</p>
               </div>
               <AlertCircle className="h-8 w-8 text-destructive opacity-60" />
@@ -218,12 +218,12 @@ export default function WorkOrdersPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Planificacion visual</CardTitle>
+          <CardTitle>{'Planificaci\u00f3n visual'}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="mb-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
-            <span>Vencidas y proximas primero</span>
-            <span>·</span>
+            <span>{'Vencidas y pr\u00f3ximas primero'}</span>
+            <span>{'\u00b7'}</span>
             <span>Actualiza el estado directo desde cada bloque</span>
           </div>
           {updatingScheduleId ? (
@@ -235,13 +235,13 @@ export default function WorkOrdersPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Ordenes activas</CardTitle>
+          <CardTitle>{'\u00d3rdenes activas'}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             {workOrders.length === 0 && (
               <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
-                No hay ordenes de trabajo registradas todavia
+                {'No hay \u00f3rdenes de trabajo registradas todav\u00eda'}
               </div>
             )}
 

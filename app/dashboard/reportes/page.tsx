@@ -53,7 +53,7 @@ export default function ReportesPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Reportes</h1>
         <p className="text-muted-foreground">
-          Descarga los reportes que necesitas en un solo lugar, en espanol y con foco operativo.
+          Descarga los reportes que necesitas en un solo lugar, en español y con foco operativo.
         </p>
       </div>
 

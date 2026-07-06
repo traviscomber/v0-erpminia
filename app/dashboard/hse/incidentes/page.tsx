@@ -93,7 +93,7 @@ export default function HSEIncidentsPage() {
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Incidentes HSE</h1>
-          <p className="text-muted-foreground">Registro e importacion masiva de incidentes operacionales.</p>
+          <p className="text-muted-foreground">Registro e importación masiva de incidentes operacionales.</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={downloadTemplate}>
@@ -153,9 +153,9 @@ export default function HSEIncidentsPage() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4 text-[var(--brand-rojo)]" />
-                    <h3 className="font-semibold">{item.title || 'Sin titulo'}</h3>
+                    <h3 className="font-semibold">{item.title || 'Sin título'}</h3>
                   </div>
-                  <p className="mt-2 text-sm text-muted-foreground">{item.description || 'Sin descripcion'}</p>
+                  <p className="mt-2 text-sm text-muted-foreground">{item.description || 'Sin descripción'}</p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     <Badge variant="outline">{item.severity || 'media'}</Badge>
                     <Badge variant="outline">{item.status || 'abierto'}</Badge>

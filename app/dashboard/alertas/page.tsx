@@ -116,7 +116,7 @@ export default function AlertasPage() {
         <div>
           <h1 className="text-4xl font-bold tracking-tight">Centro de Alertas</h1>
           <p className="mt-3 text-muted-foreground">
-            Consolidacion operativa de documentos, mantencion, bodega y sostenibilidad.
+            Consolidación operativa de documentos, mantención, bodega y sostenibilidad.
           </p>
         </div>
 
@@ -145,7 +145,7 @@ export default function AlertasPage() {
         <div>
           <h1 className="text-4xl font-bold tracking-tight">Centro de Alertas</h1>
           <p className="mt-3 text-muted-foreground">
-            Consolidacion operativa de documentos, mantencion, bodega y sostenibilidad.
+            Consolidación operativa de documentos, mantención, bodega y sostenibilidad.
           </p>
         </div>
         <Button variant="outline" onClick={() => mutate()} className="gap-2">
@@ -157,7 +157,7 @@ export default function AlertasPage() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card className="border-border">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Alertas no leidas</CardTitle>
+            <CardTitle className="text-sm font-medium">Alertas no leídas</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{unreadCount}</div>
@@ -205,7 +205,7 @@ export default function AlertasPage() {
       <Card>
         <CardHeader>
           <CardTitle>Accesos rapidos</CardTitle>
-          <CardDescription>Rutas utiles para resolver alertas sin salir del flujo operativo.</CardDescription>
+          <CardDescription>Rutas útiles para resolver alertas sin salir del flujo operativo.</CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-2 md:grid-cols-4">
           <Button asChild variant="outline" className="justify-between">
@@ -228,7 +228,7 @@ export default function AlertasPage() {
           </Button>
           <Button asChild variant="outline" className="justify-between">
             <Link href="/dashboard/documentos-gestion">
-              Gestion documental
+              Gestión documental
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>

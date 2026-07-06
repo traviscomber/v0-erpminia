@@ -172,7 +172,7 @@ export default function IAOperacionalPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Pendientes de mantencion</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Pendientes de mantención</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-[var(--brand-verde)]">{pendingMaint.length + overdueOrders.length}</div>

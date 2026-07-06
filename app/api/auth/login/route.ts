@@ -13,7 +13,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email and password required' }, { status: 400 });
     }
 
-    // Get Supabase credentials from environment
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -21,10 +20,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Server error' }, { status: 500 });
     }
 
-    // Create Supabase client with service role key
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Query profiles table directly
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('id, email, full_name, password_hash, organization_id, role')
@@ -37,34 +34,32 @@ export async function POST(request: NextRequest) {
 
     if (!profileData || profileData.length === 0) {
       console.log('[v0] User not found:', email);
-      return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
+      return NextResponse.json({ error: 'Credenciales inv\u00e1lidas' }, { status: 401 });
     }
 
     const profile = profileData[0];
 
     if (!profile.password_hash) {
       console.error('[v0] No password hash for user:', email);
-      return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
+      return NextResponse.json({ error: 'Credenciales inv\u00e1lidas' }, { status: 401 });
     }
 
-    // Verify password with bcrypt
     let passwordMatch = false;
     try {
       passwordMatch = await bcrypt.compare(password, profile.password_hash);
     } catch (err) {
       console.error('[v0] Bcrypt error:', err);
-      return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
+      return NextResponse.json({ error: 'Credenciales inv\u00e1lidas' }, { status: 401 });
     }
 
     if (!passwordMatch) {
       console.log('[v0] Password mismatch for:', email);
-      return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
+      return NextResponse.json({ error: 'Credenciales inv\u00e1lidas' }, { status: 401 });
     }
 
     console.log('[v0] Password matched for:', email);
 
-    // Get role from profile (primary source of truth for roles)
-    let role = profile.role || 'viewer';
+    const role = profile.role || 'viewer';
     console.log('[v0] User role from profile:', role);
 
     const sessionData = {
@@ -74,7 +69,7 @@ export async function POST(request: NextRequest) {
         full_name: profile.full_name,
         organization_id: profile.organization_id,
       },
-      role: role,
+      role,
       session_token: `${profile.id}-${Date.now()}`,
     };
 
@@ -90,7 +85,6 @@ export async function POST(request: NextRequest) {
       maxAge: 86400 * 7,
     });
 
-    // Also set role as a non-HttpOnly cookie so JavaScript can read it
     response.cookies.set('user_role', role, {
       httpOnly: false,
       secure: isProduction,

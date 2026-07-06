@@ -24,7 +24,9 @@ import {
 
 const fetcher = async (url: string) => {
   const response = await fetch(url, { credentials: 'include' });
-  return response.json();
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) return null;
+  return payload;
 };
 
 const COLORS = ['#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
@@ -107,7 +109,7 @@ export default function ContratosReportesPage() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-3xl font-bold">Reportes de contratos</h1>
-          <p className="text-muted-foreground">Analisis y seguimiento de pagos, garantias y regalias con data real.</p>
+          <p className="text-muted-foreground">Análisis y seguimiento de pagos, garantías y regalías con data real.</p>
         </div>
 
         <Button variant="outline" size="sm" className="w-fit">
@@ -220,7 +222,7 @@ export default function ContratosReportesPage() {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <p className="py-8 text-center text-muted-foreground">No hay datos de regalias para el periodo seleccionado.</p>
+                <p className="py-8 text-center text-muted-foreground">No hay datos de regalías para el periodo seleccionado.</p>
               )}
             </CardContent>
           </Card>

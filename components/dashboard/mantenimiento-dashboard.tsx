@@ -263,7 +263,7 @@ export function MantenimientoDashboard() {
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/telemetria">
-                Telemetria de sensores
+                Telemetría de sensores
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>

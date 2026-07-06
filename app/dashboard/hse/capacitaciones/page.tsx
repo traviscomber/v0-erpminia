@@ -111,7 +111,7 @@ export default function HSECapacitacionesPage() {
           </Button>
           <Button>
             <Plus className="mr-1 h-4 w-4" />
-            Nueva capacitacion
+            Nueva capacitación
           </Button>
         </div>
       </div>
@@ -120,7 +120,7 @@ export default function HSECapacitacionesPage() {
 
       {proximasCapacitaciones.length > 0 && (
         <div className="rounded-lg border border-[var(--secondary)]/30 bg-[var(--secondary)]/5 p-4">
-          <h3 className="mb-3 font-semibold text-blue-900">Proximas capacitaciones</h3>
+          <h3 className="mb-3 font-semibold text-blue-900">Próximas capacitaciones</h3>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
             {proximasCapacitaciones.slice(0, 3).map((cap) => (
               <div key={cap.id} className="rounded border border-blue-100 bg-white p-3">
@@ -200,7 +200,7 @@ export default function HSECapacitacionesPage() {
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar capacitacion..."
+              placeholder="Buscar capacitación..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-8"

@@ -66,8 +66,8 @@ export default function MaquinariaPage() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Maquinaria y Vehiculos</h1>
-          <p className="text-muted-foreground">Flota operacional completa extraida desde centros de costo.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Maquinaria y Vehículos</h1>
+          <p className="text-muted-foreground">Flota operacional completa extraída desde centros de costo.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" asChild>
@@ -85,9 +85,9 @@ export default function MaquinariaPage() {
 
       <Card className="border-border/70 bg-card/80">
         <CardHeader>
-          <CardTitle>Importacion operativa de maquinaria</CardTitle>
+          <CardTitle>Importación operativa de maquinaria</CardTitle>
           <CardDescription>
-            La carga y actualizacion del maestro se realiza desde una ruta dedicada para no mezclar administracion del catalogo con ingreso de archivos.
+            La carga y actualización del maestro se realiza desde una ruta dedicada para no mezclar administración del catálogo con ingreso de archivos.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
@@ -112,14 +112,14 @@ export default function MaquinariaPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold">{total}</div>
-                <p className="text-xs text-muted-foreground">{categories.length} categorias</p>
+                <p className="text-xs text-muted-foreground">{categories.length} categorías</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                   <Truck className="h-4 w-4" />
-                  Vehiculos
+                  Vehículos
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -145,7 +145,7 @@ export default function MaquinariaPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold">{activeCount}</div>
-                <p className="text-xs text-muted-foreground">Disponibles para operacion. Inactivos: {inactiveCount}</p>
+                <p className="text-xs text-muted-foreground">Disponibles para operación. Inactivos: {inactiveCount}</p>
               </CardContent>
             </Card>
           </div>
@@ -154,7 +154,7 @@ export default function MaquinariaPage() {
             <div className="relative max-w-lg">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Buscar por nombre, patente, modelo o codigo..."
+                placeholder="Buscar por nombre, patente, modelo o código..."
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 className="pl-10"
@@ -207,11 +207,11 @@ export default function MaquinariaPage() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead className="w-24">Codigo</TableHead>
+                  <TableHead className="w-24">Código</TableHead>
                   <TableHead>Nombre / Modelo</TableHead>
-                  <TableHead>Categoria</TableHead>
+                  <TableHead>Categoría</TableHead>
                   <TableHead className="w-28">Patente / Serie</TableHead>
-                  <TableHead className="w-16">Ano</TableHead>
+                  <TableHead className="w-16">Año</TableHead>
                   <TableHead className="w-24">Estado</TableHead>
                   <TableHead className="w-36 text-right">Acciones</TableHead>
                 </TableRow>
@@ -232,7 +232,7 @@ export default function MaquinariaPage() {
                 {!isLoading && visibleMachinery.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="py-12 text-center text-muted-foreground">
-                      No se encontraron equipos ni vehiculos.
+                      No se encontraron equipos ni vehículos.
                     </TableCell>
                   </TableRow>
                 ) : null}

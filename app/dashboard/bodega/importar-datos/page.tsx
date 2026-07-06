@@ -68,7 +68,7 @@ export default function BodegaImportPage() {
             <ShieldCheck className="h-5 w-5 text-[var(--secondary)]" />
             Carga segura
           </CardTitle>
-          <CardDescription>La importacion sincroniza por codigo y mantiene el resto intacto.</CardDescription>
+          <CardDescription>La importación sincroniza por código y mantiene el resto intacto.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-3">
           <div className="rounded-lg border border-border bg-background/70 p-3">
@@ -77,7 +77,7 @@ export default function BodegaImportPage() {
           </div>
           <div className="rounded-lg border border-border bg-background/70 p-3">
             <p className="text-xs text-muted-foreground">Inventario</p>
-            <p className="mt-1 font-semibold">Stock, costos y ubicacion</p>
+            <p className="mt-1 font-semibold">Stock, costos y ubicación</p>
           </div>
           <div className="rounded-lg border border-border bg-background/70 p-3">
             <p className="text-xs text-muted-foreground">Riesgo controlado</p>
@@ -110,11 +110,11 @@ export default function BodegaImportPage() {
                 <CardTitle className="text-base">Por que centros de costo</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
-                <p>Los centros de costo permiten ordenar la operacion por area y familia.</p>
+                <p>Los centros de costo permiten ordenar la operación por área y familia.</p>
                 <ul className="list-inside list-disc space-y-1 text-muted-foreground">
-                  <li>Organizar por minas y areas operacionales</li>
+                  <li>Organizar por minas y áreas operacionales</li>
                   <li>Asignar presupuestos y costos</li>
-                  <li>Generar reportes por ubicacion</li>
+                  <li>Generar reportes por ubicación</li>
                   <li>Integrar con finanzas, mantenimiento y bodega</li>
                 </ul>
               </CardContent>
@@ -153,7 +153,7 @@ export default function BodegaImportPage() {
                 <CardTitle className="text-base">Estructura del inventario</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
-                <p>El inventario se organiza en categorias principales para control operativo y compras.</p>
+                <p>El inventario se organiza en categorías principales para control operativo y compras.</p>
                 <ul className="list-inside list-disc space-y-1 text-muted-foreground">
                   <li>Acero y metalmecanica</li>
                   <li>Consumos de molienda</li>
@@ -170,7 +170,7 @@ export default function BodegaImportPage() {
               <CardContent className="space-y-2 text-sm">
                 <p>El inventario se integra con:</p>
                 <ul className="list-inside list-disc space-y-1 text-muted-foreground">
-                  <li>Ordenes de mantenimiento</li>
+                  <li>Órdenes de mantenimiento</li>
                   <li>Requisiciones de compra</li>
                   <li>Control de stock</li>
                   <li>Reportes de consumo</li>

@@ -27,7 +27,12 @@ interface MedioAmbienteRecord {
   cumplimiento: 'conforme' | 'no_conforme' | 'en_revision';
 }
 
-const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((r) => r.json());
+const fetcher = async (url: string) => {
+  const response = await fetch(url, { credentials: 'include' });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) return null;
+  return payload;
+};
 
 function normalizeCumplimiento(value: string) {
   const text = value.trim().toLowerCase();

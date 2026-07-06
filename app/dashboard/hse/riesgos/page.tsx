@@ -107,7 +107,7 @@ export default function HSERiskMatrixPage() {
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Matriz de Riesgos HSE</h1>
-          <p className="text-muted-foreground">Registro operativo, filtros rapidos e importacion masiva desde Excel.</p>
+          <p className="text-muted-foreground">Registro operativo, filtros rápidos e importación masiva desde Excel.</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={downloadTemplate}>
@@ -156,7 +156,7 @@ export default function HSERiskMatrixPage() {
           <Input
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="Buscar por titulo, peligro, ubicacion o control..."
+            placeholder="Buscar por título, peligro, ubicación o control..."
             className="pl-9"
           />
         </div>
@@ -175,7 +175,7 @@ export default function HSERiskMatrixPage() {
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-sm text-muted-foreground">
                 <ShieldAlert className="h-4 w-4" />
-                <span className="capitalize">{item.title || 'Sin titulo'}</span>
+                <span className="capitalize">{item.title || 'Sin título'}</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">

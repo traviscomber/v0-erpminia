@@ -4,7 +4,7 @@ export default function GuidesPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-4xl font-bold">Centro de Guias Educativas</h1>
+        <h1 className="text-4xl font-bold">Centro de Guías Educativas</h1>
         <p className="mt-2 text-muted-foreground">Aprende a usar cada modulo de ERP SegurIA paso a paso</p>
       </div>
 
@@ -14,7 +14,7 @@ export default function GuidesPage() {
           <p className="mb-4 text-sm text-muted-foreground">
             Aprende como crear ordenes jerarquicas desde el arbol de fallas en 6 pasos
           </p>
-          <div className="flex items-center gap-2 text-[var(--brand-naranja)]">Ir a la guia -&gt;</div>
+          <div className="flex items-center gap-2 text-[var(--brand-naranja)]">Ir a la guía -&gt;</div>
         </a>
 
         <a href="#arbol" className="rounded-lg border border-border p-6 transition-colors hover:bg-muted/50">
@@ -22,7 +22,7 @@ export default function GuidesPage() {
           <p className="mb-4 text-sm text-muted-foreground">
             Navega la estructura de componentes y modos de falla en 5 pasos
           </p>
-          <div className="flex items-center gap-2 text-[var(--brand-verde)]">Ir a la guia -&gt;</div>
+          <div className="flex items-center gap-2 text-[var(--brand-verde)]">Ir a la guía -&gt;</div>
         </a>
 
         <a href="#inventario" className="rounded-lg border border-border p-6 transition-colors hover:bg-muted/50">
@@ -30,7 +30,7 @@ export default function GuidesPage() {
           <p className="mb-4 text-sm text-muted-foreground">
             Recepcion, despacho y control de piezas de desgaste en 4 pasos
           </p>
-          <div className="flex items-center gap-2 text-[var(--brand-rojo)]">Ir a la guia -&gt;</div>
+          <div className="flex items-center gap-2 text-[var(--brand-rojo)]">Ir a la guía -&gt;</div>
         </a>
 
         <a href="#reportes" className="rounded-lg border border-border p-6 transition-colors hover:bg-muted/50">
@@ -38,7 +38,7 @@ export default function GuidesPage() {
           <p className="mb-4 text-sm text-muted-foreground">
             Interpreta metricas y toma decisiones informadas en 5 pasos
           </p>
-          <div className="flex items-center gap-2 text-[var(--brand-gold)]">Ir a la guia -&gt;</div>
+          <div className="flex items-center gap-2 text-[var(--brand-gold)]">Ir a la guía -&gt;</div>
         </a>
       </div>
 
@@ -61,7 +61,7 @@ export default function GuidesPage() {
         <div id="arbol" className="border-l-4 border-l-[var(--brand-verde)] py-6 pl-6">
           <h2 className="mb-6 text-3xl font-bold">Como Usar el Arbol de Fallas</h2>
           <ol className="space-y-4">
-            <li><strong>Paso 1:</strong> Ve a Mantencion -&gt; Gestion de Vehiculos</li>
+            <li><strong>Paso 1:</strong> Ve a Mantención -&gt; Gestión de Vehículos</li>
             <li><strong>Paso 2:</strong> Selecciona un vehiculo y haz click en "Ver Arbol de Fallas"</li>
             <li><strong>Paso 3:</strong> Expande componentes (Motor, Hidraulica) para ver detalles</li>
             <li><strong>Paso 4:</strong> Visualiza sintomas, causas y piezas de desgaste asociadas</li>
@@ -73,9 +73,9 @@ export default function GuidesPage() {
         </div>
 
         <div id="inventario" className="border-l-4 border-l-[var(--brand-rojo)] py-6 pl-6">
-          <h2 className="mb-6 text-3xl font-bold">Como Gestionar Inventario</h2>
+          <h2 className="mb-6 text-3xl font-bold">Cómo Gestionar Inventario</h2>
           <ol className="space-y-4">
-            <li><strong>Recepcion:</strong> Bodega -&gt; Recepcion -&gt; Escanea QR o busca codigo</li>
+            <li><strong>Recepción:</strong> Bodega -&gt; Recepción -&gt; Escanea QR o busca código</li>
             <li><strong>Ingreso:</strong> Cantidad, factura -&gt; El sistema asigna ubicacion y FIFO automatico</li>
             <li><strong>Despacho:</strong> Bodega -&gt; Despacho -&gt; Selecciona OT</li>
             <li><strong>Registro:</strong> El sistema lista piezas necesarias -&gt; Confirma -&gt; Se genera acta</li>
@@ -92,10 +92,10 @@ export default function GuidesPage() {
             <li><strong>Acceso:</strong> Dashboard -&gt; Seccion de Alertas muestra todos los equipos en riesgo</li>
             <li><strong>Reportes:</strong> Administracion -&gt; Reportes -&gt; Selecciona periodo</li>
             <li><strong>Metricas:</strong> OTs completadas, costo vs presupuesto, ROI preventivo vs correctivo</li>
-            <li><strong>Decisiones:</strong> Usa los datos para optimizar la frecuencia de mantencion preventiva</li>
+            <li><strong>Decisiones:</strong> Usa los datos para optimizar la frecuencia de mantención preventiva</li>
           </ol>
           <p className="mt-6 rounded bg-[var(--secondary)]/5 p-4 text-sm dark:bg-yellow-950">
-            Dato: La mantencion preventiva cuesta 30-50% menos que la correctiva por una parada inesperada.
+            Dato: La mantención preventiva cuesta 30-50% menos que la correctiva por una parada inesperada.
           </p>
         </div>
       </div>

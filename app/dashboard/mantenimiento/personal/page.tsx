@@ -1,8 +1,8 @@
 import { MaintenancePersonnelBoard } from '@/components/maintenance/maintenance-personnel-board';
 
 export const metadata = {
-  title: 'Personal de mantencion',
-  description: 'Horas y tecnicos reales del modulo de mantenimiento',
+  title: 'Personal de mantenimiento',
+  description: 'Horas y técnicos reales del módulo de mantenimiento',
 };
 
 export default function MaintenancePersonnelPage() {

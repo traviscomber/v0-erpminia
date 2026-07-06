@@ -35,7 +35,7 @@ const fetcher = async (url: string) => {
 };
 
 function categoryForItem(item: InventoryItem) {
-  return canonicalCategory(item.part_category) || 'Sin categoria';
+  return canonicalCategory(item.part_category) || 'Sin categoría';
 }
 
 function formatCurrency(value: number) {
@@ -197,7 +197,7 @@ export default function InventarioPage() {
 
         <Card className="border-border">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Categorias visibles</CardTitle>
+            <CardTitle className="text-sm font-medium">Categorías visibles</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{categoriesCount}</div>
@@ -209,7 +209,7 @@ export default function InventarioPage() {
       <Card className="border-border">
         <CardHeader className="pb-4">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <CardTitle>Articulos de inventario</CardTitle>
+            <CardTitle>Artículos de inventario</CardTitle>
             <Button className="w-full md:w-auto" disabled>
               <Plus className="mr-2 h-4 w-4" />
               Nuevo articulo
@@ -222,7 +222,7 @@ export default function InventarioPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar por nombre, codigo o categoria..."
+                placeholder="Buscar por nombre, código o categoría..."
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
                 className="bg-input pl-10"
@@ -239,7 +239,7 @@ export default function InventarioPage() {
               <TableHeader className="bg-muted/50">
                 <TableRow className="border-border">
                   <TableHead className="font-semibold">Articulo</TableHead>
-                  <TableHead className="font-semibold">Categoria</TableHead>
+                  <TableHead className="font-semibold">Categoría</TableHead>
                   <TableHead className="text-center font-semibold">Stock</TableHead>
                   <TableHead className="text-right font-semibold">Valor unitario</TableHead>
                   <TableHead className="text-right font-semibold">Valor total</TableHead>
@@ -328,11 +328,11 @@ export default function InventarioPage() {
           <CardContent className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-muted-foreground">Codigo</p>
+                <p className="text-sm text-muted-foreground">Código</p>
                 <p className="font-semibold">{selectedItem.part_code || selectedItem.id}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Categoria</p>
+                <p className="text-sm text-muted-foreground">Categoría</p>
                 <p className="font-semibold">{categoryForItem(selectedItem)}</p>
               </div>
               <div>
@@ -360,7 +360,7 @@ export default function InventarioPage() {
                 <p className="font-semibold">{formatCurrency(selectedItem.quantity_on_hand * selectedItem.unit_cost)}</p>
               </div>
               <div className="col-span-2">
-                <p className="text-sm text-muted-foreground">Ubicacion</p>
+                <p className="text-sm text-muted-foreground">Ubicación</p>
                 <p className="font-semibold">{selectedItem.bin?.bin_location || selectedItem.bin?.bin_code || 'Sin bin asignado'}</p>
               </div>
             </div>

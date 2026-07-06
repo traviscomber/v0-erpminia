@@ -57,7 +57,7 @@ export default function HSEKPIsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">KPIs de Seguridad y Prevencion</h1>
-        <p className="text-muted-foreground">Indicadores HSE de los ultimos 12 meses calculados sobre incidentes reales.</p>
+        <p className="text-muted-foreground">Indicadores HSE de los últimos 12 meses calculados sobre incidentes reales.</p>
       </div>
 
       {!cumpleMeta && (
@@ -117,7 +117,7 @@ export default function HSEKPIsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Comparativa historica (ultimos 6 meses)</CardTitle>
+          <CardTitle>Comparativa histórica (últimos 6 meses)</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">

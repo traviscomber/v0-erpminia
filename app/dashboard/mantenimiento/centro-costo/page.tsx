@@ -2,7 +2,7 @@ import { MaintenanceDashboardByCC } from '@/components/dashboard/maintenance-das
 
 export const metadata = {
   title: 'Mantenimiento por Centro de Costos',
-  description: 'Ordenes de mantenimiento agrupadas por centro de costos',
+  description: 'Órdenes de mantenimiento agrupadas por centro de costos',
 };
 
 export default function MantenimientoByCC() {

@@ -114,7 +114,7 @@ export default function KPIDashboardPage() {
       value: kpisData.operating_equipment || 0,
       unit: 'equipos',
       status: (kpisData.operating_equipment || 0) > 80 ? 'success' : 'warning',
-      description: 'Equipos en operacion',
+      description: 'Equipos en operación',
       trend: 'up',
       change: 5,
     },
@@ -199,7 +199,7 @@ export default function KPIDashboardPage() {
         <div>
           <h1 className="text-3xl font-bold">Dashboard de KPIs Mineros</h1>
           <p className="mt-2 text-muted-foreground">
-            8 KPIs criticos de operacion minera con visualizacion en vivo y analisis de tendencias.
+            8 KPIs críticos de operación minera con visualización en vivo y análisis de tendencias.
           </p>
         </div>
         <Button variant="outline" onClick={handleRefresh} className="gap-2">
@@ -239,7 +239,7 @@ export default function KPIDashboardPage() {
         <Card className="border-white/10 bg-white/5 backdrop-blur-md">
           <CardHeader>
             <CardTitle>Tendencias semanales</CardTitle>
-            <CardDescription>Seguimiento de KPIs clave en las ultimas 4 semanas</CardDescription>
+            <CardDescription>Seguimiento de KPIs clave en las últimas 4 semanas</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -304,16 +304,16 @@ export default function KPIDashboardPage() {
             <div className="flex items-start gap-3 rounded-lg border border-[var(--brand-gold)]/50 bg-[var(--brand-gold)]/15 p-4 backdrop-blur-md">
               <AlertCircle className="mt-0.5 h-5 w-5 text-[var(--brand-gold)]" />
               <div>
-                <p className="text-sm font-semibold text-[var(--brand-gold)]">Operacion</p>
-                <p className="text-xs text-gray-300">2 equipos en mantencion. MTBF bajo meta. 3 repuestos en stock critico.</p>
+                <p className="text-sm font-semibold text-[var(--brand-gold)]">Operación</p>
+                <p className="text-xs text-gray-300">2 equipos en mantención. MTBF bajo meta. 3 repuestos en stock crítico.</p>
               </div>
             </div>
 
             <div className="flex items-start gap-3 rounded-lg border border-[var(--brand-naranja)]/50 bg-[var(--brand-naranja)]/15 p-4 backdrop-blur-md">
               <div className="mt-0.5 text-[var(--brand-naranja)]">i</div>
               <div>
-                <p className="text-sm font-semibold text-[var(--brand-naranja)]">Gestion</p>
-                <p className="text-xs text-gray-300">OCs al dia. Costos 3.3% sobre presupuesto. Documentos vigentes 93%.</p>
+                <p className="text-sm font-semibold text-[var(--brand-naranja)]">Gestión</p>
+                <p className="text-xs text-gray-300">OCs al día. Costos 3.3% sobre presupuesto. Documentos vigentes 93%.</p>
               </div>
             </div>
           </div>
@@ -329,13 +329,13 @@ export default function KPIDashboardPage() {
             <li className="flex gap-2">
               <span className="font-semibold text-[var(--brand-rojo)]">1.</span>
               <span className="text-gray-300">
-                <strong className="text-white">Mantencion inmediata:</strong> CAT 320 con 847 hrs MTBF. Riesgo de falla en 48-72 hrs.
+                <strong className="text-white">Mantención inmediata:</strong> CAT 320 con 847 hrs MTBF. Riesgo de falla en 48-72 hrs.
               </span>
             </li>
             <li className="flex gap-2">
               <span className="font-semibold text-[var(--brand-gold)]">2.</span>
               <span className="text-gray-300">
-                <strong className="text-white">Renovar documentos:</strong> 7 certificados HSE vencen en 14 dias. Iniciar tramite hoy.
+                <strong className="text-white">Renovar documentos:</strong> 7 certificados HSE vencen en 14 días. Iniciar trámite hoy.
               </span>
             </li>
             <li className="flex gap-2">
@@ -347,7 +347,7 @@ export default function KPIDashboardPage() {
             <li className="flex gap-2">
               <span className="font-semibold text-[var(--secondary)]">4.</span>
               <span>
-                <strong>Gestion de pagos:</strong> 3 OCs excedieron terminos. Procesar pagos para mantener relaciones.
+                <strong>Gestión de pagos:</strong> 3 OCs excedieron términos. Procesar pagos para mantener relaciones.
               </span>
             </li>
           </ul>

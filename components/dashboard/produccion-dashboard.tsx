@@ -35,15 +35,15 @@ export function ProduccionDashboard() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Produccion en tiempo real</h1>
+          <h1 className="text-3xl font-bold">Producción en tiempo real</h1>
           <p className="text-muted-foreground">
-            Monitoreo integral de KPIs operacionales y telemetria real.
+            Monitoreo integral de KPIs operacionales y telemetría real.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline" size="sm" className="gap-2">
             <Link href="/dashboard/telemetria">
-              Telemetria
+              Telemetría
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
@@ -63,7 +63,7 @@ export function ProduccionDashboard() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Produccion de hoy</CardTitle>
+            <CardTitle className="text-sm">Producción de hoy</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{latestKPI.production_tons?.toFixed(0) || 0} ton</div>
@@ -104,7 +104,7 @@ export function ProduccionDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Produccion - Ultimos 30 dias</CardTitle>
+          <CardTitle>Producción - Últimos 30 días</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -144,7 +144,7 @@ export function ProduccionDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Activity className="h-4 w-4 text-[var(--brand-naranja)]" />
-              Telemetria de sensores
+              Telemetría de sensores
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -154,7 +154,7 @@ export function ProduccionDashboard() {
             <SensorAlerts />
             <Link href="/dashboard/telemetria">
               <Button variant="outline" className="w-full">
-                Ver modulo de telemetria
+                Ver módulo de telemetría
               </Button>
             </Link>
           </CardContent>

@@ -105,7 +105,7 @@ export default function CompliancePage() {
     <div className="space-y-6">
       <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-3xl font-bold">Gestion de cumplimiento</h1>
+          <h1 className="text-3xl font-bold">Gestión de cumplimiento</h1>
           <p className="text-muted-foreground">ISO 45001 y SERNAGEOMIN</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -121,7 +121,7 @@ export default function CompliancePage() {
               Importar Excel
             </Link>
           </Button>
-          <Button onClick={() => setAuditOpen(true)}>Iniciar auditoria</Button>
+              <Button onClick={() => setAuditOpen(true)}>Iniciar auditoría</Button>
         </div>
       </div>
 
@@ -143,10 +143,10 @@ export default function CompliancePage() {
               audits.map((audit) => (
                 <Card key={audit.id}>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-base">{audit.audit_name || 'Auditoria sin nombre'}</CardTitle>
+                    <CardTitle className="text-base">{audit.audit_name || 'Auditoría sin nombre'}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2 text-sm text-muted-foreground">
-                    <p>Categoria: {audit.category || 'ISO'}</p>
+                    <p>Categoría: {audit.category || 'ISO'}</p>
                     <p>Estado: {audit.compliance_status || 'in_progress'}</p>
                     <p>Auditor: {audit.auditor || 'Por asignar'}</p>
                     <p>Evidencias: {audit.evidence_count || 0}</p>
@@ -155,7 +155,7 @@ export default function CompliancePage() {
               ))
             ) : (
               <div className="rounded-lg border border-border bg-muted/20 p-4 text-sm text-muted-foreground">
-                No hay auditorias registradas aun.
+                No hay auditorías registradas aún.
               </div>
             )}
           </div>
