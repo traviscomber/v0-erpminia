@@ -53,7 +53,7 @@ Status reflects the latest current-worktree audit plus live verification on July
 | `/dashboard/mantenimiento/centro-costo` | Live verified authenticated render on July 6, 2026; source cleaned and copy normalized | Low | Keep maintenance-by-cost-center wording explicit and aligned with work-order reporting. |
 | `/dashboard/mantenimiento/componentes-mayores` | Live verified authenticated render on July 6, 2026; source cleaned and copy normalized | Low | Keep major-component wording aligned with vehicle and maintenance asset surfaces. |
 | `/dashboard/mantenimiento/gerencial` | Live verified authenticated render on July 6, 2026; source cleaned and copy normalized | Low | Keep the executive maintenance dashboard naming aligned with the rest of the maintenance module. |
-| `/dashboard/mantenimiento/costos` | Live verified authenticated render on July 7, 2026 with no console errors, but navigation still exceeded the 30s check before content became readable; source now adds defensive query limits and non-OK API handling | Medium | Deploy and re-check first-load timing before downgrading risk. |
+| `/dashboard/mantenimiento/costos` | Live verified authenticated render on July 7, 2026 after deploying defensive query limits; no console errors or navigation timeout, but first-load still measured about 31s | Medium | Profile remaining first-load latency and consider splitting the cost endpoint into summary-first plus detail rows before downgrading risk. |
 | `/dashboard/mantenimiento/documentos` | Live verified authenticated render on July 6, 2026; source also cleaned and copy normalized | Low | Keep maintenance document review/upload states aligned with the rest of the document modules. |
 | `/dashboard/mantenimiento/equipos` | Live verified authenticated render on July 6, 2026; source cleaned and copy normalized | Low | Preserve the dedicated equipment import path and keep search/result states free of degraded labels. |
 | `/dashboard/mantenimiento/movil` | Live verified authenticated render on July 6, 2026; source cleaned and copy normalized | Low | Keep the mobile maintenance panel naming aligned with the rest of the maintenance module. |
@@ -106,7 +106,7 @@ Status reflects the latest current-worktree audit plus live verification on July
 
 ## Remaining Work Order
 
-1. Deploy the `/dashboard/mantenimiento/costos` performance guard and re-check first-load timing before downgrading risk.
+1. Profile remaining `/dashboard/mantenimiento/costos` first-load latency; the route now renders without timeout, but still loads too slowly for production polish.
 2. Re-check `/dashboard/documentos-gestion`, `/dashboard/documentos-gestion/procedimientos`, and the main `sostenibilidad` surfaces after deploy to confirm the normalized copy is live.
 3. Promote the source-clean auxiliary routes to live-confirmed status route by route using authenticated verification after deploy.
 4. Treat the remaining untracked dashboard pages as utility/import/detail routes unless they prove broken or misleading in live verification.
