@@ -38,7 +38,11 @@ interface MaintenanceCostsResponse {
 
 const fetcher = async (url: string): Promise<MaintenanceCostsResponse> => {
   const response = await fetch(url, { credentials: 'include' });
-  return response.json();
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new Error(payload?.error || 'No se pudo calcular el costo por equipo');
+  }
+  return payload;
 };
 
 function toNumber(value: unknown) {

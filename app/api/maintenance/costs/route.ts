@@ -42,16 +42,15 @@ function monthKey(dateValue?: string | null) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 }
 
+const MAX_COST_WORK_ORDERS = 750;
+const MAX_COST_HISTORY_ROWS = 750;
+const MAX_COST_ASSETS = 500;
+
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
 
   try {
-    const since30d = new Date();
-    since30d.setDate(since30d.getDate() - 30);
-    const since12m = new Date();
-    since12m.setMonth(since12m.getMonth() - 12);
-
     const [workOrdersResult, historyResult, assetsResult] = await Promise.all([
       context.supabase
         .from('maintenance_work_orders')
@@ -70,7 +69,8 @@ export async function GET(request: NextRequest) {
           asset:maintenance_assets(id, asset_code, asset_name, criticality)
         `)
         .eq('organization_id', context.organizationId)
-        .order('completion_date', { ascending: false }),
+        .order('completion_date', { ascending: false })
+        .limit(MAX_COST_WORK_ORDERS),
       context.supabase
         .from('maintenance_history')
         .select(`
@@ -84,11 +84,13 @@ export async function GET(request: NextRequest) {
           work_order:maintenance_work_orders(id, work_order_number, title, status, completion_date)
         `)
         .eq('organization_id', context.organizationId)
-        .order('created_at', { ascending: false }),
+        .order('created_at', { ascending: false })
+        .limit(MAX_COST_HISTORY_ROWS),
       context.supabase
         .from('maintenance_assets')
         .select('id, asset_code, asset_name, criticality, status')
-        .eq('organization_id', context.organizationId),
+        .eq('organization_id', context.organizationId)
+        .limit(MAX_COST_ASSETS),
     ]);
 
     const workOrders = Array.isArray(workOrdersResult.data) ? (workOrdersResult.data as MaintenanceWorkOrderRow[]) : [];
@@ -208,6 +210,11 @@ export async function GET(request: NextRequest) {
       },
       assetCosts: assetCosts.slice(0, 20),
       monthlyCosts: recentMonths,
+      limits: {
+        workOrders: MAX_COST_WORK_ORDERS,
+        historyRows: MAX_COST_HISTORY_ROWS,
+        assets: MAX_COST_ASSETS,
+      },
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudo calcular el costo por equipo';

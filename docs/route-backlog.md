@@ -10,9 +10,9 @@ Status reflects the latest current-worktree audit plus live verification on July
 | `/auth/login` | Live verified `200` on July 6, 2026 and currently acts as the production login entrypoint | High | Keep this as the current public auth route unless a deliberate migration replaces it everywhere. |
 | `/login` | Live verified public `307` redirect to `/auth/login`, followed by `200` on July 7, 2026 | Low | Keep this compatibility shim so legacy login links resolve cleanly to the proven auth entrypoint. |
 | `/dashboard` | Live verified authenticated `200` on July 6, 2026 | Medium | Re-check during the next authenticated MVP route pass after the login compatibility deploy. |
-| `/dashboard/work-orders` | Live verified authenticated `200` on July 6, 2026; canonical task-creation path remains intact | High | Keep this route as the single operational entry for creating and managing work orders. |
+| `/dashboard/work-orders` | Live verified authenticated render with real work-order data on July 7, 2026; canonical task-creation path remains intact | High | Keep this route as the single operational entry for creating and managing work orders. |
 | `/dashboard/work-orders/create` | Live verified authenticated `200` on July 6, 2026 | High | Preserve as the canonical task-creation destination and link target. |
-| `/dashboard/work-orders/[id]` | Source detail route now separates loading, API error, and missing-order states; live authenticated re-check pending | Medium | Verify the detail view remains reachable from the list and keeps status/priority labels consistent after deploy. |
+| `/dashboard/work-orders/[id]` | Live verified authenticated render on July 7, 2026 from a real list item; detail route shows status, priority, actions, and parts without console errors | Low | Keep the detail route linked from the list and preserve the separated loading/error/missing-order states. |
 | `/dashboard/crear-tarea` | Live verified authenticated redirect on July 6, 2026 to `/dashboard/work-orders/create` | Medium | Preserve this compatibility route only as a redirect shim into the canonical work-order creation flow. |
 
 ## Core Growth Area
@@ -27,7 +27,7 @@ Status reflects the latest current-worktree audit plus live verification on July
 | `/dashboard/sostenibilidad/calendario` | Live verified authenticated render on July 6, 2026; source cleaned and encoding-normalized | Low | Confirm the schedule copy and event labels remain consistent after deployment. |
 | `/dashboard/sostenibilidad/documentos-flujo` | Live verified authenticated render on July 6, 2026; source reviewed and currently consistent | Low | Keep document-approval stages and search states aligned with the sustainability document workflow. |
 | `/dashboard/sostenibilidad/documentos-reportes` | Live verified authenticated render on July 6, 2026; source reviewed and currently consistent | Low | Preserve the sustainability document reporting summaries and empty states without degraded wording. |
-| `/dashboard/sostenibilidad/mis-aprobaciones` | Live verified authenticated render on July 6, 2026 after reload/retry; earlier fallback error was not reproduced on refresh | Medium | Keep the approval queue linked back into document flow and watch for intermittent load instability in production. |
+| `/dashboard/sostenibilidad/mis-aprobaciones` | Live verified authenticated first-attempt render on July 7, 2026; no fallback error or console errors observed | Low | Keep the approval queue linked back into document flow and monitor only if the intermittent load issue returns. |
 | `/dashboard/sostenibilidad/reportes` | Live verified authenticated render on July 6, 2026; source reviewed and currently consistent | Low | Keep sustainability reporting accessible without drifting into placeholder dashboards. |
 
 ## Document Management
@@ -53,7 +53,7 @@ Status reflects the latest current-worktree audit plus live verification on July
 | `/dashboard/mantenimiento/centro-costo` | Live verified authenticated render on July 6, 2026; source cleaned and copy normalized | Low | Keep maintenance-by-cost-center wording explicit and aligned with work-order reporting. |
 | `/dashboard/mantenimiento/componentes-mayores` | Live verified authenticated render on July 6, 2026; source cleaned and copy normalized | Low | Keep major-component wording aligned with vehicle and maintenance asset surfaces. |
 | `/dashboard/mantenimiento/gerencial` | Live verified authenticated render on July 6, 2026; source cleaned and copy normalized | Low | Keep the executive maintenance dashboard naming aligned with the rest of the maintenance module. |
-| `/dashboard/mantenimiento/costos` | Live verified authenticated render on July 6, 2026; source hardened to scope maintenance history by organization | Medium | Re-check after deploy and confirm the slower first-load navigation is gone with the tightened maintenance cost query. |
+| `/dashboard/mantenimiento/costos` | Live verified authenticated render on July 7, 2026 with no console errors, but navigation still exceeded the 30s check before content became readable; source now adds defensive query limits and non-OK API handling | Medium | Deploy and re-check first-load timing before downgrading risk. |
 | `/dashboard/mantenimiento/documentos` | Live verified authenticated render on July 6, 2026; source also cleaned and copy normalized | Low | Keep maintenance document review/upload states aligned with the rest of the document modules. |
 | `/dashboard/mantenimiento/equipos` | Live verified authenticated render on July 6, 2026; source cleaned and copy normalized | Low | Preserve the dedicated equipment import path and keep search/result states free of degraded labels. |
 | `/dashboard/mantenimiento/movil` | Live verified authenticated render on July 6, 2026; source cleaned and copy normalized | Low | Keep the mobile maintenance panel naming aligned with the rest of the maintenance module. |
@@ -88,7 +88,7 @@ Status reflects the latest current-worktree audit plus live verification on July
 | `/dashboard/reportes` | Live verified authenticated render on July 6, 2026; source also cleaned and copy normalized | Low | Keep the reporting hub wording clear and avoid regressions in operational/export framing. |
 | `/dashboard/produccion` | Live verified authenticated render on July 6, 2026; source review delegated to the production dashboard component | Low | Keep the production entry surface reachable and aligned with the rest of the operational dashboards. |
 | `/dashboard/finanzas/documentos` | Live verified authenticated render on July 6, 2026; source cleaned and copy normalized | Low | Preserve the explicit correction state and keep the module from drifting into placeholders. |
-| `/dashboard/bodega/documentos` | Live verified authenticated render on July 6, 2026 after reload/retry; source hardened with defensive document normalization | Medium | Re-check after deploy and confirm the intermittent first-load fallback is gone when document rows arrive with inconsistent shapes. |
+| `/dashboard/bodega/documentos` | Live verified authenticated first-attempt render on July 7, 2026; defensive document normalization deployed and no fallback or console errors observed | Low | Preserve the import/upload CTAs and keep defensive row normalization in place. |
 | `/dashboard/bodega/importar-datos` | Live verified authenticated render on July 6, 2026; source cleaned and copy normalized | Low | Preserve bodega import terminology and keep this route clearly scoped to data loading, not day-to-day operations. |
 | `/dashboard/compras/documentos` | Live verified authenticated render on July 6, 2026; source cleaned and copy normalized | Low | Maintain the correction queue and link it back to the buying workflow. |
 | `/dashboard/compras/importar-existencias` | Live verified authenticated render on July 6, 2026; source cleaned and copy normalized | Low | Keep stock/provider import wording explicit and aligned with the compras data-ingestion workflow. |
@@ -106,9 +106,8 @@ Status reflects the latest current-worktree audit plus live verification on July
 
 ## Remaining Work Order
 
-1. Re-check `/dashboard/work-orders/[id]` from a real list item and confirm detail navigation remains consistent after deploy.
-2. Re-check `/dashboard/mantenimiento/costos`, `/dashboard/bodega/documentos`, and `/dashboard/sostenibilidad/mis-aprobaciones` after the hardening deploy to confirm the intermittent first-load failures are gone.
-3. Re-check `/dashboard/work-orders`, `/dashboard/documentos-gestion`, `/dashboard/documentos-gestion/procedimientos`, and the `sostenibilidad` surfaces after deploy to confirm the normalized copy is live.
-4. Promote the source-clean auxiliary routes to live-confirmed status route by route using authenticated verification after deploy.
-5. Treat the remaining untracked dashboard pages as utility/import/detail routes unless they prove broken or misleading in live verification.
-6. Keep the backlog updated by route, severity, and action until there are no broken links, broken labels, or missing entrypoints left.
+1. Deploy the `/dashboard/mantenimiento/costos` performance guard and re-check first-load timing before downgrading risk.
+2. Re-check `/dashboard/documentos-gestion`, `/dashboard/documentos-gestion/procedimientos`, and the main `sostenibilidad` surfaces after deploy to confirm the normalized copy is live.
+3. Promote the source-clean auxiliary routes to live-confirmed status route by route using authenticated verification after deploy.
+4. Treat the remaining untracked dashboard pages as utility/import/detail routes unless they prove broken or misleading in live verification.
+5. Keep the backlog updated by route, severity, and action until there are no broken links, broken labels, or missing entrypoints left.
