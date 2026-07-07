@@ -34,14 +34,14 @@ Status reflects the latest current-worktree audit plus live verification on July
 
 | Route | State | Risk | Action |
 | --- | --- | --- | --- |
-| `/dashboard/documentos-gestion` | Live verified authenticated `200` on July 6, 2026; source also cleaned and encoding-normalized | Medium | Keep the module clarifying navigation into the dedicated subroutes instead of turning it into a dumping ground. |
+| `/dashboard/documentos-gestion` | Live verified authenticated render on July 7, 2026 with no fallback error or console errors observed; the route acts as a document-management hub into dedicated document workflows | Low | Keep the module clarifying navigation into the dedicated subroutes instead of turning it into a dumping ground. |
 | `/dashboard/documentos-gestion/reportes` | Live verified authenticated render on July 6, 2026; source cleaned and encoding-normalized | Low | Confirm the report entry labels and search states after deploy. |
 | `/dashboard/documentos-gestion/contratos` | Live verified authenticated render on July 6, 2026; source cleaned and encoding-normalized | Low | Verify the remaining metadata fields and ensure contract copy is fully localized. |
 | `/dashboard/documentos-gestion/contratos/reportes` | Live verified authenticated render on July 6, 2026; source also cleaned and copy normalized | Low | Keep contract-payment/reporting terminology explicit and aligned with the contratos workflow. |
 | `/dashboard/documentos-gestion/adquisiciones` | Live verified authenticated render on July 6, 2026; source rechecked on July 7, 2026 and OC row actions now route to `/dashboard/compras` instead of a dead download button | Low | Keep OC creation owned by Compras and do not duplicate the flow here. |
 | `/dashboard/documentos-gestion/seguridad` | Live verified authenticated render on July 6, 2026; source rechecked on July 7, 2026 and new/detail actions now route into `/dashboard/sostenibilidad/documentos-flujo` | Low | Keep safety document creation/review owned by the document workflow and avoid local dead buttons. |
 | `/dashboard/documentos-gestion/[id]` | Live verified authenticated render on July 6, 2026 via `/dashboard/documentos-gestion/ambiental`; source rechecked on July 7, 2026 and detail actions now route into document flow | Low | Ensure category detail routes keep their wording and do not expose broken metadata or inert icon actions. |
-| `/dashboard/documentos-gestion/procedimientos` | Live verified authenticated `200` on July 6, 2026; source rechecked on July 7, 2026 and new/detail actions now route into `/dashboard/sostenibilidad/documentos-flujo` | Low | Keep procedure creation/review owned by the document workflow and verify live copy after deploy. |
+| `/dashboard/documentos-gestion/procedimientos` | Live verified authenticated render on July 7, 2026 with no fallback error or console errors observed; new/detail actions route into `/dashboard/sostenibilidad/documentos-flujo` | Low | Keep procedure creation/review owned by the document workflow and preserve the live links into the document workflow. |
 
 ## Auxiliary Modules
 
@@ -107,7 +107,6 @@ Status reflects the latest current-worktree audit plus live verification on July
 ## Remaining Work Order
 
 1. Re-run authenticated timing for `/dashboard/mantenimiento/costos` after the summary-first/detail split in `ca665b9`; keep it Medium until the live session proves the first paint is fast.
-2. Re-check `/dashboard/documentos-gestion`, `/dashboard/documentos-gestion/procedimientos`, and the main `sostenibilidad` surfaces after deploy to confirm the normalized copy is live.
-3. Promote the source-clean auxiliary routes to live-confirmed status route by route using authenticated verification after deploy.
-4. Treat the remaining untracked dashboard pages as utility/import/detail routes unless they prove broken or misleading in live verification.
-5. Keep the backlog updated by route, severity, and action until there are no broken links, broken labels, or missing entrypoints left.
+2. Promote the source-clean auxiliary routes to live-confirmed status route by route using authenticated verification after deploy.
+3. Treat the remaining untracked dashboard pages as utility/import/detail routes unless they prove broken or misleading in live verification.
+4. Keep the backlog updated by route, severity, and action until there are no broken links, broken labels, or missing entrypoints left.
