@@ -33,10 +33,12 @@ export function DocumentReviewModal({ document, isOpen, onClose, onApprove, onRe
   const [observations, setObservations] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [action, setAction] = useState<'approve' | 'reject' | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   if (!document) return null;
 
   const handleApprove = async () => {
+    setValidationError(null);
     setAction('approve');
     setIsSubmitting(true);
     try {
@@ -51,10 +53,11 @@ export function DocumentReviewModal({ document, isOpen, onClose, onApprove, onRe
 
   const handleReject = async () => {
     if (!observations.trim()) {
-      alert('Debes ingresar observaciones para rechazar.');
+      setValidationError('Debes ingresar observaciones para rechazar.');
       return;
     }
 
+    setValidationError(null);
     setAction('reject');
     setIsSubmitting(true);
     try {
@@ -69,6 +72,7 @@ export function DocumentReviewModal({ document, isOpen, onClose, onApprove, onRe
 
   const handleClose = () => {
     setObservations('');
+    setValidationError(null);
     setAction(null);
     onClose();
   };
@@ -100,7 +104,7 @@ export function DocumentReviewModal({ document, isOpen, onClose, onApprove, onRe
               </div>
               {document.valid_until && (
                 <div>
-                  <span className="text-muted-foreground">Valido hasta:</span>
+                  <span className="text-muted-foreground">Válido hasta:</span>
                   <p className="mt-1">{new Date(document.valid_until).toLocaleDateString('es-CL')}</p>
                 </div>
               )}
@@ -132,23 +136,31 @@ export function DocumentReviewModal({ document, isOpen, onClose, onApprove, onRe
           )}
 
           <div className="space-y-3">
-            <label className="text-sm font-semibold">Observaciones de revision {reviewLevel}</label>
+            <label className="text-sm font-semibold">Observaciones de revisión {reviewLevel}</label>
             <Textarea
               placeholder={
                 reviewLevel === 'L1'
                   ? 'Ingresa observaciones opcionales si apruebas'
-                  : 'Ingresa observaciones o retroalimentacion'
+                  : 'Ingresa observaciones o retroalimentación'
               }
               value={observations}
-              onChange={(e) => setObservations(e.target.value)}
+              onChange={(e) => {
+                setObservations(e.target.value);
+                if (validationError) setValidationError(null);
+              }}
               rows={4}
               className="resize-none"
             />
             <p className="text-xs text-muted-foreground">
               {reviewLevel === 'L1'
                 ? 'Si apruebas sin observaciones, el documento pasa directamente a L2.'
-                : 'Las observaciones seran notificadas al responsable.'}
+                : 'Las observaciones serán notificadas al responsable.'}
             </p>
+            {validationError ? (
+              <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+                {validationError}
+              </div>
+            ) : null}
           </div>
 
           <div className="flex justify-end gap-2">
