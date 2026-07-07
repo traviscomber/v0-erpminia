@@ -59,7 +59,7 @@ export function CorrectiveActionsPage() {
           </Button>
           <Button onClick={() => setModalOpen(true)} className="bg-primary" variant="default" disabled={!ncId}>
             <Plus className="mr-2 h-4 w-4" />
-            {ncId ? 'Nueva acciÃ³n' : 'Selecciona una NC'}
+            {ncId ? 'Nueva acción' : 'Selecciona una NC'}
           </Button>
         </div>
       </div>
