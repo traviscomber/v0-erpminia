@@ -116,17 +116,17 @@ export function HSEDashboard() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Upload className="h-4 w-4 text-primary" />
-            Cargas rapidas por Excel
+            Cargas rápidas por Excel
           </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <Link href="/dashboard/hse/incidentes" className="block rounded border p-3 hover:bg-muted/40">
-            Incidentes y importacion
+          <Link href="/dashboard/hse/incidentes/importar" className="block rounded border p-3 hover:bg-muted/40">
+            Incidentes e importación
           </Link>
-          <Link href="/dashboard/hse/riesgos" className="block rounded border p-3 hover:bg-muted/40">
+          <Link href="/dashboard/hse/riesgos/importar" className="block rounded border p-3 hover:bg-muted/40">
             Matriz de riesgos
           </Link>
-          <Link href="/dashboard/hse/epp" className="block rounded border p-3 hover:bg-muted/40">
+          <Link href="/dashboard/hse/epp/importar" className="block rounded border p-3 hover:bg-muted/40">
             Matriz EPP
           </Link>
           <Link href="/dashboard/hse/investigaciones/importar" className="block rounded border p-3 hover:bg-muted/40">

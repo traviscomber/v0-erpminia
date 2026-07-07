@@ -124,6 +124,7 @@ export default function LegalPage() {
   const [loadingDocId, setLoadingDocId] = useState<string | null>(null);
   const [reviewingDoc, setReviewingDoc] = useState<LegalDocument | null>(null);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
 
   const searchParam = searchQuery.trim() ? `?search=${encodeURIComponent(searchQuery.trim())}` : '';
 
@@ -170,6 +171,7 @@ export default function LegalPage() {
       return;
     }
 
+    setReviewError(null);
     setReviewingDoc(doc);
     setReviewModalOpen(true);
   };
@@ -194,10 +196,11 @@ export default function LegalPage() {
       }
 
       await mutateDocuments();
+      setReviewError(null);
       setReviewingDoc(null);
     } catch (error) {
       console.error('Error al revisar documento:', error);
-      alert(`Error: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+      setReviewError(error instanceof Error ? error.message : 'Error desconocido al revisar el documento');
     }
   };
 
@@ -382,6 +385,12 @@ export default function LegalPage() {
         <p className="mt-2 max-w-3xl text-muted-foreground">
           Vista ejecutiva para documentos, contratos y cumplimiento normativo, con foco en respaldo, vencimientos y revisión.
         </p>
+        {reviewError ? (
+          <div className="mt-4 flex max-w-3xl items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>{reviewError}</span>
+          </div>
+        ) : null}
         <div className="mt-4 flex flex-wrap gap-2">
           <Button asChild variant="outline">
             <Link href="/dashboard/legal/importar">

@@ -46,7 +46,7 @@ function statusLabel(status: string) {
 function priorityLabel(priority: string) {
   const labels: Record<string, string> = {
     urgente: 'Urgente',
-    critical: 'Critica',
+    critical: 'Crítica',
     alta: 'Alta',
     high: 'Alta',
     media: 'Media',
@@ -68,7 +68,7 @@ function assetStatusLabel(status: string) {
   const labels: Record<string, string> = {
     active: 'Operativo',
     inactive: 'Inactivo',
-    maintenance: 'En mantencion',
+    maintenance: 'En mantención',
     decommissioned: 'Baja',
   };
 
@@ -128,16 +128,16 @@ export function MantenimientoDashboard() {
     overdueOrders > 0
       ? {
           title: 'Atender OT vencidas',
-          description: 'Revisa las ordenes atrasadas antes de abrir nuevas tareas.',
+          description: 'Revisa las órdenes atrasadas antes de abrir nuevas tareas.',
           href: '/dashboard/work-orders',
-          cta: 'Ver ordenes atrasadas',
+          cta: 'Ver órdenes atrasadas',
         }
       : criticalAssets.length > 0
         ? {
-            title: 'Revisar activos criticos',
-            description: 'Enlaza la planificacion preventiva con los equipos de mayor riesgo.',
+            title: 'Revisar activos críticos',
+            description: 'Enlaza la planificación preventiva con los equipos de mayor riesgo.',
             href: '/dashboard/mantenimiento/planificacion',
-            cta: 'Abrir planificacion',
+            cta: 'Abrir planificación',
           }
         : {
             title: 'Crear una OT preventiva',
@@ -154,7 +154,7 @@ export function MantenimientoDashboard() {
           No se pudo cargar mantenimiento
         </div>
         <p className="mt-2 text-sm text-destructive/80">
-          Revisa la conexion a las APIs de mantenimiento y activos antes de volver a intentar.
+          Revisa la conexión a las APIs de mantenimiento y activos antes de volver a intentar.
         </p>
       </div>
     );
@@ -185,7 +185,7 @@ export function MantenimientoDashboard() {
 
       <Card className="border-border/70 bg-card/90">
         <CardHeader className="pb-3">
-          <CardTitle>Siguiente accion recomendada</CardTitle>
+          <CardTitle>Siguiente acción recomendada</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="space-y-1">
@@ -257,7 +257,7 @@ export function MantenimientoDashboard() {
 
       <Card className="border-border/70 bg-card/90">
         <CardHeader>
-          <CardTitle>Acceso rapido al ecosistema</CardTitle>
+          <CardTitle>Acceso rápido al ecosistema</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -275,7 +275,7 @@ export function MantenimientoDashboard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/planificacion">
-                Planificacion preventiva
+                Planificación preventiva
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -291,7 +291,7 @@ export function MantenimientoDashboard() {
 
       <Card className="border-border/70 bg-card/90">
         <CardHeader>
-          <CardTitle>Acceso rapido</CardTitle>
+          <CardTitle>Acceso rápido</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -303,13 +303,13 @@ export function MantenimientoDashboard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/work-orders">
-                Ver ordenes
+                Ver órdenes
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/vehiculos">
-                Vehiculos y QR
+                Vehículos y QR
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -321,13 +321,13 @@ export function MantenimientoDashboard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/bitacora">
-                Ver bitacora
+                Ver bitácora
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/planificacion">
-                Ver planificacion
+                Ver planificación
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -339,7 +339,7 @@ export function MantenimientoDashboard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/movil">
-                Panel movil
+                Panel móvil
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -357,7 +357,7 @@ export function MantenimientoDashboard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/neumaticos">
-                Ver neumaticos
+                Ver neumáticos
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -381,20 +381,20 @@ export function MantenimientoDashboard() {
         <CardContent>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
             <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/equipos">
+              <Link href="/dashboard/mantenimiento/equipos/importar">
                 Equipos
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
             <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/vehiculos">
-                Vehiculos
+              <Link href="/dashboard/mantenimiento/vehiculos/importar">
+                Vehículos
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/planificacion/importar">
-                Planificacion
+                Planificación
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -406,7 +406,7 @@ export function MantenimientoDashboard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/neumaticos/importar">
-                Neumaticos
+                Neumáticos
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -430,7 +430,7 @@ export function MantenimientoDashboard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/bitacora/importar">
-                Bitacora
+                Bitácora
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -456,7 +456,7 @@ export function MantenimientoDashboard() {
                 <p className="text-2xl font-bold text-green-500">{activeAssets}</p>
               </div>
               <div className="rounded-lg border border-border p-3">
-                <p className="text-xs text-muted-foreground">En mantencion</p>
+                <p className="text-xs text-muted-foreground">En mantención</p>
                 <p className="text-2xl font-bold text-secondary">{maintenanceAssets}</p>
               </div>
               <div className="rounded-lg border border-border p-3">
@@ -464,7 +464,7 @@ export function MantenimientoDashboard() {
                 <p className="text-2xl font-bold text-muted-foreground">{inactiveAssets}</p>
               </div>
               <div className="rounded-lg border border-border p-3">
-                <p className="text-xs text-muted-foreground">Criticos</p>
+                <p className="text-xs text-muted-foreground">Críticos</p>
                 <p className="text-2xl font-bold text-orange-500">{criticalAssets.length}</p>
               </div>
             </div>
@@ -473,7 +473,7 @@ export function MantenimientoDashboard() {
               {criticalAssets.length === 0 ? (
                 <div className="flex items-center gap-2 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
                   <AlertCircle className="h-4 w-4" />
-                  No hay equipos criticos visibles.
+                  No hay equipos críticos visibles.
                 </div>
               ) : (
                 criticalAssets.map((asset) => (
@@ -481,7 +481,7 @@ export function MantenimientoDashboard() {
                     <div>
                       <p className="font-semibold">{asset.assetName || asset.assetCode || 'Equipo'}</p>
                       <p className="text-xs text-muted-foreground">
-                        {asset.assetType || 'Sin tipo'} · {asset.location || 'Sin ubicacion'}
+                        {asset.assetType || 'Sin tipo'} · {asset.location || 'Sin ubicación'}
                       </p>
                     </div>
                     <Badge variant={assetStatusVariant(String(asset.status || '').toLowerCase())}>
@@ -502,7 +502,7 @@ export function MantenimientoDashboard() {
             {recentOrders.length === 0 ? (
               <div className="flex items-center gap-2 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
                 <AlertCircle className="h-4 w-4" />
-                No hay ordenes registradas todavia.
+                No hay órdenes registradas todavía.
               </div>
             ) : (
               recentOrders.map((orden) => (

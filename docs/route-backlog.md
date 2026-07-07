@@ -47,7 +47,7 @@ Status reflects the latest current-worktree audit plus live verification on July
 
 | Route | State | Risk | Action |
 | --- | --- | --- | --- |
-| `/dashboard/mantenimiento` | Previously verified live | Medium | Keep the operational flow stable and avoid pushing import UI into the main page. |
+| `/dashboard/mantenimiento` | Previously verified live; source rechecked on July 7, 2026 with canonical work-order creation preserved, maintenance copy normalized, and import shortcuts routed to dedicated import pages | Medium | Re-run authenticated live verification after deploy, then downgrade if the entry dashboard renders without fallback errors. |
 | `/dashboard/mantenimiento/combustible` | Live verified authenticated render on July 6, 2026; source also cleaned and copy normalized | Low | Keep the fuel-stock summary aligned with its dedicated import route and free of degraded operational copy. |
 | `/dashboard/mantenimiento/bitacora` | Live verified authenticated render on July 6, 2026; source cleaned and copy normalized | Low | Keep the maintenance log naming aligned with the rest of the maintenance workflow cluster. |
 | `/dashboard/mantenimiento/centro-costo` | Live verified authenticated render on July 6, 2026; source cleaned and copy normalized | Low | Keep maintenance-by-cost-center wording explicit and aligned with work-order reporting. |
@@ -63,7 +63,7 @@ Status reflects the latest current-worktree audit plus live verification on July
 | `/dashboard/mantenimiento/indicadores` | Live verified authenticated render on July 6, 2026; source cleaned and copy normalized | Low | Keep maintenance KPI naming explicit and aligned with the executive/dashboard surfaces. |
 | `/dashboard/mantenimiento/vehiculos` | Live verified authenticated render on July 6, 2026; source also cleaned and copy normalized | Low | Preserve vehicle and fault-tree navigation wording and keep the vehicle management entrypoint production-ready. |
 | `/dashboard/maquinaria` | Previously verified live; source copy normalized in the current worktree | Medium | Re-check the live route after deploy and preserve the dedicated import workflow plus cleaned vehicle/equipment labels. |
-| `/dashboard/legal` | Live verified authenticated render on July 6, 2026; source cleaned and copy normalized | Medium | Verify the executive legal dashboard after deploy and keep it aligned with document and contract flows. |
+| `/dashboard/legal` | Live verified authenticated render on July 6, 2026; source rechecked on July 7, 2026 and document-review failures now render inline instead of using a blocking browser alert | Medium | Verify the executive legal dashboard after deploy and keep it aligned with document and contract flows. |
 | `/dashboard/legal/documentos` | Live verified authenticated render on July 6, 2026; source also cleaned and copy normalized | Low | Keep the legal document workflow aligned with contratos and reportes without degraded review/import labels. |
 | `/dashboard/legal/permisos-licencias` | Live verified authenticated render on July 6, 2026; source cleaned and copy normalized | Low | Verify permit and license expiration labels after deploy and keep this route focused on legal authorizations. |
 | `/dashboard/admin/permissions` | Live verified authenticated render on July 6, 2026; source reviewed and currently consistent | Low | Keep the permissions form labels explicit and ensure admin access remains operable without placeholder states. |
@@ -72,7 +72,7 @@ Status reflects the latest current-worktree audit plus live verification on July
 | `/dashboard/centros-costos` | Live verified authenticated render on July 6, 2026; source reviewed and currently consistent | Low | Keep cost-center navigation explicit and aligned with maintenance and inventory grouping. |
 | `/dashboard/telemetria` | Previously verified live; source copy normalized in the current worktree | Medium | Keep the LAN/auth integration discoverable and avoid regressing the operational CTA. |
 | `/dashboard/telemetria/integracion` | Live verified authenticated render on July 6, 2026; source also cleaned and copy normalized | Low | Preserve the LAN onboarding instructions and keep token/payload guidance explicit after deploy. |
-| `/dashboard/hse` | Previously verified live | Medium | Keep the surface reachable and aligned with the prevention/documentation structure. |
+| `/dashboard/hse` | Previously verified live; source rechecked on July 7, 2026 and Excel shortcuts now route to dedicated import pages with normalized labels | Medium | Re-run authenticated live verification after deploy, then keep this surface aligned with the prevention/documentation structure. |
 | `/dashboard/hse/capacitaciones` | Live verified authenticated render on July 6, 2026; source cleaned and copy normalized | Low | Keep training labels and filters explicit and avoid drift between HSE and prevención de riesgos training flows. |
 | `/dashboard/hse/documentos` | Live verified authenticated render on July 6, 2026; source reviewed and currently consistent | Low | Keep HSE document review/upload states aligned with the other document modules. |
 | `/dashboard/hse/epp` | Live verified authenticated render on July 6, 2026; source cleaned and copy normalized | Low | Keep EPP catalog wording and cargo/elemento filters explicit and free of degraded labels. |
