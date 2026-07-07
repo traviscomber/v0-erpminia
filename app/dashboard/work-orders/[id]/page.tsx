@@ -14,9 +14,13 @@ export default function WorkOrderDetailPage() {
   const id = params.id;
   const [savingStatus, setSavingStatus] = useState<string | null>(null);
 
-  const { data, mutate } = useSWR(id ? `/api/maintenance/work-orders/${id}` : null, async (url: string) => {
+  const { data, error, isLoading, mutate } = useSWR(id ? `/api/maintenance/work-orders/${id}` : null, async (url: string) => {
     const res = await fetch(url);
-    return res.ok ? res.json() : null;
+    const payload = await res.json().catch(() => null);
+    if (!res.ok) {
+      throw new Error(payload?.error || 'No se pudo cargar la orden de trabajo');
+    }
+    return payload;
   });
 
   const workOrder = data?.data;
@@ -37,6 +41,7 @@ export default function WorkOrderDetailPage() {
   };
 
   const getPriorityLabel = (priority?: string) => {
+    if (String(priority || '').toLowerCase() === 'critical') return 'Critica';
     switch (priority) {
       case 'low':
         return 'Baja';
@@ -98,17 +103,28 @@ export default function WorkOrderDetailPage() {
         </Link>
       </div>
 
-      {!hasWorkOrder && (
+      {isLoading && (
         <Card>
           <CardHeader>
-            <CardTitle>Orden no disponible</CardTitle>
+            <CardTitle>Cargando orden de trabajo</CardTitle>
+            <CardDescription>Estamos recuperando el detalle operativo de la OT.</CardDescription>
+          </CardHeader>
+        </Card>
+      )}
+
+      {!isLoading && !hasWorkOrder && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{error ? 'No se pudo cargar la orden' : 'Orden no disponible'}</CardTitle>
             <CardDescription>
-              No se encontró información para esta orden. Puedes volver al listado o crear una nueva orden desde el flujo principal.
+              {error
+                ? 'Revisa la conexion o vuelve al listado para abrir otra orden activa.'
+                : 'No se encontro informacion para esta orden. Puedes volver al listado o crear una nueva orden desde el flujo principal.'}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
             <Button asChild variant="outline">
-              <Link href="/dashboard/work-orders">Volver a órdenes</Link>
+              <Link href="/dashboard/work-orders">Volver a ordenes</Link>
             </Button>
             <Button asChild>
               <Link href="/dashboard/work-orders/create">Crear nueva orden</Link>

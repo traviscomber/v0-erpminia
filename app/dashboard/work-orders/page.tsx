@@ -33,9 +33,13 @@ type ScheduleItem = {
 
 export default function WorkOrdersPage() {
   const [updatingScheduleId, setUpdatingScheduleId] = useState<string | null>(null);
-  const { data, mutate } = useSWR('/api/maintenance/work-orders', async (url: string) => {
+  const { data, error, isLoading, mutate } = useSWR('/api/maintenance/work-orders', async (url: string) => {
     const res = await fetch(url);
-    return res.ok ? res.json() : null;
+    const payload = await res.json().catch(() => null);
+    if (!res.ok) {
+      throw new Error(payload?.error || 'No se pudieron cargar las ordenes de trabajo');
+    }
+    return payload;
   });
 
   const workOrders = Array.isArray(data?.workOrders) ? (data.workOrders as WorkOrderItem[]) : [];
@@ -239,13 +243,28 @@ export default function WorkOrdersPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {workOrders.length === 0 && (
+            {isLoading && (
+              <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
+                Cargando ordenes de trabajo...
+              </div>
+            )}
+
+            {error && !isLoading && (
+              <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-8 text-center">
+                <p className="font-medium text-destructive">No se pudieron cargar las ordenes de trabajo</p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Reintenta la carga o revisa la conexion antes de crear nuevas tareas operativas.
+                </p>
+              </div>
+            )}
+
+            {!isLoading && !error && workOrders.length === 0 && (
               <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
                 {'No hay \u00f3rdenes de trabajo registradas todav\u00eda'}
               </div>
             )}
 
-            {workOrders.map((wo) => (
+            {!error && workOrders.map((wo) => (
               <div
                 key={wo.id}
                 className={`rounded-lg border-2 p-4 transition-colors hover:bg-muted/30 ${getPriorityColor(wo.priority)}`}

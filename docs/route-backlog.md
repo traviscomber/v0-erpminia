@@ -8,11 +8,11 @@ Status reflects the latest current-worktree audit plus live verification on July
 | Route | State | Risk | Action |
 | --- | --- | --- | --- |
 | `/auth/login` | Live verified `200` on July 6, 2026 and currently acts as the production login entrypoint | High | Keep this as the current public auth route unless a deliberate migration replaces it everywhere. |
-| `/login` | Source route now redirects to `/auth/login`, but live production still returns `404` on July 6, 2026 | High | Deploy the redirect shim so all current `/login` links resolve cleanly to the proven auth entrypoint. |
-| `/dashboard` | Live verified authenticated `200` on July 6, 2026 | Medium | Re-check only after the auth entrypoint changes are deployed. |
+| `/login` | Live verified public `307` redirect to `/auth/login`, followed by `200` on July 7, 2026 | Low | Keep this compatibility shim so legacy login links resolve cleanly to the proven auth entrypoint. |
+| `/dashboard` | Live verified authenticated `200` on July 6, 2026 | Medium | Re-check during the next authenticated MVP route pass after the login compatibility deploy. |
 | `/dashboard/work-orders` | Live verified authenticated `200` on July 6, 2026; canonical task-creation path remains intact | High | Keep this route as the single operational entry for creating and managing work orders. |
 | `/dashboard/work-orders/create` | Live verified authenticated `200` on July 6, 2026 | High | Preserve as the canonical task-creation destination and link target. |
-| `/dashboard/work-orders/[id]` | Source detail route copy normalized; live authenticated re-check pending | Medium | Verify the detail view remains reachable from the list and keeps status/priority labels consistent after deploy. |
+| `/dashboard/work-orders/[id]` | Source detail route now separates loading, API error, and missing-order states; live authenticated re-check pending | Medium | Verify the detail view remains reachable from the list and keeps status/priority labels consistent after deploy. |
 | `/dashboard/crear-tarea` | Live verified authenticated redirect on July 6, 2026 to `/dashboard/work-orders/create` | Medium | Preserve this compatibility route only as a redirect shim into the canonical work-order creation flow. |
 
 ## Core Growth Area
@@ -106,8 +106,8 @@ Status reflects the latest current-worktree audit plus live verification on July
 
 ## Remaining Work Order
 
-1. Deploy the current auth-entrypoint compatibility work and copy-normalization changes so production matches the audited source tree.
-2. Re-verify `/login` first and confirm it redirects to `/auth/login` instead of 404ing.
+1. Re-check `/dashboard/work-orders/[id]` from a real list item and confirm detail navigation remains consistent after deploy.
+2. Re-check `/dashboard/mantenimiento/costos`, `/dashboard/bodega/documentos`, and `/dashboard/sostenibilidad/mis-aprobaciones` after the hardening deploy to confirm the intermittent first-load failures are gone.
 3. Re-check `/dashboard/work-orders`, `/dashboard/documentos-gestion`, `/dashboard/documentos-gestion/procedimientos`, and the `sostenibilidad` surfaces after deploy to confirm the normalized copy is live.
 4. Promote the source-clean auxiliary routes to live-confirmed status route by route using authenticated verification after deploy.
 5. Treat the remaining untracked dashboard pages as utility/import/detail routes unless they prove broken or misleading in live verification.
