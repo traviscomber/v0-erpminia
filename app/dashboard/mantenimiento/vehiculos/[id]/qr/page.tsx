@@ -111,7 +111,7 @@ export default function VehicleQrPage() {
           <p className="mt-2 text-muted-foreground">No pudimos cargar la tarjeta de este equipo desde la base real.</p>
         </div>
         <Button asChild variant="outline">
-          <Link href="/dashboard/mantenimiento/vehiculos">Volver a vehiculos</Link>
+          <Link href="/dashboard/mantenimiento/vehiculos">Volver a vehículos</Link>
         </Button>
       </div>
     );
@@ -122,7 +122,7 @@ export default function VehicleQrPage() {
       <div className="flex flex-wrap items-start justify-between gap-4 print:hidden">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Tarjeta QR del equipo</h1>
-          <p className="mt-2 text-muted-foreground">Acceso rapido a la ficha completa, historial y ordenes del activo.</p>
+          <p className="mt-2 text-muted-foreground">Acceso rápido a la ficha completa, historial y órdenes del activo.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline" className="gap-2">
@@ -251,7 +251,7 @@ export default function VehicleQrPage() {
           <Card className="print:shadow-none">
             <CardHeader>
               <CardTitle>Acceso a ficha completa</CardTitle>
-              <CardDescription>Desde este QR se navega a la ficha completa con historial real y ordenes</CardDescription>
+              <CardDescription>Desde este QR se navega a la ficha completa con historial real y órdenes</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-wrap gap-2">
               <Button asChild className="gap-2">
@@ -261,7 +261,7 @@ export default function VehicleQrPage() {
                 </Link>
               </Button>
               <Button asChild variant="outline">
-                <Link href={`/dashboard/mantenimiento/vehiculos/${asset.id}/arbol`}>Ver arbol de fallas</Link>
+                <Link href={`/dashboard/mantenimiento/vehiculos/${asset.id}/arbol`}>Ver árbol de fallas</Link>
               </Button>
               <Button asChild variant="outline">
                 <Link href="/dashboard/mantenimiento/movil">Vista móvil</Link>

@@ -91,7 +91,7 @@ function priorityLabel(priority: string) {
     low: 'Baja',
     medium: 'Media',
     high: 'Alta',
-    critical: 'Critica',
+    critical: 'Crítica',
   };
   return labels[priority] || priority || 'Sin prioridad';
 }
@@ -210,7 +210,7 @@ export function AssetDetailView() {
           <p className="mt-2 text-muted-foreground">No pudimos ubicar el equipo solicitado en la base real.</p>
         </div>
         <Button variant="outline" onClick={() => router.push('/dashboard/mantenimiento/vehiculos')}>
-          Volver a vehiculos
+          Volver a vehículos
         </Button>
       </div>
     );
@@ -283,7 +283,7 @@ export function AssetDetailView() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total ordenes</CardTitle>
+            <CardTitle className="text-sm font-medium">Total órdenes</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{assetOrders.length}</div>
@@ -351,7 +351,7 @@ export function AssetDetailView() {
                 <Link href={`/dashboard/mantenimiento/vehiculos/${asset.id}/qr`}>Tarjeta QR</Link>
               </Button>
               <Button variant="outline" asChild>
-                <Link href={`/dashboard/mantenimiento/vehiculos/${asset.id}/arbol`}>Ver arbol de fallas</Link>
+                <Link href={`/dashboard/mantenimiento/vehiculos/${asset.id}/arbol`}>Ver árbol de fallas</Link>
               </Button>
               <Button variant="outline" asChild>
                 <Link href={`/dashboard/work-orders/create?assetId=${asset.id}`}>Nueva OT</Link>
@@ -544,7 +544,7 @@ export function AssetDetailView() {
           {assetOrders.length === 0 ? (
             <div className="flex items-center gap-2 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
               <AlertCircle className="h-4 w-4" />
-              No hay ordenes de trabajo asociadas a este activo.
+              No hay órdenes de trabajo asociadas a este activo.
             </div>
           ) : (
             <div className="space-y-3">

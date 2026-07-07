@@ -44,9 +44,9 @@ export default function VehiclesImportPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Importar vehiculos de mantenimiento</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Importar vehículos de mantenimiento</h1>
           <p className="mt-2 text-muted-foreground">
-            Carga flota operativa desde Excel o CSV para mantener el inventario y el arbol de fallas actualizados.
+            Carga flota operativa desde Excel o CSV para mantener el inventario y el árbol de fallas actualizados.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -57,7 +57,7 @@ export default function VehiclesImportPage() {
           <Button asChild variant="outline">
             <Link href="/dashboard/mantenimiento/vehiculos">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Volver a vehiculos
+              Volver a vehículos
             </Link>
           </Button>
         </div>
@@ -65,9 +65,9 @@ export default function VehiclesImportPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Importacion estandarizada</CardTitle>
+          <CardTitle>Importación estandarizada</CardTitle>
           <CardDescription>
-            El archivo puede venir en CSV, XLS o XLSX. El alta o actualizacion se hace por `ASSET_CODE`.
+            El archivo puede venir en CSV, XLS o XLSX. El alta o actualización se hace por `ASSET_CODE`.
           </CardDescription>
         </CardHeader>
         <CardContent>

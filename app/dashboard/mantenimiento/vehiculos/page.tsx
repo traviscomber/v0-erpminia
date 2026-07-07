@@ -61,7 +61,7 @@ export default function VehiclesPage() {
         <div className="mt-4 rounded-lg border border-[var(--secondary)]/30 bg-[var(--secondary)]/5 p-4 dark:border-blue-800 dark:bg-blue-950">
           <p className="text-sm text-blue-900 dark:text-blue-100">
             <strong>Cómo funciona:</strong> cada activo trae su información operacional y puedes abrir el
-            arbol de fallas para diagnosticar problemas y crear ordenes de trabajo.
+            árbol de fallas para diagnosticar problemas y crear órdenes de trabajo.
           </p>
         </div>
       </div>
@@ -102,7 +102,7 @@ export default function VehiclesPage() {
           </div>
           <Button className="gap-2 bg-[var(--brand-naranja)] hover:bg-[var(--brand-naranja)]/90" disabled>
             <Plus className="h-4 w-4" />
-            Crear nuevo vehiculo
+            Crear nuevo vehículo
           </Button>
         </div>
       </BrandCard>
@@ -159,7 +159,7 @@ export default function VehiclesPage() {
                     </Link>
                     <Link href={`/dashboard/mantenimiento/vehiculos/${vehicle.id}/arbol`}>
                       <Button variant="outline" className="gap-2">
-                        Ver arbol de fallas
+                        Ver árbol de fallas
                         <ChevronRight className="h-4 w-4" />
                       </Button>
                     </Link>
