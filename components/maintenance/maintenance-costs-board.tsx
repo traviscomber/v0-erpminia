@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import useSWR from 'swr';
 import { AlertCircle, ArrowRight, DollarSign, Download, RefreshCw } from 'lucide-react';
@@ -55,6 +56,7 @@ function money(value: unknown) {
 }
 
 export function MaintenanceCostsBoard() {
+  const [loadDetails, setLoadDetails] = useState(false);
   const {
     data: summaryData,
     error: summaryError,
@@ -67,10 +69,16 @@ export function MaintenanceCostsBoard() {
     isLoading: detailLoading,
     mutate: mutateDetails,
   } = useSWR<MaintenanceCostsResponse>(
-    summaryData ? '/api/maintenance/costs?view=full' : null,
+    loadDetails ? '/api/maintenance/costs?view=full' : null,
     fetcher,
     { revalidateOnFocus: false },
   );
+
+  useEffect(() => {
+    if (!summaryData || loadDetails) return;
+    const timeout = window.setTimeout(() => setLoadDetails(true), 500);
+    return () => window.clearTimeout(timeout);
+  }, [loadDetails, summaryData]);
 
   const summary: MaintenanceCostsSummary = detailData?.summary || summaryData?.summary || { totalCost: 0, totalWorkOrders: 0, totalRecords: 0, assets: 0, averageCostPerAsset: 0 };
   const assetCosts: AssetCostRow[] = Array.isArray(detailData?.assetCosts) ? detailData.assetCosts : [];

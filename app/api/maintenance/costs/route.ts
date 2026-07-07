@@ -97,11 +97,13 @@ export async function GET(request: NextRequest) {
         .eq('organization_id', context.organizationId)
         .order('created_at', { ascending: false })
         .limit(historyLimit),
-      context.supabase
-        .from('maintenance_assets')
-        .select('id, asset_code, asset_name, criticality, status')
-        .eq('organization_id', context.organizationId)
-        .limit(MAX_COST_ASSETS),
+      isSummaryOnly
+        ? Promise.resolve({ data: [] })
+        : context.supabase
+            .from('maintenance_assets')
+            .select('id, asset_code, asset_name, criticality, status')
+            .eq('organization_id', context.organizationId)
+            .limit(MAX_COST_ASSETS),
     ]);
 
     const workOrders = Array.isArray(workOrdersResult.data) ? (workOrdersResult.data as MaintenanceWorkOrderRow[]) : [];
