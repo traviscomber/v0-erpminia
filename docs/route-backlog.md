@@ -53,7 +53,7 @@ Status reflects the latest current-worktree audit plus live verification on July
 | `/dashboard/mantenimiento/centro-costo` | Live verified authenticated render on July 6, 2026; source cleaned and copy normalized | Low | Keep maintenance-by-cost-center wording explicit and aligned with work-order reporting. |
 | `/dashboard/mantenimiento/componentes-mayores` | Live verified authenticated render on July 6, 2026; source cleaned and copy normalized | Low | Keep major-component wording aligned with vehicle and maintenance asset surfaces. |
 | `/dashboard/mantenimiento/gerencial` | Live verified authenticated render on July 6, 2026; source cleaned and copy normalized | Low | Keep the executive maintenance dashboard naming aligned with the rest of the maintenance module. |
-| `/dashboard/mantenimiento/costos` | Live verified authenticated render on July 7, 2026 after deploying defensive query limits; no console errors or navigation timeout, but first-load still measured about 31s | Medium | Profile remaining first-load latency and consider splitting the cost endpoint into summary-first plus detail rows before downgrading risk. |
+| `/dashboard/mantenimiento/costos` | Summary-first/detail split deployed on July 7, 2026 in `ca665b9`; Vercel production build is `READY`, but authenticated browser recheck is still pending because the browser session hung during measurement | Medium | Re-run authenticated live timing; downgrade only if the summary paints quickly and detail loading no longer blocks the route. |
 | `/dashboard/mantenimiento/documentos` | Live verified authenticated render on July 6, 2026; source also cleaned and copy normalized | Low | Keep maintenance document review/upload states aligned with the rest of the document modules. |
 | `/dashboard/mantenimiento/equipos` | Live verified authenticated render on July 6, 2026; source cleaned and copy normalized | Low | Preserve the dedicated equipment import path and keep search/result states free of degraded labels. |
 | `/dashboard/mantenimiento/movil` | Live verified authenticated render on July 6, 2026; source cleaned and copy normalized | Low | Keep the mobile maintenance panel naming aligned with the rest of the maintenance module. |
@@ -106,7 +106,7 @@ Status reflects the latest current-worktree audit plus live verification on July
 
 ## Remaining Work Order
 
-1. Profile remaining `/dashboard/mantenimiento/costos` first-load latency; the route now renders without timeout, but still loads too slowly for production polish.
+1. Re-run authenticated timing for `/dashboard/mantenimiento/costos` after the summary-first/detail split in `ca665b9`; keep it Medium until the live session proves the first paint is fast.
 2. Re-check `/dashboard/documentos-gestion`, `/dashboard/documentos-gestion/procedimientos`, and the main `sostenibilidad` surfaces after deploy to confirm the normalized copy is live.
 3. Promote the source-clean auxiliary routes to live-confirmed status route by route using authenticated verification after deploy.
 4. Treat the remaining untracked dashboard pages as utility/import/detail routes unless they prove broken or misleading in live verification.
