@@ -45,12 +45,23 @@ function monthKey(dateValue?: string | null) {
 const MAX_COST_WORK_ORDERS = 750;
 const MAX_COST_HISTORY_ROWS = 750;
 const MAX_COST_ASSETS = 500;
+const SUMMARY_COST_WORK_ORDERS = 75;
+const SUMMARY_COST_HISTORY_ROWS = 75;
+
+function emptySummary() {
+  return { totalCost: 0, totalWorkOrders: 0, totalRecords: 0, assets: 0, averageCostPerAsset: 0 };
+}
 
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
 
   try {
+    const view = request.nextUrl.searchParams.get('view') || 'full';
+    const isSummaryOnly = view === 'summary';
+    const workOrderLimit = isSummaryOnly ? SUMMARY_COST_WORK_ORDERS : MAX_COST_WORK_ORDERS;
+    const historyLimit = isSummaryOnly ? SUMMARY_COST_HISTORY_ROWS : MAX_COST_HISTORY_ROWS;
+
     const [workOrdersResult, historyResult, assetsResult] = await Promise.all([
       context.supabase
         .from('maintenance_work_orders')
@@ -70,7 +81,7 @@ export async function GET(request: NextRequest) {
         `)
         .eq('organization_id', context.organizationId)
         .order('completion_date', { ascending: false })
-        .limit(MAX_COST_WORK_ORDERS),
+        .limit(workOrderLimit),
       context.supabase
         .from('maintenance_history')
         .select(`
@@ -85,7 +96,7 @@ export async function GET(request: NextRequest) {
         `)
         .eq('organization_id', context.organizationId)
         .order('created_at', { ascending: false })
-        .limit(MAX_COST_HISTORY_ROWS),
+        .limit(historyLimit),
       context.supabase
         .from('maintenance_assets')
         .select('id, asset_code, asset_name, criticality, status')
@@ -208,18 +219,19 @@ export async function GET(request: NextRequest) {
         assets: assetCosts.length,
         averageCostPerAsset: assetCosts.length > 0 ? Number((totalCost / assetCosts.length).toFixed(2)) : 0,
       },
-      assetCosts: assetCosts.slice(0, 20),
-      monthlyCosts: recentMonths,
+      assetCosts: isSummaryOnly ? [] : assetCosts.slice(0, 20),
+      monthlyCosts: isSummaryOnly ? [] : recentMonths,
       limits: {
-        workOrders: MAX_COST_WORK_ORDERS,
-        historyRows: MAX_COST_HISTORY_ROWS,
+        workOrders: workOrderLimit,
+        historyRows: historyLimit,
         assets: MAX_COST_ASSETS,
       },
+      view: isSummaryOnly ? 'summary' : 'full',
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudo calcular el costo por equipo';
     return NextResponse.json(
-      { summary: { totalCost: 0, totalWorkOrders: 0, totalRecords: 0, assets: 0, averageCostPerAsset: 0 }, assetCosts: [], monthlyCosts: [], error: message },
+      { summary: emptySummary(), assetCosts: [], monthlyCosts: [], error: message },
       { status: 500 },
     );
   }

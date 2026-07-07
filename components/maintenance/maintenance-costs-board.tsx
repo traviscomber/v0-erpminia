@@ -55,11 +55,31 @@ function money(value: unknown) {
 }
 
 export function MaintenanceCostsBoard() {
-  const { data, error, isLoading, mutate } = useSWR<MaintenanceCostsResponse>('/api/maintenance/costs', fetcher);
+  const {
+    data: summaryData,
+    error: summaryError,
+    isLoading: summaryLoading,
+    mutate: mutateSummary,
+  } = useSWR<MaintenanceCostsResponse>('/api/maintenance/costs?view=summary', fetcher);
+  const {
+    data: detailData,
+    error: detailError,
+    isLoading: detailLoading,
+    mutate: mutateDetails,
+  } = useSWR<MaintenanceCostsResponse>(
+    summaryData ? '/api/maintenance/costs?view=full' : null,
+    fetcher,
+    { revalidateOnFocus: false },
+  );
 
-  const summary: MaintenanceCostsSummary = data?.summary || { totalCost: 0, totalWorkOrders: 0, totalRecords: 0, assets: 0, averageCostPerAsset: 0 };
-  const assetCosts: AssetCostRow[] = Array.isArray(data?.assetCosts) ? data.assetCosts : [];
-  const monthlyCosts: MonthlyCostRow[] = Array.isArray(data?.monthlyCosts) ? data.monthlyCosts : [];
+  const summary: MaintenanceCostsSummary = detailData?.summary || summaryData?.summary || { totalCost: 0, totalWorkOrders: 0, totalRecords: 0, assets: 0, averageCostPerAsset: 0 };
+  const assetCosts: AssetCostRow[] = Array.isArray(detailData?.assetCosts) ? detailData.assetCosts : [];
+  const monthlyCosts: MonthlyCostRow[] = Array.isArray(detailData?.monthlyCosts) ? detailData.monthlyCosts : [];
+  const error = summaryError || detailError;
+  const refreshCosts = () => {
+    void mutateSummary();
+    void mutateDetails();
+  };
 
   return (
     <div className="space-y-6">
@@ -75,7 +95,7 @@ export function MaintenanceCostsBoard() {
               Importar Excel
             </Link>
           </Button>
-          <Button variant="outline" onClick={() => void mutate()} className="gap-2">
+          <Button variant="outline" onClick={refreshCosts} className="gap-2">
             <RefreshCw className="h-4 w-4" />
             Recargar
           </Button>
@@ -106,7 +126,7 @@ export function MaintenanceCostsBoard() {
             <CardTitle className="text-sm">Costo total</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{money(summary.totalCost)}</div>
+            <div className="text-2xl font-bold">{summaryLoading ? '...' : money(summary.totalCost)}</div>
           </CardContent>
         </Card>
         <Card>
@@ -114,7 +134,7 @@ export function MaintenanceCostsBoard() {
             <CardTitle className="text-sm">Equipos con costo</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{toNumber(summary.assets)}</div>
+            <div className="text-2xl font-bold">{summaryLoading ? '...' : toNumber(summary.assets)}</div>
           </CardContent>
         </Card>
         <Card>
@@ -122,7 +142,7 @@ export function MaintenanceCostsBoard() {
             <CardTitle className="text-sm">OT con costo</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{toNumber(summary.totalWorkOrders)}</div>
+            <div className="text-2xl font-bold">{summaryLoading ? '...' : toNumber(summary.totalWorkOrders)}</div>
           </CardContent>
         </Card>
         <Card>
@@ -130,7 +150,7 @@ export function MaintenanceCostsBoard() {
             <CardTitle className="text-sm">Promedio por equipo</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{money(summary.averageCostPerAsset)}</div>
+            <div className="text-2xl font-bold">{summaryLoading ? '...' : money(summary.averageCostPerAsset)}</div>
           </CardContent>
         </Card>
       </div>
@@ -175,8 +195,8 @@ export function MaintenanceCostsBoard() {
             <CardTitle>Equipos mas costosos</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {isLoading ? (
-              <div className="text-sm text-muted-foreground">Cargando costos...</div>
+            {detailLoading ? (
+              <div className="text-sm text-muted-foreground">Cargando detalle de costos...</div>
             ) : error ? (
               <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
                 <AlertCircle className="h-4 w-4" />
@@ -210,7 +230,9 @@ export function MaintenanceCostsBoard() {
             <CardTitle>Costos mensuales</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {monthlyCosts.length === 0 ? (
+            {detailLoading ? (
+              <div className="text-sm text-muted-foreground">Cargando costos mensuales...</div>
+            ) : monthlyCosts.length === 0 ? (
               <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
                 Sin datos mensuales todavia.
               </div>
