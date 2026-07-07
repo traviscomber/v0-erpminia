@@ -31,9 +31,9 @@ export default function MaquinariaImportarPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Importar maquinaria y vehiculos</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Importar maquinaria y vehículos</h1>
           <p className="mt-2 text-muted-foreground">
-            Carga el maestro operativo desde Excel o CSV para mantener flota, equipos, modelos y estado al dia.
+            Carga el maestro operativo desde Excel o CSV para mantener flota, equipos, modelos y estado al día.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -54,10 +54,10 @@ export default function MaquinariaImportarPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Truck className="h-5 w-5" />
-            Importacion estandarizada de flota
+            Importación estandarizada de flota
           </CardTitle>
           <CardDescription>
-            Acepta CSV, XLS y XLSX. La actualizacion se realiza por codigo para evitar duplicados y mantener trazabilidad.
+            Acepta CSV, XLS y XLSX. La actualización se realiza por código para evitar duplicados y mantener trazabilidad.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -73,17 +73,17 @@ export default function MaquinariaImportarPage() {
         <CardHeader>
           <CardTitle>Columnas esperadas</CardTitle>
           <CardDescription>
-            Usa el mismo orden de la plantilla o al menos conserva estos encabezados para que la importacion pueda normalizar la data.
+            Usa el mismo orden de la plantilla o al menos conserva estos encabezados para que la importación pueda normalizar la data.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-2 text-sm text-muted-foreground md:grid-cols-2">
-          <div>`codigo`: identificador unico en formato familia-item</div>
-          <div>`nombre`: nombre operativo del equipo o vehiculo</div>
+          <div>`codigo`: identificador único en formato familia-item</div>
+          <div>`nombre`: nombre operativo del equipo o vehículo</div>
           <div>`estado`: activo, inactivo o equivalente operacional</div>
-          <div>`descripcion`: detalle de uso o asignacion</div>
+          <div>`descripcion`: detalle de uso o asignación</div>
           <div>`modelo`: modelo comercial del activo</div>
           <div>`patente`: patente o serie si aplica</div>
-          <div>`anio`: ano del activo</div>
+          <div>`anio`: año del activo</div>
         </CardContent>
       </Card>
     </div>

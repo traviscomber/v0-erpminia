@@ -44,6 +44,7 @@ export function MaquinariaImport({ onSuccess }: { onSuccess?: () => void }) {
       form.append('file', file);
       const res = await fetch('/api/maquinaria/import-machinery', {
         method: 'POST',
+        credentials: 'include',
         body: form,
       });
       const data = await res.json();
@@ -78,16 +79,16 @@ export function MaquinariaImport({ onSuccess }: { onSuccess?: () => void }) {
         <CardHeader className="pb-3">
           <CardTitle className="text-base">Formato del archivo</CardTitle>
           <CardDescription>
-            El archivo puede incluir <strong>codigo</strong>, <strong>nombre</strong>, <strong>estado</strong>,
-            <strong>descripcion</strong>, <strong>modelo</strong>, <strong>patente</strong> y <strong>anio</strong>.
-            El codigo debe venir en formato <strong>X-Y</strong>.
+            El archivo puede incluir <strong>código</strong>, <strong>nombre</strong>, <strong>estado</strong>,
+            <strong>descripción</strong>, <strong>modelo</strong>, <strong>patente</strong> y <strong>año</strong>.
+            El código debe venir en formato <strong>X-Y</strong>.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4 md:flex-row md:items-start">
             <div className="flex-1 rounded-md border border-border bg-background p-3 font-mono text-xs text-muted-foreground">
               <div className="mb-1 font-semibold text-foreground">codigo;nombre;estado;descripcion;modelo;patente;anio</div>
-              <div>Si vuelves a subir el mismo codigo, el sistema actualiza el registro existente.</div>
+              <div>Si vuelves a subir el mismo código, el sistema actualiza el registro existente.</div>
             </div>
             <Button variant="outline" size="sm" onClick={downloadTemplate} className="shrink-0">
               <Download className="mr-2 h-4 w-4" />
@@ -105,7 +106,7 @@ export function MaquinariaImport({ onSuccess }: { onSuccess?: () => void }) {
               ['14', 'Compresores'],
               ['15', 'Manipuladores'],
               ['16', 'Sondaje'],
-              ['17', 'Perforacion'],
+              ['17', 'Perforación'],
               ['18', 'Minicargadores'],
             ].map(([code, label]) => (
               <div key={code} className="flex items-center gap-1">
@@ -157,7 +158,7 @@ export function MaquinariaImport({ onSuccess }: { onSuccess?: () => void }) {
         ) : (
           <div className="flex flex-col items-center gap-2">
             <Upload className="h-10 w-10 text-muted-foreground" />
-            <p className="font-medium">Arrastra tu archivo aqui</p>
+            <p className="font-medium">Arrastra tu archivo aquí</p>
             <p className="text-sm text-muted-foreground">o haz click para seleccionar CSV, XLS o XLSX</p>
           </div>
         )}
