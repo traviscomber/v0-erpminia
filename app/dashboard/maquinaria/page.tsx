@@ -76,9 +76,11 @@ export default function MaquinariaPage() {
               Importador dedicado
             </Link>
           </Button>
-          <Button variant="outline" size="sm" onClick={() => window.open('/api/maquinaria/export', '_blank')}>
-            <Download className="mr-2 h-4 w-4" />
-            Descargar Excel maestro
+          <Button variant="outline" size="sm" asChild>
+            <a href="/api/maquinaria/export" target="_blank" rel="noreferrer">
+              <Download className="mr-2 h-4 w-4" />
+              Descargar Excel maestro
+            </a>
           </Button>
         </div>
       </div>
@@ -97,9 +99,11 @@ export default function MaquinariaPage() {
               Abrir importador de maquinaria
             </Link>
           </Button>
-          <Button variant="outline" onClick={() => window.open('/api/maquinaria/export', '_blank')}>
-            <Download className="mr-2 h-4 w-4" />
-            Descargar Excel maestro
+          <Button variant="outline" asChild>
+            <a href="/api/maquinaria/export" target="_blank" rel="noreferrer">
+              <Download className="mr-2 h-4 w-4" />
+              Descargar Excel maestro
+            </a>
           </Button>
         </CardContent>
       </Card>

@@ -64,7 +64,7 @@ export default function TelemetriaPage() {
           <CardContent>
             <div className="text-2xl font-bold text-primary">Datos seguros</div>
             <p className="text-xs text-muted-foreground">
-              La pagina permanece estable aunque el realtime no este disponible.
+              La página permanece estable aunque el realtime no esté disponible.
             </p>
           </CardContent>
         </Card>
@@ -134,10 +134,18 @@ export default function TelemetriaPage() {
 
       <Card className="border-border/70 bg-card/90">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <RadioTower className="h-4 w-4 text-[var(--brand-verde)]" />
-            Integración LAN
-          </CardTitle>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <RadioTower className="h-4 w-4 text-[var(--brand-verde)]" />
+              Integración LAN
+            </CardTitle>
+            <Button asChild variant="outline" size="sm" className="gap-2">
+              <Link href="/dashboard/telemetria/integracion">
+                Ver configuración
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
           <CardDescription>
             Preparado para recibir lecturas desde otra máquina de la red local de la Patagua.
           </CardDescription>
