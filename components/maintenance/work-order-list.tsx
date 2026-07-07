@@ -42,8 +42,8 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await fetch('/api/maintenance/work-orders');
-        if (!response.ok) throw new Error('No se pudieron obtener las ordenes de trabajo');
+        const response = await fetch('/api/maintenance/work-orders', { credentials: 'include' });
+        if (!response.ok) throw new Error('No se pudieron obtener las órdenes de trabajo');
         const { workOrders } = await response.json();
         setOrders((workOrders || []).slice(0, limit));
       } catch (err) {
@@ -62,6 +62,7 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
       const res = await fetch(`/api/maintenance/work-orders/${orderId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ status: newStatus }),
       });
       if (!res.ok) throw new Error('No se pudo actualizar la orden de trabajo');
@@ -107,7 +108,7 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
   };
 
   if (loading) {
-    return <div className="text-muted-foreground">Cargando ordenes de trabajo...</div>;
+    return <div className="text-muted-foreground">Cargando órdenes de trabajo...</div>;
   }
 
   return (
@@ -159,7 +160,7 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
                 <div>
                   <p className="flex items-center gap-1 text-xs text-muted-foreground">
                     <User className="h-3 w-3" />
-                    Tecnico
+                    Técnico
                   </p>
                   <p className="font-semibold">{order.assigned_to_name}</p>
                 </div>
@@ -192,7 +193,7 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
       {orders.length === 0 && (
         <Card className="border-border bg-muted/30">
           <CardContent className="pt-6">
-            <div className="text-center text-muted-foreground">No hay ordenes de trabajo disponibles</div>
+            <div className="text-center text-muted-foreground">No hay órdenes de trabajo disponibles</div>
           </CardContent>
         </Card>
       )}

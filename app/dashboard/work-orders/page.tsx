@@ -6,7 +6,7 @@ import useSWR from 'swr';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Clock, CheckCircle2, AlertCircle, Eye, Wrench, Filter } from 'lucide-react';
+import { Plus, Clock, CheckCircle2, AlertCircle, Eye, Wrench } from 'lucide-react';
 import { MaintenanceSchedule } from '@/components/maintenance/maintenance-schedule';
 
 type WorkOrderItem = {
@@ -34,10 +34,10 @@ type ScheduleItem = {
 export default function WorkOrdersPage() {
   const [updatingScheduleId, setUpdatingScheduleId] = useState<string | null>(null);
   const { data, error, isLoading, mutate } = useSWR('/api/maintenance/work-orders', async (url: string) => {
-    const res = await fetch(url);
+    const res = await fetch(url, { credentials: 'include' });
     const payload = await res.json().catch(() => null);
     if (!res.ok) {
-      throw new Error(payload?.error || 'No se pudieron cargar las ordenes de trabajo');
+      throw new Error(payload?.error || 'No se pudieron cargar las órdenes de trabajo');
     }
     return payload;
   });
@@ -103,6 +103,7 @@ export default function WorkOrdersPage() {
       const res = await fetch(`/api/maintenance/work-orders/${scheduleId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ status: 'completed' }),
       });
 
@@ -210,9 +211,6 @@ export default function WorkOrdersPage() {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Button variant="outline" className="gap-2" disabled>
-          <Filter className="h-4 w-4" /> Filtrar
-        </Button>
         <Link href="/dashboard/mantenimiento">
           <Button variant="outline" className="gap-2">
             <Wrench className="h-4 w-4" /> Volver a mantenimiento
@@ -245,15 +243,15 @@ export default function WorkOrdersPage() {
           <div className="space-y-3">
             {isLoading && (
               <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
-                Cargando ordenes de trabajo...
+                Cargando órdenes de trabajo...
               </div>
             )}
 
             {error && !isLoading && (
               <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-8 text-center">
-                <p className="font-medium text-destructive">No se pudieron cargar las ordenes de trabajo</p>
+                <p className="font-medium text-destructive">No se pudieron cargar las órdenes de trabajo</p>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Reintenta la carga o revisa la conexion antes de crear nuevas tareas operativas.
+                  Reintenta la carga o revisa la conexión antes de crear nuevas tareas operativas.
                 </p>
               </div>
             )}

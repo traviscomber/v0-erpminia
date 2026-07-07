@@ -13,9 +13,10 @@ export default function WorkOrderDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
   const [savingStatus, setSavingStatus] = useState<string | null>(null);
+  const [statusError, setStatusError] = useState<string | null>(null);
 
   const { data, error, isLoading, mutate } = useSWR(id ? `/api/maintenance/work-orders/${id}` : null, async (url: string) => {
-    const res = await fetch(url);
+    const res = await fetch(url, { credentials: 'include' });
     const payload = await res.json().catch(() => null);
     if (!res.ok) {
       throw new Error(payload?.error || 'No se pudo cargar la orden de trabajo');
@@ -41,7 +42,7 @@ export default function WorkOrderDetailPage() {
   };
 
   const getPriorityLabel = (priority?: string) => {
-    if (String(priority || '').toLowerCase() === 'critical') return 'Critica';
+    if (String(priority || '').toLowerCase() === 'critical') return 'Crítica';
     switch (priority) {
       case 'low':
         return 'Baja';
@@ -71,10 +72,12 @@ export default function WorkOrderDetailPage() {
 
   const updateStatus = async (status: 'open' | 'in_progress' | 'completed') => {
     setSavingStatus(status);
+    setStatusError(null);
     try {
       const res = await fetch(`/api/maintenance/work-orders/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ status }),
       });
 
@@ -86,6 +89,7 @@ export default function WorkOrderDetailPage() {
       await mutate();
     } catch (error) {
       console.error('[work-orders] status update failed', error);
+      setStatusError(error instanceof Error ? error.message : 'No se pudo actualizar la orden de trabajo');
     } finally {
       setSavingStatus(null);
     }
@@ -118,13 +122,13 @@ export default function WorkOrderDetailPage() {
             <CardTitle>{error ? 'No se pudo cargar la orden' : 'Orden no disponible'}</CardTitle>
             <CardDescription>
               {error
-                ? 'Revisa la conexion o vuelve al listado para abrir otra orden activa.'
-                : 'No se encontro informacion para esta orden. Puedes volver al listado o crear una nueva orden desde el flujo principal.'}
+                ? 'Revisa la conexión o vuelve al listado para abrir otra orden activa.'
+                : 'No se encontró información para esta orden. Puedes volver al listado o crear una nueva orden desde el flujo principal.'}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
             <Button asChild variant="outline">
-              <Link href="/dashboard/work-orders">Volver a ordenes</Link>
+              <Link href="/dashboard/work-orders">Volver a órdenes</Link>
             </Button>
             <Button asChild>
               <Link href="/dashboard/work-orders/create">Crear nueva orden</Link>
@@ -165,31 +169,38 @@ export default function WorkOrderDetailPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Acciones rapidas</CardTitle>
+              <CardTitle>Acciones rápidas</CardTitle>
               <CardDescription>Cambia el estado sin salir de la orden</CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-wrap gap-3">
-              <Button
-                variant="outline"
-                onClick={() => updateStatus('open')}
-                disabled={savingStatus !== null}
-              >
-                Reabrir
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => updateStatus('in_progress')}
-                disabled={savingStatus !== null}
-              >
-                Marcar en progreso
-              </Button>
-              <Button
-                className="bg-[var(--brand-verde)] hover:bg-[var(--brand-verde)]/90"
-                onClick={() => updateStatus('completed')}
-                disabled={savingStatus !== null}
-              >
-                {savingStatus === 'completed' ? 'Guardando...' : 'Marcar completada'}
-              </Button>
+            <CardContent className="space-y-3">
+              {statusError ? (
+                <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+                  {statusError}
+                </div>
+              ) : null}
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => updateStatus('open')}
+                  disabled={savingStatus !== null}
+                >
+                  Reabrir
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => updateStatus('in_progress')}
+                  disabled={savingStatus !== null}
+                >
+                  Marcar en progreso
+                </Button>
+                <Button
+                  className="bg-[var(--brand-verde)] hover:bg-[var(--brand-verde)]/90"
+                  onClick={() => updateStatus('completed')}
+                  disabled={savingStatus !== null}
+                >
+                  {savingStatus === 'completed' ? 'Guardando...' : 'Marcar completada'}
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
@@ -248,7 +259,7 @@ export default function WorkOrderDetailPage() {
               <p className="text-sm">{workOrder.description || 'Sin descripción adicional.'}</p>
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <p className="text-sm text-muted-foreground">Causa raiz</p>
+                  <p className="text-sm text-muted-foreground">Causa raíz</p>
                   <p className="font-medium">{workOrder.root_cause || 'No registrada'}</p>
                 </div>
                 <div>

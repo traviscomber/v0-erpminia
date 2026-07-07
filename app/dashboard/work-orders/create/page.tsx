@@ -80,7 +80,7 @@ const COMPONENT_TEMPLATES: Record<string, ComponentTemplate[]> = {
 };
 
 const fetcher = async (url: string) => {
-  const response = await fetch(url);
+  const response = await fetch(url, { credentials: 'include' });
   const payload = await response.json().catch(() => null);
   if (!response.ok) return null;
   return payload;
@@ -226,6 +226,7 @@ export default function CreateWorkOrderPage() {
       const response = await fetch('/api/maintenance/work-orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           ...(assetId ? { assetId } : {}),
           costCenterCode: fromMaquinaria ? prefilledCostCenter : undefined,
@@ -266,7 +267,7 @@ export default function CreateWorkOrderPage() {
         <div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-sm">
           <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
           <span>
-            OT prellenada desde planificacion: <span className="font-semibold">{initialTitle}</span>
+            OT prellenada desde planificación: <span className="font-semibold">{initialTitle}</span>
           </span>
         </div>
       )}
@@ -353,9 +354,9 @@ export default function CreateWorkOrderPage() {
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <h3 className="font-semibold">{asset.asset_name || 'Activo sin nombre'}</h3>
-                    <p className="text-sm text-muted-foreground">Codigo: {asset.asset_code || '-'}</p>
+                    <p className="text-sm text-muted-foreground">Código: {asset.asset_code || '-'}</p>
                     <p className="text-sm text-muted-foreground">
-                      {asset.asset_type || 'Sin tipo'} - {asset.location || 'Sin ubicacion'}
+                      {asset.asset_type || 'Sin tipo'} - {asset.location || 'Sin ubicación'}
                     </p>
                     {(asset.manufacturer || asset.model) && (
                       <p className="text-sm text-muted-foreground">
@@ -429,7 +430,7 @@ export default function CreateWorkOrderPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="critical">Critica</SelectItem>
+                  <SelectItem value="critical">Crítica</SelectItem>
                   <SelectItem value="high">Alta</SelectItem>
                   <SelectItem value="medium">Media</SelectItem>
                   <SelectItem value="low">Baja</SelectItem>
@@ -462,18 +463,18 @@ export default function CreateWorkOrderPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Titulo</label>
+              <label className="text-sm font-medium">Título</label>
               <input
                 type="text"
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
-                placeholder="Titulo de la orden"
+                placeholder="Título de la orden"
                 className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Descripcion</label>
+              <label className="text-sm font-medium">Descripción</label>
               <textarea
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
@@ -485,7 +486,7 @@ export default function CreateWorkOrderPage() {
             <div className="space-y-2 rounded-lg bg-muted p-3 text-sm">
               <p className="font-semibold">Resumen</p>
               <p>Activo: {fromMaquinaria ? prefilledMachine : (selectedAsset?.asset_name || '-')}</p>
-              <p>Codigo CC: {fromMaquinaria ? prefilledCostCenter : (selectedAsset?.asset_code || '-')}</p>
+              <p>Código CC: {fromMaquinaria ? prefilledCostCenter : (selectedAsset?.asset_code || '-')}</p>
               <p>Componentes: {selectedComponents.length}</p>
               <p>Tiempo total: {totalHours}h</p>
             </div>
