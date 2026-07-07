@@ -63,7 +63,7 @@ export default function CapacitacionesImportPage() {
       setResult({
         success: false,
         message: 'Solo aceptamos archivos CSV, XLS o XLSX',
-        error: 'Tipo de archivo no valido',
+        error: 'Tipo de archivo no válido',
       });
       return;
     }

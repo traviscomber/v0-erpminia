@@ -201,7 +201,7 @@ export default function CapacitacionesPage() {
       setImportResult({
         success: false,
         message: 'Solo aceptamos archivos CSV, XLS o XLSX',
-        error: 'Tipo de archivo no valido',
+        error: 'Tipo de archivo no válido',
       });
       return;
     }
@@ -222,7 +222,7 @@ export default function CapacitacionesPage() {
       if (!response.ok) {
         setImportResult({
           success: false,
-          message: 'No se pudo importar capacitaciónes',
+          message: 'No se pudieron importar las capacitaciones',
           error: payload.error || 'Error desconocido',
         });
         return;
@@ -612,7 +612,7 @@ export default function CapacitacionesPage() {
                       </td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex justify-end gap-2">
-                          <Button variant="ghost" size="sm" aria-label="Ver detalle">
+                          <Button variant="ghost" size="sm" aria-label="Detalle pendiente" disabled title="Detalle pendiente">
                             <Eye className="h-4 w-4" />
                           </Button>
                           <Button variant="ghost" size="sm" aria-label="Eliminar" onClick={() => handleDelete(cap.id, cap.nombre_capacitacion)}>

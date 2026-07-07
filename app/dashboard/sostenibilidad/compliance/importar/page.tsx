@@ -72,7 +72,7 @@ export default function ComplianceImportPage() {
     if (!valid) {
       setResult((current) => ({
         ...current,
-        [activeMode]: { success: false, message: 'Solo aceptamos CSV, XLS o XLSX', error: 'Formato no valido' },
+        [activeMode]: { success: false, message: 'Solo aceptamos CSV, XLS o XLSX', error: 'Formato no válido' },
       }));
       return;
     }
@@ -100,7 +100,7 @@ export default function ComplianceImportPage() {
         ...current,
         [activeMode]: {
           success: true,
-          message: payload.message || `Importacion completada para ${modeTitle}`,
+          message: payload.message || `Importación completada para ${modeTitle}`,
           imported: payload.imported,
           updated: payload.updated,
         },
