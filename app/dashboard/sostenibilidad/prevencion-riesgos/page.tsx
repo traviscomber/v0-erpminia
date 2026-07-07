@@ -4,6 +4,7 @@ import Link from 'next/link';
 import useSWR from 'swr';
 import {
   Activity,
+  AlertTriangle,
   ArrowRight,
   ClipboardCheck,
   FileText,
@@ -72,6 +73,22 @@ const modules = [
     bgColor: 'bg-primary/10',
   },
   {
+    title: 'No conformidades',
+    description: 'Registro, clasificación y trazabilidad de hallazgos preventivos.',
+    href: '/dashboard/sostenibilidad/prevencion-riesgos/no-conformidades',
+    icon: AlertTriangle,
+    color: 'text-destructive',
+    bgColor: 'bg-destructive/10',
+  },
+  {
+    title: 'Acciones correctivas',
+    description: 'Seguimiento de responsables, plazos y cierres asociados a hallazgos.',
+    href: '/dashboard/sostenibilidad/prevencion-riesgos/acciones-correctivas',
+    icon: ClipboardCheck,
+    color: 'text-primary',
+    bgColor: 'bg-primary/10',
+  },
+  {
     title: 'Indicadores de prevención',
     description: 'Indicadores de seguridad y tendencias operacionales.',
     href: '/dashboard/sostenibilidad/prevencion-riesgos/kpi',
@@ -86,6 +103,14 @@ const modules = [
     icon: ClipboardCheck,
     color: 'text-muted-foreground',
     bgColor: 'bg-muted',
+  },
+  {
+    title: 'Inspecciones externas',
+    description: 'Control documental de inspecciones externas y evidencia asociada.',
+    href: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones-externas',
+    icon: Shield,
+    color: 'text-secondary',
+    bgColor: 'bg-secondary/10',
   },
   {
     title: 'Carpeta de Arranque',
@@ -105,26 +130,42 @@ export default function PrevencionRiesgosPage() {
   const { data: capacitacionesData } = useSWR<ListResponse>('/api/sostenibilidad/capacitaciones', fetcher);
   const { data: eppData } = useSWR<ListResponse>('/api/sostenibilidad/epp', fetcher);
   const { data: inspeccionesData } = useSWR<ListResponse>('/api/sostenibilidad/inspecciones', fetcher);
+  const { data: noConformidadesData } = useSWR<ListResponse>('/api/sostenibilidad/no-conformidades', fetcher);
+  const { data: accionesCorrectivasData } = useSWR<ListResponse>('/api/sostenibilidad/corrective-actions', fetcher);
 
   const documentCount = normalizeCount(documentosData);
   const trainingCount = normalizeCount(capacitacionesData);
   const eppCount = normalizeCount(eppData);
   const inspectionCount = normalizeCount(inspeccionesData);
+  const nonConformanceCount = normalizeCount(noConformidadesData);
+  const correctiveActionCount = normalizeCount(accionesCorrectivasData);
 
   const summaryCards = [
     { label: 'Documentos HSE', value: documentCount },
     { label: 'Capacitaciones', value: trainingCount },
     { label: 'EPP activos', value: eppCount },
     { label: 'Inspecciones', value: inspectionCount },
+    { label: 'No conformidades', value: nonConformanceCount },
+    { label: 'Acciones correctivas', value: correctiveActionCount },
   ];
 
   const countsByModule: Record<string, number> = {
     'Documentos HSE': documentCount,
     Capacitaciones: trainingCount,
     'Elementos de EPP': eppCount,
+    'No conformidades': nonConformanceCount,
+    'Acciones correctivas': correctiveActionCount,
     Inspecciones: inspectionCount,
+    'Inspecciones externas': inspectionCount,
     'Carpeta de Arranque': documentCount,
-    'Indicadores de prevención': Math.max(documentCount, trainingCount, eppCount, inspectionCount),
+    'Indicadores de prevención': Math.max(
+      documentCount,
+      trainingCount,
+      eppCount,
+      inspectionCount,
+      nonConformanceCount,
+      correctiveActionCount
+    ),
   };
 
   return (
@@ -148,7 +189,7 @@ export default function PrevencionRiesgosPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-6">
         {summaryCards.map((card) => (
           <Card key={card.label} className="rounded-xl shadow-none">
             <CardHeader className="pb-3">
