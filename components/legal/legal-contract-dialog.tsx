@@ -26,7 +26,7 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
   const [description, setDescription] = useState('');
   const [contractNumber, setContractNumber] = useState('');
   const [contractType, setContractType] = useState('Servicios');
-  const [status, setStatus] = useState('En revision');
+  const [status, setStatus] = useState('En revisión');
   const [contractValue, setContractValue] = useState('');
   const [currency, setCurrency] = useState('CLP');
   const [startDate, setStartDate] = useState('');
@@ -40,7 +40,7 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
     setDescription('');
     setContractNumber('');
     setContractType('Servicios');
-    setStatus('En revision');
+    setStatus('En revisión');
     setContractValue('');
     setCurrency('CLP');
     setStartDate('');
@@ -63,7 +63,7 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
     }
 
     if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
-      toast.error('El archivo excede el limite de 50MB.');
+      toast.error('El archivo excede el límite de 50MB.');
       event.target.value = '';
       return;
     }
@@ -101,6 +101,7 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
 
       const response = await fetch('/api/contracts', {
         method: 'POST',
+        credentials: 'include',
         body: formData,
       });
 
@@ -133,7 +134,7 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium text-foreground">Titulo</label>
+              <label className="text-sm font-medium text-foreground">Título</label>
               <Input
                 placeholder="Ej: Contrato principal Operaciones La Patagua 2026"
                 value={title}
@@ -196,7 +197,7 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
                   <SelectValue placeholder="Seleccionar" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="En revision">En revision</SelectItem>
+                  <SelectItem value="En revisión">En revisión</SelectItem>
                   <SelectItem value="Vigente">Vigente</SelectItem>
                   <SelectItem value="Borrador">Borrador</SelectItem>
                   <SelectItem value="Por Vencer">Por Vencer</SelectItem>

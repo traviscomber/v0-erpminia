@@ -20,7 +20,7 @@ export default function PermisosLicenciasImportarPage() {
         <div>
           <h1 className="text-3xl font-bold">Importar permisos y licencias</h1>
           <p className="mt-2 max-w-3xl text-muted-foreground">
-            Ruta dedicada para cargar permisos, licencias, patentes, resoluciones y autorizaciones del modulo legal.
+            Ruta dedicada para cargar permisos, licencias, patentes, resoluciones y autorizaciones del módulo legal.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -43,7 +43,7 @@ export default function PermisosLicenciasImportarPage() {
             Subir documento legal
           </CardTitle>
           <CardDescription>
-            Acepta PDF, Word y Excel. El archivo queda registrado dentro del modulo legal para su revision y seguimiento.
+            Acepta PDF, Word y Excel. El archivo queda registrado dentro del módulo legal para su revisión y seguimiento.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

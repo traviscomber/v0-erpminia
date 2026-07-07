@@ -192,7 +192,7 @@ export default function LegalPage() {
 
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error || 'Error en la revision');
+        throw new Error(err.error || 'Error en la revisión');
       }
 
       await mutateDocuments();
@@ -350,7 +350,7 @@ export default function LegalPage() {
         filename: 'plantilla-documentos-legales.csv',
         headers: ['TITLE', 'DESCRIPTION', 'DOCUMENT_TYPE', 'CATEGORY', 'STATUS'],
         rows: [
-          ['Politica HSE', 'Politica corporativa de seguridad', 'policy', 'HSE', 'pending'],
+          ['Política HSE', 'Política corporativa de seguridad', 'policy', 'HSE', 'pending'],
           ['Procedimiento vehiculos', 'Uso seguro de vehiculos', 'procedure', 'Operacion', 'active'],
         ],
       },
@@ -660,7 +660,7 @@ export default function LegalPage() {
           <Card>
             <CardHeader>
               <CardTitle>Matriz de cumplimiento</CardTitle>
-              <CardDescription>Seguimiento de respaldo contractual y documental del modulo legal.</CardDescription>
+              <CardDescription>Seguimiento de respaldo contractual y documental del módulo legal.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">

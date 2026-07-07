@@ -45,14 +45,14 @@ export function AddContractModal({ onSubmit }: AddContractModalProps) {
     if (!ALLOWED_EXTENSIONS.includes(extension)) {
       event.target.value = '';
       setFile(null);
-      toast.error('Formato no valido. Usa PDF, DOC o DOCX.');
+      toast.error('Formato no válido. Usa PDF, DOC o DOCX.');
       return;
     }
 
     if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
       event.target.value = '';
       setFile(null);
-      toast.error('El archivo supera el limite de 50 MB.');
+      toast.error('El archivo supera el límite de 50 MB.');
       return;
     }
 
@@ -91,7 +91,7 @@ export function AddContractModal({ onSubmit }: AddContractModalProps) {
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Titulo del contrato</Label>
+            <Label htmlFor="title">Título del contrato</Label>
             <Input
               id="title"
               placeholder="Ej: Contrato Proveedor 2026"

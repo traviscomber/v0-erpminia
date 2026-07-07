@@ -56,7 +56,7 @@ export function DocumentUploadForm() {
   return (
     <form onSubmit={handleUpload} className="space-y-4 rounded-lg border p-4">
       <div>
-        <label className="text-sm font-medium">Titulo del documento</label>
+        <label className="text-sm font-medium">Título del documento</label>
         <Input
           value={title}
           onChange={(e) => setTitle(e.target.value)}

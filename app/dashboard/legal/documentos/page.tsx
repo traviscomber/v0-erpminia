@@ -208,7 +208,7 @@ export default function DocumentosLegalPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-yellow-500">{stats.en_revision}</p>
-            <p className="text-xs text-muted-foreground">Esperando aprobacion</p>
+            <p className="text-xs text-muted-foreground">Esperando aprobación</p>
           </CardContent>
         </Card>
 

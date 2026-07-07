@@ -167,7 +167,7 @@ function buildTemplateCsv(mode: ImportMode) {
   if (mode === 'documents') {
     const headers = ['TITLE', 'DESCRIPTION', 'DOCUMENT_TYPE', 'CATEGORY', 'STATUS'];
     const rows = [
-      ['Politica HSE', 'Politica corporativa de seguridad', 'policy', 'compliance', 'draft'],
+      ['Política HSE', 'Política corporativa de seguridad', 'policy', 'compliance', 'draft'],
       ['Procedimiento vehiculos', 'Uso seguro de vehiculos', 'procedure', 'legal', 'draft'],
     ];
     return [headers, ...rows]
@@ -304,7 +304,7 @@ export default function LegalImportPage() {
     if (!valid) {
       setResult((current) => ({
         ...current,
-        [activeMode]: { success: false, message: 'Solo aceptamos CSV, XLS o XLSX', error: 'Formato no valido' },
+        [activeMode]: { success: false, message: 'Solo aceptamos CSV, XLS o XLSX', error: 'Formato no válido' },
       }));
       return;
     }
@@ -366,7 +366,7 @@ export default function LegalImportPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Importar legal</h1>
           <p className="mt-2 text-muted-foreground">
-            Carga documentos y contratos desde CSV/XLS/XLSX usando los mismos contratos de datos del modulo legal.
+            Carga documentos y contratos desde CSV/XLS/XLSX usando los mismos contratos de datos del módulo legal.
           </p>
         </div>
         <Button asChild variant="outline" className="gap-2">
@@ -472,7 +472,7 @@ function ImportPanel({
             }`}
           >
             <Upload className="mx-auto mb-3 h-10 w-10 text-primary" />
-            <p className="font-medium">Arrastra tu archivo aqui o usa el selector</p>
+            <p className="font-medium">Arrastra tu archivo aquí o usa el selector</p>
             <p className="mt-1 text-sm text-muted-foreground">Acepta CSV, XLS y XLSX.</p>
             <div className="mt-4 flex flex-wrap justify-center gap-2">
               <Button variant="outline" onClick={downloadTemplate} className="gap-2">
@@ -520,13 +520,13 @@ function ImportPanel({
             <>
               <p>Campos obligatorios: `TITLE`.</p>
               <p>Campos recomendados: `DESCRIPTION`, `DOCUMENT_TYPE`, `CATEGORY`, `STATUS`.</p>
-              <p>Los documentos nuevos ingresan como borrador para su revision legal.</p>
+              <p>Los documentos nuevos ingresan como borrador para su revisión legal.</p>
             </>
           ) : (
             <>
               <p>Campos obligatorios: `TITLE` y `CONTRACTOR_NAME`.</p>
               <p>Campos recomendados: `CONTRACT_NUMBER`, `START_DATE`, `END_DATE`, `STATUS`, `CONTRACT_VALUE`, `CURRENCY`, `COMPLIANCE_STATUS`.</p>
-              <p>Los contratos se crean con el mismo contrato de datos del modulo legal.</p>
+              <p>Los contratos se crean con el mismo contrato de datos del módulo legal.</p>
             </>
           )}
         </CardContent>

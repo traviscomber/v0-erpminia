@@ -69,7 +69,7 @@ export function DocumentReviewModal({ open, document, level = 'L1', onClose, onR
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               <DialogTitle className="text-lg">{document.title}</DialogTitle>
-              <DialogDescription className="mt-1">Revision nivel {level}</DialogDescription>
+              <DialogDescription className="mt-1">Revisión nivel {level}</DialogDescription>
             </div>
             {hasBeenReviewed && (
               <Badge variant={currentStatusData.status === 'cumple' ? 'default' : 'destructive'}>
@@ -168,7 +168,7 @@ export function DocumentReviewModal({ open, document, level = 'L1', onClose, onR
 
           {reviewStatus === 'cumple' && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">Observaciones opcionales de aprobacion</label>
+              <label className="text-sm font-medium">Observaciones opcionales de aprobación</label>
               <Textarea
                 placeholder="Agrega cualquier nota o comentario..."
                 value={observations}
@@ -190,7 +190,7 @@ export function DocumentReviewModal({ open, document, level = 'L1', onClose, onR
             variant={reviewStatus === 'no_cumple' ? 'destructive' : 'default'}
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {reviewStatus === null ? 'Selecciona una opcion' : reviewStatus === 'cumple' ? 'Confirmar aprobacion' : 'Confirmar rechazo'}
+            {reviewStatus === null ? 'Selecciona una opción' : reviewStatus === 'cumple' ? 'Confirmar aprobación' : 'Confirmar rechazo'}
           </Button>
         </DialogFooter>
       </DialogContent>
