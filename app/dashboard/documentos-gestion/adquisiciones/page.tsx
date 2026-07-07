@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Download, FileText, Search } from 'lucide-react';
+import { ArrowRight, FileText, Search } from 'lucide-react';
 
 interface PurchaseOrder {
   id: string;
@@ -165,9 +166,11 @@ export default function AdquisicionesPage() {
                     </div>
                     <div className="text-right">
                       <p className="font-semibold">${Number(order.total_amount || 0).toLocaleString('es-CL')}</p>
-                      <Button variant="ghost" size="sm" className="mt-1 gap-2">
-                        <Download className="h-3 w-3" />
-                        Descargar
+                      <Button asChild variant="ghost" size="sm" className="mt-1 gap-2">
+                        <Link href="/dashboard/compras">
+                          Ver en Compras
+                          <ArrowRight className="h-3 w-3" />
+                        </Link>
                       </Button>
                     </div>
                   </div>

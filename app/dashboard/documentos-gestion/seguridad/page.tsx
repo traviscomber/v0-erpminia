@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
 import { AlertTriangle, BadgeAlert, Download, Plus, Search, Shield } from 'lucide-react';
@@ -169,9 +170,11 @@ export default function SeguridadPage() {
               <CardTitle>Documentos de seguridad</CardTitle>
               <CardDescription>MSDS, protocolos, incidentes y auditorías.</CardDescription>
             </div>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              Nuevo documento
+            <Button asChild className="gap-2">
+              <Link href="/dashboard/sostenibilidad/documentos-flujo">
+                <Plus className="h-4 w-4" />
+                Nuevo documento
+              </Link>
             </Button>
           </div>
         </CardHeader>
@@ -217,9 +220,11 @@ export default function SeguridadPage() {
                     </div>
                   </div>
                   <div>
-                    <Button variant="ghost" size="sm" className="gap-2">
-                      <Download className="h-3 w-3" />
-                      Ver detalle
+                    <Button asChild variant="ghost" size="sm" className="gap-2">
+                      <Link href={`/dashboard/sostenibilidad/documentos-flujo?doc=${doc.documentId || doc.id}`}>
+                        <Download className="h-3 w-3" />
+                        Ver detalle
+                      </Link>
                     </Button>
                   </div>
                 </div>

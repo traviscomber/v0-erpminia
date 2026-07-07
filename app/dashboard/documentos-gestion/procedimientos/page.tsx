@@ -245,9 +245,11 @@ export default function ProcedimientosPage() {
               <CardDescription>Protocolos operacionales y procesos documentados.</CardDescription>
             </div>
 
-            <Button className="gap-2 self-start">
-              <Plus className="h-4 w-4" />
-              Nuevo procedimiento
+            <Button asChild className="gap-2 self-start">
+              <Link href="/dashboard/sostenibilidad/documentos-flujo">
+                <Plus className="h-4 w-4" />
+                Nuevo procedimiento
+              </Link>
             </Button>
           </div>
         </CardHeader>
@@ -296,9 +298,11 @@ export default function ProcedimientosPage() {
                   </div>
 
                   <div className="self-end lg:self-auto">
-                    <Button variant="ghost" size="sm" className="gap-2">
-                      <Download className="h-3 w-3" />
-                      Ver detalle
+                    <Button asChild variant="ghost" size="sm" className="gap-2">
+                      <Link href={`/dashboard/sostenibilidad/documentos-flujo?doc=${proc.documentId || proc.id}`}>
+                        <Download className="h-3 w-3" />
+                        Ver detalle
+                      </Link>
                     </Button>
                   </div>
                 </div>

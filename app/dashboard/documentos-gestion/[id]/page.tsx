@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import useSWR from 'swr';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, ArrowRight, Download, Eye } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -103,11 +103,11 @@ export default function CategoryDetailPage() {
         )}
       </div>
       <div className="flex gap-2">
-        <Button variant="ghost" size="sm" type="button">
-          <Eye className="h-4 w-4" />
-        </Button>
-        <Button variant="ghost" size="sm" type="button">
-          <Download className="h-4 w-4" />
+        <Button asChild variant="ghost" size="sm">
+          <Link href={`/dashboard/sostenibilidad/documentos-flujo?doc=${doc.documentId || doc.id}`}>
+            <Eye className="h-4 w-4" />
+            Ver detalle
+          </Link>
         </Button>
       </div>
     </div>

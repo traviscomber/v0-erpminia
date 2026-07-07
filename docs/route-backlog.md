@@ -38,10 +38,10 @@ Status reflects the latest current-worktree audit plus live verification on July
 | `/dashboard/documentos-gestion/reportes` | Live verified authenticated render on July 6, 2026; source cleaned and encoding-normalized | Low | Confirm the report entry labels and search states after deploy. |
 | `/dashboard/documentos-gestion/contratos` | Live verified authenticated render on July 6, 2026; source cleaned and encoding-normalized | Low | Verify the remaining metadata fields and ensure contract copy is fully localized. |
 | `/dashboard/documentos-gestion/contratos/reportes` | Live verified authenticated render on July 6, 2026; source also cleaned and copy normalized | Low | Keep contract-payment/reporting terminology explicit and aligned with the contratos workflow. |
-| `/dashboard/documentos-gestion/adquisiciones` | Live verified authenticated render on July 6, 2026; source cleaned | Low | Keep OC creation owned by Compras and do not duplicate the flow here. |
-| `/dashboard/documentos-gestion/seguridad` | Live verified authenticated render on July 6, 2026; source cleaned | Low | Confirm the empty state is explicit and does not regress into placeholder content. |
-| `/dashboard/documentos-gestion/[id]` | Live verified authenticated render on July 6, 2026 via `/dashboard/documentos-gestion/ambiental`; source cleaned | Low | Ensure category detail routes keep their wording and don't expose broken metadata. |
-| `/dashboard/documentos-gestion/procedimientos` | Live verified authenticated `200` on July 6, 2026; source also cleaned and encoding-normalized | Low | Confirm after deploy that the live copy reflects the normalized source wording. |
+| `/dashboard/documentos-gestion/adquisiciones` | Live verified authenticated render on July 6, 2026; source rechecked on July 7, 2026 and OC row actions now route to `/dashboard/compras` instead of a dead download button | Low | Keep OC creation owned by Compras and do not duplicate the flow here. |
+| `/dashboard/documentos-gestion/seguridad` | Live verified authenticated render on July 6, 2026; source rechecked on July 7, 2026 and new/detail actions now route into `/dashboard/sostenibilidad/documentos-flujo` | Low | Keep safety document creation/review owned by the document workflow and avoid local dead buttons. |
+| `/dashboard/documentos-gestion/[id]` | Live verified authenticated render on July 6, 2026 via `/dashboard/documentos-gestion/ambiental`; source rechecked on July 7, 2026 and detail actions now route into document flow | Low | Ensure category detail routes keep their wording and do not expose broken metadata or inert icon actions. |
+| `/dashboard/documentos-gestion/procedimientos` | Live verified authenticated `200` on July 6, 2026; source rechecked on July 7, 2026 and new/detail actions now route into `/dashboard/sostenibilidad/documentos-flujo` | Low | Keep procedure creation/review owned by the document workflow and verify live copy after deploy. |
 
 ## Auxiliary Modules
 
