@@ -123,7 +123,7 @@ export default function TelemetriaIntegracionPage() {
       ['vibration', 'No', 'Vibracion en m/s2'],
       ['rpm', 'No', 'RPM del equipo'],
       ['status', 'Si', 'normal o alert'],
-      ['source_machine', 'No', 'Nombre del gateway o maquina origen'],
+      ['source_machine', 'No', 'Nombre del gateway o máquina origen'],
       ['readings[]', 'No', 'Lote de lecturas para enviar varios equipos en una sola llamada'],
     ];
     const csv = lines.map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(';')).join('\n');
@@ -211,7 +211,7 @@ export default function TelemetriaIntegracionPage() {
         <div>
           <h1 className="text-3xl font-bold">Integración LAN de telemetría</h1>
           <p className="mt-2 max-w-3xl text-muted-foreground">
-            Esta pagina define el contrato minimo para conectar una segunda maquina de la red local de la Patagua.
+            Esta página define el contrato mínimo para conectar una segunda máquina de la red local de la Patagua.
           </p>
         </div>
         <div className="flex flex-col gap-2 lg:min-w-[32rem]">
@@ -237,7 +237,7 @@ export default function TelemetriaIntegracionPage() {
             ))}
           </div>
           <p className="text-xs text-muted-foreground">
-            La prueba usa el host ingresado. Si apuntas a otra maquina, ese endpoint debe permitir acceso desde la red local.
+            La prueba usa el host ingresado. Si apuntas a otra máquina, ese endpoint debe permitir acceso desde la red local.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -247,7 +247,7 @@ export default function TelemetriaIntegracionPage() {
           </Button>
           <Button variant="outline" onClick={testConnection} disabled={checking}>
             <RefreshCw className={`mr-2 h-4 w-4 ${checking ? 'animate-spin' : ''}`} />
-            {checking ? 'Probando...' : 'Probar conexion'}
+            {checking ? 'Probando...' : 'Probar conexión'}
           </Button>
           <Button asChild>
             <Link href="/dashboard/telemetria">
@@ -335,7 +335,7 @@ export default function TelemetriaIntegracionPage() {
           </CardHeader>
           <CardContent>
             <div className="font-semibold">Gateway o PLC</div>
-            <p className="text-sm text-muted-foreground">La otra maquina puede empujar una lectura o varias en un solo POST.</p>
+            <p className="text-sm text-muted-foreground">La otra máquina puede empujar una lectura o varias en un solo POST.</p>
           </CardContent>
         </Card>
       </div>
@@ -416,10 +416,10 @@ export default function TelemetriaIntegracionPage() {
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div>1. Configurar `TELEMETRY_INGEST_TOKEN` en el entorno del sistema.</div>
-            <div>2. Asegurar que la otra maquina resuelva la URL del sistema en la red local.</div>
+            <div>2. Asegurar que la otra máquina resuelva la URL del sistema en la red local.</div>
             <div>3. Enviar `equipment_id` o `equipment_code` para identificar el destino, o `readings` para lotes.</div>
             <div>4. Probar una lectura normal y una de alerta.</div>
-             <div>5. Verificar que la lectura aparezca en telemetría y, si corresponde, que cree alarma.</div>
+            <div>5. Verificar que la lectura aparezca en telemetría y, si corresponde, que cree alarma.</div>
           </CardContent>
         </Card>
 
