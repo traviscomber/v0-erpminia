@@ -19,7 +19,7 @@ Status reflects the latest current-worktree audit plus live verification on July
 
 | Route | State | Risk | Action |
 | --- | --- | --- | --- |
-| `/dashboard/sostenibilidad` | Live verified authenticated `200` on July 6, 2026 | Medium | Keep this as the primary growth area and maintain consistent navigation into its submodules. |
+| `/dashboard/sostenibilidad` | Live verified authenticated `200` on July 6, 2026; source rechecked on July 7, 2026 and the parent growth surface now exposes key prevention workflows directly | Medium | Re-run authenticated live verification after deploy, then keep this as the primary growth area and maintain consistent navigation into its submodules. |
 | `/dashboard/sostenibilidad/prevencion-riesgos` | Live verified authenticated `200` on July 6, 2026; source rechecked on July 7, 2026 and the landing page now exposes no-conformities, corrective actions, and external inspections directly | Medium | Re-run authenticated live verification after deploy, then downgrade if all prevention module cards render and route correctly. |
 | `/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones` | Live verified authenticated render on July 6, 2026; source rechecked on July 7, 2026 and training type normalization now preserves accented labels | Medium | Keep training management under prevention and verify create/import flows remain stable after deploy. |
 | `/dashboard/sostenibilidad/compliance` | Previously verified live | Medium | Preserve the compliance/auditoria flow and avoid reintroducing placeholder states. |

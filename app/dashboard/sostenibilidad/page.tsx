@@ -106,6 +106,8 @@ export default function SostenibilidadDashboard() {
   const { data: capacitacionesData } = useSWR<ListResponse>('/api/sostenibilidad/capacitaciones', fetcher);
   const { data: eppData } = useSWR<ListResponse>('/api/sostenibilidad/epp', fetcher);
   const { data: inspeccionesData } = useSWR<ListResponse>('/api/sostenibilidad/inspecciones', fetcher);
+  const { data: noConformidadesData } = useSWR<ListResponse>('/api/sostenibilidad/no-conformidades', fetcher);
+  const { data: accionesCorrectivasData } = useSWR<ListResponse>('/api/sostenibilidad/corrective-actions', fetcher);
   const { data: medioAmbienteData } = useSWR<ListResponse>('/api/sostenibilidad/medio-ambiente', fetcher);
   const { data: comunidadesData } = useSWR<ListResponse>('/api/sostenibilidad/comunidades', fetcher);
 
@@ -114,6 +116,8 @@ export default function SostenibilidadDashboard() {
   const capCount = normalizeCount(capacitacionesData);
   const eppCount = normalizeCount(eppData);
   const inspeccionesCount = normalizeCount(inspeccionesData) || overview.inspections_completed || 0;
+  const noConformidadesCount = normalizeCount(noConformidadesData) || overview.overview?.open_ncs || 0;
+  const accionesCorrectivasCount = normalizeCount(accionesCorrectivasData) || overview.ca_stats?.total || 0;
   const ambienteCount = normalizeCount(medioAmbienteData);
   const comunidadesCount = normalizeCount(comunidadesData);
   const complianceScore = overview.overview?.compliance_score ?? 0;
@@ -164,9 +168,29 @@ export default function SostenibilidadDashboard() {
             status: makeStatus(eppCount),
           },
           {
+            name: 'No conformidades',
+            path: '/dashboard/sostenibilidad/prevencion-riesgos/no-conformidades',
+            count: noConformidadesCount,
+            status: makeStatus(noConformidadesCount),
+          },
+          {
+            name: 'Acciones correctivas',
+            path: '/dashboard/sostenibilidad/prevencion-riesgos/acciones-correctivas',
+            importPath: '/dashboard/sostenibilidad/prevencion-riesgos/acciones-correctivas/importar',
+            count: accionesCorrectivasCount,
+            status: makeStatus(accionesCorrectivasCount),
+          },
+          {
             name: 'Inspecciones',
             path: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones',
             importPath: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones/importar',
+            count: inspeccionesCount,
+            status: makeStatus(inspeccionesCount),
+          },
+          {
+            name: 'Inspecciones externas',
+            path: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones-externas',
+            importPath: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones-externas/importar',
             count: inspeccionesCount,
             status: makeStatus(inspeccionesCount),
           },
@@ -245,7 +269,19 @@ export default function SostenibilidadDashboard() {
         ],
       },
     ];
-  }, [ambienteCount, capCount, comunidadesCount, completionRate, docCount, eppCount, inspeccionesCount, overdueCas, totalActions]);
+  }, [
+    accionesCorrectivasCount,
+    ambienteCount,
+    capCount,
+    comunidadesCount,
+    completionRate,
+    docCount,
+    eppCount,
+    inspeccionesCount,
+    noConformidadesCount,
+    overdueCas,
+    totalActions,
+  ]);
 
   const topMetrics = [
     { label: 'Índice de cumplimiento', value: `${complianceScore}%`, helper: trendLabel, tone: complianceScore >= 85 ? 'text-secondary' : complianceScore >= 70 ? 'text-primary' : 'text-destructive' },
