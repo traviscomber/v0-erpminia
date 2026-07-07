@@ -22,7 +22,7 @@ export default function HseEppImportPage() {
       ['Operador mina', 'Casco con barbiquejo', '1', 'Norma minera', '', '12 meses', 'si'],
       ['Operador mina', 'Lentes de seguridad', '1', 'Uvex', '', '12 meses', 'si'],
       ['Mecanico mina', 'Guantes anticorte', '2', 'Ansell', '', '6 meses', 'si'],
-      ['Perforista', 'Proteccion auditiva', '1', '3M', '', '12 meses', 'si'],
+      ['Perforista', 'Protección auditiva', '1', '3M', '', '12 meses', 'si'],
       ['Operador de planta', 'Respirador P100', '1', '3M', '', '3 meses', 'si'],
     ];
 

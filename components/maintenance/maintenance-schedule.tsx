@@ -41,7 +41,7 @@ export function MaintenanceSchedule({ schedules, onMarkComplete }: MaintenanceSc
       {schedules.length === 0 ? (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
-            No hay mantenimientos programados en los proximos 7 dias
+            No hay mantenimientos programados en los próximos 7 días
           </CardContent>
         </Card>
       ) : (

@@ -116,22 +116,22 @@ export function MaintenanceExecutiveDashboard() {
   ];
 
   const executiveWarnings = [
-    overdueOrders > 0 ? `${overdueOrders} ordenes atrasadas requieren atencion.` : null,
-    preventiveSummary.overdue > 0 ? `${preventiveSummary.overdue} mantenimientos preventivos estan vencidos.` : null,
-    tireSummary.lowStock > 0 ? `${tireSummary.lowStock} repuestos de neumaticos estan bajo minimo.` : null,
-    fuelSummary.lowStock > 0 ? `${fuelSummary.lowStock} items de combustible estan bajo minimo.` : null,
+    overdueOrders > 0 ? `${overdueOrders} órdenes atrasadas requieren atención.` : null,
+    preventiveSummary.overdue > 0 ? `${preventiveSummary.overdue} mantenimientos preventivos están vencidos.` : null,
+    tireSummary.lowStock > 0 ? `${tireSummary.lowStock} repuestos de neumáticos están bajo mínimo.` : null,
+    fuelSummary.lowStock > 0 ? `${fuelSummary.lowStock} ítems de combustible están bajo mínimo.` : null,
     componentSummary.failures > 0 ? `${componentSummary.failures} componentes mayores estan en falla.` : null,
   ].filter(Boolean) as string[];
 
   const cards = [
     { label: 'Equipos totales', value: number(assets.length), icon: CircleCheckBig, tone: 'text-primary', hint: `${availability}% operativos` },
     { label: 'OT abiertas', value: number(openOrders), icon: Wrench, tone: 'text-orange-500', hint: `${inProgressOrders} en progreso` },
-    { label: 'OT atrasadas', value: number(overdueOrders), icon: CircleAlert, tone: 'text-destructive', hint: 'Requieren accion inmediata' },
+    { label: 'OT atrasadas', value: number(overdueOrders), icon: CircleAlert, tone: 'text-destructive', hint: 'Requieren acción inmediata' },
     { label: 'Costo 30d', value: money(costSummary.totalCost || 0), icon: DollarSign, tone: 'text-orange-500', hint: `${number(costSummary.totalWorkOrders || 0)} OT con costo` },
-    { label: 'MTTR', value: `${Number(mttrData?.averageMTTR || 0).toFixed(1)} h`, icon: Gauge, tone: 'text-primary', hint: 'Tiempo promedio de reparacion' },
-    { label: 'Preventivos', value: number(preventiveSummary.enabled), icon: CalendarClock, tone: 'text-blue-500', hint: `${preventiveSummary.dueSoon} proximos a vencer` },
-    { label: 'Neumaticos bajo minimo', value: number(tireSummary.lowStock), icon: TrendingDown, tone: 'text-orange-500', hint: `${number(tireSummary.totalItems)} items de neumaticos` },
-    { label: 'Combustible bajo minimo', value: number(fuelSummary.lowStock), icon: TrendingDown, tone: 'text-amber-500', hint: `${number(fuelSummary.totalItems)} items de combustible` },
+    { label: 'MTTR', value: `${Number(mttrData?.averageMTTR || 0).toFixed(1)} h`, icon: Gauge, tone: 'text-primary', hint: 'Tiempo promedio de reparación' },
+    { label: 'Preventivos', value: number(preventiveSummary.enabled), icon: CalendarClock, tone: 'text-blue-500', hint: `${preventiveSummary.dueSoon} próximos a vencer` },
+    { label: 'Neumáticos bajo mínimo', value: number(tireSummary.lowStock), icon: TrendingDown, tone: 'text-orange-500', hint: `${number(tireSummary.totalItems)} ítems de neumáticos` },
+    { label: 'Combustible bajo mínimo', value: number(fuelSummary.lowStock), icon: TrendingDown, tone: 'text-amber-500', hint: `${number(fuelSummary.totalItems)} ítems de combustible` },
     { label: 'Componentes con falla', value: number(componentSummary.failures), icon: TrendingUp, tone: 'text-green-500', hint: `${number(componentSummary.totalTemplates)} familias` },
   ];
 

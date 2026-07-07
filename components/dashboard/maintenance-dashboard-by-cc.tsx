@@ -55,7 +55,7 @@ export function MaintenanceDashboardByCC() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Mantenimiento por centro de costos</h1>
-        <p className="text-muted-foreground">Seguimiento real de ordenes agrupadas por centro de costos.</p>
+        <p className="text-muted-foreground">Seguimiento real de órdenes agrupadas por centro de costos.</p>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -78,7 +78,7 @@ export function MaintenanceDashboardByCC() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Ordenes totales</CardTitle>
+            <CardTitle className="text-sm">Órdenes totales</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{summary.totalOrders}</div>
@@ -130,7 +130,7 @@ export function MaintenanceDashboardByCC() {
                     </div>
                   </div>
                   <div className="flex flex-wrap justify-end gap-2">
-                    <Badge variant="secondary">{ccOrders.length} ordenes</Badge>
+                    <Badge variant="secondary">{ccOrders.length} órdenes</Badge>
                     <Badge className="bg-green-100 text-green-800">{completed} completadas</Badge>
                     <Badge className="bg-blue-100 text-blue-800">{inProgress} en progreso</Badge>
                   </div>
@@ -157,7 +157,7 @@ export function MaintenanceDashboardByCC() {
                       </div>
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground">Este centro de costo aun no tiene ordenes registradas.</p>
+                    <p className="text-sm text-muted-foreground">Este centro de costo aún no tiene órdenes registradas.</p>
                   )}
                 </CardContent>
               )}

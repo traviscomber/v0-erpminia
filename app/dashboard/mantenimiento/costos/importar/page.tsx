@@ -106,7 +106,7 @@ export default function MaintenanceCostsImportPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Importar costos</h1>
           <p className="mt-2 text-muted-foreground">
-            Actualiza costos reales de ordenes de trabajo y su bitacora historica desde CSV/XLS/XLSX.
+            Actualiza costos reales de órdenes de trabajo y su bitácora histórica desde CSV/XLS/XLSX.
           </p>
         </div>
         <Button asChild variant="outline" className="gap-2">
@@ -138,7 +138,7 @@ export default function MaintenanceCostsImportPage() {
               }`}
             >
               <Upload className="mx-auto mb-3 h-10 w-10 text-primary" />
-              <p className="font-medium">Arrastra tu archivo aqui o usa el selector</p>
+              <p className="font-medium">Arrastra tu archivo aquí o usa el selector</p>
               <p className="mt-1 text-sm text-muted-foreground">Acepta CSV, XLS y XLSX.</p>
               <div className="mt-4 flex flex-wrap justify-center gap-2">
                 <Button variant="outline" onClick={downloadTemplate} className="gap-2">

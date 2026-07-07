@@ -10,9 +10,9 @@ export default function HseIncidentsImportPage() {
   const downloadTemplate = () => {
     const headers = ['TITLE', 'DESCRIPTION', 'SEVERITY', 'STATUS', 'DATE_REPORTED', 'LOCATION'];
     const rows = [
-      ['Caida menor en rampa', 'Resbalon sin lesion grave', 'media', 'abierto', '2026-06-27', 'Mina central'],
-      ['Falla de bloqueo', 'Se detecta bloqueo incompleto en area critica', 'alta', 'en_investigacion', '2026-06-26', 'Taller principal'],
-      ['Detencion por derrame', 'Derrame controlado y limpieza realizada', 'baja', 'cerrado', '2026-06-25', 'Planta'],
+      ['Caída menor en rampa', 'Resbalón sin lesión grave', 'media', 'abierto', '2026-06-27', 'Mina central'],
+      ['Falla de bloqueo', 'Se detecta bloqueo incompleto en área crítica', 'alta', 'en_investigacion', '2026-06-26', 'Taller principal'],
+      ['Detención por derrame', 'Derrame controlado y limpieza realizada', 'baja', 'cerrado', '2026-06-25', 'Planta'],
     ];
 
     const csv = [headers, ...rows].map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(';')).join('\n');
@@ -54,7 +54,7 @@ export default function HseIncidentsImportPage() {
         <CardHeader>
           <CardTitle>Importacion estandarizada</CardTitle>
           <CardDescription>
-            El archivo puede venir en CSV, XLS o XLSX. El sistema crea o actualiza incidentes segun titulo, fecha y ubicacion.
+            El archivo puede venir en CSV, XLS o XLSX. El sistema crea o actualiza incidentes según título, fecha y ubicación.
           </CardDescription>
         </CardHeader>
         <CardContent>

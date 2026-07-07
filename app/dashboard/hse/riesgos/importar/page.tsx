@@ -10,9 +10,9 @@ export default function HSERiskMatrixImportPage() {
   const downloadTemplate = () => {
     const headers = ['TITLE', 'HAZARD', 'LOCATION', 'CONTROL_MEASURE', 'RISK_LEVEL', 'STATUS'];
     const rows = [
-      ['Exposicion a polvo', 'Polvo en suspension', 'Mina central', 'Control de ventilacion y EPP', 'alta', 'abierto'],
-      ['Caida al mismo nivel', 'Superficie resbaladiza', 'Planta', 'Limpieza y señalizacion', 'media', 'abierto'],
-      ['Interaccion vehicular', 'Cruce de equipos', 'Frente de carguio', 'Rutas segregadas y señalero', 'critica', 'en_investigacion'],
+      ['Exposición a polvo', 'Polvo en suspensión', 'Mina central', 'Control de ventilación y EPP', 'alta', 'abierto'],
+      ['Caída al mismo nivel', 'Superficie resbaladiza', 'Planta', 'Limpieza y señalización', 'media', 'abierto'],
+      ['Interacción vehicular', 'Cruce de equipos', 'Frente de carguío', 'Rutas segregadas y señalero', 'crítica', 'en_investigacion'],
     ];
 
     const csv = [headers, ...rows].map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(';')).join('\n');

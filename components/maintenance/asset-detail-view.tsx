@@ -395,7 +395,7 @@ export function AssetDetailView() {
               <p className="font-semibold">{machineFamily || 'Sin familia'}</p>
             </div>
             <div>
-              <p className="text-muted-foreground">Horometro tecnico</p>
+              <p className="text-muted-foreground">Horómetro técnico</p>
               <p className="font-semibold">{asset.mtbf_hours ? `${asset.mtbf_hours} h` : 'Sin lectura'}</p>
             </div>
             <div>
@@ -405,7 +405,7 @@ export function AssetDetailView() {
               </p>
             </div>
             <div>
-              <p className="text-muted-foreground">Ultimo tecnico</p>
+              <p className="text-muted-foreground">Último técnico</p>
               <p className="font-semibold">{latestHistory?.performed_by_name || '-'}</p>
             </div>
             <div>
@@ -537,7 +537,7 @@ export function AssetDetailView() {
 
       <Card className="lg:col-span-3">
         <CardHeader>
-          <CardTitle>Ordenes relacionadas</CardTitle>
+          <CardTitle>Órdenes relacionadas</CardTitle>
           <CardDescription>Historial operativo del activo con estados reales</CardDescription>
         </CardHeader>
         <CardContent>

@@ -49,7 +49,7 @@ function priorityLabel(priority?: string | null) {
     low: 'Baja',
     medium: 'Media',
     high: 'Alta',
-    critical: 'Critica',
+    critical: 'Crítica',
   };
   return labels[String(priority || '').toLowerCase()] || priority || 'Media';
 }
@@ -127,9 +127,9 @@ export function PreventivePlanBoard() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Planificacion preventiva</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Planificación preventiva</h1>
           <p className="mt-2 text-muted-foreground">
-            Vista de los mantenimientos programados para los proximos 12 meses.
+            Vista de los mantenimientos programados para los próximos 12 meses.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -234,7 +234,7 @@ export function PreventivePlanBoard() {
           <Input
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="Buscar por equipo, tarea, ubicacion o prioridad"
+            placeholder="Buscar por equipo, tarea, ubicación o prioridad"
           />
         </CardHeader>
       </Card>

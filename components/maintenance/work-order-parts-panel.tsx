@@ -138,7 +138,7 @@ export function WorkOrderPartsPanel({ workOrderId }: { workOrderId: string }) {
             <Input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Codigo, nombre o ubicacion"
+              placeholder="Código, nombre o ubicación"
             />
           </div>
           <div className="space-y-2">

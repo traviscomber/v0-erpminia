@@ -75,8 +75,8 @@ export default function HSERiskMatrixPage() {
   const downloadTemplate = () => {
     const headers = ['TITLE', 'HAZARD', 'RISK_LEVEL', 'STATUS', 'CONTROL_MEASURE', 'LOCATION'];
     const rows = [
-      ['Caida en pasillo', 'Superficie mojada', 'media', 'open', 'Senalizar y secar area', 'Planta'],
-      ['Golpe por objeto', 'Material suspendido', 'alta', 'open', 'Uso de casco y exclusion', 'Taller'],
+      ['Caída en pasillo', 'Superficie mojada', 'media', 'open', 'Señalizar y secar área', 'Planta'],
+      ['Golpe por objeto', 'Material suspendido', 'alta', 'open', 'Uso de casco y exclusión', 'Taller'],
     ];
 
     const csv = [headers, ...rows]

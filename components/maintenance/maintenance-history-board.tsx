@@ -203,7 +203,7 @@ export function MaintenanceHistoryBoard() {
           <Input
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="Buscar por equipo, OT, tipo, tecnico o nota"
+            placeholder="Buscar por equipo, OT, tipo, técnico o nota"
           />
         </CardHeader>
       </Card>

@@ -37,34 +37,34 @@ type GroupSummary = {
 
 const miningEppCatalog = [
   {
-    title: 'Proteccion base',
+    title: 'Protección base',
     items: [
       'Casco con barbiquejo',
       'Lentes de seguridad',
-      'Proteccion auditiva',
+      'Protección auditiva',
       'Guantes de trabajo',
       'Botas de seguridad',
       'Chaleco alta visibilidad',
     ],
   },
   {
-    title: 'Exposicion ambiental',
+    title: 'Exposición ambiental',
     items: [
-      'Proteccion auditiva',
-      'Respirador segun polvo/fibra',
+      'Protección auditiva',
+      'Respirador según polvo/fibra',
       'Antiparras cerradas',
-      'Proteccion solar',
+      'Protección solar',
       'Capa impermeable',
-      'Proteccion termica',
+      'Protección térmica',
     ],
   },
   {
-    title: 'Tareas criticas',
-    items: ['Arnes y linea de vida', 'Ropa FR/ignifuga cuando aplique', 'Guantes dieléctricos en labores electricas', 'Proteccion facial para esmerilado o proyeccion'],
+    title: 'Tareas críticas',
+    items: ['Arnés y línea de vida', 'Ropa FR/ignífuga cuando aplique', 'Guantes dieléctricos en labores eléctricas', 'Protección facial para esmerilado o proyección'],
   },
   {
-    title: 'Mineria de superficie',
-    items: ['Ropa de alta visibilidad', 'Proteccion contra polvo y viento', 'Proteccion climatica segun turno y altura'],
+    title: 'Minería de superficie',
+    items: ['Ropa de alta visibilidad', 'Protección contra polvo y viento', 'Protección climática según turno y altura'],
   },
 ];
 
@@ -81,13 +81,13 @@ const templateHeaders = [
 ];
 
 const templateRows = [
-  ['Operador mina', 'Perforacion', 'Mina central', 'Casco con barbiquejo', '1', '12 meses', 'Norma minera', '2026-06-27', 'si'],
-  ['Operador mina', 'Perforacion', 'Mina central', 'Lentes de seguridad', '1', '6 meses', 'Antifog', '2026-06-27', 'si'],
-  ['Operador mina', 'Perforacion', 'Mina central', 'Proteccion auditiva', '1', '12 meses', 'Ruido alto', '2026-06-27', 'si'],
-  ['Mecanico mantenimiento', 'Intervencion equipos', 'Planta', 'Guantes de trabajo', '2', '3 meses', 'Refuerzo cuero', '2026-06-27', 'si'],
-  ['Electricista', 'Trabajo electrico', 'Faena subteranea', 'Guantes dieléctricos', '1', '12 meses', 'Clase 0 o superior', '2026-06-27', 'si'],
-  ['Operador mina', 'Trabajo en altura', 'Rajo abierto', 'Arnes de seguridad', '1', '12 meses', 'Sistema anticaida', '2026-06-27', 'si'],
-  ['Operador mina', 'Corte y soldadura', 'Taller', 'Careta facial', '1', '6 meses', 'Proteccion facial', '2026-06-27', 'si'],
+  ['Operador mina', 'Perforación', 'Mina central', 'Casco con barbiquejo', '1', '12 meses', 'Norma minera', '2026-06-27', 'si'],
+  ['Operador mina', 'Perforación', 'Mina central', 'Lentes de seguridad', '1', '6 meses', 'Antifog', '2026-06-27', 'si'],
+  ['Operador mina', 'Perforación', 'Mina central', 'Protección auditiva', '1', '12 meses', 'Ruido alto', '2026-06-27', 'si'],
+  ['Mecánico mantenimiento', 'Intervención equipos', 'Planta', 'Guantes de trabajo', '2', '3 meses', 'Refuerzo cuero', '2026-06-27', 'si'],
+  ['Electricista', 'Trabajo eléctrico', 'Faena subterránea', 'Guantes dieléctricos', '1', '12 meses', 'Clase 0 o superior', '2026-06-27', 'si'],
+  ['Operador mina', 'Trabajo en altura', 'Rajo abierto', 'Arnés de seguridad', '1', '12 meses', 'Sistema anticaída', '2026-06-27', 'si'],
+  ['Operador mina', 'Corte y soldadura', 'Taller', 'Careta facial', '1', '6 meses', 'Protección facial', '2026-06-27', 'si'],
 ];
 
 const fetcher = async (url: string) => {
@@ -156,8 +156,8 @@ export default function HSEEPPPage() {
     const rows = [
       ['Operador mina', 'Casco con barbiquejo', '1', 'Norma minera', '', '12 meses', 'si'],
       ['Operador mina', 'Lentes de seguridad', '1', 'Antifog', '', '6 meses', 'si'],
-      ['Mecanico mantenimiento', 'Guantes de trabajo', '2', 'Refuerzo cuero', '', '3 meses', 'si'],
-      ['Electricista', 'Guantes dielectricos', '1', 'Clase 0 o superior', '', '12 meses', 'si'],
+      ['Mecánico mantenimiento', 'Guantes de trabajo', '2', 'Refuerzo cuero', '', '3 meses', 'si'],
+      ['Electricista', 'Guantes dieléctricos', '1', 'Clase 0 o superior', '', '12 meses', 'si'],
     ];
     const csv = [headers, ...rows]
       .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(';'))

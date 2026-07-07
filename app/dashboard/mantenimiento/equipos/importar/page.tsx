@@ -46,7 +46,7 @@ export default function EquiposImportPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Importar maquinaria y equipos</h1>
           <p className="mt-2 text-muted-foreground">
-            Carga el maestro operativo desde Excel o CSV para mantener equipos, ubicacion, criticidad y estado al dia.
+            Carga el maestro operativo desde Excel o CSV para mantener equipos, ubicación, criticidad y estado al día.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

@@ -41,7 +41,7 @@ export default function HSECapacitacionesImportPage() {
       [
         'Trabajo en altura',
         'Operacional',
-        'Proteccion contra caidas',
+        'Protección contra caídas',
         'Programa 2026',
         'Mutual',
         '2026-07-20',

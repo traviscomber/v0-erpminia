@@ -68,8 +68,8 @@ export default function HSEIncidentsPage() {
   const downloadTemplate = () => {
     const headers = ['TITLE', 'DESCRIPTION', 'SEVERITY', 'STATUS', 'DATE_REPORTED', 'LOCATION'];
     const rows = [
-      ['Golpe menor durante inspeccion', 'Corte leve en mano izquierda', 'baja', 'abierto', '2026-06-27', 'Planta'],
-      ['Caida al mismo nivel', 'Resbalon en pasillo', 'media', 'cerrado', '2026-06-27', 'Taller'],
+      ['Golpe menor durante inspección', 'Corte leve en mano izquierda', 'baja', 'abierto', '2026-06-27', 'Planta'],
+      ['Caída al mismo nivel', 'Resbalón en pasillo', 'media', 'cerrado', '2026-06-27', 'Taller'],
     ];
     const csv = [headers, ...rows]
       .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(';'))

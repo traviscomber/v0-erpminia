@@ -145,7 +145,7 @@ export default function VehicleQrPage() {
               <QrCode className="h-5 w-5" />
               QR del equipo
             </CardTitle>
-            <CardDescription>El codigo apunta a la ficha real del activo.</CardDescription>
+            <CardDescription>El código apunta a la ficha real del activo.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-center rounded-lg border border-border bg-white p-4">

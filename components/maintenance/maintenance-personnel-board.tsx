@@ -121,7 +121,7 @@ export function MaintenancePersonnelBoard() {
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Personal de mantención</h1>
-          <p className="mt-2 text-muted-foreground">Horas reales, tecnicos activos y registros recientes del modulo.</p>
+          <p className="mt-2 text-muted-foreground">Horas reales, técnicos activos y registros recientes del módulo.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline" className="gap-2">
@@ -265,7 +265,7 @@ export function MaintenancePersonnelBoard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Top tecnicos por horas</CardTitle>
+          <CardTitle>Top técnicos por horas</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {isLoading ? (

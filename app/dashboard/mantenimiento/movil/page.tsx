@@ -2,7 +2,7 @@ import { MaintenanceMobilePanel } from '@/components/maintenance/maintenance-mob
 
 export const metadata = {
   title: 'Panel móvil de mantenimiento',
-  description: 'Vista rapida para terreno y tecnicos',
+  description: 'Vista rápida para terreno y técnicos',
 };
 
 export default function MaintenanceMobilePage() {

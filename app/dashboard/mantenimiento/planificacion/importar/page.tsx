@@ -118,7 +118,7 @@ export default function PreventivePlanImportPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Importar planificacion preventiva</h1>
           <p className="mt-2 text-muted-foreground">
-            Carga o actualiza schedules desde CSV/XLS/XLSX para mantener la programacion al dia.
+            Carga o actualiza programaciones desde CSV/XLS/XLSX para mantener la planificación al día.
           </p>
         </div>
         <Button asChild variant="outline" className="gap-2">
@@ -148,7 +148,7 @@ export default function PreventivePlanImportPage() {
               }`}
             >
               <Upload className="mx-auto h-8 w-8 text-primary" />
-              <p className="mt-3 text-sm font-medium">Arrastra aqui tu archivo o selecciona uno desde el equipo</p>
+              <p className="mt-3 text-sm font-medium">Arrastra aquí tu archivo o selecciona uno desde el equipo</p>
               <p className="mt-1 text-xs text-muted-foreground">Se actualiza por activo + tarea + frecuencia.</p>
               <div className="mt-4 flex flex-wrap justify-center gap-2">
                 <Button
@@ -220,7 +220,7 @@ export default function PreventivePlanImportPage() {
             <p><span className="font-medium">PRIORITY</span></p>
             <p><span className="font-medium">ENABLED</span></p>
             <div className="mt-4 rounded-lg border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
-              El importador busca el activo por codigo o nombre, y actualiza el schedule existente si coincide
+              El importador busca el activo por código o nombre, y actualiza la programación existente si coincide
               activo, tarea y frecuencia.
             </div>
           </CardContent>
