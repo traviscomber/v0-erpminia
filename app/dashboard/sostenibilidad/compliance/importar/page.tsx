@@ -238,7 +238,7 @@ function ImportPanel({
             }`}
           >
             <Upload className="mx-auto mb-3 h-10 w-10 text-primary" />
-            <p className="font-medium">Arrastra tu archivo aqui o usa el selector</p>
+            <p className="font-medium">Arrastra tu archivo aquí o usa el selector</p>
             <p className="mt-1 text-sm text-muted-foreground">Acepta CSV, XLS y XLSX.</p>
             <div className="mt-4 flex flex-wrap justify-center gap-2">
               <Button variant="outline" onClick={downloadTemplate} className="gap-2">
@@ -292,7 +292,7 @@ function ImportPanel({
             <>
               <p>Campos obligatorios: `TITLE`, `EVENT_TYPE`, `DUE_DATE`.</p>
               <p>Campos recomendados: `DESCRIPTION`, `FREQUENCY`, `NEXT_DATE`, `STATUS`.</p>
-              <p>Si repites titulo, tipo y fecha, el sistema actualiza el evento existente.</p>
+              <p>Si repites título, tipo y fecha, el sistema actualiza el evento existente.</p>
             </>
           )}
         </CardContent>

@@ -176,7 +176,7 @@ export async function GET(request: NextRequest) {
       data: data || [],
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'No se pudieron cargar las auditorias';
+    const message = error instanceof Error ? error.message : 'No se pudieron cargar las auditorías';
     console.error('[sostenibilidad][audit-sessions] GET fallback:', message);
     return NextResponse.json({ data: [] });
   }
@@ -193,12 +193,12 @@ export async function POST(request: NextRequest) {
       const file = formData.get('file');
 
       if (!(file instanceof File)) {
-        return NextResponse.json({ error: 'No se proporciono archivo', imported: 0, updated: 0 }, { status: 400 });
+        return NextResponse.json({ error: 'No se proporcionó archivo', imported: 0, updated: 0 }, { status: 400 });
       }
 
       const rows = await parseAuditImportFile(file);
       if (rows.length === 0) {
-        return NextResponse.json({ error: 'No se encontraron auditorias validas en el archivo', imported: 0, updated: 0 }, { status: 400 });
+        return NextResponse.json({ error: 'No se encontraron auditorías válidas en el archivo', imported: 0, updated: 0 }, { status: 400 });
       }
 
       let imported = 0;
@@ -207,7 +207,7 @@ export async function POST(request: NextRequest) {
       if (existingError) throw existingError;
 
       for (const row of rows) {
-        const auditName = normalizeText(row.audit_name) || 'Auditoria sin nombre';
+        const auditName = normalizeText(row.audit_name) || 'Auditoría sin nombre';
         const category = normalizeText(row.category) || 'ISO';
         const auditor = normalizeText(row.auditor) || context.userName || 'Por asignar';
         const evidenceCount = Number.isFinite(row.evidence_count) ? row.evidence_count : 0;
@@ -248,7 +248,7 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: `Se procesaron ${rows.length} auditorias de cumplimiento`,
+        message: `Se procesaron ${rows.length} auditorías de cumplimiento`,
         imported,
         updated,
       });
@@ -256,7 +256,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const auditName =
-      normalizeText(body.audit_name || body.name || body.auditName) || 'Auditoria sin nombre';
+      normalizeText(body.audit_name || body.name || body.auditName) || 'Auditoría sin nombre';
     const category = normalizeText(body.category || body.auditCategory) || 'ISO';
     const auditor =
       normalizeText(body.auditor || body.responsible || body.auditor_name || context.userName) ||
@@ -276,7 +276,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'No se pudo registrar la auditoria';
+    const message = error instanceof Error ? error.message : 'No se pudo registrar la auditoría';
     console.error('[sostenibilidad][audit-sessions] POST fallback:', message);
     return NextResponse.json({ error: message }, { status: 500 });
   }

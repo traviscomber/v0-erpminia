@@ -176,7 +176,7 @@ export default function CompliancePage() {
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">Eventos proximos</CardTitle>
+                <CardTitle className="text-base">Eventos próximos</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm text-muted-foreground">
                 {events.slice(0, 4).length > 0 ? (

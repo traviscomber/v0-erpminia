@@ -15,9 +15,9 @@ type Question = {
 };
 
 const QUESTIONS: Question[] = [
-  { id: '1', number: '4.1', question: 'Leadership commitment to OH&S' },
-  { id: '2', number: '4.2', question: 'Documented policies in place' },
-  { id: '3', number: '4.3', question: 'Hazard identification process' },
+  { id: '1', number: '4.1', question: 'Compromiso de liderazgo con seguridad y salud ocupacional' },
+  { id: '2', number: '4.2', question: 'Políticas documentadas vigentes' },
+  { id: '3', number: '4.3', question: 'Proceso de identificación de peligros' },
 ];
 
 const OPTIONS = ['Cumple', 'No cumple', 'Parcial', 'No aplica'] as const;
@@ -26,6 +26,7 @@ export default function AuditModal({ open, onOpenChange }: { open: boolean; onOp
   const [responses, setResponses] = useState<Record<string, string>>({});
   const [comments, setComments] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const summary = useMemo(() => {
     const values = Object.values(responses);
@@ -38,13 +39,14 @@ export default function AuditModal({ open, onOpenChange }: { open: boolean; onOp
 
   const handleSubmit = async () => {
     setIsSaving(true);
+    setSaveError(null);
     try {
       const response = await fetch('/api/sostenibilidad/audit-sessions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          audit_name: 'Auditoria ISO 45001',
+          audit_name: 'Auditoría ISO 45001',
           category: 'ISO',
           compliance_status: summary,
           auditor: 'Sistema',
@@ -55,12 +57,16 @@ export default function AuditModal({ open, onOpenChange }: { open: boolean; onOp
       });
 
       if (!response.ok) {
-        throw new Error('No se pudo guardar la auditoria');
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.error || 'No se pudo guardar la auditoría');
       }
 
       onOpenChange(false);
       setResponses({});
       setComments({});
+      setSaveError(null);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'No se pudo guardar la auditoría');
     } finally {
       setIsSaving(false);
     }
@@ -70,7 +76,7 @@ export default function AuditModal({ open, onOpenChange }: { open: boolean; onOp
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Sesion de auditoria ISO 45001</DialogTitle>
+          <DialogTitle>Sesión de auditoría ISO 45001</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 max-h-[60vh] overflow-y-auto">
@@ -107,12 +113,18 @@ export default function AuditModal({ open, onOpenChange }: { open: boolean; onOp
           ))}
         </div>
 
+        {saveError ? (
+          <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+            {saveError}
+          </div>
+        ) : null}
+
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
             Cancelar
           </Button>
           <Button onClick={() => void handleSubmit()} disabled={isSaving}>
-            {isSaving ? 'Guardando...' : 'Completar auditoria'}
+            {isSaving ? 'Guardando...' : 'Completar auditoría'}
           </Button>
         </div>
       </DialogContent>
