@@ -1,6 +1,13 @@
+import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { resolveAuthContext } from '@/lib/api/auth-session';
-import { getSupabaseServerClient } from '@/lib/supabase-server';
+
+function getServiceSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,7 +17,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const supabase = getSupabaseServerClient();
+    // Use service role to bypass RLS (cargos is a reference table with no SELECT policy)
+    const supabase = getServiceSupabase();
 
     // Get all cargos ordered by display_order
     const { data: cargos, error } = await supabase
