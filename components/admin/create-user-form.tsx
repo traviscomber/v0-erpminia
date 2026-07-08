@@ -1,20 +1,11 @@
 import { useState } from 'react';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import type { UserRole } from '@/lib/rbac';
+import { getAvailableRoles } from '@/lib/rbac';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-const ROLES: { value: UserRole; label: string }[] = [
-  { value: 'superadmin', label: 'Super Administrador' },
-  { value: 'admin', label: 'Administrador' },
-  { value: 'manager', label: 'Supervisor' },
-  { value: 'technician', label: 'Técnico' },
-  { value: 'warehouse_staff', label: 'Bodega' },
-  { value: 'finance_officer', label: 'Finanzas' },
-  { value: 'viewer', label: 'Lectura' },
-];
 
 interface CreateUserFormProps {
   onUserCreated: () => void;
@@ -165,7 +156,7 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {ROLES.map((item) => (
+                    {getAvailableRoles().map((item) => (
                       <SelectItem key={item.value} value={item.value}>
                         {item.label}
                       </SelectItem>

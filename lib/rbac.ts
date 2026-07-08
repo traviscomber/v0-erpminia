@@ -98,3 +98,15 @@ export function maskSensitiveData(role: UserRole, data: Record<string, any>, mod
 
   return masked;
 }
+
+export function getAvailableRoles(): { value: UserRole; label: string }[] {
+  return [
+    { value: 'superadmin', label: 'Super Administrador' },
+    { value: 'admin', label: 'Administrador' },
+    { value: 'manager', label: 'Supervisor' },
+    { value: 'technician', label: 'Técnico' },
+    { value: 'warehouse_staff', label: 'Personal de Bodega' },
+    { value: 'finance_officer', label: 'Oficial de Finanzas' },
+    { value: 'viewer', label: 'Lectura' },
+  ];
+}
