@@ -1,5 +1,5 @@
-const CACHE_NAME = 'sostenibilidad-v1';
-const API_CACHE = 'sostenibilidad-api-v1';
+const CACHE_NAME = 'sostenibilidad-v2';
+const API_CACHE = 'sostenibilidad-api-v2';
 const OFFLINE_PAGE = '/offline';
 
 const ASSETS_TO_CACHE = [
@@ -52,6 +52,25 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Only handle GET requests
+  if (request.method !== 'GET') {
+    return;
+  }
+
+  // Next.js build assets and hashed chunks - ALWAYS network first.
+  // These are content-hashed and must never be served stale, otherwise
+  // deployments never reach the user until they clear their cache.
+  if (
+    url.pathname.startsWith('/_next/') ||
+    url.pathname.startsWith('/sw.js') ||
+    /\.(js|css|map)$/.test(url.pathname)
+  ) {
+    event.respondWith(
+      fetch(request).catch(() => caches.match(request))
+    );
+    return;
+  }
+
   // API requests - Network first, cache fallback
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
@@ -71,7 +90,16 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static assets - Cache first, network fallback
+  // Page navigations (HTML documents) - Network first so users always get
+  // the latest markup; fall back to the offline page when disconnected.
+  if (request.mode === 'navigate' || request.destination === 'document') {
+    event.respondWith(
+      fetch(request).catch(() => caches.match(OFFLINE_PAGE))
+    );
+    return;
+  }
+
+  // Other static assets (images, fonts, manifest) - Cache first, network fallback
   event.respondWith(
     caches.match(request).then((response) => {
       if (response) {

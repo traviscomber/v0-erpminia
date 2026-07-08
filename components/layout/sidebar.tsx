@@ -111,7 +111,6 @@ const rolePermissions: Record<string, string[]> = {
   'Documentos Legales': ['superadmin', 'admin', 'manager'],
 };
 
-// menu definition
 const menuItems = [
   { label: 'Inicio', href: '/dashboard', icon: BarChart3, group: 'Core' },
   { label: 'Alertas', href: '/dashboard/alertas', icon: Bell, badge: 3, group: 'Core' },
@@ -206,7 +205,6 @@ export function Sidebar() {
     };
 
     if (role === 'superadmin' || role === 'admin') {
-      console.log('[v0] sidebar role=', role, 'total menuItems=', menuItems.length, 'legal=', menuItems.filter((i) => i.group === 'Legal').map((i) => i.label));
       return menuItems;
     }
 
