@@ -93,7 +93,6 @@ const rolePermissions: Record<string, string[]> = {
   'Gestión de Permisos': ['superadmin', 'admin'],
   'Roles y Cargos': ['superadmin', 'admin'],
   'Módulo Legal': ['superadmin', 'admin', 'manager'],
-  'Gestión Documental': ['superadmin', 'admin', 'manager'],
   Contratos: ['superadmin', 'admin', 'manager'],
   'Empresas Contratistas (EECC)': ['superadmin', 'admin', 'manager'],
   'Guías de Uso': ['superadmin', 'admin', 'manager', 'supervisor', 'viewer', 'jefe_mantencion'],
