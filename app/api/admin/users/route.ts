@@ -32,10 +32,14 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { email, password, full_name, role, cargo_id } = body;
+    const { email, password, full_name, cargo_id } = body;
 
-    if (!email || !password || !full_name || !role) {
+    if (!email || !password || !full_name) {
       return NextResponse.json({ error: 'Todos los campos son obligatorios' }, { status: 400 });
+    }
+
+    if (!cargo_id) {
+      return NextResponse.json({ error: 'Debes seleccionar un cargo' }, { status: 400 });
     }
 
     const user = await createOrganizationUser({
@@ -43,8 +47,7 @@ export async function POST(request: NextRequest) {
       email,
       password,
       fullName: full_name,
-      role,
-      cargoId: cargo_id || null,
+      cargoId: cargo_id,
       assignedBy: auth.user.id,
     });
 

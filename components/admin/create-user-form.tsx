@@ -1,8 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import useSWR from 'swr';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
-import type { UserRole } from '@/lib/rbac';
-import { getAvailableRoles } from '@/lib/rbac';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -24,7 +22,6 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [role, setRole] = useState<UserRole>('manager');
   const [cargoId, setCargoId] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -67,7 +64,6 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
           email, 
           password, 
           full_name: fullName, 
-          role,
           cargo_id: cargoId || null 
         }),
       });
@@ -83,7 +79,6 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
       setEmail('');
       setPassword('');
       setFullName('');
-      setRole('manager');
       setCargoId('');
 
       setTimeout(() => {
@@ -102,7 +97,7 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
     <Card>
       <CardHeader>
         <CardTitle>Crear nuevo usuario</CardTitle>
-        <CardDescription>Agrega un usuario del equipo y asigna su rol operativo.</CardDescription>
+        <CardDescription>Agrega un usuario del equipo y asigna su cargo. Los permisos se heredan de la matriz de roles.</CardDescription>
       </CardHeader>
       <CardContent>
         {success ? (
@@ -150,55 +145,34 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="password" className="text-sm font-medium">
-                  Contraseña
-                </label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="********"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={loading}
-                  required
-                />
-                <p className="text-xs text-muted-foreground">Mínimo 8 caracteres, mayúscula, número y símbolo.</p>
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="role" className="text-sm font-medium">
-                  Rol del sistema
-                </label>
-                <Select value={role} onValueChange={(value) => setRole(value as UserRole)}>
-                  <SelectTrigger id="role" disabled={loading}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {getAvailableRoles().map((item) => (
-                      <SelectItem key={item.value} value={item.value}>
-                        {item.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">Definido en Administración → Roles y cargos</p>
-              </div>
+            <div className="space-y-2">
+              <label htmlFor="password" className="text-sm font-medium">
+                Contraseña
+              </label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="********"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
+                required
+              />
+              <p className="text-xs text-muted-foreground">Mínimo 8 caracteres, mayúscula, número y símbolo.</p>
             </div>
 
             <div className="space-y-2">
               <label htmlFor="cargo" className="text-sm font-medium">
-                Cargo / Posición (Opcional)
+                Cargo
               </label>
-              <Select value={cargoId} onValueChange={setCargoId}>
-                <SelectTrigger id="cargo" disabled={loading}>
+              <Select value={cargoId} onValueChange={setCargoId} disabled={cargos.length === 0}>
+                <SelectTrigger id="cargo" disabled={loading || cargos.length === 0}>
                   <SelectValue placeholder="Seleccionar cargo..." />
                 </SelectTrigger>
                 <SelectContent>
                   {cargos.length === 0 ? (
                     <div className="p-2 text-xs text-muted-foreground">
-                      No hay cargos disponibles. Crea uno en Roles y cargos → Asignar cargos
+                      No hay cargos. Crea uno en Administración → Roles y cargos → Asignar cargos
                     </div>
                   ) : (
                     cargos.map((cargo) => (
@@ -209,7 +183,7 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
                   )}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">Definido en Administración → Roles y cargos</p>
+              <p className="text-xs text-muted-foreground">Los permisos se definen en la matriz de roles</p>
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>

@@ -85,15 +85,14 @@ export async function createOrganizationUser(input: {
   email: string;
   password: string;
   fullName: string;
-  role: string;
-  cargoId?: string | null;
+  cargoId: string;
   assignedBy: string;
 }) {
   const serviceSupabase = getServiceSupabase();
   const dbSupabase = getSupabaseServerClient();
 
   const email = input.email.trim().toLowerCase();
-  const role = normalizeRole(input.role);
+  const role = 'viewer'; // Default role - permissions come from cargo matrix
   const fullName = input.fullName.trim();
   const [firstName, ...rest] = fullName.split(' ');
   const lastName = rest.join(' ').trim() || null;
@@ -133,7 +132,7 @@ export async function createOrganizationUser(input: {
       first_name: firstName || fullName,
       last_name: lastName,
       role,
-      cargo_id: input.cargoId || null,
+      cargo_id: input.cargoId,
       status: 'active',
       password_hash: passwordHash,
       updated_at: new Date().toISOString(),
