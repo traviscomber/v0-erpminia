@@ -22,7 +22,7 @@ export default function DocumentosHSEImportarPage() {
         <div>
           <h1 className="text-3xl font-bold">Importar documentos HSE</h1>
           <p className="mt-2 max-w-3xl text-muted-foreground">
-            Carga evidencia, politicas, procedimientos y matrices HSE en una pantalla dedicada al ingreso documental.
+            Carga evidencia, políticas, procedimientos y matrices HSE en una pantalla dedicada al ingreso documental.
           </p>
         </div>
         <div className="flex gap-2">
@@ -63,9 +63,9 @@ export default function DocumentosHSEImportarPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-muted-foreground">
-          <p>Usa el mismo flujo real de documentos que ya ocupa el modulo principal.</p>
-          <p>Sirve para cargar politicas, procedimientos, instructivos, programas y planillas Excel de soporte HSE.</p>
-          <p>La ruta antigua `cargar` sigue funcionando y redirige aqui para no romper accesos existentes.</p>
+          <p>Usa el mismo flujo real de documentos que ya ocupa el módulo principal.</p>
+          <p>Sirve para cargar políticas, procedimientos, instructivos, programas y planillas Excel de soporte HSE.</p>
+          <p>La ruta antigua `cargar` sigue funcionando y redirige aquí para no romper accesos existentes.</p>
         </CardContent>
       </Card>
     </div>

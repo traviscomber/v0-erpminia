@@ -118,7 +118,7 @@ export function BodegaImportXls() {
           }`}
         >
           <Upload className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
-          <p className="mb-1 font-semibold">Arrastra tu archivo aqui</p>
+          <p className="mb-1 font-semibold">Arrastra tu archivo aquí</p>
           <p className="mb-3 text-sm text-muted-foreground">o haz clic para seleccionar</p>
           <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isLoading}>
             {isLoading ? (
@@ -159,9 +159,9 @@ export function BodegaImportXls() {
           <p className="text-sm font-semibold">Pasos:</p>
           <ol className="space-y-2 text-sm text-muted-foreground">
             <li>1. Prepara tu archivo CSV/XLS con las columnas requeridas</li>
-            <li>2. Arrastra el archivo aqui o haz clic para seleccionar</li>
-            <li>3. El archivo se guardara en: bodega/importaciones/</li>
-            <li>4. Puedes descargar y procesar los datos segun necesites</li>
+            <li>2. Arrastra el archivo aquí o haz clic para seleccionar</li>
+            <li>3. El archivo se guardará en `bodega/importaciones/`</li>
+            <li>4. Puedes descargar y procesar los datos según necesites</li>
           </ol>
         </div>
       </CardContent>
