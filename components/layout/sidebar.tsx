@@ -53,6 +53,8 @@ const itemModuleKey: Record<string, string> = {
   Capacitaciones: 'hse_capacitaciones',
   'Artículos EPP': 'hse_epp',
   'KPI Prevención': 'hse_kpls',
+  Contratos: 'contratos_visualizacion',
+  'Empresas Contratistas (EECC)': 'contratos_visualizacion',
 };
 
 const rolePermissions: Record<string, string[]> = {
@@ -90,6 +92,8 @@ const rolePermissions: Record<string, string[]> = {
   'Gestión de Permisos': ['superadmin', 'admin'],
   'Roles y Cargos': ['superadmin', 'admin'],
   'Módulo Legal': ['superadmin', 'admin', 'manager'],
+  Contratos: ['superadmin', 'admin', 'manager'],
+  'Empresas Contratistas (EECC)': ['superadmin', 'admin', 'manager'],
   'Guías de Uso': ['superadmin', 'admin', 'manager', 'supervisor', 'viewer', 'jefe_mantencion'],
   'Tablero Sostenibilidad': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
   'Prevención de Riesgos': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
@@ -107,6 +111,7 @@ const rolePermissions: Record<string, string[]> = {
   'Documentos Legales': ['superadmin', 'admin', 'manager'],
 };
 
+// menu definition
 const menuItems = [
   { label: 'Inicio', href: '/dashboard', icon: BarChart3, group: 'Core' },
   { label: 'Alertas', href: '/dashboard/alertas', icon: Bell, badge: 3, group: 'Core' },
@@ -151,6 +156,8 @@ const menuItems = [
   { label: 'Gestión Documental', href: '/dashboard/documentos-gestion', icon: FolderOpen, group: 'Finanzas' },
   { label: 'Reportes y Análisis', href: '/dashboard/reportes', icon: BarChart3, group: 'Finanzas' },
   { label: 'Módulo Legal', href: '/dashboard/legal', icon: Scale, group: 'Legal' },
+  { label: 'Contratos', href: '/dashboard/documentos-gestion/contratos', icon: FileCheck, group: 'Legal' },
+  { label: 'Empresas Contratistas (EECC)', href: '/dashboard/documentos-gestion/eecc', icon: Building2, group: 'Legal' },
   { label: 'Documentos Legales', href: '/dashboard/legal/documentos', icon: File, group: 'Legal' },
   { label: 'HSE', href: '/dashboard/hse', icon: Shield, group: 'HSE' },
   { label: 'Documentos HSE', href: '/dashboard/hse/documentos', icon: File, group: 'HSE' },
@@ -199,6 +206,7 @@ export function Sidebar() {
     };
 
     if (role === 'superadmin' || role === 'admin') {
+      console.log('[v0] sidebar role=', role, 'total menuItems=', menuItems.length, 'legal=', menuItems.filter((i) => i.group === 'Legal').map((i) => i.label));
       return menuItems;
     }
 
