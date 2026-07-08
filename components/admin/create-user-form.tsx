@@ -43,7 +43,7 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
     setError(null);
     setSuccess(false);
 
-    if (!email || !password || !fullName) {
+    if (!email || !password || !fullName || !cargoId) {
       setError('Todos los campos son obligatorios');
       return;
     }
@@ -64,7 +64,7 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
           email, 
           password, 
           full_name: fullName, 
-          cargo_id: cargoId || null 
+          cargo_id: cargoId
         }),
       });
 
@@ -186,7 +186,7 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
               <p className="text-xs text-muted-foreground">Los permisos se definen en la matriz de roles</p>
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full" disabled={loading || !cargoId || cargos.length === 0}>
               {loading ? 'Creando usuario...' : 'Crear usuario'}
             </Button>
           </form>
