@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSustainabilityContext } from '@/lib/api/sostenibilidad-mvp';
 import { loadXlsxModule } from '@/lib/xlsx';
+import { requireModuleAccess, MODULE_KEYS } from '@/lib/api/module-access';
 
 type ImportEppRow = {
   cargo: string;
@@ -117,6 +118,9 @@ async function parseImportFile(file: File) {
 export async function POST(request: NextRequest) {
   const context = await getSustainabilityContext(request);
   if (!context.ok) return context.response;
+
+  const access = await requireModuleAccess(request, MODULE_KEYS.HSE_EPP, true);
+  if (!access.authorized) return access.response;
 
   try {
     const contentType = request.headers.get('content-type') || '';

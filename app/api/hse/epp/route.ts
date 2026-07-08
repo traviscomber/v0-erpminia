@@ -3,10 +3,14 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSustainabilityContext } from '@/lib/api/sostenibilidad-mvp';
 import { getHseModuleData } from '@/lib/api/hse-data';
+import { requireModuleAccess, MODULE_KEYS } from '@/lib/api/module-access';
 
 export async function GET(request: NextRequest) {
   const context = await getSustainabilityContext(request);
   if (!context.ok) return context.response;
+
+  const access = await requireModuleAccess(request, MODULE_KEYS.HSE_EPP, false);
+  if (!access.authorized) return access.response;
 
   try {
     const cargo = request.nextUrl.searchParams.get('cargo');

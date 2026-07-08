@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSustainabilityContext } from '@/lib/api/sostenibilidad-mvp';
 import { getHseModuleData } from '@/lib/api/hse-data';
 import { loadXlsxModule } from '@/lib/xlsx';
+import { requireModuleAccess, MODULE_KEYS } from '@/lib/api/module-access';
 
 type ImportTrainingRow = {
   nombre_capacitacion: string;
@@ -155,6 +156,9 @@ export async function GET(request: NextRequest) {
   const context = await getSustainabilityContext(request);
   if (!context.ok) return context.response;
 
+  const access = await requireModuleAccess(request, MODULE_KEYS.HSE_CAPACITACIONES, false);
+  if (!access.authorized) return access.response;
+
   try {
     const estado = request.nextUrl.searchParams.get('estado');
     const data = await getHseModuleData(context.organizationId, context.supabase);
@@ -179,6 +183,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const context = await getSustainabilityContext(request);
   if (!context.ok) return context.response;
+
+  const access = await requireModuleAccess(request, MODULE_KEYS.HSE_CAPACITACIONES, true);
+  if (!access.authorized) return access.response;
 
   try {
     const contentType = request.headers.get('content-type') || '';

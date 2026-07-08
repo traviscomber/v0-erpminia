@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -35,6 +35,7 @@ import {
   Upload,
   Fuel,
   Truck,
+  ShieldCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -75,6 +76,7 @@ const rolePermissions: Record<string, string[]> = {
   'Tablero de KPIs': ['superadmin', 'admin', 'manager'],
   'Gestión de Usuarios': ['superadmin', 'admin'],
   'Gestión de Permisos': ['superadmin', 'admin'],
+  'Roles y Cargos': ['superadmin', 'admin'],
   'Módulo Legal': ['superadmin', 'admin', 'manager'],
   'Guías de Uso': ['superadmin', 'admin', 'manager', 'supervisor', 'viewer', 'jefe_mantencion'],
   'Tablero Sostenibilidad': ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'],
@@ -140,6 +142,7 @@ const menuItems = [
   { label: 'Documentos Legales', href: '/dashboard/legal/documentos', icon: File, group: 'Legal' },
   { label: 'HSE', href: '/dashboard/hse', icon: Shield, group: 'HSE' },
   { label: 'Documentos HSE', href: '/dashboard/hse/documentos', icon: File, group: 'HSE' },
+  { label: 'Roles y Cargos', href: '/dashboard/admin/roles', icon: ShieldCheck, group: 'Administración' },
   { label: 'Guías de Uso', href: '/dashboard/guias', icon: HelpCircle, group: 'Ayuda' },
 ];
 

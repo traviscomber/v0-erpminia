@@ -2,10 +2,14 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
+import { requireModuleAccess, MODULE_KEYS } from '@/lib/api/module-access';
 
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
+
+  const access = await requireModuleAccess(request, MODULE_KEYS.HSE_INVESTIGACIONES, false);
+  if (!access.authorized) return access.response;
 
   try {
     const { data, error } = await context.supabase
@@ -24,6 +28,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
+
+  const access = await requireModuleAccess(request, MODULE_KEYS.HSE_INVESTIGACIONES, true);
+  if (!access.authorized) return access.response;
 
   try {
     const { incident_id, root_cause, corrective_actions, assigned_to, target_date } = await request.json();

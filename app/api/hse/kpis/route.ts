@@ -8,6 +8,9 @@ export async function GET(request: NextRequest) {
   const context = await getSustainabilityContext(request);
   if (!context.ok) return context.response;
 
+  const access = await requireModuleAccess(request, MODULE_KEYS.HSE_KPLS, false);
+  if (!access.authorized) return access.response;
+
   try {
     const data = await getHseModuleData(context.organizationId, context.supabase);
 
