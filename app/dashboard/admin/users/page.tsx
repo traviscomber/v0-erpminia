@@ -66,31 +66,18 @@ export default function AdminUsersPage() {
 
       <UsersList key={refreshKey} />
 
-      <Card className="border-[var(--secondary)]/30 bg-[var(--secondary)]/5">
-        <CardContent className="space-y-3 pt-6">
-          <div>
-            <h3 className="font-semibold text-blue-900">Información de roles</h3>
-            <ul className="ml-4 mt-2 list-disc space-y-1 text-sm text-blue-800">
-              <li>
-                <strong>Administrador:</strong> acceso total a todos los módulos
-              </li>
-              <li>
-                <strong>Gerente:</strong> gestión de operaciones y aprobaciones
-              </li>
-              <li>
-                <strong>Técnico:</strong> acceso a mantenimiento y documentos
-              </li>
-              <li>
-                <strong>Personal de bodega:</strong> gestión de bodega e inventario
-              </li>
-              <li>
-                <strong>Encargado de finanzas:</strong> gestión de finanzas y compras
-              </li>
-              <li>
-                <strong>Solo lectura:</strong> lectura general de módulos
-              </li>
-            </ul>
-          </div>
+      <Card className="border-border/40 bg-muted/20">
+        <CardContent className="flex items-center justify-between pt-6">
+          <p className="text-sm text-muted-foreground">
+            Los permisos de cada usuario se definen en la{' '}
+            <strong className="text-foreground">Matriz de roles por cargo</strong>.
+          </p>
+          <a
+            href="/dashboard/admin/roles"
+            className="inline-flex items-center gap-1 rounded-md bg-sidebar-primary px-3 py-1.5 text-xs font-medium text-white hover:opacity-90"
+          >
+            Ver matriz de roles
+          </a>
         </CardContent>
       </Card>
     </div>

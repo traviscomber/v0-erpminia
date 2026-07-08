@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Edit2, Loader2, Trash2 } from 'lucide-react';
-import type { UserRole } from '@/lib/rbac';
+import { Loader2, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface User {
@@ -13,28 +11,18 @@ interface User {
   email: string;
   full_name: string;
   cargo: string | null;
-  role: UserRole;
+  role: string;
+  status: string;
   created_at: string;
   email_confirmed_at: string;
   last_sign_in_at: string;
 }
 
-const ROLES: UserRole[] = ['superadmin', 'admin', 'manager', 'technician', 'warehouse_staff', 'finance_officer', 'viewer'];
-
-const roleColors = {
-  superadmin: 'bg-red-200 text-red-900',
-  admin: 'bg-red-100 text-red-800',
-  manager: 'bg-blue-100 text-blue-800',
-  technician: 'bg-green-100 text-green-800',
-  warehouse_staff: 'bg-yellow-100 text-yellow-800',
-  finance_officer: 'bg-purple-100 text-purple-800',
-  viewer: 'bg-gray-100 text-gray-800',
-};
 
 export function UsersList() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingId, setEditingId] = useState<string | null>(null);
+
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
@@ -51,23 +39,6 @@ export function UsersList() {
       console.error('[v0] Error fetching users:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleUpdateRole = async (userId: string, newRole: UserRole) => {
-    try {
-      const res = await fetch('/api/admin/users', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, role: newRole }),
-      });
-
-      if (res.ok) {
-        setUsers(users.map((user) => (user.id === userId ? { ...user, role: newRole } : user)));
-        setEditingId(null);
-      }
-    } catch (error) {
-      console.error('[v0] Error updating role:', error);
     }
   };
 
@@ -128,8 +99,7 @@ export function UsersList() {
                 <TableHead>Correo</TableHead>
                 <TableHead>Nombre</TableHead>
                 <TableHead>Cargo</TableHead>
-                <TableHead>Rol</TableHead>
-                <TableHead>Estado</TableHead>
+                <TableHead>Activo</TableHead>
                 <TableHead>Último acceso</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
@@ -141,32 +111,10 @@ export function UsersList() {
                   <TableCell>{user.full_name}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">{user.cargo || '—'}</TableCell>
                   <TableCell>
-                    {editingId === user.id ? (
-                      <Select value={user.role} onValueChange={(newRole) => handleUpdateRole(user.id, newRole as UserRole)}>
-                        <SelectTrigger className="w-40">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {ROLES.map((role) => (
-                            <SelectItem key={role} value={role}>
-                              {role}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                    {user.status === 'active' ? (
+                      <Badge className="border-0 bg-emerald-600 text-white">Activo</Badge>
                     ) : (
-                      <Badge className={roleColors[user.role]}>{user.role}</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {user.email_confirmed_at ? (
-                      <Badge variant="outline" className="bg-green-50">
-                        Confirmado
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="bg-yellow-50">
-                        Pendiente
-                      </Badge>
+                      <Badge className="border-0 bg-zinc-600 text-white">Inactivo</Badge>
                     )}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
@@ -176,15 +124,7 @@ export function UsersList() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setEditingId(editingId === user.id ? null : user.id)}
-                      disabled={editingId !== null && editingId !== user.id}
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                       onClick={() => handleDeleteUser(user.id)}
                     >
                       <Trash2 className="h-4 w-4" />
