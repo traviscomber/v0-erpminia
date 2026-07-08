@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const ROLES: { value: UserRole; label: string }[] = [
+  { value: 'superadmin', label: 'Super Administrador' },
   { value: 'admin', label: 'Administrador' },
   { value: 'manager', label: 'Supervisor' },
   { value: 'technician', label: 'Técnico' },
@@ -23,7 +24,7 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [role, setRole] = useState<UserRole>('viewer');
+  const [role, setRole] = useState<UserRole>('manager');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -72,7 +73,7 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
       setEmail('');
       setPassword('');
       setFullName('');
-      setRole('viewer');
+      setRole('manager');
 
       setTimeout(() => {
         setSuccess(false);
