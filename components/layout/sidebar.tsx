@@ -162,6 +162,7 @@ const menuItems = [
   { label: 'HSE', href: '/dashboard/hse', icon: Shield, group: 'HSE' },
   { label: 'Documentos HSE', href: '/dashboard/hse/documentos', icon: File, group: 'HSE' },
   { label: 'Roles y Cargos', href: '/dashboard/admin/roles', icon: ShieldCheck, group: 'Administración' },
+  { label: 'Gestión de Usuarios', href: '/dashboard/admin/users', icon: Users, group: 'Administración' },
   { label: 'Guías de Uso', href: '/dashboard/guias', icon: HelpCircle, group: 'Ayuda' },
 ];
 
