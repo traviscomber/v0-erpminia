@@ -12,6 +12,7 @@ interface User {
   id: string;
   email: string;
   full_name: string;
+  cargo: string | null;
   role: UserRole;
   created_at: string;
   email_confirmed_at: string;
@@ -126,6 +127,7 @@ export function UsersList() {
               <TableRow>
                 <TableHead>Correo</TableHead>
                 <TableHead>Nombre</TableHead>
+                <TableHead>Cargo</TableHead>
                 <TableHead>Rol</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead>Último acceso</TableHead>
@@ -137,6 +139,7 @@ export function UsersList() {
                 <TableRow key={user.id}>
                   <TableCell className="font-mono text-sm">{user.email}</TableCell>
                   <TableCell>{user.full_name}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{user.cargo || '—'}</TableCell>
                   <TableCell>
                     {editingId === user.id ? (
                       <Select value={user.role} onValueChange={(newRole) => handleUpdateRole(user.id, newRole as UserRole)}>

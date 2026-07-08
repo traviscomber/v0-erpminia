@@ -37,7 +37,10 @@ export async function listOrganizationUsers(organizationId: string) {
 
   const { data: profiles, error } = await supabase
     .from('profiles')
-    .select('id, email, full_name, first_name, last_name, role, created_at, updated_at, status')
+    .select(
+      `id, email, full_name, first_name, last_name, role, cargo_id, created_at, updated_at, status,
+       cargos!cargo_id (id, name)`
+    )
     .eq('organization_id', organizationId)
     .order('created_at', { ascending: false });
 
@@ -60,17 +63,20 @@ export async function listOrganizationUsers(organizationId: string) {
     }
   }
 
-  return (profiles || []).map((profile) => {
+  return (profiles || []).map((profile: any) => {
     const fullName =
       profile.full_name ||
       [profile.first_name, profile.last_name].filter(Boolean).join(' ').trim() ||
       profile.email ||
       'Sin nombre';
 
+    const cargoName = profile.cargos?.name || null;
+
     return {
       id: profile.id,
       email: profile.email,
       full_name: fullName,
+      cargo: cargoName,
       role: roleMap.get(profile.id) || normalizeRole(profile.role),
       created_at: profile.created_at,
       email_confirmed_at: profile.status === 'pending' ? null : profile.created_at,
