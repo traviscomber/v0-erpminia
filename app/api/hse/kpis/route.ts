@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSustainabilityContext } from '@/lib/api/sostenibilidad-mvp';
 import { getHseModuleData } from '@/lib/api/hse-data';
+import { requireModuleAccess, MODULE_KEYS } from '@/lib/api/module-access';
 
 export async function GET(request: NextRequest) {
   const context = await getSustainabilityContext(request);

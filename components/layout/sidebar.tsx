@@ -42,6 +42,18 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { cn } from '@/lib/utils';
 import { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
+import { useModuleAccess } from '@/hooks/use-module-access';
+
+// Maps sidebar item labels to their HSE role-matrix module key.
+// Items not listed here are not governed by the cargo matrix.
+const itemModuleKey: Record<string, string> = {
+  'Prevención de Riesgos': 'hse_riesgos',
+  'Documentos Prevención': 'hse_documentacion',
+  'Documentos HSE': 'hse_documentacion',
+  Capacitaciones: 'hse_capacitaciones',
+  'Artículos EPP': 'hse_epp',
+  'KPI Prevención': 'hse_kpls',
+};
 
 const rolePermissions: Record<string, string[]> = {
   Inicio: ['superadmin', 'admin', 'manager', 'supervisor', 'viewer', 'jefe_mantencion'],
@@ -150,6 +162,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { role, logout } = useAuth();
+  const { enforced, canView } = useModuleAccess();
   const [isOpen, setIsOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     Core: true,
@@ -174,15 +187,28 @@ export function Sidebar() {
   const filteredMenuItems = useMemo(() => {
     if (!role) return [];
 
+    // Applies the cargo role-matrix on top of the base role filter.
+    // Only active for non-admin users who have a cargo assigned (enforced).
+    const applyMatrix = (items: typeof menuItems) => {
+      if (!enforced) return items;
+      return items.filter((item) => {
+        const moduleKey = itemModuleKey[item.label];
+        if (!moduleKey) return true; // not governed by the matrix
+        return canView(moduleKey);
+      });
+    };
+
     if (role === 'superadmin' || role === 'admin') {
       return menuItems;
     }
 
-    return menuItems.filter((item) => {
+    const base = menuItems.filter((item) => {
       const allowedRoles = rolePermissions[item.label] || [];
       return allowedRoles.includes(role);
     });
-  }, [role]);
+
+    return applyMatrix(base);
+  }, [role, enforced, canView]);
 
   const toggleGroup = (group: string) => {
     setExpandedGroups((prev) => ({

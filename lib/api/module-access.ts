@@ -98,15 +98,25 @@ export async function getModuleAccessLevel(
   return access[moduleKey] ?? 'SR';
 }
 
-export interface ModuleAccessResult {
-  authorized: boolean;
-  accessLevel: AccessLevel;
-  canWrite: boolean;
-  user: AuthContext['user'] | null;
-  role: string | null;
-  organizationId: string | null;
-  response: NextResponse | null;
-}
+export type ModuleAccessResult =
+  | {
+      authorized: false;
+      accessLevel: AccessLevel;
+      canWrite: boolean;
+      user: AuthContext['user'] | null;
+      role: string | null;
+      organizationId: string | null;
+      response: NextResponse;
+    }
+  | {
+      authorized: true;
+      accessLevel: AccessLevel;
+      canWrite: boolean;
+      user: AuthContext['user'];
+      role: string | null;
+      organizationId: string | null;
+      response: null;
+    };
 
 /**
  * API guard: enforce module access for a route.

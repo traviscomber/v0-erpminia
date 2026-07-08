@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Search, AlertCircle, Edit, Trash2, Download, Package } from 'lucide-react';
 import useSWR from 'swr';
 import { EPPUserDelivery } from '@/components/sostenibilidad/epp-user-delivery';
+import { useModuleAccess } from '@/hooks/use-module-access';
 import {
   Dialog,
   DialogContent,
@@ -54,6 +55,8 @@ const authFetcher = async (url: string) => {
 };
 
 export default function EPPPage() {
+  const { canEdit } = useModuleAccess();
+  const canEditEpp = canEdit('hse_epp');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCargo, setSelectedCargo] = useState<string>('');
   const [isOpen, setIsOpen] = useState(false);
@@ -203,23 +206,27 @@ export default function EPPPage() {
           </div>
           <p className="text-muted-foreground">Equipos de Protección Personal por puesto de trabajo</p>
         </div>
-        <div className="flex gap-2">
-          <Button asChild variant="outline">
-            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/epp/importar">
-              Plantilla
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="mr-2">
-            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/epp/importar">Importar Excel</Link>
-          </Button>
-        </div>
-        <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
-          <DialogTrigger asChild>
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-              <Plus className="w-4 h-4 mr-2" />
-              Nuevo EPP
+        {canEditEpp && (
+          <div className="flex gap-2">
+            <Button asChild variant="outline">
+              <Link href="/dashboard/sostenibilidad/prevencion-riesgos/epp/importar">
+                Plantilla
+              </Link>
             </Button>
-          </DialogTrigger>
+            <Button asChild variant="outline" className="mr-2">
+              <Link href="/dashboard/sostenibilidad/prevencion-riesgos/epp/importar">Importar Excel</Link>
+            </Button>
+          </div>
+        )}
+        <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
+          {canEditEpp && (
+            <DialogTrigger asChild>
+              <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+                <Plus className="w-4 h-4 mr-2" />
+                Nuevo EPP
+              </Button>
+            </DialogTrigger>
+          )}
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>{editingId ? 'Editar EPP' : 'Registrar Nuevo EPP'}</DialogTitle>
@@ -484,25 +491,29 @@ export default function EPPPage() {
                       </td>
                       <td className="py-3 px-4 text-right">
                         <div className="flex justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            title="Editar"
-                            onClick={() => handleEdit(item)}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
+                          {canEditEpp && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              title="Editar"
+                              onClick={() => handleEdit(item)}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                          )}
                           <Button variant="ghost" size="sm" title="Historial">
                             <Download className="w-4 h-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            title="Eliminar"
-                            onClick={() => handleDelete(item.id, item.elemento_epp)}
-                          >
-                            <Trash2 className="w-4 h-4 text-destructive" />
-                          </Button>
+                          {canEditEpp && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              title="Eliminar"
+                              onClick={() => handleDelete(item.id, item.elemento_epp)}
+                            >
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            </Button>
+                          )}
                         </div>
                       </td>
                     </tr>
