@@ -23,6 +23,7 @@ interface CreateContractInput {
   reviewDueDate?: string;
   responsiblePerson?: string;
   responsibleArea?: string;
+  eeccId?: string;
   contractorName?: string;
   propertyName?: string;
   projectName?: string;
@@ -193,6 +194,7 @@ export async function createContract(input: CreateContractInput) {
       review_due_date: input.reviewDueDate || null,
       responsible_person: input.responsiblePerson || null,
       responsible_area: input.responsibleArea || null,
+      eecc_id: input.eeccId || null,
       contractor_name: input.contractorName || null,
       property_name: input.propertyName || null,
       project_name: input.projectName || null,

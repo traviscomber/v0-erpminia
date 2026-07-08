@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
@@ -9,6 +9,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const fetcher = async (url: string) => {
   const response = await fetch(url, { credentials: 'include' });
@@ -28,6 +35,7 @@ const initialFormState = {
   reviewDueDate: '',
   contractValue: '',
   currency: 'CLP',
+  eeccId: '',
   contractorName: '',
   responsiblePerson: '',
   responsibleArea: 'Legal',
@@ -62,6 +70,11 @@ export default function ContratosPage() {
     revalidateOnReconnect: true,
     refreshInterval: 60000,
   });
+
+  const { data: eeccData } = useSWR('/api/eecc?active=true', fetcher, {
+    revalidateOnFocus: false,
+  });
+  const eeccOptions = (eeccData?.eecc || []) as Array<{ id: string; name: string }>;
 
   const contracts = (data?.contracts || []) as ContractRow[];
 
@@ -222,6 +235,12 @@ export default function ContratosPage() {
       </div>
 
       <div className="flex flex-wrap gap-2">
+        <Button asChild variant="outline" size="sm" className="gap-2">
+          <Link href="/dashboard/documentos-gestion/eecc">
+            Empresas contratistas (EECC)
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </Button>
         <Button asChild variant="outline" size="sm" className="gap-2">
           <Link href="/dashboard/legal/documentos">
             Documentos legales
@@ -507,8 +526,41 @@ export default function ContratosPage() {
                     <Input value={formState.currency} onChange={(e) => updateField('currency', e.target.value)} className="border-white/10 bg-white/5" />
                   </div>
                   <div>
-                    <label className="mb-2 block text-sm font-medium">Contratista</label>
-                    <Input value={formState.contractorName} onChange={(e) => updateField('contractorName', e.target.value)} className="border-white/10 bg-white/5" />
+                    <label className="mb-2 block text-sm font-medium">Contratista (EECC)</label>
+                    <Select
+                      value={formState.eeccId}
+                      onValueChange={(value) => {
+                        const selected = eeccOptions.find((option) => option.id === value);
+                        setFormState((current) => ({
+                          ...current,
+                          eeccId: value,
+                          contractorName: selected?.name || '',
+                        }));
+                      }}
+                    >
+                      <SelectTrigger className="border-white/10 bg-white/5">
+                        <SelectValue placeholder="Selecciona una EECC" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {eeccOptions.length === 0 ? (
+                          <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                            No hay EECC registradas
+                          </div>
+                        ) : (
+                          eeccOptions.map((option) => (
+                            <SelectItem key={option.id} value={option.id}>
+                              {option.name}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <Link
+                      href="/dashboard/documentos-gestion/eecc"
+                      className="mt-1 inline-block text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      Gestionar EECC
+                    </Link>
                   </div>
                 </div>
 
