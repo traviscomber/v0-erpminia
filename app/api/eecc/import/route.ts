@@ -1,21 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { read, utils } from 'xlsx';
-import { getAuthContext } from '@/lib/api/auth-session';
-import { createServerClient } from '@/lib/supabase-server';
+import { resolveAuthContext } from '@/lib/api/auth-session';
+import { getSupabaseServerClient } from '@/lib/supabase-server';
 
 export const runtime = 'nodejs';
+
+type XlsxModule = {
+  read: (buffer: Buffer, options: { type: 'buffer' }) => {
+    SheetNames: string[];
+    Sheets: Record<string, unknown>;
+  };
+  utils: {
+    sheet_to_json: (sheet: unknown) => Array<Record<string, unknown>>;
+  };
+};
 
 export async function POST(request: NextRequest) {
   try {
     // Get auth context
-    const auth = await getAuthContext(request);
-    if (!auth?.userId) {
+    const auth = await resolveAuthContext(request);
+    if (!auth?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Check if user is admin or manager
     if (!['superadmin', 'admin', 'manager'].includes(auth.role || '')) {
-      return NextResponse.json({ error: 'Forbidden: Only admins and managers can import EECC' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'Forbidden: Only admins and managers can import EECC' },
+        { status: 403 }
+      );
     }
 
     // Get form data with file
@@ -26,35 +38,45 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    // Read file as buffer
-    const buffer = await file.arrayBuffer();
-    const workbook = read(new Uint8Array(buffer));
+    // Read file as buffer and parse
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const xlsx = (await import('xlsx')) as unknown as XlsxModule;
+    const workbook = xlsx.read(buffer, { type: 'buffer' as const });
 
     // Get first sheet
     const sheetName = workbook.SheetNames[0];
     if (!sheetName) {
-      return NextResponse.json({ error: 'No sheets found in workbook' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'No sheets found in workbook' },
+        { status: 400 }
+      );
     }
 
     // Convert sheet to JSON
-    const rows = utils.sheet_to_json(workbook.Sheets[sheetName]);
+    const rows = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
     if (rows.length === 0) {
-      return NextResponse.json({ error: 'No data rows found in spreadsheet' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'No data rows found in spreadsheet' },
+        { status: 400 }
+      );
     }
 
     // Get organization ID from user's org
-    const supabase = await createServerClient();
-    
+    const supabase = getSupabaseServerClient();
+
     // Get user's organization
-    const { data: userOrg } = await supabase
+    const { data: userOrg, error: orgError } = await supabase
       .from('user_roles')
       .select('organization_id')
-      .eq('user_id', auth.userId)
+      .eq('user_id', auth.user.id)
       .single();
 
-    if (!userOrg?.organization_id) {
-      return NextResponse.json({ error: 'User has no organization' }, { status: 400 });
+    if (orgError || !userOrg?.organization_id) {
+      return NextResponse.json(
+        { error: 'User has no organization' },
+        { status: 400 }
+      );
     }
 
     const organizationId = userOrg.organization_id;
@@ -84,8 +106,9 @@ export async function POST(request: NextRequest) {
         record['RUT'] ||
         record['Rut'] ||
         record['rut'] ||
-        record['ID'] ||
-        record['id'];
+        record['RFC'] ||
+        record['Rfc'] ||
+        record['rfc'];
 
       const representative =
         record['REPRESENTANTE'] ||
@@ -125,7 +148,10 @@ export async function POST(request: NextRequest) {
     }
 
     if (eeccRecords.length === 0) {
-      return NextResponse.json({ error: 'No valid EECC records found in file' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'No valid EECC records found in file' },
+        { status: 400 }
+      );
     }
 
     // Insert/update EECC records
@@ -140,7 +166,7 @@ export async function POST(request: NextRequest) {
           email: record.email,
           phone: record.phone,
           is_active: true,
-          created_by: auth.userId,
+          created_by: auth.user.id,
         })),
         {
           onConflict: 'organization_id,rut',
