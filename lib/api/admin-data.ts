@@ -86,6 +86,7 @@ export async function createOrganizationUser(input: {
   password: string;
   fullName: string;
   role: string;
+  cargoId?: string | null;
   assignedBy: string;
 }) {
   const serviceSupabase = getServiceSupabase();
@@ -132,6 +133,7 @@ export async function createOrganizationUser(input: {
       first_name: firstName || fullName,
       last_name: lastName,
       role,
+      cargo_id: input.cargoId || null,
       status: 'active',
       password_hash: passwordHash,
       updated_at: new Date().toISOString(),

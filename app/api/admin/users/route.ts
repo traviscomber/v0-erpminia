@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { email, password, full_name, role } = body;
+    const { email, password, full_name, role, cargo_id } = body;
 
     if (!email || !password || !full_name || !role) {
       return NextResponse.json({ error: 'Todos los campos son obligatorios' }, { status: 400 });
@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
       password,
       fullName: full_name,
       role,
+      cargoId: cargo_id || null,
       assignedBy: auth.user.id,
     });
 

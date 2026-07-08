@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import useSWR from 'swr';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import type { UserRole } from '@/lib/rbac';
 import { getAvailableRoles } from '@/lib/rbac';
@@ -7,18 +8,30 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+interface Cargo {
+  id: string;
+  name: string;
+  display_order: number;
+}
+
 interface CreateUserFormProps {
   onUserCreated: () => void;
 }
+
+const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((r) => r.json());
 
 export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [role, setRole] = useState<UserRole>('manager');
+  const [cargoId, setCargoId] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  
+  const { data: cargosData } = useSWR<{ cargos: Cargo[] }>('/api/admin/cargos', fetcher);
+  const cargos = cargosData?.cargos ?? [];
 
   const validatePassword = (pwd: string) => {
     if (pwd.length < 8) return 'Mínimo 8 caracteres';
@@ -50,7 +63,13 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
       const res = await fetch('/api/admin/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, full_name: fullName, role }),
+        body: JSON.stringify({ 
+          email, 
+          password, 
+          full_name: fullName, 
+          role,
+          cargo_id: cargoId || null 
+        }),
       });
 
       const data = await res.json();
@@ -65,6 +84,7 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
       setPassword('');
       setFullName('');
       setRole('manager');
+      setCargoId('');
 
       setTimeout(() => {
         setSuccess(false);
@@ -149,7 +169,7 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
 
               <div className="space-y-2">
                 <label htmlFor="role" className="text-sm font-medium">
-                  Rol
+                  Rol del sistema
                 </label>
                 <Select value={role} onValueChange={(value) => setRole(value as UserRole)}>
                   <SelectTrigger id="role" disabled={loading}>
@@ -163,7 +183,33 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
                     ))}
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-muted-foreground">Definido en Administración → Roles y cargos</p>
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="cargo" className="text-sm font-medium">
+                Cargo / Posición (Opcional)
+              </label>
+              <Select value={cargoId} onValueChange={setCargoId}>
+                <SelectTrigger id="cargo" disabled={loading}>
+                  <SelectValue placeholder="Seleccionar cargo..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {cargos.length === 0 ? (
+                    <div className="p-2 text-xs text-muted-foreground">
+                      No hay cargos disponibles. Crea uno en Roles y cargos → Asignar cargos
+                    </div>
+                  ) : (
+                    cargos.map((cargo) => (
+                      <SelectItem key={cargo.id} value={cargo.id}>
+                        {cargo.name}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">Definido en Administración → Roles y cargos</p>
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
