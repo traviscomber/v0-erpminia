@@ -27,7 +27,7 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   
-  const { data: cargosData } = useSWR<{ cargos: Cargo[] }>('/api/admin/cargos', fetcher);
+  const { data: cargosData, isLoading: cargosLoading } = useSWR<{ cargos: Cargo[] }>('/api/admin/cargos', fetcher);
   const cargos = cargosData?.cargos ?? [];
 
   const validatePassword = (pwd: string) => {
@@ -165,14 +165,16 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
               <label htmlFor="cargo" className="text-sm font-medium">
                 Cargo
               </label>
-              <Select value={cargoId} onValueChange={setCargoId} disabled={cargos.length === 0}>
-                <SelectTrigger id="cargo" disabled={loading || cargos.length === 0}>
-                  <SelectValue placeholder="Seleccionar cargo..." />
+              <Select value={cargoId} onValueChange={setCargoId} disabled={loading || cargosLoading}>
+                <SelectTrigger id="cargo">
+                  <SelectValue placeholder={cargosLoading ? 'Cargando...' : 'Seleccionar cargo...'} />
                 </SelectTrigger>
                 <SelectContent>
-                  {cargos.length === 0 ? (
+                  {cargosLoading ? (
+                    <div className="p-2 text-xs text-muted-foreground">Cargando cargos...</div>
+                  ) : cargos.length === 0 ? (
                     <div className="p-2 text-xs text-muted-foreground">
-                      No hay cargos. Crea uno en Administración → Roles y cargos → Asignar cargos
+                      No hay cargos. Crea uno en Administración → Roles y cargos
                     </div>
                   ) : (
                     cargos.map((cargo) => (
@@ -186,7 +188,7 @@ export function CreateUserForm({ onUserCreated }: CreateUserFormProps) {
               <p className="text-xs text-muted-foreground">Los permisos se definen en la matriz de roles</p>
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading || !cargoId || cargos.length === 0}>
+            <Button type="submit" className="w-full" disabled={loading || !cargoId}>
               {loading ? 'Creando usuario...' : 'Crear usuario'}
             </Button>
           </form>
