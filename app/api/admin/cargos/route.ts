@@ -12,11 +12,10 @@ export async function GET(request: NextRequest) {
 
     const supabase = getSupabaseServerClient();
 
-    // Get all cargos for the organization
+    // Get all cargos ordered by display_order
     const { data: cargos, error } = await supabase
       .from('cargos')
       .select('id, name, display_order')
-      .eq('organization_id', auth.organizationId)
       .order('display_order', { ascending: true });
 
     if (error) {
