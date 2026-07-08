@@ -5,11 +5,13 @@ import { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent } from '@/components/ui/card';
 import { CreateUserForm } from '@/components/admin/create-user-form';
+import { UsersImportXls } from '@/components/admin/users-import-xls';
 import { UsersList } from '@/components/admin/users-list';
 
 export default function AdminUsersPage() {
   const { user, loading, role } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
+  const [showImport, setShowImport] = useState(false);
 
   if (loading) {
     return (
@@ -45,6 +47,23 @@ export default function AdminUsersPage() {
       </div>
 
       <CreateUserForm onUserCreated={() => setRefreshKey((prev) => prev + 1)} />
+
+      {showImport && (
+        <UsersImportXls onImportComplete={() => {
+          setRefreshKey((prev) => prev + 1);
+          setShowImport(false);
+        }} />
+      )}
+
+      {!showImport && (
+        <button
+          onClick={() => setShowImport(true)}
+          className="inline-flex items-center justify-center gap-2 rounded-lg border border-input bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-accent hover:text-accent-foreground"
+        >
+          Importar usuarios desde XLS
+        </button>
+      )}
+
       <UsersList key={refreshKey} />
 
       <Card className="border-[var(--secondary)]/30 bg-[var(--secondary)]/5">
