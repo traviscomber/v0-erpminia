@@ -38,6 +38,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { EeccFormDialog, type EeccRow } from '@/components/eecc/eecc-form-dialog';
+import { EeccImportXls } from '@/components/eecc/eecc-import-xls';
 import { useModuleAccess } from '@/hooks/use-module-access';
 
 const fetcher = async (url: string) => {
@@ -53,6 +54,7 @@ export default function EeccPage() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [formOpen, setFormOpen] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [editing, setEditing] = useState<EeccRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<EeccRow | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -132,10 +134,16 @@ export default function EeccPage() {
             </p>
           </div>
           {canManage && (
-            <Button onClick={openNew}>
-              <Plus className="mr-2 h-4 w-4" />
-              Nueva EECC
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={openNew}>
+                <Plus className="mr-2 h-4 w-4" />
+                Nueva EECC
+              </Button>
+              <Button variant="outline" onClick={() => setShowImport(!showImport)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Importar XLS
+              </Button>
+            </div>
           )}
         </div>
       </div>
@@ -173,6 +181,10 @@ export default function EeccPage() {
           </CardContent>
         </Card>
       </div>
+
+      {showImport && canManage && (
+        <EeccImportXls />
+      )}
 
       <Card>
         <CardHeader>
