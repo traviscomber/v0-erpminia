@@ -1,6 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'bcryptjs';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
+import { createClient } from '@supabase/supabase-js';
+
+function getServiceSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 const ROLE_LABELS: Record<string, string> = {
   superadmin: 'superadmin',
@@ -33,7 +41,8 @@ function buildPermissionCode(module: string, action: string) {
 }
 
 export async function listOrganizationUsers(organizationId: string) {
-  const supabase = getSupabaseServerClient();
+  // Use service role to bypass RLS on cargos table (JOIN fails with anon client)
+  const supabase = getServiceSupabase();
 
   const { data: profiles, error } = await supabase
     .from('profiles')
