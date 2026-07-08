@@ -38,11 +38,21 @@ export async function listOrganizationUsers(organizationId: string) {
 
   const { data: profiles, error } = await supabase
     .from('profiles')
-    .select('id, email, full_name, first_name, last_name, role, cargo_id, created_at, updated_at, status, cargos(name)')
+    .select('id, email, full_name, first_name, last_name, role, cargo_id, created_at, updated_at, status')
     .eq('organization_id', organizationId)
     .order('created_at', { ascending: false });
 
   if (error) throw error;
+
+  // Fetch cargos separately and build a map
+  const { data: cargosData } = await supabase
+    .from('cargos')
+    .select('id, name');
+
+  const cargoMap = new Map<string, string>();
+  for (const cargo of cargosData || []) {
+    cargoMap.set(cargo.id, cargo.name);
+  }
 
   const userIds = (profiles || []).map((profile) => profile.id);
   const roleMap = new Map<string, string>();
@@ -68,13 +78,11 @@ export async function listOrganizationUsers(organizationId: string) {
       profile.email ||
       'Sin nombre';
 
-    const cargoData = Array.isArray(profile.cargos) ? (profile.cargos[0] as { name: string } | undefined) : null;
-
     return {
       id: profile.id,
       email: profile.email,
       full_name: fullName,
-      cargo: cargoData ? cargoData.name : null,
+      cargo: profile.cargo_id ? cargoMap.get(profile.cargo_id) || null : null,
       role: roleMap.get(profile.id) || normalizeRole(profile.role),
       created_at: profile.created_at,
       email_confirmed_at: profile.status === 'pending' ? null : profile.created_at,
