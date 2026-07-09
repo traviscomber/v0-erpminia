@@ -45,6 +45,13 @@ interface Carpeta {
   carpeta_documentos: DocSlot[];
 }
 // Ayudantes
+function formatPeriodLabel(dateValue?: string | null) {
+  if (!dateValue) return null;
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleDateString('es-CL', { month: 'short', year: 'numeric' });
+}
+
 const STATUS_CONFIG: Record<string, { label: string; icon: React.ReactNode; className: string }> = {
   pendiente:  { label: 'Pendiente',  icon: <Clock className="h-3 w-3" />,  className: 'bg-orange-500/10 text-orange-500 border-orange-500/20' },
   en_revision_l1:  { label: 'Revisión Nivel 1',  icon: <CircleDot className="h-3 w-3" />,  className: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },
@@ -160,6 +167,11 @@ function ReviewModal({
                         {doc.slot_index}. {doc.documento_nombre}
                       </p>
                       <p className="text-xs text-muted-foreground mt-0.5">{doc.file_name}</p>
+                      {formatPeriodLabel(doc.uploaded_at) && (
+                        <p className="text-xs text-primary/80 mt-0.5">
+                          Período: {formatPeriodLabel(doc.uploaded_at)}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div className="flex gap-2 flex-shrink-0">
@@ -283,6 +295,11 @@ export default function CarpetaArranqueList({ status }: { status: string }) {
                       <span className="text-xs text-muted-foreground">
                         Creada: {new Date(carpeta.created_at).toLocaleDateString('es-CL')}
                       </span>
+                      {formatPeriodLabel(carpeta.submitted_at || carpeta.created_at) && (
+                        <span className="text-xs text-primary/90">
+                          Período: {formatPeriodLabel(carpeta.submitted_at || carpeta.created_at)}
+                        </span>
+                      )}
                     </div>
                   </div>
                   <button
@@ -377,6 +394,11 @@ export default function CarpetaArranqueList({ status }: { status: string }) {
                               <p className="text-xs font-medium leading-tight truncate">{doc.documento_nombre}</p>
                               {doc.file_name && (
                                 <p className="text-xs text-muted-foreground truncate">{doc.file_name}</p>
+                              )}
+                              {formatPeriodLabel(doc.uploaded_at) && (
+                                <p className="text-xs text-primary/80 mt-0.5">
+                                  Período: {formatPeriodLabel(doc.uploaded_at)}
+                                </p>
                               )}
                               {/* Show observations if any */}
                               {doc.l1_observaciones && (

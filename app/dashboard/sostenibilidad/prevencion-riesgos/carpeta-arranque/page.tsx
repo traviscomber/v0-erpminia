@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Plus, FileText, CheckCircle2, AlertCircle, Clock, CircleDot } from 'lucide-react';
+import { Download, Plus, FileText, CheckCircle2, AlertCircle, Clock, CircleDot } from 'lucide-react';
 import CarpetaArranqueForm from '@/components/prevention/carpeta-arranque-form';
 import CarpetaArranqueList from '@/components/prevention/carpeta-arranque-list';
 
@@ -17,17 +17,26 @@ interface Stats {
   rechazadas: number;
 }
 
+function formatPeriodLabel(dateValue?: string | null) {
+  if (!dateValue) return null;
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleDateString('es-CL', { month: 'short', year: 'numeric' });
+}
+
 export default function CarpetaArranquePage() {
   const [showNewForm, setShowNewForm] = useState(false);
   const [activeTab, setActiveTab] = useState('mis-carpetas');
   const [stats, setStats] = useState<Stats>({ total: 0, pendientes: 0, en_revision: 0, aprobadas: 0, rechazadas: 0 });
   const [listKey, setListKey] = useState(0);
+  const [carpetas, setCarpetas] = useState<any[]>([]);
 
   const fetchStats = useCallback(async () => {
     const res = await fetch('/api/carpeta-arranque', { credentials: 'include' });
     if (!res.ok) return;
     const data = await res.json().catch(() => null);
     const carpetas: Array<{ status: string }> = data.carpetas || [];
+    setCarpetas(data.carpetas || []);
     setStats({
       total: carpetas.length,
       pendientes: carpetas.filter((c) => c.status === 'pendiente').length,
@@ -45,6 +54,38 @@ export default function CarpetaArranquePage() {
     setShowNewForm(false);
     setListKey((k) => k + 1);
     setActiveTab('mis-carpetas');
+  };
+
+  const handleExportCsv = () => {
+    const rows: Array<Array<string | number>> = [
+      ['Empresa', 'RUT', 'Estado', 'Período carpeta', 'Documento', 'Slot', 'Archivo', 'Período documento', 'Estado revisión L1', 'Estado revisión L2', 'Cargado'],
+      ...carpetas.flatMap((carpeta: any) =>
+        (carpeta.carpeta_documentos || []).map((doc: any) => [
+          carpeta.empresa_nombre || '',
+          carpeta.empresa_rut || '',
+          carpeta.status || '',
+          formatPeriodLabel(carpeta.submitted_at || carpeta.created_at) || '',
+          doc.documento_nombre || '',
+          doc.slot_index || '',
+          doc.file_name || '',
+          formatPeriodLabel(doc.uploaded_at) || '',
+          doc.l1_status || '',
+          doc.l2_status || '',
+          doc.file_name ? 'Sí' : 'No',
+        ])
+      ),
+    ];
+
+    const csv = rows
+      .map((row) => row.map((cell: string | number) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+    const blob = new Blob(['\ufeff', csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `carpeta_arranque_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -141,10 +182,16 @@ export default function CarpetaArranquePage() {
         <TabsContent value="mis-carpetas" className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">Carpetas de Arranque</h2>
-            <Button onClick={() => setShowNewForm(!showNewForm)} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Nueva Carpeta
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={handleExportCsv} className="gap-2">
+                <Download className="h-4 w-4" />
+                Exportar CSV
+              </Button>
+              <Button onClick={() => setShowNewForm(!showNewForm)} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Nueva Carpeta
+              </Button>
+            </div>
           </div>
           {showNewForm && (
             <Card>
