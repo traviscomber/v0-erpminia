@@ -160,7 +160,7 @@ export function MaintenanceExecutiveDashboard() {
           <Button asChild variant="outline" className="gap-2">
             <Link href="/dashboard/mantenimiento/vehiculos">
               <QrCode className="h-4 w-4" />
-              Vehiculos y QR
+              Vehículos y QR
             </Link>
           </Button>
           <Button
@@ -346,7 +346,7 @@ export function MaintenanceExecutiveDashboard() {
               </Button>
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/bitacora">
-                  Bitacora
+                  Bitácora
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>

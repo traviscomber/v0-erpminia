@@ -135,7 +135,7 @@ export function MaintenancePersonnelBoard() {
             Recargar
           </Button>
           <Button asChild variant="outline" className="gap-2">
-            <Link href="/dashboard/mantenimiento/bitacora">Bitacora</Link>
+            <Link href="/dashboard/mantenimiento/bitacora">Bitácora</Link>
           </Button>
           <Button asChild className="gap-2">
             <Link href="/dashboard/mantenimiento/gerencial">Gerencial</Link>
@@ -255,7 +255,7 @@ export function MaintenancePersonnelBoard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/vehiculos">
-                Vehiculos y QR
+                Vehículos y QR
                 <Users className="h-4 w-4" />
               </Link>
             </Button>

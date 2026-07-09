@@ -278,13 +278,13 @@ export function MaintenanceMobilePanel() {
         <CardContent className="grid grid-cols-1 gap-2">
           <Button asChild variant="outline" className="w-full justify-between">
             <Link href="/dashboard/mantenimiento/vehiculos">
-              Vehiculos y QR
+              Vehículos y QR
               <QrCode className="h-4 w-4" />
             </Link>
           </Button>
           <Button asChild variant="outline" className="w-full justify-between">
             <Link href="/dashboard/mantenimiento/bitacora">
-              Bitacora
+              Bitácora
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>

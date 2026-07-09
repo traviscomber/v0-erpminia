@@ -109,13 +109,13 @@ export function MaintenanceCostsBoard() {
           </Button>
           <Button asChild variant="outline" className="gap-2">
             <Link href="/dashboard/mantenimiento/bitacora">
-              Bitacora
+              Bitácora
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
           <Button asChild variant="outline" className="gap-2">
-            <Link href="/dashboard/mantenimiento/vehiculos">
-              Vehiculos y QR
+              <Link href="/dashboard/mantenimiento/vehiculos">
+              Vehículos y QR
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
@@ -183,13 +183,13 @@ export function MaintenanceCostsBoard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/bitacora">
-                Bitacora
+                Bitácora
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/vehiculos">
-                Vehiculos y QR
+                Vehículos y QR
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -212,7 +212,7 @@ export function MaintenanceCostsBoard() {
               </div>
             ) : assetCosts.length === 0 ? (
               <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-                No hay costos registrados todavia.
+                No hay costos registrados todavía.
               </div>
             ) : (
               assetCosts.slice(0, 8).map((asset) => (
@@ -242,7 +242,7 @@ export function MaintenanceCostsBoard() {
               <div className="text-sm text-muted-foreground">Cargando costos mensuales...</div>
             ) : monthlyCosts.length === 0 ? (
               <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-                Sin datos mensuales todavia.
+                Sin datos mensuales todavía.
               </div>
             ) : (
               monthlyCosts.map((row) => (

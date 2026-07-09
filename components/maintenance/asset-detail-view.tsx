@@ -437,7 +437,7 @@ export function AssetDetailView() {
                 <Link href="/dashboard/mantenimiento/documentos">Documentos</Link>
               </Button>
               <Button size="sm" variant="outline" asChild>
-                <Link href="/dashboard/mantenimiento/bitacora">Bitacora</Link>
+                <Link href="/dashboard/mantenimiento/bitacora">Bitácora</Link>
               </Button>
             </div>
           </div>
@@ -446,7 +446,7 @@ export function AssetDetailView() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Maquinas relacionadas</CardTitle>
+          <CardTitle>Máquinas relacionadas</CardTitle>
           <CardDescription>
             {machineFamily
               ? `Modelos detectados en la familia ${machineFamily}`
@@ -471,7 +471,7 @@ export function AssetDetailView() {
             </div>
           ) : (
             <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-              Todavia no hay maquinas relacionadas para mostrar.
+              Todavía no hay máquinas relacionadas para mostrar.
             </div>
           )}
         </CardContent>

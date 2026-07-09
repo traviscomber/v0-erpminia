@@ -128,7 +128,7 @@ export function MaintenanceHistoryBoard() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Bitacora de mantenimiento</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Bitácora de mantenimiento</h1>
           <p className="mt-2 text-muted-foreground">
             Historial real por equipo con mantenciones, repuestos y responsables.
           </p>
@@ -146,7 +146,7 @@ export function MaintenanceHistoryBoard() {
           </Button>
           <Button asChild variant="outline" className="gap-2">
             <Link href="/dashboard/mantenimiento/vehiculos">
-              Vehiculos y QR
+              Vehículos y QR
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>

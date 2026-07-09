@@ -83,7 +83,7 @@ export function ComponentesMayoresBoard() {
           </Button>
           <Button asChild variant="outline" className="gap-2">
             <Link href="/dashboard/mantenimiento/vehiculos">
-              Vehiculos y QR
+              Vehículos y QR
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
@@ -151,7 +151,7 @@ export function ComponentesMayoresBoard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/vehiculos">
-                Vehiculos y QR
+                Vehículos y QR
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
