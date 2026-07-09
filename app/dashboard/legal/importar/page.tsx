@@ -366,7 +366,7 @@ export default function LegalImportPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Importar legal</h1>
           <p className="mt-2 text-muted-foreground">
-            Carga documentos y contratos desde CSV/XLS/XLSX usando los mismos contratos de datos del módulo legal.
+            Carga documentos y contratos desde CSV/XLS/XLSX usando el mismo esquema de datos del módulo legal.
           </p>
         </div>
         <Button asChild variant="outline" className="gap-2">
@@ -526,7 +526,7 @@ function ImportPanel({
             <>
               <p>Campos obligatorios: `TITLE` y `CONTRACTOR_NAME`.</p>
               <p>Campos recomendados: `CONTRACT_NUMBER`, `START_DATE`, `END_DATE`, `STATUS`, `CONTRACT_VALUE`, `CURRENCY`, `COMPLIANCE_STATUS`.</p>
-              <p>Los contratos se crean con el mismo contrato de datos del módulo legal.</p>
+              <p>Los contratos se crean con el mismo esquema de datos del módulo legal.</p>
             </>
           )}
         </CardContent>

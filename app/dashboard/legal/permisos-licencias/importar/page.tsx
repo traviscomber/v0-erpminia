@@ -50,7 +50,7 @@ export default function PermisosLicenciasImportarPage() {
           <DocumentUpload module="legal" category="documentos" onUploadSuccess={handleUploadSuccess} />
           {uploadedName ? (
             <div className="rounded-lg border border-border/70 bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
-              Ultimo archivo cargado: <span className="font-medium text-foreground">{uploadedName}</span>
+              Último archivo cargado: <span className="font-medium text-foreground">{uploadedName}</span>
             </div>
           ) : null}
         </CardContent>
@@ -62,7 +62,7 @@ export default function PermisosLicenciasImportarPage() {
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-muted-foreground">
           <p>Usa esta ruta cuando el archivo corresponda a permisos, licencias, patentes, resoluciones o autorizaciones regulatorias.</p>
-          <p>Si ademas necesitas cargar contratos o lotes tabulares, usa el importador general de legal.</p>
+          <p>Si además necesitas cargar contratos o lotes tabulares, usa el importador general de legal.</p>
         </CardContent>
       </Card>
     </div>
