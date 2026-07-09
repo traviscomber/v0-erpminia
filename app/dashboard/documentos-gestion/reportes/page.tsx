@@ -257,7 +257,7 @@ export default function ReportesGestionDocumentalPage() {
                 <div key={doc.id} className="flex items-center justify-between rounded border border-amber-500/20 bg-background/60 p-3">
                   <span className="font-medium">{doc.title}</span>
                   <Badge className="bg-amber-500/10 text-amber-700">
-                    {typeof doc.daysUntilExpiry === 'number' ? `${doc.daysUntilExpiry} dias` : 'Sin dato'}
+                    {typeof doc.daysUntilExpiry === 'number' ? `${doc.daysUntilExpiry} días` : 'Sin dato'}
                   </Badge>
                 </div>
               ))
