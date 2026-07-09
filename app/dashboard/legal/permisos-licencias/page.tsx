@@ -78,7 +78,7 @@ export default function PermisosLicenciasPage() {
         <div>
           <h1 className="text-3xl font-bold">Permisos y licencias</h1>
           <p className="mt-2 max-w-2xl text-muted-foreground">
-            Vista dedicada para permisos, licencias y autorizaciones críticas del proyecto.
+            Vista ejecutiva para permisos, licencias y autorizaciones criticas del proyecto.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -129,7 +129,7 @@ export default function PermisosLicenciasPage() {
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm text-muted-foreground">
               <ShieldAlert className="h-4 w-4" />
-              Total detectados
+              Total visibles
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -161,8 +161,8 @@ export default function PermisosLicenciasPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Permisos y licencias detectados</CardTitle>
-          <CardDescription>Permisos, licencias y autorizaciones relacionadas.</CardDescription>
+          <CardTitle>Permisos y licencias visibles</CardTitle>
+          <CardDescription>Permisos, licencias y autorizaciones reales relacionadas.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <input
