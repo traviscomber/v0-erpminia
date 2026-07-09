@@ -62,7 +62,7 @@ export default function TelemetriaPage() {
             <CardTitle className="text-sm">Monitoreo</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-primary">Datos seguros</div>
+            <div className="text-2xl font-bold text-primary">Datos reales</div>
             <p className="text-xs text-muted-foreground">
               La página permanece estable aunque el tiempo real no esté disponible.
             </p>
@@ -74,7 +74,7 @@ export default function TelemetriaPage() {
             <CardTitle className="text-sm">Alertas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-[var(--secondary)]">Ruta segura</div>
+            <div className="text-2xl font-bold text-[var(--secondary)]">Ruta estable</div>
             <p className="text-xs text-muted-foreground">
               La integración LAN sigue lista para usarse sin tiempo real.
             </p>
@@ -86,7 +86,7 @@ export default function TelemetriaPage() {
             <CardTitle className="text-sm">Cobertura</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-[var(--brand-verde)]">Modo offline</div>
+            <div className="text-2xl font-bold text-[var(--brand-verde)]">Sin websocket</div>
             <p className="text-xs text-muted-foreground">
               El sistema no intenta abrir websockets si el entorno los bloquea.
             </p>
