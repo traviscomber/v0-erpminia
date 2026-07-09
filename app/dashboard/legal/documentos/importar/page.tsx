@@ -25,7 +25,7 @@ export default function LegalDocumentosImportarPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" asChild>
-            <Link href="/dashboard/legal/importar">Importador tabular</Link>
+            <Link href="/dashboard/legal/importar">Importador desde Excel</Link>
           </Button>
           <Button variant="outline" asChild>
             <Link href="/dashboard/legal/documentos">
@@ -50,7 +50,7 @@ export default function LegalDocumentosImportarPage() {
           <DocumentUpload module="legal" category="documentos" onUploadSuccess={handleUploadSuccess} />
           {uploadedName ? (
             <div className="rounded-lg border border-border/70 bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
-              Ultimo archivo cargado: <span className="font-medium text-foreground">{uploadedName}</span>
+              Último archivo cargado: <span className="font-medium text-foreground">{uploadedName}</span>
             </div>
           ) : null}
         </CardContent>

@@ -133,8 +133,8 @@ export default function ContratosReportesPage() {
       <Tabs defaultValue="pagos" className="space-y-4">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="pagos">Pagos</TabsTrigger>
-          <TabsTrigger value="garantias">Garantias</TabsTrigger>
-          <TabsTrigger value="regalias">Regalias</TabsTrigger>
+          <TabsTrigger value="garantias">Garantías</TabsTrigger>
+          <TabsTrigger value="regalias">Regalías</TabsTrigger>
           <TabsTrigger value="estado">Estado</TabsTrigger>
         </TabsList>
 
@@ -168,7 +168,7 @@ export default function ContratosReportesPage() {
         <TabsContent value="garantias" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Estado de garantias retenidas</CardTitle>
+              <CardTitle>Estado de garantías retenidas</CardTitle>
             </CardHeader>
             <CardContent>
               {garantiasActivas.length > 0 ? (
@@ -194,7 +194,7 @@ export default function ContratosReportesPage() {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <p className="py-8 text-center text-muted-foreground">Sin garantias activas</p>
+                <p className="py-8 text-center text-muted-foreground">Sin garantías activas</p>
               )}
             </CardContent>
           </Card>
@@ -203,7 +203,7 @@ export default function ContratosReportesPage() {
         <TabsContent value="regalias" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Regalias por propiedad</CardTitle>
+              <CardTitle>Regalías por propiedad</CardTitle>
             </CardHeader>
             <CardContent>
               {regaliasPorPropiedad.length > 0 ? (
