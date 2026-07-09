@@ -109,12 +109,12 @@ export default function ContratosReportesPage() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-3xl font-bold">Reportes de contratos</h1>
-          <p className="text-muted-foreground">Análisis y seguimiento de pagos, garantías y regalías con data real.</p>
+          <p className="text-muted-foreground">Seguimiento real de pagos, garantias y regalias, con lectura ejecutiva.</p>
         </div>
 
         <Button variant="outline" size="sm" className="w-fit">
           <Download className="mr-1 h-4 w-4" />
-          Exportar PDF
+          Descargar PDF
         </Button>
       </div>
 
@@ -123,7 +123,7 @@ export default function ContratosReportesPage() {
           <div className="flex flex-wrap gap-2">
             {['mes', 'trimestre', 'anual'].map((p) => (
               <Button key={p} variant={periodo === p ? 'default' : 'outline'} onClick={() => setPeriodo(p)} size="sm">
-                {p === 'mes' ? 'Este mes' : p === 'trimestre' ? 'Este trimestre' : 'Este ano'}
+                {p === 'mes' ? 'Mes actual' : p === 'trimestre' ? 'Trimestre actual' : 'Ano actual'}
               </Button>
             ))}
           </div>
