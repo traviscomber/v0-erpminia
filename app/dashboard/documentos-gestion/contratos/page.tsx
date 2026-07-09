@@ -186,9 +186,8 @@ export default function ContratosPage() {
           <p className="text-muted-foreground">Cargando contratos...</p>
         </div>
       </div>
-    );
-  }
-
+  );
+}
   if (error) {
     return (
       <div className="py-12 text-center">
@@ -591,5 +590,3 @@ export default function ContratosPage() {
     </div>
   );
 }
-
-
