@@ -160,7 +160,7 @@ export default function ReportesGestionDocumentalPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-amber-600">{stats.expiring}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Dentro de la ventana critica</p>
+            <p className="mt-1 text-xs text-muted-foreground">Dentro de la ventana crítica</p>
           </CardContent>
         </Card>
 
@@ -170,7 +170,7 @@ export default function ReportesGestionDocumentalPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{categories.length}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Clasificacion operativa</p>
+            <p className="mt-1 text-xs text-muted-foreground">Clasificación operativa</p>
           </CardContent>
         </Card>
       </div>
