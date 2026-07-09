@@ -237,7 +237,7 @@ export default function ContratosPage() {
       <div className="flex flex-wrap gap-2">
         <Button asChild variant="outline" size="sm" className="gap-2">
           <Link href="/dashboard/documentos-gestion/eecc">
-            Empresas contratistas (EECC)
+            Empresas contratistas
             <ArrowRight className="h-4 w-4" />
           </Link>
         </Button>
@@ -346,7 +346,7 @@ export default function ContratosPage() {
                 <thead>
                   <tr className="border-b border-white/10">
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Contrato</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Numero</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Número</th>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Tipo</th>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Estado</th>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Valor</th>
@@ -450,7 +450,7 @@ export default function ContratosPage() {
                     />
                   </div>
                   <div>
-                    <label className="mb-2 block text-sm font-medium">Numero de contrato *</label>
+                    <label className="mb-2 block text-sm font-medium">Número de contrato *</label>
                     <Input
                       value={formState.contractNumber}
                       onChange={(e) => updateField('contractNumber', e.target.value)}
@@ -507,7 +507,7 @@ export default function ContratosPage() {
                     <Input type="date" value={formState.startDate} onChange={(e) => updateField('startDate', e.target.value)} className="border-white/10 bg-white/5" />
                   </div>
                   <div>
-                    <label className="mb-2 block text-sm font-medium">Fecha de termino</label>
+                    <label className="mb-2 block text-sm font-medium">Fecha de término</label>
                     <Input type="date" value={formState.endDate} onChange={(e) => updateField('endDate', e.target.value)} className="border-white/10 bg-white/5" />
                   </div>
                   <div>
@@ -526,7 +526,7 @@ export default function ContratosPage() {
                     <Input value={formState.currency} onChange={(e) => updateField('currency', e.target.value)} className="border-white/10 bg-white/5" />
                   </div>
                   <div>
-                    <label className="mb-2 block text-sm font-medium">Contratista (EECC)</label>
+                    <label className="mb-2 block text-sm font-medium">Contratista</label>
                     <Select
                       value={formState.eeccId}
                       onValueChange={(value) => {
@@ -539,12 +539,12 @@ export default function ContratosPage() {
                       }}
                     >
                       <SelectTrigger className="border-white/10 bg-white/5">
-                        <SelectValue placeholder="Selecciona una EECC" />
+                        <SelectValue placeholder="Selecciona una empresa contratista" />
                       </SelectTrigger>
                       <SelectContent>
                         {eeccOptions.length === 0 ? (
                           <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                            No hay EECC registradas
+                            No hay empresas contratistas registradas
                           </div>
                         ) : (
                           eeccOptions.map((option) => (
@@ -559,7 +559,7 @@ export default function ContratosPage() {
                       href="/dashboard/documentos-gestion/eecc"
                       className="mt-1 inline-block text-xs text-muted-foreground hover:text-foreground"
                     >
-                      Gestionar EECC
+                      Gestionar empresas contratistas
                     </Link>
                   </div>
                 </div>
