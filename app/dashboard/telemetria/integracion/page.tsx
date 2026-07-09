@@ -103,9 +103,9 @@ export default function TelemetriaIntegracionPage() {
   const ingestUrl = `${normalizedGatewayUrl || ''}/api/telemetry/ingest`;
   const healthUrl = `${normalizedGatewayUrl || ''}/api/telemetry/health`;
   const quickHosts = [
-    { label: 'Este host', value: currentOrigin },
-    { label: 'Localhost', value: 'http://localhost:3000' },
-    { label: 'LAN de ejemplo', value: 'http://192.168.1.20:3000' },
+    { label: 'Este equipo', value: currentOrigin },
+    { label: 'Prueba local', value: 'http://localhost:3000' },
+    { label: 'Red local', value: 'http://192.168.1.20:3000' },
   ].filter((item) => item.value);
 
   const code = `curl -X POST ${ingestUrl || 'https://TU-DOMINIO/api/telemetry/ingest'} \\
