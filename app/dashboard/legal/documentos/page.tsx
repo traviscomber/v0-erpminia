@@ -126,7 +126,7 @@ export default function DocumentosLegalPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Gestion documental legal</h1>
+          <h1 className="text-3xl font-bold">Gestión documental legal</h1>
           <p className="mt-2 text-muted-foreground">Gestión de contratos, políticas y documentos legales.</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -153,7 +153,7 @@ export default function DocumentosLegalPage() {
           </Button>
           <Button asChild variant="outline" className="justify-between">
             <Link href="/dashboard/legal/documentos">
-              Gestion documental legal
+              Gestión documental legal
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
