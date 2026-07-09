@@ -383,7 +383,7 @@ export default function LegalPage() {
       <div>
         <h1 className="text-3xl font-bold text-foreground">Módulo Legal</h1>
         <p className="mt-2 max-w-3xl text-muted-foreground">
-          Vista ejecutiva para documentos, contratos y cumplimiento normativo, con foco en respaldo, vencimientos y revisión.
+          Vista ejecutiva para documentos, contratos y cumplimiento normativo, con foco en respaldo, vencimientos y seguimiento.
         </p>
         {reviewError ? (
           <div className="mt-4 flex max-w-3xl items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
@@ -432,11 +432,11 @@ export default function LegalPage() {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Documentos con archivo</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Documentos con respaldo</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{documentsWithFile}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Con respaldo disponible</p>
+            <p className="mt-1 text-xs text-muted-foreground">Con respaldo listo</p>
           </CardContent>
         </Card>
 
@@ -483,7 +483,7 @@ export default function LegalPage() {
 
       <Card className="border-border/70 bg-card/90">
         <CardHeader>
-          <CardTitle>Acceso rápido al flujo documental</CardTitle>
+          <CardTitle>Accesos rápidos al flujo documental</CardTitle>
           <CardDescription>
             Legal trabaja conectado a mantenimiento, bodega y telemetría para cerrar trazabilidad.
           </CardDescription>

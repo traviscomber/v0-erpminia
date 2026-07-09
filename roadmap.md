@@ -16,10 +16,10 @@ Cerrar el producto para produccion dejando:
 
 En este tramo vamos a cerrar lo que mas impacta el MVP visible:
 
-1. Mantenimiento y su coordinacion con centros de costo.
-2. Documentos gestion y subrutas que todavía necesiten pulido final.
-3. Legal y modales compartidos.
-4. Telemetria y produccion.
+1. Documentos gestion y subrutas que todavía necesiten pulido final.
+2. Legal y modales compartidos.
+3. Telemetria y produccion.
+4. Mantenimiento y su coordinacion con centros de costo, manteniendolos estables.
 5. Bodega e inventario si aparece alguna inconsistencia de copy o navegacion.
 
 ## Fases
@@ -139,10 +139,10 @@ En este tramo vamos a cerrar lo que mas impacta el MVP visible:
 
 ## Prioridad recomendada
 
-1. Bloque actual de mantenimiento y centros de costo
-2. Documentos gestion
-3. Legal
-4. Telemetria y produccion
+1. Documentos gestion
+2. Legal
+3. Telemetria y produccion
+4. Mantenimiento y centros de costo
 5. Bodega e inventario
 6. Bloqueo tecnico y estabilidad
 7. Sostenibilidad
