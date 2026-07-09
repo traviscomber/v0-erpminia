@@ -105,7 +105,7 @@ export default function TelemetriaIntegracionPage() {
   const quickHosts = [
     { label: 'Este host', value: currentOrigin },
     { label: 'Localhost', value: 'http://localhost:3000' },
-    { label: 'LAN ejemplo', value: 'http://192.168.1.20:3000' },
+    { label: 'LAN de ejemplo', value: 'http://192.168.1.20:3000' },
   ].filter((item) => item.value);
 
   const code = `curl -X POST ${ingestUrl || 'https://TU-DOMINIO/api/telemetry/ingest'} \\
@@ -277,10 +277,8 @@ export default function TelemetriaIntegracionPage() {
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2 text-sm">
             <Badge variant="outline">Endpoint: {checkResult.endpoint || '/api/telemetry/health'}</Badge>
-            <Badge variant="outline">Ingest: {checkResult.ingest_endpoint || '/api/telemetry/ingest'}</Badge>
-            <Badge variant="outline">
-              Configurado: {checkResult.configured ? 'si' : 'no'}
-            </Badge>
+            <Badge variant="outline">Ingreso: {checkResult.ingest_endpoint || '/api/telemetry/ingest'}</Badge>
+            <Badge variant="outline">Configurado: {checkResult.configured ? 'sí' : 'no'}</Badge>
             {Array.isArray(checkResult.accepted_payload) && (
               <Badge variant="outline">{checkResult.accepted_payload.length} campos aceptados</Badge>
             )}
@@ -299,7 +297,7 @@ export default function TelemetriaIntegracionPage() {
           </CardHeader>
           <CardContent>
             <div className="font-semibold">POST {normalizedGatewayUrl || 'https://TU-DOMINIO'}/api/telemetry/ingest</div>
-            <p className="text-sm text-muted-foreground">Acepta JSON desde un gateway local o lotes de lecturas.</p>
+            <p className="text-sm text-muted-foreground">Acepta JSON desde un equipo de la red local o lotes de lecturas.</p>
           </CardContent>
         </Card>
         <Card>
@@ -311,7 +309,7 @@ export default function TelemetriaIntegracionPage() {
           </CardHeader>
           <CardContent>
             <div className="font-semibold">GET {normalizedGatewayUrl || 'https://TU-DOMINIO'}/api/telemetry/health</div>
-            <p className="text-sm text-muted-foreground">Verifica conectividad y token sin escribir lecturas.</p>
+            <p className="text-sm text-muted-foreground">Verifica conectividad y token sin registrar lecturas.</p>
           </CardContent>
         </Card>
         <Card>
@@ -323,7 +321,7 @@ export default function TelemetriaIntegracionPage() {
           </CardHeader>
           <CardContent>
             <div className="font-semibold">x-telemetry-token</div>
-            <p className="text-sm text-muted-foreground">Se valida contra `TELEMETRY_INGEST_TOKEN` y se incluye en los ejemplos.</p>
+            <p className="text-sm text-muted-foreground">Se valida contra `TELEMETRY_INGEST_TOKEN` y se incluye en los ejemplos de prueba.</p>
           </CardContent>
         </Card>
         <Card>
@@ -335,7 +333,7 @@ export default function TelemetriaIntegracionPage() {
           </CardHeader>
           <CardContent>
             <div className="font-semibold">Gateway o PLC</div>
-            <p className="text-sm text-muted-foreground">La otra máquina puede empujar una lectura o varias en un solo POST.</p>
+            <p className="text-sm text-muted-foreground">La otra máquina puede enviar una lectura o varias en un solo POST.</p>
           </CardContent>
         </Card>
       </div>
@@ -343,7 +341,7 @@ export default function TelemetriaIntegracionPage() {
       <Card>
         <CardHeader>
           <CardTitle>Ejemplo de envío</CardTitle>
-          <CardDescription>Este ejemplo sirve para pruebas desde una PC o gateway de la red local.</CardDescription>
+          <CardDescription>Este ejemplo sirve para pruebas desde una PC o equipo de la red local.</CardDescription>
         </CardHeader>
         <CardContent>
           <pre className="overflow-x-auto rounded-lg border bg-muted p-4 text-sm leading-6">{code}</pre>
@@ -352,9 +350,9 @@ export default function TelemetriaIntegracionPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Prueba directa de la muestra</CardTitle>
+          <CardTitle>Prueba directa de la lectura</CardTitle>
           <CardDescription>
-            Valida primero sin escribir datos. Cuando la muestra quede correcta, puedes enviarla al endpoint real.
+            Valida primero sin escribir datos. Cuando la lectura quede correcta, puedes enviarla al endpoint real.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -367,13 +365,13 @@ export default function TelemetriaIntegracionPage() {
           />
           <div className="flex flex-wrap gap-2">
             <Button type="button" variant="outline" onClick={() => setSamplePayload(formatJson(SAMPLE_PAYLOAD))}>
-              Cargar ejemplo
+              Cargar lectura de ejemplo
             </Button>
             <Button type="button" variant="outline" onClick={() => runSample('validate')} disabled={sampleRunning !== null}>
-              {sampleRunning === 'validate' ? 'Validando...' : 'Validar muestra'}
+              {sampleRunning === 'validate' ? 'Validando...' : 'Validar lectura'}
             </Button>
             <Button type="button" onClick={() => runSample('send')} disabled={sampleRunning !== null}>
-              {sampleRunning === 'send' ? 'Enviando...' : 'Enviar prueba'}
+              {sampleRunning === 'send' ? 'Enviando...' : 'Enviar lectura'}
             </Button>
           </div>
           {sampleResult && (
@@ -382,7 +380,7 @@ export default function TelemetriaIntegracionPage() {
                 <Badge variant={sampleResult.success ? 'default' : 'destructive'}>
                   {sampleResult.success ? 'Procesado' : 'Con error'}
                 </Badge>
-                {sampleResult.dry_run ? <Badge variant="outline">Prueba interna</Badge> : null}
+                {sampleResult.dry_run ? <Badge variant="outline">Validación interna</Badge> : null}
                 {typeof sampleResult.validated_count === 'number' ? (
                   <Badge variant="outline">Validadas: {sampleResult.validated_count}</Badge>
                 ) : null}
