@@ -126,15 +126,15 @@ export default function DocumentosLegalPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Documentos legales</h1>
+          <h1 className="text-3xl font-bold">Gestion documental legal</h1>
           <p className="mt-2 text-muted-foreground">Gestión de contratos, políticas y documentos legales.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild>
-            <Link href="/dashboard/legal/documentos/importar">Importar documentos</Link>
+            <Link href="/dashboard/legal/documentos/importar">Cargar documentos</Link>
           </Button>
           <Button variant="outline" asChild>
-            <Link href="/dashboard/legal/importar">Importar desde Excel</Link>
+            <Link href="/dashboard/legal/importar">Cargar desde Excel</Link>
           </Button>
         </div>
       </div>
@@ -153,7 +153,7 @@ export default function DocumentosLegalPage() {
           </Button>
           <Button asChild variant="outline" className="justify-between">
             <Link href="/dashboard/legal/documentos">
-              Documentos legales
+              Gestion documental legal
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
@@ -182,7 +182,7 @@ export default function DocumentosLegalPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{stats.total}</p>
-            <p className="text-xs text-muted-foreground">Documentos cargados</p>
+            <p className="text-xs text-muted-foreground">Documentos reales cargados</p>
           </CardContent>
         </Card>
 
@@ -195,7 +195,7 @@ export default function DocumentosLegalPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-green-500">{stats.vigentes}</p>
-            <p className="text-xs text-muted-foreground">Aprobados</p>
+            <p className="text-xs text-muted-foreground">Vigentes</p>
           </CardContent>
         </Card>
 
