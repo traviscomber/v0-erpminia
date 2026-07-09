@@ -64,7 +64,7 @@ export default function TelemetriaPage() {
           <CardContent>
             <div className="text-2xl font-bold text-primary">Datos seguros</div>
             <p className="text-xs text-muted-foreground">
-              La página permanece estable aunque el realtime no esté disponible.
+              La página permanece estable aunque el tiempo real no esté disponible.
             </p>
           </CardContent>
         </Card>
@@ -76,7 +76,7 @@ export default function TelemetriaPage() {
           <CardContent>
             <div className="text-2xl font-bold text-[var(--secondary)]">Ruta segura</div>
             <p className="text-xs text-muted-foreground">
-              La integración LAN sigue lista para usarse sin realtime.
+              La integración LAN sigue lista para usarse sin tiempo real.
             </p>
           </CardContent>
         </Card>
@@ -88,7 +88,7 @@ export default function TelemetriaPage() {
           <CardContent>
             <div className="text-2xl font-bold text-[var(--brand-verde)]">Modo offline</div>
             <p className="text-xs text-muted-foreground">
-              El sistema no intenta abrir web sockets si el entorno los bloquea.
+              El sistema no intenta abrir websockets si el entorno los bloquea.
             </p>
           </CardContent>
         </Card>
@@ -161,7 +161,7 @@ export default function TelemetriaPage() {
           </div>
           <div className="rounded-lg border border-border bg-background p-3">
             <p className="text-xs text-muted-foreground">Modo de uso</p>
-            <p className="mt-1 font-semibold">Push desde gateway local</p>
+            <p className="mt-1 font-semibold">Envío desde gateway local</p>
           </div>
           <div className="rounded-lg border border-border bg-background p-3">
             <p className="text-xs text-muted-foreground">Campos mínimos</p>
