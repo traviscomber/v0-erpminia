@@ -243,7 +243,7 @@ export default function TelemetriaIntegracionPage() {
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={downloadSpec}>
             <Download className="mr-2 h-4 w-4" />
-            Descargar especificacion
+            Descargar especificación
           </Button>
           <Button variant="outline" onClick={testConnection} disabled={checking}>
             <RefreshCw className={`mr-2 h-4 w-4 ${checking ? 'animate-spin' : ''}`} />
@@ -267,7 +267,7 @@ export default function TelemetriaIntegracionPage() {
               ) : (
                 <RadioTower className="h-5 w-5 text-amber-600" />
               )}
-              {checkResult.ok ? 'Conexion verificada' : 'Conexion con observaciones'}
+              {checkResult.ok ? 'Conexión verificada' : 'Conexión con observaciones'}
             </CardTitle>
             <CardDescription>
               {checkResult.ok
@@ -342,7 +342,7 @@ export default function TelemetriaIntegracionPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Ejemplo de envio</CardTitle>
+          <CardTitle>Ejemplo de envío</CardTitle>
           <CardDescription>Este ejemplo sirve para pruebas desde una PC o gateway de la red local.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -352,9 +352,9 @@ export default function TelemetriaIntegracionPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Prueba directa del payload</CardTitle>
+          <CardTitle>Prueba directa de la muestra</CardTitle>
           <CardDescription>
-            Valida primero sin escribir datos. Cuando el payload quede correcto, puedes enviarlo al endpoint real.
+            Valida primero sin escribir datos. Cuando la muestra quede correcta, puedes enviarla al endpoint real.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -370,10 +370,10 @@ export default function TelemetriaIntegracionPage() {
               Cargar ejemplo
             </Button>
             <Button type="button" variant="outline" onClick={() => runSample('validate')} disabled={sampleRunning !== null}>
-              {sampleRunning === 'validate' ? 'Validando...' : 'Validar payload'}
+              {sampleRunning === 'validate' ? 'Validando...' : 'Validar muestra'}
             </Button>
             <Button type="button" onClick={() => runSample('send')} disabled={sampleRunning !== null}>
-              {sampleRunning === 'send' ? 'Enviando...' : 'Enviar muestra'}
+              {sampleRunning === 'send' ? 'Enviando...' : 'Enviar prueba'}
             </Button>
           </div>
           {sampleResult && (
@@ -382,7 +382,7 @@ export default function TelemetriaIntegracionPage() {
                 <Badge variant={sampleResult.success ? 'default' : 'destructive'}>
                   {sampleResult.success ? 'Procesado' : 'Con error'}
                 </Badge>
-                {sampleResult.dry_run ? <Badge variant="outline">Dry run</Badge> : null}
+                {sampleResult.dry_run ? <Badge variant="outline">Prueba interna</Badge> : null}
                 {typeof sampleResult.validated_count === 'number' ? (
                   <Badge variant="outline">Validadas: {sampleResult.validated_count}</Badge>
                 ) : null}
