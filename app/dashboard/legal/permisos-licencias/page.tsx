@@ -89,7 +89,7 @@ export default function PermisosLicenciasPage() {
           </Button>
           <Button variant="outline" asChild>
             <Link href="/dashboard/legal/importar">
-              Excel legal
+              Importar desde Excel
             </Link>
           </Button>
           <Button variant="outline" asChild>
@@ -105,7 +105,7 @@ export default function PermisosLicenciasPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <FileCheck2 className="h-5 w-5" />
-            Subir permisos o licencias
+            Subir permiso o licencia
           </CardTitle>
           <CardDescription>
             Usa el mismo flujo de documentos legales, priorizando permisos, licencias y autorizaciones.
@@ -129,7 +129,7 @@ export default function PermisosLicenciasPage() {
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm text-muted-foreground">
               <ShieldAlert className="h-4 w-4" />
-              Total filtrados
+              Total detectados
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -161,7 +161,7 @@ export default function PermisosLicenciasPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Documentos detectados</CardTitle>
+          <CardTitle>Permisos y licencias detectados</CardTitle>
           <CardDescription>Permisos, licencias y autorizaciones relacionadas.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
