@@ -230,7 +230,7 @@ export function CostCentersDashboard() {
           <div className="flex flex-col items-center gap-4 text-center">
             <Database className="h-12 w-12 text-muted-foreground" />
             <div className="space-y-2">
-              <h3 className="text-lg font-semibold text-foreground">Todavia no hay centros de costos visibles</h3>
+              <h3 className="text-lg font-semibold text-foreground">Todavía no hay centros de costos visibles</h3>
               <p className="max-w-2xl text-sm text-muted-foreground">
                 Puedes cargar la base de referencia para que la estructura aparezca en el dashboard y en los selectores de bodega.
               </p>
@@ -441,7 +441,7 @@ export function CostCentersDashboard() {
                       ) : (
                         <span className="text-muted-foreground">Centro principal</span>
                       )}
-                      {!isExpanded && extraCount > 0 ? <span className="text-muted-foreground">+{extraCount} mas</span> : null}
+                      {!isExpanded && extraCount > 0 ? <span className="text-muted-foreground">+{extraCount} más</span> : null}
                     </div>
 
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
