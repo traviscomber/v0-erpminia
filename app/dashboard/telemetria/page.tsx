@@ -28,7 +28,7 @@ export default function TelemetriaPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Telemetría de sensores</h1>
           <p className="mt-2 text-muted-foreground">
-            Monitoreo real de equipos, alertas activas y sugerencias de orden de trabajo desde datos vivos.
+            Monitoreo real de equipos, alertas activas y sugerencias de orden de trabajo desde datos reales.
           </p>
         </div>
         <Link href="/dashboard/produccion">
@@ -47,7 +47,7 @@ export default function TelemetriaPage() {
 
       <Card className="border-border/70 bg-card/90">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Modo estable por API</CardTitle>
+          <CardTitle className="text-sm">Modo estable</CardTitle>
           <CardDescription>
             La telemetría sigue operando con datos históricos, lecturas agregadas y consultas por API sin depender de websockets.
           </CardDescription>
