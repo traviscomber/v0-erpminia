@@ -12,6 +12,16 @@ Cerrar el producto para produccion dejando:
 - flujos principales completos y estables
 - build verde antes de cada push
 
+## Bloque actual
+
+En este tramo vamos a cerrar lo que mas impacta el MVP visible:
+
+1. Mantenimiento y su coordinacion con centros de costo.
+2. Documentos gestion y subrutas que todavía necesiten pulido final.
+3. Legal y modales compartidos.
+4. Telemetria y produccion.
+5. Bodega e inventario si aparece alguna inconsistencia de copy o navegacion.
+
 ## Fases
 
 ### 1. Bloqueo tecnico y estabilidad
@@ -58,6 +68,7 @@ Cerrar el producto para produccion dejando:
   - Panel movil de mantencion para terreno y atajos operativos.
   - Personal de mantencion con horas reales y tecnicos resumidos.
   - Combustible real conectado a inventario de bodega y resumen ejecutivo.
+  - Centro de costo de mantenimiento revisado y tablero por centro de costo con importacion y vista expandible.
 - Falta para cerrar el modulo:
   - Aplicacion movil mas completa para abrir y cerrar OT, adjuntar fotos, registrar repuestos y firmar trabajos.
   - Horometros por equipo con captura real y trazabilidad por activo.
@@ -128,13 +139,13 @@ Cerrar el producto para produccion dejando:
 
 ## Prioridad recomendada
 
-1. Bloqueo tecnico y estabilidad
-2. Bodega e inventario
-3. Documentos gestion
-4. Legal
-5. Mantenimiento
-6. Sostenibilidad
-7. Telemetria y produccion
+1. Bloque actual de mantenimiento y centros de costo
+2. Documentos gestion
+3. Legal
+4. Telemetria y produccion
+5. Bodega e inventario
+6. Bloqueo tecnico y estabilidad
+7. Sostenibilidad
 8. Compras y finanzas
 9. Admin y permisos
 10. Alertas y auditoria

@@ -74,7 +74,7 @@ export default function MaintenanceCostCenterImportPage() {
 
       setResult({
         success: true,
-        message: payload?.message || 'Importacion completada',
+        message: payload?.message || 'Importación completada',
         imported: payload?.imported || 0,
         updated: payload?.updated || 0,
       });

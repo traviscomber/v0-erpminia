@@ -42,12 +42,14 @@ export function MaintenanceDashboardByCC() {
     const open = workOrders.filter((order) => order.status === 'open' || order.status === 'pending').length;
     const inProgress = workOrders.filter((order) => order.status === 'in_progress').length;
     const completed = workOrders.filter((order) => order.status === 'completed').length;
+    const withoutOrders = orderedCostCenters.filter((cc) => !workOrders.some((order) => order.cost_center_id === cc.id)).length;
     return {
       totalCostCenters: orderedCostCenters.length,
       totalOrders: workOrders.length,
       open,
       inProgress,
       completed,
+      withoutOrders,
     };
   }, [orderedCostCenters.length, workOrders]);
 
@@ -67,7 +69,7 @@ export function MaintenanceDashboardByCC() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">Centros visibles</CardTitle>
@@ -100,13 +102,21 @@ export function MaintenanceDashboardByCC() {
             <div className="text-2xl font-bold text-green-600">{summary.completed}</div>
           </CardContent>
         </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Sin órdenes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-amber-600">{summary.withoutOrders}</div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="space-y-4">
         {orderedCostCenters.length === 0 ? (
           <Card>
             <CardContent className="py-8 text-center text-sm text-muted-foreground">
-              No hay centros de costo cargados todavia.
+              No hay centros de costo cargados todavía.
             </CardContent>
           </Card>
         ) : orderedCostCenters.map((cc) => {
