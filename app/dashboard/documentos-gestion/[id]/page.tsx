@@ -76,7 +76,7 @@ export default function CategoryDetailPage() {
   });
 
   if (error) return <div className="text-destructive">Error al cargar documentos</div>;
-  if (isLoading) return <div className="text-muted-foreground">Cargando gestión documental...</div>;
+  if (isLoading) return <div className="text-muted-foreground">Cargando gestion documental...</div>;
 
   const stats = data?.stats || { total: 0, aprobados: 0, pendientes: 0, rechazados: 0 };
   const docs = data?.documents || { aprobados: [], pendientes: [], rechazados: [] };
@@ -123,7 +123,7 @@ export default function CategoryDetailPage() {
           <h1 className="text-3xl font-bold">
             {categoryInfo.icon} {categoryInfo.name}
           </h1>
-          <p className="text-muted-foreground">Vista detallada de la categoría con estado, validaciones y acceso rápido a cada documento.</p>
+          <p className="text-muted-foreground">Vista detallada de la categoria con estado, validaciones y acceso rapido a cada documento.</p>
         </div>
       </div>
 
@@ -164,14 +164,14 @@ export default function CategoryDetailPage() {
 
       <Card className="border-border/70 bg-card/80">
         <CardHeader>
-          <CardTitle>Acceso rápido al módulo</CardTitle>
+          <CardTitle>Acceso rapido al modulo</CardTitle>
           <CardDescription>Entra a las subrutas principales sin volver al inicio.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/documentos-gestion">
-                Gestión documental
+                Gestion documental
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -200,7 +200,7 @@ export default function CategoryDetailPage() {
       <Card>
         <CardHeader>
           <CardTitle>Documentos por estado</CardTitle>
-          <CardDescription>Ordenados por aprobados, pendientes y rechazados para lectura rápida.</CardDescription>
+          <CardDescription>Ordenados por aprobados, pendientes y rechazados para lectura rapida.</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab}>

@@ -110,7 +110,7 @@ export default function EeccPage() {
       setDeleteTarget(null);
       mutate();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Ocurrió un error');
+      toast.error(error instanceof Error ? error.message : 'Ocurrio un error');
     } finally {
       setDeleting(false);
     }
@@ -228,9 +228,9 @@ export default function EeccPage() {
                   {filtered.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell className="font-medium">{item.name}</TableCell>
-                      <TableCell className="text-muted-foreground">{item.rut || '—'}</TableCell>
+                      <TableCell className="text-muted-foreground">{item.rut || ''}</TableCell>
                       <TableCell className="text-muted-foreground">
-                        {item.representative || '—'}
+                        {item.representative || ''}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {item.email ? (
@@ -238,7 +238,7 @@ export default function EeccPage() {
                             {item.email}
                           </a>
                         ) : (
-                          '—'
+                          ''
                         )}
                       </TableCell>
                       <TableCell>
@@ -289,10 +289,10 @@ export default function EeccPage() {
       <AlertDialog open={Boolean(deleteTarget)} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar esta EECC?</AlertDialogTitle>
+            <AlertDialogTitle>Eliminar esta EECC?</AlertDialogTitle>
             <AlertDialogDescription>
-              Se eliminará <span className="font-medium">{deleteTarget?.name}</span> del directorio.
-              Esta acción no se puede deshacer.
+              Se eliminar <span className="font-medium">{deleteTarget?.name}</span> del directorio.
+              Esta accin no se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
