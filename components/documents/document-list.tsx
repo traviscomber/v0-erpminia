@@ -28,7 +28,6 @@ export interface Document {
   file_url: string;
   description: string;
   version: number;
-  // Legacy fields
   title: string;
   documentNumber: string;
   documentType: string;
@@ -37,7 +36,6 @@ export interface Document {
   createdByUser: { name: string };
   expiryDate: string;
   daysUntilExpiry: number;
-  // Allow any additional fields from legacy systems
   [key: string]: unknown;
 }
 
@@ -157,7 +155,6 @@ export function DocumentList({
     <div className="space-y-4">
       {showSearch && (
         <div className="space-y-3">
-          {/* Search + filter toggle row */}
           <div className="flex gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
@@ -196,10 +193,8 @@ export function DocumentList({
             </button>
           </div>
 
-          {/* Collapsible filter panel */}
           {showFilters && (
             <div className="border border-border rounded-lg p-3 space-y-3 bg-muted/20">
-              {/* Type filter */}
               {allTypes.length > 0 && (
                 <div className="space-y-1.5">
                   <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Tipo de documento</span>
@@ -233,7 +228,6 @@ export function DocumentList({
                 </div>
               )}
 
-              {/* Tag filter */}
               {allTags.length > 0 && (
                 <div className="space-y-1.5">
                   <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1">
@@ -258,7 +252,6 @@ export function DocumentList({
                 </div>
               )}
 
-              {/* Clear filters */}
               {(activeType || activeTag) && (
                 <button
                   onClick={() => { setActiveType(''); setActiveTag(''); }}
@@ -270,7 +263,6 @@ export function DocumentList({
             </div>
           )}
 
-          {/* Results count when filtering */}
           {(search || activeTag || activeType) && (
             <p className="text-xs text-muted-foreground">
               {filtered.length} resultado{filtered.length !== 1 ? 's' : ''}
@@ -290,12 +282,11 @@ export function DocumentList({
         </div>
       )}
 
-      {/* Empty state */}
       {filtered.length === 0 ? (
         <Card className="p-12 text-center border-dashed">
           <FileText className="mx-auto h-10 w-10 text-muted-foreground/40 mb-3" />
           <p className="text-sm font-medium text-muted-foreground">
-            {search || activeTag || activeType ? 'Sin resultados para esta búsqueda' : 'No hay documentos'}
+            {search || activeTag || activeType ? 'Sin resultados para esta busqueda' : 'No hay documentos'}
           </p>
           {(search || activeTag || activeType) && (
             <button
@@ -322,7 +313,6 @@ export function DocumentList({
             return (
               <Card key={doc.id} className="p-4 hover:bg-muted/20 transition-colors">
                 <div className="flex items-start gap-3">
-                  {/* File type badge */}
                   <div className={cn(
                     'flex-shrink-0 h-10 w-10 rounded-lg flex items-center justify-center text-xs font-bold border',
                     typeColor
@@ -330,21 +320,18 @@ export function DocumentList({
                     {typeLabel}
                   </div>
 
-                  {/* Main info */}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground leading-tight mb-1.5">
                       {displayName}
                     </p>
 
                     <div className="flex flex-wrap items-center gap-2 mb-2">
-                      {/* Document code */}
                       {doc.document_code && (
                         <span className="inline-flex items-center gap-1 text-xs font-mono text-primary bg-primary/10 border border-primary/20 rounded px-2 py-0.5">
                           <Hash className="h-3 w-3" />
                           {doc.document_code}
                         </span>
                       )}
-                      {/* Type category */}
                       {doc.document_type_category && (
                         <span className="text-xs text-muted-foreground truncate max-w-[300px]">
                           {doc.document_type_category}
@@ -353,7 +340,6 @@ export function DocumentList({
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                      {/* Status */}
                       <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium', statusCfg.color)}>
                         <StatusIcon className="h-3 w-3" />
                         {statusCfg.label}
@@ -367,12 +353,11 @@ export function DocumentList({
                       {uploadDate && <span>{uploadDate}</span>}
                       {validUntil && (
                         <span className={cn(doc.is_expired ? 'text-red-400' : '')}>
-                          Válido hasta {validUntil}
+                          Valido hasta {validUntil}
                         </span>
                       )}
                     </div>
 
-                    {/* Etiquetas */}
                     {doc.tags && doc.tags.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
                         {doc.tags.map((tag) => (
@@ -392,7 +377,6 @@ export function DocumentList({
                       </div>
                     )}
 
-                    {/* Observations */}
                     {(doc.l1_observations || doc.l2_observations) && (
                       <div className="mt-2 p-2 bg-yellow-500/10 border border-yellow-500/20 rounded text-xs text-yellow-300">
                         <span className="font-medium">Obs: </span>
@@ -401,7 +385,6 @@ export function DocumentList({
                     )}
                   </div>
 
-                  {/* Actions */}
                   <div className="flex gap-1 flex-shrink-0">
                     {onView && (
                       <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => onView(doc)}>
@@ -436,4 +419,3 @@ export function DocumentList({
     </div>
   );
 }
-
