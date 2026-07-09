@@ -125,60 +125,60 @@ export default function ReportesGestionDocumentalPage() {
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2 text-muted-foreground">
           <Sparkles className="h-4 w-4 text-primary" />
-          <span className="text-sm font-medium">Resumen real</span>
+          <span className="text-sm font-medium">Datos reales</span>
         </div>
         <h1 className="text-3xl font-bold">Reportes de gestión documental</h1>
         <p className="text-muted-foreground">
-          Vista ejecutiva con categorías, aprobaciones pendientes, documentos recientes y vencimientos.
+          Vista ejecutiva con secciones, aprobaciones pendientes, documentos recientes y vencimientos.
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Documentos totales</CardTitle>
+            <CardTitle className="text-sm">Documentos cargados</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Cargados en la base real</p>
+            <p className="mt-1 text-xs text-muted-foreground">Cargados desde la base real</p>
           </CardContent>
         </Card>
 
         <Card className="border-primary/30 bg-primary/5">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-primary">Pendientes de aprobación</CardTitle>
+            <CardTitle className="text-sm text-primary">Pendientes por revisar</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary">{stats.pending}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Requieren seguimiento</p>
+            <p className="mt-1 text-xs text-muted-foreground">Requieren revisión</p>
           </CardContent>
         </Card>
 
         <Card className="border-amber-500/30 bg-amber-500/5">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-amber-600">Por vencer</CardTitle>
+            <CardTitle className="text-sm text-amber-600">Por vencer pronto</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-amber-600">{stats.expiring}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Dentro de la ventana crítica</p>
+            <p className="mt-1 text-xs text-muted-foreground">Dentro del rango crítico</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Categorías activas</CardTitle>
+            <CardTitle className="text-sm">Secciones activas</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{categories.length}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Clasificación operativa</p>
+            <p className="mt-1 text-xs text-muted-foreground">Clasificación operativa real</p>
           </CardContent>
         </Card>
       </div>
 
       <Card className="border-border/70 bg-card/80">
         <CardHeader>
-          <CardTitle>Acceso rápido al módulo</CardTitle>
-          <CardDescription>Subrutas útiles para revisar el detalle sin perder contexto.</CardDescription>
+          <CardTitle>Atajos del módulo</CardTitle>
+          <CardDescription>Entra a las secciones clave sin perder contexto.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -213,13 +213,13 @@ export default function ReportesGestionDocumentalPage() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Documentos recientes</CardTitle>
-            <CardDescription>Últimos registros que entraron al sistema</CardDescription>
+          <CardTitle>Documentos recientes</CardTitle>
+            <CardDescription>Últimos registros que entraron al sistema real</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {recentDocuments.length === 0 ? (
               <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-                No hay documentos recientes.
+                No hay documentos recientes cargados.
               </div>
             ) : (
               recentDocuments.slice(0, 5).map((doc) => (
@@ -249,7 +249,7 @@ export default function ReportesGestionDocumentalPage() {
         <Card className="border-amber-500/30 bg-amber-500/5">
           <CardHeader>
             <CardTitle>Documentos por vencer</CardTitle>
-            <CardDescription>{expiringDocuments.length} documentos próximos a vencerse</CardDescription>
+            <CardDescription>{expiringDocuments.length} documentos próximos a vencer</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
             {expiringDocuments.length > 0 ? (
@@ -272,14 +272,14 @@ export default function ReportesGestionDocumentalPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Buscar categorías</CardTitle>
-          <CardDescription>Filtra el resumen por nombre, descripción o id de categoría.</CardDescription>
+          <CardTitle>Buscar secciones</CardTitle>
+          <CardDescription>Filtra el resumen por nombre, descripción o id de sección.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar categoría o descripción..."
+              placeholder="Buscar sección o descripción..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -321,7 +321,7 @@ export default function ReportesGestionDocumentalPage() {
       {filteredCategories.length === 0 && (
         <Card>
           <CardContent className="py-8 text-center text-sm text-muted-foreground">
-            No se encontraron categorías que coincidan con la búsqueda.
+            No se encontraron secciones que coincidan con la búsqueda.
           </CardContent>
         </Card>
       )}
