@@ -134,7 +134,7 @@ export default function DocumentosLegalPage() {
             <Link href="/dashboard/legal/documentos/importar">Importar documentos</Link>
           </Button>
           <Button variant="outline" asChild>
-            <Link href="/dashboard/legal/importar">Excel legal</Link>
+            <Link href="/dashboard/legal/importar">Importar desde Excel</Link>
           </Button>
         </div>
       </div>
@@ -159,7 +159,7 @@ export default function DocumentosLegalPage() {
           </Button>
           <Button asChild variant="outline" className="justify-between">
             <Link href="/dashboard/documentos-gestion/contratos">
-              Contratos y tracker
+              Contratos y seguimiento
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>

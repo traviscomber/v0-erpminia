@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { CheckCircle2, Clock, Download, Plus, Search } from 'lucide-react';
+import { CheckCircle2, Clock, Eye, Plus, Search } from 'lucide-react';
 
 type DocumentRow = {
   id: string;
@@ -241,7 +241,7 @@ export default function ProcedimientosPage() {
         <CardHeader>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <CardTitle>Biblioteca de procedimientos</CardTitle>
+              <CardTitle>Lista de procedimientos</CardTitle>
               <CardDescription>Protocolos operacionales y procesos documentados.</CardDescription>
             </div>
 
@@ -300,8 +300,8 @@ export default function ProcedimientosPage() {
                   <div className="self-end lg:self-auto">
                     <Button asChild variant="ghost" size="sm" className="gap-2">
                       <Link href={`/dashboard/sostenibilidad/documentos-flujo?doc=${proc.documentId || proc.id}`}>
-                        <Download className="h-3 w-3" />
-                        Ver detalle
+                        <Eye className="h-3 w-3" />
+                        Abrir detalle
                       </Link>
                     </Button>
                   </div>
