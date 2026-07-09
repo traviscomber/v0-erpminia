@@ -364,7 +364,7 @@ export default function LegalImportPage() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Importar legal</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Importacion legal</h1>
           <p className="mt-2 text-muted-foreground">
             Carga documentos y contratos desde CSV/XLS/XLSX usando el mismo esquema de datos del módulo legal.
           </p>
@@ -385,8 +385,8 @@ export default function LegalImportPage() {
 
         <TabsContent value="documents" className="mt-4">
           <ImportPanel
-            title="Importar documentos legales"
-            description="Carga o actualiza el inventario documental legal desde una plantilla."
+            title="Importar documentos"
+            description="Carga o actualiza el inventario documental desde una plantilla."
             activeMode="documents"
             modeTitle={modeTitle}
             downloadTemplate={downloadTemplate}
@@ -403,8 +403,8 @@ export default function LegalImportPage() {
 
         <TabsContent value="contracts" className="mt-4">
           <ImportPanel
-            title="Importar contratos legales"
-            description="Carga contratos legales y respalda la trazabilidad desde Excel."
+            title="Importar contratos"
+            description="Carga contratos y respalda la trazabilidad desde Excel."
             activeMode="contracts"
             modeTitle={modeTitle}
             downloadTemplate={downloadTemplate}
