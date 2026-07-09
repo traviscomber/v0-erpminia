@@ -78,7 +78,7 @@ export default function PermisosLicenciasPage() {
         <div>
           <h1 className="text-3xl font-bold">Permisos y licencias</h1>
           <p className="mt-2 max-w-2xl text-muted-foreground">
-            Vista ejecutiva para permisos, licencias y autorizaciones criticas del proyecto.
+            Vista ejecutiva para permisos, licencias y autorizaciones reales del proyecto.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -105,10 +105,10 @@ export default function PermisosLicenciasPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <FileCheck2 className="h-5 w-5" />
-            Subir permiso o licencia
+            Cargar permiso o licencia
           </CardTitle>
           <CardDescription>
-            Usa el mismo flujo de documentos legales, priorizando permisos, licencias y autorizaciones.
+            Usa el mismo flujo legal para permisos, licencias y autorizaciones.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -129,7 +129,7 @@ export default function PermisosLicenciasPage() {
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm text-muted-foreground">
               <ShieldAlert className="h-4 w-4" />
-              Total visibles
+              Total reales
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -140,7 +140,7 @@ export default function PermisosLicenciasPage() {
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm text-muted-foreground">
               <Clock className="h-4 w-4" />
-              Próximos a vencer
+              Próximos por vencer
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -161,7 +161,7 @@ export default function PermisosLicenciasPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Permisos y licencias visibles</CardTitle>
+          <CardTitle>Permisos y licencias reales</CardTitle>
           <CardDescription>Permisos, licencias y autorizaciones reales relacionadas.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -173,7 +173,7 @@ export default function PermisosLicenciasPage() {
           />
 
           {filtered.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No hay permisos o licencias detectados todavía.</p>
+            <p className="text-sm text-muted-foreground">No hay permisos ni licencias cargados todavía.</p>
           ) : (
             filtered.map((doc) => (
               <div key={doc.id} className="flex items-center justify-between rounded-lg border p-3">
