@@ -146,8 +146,8 @@ export default function DocumentosLegalPage() {
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-2 md:grid-cols-4">
           <Button asChild variant="outline" className="justify-between">
-            <Link href="/dashboard/legal">
-              Inicio legal
+            <Link href="/dashboard/legal/permisos-licencias">
+              Permisos y licencias
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
