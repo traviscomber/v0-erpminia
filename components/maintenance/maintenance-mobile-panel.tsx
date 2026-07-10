@@ -160,7 +160,7 @@ export function MaintenanceMobilePanel() {
 
     const parsedHours = Number(hoursWorked);
     if (!Number.isFinite(parsedHours) || parsedHours <= 0) {
-      toast.error('Ingresa horas validas');
+      toast.error('Ingresa horas válidas');
       return;
     }
 
