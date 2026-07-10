@@ -122,7 +122,7 @@ export function ProduccionDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Metricas operacionales</CardTitle>
+          <CardTitle>Métricas operacionales</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -132,7 +132,7 @@ export function ProduccionDashboard() {
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey="equipment_uptime" fill="#82ca9d" name="Uptime %" />
+              <Bar dataKey="equipment_uptime" fill="#82ca9d" name="Tiempo activo %" />
               <Bar dataKey="workforce_efficiency" fill="#ffc658" name="Eficiencia %" />
             </BarChart>
           </ResponsiveContainer>

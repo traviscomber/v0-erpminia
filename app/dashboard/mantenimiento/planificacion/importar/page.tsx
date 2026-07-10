@@ -116,7 +116,7 @@ export default function PreventivePlanImportPage() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Importar planificacion preventiva</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Importar planificación preventiva</h1>
           <p className="mt-2 text-muted-foreground">
             Carga o actualiza programaciones desde CSV/XLS/XLSX para mantener la planificación al día.
           </p>
