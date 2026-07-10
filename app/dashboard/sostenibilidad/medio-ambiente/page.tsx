@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ConfirmDeleteDialog } from '@/components/sostenibilidad/confirm-delete-dialog';
 import { FilterPanel } from '@/components/sostenibilidad/filter-panel';
 import { ExportButtons } from '@/components/sostenibilidad/export-buttons';
+import { CompromisosRcaTable } from '@/components/sostenibilidad/compromisos-rca-table';
 
 interface MedioAmbienteRecord {
   id: string;
@@ -43,6 +44,7 @@ function normalizeCumplimiento(value: string) {
 }
 
 export default function MedioAmbientePage() {
+  const [activeTab, setActiveTab] = useState<'registros' | 'compromisos'>('registros');
   const [searchTerm, setSearchTerm] = useState('');
   const [tipo, setTipo] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
@@ -141,11 +143,12 @@ export default function MedioAmbientePage() {
 
   return (
     <div className="min-h-screen bg-background p-6">
-      <div className="mb-8 flex items-start justify-between">
+      <div className="mb-6 flex items-start justify-between">
         <div>
-          <h1 className="mb-2 text-3xl font-bold text-foreground">Medio ambiente</h1>
-          <p className="text-muted-foreground">Monitoreo de emisiones, residuos, agua y ruido</p>
+          <h1 className="mb-2 text-3xl font-bold text-foreground">Medio Ambiente</h1>
+          <p className="text-muted-foreground">Monitoreo ambiental y compromisos RCA</p>
         </div>
+        {activeTab === 'registros' && (
         <div className="flex items-center gap-2">
           <Button asChild variant="outline">
             <Link href="/dashboard/sostenibilidad/medio-ambiente/importar">Plantilla</Link>
@@ -230,7 +233,38 @@ export default function MedioAmbientePage() {
           </DialogContent>
           </Dialog>
         </div>
+        )}
       </div>
+
+      {/* Tab Navigation */}
+      <div className="mb-6 flex gap-1 border-b border-border">
+        <button
+          onClick={() => setActiveTab('registros')}
+          className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
+            activeTab === 'registros'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          Registros Ambientales
+        </button>
+        <button
+          onClick={() => setActiveTab('compromisos')}
+          className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
+            activeTab === 'compromisos'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          Compromisos RCA
+        </button>
+      </div>
+
+      {/* Compromisos RCA Tab */}
+      {activeTab === 'compromisos' && <CompromisosRcaTable />}
+
+      {/* Registros Tab */}
+      {activeTab === 'registros' && <>
 
       <FilterPanel
         searchTerm={searchTerm}
@@ -333,6 +367,7 @@ export default function MedioAmbientePage() {
         descripcion="Se eliminará este registro permanentemente."
         onConfirm={handleDelete}
       />
+      </>}
     </div>
   );
 }
