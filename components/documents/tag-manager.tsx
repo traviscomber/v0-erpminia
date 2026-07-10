@@ -104,14 +104,14 @@ export function TagManager({
 
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error || 'La actualizaciÃ³n fallÃ³');
+        throw new Error(err.error || 'La actualizacion fallo');
       }
 
       toast.success('Etiquetas actualizadas correctamente');
       onTagsUpdated(tags);
       onOpenChange(false);
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'La actualizaciÃ³n fallÃ³';
+      const errorMsg = err instanceof Error ? err.message : 'La actualizacion fallo';
       setError(errorMsg);
       console.error('[v0] Update tags error:', err);
     } finally {
@@ -209,7 +209,7 @@ export function TagManager({
               {cargando ? 'Guardando...' : 'Save etiquetas'}
             </Button>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelarar
+              Cancelar
             </Button>
           </div>
         </div>

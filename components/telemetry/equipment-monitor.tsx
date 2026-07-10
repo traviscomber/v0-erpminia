@@ -63,7 +63,7 @@ function normalizeStatus(status: string | null | undefined) {
   const value = String(status || '').trim().toLowerCase();
   if (['operational', 'operativo', 'activo', 'active', 'running'].includes(value)) return 'operational';
   if (['warning', 'alerta', 'alarma'].includes(value)) return 'warning';
-  if (['critical', 'critico', 'crÃ­tico'].includes(value)) return 'critical';
+  if (['critical', 'critico', 'critico'].includes(value)) return 'critical';
   if (['offline', 'inactivo', 'inactive', 'fuera_servicio', 'fuera_de_servicio'].includes(value)) return 'offline';
   return 'operational';
 }
