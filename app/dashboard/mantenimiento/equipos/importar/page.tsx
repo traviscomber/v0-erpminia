@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { ArrowLeft, Download } from 'lucide-react';
@@ -67,7 +67,7 @@ export default function EquiposImportPage() {
         <CardHeader>
           <CardTitle>Importación estandarizada</CardTitle>
           <CardDescription>
-            El archivo puede venir en CSV, XLS o XLSX. El alta o actualizacion se hace por `ASSET_CODE`.
+            El archivo puede venir en CSV, XLS o XLSX. El alta o actualización se hace por `ASSET_CODE`.
           </CardDescription>
         </CardHeader>
         <CardContent>

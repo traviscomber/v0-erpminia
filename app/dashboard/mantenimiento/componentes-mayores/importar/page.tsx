@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { useRef, useState, type DragEvent } from 'react';
@@ -76,7 +76,7 @@ export default function ComponentesMayoresImportPage() {
 
       setResult({
         success: true,
-        message: payload?.message || 'Importaci?n completada',
+        message: payload?.message || 'Importación completada',
         imported: payload?.imported || 0,
         updated: payload?.updated || 0,
         fault_modes: payload?.fault_modes || 0,

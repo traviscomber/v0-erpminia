@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
@@ -104,7 +104,7 @@ export function AssetManagement() {
             <div className="text-3xl font-bold text-green-600">
               {assets.filter((asset) => asset.status === 'operational').length}
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">en operacion</p>
+            <p className="mt-1 text-xs text-muted-foreground">en operación</p>
           </CardContent>
         </Card>
 

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { ArrowLeft, Download } from 'lucide-react';
@@ -23,9 +23,9 @@ export default function VehiclesImportPage() {
     ];
 
     const rows = [
-      ['VH-001', 'Camion CAEX 1', 'vehiculo', 'Patio mina', 'operational', 'Volvo', 'A40G', 'SN-001', 'alta', '1200', '250000000'],
-      ['VH-002', 'Pickup supervision', 'vehiculo liviano', 'Base operativa', 'operational', 'Toyota', 'Hilux', 'SN-002', 'media', '1800', '45000000'],
-      ['VH-003', 'Bus personal', 'vehiculo', 'Campamento', 'maintenance', 'Mercedes', 'Sprinter', 'SN-003', 'alta', '1600', '85000000'],
+      ['VH-001', 'Camión CAEX 1', 'vehículo', 'Patio mina', 'operational', 'Volvo', 'A40G', 'SN-001', 'alta', '1200', '250000000'],
+      ['VH-002', 'Pickup supervisión', 'vehículo liviano', 'Base operativa', 'operational', 'Toyota', 'Hilux', 'SN-002', 'media', '1800', '45000000'],
+      ['VH-003', 'Bus personal', 'vehículo', 'Campamento', 'maintenance', 'Mercedes', 'Sprinter', 'SN-003', 'alta', '1600', '85000000'],
     ];
 
     const csv = [headers, ...rows].map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(';')).join('\n');
@@ -33,7 +33,7 @@ export default function VehiclesImportPage() {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
-    anchor.download = 'plantilla-vehiculos-mantenimiento.csv';
+    anchor.download = 'plantilla-vehículos-mantenimiento.csv';
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
@@ -55,7 +55,7 @@ export default function VehiclesImportPage() {
             Descargar plantilla
           </Button>
           <Button asChild variant="outline">
-            <Link href="/dashboard/mantenimiento/vehiculos">
+            <Link href="/dashboard/mantenimiento/vehículos">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Volver a vehículos
             </Link>
@@ -73,7 +73,7 @@ export default function VehiclesImportPage() {
         <CardContent>
           <AssetImport
             onSuccess={() => {
-              window.location.href = '/dashboard/mantenimiento/vehiculos';
+              window.location.href = '/dashboard/mantenimiento/vehículos';
             }}
           />
         </CardContent>

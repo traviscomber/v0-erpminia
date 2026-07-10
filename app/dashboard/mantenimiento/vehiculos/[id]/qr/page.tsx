@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
@@ -176,7 +176,7 @@ export default function VehicleQrPage() {
           <Card className="print:shadow-none">
             <CardHeader>
               <CardTitle>Ficha resumida del activo</CardTitle>
-              <CardDescription>Datos clave para terreno y supervision</CardDescription>
+              <CardDescription>Datos clave para terreno y supervisión</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               <div>

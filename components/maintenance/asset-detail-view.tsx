@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -248,7 +248,7 @@ export function AssetDetailView() {
       <Card className="border-border/70 bg-card/90">
         <CardHeader className="pb-3">
           <CardTitle>Atajos del activo</CardTitle>
-          <CardDescription>Todo lo importante del equipo queda a un clic para terreno y supervision.</CardDescription>
+          <CardDescription>Todo lo importante del equipo queda a un clic para terreno y supervisión.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -419,7 +419,7 @@ export function AssetDetailView() {
       <Card>
         <CardHeader>
           <CardTitle>Trazabilidad rápida</CardTitle>
-          <CardDescription>Accesos utiles para terreno y supervision</CardDescription>
+          <CardDescription>Accesos útiles para terreno y supervisión</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
           <div className="rounded-lg border border-border p-4">

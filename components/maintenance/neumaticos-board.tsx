@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import useSWR from 'swr';
 import { AlertCircle, Download, RefreshCw, Truck } from 'lucide-react';
@@ -68,7 +68,7 @@ export function NeumaticosBoard() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-        <Card><CardHeader className="pb-2"><CardTitle className="text-sm">Items</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{summary.totalItems}</div></CardContent></Card>
+        <Card><CardHeader className="pb-2"><CardTitle className="text-sm">Ítems</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{summary.totalItems}</div></CardContent></Card>
         <Card><CardHeader className="pb-2"><CardTitle className="text-sm">Bajo stock</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold text-destructive">{summary.lowStock}</div></CardContent></Card>
         <Card><CardHeader className="pb-2"><CardTitle className="text-sm">Cantidad total</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{summary.totalQuantity}</div></CardContent></Card>
         <Card><CardHeader className="pb-2"><CardTitle className="text-sm">Valor total</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{money(summary.totalValue)}</div></CardContent></Card>

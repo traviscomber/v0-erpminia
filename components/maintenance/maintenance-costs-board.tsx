@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -200,7 +200,7 @@ export function MaintenanceCostsBoard() {
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Equipos mas costosos</CardTitle>
+            <CardTitle>Equipos más costosos</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {detailLoading ? (

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { useRef, useState, type DragEvent } from 'react';
@@ -88,7 +88,7 @@ export default function PreventivePlanImportPage() {
 
       setResult({
         success: true,
-        message: payload?.message || 'Importacion completada',
+        message: payload?.message || 'Importación completada',
         inserted: payload?.inserted || 0,
         updated: payload?.updated || 0,
         skipped: payload?.skipped || 0,

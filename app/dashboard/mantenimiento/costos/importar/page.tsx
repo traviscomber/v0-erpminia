@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { useRef, useState, type DragEvent } from 'react';
@@ -75,7 +75,7 @@ export default function MaintenanceCostsImportPage() {
 
       setResult({
         success: true,
-        message: payload?.message || 'Importaci?n completada',
+        message: payload?.message || 'Importación completada',
         updated_orders: payload?.updated_orders || 0,
         inserted_history: payload?.inserted_history || 0,
         updated_history: payload?.updated_history || 0,

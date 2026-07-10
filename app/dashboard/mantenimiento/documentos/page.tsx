@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
@@ -261,7 +261,7 @@ export default function DocumentosMantenimientoPage() {
       <Card>
         <CardHeader>
           <CardTitle>Buscar documentos</CardTitle>
-          <CardDescription>Filtra por titulo, descripcion, categoria o responsable.</CardDescription>
+          <CardDescription>Filtra por título, descripción, categoría o responsable.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="relative">
@@ -334,13 +334,13 @@ export default function DocumentosMantenimientoPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Accesos rapidos</CardTitle>
-          <CardDescription>Atajos utiles para operacion y supervision.</CardDescription>
+          <CardTitle>Accesos rápidos</CardTitle>
+          <CardDescription>Atajos útiles para operación y supervisión.</CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-2 md:grid-cols-3">
           <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/vehiculos">
-               Vehiculos y QR
+               Vehículos y QR
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>

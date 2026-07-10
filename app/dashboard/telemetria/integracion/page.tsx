@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -74,7 +74,7 @@ export default function TelemetriaIntegracionPage() {
   const [checking, setChecking] = useState(false);
   const [checkResult, setCheckResult] = useState<ConnectionCheck | null>(null);
   const [gatewayUrl, setGatewayUrl] = useState(process.env.NEXT_PUBLIC_TELEMETRY_GATEWAY_URL || '');
-  const [telemetryToken, setTelemetryToken] = useState('TU_TOKEN');
+  const [telemetryToken, setTelemetryToken] = useState('TOKEN_INGESTA');
   const [currentOrigin, setCurrentOrigin] = useState('');
   const [payloadJson, setPayloadJson] = useState(() => formatJson(TEST_PAYLOAD));
   const [payloadRunning, setPayloadRunning] = useState<'validate' | 'send' | null>(null);
@@ -104,13 +104,13 @@ export default function TelemetriaIntegracionPage() {
   const healthUrl = `${normalizedGatewayUrl || ''}/api/telemetry/health`;
   const quickHosts = [
     { label: 'Este equipo', value: currentOrigin },
-    { label: 'Prueba local', value: 'http://localhost:3000' },
+    { label: 'Entorno local', value: 'http://localhost:3000' },
     { label: 'Red local', value: 'http://192.168.1.20:3000' },
   ].filter((item) => item.value);
 
   const code = `curl -X POST ${ingestUrl || 'https://TU-DOMINIO/api/telemetry/ingest'} \\
   -H "Content-Type: application/json" \\
-  -H "x-telemetry-token: ${telemetryToken || 'TU_TOKEN'}" \\
+  -H "x-telemetry-token: ${telemetryToken || 'TOKEN_INGESTA'}" \\
   -d '${formatJson(TEST_PAYLOAD)}'`;
 
   const downloadSpec = () => {

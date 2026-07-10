@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
@@ -56,7 +56,7 @@ export function BodegaDashboard() {
     () =>
       inventory.map((item) => ({
         ...item,
-        categoryLabel: canonicalCategory(item.category) || 'Sin categoria',
+        categoryLabel: canonicalCategory(item.category) || 'Sin categoría',
       })),
     [inventory],
   );
@@ -109,7 +109,7 @@ export function BodegaDashboard() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold">Items en stock</CardTitle>
+            <CardTitle className="text-base font-semibold">Ítems en stock</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-bold text-primary">{pagination.total.toLocaleString()}</div>
@@ -127,7 +127,7 @@ export function BodegaDashboard() {
           <CardContent>
             <div className="space-y-3">
               <div className="text-4xl font-bold text-amber-500">{lowStockTotal.toLocaleString()}</div>
-              <p className="text-sm text-muted-foreground">Items bajo nivel de reorden</p>
+              <p className="text-sm text-muted-foreground">Ítems bajo nivel de reorden</p>
               {topFamilies.filter(c => c.low_stock > 0).slice(0, 3).map(c => (
                 <div key={c.label} className="flex items-center justify-between text-xs">
                   <span className="flex items-center gap-1.5 text-muted-foreground">
@@ -154,7 +154,7 @@ export function BodegaDashboard() {
 
       <Card className="border-border/70 bg-card/80">
         <CardHeader className="pb-3">
-          <CardTitle className="text-foreground">Acceso rapido al flujo operativo</CardTitle>
+          <CardTitle className="text-foreground">Acceso rápido al flujo operativo</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -215,7 +215,7 @@ export function BodegaDashboard() {
           <div className="rounded-lg border border-border bg-background/60 p-4">
             <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Familias activas</div>
             <div className="mt-2 text-3xl font-bold text-foreground">{familyCount.toLocaleString()}</div>
-            <div className="mt-1 text-sm text-muted-foreground">Categorias principales visibles</div>
+            <div className="mt-1 text-sm text-muted-foreground">Categorías principales visibles</div>
           </div>
           <div className="rounded-lg border border-border bg-background/60 p-4">
             <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Subfamilias activas</div>
@@ -223,7 +223,7 @@ export function BodegaDashboard() {
             <div className="mt-1 text-sm text-muted-foreground">Agrupaciones bajo cada familia</div>
           </div>
           <div className="rounded-lg border border-border bg-background/60 p-4">
-            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Familias con mas volumen</div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Familias con más volumen</div>
             <div className="mt-2 flex flex-wrap gap-2">
               {topFamiliesPreview.length > 0 ? (
                 topFamiliesPreview.map((cat) => (
@@ -242,7 +242,7 @@ export function BodegaDashboard() {
             </div>
             {topFamilies.length > topFamiliesPreview.length && (
               <p className="mt-2 text-xs text-muted-foreground">
-                +{topFamilies.length - topFamiliesPreview.length} familias mas con volumen relevante
+                +{topFamilies.length - topFamiliesPreview.length} familias más con volumen relevante
               </p>
             )}
           </div>
@@ -254,7 +254,7 @@ export function BodegaDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-3 text-destructive">
               <AlertTriangle className="h-6 w-6" />
-              <span className="text-lg">{lowStock.length} items con bajo stock</span>
+              <span className="text-lg">{lowStock.length} ítems con bajo stock</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -278,7 +278,7 @@ export function BodegaDashboard() {
                 );
               })}
             </div>
-            {lowStock.length > 6 && <p className="mt-3 text-xs text-muted-foreground">+{lowStock.length - 6} items mas con bajo stock</p>}
+            {lowStock.length > 6 && <p className="mt-3 text-xs text-muted-foreground">+{lowStock.length - 6} ítems más con bajo stock</p>}
           </CardContent>
         </Card>
       )}
@@ -292,7 +292,7 @@ export function BodegaDashboard() {
             <div className="relative">
               <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
               <Input
-                placeholder="Buscar SKU, nombre o categoria"
+                placeholder="Buscar SKU, nombre o categoría"
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
@@ -322,7 +322,7 @@ export function BodegaDashboard() {
       <Card>
         <CardHeader>
           <CardTitle className="text-foreground">Detalle de inventario {pagination.page > 0 && `(Pagina ${pagination.page + 1} de ${pagination.totalPages})`}</CardTitle>
-          <p className="text-sm text-muted-foreground">Usa la busqueda y la categoria para reducir el listado.</p>
+          <p className="text-sm text-muted-foreground">Usa la búsqueda y la categoría para reducir el listado.</p>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -350,7 +350,7 @@ export function BodegaDashboard() {
                 ) : normalizedInventory.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="p-8 text-center text-muted-foreground">
-                      No se encontraron items
+                      No se encontraron ítems
                     </td>
                   </tr>
                 ) : (
