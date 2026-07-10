@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const XLSX = require('xlsx') as typeof import('xlsx');
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-explicit-any
+const XLSX = require('xlsx') as any;
 
 function getServiceSupabase() {
   return createClient(
