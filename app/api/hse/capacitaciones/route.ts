@@ -96,7 +96,7 @@ function parseCsvRows(text: string): ImportTrainingRow[] {
     proveedor_instructor: headers.findIndex((h) => h.includes('proveedor') || h.includes('instructor')),
     fecha_programada: headers.findIndex((h) => h.includes('fecha') && h.includes('program')),
     hora_inicio: headers.findIndex((h) => h.includes('hora') && h.includes('inicio')),
-    hora_termino: headers.findIndex((h) => h.includes('hora') && (h.includes('termino') || h.includes('tÃ©rmino'))),
+    hora_termino: headers.findIndex((h) => h.includes('hora') && h.includes('termino')),
     duracion_horas: headers.findIndex((h) => h.includes('duracion')),
     cantidad_asistentes: headers.findIndex((h) => h.includes('asistente')),
     faenas_cargos: headers.findIndex((h) => h.includes('faena') || h.includes('cargo')),

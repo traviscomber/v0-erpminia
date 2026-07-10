@@ -169,6 +169,15 @@ export default function ContratosPage() {
     }
   };
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'En revision':
+        return 'En revisión';
+      default:
+        return status;
+    }
+  };
+
   const formatCurrency = (value: number | null, currency: string | null) => {
     if (!value) return '-';
     return new Intl.NumberFormat('es-CL', {
@@ -345,7 +354,7 @@ export default function ContratosPage() {
                 <thead>
                   <tr className="border-b border-white/10">
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Contrato</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Nmero</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Número</th>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Tipo</th>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Estado</th>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Valor</th>
@@ -373,14 +382,14 @@ export default function ContratosPage() {
                       <td className="px-4 py-3">
                         <Badge variant="outline" className={`flex w-fit items-center gap-1 ${getStatusColor(contract.status)}`}>
                           {getStatusIcon(contract.status)}
-                          {contract.status}
+                          {getStatusLabel(contract.status)}
                         </Badge>
                       </td>
                       <td className="px-4 py-3 font-medium">{formatCurrency(contract.contract_value, contract.currency)}</td>
                       <td className="px-4 py-3 text-xs text-muted-foreground">
                         <div>{contract.start_date ? new Date(contract.start_date).toLocaleDateString('es-CL') : '-'}</div>
                         <div>
-                          {'-> '}
+                          {'Hasta '}
                           {contract.end_date ? new Date(contract.end_date).toLocaleDateString('es-CL') : '-'}
                         </div>
                       </td>
@@ -491,7 +500,7 @@ export default function ContratosPage() {
                       onChange={(e) => updateField('status', e.target.value)}
                       className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm"
                     >
-                      <option>En revision</option>
+                      <option>En revisión</option>
                       <option>Vigente</option>
                       <option>Por Vencer</option>
                       <option>Vencido</option>
@@ -506,7 +515,7 @@ export default function ContratosPage() {
                     <Input type="date" value={formState.startDate} onChange={(e) => updateField('startDate', e.target.value)} className="border-white/10 bg-white/5" />
                   </div>
                   <div>
-                    <label className="mb-2 block text-sm font-medium">Fecha de trmino</label>
+                    <label className="mb-2 block text-sm font-medium">Fecha de término</label>
                     <Input type="date" value={formState.endDate} onChange={(e) => updateField('endDate', e.target.value)} className="border-white/10 bg-white/5" />
                   </div>
                   <div>
@@ -576,7 +585,7 @@ export default function ContratosPage() {
 
                 <div className="flex items-center justify-end gap-2 pt-2">
                   <Button type="button" variant="outline" onClick={() => setShowNewContractModal(false)}>
-                    Cancelarar
+                    Cancelar
                   </Button>
                   <Button type="submit" disabled={submitting} className="bg-[var(--brand-naranja)] text-white hover:bg-[var(--brand-naranja)]/90">
                     {submitting ? 'Guardando...' : 'Crear contrato'}

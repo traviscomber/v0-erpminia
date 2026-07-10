@@ -424,7 +424,7 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
 
         {/* Title */}
         <div className="space-y-3">
-          <label className="text-sm font-semibold text-foreground">Titulo del documento</label>
+          <label className="text-sm font-semibold text-foreground">Título del documento</label>
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}

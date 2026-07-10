@@ -132,7 +132,7 @@ export function DocumentViewer({ open, onOpenChange, document }: DocumentViewerP
     const labels: Record<string, string> = {
       draft: 'Borrador',
       submitted: 'Enviado',
-      under_review: 'En revision',
+      under_review: 'En revisión',
       approved: 'Aprobado',
       rejected: 'Rechazado',
       expired: 'Vencido',

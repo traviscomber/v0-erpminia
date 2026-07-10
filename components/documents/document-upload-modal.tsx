@@ -198,7 +198,7 @@ export function DocumentUploadModal({ open, onOpenChange, organizationId, onSucc
 
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
-              Cancelarar
+              Cancelar
             </Button>
             <Button type="submit" className="bg-primary hover:bg-primary/90" disabled={isLoading || !file}>
               {isLoading ? (

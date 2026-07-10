@@ -20,7 +20,7 @@ export default function MantenimientoDocumentosImportarPage() {
         <div>
           <h1 className="text-3xl font-bold">Importar documentos de mantenimiento</h1>
           <p className="mt-2 max-w-3xl text-muted-foreground">
-            Ruta dedicada para cargar manuales, procedimientos, instructivos y respaldos del modulo mantenimiento.
+            Ruta dedicada para cargar manuales, procedimientos, instructivos y respaldos del módulo mantenimiento.
           </p>
         </div>
         <Button variant="outline" asChild>
@@ -38,14 +38,14 @@ export default function MantenimientoDocumentosImportarPage() {
             Subir documento de mantenimiento
           </CardTitle>
           <CardDescription>
-            Acepta PDF, Word y Excel. El archivo queda asociado al modulo mantenimiento para revision y trazabilidad.
+            Acepta PDF, Word y Excel. El archivo queda asociado al módulo mantenimiento para revisión y trazabilidad.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <DocumentUpload module="mantenimiento" category="documentos" onUploadSuccess={handleUploadSuccess} />
           {uploadedName ? (
             <div className="rounded-lg border border-border/70 bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
-              Ultimo archivo cargado: <span className="font-medium text-foreground">{uploadedName}</span>
+              Último archivo cargado: <span className="font-medium text-foreground">{uploadedName}</span>
             </div>
           ) : null}
         </CardContent>
