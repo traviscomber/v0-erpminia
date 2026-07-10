@@ -278,13 +278,13 @@ export function MaintenanceMobilePanel() {
         <CardContent className="grid grid-cols-1 gap-2">
           <Button asChild variant="outline" className="w-full justify-between">
             <Link href="/dashboard/mantenimiento/vehiculos">
-              Vehiculos y QR
+              Vehículos y QR
               <QrCode className="h-4 w-4" />
             </Link>
           </Button>
           <Button asChild variant="outline" className="w-full justify-between">
             <Link href="/dashboard/mantenimiento/bitacora">
-              Bitacora
+              Bitácora
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
@@ -347,7 +347,7 @@ export function MaintenanceMobilePanel() {
                     <p className="font-semibold">{selectedAsset.location || '-'}</p>
                   </div>
                   <div className="rounded-lg border border-border p-3">
-                    <p className="text-xs text-muted-foreground">Horometro tecnico</p>
+                    <p className="text-xs text-muted-foreground">Horómetro técnico</p>
                     <p className="font-semibold">{selectedAsset.mtbf_hours ? `${selectedAsset.mtbf_hours} h` : 'Sin lectura'}</p>
                   </div>
                   <div className="rounded-lg border border-border p-3">
@@ -430,7 +430,7 @@ export function MaintenanceMobilePanel() {
           </div>
 
           <div className="rounded-lg border border-border p-3 text-sm">
-            <p className="font-semibold">Horometro tecnico</p>
+            <p className="font-semibold">Horómetro técnico</p>
             <p className="text-muted-foreground">
               {selectedAsset?.mtbf_hours ? `${selectedAsset.mtbf_hours} horas tecnicas registradas en el activo` : 'Sin lectura directa aun en la base actual'}
             </p>

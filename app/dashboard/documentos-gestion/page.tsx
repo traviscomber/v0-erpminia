@@ -155,7 +155,7 @@ export default function DocumentosGestionPage() {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Categorias activas</CardTitle>
+            <CardTitle className="text-sm font-medium">Categorías activas</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{categories.length}</div>

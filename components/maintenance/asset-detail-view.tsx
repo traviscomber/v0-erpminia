@@ -395,7 +395,7 @@ export function AssetDetailView() {
               <p className="font-semibold">{machineFamily || 'Sin familia'}</p>
             </div>
             <div>
-              <p className="text-muted-foreground">Horometro tecnico</p>
+              <p className="text-muted-foreground">Horómetro técnico</p>
               <p className="font-semibold">{asset.mtbf_hours ? `${asset.mtbf_hours} h` : 'Sin lectura'}</p>
             </div>
             <div>
@@ -437,7 +437,7 @@ export function AssetDetailView() {
                 <Link href="/dashboard/mantenimiento/documentos">Documentos</Link>
               </Button>
               <Button size="sm" variant="outline" asChild>
-                <Link href="/dashboard/mantenimiento/bitacora">Bitacora</Link>
+                <Link href="/dashboard/mantenimiento/bitacora">Bitácora</Link>
               </Button>
             </div>
           </div>
