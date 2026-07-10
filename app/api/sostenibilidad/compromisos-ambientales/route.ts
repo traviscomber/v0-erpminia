@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { read, utils } from 'xlsx';
+import * as XLSX from 'xlsx';
+const { read, utils } = XLSX;
 
 function getServiceSupabase() {
   return createClient(
