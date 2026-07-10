@@ -20,7 +20,7 @@ export default function LegalDocumentosImportarPage() {
         <div>
           <h1 className="text-3xl font-bold">Importar documentos legales</h1>
           <p className="mt-2 max-w-3xl text-muted-foreground">
-            Ruta dedicada para cargar contratos, políticas, anexos y respaldos documentales del módulo legal.
+            Ruta dedicada para cargar contratos, politicas, anexos y respaldos documentales del modulo legal.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -43,14 +43,14 @@ export default function LegalDocumentosImportarPage() {
             Subir documento legal
           </CardTitle>
           <CardDescription>
-            Acepta PDF, Word y Excel. El archivo queda asociado al módulo legal para revisión y trazabilidad.
+            Acepta PDF, Word y Excel. El archivo queda asociado al modulo legal para revision y trazabilidad.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <DocumentUpload module="legal" category="documentos" onUploadSuccess={handleUploadSuccess} />
           {uploadedName ? (
             <div className="rounded-lg border border-border/70 bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
-              Último archivo cargado: <span className="font-medium text-foreground">{uploadedName}</span>
+              Ultimo archivo cargado: <span className="font-medium text-foreground">{uploadedName}</span>
             </div>
           ) : null}
         </CardContent>
