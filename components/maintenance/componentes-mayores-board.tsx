@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import useSWR from 'swr';
@@ -68,7 +68,7 @@ export function ComponentesMayoresBoard() {
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Control de componentes mayores</h1>
-          <p className="mt-2 text-muted-foreground">Estado real de componentes cr­ticos por veh­culo y plantilla t©cnica.</p>
+          <p className="mt-2 text-muted-foreground">Estado real de componentes críticos por vehículo y plantilla técnica.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline" className="gap-2">
@@ -83,7 +83,7 @@ export function ComponentesMayoresBoard() {
           </Button>
           <Button asChild variant="outline" className="gap-2">
             <Link href="/dashboard/mantenimiento/vehiculos">
-              Veh­culos y QR
+              Vehículos y QR
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
@@ -151,7 +151,7 @@ export function ComponentesMayoresBoard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/vehiculos">
-                Veh­culos y QR
+                Vehículos y QR
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>

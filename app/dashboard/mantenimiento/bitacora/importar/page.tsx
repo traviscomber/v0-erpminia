@@ -34,8 +34,8 @@ function buildTemplateCsv() {
     'NOTES',
   ];
   const rows = [
-    ['EQ-001', 'Perforadora principal', 'WO-2026-0001', 'preventive', 'Juan Perez', '2026-07-01T08:00:00Z', '2026-07-01T12:00:00Z', 'Filtros, aceite', '120000', '4', '180000', 'Mantencion preventiva'],
-    ['EQ-002', 'Camion de servicio', 'WO-2026-0002', 'corrective', 'Maria Soto', '2026-07-02T09:00:00Z', '2026-07-02T16:00:00Z', 'Bomba hidraulica', '450000', '7', '210000', 'Falla hidraulica'],
+    ['EQ-001', 'Perforadora principal', 'WO-2026-0001', 'preventive', 'Juan Perez', '2026-07-01T08:00:00Z', '2026-07-01T12:00:00Z', 'Filtros, aceite', '120000', '4', '180000', 'Mantención preventiva'],
+    ['EQ-002', 'Camión de servicio', 'WO-2026-0002', 'corrective', 'Maria Soto', '2026-07-02T09:00:00Z', '2026-07-02T16:00:00Z', 'Bomba hidráulica', '450000', '7', '210000', 'Falla hidráulica'],
   ];
 
   return [headers, ...rows]
@@ -83,11 +83,11 @@ export default function MaintenanceHistoryImportPage() {
       });
 
       const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(payload?.error || 'No se pudo importar la bitacora');
+      if (!response.ok) throw new Error(payload?.error || 'No se pudo importar la bitácora');
 
       setResult({
         success: true,
-        message: payload?.message || 'Importacion completada',
+        message: payload?.message || 'Importación completada',
         imported: payload?.imported || 0,
         updated: payload?.updated || 0,
         skipped: payload?.skipped || 0,
@@ -115,9 +115,9 @@ export default function MaintenanceHistoryImportPage() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Importar bitacora</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Importar bitácora</h1>
           <p className="mt-2 text-muted-foreground">
-            Carga historial de mantenimiento desde CSV/XLS/XLSX y lo deja disponible en la bitacora real.
+            Carga historial de mantenimiento desde CSV/XLS/XLSX y lo deja disponible en la bitácora real.
           </p>
         </div>
         <Button asChild variant="outline" className="gap-2">
@@ -179,7 +179,7 @@ export default function MaintenanceHistoryImportPage() {
               {isImporting ? (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Importando bitacora...
+                  Importando bitácora...
                 </div>
               ) : null}
             </div>

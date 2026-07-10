@@ -22,7 +22,7 @@ function buildTemplateCsv() {
   const headers = ['VEHICLE_TYPE', 'NAME', 'CODE', 'LEVEL', 'DESCRIPTION', 'FAULT_CODE', 'FAULT_NAME', 'SEVERITY'];
   const rows = [
     ['camion', 'Motor principal', 'MOTOR-001', '1', 'Conjunto principal de propulsión', 'MOTOR-001-F1', 'Sobrecalentamiento', 'alta'],
-    ['perforadora', 'Sistema hidraulico', 'HYD-001', '1', 'Circuito de presión y actuadores', 'HYD-001-F1', 'Fuga de aceite', 'media'],
+    ['perforadora', 'Sistema hidr?ulico', 'HYD-001', '1', 'Circuito de presión y actuadores', 'HYD-001-F1', 'Fuga de aceite', 'media'],
   ];
 
   return [headers, ...rows]
@@ -76,7 +76,7 @@ export default function ComponentesMayoresImportPage() {
 
       setResult({
         success: true,
-        message: payload?.message || 'Importacion completada',
+        message: payload?.message || 'Importaci?n completada',
         imported: payload?.imported || 0,
         updated: payload?.updated || 0,
         fault_modes: payload?.fault_modes || 0,

@@ -75,7 +75,7 @@ export default function MaintenanceCostsImportPage() {
 
       setResult({
         success: true,
-        message: payload?.message || 'Importacion completada',
+        message: payload?.message || 'Importaci?n completada',
         updated_orders: payload?.updated_orders || 0,
         inserted_history: payload?.inserted_history || 0,
         updated_history: payload?.updated_history || 0,
@@ -122,7 +122,7 @@ export default function MaintenanceCostsImportPage() {
           <CardHeader>
             <CardTitle>Cargar archivo</CardTitle>
             <CardDescription>
-              La importacion actualiza la OT por numero y crea o corrige el historial de costos asociado.
+              La importaci?n actualiza la OT por n?mero y crea o corrige el historial de costos asociado.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

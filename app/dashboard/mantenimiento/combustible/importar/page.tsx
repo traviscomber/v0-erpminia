@@ -22,7 +22,7 @@ function buildTemplateCsv() {
   const headers = ['CODIGO', 'FAMILIA', 'SUB_FAMILIA', 'EQUIPO', 'PRODUCTO', 'STOCK', 'VALOR_UNITARIO', 'VALOR'];
   const rows = [
     ['COMB-001', 'Combustible', 'Diesel', 'Camion 930E', 'Diesel Ultra Bajo Azufre', '15000', '960', '14400000'],
-    ['COMB-002', 'Combustible', 'Lubricante', 'Taller', 'Aceite hidraulico', '2400', '5800', '13920000'],
+    ['COMB-002', 'Combustible', 'Lubricante', 'Taller', 'Aceite hidráulico', '2400', '5800', '13920000'],
   ];
 
   return [headers, ...rows]
@@ -76,7 +76,7 @@ export default function CombustibleImportPage() {
 
       setResult({
         success: true,
-        message: payload?.message || 'Importacion completada',
+        message: payload?.message || 'Importación completada',
         imported: payload?.imported || 0,
         updated: payload?.updated || 0,
         inserted: payload?.inserted || 0,
@@ -106,7 +106,7 @@ export default function CombustibleImportPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Importar combustible</h1>
           <p className="mt-2 text-muted-foreground">
-            Actualiza combustibles y consumibles desde CSV/XLS/XLSX usando la importacion de bodega.
+            Actualiza combustibles y consumibles desde CSV/XLS/XLSX usando la importación de bodega.
           </p>
         </div>
         <Button asChild variant="outline" className="gap-2">
@@ -182,7 +182,7 @@ export default function CombustibleImportPage() {
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <p>Campos obligatorios: `CODIGO`, `FAMILIA`, `PRODUCTO`, `STOCK`.</p>
             <p>Campos recomendados: `SUB_FAMILIA`, `EQUIPO`, `VALOR_UNITARIO`, `VALOR`.</p>
-            <p>Los registros entran a bodega y el tablero de combustible los muestra automaticamente.</p>
+            <p>Los registros entran a bodega y el tablero de combustible los muestra automáticamente.</p>
           </CardContent>
         </Card>
       </div>

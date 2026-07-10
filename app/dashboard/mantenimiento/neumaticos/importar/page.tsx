@@ -21,8 +21,8 @@ type ImportResult = {
 function buildTemplateCsv() {
   const headers = ['CODIGO', 'FAMILIA', 'SUB_FAMILIA', 'EQUIPO', 'PRODUCTO', 'STOCK', 'VALOR_UNITARIO', 'VALOR'];
   const rows = [
-    ['NEU-001', 'Neumaticos', 'Llantas', 'Camion 930E', 'Neumatico 18.00R25', '8', '4500000', '36000000'],
-    ['NEU-002', 'Neumaticos', 'Llantas', 'Perforadora', 'Llanta 14.00R20', '4', '2500000', '10000000'],
+    ['NEU-001', 'Neumáticos', 'Llantas', 'Camion 930E', 'Neumático 18.00R25', '8', '4500000', '36000000'],
+    ['NEU-002', 'Neumáticos', 'Llantas', 'Perforadora', 'Llanta 14.00R20', '4', '2500000', '10000000'],
   ];
 
   return [headers, ...rows]
@@ -76,7 +76,7 @@ export default function NeumaticosImportPage() {
 
       setResult({
         success: true,
-        message: payload?.message || 'Importacion completada',
+        message: payload?.message || 'Importación completada',
         imported: payload?.imported || 0,
         updated: payload?.updated || 0,
         inserted: payload?.inserted || 0,

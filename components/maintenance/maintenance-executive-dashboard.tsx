@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import useSWR from 'swr';
@@ -120,7 +120,7 @@ export function MaintenanceExecutiveDashboard() {
     preventiveSummary.overdue > 0 ? `${preventiveSummary.overdue} mantenimientos preventivos están vencidos.` : null,
     tireSummary.lowStock > 0 ? `${tireSummary.lowStock} repuestos de neumáticos están bajo mínimo.` : null,
     fuelSummary.lowStock > 0 ? `${fuelSummary.lowStock} ítems de combustible están bajo mínimo.` : null,
-    componentSummary.failures > 0 ? `${componentSummary.failures} componentes mayores estan en falla.` : null,
+    componentSummary.failures > 0 ? `${componentSummary.failures} componentes mayores están en falla.` : null,
   ].filter(Boolean) as string[];
 
   const cards = [
@@ -364,7 +364,7 @@ export function MaintenanceExecutiveDashboard() {
               </Button>
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/neumaticos">
-                  Neumaticos
+                  Neumáticos
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>

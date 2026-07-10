@@ -170,7 +170,7 @@ export default function DocumentosMantenimientoPage() {
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Documentos de mantenimiento</h1>
-          <p className="mt-2 text-muted-foreground">Gestion de manuales, procedimientos e instructivos de mantenimiento.</p>
+          <p className="mt-2 text-muted-foreground">Gestión de manuales, procedimientos e instructivos de mantenimiento.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild>
@@ -181,13 +181,13 @@ export default function DocumentosMantenimientoPage() {
           </Button>
           <Button asChild variant="outline">
               <Link href="/dashboard/mantenimiento/bitacora">
-               Bitacora
+               Bitácora
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
           <Button asChild variant="outline">
               <Link href="/dashboard/mantenimiento/planificacion">
-               Planificacion
+               Planificación
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
@@ -234,13 +234,13 @@ export default function DocumentosMantenimientoPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center justify-between text-sm font-medium">
-              <span>En revision</span>
+              <span>En revisión</span>
               <Clock className="h-4 w-4 text-yellow-500" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-yellow-500">{filteredStats.en_revision}</p>
-            <p className="text-xs text-muted-foreground">esperando aprobacion</p>
+            <p className="text-xs text-muted-foreground">esperando aprobación</p>
           </CardContent>
         </Card>
 
@@ -253,7 +253,7 @@ export default function DocumentosMantenimientoPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-red-500">{filteredStats.rechazados}</p>
-            <p className="text-xs text-muted-foreground">Pendientes de correccion</p>
+            <p className="text-xs text-muted-foreground">Pendientes de corrección</p>
           </CardContent>
         </Card>
       </div>
@@ -285,7 +285,7 @@ export default function DocumentosMantenimientoPage() {
             Vigentes
           </TabsTrigger>
           <TabsTrigger value="revision" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-            En revision
+            En revisión
           </TabsTrigger>
           <TabsTrigger value="upload" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             Subir documentos
@@ -346,7 +346,7 @@ export default function DocumentosMantenimientoPage() {
           </Button>
           <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/bitacora">
-               Bitacora
+               Bitácora
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
