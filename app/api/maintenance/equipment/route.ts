@@ -28,8 +28,8 @@ export async function GET(request: NextRequest) {
     // Get all equipment with full details
     const { data: equipment, error } = await supabase
       .from('equipment')
-      .select('id, code, name, model, serial_number, type, status, criticality, location, purchase_date, last_maintenance, next_maintenance, specs')
-      .order('criticality', { ascending: false })
+      .select('id, code, name, model, serial_number, type, status, criticality, purchase_date, last_maintenance, next_maintenance, specs')
+      .order('type', { ascending: true })
       .order('name', { ascending: true });
 
     if (error) {

@@ -37,19 +37,21 @@ export function EquipmentSheet({ equipment, isOpen, onClose, canEdit = false }: 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <p className="text-xs font-medium text-muted-foreground">Modelo</p>
-              <p className="font-medium">{equipment.model}</p>
-            </div>
-            <div className="space-y-2">
-              <p className="text-xs font-medium text-muted-foreground">Serie</p>
-              <p className="font-medium">{equipment.serial_number || '—'}</p>
+              <p className="font-medium">{equipment.model || '—'}</p>
             </div>
             <div className="space-y-2">
               <p className="text-xs font-medium text-muted-foreground">Tipo</p>
               <p className="font-medium">{equipment.type}</p>
             </div>
             <div className="space-y-2">
-              <p className="text-xs font-medium text-muted-foreground">Ubicación</p>
-              <p className="font-medium">{equipment.location}</p>
+              <p className="text-xs font-medium text-muted-foreground">N° Serie</p>
+              <p className="font-medium">{equipment.serial_number || '—'}</p>
+            </div>
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-muted-foreground">Fecha Compra</p>
+              <p className="font-medium">
+                {equipment.purchase_date ? new Date(equipment.purchase_date).toLocaleDateString('es-CL') : '—'}
+              </p>
             </div>
           </div>
 

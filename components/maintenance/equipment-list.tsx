@@ -1,63 +1,105 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import useSWR from 'swr';
 import type { Equipment } from '@/lib/types/equipment';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertCircle, CheckCircle, Clock, Wrench } from 'lucide-react';
+import { AlertCircle, CheckCircle, Search, Wrench } from 'lucide-react';
 
-const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then(r => r.json());
+const fetcher = (url: string) =>
+  fetch(url, { credentials: 'include' }).then(r => r.json());
 
-const criticityColors = {
-  'Crítica': 'bg-red-100 text-red-800 border-red-300',
-  'Alta': 'bg-orange-100 text-orange-800 border-orange-300',
-  'Media': 'bg-yellow-100 text-yellow-800 border-yellow-300',
-  'Baja': 'bg-green-100 text-green-800 border-green-300',
-};
+const PAGE_SIZE = 24;
 
-const statusIcons = {
-  'Activo': <CheckCircle className="h-4 w-4 text-emerald-600" />,
-  'Mantenimiento': <Wrench className="h-4 w-4 text-blue-600" />,
-  'Inactivo': <AlertCircle className="h-4 w-4 text-gray-600" />,
-};
+function getCriticalityClass(criticality: string) {
+  const c = criticality?.toLowerCase();
+  if (c === 'crítico' || c === 'critico') return 'border-red-400 bg-red-50 text-red-800';
+  if (c === 'alto' || c === 'alta') return 'border-orange-400 bg-orange-50 text-orange-800';
+  if (c === 'medio' || c === 'media') return 'border-yellow-400 bg-yellow-50 text-yellow-800';
+  return 'border-green-400 bg-green-50 text-green-800';
+}
 
-export function EquipmentList({ onSelectEquipment }: { onSelectEquipment?: (equipment: Equipment) => void }) {
-  const { data, isLoading, error } = useSWR<{ equipment: Equipment[] }>('/api/maintenance/equipment', fetcher);
-  const [filteredEquipment, setFilteredEquipment] = useState<Equipment[]>([]);
-  const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [criticityFilter, setCriticityFilter] = useState<string>('all');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+function getStatusIcon(status: string) {
+  const s = status?.toLowerCase();
+  if (s === 'operativo' || s === 'activo') return <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />;
+  if (s === 'mantenimiento') return <Wrench className="h-3.5 w-3.5 text-blue-600" />;
+  return <AlertCircle className="h-3.5 w-3.5 text-gray-400" />;
+}
 
-  useEffect(() => {
-    if (!data?.equipment) return;
+const TYPE_ORDER = [
+  'Scoop', 'Jumbo / Perforación', 'Dumper', 'Cargador Frontal',
+  'Excavadora', 'Minicargador', 'Manipulador Telescópico',
+  'Generador', 'Compresor', 'Equipo de Sondaje',
+  'Camioneta', 'Camión', 'Otro Equipo',
+];
 
-    let filtered = data.equipment;
+export function EquipmentList({ onSelectEquipment }: {
+  onSelectEquipment?: (equipment: Equipment) => void;
+}) {
+  const { data, isLoading, error } = useSWR<{ equipment: Equipment[] }>(
+    '/api/maintenance/equipment', fetcher
+  );
 
-    if (typeFilter !== 'all') {
-      filtered = filtered.filter(e => e.type === typeFilter);
-    }
-    if (criticityFilter !== 'all') {
-      filtered = filtered.filter(e => e.criticality === criticityFilter);
-    }
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(e => e.status === statusFilter);
-    }
+  const [search, setSearch] = useState('');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [criticityFilter, setCriticityFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [page, setPage] = useState(1);
 
-    setFilteredEquipment(filtered);
-  }, [data?.equipment, typeFilter, criticityFilter, statusFilter]);
+  const all = data?.equipment || [];
 
-  const types = [...new Set(data?.equipment?.map(e => e.type) || [])].sort();
-  const criticities = [...new Set(data?.equipment?.map(e => e.criticality) || [])].sort();
-  const statuses = [...new Set(data?.equipment?.map(e => e.status) || [])].sort();
+  // Dynamic type list sorted by TYPE_ORDER
+  const types = useMemo(() => {
+    const found = [...new Set(all.map(e => e.type))];
+    return TYPE_ORDER.filter(t => found.includes(t)).concat(found.filter(t => !TYPE_ORDER.includes(t)));
+  }, [all]);
+
+  // KPI counts by criticality
+  const kpis = useMemo(() => ({
+    total: all.length,
+    criticos: all.filter(e => e.criticality?.toLowerCase().startsWith('crít') || e.criticality?.toLowerCase().startsWith('crit')).length,
+    mantenimiento: all.filter(e => e.status?.toLowerCase() === 'mantenimiento').length,
+    operativos: all.filter(e => e.status?.toLowerCase() === 'operativo' || e.status?.toLowerCase() === 'activo').length,
+  }), [all]);
+
+  // Filtered + paginated
+  const filtered = useMemo(() => {
+    let list = all;
+    const q = search.toLowerCase();
+    if (q) list = list.filter(e =>
+      e.name?.toLowerCase().includes(q) ||
+      e.code?.toLowerCase().includes(q) ||
+      e.type?.toLowerCase().includes(q) ||
+      e.model?.toLowerCase().includes(q)
+    );
+    if (typeFilter !== 'all') list = list.filter(e => e.type === typeFilter);
+    if (criticityFilter !== 'all') list = list.filter(e =>
+      e.criticality?.toLowerCase() === criticityFilter.toLowerCase()
+    );
+    if (statusFilter !== 'all') list = list.filter(e =>
+      e.status?.toLowerCase() === statusFilter.toLowerCase()
+    );
+    return list;
+  }, [all, search, typeFilter, criticityFilter, statusFilter]);
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  // Reset page when filters change
+  const handleFilter = (fn: (v: string) => void) => (v: string) => {
+    fn(v);
+    setPage(1);
+  };
 
   if (error) {
     return (
       <Card className="border-red-200 bg-red-50">
         <CardContent className="pt-6">
-          <p className="text-sm text-red-800">Error loading equipment: {error.message}</p>
+          <p className="text-sm text-red-800">Error al cargar equipos: {error.message}</p>
         </CardContent>
       </Card>
     );
@@ -65,150 +107,203 @@ export function EquipmentList({ onSelectEquipment }: { onSelectEquipment?: (equi
 
   return (
     <div className="space-y-6">
+      {/* KPIs */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <Card>
+          <CardContent className="pt-4 pb-3">
+            <p className="text-xs text-muted-foreground">Total equipos</p>
+            <p className="mt-1 text-3xl font-bold">{kpis.total}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4 pb-3">
+            <p className="text-xs text-muted-foreground">Operativos</p>
+            <p className="mt-1 text-3xl font-bold text-emerald-600">{kpis.operativos}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4 pb-3">
+            <p className="text-xs text-muted-foreground">En mantenimiento</p>
+            <p className="mt-1 text-3xl font-bold text-blue-600">{kpis.mantenimiento}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4 pb-3">
+            <p className="text-xs text-muted-foreground">Criticidad alta</p>
+            <p className="mt-1 text-3xl font-bold text-red-600">{kpis.criticos}</p>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Filters */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Filtros</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div>
-              <label className="mb-2 block text-sm font-medium">Tipo</label>
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos los tipos</SelectItem>
-                  {types.map(type => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        <CardContent className="pt-4 pb-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar equipo o código..."
+                value={search}
+                onChange={e => { setSearch(e.target.value); setPage(1); }}
+                className="pl-8"
+              />
             </div>
 
-            <div>
-              <label className="mb-2 block text-sm font-medium">Criticidad</label>
-              <Select value={criticityFilter} onValueChange={setCriticityFilter}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
-                  {criticities.map(c => (
-                    <SelectItem key={c} value={c}>
-                      {c}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Select value={typeFilter} onValueChange={handleFilter(setTypeFilter)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los tipos</SelectItem>
+                {types.map(t => (
+                  <SelectItem key={t} value={t}>{t}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-            <div>
-              <label className="mb-2 block text-sm font-medium">Estado</label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  {statuses.map(s => (
-                    <SelectItem key={s} value={s}>
-                      {s}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Select value={criticityFilter} onValueChange={handleFilter(setCriticityFilter)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Criticidad" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toda criticidad</SelectItem>
+                <SelectItem value="crítico">Crítico</SelectItem>
+                <SelectItem value="alto">Alto</SelectItem>
+                <SelectItem value="medio">Medio</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={statusFilter} onValueChange={handleFilter(setStatusFilter)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los estados</SelectItem>
+                <SelectItem value="operativo">Operativo</SelectItem>
+                <SelectItem value="activo">Activo</SelectItem>
+                <SelectItem value="mantenimiento">Mantenimiento</SelectItem>
+                <SelectItem value="inactivo">Inactivo</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
 
-      {/* Equipment Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {isLoading ? (
-          <div className="col-span-full space-y-4">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="h-40 animate-pulse rounded-lg bg-muted" />
-            ))}
-          </div>
-        ) : filteredEquipment.length === 0 ? (
-          <Card className="col-span-full border-dashed">
-            <CardContent className="py-8 text-center">
-              <p className="text-sm text-muted-foreground">
-                No se encontraron equipos con los filtros seleccionados
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          filteredEquipment.map(equipment => (
-            <Card key={equipment.id} className="flex flex-col hover:shadow-md transition-shadow">
-              <CardHeader className="pb-3">
+      {/* Results count */}
+      <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <span>
+          Mostrando {Math.min((page - 1) * PAGE_SIZE + 1, filtered.length)}–{Math.min(page * PAGE_SIZE, filtered.length)} de {filtered.length} equipos
+          {filtered.length !== all.length && ` (${all.length} total)`}
+        </span>
+        {totalPages > 1 && (
+          <span>Página {page} de {totalPages}</span>
+        )}
+      </div>
+
+      {/* Grid */}
+      {isLoading ? (
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="h-36 animate-pulse rounded-lg bg-muted" />
+          ))}
+        </div>
+      ) : paginated.length === 0 ? (
+        <Card className="border-dashed">
+          <CardContent className="py-10 text-center">
+            <p className="text-sm text-muted-foreground">Sin equipos para los filtros seleccionados</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {paginated.map(equipment => (
+            <Card
+              key={equipment.id}
+              className="flex cursor-pointer flex-col transition-shadow hover:shadow-md"
+              onClick={() => onSelectEquipment?.(equipment)}
+            >
+              <CardHeader className="pb-2 pt-4">
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1">
-                    <CardTitle className="text-base">{equipment.name}</CardTitle>
-                    <CardDescription className="text-xs">{equipment.code}</CardDescription>
+                  <div className="min-w-0 flex-1">
+                    <CardTitle className="truncate text-sm font-semibold leading-tight">
+                      {equipment.name}
+                    </CardTitle>
+                    <p className="mt-0.5 font-mono text-xs text-muted-foreground">{equipment.code}</p>
                   </div>
                   <Badge
                     variant="outline"
-                    className={criticityColors[equipment.criticality as keyof typeof criticityColors] || 'bg-gray-100'}
+                    className={`shrink-0 text-xs ${getCriticalityClass(equipment.criticality)}`}
                   >
                     {equipment.criticality}
                   </Badge>
                 </div>
               </CardHeader>
 
-              <CardContent className="flex-1 space-y-3 pb-3">
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Estado:</span>
-                    <div className="flex items-center gap-2">
-                      {statusIcons[equipment.status as keyof typeof statusIcons]}
-                      <span className="font-medium">{equipment.status}</span>
-                    </div>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Tipo:</span>
-                    <span>{equipment.type}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Modelo:</span>
-                    <span className="text-xs">{equipment.model}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Ubicación:</span>
-                    <span className="text-xs">{equipment.location}</span>
-                  </div>
-
-                  {equipment.next_maintenance && (
-                    <div className="flex items-center gap-2 rounded-sm bg-blue-50 p-2 text-xs">
-                      <Clock className="h-3 w-3 text-blue-600" />
-                      <span>PM: {new Date(equipment.next_maintenance).toLocaleDateString()}</span>
-                    </div>
-                  )}
+              <CardContent className="flex-1 space-y-2 pb-3 pt-0">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">Tipo</span>
+                  <span className="font-medium">{equipment.type}</span>
                 </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">Estado</span>
+                  <div className="flex items-center gap-1.5">
+                    {getStatusIcon(equipment.status)}
+                    <span className="capitalize">{equipment.status}</span>
+                  </div>
+                </div>
+                {equipment.model && equipment.model !== equipment.name && (
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Modelo</span>
+                    <span className="max-w-[120px] truncate">{equipment.model}</span>
+                  </div>
+                )}
+                {equipment.next_maintenance && (
+                  <div className="rounded bg-blue-50 px-2 py-1 text-xs text-blue-700">
+                    PM: {new Date(equipment.next_maintenance).toLocaleDateString('es-CL')}
+                  </div>
+                )}
               </CardContent>
-
-              <div className="border-t px-4 py-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full text-xs"
-                  onClick={() => onSelectEquipment?.(equipment)}
-                >
-                  Ver Ficha Técnica
-                </Button>
-              </div>
             </Card>
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
 
-      <div className="text-xs text-muted-foreground">
-        Total: {filteredEquipment.length} de {data?.equipment?.length || 0} equipos
-      </div>
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page === 1}
+            onClick={() => setPage(p => p - 1)}
+          >
+            Anterior
+          </Button>
+          <div className="flex gap-1">
+            {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+              const p = totalPages <= 5 ? i + 1 : page <= 3 ? i + 1 : page >= totalPages - 2 ? totalPages - 4 + i : page - 2 + i;
+              return (
+                <Button
+                  key={p}
+                  variant={p === page ? 'default' : 'outline'}
+                  size="sm"
+                  className="w-8"
+                  onClick={() => setPage(p)}
+                >
+                  {p}
+                </Button>
+              );
+            })}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page === totalPages}
+            onClick={() => setPage(p => p + 1)}
+          >
+            Siguiente
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
