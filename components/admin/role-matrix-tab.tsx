@@ -150,30 +150,45 @@ export function RoleMatrixTab() {
           </span>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
-            <thead>
+      <CardContent className="p-0">
+        {/* Double-axis scroll: horizontal for columns, vertical for rows */}
+        <div className="relative w-full overflow-auto" style={{ maxHeight: 'calc(100vh - 280px)' }}>
+          <table className="border-collapse text-sm" style={{ minWidth: 'max-content' }}>
+            <thead className="sticky top-0 z-20">
               <tr>
-                <th className="sticky left-0 z-10 bg-card p-2 text-left font-semibold">Cargo</th>
+                {/* Cargo header — sticky top-left corner */}
+                <th className="sticky left-0 z-30 bg-card border-b border-border px-3 py-2 text-left font-semibold min-w-[160px]">
+                  Cargo
+                </th>
                 {Object.entries(modulesByGroup).map(([group, mods]) => (
                   <th
                     key={group}
                     colSpan={mods.length}
-                    className="border-l border-border p-2 text-center font-semibold"
+                    className="border-l border-b border-border px-2 py-2 text-center font-semibold bg-card whitespace-nowrap"
                   >
                     {group}
                   </th>
                 ))}
               </tr>
               <tr>
-                <th className="sticky left-0 z-10 bg-card p-2" />
+                <th className="sticky left-0 z-30 bg-card border-b border-border min-w-[160px]" />
                 {modules.map((m) => (
                   <th
                     key={m.key}
-                    className="border-l border-border p-2 text-center align-bottom text-xs font-medium text-muted-foreground"
+                    className="border-l border-b border-border px-1 pt-2 pb-1 text-center align-bottom bg-card"
+                    style={{ width: 52 }}
                   >
-                    <div className="mx-auto whitespace-nowrap [writing-mode:vertical-rl] rotate-180 h-24">
+                    <div
+                      className="mx-auto text-xs font-medium text-muted-foreground"
+                      style={{
+                        writingMode: 'vertical-rl',
+                        transform: 'rotate(180deg)',
+                        height: 96,
+                        whiteSpace: 'nowrap',
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                      }}
+                    >
                       {m.label}
                     </div>
                   </th>
@@ -183,7 +198,7 @@ export function RoleMatrixTab() {
             <tbody>
               {cargos.map((cargo) => (
                 <tr key={cargo.id} className="border-t border-border hover:bg-muted/30">
-                  <td className="sticky left-0 z-10 bg-card p-2 font-medium whitespace-nowrap">
+                  <td className="sticky left-0 z-10 bg-card px-3 py-1.5 font-medium whitespace-nowrap border-r border-border">
                     {cargo.name}
                   </td>
                   {modules.map((m) => {
@@ -197,7 +212,7 @@ export function RoleMatrixTab() {
                           disabled={saving}
                           onClick={() => handleCycle(cargo.id, m.key, level)}
                           className={cn(
-                            'inline-flex h-7 w-12 items-center justify-center rounded text-xs font-semibold transition-opacity hover:opacity-80 disabled:opacity-50',
+                            'inline-flex h-7 w-11 items-center justify-center rounded text-xs font-semibold transition-opacity hover:opacity-80 disabled:opacity-50',
                             LEVEL_STYLES[level]
                           )}
                           aria-label={`${cargo.name} - ${m.label}: ${level}`}
