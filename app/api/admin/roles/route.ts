@@ -60,7 +60,7 @@ export async function PUT(request: NextRequest) {
   const { error } = await supabase
     .from('role_matrix')
     .upsert(
-      { cargo_id: cargoId, module_key: moduleKey, access_level: accessLevel, updated_at: new Date().toISOString() },
+      { cargo_id: cargoId, module_key: moduleKey, access_level: accessLevel },
       { onConflict: 'cargo_id,module_key' }
     );
 
