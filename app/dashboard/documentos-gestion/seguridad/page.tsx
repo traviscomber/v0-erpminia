@@ -142,7 +142,7 @@ export default function SeguridadPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <BadgeAlert className="h-5 w-5 text-[var(--brand-rojo)]" />
-              Documentos pendientes
+              Documentos criticos
             </CardTitle>
             <CardDescription>Revisiones reales que necesitan atencion ahora.</CardDescription>
           </CardHeader>
@@ -232,7 +232,7 @@ export default function SeguridadPage() {
 
               {filteredDocs.length === 0 && (
                 <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-                No hay documentos de seguridad que coincidan con la busqueda.
+                  No hay documentos de seguridad que coincidan con la busqueda.
                 </div>
               )}
             </div>
