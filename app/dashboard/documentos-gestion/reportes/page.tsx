@@ -129,7 +129,7 @@ export default function ReportesGestionDocumentalPage() {
         </div>
         <h1 className="text-3xl font-bold">Reportes de gestion documental</h1>
         <p className="text-muted-foreground">
-          Vista ejecutiva con secciónes, aprobaciones pendientes, documentos recientes y vencimientos.
+          Vista ejecutiva con secciones, aprobaciones pendientes, documentos recientes y vencimientos.
         </p>
       </div>
 
@@ -178,7 +178,7 @@ export default function ReportesGestionDocumentalPage() {
       <Card className="border-border/70 bg-card/80">
         <CardHeader>
           <CardTitle>Atajos del modulo</CardTitle>
-          <CardDescription>Entra a las secciónes clave sin perder contexto.</CardDescription>
+          <CardDescription>Entra a las secciones clave sin perder contexto.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -272,7 +272,7 @@ export default function ReportesGestionDocumentalPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Buscar secciónes</CardTitle>
+          <CardTitle>Buscar secciones</CardTitle>
           <CardDescription>Filtra el resumen por nombre, descripción o id de sección.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -321,7 +321,7 @@ export default function ReportesGestionDocumentalPage() {
       {filteredCategories.length === 0 && (
         <Card>
           <CardContent className="py-8 text-center text-sm text-muted-foreground">
-            No se encontraron secciónes que coincidan con la búsqueda.
+            No se encontraron secciones que coincidan con la búsqueda.
           </CardContent>
         </Card>
       )}

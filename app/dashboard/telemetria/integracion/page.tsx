@@ -247,7 +247,7 @@ export default function TelemetriaIntegracionPage() {
           </Button>
           <Button variant="outline" onClick={testConnection} disabled={checking}>
             <RefreshCw className={`mr-2 h-4 w-4 ${checking ? 'animate-spin' : ''}`} />
-            {checking ? 'Probando...' : 'Probar conexion'}
+            {checking ? 'Probando...' : 'Probar conexión'}
           </Button>
           <Button asChild>
             <Link href="/dashboard/telemetria">
@@ -267,7 +267,7 @@ export default function TelemetriaIntegracionPage() {
               ) : (
                 <RadioTower className="h-5 w-5 text-amber-600" />
               )}
-              {checkResult.ok ? 'Conexion verificada' : 'Conexion con observaciones'}
+              {checkResult.ok ? 'Conexión verificada' : 'Conexión con observaciones'}
             </CardTitle>
             <CardDescription>
               {checkResult.ok

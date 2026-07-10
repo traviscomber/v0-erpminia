@@ -49,7 +49,7 @@ function priorityLabel(priority?: string | null) {
     low: 'Baja',
     medium: 'Media',
     high: 'Alta',
-    critical: 'Critica',
+    critical: 'Crítica',
   };
   return labels[String(priority || '').toLowerCase()] || priority || 'Media';
 }
