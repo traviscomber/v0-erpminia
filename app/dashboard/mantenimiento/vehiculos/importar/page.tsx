@@ -23,9 +23,9 @@ export default function VehiclesImportPage() {
     ];
 
     const rows = [
-      ['VH-001', 'Camión CAEX 1', 'vehículo', 'Patio mina', 'operational', 'Volvo', 'A40G', 'SN-001', 'alta', '1200', '250000000'],
-      ['VH-002', 'Pickup supervisión', 'vehículo liviano', 'Base operativa', 'operational', 'Toyota', 'Hilux', 'SN-002', 'media', '1800', '45000000'],
-      ['VH-003', 'Bus personal', 'vehículo', 'Campamento', 'maintenance', 'Mercedes', 'Sprinter', 'SN-003', 'alta', '1600', '85000000'],
+      ['VH-001', 'Camión CAEX 1', 'vehículo', 'Patio mina', 'operativo', 'Volvo', 'A40G', 'SN-001', 'alta', '1200', '250000000'],
+      ['VH-002', 'Pickup supervisión', 'vehículo liviano', 'Base operativa', 'operativo', 'Toyota', 'Hilux', 'SN-002', 'media', '1800', '45000000'],
+      ['VH-003', 'Bus personal', 'vehículo', 'Campamento', 'mantenimiento', 'Mercedes', 'Sprinter', 'SN-003', 'alta', '1600', '85000000'],
     ];
 
     const csv = [headers, ...rows].map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(';')).join('\n');

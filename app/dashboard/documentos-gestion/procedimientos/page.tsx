@@ -115,13 +115,13 @@ export default function ProcedimientosPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold">Procedimientos operacionales</h1>
-        <p className="text-muted-foreground">Gestion real de procedimientos, protocolos y procesos operacionales.</p>
+        <p className="text-muted-foreground">Gestión real de procedimientos, protocolos y procesos operacionales.</p>
       </div>
 
       <div className="flex flex-wrap gap-2">
         <Button asChild variant="outline" size="sm" className="gap-2">
           <Link href="/dashboard/documentos-gestion">
-            Gestion documental
+            Gestión documental
             <ArrowRight className="h-4 w-4" />
           </Link>
         </Button>

@@ -83,7 +83,7 @@ export default function PreventivePlanImportPage() {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload?.error || 'No se pudo importar la planificacion');
+        throw new Error(payload?.error || 'No se pudo importar la planificación');
       }
 
       setResult({
@@ -98,7 +98,7 @@ export default function PreventivePlanImportPage() {
     } catch (error) {
       setResult({
         success: false,
-        message: error instanceof Error ? error.message : 'No se pudo importar la planificacion',
+        message: error instanceof Error ? error.message : 'No se pudo importar la planificación',
       });
     } finally {
       setIsImporting(false);

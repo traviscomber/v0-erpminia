@@ -23,9 +23,9 @@ export default function EquiposImportPage() {
     ];
 
     const rows = [
-      ['EQ-001', 'Perforadora principal', 'equipment', 'Rajo', 'active', 'Atlas Copco', 'DM45', 'SN-001', 'critical', '1200', '250000000'],
-      ['EQ-002', 'Compresor auxiliar', 'equipment', 'Taller', 'maintenance', 'Kaeser', 'SX7', 'SN-002', 'high', '1800', '42000000'],
-      ['EQ-003', 'Generador apoyo', 'equipment', 'Patio', 'inactive', 'Cummins', 'C150D', 'SN-003', 'media', '2200', '36000000'],
+      ['EQ-001', 'Perforadora principal', 'equipo', 'Rajo', 'operativo', 'Atlas Copco', 'DM45', 'SN-001', 'crítica', '1200', '250000000'],
+      ['EQ-002', 'Compresor auxiliar', 'equipo', 'Taller', 'mantenimiento', 'Kaeser', 'SX7', 'SN-002', 'alta', '1800', '42000000'],
+      ['EQ-003', 'Generador apoyo', 'equipo', 'Patio', 'inoperativo', 'Cummins', 'C150D', 'SN-003', 'media', '2200', '36000000'],
     ];
 
     const csv = [headers, ...rows].map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(';')).join('\n');

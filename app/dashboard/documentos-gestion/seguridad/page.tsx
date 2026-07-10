@@ -95,7 +95,7 @@ export default function SeguridadPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Documentos de seguridad</h1>
-        <p className="text-muted-foreground">Gestion real de MSDS, protocolos, incidentes y auditorías.</p>
+        <p className="text-muted-foreground">Gestión real de MSDS, protocolos, incidentes y auditorías.</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
