@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
@@ -140,7 +140,7 @@ export default function PermisosLicenciasPage() {
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm text-muted-foreground">
               <Clock className="h-4 w-4" />
-              Próximos por vencer
+              Proximos por vencer
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -173,7 +173,7 @@ export default function PermisosLicenciasPage() {
           />
 
           {filtered.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No hay permisos ni licencias cargados todavía.</p>
+            <p className="text-sm text-muted-foreground">No hay permisos ni licencias cargados todavia.</p>
           ) : (
             filtered.map((doc) => (
               <div key={doc.id} className="flex items-center justify-between rounded-lg border p-3">
