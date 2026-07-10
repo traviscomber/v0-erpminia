@@ -49,7 +49,7 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
     }
 
     if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
-      toast.error('El archivo excede el límite de 50MB.');
+      toast.error('El archivo supera el limite de 50MB.');
       event.target.value = '';
       return;
     }
@@ -61,7 +61,7 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
     event.preventDefault();
 
     if (!title || !documentType || !category || !file) {
-      toast.error('Completa título, tipo, categoría y archivo.');
+      toast.error('Completa titulo, tipo, categoria y archivo.');
       return;
     }
 
@@ -106,15 +106,15 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
         <DialogHeader>
           <DialogTitle>Nuevo documento legal</DialogTitle>
           <DialogDescription>
-            Carga políticas, reglamentos, contratos o respaldos regulatorios para el módulo Legal.
+            Carga politicas, reglamentos, contratos o respaldos regulatorios para el modulo Legal.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Título</label>
+            <label className="text-sm font-medium text-foreground">Titulo</label>
             <Input
-              placeholder="Ej: Política de Cumplimiento Contractual"
+              placeholder="Ej: Politica de Cumplimiento Contractual"
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               disabled={isLoading}
@@ -124,7 +124,7 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Descripcion</label>
             <Textarea
-              placeholder="Contexto breve del documento y su aplicación"
+              placeholder="Contexto breve del documento y su aplicacion"
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               disabled={isLoading}
@@ -140,7 +140,7 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
                   <SelectValue placeholder="Seleccionar" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="policy">Política</SelectItem>
+                  <SelectItem value="policy">Politica</SelectItem>
                   <SelectItem value="procedure">Procedimiento</SelectItem>
                   <SelectItem value="regulation">Reglamento</SelectItem>
                   <SelectItem value="report">Informe</SelectItem>
@@ -164,7 +164,7 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
                   <SelectItem value="regulatory">Regulatorio</SelectItem>
                   <SelectItem value="legal">Legal General</SelectItem>
                   <SelectItem value="contracts">Contratos</SelectItem>
-                  <SelectItem value="policies">Políticas</SelectItem>
+                  <SelectItem value="policies">Politicas</SelectItem>
                   <SelectItem value="regulations">Reglamentos</SelectItem>
                   <SelectItem value="permits">Permisos</SelectItem>
                   <SelectItem value="reports">Informes</SelectItem>

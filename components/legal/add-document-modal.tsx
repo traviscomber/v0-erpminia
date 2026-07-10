@@ -34,14 +34,14 @@ export function AddDocumentModal({ onSubmit }: AddDocumentModalProps) {
     if (!ALLOWED_EXTENSIONS.includes(extension)) {
       event.target.value = '';
       setFile(null);
-      toast.error('Formato no válido. Usa PDF, DOC, DOCX, XLS o XLSX.');
+      toast.error('Formato no valido. Usa PDF, DOC, DOCX, XLS o XLSX.');
       return;
     }
 
     if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
       event.target.value = '';
       setFile(null);
-      toast.error('El archivo supera el límite de 50 MB.');
+      toast.error('El archivo supera el limite de 50 MB.');
       return;
     }
 
@@ -79,10 +79,10 @@ export function AddDocumentModal({ onSubmit }: AddDocumentModalProps) {
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Título del documento</Label>
+            <Label htmlFor="title">Titulo del documento</Label>
             <Input
               id="title"
-              placeholder="Ej: Política de Cumplimiento Contractual"
+              placeholder="Ej: Politica de Cumplimiento Contractual"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               required
@@ -92,14 +92,14 @@ export function AddDocumentModal({ onSubmit }: AddDocumentModalProps) {
             <Label htmlFor="category">Categoria</Label>
             <Select value={formData.category} onValueChange={(val) => setFormData({ ...formData, category: val })}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecciona una categoría" />
+                <SelectValue placeholder="Selecciona una categoria" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="compliance">Cumplimiento</SelectItem>
                 <SelectItem value="regulatory">Regulatorio</SelectItem>
                 <SelectItem value="legal">Legal general</SelectItem>
                 <SelectItem value="contracts">Contratos</SelectItem>
-                <SelectItem value="policies">Políticas</SelectItem>
+                <SelectItem value="policies">Politicas</SelectItem>
                 <SelectItem value="regulations">Reglamentos</SelectItem>
                 <SelectItem value="permits">Permisos</SelectItem>
                 <SelectItem value="reports">Informes</SelectItem>
