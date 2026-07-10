@@ -2,7 +2,7 @@
 
 import useSWR from 'swr';
 import { useMemo, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
@@ -131,9 +131,11 @@ export function RoleMatrixTab() {
   const modules = data?.modules ?? [];
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Matriz de roles por cargo</CardTitle>
+    // Using a plain div instead of Card to avoid shadcn's overflow-hidden clipping the scrollable table
+    <div className="rounded-lg border border-border bg-card">
+      {/* Header */}
+      <div className="px-4 py-4 border-b border-border">
+        <h3 className="text-lg font-semibold">Matriz de roles por cargo</h3>
         <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
           <span>Haz clic en una celda para cambiar el nivel:</span>
           <span className="flex items-center gap-1.5">
@@ -149,11 +151,10 @@ export function RoleMatrixTab() {
             Sin acceso
           </span>
         </div>
-      </CardHeader>
-      <CardContent className="p-0">
-        {/* Double-axis scroll: horizontal for columns, vertical for rows */}
-        <div className="relative w-full overflow-auto" style={{ maxHeight: 'calc(100vh - 280px)' }}>
-          <table className="border-collapse text-sm" style={{ minWidth: 'max-content' }}>
+      </div>
+      {/* Scrollable table — overflow-auto here, no parent overflow-hidden */}
+      <div className="overflow-auto" style={{ maxHeight: 'calc(100vh - 300px)' }}>
+        <table className="border-collapse text-sm" style={{ minWidth: 'max-content', width: '100%' }}>
             <thead className="sticky top-0 z-20">
               <tr>
                 {/* Cargo header — sticky top-left corner */}
@@ -226,8 +227,7 @@ export function RoleMatrixTab() {
               ))}
             </tbody>
           </table>
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
