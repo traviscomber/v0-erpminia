@@ -193,7 +193,7 @@ export default function DocumentosGestionPage() {
         <Card className="border-amber-500/30 bg-amber-500/5">
           <CardHeader>
             <CardTitle className="text-base">Documentos por vencer</CardTitle>
-            <CardDescription>{expiringDocuments.length} documentos proximos a vencerse</CardDescription>
+            <CardDescription>{expiringDocuments.length} documentos próximos a vencerse</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {expiringPreview.length > 0 ? (
@@ -219,8 +219,8 @@ export default function DocumentosGestionPage() {
 
       <Card className="border-border/70 bg-card/80">
         <CardHeader>
-          <CardTitle>Accesos rapidos</CardTitle>
-          <CardDescription>Entra directo a las subrutas mas usadas del modulo.</CardDescription>
+          <CardTitle>Accesos rápidos</CardTitle>
+          <CardDescription>Entra directo a las subrutas más usadas del módulo.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <Link href="/dashboard/documentos-gestion/contratos" className="rounded-lg border border-border p-4 transition hover:bg-muted/50">
@@ -242,7 +242,7 @@ export default function DocumentosGestionPage() {
               <Shield className="h-4 w-4 text-[var(--secondary)]" />
               <span className="font-semibold">Seguridad</span>
             </div>
-            <p className="mt-2 text-sm text-muted-foreground">MSDS, auditorias, incidentes y protocolos HSE.</p>
+            <p className="mt-2 text-sm text-muted-foreground">MSDS, auditorías, incidentes y protocolos HSE.</p>
           </Link>
           <Link href="/dashboard/documentos-gestion/reportes" className="rounded-lg border border-border p-4 transition hover:bg-muted/50">
             <div className="flex items-center gap-2">

@@ -117,10 +117,10 @@ export default function TelemetriaIntegracionPage() {
     const lines = [
       ['Campo', 'Requerido', 'Descripción'],
       ['equipment_id', 'No', 'ID interno del equipo o activo'],
-      ['equipment_code', 'No', 'Codigo operativo del equipo'],
+      ['equipment_code', 'No', 'Código operativo del equipo'],
       ['temperature', 'No', 'Temperatura en grados'],
-      ['pressure', 'No', 'Presion en PSI'],
-      ['vibration', 'No', 'Vibracion en m/s2'],
+      ['pressure', 'No', 'Presión en PSI'],
+      ['vibration', 'No', 'Vibración en m/s2'],
       ['rpm', 'No', 'RPM del equipo'],
       ['status', 'Si', 'normal o alert'],
       ['source_machine', 'No', 'Nombre del gateway o máquina origen'],

@@ -172,7 +172,7 @@ export default function ProcedimientosPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">{stats.pendientes}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Pendientes de actualizacion</p>
+            <p className="mt-1 text-xs text-muted-foreground">Pendientes de actualización</p>
           </CardContent>
         </Card>
 
@@ -182,7 +182,7 @@ export default function ProcedimientosPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-[var(--brand-rojo)]">{stats.rechazados}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Requieren correccion</p>
+            <p className="mt-1 text-xs text-muted-foreground">Requieren corrección</p>
           </CardContent>
         </Card>
       </div>
@@ -260,7 +260,7 @@ export default function ProcedimientosPage() {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar por nombre, codigo o responsable..."
+                  placeholder="Buscar por nombre, código o responsable..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"

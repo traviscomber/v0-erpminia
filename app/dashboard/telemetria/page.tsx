@@ -76,7 +76,7 @@ export default function TelemetriaPage() {
           <CardContent>
             <div className="text-2xl font-bold text-primary">Datos reales</div>
             <p className="text-xs text-muted-foreground">
-              La pagina permanece estable aunque el tiempo real no este disponible.
+              La página permanece estable aunque el tiempo real no está disponible.
             </p>
           </CardContent>
         </Card>
@@ -151,7 +151,7 @@ export default function TelemetriaPage() {
             </CardTitle>
             <Button asChild variant="outline" size="sm" className="gap-2">
               <Link href="/dashboard/telemetria/integracion">
-                Ver configuracion
+                Ver configuración
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -166,15 +166,15 @@ export default function TelemetriaPage() {
             <p className="mt-1 font-semibold">POST /api/telemetry/ingest</p>
           </div>
           <div className="rounded-lg border border-border bg-background p-3">
-            <p className="text-xs text-muted-foreground">Autenticacion</p>
+            <p className="text-xs text-muted-foreground">Autenticación</p>
             <p className="mt-1 font-semibold">x-telemetry-token</p>
           </div>
           <div className="rounded-lg border border-border bg-background p-3">
             <p className="text-xs text-muted-foreground">Modo de uso</p>
-            <p className="mt-1 font-semibold">Envio desde gateway local</p>
+            <p className="mt-1 font-semibold">Envío desde gateway local</p>
           </div>
           <div className="rounded-lg border border-border bg-background p-3">
-            <p className="text-xs text-muted-foreground">Campos minimos</p>
+            <p className="text-xs text-muted-foreground">Campos mínimos</p>
             <p className="mt-1 font-semibold">equipment_id o equipment_code</p>
           </div>
         </CardContent>
