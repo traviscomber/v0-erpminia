@@ -192,7 +192,7 @@ export default function LegalPage() {
 
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error || 'Error en la revisión');
+        throw new Error(err.error || 'Error en la revision');
       }
 
       await mutateDocuments();
@@ -350,7 +350,7 @@ export default function LegalPage() {
         filename: 'plantilla-documentos-legales.csv',
         headers: ['TITLE', 'DESCRIPTION', 'DOCUMENT_TYPE', 'CATEGORY', 'STATUS'],
         rows: [
-          ['Política HSE', 'Política corporativa de seguridad', 'policy', 'HSE', 'pending'],
+          ['Politica HSE', 'Politica corporativa de seguridad', 'policy', 'HSE', 'pending'],
           ['Procedimiento vehiculos', 'Uso seguro de vehiculos', 'procedure', 'Operacion', 'active'],
         ],
       },
@@ -381,7 +381,7 @@ export default function LegalPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Módulo Legal</h1>
+        <h1 className="text-3xl font-bold text-foreground">Modulo Legal</h1>
         <p className="mt-2 max-w-3xl text-muted-foreground">
           Vista ejecutiva para documentos, contratos y cumplimiento normativo, con foco en respaldo, vencimientos y seguimiento.
         </p>
@@ -452,7 +452,7 @@ export default function LegalPage() {
 
         <Card className="border-primary/30 bg-primary/5">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-primary">Pendientes de revisión</CardTitle>
+            <CardTitle className="text-sm font-medium text-primary">Pendientes de revision</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-primary">{pendingReviewCount}</div>
@@ -483,9 +483,9 @@ export default function LegalPage() {
 
       <Card className="border-border/70 bg-card/90">
         <CardHeader>
-          <CardTitle>Accesos rápidos al flujo documental</CardTitle>
+          <CardTitle>Accesos rapidos al flujo documental</CardTitle>
           <CardDescription>
-            Legal trabaja conectado a mantenimiento, bodega y telemetría para cerrar trazabilidad.
+            Legal trabaja conectado a mantenimiento, bodega y telemetria para cerrar trazabilidad.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -504,7 +504,7 @@ export default function LegalPage() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/telemetria">
-                Telemetría
+                Telemetria
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -567,7 +567,7 @@ export default function LegalPage() {
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <CardTitle>Documentos legales</CardTitle>
-                  <CardDescription>Políticas, procedimientos, protocolos y respaldo regulatorio.</CardDescription>
+                  <CardDescription>Politicas, procedimientos, protocolos y respaldo regulatorio.</CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
                   <AddDocumentModal onSubmit={handleAddDocument} />
@@ -587,7 +587,7 @@ export default function LegalPage() {
               <div className="space-y-3">
                 {legalDocs.length === 0 && (
                   <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
-                    No hay documentos legales cargados todavía.
+                    No hay documentos legales cargados todavia.
                   </div>
                 )}
 
@@ -601,7 +601,7 @@ export default function LegalPage() {
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-medium">{doc.title}</p>
                         <p className="truncate text-xs text-muted-foreground">
-                          {(doc.documentType || 'Documento').replace(/_/g, ' ')} - {doc.description || 'Sin descripción'}
+                          {(doc.documentType || 'Documento').replace(/_/g, ' ')} - {doc.description || 'Sin descripcion'}
                         </p>
                       </div>
                     </div>
@@ -645,7 +645,7 @@ export default function LegalPage() {
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <CardTitle>Contratos vigentes</CardTitle>
-                  <CardDescription>Seguimiento de contratos activos y vencimientos próximos.</CardDescription>
+                  <CardDescription>Seguimiento de contratos activos y vencimientos proximos.</CardDescription>
                 </div>
                 <AddContractModal onSubmit={handleAddContract} />
               </div>
@@ -660,7 +660,7 @@ export default function LegalPage() {
           <Card>
             <CardHeader>
               <CardTitle>Matriz de cumplimiento</CardTitle>
-              <CardDescription>Seguimiento de respaldo contractual y documental del módulo legal.</CardDescription>
+              <CardDescription>Seguimiento de respaldo contractual y documental del modulo legal.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
@@ -685,7 +685,7 @@ export default function LegalPage() {
                       <li key={item.id}>{item.title}</li>
                     ))}
                     {(compliance.contracts_pending_review || []).length === 0 && (
-                      <li>No hay contratos pendientes de revisión.</li>
+                      <li>No hay contratos pendientes de revision.</li>
                     )}
                   </ul>
                 </div>

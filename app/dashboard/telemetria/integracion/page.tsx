@@ -42,7 +42,7 @@ type IngestCheck = {
   error?: string;
 };
 
-const SAMPLE_PAYLOAD = {
+const TEST_PAYLOAD = {
   readings: [
     {
       equipment_code: 'EQ-001',
@@ -61,7 +61,7 @@ const SAMPLE_PAYLOAD = {
       rpm: 1605,
       status: 'alert',
       source_machine: 'patagua-gateway-01',
-      message: 'Temperatura y vibración fuera de rango',
+      message: 'Temperatura y vibracion fuera de rango',
     },
   ],
 };
@@ -76,9 +76,9 @@ export default function TelemetriaIntegracionPage() {
   const [gatewayUrl, setGatewayUrl] = useState(process.env.NEXT_PUBLIC_TELEMETRY_GATEWAY_URL || '');
   const [telemetryToken, setTelemetryToken] = useState('TU_TOKEN');
   const [currentOrigin, setCurrentOrigin] = useState('');
-  const [samplePayload, setSamplePayload] = useState(() => formatJson(SAMPLE_PAYLOAD));
-  const [sampleRunning, setSampleRunning] = useState<'validate' | 'send' | null>(null);
-  const [sampleResult, setSampleResult] = useState<IngestCheck | null>(null);
+  const [payloadJson, setPayloadJson] = useState(() => formatJson(TEST_PAYLOAD));
+  const [payloadRunning, setPayloadRunning] = useState<'validate' | 'send' | null>(null);
+  const [payloadResult, setPayloadResult] = useState<IngestCheck | null>(null);
 
   useEffect(() => {
     const savedGateway = window.localStorage.getItem('telemetry-gateway-url');
@@ -111,19 +111,19 @@ export default function TelemetriaIntegracionPage() {
   const code = `curl -X POST ${ingestUrl || 'https://TU-DOMINIO/api/telemetry/ingest'} \\
   -H "Content-Type: application/json" \\
   -H "x-telemetry-token: ${telemetryToken || 'TU_TOKEN'}" \\
-  -d '${formatJson(SAMPLE_PAYLOAD)}'`;
+  -d '${formatJson(TEST_PAYLOAD)}'`;
 
   const downloadSpec = () => {
     const lines = [
-      ['Campo', 'Requerido', 'Descripción'],
+      ['Campo', 'Requerido', 'Descripcion'],
       ['equipment_id', 'No', 'ID interno del equipo o activo'],
-      ['equipment_code', 'No', 'Código operativo del equipo'],
+      ['equipment_code', 'No', 'Codigo operativo del equipo'],
       ['temperature', 'No', 'Temperatura en grados'],
-      ['pressure', 'No', 'Presión en PSI'],
-      ['vibration', 'No', 'Vibración en m/s2'],
+      ['pressure', 'No', 'Presion en PSI'],
+      ['vibration', 'No', 'Vibracion en m/s2'],
       ['rpm', 'No', 'RPM del equipo'],
       ['status', 'Si', 'normal o alert'],
-      ['source_machine', 'No', 'Nombre del gateway o máquina origen'],
+      ['source_machine', 'No', 'Nombre del gateway o maquina origen'],
       ['readings[]', 'No', 'Lote de lecturas para enviar varios equipos en una sola llamada'],
     ];
     const csv = lines.map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(';')).join('\n');
@@ -166,12 +166,12 @@ export default function TelemetriaIntegracionPage() {
     }
   };
 
-  const runSample = async (mode: 'validate' | 'send') => {
-    setSampleRunning(mode);
-    setSampleResult(null);
+  const runPayload = async (mode: 'validate' | 'send') => {
+    setPayloadRunning(mode);
+    setPayloadResult(null);
 
     try {
-      const parsedPayload = JSON.parse(samplePayload) as Record<string, unknown>;
+      const parsedPayload = JSON.parse(payloadJson) as Record<string, unknown>;
       const requestPayload =
         mode === 'validate'
           ? {
@@ -191,17 +191,17 @@ export default function TelemetriaIntegracionPage() {
       });
 
       const payload = (await response.json().catch(() => null)) as IngestCheck | null;
-      setSampleResult({
+      setPayloadResult({
         success: response.ok,
         ...payload,
       });
     } catch (error) {
-      setSampleResult({
+      setPayloadResult({
         success: false,
-        error: error instanceof Error ? error.message : 'No se pudo procesar la muestra',
+        error: error instanceof Error ? error.message : 'No se pudo procesar la lectura',
       });
     } finally {
-      setSampleRunning(null);
+      setPayloadRunning(null);
     }
   };
 
@@ -209,9 +209,9 @@ export default function TelemetriaIntegracionPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Integración LAN de telemetría</h1>
+          <h1 className="text-3xl font-bold">Integracion LAN de telemetria</h1>
           <p className="mt-2 max-w-3xl text-muted-foreground">
-            Esta página define el contrato mínimo para conectar una segunda máquina de la red local de la Patagua.
+            Esta pagina define el contrato minimo para conectar una segunda maquina de la red local de la Patagua.
           </p>
         </div>
         <div className="flex flex-col gap-2 lg:min-w-[32rem]">
@@ -226,7 +226,7 @@ export default function TelemetriaIntegracionPage() {
               value={telemetryToken}
               onChange={(event) => setTelemetryToken(event.target.value)}
               placeholder="x-telemetry-token"
-              aria-label="Token de telemetría"
+              aria-label="Token de telemetria"
             />
           </div>
           <div className="flex flex-wrap gap-2">
@@ -237,22 +237,22 @@ export default function TelemetriaIntegracionPage() {
             ))}
           </div>
           <p className="text-xs text-muted-foreground">
-            La prueba usa el host ingresado. Si apuntas a otra máquina, ese endpoint debe permitir acceso desde la red local.
+            La prueba usa el host ingresado. Si apuntas a otra maquina, ese endpoint debe permitir acceso desde la red local.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={downloadSpec}>
             <Download className="mr-2 h-4 w-4" />
-            Descargar especificación
+            Descargar especificacion
           </Button>
           <Button variant="outline" onClick={testConnection} disabled={checking}>
             <RefreshCw className={`mr-2 h-4 w-4 ${checking ? 'animate-spin' : ''}`} />
-            {checking ? 'Probando...' : 'Probar conexión'}
+            {checking ? 'Probando...' : 'Probar conexion'}
           </Button>
           <Button asChild>
             <Link href="/dashboard/telemetria">
               <ArrowRight className="mr-2 h-4 w-4" />
-               Volver a telemetría
+              Volver a telemetria
             </Link>
           </Button>
         </div>
@@ -267,18 +267,18 @@ export default function TelemetriaIntegracionPage() {
               ) : (
                 <RadioTower className="h-5 w-5 text-amber-600" />
               )}
-              {checkResult.ok ? 'Conexión verificada' : 'Conexión con observaciones'}
+              {checkResult.ok ? 'Conexion verificada' : 'Conexion con observaciones'}
             </CardTitle>
             <CardDescription>
               {checkResult.ok
-                 ? 'El endpoint de salud responde y la ruta de telemetría está disponible.'
+                ? 'El endpoint de salud responde y la ruta de telemetria esta disponible.'
                 : checkResult.error || 'El endpoint responde, pero requiere ajuste antes de enviar lecturas.'}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2 text-sm">
             <Badge variant="outline">Endpoint: {checkResult.endpoint || '/api/telemetry/health'}</Badge>
             <Badge variant="outline">Ingreso: {checkResult.ingest_endpoint || '/api/telemetry/ingest'}</Badge>
-            <Badge variant="outline">Configurado: {checkResult.configured ? 'sí' : 'no'}</Badge>
+            <Badge variant="outline">Configurado: {checkResult.configured ? 'si' : 'no'}</Badge>
             {Array.isArray(checkResult.accepted_payload) && (
               <Badge variant="outline">{checkResult.accepted_payload.length} campos aceptados</Badge>
             )}
@@ -321,7 +321,7 @@ export default function TelemetriaIntegracionPage() {
           </CardHeader>
           <CardContent>
             <div className="font-semibold">x-telemetry-token</div>
-            <p className="text-sm text-muted-foreground">Se valida contra `TELEMETRY_INGEST_TOKEN` y se incluye en los ejemplos de prueba.</p>
+            <p className="text-sm text-muted-foreground">Se valida contra `TELEMETRY_INGEST_TOKEN` y se usa en la verificacion.</p>
           </CardContent>
         </Card>
         <Card>
@@ -333,15 +333,15 @@ export default function TelemetriaIntegracionPage() {
           </CardHeader>
           <CardContent>
             <div className="font-semibold">Gateway o PLC</div>
-            <p className="text-sm text-muted-foreground">La otra máquina puede enviar una lectura o varias en un solo POST.</p>
+            <p className="text-sm text-muted-foreground">La otra maquina puede enviar una lectura o varias en un solo POST.</p>
           </CardContent>
         </Card>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Ejemplo de envío</CardTitle>
-          <CardDescription>Este ejemplo sirve para pruebas desde una PC o equipo de la red local.</CardDescription>
+          <CardTitle>Ejemplo de envio</CardTitle>
+          <CardDescription>Este flujo sirve para probar desde una PC o equipo de la red local.</CardDescription>
         </CardHeader>
         <CardContent>
           <pre className="overflow-x-auto rounded-lg border bg-muted p-4 text-sm leading-6">{code}</pre>
@@ -357,50 +357,50 @@ export default function TelemetriaIntegracionPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <textarea
-            value={samplePayload}
-            onChange={(event) => setSamplePayload(event.target.value)}
+            value={payloadJson}
+            onChange={(event) => setPayloadJson(event.target.value)}
             className="min-h-[20rem] w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm"
             spellCheck={false}
-             aria-label="Payload JSON de telemetría"
+            aria-label="Payload JSON de telemetria"
           />
           <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="outline" onClick={() => setSamplePayload(formatJson(SAMPLE_PAYLOAD))}>
-              Cargar lectura de ejemplo
+            <Button type="button" variant="outline" onClick={() => setPayloadJson(formatJson(TEST_PAYLOAD))}>
+              Cargar lectura base
             </Button>
-            <Button type="button" variant="outline" onClick={() => runSample('validate')} disabled={sampleRunning !== null}>
-              {sampleRunning === 'validate' ? 'Validando...' : 'Validar lectura'}
+            <Button type="button" variant="outline" onClick={() => runPayload('validate')} disabled={payloadRunning !== null}>
+              {payloadRunning === 'validate' ? 'Validando...' : 'Validar lectura'}
             </Button>
-            <Button type="button" onClick={() => runSample('send')} disabled={sampleRunning !== null}>
-              {sampleRunning === 'send' ? 'Enviando...' : 'Enviar lectura'}
+            <Button type="button" onClick={() => runPayload('send')} disabled={payloadRunning !== null}>
+              {payloadRunning === 'send' ? 'Enviando...' : 'Enviar lectura'}
             </Button>
           </div>
-          {sampleResult && (
+          {payloadResult && (
             <div className="space-y-3 rounded-lg border border-border/70 bg-muted/30 p-4">
               <div className="flex flex-wrap gap-2">
-                <Badge variant={sampleResult.success ? 'default' : 'destructive'}>
-                  {sampleResult.success ? 'Procesado' : 'Con error'}
+                <Badge variant={payloadResult.success ? 'default' : 'destructive'}>
+                  {payloadResult.success ? 'Procesado' : 'Con error'}
                 </Badge>
-                {sampleResult.dry_run ? <Badge variant="outline">Validación interna</Badge> : null}
-                {typeof sampleResult.validated_count === 'number' ? (
-                  <Badge variant="outline">Validadas: {sampleResult.validated_count}</Badge>
+                {payloadResult.dry_run ? <Badge variant="outline">Validacion interna</Badge> : null}
+                {typeof payloadResult.validated_count === 'number' ? (
+                  <Badge variant="outline">Validadas: {payloadResult.validated_count}</Badge>
                 ) : null}
-                {typeof sampleResult.ingested_count === 'number' ? (
-                  <Badge variant="outline">Insertadas: {sampleResult.ingested_count}</Badge>
+                {typeof payloadResult.ingested_count === 'number' ? (
+                  <Badge variant="outline">Insertadas: {payloadResult.ingested_count}</Badge>
                 ) : null}
-                {typeof sampleResult.alarm_count === 'number' ? (
-                  <Badge variant="outline">Alarmas: {sampleResult.alarm_count}</Badge>
+                {typeof payloadResult.alarm_count === 'number' ? (
+                  <Badge variant="outline">Alarmas: {payloadResult.alarm_count}</Badge>
                 ) : null}
               </div>
-              {sampleResult.error ? <p className="text-sm text-destructive">{sampleResult.error}</p> : null}
-              {Array.isArray(sampleResult.errors) && sampleResult.errors.length > 0 ? (
+              {payloadResult.error ? <p className="text-sm text-destructive">{payloadResult.error}</p> : null}
+              {Array.isArray(payloadResult.errors) && payloadResult.errors.length > 0 ? (
                 <div className="space-y-1 text-sm text-amber-700">
-                  {sampleResult.errors.map((item, index) => (
+                  {payloadResult.errors.map((item, index) => (
                     <div key={`${item}-${index}`}>{item}</div>
                   ))}
                 </div>
               ) : null}
               <pre className="overflow-x-auto rounded-lg border bg-background p-4 text-xs leading-6">
-                {formatJson(sampleResult)}
+                {formatJson(payloadResult)}
               </pre>
             </div>
           )}
@@ -414,10 +414,10 @@ export default function TelemetriaIntegracionPage() {
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div>1. Configurar `TELEMETRY_INGEST_TOKEN` en el entorno del sistema.</div>
-            <div>2. Asegurar que la otra máquina resuelva la URL del sistema en la red local.</div>
+            <div>2. Asegurar que la otra maquina resuelva la URL del sistema en la red local.</div>
             <div>3. Enviar `equipment_id` o `equipment_code` para identificar el destino, o `readings` para lotes.</div>
             <div>4. Probar una lectura normal y una de alerta.</div>
-            <div>5. Verificar que la lectura aparezca en telemetría y, si corresponde, que cree alarma.</div>
+            <div>5. Verificar que la lectura aparezca en telemetria y, si corresponde, que cree alarma.</div>
           </CardContent>
         </Card>
 
