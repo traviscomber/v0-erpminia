@@ -221,7 +221,7 @@ export function AssetDetailView() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{asset.asset_name || 'Activo'}</h1>
-          <p className="mt-2 text-muted-foreground">Vista real del activo con su historial de mantención, QR y ordenes.</p>
+          <p className="mt-2 text-muted-foreground">Vista real del activo con su historial de mantención, QR y órdenes.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild className="gap-2">
@@ -283,7 +283,7 @@ export function AssetDetailView() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total ordenes</CardTitle>
+            <CardTitle className="text-sm font-medium">Total órdenes</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{assetOrders.length}</div>
@@ -351,7 +351,7 @@ export function AssetDetailView() {
                 <Link href={`/dashboard/mantenimiento/vehiculos/${asset.id}/qr`}>Tarjeta QR</Link>
               </Button>
               <Button variant="outline" asChild>
-                <Link href={`/dashboard/mantenimiento/vehiculos/${asset.id}/arbol`}>Ver arbol de fallas</Link>
+                <Link href={`/dashboard/mantenimiento/vehiculos/${asset.id}/arbol`}>Ver árbol de fallas</Link>
               </Button>
               <Button variant="outline" asChild>
                 <Link href={`/dashboard/work-orders/create?assetId=${asset.id}`}>Nueva OT</Link>
@@ -399,13 +399,13 @@ export function AssetDetailView() {
               <p className="font-semibold">{asset.mtbf_hours ? `${asset.mtbf_hours} h` : 'Sin lectura'}</p>
             </div>
             <div>
-              <p className="text-muted-foreground">Ultima mantención</p>
+              <p className="text-muted-foreground">Última mantención</p>
               <p className="font-semibold">
                 {latestHistory?.created_at ? new Date(latestHistory.created_at).toLocaleDateString('es-CL') : '-'}
               </p>
             </div>
             <div>
-              <p className="text-muted-foreground">Ultimo tecnico</p>
+              <p className="text-muted-foreground">Último técnico</p>
               <p className="font-semibold">{latestHistory?.performed_by_name || '-'}</p>
             </div>
             <div>
@@ -471,7 +471,7 @@ export function AssetDetailView() {
             </div>
           ) : (
             <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-              Todavia no hay maquinas relacionadas para mostrar.
+              Todavía no hay máquinas relacionadas para mostrar.
             </div>
           )}
         </CardContent>
@@ -504,7 +504,7 @@ export function AssetDetailView() {
                         </Badge>
                         <Badge variant="outline">{workTypeLabel(String(item.maintenance_type || 'corrective'))}</Badge>
                       </div>
-                      <p className="mt-1 text-sm text-muted-foreground">{item.work_order?.title || 'Mantencion registrada'}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">{item.work_order?.title || 'Mantención registrada'}</p>
                       {item.notes ? <p className="mt-1 text-xs text-muted-foreground">{item.notes}</p> : null}
                     </div>
                     <div className="text-right text-sm text-muted-foreground">
@@ -537,14 +537,14 @@ export function AssetDetailView() {
 
       <Card className="lg:col-span-3">
         <CardHeader>
-          <CardTitle>Ordenes relacionadas</CardTitle>
+          <CardTitle>Órdenes relacionadas</CardTitle>
           <CardDescription>Historial operativo del activo con estados reales</CardDescription>
         </CardHeader>
         <CardContent>
           {assetOrders.length === 0 ? (
             <div className="flex items-center gap-2 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
               <AlertCircle className="h-4 w-4" />
-              No hay ordenes de trabajo asociadas a este activo.
+              No hay órdenes de trabajo asociadas a este activo.
             </div>
           ) : (
             <div className="space-y-3">
@@ -570,7 +570,7 @@ export function AssetDetailView() {
                   </div>
                   <div className="mt-3 grid gap-3 text-sm md:grid-cols-3">
                     <div>
-                      <p className="text-muted-foreground">Tecnico</p>
+                      <p className="text-muted-foreground">Técnico</p>
                       <p className="font-medium">{order.assigned_to_name || 'Sin asignar'}</p>
                     </div>
                     <div>

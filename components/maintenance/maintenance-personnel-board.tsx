@@ -170,7 +170,7 @@ export function MaintenancePersonnelBoard() {
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm">
               <Users className="h-4 w-4 text-green-500" />
-              Tecnicos
+              Técnicos
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -207,7 +207,7 @@ export function MaintenancePersonnelBoard() {
               <Input id="hours" type="number" step="0.1" min="0" value={hoursWorked} onChange={(event) => setHoursWorked(event.target.value)} />
             </div>
             <div className="md:col-span-2">
-              <Label htmlFor="notes">Descripcion del trabajo</Label>
+              <Label htmlFor="notes">Descripción del trabajo</Label>
               <Textarea
                 id="notes"
                 rows={3}
@@ -231,7 +231,7 @@ export function MaintenancePersonnelBoard() {
 
       <Card className="border-border/70 bg-card/80">
         <CardHeader className="pb-3">
-          <CardTitle className="text-foreground">Acceso rapido a mantenimiento</CardTitle>
+          <CardTitle className="text-foreground">Acceso rápido a mantenimiento</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -278,7 +278,7 @@ export function MaintenancePersonnelBoard() {
             technicians.map((tech) => (
               <div key={tech.technicianId} className="flex items-center justify-between rounded-lg border border-border p-3">
                 <div>
-                  <p className="font-semibold">{tech.name || 'Tecnico'}</p>
+                  <p className="font-semibold">{tech.name || 'Técnico'}</p>
                   <p className="text-xs text-muted-foreground">{tech.entries} registros</p>
                 </div>
                 <Badge variant="outline">{Number(tech.hours || 0).toFixed(1)} h</Badge>
@@ -286,7 +286,7 @@ export function MaintenancePersonnelBoard() {
             ))
           ) : (
             <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-              Todavia no hay horas registradas para resumir.
+              Todavía no hay horas registradas para resumir.
             </div>
           )}
         </CardContent>
@@ -294,7 +294,7 @@ export function MaintenancePersonnelBoard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Ultimos registros</CardTitle>
+          <CardTitle>Últimos registros</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           {recentEntries.length > 0 ? (

@@ -149,7 +149,7 @@ export default function DocumentosGestionPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-[var(--brand-verde)]">{recentDocuments.length}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Ultimos documentos</p>
+            <p className="mt-1 text-xs text-muted-foreground">Últimos documentos</p>
           </CardContent>
         </Card>
 
@@ -168,7 +168,7 @@ export default function DocumentosGestionPage() {
         <Card className="border-[var(--secondary)]/30 bg-[var(--secondary)]/5">
           <CardHeader>
             <CardTitle className="text-base">Resumen de control</CardTitle>
-            <CardDescription>Lectura rápida para supervision y aprobación.</CardDescription>
+            <CardDescription>Lectura rápida para supervisión y aprobación.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-lg border border-border bg-background/70 p-3">
@@ -287,7 +287,7 @@ export default function DocumentosGestionPage() {
         <Card>
           <CardHeader>
             <CardTitle>Documentos recientes</CardTitle>
-            <CardDescription>Ultimos documentos creados o actualizados</CardDescription>
+            <CardDescription>Últimos documentos creados o actualizados</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -313,13 +313,13 @@ export default function DocumentosGestionPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Buscar categorias</CardTitle>
+          <CardTitle>Buscar categorías</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Busca por nombre o descripcion..."
+              placeholder="Busca por nombre o descripción..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -359,7 +359,7 @@ export default function DocumentosGestionPage() {
       {filteredCategories.length === 0 && (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
-            No se encontraron categorias que coincidan con tu busqueda.
+            No se encontraron categorías que coincidan con tu búsqueda.
           </CardContent>
         </Card>
       )}

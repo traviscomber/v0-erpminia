@@ -153,7 +153,7 @@ export function MaintenanceHistoryBoard() {
           <Button asChild className="gap-2">
             <Link href="/dashboard/mantenimiento/planificacion">
               <CalendarClock className="h-4 w-4" />
-              Ver planificacion
+              Ver planificación
             </Link>
           </Button>
         </div>
@@ -239,7 +239,7 @@ export function MaintenanceHistoryBoard() {
                     {group.criticality ? <Badge>{String(group.criticality)}</Badge> : null}
                     {group.assetId ? (
                       <Button variant="outline" size="sm" asChild className="gap-2">
-                        <Link href={`/dashboard/mantenimiento/vehiculos/${group.assetId}/arbol`}>
+                        <Link href={`/dashboard/mantenimiento/vehiculos/${group.assetId}/árbol`}>
                           Ver ficha
                           <ArrowRight className="h-4 w-4" />
                         </Link>
@@ -266,7 +266,7 @@ export function MaintenanceHistoryBoard() {
                           <span className="text-sm font-semibold">
                             {entry.workOrder?.workOrderNumber || 'Sin OT'}
                           </span>
-                          <span className="text-sm text-muted-foreground">{entry.workOrder?.title || 'Mantencion registrada'}</span>
+                          <span className="text-sm text-muted-foreground">{entry.workOrder?.title || 'Mantención registrada'}</span>
                         </div>
                         <p className="text-sm text-muted-foreground">{entry.notes || 'Sin observaciones'}</p>
                         <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
