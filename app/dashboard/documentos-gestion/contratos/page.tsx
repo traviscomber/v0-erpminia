@@ -216,7 +216,7 @@ export default function ContratosPage() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold tracking-tight">Gestion de contratos</h1>
-                <p className="text-sm text-muted-foreground">Contratos principales, subcontratos y respaldo legal</p>
+                <p className="text-sm text-muted-foreground">Contratos principales, subcontratos y respaldo legal.</p>
               </div>
             </div>
           </div>
@@ -429,7 +429,7 @@ export default function ContratosPage() {
             <CardHeader className="sticky top-0 flex flex-row items-center justify-between space-y-0 border-b border-white/10 bg-background">
               <div>
                 <CardTitle>Crear nuevo contrato</CardTitle>
-                <CardDescription>Registra un nuevo contrato con respaldo legal</CardDescription>
+                <CardDescription>Registra un nuevo contrato con respaldo legal.</CardDescription>
               </div>
               <Button variant="ghost" size="sm" onClick={() => setShowNewContractModal(false)}>
                 x
@@ -443,7 +443,7 @@ export default function ContratosPage() {
                     <Input
                       value={formState.title}
                       onChange={(e) => updateField('title', e.target.value)}
-                      placeholder="Ej: Contrato Mantenimiento Planta 2026"
+                      placeholder="Ej: Contrato mantenimiento planta 2026"
                       className="border-white/10 bg-white/5"
                       required
                     />
