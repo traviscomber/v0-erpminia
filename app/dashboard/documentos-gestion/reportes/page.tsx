@@ -127,7 +127,7 @@ export default function ReportesGestionDocumentalPage() {
           <Sparkles className="h-4 w-4 text-primary" />
           <span className="text-sm font-medium">Datos reales</span>
         </div>
-        <h1 className="text-3xl font-bold">Reportes de gestión documental</h1>
+        <h1 className="text-3xl font-bold">Reportes de gestion documental</h1>
         <p className="text-muted-foreground">
           Vista ejecutiva con secciones, aprobaciones pendientes, documentos recientes y vencimientos.
         </p>
@@ -150,7 +150,7 @@ export default function ReportesGestionDocumentalPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary">{stats.pending}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Requieren revisión</p>
+            <p className="mt-1 text-xs text-muted-foreground">Requieren revision</p>
           </CardContent>
         </Card>
 
@@ -160,7 +160,7 @@ export default function ReportesGestionDocumentalPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-amber-600">{stats.expiring}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Dentro del rango crítico</p>
+            <p className="mt-1 text-xs text-muted-foreground">Dentro del rango critico</p>
           </CardContent>
         </Card>
 
@@ -177,7 +177,7 @@ export default function ReportesGestionDocumentalPage() {
 
       <Card className="border-border/70 bg-card/80">
         <CardHeader>
-          <CardTitle>Atajos del módulo</CardTitle>
+          <CardTitle>Atajos del modulo</CardTitle>
           <CardDescription>Entra a las secciones clave sin perder contexto.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -213,8 +213,8 @@ export default function ReportesGestionDocumentalPage() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-          <CardTitle>Documentos recientes</CardTitle>
-            <CardDescription>Últimos registros que entraron al sistema real</CardDescription>
+            <CardTitle>Documentos recientes</CardTitle>
+            <CardDescription>Ultimos registros que entraron al sistema real</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {recentDocuments.length === 0 ? (
@@ -249,7 +249,7 @@ export default function ReportesGestionDocumentalPage() {
         <Card className="border-amber-500/30 bg-amber-500/5">
           <CardHeader>
             <CardTitle>Documentos por vencer</CardTitle>
-            <CardDescription>{expiringDocuments.length} documentos próximos a vencer</CardDescription>
+            <CardDescription>{expiringDocuments.length} documentos proximos a vencer</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
             {expiringDocuments.length > 0 ? (
@@ -273,7 +273,7 @@ export default function ReportesGestionDocumentalPage() {
       <Card>
         <CardHeader>
           <CardTitle>Buscar secciones</CardTitle>
-          <CardDescription>Filtra el resumen por nombre, descripción o id de sección.</CardDescription>
+          <CardDescription>Filtra el resumen por nombre, descripcion o id de seccion.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="relative">
@@ -321,7 +321,7 @@ export default function ReportesGestionDocumentalPage() {
       {filteredCategories.length === 0 && (
         <Card>
           <CardContent className="py-8 text-center text-sm text-muted-foreground">
-            No se encontraron secciones que coincidan con la búsqueda.
+            No se encontraron secciones que coincidan con la busqueda.
           </CardContent>
         </Card>
       )}
@@ -329,8 +329,8 @@ export default function ReportesGestionDocumentalPage() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Documentos pendientes</CardTitle>
-            <CardDescription>{pendingApprovals.length} documentos en revisión</CardDescription>
+          <CardTitle>Documentos pendientes</CardTitle>
+          <CardDescription>{pendingApprovals.length} documentos en revision</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {pendingApprovals.length === 0 ? (
