@@ -1,26 +1,11 @@
 'use client';
 
+import type { Equipment } from '@/lib/types/equipment';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { X, Edit, Plus } from 'lucide-react';
-
-interface Equipment {
-  id: string;
-  code: string;
-  name: string;
-  model: string;
-  serial_number: string;
-  type: string;
-  status: string;
-  criticality: string;
-  location: string;
-  purchase_date: string | null;
-  last_maintenance: string | null;
-  next_maintenance: string | null;
-  specs: Record<string, any> | null;
-}
 
 interface EquipmentSheetProps {
   equipment: Equipment | null;

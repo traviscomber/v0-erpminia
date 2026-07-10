@@ -3,25 +3,10 @@
 import { useState } from 'react';
 import { Plus, Upload } from 'lucide-react';
 import Link from 'next/link';
+import type { Equipment } from '@/lib/types/equipment';
 import { Button } from '@/components/ui/button';
 import { EquipmentList } from '@/components/maintenance/equipment-list';
 import { EquipmentSheet } from '@/components/maintenance/equipment-sheet';
-
-interface Equipment {
-  id: string;
-  code: string;
-  name: string;
-  model: string;
-  serial_number: string;
-  type: string;
-  status: string;
-  criticality: string;
-  location: string;
-  purchase_date: string | null;
-  last_maintenance: string | null;
-  next_maintenance: string | null;
-  specs: Record<string, any> | null;
-}
 
 export default function EquiposPage() {
   const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null);

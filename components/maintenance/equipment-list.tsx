@@ -2,24 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import useSWR from 'swr';
+import type { Equipment } from '@/lib/types/equipment';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertCircle, CheckCircle, Clock, Wrench } from 'lucide-react';
-
-interface Equipment {
-  id: string;
-  code: string;
-  name: string;
-  model: string;
-  type: string;
-  status: string;
-  criticality: string;
-  location: string;
-  last_maintenance: string | null;
-  next_maintenance: string | null;
-}
 
 const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then(r => r.json());
 
