@@ -2,25 +2,25 @@
 
 import { useEffect, useState } from 'react';
 import useSWR from 'swr';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Download, AlertCircle } from 'lucide-react';
 import {
   BarChart,
   Bar,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
   Cell,
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
 } from 'recharts';
+import { AlertCircle, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const fetcher = async (url: string) => {
   const response = await fetch(url, { credentials: 'include' });
@@ -100,8 +100,8 @@ export default function ContratosReportesPage() {
       {requestTimedOut && !reportData && !error && (
         <Card className="border-amber-500/30 bg-amber-500/5">
           <CardContent className="pt-6 text-sm text-muted-foreground">
-            La carga de reportes tardó más de lo esperado. Se muestran los accesos y los estados disponibles
-            mientras el módulo termina de responder.
+            La carga de reportes tardo mas de lo esperado. Se muestran los accesos y los estados disponibles
+            mientras el modulo termina de responder.
           </CardContent>
         </Card>
       )}
@@ -133,8 +133,8 @@ export default function ContratosReportesPage() {
       <Tabs defaultValue="pagos" className="space-y-4">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="pagos">Pagos</TabsTrigger>
-          <TabsTrigger value="garantias">Garantías</TabsTrigger>
-          <TabsTrigger value="regalias">Regalías</TabsTrigger>
+          <TabsTrigger value="garantias">Garantias</TabsTrigger>
+          <TabsTrigger value="regalias">Regalias</TabsTrigger>
           <TabsTrigger value="estado">Estado</TabsTrigger>
         </TabsList>
 
@@ -168,7 +168,7 @@ export default function ContratosReportesPage() {
         <TabsContent value="garantias" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Estado de garantías retenidas</CardTitle>
+              <CardTitle>Estado de garantias retenidas</CardTitle>
             </CardHeader>
             <CardContent>
               {garantiasActivas.length > 0 ? (
@@ -194,7 +194,7 @@ export default function ContratosReportesPage() {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <p className="py-8 text-center text-muted-foreground">Sin garantías activas</p>
+                <p className="py-8 text-center text-muted-foreground">Sin garantias activas</p>
               )}
             </CardContent>
           </Card>
@@ -203,7 +203,7 @@ export default function ContratosReportesPage() {
         <TabsContent value="regalias" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Regalías por propiedad</CardTitle>
+              <CardTitle>Regalias por propiedad</CardTitle>
             </CardHeader>
             <CardContent>
               {regaliasPorPropiedad.length > 0 ? (
@@ -222,7 +222,7 @@ export default function ContratosReportesPage() {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <p className="py-8 text-center text-muted-foreground">No hay datos de regalías para el periodo seleccionado.</p>
+                <p className="py-8 text-center text-muted-foreground">No hay datos de regalias para el periodo seleccionado.</p>
               )}
             </CardContent>
           </Card>
@@ -237,7 +237,9 @@ export default function ContratosReportesPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold">{estado.cantidad}</div>
-                  <p className="mt-1 text-xs text-muted-foreground">CLP {(Number(estado.monto_total || 0) / 1000000).toFixed(1)}M</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    CLP {(Number(estado.monto_total || 0) / 1000000).toFixed(1)}M
+                  </p>
                 </CardContent>
               </Card>
             ))}

@@ -161,16 +161,14 @@ export default function ReportesPage() {
       <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="mb-2 text-3xl font-bold text-foreground">Reportes de sostenibilidad</h1>
-          <p className="text-muted-foreground">
-            Análisis comparativo por período de inspecciones, hallazgos y KPIs.
-          </p>
+          <p className="text-muted-foreground">Analisis comparativo por periodo de inspecciones, hallazgos y KPIs.</p>
         </div>
       </div>
 
       <Card className="mb-8 rounded-xl border shadow-none">
         <CardHeader>
-          <CardTitle className="text-sm">Actualización rápida por Excel</CardTitle>
-          <CardDescription>Enlaces directos para cargar o actualizar las bases operativas más usadas.</CardDescription>
+          <CardTitle className="text-sm">Actualizacion rapida por Excel</CardTitle>
+          <CardDescription>Enlaces directos para cargar o actualizar las bases operativas mas usadas.</CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
           <Button asChild variant="outline" className="justify-between">
@@ -206,7 +204,7 @@ export default function ReportesPage() {
       <Tabs defaultValue="kpi" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="kpi">Panel de KPI</TabsTrigger>
-          <TabsTrigger value="detailed">Análisis detallado</TabsTrigger>
+          <TabsTrigger value="detailed">Analisis detallado</TabsTrigger>
         </TabsList>
 
         <TabsContent value="kpi" className="space-y-6">
@@ -233,7 +231,7 @@ export default function ReportesPage() {
                   </Select>
                 </div>
                 <div className="flex-1">
-                  <label className="mb-2 block text-sm font-medium">Año</label>
+                  <label className="mb-2 block text-sm font-medium">Ano</label>
                   <Input
                     type="number"
                     value={anio}
@@ -247,7 +245,7 @@ export default function ReportesPage() {
                     data={reportData}
                     fileName={`Reporte_${periodoTipo}_${anio}`}
                     columns={[
-                      { key: 'periodo', label: 'Período' },
+                      { key: 'periodo', label: 'Periodo' },
                       { key: 'inspecciones', label: 'Inspecciones' },
                       { key: 'hallazgos', label: 'Hallazgos' },
                       { key: 'cumplimiento', label: 'Cumplimiento' },
@@ -329,7 +327,7 @@ export default function ReportesPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Hallazgos por período</CardTitle>
+                <CardTitle>Hallazgos por periodo</CardTitle>
                 <CardDescription>Cantidad de hallazgos encontrados</CardDescription>
               </CardHeader>
               <CardContent>
@@ -350,7 +348,7 @@ export default function ReportesPage() {
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>Distribución por estado</CardTitle>
+                <CardTitle>Distribucion por estado</CardTitle>
                 <CardDescription>Total de inspecciones por estado</CardDescription>
               </CardHeader>
               <CardContent>
@@ -379,7 +377,7 @@ export default function ReportesPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Inspecciones por faena</CardTitle>
-                <CardDescription>Distribución de inspecciones por zona operativa</CardDescription>
+                <CardDescription>Distribucion de inspecciones por zona operativa</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>

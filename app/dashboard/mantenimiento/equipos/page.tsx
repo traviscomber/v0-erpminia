@@ -28,6 +28,26 @@ type EquipmentRecord = {
   criticality?: string;
 };
 
+function statusLabel(status: string) {
+  const labels: Record<string, string> = {
+    active: 'Operativo',
+    maintenance: 'En mantencion',
+    inactive: 'Inactivo',
+  };
+  return labels[String(status || '').toLowerCase()] || status || 'Sin estado';
+}
+
+function criticalityLabel(value: string) {
+  const labels: Record<string, string> = {
+    critical: 'Critica',
+    high: 'Alta',
+    media: 'Media',
+    medium: 'Media',
+    low: 'Baja',
+  };
+  return labels[String(value || '').toLowerCase()] || value || 'Sin criticidad';
+}
+
 export default function EquiposPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [status, setStatus] = useState('');
@@ -71,6 +91,21 @@ export default function EquiposPage() {
     [filtered]
   );
 
+  const statusOptions = [
+    { value: '', label: 'Todos' },
+    { value: 'active', label: 'Operativos' },
+    { value: 'maintenance', label: 'En mantencion' },
+    { value: 'inactive', label: 'Inactivos' },
+  ];
+
+  const criticalityOptions = [
+    { value: '', label: 'Todas las criticidades' },
+    { value: 'critical', label: 'Critica' },
+    { value: 'high', label: 'Alta' },
+    { value: 'media', label: 'Media' },
+    { value: 'low', label: 'Baja' },
+  ];
+
   const downloadTemplate = () => {
     const headers = ['CODIGO', 'NOMBRE', 'TIPO', 'UBICACION', 'ESTADO', 'MODELO', 'SERIE', 'CRITICIDAD'];
     const rows = [
@@ -99,9 +134,9 @@ export default function EquiposPage() {
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <h1 className="text-3xl font-bold">Maquinaria y equipos</h1>
-          <p className="text-muted-foreground">Catastro operativo con importación Excel y filtrado por criticidad.</p>
+          <p className="text-muted-foreground">Catastro operativo con importacion Excel y filtrado por criticidad.</p>
           <p className="mt-2 text-sm text-muted-foreground">
-            La reimportación actualiza por CÓDIGO normalizado para evitar duplicados por mayúsculas, espacios o variantes de formato.
+            La reimportacion actualiza por codigo normalizado para evitar duplicados por mayusculas, espacios o variantes de formato.
           </p>
         </div>
         <div className="flex gap-2">
@@ -124,7 +159,7 @@ export default function EquiposPage() {
 
       <Card className="border-border/70 bg-card/80">
         <CardHeader>
-          <CardTitle>Importación operativa de equipos</CardTitle>
+          <CardTitle>Importacion operativa de equipos</CardTitle>
           <CardDescription>
             La carga masiva se ejecuta desde la ruta dedicada para mantener esta vista enfocada en consulta, filtros y seguimiento.
           </CardDescription>
@@ -162,7 +197,7 @@ export default function EquiposPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">En mantención</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground">En mantencion</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{summary.maintenance || 0}</div>
@@ -190,31 +225,26 @@ export default function EquiposPage() {
             />
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant={status === '' ? 'default' : 'outline'} size="sm" onClick={() => setStatus('')}>
-              Todos
-            </Button>
-            {['active', 'maintenance', 'inactive'].map((value) => (
-              <Button key={value} variant={status === value ? 'default' : 'outline'} size="sm" onClick={() => setStatus(value)}>
-                {value}
+            {statusOptions.map((option) => (
+              <Button
+                key={option.value || 'all'}
+                variant={status === option.value ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setStatus(option.value)}
+              >
+                {option.label}
               </Button>
             ))}
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button
-              variant={criticality === '' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setCriticality('')}
-            >
-              Todas las criticidades
-            </Button>
-            {['critical', 'high', 'media', 'low'].map((value) => (
+            {criticalityOptions.map((option) => (
               <Button
-                key={value}
-                variant={criticality === value ? 'default' : 'outline'}
+                key={option.value || 'all-criticality'}
+                variant={criticality === option.value ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setCriticality(value)}
+                onClick={() => setCriticality(option.value)}
               >
-                {value}
+                {option.label}
               </Button>
             ))}
           </div>
@@ -232,17 +262,27 @@ export default function EquiposPage() {
                     <h3 className="font-semibold">{item.assetName || 'Sin nombre'}</h3>
                   </div>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    {item.assetCode || 'Sin código'} · {item.assetType || 'equipment'}
+                    {item.assetCode || 'Sin codigo'} · {item.assetType || 'equipment'}
                   </p>
                   <div className="mt-3 flex flex-wrap gap-2">
-                    <Badge variant="outline">{item.status || 'active'}</Badge>
-                    <Badge variant="outline">{item.criticality || 'media'}</Badge>
+                    <Badge variant="outline">{statusLabel(item.status || 'active')}</Badge>
+                    <Badge variant="outline">{criticalityLabel(item.criticality || 'media')}</Badge>
                     {item.location ? <Badge variant="outline">{item.location}</Badge> : null}
                   </div>
                   <p className="mt-2 text-sm text-muted-foreground">
                     {item.model || 'Sin modelo'} · {item.manufacturer || 'Sin fabricante'}
                   </p>
                 </div>
+                {item.id ? (
+                  <div className="flex flex-col gap-2">
+                    <Button asChild size="sm" variant="outline">
+                      <Link href={`/dashboard/mantenimiento/vehiculos/${item.id}/ficha`}>Ver ficha</Link>
+                    </Button>
+                    <Button asChild size="sm" variant="outline">
+                      <Link href={`/dashboard/mantenimiento/vehiculos/${item.id}/qr`}>Ver QR</Link>
+                    </Button>
+                  </div>
+                ) : null}
               </div>
             </CardContent>
           </Card>

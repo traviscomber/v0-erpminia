@@ -26,7 +26,7 @@ export function CategoryFilter({ categories, selectedCategory, onCategoryChange 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <p className="text-xs font-medium text-muted-foreground">
-            {categories.length} categorías · {totalItems.toLocaleString()} items
+            {categories.length} categorias · {totalItems.toLocaleString()} items
           </p>
           {selectedCategory && (
             <p className="text-xs text-muted-foreground">
@@ -82,7 +82,7 @@ export function CategoryFilter({ categories, selectedCategory, onCategoryChange 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-xs text-muted-foreground">
-        <span>{categories.length} categorías</span>
+        <span>{categories.length} categorias</span>
         {selectedCategory && (
           <span className="font-medium text-primary">Filtrado: {selectedCategory}</span>
         )}
@@ -97,15 +97,15 @@ export function CategoryFilter({ categories, selectedCategory, onCategoryChange 
             )}
           >
             <span className="truncate">
-              {selectedCategory || 'Selecciona una categoría...'}
+              {selectedCategory || 'Selecciona una categoria...'}
             </span>
             <ChevronDown className={cn('ml-2 h-4 w-4 shrink-0 transition-transform', open && 'rotate-180')} />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-full p-0" align="start">
           <Command>
-            <CommandInput placeholder="Buscar categoría..." className="text-sm" />
-            <CommandEmpty className="py-6 text-center text-sm">No se encontraron categorías.</CommandEmpty>
+            <CommandInput placeholder="Buscar categoria..." className="text-sm" />
+            <CommandEmpty className="py-6 text-center text-sm">No se encontraron categorias.</CommandEmpty>
             <CommandGroup className="max-h-80 overflow-y-auto">
               <CommandItem onSelect={() => { onCategoryChange(''); setOpen(false); }} className="cursor-pointer">
                 <Check className={cn('mr-2 h-4 w-4', selectedCategory === '' ? 'opacity-100' : 'opacity-0')} />

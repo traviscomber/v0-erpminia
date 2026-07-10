@@ -1,5 +1,6 @@
 import useSWR from 'swr';
 import { useState, useMemo } from 'react';
+import { normalizeText } from '@/lib/bodega-normalization';
 
 type KPI = { date: string; production_tons: number; equipment_uptime: number; safety_incidents: number; environmental_compliance: number; workforce_efficiency: number; };
 type Orden = {
@@ -79,8 +80,33 @@ export interface BodegaCategory {
 
 export function useBodegaCategories() {
   const { data, error, isLoading } = useSWR('/api/bodega/categories', fetcher);
+  const categories = useMemo(() => {
+    const raw = Array.isArray(data?.categories) ? (data.categories as BodegaCategory[]) : [];
+    const grouped = new Map<string, BodegaCategory>();
+
+    for (const category of raw) {
+      const key = normalizeText(category.label);
+      const current = grouped.get(key);
+      if (current) {
+        grouped.set(key, {
+          ...current,
+          count: (current.count || 0) + (category.count || 0),
+          total_stock: (current.total_stock || 0) + (category.total_stock || 0),
+          low_stock: (current.low_stock || 0) + (category.low_stock || 0),
+        });
+        continue;
+      }
+
+      grouped.set(key, {
+        ...category,
+        label: category.label.trim(),
+      });
+    }
+
+    return Array.from(grouped.values());
+  }, [data]);
   return {
-    categories: (data?.categories || []) as BodegaCategory[],
+    categories,
     error,
     isLoading,
   };

@@ -50,7 +50,7 @@ const normalizeCount = (payload: ListResponse | unknown): number => {
 const modules = [
   {
     title: 'Documentos HSE',
-    description: 'Políticas, procedimientos, instructivos y programas de seguridad.',
+    description: 'Politicas, procedimientos, instructivos y programas de seguridad.',
     href: '/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse',
     icon: FileText,
     color: 'text-primary',
@@ -58,7 +58,7 @@ const modules = [
   },
   {
     title: 'Capacitaciones',
-    description: 'Gestión de cursos, entrenamientos y certificaciones del personal.',
+    description: 'Gestion de cursos, entrenamientos y certificaciones del personal.',
     href: '/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones',
     icon: GraduationCap,
     color: 'text-secondary',
@@ -66,7 +66,7 @@ const modules = [
   },
   {
     title: 'Elementos de EPP',
-    description: 'Catálogo maestro, asignaciones y control de equipos de protección.',
+    description: 'Catalogo maestro, asignaciones y control de equipos de proteccion.',
     href: '/dashboard/sostenibilidad/prevencion-riesgos/epp',
     icon: HardHat,
     color: 'text-primary',
@@ -74,7 +74,7 @@ const modules = [
   },
   {
     title: 'No conformidades',
-    description: 'Registro, clasificación y trazabilidad de hallazgos preventivos.',
+    description: 'Registro, clasificacion y trazabilidad de hallazgos preventivos.',
     href: '/dashboard/sostenibilidad/prevencion-riesgos/no-conformidades',
     icon: AlertTriangle,
     color: 'text-destructive',
@@ -89,7 +89,7 @@ const modules = [
     bgColor: 'bg-primary/10',
   },
   {
-    title: 'Indicadores de prevención',
+    title: 'Indicadores de prevencion',
     description: 'Indicadores de seguridad y tendencias operacionales.',
     href: '/dashboard/sostenibilidad/prevencion-riesgos/kpi',
     icon: Activity,
@@ -98,7 +98,7 @@ const modules = [
   },
   {
     title: 'Inspecciones',
-    description: 'Planificación, ejecución y seguimiento de inspecciones de seguridad.',
+    description: 'Planificacion, ejecucion y seguimiento de inspecciones de seguridad.',
     href: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones',
     icon: ClipboardCheck,
     color: 'text-muted-foreground',
@@ -114,7 +114,7 @@ const modules = [
   },
   {
     title: 'Carpeta de Arranque',
-    description: 'Validación de documentos de empresas contratistas y subcontratistas.',
+    description: 'Validacion de documentos de empresas contratistas y subcontratistas.',
     href: '/dashboard/sostenibilidad/prevencion-riesgos/carpeta-arranque',
     icon: FolderOpen,
     color: 'text-primary',
@@ -158,7 +158,7 @@ export default function PrevencionRiesgosPage() {
     Inspecciones: inspectionCount,
     'Inspecciones externas': inspectionCount,
     'Carpeta de Arranque': documentCount,
-    'Indicadores de prevención': Math.max(
+    'Indicadores de prevencion': Math.max(
       documentCount,
       trainingCount,
       eppCount,
@@ -181,10 +181,8 @@ export default function PrevencionRiesgosPage() {
                 Datos reales
               </Badge>
             </div>
-            <h1 className="text-2xl font-bold">Prevención de Riesgos</h1>
-            <p className="text-muted-foreground">
-              Gestión integral de seguridad y salud ocupacional dentro de Sostenibilidad.
-            </p>
+            <h1 className="text-2xl font-bold">Prevencion de Riesgos</h1>
+            <p className="text-muted-foreground">Gestion integral de seguridad y salud ocupacional dentro de Sostenibilidad.</p>
           </div>
         </div>
       </div>
@@ -197,7 +195,7 @@ export default function PrevencionRiesgosPage() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-foreground">{card.value}</div>
-              <p className="mt-2 text-xs text-muted-foreground">Fuente conectada al módulo</p>
+              <p className="mt-2 text-xs text-muted-foreground">Fuente conectada al modulo</p>
             </CardContent>
           </Card>
         ))}

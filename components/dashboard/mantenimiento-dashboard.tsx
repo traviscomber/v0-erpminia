@@ -46,7 +46,7 @@ function statusLabel(status: string) {
 function priorityLabel(priority: string) {
   const labels: Record<string, string> = {
     urgente: 'Urgente',
-    critical: 'Crítica',
+    critical: 'Critica',
     alta: 'Alta',
     high: 'Alta',
     media: 'Media',
@@ -68,7 +68,7 @@ function assetStatusLabel(status: string) {
   const labels: Record<string, string> = {
     active: 'Operativo',
     inactive: 'Inactivo',
-    maintenance: 'En mantención',
+    maintenance: 'En mantencion',
     decommissioned: 'Baja',
   };
 

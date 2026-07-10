@@ -140,7 +140,7 @@ export default function SostenibilidadDashboard() {
 
     return [
       {
-        title: 'Prevención de Riesgos',
+        title: 'Prevencion de Riesgos',
         icon: <Shield className="w-8 h-8" />,
         colorClass: 'text-primary',
         bgClass: 'bg-primary/10',
@@ -218,7 +218,7 @@ export default function SostenibilidadDashboard() {
             status: makeStatus(ambienteCount),
           },
           {
-            name: 'Planes de acción',
+            name: 'Planes de accion',
             path: '/dashboard/sostenibilidad/medio-ambiente',
             importPath: '/dashboard/sostenibilidad/medio-ambiente/importar',
             count: overdueCas,
@@ -286,7 +286,7 @@ export default function SostenibilidadDashboard() {
   const topMetrics = [
     { label: 'Índice de cumplimiento', value: `${complianceScore}%`, helper: trendLabel, tone: complianceScore >= 85 ? 'text-secondary' : complianceScore >= 70 ? 'text-primary' : 'text-destructive' },
     { label: 'NC abiertas', value: `${openNcs}`, helper: `${overview.overview.total_ncs} totales`, tone: 'text-primary' },
-    { label: 'Acciones vencidas', value: `${overdueCas}`, helper: 'Requieren acción', tone: overdueCas > 0 ? 'text-destructive' : 'text-secondary' },
+    { label: 'Acciones vencidas', value: `${overdueCas}`, helper: 'Requieren accion', tone: overdueCas > 0 ? 'text-destructive' : 'text-secondary' },
     { label: 'Inspecciones cerradas', value: `${inspeccionesCount}`, helper: 'Fuente real', tone: 'text-secondary' },
     { label: 'Documentos HSE', value: `${docCount}`, helper: 'En el módulo', tone: 'text-primary' },
   ];
@@ -305,7 +305,7 @@ export default function SostenibilidadDashboard() {
           </div>
           <h1 className="text-4xl font-bold text-foreground">Departamento de Sostenibilidad</h1>
           <p className="mt-2 max-w-3xl text-muted-foreground">
-            Gestión integrada de Prevención de Riesgos, Medio Ambiente, Comunidades y Proyectos con datos operativos reales.
+            Gestion integrada de Prevencion de Riesgos, Medio Ambiente, Comunidades y Proyectos con datos operativos reales.
           </p>
         </div>
       </div>
@@ -328,10 +328,10 @@ export default function SostenibilidadDashboard() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-xl">
             <Upload className="h-5 w-5 text-primary" />
-            Cargas rápidas por Excel
+            Cargas rapidas por Excel
           </CardTitle>
           <CardDescription>
-            Entra directo a los módulos que ya permiten importar o actualizar datos desde archivos.
+            Entra directo a los modulos que ya permiten importar o actualizar datos desde archivos.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
