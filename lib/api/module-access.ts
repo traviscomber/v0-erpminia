@@ -24,12 +24,41 @@ export const MODULE_KEYS = {
   HSE_RIESGOS: 'hse_riesgos',
   HSE_INVESTIGACIONES: 'hse_investigaciones',
   HSE_CAPACITACIONES: 'hse_capacitaciones',
+  HSE_TABLERO: 'hse_tablero',
+  HSE_DOCUMENTOS_EXTRA: 'hse_documentos_extra',
   // Contratos actions
   CONTRATOS_SOLICITAR_LINK: 'contratos_solicitar_link',
   CONTRATOS_SUBIR_INFO: 'contratos_subir_info',
   CONTRATOS_APROBAR: 'contratos_aprobar',
   CONTRATOS_AUTORIZAR: 'contratos_autorizar',
   CONTRATOS_VISUALIZACION: 'contratos_visualizacion',
+  // Sostenibilidad
+  SOS_TABLERO: 'sos_tablero',
+  SOS_MEDIO_AMBIENTE: 'sos_medio_ambiente',
+  SOS_COMUNIDADES: 'sos_comunidades',
+  SOS_DOCUMENTOS: 'sos_documentos',
+  SOS_CALENDARIO: 'sos_calendario',
+  // Mantenimiento
+  MANT_OPERACIONES: 'mant_operaciones',
+  MANT_GERENCIAL: 'mant_gerencial',
+  MANT_RECURSOS: 'mant_recursos',
+  MANT_DOCUMENTOS: 'mant_documentos',
+  // Bodega
+  BODEGA_INVENTARIO: 'bodega_inventario',
+  BODEGA_DOCUMENTOS: 'bodega_documentos',
+  // Finanzas
+  FIN_COMPRAS: 'fin_compras',
+  FIN_FINANZAS: 'fin_finanzas',
+  FIN_REPORTES: 'fin_reportes',
+  // Legal
+  LEGAL_MODULO: 'legal_modulo',
+  LEGAL_CONTRATOS: 'legal_contratos',
+  LEGAL_EECC: 'legal_eecc',
+  // Producción / Core
+  PROD_OPERACIONES: 'prod_operaciones',
+  PROD_TELEMETRIA: 'prod_telemetria',
+  CORE_ALERTAS: 'core_alertas',
+  CORE_CENTROS_COSTOS: 'core_centros_costos',
 } as const;
 
 export type ModuleKey = (typeof MODULE_KEYS)[keyof typeof MODULE_KEYS];

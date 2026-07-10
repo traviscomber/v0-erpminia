@@ -44,18 +44,64 @@ import { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useModuleAccess } from '@/hooks/use-module-access';
 
-// Maps sidebar item labels to their HSE role-matrix module key.
-// Items not listed here are not governed by the cargo matrix.
+// Maps every sidebar item label to its role-matrix module key.
+// Items not listed here are not governed by the cargo matrix (Admin/Ayuda).
 const itemModuleKey: Record<string, string> = {
-  'Prevención de Riesgos': 'hse_riesgos',
-  'Documentos Prevención': 'hse_documentacion',
-  'Documentos HSE': 'hse_documentacion',
-  Capacitaciones: 'hse_capacitaciones',
-  'Artículos EPP': 'hse_epp',
-  'KPI Prevención': 'hse_kpls',
-  'Gestión Documental': 'contratos_visualizacion',
-  Contratos: 'contratos_visualizacion',
-  'Empresas Contratistas (EECC)': 'contratos_visualizacion',
+  // Core
+  'Alertas':                              'core_alertas',
+  'Centros de Costos':                    'core_centros_costos',
+  // Producción
+  'Producción':                           'prod_operaciones',
+  'Telemetría de Sensores':               'prod_telemetria',
+  // Mantenimiento
+  'Mantenimiento':                        'mant_operaciones',
+  'Mantenimiento por Centro de Costo':    'mant_operaciones',
+  'Bitácora de Mantenimiento':            'mant_operaciones',
+  'Planificación Preventiva':             'mant_operaciones',
+  'Órdenes de Trabajo':                   'mant_operaciones',
+  'Dashboard Gerencial Mantención':       'mant_gerencial',
+  'Panel Móvil Mantención':               'mant_gerencial',
+  'Indicadores de Mantención':            'mant_gerencial',
+  'Personal Mantención':                  'mant_recursos',
+  'Combustible':                          'mant_recursos',
+  'Costo por Equipo':                     'mant_recursos',
+  'Gestión de Neumáticos':                'mant_recursos',
+  'Componentes Mayores':                  'mant_recursos',
+  'Documentos Mantenimiento':             'mant_documentos',
+  'Maquinaria y Vehículos':               'mant_documentos',
+  // Bodega
+  'Bodega e Inventario':                  'bodega_inventario',
+  'Documentos Bodega':                    'bodega_documentos',
+  'Importar Existencias':                 'bodega_inventario',
+  // Sostenibilidad — HSEC
+  'Tablero Sostenibilidad':               'sos_tablero',
+  'Prevención de Riesgos':               'hse_riesgos',
+  'Documentos Prevención':               'hse_documentacion',
+  'Capacitaciones':                       'hse_capacitaciones',
+  'Artículos EPP':                        'hse_epp',
+  'KPI Prevención':                       'hse_kpls',
+  'Inspecciones':                         'sos_calendario',
+  'Carpeta de Arranque':                  'sos_calendario',
+  'Calendario':                           'sos_calendario',
+  'Medio Ambiente':                       'sos_medio_ambiente',
+  'Comunidades':                          'sos_comunidades',
+  'Flujo Documental':                     'sos_documentos',
+  'Reportería Documentos':                'sos_documentos',
+  // HSE (sección separada)
+  'HSE':                                  'hse_tablero',
+  'Documentos HSE':                       'hse_documentos_extra',
+  // Finanzas
+  'Compras y OCs':                        'fin_compras',
+  'Documentos Compras':                   'fin_compras',
+  'Finanzas y Presupuesto':               'fin_finanzas',
+  'Documentos Finanzas':                  'fin_finanzas',
+  'Reportes y Análisis':                  'fin_reportes',
+  // Legal / Contratos
+  'Módulo Legal':                         'legal_modulo',
+  'Documentos Legales':                   'legal_modulo',
+  'Gestión Documental':                   'legal_contratos',
+  'Contratos':                            'legal_contratos',
+  'Empresas Contratistas (EECC)':         'legal_eecc',
 };
 
 const rolePermissions: Record<string, string[]> = {
