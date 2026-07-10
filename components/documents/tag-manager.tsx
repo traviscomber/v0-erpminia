@@ -43,7 +43,7 @@ export function TagManager({
     userTags: [],
   });
   const [newTag, setNewTag] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -88,7 +88,7 @@ export function TagManager({
   };
 
   const handleSave = async () => {
-    setLoading(true);
+    setCargando(true);
     setError(null);
     try {
       const res = await fetch('/api/documents/update-tags', {
@@ -104,18 +104,18 @@ export function TagManager({
 
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error || 'La actualización falló');
+        throw new Error(err.error || 'La actualizaciÃ³n fallÃ³');
       }
 
       toast.success('Etiquetas actualizadas correctamente');
       onTagsUpdated(tags);
       onOpenChange(false);
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'La actualización falló';
+      const errorMsg = err instanceof Error ? err.message : 'La actualizaciÃ³n fallÃ³';
       setError(errorMsg);
       console.error('[v0] Update tags error:', err);
     } finally {
-      setLoading(false);
+      setCargando(false);
     }
   };
 
@@ -202,14 +202,14 @@ export function TagManager({
           <div className="flex gap-2 pt-4">
             <Button
               onClick={handleSave}
-              disabled={loading || JSON.stringify(tags) === JSON.stringify(currentTags)}
+              disabled={cargando || JSON.stringify(tags) === JSON.stringify(currentTags)}
               className="gap-2"
             >
               <Save className="h-4 w-4" />
-              {loading ? 'Guardando...' : 'Guardar etiquetas'}
+              {cargando ? 'Guardando...' : 'Save etiquetas'}
             </Button>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
+              Cancelarar
             </Button>
           </div>
         </div>

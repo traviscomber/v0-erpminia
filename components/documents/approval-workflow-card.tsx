@@ -225,7 +225,7 @@ export function ApprovalWorkflowCard({
                           onClick={() => setRejectingStepId(null)}
                           disabled={isLoading || approvingStepId !== null}
                         >
-                          Cancelar
+                          Cancelarar
                         </Button>
                       </>
                     ) : (

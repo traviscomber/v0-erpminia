@@ -203,3 +203,6 @@ export function DocumentViewer({ open, onOpenChange, document }: DocumentViewerP
     </Dialog>
   );
 }
+
+export { PDFViewer as PDFVerer };
+export { DocumentViewer as DocumentVerer };

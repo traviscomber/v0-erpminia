@@ -132,7 +132,7 @@ export function AssetDetailView() {
     }
   }, []);
 
-  const { data: historyData, error: historyError, isLoading: historyLoading, mutate: mutateHistory } = useSWR(
+  const { data: historyData, error: historyError, isLoading: historyCargando, mutate: mutateHistory } = useSWR(
     assetId ? `/api/maintenance/assets/${assetId}/history` : null,
     fetcher,
     {
@@ -140,7 +140,7 @@ export function AssetDetailView() {
     },
   );
 
-  const { data: workOrderData, error: workOrderError, isLoading: workOrdersLoading, mutate: mutateWorkOrders } = useSWR(
+  const { data: workOrderData, error: workOrderError, isLoading: workOrdersCargando, mutate: mutateWorkOrders } = useSWR(
     '/api/maintenance/work-orders',
     fetcher,
     {
@@ -188,7 +188,7 @@ export function AssetDetailView() {
     }
   };
 
-  const isLoading = historyLoading || workOrdersLoading;
+  const isLoading = historyCargando || workOrdersCargando;
 
   if (isLoading) {
     return <div className="text-muted-foreground">Cargando informacion del activo...</div>;
@@ -210,7 +210,7 @@ export function AssetDetailView() {
           <p className="mt-2 text-muted-foreground">No pudimos ubicar el equipo solicitado en la base real.</p>
         </div>
         <Button variant="outline" onClick={() => router.push('/dashboard/mantenimiento/vehiculos')}>
-          Volver a vehículos
+          Volver a vehÃ­culos
         </Button>
       </div>
     );
@@ -221,7 +221,7 @@ export function AssetDetailView() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{asset.asset_name || 'Activo'}</h1>
-          <p className="mt-2 text-muted-foreground">Vista real del activo con su historial de mantención, QR y órdenes.</p>
+          <p className="mt-2 text-muted-foreground">Vista real del activo con su historial de mantenciÃ³n, QR y Ã³rdenes.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild className="gap-2">
@@ -233,7 +233,7 @@ export function AssetDetailView() {
           <Button asChild variant="outline" className="gap-2">
             <Link href="/dashboard/mantenimiento/movil">
               <Smartphone className="h-4 w-4" />
-              Vista móvil
+              Vista mÃ³vil
             </Link>
           </Button>
           <Button asChild variant="outline" className="gap-2">
@@ -265,7 +265,7 @@ export function AssetDetailView() {
               </Link>
             </Button>
             <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/telemetria">
+              <Link href="/dashboard/telemetría">
                 Telemetria
                 <ArrowRight className="h-4 w-4" />
               </Link>
@@ -283,7 +283,7 @@ export function AssetDetailView() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total órdenes</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Ã³rdenes</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{assetOrders.length}</div>
@@ -351,7 +351,7 @@ export function AssetDetailView() {
                 <Link href={`/dashboard/mantenimiento/vehiculos/${asset.id}/qr`}>Tarjeta QR</Link>
               </Button>
               <Button variant="outline" asChild>
-                <Link href={`/dashboard/mantenimiento/vehiculos/${asset.id}/arbol`}>Ver árbol de fallas</Link>
+                <Link href={`/dashboard/mantenimiento/vehiculos/${asset.id}/arbol`}>Ver Ã¡rbol de fallas</Link>
               </Button>
               <Button variant="outline" asChild>
                 <Link href={`/dashboard/work-orders/create?assetId=${asset.id}`}>Nueva OT</Link>
@@ -395,17 +395,17 @@ export function AssetDetailView() {
               <p className="font-semibold">{machineFamily || 'Sin familia'}</p>
             </div>
             <div>
-              <p className="text-muted-foreground">Horómetro técnico</p>
+              <p className="text-muted-foreground">HorÃ³metro tÃ©cnico</p>
               <p className="font-semibold">{asset.mtbf_hours ? `${asset.mtbf_hours} h` : 'Sin lectura'}</p>
             </div>
             <div>
-              <p className="text-muted-foreground">Última mantención</p>
+              <p className="text-muted-foreground">Ãšltima mantenciÃ³n</p>
               <p className="font-semibold">
                 {latestHistory?.created_at ? new Date(latestHistory.created_at).toLocaleDateString('es-CL') : '-'}
               </p>
             </div>
             <div>
-              <p className="text-muted-foreground">Último técnico</p>
+              <p className="text-muted-foreground">Ãšltimo tÃ©cnico</p>
               <p className="font-semibold">{latestHistory?.performed_by_name || '-'}</p>
             </div>
             <div>
@@ -437,7 +437,7 @@ export function AssetDetailView() {
                 <Link href="/dashboard/mantenimiento/documentos">Documentos</Link>
               </Button>
               <Button size="sm" variant="outline" asChild>
-                <Link href="/dashboard/mantenimiento/bitacora">Bitácora</Link>
+                <Link href="/dashboard/mantenimiento/bitacora">BitÃ¡cora</Link>
               </Button>
             </div>
           </div>
@@ -446,7 +446,7 @@ export function AssetDetailView() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Máquinas relacionadas</CardTitle>
+          <CardTitle>MÃ¡quinas relacionadas</CardTitle>
           <CardDescription>
             {machineFamily
               ? `Modelos detectados en la familia ${machineFamily}`
@@ -471,7 +471,7 @@ export function AssetDetailView() {
             </div>
           ) : (
             <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-              Todavía no hay máquinas relacionadas para mostrar.
+              TodavÃ­a no hay mÃ¡quinas relacionadas para mostrar.
             </div>
           )}
         </CardContent>
@@ -479,14 +479,14 @@ export function AssetDetailView() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Historial de mantención</CardTitle>
+          <CardTitle>Historial de mantenciÃ³n</CardTitle>
           <CardDescription>Registro real de mantenciones y repuestos instalados</CardDescription>
         </CardHeader>
         <CardContent>
           {history.length === 0 ? (
             <div className="flex items-center gap-2 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
               <AlertCircle className="h-4 w-4" />
-              No hay historial de mantención registrado para este equipo.
+              No hay historial de mantenciÃ³n registrado para este equipo.
             </div>
           ) : (
             <div className="space-y-3">
@@ -537,14 +537,14 @@ export function AssetDetailView() {
 
       <Card className="lg:col-span-3">
         <CardHeader>
-          <CardTitle>Órdenes relacionadas</CardTitle>
+          <CardTitle>Ã“rdenes relacionadas</CardTitle>
           <CardDescription>Historial operativo del activo con estados reales</CardDescription>
         </CardHeader>
         <CardContent>
           {assetOrders.length === 0 ? (
             <div className="flex items-center gap-2 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
               <AlertCircle className="h-4 w-4" />
-              No hay órdenes de trabajo asociadas a este activo.
+              No hay Ã³rdenes de trabajo asociadas a este activo.
             </div>
           ) : (
             <div className="space-y-3">
@@ -600,3 +600,5 @@ export function AssetDetailView() {
     </div>
   );
 }
+
+export { AssetDetailView as AssetDetailVer };

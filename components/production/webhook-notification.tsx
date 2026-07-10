@@ -16,11 +16,11 @@ interface WebhookConfig {
 
 interface WebhookNotificationProps {
   webhooks: WebhookConfig[];
-  onEdit: (webhook: WebhookConfig) => void;
+  onEditar: (webhook: WebhookConfig) => void;
   onDelete: (webhook_id: string) => void;
 }
 
-export function WebhookNotification({ webhooks, onEdit, onDelete }: WebhookNotificationProps) {
+export function WebhookNotification({ webhooks, onEditar, onDelete }: WebhookNotificationProps) {
   const eventTypeLabels = {
     alert: 'Alertas de produccion',
     maintenance: 'Ordenes de mantencion',
@@ -107,8 +107,8 @@ export function WebhookNotification({ webhooks, onEdit, onDelete }: WebhookNotif
                   </p>
                 </div>
                 <div className="flex gap-1">
-                  {onEdit && (
-                    <Button size="sm" variant="ghost" onClick={() => onEdit(webhook)}>
+                  {onEditar && (
+                    <Button size="sm" variant="ghost" onClick={() => onEditar(webhook)}>
                       <Edit2 className="h-4 w-4" />
                     </Button>
                   )}

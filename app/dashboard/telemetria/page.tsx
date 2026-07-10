@@ -10,7 +10,7 @@ const TelemetryExecutiveSummary = dynamic(
   () => import('@/components/telemetry/telemetry-executive-summary').then((mod) => mod.TelemetryExecutiveSummary),
   {
     ssr: false,
-    loading: () => <div className="text-sm text-muted-foreground">Cargando resumen de telemetria...</div>,
+    loading: () => <div className="text-sm text-muted-foreground">Cargando resumen de telemetría...</div>,
   },
 );
 
@@ -60,7 +60,7 @@ export default function TelemetriaPage() {
         <CardHeader className="pb-2">
           <CardTitle className="text-sm">Modo estable</CardTitle>
           <CardDescription>
-            La telemetria sigue operando con datos historicos, lecturas agregadas y consultas por API sin depender de
+            La telemetría sigue operando con datos historicos, lecturas agregadas y consultas por API sin depender de
             websockets.
           </CardDescription>
         </CardHeader>
@@ -150,7 +150,7 @@ export default function TelemetriaPage() {
               Integracion LAN
             </CardTitle>
             <Button asChild variant="outline" size="sm" className="gap-2">
-              <Link href="/dashboard/telemetria/integracion">
+              <Link href="/dashboard/telemetría/integracion">
                 Ver configuracion
                 <ArrowRight className="h-4 w-4" />
               </Link>

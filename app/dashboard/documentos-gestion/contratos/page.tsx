@@ -576,7 +576,7 @@ export default function ContratosPage() {
 
                 <div className="flex items-center justify-end gap-2 pt-2">
                   <Button type="button" variant="outline" onClick={() => setShowNewContractModal(false)}>
-                    Cancelar
+                    Cancelarar
                   </Button>
                   <Button type="submit" disabled={submitting} className="bg-[var(--brand-naranja)] text-white hover:bg-[var(--brand-naranja)]/90">
                     {submitting ? 'Guardando...' : 'Crear contrato'}

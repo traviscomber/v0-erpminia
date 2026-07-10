@@ -119,8 +119,8 @@ export function MaintenanceMobilePanel() {
   const [timeNotes, setTimeNotes] = useState('');
   const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
   const [evidenceLabel, setEvidenceLabel] = useState('');
-  const [uploadingTime, setUploadingTime] = useState(false);
-  const [uploadingEvidence, setUploadingEvidence] = useState(false);
+  const [upcargandoTime, setUpcargandoTime] = useState(false);
+  const [upcargandoEvidence, setUpcargandoEvidence] = useState(false);
 
   const currentOrder = workOrders.find((order) => order.id === selectedOtId) || openOrders[0] || workOrders[0] || null;
 
@@ -164,7 +164,7 @@ export function MaintenanceMobilePanel() {
       return;
     }
 
-    setUploadingTime(true);
+    setUpcargandoTime(true);
     try {
       const response = await fetch('/api/mantenimiento/tiempo', {
         method: 'POST',
@@ -187,7 +187,7 @@ export function MaintenanceMobilePanel() {
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'No se pudo registrar el tiempo');
     } finally {
-      setUploadingTime(false);
+      setUpcargandoTime(false);
     }
   };
 
@@ -202,7 +202,7 @@ export function MaintenanceMobilePanel() {
       return;
     }
 
-    setUploadingEvidence(true);
+    setUpcargandoEvidence(true);
     try {
       const response = await fetch('/api/mantenimiento/evidencia', {
         method: 'POST',
@@ -239,7 +239,7 @@ export function MaintenanceMobilePanel() {
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'No se pudo subir la evidencia');
     } finally {
-      setUploadingEvidence(false);
+      setUpcargandoEvidence(false);
     }
   };
 
@@ -412,8 +412,8 @@ export function MaintenanceMobilePanel() {
               <Input id="hours" type="number" step="0.1" min="0" value={hoursWorked} onChange={(event) => setHoursWorked(event.target.value)} />
             </div>
             <div className="flex items-end">
-              <Button type="button" className="w-full" onClick={handleRegisterTime} disabled={uploadingTime}>
-                {uploadingTime ? 'Guardando...' : 'Registrar horas'}
+              <Button type="button" className="w-full" onClick={handleRegisterTime} disabled={upcargandoTime}>
+                {upcargandoTime ? 'Guardando...' : 'Registrar horas'}
               </Button>
             </div>
           </div>
@@ -472,9 +472,9 @@ export function MaintenanceMobilePanel() {
               onChange={(event) => setEvidenceFile(event.target.files?.[0] || null)}
             />
           </div>
-          <Button type="button" variant="outline" className="w-full gap-2" onClick={handleUploadEvidence} disabled={uploadingEvidence}>
+          <Button type="button" variant="outline" className="w-full gap-2" onClick={handleUploadEvidence} disabled={upcargandoEvidence}>
             <Upload className="h-4 w-4" />
-            {uploadingEvidence ? 'Subiendo...' : 'Subir evidencia'}
+            {upcargandoEvidence ? 'Subiendo...' : 'Subir evidencia'}
           </Button>
 
           {evidenceEntries.length > 0 ? (

@@ -49,7 +49,7 @@ export function TelemetryDashboard({ equipmentId, equipmentName }: TelemetryDash
   );
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Cargando telemetria segura...</div>;
+    return <div className="text-sm text-muted-foreground">Cargando telemetría segura...</div>;
   }
 
   if (error) {

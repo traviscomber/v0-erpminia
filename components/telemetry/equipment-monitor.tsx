@@ -63,7 +63,7 @@ function normalizeStatus(status: string | null | undefined) {
   const value = String(status || '').trim().toLowerCase();
   if (['operational', 'operativo', 'activo', 'active', 'running'].includes(value)) return 'operational';
   if (['warning', 'alerta', 'alarma'].includes(value)) return 'warning';
-  if (['critical', 'critico', 'crítico'].includes(value)) return 'critical';
+  if (['critical', 'critico', 'crÃ­tico'].includes(value)) return 'critical';
   if (['offline', 'inactivo', 'inactive', 'fuera_servicio', 'fuera_de_servicio'].includes(value)) return 'offline';
   return 'operational';
 }
@@ -128,7 +128,7 @@ export function EquipmentMonitor() {
   });
 
   if (equipment.length === 0) {
-    return <div className="text-muted-foreground">No hay equipos con telemetria disponible.</div>;
+    return <div className="text-muted-foreground">No hay equipos con telemetría disponible.</div>;
   }
 
   const summary = equipment.reduce(

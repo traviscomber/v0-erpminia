@@ -20,7 +20,7 @@ interface DocumentStats {
 
 export default function DocumentosMantenimientoPage() {
   const [documents, setDocuments] = useState<Document[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [cargando, setCargando] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
   const [reviewOpen, setReviewOpen] = useState(false);
@@ -32,7 +32,7 @@ export default function DocumentosMantenimientoPage() {
   });
 
   const loadDocuments = async () => {
-    setLoading(true);
+    setCargando(true);
     try {
       const response = await fetch('/api/documents/list?module=mantenimiento&category=documentos', {
         credentials: 'include',
@@ -50,7 +50,7 @@ export default function DocumentosMantenimientoPage() {
     } catch (error) {
       console.error('Error cargando documentos:', error);
     } finally {
-      setLoading(false);
+      setCargando(false);
     }
   };
 
@@ -113,7 +113,7 @@ export default function DocumentosMantenimientoPage() {
     }
   };
 
-  const handleView = (document: Document | string) => {
+  const handleVer = (document: Document | string) => {
     if (typeof document === 'string') {
       const doc = documents.find((d) => d.id === document);
       if (doc) setSelectedDoc(doc);
@@ -197,9 +197,9 @@ export default function DocumentosMantenimientoPage() {
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
-          <Button variant="outline" onClick={loadDocuments} disabled={loading}>
-            <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            {loading ? 'Actualizando...' : 'Recargar'}
+          <Button variant="outline" onClick={loadDocuments} disabled={cargando}>
+            <RefreshCw className={`mr-2 h-4 w-4 ${cargando ? 'animate-spin' : ''}`} />
+            {cargando ? 'Actualizando...' : 'Recargar'}
           </Button>
         </div>
       </div>
@@ -293,14 +293,14 @@ export default function DocumentosMantenimientoPage() {
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
-          <DocumentList documents={filteredDocuments} isLoading={loading} onView={handleView} onDelete={handleDelete} />
+          <DocumentList documents={filteredDocuments} isLoading={cargando} onView={handleVer} onDelete={handleDelete} />
         </TabsContent>
 
         <TabsContent value="vigentes" className="space-y-4">
           <DocumentList
             documents={filteredDocuments.filter((d) => d.status === 'active')}
-            isLoading={loading}
-            onView={handleView}
+            isLoading={cargando}
+            onView={handleVer}
             onDelete={handleDelete}
           />
         </TabsContent>
@@ -308,8 +308,8 @@ export default function DocumentosMantenimientoPage() {
         <TabsContent value="revision" className="space-y-4">
           <DocumentList
             documents={filteredDocuments.filter((d) => d.status === 'pending_l1' || d.status === 'pending_l2')}
-            isLoading={loading}
-            onView={handleView}
+            isLoading={cargando}
+            onView={handleVer}
             onDelete={handleDelete}
           />
         </TabsContent>

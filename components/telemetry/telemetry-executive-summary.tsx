@@ -72,11 +72,11 @@ export function TelemetryExecutiveSummary() {
   });
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Cargando resumen de telemetria...</div>;
+    return <div className="text-sm text-muted-foreground">Cargando resumen de telemetría...</div>;
   }
 
   if (error) {
-    return <div className="text-sm text-destructive">No fue posible cargar el resumen de telemetria.</div>;
+    return <div className="text-sm text-destructive">No fue posible cargar el resumen de telemetría.</div>;
   }
 
   const summary = data?.summary || {};
@@ -122,7 +122,7 @@ export function TelemetryExecutiveSummary() {
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Focos de telemetria</CardTitle>
+            <CardTitle>Focos de telemetría</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {criticalEquipment.length > 0 ? (

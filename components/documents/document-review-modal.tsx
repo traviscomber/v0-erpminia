@@ -70,7 +70,7 @@ export function DocumentReviewModal({ document, isOpen, onClose, onApprove, onRe
     }
   };
 
-  const handleClose = () => {
+  const handleCerrar = () => {
     setObservations('');
     setValidationError(null);
     setAction(null);
@@ -78,7 +78,7 @@ export function DocumentReviewModal({ document, isOpen, onClose, onApprove, onRe
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={handleCerrar}>
       <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Revisar documento</DialogTitle>
@@ -164,7 +164,7 @@ export function DocumentReviewModal({ document, isOpen, onClose, onApprove, onRe
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={handleClose} disabled={isSubmitting}>
+            <Button variant="outline" onClick={handleCerrar} disabled={isSubmitting}>
               <X className="mr-2 h-4 w-4" />
               Cerrar
             </Button>

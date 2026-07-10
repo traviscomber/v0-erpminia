@@ -21,7 +21,7 @@ const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
 const ALLOWED_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'];
 
 export function DocumentUploadModal({ open, onOpenChange, organizationId, onSuccess }: DocumentUploadModalProps) {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsCargando] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -68,7 +68,7 @@ export function DocumentUploadModal({ open, onOpenChange, organizationId, onSucc
       return;
     }
 
-    setIsLoading(true);
+    setIsCargando(true);
 
     try {
       const formData = new FormData();
@@ -100,7 +100,7 @@ export function DocumentUploadModal({ open, onOpenChange, organizationId, onSucc
       console.error('[DocumentUploadModal] Error:', error);
       toast.error(error instanceof Error ? error.message : 'Error al cargar documento');
     } finally {
-      setIsLoading(false);
+      setIsCargando(false);
     }
   };
 
@@ -198,7 +198,7 @@ export function DocumentUploadModal({ open, onOpenChange, organizationId, onSucc
 
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
-              Cancelar
+              Cancelarar
             </Button>
             <Button type="submit" className="bg-primary hover:bg-primary/90" disabled={isLoading || !file}>
               {isLoading ? (
