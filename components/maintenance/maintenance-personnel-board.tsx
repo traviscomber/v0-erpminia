@@ -249,7 +249,7 @@ export function MaintenancePersonnelBoard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/planificacion">
-                Planificacion
+                Planificación
                 <Wrench className="h-4 w-4" />
               </Link>
             </Button>

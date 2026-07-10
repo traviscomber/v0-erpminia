@@ -142,7 +142,7 @@ export function MaintenanceHistoryBoard() {
           </Button>
           <Button variant="outline" onClick={() => void mutate()} className="gap-2">
             <History className="h-4 w-4" />
-            Recargar bitacora
+            Recargar bitácora
           </Button>
           <Button asChild variant="outline" className="gap-2">
             <Link href="/dashboard/mantenimiento/vehiculos">
@@ -210,10 +210,10 @@ export function MaintenanceHistoryBoard() {
 
       {error ? (
         <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-          No fue posible cargar la bitacora real de mantenimiento.
+          No fue posible cargar la bitácora real de mantenimiento.
         </div>
       ) : isLoading ? (
-        <div className="text-sm text-muted-foreground">Cargando bitacora...</div>
+        <div className="text-sm text-muted-foreground">Cargando bitácora...</div>
       ) : groupedByAsset.length === 0 ? (
         <Card>
           <CardContent className="flex items-center gap-2 p-6 text-sm text-muted-foreground">

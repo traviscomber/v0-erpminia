@@ -100,16 +100,16 @@ export default function DocumentosGestionPage() {
   }
 
   if (isLoading) {
-    return <div className="text-gray-500">Cargando gestion documental...</div>;
+    return <div className="text-gray-500">Cargando gestión documental...</div>;
   }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Gestion documental</h1>
+          <h1 className="text-3xl font-bold">Gestión documental</h1>
           <p className="mt-1 text-muted-foreground">
-            Centraliza, revisa y organiza los documentos operativos en una sola vista, con alertas de revision y vencimiento.
+            Centraliza, revisa y organiza los documentos operativos en una sola vista, con alertas de revisión y vencimiento.
           </p>
         </div>
         <Button asChild className="gap-2 bg-[var(--brand-naranja)] hover:bg-[var(--brand-naranja)]/90">
@@ -139,7 +139,7 @@ export default function DocumentosGestionPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-[var(--secondary)]">{stats.pending}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Requieren revision</p>
+            <p className="mt-1 text-xs text-muted-foreground">Requieren revisión</p>
           </CardContent>
         </Card>
 
@@ -168,11 +168,11 @@ export default function DocumentosGestionPage() {
         <Card className="border-[var(--secondary)]/30 bg-[var(--secondary)]/5">
           <CardHeader>
             <CardTitle className="text-base">Resumen de control</CardTitle>
-            <CardDescription>Lectura rapida para supervision y aprobacion.</CardDescription>
+            <CardDescription>Lectura rápida para supervision y aprobación.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-lg border border-border bg-background/70 p-3">
-              <p className="text-xs text-muted-foreground">Pendientes de aprobacion</p>
+              <p className="text-xs text-muted-foreground">Pendientes de aprobación</p>
               <p className="text-2xl font-bold text-[var(--secondary)]">{stats.pending}</p>
             </div>
             <div className="rounded-lg border border-border bg-background/70 p-3">
@@ -228,7 +228,7 @@ export default function DocumentosGestionPage() {
               <Scale className="h-4 w-4 text-[var(--brand-naranja)]" />
               <span className="font-semibold">Contratos</span>
             </div>
-            <p className="mt-2 text-sm text-muted-foreground">Vigencia, revision y respaldo contractual.</p>
+            <p className="mt-2 text-sm text-muted-foreground">Vigencia, revisión y respaldo contractual.</p>
           </Link>
           <Link href="/dashboard/documentos-gestion/procedimientos" className="rounded-lg border border-border p-4 transition hover:bg-muted/50">
             <div className="flex items-center gap-2">
@@ -259,9 +259,9 @@ export default function DocumentosGestionPage() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-[var(--secondary)]" />
-              <CardTitle>Documentos pendientes de aprobacion</CardTitle>
+              <CardTitle>Documentos pendientes de aprobación</CardTitle>
             </div>
-            <CardDescription>{pendingApprovals.length} documentos requieren revision</CardDescription>
+            <CardDescription>{pendingApprovals.length} documentos requieren revisión</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {pendingApprovals.map((doc) => (

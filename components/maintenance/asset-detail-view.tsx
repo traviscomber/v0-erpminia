@@ -210,7 +210,7 @@ export function AssetDetailView() {
           <p className="mt-2 text-muted-foreground">No pudimos ubicar el equipo solicitado en la base real.</p>
         </div>
         <Button variant="outline" onClick={() => router.push('/dashboard/mantenimiento/vehiculos')}>
-          Volver a vehiculos
+          Volver a vehículos
         </Button>
       </div>
     );
@@ -221,7 +221,7 @@ export function AssetDetailView() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{asset.asset_name || 'Activo'}</h1>
-          <p className="mt-2 text-muted-foreground">Vista real del activo con su historial de mantencion, QR y ordenes.</p>
+          <p className="mt-2 text-muted-foreground">Vista real del activo con su historial de mantención, QR y ordenes.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild className="gap-2">
@@ -265,7 +265,7 @@ export function AssetDetailView() {
               </Link>
             </Button>
             <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/telemetría">
+              <Link href="/dashboard/telemetria">
                 Telemetria
                 <ArrowRight className="h-4 w-4" />
               </Link>
@@ -399,7 +399,7 @@ export function AssetDetailView() {
               <p className="font-semibold">{asset.mtbf_hours ? `${asset.mtbf_hours} h` : 'Sin lectura'}</p>
             </div>
             <div>
-              <p className="text-muted-foreground">Ultima mantencion</p>
+              <p className="text-muted-foreground">Ultima mantención</p>
               <p className="font-semibold">
                 {latestHistory?.created_at ? new Date(latestHistory.created_at).toLocaleDateString('es-CL') : '-'}
               </p>
@@ -418,7 +418,7 @@ export function AssetDetailView() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Trazabilidad rapida</CardTitle>
+          <CardTitle>Trazabilidad rápida</CardTitle>
           <CardDescription>Accesos utiles para terreno y supervision</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
@@ -479,14 +479,14 @@ export function AssetDetailView() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Historial de mantencion</CardTitle>
+          <CardTitle>Historial de mantención</CardTitle>
           <CardDescription>Registro real de mantenciones y repuestos instalados</CardDescription>
         </CardHeader>
         <CardContent>
           {history.length === 0 ? (
             <div className="flex items-center gap-2 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
               <AlertCircle className="h-4 w-4" />
-              No hay historial de mantencion registrado para este equipo.
+              No hay historial de mantención registrado para este equipo.
             </div>
           ) : (
             <div className="space-y-3">

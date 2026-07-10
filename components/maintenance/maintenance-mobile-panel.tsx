@@ -251,7 +251,7 @@ export function MaintenanceMobilePanel() {
   return (
     <div className="mx-auto max-w-md space-y-4 pb-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Panel movil de mantencion</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Panel movil de mantención</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Vista optimizada para terreno con OT reales, horas, evidencia y acceso rapido a la ficha del equipo.
         </p>
@@ -494,7 +494,7 @@ export function MaintenanceMobilePanel() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Acciones rapidas</CardTitle>
+          <CardTitle>Acciones rápidas</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-3">
           <Button asChild className="justify-between">
@@ -513,7 +513,7 @@ export function MaintenanceMobilePanel() {
           ) : null}
           <Button asChild variant="outline" className="justify-between">
             <Link href="/dashboard/mantenimiento/bitacora">
-              Ver bitacora
+              Ver bitácora
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
@@ -582,7 +582,7 @@ export function MaintenanceMobilePanel() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Personal de mantencion</CardTitle>
+          <CardTitle>Personal de mantención</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <div className="grid grid-cols-3 gap-3">
