@@ -127,7 +127,7 @@ export default function ReportesGestionDocumentalPage() {
           <Sparkles className="h-4 w-4 text-primary" />
           <span className="text-sm font-medium">Datos reales</span>
         </div>
-        <h1 className="text-3xl font-bold">Reportes de gestion documental</h1>
+        <h1 className="text-3xl font-bold">Reportes de gestión documental</h1>
         <p className="text-muted-foreground">
           Vista ejecutiva con secciones, aprobaciones pendientes, documentos recientes y vencimientos.
         </p>

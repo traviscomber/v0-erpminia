@@ -54,7 +54,7 @@ export function AssetManagement() {
       case 'operational':
         return <Badge className="bg-green-600/10 text-green-700">Operacional</Badge>;
       case 'maintenance':
-        return <Badge className="bg-blue-600/10 text-blue-700">Mantencion</Badge>;
+        return <Badge className="bg-blue-600/10 text-blue-700">Mantención</Badge>;
       case 'offline':
         return <Badge className="bg-red-600/10 text-red-700">Fuera de servicio</Badge>;
       default:
@@ -92,7 +92,7 @@ export function AssetManagement() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{assets.length}</div>
-            <p className="mt-1 text-xs text-muted-foreground">bajo gestion</p>
+            <p className="mt-1 text-xs text-muted-foreground">bajo gestión</p>
           </CardContent>
         </Card>
 

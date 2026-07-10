@@ -111,8 +111,8 @@ export function MaintenanceExecutiveDashboard() {
   const executivePulse = [
     { label: 'Disponibilidad', value: `${availability}%`, tone: availability >= 85 ? 'text-green-500' : availability >= 70 ? 'text-amber-500' : 'text-destructive' },
     { label: 'Cobertura OT', value: `${maintenanceCoverage}%`, tone: maintenanceCoverage >= 80 ? 'text-green-500' : 'text-amber-500' },
-    { label: 'Activos criticos', value: number(criticalAssets), tone: criticalAssets > 0 ? 'text-orange-500' : 'text-green-500' },
-    { label: 'OT criticas', value: number(criticalOrders.length), tone: criticalOrders.length > 0 ? 'text-destructive' : 'text-green-500' },
+    { label: 'Activos críticos', value: number(criticalAssets), tone: criticalAssets > 0 ? 'text-orange-500' : 'text-green-500' },
+    { label: 'OT críticas', value: number(criticalOrders.length), tone: criticalOrders.length > 0 ? 'text-destructive' : 'text-green-500' },
   ];
 
   const executiveWarnings = [
@@ -141,7 +141,7 @@ export function MaintenanceExecutiveDashboard() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard gerencial de mantención</h1>
           <p className="mt-2 max-w-2xl text-muted-foreground">
-            Vista ejecutiva real para gerencia: estado del dia, riesgos, costos, OT criticas y foco operativo en una sola pantalla.
+            Vista ejecutiva real para gerencia: estado del día, riesgos, costos, OT críticas y foco operativo en una sola pantalla.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -229,7 +229,7 @@ export function MaintenanceExecutiveDashboard() {
                 <p className="text-2xl font-bold text-blue-500">{maintenanceAssets}</p>
               </div>
               <div className="rounded-lg border border-border p-3">
-                <p className="text-xs text-muted-foreground">Criticos</p>
+                <p className="text-xs text-muted-foreground">Críticos</p>
                 <p className="text-2xl font-bold text-orange-500">{criticalAssets}</p>
               </div>
               <div className="rounded-lg border border-border p-3">
@@ -249,7 +249,7 @@ export function MaintenanceExecutiveDashboard() {
               </div>
             ) : (
               <div className="rounded-lg border border-border p-3 text-sm text-muted-foreground">
-                Sin alertas criticas visibles con la base actual.
+                Sin alertas críticas visibles con la base actual.
               </div>
             )}
           </CardContent>
@@ -277,7 +277,7 @@ export function MaintenanceExecutiveDashboard() {
               <Badge variant="secondary">{componentSummary.degraded}</Badge>
             </div>
             <div className="flex items-center justify-between rounded-lg border border-border p-3">
-              <span className="text-muted-foreground">OT criticas activas</span>
+              <span className="text-muted-foreground">OT críticas activas</span>
               <Badge variant={criticalOrders.length > 0 ? 'destructive' : 'outline'}>{criticalOrders.length}</Badge>
             </div>
           </CardContent>
@@ -323,7 +323,7 @@ export function MaintenanceExecutiveDashboard() {
                         <p className="font-semibold">{order.work_order_number || order.code || order.title}</p>
                         <p className="text-muted-foreground">{order.title}</p>
                       </div>
-                      <Badge variant="destructive">{order.priority || 'critical'}</Badge>
+                      <Badge variant="destructive">{order.priority || 'crítica'}</Badge>
                     </div>
                     <p className="mt-2 text-xs text-muted-foreground">
                       {order.asset_name || 'Sin equipo'} {order.scheduled_date ? `- ${new Date(order.scheduled_date).toLocaleDateString('es-CL')}` : ''}
@@ -333,7 +333,7 @@ export function MaintenanceExecutiveDashboard() {
               </div>
             ) : (
               <div className="rounded-lg border border-border p-3 text-sm text-muted-foreground">
-                No hay OT criticas activas en este momento.
+                No hay OT críticas activas en este momento.
               </div>
             )}
 

@@ -53,9 +53,9 @@ const fetcher = async (url: string): Promise<ComponentsMayoresResponse> => {
 
 function daysLabel(days?: number | null) {
   if (days === null || days === undefined) return 'Sin dato';
-  if (days < 0) return `Vencido hace ${Math.abs(days)} dias`;
+  if (days < 0) return `Vencido hace ${Math.abs(days)} días`;
   if (days === 0) return 'Hoy';
-  return `Hace ${days} dias`;
+  return `Hace ${days} días`;
 }
 
 export function ComponentesMayoresBoard() {

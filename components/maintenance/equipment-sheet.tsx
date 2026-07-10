@@ -82,7 +82,7 @@ export function EquipmentSheet({ equipment, isOpen, onClose, canEdit = false }: 
           {/* Dates */}
           <Card className="bg-muted/40">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Historial de Mantenimiento</CardTitle>
+              <CardTitle className="text-sm">Historial de mantenimiento</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="grid gap-4 sm:grid-cols-2">
