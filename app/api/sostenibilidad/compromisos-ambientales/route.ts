@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import * as XLSX from 'xlsx';
-const { read, utils } = XLSX;
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const XLSX = require('xlsx') as typeof import('xlsx');
 
 function getServiceSupabase() {
   return createClient(
@@ -66,8 +66,8 @@ export async function POST(request: NextRequest) {
       if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 });
 
       const buf = Buffer.from(await file.arrayBuffer());
-      const wb = read(buf, { cellDates: true });
-      const rows = utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: null }) as any[];
+      const wb = XLSX.read(buf, { cellDates: true });
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: null }) as any[];
 
       const valid = rows.filter(r => r['NÚMERO'] != null && typeof r['NÚMERO'] === 'number');
       const records = valid.map(r => ({
