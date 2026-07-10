@@ -30,12 +30,12 @@ function buildTemplateCsv() {
     'NEXT_SCHEDULED_DATE',
     'ESTIMATED_DURATION_HOURS',
     'PRIORITY',
-    'ENABLED',
+    'HABILITADO',
   ];
 
   const rows = [
-    ['CAM-001', 'Cambio de aceite', 'Revisar y reemplazar aceite del sistema', '30', '', '2026-06-01', '', '2', 'high', 'true'],
-    ['PMP-004', 'Inspeccion general', 'Inspeccion visual y pruebas operativas', '15', '', '', '2026-07-12', '1.5', 'medium', 'true'],
+    ['CAM-001', 'Cambio de aceite', 'Revisar y reemplazar aceite del sistema', '30', '', '2026-06-01', '', '2', 'alta', 'true'],
+    ['PMP-004', 'Inspección general', 'Inspección visual y pruebas operativas', '15', '', '', '2026-07-12', '1.5', 'media', 'true'],
   ];
 
   return [headers, ...rows]
