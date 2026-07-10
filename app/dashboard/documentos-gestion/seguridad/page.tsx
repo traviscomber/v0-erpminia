@@ -95,7 +95,7 @@ export default function SeguridadPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Documentos de seguridad</h1>
-        <p className="text-muted-foreground">Gestion real de MSDS, protocolos, incidentes y auditorias.</p>
+        <p className="text-muted-foreground">Gestion real de MSDS, protocolos, incidentes y auditorías.</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -119,7 +119,7 @@ export default function SeguridadPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">En revision</CardTitle>
+            <CardTitle className="text-sm">En revisión</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">{stats.pendientes}</div>
@@ -142,9 +142,9 @@ export default function SeguridadPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <BadgeAlert className="h-5 w-5 text-[var(--brand-rojo)]" />
-              Documentos criticos
+              Documentos críticos
             </CardTitle>
-            <CardDescription>Revisiones reales que necesitan atencion ahora.</CardDescription>
+            <CardDescription>Revisiones reales que necesitan atención ahora.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {criticalDocs.map((doc) => (
@@ -168,7 +168,7 @@ export default function SeguridadPage() {
           <div className="flex items-center justify-between gap-4">
             <div>
               <CardTitle>Documentos de seguridad</CardTitle>
-              <CardDescription>MSDS, protocolos, incidentes y auditorias.</CardDescription>
+              <CardDescription>MSDS, protocolos, incidentes y auditorías.</CardDescription>
             </div>
             <Button asChild className="gap-2">
               <Link href="/dashboard/sostenibilidad/documentos-flujo">
@@ -184,7 +184,7 @@ export default function SeguridadPage() {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar por nombre, codigo o responsable..."
+                  placeholder="Buscar por nombre, código o responsable..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -232,7 +232,7 @@ export default function SeguridadPage() {
 
               {filteredDocs.length === 0 && (
                 <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-                  No hay documentos de seguridad que coincidan con la busqueda.
+                  No hay documentos de seguridad que coincidan con la búsqueda.
                 </div>
               )}
             </div>

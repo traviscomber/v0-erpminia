@@ -119,7 +119,7 @@ export function AssetManagement() {
                 return next?.urgent;
               }).length}
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">proximas 2 semanas</p>
+            <p className="mt-1 text-xs text-muted-foreground">próximas 2 semanas</p>
           </CardContent>
         </Card>
       </div>

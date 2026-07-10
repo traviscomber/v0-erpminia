@@ -152,7 +152,7 @@ export default function ProcedimientosPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Documentos reales en el catalogo</p>
+            <p className="mt-1 text-xs text-muted-foreground">Documentos reales en el catálogo</p>
           </CardContent>
         </Card>
 
@@ -168,7 +168,7 @@ export default function ProcedimientosPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">En revision</CardTitle>
+            <CardTitle className="text-sm">En revisión</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">{stats.pendientes}</div>
@@ -191,7 +191,7 @@ export default function ProcedimientosPage() {
         <Card className="border-[var(--secondary)]/30 bg-[var(--secondary)]/5">
           <CardHeader>
             <CardTitle className="text-base">Pendientes recientes</CardTitle>
-            <CardDescription>Documentos que siguen en revision dentro de procesos operacionales reales.</CardDescription>
+            <CardDescription>Documentos que siguen en revisión dentro de procesos operacionales reales.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {latestPending.map((doc) => (
@@ -213,7 +213,7 @@ export default function ProcedimientosPage() {
       <Card>
         <CardHeader>
           <CardTitle>Accesos rápidos</CardTitle>
-          <CardDescription>Atajos utiles para revisar, medir y cruzar documentos.</CardDescription>
+          <CardDescription>Atajos útiles para revisar, medir y cruzar documentos.</CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-2 md:grid-cols-3">
           <Button asChild variant="outline" className="justify-between">
@@ -310,7 +310,7 @@ export default function ProcedimientosPage() {
 
               {filteredProcedures.length === 0 && (
                 <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-                  No hay procedimientos que coincidan con la busqueda.
+                  No hay procedimientos que coincidan con la búsqueda.
                 </div>
               )}
             </div>

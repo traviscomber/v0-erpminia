@@ -191,7 +191,7 @@ export function AssetDetailView() {
   const isLoading = historyCargando || workOrdersCargando;
 
   if (isLoading) {
-    return <div className="text-muted-foreground">Cargando informacion del activo...</div>;
+    return <div className="text-muted-foreground">Cargando información del activo...</div>;
   }
 
   if (historyError || workOrderError) {
@@ -233,7 +233,7 @@ export function AssetDetailView() {
           <Button asChild variant="outline" className="gap-2">
             <Link href="/dashboard/mantenimiento/movil">
               <Smartphone className="h-4 w-4" />
-              Vista movil
+              Vista móvil
             </Link>
           </Button>
           <Button asChild variant="outline" className="gap-2">

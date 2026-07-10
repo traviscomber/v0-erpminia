@@ -68,7 +68,7 @@ export function ComponentesMayoresBoard() {
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Control de componentes mayores</h1>
-          <p className="mt-2 text-muted-foreground">Estado real de componentes criticos por vehiculo y plantilla tecnica.</p>
+          <p className="mt-2 text-muted-foreground">Estado real de componentes críticos por vehículo y plantilla técnica.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline" className="gap-2">
@@ -133,7 +133,7 @@ export function ComponentesMayoresBoard() {
 
       <Card className="border-border/70 bg-card/80">
         <CardHeader className="pb-3">
-          <CardTitle className="text-foreground">Acceso rapido a mantenimiento</CardTitle>
+          <CardTitle className="text-foreground">Acceso rápido a mantenimiento</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -197,7 +197,7 @@ export function ComponentesMayoresBoard() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                <p className="text-sm text-muted-foreground">{group.description || 'Sin descripcion tecnica'}</p>
+                <p className="text-sm text-muted-foreground">{group.description || 'Sin descripción técnica'}</p>
                 <div className="grid gap-2 md:grid-cols-2">
                   <div className="rounded-lg border border-border p-3">
                     <p className="text-xs text-muted-foreground">Degradados</p>
@@ -224,7 +224,7 @@ export function ComponentesMayoresBoard() {
                             <p className="text-muted-foreground">{component.code || '-'}</p>
                             {component.vehicle ? (
                               <p className="mt-1 text-xs text-muted-foreground">
-                                Vehiculo: {component.vehicle.name} ({component.vehicle.code})
+                                Vehículo: {component.vehicle.name} ({component.vehicle.code})
                               </p>
                             ) : null}
                           </div>

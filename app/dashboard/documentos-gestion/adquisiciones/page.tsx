@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
@@ -32,7 +32,7 @@ export default function AdquisicionesPage() {
         const purchaseOrders = Array.isArray(data?.purchase_orders) ? data.purchase_orders : [];
         setOrders(purchaseOrders);
       } catch (error) {
-        console.error('[AdquisicionesPage] Error al cargar ordenes de compra:', error);
+        console.error('[AdquisicionesPage] Error al cargar órdenes de compra:', error);
       } finally {
         setLoading(false);
       }
@@ -64,13 +64,13 @@ export default function AdquisicionesPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Adquisiciones</h1>
-        <p className="text-muted-foreground">Gestiona ordenes de compra y trazabilidad de abastecimiento</p>
+        <p className="text-muted-foreground">Gestiona órdenes de compra y trazabilidad de abastecimiento</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Total de ordenes</CardTitle>
+            <CardTitle className="text-sm">Total de órdenes</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totals.total}</div>
@@ -78,7 +78,7 @@ export default function AdquisicionesPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Ordenes abiertas</CardTitle>
+            <CardTitle className="text-sm">Órdenes abiertas</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">{totals.open}</div>
@@ -106,8 +106,8 @@ export default function AdquisicionesPage() {
         <CardHeader>
           <div className="flex items-center justify-between gap-4">
             <div>
-              <CardTitle>Ordenes de compra reales</CardTitle>
-              <CardDescription>La creacion de OC se gestiona desde el modulo Compras.</CardDescription>
+              <CardTitle>Órdenes de compra reales</CardTitle>
+              <CardDescription>La creación de OC se gestiona desde el módulo Compras.</CardDescription>
             </div>
             <div className="text-sm text-muted-foreground">Vista de solo lectura</div>
           </div>
@@ -117,7 +117,7 @@ export default function AdquisicionesPage() {
             <div className="flex gap-2">
               <div className="flex-1">
                 <Input
-                  placeholder="Buscar por numero, proveedor o codigo..."
+                  placeholder="Buscar por número, proveedor o código..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -128,10 +128,10 @@ export default function AdquisicionesPage() {
             </div>
 
             {loading ? (
-              <p className="text-sm text-muted-foreground">Cargando ordenes de compra...</p>
+              <p className="text-sm text-muted-foreground">Cargando órdenes de compra...</p>
             ) : filteredOrders.length === 0 ? (
               <div className="rounded-lg border border-dashed p-6 text-center text-muted-foreground">
-                No hay ordenes de compra que coincidan con la busqueda.
+                No hay órdenes de compra que coincidan con la búsqueda.
               </div>
             ) : (
               <div className="space-y-3">

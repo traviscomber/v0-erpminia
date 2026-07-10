@@ -215,7 +215,7 @@ export default function ContratosPage() {
                 <FileText className="h-6 w-6 text-[var(--brand-naranja)]" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold tracking-tight">Gestion de contratos</h1>
+                <h1 className="text-2xl font-bold tracking-tight">Gestión de contratos</h1>
                 <p className="text-sm text-muted-foreground">Contratos principales, subcontratos y respaldo legal.</p>
               </div>
             </div>
@@ -287,7 +287,7 @@ export default function ContratosPage() {
         </Card>
         <Card className="bg-white/5 border-white/10">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-[var(--secondary)]">En revision</CardTitle>
+            <CardTitle className="text-sm font-medium text-[var(--secondary)]">En revisión</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-[var(--secondary)]">{stats.enRevision}</div>
@@ -319,7 +319,7 @@ export default function ContratosPage() {
           <div className="relative">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar por titulo, numero, contratista o responsable..."
+              placeholder="Buscar por título, número, contratista o responsable..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="border-white/10 bg-white/5 pl-10"
@@ -337,7 +337,7 @@ export default function ContratosPage() {
           {filteredContracts.length === 0 ? (
             <div className="py-12 text-center text-muted-foreground">
               <FileText className="mx-auto mb-4 h-12 w-12 opacity-50" />
-              <p>No hay contratos que coincidan con tu busqueda</p>
+              <p>No hay contratos que coincidan con tu búsqueda</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -439,7 +439,7 @@ export default function ContratosPage() {
               <form className="space-y-5" onSubmit={handleCreateContract}>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="mb-2 block text-sm font-medium">Titulo del contrato *</label>
+                    <label className="mb-2 block text-sm font-medium">Título del contrato *</label>
                     <Input
                       value={formState.title}
                       onChange={(e) => updateField('title', e.target.value)}
@@ -449,7 +449,7 @@ export default function ContratosPage() {
                     />
                   </div>
                   <div>
-                    <label className="mb-2 block text-sm font-medium">Numero de contrato *</label>
+                    <label className="mb-2 block text-sm font-medium">Número de contrato *</label>
                     <Input
                       value={formState.contractNumber}
                       onChange={(e) => updateField('contractNumber', e.target.value)}
@@ -461,11 +461,11 @@ export default function ContratosPage() {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium">Descripcin</label>
+                  <label className="mb-2 block text-sm font-medium">Descripción</label>
                   <Input
                     value={formState.description}
                     onChange={(e) => updateField('description', e.target.value)}
-                    placeholder="Breve descripcion del contrato"
+                    placeholder="Breve descripción del contrato"
                     className="border-white/10 bg-white/5"
                   />
                 </div>
@@ -510,7 +510,7 @@ export default function ContratosPage() {
                     <Input type="date" value={formState.endDate} onChange={(e) => updateField('endDate', e.target.value)} className="border-white/10 bg-white/5" />
                   </div>
                   <div>
-                    <label className="mb-2 block text-sm font-medium">Proxima revision legal</label>
+                    <label className="mb-2 block text-sm font-medium">Próxima revisión legal</label>
                     <Input type="date" value={formState.reviewDueDate} onChange={(e) => updateField('reviewDueDate', e.target.value)} className="border-white/10 bg-white/5" />
                   </div>
                 </div>
@@ -569,7 +569,7 @@ export default function ContratosPage() {
                     <Input value={formState.responsiblePerson} onChange={(e) => updateField('responsiblePerson', e.target.value)} placeholder="Nombre del responsable" className="border-white/10 bg-white/5" />
                   </div>
                   <div>
-                    <label className="mb-2 block text-sm font-medium">Area responsable</label>
+                    <label className="mb-2 block text-sm font-medium">Área responsable</label>
                     <Input value={formState.responsibleArea} onChange={(e) => updateField('responsibleArea', e.target.value)} className="border-white/10 bg-white/5" />
                   </div>
                 </div>

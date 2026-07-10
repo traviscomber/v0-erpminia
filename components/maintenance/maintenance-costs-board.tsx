@@ -165,7 +165,7 @@ export function MaintenanceCostsBoard() {
 
       <Card className="border-border/70 bg-card/80">
         <CardHeader className="pb-3">
-          <CardTitle className="text-foreground">Acceso rapido a mantenimiento</CardTitle>
+          <CardTitle className="text-foreground">Acceso rápido a mantenimiento</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">

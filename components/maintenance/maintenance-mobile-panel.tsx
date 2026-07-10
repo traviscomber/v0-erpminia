@@ -273,7 +273,7 @@ export function MaintenanceMobilePanel() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Acceso rapido</CardTitle>
+          <CardTitle>Acceso rápido</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-2">
           <Button asChild variant="outline" className="w-full justify-between">

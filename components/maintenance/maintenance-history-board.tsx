@@ -239,7 +239,7 @@ export function MaintenanceHistoryBoard() {
                     {group.criticality ? <Badge>{String(group.criticality)}</Badge> : null}
                     {group.assetId ? (
                       <Button variant="outline" size="sm" asChild className="gap-2">
-                        <Link href={`/dashboard/mantenimiento/vehiculos/${group.assetId}/árbol`}>
+                        <Link href={`/dashboard/mantenimiento/vehiculos/${group.assetId}/arbol`}>
                           Ver ficha
                           <ArrowRight className="h-4 w-4" />
                         </Link>
