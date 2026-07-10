@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
@@ -107,7 +107,7 @@ export default function DocumentosGestionPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Gestión documental</h1>
+          <h1 className="text-3xl font-bold">Gestion documental</h1>
           <p className="mt-1 text-muted-foreground">
             Centraliza, revisa y organiza los documentos operativos en una sola vista, con alertas de revision y vencimiento.
           </p>
@@ -155,7 +155,7 @@ export default function DocumentosGestionPage() {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Categorías activas</CardTitle>
+            <CardTitle className="text-sm font-medium">Categorias activas</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{categories.length}</div>
@@ -168,11 +168,11 @@ export default function DocumentosGestionPage() {
         <Card className="border-[var(--secondary)]/30 bg-[var(--secondary)]/5">
           <CardHeader>
             <CardTitle className="text-base">Resumen de control</CardTitle>
-            <CardDescription>Lectura rápida para supervisión y aprobación.</CardDescription>
+            <CardDescription>Lectura rapida para supervision y aprobacion.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-lg border border-border bg-background/70 p-3">
-              <p className="text-xs text-muted-foreground">Pendientes de aprobación</p>
+              <p className="text-xs text-muted-foreground">Pendientes de aprobacion</p>
               <p className="text-2xl font-bold text-[var(--secondary)]">{stats.pending}</p>
             </div>
             <div className="rounded-lg border border-border bg-background/70 p-3">
@@ -242,7 +242,7 @@ export default function DocumentosGestionPage() {
               <Shield className="h-4 w-4 text-[var(--secondary)]" />
               <span className="font-semibold">Seguridad</span>
             </div>
-            <p className="mt-2 text-sm text-muted-foreground">MSDS, auditorías, incidentes y protocolos HSE.</p>
+            <p className="mt-2 text-sm text-muted-foreground">MSDS, auditorias, incidentes y protocolos HSE.</p>
           </Link>
           <Link href="/dashboard/documentos-gestion/reportes" className="rounded-lg border border-border p-4 transition hover:bg-muted/50">
             <div className="flex items-center gap-2">
@@ -259,7 +259,7 @@ export default function DocumentosGestionPage() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-[var(--secondary)]" />
-              <CardTitle>Documentos pendientes de aprobación</CardTitle>
+              <CardTitle>Documentos pendientes de aprobacion</CardTitle>
             </div>
             <CardDescription>{pendingApprovals.length} documentos requieren revision</CardDescription>
           </CardHeader>
@@ -313,7 +313,7 @@ export default function DocumentosGestionPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Buscar categorías</CardTitle>
+          <CardTitle>Buscar categorias</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="relative">
@@ -359,11 +359,10 @@ export default function DocumentosGestionPage() {
       {filteredCategories.length === 0 && (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
-            No se encontraron categorías que coincidan con tu búsqueda.
+            No se encontraron categorias que coincidan con tu busqueda.
           </CardContent>
         </Card>
       )}
     </div>
   );
 }
-

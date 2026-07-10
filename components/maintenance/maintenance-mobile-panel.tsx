@@ -251,7 +251,7 @@ export function MaintenanceMobilePanel() {
   return (
     <div className="mx-auto max-w-md space-y-4 pb-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Panel móvil de mantención</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Panel movil de mantencion</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Vista optimizada para terreno con OT reales, horas, evidencia y acceso rapido a la ficha del equipo.
         </p>
@@ -278,13 +278,13 @@ export function MaintenanceMobilePanel() {
         <CardContent className="grid grid-cols-1 gap-2">
           <Button asChild variant="outline" className="w-full justify-between">
             <Link href="/dashboard/mantenimiento/vehiculos">
-              Vehículos y QR
+              Vehiculos y QR
               <QrCode className="h-4 w-4" />
             </Link>
           </Button>
           <Button asChild variant="outline" className="w-full justify-between">
             <Link href="/dashboard/mantenimiento/bitacora">
-              Bitácora
+              Bitacora
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
@@ -335,7 +335,7 @@ export function MaintenanceMobilePanel() {
               <>
                 <div className="rounded-lg border border-border p-3">
                   <p className="font-semibold">{selectedAsset.asset_name || 'Equipo'}</p>
-                  <p className="text-muted-foreground">{selectedAsset.asset_code || 'Sin código'}</p>
+                  <p className="text-muted-foreground">{selectedAsset.asset_code || 'Sin codigo'}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="rounded-lg border border-border p-3">
@@ -347,7 +347,7 @@ export function MaintenanceMobilePanel() {
                     <p className="font-semibold">{selectedAsset.location || '-'}</p>
                   </div>
                   <div className="rounded-lg border border-border p-3">
-                    <p className="text-xs text-muted-foreground">Horómetro técnico</p>
+                    <p className="text-xs text-muted-foreground">Horometro tecnico</p>
                     <p className="font-semibold">{selectedAsset.mtbf_hours ? `${selectedAsset.mtbf_hours} h` : 'Sin lectura'}</p>
                   </div>
                   <div className="rounded-lg border border-border p-3">
@@ -430,9 +430,9 @@ export function MaintenanceMobilePanel() {
           </div>
 
           <div className="rounded-lg border border-border p-3 text-sm">
-            <p className="font-semibold">Horómetro técnico</p>
+            <p className="font-semibold">Horometro tecnico</p>
             <p className="text-muted-foreground">
-              {selectedAsset?.mtbf_hours ? `${selectedAsset.mtbf_hours} horas técnicas registradas en el activo` : 'Sin lectura directa aún en la base actual'}
+              {selectedAsset?.mtbf_hours ? `${selectedAsset.mtbf_hours} horas tecnicas registradas en el activo` : 'Sin lectura directa aun en la base actual'}
             </p>
           </div>
 
@@ -546,7 +546,7 @@ export function MaintenanceMobilePanel() {
           {openOrders.length === 0 ? (
             <div className="flex items-center gap-2 rounded-lg border border-dashed border-border p-3 text-sm text-muted-foreground">
               <AlertCircle className="h-4 w-4" />
-              No hay órdenes abiertas en este momento.
+              No hay ordenes abiertas en este momento.
             </div>
           ) : (
             openOrders.map((order) => (
@@ -582,7 +582,7 @@ export function MaintenanceMobilePanel() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Personal de mantención</CardTitle>
+          <CardTitle>Personal de mantencion</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <div className="grid grid-cols-3 gap-3">

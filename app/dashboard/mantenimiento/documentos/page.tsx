@@ -170,7 +170,7 @@ export default function DocumentosMantenimientoPage() {
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Documentos de mantenimiento</h1>
-          <p className="mt-2 text-muted-foreground">Gestión de manuales, procedimientos e instructivos de mantenimiento.</p>
+          <p className="mt-2 text-muted-foreground">Gestion de manuales, procedimientos e instructivos de mantenimiento.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild>
@@ -181,13 +181,13 @@ export default function DocumentosMantenimientoPage() {
           </Button>
           <Button asChild variant="outline">
               <Link href="/dashboard/mantenimiento/bitacora">
-               Bitácora
+               Bitacora
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
           <Button asChild variant="outline">
               <Link href="/dashboard/mantenimiento/planificacion">
-               Planificación
+               Planificacion
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
@@ -234,7 +234,7 @@ export default function DocumentosMantenimientoPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center justify-between text-sm font-medium">
-              <span>En revisión</span>
+              <span>En revision</span>
               <Clock className="h-4 w-4 text-yellow-500" />
             </CardTitle>
           </CardHeader>
@@ -253,7 +253,7 @@ export default function DocumentosMantenimientoPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-red-500">{filteredStats.rechazados}</p>
-            <p className="text-xs text-muted-foreground">Pendientes de corrección</p>
+            <p className="text-xs text-muted-foreground">Pendientes de correccion</p>
           </CardContent>
         </Card>
       </div>
@@ -261,7 +261,7 @@ export default function DocumentosMantenimientoPage() {
       <Card>
         <CardHeader>
           <CardTitle>Buscar documentos</CardTitle>
-          <CardDescription>Filtra por título, descripción, categoría o responsable.</CardDescription>
+          <CardDescription>Filtra por titulo, descripcion, categoria o responsable.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="relative">
@@ -285,7 +285,7 @@ export default function DocumentosMantenimientoPage() {
             Vigentes
           </TabsTrigger>
           <TabsTrigger value="revision" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-            En revisión
+            En revision
           </TabsTrigger>
           <TabsTrigger value="upload" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             Subir documentos
@@ -335,18 +335,18 @@ export default function DocumentosMantenimientoPage() {
       <Card>
         <CardHeader>
           <CardTitle>Accesos rapidos</CardTitle>
-          <CardDescription>Atajos útiles para operación y supervisión.</CardDescription>
+          <CardDescription>Atajos utiles para operacion y supervision.</CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-2 md:grid-cols-3">
           <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/vehiculos">
-               Vehículos y QR
+               Vehiculos y QR
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
           <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/bitacora">
-               Bitácora
+               Bitacora
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
