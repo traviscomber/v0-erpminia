@@ -135,7 +135,7 @@ export default function ImportarExistenciasPage() {
         <div>
           <h1 className="text-3xl font-bold">Importar existencias</h1>
           <p className="mt-2 text-muted-foreground">
-            Carga proveedores, stock min-max y compras desde el Excel y déjalos en el lugar correcto del sistema.
+            Carga proveedores, stock min-max y compras desde el Excel y dejalos en el lugar correcto del sistema.
           </p>
         </div>
         <Link href="/dashboard/compras">
@@ -221,7 +221,7 @@ export default function ImportarExistenciasPage() {
               <ul className="list-inside list-disc space-y-1">
                 <li>Hoja Proveedores: llena o actualiza el maestro de proveedores.</li>
                 <li>Hoja Stock min-max: alimenta el inventario operativo con umbrales reales.</li>
-                <li>Hoja Compras: agrupa por número de documento y deja el historial listo para análisis.</li>
+                <li>Hoja Compras: agrupa por numero de documento y deja el historial listo para analisis.</li>
               </ul>
             </AlertDescription>
           </Alert>
