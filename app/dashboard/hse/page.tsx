@@ -1,5 +1,5 @@
-'use client';
-import { HSEDashboard } from '@/components/dashboard/hse-dashboard';
+import { redirect } from 'next/navigation';
+
 export default function HSEPage() {
-  return <HSEDashboard />;
+  redirect('/dashboard/sostenibilidad');
 }
