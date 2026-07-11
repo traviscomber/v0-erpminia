@@ -90,7 +90,7 @@ export function HSEDashboard() {
             <Link href="/dashboard/hse/documentos" className="block rounded border p-3 hover:bg-muted/40">
               Documentación HSE
             </Link>
-            <Link href="/dashboard/hse/epp" className="block rounded border p-3 hover:bg-muted/40">
+            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/epp" className="block rounded border p-3 hover:bg-muted/40">
               EPP
             </Link>
             <Link href="/dashboard/hse/incidentes" className="block rounded border p-3 hover:bg-muted/40">
@@ -126,7 +126,7 @@ export function HSEDashboard() {
           <Link href="/dashboard/hse/riesgos/importar" className="block rounded border p-3 hover:bg-muted/40">
             Matriz de riesgos
           </Link>
-          <Link href="/dashboard/hse/epp/importar" className="block rounded border p-3 hover:bg-muted/40">
+          <Link href="/dashboard/sostenibilidad/prevencion-riesgos/epp/importar" className="block rounded border p-3 hover:bg-muted/40">
             Matriz EPP
           </Link>
           <Link href="/dashboard/hse/investigaciones/importar" className="block rounded border p-3 hover:bg-muted/40">

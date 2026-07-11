@@ -101,13 +101,31 @@ export async function GET(request: NextRequest) {
   if (!context.ok) return context.response;
 
   try {
-    const { data, error } = await context.supabase
+    const query = context.supabase
       .from('sostenibilidad_epp')
       .select('*')
-      .eq('organization_id', context.organizationId)
       .order('cargo_puesto', { ascending: true });
 
+    const { data, error } = await query.eq('organization_id', context.organizationId);
+
     if (error) throw error;
+
+    if ((data || []).length > 0) {
+      return NextResponse.json({ data: data || [] });
+    }
+
+    const { data: legacyData, error: legacyError } = await context.supabase
+      .from('sostenibilidad_epp')
+      .select('*')
+      .is('organization_id', null)
+      .order('cargo_puesto', { ascending: true });
+
+    if (!legacyError && Array.isArray(legacyData) && legacyData.length > 0) {
+      return NextResponse.json({
+        data: legacyData,
+        warning: 'Se cargaron registros historicos de EPP sin organization_id',
+      });
+    }
 
     return NextResponse.json({ data: data || [] });
   } catch (error) {
