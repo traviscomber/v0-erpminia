@@ -40,31 +40,31 @@ const COMPONENTES_DISPLAY: Record<string, string> = {
   'INFRAESTRUCTURA': 'Infraestructuras',
   'INFRESTRUCTURA': 'Infraestructuras',
   'AGUA SUPERFICIAL': 'Agua Superficial',
-  'AGUA SUPERFICIAL-AGUA SUBTERRÁNEA': 'Agua Superficial / Subterránea',
+  'AGUA SUPERFICIAL-AGUA SUBTERRANEA': 'Agua Superficial / Subterranea',
   'AGUAS SUPERFICIALES': 'Aguas Superficiales',
   'SUELO': 'Suelo',
   'AIRE': 'Aire',
   'FLORA': 'Flora',
   'FAUNA': 'Fauna',
-  'ARQUEOLOGIA': 'Arqueología',
-  'ACTIVIDAD ECONOMICA': 'Actividad Económica',
-  'RESIDUOS LIQUIDOS': 'Residuos Líquidos',
+  'ARQUEOLOGIA': 'Arqueologia',
+  'ACTIVIDAD ECONOMICA': 'Actividad Economica',
+  'RESIDUOS LIQUIDOS': 'Residuos Liquidos',
   'RESIDUOS': 'Residuos',
 };
 
 const ETAPAS_DISPLAY: Record<string, string> = {
-  'OPERACIÓN': 'Operación',
-  'CONSTRUCCIÓN': 'Construcción',
-  'CONTRUCCIÓN': 'Construcción',
-  'CONSTRUCCIÓN-OPERACIÓN': 'Construcción / Operación',
-  'CONSTRUCCIÓN-OPERACIÓN Y CIERRE': 'Construcción / Operación / Cierre',
-  'OPERACIÓN-CIERRE': 'Operación / Cierre',
+  'OPERACION': 'Operacion',
+  'CONSTRUCCION': 'Construccion',
+  'CONTRUCCION': 'Construccion',
+  'CONSTRUCCION-OPERACION': 'Construccion / Operacion',
+  'CONSTRUCCION-OPERACION Y CIERRE': 'Construccion / Operacion / Cierre',
+  'OPERACION-CIERRE': 'Operacion / Cierre',
   'CIERRE': 'Cierre',
 };
 
 function etapaColor(etapa: string) {
   if (etapa.includes('CIERRE')) return 'bg-orange-500/10 text-orange-400 border-orange-500/20';
-  if (etapa.includes('CONSTRUCCIÓN') || etapa.includes('CONTRUCCIÓN')) return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+  if (etapa.includes('CONSTRUCCION') || etapa.includes('CONSTRUCCION')) return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
   return 'bg-green-500/10 text-green-400 border-green-500/20';
 }
 
@@ -97,18 +97,17 @@ export function CompromisosRcaTable() {
   const compromisos = data?.compromisos ?? [];
   const stats = data?.stats;
 
-  // Unique values for filter dropdowns — from stats porComponente
+  // Unique values for filter dropdowns from stats porComponente
   const componenteKeys = Object.keys(stats?.porComponente ?? {});
   const etapasUnicas = [...new Set(compromisos.map(c => c.etapa))];
 
   const handleDownloadTemplate = useCallback(() => {
     const csv = [
-      ['NÚMERO', 'ETAPA DEL PROYECTO', 'COMPONENTE', 'COMPROMISOS AMBIENTALES ', 'Área, Sección, Título, Párrafo identificado', 'SEGUIMIENTO', 'REGISTRO', 'REGISTRO DE CUMPLIMIENTO', 'NO CUMPLE', 'CUMPLE', 'RESPONSABLE'],
-      [1, 'OPERACIÓN', 'INFRAESTRUCTURAS', 'Ejemplo de compromiso ambiental', 'RCA 480 Considerando 3.8', 'X', '', 'E-700', '', 'X', 'Juan Pérez'],
-    ].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
-    a.download = 'plantilla-compromisos-ambientales.csv';
+      ["NUMERO", "ETAPA DEL PROYECTO", "COMPONENTE", "COMPROMISOS AMBIENTALES", "AREA, SECCION, TITULO, PARRAFO IDENTIFICADO", "SEGUIMIENTO", "REGISTRO", "REGISTRO DE CUMPLIMIENTO", "NO CUMPLE", "CUMPLE", "RESPONSABLE"],
+    ].map(r => r.map(v => `"${v}"`).join(",")).join("\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }));
+    a.download = "plantilla-compromisos-ambientales.csv";
     a.click();
     URL.revokeObjectURL(a.href);
   }, []);
@@ -255,7 +254,7 @@ export function CompromisosRcaTable() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-muted/30">
-                    <th className="px-3 py-3 text-left font-semibold text-muted-foreground w-12">N°</th>
+                    <th className="px-3 py-3 text-left font-semibold text-muted-foreground w-12">N?</th>
                     <th className="px-3 py-3 text-left font-semibold text-muted-foreground w-36">Etapa</th>
                     <th className="px-3 py-3 text-left font-semibold text-muted-foreground w-40">Componente</th>
                     <th className="px-3 py-3 text-left font-semibold text-muted-foreground">Compromiso Ambiental</th>
@@ -292,10 +291,10 @@ export function CompromisosRcaTable() {
                             }
                           </div>
                         </td>
-                        <td className="px-3 py-3 text-xs text-muted-foreground">{c.referencia_rca ?? '—'}</td>
+                        <td className="px-3 py-3 text-xs text-muted-foreground">{c.referencia_rca ?? 'â€”'}</td>
                         <td className="px-3 py-3">{tipoControlBadge(c.tipo_control)}</td>
-                        <td className="px-3 py-3 text-xs">{c.registro_cumplimiento ?? '—'}</td>
-                        <td className="px-3 py-3 text-xs text-muted-foreground">{c.responsable ?? '—'}</td>
+                        <td className="px-3 py-3 text-xs">{c.registro_cumplimiento ?? 'â€”'}</td>
+                        <td className="px-3 py-3 text-xs text-muted-foreground">{c.responsable ?? 'â€”'}</td>
                         <td className="px-3 py-3 text-center">
                           {c.cumple
                             ? <CheckCircle2 className="h-5 w-5 text-green-400 mx-auto" />
