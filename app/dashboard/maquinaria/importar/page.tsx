@@ -9,13 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 export default function MaquinariaImportarPage() {
   const downloadTemplate = () => {
     const headers = ['codigo', 'nombre', 'estado', 'descripcion', 'modelo', 'patente', 'anio'];
-    const exampleRows = [
-      ['8-1', 'Camioneta Ford Ranger', 'activo', 'Unidad de apoyo mina', 'Ford Ranger', 'ABC123', '2024'],
-      ['9-2', 'Camion Iveco Tector', 'activo', 'Camion de transporte interno', 'Iveco Tector', 'JJK567', '2023'],
-      ['16-3', 'Equipo de sondaje', 'activo', 'Sondaje operativo de turno', 'Boart Longyear LF90', '', '2022'],
-    ];
-
-    const csv = [headers, ...exampleRows].map((row) => row.join(';')).join('\n');
+    const csv = [headers].map((row) => row.join(';')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');

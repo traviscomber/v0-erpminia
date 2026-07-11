@@ -389,7 +389,7 @@ export default function ComunidadesPage() {
 
                 <div>
                   <Label htmlFor="contacto_email">Email Contacto</Label>
-                  <Input id="contacto_email" type="email" name="contacto_email" value={formData.contacto_email} onChange={handleInput} placeholder="correo@example.com" />
+                  <Input id="contacto_email" type="email" name="contacto_email" value={formData.contacto_email} onChange={handleInput} placeholder="Correo del contacto" />
                 </div>
 
                 <div>

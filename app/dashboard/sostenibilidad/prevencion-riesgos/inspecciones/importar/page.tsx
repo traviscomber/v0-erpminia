@@ -23,11 +23,7 @@ export default function InspeccionesImportPage() {
 
   const downloadTemplate = () => {
     const headers = ['TIPO', 'NUMERO_INSPECCION', 'FECHA_PLANIFICADA', 'FAENA', 'INSPECTOR', 'HALLAZGOS_COUNT', 'ESTADO', 'EMPRESA_EXTERNA', 'CONTACTO_EXTERNO'];
-    const rows = [
-      ['internas', 'INS-001', '2026-06-27', 'Patagua', 'Juan Perez', '2', 'planificada', '', ''],
-      ['externas', 'INS-002', '2026-06-27', 'Patagua', 'ACHS', '0', 'realizada', 'Proveedor X', 'Contacto X'],
-    ];
-    const csv = [headers, ...rows]
+    const csv = [headers]
       .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(';'))
       .join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });

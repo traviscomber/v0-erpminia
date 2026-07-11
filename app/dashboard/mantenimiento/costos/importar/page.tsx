@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import { useRef, useState, type DragEvent } from 'react';
@@ -122,7 +122,7 @@ export default function MaintenanceCostsImportPage() {
           <CardHeader>
             <CardTitle>Cargar archivo</CardTitle>
             <CardDescription>
-              La importaci?n actualiza la OT por n?mero y crea o corrige el historial de costos asociado.
+              La importacion actualiza la OT por numero y crea o corrige el historial de costos asociado.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

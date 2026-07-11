@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -340,7 +340,7 @@ export default function TelemetriaIntegracionPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Ejemplo de envio</CardTitle>
+          <CardTitle>Envio de referencia</CardTitle>
           <CardDescription>Este flujo sirve para probar desde una PC o equipo de la red local.</CardDescription>
         </CardHeader>
         <CardContent>

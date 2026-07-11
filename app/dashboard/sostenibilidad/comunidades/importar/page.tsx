@@ -40,11 +40,7 @@ export default function ComunidadesImportPage() {
       'TIPO_DOCUMENTO',
       'PRIORIDAD',
     ];
-    const rows = [
-      ['2026-06-27', 'Evento', 'Reunión comunitaria', 'Comunidad A', 'Pendiente', 'comunidad', '', 'Ana Perez', 'ana@example.com', '', 'Proyecto X', '2026-07-10', 'Maria Lopez', '', 'Acta', 'media'],
-      ['2026-06-27', 'Compromiso', 'Acuerdo de seguimiento', 'Comunidad B', 'Completado', 'indigena', '', 'Juan Perez', 'juan@example.com', '', 'Operacion', '', 'Carlos Diaz', 'Cierre registrado', 'Carta', 'alta'],
-    ];
-    const csv = [headers, ...rows]
+    const csv = [headers]
       .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(';'))
       .join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
