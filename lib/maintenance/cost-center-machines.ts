@@ -69,6 +69,36 @@ const CANONICAL_FAMILIES: Record<string, string> = {
   '12': 'Camiones de Bajo Perfil',
 };
 
+export const REDISTRIBUTABLE_SOURCE_MAP: Record<
+  string,
+  {
+    family: string;
+    rootCode: string;
+  }
+> = {
+  '1-11': { family: 'Compresores', rootCode: '14' },
+  '1-13': { family: 'Equipos de Sondaje', rootCode: '16' },
+  '2-11': { family: 'Compresores', rootCode: '14' },
+  '2-13': { family: 'Equipos de Sondaje', rootCode: '16' },
+  '3-3-1': { family: 'Excavadoras y Retroexcavadoras', rootCode: '19' },
+  '3-6-1': { family: 'Cargadores de Bajo Perfil', rootCode: '10' },
+  '3-6-2': { family: 'Compresores', rootCode: '14' },
+  '3-6-3': { family: 'Compresores', rootCode: '14' },
+  '3-7-1': { family: 'Equipos de Sondaje', rootCode: '16' },
+  '3-7-2': { family: 'Grupos Generadores', rootCode: '13' },
+  '3-7-3': { family: 'Minicargadores', rootCode: '18' },
+  '3-7-5': { family: 'Compresores', rootCode: '14' },
+  '3-9-1': { family: 'Compresores', rootCode: '14' },
+  '3-9-2': { family: 'Cargadores de Bajo Perfil', rootCode: '10' },
+  '3-9-3': { family: 'Cargadores Frontales', rootCode: '11' },
+  '3-10-1': { family: 'Equipos de Sondaje', rootCode: '16' },
+  '3-10-2': { family: 'Grupos Generadores', rootCode: '13' },
+};
+
+export function getRedistributableMachineAssignment(code: string) {
+  return REDISTRIBUTABLE_SOURCE_MAP[String(code || '').trim()] || null;
+}
+
 function normalize(value: string) {
   return repairCostCenterText(value).toLowerCase();
 }
@@ -140,12 +170,16 @@ export function deriveMachinesFromCostCenters(costCenters: Array<{ id: string; c
   const centers = costCenters
     .filter((center) => String(center.status || 'active').toLowerCase() === 'active')
     .filter((center) => {
-      const name = repairCostCenterText(center.name || '');
       const code = String(center.code || '');
+      if (REDISTRIBUTABLE_SOURCE_MAP[code]) return true;
+
+      const name = repairCostCenterText(center.name || '');
       const rootCode = getCostCenterRootCode(code);
+
       return (
-        looksLikeMachine(name) ||
-        (code.includes('-') && MACHINE_ROOT_CODES.has(rootCode))
+        code.includes('-') &&
+        !/^0?[1-7]$/.test(rootCode) &&
+        (looksLikeMachine(name) || MACHINE_ROOT_CODES.has(rootCode))
       );
     });
 
@@ -158,11 +192,16 @@ export function deriveMachinesFromCostCenters(costCenters: Array<{ id: string; c
   }
 
   const machines: DerivedCostCenterMachine[] = centers.map((center) => {
-    const rootCode = getCostCenterRootCode(center.code);
-    const family = rootNames.get(rootCode) || canonicalFamilyLabel(rootCode, rootCode);
+    const sourceCode = String(center.code || '');
+    const explicit = REDISTRIBUTABLE_SOURCE_MAP[sourceCode];
+    const rootCode = explicit?.rootCode || getCostCenterRootCode(center.code);
+    const family =
+      explicit?.family ||
+      rootNames.get(rootCode) ||
+      canonicalFamilyLabel(rootCode, rootCode);
     return {
       id: center.id,
-      code: String(center.code || ''),
+      code: sourceCode,
       name: repairCostCenterText(center.name || ''),
       family,
       rootCode,

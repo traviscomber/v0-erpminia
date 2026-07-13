@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { resolveAuthContext } from '@/lib/api/auth-session';
+import { getRedistributableMachineAssignment } from '@/lib/maintenance/cost-center-machines';
 
 const MACHINERY_GROUPS: Record<string, string> = {
   '8': 'Camionetas',
@@ -66,8 +67,9 @@ export async function GET(request: NextRequest) {
     const rows = Array.isArray(data) ? (data as CostCenterRow[]) : [];
 
     let machines = rows.filter((row) => {
-      const parentCode = normalizeText(row.code).split('-')[0];
-      return MACHINERY_PARENT_CODES.includes(parentCode);
+      const code = normalizeText(row.code);
+      const parentCode = code.split('-')[0];
+      return MACHINERY_PARENT_CODES.includes(parentCode) || !!getRedistributableMachineAssignment(code);
     });
 
     if (search) {
@@ -85,8 +87,9 @@ export async function GET(request: NextRequest) {
       .map((row) => {
         const code = normalizeText(row.code);
         const name = normalizeText(row.name);
-        const parentCode = code.split('-')[0];
-        const categoryName = MACHINERY_GROUPS[parentCode] || 'Maquinaria';
+        const override = getRedistributableMachineAssignment(code);
+        const parentCode = override?.rootCode || code.split('-')[0];
+        const categoryName = override?.family || MACHINERY_GROUPS[parentCode] || 'Maquinaria';
 
         const yearMatch = name.match(/\b(19|20)\d{2}\b/);
         const year = yearMatch ? Number.parseInt(yearMatch[0], 10) : null;
