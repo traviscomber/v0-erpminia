@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { resolveAuthContext } from '@/lib/api/auth-session';
 import { getRedistributableMachineAssignment } from '@/lib/maintenance/cost-center-machines';
+import { isActiveCostCenterStatus } from '@/lib/cost-centers';
 
 const MACHINERY_GROUPS: Record<string, string> = {
   '8': 'Camionetas',
@@ -111,9 +112,9 @@ export async function GET(request: NextRequest) {
           year,
           category_code: parentCode,
           category: categoryName,
-          status: normalizeText(row.status).toLowerCase() === 'active' ? 'Activo' : 'Inactivo',
-        };
-      })
+        status: isActiveCostCenterStatus(row.status) ? 'Activo' : 'Inactivo',
+      };
+    })
       .filter((item) => item.code.length > 0 && item.name.length > 0);
 
     const categories = MACHINERY_PARENT_CODES.map((code) => ({

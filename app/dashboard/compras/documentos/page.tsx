@@ -231,7 +231,7 @@ export default function ComprasDocumentosPage() {
 
         <TabsContent value="vigentes" className="space-y-4">
           <DocumentList
-            documents={documents.filter((document) => document.status === 'active')}
+            documents={documents.filter((document) => document.status === 'active' || document.status === 'aprobado')}
             isLoading={loading}
             onView={handleView}
             onDelete={handleDelete}

@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { Activity, ArrowRight, RefreshCw } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useProductionKPI } from '@/hooks/use-module-apis';
 import {
   LineChart,
@@ -35,15 +35,13 @@ export function ProduccionDashboard() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Producción en tiempo real</h1>
-          <p className="text-muted-foreground">
-            Monitoreo integral de KPIs operacionales y telemetría real.
-          </p>
+          <h1 className="text-3xl font-bold">Produccion en tiempo real</h1>
+          <p className="text-muted-foreground">Monitoreo integral de KPIs operacionales y telemetria real.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline" size="sm" className="gap-2">
             <Link href="/dashboard/telemetria">
-              Telemetría
+              Telemetria
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
@@ -63,7 +61,7 @@ export function ProduccionDashboard() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Producción de hoy</CardTitle>
+            <CardTitle className="text-sm">Produccion de hoy</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{latestKPI.production_tons?.toFixed(0) || 0} ton</div>
@@ -104,7 +102,7 @@ export function ProduccionDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Producción - Últimos 30 días</CardTitle>
+          <CardTitle>Produccion - Ultimos 30 dias</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -122,7 +120,7 @@ export function ProduccionDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Métricas operacionales</CardTitle>
+          <CardTitle>Metricas operacionales</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -144,7 +142,7 @@ export function ProduccionDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Activity className="h-4 w-4 text-[var(--brand-naranja)]" />
-              Telemetría de sensores
+              Telemetria de sensores
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -154,7 +152,7 @@ export function ProduccionDashboard() {
             <SensorAlerts />
             <Link href="/dashboard/telemetria">
               <Button variant="outline" className="w-full">
-                Ver módulo de telemetría
+                Ver modulo de telemetria
               </Button>
             </Link>
           </CardContent>

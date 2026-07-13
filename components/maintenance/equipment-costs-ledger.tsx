@@ -215,7 +215,7 @@ export function EquipmentCostsLedger() {
                 No hay costos importados aun.
               </div>
             ) : (
-              assetCosts.slice(0, 8).map((asset) => (
+              assetCosts.map((asset) => (
                 <div key={asset.id} className="rounded-lg border border-border p-3">
                   <div className="flex items-start justify-between gap-3">
                     <div>

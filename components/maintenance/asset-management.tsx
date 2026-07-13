@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,6 +26,13 @@ function normalizeText(value: string | null | undefined) {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
+}
+
+function normalizeStatus(value: string | null | undefined) {
+  const normalized = normalizeText(value);
+  if (['operativo', 'activo', 'active', '1', 'true', 'si'].includes(normalized)) return 'activo';
+  if (['mantenimiento', 'maintenance'].includes(normalized)) return 'mantenimiento';
+  return 'inactivo';
 }
 
 export function AssetManagement() {
@@ -103,8 +111,8 @@ export function AssetManagement() {
   const stats = useMemo(
     () => ({
       total: assets.length,
-      operativos: assets.filter((asset) => ['operativo', 'activo'].includes(normalizeText(asset.status))).length,
-      mantenimiento: assets.filter((asset) => normalizeText(asset.status) === 'mantenimiento').length,
+      operativos: assets.filter((asset) => normalizeStatus(asset.status) === 'activo').length,
+      mantenimiento: assets.filter((asset) => normalizeStatus(asset.status) === 'mantenimiento').length,
       urgentes: assets.filter((asset) => {
         const next = getDaysToNextMaintenance(asset.last_maintenance || null, asset.maintenance_hours || 0);
         return next?.urgent;
@@ -217,8 +225,8 @@ export function AssetManagement() {
                   </div>
                 </div>
 
-                <Button className="mt-3 w-full" size="sm" variant="outline">
-                  Crear orden de trabajo
+                <Button className="mt-3 w-full" size="sm" variant="outline" asChild>
+                  <Link href={`/dashboard/work-orders/create?assetId=${asset.id}`}>Crear orden de trabajo</Link>
                 </Button>
               </CardContent>
             </Card>

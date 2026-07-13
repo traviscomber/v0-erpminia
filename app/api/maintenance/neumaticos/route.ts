@@ -227,40 +227,63 @@ async function loadStockItems(context: OrganizationSuccessContext) {
 }
 
 async function loadTraceability(context: OrganizationSuccessContext) {
-  const [tiresResult, eventsResult] = await Promise.all([
-    context.supabase
+  const pageSize = 1000;
+  const tires: TireMasterRow[] = [];
+  const events: TireEventRow[] = [];
+
+  let tireStart = 0;
+  while (true) {
+    const tireEnd = tireStart + pageSize - 1;
+    const { data, error } = await context.supabase
       .from('maintenance_tires')
       .select('id, tire_code, tire_name, tire_condition, lifecycle_status, size, brand, model, serial_number, purchase_order_number, installed_at, removed_at, notes, current_bin_id, work_order_id, updated_at')
       .eq('organization_id', context.organizationId)
-      .order('updated_at', { ascending: false }),
-    context.supabase
+      .order('updated_at', { ascending: false })
+      .range(tireStart, tireEnd);
+
+    if (error) throw error;
+
+    const batch = Array.isArray(data) ? (data as TireMasterRow[]) : [];
+    tires.push(...batch);
+    if (batch.length < pageSize) break;
+    tireStart += pageSize;
+  }
+
+  let eventStart = 0;
+  while (true) {
+    const eventEnd = eventStart + pageSize - 1;
+    const { data, error } = await context.supabase
       .from('maintenance_tire_events')
       .select('id, event_type, event_status, event_date, quantity, notes, tire:maintenance_tires(id, tire_code, tire_name, tire_condition, lifecycle_status), asset:maintenance_assets(asset_code, asset_name), work_order:maintenance_work_orders(work_order_number, title), purchase_order:purchase_orders(po_number, vendor_name)')
       .eq('organization_id', context.organizationId)
       .order('event_date', { ascending: false })
-      .limit(20),
-  ]);
+      .range(eventStart, eventEnd);
 
-  if (tiresResult.error) throw tiresResult.error;
-  if (eventsResult.error) throw eventsResult.error;
+    if (error) throw error;
 
-  const tires = (Array.isArray(tiresResult.data) ? (tiresResult.data as TireMasterRow[]) : []).map(mapTireMaster);
-  const events = (Array.isArray(eventsResult.data) ? (eventsResult.data as TireEventRow[]) : []).map(mapTireEvent);
+    const batch = Array.isArray(data) ? (data as TireEventRow[]) : [];
+    events.push(...batch);
+    if (batch.length < pageSize) break;
+    eventStart += pageSize;
+  }
+
+  const mappedTires = tires.map(mapTireMaster);
+  const mappedEvents = events.map(mapTireEvent);
 
   const summary = {
-    totalTires: tires.length,
-    newTires: tires.filter((item) => item.condition === 'new').length,
-    usedTires: tires.filter((item) => item.condition === 'used').length,
-    installed: tires.filter((item) => item.lifecycleStatus === 'installed').length,
-    inStock: tires.filter((item) => item.lifecycleStatus === 'in_stock').length,
-    replaced: tires.filter((item) => item.lifecycleStatus === 'replaced').length,
-    retired: tires.filter((item) => item.lifecycleStatus === 'retired').length,
+    totalTires: mappedTires.length,
+    newTires: mappedTires.filter((item) => item.condition === 'new').length,
+    usedTires: mappedTires.filter((item) => item.condition === 'used').length,
+    installed: mappedTires.filter((item) => item.lifecycleStatus === 'installed').length,
+    inStock: mappedTires.filter((item) => item.lifecycleStatus === 'in_stock').length,
+    replaced: mappedTires.filter((item) => item.lifecycleStatus === 'replaced').length,
+    retired: mappedTires.filter((item) => item.lifecycleStatus === 'retired').length,
   };
 
   return {
     summary,
-    tires: tires.slice(0, 50),
-    events,
+    tires: mappedTires,
+    events: mappedEvents,
   };
 }
 

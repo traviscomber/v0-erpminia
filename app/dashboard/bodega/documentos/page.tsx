@@ -290,7 +290,12 @@ export default function DocumentosBodegaPage() {
         </TabsContent>
 
         <TabsContent value="vigentes" className="space-y-4">
-          <DocumentList documents={documents.filter((d) => d.status === 'active')} isLoading={loading} onView={handleView} onDelete={handleDelete} />
+          <DocumentList
+            documents={documents.filter((d) => d.status === 'active' || d.status === 'aprobado')}
+            isLoading={loading}
+            onView={handleView}
+            onDelete={handleDelete}
+          />
         </TabsContent>
 
         <TabsContent value="revision" className="space-y-4">

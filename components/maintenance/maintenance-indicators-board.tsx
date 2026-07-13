@@ -12,6 +12,14 @@ function money(value: number) {
   return `$${Number(value || 0).toLocaleString('es-CL')}`;
 }
 
+function normalizeStatus(value: string | null | undefined) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
+}
+
 type WorkOrderRow = {
   status: string | null;
   scheduled_date: string | null;
@@ -56,7 +64,7 @@ export function MaintenanceIndicatorsBoard() {
     due.setHours(0, 0, 0, 0);
     return due < today && !['completed', 'completado', 'closed'].includes(String(order.status || '').toLowerCase());
   }).length;
-  const activeAssets = assets.filter((asset) => String(asset.status || '').toLowerCase() === 'active').length;
+  const activeAssets = assets.filter((asset) => ['active', 'activo', 'operativo'].includes(normalizeStatus(asset.status))).length;
   const availability = assets.length > 0 ? Math.round((activeAssets / assets.length) * 100) : 0;
 
   const cards = [

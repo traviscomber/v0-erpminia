@@ -18,11 +18,29 @@ function normalizeText(value: string | null | undefined) {
   return String(value || '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
+    .trim()
     .toLowerCase();
 }
 
+function normalizeStatus(value: string | null | undefined) {
+  const normalized = normalizeText(value);
+  if (['operativo', 'activo', 'active', '1', 'true', 'si'].includes(normalized)) return 'operativo';
+  if (['mantenimiento', 'maintenance'].includes(normalized)) return 'mantenimiento';
+  if (['inactivo', 'inactive', 'fuera de servicio', 'decommissioned'].includes(normalized)) return 'inactivo';
+  return normalized || 'desconocido';
+}
+
+function normalizeCriticality(value: string | null | undefined) {
+  const normalized = normalizeText(value);
+  if (['critico', 'critical'].includes(normalized)) return 'critico';
+  if (['alto', 'high'].includes(normalized)) return 'alto';
+  if (['medio', 'medium'].includes(normalized)) return 'medio';
+  if (['bajo', 'low'].includes(normalized)) return 'bajo';
+  return normalized || 'medio';
+}
+
 function getCriticalityClass(criticality: string) {
-  const c = normalizeText(criticality);
+  const c = normalizeCriticality(criticality);
   if (c === 'critico') return 'border-red-400 bg-red-50 text-red-800';
   if (c === 'alto') return 'border-orange-400 bg-orange-50 text-orange-800';
   if (c === 'medio') return 'border-yellow-400 bg-yellow-50 text-yellow-800';
@@ -30,10 +48,18 @@ function getCriticalityClass(criticality: string) {
 }
 
 function getStatusIcon(status: string) {
-  const s = normalizeText(status);
-  if (s === 'operativo' || s === 'activo') return <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />;
+  const s = normalizeStatus(status);
+  if (s === 'operativo') return <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />;
   if (s === 'mantenimiento') return <Wrench className="h-3.5 w-3.5 text-blue-600" />;
   return <AlertCircle className="h-3.5 w-3.5 text-gray-400" />;
+}
+
+function getStatusLabel(status: string) {
+  const s = normalizeStatus(status);
+  if (s === 'operativo') return 'Operativo';
+  if (s === 'mantenimiento') return 'Mantenimiento';
+  if (s === 'inactivo') return 'Inactivo';
+  return status || 'Desconocido';
 }
 
 const TYPE_ORDER = [
@@ -75,9 +101,9 @@ export function EquipmentList({
   const kpis = useMemo(
     () => ({
       total: all.length,
-      criticos: all.filter((e) => normalizeText(e.criticality).startsWith('crit')).length,
-      mantenimiento: all.filter((e) => normalizeText(e.status) === 'mantenimiento').length,
-      operativos: all.filter((e) => ['operativo', 'activo'].includes(normalizeText(e.status))).length,
+      criticos: all.filter((e) => normalizeCriticality(e.criticality) === 'critico').length,
+      mantenimiento: all.filter((e) => normalizeStatus(e.status) === 'mantenimiento').length,
+      operativos: all.filter((e) => normalizeStatus(e.status) === 'operativo').length,
     }),
     [all],
   );
@@ -97,8 +123,8 @@ export function EquipmentList({
     }
 
     if (typeFilter !== 'all') list = list.filter((e) => e.type === typeFilter);
-    if (criticityFilter !== 'all') list = list.filter((e) => normalizeText(e.criticality) === criticityFilter);
-    if (statusFilter !== 'all') list = list.filter((e) => normalizeText(e.status) === statusFilter);
+    if (criticityFilter !== 'all') list = list.filter((e) => normalizeCriticality(e.criticality) === criticityFilter);
+    if (statusFilter !== 'all') list = list.filter((e) => normalizeStatus(e.status) === statusFilter);
 
     return list;
   }, [all, search, typeFilter, criticityFilter, statusFilter]);
@@ -184,13 +210,14 @@ export function EquipmentList({
               <SelectTrigger>
                 <SelectValue placeholder="Criticidad" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Toda criticidad</SelectItem>
-                <SelectItem value="critico">Critico</SelectItem>
-                <SelectItem value="alto">Alto</SelectItem>
-                <SelectItem value="medio">Medio</SelectItem>
-              </SelectContent>
-            </Select>
+                <SelectContent>
+                  <SelectItem value="all">Toda criticidad</SelectItem>
+                  <SelectItem value="critico">Critico</SelectItem>
+                  <SelectItem value="alto">Alto</SelectItem>
+                  <SelectItem value="medio">Medio</SelectItem>
+                  <SelectItem value="bajo">Bajo</SelectItem>
+                </SelectContent>
+              </Select>
 
             <Select value={statusFilter} onValueChange={handleFilter(setStatusFilter)}>
               <SelectTrigger>
@@ -258,7 +285,7 @@ export function EquipmentList({
                   <span className="text-muted-foreground">Estado</span>
                   <div className="flex items-center gap-1.5">
                     {getStatusIcon(equipment.status)}
-                    <span className="capitalize">{equipment.status}</span>
+                    <span>{getStatusLabel(equipment.status)}</span>
                   </div>
                 </div>
                 {equipment.model && equipment.model !== equipment.name && (

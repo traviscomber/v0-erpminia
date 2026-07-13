@@ -80,14 +80,26 @@ type AssetHistoryResponse = {
 };
 
 function statusLabel(status: string) {
+  const normalized = String(status || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
   const labels: Record<string, string> = {
     open: 'Abierta',
+    abierta: 'Abierta',
     pending: 'Pendiente',
+    pendiente: 'Pendiente',
+    assigned: 'Asignada',
+    asignada: 'Asignada',
     in_progress: 'En progreso',
+    en_progreso: 'En progreso',
     completed: 'Completada',
+    completada: 'Completada',
     closed: 'Cerrada',
+    cerrada: 'Cerrada',
   };
-  return labels[status] || status || 'Sin estado';
+  return labels[normalized] || status || 'Sin estado';
 }
 
 export function MaintenanceMobilePanel() {
@@ -106,11 +118,31 @@ export function MaintenanceMobilePanel() {
   const selectedHistory = ((assetHistoryData as AssetHistoryResponse | undefined)?.history || []) as SelectedHistoryRow[];
 
   const openOrders = useMemo(
-    () => workOrders.filter((order) => ['open', 'pending', 'pendiente', 'in_progress'].includes(String(order.status || '').toLowerCase())).slice(0, 8),
+    () =>
+      workOrders
+        .filter((order) => ['open', 'pending', 'pendiente', 'in_progress', 'en_progreso', 'assigned', 'asignada'].includes(
+          String(order.status || '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .trim()
+            .toLowerCase(),
+        ))
+        .slice(0, 8),
     [workOrders],
   );
   const urgentOrders = useMemo(
-    () => workOrders.filter((order) => ['high', 'critical', 'urgente'].includes(String(order.priority || '').toLowerCase())).slice(0, 3),
+    () =>
+      workOrders
+        .filter((order) =>
+          ['high', 'critical', 'urgente', 'alta', 'critica'].includes(
+            String(order.priority || '')
+              .normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '')
+              .trim()
+              .toLowerCase(),
+          ),
+        )
+        .slice(0, 3),
     [workOrders],
   );
 

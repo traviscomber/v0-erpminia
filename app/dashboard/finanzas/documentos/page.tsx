@@ -216,7 +216,7 @@ export default function DocumentosFinanzasPage() {
 
         <TabsContent value="vigentes" className="space-y-4">
           <DocumentList
-            documents={documents.filter((d) => d.status === 'active')}
+            documents={documents.filter((d) => d.status === 'active' || d.status === 'aprobado')}
             isLoading={loading}
             onView={handleView}
             onDelete={handleDelete}

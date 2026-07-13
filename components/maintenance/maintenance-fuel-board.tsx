@@ -62,9 +62,7 @@ export function MaintenanceFuelBoard() {
     };
   }, [fuelItems]);
 
-  const topItems = [...fuelItems]
-    .sort((a: FuelInventoryItem, b: FuelInventoryItem) => Number(b.quantity || 0) - Number(a.quantity || 0))
-    .slice(0, 10);
+  const topItems = [...fuelItems].sort((a: FuelInventoryItem, b: FuelInventoryItem) => Number(b.quantity || 0) - Number(a.quantity || 0));
 
   if (error) {
     return (

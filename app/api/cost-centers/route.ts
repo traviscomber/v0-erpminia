@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
+import { isActiveCostCenterStatus } from '@/lib/cost-centers';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,7 +29,6 @@ export async function GET(request: NextRequest) {
       .from('cost_centers')
       .select('id, code, name, description, status')
       .eq('organization_id', context.organizationId)
-      .eq('status', 'active')
       .order('code');
 
     if (error) {
@@ -38,12 +38,13 @@ export async function GET(request: NextRequest) {
 
     const normalized = (Array.isArray(costCenters) ? (costCenters as CostCenterRow[]) : [])
       .filter((center) => Boolean(center.id && center.code && center.name))
+      .filter((center) => isActiveCostCenterStatus(center.status))
       .map<CostCenterResponse>((center) => ({
         id: center.id,
         code: String(center.code || '').trim(),
         name: String(center.name || '').trim(),
         description: center.description || null,
-        status: String(center.status || 'inactive').toLowerCase() === 'active' ? 'active' : 'inactive',
+        status: 'active',
       }));
 
     return NextResponse.json(normalized);

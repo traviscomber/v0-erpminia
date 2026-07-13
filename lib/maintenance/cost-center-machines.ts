@@ -1,4 +1,4 @@
-import { getCostCenterRootCode, repairCostCenterText } from '@/lib/cost-centers';
+import { getCostCenterRootCode, isActiveCostCenterStatus, repairCostCenterText } from '@/lib/cost-centers';
 
 const MACHINE_KEYWORDS = [
   'hilux',
@@ -168,7 +168,7 @@ export type DerivedCostCenterMachine = {
 
 export function deriveMachinesFromCostCenters(costCenters: Array<{ id: string; code: string; name: string; description?: string | null; status?: string | null }>) {
   const centers = costCenters
-    .filter((center) => String(center.status || 'active').toLowerCase() === 'active')
+    .filter((center) => isActiveCostCenterStatus(center.status))
     .filter((center) => {
       const code = String(center.code || '');
       if (REDISTRIBUTABLE_SOURCE_MAP[code]) return true;

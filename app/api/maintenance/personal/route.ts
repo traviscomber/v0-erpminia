@@ -48,15 +48,27 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ summary: { totalHours: 0, totalEntries: 0, technicians: 0 }, technicians: [], recentEntries: [] });
     }
 
-    const { data, error } = await context.supabase
-      .from('mantenimiento_tiempo')
-      .select('id, ot_id, technician_id, horas_trabajadas, descripcion, fecha, technician:users(id, email, full_name)')
-      .in('ot_id', otIds)
-      .order('fecha', { ascending: false });
+    const pageSize = 1000;
+    const entries: MaintenanceTimeEntryItem[] = [];
+    let start = 0;
 
-    if (error) throw error;
+    while (true) {
+      const end = start + pageSize - 1;
+      const { data, error } = await context.supabase
+        .from('mantenimiento_tiempo')
+        .select('id, ot_id, technician_id, horas_trabajadas, descripcion, fecha, technician:users(id, email, full_name)')
+        .in('ot_id', otIds)
+        .order('fecha', { ascending: false })
+        .range(start, end);
 
-    const entries = Array.isArray(data) ? (data as MaintenanceTimeEntryItem[]) : [];
+      if (error) throw error;
+
+      const batch = Array.isArray(data) ? (data as MaintenanceTimeEntryItem[]) : [];
+      entries.push(...batch);
+      if (batch.length < pageSize) break;
+      start += pageSize;
+    }
+
     const techniciansMap = new Map<string, TechnicianSummary>();
 
     for (const entry of entries) {
@@ -83,7 +95,7 @@ export async function GET(request: NextRequest) {
         technicians: technicians.length,
       },
       technicians,
-      recentEntries: entries.slice(0, 10),
+      recentEntries: entries,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudo cargar el personal de mantenimiento';

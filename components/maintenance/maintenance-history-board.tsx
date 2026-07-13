@@ -257,7 +257,7 @@ export function MaintenanceHistoryBoard() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                {group.rows.slice(0, 8).map((entry) => (
+                {group.rows.map((entry) => (
                   <div key={entry.id} className="rounded-lg border border-border bg-background p-4">
                     <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                       <div className="space-y-2">

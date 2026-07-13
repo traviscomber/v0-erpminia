@@ -47,6 +47,8 @@ type WorkOrderPayload = {
   assigned_to_name?: string | null;
   costCenterId?: string | null;
   cost_center_id?: string | null;
+  costCenterCode?: string | null;
+  cost_center_code?: string | null;
 };
 
 function mapWorkOrder(row: MaintenanceWorkOrderRow) {
@@ -81,11 +83,30 @@ export async function GET(request: NextRequest) {
   if (!context.ok) return context.response;
 
   try {
-    const { data, error } = await context.supabase
+    const searchParams = request.nextUrl.searchParams;
+    const status = searchParams.get('status')?.trim();
+    const priority = searchParams.get('priority')?.trim();
+    const limit = Number(searchParams.get('limit') || '0');
+
+    let query = context.supabase
       .from('maintenance_work_orders')
       .select('*, asset:maintenance_assets(id, asset_name, asset_code, asset_type)')
       .eq('organization_id', context.organizationId)
       .order('created_at', { ascending: false });
+
+    if (status) {
+      query = query.eq('status', status);
+    }
+
+    if (priority) {
+      query = query.eq('priority', priority);
+    }
+
+    if (Number.isFinite(limit) && limit > 0) {
+      query = query.limit(limit);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
 
@@ -102,6 +123,20 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = (await request.json()) as WorkOrderPayload;
+    let resolvedCostCenterId = body.costCenterId || body.cost_center_id || null;
+    const costCenterCode = String(body.costCenterCode || body.cost_center_code || '').trim();
+
+    if (!resolvedCostCenterId && costCenterCode) {
+      const { data: costCenter } = await context.supabase
+        .from('cost_centers')
+        .select('id')
+        .eq('organization_id', context.organizationId)
+        .eq('code', costCenterCode)
+        .maybeSingle();
+
+      resolvedCostCenterId = costCenter?.id || null;
+    }
+
     const { count } = await context.supabase
       .from('maintenance_work_orders')
       .select('*', { head: true, count: 'exact' })
@@ -123,7 +158,7 @@ export async function POST(request: NextRequest) {
         scheduled_date: body.scheduledDate || body.scheduled_date || null,
         planned_duration_hours: Number(body.plannedDurationHours || body.planned_duration_hours || 0),
         assigned_to_name: body.assignedToName || body.assigned_to_name || null,
-        cost_center_id: body.costCenterId || body.cost_center_id || null,
+        cost_center_id: resolvedCostCenterId,
         created_by: context.userId,
         updated_at: new Date().toISOString(),
       })

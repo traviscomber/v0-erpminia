@@ -2,11 +2,11 @@
 
 import Link from 'next/link';
 import useSWR from 'swr';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Download, FileSearch, Plus, Upload, Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BrandCard } from '@/components/ui/brand-card';
-import { ChevronRight, FileSearch, Plus, Upload, Wrench } from 'lucide-react';
 import type { DerivedCostCenterMachine } from '@/lib/maintenance/cost-center-machines';
 
 type MaintenanceAsset = {
@@ -22,12 +22,30 @@ type MaintenanceAsset = {
   mtbfHours?: number;
 };
 
+function normalizeText(value: string | null | undefined) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
+}
+
+function statusLabel(status: string) {
+  const value = normalizeText(status);
+  if (['active', 'activo', 'operativo', 'operational'].includes(value)) return 'Operativo';
+  if (['inactive', 'inactivo'].includes(value)) return 'Inactivo';
+  if (['maintenance', 'mantenimiento'].includes(value)) return 'Mantenimiento';
+  return status || 'Sin estado';
+}
+
 const fetcher = async (url: string) => {
   const response = await fetch(url, { credentials: 'include' });
   const payload = await response.json().catch(() => null);
   if (!response.ok) throw new Error(payload?.error || 'No fue posible cargar los activos');
   return payload;
 };
+
+const VEHICLE_GROUPS = ['8', '9', '12'];
 
 export default function VehiclesPage() {
   const { data, error, isLoading } = useSWR('/api/maintenance/assets', fetcher);
@@ -129,7 +147,7 @@ export default function VehiclesPage() {
                   <div className="flex-1">
                     <div className="mb-2 flex items-center gap-3">
                       <h3 className="text-lg font-semibold">{vehicle.assetName}</h3>
-                      <Badge className="bg-accent">{String(vehicle.status || 'operativo').toUpperCase()}</Badge>
+                      <Badge className="bg-accent">{statusLabel(vehicle.status)}</Badge>
                     </div>
                     <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground md:grid-cols-4">
                       <div>
@@ -160,7 +178,7 @@ export default function VehiclesPage() {
                     <Link href={`/dashboard/mantenimiento/vehiculos/${vehicle.id}/arbol`}>
                       <Button variant="outline" className="gap-2">
                         Ver arbol de fallas
-                        <ChevronRight className="h-4 w-4" />
+                        <Download className="h-4 w-4 rotate-90" />
                       </Button>
                     </Link>
                   </div>

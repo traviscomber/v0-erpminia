@@ -39,6 +39,14 @@ function normalizeCode(code: string) {
   return String(code || '').trim();
 }
 
+export function normalizeStatusText(value: string | null | undefined) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
+}
+
 const TEXT_FIXES: Array<[RegExp, string]> = [
   [/exploracin/gi, 'exploracion'],
   [/explotacin/gi, 'explotacion'],
@@ -75,6 +83,11 @@ export function repairCostCenterText(value: string) {
     result = result.replace(pattern, replacement);
   }
   return result.replace(/\s+/g, ' ').trim();
+}
+
+export function isActiveCostCenterStatus(value: string | null | undefined) {
+  const normalized = normalizeStatusText(value);
+  return ['active', 'activo', 'vigente', 'enabled', 'habilitado', 'si', '1', 'true'].includes(normalized);
 }
 
 export function getCostCenterDepth(code: string) {

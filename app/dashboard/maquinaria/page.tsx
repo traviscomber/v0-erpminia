@@ -36,6 +36,21 @@ const fetcher = async (url: string) => {
 
 const VEHICLE_GROUPS = ['8', '9', '12'];
 
+function normalizeText(value: string | null | undefined) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
+}
+
+function normalizeStatus(value: string | null | undefined) {
+  const normalized = normalizeText(value);
+  if (['activo', 'active', 'operativo', '1', 'true', 'si'].includes(normalized)) return 'activo';
+  if (['mantenimiento', 'maintenance'].includes(normalized)) return 'mantenimiento';
+  return 'inactivo';
+}
+
 export default function MaquinariaPage() {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -53,13 +68,13 @@ export default function MaquinariaPage() {
   const machinery: Machine[] = data?.machinery || [];
   const categories: Category[] = data?.categories || [];
   const total = data?.total || 0;
-  const activeCount = machinery.filter((item) => item.status === 'Activo').length;
+  const activeCount = machinery.filter((item) => normalizeStatus(item.status) === 'activo').length;
   const inactiveCount = machinery.length - activeCount;
   const vehicleCount = machinery.filter((item) => VEHICLE_GROUPS.includes(item.category_code)).length;
   const equipmentCount = machinery.filter((item) => !VEHICLE_GROUPS.includes(item.category_code)).length;
   const visibleMachinery = machinery.filter((item) => {
     if (!selectedStatus) return true;
-    return selectedStatus === 'Activo' ? item.status === 'Activo' : item.status !== 'Activo';
+    return normalizeStatus(item.status) === normalizeStatus(selectedStatus);
   });
 
   return (
@@ -264,12 +279,18 @@ export default function MaquinariaPage() {
                         <Badge
                           variant="outline"
                           className={
-                            item.status === 'Activo'
+                            normalizeStatus(item.status) === 'activo'
                               ? 'border-green-200 bg-green-50 text-green-700'
-                              : 'border-red-200 bg-red-50 text-red-700'
+                              : normalizeStatus(item.status) === 'mantenimiento'
+                                ? 'border-blue-200 bg-blue-50 text-blue-700'
+                                : 'border-red-200 bg-red-50 text-red-700'
                           }
                         >
-                          {item.status}
+                          {normalizeStatus(item.status) === 'activo'
+                            ? 'Activo'
+                            : normalizeStatus(item.status) === 'mantenimiento'
+                              ? 'Mantenimiento'
+                              : 'Inactivo'}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">

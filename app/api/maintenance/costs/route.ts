@@ -229,7 +229,6 @@ export async function GET(request: NextRequest) {
     }
     const familyCosts = Array.from(familyTotals.entries())
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
       .map(([family, value]) => ({ family, value: Number(value.toFixed(2)) }));
 
     const totalCost = assetCosts.reduce((sum, item) => sum + item.totalCost, 0);
@@ -237,7 +236,6 @@ export async function GET(request: NextRequest) {
     const totalRecords = history.length;
     const recentMonths = Array.from(monthlyTotals.entries())
       .sort(([a], [b]) => a.localeCompare(b))
-      .slice(-12)
       .map(([month, value]) => ({ month, value: Number(value.toFixed(2)) }));
 
     return NextResponse.json({
@@ -248,7 +246,7 @@ export async function GET(request: NextRequest) {
         assets: assetCosts.length,
         averageCostPerAsset: assetCosts.length > 0 ? Number((totalCost / assetCosts.length).toFixed(2)) : 0,
       },
-      assetCosts: isSummaryOnly ? [] : assetCosts.slice(0, 20),
+      assetCosts: isSummaryOnly ? [] : assetCosts,
       familyCosts: isSummaryOnly ? [] : familyCosts,
       monthlyCosts: isSummaryOnly ? [] : recentMonths,
       limits: {

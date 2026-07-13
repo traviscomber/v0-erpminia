@@ -22,21 +22,22 @@ function normalizeText(value: string | null | undefined) {
   return String(value || '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
+    .trim()
     .toLowerCase();
 }
 
 function getStatusLabel(status: string) {
   const value = normalizeText(status);
-  if (value === 'activo' || value === 'operativo') return 'Activo';
+  if (['activo', 'operativo', 'active'].includes(value)) return 'Activo';
   if (value === 'mantenimiento') return 'Mantenimiento';
-  if (value === 'inactivo') return 'Inactivo';
+  if (['inactivo', 'inactive'].includes(value)) return 'Inactivo';
   return status || 'Sin estado';
 }
 
 function getCriticalityVariant(criticality: string): 'destructive' | 'secondary' | 'outline' {
   const value = normalizeText(criticality);
-  if (value === 'critico') return 'destructive';
-  if (value === 'alto') return 'secondary';
+  if (['critico', 'critical'].includes(value)) return 'destructive';
+  if (['alto', 'high'].includes(value)) return 'secondary';
   return 'outline';
 }
 

@@ -30,6 +30,14 @@ function number(value: number) {
   return Number(value || 0).toLocaleString('es-CL');
 }
 
+function normalizeStatus(value: string | null | undefined) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
+}
+
 type AssetRow = {
   status: string | null;
   criticality: string | null;
@@ -100,9 +108,9 @@ export function MaintenanceExecutiveDashboard() {
     { totalItems: 0, totalQuantity: 0, totalValue: 0, lowStock: 0 },
   );
 
-  const activeAssets = assets.filter((asset) => String(asset.status || '').toLowerCase() === 'active').length;
-  const maintenanceAssets = assets.filter((asset) => String(asset.status || '').toLowerCase() === 'maintenance').length;
-  const criticalAssets = assets.filter((asset) => ['critical', 'high'].includes(String(asset.criticality || '').toLowerCase())).length;
+  const activeAssets = assets.filter((asset) => ['active', 'activo', 'operativo'].includes(normalizeStatus(asset.status))).length;
+  const maintenanceAssets = assets.filter((asset) => ['maintenance', 'mantenimiento'].includes(normalizeStatus(asset.status))).length;
+  const criticalAssets = assets.filter((asset) => ['critical', 'critico', 'high', 'alto'].includes(normalizeStatus(asset.criticality))).length;
   const overdueOrders = workOrders.filter((order) => {
     if (!order.scheduled_date) return false;
     const due = new Date(order.scheduled_date);
@@ -308,7 +316,7 @@ export function MaintenanceExecutiveDashboard() {
           </CardHeader>
           <CardContent className="space-y-2">
             {assetCosts.length > 0 ? (
-              assetCosts.slice(0, 10).map((asset) => (
+              assetCosts.map((asset) => (
                 <div key={asset.assetId} className="flex items-center justify-between rounded-lg border border-border p-3 text-sm">
                   <div>
                     <p className="font-medium">{asset.assetName || asset.assetCode || 'Equipo'}</p>
@@ -333,7 +341,7 @@ export function MaintenanceExecutiveDashboard() {
           <CardContent className="space-y-3">
             {criticalOrders.length > 0 ? (
               <div className="space-y-2">
-                {criticalOrders.slice(0, 4).map((order) => (
+                {criticalOrders.map((order) => (
                   <div key={order.id} className="rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-sm">
                     <div className="flex items-center justify-between gap-3">
                       <div>

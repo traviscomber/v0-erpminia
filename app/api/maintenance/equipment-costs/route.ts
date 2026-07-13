@@ -155,7 +155,6 @@ export async function GET(request: NextRequest) {
 
     const assetCosts = Array.from(assetTotals.values())
       .sort((a, b) => b.totalCost - a.totalCost)
-      .slice(0, 20)
       .map((item) => ({
         ...item,
         totalCost: Number(item.totalCost.toFixed(2)),
@@ -163,7 +162,6 @@ export async function GET(request: NextRequest) {
 
     const categoryCosts = Array.from(categoryTotals.entries())
       .sort((a, b) => b[1].totalCost - a[1].totalCost)
-      .slice(0, 12)
       .map(([category, value]) => ({
         category,
         totalCost: Number(value.totalCost.toFixed(2)),
@@ -172,7 +170,6 @@ export async function GET(request: NextRequest) {
 
     const monthlyCosts = Array.from(monthlyTotals.entries())
       .sort(([a], [b]) => a.localeCompare(b))
-      .slice(-12)
       .map(([month, value]) => ({ month, value: Number(value.toFixed(2)) }));
 
     const totalCost = ledgerRows.reduce((sum, row) => sum + toNumber(row.total_cost), 0);
@@ -188,10 +185,10 @@ export async function GET(request: NextRequest) {
         assets: assetTotals.size,
         averageCostPerAsset: assetTotals.size > 0 ? Number((totalCost / assetTotals.size).toFixed(2)) : 0,
       },
-      assetCosts,
-      categoryCosts,
-      monthlyCosts,
-      recentRows: ledgerRows.slice(0, 12).map((row) => ({
+        assetCosts,
+        categoryCosts,
+        monthlyCosts,
+        recentRows: ledgerRows.map((row) => ({
         id: row.id,
         costDate: row.cost_date,
         accountName: row.account_name,

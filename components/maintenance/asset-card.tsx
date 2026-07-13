@@ -34,17 +34,42 @@ const statusColors = {
   maintenance: 'bg-yellow-500/20 text-yellow-700',
 };
 
+function normalizeText(value: string | null | undefined) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
+}
+
+function getCriticalityLabel(value: Asset['criticality']) {
+  const normalized = normalizeText(value);
+  if (normalized === 'low') return 'Bajo';
+  if (normalized === 'medium') return 'Medio';
+  if (normalized === 'high') return 'Alto';
+  if (normalized === 'critical') return 'Critico';
+  return value;
+}
+
+function getStatusLabel(value: Asset['status']) {
+  const normalized = normalizeText(value);
+  if (normalized === 'active' || normalized === 'operativo') return 'Operativo';
+  if (normalized === 'maintenance') return 'Mantenimiento';
+  if (normalized === 'inactive') return 'Inactivo';
+  return value;
+}
+
 export function AssetCard({ asset, onCreateWorkOrder, onViewHistory }: AssetCardProps) {
   return (
     <Card>
       <CardHeader>
-        <div className="flex justify-between items-start">
+        <div className="flex items-start justify-between">
           <div>
             <CardTitle>{asset.assetName}</CardTitle>
             <CardDescription>{asset.assetCode}</CardDescription>
           </div>
           <Badge className={criticalityColors[asset.criticality] ?? 'bg-muted/20 text-muted-foreground'}>
-            {asset.criticality.charAt(0).toUpperCase() + asset.criticality.slice(1)}
+            {getCriticalityLabel(asset.criticality)}
           </Badge>
         </div>
       </CardHeader>
@@ -55,13 +80,13 @@ export function AssetCard({ asset, onCreateWorkOrder, onViewHistory }: AssetCard
             <p className="font-semibold">{asset.assetType}</p>
           </div>
           <div>
-            <p className="text-muted-foreground">Ubicación</p>
+            <p className="text-muted-foreground">Ubicacion</p>
             <p className="font-semibold">{asset.location}</p>
           </div>
           <div>
             <p className="text-muted-foreground">Estado</p>
             <Badge className={statusColors[asset.status] ?? 'bg-muted/20 text-muted-foreground'}>
-              {(asset.status ?? 'unknown').charAt(0).toUpperCase() + (asset.status ?? 'unknown').slice(1)}
+              {getStatusLabel(asset.status)}
             </Badge>
           </div>
           <div>

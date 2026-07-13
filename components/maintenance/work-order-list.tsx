@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Clock, User } from 'lucide-react';
@@ -42,10 +41,15 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await fetch('/api/maintenance/work-orders', { credentials: 'include' });
-        if (!response.ok) throw new Error('No se pudieron obtener las órdenes de trabajo');
+        const params = new URLSearchParams();
+        if (filters.status && filters.status !== 'all') params.set('status', filters.status);
+        if (filters.priority && filters.priority !== 'all') params.set('priority', filters.priority);
+        if (limit > 0) params.set('limit', String(limit));
+
+        const response = await fetch(`/api/maintenance/work-orders?${params.toString()}`, { credentials: 'include' });
+        if (!response.ok) throw new Error('No se pudieron obtener las ordenes de trabajo');
         const { workOrders } = await response.json();
-        setOrders((workOrders || []).slice(0, limit));
+        setOrders(workOrders || []);
       } catch (err) {
         console.error('[v0] Error fetching work orders:', err);
       } finally {
@@ -54,7 +58,7 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
     };
 
     fetchOrders();
-  }, [limit]);
+  }, [filters.priority, filters.status, limit]);
 
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
     setUpdatingId(orderId);
@@ -108,7 +112,7 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
   };
 
   if (loading) {
-    return <div className="text-muted-foreground">Cargando órdenes de trabajo...</div>;
+    return <div className="text-muted-foreground">Cargando ordenes de trabajo...</div>;
   }
 
   return (
@@ -160,7 +164,7 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
                 <div>
                   <p className="flex items-center gap-1 text-xs text-muted-foreground">
                     <User className="h-3 w-3" />
-                    Técnico
+                    Tecnico
                   </p>
                   <p className="font-semibold">{order.assigned_to_name}</p>
                 </div>
@@ -193,7 +197,7 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
       {orders.length === 0 && (
         <Card className="border-border bg-muted/30">
           <CardContent className="pt-6">
-            <div className="text-center text-muted-foreground">No hay órdenes de trabajo disponibles</div>
+            <div className="text-center text-muted-foreground">No hay ordenes de trabajo disponibles</div>
           </CardContent>
         </Card>
       )}

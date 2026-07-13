@@ -298,7 +298,7 @@ export default function DocumentosMantenimientoPage() {
 
         <TabsContent value="vigentes" className="space-y-4">
           <DocumentList
-            documents={filteredDocuments.filter((d) => d.status === 'active')}
+            documents={filteredDocuments.filter((d) => d.status === 'active' || d.status === 'aprobado')}
             isLoading={cargando}
             onView={handleVer}
             onDelete={handleDelete}

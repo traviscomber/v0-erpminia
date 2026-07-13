@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { resolveAuthContext } from '@/lib/api/auth-session';
 import { loadXlsxModule } from '@/lib/xlsx';
+import { isActiveCostCenterStatus } from '@/lib/cost-centers';
 
 
 const MACHINERY_GROUPS: Record<string, string> = {
@@ -87,7 +88,7 @@ export async function GET(request: NextRequest) {
         'Categoría':       MACHINERY_GROUPS[parentCode] || '',
         'Patente/Serie':   plateMatch ? plateMatch[1] : '',
         'Año':             yearMatch ? parseInt(yearMatch[0]) : '',
-        'Estado':          row.status === 'active' ? 'Activo' : 'Inactivo',
+        'Estado':          isActiveCostCenterStatus(row.status) ? 'Activo' : 'Inactivo',
       };
     });
 

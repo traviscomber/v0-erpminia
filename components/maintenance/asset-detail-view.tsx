@@ -75,6 +75,14 @@ const fetcher = async (url: string) => {
   return payload;
 };
 
+function normalizeText(value: string | null | undefined) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
+}
+
 function statusLabel(status: string) {
   const labels: Record<string, string> = {
     open: 'Abierta',
@@ -167,14 +175,14 @@ export function AssetDetailView() {
   const relatedMachines = useMemo(
     () =>
       machineFamily
-        ? machineCatalog.filter((machine) => String(machine.family || '').toLowerCase() === machineFamily.toLowerCase()).slice(0, 10)
+        ? machineCatalog.filter((machine) => String(machine.family || '').toLowerCase() === machineFamily.toLowerCase())
         : [],
     [machineCatalog, machineFamily],
   );
 
-  const openOrders = assetOrders.filter((order) => order.status === 'open' || order.status === 'assigned');
-  const progressOrders = assetOrders.filter((order) => order.status === 'in_progress');
-  const closedOrders = assetOrders.filter((order) => order.status === 'completed' || order.status === 'closed');
+  const openOrders = assetOrders.filter((order) => ['open', 'assigned', 'abierta', 'asignada'].includes(normalizeText(order.status)));
+  const progressOrders = assetOrders.filter((order) => ['in_progress', 'en_progreso'].includes(normalizeText(order.status)));
+  const closedOrders = assetOrders.filter((order) => ['completed', 'closed', 'completada', 'cerrada'].includes(normalizeText(order.status)));
   const latestHistory = history[0];
   const totalMaintenanceCost = history.reduce((sum, item) => sum + Number(item.parts_cost || 0) + Number(item.labor_cost || 0), 0);
   const totalLaborHours = history.reduce((sum, item) => sum + Number(item.labor_hours || 0), 0);

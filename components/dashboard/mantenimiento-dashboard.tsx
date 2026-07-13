@@ -86,20 +86,36 @@ function priorityVariant(priority: string) {
 }
 
 function assetStatusLabel(status: string) {
+  const normalized = normalizeText(status);
   const labels: Record<string, string> = {
+    activo: 'Operativo',
+    operativa: 'Operativo',
+    operativo: 'Operativo',
     active: 'Operativo',
     inactive: 'Inactivo',
+    inactivo: 'Inactivo',
     maintenance: 'En mantenimiento',
+    mantenimiento: 'En mantenimiento',
     decommissioned: 'Baja',
+    baja: 'Baja',
   };
 
-  return labels[status] || status;
+  return labels[normalized] || status;
 }
 
 function assetStatusVariant(status: string) {
-  if (status === 'maintenance') return 'secondary' as const;
-  if (status === 'inactive' || status === 'decommissioned') return 'outline' as const;
+  const normalized = normalizeText(status);
+  if (normalized === 'maintenance' || normalized === 'mantenimiento') return 'secondary' as const;
+  if (normalized === 'inactive' || normalized === 'inactivo' || normalized === 'decommissioned' || normalized === 'baja') return 'outline' as const;
   return 'default' as const;
+}
+
+function normalizeText(value: string | null | undefined) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
 }
 
 export function MantenimientoDashboard() {
@@ -116,10 +132,14 @@ export function MantenimientoDashboard() {
   const derivedMachines = Array.isArray(machineCatalogData?.machines) ? machineCatalogData.machines : [];
   const derivedMachineCount = derivedMachines.length;
   const totalAssets = assets.length;
-  const activeAssets = assets.filter((asset) => String(asset.status || '').toLowerCase() === 'active').length;
-  const maintenanceAssets = assets.filter((asset) => String(asset.status || '').toLowerCase() === 'maintenance').length;
+  const activeAssets = assets.filter((asset) =>
+    ['activo', 'operativo', 'active', 'operational'].includes(normalizeText(asset.status)),
+  ).length;
+  const maintenanceAssets = assets.filter((asset) =>
+    ['maintenance', 'mantenimiento'].includes(normalizeText(asset.status)),
+  ).length;
   const inactiveAssets = assets.filter((asset) =>
-    ['inactive', 'decommissioned'].includes(String(asset.status || '').toLowerCase()),
+    ['inactive', 'inactivo', 'decommissioned', 'baja'].includes(normalizeText(asset.status)),
   ).length;
   const machineFamilySummary = derivedMachines.reduce<Record<string, number>>((acc, machine) => {
     const family = machine.family || inferMachineFamilyFromText(`${machine.name} ${machine.code}`) || 'Sin familia';
@@ -148,7 +168,7 @@ export function MantenimientoDashboard() {
   const availability = totalAssets > 0 ? Math.round((activeAssets / totalAssets) * 100) : 0;
   const recentOrders = [...ordenes].slice(0, 6);
   const criticalAssets = assets
-    .filter((asset) => ['critical', 'high'].includes(String(asset.criticality || '').toLowerCase()))
+    .filter((asset) => ['critical', 'high', 'critico', 'critica', 'alto', 'alta'].includes(normalizeText(asset.criticality)))
     .slice(0, 6);
   const handleRefreshOrders = () => {
     void mutateOrders();
@@ -160,7 +180,7 @@ export function MantenimientoDashboard() {
     overdueOrders > 0
       ? {
           title: 'Atender OT vencidas',
-            description: 'Revisa las ordenes atrasadas antes de abrir nuevas tareas.',
+          description: 'Revisa las ordenes atrasadas antes de abrir nuevas tareas.',
           href: '/dashboard/work-orders',
           cta: 'Ver ordenes atrasadas',
         }
@@ -533,7 +553,7 @@ export function MantenimientoDashboard() {
                 <p className="text-2xl font-bold text-muted-foreground">{inactiveAssets}</p>
               </div>
               <div className="rounded-lg border border-border p-3">
-                <p className="text-xs text-muted-foreground">Criticos</p>
+              <p className="text-xs text-muted-foreground">Criticos</p>
                 <p className="text-2xl font-bold text-orange-500">{criticalAssets.length}</p>
               </div>
             </div>
