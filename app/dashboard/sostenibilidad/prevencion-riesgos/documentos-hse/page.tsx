@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { AlertCircle, CheckCircle2, Clock, FileText, Upload } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DocumentUpload } from '@/components/documents/document-upload';
 import { DocumentList, Document } from '@/components/documents/document-list';
 import { DocumentReviewModal, type DocumentReviewDocument } from '@/components/documents/document-review-modal';
-import { FileText, CheckCircle2, AlertCircle, Clock, Upload } from 'lucide-react';
 
 interface DocumentStats {
   total: number;
@@ -32,7 +32,7 @@ export default function DocumentosHSEPage() {
   const loadDocuments = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/documents/list?module=prevenci%C3%B3n&category=documentos-hse', {
+      const response = await fetch('/api/documents/list?module=prevencion&category=documentos-hse', {
         credentials: 'include',
       });
       const data = await response.json().catch(() => null);
@@ -126,9 +126,7 @@ export default function DocumentosHSEPage() {
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <h1 className="text-3xl font-bold">Documentos HSE</h1>
-          <p className="mt-2 text-muted-foreground">
-            Gestión de políticas, procedimientos, instructivos y programas de seguridad
-          </p>
+          <p className="mt-2 text-muted-foreground">Gestion de politicas, procedimientos, instructivos y programas de seguridad.</p>
         </div>
         <Button asChild variant="outline">
           <Link href="/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse/importar">
@@ -168,7 +166,7 @@ export default function DocumentosHSEPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center justify-between text-sm font-medium">
-              <span>En revisión</span>
+              <span>En revision</span>
               <Clock className="h-4 w-4 text-yellow-500" />
             </CardTitle>
           </CardHeader>
@@ -187,7 +185,7 @@ export default function DocumentosHSEPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-red-500">{stats.rechazados}</p>
-            <p className="text-xs text-muted-foreground">Pendientes de corrección</p>
+            <p className="text-xs text-muted-foreground">Pendientes de correccion</p>
           </CardContent>
         </Card>
       </div>
@@ -200,8 +198,8 @@ export default function DocumentosHSEPage() {
           <TabsTrigger value="vigentes" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             Vigentes ({vigentesDocs.length})
           </TabsTrigger>
-            <TabsTrigger value="Revision" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-             En revisión ({revisionDocs.length})
+          <TabsTrigger value="revision" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            En revision ({revisionDocs.length})
           </TabsTrigger>
           <TabsTrigger value="upload" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             Subir
@@ -209,42 +207,22 @@ export default function DocumentosHSEPage() {
         </TabsList>
 
         <TabsContent value="todos" className="space-y-4">
-          <DocumentList
-            documents={documents}
-            isLoading={loading}
-            onView={handleView}
-            onDelete={handleDelete}
-            showSearch
-          />
+          <DocumentList documents={documents} isLoading={loading} onView={handleView} onDelete={handleDelete} showSearch />
         </TabsContent>
 
         <TabsContent value="vigentes" className="space-y-4">
-          <DocumentList
-            documents={vigentesDocs}
-            isLoading={loading}
-            onView={handleView}
-            onDelete={handleDelete}
-            showSearch
-          />
+          <DocumentList documents={vigentesDocs} isLoading={loading} onView={handleView} onDelete={handleDelete} showSearch />
         </TabsContent>
 
-        <TabsContent value="Revision" className="space-y-4">
-          <DocumentList
-            documents={revisionDocs}
-            isLoading={loading}
-            onView={handleView}
-            onDelete={handleDelete}
-            showSearch={false}
-          />
+        <TabsContent value="revision" className="space-y-4">
+          <DocumentList documents={revisionDocs} isLoading={loading} onView={handleView} onDelete={handleDelete} showSearch={false} />
         </TabsContent>
 
         <TabsContent value="upload" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Subir nuevo documento</CardTitle>
-              <CardDescription>
-                Sube documentos HSE: políticas, procedimientos, instructivos y programas de seguridad
-              </CardDescription>
+              <CardDescription>Sube documentos HSE: politicas, procedimientos, instructivos y programas de seguridad</CardDescription>
             </CardHeader>
             <CardContent>
               <DocumentUpload module="prevencion" category="documentos-hse" onUploadSuccess={loadDocuments} />

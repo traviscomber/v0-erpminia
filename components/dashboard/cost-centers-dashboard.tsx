@@ -23,6 +23,7 @@ import {
   getCostCenterRootCode,
   isRootCostCenter,
   isVisibleCostCenter,
+  isActiveCostCenterStatus,
   repairCostCenterText,
   sortCostCenters,
   type CostCenterRecord,
@@ -80,7 +81,7 @@ export function CostCentersDashboard() {
 
   const totalCenters = visibleCostCenters.length;
   const rootCount = groupedCenters.length;
-  const activeCount = visibleCostCenters.filter((center) => center.status === 'active').length;
+  const activeCount = visibleCostCenters.filter((center) => isActiveCostCenterStatus(center.status)).length;
   const leafCount = visibleCostCenters.filter((center) => !isRootCostCenter(center.code)).length;
   const allExpanded = groupedCenters.length > 0 && groupedCenters.every((group) => expandedGroups[group.rootCode]);
 
@@ -441,12 +442,12 @@ export function CostCentersDashboard() {
                       ) : (
                         <span className="text-muted-foreground">Centro principal</span>
                       )}
-                      {!isExpanded && extraCount > 0 ? <span className="text-muted-foreground">+{extraCount} más</span> : null}
+                      {!isExpanded && extraCount > 0 ? <span className="text-muted-foreground">+{extraCount} mas</span> : null}
                     </div>
 
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span>{children.length} subcentros</span>
-                      <span>{group.items.filter((item) => item.status === 'active').length} activos</span>
+                      <span>{group.items.filter((item) => isActiveCostCenterStatus(item.status)).length} activos</span>
                     </div>
                   </div>
                 </div>

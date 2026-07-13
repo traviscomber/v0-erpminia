@@ -9,7 +9,7 @@ const CATEGORY_DEFINITIONS = [
     id: 'seguridad',
     name: 'Documentos de Seguridad',
     description: 'Protocolos, procedimientos, reportes y evidencias de seguridad',
-    keywords: ['seguridad', 'hse', 'safety', 'prevencion', 'prevención', 'riesgo'],
+    keywords: ['seguridad', 'hse', 'safety', 'prevencion', 'riesgo'],
   },
   {
     id: 'ambiental',
@@ -27,9 +27,9 @@ const CATEGORY_DEFINITIONS = [
     id: 'laboral',
     name: 'Documentos Laborales',
     description: 'Reglamentos, permisos, capacitaciones y relaciones laborales',
-    keywords: ['laboral', 'rrhh', 'capacitacion', 'capacitación', 'permiso', 'contrato'],
+    keywords: ['laboral', 'rrhh', 'capacitacion', 'permiso', 'contrato'],
   },
-];
+] as const;
 
 function createEmptyDashboardPayload() {
   return {
@@ -52,7 +52,10 @@ function createEmptyDashboardPayload() {
 }
 
 function normalizeText(value: unknown) {
-  return String(value || '').toLowerCase();
+  return String(value || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
 }
 
 type DocumentFlowRow = {
@@ -103,7 +106,7 @@ type RecentDocumentSummary = {
   validador1?: string | null;
 };
 
-function matchesCategory(document: DocumentFlowRow, keywords: string[]) {
+function matchesCategory(document: DocumentFlowRow, keywords: readonly string[]) {
   const haystack = [
     document.category,
     document.documentType,
@@ -124,11 +127,21 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const result = await listDocumentsForOrganization(auth.organizationId, {
-      limit: 250,
-    });
+    const pageSize = 250;
+    const documents: DocumentFlowRow[] = [];
+    let offset = 0;
 
-    const documents = (Array.isArray(result.documents) ? result.documents : []) as DocumentFlowRow[];
+    while (true) {
+      const result = await listDocumentsForOrganization(auth.organizationId, {
+        limit: pageSize,
+        offset,
+      });
+
+      const batch = (Array.isArray(result.documents) ? result.documents : []) as DocumentFlowRow[];
+      documents.push(...batch);
+      if (batch.length < pageSize) break;
+      offset += pageSize;
+    }
 
     const categories = CATEGORY_DEFINITIONS.map<DashboardCategorySummary>((definition) => {
       const matchedDocuments = documents.filter((document) => matchesCategory(document, definition.keywords));
