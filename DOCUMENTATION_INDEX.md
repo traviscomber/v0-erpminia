@@ -50,6 +50,13 @@ This is your complete reference for FASE 3 Non-Conformance Management System. St
    - Key learnings
    - Critical business flows
 
+6. **[docs/MAESTRO_CENTROS_COSTOS_MAQUINARIA.md](./docs/MAESTRO_CENTROS_COSTOS_MAQUINARIA.md)** - Maestro de centros de costos y maquinaria
+   - Snapshot de produccion y conteos reales
+   - Regla de negocio para maquinaria vs estructura operativa
+   - Redistribucion aprobada de equipos reales
+   - Nodos excluidos del catalogo de maquinaria
+   - Rutas de codigo donde vive la logica
+
 ---
 
 ## 📊 PHASE 3 - AT A GLANCE
