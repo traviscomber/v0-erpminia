@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -58,14 +58,14 @@ export default function TelemetriaPage() {
       </div>
 
       <Card className="border-border/70 bg-card/90">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Modo estable</CardTitle>
-            <CardDescription>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">Modo estable</CardTitle>
+          <CardDescription>
             La telemetria sigue operando con lecturas historicas, equipos reales y consultas por API sin depender de
             conexiones en tiempo real.
-            </CardDescription>
-          </CardHeader>
-        </Card>
+          </CardDescription>
+        </CardHeader>
+      </Card>
 
       <TelemetryExecutiveSummary />
 
@@ -88,9 +88,7 @@ export default function TelemetriaPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-[var(--secondary)]">Ruta estable</div>
-            <p className="text-xs text-muted-foreground">
-              La integracion LAN sigue lista para usarse sin conexiones en vivo.
-            </p>
+            <p className="text-xs text-muted-foreground">La integracion LAN sigue lista para usarse sin conexiones en vivo.</p>
           </CardContent>
         </Card>
 
@@ -157,9 +155,7 @@ export default function TelemetriaPage() {
               </Link>
             </Button>
           </div>
-          <CardDescription>
-            Preparado para recibir lecturas desde otra maquina de la red local de la Patagua.
-          </CardDescription>
+          <CardDescription>Preparado para recibir lecturas desde otra maquina de la red local de la Patagua.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <div className="rounded-lg border border-border bg-background p-3">
@@ -176,7 +172,7 @@ export default function TelemetriaPage() {
           </div>
           <div className="rounded-lg border border-border bg-background p-3">
             <p className="text-xs text-muted-foreground">Campos minimos</p>
-            <p className="mt-1 font-semibold">equipment_id o equipment_code</p>
+            <p className="mt-1 font-semibold">ID del equipo o codigo operativo</p>
           </div>
         </CardContent>
       </Card>
@@ -211,4 +207,3 @@ export default function TelemetriaPage() {
     </div>
   );
 }
-

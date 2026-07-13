@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import useSWR from 'swr';
 import { AlertCircle, Bell, Gauge, Signal, TriangleAlert, Zap } from 'lucide-react';
@@ -50,10 +50,8 @@ function toNumber(value: unknown) {
 
 function formatAlarmTime(value?: string | null) {
   if (!value) return 'Sin fecha';
-
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return 'Sin fecha';
-
   return date.toLocaleString('es-CL');
 }
 
@@ -64,7 +62,16 @@ function statusLabel(status: string) {
     critical: 'Critico',
     offline: 'Sin senal',
   };
-  return labels[status] || status || 'Desconocido';
+  return labels[String(status || '').toLowerCase()] || status || 'Desconocido';
+}
+
+function normalizeStatus(value: string | null | undefined) {
+  const status = String(value || '').toLowerCase();
+  if (['operational', 'operativo', 'activo', 'active', 'running'].includes(status)) return 'operational';
+  if (['warning', 'alerta', 'alarma'].includes(status)) return 'warning';
+  if (['critical', 'critico', 'crítico', 'critica', 'crítica'].includes(status)) return 'critical';
+  if (['offline', 'inactivo', 'inactive', 'fuera_servicio', 'fuera_de_servicio'].includes(status)) return 'offline';
+  return 'operational';
 }
 
 export function TelemetryExecutiveSummary() {
@@ -85,12 +92,14 @@ export function TelemetryExecutiveSummary() {
   const alarms: TelemetryAlarm[] = Array.isArray(data?.alarms) ? data.alarms : [];
 
   const criticalEquipment = equipment
-    .filter((item) => ['critical', 'warning', 'offline'].includes(String(item.status || '').toLowerCase()))
+    .map((item) => ({ ...item, normalizedStatus: normalizeStatus(item.status) }))
+    .filter((item) => ['critical', 'warning', 'offline'].includes(item.normalizedStatus))
     .sort((a, b) => {
       const order = { critical: 0, warning: 1, offline: 2 };
-      return (order[String(a.status || '').toLowerCase() as keyof typeof order] ?? 3) - (order[String(b.status || '').toLowerCase() as keyof typeof order] ?? 3);
+      return (order[a.normalizedStatus as keyof typeof order] ?? 3) - (order[b.normalizedStatus as keyof typeof order] ?? 3);
     })
     .slice(0, 4);
+
   const sourceSummary = equipment.reduce<Record<string, number>>((acc, item) => {
     const source = String(item.source || 'production').toLowerCase();
     acc[source] = (acc[source] || 0) + 1;
@@ -141,8 +150,8 @@ export function TelemetryExecutiveSummary() {
                       <p className="font-semibold">{item.name}</p>
                       <p className="text-xs text-muted-foreground">{item.type || 'Equipo'}</p>
                     </div>
-                    <Badge variant={String(item.status || '').toLowerCase() === 'critical' ? 'destructive' : 'outline'}>
-                      {statusLabel(String(item.status || ''))}
+                    <Badge variant={item.normalizedStatus === 'critical' ? 'destructive' : 'outline'}>
+                      {statusLabel(item.normalizedStatus)}
                     </Badge>
                   </div>
                   <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">

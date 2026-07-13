@@ -23,9 +23,9 @@ export default function EquiposImportPage() {
     ];
 
     const rows = [
-      ['EQ-001', 'Perforadora principal', 'equipo', 'Rajo', 'operativo', 'Atlas Copco', 'DM45', 'SN-001', 'crítica', '1200', '250000000'],
+      ['EQ-001', 'Perforadora principal', 'equipo', 'Rajo', 'operativo', 'Atlas Copco', 'DM45', 'SN-001', 'critica', '1200', '250000000'],
       ['EQ-002', 'Compresor auxiliar', 'equipo', 'Taller', 'mantenimiento', 'Kaeser', 'SX7', 'SN-002', 'alta', '1800', '42000000'],
-      ['EQ-003', 'Generador apoyo', 'equipo', 'Patio', 'inoperativo', 'Cummins', 'C150D', 'SN-003', 'media', '2200', '36000000'],
+      ['EQ-003', 'Generador apoyo', 'equipo', 'Patio', 'inactivo', 'Cummins', 'C150D', 'SN-003', 'media', '2200', '36000000'],
     ];
 
     const csv = [headers, ...rows].map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(';')).join('\n');
@@ -33,7 +33,7 @@ export default function EquiposImportPage() {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
-    anchor.download = 'plantilla-equipos-maquinaria.csv';
+    anchor.download = 'plantilla-equipos-mantenimiento.csv';
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
@@ -44,9 +44,9 @@ export default function EquiposImportPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Importar maquinaria y equipos</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Importar equipos de mantenimiento</h1>
           <p className="mt-2 text-muted-foreground">
-            Carga el maestro operativo desde Excel o CSV para mantener equipos, ubicación, criticidad y estado al día.
+            Carga la flota operativa desde Excel o CSV para mantener el inventario y el arbol de fallas actualizados.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -65,9 +65,9 @@ export default function EquiposImportPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Importación estandarizada</CardTitle>
+          <CardTitle>Importacion estandarizada</CardTitle>
           <CardDescription>
-            El archivo puede venir en CSV, XLS o XLSX. El alta o actualización se hace por `ASSET_CODE`.
+            El archivo puede venir en CSV, XLS o XLSX. El alta o actualizacion se hace por `ASSET_CODE`.
           </CardDescription>
         </CardHeader>
         <CardContent>

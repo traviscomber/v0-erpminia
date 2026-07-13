@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import useSWR from 'swr';
 import { AlertCircle, AlertTriangle, CheckCircle2 } from 'lucide-react';
@@ -64,9 +64,19 @@ function normalizeStatus(status: string | null | undefined) {
   const value = String(status || '').trim().toLowerCase();
   if (['operational', 'operativo', 'activo', 'active', 'running'].includes(value)) return 'operational';
   if (['warning', 'alerta', 'alarma'].includes(value)) return 'warning';
-  if (['critical', 'critico', 'critico'].includes(value)) return 'critical';
+  if (['critical', 'critico', 'crítico', 'critica', 'crítica'].includes(value)) return 'critical';
   if (['offline', 'inactivo', 'inactive', 'fuera_servicio', 'fuera_de_servicio'].includes(value)) return 'offline';
   return 'operational';
+}
+
+function statusLabel(status: string) {
+  const labels: Record<string, string> = {
+    operational: 'Operativo',
+    warning: 'Alerta',
+    critical: 'Critico',
+    offline: 'Sin senal',
+  };
+  return labels[status] || status || 'Desconocido';
 }
 
 export function EquipmentMonitor() {
@@ -84,9 +94,7 @@ export function EquipmentMonitor() {
       <Card className="border-dashed border-border/70 bg-card/80">
         <CardHeader>
           <CardTitle>Monitoreo no disponible</CardTitle>
-          <CardDescription>
-            No se pudo leer el resumen de produccion para mostrar el estado de equipos.
-          </CardDescription>
+          <CardDescription>No se pudo leer el resumen de produccion para mostrar el estado de equipos.</CardDescription>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
           La vista sigue estable y reintentara automaticamente la lectura por API.
@@ -145,6 +153,7 @@ export function EquipmentMonitor() {
     },
     { total: 0, operational: 0, warning: 0, critical: 0, offline: 0, availability: 0 },
   );
+
   const sourceSummary = equipment.reduce<Record<string, number>>((acc, item) => {
     const source = item.source || 'production';
     acc[source] = (acc[source] || 0) + 1;
@@ -174,7 +183,7 @@ export function EquipmentMonitor() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'operational':
-        return <Badge className="bg-green-600/10 text-green-700">Operacional</Badge>;
+        return <Badge className="bg-green-600/10 text-green-700">Operativo</Badge>;
       case 'warning':
         return <Badge className="bg-yellow-600/10 text-yellow-700">Alerta</Badge>;
       case 'critical':
@@ -226,6 +235,7 @@ export function EquipmentMonitor() {
           </CardContent>
         </Card>
       </div>
+
       <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
         <span className="rounded-full border border-border px-2 py-1">Produccion: {sourceSummary.production || 0}</span>
         <span className="rounded-full border border-border px-2 py-1">Mantenimiento: {sourceSummary.maintenance || 0}</span>

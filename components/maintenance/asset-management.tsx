@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,12 +12,19 @@ interface Asset {
   name: string;
   code: string;
   type: string;
-  model: string;
-  manufacturer: string;
-  purchase_date: string;
-  last_maintenance?: string;
-  maintenance_hours?: number;
+  model: string | null;
+  manufacturer: string | null;
+  purchase_date: string | null;
+  last_maintenance?: string | null;
+  maintenance_hours?: number | null;
   status: string;
+}
+
+function normalizeText(value: string | null | undefined) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
 }
 
 export function AssetManagement() {
@@ -29,13 +36,26 @@ export function AssetManagement() {
     const fetchAssets = async () => {
       try {
         const { data, error } = await supabase
-          .from('equipment')
-          .select('id, name, code, type, model, manufacturer, purchase_date, status')
+          .from('maintenance_assets')
+          .select('id, asset_name, asset_code, asset_type, model, manufacturer, purchase_date, last_maintenance, status')
           .order('created_at', { ascending: false })
           .limit(20);
 
         if (error) throw error;
-        setAssets(data || []);
+
+        setAssets(
+          (data || []).map((asset) => ({
+            id: asset.id,
+            name: asset.asset_name || 'Activo sin nombre',
+            code: asset.asset_code || '-',
+            type: asset.asset_type || 'Activo',
+            model: asset.model || null,
+            manufacturer: asset.manufacturer || null,
+            purchase_date: asset.purchase_date || null,
+            last_maintenance: asset.last_maintenance || null,
+            status: asset.status || 'Activo',
+          })),
+        );
       } catch (err) {
         console.error('[v0] Error fetching assets:', err);
       } finally {
@@ -50,19 +70,20 @@ export function AssetManagement() {
   }, [supabase]);
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'operational':
-        return <Badge className="bg-green-600/10 text-green-700">Operacional</Badge>;
-      case 'maintenance':
-        return <Badge className="bg-blue-600/10 text-blue-700">Mantención</Badge>;
-      case 'offline':
-        return <Badge className="bg-red-600/10 text-red-700">Fuera de servicio</Badge>;
-      default:
-        return <Badge>{status}</Badge>;
+    const value = normalizeText(status);
+    if (value === 'operativo' || value === 'activo') {
+      return <Badge className="bg-green-600/10 text-green-700">Operativo</Badge>;
     }
+    if (value === 'mantenimiento') {
+      return <Badge className="bg-blue-600/10 text-blue-700">Mantenimiento</Badge>;
+    }
+    if (value === 'inactivo' || value === 'fuera de servicio') {
+      return <Badge className="bg-red-600/10 text-red-700">Inactivo</Badge>;
+    }
+    return <Badge>{status}</Badge>;
   };
 
-  const getDaysToNextMaintenance = (lastMaintenance: string, hoursUsed: number) => {
+  const getDaysToNextMaintenance = (lastMaintenance: string | null, hoursUsed: number) => {
     if (!lastMaintenance) return null;
 
     const last = new Date(lastMaintenance);
@@ -79,54 +100,70 @@ export function AssetManagement() {
     return { urgent: false, hours: hoursUntilMaintenance };
   };
 
+  const stats = useMemo(
+    () => ({
+      total: assets.length,
+      operativos: assets.filter((asset) => ['operativo', 'activo'].includes(normalizeText(asset.status))).length,
+      mantenimiento: assets.filter((asset) => normalizeText(asset.status) === 'mantenimiento').length,
+      urgentes: assets.filter((asset) => {
+        const next = getDaysToNextMaintenance(asset.last_maintenance || null, asset.maintenance_hours || 0);
+        return next?.urgent;
+      }).length,
+    }),
+    [assets],
+  );
+
   if (loading) {
     return <div className="text-muted-foreground">Cargando activos...</div>;
   }
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card className="border-border">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm">Activos totales</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{assets.length}</div>
-            <p className="mt-1 text-xs text-muted-foreground">bajo gestión</p>
+            <div className="text-3xl font-bold">{stats.total}</div>
+            <p className="mt-1 text-xs text-muted-foreground">bajo gestion</p>
           </CardContent>
         </Card>
 
         <Card className="border-border bg-green-500/5">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm text-green-700">Operacionales</CardTitle>
+            <CardTitle className="text-sm text-green-700">Operativos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-600">
-              {assets.filter((asset) => asset.status === 'operational').length}
-            </div>
-            <p className="mt-1 text-xs text-muted-foreground">en operación</p>
+            <div className="text-3xl font-bold text-green-600">{stats.operativos}</div>
+            <p className="mt-1 text-xs text-muted-foreground">en operacion</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border bg-blue-500/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm text-blue-700">En mantenimiento</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-blue-600">{stats.mantenimiento}</div>
+            <p className="mt-1 text-xs text-muted-foreground">segun estado actual</p>
           </CardContent>
         </Card>
 
         <Card className="border-border bg-yellow-500/5">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm text-yellow-700">Requieren mantención</CardTitle>
+            <CardTitle className="text-sm text-yellow-700">Requieren revision</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-yellow-600">
-              {assets.filter((asset) => {
-                const next = getDaysToNextMaintenance(asset.last_maintenance || '', asset.maintenance_hours || 0);
-                return next?.urgent;
-              }).length}
-            </div>
-            <p className="mt-1 text-xs text-muted-foreground">próximas 2 semanas</p>
+            <div className="text-3xl font-bold text-yellow-600">{stats.urgentes}</div>
+            <p className="mt-1 text-xs text-muted-foreground">proximas 2 semanas</p>
           </CardContent>
         </Card>
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {assets.map((asset) => {
-          const maintenance = getDaysToNextMaintenance(asset.last_maintenance || '', asset.maintenance_hours || 0);
+          const maintenance = getDaysToNextMaintenance(asset.last_maintenance || null, asset.maintenance_hours || 0);
 
           return (
             <Card key={asset.id} className={`border-border ${maintenance?.urgent ? 'bg-yellow-500/5' : ''}`}>
@@ -163,7 +200,7 @@ export function AssetManagement() {
                   <div>
                     <p className="flex items-center gap-1 text-muted-foreground">
                       <Calendar className="h-3 w-3" />
-                      Última mantención
+                      Ultima mantencion
                     </p>
                     <p className="font-medium">
                       {asset.last_maintenance ? new Date(asset.last_maintenance).toLocaleDateString('es-CL') : 'Sin registro'}
@@ -172,7 +209,7 @@ export function AssetManagement() {
                   <div>
                     <p className="flex items-center gap-1 text-muted-foreground">
                       <Wrench className="h-3 w-3" />
-                      Próxima mantención
+                      Proxima mantencion
                     </p>
                     <p className={`font-medium ${maintenance?.urgent ? 'text-yellow-600' : ''}`}>
                       {maintenance ? `${Math.round(maintenance.hours)}h` : '-'}

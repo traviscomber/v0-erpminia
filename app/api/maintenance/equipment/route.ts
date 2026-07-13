@@ -1,48 +1,72 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { resolveAuthContext } from '@/lib/api/auth-session';
-import { createClient } from '@supabase/supabase-js';
+import { getOrganizationContext } from '@/lib/api/organization-context';
 
-function getServiceSupabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+type AssetRow = {
+  id: string;
+  asset_code: string | null;
+  asset_name: string | null;
+  asset_type: string | null;
+  model: string | null;
+  serial_number: string | null;
+  status: string | null;
+  criticality: string | null;
+  purchase_date: string | null;
+  last_maintenance: string | null;
+  next_maintenance: string | null;
+  specs: Record<string, unknown> | null;
+};
+
+function normalizeStatus(status: string | null | undefined) {
+  const value = String(status || '').toLowerCase();
+  if (['active', 'operational', 'operativo', 'activo'].includes(value)) return 'Activo';
+  if (['maintenance', 'mantenimiento'].includes(value)) return 'Mantenimiento';
+  if (['inactive', 'inactivo', 'offline', 'fuera de servicio'].includes(value)) return 'Inactivo';
+  return status ? String(status) : 'Activo';
+}
+
+function normalizeCriticality(criticality: string | null | undefined) {
+  const value = String(criticality || '').toLowerCase();
+  if (['critical', 'critica', 'crítica', 'critico', 'crítico'].includes(value)) return 'Crítica';
+  if (['high', 'alta'].includes(value)) return 'Alta';
+  if (['medium', 'media'].includes(value)) return 'Media';
+  return criticality ? String(criticality) : 'Media';
 }
 
 export async function GET(request: NextRequest) {
+  const context = await getOrganizationContext(request);
+  if (!context.ok) return context.response;
+
   try {
-    const auth = await resolveAuthContext(request);
-
-    if (!auth?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Check role for maintenance access (técnico, jefe técnico, admin, superadmin)
-    const allowedRoles = ['admin', 'superadmin', 'manager', 'technician'];
-    if (!allowedRoles.includes(auth.role?.toLowerCase() || '')) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    const supabase = getServiceSupabase();
-
-    // Get all equipment with full details
-    const { data: equipment, error } = await supabase
-      .from('equipment')
-      .select('id, code, name, model, serial_number, type, status, criticality, purchase_date, last_maintenance, next_maintenance, specs')
-      .order('type', { ascending: true })
-      .order('name', { ascending: true });
+    const { data: assets, error } = await context.supabase
+      .from('maintenance_assets')
+      .select('id, asset_code, asset_name, asset_type, model, serial_number, status, criticality, purchase_date, last_maintenance, next_maintenance, specs')
+      .eq('organization_id', context.organizationId)
+      .order('asset_name', { ascending: true });
 
     if (error) {
-      console.log('[v0] Equipment fetch error:', error);
+      console.log('[v0] Maintenance equipment fetch error:', error);
       throw error;
     }
 
-    return NextResponse.json({ equipment: equipment || [] });
+    return NextResponse.json({
+      equipment: (assets || []).map((asset: AssetRow) => ({
+        id: asset.id,
+        code: asset.asset_code || '',
+        name: asset.asset_name || '',
+        model: asset.model || null,
+        serial_number: asset.serial_number || null,
+        type: asset.asset_type || 'Activo',
+        status: normalizeStatus(asset.status),
+        criticality: normalizeCriticality(asset.criticality),
+        purchase_date: asset.purchase_date || null,
+        last_maintenance: asset.last_maintenance || null,
+        next_maintenance: asset.next_maintenance || null,
+        specs: asset.specs || null,
+      })),
+    });
   } catch (error) {
+    const message = error instanceof Error ? error.message : 'No se pudieron cargar los equipos de mantenimiento';
     console.error('[v0] Maintenance equipment API error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch equipment' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

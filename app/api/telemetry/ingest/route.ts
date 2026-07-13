@@ -45,7 +45,7 @@ function toNumber(value: unknown) {
 
 function normalizeStatus(status: unknown) {
   const value = String(status || '').toLowerCase();
-  if (['alert', 'alarma', 'critical', 'critico', 'critica', 'alto'].includes(value)) return 'alert';
+  if (['alert', 'alarma', 'critical', 'critico', 'critica', 'crítica', 'alto'].includes(value)) return 'alert';
   return 'normal';
 }
 
@@ -73,9 +73,6 @@ async function resolveTargetEquipment(
   const equipmentName = String(payload.equipment_name || '').trim();
 
   if (equipmentId) {
-    const { data: byId } = await supabase.from('equipment').select('id, name, type, status').eq('id', equipmentId).maybeSingle();
-    if (byId) return { id: byId.id, name: byId.name || equipmentName || equipmentId, status: byId.status || 'operational' };
-
     const { data: assetById } = await supabase
       .from('maintenance_assets')
       .select('id, asset_name, asset_code, status, organization_id')
@@ -89,6 +86,9 @@ async function resolveTargetEquipment(
         organizationId: assetById.organization_id || null,
       };
     }
+
+    const { data: byId } = await supabase.from('equipment').select('id, name, type, status').eq('id', equipmentId).maybeSingle();
+    if (byId) return { id: byId.id, name: byId.name || equipmentName || equipmentId, status: byId.status || 'operational' };
   }
 
   if (equipmentCode) {
