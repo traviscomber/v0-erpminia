@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import useSWR from 'swr';
@@ -40,15 +40,15 @@ export default function VehiclesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Gestión de vehículos</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Gestion de vehiculos</h1>
         <p className="mt-2 text-muted-foreground">
-          Administra vehículos y árbol de fallas con datos reales del sistema.
+          Administra vehiculos y arbol de fallas con datos reales del sistema.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <Button asChild variant="outline">
             <Link href="/dashboard/mantenimiento/vehiculos/importar">
               <Upload className="mr-2 h-4 w-4" />
-              Importar vehículos
+              Importar vehiculos
             </Link>
           </Button>
           <Button asChild variant="outline">
@@ -61,14 +61,14 @@ export default function VehiclesPage() {
         <div className="mt-4 rounded-lg border border-[var(--secondary)]/30 bg-[var(--secondary)]/5 p-4 dark:border-blue-800 dark:bg-blue-950">
           <p className="text-sm text-blue-900 dark:text-blue-100">
             <strong>Como funciona:</strong> cada activo trae su informacion operacional y puedes abrir el
-            árbol de fallas para diagnosticar problemas y crear órdenes de trabajo.
+            arbol de fallas para diagnosticar problemas y crear ordenes de trabajo.
           </p>
         </div>
       </div>
 
       <Card className="border-border/70 bg-card/80">
         <CardHeader>
-          <CardTitle>Importación operativa de vehículos</CardTitle>
+          <CardTitle>Importacion operativa de vehiculos</CardTitle>
           <CardDescription>
             La carga masiva se ejecuta desde una ruta dedicada para separar el maestro operativo de la vista de consulta.
           </CardDescription>
@@ -77,7 +77,7 @@ export default function VehiclesPage() {
           <Button asChild>
             <Link href="/dashboard/mantenimiento/vehiculos/importar">
               <Upload className="mr-2 h-4 w-4" />
-              Abrir importador de vehículos
+              Abrir importador de vehiculos
             </Link>
           </Button>
           <Button asChild variant="outline">
@@ -96,28 +96,28 @@ export default function VehiclesPage() {
               <Wrench className="h-4 w-4" />
             </div>
             <div>
-              <p className="text-sm font-medium">Alta de vehículos</p>
+              <p className="text-sm font-medium">Alta de vehiculos</p>
               <p className="text-xs text-muted-foreground">Disponible cuando el flujo operativo lo habilite</p>
             </div>
           </div>
           <Button className="gap-2 bg-[var(--brand-naranja)] hover:bg-[var(--brand-naranja)]/90" disabled>
             <Plus className="h-4 w-4" />
-            Crear nuevo vehículo
+            Crear nuevo vehiculo
           </Button>
         </div>
       </BrandCard>
 
       <Card>
         <CardHeader>
-          <CardTitle>Vehículos en sistema</CardTitle>
+          <CardTitle>Vehiculos en sistema</CardTitle>
           <CardDescription>
-            {isLoading ? 'Cargando activos...' : `${vehicles.length} vehículos registrados`}
+            {isLoading ? 'Cargando activos...' : `${vehicles.length} vehiculos registrados`}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {error ? (
             <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-              No fue posible cargar los vehículos reales.
+              No fue posible cargar los vehiculos reales.
             </div>
           ) : (
             <div className="space-y-4">
@@ -134,7 +134,7 @@ export default function VehiclesPage() {
                     <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground md:grid-cols-4">
                       <div>
                         <span className="font-medium text-foreground">{vehicle.assetCode}</span>
-                        <p>Código</p>
+                        <p>Codigo</p>
                       </div>
                       <div>
                         <span className="font-medium text-foreground">{vehicle.assetType || '-'}</span>
@@ -146,7 +146,7 @@ export default function VehiclesPage() {
                       </div>
                       <div>
                         <span className="font-medium text-foreground">{vehicle.location || '-'}</span>
-                        <p>Ubicación</p>
+                        <p>Ubicacion</p>
                       </div>
                     </div>
                   </div>
@@ -159,7 +159,7 @@ export default function VehiclesPage() {
                     </Link>
                     <Link href={`/dashboard/mantenimiento/vehiculos/${vehicle.id}/arbol`}>
                       <Button variant="outline" className="gap-2">
-                        Ver árbol de fallas
+                        Ver arbol de fallas
                         <ChevronRight className="h-4 w-4" />
                       </Button>
                     </Link>
@@ -169,7 +169,7 @@ export default function VehiclesPage() {
 
               {!isLoading && vehicles.length === 0 && (
                 <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
-                  Todavía no hay vehículos cargados desde la base real.
+                  Todavia no hay vehiculos cargados desde la base real.
                 </div>
               )}
             </div>
@@ -183,7 +183,7 @@ export default function VehiclesPage() {
           <CardDescription>
             {derivedMachines.length > 0
               ? `${derivedMachines.length} modelos detectados desde la base de centros de costo`
-              : 'Todavía no se detectaron modelos en los centros de costo'}
+              : 'Todavia no se detectaron modelos en los centros de costo'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -191,19 +191,19 @@ export default function VehiclesPage() {
             <div className="max-h-[720px] overflow-y-auto pr-1">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {derivedMachines.map((machine) => (
-                <div key={machine.id} className="rounded-lg border border-border p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{machine.family}</p>
-                      <h3 className="truncate text-base font-semibold">{machine.name}</h3>
-                      <p className="mt-1 text-sm text-muted-foreground">{machine.code}</p>
+                  <div key={machine.id} className="rounded-lg border border-border p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{machine.family}</p>
+                        <h3 className="truncate text-base font-semibold">{machine.name}</h3>
+                        <p className="mt-1 text-sm text-muted-foreground">{machine.code}</p>
+                      </div>
+                      <Badge variant="outline">{machine.source}</Badge>
                     </div>
-                    <Badge variant="outline">{machine.source}</Badge>
+                    <p className="mt-3 text-xs text-muted-foreground">
+                      Este modelo viene del centro de costo y puede usarse como base del maestro de maquinas.
+                    </p>
                   </div>
-                  <p className="mt-3 text-xs text-muted-foreground">
-                    Este modelo viene del centro de costo y puede usarse como base del maestro de máquinas.
-                  </p>
-                </div>
                 ))}
               </div>
             </div>
@@ -217,4 +217,3 @@ export default function VehiclesPage() {
     </div>
   );
 }
-

@@ -66,8 +66,8 @@ export default function MaquinariaPage() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Maquinaria y Vehículos</h1>
-          <p className="text-muted-foreground">Flota operacional completa extraída desde centros de costo.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Maquinaria y Vehiculos</h1>
+          <p className="text-muted-foreground">Flota operacional completa extraida desde centros de costo.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" asChild>
@@ -87,9 +87,9 @@ export default function MaquinariaPage() {
 
       <Card className="border-border/70 bg-card/80">
         <CardHeader>
-          <CardTitle>Importación operativa de maquinaria</CardTitle>
+          <CardTitle>Importacion operativa de maquinaria</CardTitle>
           <CardDescription>
-            La carga y actualización del maestro se realiza desde una ruta dedicada para no mezclar administración del catálogo con ingreso de archivos.
+            La carga y actualizacion del maestro se realiza desde una ruta dedicada para no mezclar administracion del catalogo con ingreso de archivos.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
@@ -109,195 +109,197 @@ export default function MaquinariaPage() {
       </Card>
 
       <div className="space-y-5">
-          <div className="grid gap-4 md:grid-cols-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Total activos</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{total}</div>
-                <p className="text-xs text-muted-foreground">{categories.length} categorías</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                  <Truck className="h-4 w-4" />
-                  Vehículos
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{vehicleCount}</div>
-                <p className="text-xs text-muted-foreground">Camionetas y camiones</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                  <Wrench className="h-4 w-4" />
-                  Equipos
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{equipmentCount}</div>
-                <p className="text-xs text-muted-foreground">Sondajes, compresores y otros</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Activos operativos</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{activeCount}</div>
-                <p className="text-xs text-muted-foreground">Disponibles para operación. Inactivos: {inactiveCount}</p>
-              </CardContent>
-            </Card>
+        <div className="grid gap-4 md:grid-cols-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total activos</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{total}</div>
+              <p className="text-xs text-muted-foreground">{categories.length} categorias</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                <Truck className="h-4 w-4" />
+                Vehiculos
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{vehicleCount}</div>
+              <p className="text-xs text-muted-foreground">Camionetas y camiones</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                <Wrench className="h-4 w-4" />
+                Equipos
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{equipmentCount}</div>
+              <p className="text-xs text-muted-foreground">Sondajes, compresores y otros</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Activos operativos</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{activeCount}</div>
+              <p className="text-xs text-muted-foreground">Disponibles para operacion. Inactivos: {inactiveCount}</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="space-y-3">
+          <div className="relative max-w-lg">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por nombre, patente, modelo o codigo..."
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              className="pl-10"
+            />
           </div>
-
-          <div className="space-y-3">
-            <div className="relative max-w-lg">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Buscar por nombre, patente, modelo o código..."
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button size="sm" variant={selectedCategory === '' ? 'default' : 'outline'} onClick={() => setSelectedCategory('')}>
-                Todos ({total})
-              </Button>
-              {categories.map((category) => (
-                <Button
-                  key={category.code}
-                  size="sm"
-                  variant={selectedCategory === category.code ? 'default' : 'outline'}
-                  onClick={() => setSelectedCategory(selectedCategory === category.code ? '' : category.code)}
-                >
-                  {category.name}
-                  <Badge variant="secondary" className="ml-2 text-xs">
-                    {category.count}
-                  </Badge>
-                </Button>
-              ))}
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button size="sm" variant={selectedStatus === '' ? 'default' : 'outline'} onClick={() => setSelectedStatus('')}>
-                Todos los estados
-              </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" variant={selectedCategory === '' ? 'default' : 'outline'} onClick={() => setSelectedCategory('')}>
+              Todos ({total})
+            </Button>
+            {categories.map((category) => (
               <Button
+                key={category.code}
                 size="sm"
-                variant={selectedStatus === 'Activo' ? 'default' : 'outline'}
-                onClick={() => setSelectedStatus(selectedStatus === 'Activo' ? '' : 'Activo')}
+                variant={selectedCategory === category.code ? 'default' : 'outline'}
+                onClick={() => setSelectedCategory(selectedCategory === category.code ? '' : category.code)}
               >
-                Activos
+                {category.name}
+                <Badge variant="secondary" className="ml-2 text-xs">
+                  {category.count}
+                </Badge>
               </Button>
-              <Button
-                size="sm"
-                variant={selectedStatus === 'Inactivo' ? 'default' : 'outline'}
-                onClick={() => setSelectedStatus(selectedStatus === 'Inactivo' ? '' : 'Inactivo')}
-              >
-                Inactivos
-              </Button>
-            </div>
+            ))}
           </div>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" variant={selectedStatus === '' ? 'default' : 'outline'} onClick={() => setSelectedStatus('')}>
+              Todos los estados
+            </Button>
+            <Button
+              size="sm"
+              variant={selectedStatus === 'Activo' ? 'default' : 'outline'}
+              onClick={() => setSelectedStatus(selectedStatus === 'Activo' ? '' : 'Activo')}
+            >
+              Activos
+            </Button>
+            <Button
+              size="sm"
+              variant={selectedStatus === 'Inactivo' ? 'default' : 'outline'}
+              onClick={() => setSelectedStatus(selectedStatus === 'Inactivo' ? '' : 'Inactivo')}
+            >
+              Inactivos
+            </Button>
+          </div>
+        </div>
 
-          {error ? (
-            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">{error.message}</div>
-          ) : null}
+        {error ? (
+          <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">{error.message}</div>
+        ) : null}
 
-          <div className="overflow-hidden rounded-lg border border-border">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="w-24">Código</TableHead>
-                  <TableHead>Nombre / Modelo</TableHead>
-                  <TableHead>Categoría</TableHead>
-                  <TableHead className="w-28">Patente / Serie</TableHead>
-                  <TableHead className="w-16">Año</TableHead>
-                  <TableHead className="w-24">Estado</TableHead>
-                  <TableHead className="w-36 text-right">Acciones</TableHead>
+        <div className="overflow-hidden rounded-lg border border-border">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50">
+                <TableHead className="w-24">Codigo</TableHead>
+                <TableHead>Nombre / Modelo</TableHead>
+                <TableHead>Categoria</TableHead>
+                <TableHead className="w-28">Patente / Serie</TableHead>
+                <TableHead className="w-16">Anio</TableHead>
+                <TableHead className="w-24">Estado</TableHead>
+                <TableHead className="w-36 text-right">Acciones</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading
+                ? Array.from({ length: 10 }).map((_, rowIndex) => (
+                    <TableRow key={rowIndex}>
+                      {Array.from({ length: 7 }).map((_, cellIndex) => (
+                        <TableCell key={cellIndex}>
+                          <div className="h-4 w-full animate-pulse rounded bg-muted" />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                : null}
+
+              {!isLoading && visibleMachinery.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="py-12 text-center text-muted-foreground">
+                    No se encontraron equipos ni vehiculos.
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading
-                  ? Array.from({ length: 10 }).map((_, rowIndex) => (
-                      <TableRow key={rowIndex}>
-                        {Array.from({ length: 7 }).map((_, cellIndex) => (
-                          <TableCell key={cellIndex}>
-                            <div className="h-4 w-full animate-pulse rounded bg-muted" />
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))
-                  : null}
+              ) : null}
 
-                {!isLoading && visibleMachinery.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="py-12 text-center text-muted-foreground">
-                      No se encontraron equipos ni vehículos.
-                    </TableCell>
-                  </TableRow>
-                ) : null}
+              {!isLoading
+                ? visibleMachinery.map((item) => (
+                    <TableRow key={item.code} className="hover:bg-muted/30">
+                      <TableCell className="font-mono text-xs text-muted-foreground">{item.code}</TableCell>
+                      <TableCell>
+                        <div className="font-medium">{item.model || item.name}</div>
+                        {item.model && item.model !== item.name ? (
+                          <div className="max-w-xs truncate text-xs text-muted-foreground">{item.name}</div>
+                        ) : null}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="whitespace-nowrap text-xs">
+                          {item.category}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-mono text-sm font-semibold">
+                        {item.plate ?? <span className="text-muted-foreground">-</span>}
+                      </TableCell>
+                      <TableCell className="text-sm">{item.year ?? <span className="text-muted-foreground">-</span>}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={
+                            item.status === 'Activo'
+                              ? 'border-green-200 bg-green-50 text-green-700'
+                              : 'border-red-200 bg-red-50 text-red-700'
+                          }
+                        >
+                          {item.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
+                            <Link href={`/dashboard/work-orders/create?cost_center=${item.code}&machine=${encodeURIComponent(item.model || item.name)}`}>
+                              <Wrench className="mr-1 h-3 w-3" />
+                              OT
+                            </Link>
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
+                            <Link href={`/dashboard/compras?ref=${encodeURIComponent(item.model || item.name)}&cost_center=${item.code}`}>
+                              <Package className="mr-1 h-3 w-3" />
+                              Compra
+                            </Link>
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                : null}
+            </TableBody>
+          </Table>
+        </div>
 
-                {!isLoading
-                  ? visibleMachinery.map((item) => (
-                      <TableRow key={item.code} className="hover:bg-muted/30">
-                        <TableCell className="font-mono text-xs text-muted-foreground">{item.code}</TableCell>
-                        <TableCell>
-                          <div className="font-medium">{item.model || item.name}</div>
-                          {item.model && item.model !== item.name ? (
-                            <div className="max-w-xs truncate text-xs text-muted-foreground">{item.name}</div>
-                          ) : null}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="whitespace-nowrap text-xs">
-                            {item.category}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="font-mono text-sm font-semibold">{item.plate ?? <span className="text-muted-foreground">-</span>}</TableCell>
-                        <TableCell className="text-sm">{item.year ?? <span className="text-muted-foreground">-</span>}</TableCell>
-                        <TableCell>
-                          <Badge
-                            variant="outline"
-                            className={
-                              item.status === 'Activo'
-                                ? 'border-green-200 bg-green-50 text-green-700'
-                                : 'border-red-200 bg-red-50 text-red-700'
-                            }
-                          >
-                            {item.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
-                              <Link href={`/dashboard/work-orders/create?cost_center=${item.code}&machine=${encodeURIComponent(item.model || item.name)}`}>
-                                <Wrench className="mr-1 h-3 w-3" />
-                                OT
-                              </Link>
-                            </Button>
-                            <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
-                              <Link href={`/dashboard/compras?ref=${encodeURIComponent(item.model || item.name)}&cost_center=${item.code}`}>
-                                <Package className="mr-1 h-3 w-3" />
-                                Compra
-                              </Link>
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  : null}
-              </TableBody>
-            </Table>
-          </div>
-
-          <p className="text-xs text-muted-foreground">
-            {visibleMachinery.length} de {total} equipos mostrados
-            {selectedCategory ? ` | Filtro activo: ${categories.find((category) => category.code === selectedCategory)?.name}` : ''}
-            {selectedStatus ? ` | Estado: ${selectedStatus}` : ''}
-          </p>
+        <p className="text-xs text-muted-foreground">
+          {visibleMachinery.length} de {total} equipos mostrados
+          {selectedCategory ? ` | Filtro activo: ${categories.find((category) => category.code === selectedCategory)?.name}` : ''}
+          {selectedStatus ? ` | Estado: ${selectedStatus}` : ''}
+        </p>
       </div>
     </div>
   );

@@ -31,10 +31,10 @@ function getStatusIcon(status: string) {
 }
 
 const TYPE_ORDER = [
-  'Scoop', 'Jumbo / Perforación', 'Dumper', 'Cargador Frontal',
-  'Excavadora', 'Minicargador', 'Manipulador Telescópico',
+  'Scoop', 'Jumbo / Perforacion', 'Dumper', 'Cargador Frontal',
+  'Excavadora', 'Minicargador', 'Manipulador Telescopico',
   'Generador', 'Compresor', 'Equipo de Sondaje',
-  'Camioneta', 'Camión', 'Otro Equipo',
+  'Camioneta', 'Camion', 'Otro Equipo',
 ];
 
 export function EquipmentList({ onSelectEquipment }: {
@@ -52,21 +52,18 @@ export function EquipmentList({ onSelectEquipment }: {
 
   const all = data?.equipment || [];
 
-  // Dynamic type list sorted by TYPE_ORDER
   const types = useMemo(() => {
     const found = [...new Set(all.map(e => e.type))];
     return TYPE_ORDER.filter(t => found.includes(t)).concat(found.filter(t => !TYPE_ORDER.includes(t)));
   }, [all]);
 
-  // KPI counts by criticality
   const kpis = useMemo(() => ({
     total: all.length,
-    criticos: all.filter(e => e.criticality?.toLowerCase().startsWith('crít') || e.criticality?.toLowerCase().startsWith('crit')).length,
+    criticos: all.filter(e => e.criticality?.toLowerCase().startsWith('crit')).length,
     mantenimiento: all.filter(e => e.status?.toLowerCase() === 'mantenimiento').length,
     operativos: all.filter(e => e.status?.toLowerCase() === 'operativo' || e.status?.toLowerCase() === 'activo').length,
   }), [all]);
 
-  // Filtered + paginated
   const filtered = useMemo(() => {
     let list = all;
     const q = search.toLowerCase();
@@ -89,7 +86,6 @@ export function EquipmentList({ onSelectEquipment }: {
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  // Reset page when filters change
   const handleFilter = (fn: (v: string) => void) => (v: string) => {
     fn(v);
     setPage(1);
@@ -107,7 +103,6 @@ export function EquipmentList({ onSelectEquipment }: {
 
   return (
     <div className="space-y-6">
-      {/* KPIs */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Card>
           <CardContent className="pt-4 pb-3">
@@ -135,14 +130,13 @@ export function EquipmentList({ onSelectEquipment }: {
         </Card>
       </div>
 
-      {/* Filters */}
       <Card>
         <CardContent className="pt-4 pb-4">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar equipo o código..."
+                placeholder="Buscar equipo o codigo..."
                 value={search}
                 onChange={e => { setSearch(e.target.value); setPage(1); }}
                 className="pl-8"
@@ -167,7 +161,7 @@ export function EquipmentList({ onSelectEquipment }: {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Toda criticidad</SelectItem>
-                <SelectItem value="crítico">Crítico</SelectItem>
+                <SelectItem value="critico">Critico</SelectItem>
                 <SelectItem value="alto">Alto</SelectItem>
                 <SelectItem value="medio">Medio</SelectItem>
               </SelectContent>
@@ -189,18 +183,16 @@ export function EquipmentList({ onSelectEquipment }: {
         </CardContent>
       </Card>
 
-      {/* Results count */}
       <div className="flex items-center justify-between text-sm text-muted-foreground">
         <span>
           Mostrando {Math.min((page - 1) * PAGE_SIZE + 1, filtered.length)}–{Math.min(page * PAGE_SIZE, filtered.length)} de {filtered.length} equipos
           {filtered.length !== all.length && ` (${all.length} total)`}
         </span>
         {totalPages > 1 && (
-          <span>Página {page} de {totalPages}</span>
+          <span>Pagina {page} de {totalPages}</span>
         )}
       </div>
 
-      {/* Grid */}
       {isLoading ? (
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
@@ -267,7 +259,6 @@ export function EquipmentList({ onSelectEquipment }: {
         </div>
       )}
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2">
           <Button
