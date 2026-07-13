@@ -52,16 +52,20 @@ const fetcher = async (url: string): Promise<PersonnelResponse> => {
 };
 
 export function MaintenancePersonnelBoard() {
-  const {
-    data: workOrdersData,
-    mutate: mutateWorkOrders,
-  } = useSWR<{ work_orders?: WorkOrderRow[] }>('/api/maintenance/work-orders', async (url: string) => {
-    const response = await fetch(url, { credentials: 'include' });
-    return response.json();
-  });
+  const { data: workOrdersData, mutate: mutateWorkOrders } = useSWR<{ work_orders?: WorkOrderRow[]; workOrders?: WorkOrderRow[] }>(
+    '/api/maintenance/work-orders',
+    async (url: string) => {
+      const response = await fetch(url, { credentials: 'include' });
+      return response.json();
+    },
+  );
   const { data, error, isLoading, mutate } = useSWR<PersonnelResponse>('/api/maintenance/personal', fetcher);
 
-  const workOrders = Array.isArray(workOrdersData?.work_orders) ? workOrdersData.work_orders : [];
+  const workOrders = Array.isArray(workOrdersData?.work_orders)
+    ? workOrdersData.work_orders
+    : Array.isArray(workOrdersData?.workOrders)
+      ? workOrdersData.workOrders
+      : [];
   const [selectedOtId, setSelectedOtId] = useState('');
   const [hoursWorked, setHoursWorked] = useState('1');
   const [timeNotes, setTimeNotes] = useState('');
@@ -85,7 +89,7 @@ export function MaintenancePersonnelBoard() {
 
     const parsedHours = Number(hoursWorked);
     if (!Number.isFinite(parsedHours) || parsedHours <= 0) {
-      toast.error('Ingresa horas válidas');
+      toast.error('Ingresa horas validas');
       return;
     }
 
@@ -120,8 +124,8 @@ export function MaintenancePersonnelBoard() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Personal de mantención</h1>
-          <p className="mt-2 text-muted-foreground">Horas reales, técnicos activos y registros recientes del módulo.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Personal de mantencion</h1>
+          <p className="mt-2 text-muted-foreground">Horas reales, tecnicos activos y registros recientes del modulo.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline" className="gap-2">
@@ -135,7 +139,7 @@ export function MaintenancePersonnelBoard() {
             Recargar
           </Button>
           <Button asChild variant="outline" className="gap-2">
-            <Link href="/dashboard/mantenimiento/bitacora">Bitácora</Link>
+            <Link href="/dashboard/mantenimiento/bitacora">Bitacora</Link>
           </Button>
           <Button asChild className="gap-2">
             <Link href="/dashboard/mantenimiento/gerencial">Gerencial</Link>
@@ -170,7 +174,7 @@ export function MaintenancePersonnelBoard() {
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm">
               <Users className="h-4 w-4 text-green-500" />
-              Técnicos
+              Tecnicos
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -207,7 +211,7 @@ export function MaintenancePersonnelBoard() {
               <Input id="hours" type="number" step="0.1" min="0" value={hoursWorked} onChange={(event) => setHoursWorked(event.target.value)} />
             </div>
             <div className="md:col-span-2">
-              <Label htmlFor="notes">Descripción del trabajo</Label>
+              <Label htmlFor="notes">Descripcion del trabajo</Label>
               <Textarea
                 id="notes"
                 rows={3}
@@ -231,7 +235,7 @@ export function MaintenancePersonnelBoard() {
 
       <Card className="border-border/70 bg-card/80">
         <CardHeader className="pb-3">
-          <CardTitle className="text-foreground">Acceso rápido a mantenimiento</CardTitle>
+          <CardTitle className="text-foreground">Acceso rapido a mantenimiento</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -249,13 +253,13 @@ export function MaintenancePersonnelBoard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/planificacion">
-                Planificación
+                Planificacion
                 <Wrench className="h-4 w-4" />
               </Link>
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/vehiculos">
-                Vehículos y QR
+                Vehiculos y QR
                 <Users className="h-4 w-4" />
               </Link>
             </Button>
@@ -265,20 +269,20 @@ export function MaintenancePersonnelBoard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Top técnicos por horas</CardTitle>
+          <CardTitle>Top tecnicos por horas</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {isLoading ? (
             <div className="text-sm text-muted-foreground">Cargando personal...</div>
           ) : error ? (
             <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-              No fue posible cargar el personal de mantención.
+              No fue posible cargar el personal de mantenimiento.
             </div>
           ) : technicians.length > 0 ? (
             technicians.map((tech) => (
               <div key={tech.technicianId} className="flex items-center justify-between rounded-lg border border-border p-3">
                 <div>
-                  <p className="font-semibold">{tech.name || 'Técnico'}</p>
+                  <p className="font-semibold">{tech.name || 'Tecnico'}</p>
                   <p className="text-xs text-muted-foreground">{tech.entries} registros</p>
                 </div>
                 <Badge variant="outline">{Number(tech.hours || 0).toFixed(1)} h</Badge>
@@ -286,7 +290,7 @@ export function MaintenancePersonnelBoard() {
             ))
           ) : (
             <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-              Todavía no hay horas registradas para resumir.
+              Todavia no hay horas registradas para resumir.
             </div>
           )}
         </CardContent>
@@ -294,7 +298,7 @@ export function MaintenancePersonnelBoard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Últimos registros</CardTitle>
+          <CardTitle>Ultimos registros</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           {recentEntries.length > 0 ? (

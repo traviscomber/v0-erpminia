@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import { ArrowLeft, Download } from 'lucide-react';
@@ -23,9 +23,9 @@ export default function VehiclesImportPage() {
     ];
 
     const rows = [
-      ['VH-001', 'Camión CAEX 1', 'vehículo', 'Patio mina', 'operativo', 'Volvo', 'A40G', 'SN-001', 'alta', '1200', '250000000'],
-      ['VH-002', 'Pickup supervisión', 'vehículo liviano', 'Base operativa', 'operativo', 'Toyota', 'Hilux', 'SN-002', 'media', '1800', '45000000'],
-      ['VH-003', 'Bus personal', 'vehículo', 'Campamento', 'mantenimiento', 'Mercedes', 'Sprinter', 'SN-003', 'alta', '1600', '85000000'],
+      ['VH-001', 'Camion CAEX 1', 'vehiculo', 'Patio mina', 'operativo', 'Volvo', 'A40G', 'SN-001', 'alta', '1200', '250000000'],
+      ['VH-002', 'Pickup supervision', 'vehiculo liviano', 'Base operativa', 'operativo', 'Toyota', 'Hilux', 'SN-002', 'media', '1800', '45000000'],
+      ['VH-003', 'Bus personal', 'vehiculo', 'Campamento', 'mantenimiento', 'Mercedes', 'Sprinter', 'SN-003', 'alta', '1600', '85000000'],
     ];
 
     const csv = [headers, ...rows].map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(';')).join('\n');
@@ -33,7 +33,7 @@ export default function VehiclesImportPage() {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
-    anchor.download = 'plantilla-vehículos-mantenimiento.csv';
+    anchor.download = 'plantilla-vehiculos-mantenimiento.csv';
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
@@ -46,7 +46,7 @@ export default function VehiclesImportPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Importar vehículos de mantenimiento</h1>
           <p className="mt-2 text-muted-foreground">
-            Carga flota operativa desde Excel o CSV para mantener el inventario y el árbol de fallas actualizados.
+            Carga la flota operativa desde Excel o CSV para mantener el inventario y el arbol de fallas actualizados.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -55,7 +55,7 @@ export default function VehiclesImportPage() {
             Descargar plantilla
           </Button>
           <Button asChild variant="outline">
-            <Link href="/dashboard/mantenimiento/vehículos">
+            <Link href="/dashboard/mantenimiento/vehiculos">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Volver a vehículos
             </Link>
@@ -65,15 +65,15 @@ export default function VehiclesImportPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Importación estandarizada</CardTitle>
+          <CardTitle>Importacion estandarizada</CardTitle>
           <CardDescription>
-            El archivo puede venir en CSV, XLS o XLSX. El alta o actualización se hace por `ASSET_CODE`.
+            El archivo puede venir en CSV, XLS o XLSX. El alta o actualizacion se hace por `ASSET_CODE`.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <AssetImport
             onSuccess={() => {
-              window.location.href = '/dashboard/mantenimiento/vehículos';
+              window.location.href = '/dashboard/mantenimiento/vehiculos';
             }}
           />
         </CardContent>

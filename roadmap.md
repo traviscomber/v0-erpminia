@@ -1,161 +1,261 @@
 # Roadmap MVP
 
-Estado base del MVP calculado desde el codigo actual: **74%**.
-
-## Objetivo
-
-Cerrar el producto para produccion dejando:
-
-- datos reales en todas las secciones visibles
-- copy 100% en espanol simple
-- cero textos rotos, ingles residual o caracteres extranos
-- flujos principales completos y estables
-- build verde antes de cada push
-
-## Bloque actual
-
-En este tramo vamos a cerrar lo que mas impacta el MVP visible:
-
-1. Documentos gestion y subrutas que todavía necesiten pulido final.
-2. Legal y modales compartidos.
-3. Telemetria y produccion.
-4. Mantenimiento y su coordinacion con centros de costo, manteniendolos estables.
-5. Bodega e inventario si aparece alguna inconsistencia de copy o navegacion.
-
-## Fases
-
-### 1. Bloqueo tecnico y estabilidad
-
-- Limpiar textos rotos, acentos mal codificados y labels en ingles restantes.
-- Revisar errores de build, warnings criticos y rutas caidas.
-- Confirmar que no haya mock data visible en produccion.
-- Unificar estilos basicos de copy en modales y pantallas principales.
-
-### 2. Bodega e inventario
-
-- Cerrar importacion y visualizacion de stock real.
-- Unificar familias, categorias y centros de costo.
-- Evitar duplicados de categorias y normalizar nombres.
-- Agregar estados de error y vacio claros.
-- Revisar dashboard, filtros y listado para que no se vacie si falla un import.
-
-### 3. Documentos gestion
-
-- Completar contratos, procedimientos, seguridad y reportes.
-- Pulir modales compartidos y flujos de aprobacion.
-- Cerrar busqueda avanzada y filtros por categoria.
-- Revisar subrutas para que todas carguen bien.
-- Dejar copy uniforme en todas las pantallas del modulo.
-
-### 4. Legal
-
-- Terminar documentos legales y tracker de contratos.
-- Corregir copy visible y uniformar toda la interfaz.
-- Validar vencimientos, respaldos y estados.
-- Dejar el flujo de revision completo.
-- Revisar documentos, contratos y vistas resumen.
-
-### 5. Mantenimiento
-
-- Estado actual:
-  - Ordenes de trabajo reales con cierre, detalle y consumo de repuestos.
-  - Bitacora historica y planificacion preventiva.
-  - Costo por equipo, indicadores, neumaticos y componentes mayores.
-  - Vehiculos, arbol de fallas, documentos y centro de costo.
-  - Trazabilidad de repuestos reservados y movimiento de partes.
-  - QR por equipo con ficha completa, historial y accesos directos.
-  - Dashboard gerencial de mantenimiento con KPIs reales.
-  - Panel movil de mantencion para terreno y atajos operativos.
-  - Personal de mantencion con horas reales y tecnicos resumidos.
-  - Combustible real conectado a inventario de bodega y resumen ejecutivo.
-  - Centro de costo de mantenimiento revisado y tablero por centro de costo con importacion y vista expandible.
-- Falta para cerrar el modulo:
-  - Aplicacion movil mas completa para abrir y cerrar OT, adjuntar fotos, registrar repuestos y firmar trabajos.
-  - Horometros por equipo con captura real y trazabilidad por activo.
-  - Repuestos instalados, manuales y fotografias por equipo dentro de la ficha.
-  - Control de combustible por equipo con cargas diarias, consumo, rendimiento y costo por activo.
-  - Control de personal con mecanico responsable, horas, especialidad y productividad.
-  - Planificacion a largo plazo de 12 meses con grandes reparaciones, overhaul, cambios y proyeccion de repuestos, presupuesto y personal.
-  - Estados completos de repuestos reparables: disponible, instalado, en reparacion, esperando reparacion y baja definitiva.
-  - Alertas preventivas mas finas por vencimiento, kilometraje, inspecciones y bajo stock critico.
-  - Reportes por equipo con disponibilidad, costos, fallas, repuestos y estado general.
-  - Limpieza final de copy, acentos, modales y mensajes residuales de mantenimiento.
-
-### 6. Sostenibilidad
-
-- Cerrar prevencion de riesgos, no conformidades y acciones correctivas.
-- Terminar medio ambiente, comunidades y documentos-flujo.
-- Revisar calendario, reportes y modales compartidos.
-- Unificar copy y dejar todo en espanol simple.
-- Validar que los indicadores visibles usen datos reales.
-
-### 7. Telemetria y produccion
-
-- Construir monitor de sensores de produccion.
-- Definir entrada real de datos y alertas.
-- Conectar equipo, eventos y estados.
-- Evitar pantallas vacias o mock.
-- Preparar visualizaciones para uso operacional.
-
-### 8. Compras y finanzas
-
-- Cerrar documentos de compras, presupuestos y reportes.
-- Revisar ordenes y estados financieros visibles.
-- Validar que los totales y resúmenes sean reales.
-- Dejar filtros y exportaciones listos.
-- Revisar que los modulos secundarios no rompan la navegacion.
-
-### 9. Admin y permisos
-
-- Terminar roles, permisos y restricciones por modulo.
-- Revisar usuarios y flujo de administracion.
-- Confirmar acceso por perfil en produccion.
-- Cerrar pantallas de setup o dejarlas fuera del MVP si no son necesarias.
-- Validar accesos basicos de lectura y escritura.
-
-### 10. Alertas y auditoria
-
-- Completar alertas operativas y notificaciones.
-- Revisar trazabilidad de cambios y eventos.
-- Asegurar que los estados pendientes se reflejen bien.
-- Dejar un historial minimo util para soporte.
-- Confirmar que las alertas criticas no se pierdan.
-
-### 11. QA funcional
-
-- Probar cada pantalla principal y subruta.
-- Verificar que no haya errores al crear, editar o revisar.
-- Revisar que todo use datos reales.
-- Validar que el sitio completo quede en espanol.
-- Confirmar responsive y contraste suficiente.
-
-### 12. Cierre de produccion
-
-- Hacer repaso final visual.
-- Revisar contrastes, textos largos y responsividad.
-- Confirmar build verde y despliegue estable.
-- Dejar checklist de salida a produccion.
-- Publicar solo cambios validados.
-
-## Prioridad recomendada
-
-1. Documentos gestion
-2. Legal
-3. Telemetria y produccion
-4. Mantenimiento y centros de costo
-5. Bodega e inventario
-6. Bloqueo tecnico y estabilidad
-7. Sostenibilidad
-8. Compras y finanzas
-9. Admin y permisos
-10. Alertas y auditoria
-11. QA funcional
-12. Cierre de produccion
+Estado base del MVP desde el codigo actual: **74%**.
 
 ## Regla de trabajo
 
 - No introducir mock data en pantallas de produccion.
 - No borrar data real cargada.
-- No cambiar flujos que ya funcionan sin validar build.
+- No romper rutas que ya funcionan.
 - Mantener todo el copy en espanol simple.
 - Si un texto no puede llevar tilde por codificacion, dejarlo sin tilde pero completo.
+- Cada modulo debe cumplir: data real, vacio controlado, error visible y resumen util.
+
+## Objetivo de esta fase
+
+Ir modulo por modulo y dejar claro:
+
+1. donde ya hay data real
+2. donde faltan datos o cobertura
+3. que inteligencia minera se puede extraer de la data que ya existe
+
+## Orden de trabajo
+
+1. Mantenimiento
+2. Sostenibilidad y HSE
+3. Bodega e inventario
+4. Documentos gestion
+5. Legal
+6. Telemetria y produccion
+7. Compras y finanzas
+8. Admin y permisos
+9. Alertas y auditoria
+10. QA final y produccion
+
+## Auditoria modular
+
+### 1. Mantenimiento
+
+Estado:
+
+- Hay OT, bitacora, planificacion, equipos, vehiculos, costos, combustible, personal, neumaticos, componentes mayores y dashboard gerencial.
+- La ruta de entrada ya existe y esta operativa.
+- Ya existe inteligencia derivada desde centros de costo para agrupar maquinaria por familia.
+- El copy visible del panel y del resumen por centro de costo ya quedo normalizado en espanol simple.
+
+Huecos:
+
+- Aplicacion movil completa para abrir y cerrar OT.
+- Horometros por equipo.
+- Repuestos instalados, manuales y fotografias dentro de la ficha.
+- Control fino de combustible por equipo.
+- Control de personal con horas, especialidad y productividad.
+- Planificacion a 12 meses.
+- Estados completos de reparables.
+- Alertas preventivas mas precisas.
+
+Inteligencia minera posible:
+
+- Equipos con mayor costo acumulado.
+- OT atrasadas por equipo o por centro de costo.
+- MTTR y disponibilidad por clase de activo.
+- Consumo de combustible por tipo de equipo.
+- Probabilidad de falla por historial.
+- Repuestos criticos por curva de uso.
+
+Pendientes concretos para el siguiente bloque:
+
+1. Ficha completa de activo con historial, QR, OT, repuestos y relacion con telemetria.
+2. Panel movil operativo para registrar horas, evidencia y cierre de OT en terreno.
+3. Normalizar copy de vehiculos, QR, planificacion preventiva y dashboard gerencial.
+4. Cerrar estados y catalogos de componentes mayores, neumáticos y reparables.
+5. Completar el circuito de personal, combustible y costos por equipo con data real.
+6. Revisar rutas legacy para que cada entrada termine en la pantalla canonica en espanol.
+
+### 2. Sostenibilidad y HSE
+
+Estado:
+
+- Hay dashboard, indicadores, documentos, capacitaciones, inspecciones, no conformidades, acciones correctivas, calendario, comunidades, medio ambiente y EPP.
+- EPP fue unificado como flujo canonico en sostenibilidad.
+- HSE ahora actua como alias de entrada para compatibilidad.
+- El panel HSE legado ya apunta a la lectura canonica de sostenibilidad.
+
+Huecos:
+
+- Unificar visualmente algunas pantallas duplicadas restantes.
+- Revisar textos residuales en modales y subrutas.
+- Completar algunos reportes ejecutivos con mejor resumen.
+
+Inteligencia minera posible:
+
+- Riesgos recurrentes por area o faena.
+- Cumplimiento por tipo de documento.
+- Capacitaciones pendientes por cargo.
+- EPP recomendado por cargo versus EPP real cargado.
+- Tendencias de no conformidades y acciones correctivas.
+
+### 3. Bodega e inventario
+
+Estado:
+
+- Hay inventario, importacion, documentos, stock minimo/maximo, compras y trazabilidad.
+- Ya existe carga real desde Excel.
+- La normalizacion canonica ya agrupa familias y evita duplicados de categoria por labels sueltos.
+
+Huecos:
+
+- Consolidar categorias duplicadas.
+- Separar mejor familias, subfamilias y centros de costo.
+- Evitar que un import falle y vacie el estado visible.
+- Mejorar la vista para stock critico y reposicion.
+
+Inteligencia minera posible:
+
+- Repuestos mas consumidos por familia.
+- Stock critico por centro de costo o equipo.
+- Tasa de rotacion por categoria.
+- Proyeccion de compra por consumo historico.
+
+### 4. Documentos gestion
+
+Estado:
+
+- Hay contratos, procedimientos, seguridad, reportes, eecc y vista principal.
+- La estructura ya esta conectada a datos reales.
+- La vista principal y el reporte ejecutivo ya quedaron sin texto roto en la carpeta canonica.
+- Las rutas principales y subrutas de contratos, procedimientos y seguridad ya quedaron revisadas para seguir usando datos reales.
+
+Huecos:
+
+- Pulir subrutas con copy uniforme.
+- Mejorar busqueda avanzada y navegacion interna.
+- Cerrar textos residuales en modales compartidos.
+
+Inteligencia minera posible:
+
+- Documentos vencidos o proximos a vencer.
+- Trazabilidad por categoria y aprobador.
+- Flujo de aprobacion por estado.
+
+### 5. Legal
+
+Estado:
+
+- Hay contratos, documentos legales, permisos y licencias.
+- Hay dashboard con data real.
+- El copy visible de Legal y de su tracker ya quedo normalizado sin texto roto.
+
+Huecos:
+
+- Mejorar lectura ejecutiva.
+- Normalizar copy de modales y formularios.
+- Cerrar rutas secundarias y estados vacios.
+
+Inteligencia minera posible:
+
+- Contratos por proveedor.
+- Documentos proximos a vencer.
+- Riesgo de continuidad por permisos criticos.
+
+### 6. Telemetria y produccion
+
+Estado:
+
+- Ya existen rutas de telemetria, sensores y alerts.
+- El modulo esta presente pero aun requiere madurez funcional.
+- La pagina de integracion LAN ya expone contrato de ingesta, validacion y payload en texto claro.
+
+Huecos:
+
+- Convertir la telemetria en monitor util de produccion.
+- Definir equipos, eventos y alarmas con data real.
+- Evitar paneles vacios o decorativos.
+
+Inteligencia minera posible:
+
+- Equipos con comportamiento anomalo.
+- Sensores fuera de rango.
+- Alertas por patron de detencion.
+- Relacion entre telemetria y mantenimiento.
+
+### 7. Compras y finanzas
+
+Estado:
+
+- Hay proveedores, compras, importacion de existencias y documentos.
+- La data real ya entra desde Excel.
+- La importacion de existencias ya quedo con carga por bloques y barra de progreso para no parecer trabada.
+
+Huecos:
+
+- Mejorar consolidacion de proveedores.
+- Revisar costos extremos o atipicos.
+- Evitar estados vacios tras fallas de importacion.
+
+Inteligencia minera posible:
+
+- Gasto por proveedor y categoria.
+- Compras repetitivas por equipo o centro de costo.
+- Alertas de costo anomalo.
+
+### 8. Admin y permisos
+
+Estado:
+
+- Hay usuarios, roles y permisos.
+- El acceso por modulo ya existe.
+
+Huecos:
+
+- Pulir textos y estados de acceso.
+- Revisar compatibilidad entre permisos y rutas unificadas.
+
+Inteligencia minera posible:
+
+- Quien crea, aprueba y modifica mas.
+- Cobertura por rol en cada modulo.
+
+### 9. Alertas y auditoria
+
+Estado:
+
+- Existen alertas y eventos de auditoria.
+
+Huecos:
+
+- Hacerlas mas accionables.
+- Separar alertas criticas de ruido operativo.
+
+Inteligencia minera posible:
+
+- Patrones de riesgo.
+- Alertas repetidas por area.
+
+### 10. QA final y produccion
+
+Checklist:
+
+- Cero textos rotos o ingles residual visible.
+- Cero mock data en pantallas principales.
+- Build verde antes de cada push.
+- Navegacion unificada donde aplique.
+- Error vacio y loading claros en cada modulo.
+
+## Bloque actual recomendado
+
+1. Mantenimiento
+2. Telemetria y produccion
+3. Bodega e inventario
+4. Documentos gestion
+5. Legal
+
+## Siguiente paso practico
+
+Auditar modulo por modulo con este orden:
+
+1. identificar pantalla principal
+2. identificar fuente de datos
+3. detectar vacios o fallback
+4. sacar una mejora de inteligencia minera
+5. cerrar textos y estados vacios

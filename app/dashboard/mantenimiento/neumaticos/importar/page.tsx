@@ -21,8 +21,8 @@ type ImportResult = {
 function buildTemplateCsv() {
   const headers = ['CODIGO', 'FAMILIA', 'SUB_FAMILIA', 'EQUIPO', 'PRODUCTO', 'STOCK', 'VALOR_UNITARIO', 'VALOR'];
   const rows = [
-    ['NEU-001', 'Neumáticos', 'Llantas', 'Camion 930E', 'Neumático 18.00R25', '8', '4500000', '36000000'],
-    ['NEU-002', 'Neumáticos', 'Llantas', 'Perforadora', 'Llanta 14.00R20', '4', '2500000', '10000000'],
+    ['NEU-001', 'Neumaticos', 'Llantas', 'Camion 930E', 'Neumatico 18.00R25', '8', '4500000', '36000000'],
+    ['NEU-002', 'Neumaticos', 'Llantas', 'Perforadora', 'Llanta 14.00R20', '4', '2500000', '10000000'],
   ];
 
   return [headers, ...rows]
@@ -76,7 +76,7 @@ export default function NeumaticosImportPage() {
 
       setResult({
         success: true,
-        message: payload?.message || 'Importación completada',
+        message: payload?.message || 'Importacion completada',
         imported: payload?.imported || 0,
         updated: payload?.updated || 0,
         inserted: payload?.inserted || 0,
@@ -103,9 +103,9 @@ export default function NeumaticosImportPage() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Importar neumáticos</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Importar neumaticos</h1>
           <p className="mt-2 text-muted-foreground">
-            Actualiza el stock de neumáticos y llantas desde CSV/XLS/XLSX usando la importación de bodega.
+            Actualiza el stock de neumaticos y llantas desde CSV/XLS/XLSX usando la importacion de bodega.
           </p>
         </div>
         <Button asChild variant="outline" className="gap-2">
@@ -120,7 +120,7 @@ export default function NeumaticosImportPage() {
         <Card className="border-border/70 bg-card/80 md:col-span-2">
           <CardHeader>
             <CardTitle>Cargar archivo</CardTitle>
-            <CardDescription>La plantilla crea o actualiza registros de bodega para el módulo de neumáticos.</CardDescription>
+            <CardDescription>La plantilla crea o actualiza registros de bodega para el modulo de neumaticos.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div
@@ -135,7 +135,7 @@ export default function NeumaticosImportPage() {
               }`}
             >
               <Upload className="mx-auto mb-3 h-10 w-10 text-primary" />
-              <p className="font-medium">Arrastra tu archivo aquí o usa el selector</p>
+              <p className="font-medium">Arrastra tu archivo aqui o usa el selector</p>
               <p className="mt-1 text-sm text-muted-foreground">Acepta CSV, XLS y XLSX.</p>
               <div className="mt-4 flex flex-wrap justify-center gap-2">
                 <Button variant="outline" onClick={downloadTemplate} className="gap-2">
@@ -181,7 +181,7 @@ export default function NeumaticosImportPage() {
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <p>Campos obligatorios: `CODIGO`, `FAMILIA`, `PRODUCTO`, `STOCK`.</p>
             <p>Campos recomendados: `SUB_FAMILIA`, `EQUIPO`, `VALOR_UNITARIO`, `VALOR`.</p>
-            <p>Los registros entran a bodega y el tablero de neumáticos los muestra automáticamente.</p>
+            <p>Los registros entran a bodega y el tablero de neumaticos los muestra automaticamente.</p>
           </CardContent>
         </Card>
       </div>

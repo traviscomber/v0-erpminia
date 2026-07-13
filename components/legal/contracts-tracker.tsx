@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -66,7 +66,7 @@ export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
       <Card className="border-border/70 bg-card/80">
         <CardHeader className="pb-3">
           <CardTitle>Matriz de contratos</CardTitle>
-          <CardDescription>Ordenada por vencimiento para ver primero lo que necesita revisión.</CardDescription>
+          <CardDescription>Ordenada por vencimiento para ver primero lo que necesita revision.</CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-3">
           <div className="rounded-lg border border-border p-3">
@@ -156,3 +156,4 @@ export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
     </div>
   );
 }
+

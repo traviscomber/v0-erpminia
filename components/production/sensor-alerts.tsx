@@ -249,3 +249,4 @@ export function SensorAlerts({ equipmentId }: SensorAlertProps) {
     </div>
   );
 }
+

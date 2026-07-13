@@ -1,6 +1,6 @@
 import useSWR from 'swr';
 import { useState, useMemo } from 'react';
-import { normalizeText } from '@/lib/bodega-normalization';
+import { formatCategoryLabel, normalizeText } from '@/lib/bodega-normalization';
 
 type KPI = { date: string; production_tons: number; equipment_uptime: number; safety_incidents: number; environmental_compliance: number; workforce_efficiency: number; };
 type Orden = {
@@ -99,7 +99,7 @@ export function useBodegaCategories() {
 
       grouped.set(key, {
         ...category,
-        label: category.label.trim(),
+        label: formatCategoryLabel(category.label),
       });
     }
 

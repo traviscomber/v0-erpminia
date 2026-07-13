@@ -49,7 +49,7 @@ export function TelemetryDashboard({ equipmentId, equipmentName }: TelemetryDash
   );
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Cargando telemetría segura...</div>;
+    return <div className="text-sm text-muted-foreground">Cargando telemetria segura...</div>;
   }
 
   if (error) {
@@ -61,7 +61,7 @@ export function TelemetryDashboard({ equipmentId, equipmentName }: TelemetryDash
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-muted-foreground">
           <p>No se pudo cargar la lectura del equipo desde la API.</p>
-          <p>Este panel no abre WebSockets ni realtime, por lo que no se cae por CSP.</p>
+          <p>Este panel no abre conexiones en vivo ni realtime, por lo que no se cae por CSP.</p>
         </CardContent>
       </Card>
     );
@@ -206,12 +206,12 @@ export function TelemetryDashboard({ equipmentId, equipmentName }: TelemetryDash
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-sm">
             <Zap className="h-4 w-4 text-[var(--brand-naranja)]" />
-            Sin WebSocket
+            Sin conexion en vivo
           </CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
-          Este panel funciona solo con API y no depende de realtime. Eso lo hace seguro para la red local y para CSP
-          estrictas en produccion.
+          Este panel funciona solo con API y no depende de conexiones en vivo. Eso lo hace seguro para la red local y
+          para CSP estrictas en produccion.
         </CardContent>
       </Card>
     </div>

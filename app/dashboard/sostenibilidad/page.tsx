@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useMemo, type ReactNode } from 'react';
 import Link from 'next/link';
@@ -140,7 +140,7 @@ export default function SostenibilidadDashboard() {
 
     return [
       {
-        title: 'Prevencion de Riesgos',
+        title: 'HSE / Prevencion de Riesgos',
         icon: <Shield className="w-8 h-8" />,
         colorClass: 'text-primary',
         bgClass: 'bg-primary/10',
@@ -161,7 +161,7 @@ export default function SostenibilidadDashboard() {
             status: makeStatus(capCount),
           },
           {
-            name: 'Elementos de EPP',
+            name: 'EPP',
             path: '/dashboard/sostenibilidad/prevencion-riesgos/epp',
             importPath: '/dashboard/sostenibilidad/prevencion-riesgos/epp/importar',
             count: eppCount,
@@ -283,12 +283,17 @@ export default function SostenibilidadDashboard() {
     totalActions,
   ]);
 
+  const allModules = pillars.flatMap((pillar) => pillar.modules);
+  const modulesWithData = allModules.filter((module) => module.count > 0).length;
+  const modulesWithoutData = allModules.length - modulesWithData;
+
   const topMetrics = [
-    { label: 'Índice de cumplimiento', value: `${complianceScore}%`, helper: trendLabel, tone: complianceScore >= 85 ? 'text-secondary' : complianceScore >= 70 ? 'text-primary' : 'text-destructive' },
+    { label: 'Indice de cumplimiento', value: `${complianceScore}%`, helper: trendLabel, tone: complianceScore >= 85 ? 'text-secondary' : complianceScore >= 70 ? 'text-primary' : 'text-destructive' },
     { label: 'NC abiertas', value: `${openNcs}`, helper: `${overview.overview.total_ncs} totales`, tone: 'text-primary' },
     { label: 'Acciones vencidas', value: `${overdueCas}`, helper: 'Requieren accion', tone: overdueCas > 0 ? 'text-destructive' : 'text-secondary' },
     { label: 'Inspecciones cerradas', value: `${inspeccionesCount}`, helper: 'Fuente real', tone: 'text-secondary' },
-    { label: 'Documentos HSE', value: `${docCount}`, helper: 'En el módulo', tone: 'text-primary' },
+    { label: 'Documentos HSE', value: `${docCount}`, helper: 'En el modulo', tone: 'text-primary' },
+    { label: 'Modulos con data', value: `${modulesWithData}`, helper: `Sin data: ${modulesWithoutData}`, tone: modulesWithoutData > 0 ? 'text-primary' : 'text-secondary' },
   ];
 
   return (
@@ -303,14 +308,14 @@ export default function SostenibilidadDashboard() {
               Periodo {overview.period || 'actual'}
             </Badge>
           </div>
-          <h1 className="text-4xl font-bold text-foreground">Departamento de Sostenibilidad</h1>
+          <h1 className="text-4xl font-bold text-foreground">Departamento de Sostenibilidad y HSE</h1>
           <p className="mt-2 max-w-3xl text-muted-foreground">
-            Gestion integrada de Prevencion de Riesgos, Medio Ambiente, Comunidades y Proyectos con datos operativos reales.
+            Gestion integrada de HSE, Medio Ambiente, Comunidades y Proyectos con datos operativos reales.
           </p>
         </div>
       </div>
 
-      <div className="mb-10 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
+      <div className="mb-10 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-6">
         {topMetrics.map((metric) => (
           <Card key={metric.label} className="rounded-xl shadow-none">
             <CardHeader className="pb-3">
@@ -338,6 +343,12 @@ export default function SostenibilidadDashboard() {
           <Button asChild variant="outline" className="justify-between">
             <Link href="/dashboard/sostenibilidad/prevencion-riesgos/inspecciones/importar">
               Inspecciones
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/sostenibilidad/prevencion-riesgos">
+              HSE / Prevencion
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>

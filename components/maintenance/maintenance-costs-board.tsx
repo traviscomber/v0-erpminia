@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import useSWR from 'swr';
-import { AlertCircle, ArrowRight, DollarSign, Download, RefreshCw } from 'lucide-react';
+import { AlertCircle, ArrowRight, DollarSign, Download, RefreshCw, Upload } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,10 +20,16 @@ interface AssetCostRow {
   id: string;
   assetName: string;
   assetCode?: string | null;
+  machineFamily?: string | null;
   partsCost?: number | string | null;
   laborCost?: number | string | null;
   workOrderCost?: number | string | null;
   totalCost?: number | string | null;
+}
+
+interface FamilyCostRow {
+  family: string;
+  value: number | string;
 }
 
 interface MonthlyCostRow {
@@ -34,6 +40,7 @@ interface MonthlyCostRow {
 interface MaintenanceCostsResponse {
   summary?: MaintenanceCostsSummary;
   assetCosts?: AssetCostRow[];
+  familyCosts?: FamilyCostRow[];
   monthlyCosts?: MonthlyCostRow[];
 }
 
@@ -82,6 +89,7 @@ export function MaintenanceCostsBoard() {
 
   const summary: MaintenanceCostsSummary = detailData?.summary || summaryData?.summary || { totalCost: 0, totalWorkOrders: 0, totalRecords: 0, assets: 0, averageCostPerAsset: 0 };
   const assetCosts: AssetCostRow[] = Array.isArray(detailData?.assetCosts) ? detailData.assetCosts : [];
+  const familyCosts: FamilyCostRow[] = Array.isArray(detailData?.familyCosts) ? detailData.familyCosts : [];
   const monthlyCosts: MonthlyCostRow[] = Array.isArray(detailData?.monthlyCosts) ? detailData.monthlyCosts : [];
   const error = summaryError || detailError;
   const refreshCosts = () => {
@@ -101,6 +109,12 @@ export function MaintenanceCostsBoard() {
             <Link href="/dashboard/mantenimiento/costos/importar">
               <Download className="h-4 w-4" />
               Importar Excel
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="gap-2">
+            <Link href="/dashboard/mantenimiento/costos/equipos/importar">
+              <Upload className="h-4 w-4" />
+              Importar costos de equipos
             </Link>
           </Button>
           <Button variant="outline" onClick={refreshCosts} className="gap-2">
@@ -170,6 +184,12 @@ export function MaintenanceCostsBoard() {
         <CardContent>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
             <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/costos/equipos">
+                Costos de equipos
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/componentes-mayores">
                 Componentes mayores
                 <ArrowRight className="h-4 w-4" />
@@ -221,6 +241,7 @@ export function MaintenanceCostsBoard() {
                     <div>
                       <p className="font-semibold">{asset.assetName}</p>
                       <p className="text-xs text-muted-foreground">{asset.assetCode || '-'}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{asset.machineFamily || 'Sin familia derivada'}</p>
                       <p className="mt-2 text-xs text-muted-foreground">
                         Repuestos {money(asset.partsCost)} | Mano de obra {money(asset.laborCost)} | OT {money(asset.workOrderCost)}
                       </p>
@@ -235,29 +256,55 @@ export function MaintenanceCostsBoard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Costos mensuales</CardTitle>
+            <CardTitle>Costos por familia</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {detailLoading ? (
-              <div className="text-sm text-muted-foreground">Cargando costos mensuales...</div>
-            ) : monthlyCosts.length === 0 ? (
+              <div className="text-sm text-muted-foreground">Cargando costos por familia...</div>
+            ) : familyCosts.length === 0 ? (
               <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-                Sin datos mensuales todavía.
+                Sin datos por familia todavía.
               </div>
             ) : (
-              monthlyCosts.map((row) => (
-                <div key={row.month} className="flex items-center justify-between rounded-lg border border-border p-3">
+              familyCosts.map((row) => (
+                <div key={row.family} className="flex items-center justify-between rounded-lg border border-border p-3">
                   <div>
-                    <p className="font-medium">{row.month}</p>
-                    <p className="text-xs text-muted-foreground">Costo acumulado del mes</p>
+                    <p className="font-medium">{row.family}</p>
+                    <p className="text-xs text-muted-foreground">Costo acumulado por familia operativa</p>
                   </div>
-                      <Badge variant="outline">{money(row.value)}</Badge>
+                  <Badge variant="outline">{money(row.value)}</Badge>
                 </div>
               ))
             )}
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Costos mensuales</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {detailLoading ? (
+            <div className="text-sm text-muted-foreground">Cargando costos mensuales...</div>
+          ) : monthlyCosts.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
+              Sin datos mensuales todavía.
+            </div>
+          ) : (
+            monthlyCosts.map((row) => (
+              <div key={row.month} className="flex items-center justify-between rounded-lg border border-border p-3">
+                <div>
+                  <p className="font-medium">{row.month}</p>
+                  <p className="text-xs text-muted-foreground">Costo acumulado del mes</p>
+                </div>
+                <Badge variant="outline">{money(row.value)}</Badge>
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
+

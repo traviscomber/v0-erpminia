@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -24,9 +24,9 @@ export function CategoryFilter({ categories, selectedCategory, onCategoryChange 
   if (!isMobile) {
     return (
       <div className="space-y-2">
-        <div className="flex ítems-center justify-between">
+        <div className="flex items-center justify-between">
           <p className="text-xs font-medium text-muted-foreground">
-            {categories.length} categorías · {totalItems.toLocaleString()} ítems
+            {categories.length} categorias - {totalItems.toLocaleString()} items
           </p>
           {selectedCategory && (
             <p className="text-xs text-muted-foreground">
@@ -40,7 +40,7 @@ export function CategoryFilter({ categories, selectedCategory, onCategoryChange 
               <button
                 onClick={() => onCategoryChange('')}
                 className={cn(
-                  'inline-flex ítems-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all shrink-0',
+                  'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all shrink-0',
                   selectedCategory === ''
                     ? 'bg-foreground text-background border-foreground'
                     : 'bg-card text-muted-foreground border-border hover:border-foreground/40 hover:text-foreground',
@@ -54,7 +54,7 @@ export function CategoryFilter({ categories, selectedCategory, onCategoryChange 
                   key={cat.label}
                   onClick={() => onCategoryChange(cat.label)}
                   className={cn(
-                    'inline-flex ítems-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all shrink-0',
+                    'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all shrink-0',
                     selectedCategory === cat.label
                       ? 'bg-foreground text-background border-foreground'
                       : 'bg-card text-muted-foreground border-border hover:border-foreground/40 hover:text-foreground',
@@ -64,7 +64,7 @@ export function CategoryFilter({ categories, selectedCategory, onCategoryChange 
                   {cat.label}
                   <span className="opacity-60">{cat.count.toLocaleString()}</span>
                   {cat.low_stock > 0 && (
-                    <span className="flex ítems-center gap-0.5 text-amber-400">
+                    <span className="flex items-center gap-0.5 text-amber-400">
                       <AlertTriangle className="w-2.5 h-2.5" />
                       {cat.low_stock}
                     </span>
@@ -81,8 +81,8 @@ export function CategoryFilter({ categories, selectedCategory, onCategoryChange 
 
   return (
     <div className="space-y-2">
-      <div className="flex ítems-center justify-between text-xs text-muted-foreground">
-        <span>{categories.length} categorías</span>
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <span>{categories.length} categorias</span>
         {selectedCategory && (
           <span className="font-medium text-primary">Filtrado: {selectedCategory}</span>
         )}
@@ -96,16 +96,14 @@ export function CategoryFilter({ categories, selectedCategory, onCategoryChange 
               selectedCategory && 'border-primary/50 bg-primary/10 hover:bg-primary/15',
             )}
           >
-            <span className="truncate">
-              {selectedCategory || 'Selecciona una categoría...'}
-            </span>
+            <span className="truncate">{selectedCategory || 'Selecciona una categoria...'}</span>
             <ChevronDown className={cn('ml-2 h-4 w-4 shrink-0 transition-transform', open && 'rotate-180')} />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-full p-0" align="start">
           <Command>
-            <CommandInput placeholder="Buscar categoría..." className="text-sm" />
-            <CommandEmpty className="py-6 text-center text-sm">No se encontraron categorías.</CommandEmpty>
+            <CommandInput placeholder="Buscar categoria..." className="text-sm" />
+            <CommandEmpty className="py-6 text-center text-sm">No se encontraron categorias.</CommandEmpty>
             <CommandGroup className="max-h-80 overflow-y-auto">
               <CommandItem onSelect={() => { onCategoryChange(''); setOpen(false); }} className="cursor-pointer">
                 <Check className={cn('mr-2 h-4 w-4', selectedCategory === '' ? 'opacity-100' : 'opacity-0')} />
@@ -122,7 +120,7 @@ export function CategoryFilter({ categories, selectedCategory, onCategoryChange 
                   <span className="flex-1">{cat.label}</span>
                   <span className="text-xs text-muted-foreground ml-2">{cat.count}</span>
                   {cat.low_stock > 0 && (
-                    <span className="ml-2 flex ítems-center gap-0.5 text-xs text-amber-400">
+                    <span className="ml-2 flex items-center gap-0.5 text-xs text-amber-400">
                       <AlertTriangle className="w-3 h-3" />{cat.low_stock}
                     </span>
                   )}

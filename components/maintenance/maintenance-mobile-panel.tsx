@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
@@ -106,7 +106,7 @@ export function MaintenanceMobilePanel() {
   const selectedHistory = ((assetHistoryData as AssetHistoryResponse | undefined)?.history || []) as SelectedHistoryRow[];
 
   const openOrders = useMemo(
-    () => workOrders.filter((order) => ['open', 'pending', 'pendiente', 'in_progress'].includes(String(order.status || '').toLowerCase())).slice(0, 5),
+    () => workOrders.filter((order) => ['open', 'pending', 'pendiente', 'in_progress'].includes(String(order.status || '').toLowerCase())).slice(0, 8),
     [workOrders],
   );
   const urgentOrders = useMemo(
@@ -305,12 +305,12 @@ export function MaintenanceMobilePanel() {
           <div className="rounded-lg border border-border p-3">
             <p className="text-xs text-muted-foreground">Personal</p>
             <p className="text-xl font-bold">{personalSummary.technicians || 0}</p>
-            <p className="text-xs text-muted-foreground">Técnicos con registros</p>
+              <p className="text-xs text-muted-foreground">Técnicos con registros</p>
           </div>
           <div className="rounded-lg border border-border p-3">
             <p className="text-xs text-muted-foreground">Horas</p>
             <p className="text-xl font-bold">{Number(personalSummary.totalHours || 0).toFixed(1)}</p>
-            <p className="text-xs text-muted-foreground">Horas cargadas hoy</p>
+              <p className="text-xs text-muted-foreground">Horas cargadas hoy</p>
           </div>
           <div className="rounded-lg border border-border p-3">
             <p className="text-xs text-muted-foreground">Urgentes</p>
@@ -335,7 +335,7 @@ export function MaintenanceMobilePanel() {
               <>
                 <div className="rounded-lg border border-border p-3">
                   <p className="font-semibold">{selectedAsset.asset_name || 'Equipo'}</p>
-                  <p className="text-muted-foreground">{selectedAsset.asset_code || 'Sin codigo'}</p>
+                  <p className="text-muted-foreground">{selectedAsset.asset_code || 'Sin código'}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="rounded-lg border border-border p-3">
@@ -343,7 +343,7 @@ export function MaintenanceMobilePanel() {
                     <p className="font-semibold">{selectedAsset.asset_type || '-'}</p>
                   </div>
                   <div className="rounded-lg border border-border p-3">
-                    <p className="text-xs text-muted-foreground">Ubicacion</p>
+                    <p className="text-xs text-muted-foreground">Ubicación</p>
                     <p className="font-semibold">{selectedAsset.location || '-'}</p>
                   </div>
                   <div className="rounded-lg border border-border p-3">
@@ -646,7 +646,7 @@ export function MaintenanceMobilePanel() {
           <CardContent className="space-y-2 text-sm">
             {selectedHistory.slice(0, 3).map((item) => (
               <div key={item.id} className="rounded-lg border border-border p-3">
-                <p className="font-semibold">{item.work_order?.work_order_number || 'Sin OT'}</p>
+              <p className="font-semibold">{item.work_order?.work_order_number || 'Sin OT'}</p>
                 <p className="text-muted-foreground">{item.notes || item.parts_replaced || 'Mantención registrada'}</p>
                 <p className="mt-1 text-xs text-muted-foreground">{item.created_at ? new Date(item.created_at).toLocaleDateString('es-CL') : 'Sin fecha'}</p>
               </div>

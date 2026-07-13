@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+﻿export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
@@ -109,6 +109,7 @@ export async function POST(request: NextRequest) {
   if (!context.ok) return context.response;
 
   try {
+    const dryRun = new URL(request.url).searchParams.get('dryRun') === '1';
     const contentType = request.headers.get('content-type') || '';
     if (!contentType.includes('multipart/form-data')) {
       return NextResponse.json({ error: 'Se requiere archivo CSV, XLS o XLSX' }, { status: 400 });
@@ -129,6 +130,11 @@ export async function POST(request: NextRequest) {
     let insertedHistory = 0;
     let updatedHistory = 0;
     let skipped = 0;
+    const preview: Array<{
+      work_order_number: string;
+      asset_code: string | null;
+      action: 'update_order' | 'insert_history' | 'update_history' | 'skip';
+    }> = [];
 
     for (const row of rows) {
       const actualCost = row.actual_cost || 0;
@@ -144,6 +150,9 @@ export async function POST(request: NextRequest) {
       if (workOrderError) throw workOrderError;
       if (!workOrder?.id) {
         skipped += 1;
+        if (preview.length < 20) {
+          preview.push({ work_order_number: row.work_order_number, asset_code: row.asset_code || null, action: 'skip' });
+        }
         continue;
       }
 
@@ -151,13 +160,18 @@ export async function POST(request: NextRequest) {
       if (actualCost > 0) updatePayload.actual_cost = actualCost;
       if (row.completion_date) updatePayload.completion_date = row.completion_date;
       if (Object.keys(updatePayload).length > 0) {
-        const { error: updateError } = await context.supabase
-          .from('maintenance_work_orders')
-          .update(updatePayload)
-          .eq('id', workOrder.id)
-          .eq('organization_id', context.organizationId);
-        if (updateError) throw updateError;
         updatedOrders += 1;
+        if (preview.length < 20) {
+          preview.push({ work_order_number: row.work_order_number, asset_code: row.asset_code || null, action: 'update_order' });
+        }
+        if (!dryRun) {
+          const { error: updateError } = await context.supabase
+            .from('maintenance_work_orders')
+            .update(updatePayload)
+            .eq('id', workOrder.id)
+            .eq('organization_id', context.organizationId);
+          if (updateError) throw updateError;
+        }
       }
 
       const hasHistoryValues = partsCost > 0 || laborCost > 0 || Boolean(row.notes);
@@ -198,27 +212,39 @@ export async function POST(request: NextRequest) {
       if (historyLookupError) throw historyLookupError;
 
       if (existingHistory?.id) {
-        const { error: historyUpdateError } = await context.supabase
-          .from('maintenance_history')
-          .update(historyPayload)
-          .eq('id', existingHistory.id);
-        if (historyUpdateError) throw historyUpdateError;
         updatedHistory += 1;
+        if (preview.length < 20) {
+          preview.push({ work_order_number: row.work_order_number, asset_code: row.asset_code || null, action: 'update_history' });
+        }
+        if (!dryRun) {
+          const { error: historyUpdateError } = await context.supabase
+            .from('maintenance_history')
+            .update(historyPayload)
+            .eq('id', existingHistory.id);
+          if (historyUpdateError) throw historyUpdateError;
+        }
       } else {
-        const { error: historyInsertError } = await context.supabase.from('maintenance_history').insert(historyPayload);
-        if (historyInsertError) throw historyInsertError;
         insertedHistory += 1;
+        if (preview.length < 20) {
+          preview.push({ work_order_number: row.work_order_number, asset_code: row.asset_code || null, action: 'insert_history' });
+        }
+        if (!dryRun) {
+          const { error: historyInsertError } = await context.supabase.from('maintenance_history').insert(historyPayload);
+          if (historyInsertError) throw historyInsertError;
+        }
       }
     }
 
     return NextResponse.json({
       success: true,
-      message: 'Costos de mantenimiento importados correctamente',
+      message: dryRun ? 'Validacion completada sin escribir datos' : 'Costos de mantenimiento importados correctamente',
       updated_orders: updatedOrders,
       inserted_history: insertedHistory,
       updated_history: updatedHistory,
       skipped,
       total: rows.length,
+      dry_run: dryRun,
+      preview,
     });
   } catch (error) {
     console.error('[maintenance/costs/import]', error);
@@ -228,3 +254,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

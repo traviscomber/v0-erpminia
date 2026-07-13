@@ -1,4 +1,4 @@
-import { MaintenanceMobilePanel } from '@/components/maintenance/maintenance-mobile-panel';
+﻿import { MaintenanceMobilePanel } from '@/components/maintenance/maintenance-mobile-panel';
 
 export const metadata = {
   title: 'Panel móvil de mantenimiento',
@@ -8,3 +8,4 @@ export const metadata = {
 export default function MaintenanceMobilePage() {
   return <MaintenanceMobilePanel />;
 }
+

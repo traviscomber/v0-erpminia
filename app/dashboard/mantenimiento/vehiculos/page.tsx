@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import useSWR from 'swr';
@@ -48,7 +48,7 @@ export default function VehiclesPage() {
           <Button asChild variant="outline">
             <Link href="/dashboard/mantenimiento/vehiculos/importar">
               <Upload className="mr-2 h-4 w-4" />
-               Importar vehículos
+              Importar vehículos
             </Link>
           </Button>
           <Button asChild variant="outline">
@@ -60,7 +60,7 @@ export default function VehiclesPage() {
         </div>
         <div className="mt-4 rounded-lg border border-[var(--secondary)]/30 bg-[var(--secondary)]/5 p-4 dark:border-blue-800 dark:bg-blue-950">
           <p className="text-sm text-blue-900 dark:text-blue-100">
-            <strong>Cómo funciona:</strong> cada activo trae su información operacional y puedes abrir el
+            <strong>Como funciona:</strong> cada activo trae su informacion operacional y puedes abrir el
             árbol de fallas para diagnosticar problemas y crear órdenes de trabajo.
           </p>
         </div>
@@ -77,7 +77,7 @@ export default function VehiclesPage() {
           <Button asChild>
             <Link href="/dashboard/mantenimiento/vehiculos/importar">
               <Upload className="mr-2 h-4 w-4" />
-               Abrir importador de vehículos
+              Abrir importador de vehículos
             </Link>
           </Button>
           <Button asChild variant="outline">
@@ -146,7 +146,7 @@ export default function VehiclesPage() {
                       </div>
                       <div>
                         <span className="font-medium text-foreground">{vehicle.location || '-'}</span>
-                        <p>Ubicacion</p>
+                        <p>Ubicación</p>
                       </div>
                     </div>
                   </div>
@@ -201,7 +201,7 @@ export default function VehiclesPage() {
                     <Badge variant="outline">{machine.source}</Badge>
                   </div>
                   <p className="mt-3 text-xs text-muted-foreground">
-                    Este modelo viene del centro de costo y puede usarse como base del maestro de maquinas.
+                    Este modelo viene del centro de costo y puede usarse como base del maestro de máquinas.
                   </p>
                 </div>
                 ))}
@@ -217,3 +217,4 @@ export default function VehiclesPage() {
     </div>
   );
 }
+

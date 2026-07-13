@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
@@ -213,7 +213,7 @@ export function MaintenanceHistoryBoard() {
           No fue posible cargar la bitácora real de mantenimiento.
         </div>
       ) : isLoading ? (
-        <div className="text-sm text-muted-foreground">Cargando bitácora...</div>
+        <div className="text-sm text-muted-foreground">Cargando bitacora...</div>
       ) : groupedByAsset.length === 0 ? (
         <Card>
           <CardContent className="flex items-center gap-2 p-6 text-sm text-muted-foreground">
@@ -230,7 +230,7 @@ export function MaintenanceHistoryBoard() {
                   <div>
                     <CardTitle className="text-lg">{group.assetName}</CardTitle>
                     <p className="text-sm text-muted-foreground">
-                      {group.assetCode || '-'} {group.assetType ? `· ${group.assetType}` : ''}
+                      {group.assetCode || '-'} {group.assetType ? ` · ${group.assetType}` : ''}
                       {group.location ? ` · ${group.location}` : ''}
                     </p>
                   </div>
@@ -257,7 +257,7 @@ export function MaintenanceHistoryBoard() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                {group.rows.slice(0, 5).map((entry) => (
+                {group.rows.slice(0, 8).map((entry) => (
                   <div key={entry.id} className="rounded-lg border border-border bg-background p-4">
                     <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                       <div className="space-y-2">
@@ -290,3 +290,4 @@ export function MaintenanceHistoryBoard() {
     </div>
   );
 }
+

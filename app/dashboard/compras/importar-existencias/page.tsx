@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 
 type ImportResult = {
   success: boolean;
@@ -20,6 +21,7 @@ type ImportResult = {
 
 export default function ImportarExistenciasPage() {
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<ImportResult | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -35,6 +37,7 @@ export default function ImportarExistenciasPage() {
     }
 
     setLoading(true);
+    setProgress(0);
     setResult(null);
 
     const applyResponse = async (response: Response) => {
@@ -48,6 +51,7 @@ export default function ImportarExistenciasPage() {
       })() : null;
 
       if (response.ok) {
+        setProgress(100);
         setResult({
           success: true,
           message: payload?.message || 'Excel importado correctamente',
@@ -74,6 +78,7 @@ export default function ImportarExistenciasPage() {
       const chunkUrls: { url: string; index: number }[] = [];
 
       for (let i = 0; i < totalChunks; i++) {
+        setProgress(Math.round((i / totalChunks) * 100));
         setResult({
           success: false,
           message: totalChunks === 1
@@ -105,6 +110,7 @@ export default function ImportarExistenciasPage() {
         chunkUrls.push(data);
       }
 
+      setProgress(95);
       setResult({ success: false, message: 'Importando datos...' });
 
       // Tell the server to assemble chunks and run the import
@@ -126,6 +132,7 @@ export default function ImportarExistenciasPage() {
       });
     } finally {
       setLoading(false);
+      setProgress((current) => (current >= 100 ? 100 : current));
     }
   };
 
@@ -189,7 +196,8 @@ export default function ImportarExistenciasPage() {
             Importar archivo
           </CardTitle>
           <CardDescription>
-            El proceso es transaccional y vuelve a cargar los registros de esta fuente sin vaciar el resto del sistema.
+            El proceso es transaccional, sube por bloques usando Blob y solo reemplaza esta fuente sin vaciar el
+            resto del sistema.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -229,7 +237,16 @@ export default function ImportarExistenciasPage() {
           {loading && (
             <div className="flex items-center justify-center gap-2 rounded-lg border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
-              Procesando archivo...
+              Procesando archivo... {progress}%
+            </div>
+          )}
+
+          {loading && (
+            <div className="space-y-2">
+              <Progress value={progress} className="h-2" />
+              <p className="text-xs text-muted-foreground">
+                La carga va por bloques para evitar el limite de payload y usar Blob sin vaciar la base si algo falla.
+              </p>
             </div>
           )}
 

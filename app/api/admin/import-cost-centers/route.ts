@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/api/guard';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
+import { shouldForceInactiveCostCenter } from '@/lib/cost-centers';
 
 type ImportCostCenterRow = {
   code: string;
@@ -141,7 +142,7 @@ export async function POST(request: NextRequest) {
         code: row.code,
         name: row.name,
         description: row.description,
-        status: row.status,
+        status: shouldForceInactiveCostCenter(row.code) ? 'inactive' : row.status,
         created_at: row.created_at || new Date().toISOString(),
         updated_at: row.updated_at || new Date().toISOString(),
       };

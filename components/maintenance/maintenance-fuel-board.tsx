@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import { useMemo } from 'react';
@@ -39,13 +39,19 @@ function formatNumber(value: number) {
 }
 
 export function MaintenanceFuelBoard() {
-  const { data, error, isLoading, mutate } = useSWR<FuelInventoryResponse>('/api/bodega/inventory?category=Combustible&pageSize=100', fetcher);
+  const { data, error, isLoading, mutate } = useSWR<FuelInventoryResponse>(
+    '/api/bodega/inventory?category=Combustible&pageSize=100',
+    fetcher,
+  );
 
   const fuelItems: FuelInventoryItem[] = Array.isArray(data?.inventory) ? data.inventory : [];
 
   const summary = useMemo(() => {
     const totalQuantity = fuelItems.reduce((sum: number, item: FuelInventoryItem) => sum + Number(item.quantity || 0), 0);
-    const totalValue = fuelItems.reduce((sum: number, item: FuelInventoryItem) => sum + Number(item.quantity || 0) * Number(item.unit_cost || 0), 0);
+    const totalValue = fuelItems.reduce(
+      (sum: number, item: FuelInventoryItem) => sum + Number(item.quantity || 0) * Number(item.unit_cost || 0),
+      0,
+    );
     const lowStock = fuelItems.filter((item: FuelInventoryItem) => Number(item.quantity || 0) <= Number(item.min_stock || 0)).length;
 
     return {
@@ -58,7 +64,7 @@ export function MaintenanceFuelBoard() {
 
   const topItems = [...fuelItems]
     .sort((a: FuelInventoryItem, b: FuelInventoryItem) => Number(b.quantity || 0) - Number(a.quantity || 0))
-    .slice(0, 6);
+    .slice(0, 10);
 
   if (error) {
     return (
@@ -102,7 +108,7 @@ export function MaintenanceFuelBoard() {
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm">
               <Fuel className="h-4 w-4 text-primary" />
-              Ítems
+              Items
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -152,7 +158,7 @@ export function MaintenanceFuelBoard() {
           ) : topItems.length === 0 ? (
             <div className="flex items-center gap-2 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
               <AlertCircle className="h-4 w-4" />
-              No hay ítems de combustible cargados todavía.
+              No hay items de combustible cargados todavia.
             </div>
           ) : (
             <div className="space-y-3">
@@ -211,7 +217,7 @@ export function MaintenanceFuelBoard() {
           </Button>
           <Button asChild variant="outline" className="justify-between">
             <Link href="/dashboard/mantenimiento/personal">
-              Personal mantención
+              Personal mantencion
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>

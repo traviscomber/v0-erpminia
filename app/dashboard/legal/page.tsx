@@ -456,7 +456,7 @@ export default function LegalPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-primary">{pendingReviewCount}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Contratos en cola de validación</p>
+            <p className="mt-1 text-xs text-muted-foreground">Contratos en cola de validacion</p>
           </CardContent>
         </Card>
 
@@ -529,7 +529,7 @@ export default function LegalPage() {
           <CardContent className="flex items-center justify-between gap-4 pt-6">
             <div className="flex items-center gap-3 text-sm">
               <AlertCircle className="h-4 w-4 text-destructive" />
-              <span>No fue posible cargar una parte del módulo legal.</span>
+              <span>No fue posible cargar una parte del modulo legal.</span>
             </div>
             <Button
               variant="outline"

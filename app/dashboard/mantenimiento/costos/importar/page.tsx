@@ -8,14 +8,22 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
+type ImportPreviewItem = {
+  work_order_number: string;
+  asset_code: string | null;
+  action: 'update_order' | 'insert_history' | 'update_history' | 'skip';
+};
+
 type ImportResult = {
   success: boolean;
   message: string;
+  dry_run?: boolean;
   updated_orders?: number;
   inserted_history?: number;
   updated_history?: number;
   skipped?: number;
   total?: number;
+  preview?: ImportPreviewItem[];
   error?: string;
 };
 
@@ -33,7 +41,9 @@ function buildTemplateCsv() {
 
 export default function MaintenanceCostsImportPage() {
   const [dragActive, setDragActive] = useState(false);
-  const [isImporting, setIsImporting] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [processingMode, setProcessingMode] = useState<'validate' | 'import' | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [result, setResult] = useState<ImportResult | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -49,7 +59,7 @@ export default function MaintenanceCostsImportPage() {
     URL.revokeObjectURL(url);
   };
 
-  const uploadFile = async (file: File) => {
+  const chooseFile = (file: File) => {
     const valid =
       file.name.toLowerCase().endsWith('.csv') || file.name.toLowerCase().endsWith('.xls') || file.name.toLowerCase().endsWith('.xlsx');
     if (!valid) {
@@ -57,14 +67,22 @@ export default function MaintenanceCostsImportPage() {
       return;
     }
 
-    setIsImporting(true);
+    setSelectedFile(file);
+    setResult(null);
+  };
+
+  const sendFile = async (file: File, dryRun = false) => {
+    if (!file) return;
+
+    setIsProcessing(true);
+    setProcessingMode(dryRun ? 'validate' : 'import');
     setResult(null);
 
     try {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/maintenance/costs/import', {
+      const response = await fetch(`/api/maintenance/costs/import${dryRun ? '?dryRun=1' : ''}`, {
         method: 'POST',
         credentials: 'include',
         body: formData,
@@ -75,12 +93,14 @@ export default function MaintenanceCostsImportPage() {
 
       setResult({
         success: true,
-        message: payload?.message || 'Importación completada',
+        message: payload?.message || (dryRun ? 'Validacion completada' : 'Importacion completada'),
+        dry_run: Boolean(payload?.dry_run),
         updated_orders: payload?.updated_orders || 0,
         inserted_history: payload?.inserted_history || 0,
         updated_history: payload?.updated_history || 0,
         skipped: payload?.skipped || 0,
         total: payload?.total || 0,
+        preview: Array.isArray(payload?.preview) ? payload.preview : [],
       });
     } catch (error) {
       setResult({
@@ -89,15 +109,16 @@ export default function MaintenanceCostsImportPage() {
         error: error instanceof Error ? error.message : 'Error desconocido',
       });
     } finally {
-      setIsImporting(false);
+      setIsProcessing(false);
+      setProcessingMode(null);
     }
   };
 
-  const handleDrop = async (event: DragEvent<HTMLDivElement>) => {
+  const handleDrop = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setDragActive(false);
     const file = event.dataTransfer.files?.[0];
-    if (file) await uploadFile(file);
+    if (file) chooseFile(file);
   };
 
   return (
@@ -106,7 +127,7 @@ export default function MaintenanceCostsImportPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Importar costos</h1>
           <p className="mt-2 text-muted-foreground">
-            Actualiza costos reales de órdenes de trabajo y su bitácora histórica desde CSV/XLS/XLSX.
+            Actualiza costos reales de ordenes de trabajo y su bitacora historica desde CSV, XLS o XLSX.
           </p>
         </div>
         <Button asChild variant="outline" className="gap-2">
@@ -138,7 +159,7 @@ export default function MaintenanceCostsImportPage() {
               }`}
             >
               <Upload className="mx-auto mb-3 h-10 w-10 text-primary" />
-              <p className="font-medium">Arrastra tu archivo aquí o usa el selector</p>
+              <p className="font-medium">Arrastra tu archivo aqui o usa el selector</p>
               <p className="mt-1 text-sm text-muted-foreground">Acepta CSV, XLS y XLSX.</p>
               <div className="mt-4 flex flex-wrap justify-center gap-2">
                 <Button variant="outline" onClick={downloadTemplate} className="gap-2">
@@ -157,20 +178,42 @@ export default function MaintenanceCostsImportPage() {
                 className="hidden"
                 onChange={(event) => {
                   const file = event.target.files?.[0];
-                  if (file) void uploadFile(file);
+                  if (file) chooseFile(file);
                 }}
               />
+              {selectedFile ? <p className="mt-3 text-sm text-muted-foreground">Archivo seleccionado: {selectedFile.name}</p> : null}
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <Button onClick={downloadTemplate} variant="outline" className="gap-2">
                 <Download className="h-4 w-4" />
                 Descargar plantilla
               </Button>
-              {isImporting ? (
+              <Button
+                variant="outline"
+                className="gap-2"
+                disabled={!selectedFile || isProcessing}
+                onClick={() => {
+                  if (selectedFile) void sendFile(selectedFile, true);
+                }}
+              >
+                {isProcessing && processingMode === 'validate' ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                Validar archivo
+              </Button>
+              <Button
+                className="gap-2"
+                disabled={!selectedFile || isProcessing}
+                onClick={() => {
+                  if (selectedFile) void sendFile(selectedFile, false);
+                }}
+              >
+                {isProcessing && processingMode === 'import' ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                Importar archivo
+              </Button>
+              {isProcessing ? (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Importando...
+                  {processingMode === 'validate' ? 'Validando...' : 'Importando...'}
                 </div>
               ) : null}
             </div>
@@ -182,9 +225,10 @@ export default function MaintenanceCostsImportPage() {
             <CardTitle>Formato esperado</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <p>Campos obligatorios: `OT`.</p>
-            <p>Campos recomendados: `ACTIVO`, `FECHA_CIERRE`, `COSTO_TOTAL`, `PARTES`, `MANO_OBRA`, `OBSERVACIONES`.</p>
+            <p>Campos obligatorios: OT.</p>
+            <p>Campos recomendados: ACTIVO, FECHA_CIERRE, COSTO_TOTAL, PARTES, MANO_OBRA, OBSERVACIONES.</p>
             <p>Si el OT existe, se actualiza y el historial queda alineado con la fecha importada.</p>
+            <p>Primero valida el archivo para ver una vista previa antes de escribir datos en la base.</p>
           </CardContent>
         </Card>
       </div>
@@ -197,11 +241,26 @@ export default function MaintenanceCostsImportPage() {
               <p>{result.message}</p>
               {result.success ? (
                 <div className="text-sm">
+                  <p>Modo: {result.dry_run ? 'validacion' : 'importacion'}</p>
                   <p>OT actualizadas: {result.updated_orders || 0}</p>
                   <p>Historial insertado: {result.inserted_history || 0}</p>
                   <p>Historial actualizado: {result.updated_history || 0}</p>
                   <p>Saltadas: {result.skipped || 0}</p>
                   <p>Total filas: {result.total || 0}</p>
+                </div>
+              ) : null}
+              {result.success && result.preview && result.preview.length > 0 ? (
+                <div className="mt-3 rounded-lg border border-border/60 bg-background/40 p-3 text-sm">
+                  <p className="mb-2 font-medium">Vista previa</p>
+                  <div className="space-y-2">
+                    {result.preview.map((item, index) => (
+                      <div key={`${item.work_order_number}-${index}`} className="flex flex-wrap gap-2 text-muted-foreground">
+                        <span className="font-medium text-foreground">{item.work_order_number}</span>
+                        <span>{item.asset_code || 'Sin activo'}</span>
+                        <span>{item.action}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ) : null}
             </div>

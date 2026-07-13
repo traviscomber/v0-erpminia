@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
+import { shouldForceInactiveCostCenter } from '@/lib/cost-centers';
 
 type ParsedCenterRow = {
   code: string;
@@ -168,7 +169,7 @@ export async function POST(request: NextRequest) {
       code: row.code,
       name: row.name,
       description: row.description,
-      status: row.status,
+      status: shouldForceInactiveCostCenter(row.code) ? 'inactive' : row.status,
     }));
 
     const { error: upsertError } = await context.supabase

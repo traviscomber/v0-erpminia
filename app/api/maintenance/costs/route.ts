@@ -2,11 +2,15 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
+import { inferMachineFamilyFromText } from '@/lib/maintenance/cost-center-machines';
 
 type MaintenanceAssetRow = {
   id: string;
   asset_code: string | null;
   asset_name: string | null;
+  asset_type: string | null;
+  model: string | null;
+  manufacturer: string | null;
   criticality: string | null;
   status: string | null;
 };
@@ -15,12 +19,15 @@ type MaintenanceWorkOrderRow = {
   asset_id: string | null;
   actual_cost: number | string | null;
   completion_date: string | null;
-  asset?: {
-    id?: string | null;
-    asset_code?: string | null;
-    asset_name?: string | null;
-    criticality?: string | null;
-  } | null;
+      asset?: {
+        id?: string | null;
+        asset_code?: string | null;
+        asset_name?: string | null;
+        asset_type?: string | null;
+        model?: string | null;
+        manufacturer?: string | null;
+        criticality?: string | null;
+      } | null;
 };
 
 type MaintenanceHistoryRow = {
@@ -101,7 +108,7 @@ export async function GET(request: NextRequest) {
         ? Promise.resolve({ data: [] })
         : context.supabase
             .from('maintenance_assets')
-            .select('id, asset_code, asset_name, criticality, status')
+            .select('id, asset_code, asset_name, asset_type, model, manufacturer, criticality, status')
             .eq('organization_id', context.organizationId)
             .limit(MAX_COST_ASSETS),
     ]);
@@ -114,9 +121,13 @@ export async function GET(request: NextRequest) {
       assets.map((asset) => [
         asset.id,
         {
-          id: asset.id,
-          assetCode: asset.asset_code || null,
-          assetName: asset.asset_name || 'Sin activo',
+        id: asset.id,
+        assetCode: asset.asset_code || null,
+        assetName: asset.asset_name || 'Sin activo',
+        assetType: asset.asset_type || null,
+        machineFamily: inferMachineFamilyFromText(
+          `${asset.asset_name || ''} ${asset.asset_type || ''} ${asset.model || ''} ${asset.manufacturer || ''}`,
+        ),
           criticality: asset.criticality || null,
           status: asset.status || null,
           totalCost: 0,
@@ -139,6 +150,10 @@ export async function GET(request: NextRequest) {
         id: assetId,
         assetCode: order.asset?.asset_code || null,
         assetName: order.asset?.asset_name || 'Sin activo',
+        assetType: order.asset?.asset_type || null,
+        machineFamily: inferMachineFamilyFromText(
+          `${order.asset?.asset_name || ''} ${order.asset?.asset_type || ''} ${order.asset?.model || ''} ${order.asset?.manufacturer || ''}`,
+        ),
         criticality: order.asset?.criticality || null,
         status: null,
         totalCost: 0,
@@ -169,6 +184,8 @@ export async function GET(request: NextRequest) {
         id: assetId,
         assetCode: null,
         assetName: 'Sin activo',
+        assetType: null,
+        machineFamily: null,
         criticality: null,
         status: null,
         totalCost: 0,
@@ -205,6 +222,16 @@ export async function GET(request: NextRequest) {
         laborCost: Number(item.laborCost.toFixed(2)),
       }));
 
+    const familyTotals = new Map<string, number>();
+    for (const item of assetCosts) {
+      const family = item.machineFamily || item.assetType || 'Sin familia';
+      familyTotals.set(family, (familyTotals.get(family) || 0) + item.totalCost);
+    }
+    const familyCosts = Array.from(familyTotals.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([family, value]) => ({ family, value: Number(value.toFixed(2)) }));
+
     const totalCost = assetCosts.reduce((sum, item) => sum + item.totalCost, 0);
     const totalWorkOrders = workOrders.length;
     const totalRecords = history.length;
@@ -222,6 +249,7 @@ export async function GET(request: NextRequest) {
         averageCostPerAsset: assetCosts.length > 0 ? Number((totalCost / assetCosts.length).toFixed(2)) : 0,
       },
       assetCosts: isSummaryOnly ? [] : assetCosts.slice(0, 20),
+      familyCosts: isSummaryOnly ? [] : familyCosts,
       monthlyCosts: isSummaryOnly ? [] : recentMonths,
       limits: {
         workOrders: workOrderLimit,

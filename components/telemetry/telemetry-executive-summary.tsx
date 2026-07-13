@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import useSWR from 'swr';
 import { AlertCircle, Bell, Gauge, Signal, TriangleAlert, Zap } from 'lucide-react';
@@ -12,6 +12,7 @@ interface TelemetryEquipment {
   status?: string | null;
   availability?: number | string | null;
   activeAlarms?: number | string | null;
+  source?: string | null;
 }
 
 interface TelemetryAlarm {
@@ -72,11 +73,11 @@ export function TelemetryExecutiveSummary() {
   });
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Cargando resumen de telemetría...</div>;
+    return <div className="text-sm text-muted-foreground">Cargando resumen de telemetria...</div>;
   }
 
   if (error) {
-    return <div className="text-sm text-destructive">No fue posible cargar el resumen de telemetría.</div>;
+    return <div className="text-sm text-destructive">No fue posible cargar el resumen de telemetria.</div>;
   }
 
   const summary = data?.summary || {};
@@ -90,6 +91,11 @@ export function TelemetryExecutiveSummary() {
       return (order[String(a.status || '').toLowerCase() as keyof typeof order] ?? 3) - (order[String(b.status || '').toLowerCase() as keyof typeof order] ?? 3);
     })
     .slice(0, 4);
+  const sourceSummary = equipment.reduce<Record<string, number>>((acc, item) => {
+    const source = String(item.source || 'production').toLowerCase();
+    acc[source] = (acc[source] || 0) + 1;
+    return acc;
+  }, {});
 
   const cards = [
     { label: 'Equipos conectados', value: toNumber(summary.total_equipment), icon: Signal, tone: 'text-primary', hint: 'Base real de produccion' },
@@ -98,11 +104,13 @@ export function TelemetryExecutiveSummary() {
     { label: 'Alarmas activas', value: toNumber(summary.active_alarms), icon: Bell, tone: 'text-orange-500', hint: 'Eventos sin cerrar' },
     { label: 'Alarmas criticas', value: toNumber(summary.critical_alarms), icon: TriangleAlert, tone: 'text-destructive', hint: 'Prioridad alta' },
     { label: 'Detencion estimada', value: `${toNumber(summary.downtime_minutes)} min`, icon: AlertCircle, tone: 'text-amber-500', hint: 'Acumulado actual' },
+    { label: 'Origen produccion', value: sourceSummary.production || 0, icon: Signal, tone: 'text-cyan-500', hint: 'Equipos desde la red de produccion' },
+    { label: 'Origen mantenimiento', value: sourceSummary.maintenance || 0, icon: Bell, tone: 'text-fuchsia-500', hint: 'Activos rescatados desde mantenimiento' },
   ];
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         {cards.map((card) => (
           <Card key={card.label}>
             <CardHeader className="pb-2">
@@ -122,7 +130,7 @@ export function TelemetryExecutiveSummary() {
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Focos de telemetría</CardTitle>
+            <CardTitle>Focos de telemetria</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {criticalEquipment.length > 0 ? (

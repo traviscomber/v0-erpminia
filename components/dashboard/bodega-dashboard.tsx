@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useBodegaCategories, useBodegaInventory } from '@/hooks/use-module-apis';
 import { CategoryFilter } from './category-filter';
-import { canonicalCategory, getCategoryColor } from '@/lib/bodega-normalization';
+import { canonicalCategory, formatCategoryLabel } from '@/lib/bodega-normalization';
 
 function splitHierarchy(description?: string) {
   const parts = String(description ?? '')
@@ -56,7 +56,7 @@ export function BodegaDashboard() {
     () =>
       inventory.map((item) => ({
         ...item,
-        categoryLabel: canonicalCategory(item.category) || 'Sin categoría',
+        categoryLabel: formatCategoryLabel(canonicalCategory(item.category) || 'Sin categoria'),
       })),
     [inventory],
   );
@@ -109,7 +109,7 @@ export function BodegaDashboard() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold">Ítems en stock</CardTitle>
+            <CardTitle className="text-base font-semibold">Items en stock</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-bold text-primary">{pagination.total.toLocaleString()}</div>
@@ -127,7 +127,7 @@ export function BodegaDashboard() {
           <CardContent>
             <div className="space-y-3">
               <div className="text-4xl font-bold text-amber-500">{lowStockTotal.toLocaleString()}</div>
-              <p className="text-sm text-muted-foreground">Ítems bajo nivel de reorden</p>
+              <p className="text-sm text-muted-foreground">Items bajo nivel de reorden</p>
               {topFamilies.filter(c => c.low_stock > 0).slice(0, 3).map(c => (
                 <div key={c.label} className="flex items-center justify-between text-xs">
                   <span className="flex items-center gap-1.5 text-muted-foreground">
@@ -154,7 +154,7 @@ export function BodegaDashboard() {
 
       <Card className="border-border/70 bg-card/80">
         <CardHeader className="pb-3">
-          <CardTitle className="text-foreground">Acceso rápido al flujo operativo</CardTitle>
+          <CardTitle className="text-foreground">Acceso rapido al flujo operativo</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -215,15 +215,15 @@ export function BodegaDashboard() {
           <div className="rounded-lg border border-border bg-background/60 p-4">
             <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Familias activas</div>
             <div className="mt-2 text-3xl font-bold text-foreground">{familyCount.toLocaleString()}</div>
-            <div className="mt-1 text-sm text-muted-foreground">Categorías principales visibles</div>
+            <div className="mt-1 text-sm text-muted-foreground">Categorias canonicas visibles</div>
           </div>
           <div className="rounded-lg border border-border bg-background/60 p-4">
             <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Subfamilias activas</div>
             <div className="mt-2 text-3xl font-bold text-foreground">{subfamilyCount.toLocaleString()}</div>
-            <div className="mt-1 text-sm text-muted-foreground">Agrupaciones bajo cada familia</div>
+            <div className="mt-1 text-sm text-muted-foreground">Agrupaciones limpias bajo cada familia</div>
           </div>
           <div className="rounded-lg border border-border bg-background/60 p-4">
-            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Familias con más volumen</div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Familias con mas volumen</div>
             <div className="mt-2 flex flex-wrap gap-2">
               {topFamiliesPreview.length > 0 ? (
                 topFamiliesPreview.map((cat) => (
@@ -242,7 +242,7 @@ export function BodegaDashboard() {
             </div>
             {topFamilies.length > topFamiliesPreview.length && (
               <p className="mt-2 text-xs text-muted-foreground">
-                +{topFamilies.length - topFamiliesPreview.length} familias más con volumen relevante
+                +{topFamilies.length - topFamiliesPreview.length} familias mas con volumen relevante
               </p>
             )}
           </div>
@@ -254,7 +254,7 @@ export function BodegaDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-3 text-destructive">
               <AlertTriangle className="h-6 w-6" />
-              <span className="text-lg">{lowStock.length} ítems con bajo stock</span>
+              <span className="text-lg">{lowStock.length} items con bajo stock</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -278,7 +278,7 @@ export function BodegaDashboard() {
                 );
               })}
             </div>
-            {lowStock.length > 6 && <p className="mt-3 text-xs text-muted-foreground">+{lowStock.length - 6} ítems más con bajo stock</p>}
+            {lowStock.length > 6 && <p className="mt-3 text-xs text-muted-foreground">+{lowStock.length - 6} items mas con bajo stock</p>}
           </CardContent>
         </Card>
       )}
@@ -292,7 +292,7 @@ export function BodegaDashboard() {
             <div className="relative">
               <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
               <Input
-                placeholder="Buscar SKU, nombre o categoría"
+                placeholder="Buscar SKU, nombre o categoria"
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
@@ -322,7 +322,7 @@ export function BodegaDashboard() {
       <Card>
         <CardHeader>
           <CardTitle className="text-foreground">Detalle de inventario {pagination.page > 0 && `(Pagina ${pagination.page + 1} de ${pagination.totalPages})`}</CardTitle>
-          <p className="text-sm text-muted-foreground">Usa la búsqueda y la categoría para reducir el listado.</p>
+          <p className="text-sm text-muted-foreground">Usa la busqueda y la categoria para reducir el listado.</p>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -331,7 +331,7 @@ export function BodegaDashboard() {
                 <tr className="border-b-2 border-border bg-muted">
                   <th className="p-3 text-left font-bold text-foreground">SKU</th>
                   <th className="p-3 text-left font-bold text-foreground">Producto</th>
-                  <th className="p-3 text-left font-bold text-foreground">Familia</th>
+                  <th className="p-3 text-left font-bold text-foreground">Familia canonica</th>
                   <th className="p-3 text-left font-bold text-foreground">Subfamilia</th>
                   <th className="p-3 text-left font-bold text-foreground">Equipo</th>
                   <th className="p-3 text-right font-bold text-foreground">Stock</th>
@@ -350,7 +350,7 @@ export function BodegaDashboard() {
                 ) : normalizedInventory.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="p-8 text-center text-muted-foreground">
-                      No se encontraron ítems
+                      No se encontraron items
                     </td>
                   </tr>
                 ) : (
@@ -366,11 +366,11 @@ export function BodegaDashboard() {
                         <td className="max-w-xs p-3 text-foreground">
                           <div className="font-medium">{item.name}</div>
                         </td>
-                        <td className="p-3 text-sm text-foreground">
-                          <span className="inline-flex rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-semibold">
-                            {item.categoryLabel}
-                          </span>
-                        </td>
+                    <td className="p-3 text-sm text-foreground">
+                      <span className="inline-flex rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-semibold">
+                        {item.categoryLabel}
+                      </span>
+                    </td>
                         <td className="p-3 text-sm text-muted-foreground">{hierarchy.subfamily || '-'}</td>
                         <td className="p-3 text-sm text-muted-foreground">{hierarchy.team || '-'}</td>
                         <td className={`p-3 text-right font-semibold ${item.quantity < 10 ? 'text-destructive' : item.quantity <= item.min_stock ? 'text-yellow-600' : 'text-foreground'}`}>
@@ -394,7 +394,7 @@ export function BodegaDashboard() {
           {pagination.totalPages > 1 && (
             <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-border pt-4">
               <div className="text-sm text-muted-foreground">
-                Mostrando {visibleRangeStart} a {visibleRangeEnd} de {pagination.total.toLocaleString()} ítems
+                Mostrando {visibleRangeStart} a {visibleRangeEnd} de {pagination.total.toLocaleString()} items
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
@@ -406,11 +406,11 @@ export function BodegaDashboard() {
                   }}
                   className="rounded border border-border bg-background px-3 py-2 text-sm font-medium text-foreground"
                 >
-                  <option value={25}>25 por página</option>
-                  <option value={50}>50 por página</option>
-                  <option value={100}>100 por página</option>
-                  <option value={250}>250 por página</option>
-                  <option value={500}>500 por página</option>
+                  <option value={25}>25 por pagina</option>
+                  <option value={50}>50 por pagina</option>
+                  <option value={100}>100 por pagina</option>
+                  <option value={250}>250 por pagina</option>
+                  <option value={500}>500 por pagina</option>
                 </select>
 
                 <Button variant="outline" size="sm" onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0} className="gap-1">

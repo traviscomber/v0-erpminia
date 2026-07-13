@@ -5,6 +5,7 @@ import { join } from 'path';
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/api/guard';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
+import { shouldForceInactiveCostCenter } from '@/lib/cost-centers';
 
 function normalizeText(value: unknown) {
   return String(value ?? '')
@@ -105,7 +106,7 @@ export async function POST(request: NextRequest) {
 
     const routeCodeMap = new Map<string, string>();
     const payload = records
-      .filter((row) => row.nameValue && row.routeValue && !row.discontinued)
+      .filter((row) => row.nameValue && row.routeValue)
       .sort((a, b) => a.routeDepth - b.routeDepth || a.routeValue.localeCompare(b.routeValue))
       .map((row) => {
         const routeSegments = row.routeValue.split('\\').filter(Boolean);
@@ -133,7 +134,7 @@ export async function POST(request: NextRequest) {
           code,
           name,
           description: description || null,
-          status: 'active',
+          status: shouldForceInactiveCostCenter(code) ? 'inactive' : 'active',
           created_at: row.createdAt,
           updated_at: row.updatedAt,
         };

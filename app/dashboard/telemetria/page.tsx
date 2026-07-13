@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -37,7 +37,8 @@ export default function TelemetriaPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Telemetria de sensores</h1>
           <p className="mt-2 text-muted-foreground">
-            Monitoreo real de equipos, alertas activas y sugerencias de orden de trabajo desde datos reales.
+            Monitoreo real de equipos, alertas activas y sugerencias de orden de trabajo desde datos reales de produccion
+            y mantenimiento.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -57,14 +58,14 @@ export default function TelemetriaPage() {
       </div>
 
       <Card className="border-border/70 bg-card/90">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Modo estable</CardTitle>
-          <CardDescription>
-            La telemetria sigue operando con datos historicos, lecturas agregadas y consultas por API sin depender de
-            websockets.
-          </CardDescription>
-        </CardHeader>
-      </Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Modo estable</CardTitle>
+            <CardDescription>
+            La telemetria sigue operando con lecturas historicas, equipos reales y consultas por API sin depender de
+            conexiones en tiempo real.
+            </CardDescription>
+          </CardHeader>
+        </Card>
 
       <TelemetryExecutiveSummary />
 
@@ -76,7 +77,7 @@ export default function TelemetriaPage() {
           <CardContent>
             <div className="text-2xl font-bold text-primary">Datos reales</div>
             <p className="text-xs text-muted-foreground">
-              La pagina permanece estable aunque el tiempo real no esta disponible.
+              La pagina permanece estable y usa equipos reales del dashboard de produccion.
             </p>
           </CardContent>
         </Card>
@@ -88,7 +89,7 @@ export default function TelemetriaPage() {
           <CardContent>
             <div className="text-2xl font-bold text-[var(--secondary)]">Ruta estable</div>
             <p className="text-xs text-muted-foreground">
-              La integracion LAN sigue lista para usarse sin tiempo real.
+              La integracion LAN sigue lista para usarse sin conexiones en vivo.
             </p>
           </CardContent>
         </Card>
@@ -98,8 +99,8 @@ export default function TelemetriaPage() {
             <CardTitle className="text-sm">Cobertura</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-[var(--brand-verde)]">Sin websocket</div>
-            <p className="text-xs text-muted-foreground">El sistema no intenta abrir websockets si el entorno los bloquea.</p>
+            <div className="text-2xl font-bold text-[var(--brand-verde)]">Sin tiempo real</div>
+            <p className="text-xs text-muted-foreground">El sistema queda estable con lecturas por API y alarma sugerida.</p>
           </CardContent>
         </Card>
       </div>
@@ -210,3 +211,4 @@ export default function TelemetriaPage() {
     </div>
   );
 }
+

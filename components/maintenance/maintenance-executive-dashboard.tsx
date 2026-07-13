@@ -1,8 +1,21 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import useSWR from 'swr';
-import { AlertCircle, ArrowRight, CalendarClock, CircleAlert, CircleCheckBig, DollarSign, Gauge, QrCode, Smartphone, TrendingDown, TrendingUp, Wrench } from 'lucide-react';
+import {
+  AlertCircle,
+  ArrowRight,
+  CalendarClock,
+  CircleAlert,
+  CircleCheckBig,
+  DollarSign,
+  Gauge,
+  QrCode,
+  Smartphone,
+  TrendingDown,
+  TrendingUp,
+  Wrench,
+} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -111,27 +124,27 @@ export function MaintenanceExecutiveDashboard() {
   const executivePulse = [
     { label: 'Disponibilidad', value: `${availability}%`, tone: availability >= 85 ? 'text-green-500' : availability >= 70 ? 'text-amber-500' : 'text-destructive' },
     { label: 'Cobertura de OT', value: `${maintenanceCoverage}%`, tone: maintenanceCoverage >= 80 ? 'text-green-500' : 'text-amber-500' },
-    { label: 'Activos críticos', value: number(criticalAssets), tone: criticalAssets > 0 ? 'text-orange-500' : 'text-green-500' },
-    { label: 'OT críticas', value: number(criticalOrders.length), tone: criticalOrders.length > 0 ? 'text-destructive' : 'text-green-500' },
+    { label: 'Activos criticos', value: number(criticalAssets), tone: criticalAssets > 0 ? 'text-orange-500' : 'text-green-500' },
+    { label: 'OT criticas', value: number(criticalOrders.length), tone: criticalOrders.length > 0 ? 'text-destructive' : 'text-green-500' },
   ];
 
   const executiveWarnings = [
-    overdueOrders > 0 ? `${overdueOrders} órdenes atrasadas requieren atención.` : null,
-    preventiveSummary.overdue > 0 ? `${preventiveSummary.overdue} mantenimientos preventivos están vencidos.` : null,
-    tireSummary.lowStock > 0 ? `${tireSummary.lowStock} repuestos de neumáticos están bajo mínimo.` : null,
-    fuelSummary.lowStock > 0 ? `${fuelSummary.lowStock} ítems de combustible están bajo mínimo.` : null,
-    componentSummary.failures > 0 ? `${componentSummary.failures} componentes mayores están en falla.` : null,
+    overdueOrders > 0 ? `${overdueOrders} ordenes atrasadas requieren atencion.` : null,
+    preventiveSummary.overdue > 0 ? `${preventiveSummary.overdue} mantenimientos preventivos estan vencidos.` : null,
+    tireSummary.lowStock > 0 ? `${tireSummary.lowStock} repuestos de neumaticos estan bajo minimo.` : null,
+    fuelSummary.lowStock > 0 ? `${fuelSummary.lowStock} items de combustible estan bajo minimo.` : null,
+    componentSummary.failures > 0 ? `${componentSummary.failures} componentes mayores estan en falla.` : null,
   ].filter(Boolean) as string[];
 
   const cards = [
     { label: 'Equipos totales', value: number(assets.length), icon: CircleCheckBig, tone: 'text-primary', hint: `${availability}% operativos` },
     { label: 'OT abiertas', value: number(openOrders), icon: Wrench, tone: 'text-orange-500', hint: `${inProgressOrders} en progreso` },
-    { label: 'OT atrasadas', value: number(overdueOrders), icon: CircleAlert, tone: 'text-destructive', hint: 'Requieren acción inmediata' },
-    { label: 'Costo 30 días', value: money(costSummary.totalCost || 0), icon: DollarSign, tone: 'text-orange-500', hint: `${number(costSummary.totalWorkOrders || 0)} OT con costo` },
-    { label: 'MTTR', value: `${Number(mttrData?.averageMTTR || 0).toFixed(1)} h`, icon: Gauge, tone: 'text-primary', hint: 'Tiempo promedio de reparación' },
-    { label: 'Preventivos', value: number(preventiveSummary.enabled), icon: CalendarClock, tone: 'text-blue-500', hint: `${preventiveSummary.dueSoon} próximos a vencer` },
-    { label: 'Neumáticos bajo mínimo', value: number(tireSummary.lowStock), icon: TrendingDown, tone: 'text-orange-500', hint: `${number(tireSummary.totalItems)} ítems de neumáticos` },
-    { label: 'Combustible bajo mínimo', value: number(fuelSummary.lowStock), icon: TrendingDown, tone: 'text-amber-500', hint: `${number(fuelSummary.totalItems)} ítems de combustible` },
+    { label: 'OT atrasadas', value: number(overdueOrders), icon: CircleAlert, tone: 'text-destructive', hint: 'Requieren accion inmediata' },
+    { label: 'Costo 30 dias', value: money(costSummary.totalCost || 0), icon: DollarSign, tone: 'text-orange-500', hint: `${number(costSummary.totalWorkOrders || 0)} OT con costo` },
+    { label: 'MTTR', value: `${Number(mttrData?.averageMTTR || 0).toFixed(1)} h`, icon: Gauge, tone: 'text-primary', hint: 'Tiempo promedio de reparacion' },
+    { label: 'Preventivos', value: number(preventiveSummary.enabled), icon: CalendarClock, tone: 'text-blue-500', hint: `${preventiveSummary.dueSoon} proximos a vencer` },
+    { label: 'Neumaticos bajo minimo', value: number(tireSummary.lowStock), icon: TrendingDown, tone: 'text-orange-500', hint: `${number(tireSummary.totalItems)} items de neumaticos` },
+    { label: 'Combustible bajo minimo', value: number(fuelSummary.lowStock), icon: TrendingDown, tone: 'text-amber-500', hint: `${number(fuelSummary.totalItems)} items de combustible` },
     { label: 'Componentes con fallas', value: number(componentSummary.failures), icon: TrendingUp, tone: 'text-green-500', hint: `${number(componentSummary.totalTemplates)} familias` },
   ];
 
@@ -139,28 +152,28 @@ export function MaintenanceExecutiveDashboard() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard gerencial de mantención</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard gerencial de mantenimiento</h1>
           <p className="mt-2 max-w-2xl text-muted-foreground">
-            Vista ejecutiva real para gerencia: estado del día, riesgos, costos, OT críticas y foco operativo en una sola pantalla.
+            Vista ejecutiva real para gerencia: estado del dia, riesgos, costos, OT criticas y foco operativo en una sola pantalla.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline" className="gap-2">
             <Link href="/dashboard/mantenimiento/planificacion">
               <CalendarClock className="h-4 w-4" />
-              Planificación
+              Planificacion
             </Link>
           </Button>
           <Button asChild variant="outline" className="gap-2">
             <Link href="/dashboard/mantenimiento/movil">
               <Smartphone className="h-4 w-4" />
-              Vista móvil
+              Vista movil
             </Link>
           </Button>
           <Button asChild variant="outline" className="gap-2">
             <Link href="/dashboard/mantenimiento/vehiculos">
               <QrCode className="h-4 w-4" />
-              Vehículos y QR
+              Vehiculos y QR
             </Link>
           </Button>
           <Button
@@ -225,11 +238,11 @@ export function MaintenanceExecutiveDashboard() {
                 <p className="text-2xl font-bold text-green-500">{activeAssets}</p>
               </div>
               <div className="rounded-lg border border-border p-3">
-                <p className="text-xs text-muted-foreground">En mantención</p>
+                <p className="text-xs text-muted-foreground">En mantenimiento</p>
                 <p className="text-2xl font-bold text-blue-500">{maintenanceAssets}</p>
               </div>
               <div className="rounded-lg border border-border p-3">
-                <p className="text-xs text-muted-foreground">Críticos</p>
+                <p className="text-xs text-muted-foreground">Criticos</p>
                 <p className="text-2xl font-bold text-orange-500">{criticalAssets}</p>
               </div>
               <div className="rounded-lg border border-border p-3">
@@ -249,7 +262,7 @@ export function MaintenanceExecutiveDashboard() {
               </div>
             ) : (
               <div className="rounded-lg border border-border p-3 text-sm text-muted-foreground">
-                Sin alertas críticas visibles con la base actual.
+                Sin alertas criticas visibles con la base actual.
               </div>
             )}
           </CardContent>
@@ -266,7 +279,11 @@ export function MaintenanceExecutiveDashboard() {
             </div>
             <div className="flex items-center justify-between rounded-lg border border-border p-3">
               <span className="text-muted-foreground">OT completadas</span>
-              <Badge variant="outline">{number(workOrders.filter((order) => ['completed', 'completado', 'closed'].includes(String(order.status || '').toLowerCase())).length)}</Badge>
+              <Badge variant="outline">
+                {number(
+                  workOrders.filter((order) => ['completed', 'completado', 'closed'].includes(String(order.status || '').toLowerCase())).length,
+                )}
+              </Badge>
             </div>
             <div className="flex items-center justify-between rounded-lg border border-border p-3">
               <span className="text-muted-foreground">Preventivos vencidos</span>
@@ -277,7 +294,7 @@ export function MaintenanceExecutiveDashboard() {
               <Badge variant="secondary">{componentSummary.degraded}</Badge>
             </div>
             <div className="flex items-center justify-between rounded-lg border border-border p-3">
-              <span className="text-muted-foreground">OT críticas activas</span>
+              <span className="text-muted-foreground">OT criticas activas</span>
               <Badge variant={criticalOrders.length > 0 ? 'destructive' : 'outline'}>{criticalOrders.length}</Badge>
             </div>
           </CardContent>
@@ -291,7 +308,7 @@ export function MaintenanceExecutiveDashboard() {
           </CardHeader>
           <CardContent className="space-y-2">
             {assetCosts.length > 0 ? (
-              assetCosts.slice(0, 6).map((asset) => (
+              assetCosts.slice(0, 10).map((asset) => (
                 <div key={asset.assetId} className="flex items-center justify-between rounded-lg border border-border p-3 text-sm">
                   <div>
                     <p className="font-medium">{asset.assetName || asset.assetCode || 'Equipo'}</p>
@@ -323,7 +340,7 @@ export function MaintenanceExecutiveDashboard() {
                         <p className="font-semibold">{order.work_order_number || order.code || order.title}</p>
                         <p className="text-muted-foreground">{order.title}</p>
                       </div>
-                      <Badge variant="destructive">{order.priority || 'crítica'}</Badge>
+                      <Badge variant="destructive">{order.priority || 'critica'}</Badge>
                     </div>
                     <p className="mt-2 text-xs text-muted-foreground">
                       {order.asset_name || 'Sin equipo'} {order.scheduled_date ? `- ${new Date(order.scheduled_date).toLocaleDateString('es-CL')}` : ''}
@@ -333,7 +350,7 @@ export function MaintenanceExecutiveDashboard() {
               </div>
             ) : (
               <div className="rounded-lg border border-border p-3 text-sm text-muted-foreground">
-                No hay OT críticas activas en este momento.
+                No hay OT criticas activas en este momento.
               </div>
             )}
 
@@ -346,13 +363,13 @@ export function MaintenanceExecutiveDashboard() {
               </Button>
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/bitacora">
-                  Bitácora
+                  Bitacora
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/planificacion">
-                  Planificación preventiva
+                  Planificacion preventiva
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
@@ -364,13 +381,13 @@ export function MaintenanceExecutiveDashboard() {
               </Button>
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/neumaticos">
-                  Neumáticos
+                  Neumaticos
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/personal">
-                  Personal mantención
+                  Personal de mantenimiento
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>

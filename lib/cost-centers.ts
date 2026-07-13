@@ -93,6 +93,11 @@ export function getCostCenterRootCode(code: string) {
   return normalized.split('-')[0] || normalized;
 }
 
+export function shouldForceInactiveCostCenter(code: string) {
+  const rootCode = getCostCenterRootCode(code);
+  return /^0?[1-7]$/.test(rootCode);
+}
+
 export function isVisibleCostCenter(code: string) {
   const normalized = normalizeCode(code);
   return /^[0-9]/.test(normalized);

@@ -1,10 +1,11 @@
-import { PreventivePlanBoard } from '@/components/maintenance/preventive-plan-board';
+﻿import { PreventivePlanBoard } from '@/components/maintenance/preventive-plan-board';
 
 export const metadata = {
-  title: 'Planificación preventiva',
-  description: 'Programación preventiva para los próximos 12 meses',
+  title: 'Planificacion preventiva',
+  description: 'Programacion preventiva para los proximos 12 meses',
 };
 
 export default function MantenimientoPlanificacionPage() {
   return <PreventivePlanBoard />;
 }
+

@@ -197,7 +197,7 @@ export default function DocumentosBodegaPage() {
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <h1 className="text-3xl font-bold">Documentos de bodega</h1>
-          <p className="mt-2 text-muted-foreground">Gestión de procedimientos, instructivos y respaldo operativo de bodega.</p>
+          <p className="mt-2 text-muted-foreground">Gestion de procedimientos, instructivos y respaldo operativo de bodega.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild>
@@ -245,7 +245,7 @@ export default function DocumentosBodegaPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center justify-between text-sm font-medium">
-               <span>En revisión</span>
+               <span>En revision</span>
               <Clock className="h-4 w-4 text-yellow-500" />
             </CardTitle>
           </CardHeader>
@@ -264,7 +264,7 @@ export default function DocumentosBodegaPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-red-500">{stats.rechazados}</p>
-            <p className="text-xs text-muted-foreground">Pendientes de corrección</p>
+            <p className="text-xs text-muted-foreground">Pendientes de correccion</p>
           </CardContent>
         </Card>
       </div>
@@ -278,7 +278,7 @@ export default function DocumentosBodegaPage() {
             Vigentes
           </TabsTrigger>
           <TabsTrigger value="revision" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-             En revisión
+             En revision
           </TabsTrigger>
           <TabsTrigger value="upload" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             Subir documentos

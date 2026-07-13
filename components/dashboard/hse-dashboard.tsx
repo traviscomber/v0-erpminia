@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
 const fetcher = async (url: string) => {
-  const response = await fetch(url);
+  const response = await fetch(url, { credentials: 'include' });
   const payload = await response.json().catch(() => null);
   if (!response.ok) return null;
   return payload;
@@ -39,8 +39,11 @@ export function HSEDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">HSE</h1>
-        <p className="text-muted-foreground">Resumen operativo de seguridad, entrenamiento y control.</p>
+        <h1 className="text-3xl font-bold">HSE / Sostenibilidad</h1>
+        <p className="text-muted-foreground">
+          Entrada de compatibilidad para Prevencion de Riesgos. La data canonica vive en
+          Sostenibilidad y este panel solo redirige.
+        </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
@@ -69,9 +72,7 @@ export function HSEDashboard() {
               <div key={index} className="flex items-center justify-between rounded border p-3">
                 <div>
                   <p className="font-medium">{item.mes}</p>
-                  <p className="text-xs text-muted-foreground">
-                    IIRL {Number(item.iirl || 0).toFixed(2)}
-                  </p>
+                  <p className="text-xs text-muted-foreground">IIRL {Number(item.iirl || 0).toFixed(2)}</p>
                 </div>
                 <Badge variant="outline">{Number(item.iirl || 0) <= (data?.meta_iirl || 1) ? 'OK' : 'Revisar'}</Badge>
               </div>
@@ -81,32 +82,29 @@ export function HSEDashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Accesos rápidos</CardTitle>
+            <CardTitle>Accesos rapidos</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Link href="/dashboard/hse/kpis" className="block rounded border p-3 hover:bg-muted/40">
-              KPIs de seguridad
-            </Link>
-            <Link href="/dashboard/hse/documentos" className="block rounded border p-3 hover:bg-muted/40">
-              Documentación HSE
+            <Link href="/dashboard/sostenibilidad" className="block rounded border p-3 hover:bg-muted/40">
+              Ir a Sostenibilidad
             </Link>
             <Link href="/dashboard/sostenibilidad/prevencion-riesgos/epp" className="block rounded border p-3 hover:bg-muted/40">
               EPP
             </Link>
-            <Link href="/dashboard/hse/incidentes" className="block rounded border p-3 hover:bg-muted/40">
-              Incidentes
+            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse" className="block rounded border p-3 hover:bg-muted/40">
+              Documentos de prevencion
             </Link>
-            <Link href="/dashboard/hse/riesgos" className="block rounded border p-3 hover:bg-muted/40">
-              Riesgos
-            </Link>
-            <Link href="/dashboard/hse/investigaciones" className="block rounded border p-3 hover:bg-muted/40">
-              Investigaciones
-            </Link>
-            <Link href="/dashboard/hse/capacitaciones" className="block rounded border p-3 hover:bg-muted/40">
+            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones" className="block rounded border p-3 hover:bg-muted/40">
               Capacitaciones
             </Link>
-            <Link href="/dashboard/sostenibilidad/documentos-flujo" className="block rounded border p-3 hover:bg-muted/40">
-              Flujo documental
+            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/inspecciones" className="block rounded border p-3 hover:bg-muted/40">
+              Inspecciones
+            </Link>
+            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/investigaciones" className="block rounded border p-3 hover:bg-muted/40">
+              Investigaciones
+            </Link>
+            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/no-conformidades" className="block rounded border p-3 hover:bg-muted/40">
+              No conformidades
             </Link>
           </CardContent>
         </Card>
@@ -116,23 +114,20 @@ export function HSEDashboard() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Upload className="h-4 w-4 text-primary" />
-            Cargas rápidas por Excel
+            Cargas rapidas por Excel
           </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <Link href="/dashboard/hse/incidentes/importar" className="block rounded border p-3 hover:bg-muted/40">
-            Incidentes e importación
+            Incidentes
           </Link>
-          <Link href="/dashboard/hse/riesgos/importar" className="block rounded border p-3 hover:bg-muted/40">
-            Matriz de riesgos
+          <Link href="/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse/importar" className="block rounded border p-3 hover:bg-muted/40">
+            Documentos
           </Link>
           <Link href="/dashboard/sostenibilidad/prevencion-riesgos/epp/importar" className="block rounded border p-3 hover:bg-muted/40">
             Matriz EPP
           </Link>
-          <Link href="/dashboard/hse/investigaciones/importar" className="block rounded border p-3 hover:bg-muted/40">
-            Investigaciones
-          </Link>
-          <Link href="/dashboard/hse/capacitaciones/importar" className="block rounded border p-3 hover:bg-muted/40">
+          <Link href="/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones/importar" className="block rounded border p-3 hover:bg-muted/40">
             Capacitaciones
           </Link>
         </CardContent>

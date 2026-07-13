@@ -167,7 +167,7 @@ export function AssetDetailView() {
   const relatedMachines = useMemo(
     () =>
       machineFamily
-        ? machineCatalog.filter((machine) => String(machine.family || '').toLowerCase() === machineFamily.toLowerCase()).slice(0, 6)
+        ? machineCatalog.filter((machine) => String(machine.family || '').toLowerCase() === machineFamily.toLowerCase()).slice(0, 10)
         : [],
     [machineCatalog, machineFamily],
   );
@@ -266,7 +266,7 @@ export function AssetDetailView() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/telemetria">
-                Telemetria
+                Telemetría
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -332,7 +332,7 @@ export function AssetDetailView() {
         <Card className="lg:col-span-1">
           <CardHeader>
             <CardTitle>QR del equipo</CardTitle>
-            <CardDescription>Apunta a la ficha real del activo y su historial</CardDescription>
+            <CardDescription>Apunta a la ficha real del activo y su historial.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-center rounded-lg border border-border bg-white p-4">
@@ -367,7 +367,7 @@ export function AssetDetailView() {
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <div>
-              <p className="text-muted-foreground">Codigo</p>
+              <p className="text-muted-foreground">Código</p>
               <p className="font-semibold">{asset.asset_code || '-'}</p>
             </div>
             <div>
@@ -375,7 +375,7 @@ export function AssetDetailView() {
               <p className="font-semibold">{asset.asset_type || '-'}</p>
             </div>
             <div>
-              <p className="text-muted-foreground">Ubicacion</p>
+              <p className="text-muted-foreground">Ubicación</p>
               <p className="font-semibold">{asset.location || '-'}</p>
             </div>
             <div>
@@ -409,7 +409,7 @@ export function AssetDetailView() {
               <p className="font-semibold">{latestHistory?.performed_by_name || '-'}</p>
             </div>
             <div>
-              <p className="text-muted-foreground">Costo historico</p>
+              <p className="text-muted-foreground">Costo histórico</p>
               <p className="font-semibold">${Number(totalMaintenanceCost).toLocaleString('es-CL')}</p>
             </div>
           </CardContent>
@@ -446,7 +446,7 @@ export function AssetDetailView() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Maquinas relacionadas</CardTitle>
+        <CardTitle>Máquinas relacionadas</CardTitle>
           <CardDescription>
             {machineFamily
               ? `Modelos detectados en la familia ${machineFamily}`

@@ -51,13 +51,13 @@ export function MaintenanceDashboardByCC() {
       completed,
       withoutOrders,
     };
-  }, [orderedCostCenters.length, workOrders]);
+  }, [orderedCostCenters, workOrders]);
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Mantenimiento por centro de costos</h1>
-        <p className="text-muted-foreground">Seguimiento real de órdenes agrupadas por centro de costos.</p>
+        <h1 className="text-3xl font-bold">Mantenimiento por centro de costo</h1>
+        <p className="text-muted-foreground">Seguimiento real de ordenes agrupadas por centro de costo. Cada tarjeta se puede abrir para ver todas sus ordenes.</p>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -80,7 +80,7 @@ export function MaintenanceDashboardByCC() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Órdenes totales</CardTitle>
+            <CardTitle className="text-sm">Ordenes totales</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{summary.totalOrders}</div>
@@ -104,7 +104,7 @@ export function MaintenanceDashboardByCC() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Sin órdenes</CardTitle>
+            <CardTitle className="text-sm">Sin ordenes</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-amber-600">{summary.withoutOrders}</div>
@@ -112,11 +112,15 @@ export function MaintenanceDashboardByCC() {
         </Card>
       </div>
 
+      <p className="text-sm text-muted-foreground">
+        Haz clic en cada centro para ver todas sus ordenes y el detalle operativo.
+      </p>
+
       <div className="space-y-4">
         {orderedCostCenters.length === 0 ? (
           <Card>
             <CardContent className="py-8 text-center text-sm text-muted-foreground">
-              No hay centros de costo cargados todavía.
+              No hay centros de costo cargados todavia.
             </CardContent>
           </Card>
         ) : orderedCostCenters.map((cc) => {
@@ -129,8 +133,10 @@ export function MaintenanceDashboardByCC() {
             <Card key={cc.id}>
               <CardHeader className="pb-3">
                 <button
+                  type="button"
                   onClick={() => setExpandedCC(expandedCC === cc.id ? null : cc.id)}
-                  className="flex w-full items-center justify-between rounded p-2 text-left hover:bg-muted/50"
+                  aria-expanded={expandedCC === cc.id}
+                  className="flex w-full cursor-pointer items-center justify-between rounded p-2 text-left hover:bg-muted/50"
                 >
                   <div className="flex items-center gap-3">
                     {expandedCC === cc.id ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
@@ -140,7 +146,7 @@ export function MaintenanceDashboardByCC() {
                     </div>
                   </div>
                   <div className="flex flex-wrap justify-end gap-2">
-                    <Badge variant="secondary">{ccOrders.length} órdenes</Badge>
+                    <Badge variant="secondary">{ccOrders.length} ordenes</Badge>
                     <Badge className="bg-green-100 text-green-800">{completed} completadas</Badge>
                     <Badge className="bg-blue-100 text-blue-800">{inProgress} en progreso</Badge>
                   </div>
@@ -167,7 +173,7 @@ export function MaintenanceDashboardByCC() {
                       </div>
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground">Este centro de costo aún no tiene órdenes registradas.</p>
+                    <p className="text-sm text-muted-foreground">Este centro de costo aun no tiene ordenes registradas.</p>
                   )}
                 </CardContent>
               )}

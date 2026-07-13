@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import useSWR from 'swr';
-import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Copy, ShoppingCart } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -67,6 +67,21 @@ export function SuppliersList() {
   const suppliers = Array.isArray(data?.suppliers) ? data.suppliers : [];
   const pagination = data?.pagination || { page: 0, pageSize: 50, total: 0, totalPages: 0 };
 
+  const handleCopy = async (value: string | null | undefined) => {
+    const text = String(value || '').trim();
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const input = document.createElement('input');
+      input.value = text;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand('copy');
+      document.body.removeChild(input);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -107,6 +122,7 @@ export function SuppliersList() {
                   <TableHead>Email</TableHead>
                   <TableHead>Telefono</TableHead>
                   <TableHead>Direccion</TableHead>
+                  <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -119,6 +135,26 @@ export function SuppliersList() {
                     <TableCell>{s.phone || '-'}</TableCell>
                     <TableCell className="max-w-xs truncate text-xs text-muted-foreground">
                       {s.address || '-'}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleCopy(s.rut || s.name)}
+                          className="h-8 px-2"
+                        >
+                          <Copy className="mr-1 h-4 w-4" />
+                          Copiar
+                        </Button>
+                        <Button asChild variant="outline" size="sm" className="h-8 px-2">
+                          <a href="/dashboard/compras">
+                            <ShoppingCart className="mr-1 h-4 w-4" />
+                            Compras
+                          </a>
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

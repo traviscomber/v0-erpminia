@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
@@ -30,6 +30,22 @@ type WorkOrder = {
   created_at?: string;
   completion_date?: string;
   asset_id?: string | null;
+};
+
+type HistoryRow = {
+  id: string;
+  parts_cost?: number | null;
+  labor_cost?: number | null;
+  labor_hours?: number | null;
+  created_at?: string | null;
+  performed_by_name?: string | null;
+  maintenance_type?: string | null;
+  work_order?: {
+    work_order_number?: string | null;
+    title?: string | null;
+    status?: string | null;
+    priority?: string | null;
+  } | null;
 };
 
 const fetcher = async (url: string) => {
@@ -71,6 +87,7 @@ export default function VehicleQrPage() {
   });
 
   const asset = data?.asset as MaintenanceAsset | undefined;
+  const history = Array.isArray(data?.history) ? (data.history as HistoryRow[]) : [];
   const workOrders = Array.isArray(workOrderData?.workOrders) ? (workOrderData.workOrders as WorkOrder[]) : [];
   const assetOrders = useMemo(
     () => workOrders.filter((order) => String(order.asset_id || '') === assetId),
@@ -83,8 +100,13 @@ export default function VehicleQrPage() {
   }, [asset?.asset_name, asset?.asset_type, asset?.model, asset?.manufacturer]);
 
   const openOrders = assetOrders.filter((order) => order.status === 'open' || order.status === 'assigned');
-  const activeOrders = assetOrders.filter((order) => order.status === 'open' || order.status === 'assigned' || order.status === 'in_progress');
+  const activeOrders = assetOrders.filter(
+    (order) => order.status === 'open' || order.status === 'assigned' || order.status === 'in_progress',
+  );
   const lastOrder = assetOrders[0];
+  const lastHistory = history[0];
+  const totalMaintenanceCost = history.reduce((sum, item) => sum + Number(item.parts_cost || 0) + Number(item.labor_cost || 0), 0);
+  const totalLaborHours = history.reduce((sum, item) => sum + Number(item.labor_hours || 0), 0);
   const qrTargetUrl = `${origin}/dashboard/mantenimiento/vehiculos/${assetId}/ficha`;
   const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(qrTargetUrl)}`;
 
@@ -111,7 +133,7 @@ export default function VehicleQrPage() {
           <p className="mt-2 text-muted-foreground">No pudimos cargar la tarjeta de este equipo desde la base real.</p>
         </div>
         <Button asChild variant="outline">
-          <Link href="/dashboard/mantenimiento/vehiculos">Volver a vehículos</Link>
+          <Link href="/dashboard/mantenimiento/vehiculos">Volver a vehiculos</Link>
         </Button>
       </div>
     );
@@ -122,7 +144,7 @@ export default function VehicleQrPage() {
       <div className="flex flex-wrap items-start justify-between gap-4 print:hidden">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Tarjeta QR del equipo</h1>
-          <p className="mt-2 text-muted-foreground">Acceso rápido a la ficha completa, historial y órdenes del activo.</p>
+          <p className="mt-2 text-muted-foreground">Acceso rapido a la ficha completa, historial y ordenes del activo.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline" className="gap-2">
@@ -145,7 +167,7 @@ export default function VehicleQrPage() {
               <QrCode className="h-5 w-5" />
               QR del equipo
             </CardTitle>
-            <CardDescription>El código apunta a la ficha real del activo.</CardDescription>
+            <CardDescription>El codigo apunta a la ficha real del activo.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-center rounded-lg border border-border bg-white p-4">
@@ -176,7 +198,7 @@ export default function VehicleQrPage() {
           <Card className="print:shadow-none">
             <CardHeader>
               <CardTitle>Ficha resumida del activo</CardTitle>
-              <CardDescription>Datos clave para terreno y supervisión</CardDescription>
+              <CardDescription>Datos clave para terreno y supervision</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               <div>
@@ -218,7 +240,7 @@ export default function VehicleQrPage() {
             </CardContent>
           </Card>
 
-          <div className="grid gap-4 md:grid-cols-3 print:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-4 print:grid-cols-4">
             <Card className="print:shadow-none">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium">OT activas</CardTitle>
@@ -241,9 +263,16 @@ export default function VehicleQrPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-sm font-semibold">{lastOrder?.work_order_number || 'Sin OT'}</div>
-                <p className="text-xs text-muted-foreground">
-                  {lastOrder?.status ? statusLabel(lastOrder.status) : 'Sin historial aun'}
-                </p>
+                <p className="text-xs text-muted-foreground">{lastOrder?.status ? statusLabel(lastOrder.status) : 'Sin historial aun'}</p>
+              </CardContent>
+            </Card>
+            <Card className="print:shadow-none">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Costo acumulado</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">${Number(totalMaintenanceCost).toLocaleString('es-CL')}</div>
+                <p className="text-xs text-muted-foreground">{totalLaborHours.toFixed(1)} horas registradas</p>
               </CardContent>
             </Card>
           </div>
@@ -251,7 +280,7 @@ export default function VehicleQrPage() {
           <Card className="print:shadow-none">
             <CardHeader>
               <CardTitle>Acceso a ficha completa</CardTitle>
-              <CardDescription>Desde este QR se navega a la ficha completa con historial real y órdenes</CardDescription>
+              <CardDescription>Desde este QR se navega a la ficha completa con historial real y ordenes.</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-wrap gap-2">
               <Button asChild className="gap-2">
@@ -261,13 +290,36 @@ export default function VehicleQrPage() {
                 </Link>
               </Button>
               <Button asChild variant="outline">
-                <Link href={`/dashboard/mantenimiento/vehiculos/${asset.id}/arbol`}>Ver árbol de fallas</Link>
+                <Link href={`/dashboard/mantenimiento/vehiculos/${asset.id}/arbol`}>Ver arbol de fallas</Link>
               </Button>
               <Button asChild variant="outline">
-                <Link href="/dashboard/mantenimiento/movil">Vista móvil</Link>
+                <Link href="/dashboard/mantenimiento/movil">Vista movil</Link>
               </Button>
             </CardContent>
           </Card>
+
+          {lastHistory ? (
+            <Card className="print:shadow-none">
+              <CardHeader>
+                <CardTitle>Ultima mantencion</CardTitle>
+                <CardDescription>Registro real mas reciente asociado al QR.</CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-4 md:grid-cols-3">
+                <div>
+                  <p className="text-muted-foreground">Fecha</p>
+                  <p className="font-semibold">{lastHistory.created_at ? new Date(lastHistory.created_at).toLocaleDateString('es-CL') : '-'}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Tecnico</p>
+                  <p className="font-semibold">{lastHistory.performed_by_name || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Costo total</p>
+                  <p className="font-semibold">${Number((lastHistory.parts_cost || 0) + (lastHistory.labor_cost || 0)).toLocaleString('es-CL')}</p>
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
         </div>
       </div>
 

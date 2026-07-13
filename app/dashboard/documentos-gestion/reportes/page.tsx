@@ -127,7 +127,7 @@ export default function ReportesGestionDocumentalPage() {
           <Sparkles className="h-4 w-4 text-primary" />
           <span className="text-sm font-medium">Datos reales</span>
         </div>
-        <h1 className="text-3xl font-bold">Reportes de gestión documental</h1>
+        <h1 className="text-3xl font-bold">Reportes de gestion documental</h1>
         <p className="text-muted-foreground">
           Vista ejecutiva con secciones, aprobaciones pendientes, documentos recientes y vencimientos.
         </p>
@@ -150,7 +150,7 @@ export default function ReportesGestionDocumentalPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary">{stats.pending}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Requieren revisión</p>
+            <p className="mt-1 text-xs text-muted-foreground">Requieren revision</p>
           </CardContent>
         </Card>
 
@@ -160,7 +160,7 @@ export default function ReportesGestionDocumentalPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-amber-600">{stats.expiring}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Dentro del rango crítico</p>
+            <p className="mt-1 text-xs text-muted-foreground">Dentro del rango critico</p>
           </CardContent>
         </Card>
 
@@ -170,7 +170,7 @@ export default function ReportesGestionDocumentalPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{categories.length}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Clasificación operativa real</p>
+            <p className="mt-1 text-xs text-muted-foreground">Clasificacion operativa real</p>
           </CardContent>
         </Card>
       </div>
@@ -202,7 +202,7 @@ export default function ReportesGestionDocumentalPage() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/documentos-gestion">
-                Gestión documental
+                Gestion documental
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -214,7 +214,7 @@ export default function ReportesGestionDocumentalPage() {
         <Card>
           <CardHeader>
             <CardTitle>Documentos recientes</CardTitle>
-            <CardDescription>Últimos registros que entraron al sistema real</CardDescription>
+            <CardDescription>Ultimos registros que entraron al sistema real</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {recentDocuments.length === 0 ? (
@@ -249,7 +249,7 @@ export default function ReportesGestionDocumentalPage() {
         <Card className="border-amber-500/30 bg-amber-500/5">
           <CardHeader>
             <CardTitle>Documentos por vencer</CardTitle>
-            <CardDescription>{expiringDocuments.length} documentos próximos a vencer</CardDescription>
+            <CardDescription>{expiringDocuments.length} documentos proximos a vencer</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
             {expiringDocuments.length > 0 ? (
@@ -257,7 +257,7 @@ export default function ReportesGestionDocumentalPage() {
                 <div key={doc.id} className="flex items-center justify-between rounded border border-amber-500/20 bg-background/60 p-3">
                   <span className="font-medium">{doc.title}</span>
                   <Badge className="bg-amber-500/10 text-amber-700">
-                    {typeof doc.daysUntilExpiry === 'number' ? `${doc.daysUntilExpiry} días` : 'Sin dato'}
+                    {typeof doc.daysUntilExpiry === 'number' ? `${doc.daysUntilExpiry} dias` : 'Sin dato'}
                   </Badge>
                 </div>
               ))
@@ -273,13 +273,13 @@ export default function ReportesGestionDocumentalPage() {
       <Card>
         <CardHeader>
           <CardTitle>Buscar secciones</CardTitle>
-          <CardDescription>Filtra el resumen por nombre, descripción o id de sección.</CardDescription>
+          <CardDescription>Filtra el resumen por nombre, descripcion o id de seccion.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar sección o descripción..."
+              placeholder="Buscar seccion o descripcion..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -321,7 +321,7 @@ export default function ReportesGestionDocumentalPage() {
       {filteredCategories.length === 0 && (
         <Card>
           <CardContent className="py-8 text-center text-sm text-muted-foreground">
-            No se encontraron secciones que coincidan con la búsqueda.
+            No se encontraron secciones que coincidan con la busqueda.
           </CardContent>
         </Card>
       )}
@@ -330,7 +330,7 @@ export default function ReportesGestionDocumentalPage() {
         <Card>
           <CardHeader>
           <CardTitle>Documentos pendientes</CardTitle>
-          <CardDescription>{pendingApprovals.length} documentos en revisión</CardDescription>
+          <CardDescription>{pendingApprovals.length} documentos en revision</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {pendingApprovals.length === 0 ? (

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import { useMemo, useRef, useState, type DragEvent, type RefObject } from 'react';

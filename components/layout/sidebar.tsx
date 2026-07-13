@@ -73,7 +73,7 @@ const itemModuleKey: Record<string, string> = {
   'Bodega e Inventario':                  'bodega_inventario',
   'Documentos Bodega':                    'bodega_documentos',
   'Importar Existencias':                 'bodega_inventario',
-  // Sostenibilidad — HSEC
+  // Sostenibilidad
   'Tablero Sostenibilidad':               'sos_tablero',
   'Prevención de Riesgos':               'hse_riesgos',
   'Documentos Prevención':               'hse_documentacion',
@@ -87,13 +87,11 @@ const itemModuleKey: Record<string, string> = {
   'Comunidades':                          'sos_comunidades',
   'Flujo Documental':                     'sos_documentos',
   'Reportería Documentos':                'sos_documentos',
-  // HSE (sección separada)
-  'HSE':                                  'hse_tablero',
-  'Documentos HSE':                       'hse_documentos_extra',
   // Finanzas
   'Compras y OCs':                        'fin_compras',
   'Documentos Compras':                   'fin_compras',
   'Finanzas y Presupuesto':               'fin_finanzas',
+  'Proveedores':                          'fin_finanzas',
   'Documentos Finanzas':                  'fin_finanzas',
   'Reportes y Análisis':                  'fin_reportes',
   // Legal / Contratos
@@ -131,6 +129,7 @@ const rolePermissions: Record<string, string[]> = {
   'Compras y OCs': ['superadmin', 'admin', 'Compras-Supervisor'],
   'Documentos Compras': ['superadmin', 'admin', 'Compras-Supervisor'],
   'Finanzas y Presupuesto': ['superadmin', 'admin', 'Finanzas-Supervisor'],
+  'Proveedores': ['superadmin', 'admin', 'Finanzas-Supervisor'],
   'Documentos Finanzas': ['superadmin', 'admin', 'Finanzas-Supervisor'],
   'Reportes y Análisis': ['superadmin', 'admin', 'manager', 'supervisor', 'jefe_mantencion'],
   'IA Operacional Minera': ['superadmin', 'admin'],
@@ -198,6 +197,7 @@ const menuItems = [
   { label: 'Importar Existencias', href: '/dashboard/compras/importar-existencias', icon: Upload, group: 'Finanzas' },
   { label: 'Documentos Compras', href: '/dashboard/compras/documentos', icon: File, group: 'Finanzas' },
   { label: 'Finanzas y Presupuesto', href: '/dashboard/finanzas', icon: DollarSign, group: 'Finanzas' },
+  { label: 'Proveedores', href: '/dashboard/finanzas/proveedores', icon: Building2, group: 'Finanzas' },
   { label: 'Documentos Finanzas', href: '/dashboard/finanzas/documentos', icon: File, group: 'Finanzas' },
   { label: 'Reportes y Análisis', href: '/dashboard/reportes', icon: BarChart3, group: 'Finanzas' },
   { label: 'Módulo Legal', href: '/dashboard/legal', icon: Scale, group: 'Legal' },
@@ -205,8 +205,6 @@ const menuItems = [
   { label: 'Contratos', href: '/dashboard/documentos-gestion/contratos', icon: FileCheck, group: 'Legal' },
   { label: 'Empresas Contratistas (EECC)', href: '/dashboard/documentos-gestion/eecc', icon: Building2, group: 'Legal' },
   { label: 'Documentos Legales', href: '/dashboard/legal/documentos', icon: File, group: 'Legal' },
-  { label: 'HSE', href: '/dashboard/hse', icon: Shield, group: 'HSE' },
-  { label: 'Documentos HSE', href: '/dashboard/hse/documentos', icon: File, group: 'HSE' },
   { label: 'Roles y Cargos', href: '/dashboard/admin/roles', icon: ShieldCheck, group: 'Administración' },
   { label: 'Gestión de Usuarios', href: '/dashboard/admin/users', icon: Users, group: 'Administración' },
   { label: 'Guías de Uso', href: '/dashboard/guias', icon: HelpCircle, group: 'Ayuda' },
@@ -227,7 +225,6 @@ export function Sidebar() {
     Sostenibilidad: true,
     Finanzas: true,
     Legal: true,
-    HSE: true,
     'Inteligencia Artificial': true,
     Administración: true,
     Ayuda: true,

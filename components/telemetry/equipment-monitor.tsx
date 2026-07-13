@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import useSWR from 'swr';
 import { AlertCircle, AlertTriangle, CheckCircle2 } from 'lucide-react';
@@ -10,6 +10,7 @@ type DashboardEquipment = {
   name: string;
   type: string;
   status: string;
+  source?: string | null;
   availability?: number;
   alarms?: number;
   temperature?: number | null;
@@ -113,6 +114,7 @@ export function EquipmentMonitor() {
       name: item.name,
       type: item.type,
       status: normalizedStatus,
+      source: String(item.source || 'production').toLowerCase(),
       availability: Number.isFinite(Number(item.availability))
         ? Number(item.availability)
         : deriveAvailability(normalizedStatus),
@@ -128,7 +130,7 @@ export function EquipmentMonitor() {
   });
 
   if (equipment.length === 0) {
-    return <div className="text-muted-foreground">No hay equipos con telemetría disponible.</div>;
+    return <div className="text-muted-foreground">No hay equipos con telemetria disponible.</div>;
   }
 
   const summary = equipment.reduce(
@@ -143,6 +145,11 @@ export function EquipmentMonitor() {
     },
     { total: 0, operational: 0, warning: 0, critical: 0, offline: 0, availability: 0 },
   );
+  const sourceSummary = equipment.reduce<Record<string, number>>((acc, item) => {
+    const source = item.source || 'production';
+    acc[source] = (acc[source] || 0) + 1;
+    return acc;
+  }, {});
 
   const orderedEquipment = [...equipment].sort((a, b) => {
     const order: Record<string, number> = { critical: 0, warning: 1, offline: 2, operational: 3 };
@@ -219,6 +226,10 @@ export function EquipmentMonitor() {
           </CardContent>
         </Card>
       </div>
+      <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+        <span className="rounded-full border border-border px-2 py-1">Produccion: {sourceSummary.production || 0}</span>
+        <span className="rounded-full border border-border px-2 py-1">Mantenimiento: {sourceSummary.maintenance || 0}</span>
+      </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {orderedEquipment.map((eq) => (
@@ -232,7 +243,12 @@ export function EquipmentMonitor() {
                   </div>
                   <CardDescription className="text-xs">{eq.type}</CardDescription>
                 </div>
-                {getStatusBadge(eq.status)}
+                <div className="flex flex-col items-end gap-2">
+                  {getStatusBadge(eq.status)}
+                  <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+                    {eq.source === 'maintenance' ? 'Mantenimiento' : 'Produccion'}
+                  </Badge>
+                </div>
               </div>
             </CardHeader>
             <CardContent>

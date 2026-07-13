@@ -49,24 +49,24 @@ function priorityLabel(priority?: string | null) {
     low: 'Baja',
     medium: 'Media',
     high: 'Alta',
-    critical: 'Crítica',
+    critical: 'Critica',
   };
   return labels[String(priority || '').toLowerCase()] || priority || 'Media';
 }
 
 function daysLabel(daysUntil?: number | null) {
   if (daysUntil === null || daysUntil === undefined) return 'Sin fecha';
-  if (daysUntil < 0) return `Vencida hace ${Math.abs(daysUntil)} días`;
+  if (daysUntil < 0) return `Vencida hace ${Math.abs(daysUntil)} dias`;
   if (daysUntil === 0) return 'Vence hoy';
-  if (daysUntil === 1) return 'Vence mañana';
-  return `En ${daysUntil} días`;
+  if (daysUntil === 1) return 'Vence manana';
+  return `En ${daysUntil} dias`;
 }
 
 function bucketLabel(daysUntil?: number | null) {
   if (daysUntil === null || daysUntil === undefined) return 'Sin fecha';
   if (daysUntil < 0) return 'Vencidas';
-  if (daysUntil <= 30) return 'Próximos 30 días';
-  if (daysUntil <= 90) return 'Próximos 3 meses';
+  if (daysUntil <= 30) return 'Proximos 30 dias';
+  if (daysUntil <= 90) return 'Proximos 3 meses';
   return 'Resto del ano';
 }
 
@@ -121,25 +121,23 @@ export function PreventivePlanBoard() {
     return groups;
   }, [filteredSchedules]);
 
-  const orderedBuckets = ['Vencidas', 'Próximos 30 días', 'Próximos 3 meses', 'Resto del año', 'Sin fecha'];
+  const orderedBuckets = ['Vencidas', 'Proximos 30 dias', 'Proximos 3 meses', 'Resto del ano', 'Sin fecha'];
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Planificación preventiva</h1>
-          <p className="mt-2 text-muted-foreground">
-            Vista de los mantenimientos programados para los próximos 12 meses.
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight">Planificacion preventiva</h1>
+          <p className="mt-2 text-muted-foreground">Vista de los mantenimientos programados para los proximos 12 meses.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={() => void mutate()} className="gap-2">
             <RefreshCw className="h-4 w-4" />
-            Recargar planificación
+            Recargar planificacion
           </Button>
           <Button asChild variant="outline" className="gap-2">
             <Link href="/dashboard/mantenimiento/vehiculos">
-              Ver vehículos
+              Ver vehiculos
               <CalendarClock className="h-4 w-4" />
             </Link>
           </Button>
@@ -152,7 +150,7 @@ export function PreventivePlanBoard() {
           <Button asChild className="gap-2">
             <Link href="/dashboard/mantenimiento/bitacora">
               <CalendarClock className="h-4 w-4" />
-              Ver bitácora
+              Ver bitacora
             </Link>
           </Button>
         </div>
@@ -185,7 +183,7 @@ export function PreventivePlanBoard() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Próximos 30 días</CardTitle>
+            <CardTitle className="text-sm">Proximos 30 dias</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-500">{summary.dueSoon}</div>
@@ -195,7 +193,7 @@ export function PreventivePlanBoard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Acceso rápido a mantenimiento</CardTitle>
+          <CardTitle>Acceso rapido a mantenimiento</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-4">
           <Button asChild variant="outline" className="justify-between">
@@ -206,7 +204,7 @@ export function PreventivePlanBoard() {
           </Button>
           <Button asChild variant="outline" className="justify-between">
             <Link href="/dashboard/mantenimiento/bitacora">
-              Bitácora
+              Bitacora
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
@@ -218,7 +216,7 @@ export function PreventivePlanBoard() {
           </Button>
           <Button asChild variant="outline" className="justify-between">
             <Link href="/dashboard/mantenimiento/vehiculos">
-              Vehículos y QR
+              Vehiculos y QR
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
@@ -241,10 +239,10 @@ export function PreventivePlanBoard() {
 
       {error ? (
         <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-          No fue posible cargar la planificación preventiva real.
+          No fue posible cargar la planificacion preventiva real.
         </div>
       ) : isLoading ? (
-        <div className="text-sm text-muted-foreground">Cargando planificación...</div>
+        <div className="text-sm text-muted-foreground">Cargando planificacion...</div>
       ) : filteredSchedules.length === 0 ? (
         <Card>
           <CardContent className="flex items-center gap-2 p-6 text-sm text-muted-foreground">
@@ -277,7 +275,7 @@ export function PreventivePlanBoard() {
                           </p>
                           {schedule.description ? <p className="text-sm text-muted-foreground">{schedule.description}</p> : null}
                           <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-                            {schedule.frequencyDays ? <span>Cada {schedule.frequencyDays} días</span> : null}
+                            {schedule.frequencyDays ? <span>Cada {schedule.frequencyDays} dias</span> : null}
                             {schedule.frequencyHours ? <span>Cada {schedule.frequencyHours} horas</span> : null}
                             {schedule.estimatedDurationHours ? <span>Duracion estimada: {schedule.estimatedDurationHours} h</span> : null}
                           </div>

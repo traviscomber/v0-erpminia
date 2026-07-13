@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useMantenimientoOrdenes } from '@/hooks/use-module-apis';
+import { inferMachineFamilyFromText } from '@/lib/maintenance/cost-center-machines';
 
 const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
 
@@ -27,6 +28,26 @@ type MaintenanceOrder = {
   scheduled_date?: string | null;
   id?: string | number;
   description?: string | null;
+};
+
+type DerivedMachine = {
+  id: string;
+  code: string;
+  name: string;
+  family: string;
+  rootCode: string;
+  status: string;
+  source: 'cost_center';
+  description?: string | null;
+};
+
+type CostCenterMachineResponse = {
+  machines?: DerivedMachine[];
+  summary?: {
+    total?: number;
+    families?: number;
+    source?: string;
+  };
 };
 
 function statusLabel(status: string) {
@@ -68,7 +89,7 @@ function assetStatusLabel(status: string) {
   const labels: Record<string, string> = {
     active: 'Operativo',
     inactive: 'Inactivo',
-    maintenance: 'En mantencion',
+    maintenance: 'En mantenimiento',
     decommissioned: 'Baja',
   };
 
@@ -87,16 +108,27 @@ export function MantenimientoDashboard() {
     '/api/maintenance/assets',
     fetcher,
   );
+  const { data: machineCatalogData } = useSWR<CostCenterMachineResponse>('/api/maintenance/cost-center-machines', fetcher);
 
   const isLoading = ordersLoading || assetsLoading;
 
   const assets = (Array.isArray(assetsData?.assets) ? assetsData.assets : []) as MaintenanceAsset[];
+  const derivedMachines = Array.isArray(machineCatalogData?.machines) ? machineCatalogData.machines : [];
+  const derivedMachineCount = derivedMachines.length;
   const totalAssets = assets.length;
   const activeAssets = assets.filter((asset) => String(asset.status || '').toLowerCase() === 'active').length;
   const maintenanceAssets = assets.filter((asset) => String(asset.status || '').toLowerCase() === 'maintenance').length;
   const inactiveAssets = assets.filter((asset) =>
     ['inactive', 'decommissioned'].includes(String(asset.status || '').toLowerCase()),
   ).length;
+  const machineFamilySummary = derivedMachines.reduce<Record<string, number>>((acc, machine) => {
+    const family = machine.family || inferMachineFamilyFromText(`${machine.name} ${machine.code}`) || 'Sin familia';
+    acc[family] = (acc[family] || 0) + 1;
+    return acc;
+  }, {});
+  const topMachineFamilies = Object.entries(machineFamilySummary)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6);
 
   const openOrders = ordenes.filter((o) => ['pendiente', 'open', 'pending'].includes(o.status)).length;
   const inProgressOrders = ordenes.filter((o) => ['en_progreso', 'in_progress'].includes(o.status)).length;
@@ -128,16 +160,16 @@ export function MantenimientoDashboard() {
     overdueOrders > 0
       ? {
           title: 'Atender OT vencidas',
-          description: 'Revisa las órdenes atrasadas antes de abrir nuevas tareas.',
+            description: 'Revisa las ordenes atrasadas antes de abrir nuevas tareas.',
           href: '/dashboard/work-orders',
-          cta: 'Ver órdenes atrasadas',
+          cta: 'Ver ordenes atrasadas',
         }
       : criticalAssets.length > 0
         ? {
-            title: 'Revisar activos críticos',
-            description: 'Enlaza la planificación preventiva con los equipos de mayor riesgo.',
+            title: 'Revisar activos criticos',
+            description: 'Enlaza la planificacion preventiva con los equipos de mayor riesgo.',
             href: '/dashboard/mantenimiento/planificacion',
-            cta: 'Abrir planificación',
+            cta: 'Abrir planificacion',
           }
         : {
             title: 'Crear una OT preventiva',
@@ -154,7 +186,7 @@ export function MantenimientoDashboard() {
           No se pudo cargar mantenimiento
         </div>
         <p className="mt-2 text-sm text-destructive/80">
-          Revisa la conexión a las APIs de mantenimiento y activos antes de volver a intentar.
+          Revisa la conexion a las APIs de mantenimiento y activos antes de volver a intentar.
         </p>
       </div>
     );
@@ -185,7 +217,7 @@ export function MantenimientoDashboard() {
 
       <Card className="border-border/70 bg-card/90">
         <CardHeader className="pb-3">
-          <CardTitle>Siguiente acción recomendada</CardTitle>
+          <CardTitle>Siguiente accion recomendada</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="space-y-1">
@@ -257,13 +289,13 @@ export function MantenimientoDashboard() {
 
       <Card className="border-border/70 bg-card/90">
         <CardHeader>
-          <CardTitle>Acceso rápido al ecosistema</CardTitle>
+          <CardTitle>Acceso rapido al ecosistema</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/telemetria">
-                Telemetría de sensores
+                Telemetria de sensores
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -275,7 +307,7 @@ export function MantenimientoDashboard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/planificacion">
-                Planificación preventiva
+                Planificacion preventiva
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -285,13 +317,50 @@ export function MantenimientoDashboard() {
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/centro-costo">
+                Mantenimiento por centro de costo
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
           </div>
         </CardContent>
       </Card>
 
       <Card className="border-border/70 bg-card/90">
         <CardHeader>
-          <CardTitle>Acceso rápido</CardTitle>
+          <CardTitle>Inteligencia minera desde centros de costo</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Familias de maquinaria derivadas de la estructura real de centros de costo para apoyar
+            planificacion, repuestos y control operativo.
+          </p>
+          {topMachineFamilies.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
+              No hay maquinaria derivada aun desde centros de costo. Revisa la carga de la base para
+              habilitar esta lectura.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {topMachineFamilies.map(([family, count]) => (
+                <div key={family} className="rounded-lg border border-border p-4">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">{family}</p>
+                  <p className="mt-2 text-2xl font-bold">{count}</p>
+                  <p className="text-xs text-muted-foreground">Activos derivados para mantenimiento</p>
+                </div>
+              ))}
+            </div>
+          )}
+          <p className="text-xs text-muted-foreground">
+            Total de modelos detectados: {derivedMachineCount}
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card className="border-border/70 bg-card/90">
+        <CardHeader>
+          <CardTitle>Acceso rapido</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -303,13 +372,13 @@ export function MantenimientoDashboard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/work-orders">
-                Ver órdenes
+                Ver ordenes
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/vehiculos">
-                Vehículos y QR
+                Vehiculos, QR y ficha
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -321,13 +390,13 @@ export function MantenimientoDashboard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/bitacora">
-                Ver bitácora
+                Ver bitacora
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/planificacion">
-                Ver planificación
+                Ver planificacion
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -339,7 +408,7 @@ export function MantenimientoDashboard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/movil">
-                Panel móvil
+                Panel movil
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -357,7 +426,7 @@ export function MantenimientoDashboard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/neumaticos">
-                Ver neumáticos
+                Ver neumaticos
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -388,13 +457,13 @@ export function MantenimientoDashboard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/vehiculos/importar">
-                Vehículos
+                Vehiculos
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/planificacion/importar">
-                Planificación
+                Planificacion
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -406,7 +475,7 @@ export function MantenimientoDashboard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/neumaticos/importar">
-                Neumáticos
+                Neumaticos
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -430,7 +499,7 @@ export function MantenimientoDashboard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/bitacora/importar">
-                Bitácora
+                Bitacora
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -456,7 +525,7 @@ export function MantenimientoDashboard() {
                 <p className="text-2xl font-bold text-green-500">{activeAssets}</p>
               </div>
               <div className="rounded-lg border border-border p-3">
-                <p className="text-xs text-muted-foreground">En mantención</p>
+                <p className="text-xs text-muted-foreground">En mantenimiento</p>
                 <p className="text-2xl font-bold text-secondary">{maintenanceAssets}</p>
               </div>
               <div className="rounded-lg border border-border p-3">
@@ -464,7 +533,7 @@ export function MantenimientoDashboard() {
                 <p className="text-2xl font-bold text-muted-foreground">{inactiveAssets}</p>
               </div>
               <div className="rounded-lg border border-border p-3">
-                <p className="text-xs text-muted-foreground">Críticos</p>
+                <p className="text-xs text-muted-foreground">Criticos</p>
                 <p className="text-2xl font-bold text-orange-500">{criticalAssets.length}</p>
               </div>
             </div>
@@ -473,7 +542,7 @@ export function MantenimientoDashboard() {
               {criticalAssets.length === 0 ? (
                 <div className="flex items-center gap-2 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
                   <AlertCircle className="h-4 w-4" />
-                  No hay equipos críticos visibles.
+                  No hay equipos criticos visibles.
                 </div>
               ) : (
                 criticalAssets.map((asset) => (
@@ -481,7 +550,7 @@ export function MantenimientoDashboard() {
                     <div>
                       <p className="font-semibold">{asset.assetName || asset.assetCode || 'Equipo'}</p>
                       <p className="text-xs text-muted-foreground">
-                        {asset.assetType || 'Sin tipo'} · {asset.location || 'Sin ubicación'}
+                        {asset.assetType || 'Sin tipo'} - {asset.location || 'Sin ubicacion'}
                       </p>
                     </div>
                     <Badge variant={assetStatusVariant(String(asset.status || '').toLowerCase())}>
@@ -502,7 +571,7 @@ export function MantenimientoDashboard() {
             {recentOrders.length === 0 ? (
               <div className="flex items-center gap-2 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
                 <AlertCircle className="h-4 w-4" />
-                No hay órdenes registradas todavía.
+                No hay ordenes registradas todavia.
               </div>
             ) : (
               recentOrders.map((orden) => (
