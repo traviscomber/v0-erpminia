@@ -116,6 +116,75 @@ function buildTemplateCsv() {
       'Desgaste prematuro del tren de rodaje',
       'Ajustar tension y cambiar componentes desgastados',
     ],
+    [
+      'MCH-004',
+      'Scooptram ST1030',
+      'Epiroc',
+      'Scooptram ST1030',
+      'https://www.epiroc.com/en-us/products/loaders-and-trucks/diesel-loaders/scooptram-st1030',
+      'official',
+      '2026-07',
+      'si',
+      '{"load_ton":10,"application":"underground loading"}',
+      'HDL-001',
+      'Sistema de carguio',
+      '1',
+      'alta',
+      'activo',
+      'HDL-001-01',
+      'Fuga hidraulica en carguio',
+      'alta',
+      'Perdida de fuerza o movimiento lento',
+      'Revisar circuito, purgar y reemplazar elementos defectuosos',
+      'Reduccion de rendimiento en carguio',
+      'Aislar, revisar y reparar el circuito',
+    ],
+    [
+      'MCH-005',
+      'Boomer S1D',
+      'Epiroc',
+      'Boomer S1D',
+      'https://www.epiroc.com/content/dam/epiroc/underground-mining-and-tunneling/tme/drilling-technical-specifications/boomer/9869_0094_01c_Boomer_S1_technical_specification_english.pdf',
+      'official',
+      '2026-07',
+      'si',
+      '{"application":"face drilling","section_m2":"33"}',
+      'BOOM-001',
+      'Brazo de perforacion',
+      '1',
+      'alta',
+      'activo',
+      'BOOM-001-01',
+      'Juego excesivo en brazo',
+      'media',
+      'Deriva de posicion o imprecision',
+      'Medir holguras y programar recambio de bujes o pines',
+      'Menor calidad de perforacion',
+      'Ajustar y calibrar brazo',
+    ],
+    [
+      'MCH-006',
+      'Cat 938H',
+      'Caterpillar',
+      '938H',
+      'https://h-cpc.cat.com/cmms/v2?cid=406&f=product&gid=263&it=product&lid=en&nc=1&pid=17275910&sc=R160',
+      'official',
+      '2026-07',
+      'si',
+      '{"application":"loading","power_hp":"180"}',
+      'HYD-001',
+      'Sistema hidraulico',
+      '1',
+      'alta',
+      'activo',
+      'HYD-001-01',
+      'Perdida de fuerza de levantamiento',
+      'media',
+      'Balde lento o poca respuesta',
+      'Inspeccionar presion y componentes hidraulicos',
+      'Ciclos mas largos y menor productividad',
+      'Prueba hidraulica y calibracion',
+    ],
   ];
 
   return [headers, ...rows]
@@ -233,7 +302,10 @@ export function TechnicalSheetImportComponent() {
             >
               <Upload className="mx-auto mb-3 h-10 w-10 text-primary" />
               <p className="font-medium">Arrastra tu archivo aqui o usa el selector</p>
-              <p className="mt-1 text-sm text-muted-foreground">Acepta CSV, XLS y XLSX.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Acepta CSV, XLS y XLSX.</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              La plantilla ya incluye modelos con ficha tecnica de referencia para ayudar a empezar con data real.
+            </p>
               <div className="mt-4 flex flex-wrap justify-center gap-2">
                 <Button variant="outline" onClick={downloadTemplate} className="gap-2">
                   <Download className="h-4 w-4" />

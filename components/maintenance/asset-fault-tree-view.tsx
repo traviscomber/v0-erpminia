@@ -119,6 +119,34 @@ type AssetFaultTreeViewProps = {
   scope?: 'vehiculos' | 'equipos';
 };
 
+type TechnicalSheetResponse = {
+  referenceSheet?: {
+    brand?: string;
+    model?: string;
+    family?: string;
+    sourceUrl?: string;
+    sourceLabel?: string;
+    summary?: string;
+    keySpecs?: Array<{ label: string; value: string }>;
+    components?: Array<{
+      code: string;
+      name: string;
+      level: number;
+      criticality: string;
+      description: string;
+      faults: Array<{
+        code: string;
+        name: string;
+        severity: string;
+        symptom: string;
+        cause: string;
+        effect: string;
+        recommendedAction: string;
+      }>;
+    }>;
+  } | null;
+};
+
 export function AssetFaultTreeView({ scope }: AssetFaultTreeViewProps) {
   const params = useParams<{ id: string }>();
   const pathname = usePathname();
@@ -137,6 +165,11 @@ export function AssetFaultTreeView({ scope }: AssetFaultTreeViewProps) {
     fetcher,
     { revalidateOnFocus: false },
   );
+  const { data: technicalSheetData, error: technicalSheetError } = useSWR<TechnicalSheetResponse>(
+    assetId ? `/api/maintenance/assets/${assetId}/technical-sheet` : null,
+    fetcher,
+    { revalidateOnFocus: false },
+  );
   const { data: workOrderData, error: workOrderError, isLoading: ordersLoading } = useSWR(
     '/api/maintenance/work-orders',
     fetcher,
@@ -150,6 +183,7 @@ export function AssetFaultTreeView({ scope }: AssetFaultTreeViewProps) {
     () => workOrders.filter((order) => String(order.asset_id || '') === assetId),
     [assetId, workOrders],
   );
+  const referenceSheet = technicalSheetData?.referenceSheet || null;
 
   const combinedEvents = useMemo(() => {
     const historyEvents = history.map((item) => ({
@@ -188,6 +222,22 @@ export function AssetFaultTreeView({ scope }: AssetFaultTreeViewProps) {
       return bTime - aTime;
     });
   }, [assetOrders, history]);
+
+  const referenceGroups = useMemo(() => {
+    if (!referenceSheet?.components?.length) return [];
+
+    return referenceSheet.components.map((component) => {
+      const faults = component.faults || [];
+      return {
+        component: component.name,
+        code: component.code,
+        level: component.level,
+        criticality: component.criticality,
+        description: component.description,
+        faults,
+      };
+    });
+  }, [referenceSheet]);
 
   const causeGroups = useMemo(() => {
     const map = new Map<
@@ -254,7 +304,7 @@ export function AssetFaultTreeView({ scope }: AssetFaultTreeViewProps) {
     return <div className="text-sm text-muted-foreground">Cargando arbol de fallas...</div>;
   }
 
-  if (historyError || workOrderError) {
+  if (historyError || workOrderError || technicalSheetError) {
     return (
       <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
         No se pudo cargar el arbol de fallas real del activo.
@@ -430,6 +480,49 @@ export function AssetFaultTreeView({ scope }: AssetFaultTreeViewProps) {
           )}
         </CardContent>
       </Card>
+
+      {referenceGroups.length > 0 ? (
+        <Card className="border-border/70 bg-card/90">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Route className="h-5 w-5" />
+              Base tecnica de referencia
+            </CardTitle>
+            <CardDescription>
+              La ficha tecnica oficial aporta una base de componentes y fallas para este activo, aun cuando el historial real sea corto.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {referenceSheet?.summary ? <p className="text-sm text-muted-foreground">{referenceSheet.summary}</p> : null}
+            {referenceGroups.map((component) => (
+              <div key={component.code} className="rounded-lg border border-border bg-background p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-base font-semibold">{component.component}</h3>
+                      <Badge variant="secondary">Nivel {component.level}</Badge>
+                      <Badge variant="outline">{component.criticality}</Badge>
+                    </div>
+                    <p className="mt-1 text-sm text-muted-foreground">{component.description}</p>
+                  </div>
+                  <Badge variant="outline">{component.faults.length} fallas</Badge>
+                </div>
+                <div className="mt-3 space-y-2">
+                  {component.faults.map((fault) => (
+                    <div key={fault.code} className="rounded-md bg-muted/40 p-3 text-sm">
+                      <p className="font-semibold">{fault.name}</p>
+                      <p className="text-muted-foreground">{fault.symptom}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">Causa: {fault.cause}</p>
+                      <p className="text-xs text-muted-foreground">Efecto: {fault.effect}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">Accion: {fault.recommendedAction}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card className="border-border/70 bg-card/90">
         <CardHeader>

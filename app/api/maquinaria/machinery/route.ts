@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { getRedistributableMachineAssignment } from '@/lib/maintenance/cost-center-machines';
+import { resolveTechnicalSheetReference } from '@/lib/maintenance/technical-sheet-library';
 import { isActiveCostCenterStatus } from '@/lib/cost-centers';
 
 const MACHINERY_GROUPS: Record<string, string> = {
@@ -140,6 +141,7 @@ export async function GET(request: NextRequest) {
         const plate = plateMatch ? plateMatch[1] : null;
 
         const model = cleanName.replace(/\s*\b(19|20)\d{2}\b.*$/, '').trim();
+        const referenceSheet = resolveTechnicalSheetReference(`${name} ${model} ${categoryName}`, categoryName);
 
         return {
           id: code,
@@ -152,6 +154,15 @@ export async function GET(request: NextRequest) {
           category_code: parentCode,
           category: categoryName,
           status: isActiveCostCenterStatus(row.status) ? 'Activo' : 'Inactivo',
+          technical_sheet_reference: referenceSheet
+            ? {
+                brand: referenceSheet.brand,
+                model: referenceSheet.model,
+                family: referenceSheet.family,
+                sourceLabel: referenceSheet.sourceLabel,
+                sourceUrl: referenceSheet.sourceUrl,
+              }
+            : null,
         };
       })
       .filter((item) => item.code.length > 0 && item.name.length > 0);

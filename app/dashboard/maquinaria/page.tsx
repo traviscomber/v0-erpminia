@@ -21,6 +21,13 @@ interface Machine {
   category_code: string;
   category: string;
   status: string;
+  technical_sheet_reference?: {
+    brand?: string;
+    model?: string;
+    family?: string;
+    sourceLabel?: string;
+    sourceUrl?: string;
+  } | null;
 }
 
 interface Category {
@@ -94,6 +101,7 @@ export default function MaquinariaPage() {
   const inactiveCount = machinery.length - activeCount;
   const vehicleCount = machinery.filter((item) => VEHICLE_GROUPS.includes(item.category_code)).length;
   const equipmentCount = machinery.filter((item) => !VEHICLE_GROUPS.includes(item.category_code)).length;
+  const referencedCount = machinery.filter((item) => Boolean(item.technical_sheet_reference)).length;
   const visibleMachinery = machinery.filter((item) => {
     if (!selectedStatus) return true;
     return normalizeStatus(item.status) === normalizeStatus(selectedStatus);
@@ -187,6 +195,15 @@ export default function MaquinariaPage() {
             <CardContent>
               <div className="text-3xl font-bold">{activeCount}</div>
               <p className="text-xs text-muted-foreground">Disponibles para operacion. Inactivos: {inactiveCount}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Con ficha real</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{referencedCount}</div>
+              <p className="text-xs text-muted-foreground">Modelos ya cubiertos por la biblioteca tecnica</p>
             </CardContent>
           </Card>
         </div>
@@ -296,6 +313,11 @@ export default function MaquinariaPage() {
                           <Badge variant="outline" className="whitespace-nowrap text-xs">
                             {item.category}
                           </Badge>
+                          {item.technical_sheet_reference ? (
+                            <Badge variant="secondary" className="ml-2 whitespace-nowrap text-xs">
+                              Ficha real
+                            </Badge>
+                          ) : null}
                         </TableCell>
                         <TableCell className="font-mono text-sm font-semibold">
                           {item.plate ?? <span className="text-muted-foreground">-</span>}
