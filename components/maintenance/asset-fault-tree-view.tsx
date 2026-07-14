@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import useSWR from 'swr';
-import { Activity, AlertCircle, ArrowRight, History, Route, Wrench } from 'lucide-react';
+import { Activity, AlertCircle, ArrowRight, CalendarClock, History, Route, Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -145,6 +145,19 @@ type TechnicalSheetResponse = {
       }>;
     }>;
   } | null;
+  preventiveAlerts?: Array<{
+    code: string;
+    componentCode: string;
+    componentName: string;
+    severity: string;
+    priority: string;
+    title: string;
+    symptom: string;
+    cause: string;
+    effect: string;
+    recommendedAction: string;
+    workType: 'preventive';
+  }>;
 };
 
 export function AssetFaultTreeView({ scope }: AssetFaultTreeViewProps) {
@@ -184,6 +197,7 @@ export function AssetFaultTreeView({ scope }: AssetFaultTreeViewProps) {
     [assetId, workOrders],
   );
   const referenceSheet = technicalSheetData?.referenceSheet || null;
+  const preventiveAlerts = Array.isArray(technicalSheetData?.preventiveAlerts) ? technicalSheetData.preventiveAlerts : [];
 
   const combinedEvents = useMemo(() => {
     const historyEvents = history.map((item) => ({
@@ -299,6 +313,7 @@ export function AssetFaultTreeView({ scope }: AssetFaultTreeViewProps) {
   const totalHours = history.reduce((sum, item) => sum + Number(item.labor_hours || 0), 0);
   const resolvedScope = scope || (pathname.includes('/mantenimiento/equipos/') ? 'equipos' : 'vehiculos');
   const backHref = resolvedScope === 'equipos' ? '/dashboard/mantenimiento/equipos' : '/dashboard/mantenimiento/vehiculos';
+  const preventiveActionHref = `/dashboard/work-orders/create?assetId=${assetId}&workType=preventive`;
 
   if (historyLoading || ordersLoading) {
     return <div className="text-sm text-muted-foreground">Cargando arbol de fallas...</div>;
@@ -343,6 +358,16 @@ export function AssetFaultTreeView({ scope }: AssetFaultTreeViewProps) {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          {preventiveAlerts.length > 0 ? (
+            <Button asChild className="gap-2">
+              <Link
+                href={`${preventiveActionHref}&title=${encodeURIComponent(preventiveAlerts[0]?.title || `Preventivo ${asset.asset_name || asset.asset_code || ''}`)}`}
+              >
+                <CalendarClock className="h-4 w-4" />
+                Crear OT preventiva
+              </Link>
+            </Button>
+          ) : null}
           <Button asChild variant="outline" className="gap-2">
             <Link href={assetDetailHref}>
               {assetDetailLabel}
@@ -517,6 +542,53 @@ export function AssetFaultTreeView({ scope }: AssetFaultTreeViewProps) {
                       <p className="mt-1 text-xs text-muted-foreground">Accion: {fault.recommendedAction}</p>
                     </div>
                   ))}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {preventiveAlerts.length > 0 ? (
+        <Card className="border-border/70 bg-card/90">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CalendarClock className="h-5 w-5" />
+              Alertas preventivas sugeridas
+            </CardTitle>
+            <CardDescription>
+              Estas alertas salen de la ficha tecnica de referencia y se pueden convertir en OT preventivas sin salir de la vista.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {preventiveAlerts.slice(0, 6).map((alert) => (
+              <div key={alert.code} className="rounded-lg border border-border bg-background p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-base font-semibold">{alert.title}</h3>
+                      <Badge variant="secondary">{alert.priority}</Badge>
+                      <Badge variant="outline">{alert.componentName}</Badge>
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground">{alert.symptom}</p>
+                  </div>
+                  <Button asChild variant="outline" size="sm">
+                    <Link href={`${preventiveActionHref}&title=${encodeURIComponent(alert.title)}`}>Crear OT</Link>
+                  </Button>
+                </div>
+                <div className="mt-3 grid gap-3 md:grid-cols-3">
+                  <div className="rounded-md bg-muted/40 p-3 text-sm">
+                    <p className="text-xs text-muted-foreground">Causa</p>
+                    <p className="mt-1">{alert.cause}</p>
+                  </div>
+                  <div className="rounded-md bg-muted/40 p-3 text-sm">
+                    <p className="text-xs text-muted-foreground">Efecto</p>
+                    <p className="mt-1">{alert.effect}</p>
+                  </div>
+                  <div className="rounded-md bg-muted/40 p-3 text-sm">
+                    <p className="text-xs text-muted-foreground">Accion</p>
+                    <p className="mt-1">{alert.recommendedAction}</p>
+                  </div>
                 </div>
               </div>
             ))}

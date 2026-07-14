@@ -81,6 +81,19 @@ type TechnicalSheetResponse = {
       }>;
     }>;
   } | null;
+  preventiveAlerts?: Array<{
+    code: string;
+    componentCode: string;
+    componentName: string;
+    severity: string;
+    priority: string;
+    title: string;
+    symptom: string;
+    cause: string;
+    effect: string;
+    recommendedAction: string;
+    workType: 'preventive';
+  }>;
   componentProfile?: ComponentTemplate[];
   error?: string;
 };
@@ -125,6 +138,7 @@ export function AssetTechnicalSheetView({ scope }: AssetTechnicalSheetViewProps)
   const asset = data?.asset;
   const sheet = data?.technicalSheet;
   const referenceSheet = data?.referenceSheet;
+  const preventiveAlerts = Array.isArray(data?.preventiveAlerts) ? data.preventiveAlerts : [];
   const componentProfile = Array.isArray(data?.componentProfile) ? data?.componentProfile : [];
 
   const faultModesCount = useMemo(
@@ -384,6 +398,36 @@ export function AssetTechnicalSheetView({ scope }: AssetTechnicalSheetViewProps)
                 </div>
               </div>
             ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {preventiveAlerts.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Alertas preventivas sugeridas</CardTitle>
+            <CardDescription>
+              Se generan desde la ficha tecnica de referencia para empujar la planificacion preventiva y crear OT mas rapido.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {preventiveAlerts.slice(0, 6).map((alert) => (
+              <div key={alert.code} className="rounded-lg border border-border p-4">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                      {alert.componentCode} | {alert.priority}
+                    </p>
+                    <h3 className="font-semibold">{alert.title}</h3>
+                  </div>
+                  <Badge variant={badgeVariant(alert.severity)}>{alert.severity}</Badge>
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground">{alert.symptom}</p>
+                <p className="mt-1 text-xs text-muted-foreground">Causa: {alert.cause}</p>
+                <p className="text-xs text-muted-foreground">Efecto: {alert.effect}</p>
+                <p className="mt-1 text-xs text-muted-foreground">Accion: {alert.recommendedAction}</p>
+              </div>
+            ))}
           </CardContent>
         </Card>
       ) : null}

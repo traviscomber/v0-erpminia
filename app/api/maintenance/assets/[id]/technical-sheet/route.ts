@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { inferMachineFamilyFromText } from '@/lib/maintenance/cost-center-machines';
-import { resolveTechnicalSheetReference } from '@/lib/maintenance/technical-sheet-library';
+import { buildReferencePreventiveAlerts, resolveTechnicalSheetReference } from '@/lib/maintenance/technical-sheet-library';
 
 type AssetRow = {
   id: string;
@@ -204,6 +204,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             components: technicalReference.components,
           }
         : null,
+      preventiveAlerts: buildReferencePreventiveAlerts(technicalReference),
       componentProfile: suggestedTemplates,
     });
   } catch (error) {

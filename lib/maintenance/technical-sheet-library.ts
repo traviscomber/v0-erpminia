@@ -29,6 +29,20 @@ export type TechnicalSheetReference = {
   components: TechnicalSheetLibraryComponent[];
 };
 
+export type TechnicalSheetPreventiveAlert = {
+  code: string;
+  componentCode: string;
+  componentName: string;
+  severity: string;
+  priority: string;
+  title: string;
+  symptom: string;
+  cause: string;
+  effect: string;
+  recommendedAction: string;
+  workType: 'preventive';
+};
+
 const TECHNICAL_SHEET_LIBRARY: TechnicalSheetReference[] = [
   {
     brand: 'Komatsu',
@@ -315,6 +329,129 @@ const TECHNICAL_SHEET_LIBRARY: TechnicalSheetReference[] = [
   },
   {
     brand: 'Epiroc',
+    model: 'Scooptram ST1010',
+    family: 'Cargadores de Bajo Perfil',
+    aliases: ['st1010', 'scooptram st1010', 'atlas copco st1010', 'epiroc st1010'],
+    sourceUrl:
+      'https://www.epiroc.com/content/dam/epiroc/parts-and-services/service-agreements-and-audits/brochures/9865%200020%2001%20RigScan%20brochure.pdf',
+    sourceLabel: 'RigScan brochure Epiroc',
+    summary: 'Referencia de cargador subterraneo de 10 toneladas detectado en la base interna de repuestos y catalogo de mantenimiento.',
+    keySpecs: [
+      { label: 'Capacidad nominal', value: '10 toneladas' },
+      { label: 'Aplicacion', value: 'Carga subterranea' },
+      { label: 'Enfoque', value: 'Disponibilidad y productividad' },
+    ],
+    components: [
+      {
+        code: 'ENG',
+        name: 'Motor',
+        level: 1,
+        criticality: 'alta',
+        description: 'Conjunto motor y alimentacion principal del cargador subterraneo.',
+        faults: [
+          {
+            code: 'ENG-FUEL',
+            name: 'Falla de alimentacion',
+            severity: 'alta',
+            symptom: 'Perdida de potencia, tironeos o arranque lento',
+            cause: 'Filtro obstruido, aire en linea o bomba desgastada',
+            effect: 'Detencion del equipo y baja de rendimiento',
+            recommendedAction: 'Revisar combustible, filtros y presion del circuito',
+          },
+        ],
+      },
+      {
+        code: 'TRN',
+        name: 'Transmision y traccion',
+        level: 1,
+        criticality: 'alta',
+        description: 'Sistema de traccion, caja y acople del equipo.',
+        faults: [
+          {
+            code: 'TRN-SLIP',
+            name: 'Patinamiento de transmision',
+            severity: 'media',
+            symptom: 'Poca fuerza o variacion de velocidad',
+            cause: 'Aceite degradado, presion baja o desgaste interno',
+            effect: 'Mayor desgaste y menor avance',
+            recommendedAction: 'Verificar aceite, presion y diagnostico de transmision',
+          },
+        ],
+      },
+      {
+        code: 'HID',
+        name: 'Sistema hidraulico',
+        level: 1,
+        criticality: 'alta',
+        description: 'Levante, direccion y movimientos de carguio.',
+        faults: [
+          {
+            code: 'HID-LEAK',
+            name: 'Perdida de presion hidraulica',
+            severity: 'alta',
+            symptom: 'Movimiento lento o respuesta irregular',
+            cause: 'Mangueras, sellos o bomba con desgaste',
+            effect: 'Reduccion de ciclo y riesgo de parada',
+            recommendedAction: 'Inspeccionar mangueras, bomba y filtros',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    brand: 'Epiroc',
+    model: 'Scooptram ST3.5',
+    family: 'Cargadores de Bajo Perfil',
+    aliases: ['st3.5', 'st3 5', 'scooptram st3.5', 'scooptram st3 5', 'st3,5'],
+    sourceUrl: 'https://www.epiroc.com/es-pe/products/loaders-and-trucks/diesel-loaders/scooptram-st3-5',
+    sourceLabel: 'Scooptram ST3.5',
+    summary: 'Cargador subterraneo diésel de 6 toneladas para labores de carga en galerias pequenas y medianas.',
+    keySpecs: [
+      { label: 'Capacidad', value: '6 toneladas' },
+      { label: 'Aplicacion', value: 'Carga subterranea' },
+      { label: 'Enfoque', value: 'Ciclos de carga y maniobrabilidad' },
+    ],
+    components: [
+      {
+        code: 'ENG',
+        name: 'Motor',
+        level: 1,
+        criticality: 'alta',
+        description: 'Motor diesel turboalimentado para operacion subterranea.',
+        faults: [
+          {
+            code: 'ENG-COOL',
+            name: 'Sobretemperatura',
+            severity: 'alta',
+            symptom: 'Alarma termica y perdida de potencia',
+            cause: 'Enfriamiento insuficiente o filtros sucios',
+            effect: 'Parada preventiva y riesgo de dano mayor',
+            recommendedAction: 'Limpiar radiador, revisar ventilacion y niveles',
+          },
+        ],
+      },
+      {
+        code: 'HID',
+        name: 'Sistema hidraulico',
+        level: 1,
+        criticality: 'alta',
+        description: 'Balde, levante y direccion del equipo.',
+        faults: [
+          {
+            code: 'HID-PRESS',
+            name: 'Baja presion hidraulica',
+            severity: 'media',
+            symptom: 'Respuesta lenta o irregular',
+            cause: 'Fugas, filtros obstruidos o bomba desgastada',
+            effect: 'Menor productividad y ciclos mas largos',
+            recommendedAction: 'Verificar circuito, bombas y filtros',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    brand: 'Epiroc',
     model: 'Boomer S1D',
     family: 'Equipos de Perforacion',
     aliases: ['boomer s1d', 'boomer s1', 'atlas copco boomer s1d', 'epiroc boomer s1d'],
@@ -378,6 +515,58 @@ const TECHNICAL_SHEET_LIBRARY: TechnicalSheetReference[] = [
             cause: 'Tension incorrecta o terreno abrasivo',
             effect: 'Detencion y mayor desgaste',
             recommendedAction: 'Inspeccionar tension, rodillos y guiado',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    brand: 'Epiroc',
+    model: 'Boomer 281',
+    family: 'Equipos de Perforacion',
+    aliases: ['boomer 281', 'jumbo boomer 281', 'boomer 281-15', 'boomer 281 15'],
+    sourceUrl: 'https://www.epiroc.com/es-cl/products/drill-rigs/face-drill-rigs/boomer-281',
+    sourceLabel: 'Boomer 281',
+    summary: 'Equipo de perforacion frontal hidraulico para mineria y excavacion subterranea de tamanos medianos.',
+    keySpecs: [
+      { label: 'Aplicacion', value: 'Perforacion frontal' },
+      { label: 'Cobertura', value: 'Hasta 48 m2' },
+      { label: 'Enfoque', value: 'Seguridad y precision' },
+    ],
+    components: [
+      {
+        code: 'BOOM',
+        name: 'Brazo de perforacion',
+        level: 1,
+        criticality: 'alta',
+        description: 'Brazo hidraulico robusto para posicionamiento y avance.',
+        faults: [
+          {
+            code: 'BOOM-HOLG',
+            name: 'Holgura en brazo',
+            severity: 'media',
+            symptom: 'Desvio de posicion o precision baja',
+            cause: 'Pines, bujes o cilindros con desgaste',
+            effect: 'Perforacion imprecisa y menor calidad',
+            recommendedAction: 'Medir holguras y programar recambio',
+          },
+        ],
+      },
+      {
+        code: 'DRL',
+        name: 'Sistema de perforacion',
+        level: 1,
+        criticality: 'alta',
+        description: 'Percusion, rotacion y avance del frente.',
+        faults: [
+          {
+            code: 'DRL-LOWP',
+            name: 'Baja presion de perforacion',
+            severity: 'alta',
+            symptom: 'Bajo avance o vibracion anormal',
+            cause: 'Bomba o circuito hidraulico con desgaste',
+            effect: 'Aumento de tiempo de ciclo',
+            recommendedAction: 'Revisar presion, bomba y avances',
           },
         ],
       },
@@ -453,6 +642,162 @@ const TECHNICAL_SHEET_LIBRARY: TechnicalSheetReference[] = [
       },
     ],
   },
+  {
+    brand: 'Caterpillar',
+    model: '938G',
+    family: 'Cargadores Frontales',
+    aliases: ['938g', 'cat 938g', 'caterpillar 938g'],
+    sourceUrl: 'https://h-cpc.cat.com/cmms/v2?cid=406&f=product&gid=263&it=product&lid=en&nc=1&pid=752990&sc=M620',
+    sourceLabel: 'Cat 938G',
+    summary: 'Cargador frontal con foco en breakout force, ciclos rapidos y mantencion simple.',
+    keySpecs: [
+      { label: 'Potencia neta', value: '119 kW / 160 HP' },
+      { label: 'Aplicacion', value: 'Carguio y manipulacion de material' },
+      { label: 'Enfoque', value: 'Durabilidad y facilidad de servicio' },
+    ],
+    components: [
+      {
+        code: 'ENG',
+        name: 'Motor',
+        level: 1,
+        criticality: 'alta',
+        description: 'Motor diesel de la serie 938G.',
+        faults: [
+          {
+            code: 'ENG-POWER',
+            name: 'Perdida de potencia',
+            severity: 'media',
+            symptom: 'Menor fuerza y respuesta lenta',
+            cause: 'Filtro sucio, inyeccion o admision restringida',
+            effect: 'Menor productividad y mayor consumo',
+            recommendedAction: 'Inspeccionar admision, filtros y sistema de combustible',
+          },
+        ],
+      },
+      {
+        code: 'HYD',
+        name: 'Sistema hidraulico',
+        level: 1,
+        criticality: 'alta',
+        description: 'Sistema de elevacion y basculacion del balde.',
+        faults: [
+          {
+            code: 'HYD-LIFT',
+            name: 'Baja fuerza de levantamiento',
+            severity: 'media',
+            symptom: 'Ciclos lentos o poca respuesta',
+            cause: 'Bomba desgastada o fuga interna',
+            effect: 'Mayor tiempo de carga y sobreesfuerzo',
+            recommendedAction: 'Medir presion y revisar componentes hidraulicos',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    brand: 'Caterpillar',
+    model: '246D3',
+    family: 'Minicargadores',
+    aliases: ['246d3', 'cat 246d3', 'caterpillar 246d3', 'skid steer 246d3'],
+    sourceUrl: 'https://www.cat.com/en_GB/products/new/equipment/skid-steer-and-compact-track-loaders/skid-steer-loaders/30056688547513.html',
+    sourceLabel: 'Cat 246D3',
+    summary: 'Minicargador compacto con levantamiento radial para maniobras, limpieza y apoyo de faena.',
+    keySpecs: [
+      { label: 'Potencia bruta', value: '55.4 kW / 74.3 HP' },
+      { label: 'Capacidad nominal', value: '1000 kg' },
+      { label: 'Peso operativo', value: '3392 kg' },
+    ],
+    components: [
+      {
+        code: 'ENG',
+        name: 'Motor',
+        level: 1,
+        criticality: 'alta',
+        description: 'Motor principal del minicargador.',
+        faults: [
+          {
+            code: 'ENG-AIR',
+            name: 'Restriccion de admision',
+            severity: 'media',
+            symptom: 'Baja respuesta o humo anormal',
+            cause: 'Filtro de aire o admision obstruida',
+            effect: 'Menor traccion y consumo alto',
+            recommendedAction: 'Revisar filtros y limpieza de admision',
+          },
+        ],
+      },
+      {
+        code: 'HID',
+        name: 'Sistema hidraulico',
+        level: 1,
+        criticality: 'alta',
+        description: 'Levante, brazo y accionamiento del implemento.',
+        faults: [
+          {
+            code: 'HID-LOSS',
+            name: 'Baja presion hidraulica',
+            severity: 'alta',
+            symptom: 'Brazo lento o respuesta irregular',
+            cause: 'Bomba desgastada o fuga interna',
+            effect: 'Menor capacidad de trabajo',
+            recommendedAction: 'Prueba de presion y revision de mangueras',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    brand: 'Atlas Copco',
+    model: 'QAS 500',
+    family: 'Grupos Generadores',
+    aliases: ['qas 500', 'qas500', 'atlas copco qas 500', 'qas 500 kva'],
+    sourceUrl: 'https://www.atlascopco.com/en-rs/construction-equipment/products/power-diesel-generators/mobile-europe/qas',
+    sourceLabel: 'QAS diesel generators',
+    summary: 'Generador diesel portatil de 500 kVA para respaldo y suministro de energia en faena.',
+    keySpecs: [
+      { label: 'Potencia', value: '500 kVA' },
+      { label: 'Aplicacion', value: 'Energizacion de faena' },
+      { label: 'Enfoque', value: 'Estabilidad y continuidad' },
+    ],
+    components: [
+      {
+        code: 'ENG',
+        name: 'Motor generador',
+        level: 1,
+        criticality: 'alta',
+        description: 'Conjunto motor y generador de potencia principal.',
+        faults: [
+          {
+            code: 'ENG-FUEL',
+            name: 'Falla de alimentacion',
+            severity: 'alta',
+            symptom: 'Paradas, baja tension o vibracion',
+            cause: 'Filtro, inyeccion o suministro de combustible',
+            effect: 'Riesgo de corte de energia',
+            recommendedAction: 'Revisar circuito de combustible y diagnostico de motor',
+          },
+        ],
+      },
+      {
+        code: 'CTRL',
+        name: 'Control y proteccion',
+        level: 1,
+        criticality: 'alta',
+        description: 'Tablero, protecciones y regulacion de salida.',
+        faults: [
+          {
+            code: 'CTRL-FAULT',
+            name: 'Falla de control',
+            severity: 'media',
+            symptom: 'Alarmas o salida inestable',
+            cause: 'Modulo de control o sensor con error',
+            effect: 'Operacion insegura o intermitente',
+            recommendedAction: 'Verificar tablero, alarmas y sensores asociados',
+          },
+        ],
+      },
+    ],
+  },
 ];
 
 function normalizeText(value: string | null | undefined) {
@@ -487,4 +832,45 @@ export function resolveTechnicalSheetReference(text: string, family?: string | n
 
 export function listTechnicalSheetReferences() {
   return TECHNICAL_SHEET_LIBRARY;
+}
+
+function severityScore(value: string | null | undefined) {
+  const normalized = normalizeText(value);
+  if (['critical', 'critico', 'critica', 'alta', 'high'].includes(normalized)) return 3;
+  if (['media', 'medium', 'moderate'].includes(normalized)) return 2;
+  return 1;
+}
+
+function priorityLabel(score: number) {
+  if (score >= 5) return 'Alta';
+  if (score >= 3) return 'Media';
+  return 'Baja';
+}
+
+export function buildReferencePreventiveAlerts(reference: TechnicalSheetReference | null): TechnicalSheetPreventiveAlert[] {
+  if (!reference?.components?.length) return [];
+
+  return reference.components
+    .flatMap((component) =>
+      component.faults.map((fault) => {
+        const combinedScore = severityScore(fault.severity) + (normalizeText(component.criticality) === 'alta' ? 2 : 1);
+        return {
+          code: `${reference.model}-${component.code}-${fault.code}`,
+          componentCode: component.code,
+          componentName: component.name,
+          severity: fault.severity,
+          priority: priorityLabel(combinedScore),
+          title: `${reference.model}: revisar ${component.name}`,
+          symptom: fault.symptom,
+          cause: fault.cause,
+          effect: fault.effect,
+          recommendedAction: fault.recommendedAction,
+          workType: 'preventive' as const,
+        };
+      }),
+    )
+    .sort((a, b) => {
+      const order = { Alta: 3, Media: 2, Baja: 1 } as const;
+      return order[b.priority as keyof typeof order] - order[a.priority as keyof typeof order] || a.title.localeCompare(b.title, 'es', { sensitivity: 'base' });
+    });
 }
