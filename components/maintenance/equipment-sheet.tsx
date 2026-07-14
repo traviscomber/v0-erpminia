@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import type { Equipment } from '@/lib/types/equipment';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -106,6 +107,16 @@ export function EquipmentSheet({ equipment, isOpen, onClose, canEdit = false }: 
               <Button variant="outline" onClick={onClose}>
                 Cerrar
               </Button>
+              {equipment && (
+                <Button asChild variant="outline">
+                  <Link href={`/dashboard/mantenimiento/equipos/${equipment.id}/ficha`}>Ficha completa</Link>
+                </Button>
+              )}
+              {equipment && (
+                <Button asChild variant="outline">
+                  <Link href={`/dashboard/mantenimiento/equipos/${equipment.id}/arbol`}>Ver arbol de fallas</Link>
+                </Button>
+              )}
               {canEdit && (
                 <Button disabled>
                   Editar equipo

@@ -68,6 +68,10 @@ type MachineCatalogItem = {
   code?: string | null;
 };
 
+type AssetDetailViewProps = {
+  scope?: 'vehiculos' | 'equipos';
+};
+
 const fetcher = async (url: string) => {
   const response = await fetch(url, { credentials: 'include' });
   const payload = await response.json().catch(() => null);
@@ -128,11 +132,12 @@ function badgeClass(status: string) {
   }
 }
 
-export function AssetDetailView() {
+export function AssetDetailView({ scope = 'vehiculos' }: AssetDetailViewProps) {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const assetId = decodeURIComponent(String(params.id || ''));
   const [origin, setOrigin] = useState('https://www.motil.app');
+  const isEquipmentScope = scope === 'equipos';
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -187,7 +192,7 @@ export function AssetDetailView() {
   const totalMaintenanceCost = history.reduce((sum, item) => sum + Number(item.parts_cost || 0) + Number(item.labor_cost || 0), 0);
   const totalLaborHours = history.reduce((sum, item) => sum + Number(item.labor_hours || 0), 0);
 
-  const qrTargetUrl = `${origin}/dashboard/mantenimiento/vehiculos/${assetId}/ficha`;
+  const qrTargetUrl = `${origin}/dashboard/mantenimiento/${isEquipmentScope ? 'equipos' : 'vehiculos'}/${assetId}/ficha`;
   const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(qrTargetUrl)}`;
 
   const copyQrLink = async () => {
@@ -217,8 +222,8 @@ export function AssetDetailView() {
           <h1 className="text-3xl font-bold tracking-tight">Activo no encontrado</h1>
           <p className="mt-2 text-muted-foreground">No pudimos ubicar el equipo solicitado en la base real.</p>
         </div>
-        <Button variant="outline" onClick={() => router.push('/dashboard/mantenimiento/vehiculos')}>
-          Volver a vehículos
+        <Button variant="outline" onClick={() => router.push(isEquipmentScope ? '/dashboard/mantenimiento/equipos' : '/dashboard/mantenimiento/vehiculos')}>
+          Volver a {isEquipmentScope ? 'equipos' : 'vehículos'}
         </Button>
       </div>
     );
@@ -239,9 +244,9 @@ export function AssetDetailView() {
             </Link>
           </Button>
           <Button asChild variant="outline" className="gap-2">
-            <Link href="/dashboard/mantenimiento/movil">
+            <Link href={isEquipmentScope ? '/dashboard/mantenimiento/equipos' : '/dashboard/mantenimiento/movil'}>
               <Smartphone className="h-4 w-4" />
-              Vista móvil
+              {isEquipmentScope ? 'Volver a equipos' : 'Vista móvil'}
             </Link>
           </Button>
           <Button asChild variant="outline" className="gap-2">
@@ -261,8 +266,8 @@ export function AssetDetailView() {
         <CardContent>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
             <Button asChild variant="outline" className="justify-between">
-              <Link href={`/dashboard/mantenimiento/vehiculos/${asset.id}/qr`}>
-                Tarjeta QR
+              <Link href={isEquipmentScope ? `/dashboard/mantenimiento/equipos/${asset.id}/ficha` : `/dashboard/mantenimiento/vehiculos/${asset.id}/qr`}>
+                {isEquipmentScope ? 'Ficha completa' : 'Tarjeta QR'}
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -281,6 +286,12 @@ export function AssetDetailView() {
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/bodega">
                 Bodega
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href={`/dashboard/mantenimiento/${isEquipmentScope ? 'equipos' : 'vehiculos'}/${asset.id}/arbol`}>
+                Arbol de fallas
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -339,7 +350,7 @@ export function AssetDetailView() {
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-1">
           <CardHeader>
-            <CardTitle>QR del equipo</CardTitle>
+          <CardTitle>{isEquipmentScope ? 'QR del equipo' : 'QR del vehiculo'}</CardTitle>
             <CardDescription>Apunta a la ficha real del activo y su historial.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -356,10 +367,12 @@ export function AssetDetailView() {
                 Copiar enlace
               </Button>
               <Button variant="outline" asChild>
-                <Link href={`/dashboard/mantenimiento/vehiculos/${asset.id}/qr`}>Tarjeta QR</Link>
+                <Link href={isEquipmentScope ? `/dashboard/mantenimiento/equipos/${asset.id}/ficha` : `/dashboard/mantenimiento/vehiculos/${asset.id}/qr`}>
+                  {isEquipmentScope ? 'Ficha completa' : 'Tarjeta QR'}
+                </Link>
               </Button>
               <Button variant="outline" asChild>
-                <Link href={`/dashboard/mantenimiento/vehiculos/${asset.id}/arbol`}>Ver árbol de fallas</Link>
+                <Link href={`/dashboard/mantenimiento/${isEquipmentScope ? 'equipos' : 'vehiculos'}/${asset.id}/arbol`}>Ver árbol de fallas</Link>
               </Button>
               <Button variant="outline" asChild>
                 <Link href={`/dashboard/work-orders/create?assetId=${asset.id}`}>Nueva OT</Link>

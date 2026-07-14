@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import useSWR from 'swr';
-import { Download, Package, Search, Truck, Upload, Wrench } from 'lucide-react';
+import { Download, Package, Route, Search, Truck, Upload, Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 
 interface Machine {
   id: string;
+  asset_id: string | null;
   code: string;
   name: string;
   model: string;
@@ -35,6 +36,20 @@ const fetcher = async (url: string) => {
 };
 
 const VEHICLE_GROUPS = ['8', '9', '12'];
+
+function getFaultTreeHref(item: Machine) {
+  if (!item.asset_id) return null;
+  return VEHICLE_GROUPS.includes(item.category_code)
+    ? `/dashboard/mantenimiento/vehiculos/${item.asset_id}/arbol`
+    : `/dashboard/mantenimiento/equipos/${item.asset_id}/arbol`;
+}
+
+function getFichaHref(item: Machine) {
+  if (!item.asset_id) return null;
+  return VEHICLE_GROUPS.includes(item.category_code)
+    ? `/dashboard/mantenimiento/vehiculos/${item.asset_id}/ficha`
+    : `/dashboard/mantenimiento/equipos/${item.asset_id}/ficha`;
+}
 
 function normalizeText(value: string | null | undefined) {
   return String(value || '')
@@ -257,60 +272,80 @@ export default function MaquinariaPage() {
               ) : null}
 
               {!isLoading
-                ? visibleMachinery.map((item) => (
-                    <TableRow key={item.code} className="hover:bg-muted/30">
-                      <TableCell className="font-mono text-xs text-muted-foreground">{item.code}</TableCell>
-                      <TableCell>
-                        <div className="font-medium">{item.model || item.name}</div>
-                        {item.model && item.model !== item.name ? (
-                          <div className="max-w-xs truncate text-xs text-muted-foreground">{item.name}</div>
-                        ) : null}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="whitespace-nowrap text-xs">
-                          {item.category}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-mono text-sm font-semibold">
-                        {item.plate ?? <span className="text-muted-foreground">-</span>}
-                      </TableCell>
-                      <TableCell className="text-sm">{item.year ?? <span className="text-muted-foreground">-</span>}</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={
-                            normalizeStatus(item.status) === 'activo'
-                              ? 'border-green-200 bg-green-50 text-green-700'
+                ? visibleMachinery.map((item) => {
+                    const fichaHref = getFichaHref(item);
+                    const faultTreeHref = getFaultTreeHref(item);
+                    return (
+                      <TableRow key={item.code} className="hover:bg-muted/30">
+                        <TableCell className="font-mono text-xs text-muted-foreground">{item.code}</TableCell>
+                        <TableCell>
+                          <div className="font-medium">{item.model || item.name}</div>
+                          {item.model && item.model !== item.name ? (
+                            <div className="max-w-xs truncate text-xs text-muted-foreground">{item.name}</div>
+                          ) : null}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="whitespace-nowrap text-xs">
+                            {item.category}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="font-mono text-sm font-semibold">
+                          {item.plate ?? <span className="text-muted-foreground">-</span>}
+                        </TableCell>
+                        <TableCell className="text-sm">{item.year ?? <span className="text-muted-foreground">-</span>}</TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className={
+                              normalizeStatus(item.status) === 'activo'
+                                ? 'border-green-200 bg-green-50 text-green-700'
+                                : normalizeStatus(item.status) === 'mantenimiento'
+                                  ? 'border-blue-200 bg-blue-50 text-blue-700'
+                                  : 'border-red-200 bg-red-50 text-red-700'
+                            }
+                          >
+                            {normalizeStatus(item.status) === 'activo'
+                              ? 'Activo'
                               : normalizeStatus(item.status) === 'mantenimiento'
-                                ? 'border-blue-200 bg-blue-50 text-blue-700'
-                                : 'border-red-200 bg-red-50 text-red-700'
-                          }
-                        >
-                          {normalizeStatus(item.status) === 'activo'
-                            ? 'Activo'
-                            : normalizeStatus(item.status) === 'mantenimiento'
-                              ? 'Mantenimiento'
-                              : 'Inactivo'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
-                            <Link href={`/dashboard/work-orders/create?cost_center=${item.code}&machine=${encodeURIComponent(item.model || item.name)}`}>
-                              <Wrench className="mr-1 h-3 w-3" />
-                              OT
-                            </Link>
-                          </Button>
-                          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
-                            <Link href={`/dashboard/compras?ref=${encodeURIComponent(item.model || item.name)}&cost_center=${item.code}`}>
-                              <Package className="mr-1 h-3 w-3" />
-                              Compra
-                            </Link>
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                                ? 'Mantenimiento'
+                                : 'Inactivo'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            {fichaHref ? (
+                              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
+                                <Link href={fichaHref}>
+                                  <Route className="mr-1 h-3 w-3" />
+                                  Ficha
+                                </Link>
+                              </Button>
+                            ) : null}
+                            {faultTreeHref ? (
+                              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
+                                <Link href={faultTreeHref}>
+                                  <Route className="mr-1 h-3 w-3" />
+                                  Arbol
+                                </Link>
+                              </Button>
+                            ) : null}
+                            <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
+                              <Link href={`/dashboard/work-orders/create?cost_center=${item.code}&machine=${encodeURIComponent(item.model || item.name)}`}>
+                                <Wrench className="mr-1 h-3 w-3" />
+                                OT
+                              </Link>
+                            </Button>
+                            <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
+                              <Link href={`/dashboard/compras?ref=${encodeURIComponent(item.model || item.name)}&cost_center=${item.code}`}>
+                                <Package className="mr-1 h-3 w-3" />
+                                Compra
+                              </Link>
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 : null}
             </TableBody>
           </Table>

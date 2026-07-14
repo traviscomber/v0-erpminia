@@ -2,13 +2,14 @@
 
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
+import Link from 'next/link';
 import type { Equipment } from '@/lib/types/equipment';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertCircle, CheckCircle, Search, Wrench } from 'lucide-react';
+import { AlertCircle, CheckCircle, Route, Search, Wrench } from 'lucide-react';
 
 const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((r) => r.json());
 
@@ -299,6 +300,45 @@ export function EquipmentList({
                     PM: {new Date(equipment.next_maintenance).toLocaleDateString('es-CL')}
                   </div>
                 )}
+
+                <div className="mt-3 flex gap-2">
+                  <Button
+                    asChild
+                    size="sm"
+                    variant="outline"
+                    className="h-8 flex-1"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <Link href={`/dashboard/mantenimiento/equipos/${equipment.id}/ficha`}>
+                      <Route className="mr-2 h-3.5 w-3.5" />
+                      Ficha
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    size="sm"
+                    variant="outline"
+                    className="h-8 flex-1"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <Link href={`/dashboard/mantenimiento/equipos/${equipment.id}/arbol`}>
+                      <Route className="mr-2 h-3.5 w-3.5" />
+                      Arbol
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    size="sm"
+                    variant="outline"
+                    className="h-8 flex-1"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <Link href={`/dashboard/work-orders/create?assetId=${equipment.id}`}>
+                      <Wrench className="mr-2 h-3.5 w-3.5" />
+                      OT
+                    </Link>
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}

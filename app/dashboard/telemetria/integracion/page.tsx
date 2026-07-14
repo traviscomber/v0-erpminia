@@ -100,15 +100,15 @@ export default function TelemetriaIntegracionPage() {
   }, [gatewayUrl]);
 
   const normalizedGatewayUrl = gatewayUrl.trim().replace(/\/+$/, '');
-  const ingestUrl = `${normalizedGatewayUrl || ''}/api/telemetry/ingest`;
-  const healthUrl = `${normalizedGatewayUrl || ''}/api/telemetry/health`;
+  const baseUrl = normalizedGatewayUrl || currentOrigin;
+  const ingestUrl = baseUrl ? `${baseUrl}/api/telemetry/ingest` : '/api/telemetry/ingest';
+  const healthUrl = baseUrl ? `${baseUrl}/api/telemetry/health` : '/api/telemetry/health';
   const quickHosts = [
     { label: 'Este equipo', value: currentOrigin },
     { label: 'Entorno local', value: 'http://localhost:3000' },
-    { label: 'Red local', value: 'http://192.168.1.20:3000' },
   ].filter((item) => item.value);
 
-  const code = `curl -X POST ${ingestUrl || 'https://TU-DOMINIO/api/telemetry/ingest'} \\
+  const code = `curl -X POST ${ingestUrl} \\
   -H "Content-Type: application/json" \\
   -H "x-telemetry-token: ${telemetryToken || 'TOKEN_INGESTA'}" \\
   -d '${formatJson(TEST_PAYLOAD)}'`;
@@ -219,13 +219,13 @@ export default function TelemetriaIntegracionPage() {
             <Input
               value={gatewayUrl}
               onChange={(event) => setGatewayUrl(event.target.value)}
-              placeholder="https://patagua.local o http://192.168.1.20:3000"
+              placeholder="URL del gateway"
               aria-label="URL del gateway"
             />
             <Input
               value={telemetryToken}
               onChange={(event) => setTelemetryToken(event.target.value)}
-              placeholder="x-telemetry-token"
+              placeholder="Token de telemetria"
               aria-label="Token de telemetria"
             />
           </div>
@@ -296,7 +296,7 @@ export default function TelemetriaIntegracionPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="font-semibold">POST {normalizedGatewayUrl || 'https://TU-DOMINIO'}/api/telemetry/ingest</div>
+            <div className="font-semibold">POST {ingestUrl}</div>
             <p className="text-sm text-muted-foreground">Acepta JSON desde un equipo de la red local o lotes de lecturas.</p>
           </CardContent>
         </Card>
@@ -308,7 +308,7 @@ export default function TelemetriaIntegracionPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="font-semibold">GET {normalizedGatewayUrl || 'https://TU-DOMINIO'}/api/telemetry/health</div>
+            <div className="font-semibold">GET {healthUrl}</div>
             <p className="text-sm text-muted-foreground">Verifica conectividad y token sin registrar lecturas.</p>
           </CardContent>
         </Card>

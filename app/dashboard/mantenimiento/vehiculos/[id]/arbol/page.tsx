@@ -1,5 +1,5 @@
-import { AssetDetailView } from '@/components/maintenance/asset-detail-view';
+import { AssetFaultTreeView } from '@/components/maintenance/asset-fault-tree-view';
 
 export default function VehicleFaultTreePage() {
-  return <AssetDetailView />;
+  return <AssetFaultTreeView scope="vehiculos" />;
 }

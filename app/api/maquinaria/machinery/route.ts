@@ -1,8 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseServerClient } from '@/lib/supabase-server';
-import { resolveAuthContext } from '@/lib/api/auth-session';
+import { getOrganizationContext } from '@/lib/api/organization-context';
 import { getRedistributableMachineAssignment } from '@/lib/maintenance/cost-center-machines';
 import { isActiveCostCenterStatus } from '@/lib/cost-centers';
 
@@ -30,8 +29,16 @@ type CostCenterRow = {
   status: string | null;
 };
 
+type MaintenanceAssetRow = {
+  id: string;
+  asset_code: string | null;
+  asset_name: string | null;
+  model: string | null;
+};
+
 type MachineryRow = {
   id: string;
+  asset_id: string | null;
   code: string;
   name: string;
   model: string;
@@ -46,26 +53,53 @@ function normalizeText(value: string | null | undefined) {
   return String(value || '').trim();
 }
 
-export async function GET(request: NextRequest) {
-  const auth = await resolveAuthContext(request);
-  if (!auth) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+function normalizeLookup(value: string | null | undefined) {
+  return normalizeText(value).toLowerCase();
+}
 
-  const supabase = getSupabaseServerClient();
+function stripPlate(value: string) {
+  return value.replace(/\s*-\s*[A-Z0-9]{4,10}\s*$/, '').trim();
+}
+
+export async function GET(request: NextRequest) {
+  const context = await getOrganizationContext(request);
+  if (!context.ok) return context.response;
 
   const { searchParams } = new URL(request.url);
-  const search = normalizeText(searchParams.get('search')).toLowerCase();
+  const search = normalizeLookup(searchParams.get('search'));
   const category = normalizeText(searchParams.get('category'));
 
   try {
-    const { data, error } = await supabase
-      .from('cost_centers')
-      .select('code, name, status')
-      .like('code', '%-%')
-      .order('code');
+    const [{ data, error }, { data: assets, error: assetsError }] = await Promise.all([
+      context.supabase
+        .from('cost_centers')
+        .select('code, name, status')
+        .like('code', '%-%')
+        .order('code'),
+      context.supabase
+        .from('maintenance_assets')
+        .select('id, asset_code, asset_name, model')
+        .eq('organization_id', context.organizationId),
+    ]);
 
     if (error) throw error;
+    if (assetsError) throw assetsError;
 
     const rows = Array.isArray(data) ? (data as CostCenterRow[]) : [];
+    const maintenanceAssets = Array.isArray(assets) ? (assets as MaintenanceAssetRow[]) : [];
+
+    const assetByCode = new Map<string, string>();
+    const assetByName = new Map<string, string>();
+    const assetByModel = new Map<string, string>();
+
+    maintenanceAssets.forEach((asset) => {
+      const assetCode = normalizeLookup(asset.asset_code);
+      const assetName = normalizeLookup(asset.asset_name);
+      const assetModel = normalizeLookup(asset.model);
+      if (assetCode && !assetByCode.has(assetCode)) assetByCode.set(assetCode, asset.id);
+      if (assetName && !assetByName.has(assetName)) assetByName.set(assetName, asset.id);
+      if (assetModel && !assetByModel.has(assetModel)) assetByModel.set(assetModel, asset.id);
+    });
 
     let machines = rows.filter((row) => {
       const code = normalizeText(row.code);
@@ -74,10 +108,11 @@ export async function GET(request: NextRequest) {
     });
 
     if (search) {
-      machines = machines.filter((row) =>
-        normalizeText(row.name).toLowerCase().includes(search) ||
-        normalizeText(row.code).toLowerCase().includes(search)
-      );
+      machines = machines.filter((row) => {
+        const name = normalizeLookup(row.name);
+        const code = normalizeLookup(row.code);
+        return name.includes(search) || code.includes(search);
+      });
     }
 
     if (category && MACHINERY_PARENT_CODES.includes(category)) {
@@ -91,20 +126,24 @@ export async function GET(request: NextRequest) {
         const override = getRedistributableMachineAssignment(code);
         const parentCode = override?.rootCode || code.split('-')[0];
         const categoryName = override?.family || MACHINERY_GROUPS[parentCode] || 'Maquinaria';
+        const cleanName = stripPlate(name);
+        const assetId =
+          assetByCode.get(normalizeLookup(code)) ||
+          assetByName.get(normalizeLookup(name)) ||
+          assetByName.get(normalizeLookup(cleanName)) ||
+          assetByModel.get(normalizeLookup(cleanName));
 
         const yearMatch = name.match(/\b(19|20)\d{2}\b/);
         const year = yearMatch ? Number.parseInt(yearMatch[0], 10) : null;
 
-        const plateMatch = name.match(/[-–]\s*([A-Z0-9]{4,10})\s*$/);
+        const plateMatch = name.match(/\s-\s*([A-Z0-9]{4,10})\s*$/);
         const plate = plateMatch ? plateMatch[1] : null;
 
-        const model = name
-          .replace(/\s*[-–]\s*[A-Z0-9]{4,10}\s*$/, '')
-          .replace(/\s*\b(19|20)\d{2}\b.*$/, '')
-          .trim();
+        const model = cleanName.replace(/\s*\b(19|20)\d{2}\b.*$/, '').trim();
 
         return {
           id: code,
+          asset_id: assetId || null,
           code,
           name,
           model,
@@ -112,9 +151,9 @@ export async function GET(request: NextRequest) {
           year,
           category_code: parentCode,
           category: categoryName,
-        status: isActiveCostCenterStatus(row.status) ? 'Activo' : 'Inactivo',
-      };
-    })
+          status: isActiveCostCenterStatus(row.status) ? 'Activo' : 'Inactivo',
+        };
+      })
       .filter((item) => item.code.length > 0 && item.name.length > 0);
 
     const categories = MACHINERY_PARENT_CODES.map((code) => ({
