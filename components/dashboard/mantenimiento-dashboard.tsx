@@ -456,6 +456,12 @@ export function MantenimientoDashboard() {
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/fichas-tecnicas">
+                Fichas tecnicas
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -490,6 +496,12 @@ export function MantenimientoDashboard() {
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/componentes-mayores/importar">
                 Componentes
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
+              <Link href="/dashboard/mantenimiento/fichas-tecnicas/importar">
+                Fichas tecnicas
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
