@@ -175,6 +175,12 @@ export default function VehiclesPage() {
                         <FileSearch className="h-4 w-4" />
                       </Button>
                     </Link>
+                    <Link href={`/dashboard/mantenimiento/vehiculos/${vehicle.id}/ficha-tecnica`}>
+                      <Button variant="outline" className="gap-2">
+                        Ficha tecnica
+                        <FileSearch className="h-4 w-4" />
+                      </Button>
+                    </Link>
                     <Link href={`/dashboard/mantenimiento/vehiculos/${vehicle.id}/arbol`}>
                       <Button variant="outline" className="gap-2">
                         Ver arbol de fallas

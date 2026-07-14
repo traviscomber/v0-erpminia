@@ -321,6 +321,18 @@ export function EquipmentList({
                     className="h-8 flex-1"
                     onClick={(event) => event.stopPropagation()}
                   >
+                    <Link href={`/dashboard/mantenimiento/equipos/${equipment.id}/ficha-tecnica`}>
+                      <Route className="mr-2 h-3.5 w-3.5" />
+                      Tecnica
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    size="sm"
+                    variant="outline"
+                    className="h-8 flex-1"
+                    onClick={(event) => event.stopPropagation()}
+                  >
                     <Link href={`/dashboard/mantenimiento/equipos/${equipment.id}/arbol`}>
                       <Route className="mr-2 h-3.5 w-3.5" />
                       Arbol

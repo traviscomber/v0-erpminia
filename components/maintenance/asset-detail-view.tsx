@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import useSWR from 'swr';
-import { AlertCircle, ArrowRight, Copy, History, LayoutDashboard, QrCode, Smartphone, Wrench } from 'lucide-react';
+import { AlertCircle, ArrowRight, Copy, FileText, History, LayoutDashboard, QrCode, Smartphone, Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -272,6 +272,12 @@ export function AssetDetailView({ scope = 'vehiculos' }: AssetDetailViewProps) {
               </Link>
             </Button>
             <Button asChild variant="outline" className="justify-between">
+              <Link href={isEquipmentScope ? `/dashboard/mantenimiento/equipos/${asset.id}/ficha-tecnica` : `/dashboard/mantenimiento/vehiculos/${asset.id}/ficha-tecnica`}>
+                Ficha tecnica
+                <FileText className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-between">
               <Link href={`/dashboard/work-orders/create?assetId=${asset.id}`}>
                 Crear OT
                 <ArrowRight className="h-4 w-4" />
@@ -369,6 +375,11 @@ export function AssetDetailView({ scope = 'vehiculos' }: AssetDetailViewProps) {
               <Button variant="outline" asChild>
                 <Link href={isEquipmentScope ? `/dashboard/mantenimiento/equipos/${asset.id}/ficha` : `/dashboard/mantenimiento/vehiculos/${asset.id}/qr`}>
                   {isEquipmentScope ? 'Ficha completa' : 'Tarjeta QR'}
+                </Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link href={isEquipmentScope ? `/dashboard/mantenimiento/equipos/${asset.id}/ficha-tecnica` : `/dashboard/mantenimiento/vehiculos/${asset.id}/ficha-tecnica`}>
+                  Ficha tecnica
                 </Link>
               </Button>
               <Button variant="outline" asChild>

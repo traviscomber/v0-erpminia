@@ -114,6 +114,11 @@ export function EquipmentSheet({ equipment, isOpen, onClose, canEdit = false }: 
               )}
               {equipment && (
                 <Button asChild variant="outline">
+                  <Link href={`/dashboard/mantenimiento/equipos/${equipment.id}/ficha-tecnica`}>Ficha tecnica</Link>
+                </Button>
+              )}
+              {equipment && (
+                <Button asChild variant="outline">
                   <Link href={`/dashboard/mantenimiento/equipos/${equipment.id}/arbol`}>Ver arbol de fallas</Link>
                 </Button>
               )}

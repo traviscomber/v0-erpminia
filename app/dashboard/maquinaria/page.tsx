@@ -51,6 +51,13 @@ function getFichaHref(item: Machine) {
     : `/dashboard/mantenimiento/equipos/${item.asset_id}/ficha`;
 }
 
+function getTechnicalSheetHref(item: Machine) {
+  if (!item.asset_id) return null;
+  return VEHICLE_GROUPS.includes(item.category_code)
+    ? `/dashboard/mantenimiento/vehiculos/${item.asset_id}/ficha-tecnica`
+    : `/dashboard/mantenimiento/equipos/${item.asset_id}/ficha-tecnica`;
+}
+
 function normalizeText(value: string | null | undefined) {
   return String(value || '')
     .normalize('NFD')
@@ -272,8 +279,9 @@ export default function MaquinariaPage() {
               ) : null}
 
               {!isLoading
-                ? visibleMachinery.map((item) => {
+                  ? visibleMachinery.map((item) => {
                     const fichaHref = getFichaHref(item);
+                    const technicalSheetHref = getTechnicalSheetHref(item);
                     const faultTreeHref = getFaultTreeHref(item);
                     return (
                       <TableRow key={item.code} className="hover:bg-muted/30">
@@ -318,6 +326,14 @@ export default function MaquinariaPage() {
                                 <Link href={fichaHref}>
                                   <Route className="mr-1 h-3 w-3" />
                                   Ficha
+                                </Link>
+                              </Button>
+                            ) : null}
+                            {technicalSheetHref ? (
+                              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
+                                <Link href={technicalSheetHref}>
+                                  <Route className="mr-1 h-3 w-3" />
+                                  Tecnica
                                 </Link>
                               </Button>
                             ) : null}
