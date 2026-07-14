@@ -30,8 +30,14 @@ const MACHINE_KEYWORDS = [
   'sonda',
   'sondaje',
   'jumb',
+  'simba',
+  's7d',
+  'h1253',
   'generador',
   'electrogeno',
+  'horquilla',
+  'forklift',
+  'cpcd25',
 ];
 
 // Families that can produce operational machines or assets from the cost-center tree.
@@ -146,6 +152,12 @@ export function inferMachineFamilyFromText(value: string) {
     ['proyectos', 'Proyectos en Ejecucion'],
     ['generador', 'Grupos Generadores'],
     ['electrogeno', 'Grupos Generadores'],
+    ['simba', 'Equipos de perforacion'],
+    ['s7d', 'Equipos de perforacion'],
+    ['h1253', 'Equipos de perforacion'],
+    ['horquilla', 'Otros Equipos'],
+    ['forklift', 'Otros Equipos'],
+    ['cpcd25', 'Otros Equipos'],
   ];
 
   for (const [needle, label] of matches) {
