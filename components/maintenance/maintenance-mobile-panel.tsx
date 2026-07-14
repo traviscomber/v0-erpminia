@@ -102,6 +102,16 @@ function statusLabel(status: string) {
   return labels[normalized] || status || 'Sin estado';
 }
 
+function resolveAssetScope(assetType?: string | null, model?: string | null, manufacturer?: string | null) {
+  const text = `${assetType || ''} ${model || ''} ${manufacturer || ''}`
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
+  const vehicleHints = ['vehiculo', 'vehiculos', 'camioneta', 'camion', 'bus', 'furgon', 'pickup', 'tractor'];
+  return vehicleHints.some((hint) => text.includes(hint)) ? 'vehiculos' : 'equipos';
+}
+
 export function MaintenanceMobilePanel() {
   const searchParams = useSearchParams();
   const assetId = searchParams.get('assetId') || '';
@@ -279,6 +289,7 @@ export function MaintenanceMobilePanel() {
     const text = `${selectedAsset?.asset_name || ''} ${selectedAsset?.asset_type || ''} ${selectedAsset?.model || ''} ${selectedAsset?.manufacturer || ''}`;
     return inferMachineFamilyFromText(text) || 'Sin familia';
   }, [selectedAsset?.asset_name, selectedAsset?.asset_type, selectedAsset?.model, selectedAsset?.manufacturer]);
+  const selectedAssetScope = resolveAssetScope(selectedAsset?.asset_type, selectedAsset?.model, selectedAsset?.manufacturer);
 
   return (
     <div className="mx-auto max-w-md space-y-4 pb-8">
@@ -309,7 +320,7 @@ export function MaintenanceMobilePanel() {
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-2">
           <Button asChild variant="outline" className="w-full justify-between">
-            <Link href="/dashboard/mantenimiento/vehiculos">
+            <Link href={`/dashboard/mantenimiento/${selectedAssetScope}`}>
               Vehículos y QR
               <QrCode className="h-4 w-4" />
             </Link>
@@ -394,13 +405,13 @@ export function MaintenanceMobilePanel() {
                   <p className="font-semibold">{selectedAssetFamily}</p>
                 </div>
                 <Button asChild className="w-full justify-between">
-                  <Link href={`/dashboard/mantenimiento/vehiculos/${assetId}/ficha`}>
+                  <Link href={`/dashboard/mantenimiento/${selectedAssetScope}/${assetId}/ficha`}>
                     Abrir ficha completa
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
                 <Button asChild variant="outline" className="w-full justify-between">
-                  <Link href={`/dashboard/mantenimiento/vehiculos/${assetId}/qr`}>
+                  <Link href={`/dashboard/mantenimiento/${selectedAssetScope}/${assetId}/qr`}>
                     Ver tarjeta QR
                     <QrCode className="h-4 w-4" />
                   </Link>
@@ -537,7 +548,7 @@ export function MaintenanceMobilePanel() {
           </Button>
           {assetId ? (
             <Button asChild variant="outline" className="justify-between">
-              <Link href={`/dashboard/mantenimiento/vehiculos/${assetId}/qr`}>
+              <Link href={`/dashboard/mantenimiento/${selectedAssetScope}/${assetId}/qr`}>
                 Abrir QR del equipo
                 <QrCode className="h-4 w-4" />
               </Link>

@@ -56,6 +56,31 @@ type TechnicalSheetResponse = {
     fields?: TechnicalField[];
     rawSpecs?: Record<string, unknown> | null;
   };
+  referenceSheet?: {
+    brand?: string;
+    model?: string;
+    family?: string;
+    sourceUrl?: string;
+    sourceLabel?: string;
+    summary?: string;
+    keySpecs?: Array<{ label: string; value: string }>;
+    components?: Array<{
+      code: string;
+      name: string;
+      level: number;
+      criticality: string;
+      description: string;
+      faults: Array<{
+        code: string;
+        name: string;
+        severity: string;
+        symptom: string;
+        cause: string;
+        effect: string;
+        recommendedAction: string;
+      }>;
+    }>;
+  } | null;
   componentProfile?: ComponentTemplate[];
   error?: string;
 };
@@ -99,6 +124,7 @@ export function AssetTechnicalSheetView({ scope }: AssetTechnicalSheetViewProps)
 
   const asset = data?.asset;
   const sheet = data?.technicalSheet;
+  const referenceSheet = data?.referenceSheet;
   const componentProfile = Array.isArray(data?.componentProfile) ? data?.componentProfile : [];
 
   const faultModesCount = useMemo(
@@ -276,6 +302,91 @@ export function AssetTechnicalSheetView({ scope }: AssetTechnicalSheetViewProps)
           </CardContent>
         </Card>
       </div>
+
+      {referenceSheet ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Ficha oficial de referencia</CardTitle>
+            <CardDescription>
+              Modelo real detectado para este activo. Sirve como base tecnica inicial mientras se completa la ficha interna.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-4">
+              <div className="rounded-lg border border-border p-4">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Marca</p>
+                <p className="mt-1 font-semibold">{referenceSheet.brand || '-'}</p>
+              </div>
+              <div className="rounded-lg border border-border p-4">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Modelo</p>
+                <p className="mt-1 font-semibold">{referenceSheet.model || '-'}</p>
+              </div>
+              <div className="rounded-lg border border-border p-4">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Familia</p>
+                <p className="mt-1 font-semibold">{referenceSheet.family || '-'}</p>
+              </div>
+              <div className="rounded-lg border border-border p-4">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Fuente oficial</p>
+                <a
+                  href={referenceSheet.sourceUrl || '#'}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-1 block break-all font-semibold text-primary underline-offset-4 hover:underline"
+                >
+                  {referenceSheet.sourceLabel || referenceSheet.sourceUrl || '-'}
+                </a>
+              </div>
+            </div>
+
+            {referenceSheet.summary ? <p className="text-sm text-muted-foreground">{referenceSheet.summary}</p> : null}
+
+            {referenceSheet.keySpecs?.length ? (
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                {referenceSheet.keySpecs.map((spec) => (
+                  <div key={spec.label} className="rounded-lg border border-border p-4">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">{spec.label}</p>
+                    <p className="mt-1 font-semibold">{spec.value}</p>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
+            {referenceSheet.components?.length ? (
+              <div className="space-y-3">
+                <p className="text-sm font-semibold">Componentes y fallas de referencia</p>
+                <div className="space-y-3">
+                  {referenceSheet.components.map((component) => (
+                    <div key={component.code} className="rounded-lg border border-border p-4">
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div>
+                          <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                            Nivel {component.level} | {component.criticality}
+                          </p>
+                          <h3 className="font-semibold">{component.name}</h3>
+                          <p className="text-sm text-muted-foreground">{component.description}</p>
+                        </div>
+                        <Badge variant="outline">{component.faults.length} fallas</Badge>
+                      </div>
+                      <div className="mt-3 space-y-2">
+                        {component.faults.map((fault) => (
+                          <div key={fault.code} className="rounded-md bg-muted/30 p-3 text-sm">
+                            <p className="font-semibold">{fault.name}</p>
+                            <p className="text-muted-foreground">{fault.symptom}</p>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              Causa: {fault.cause} | Efecto: {fault.effect}
+                            </p>
+                            <p className="mt-1 text-xs text-muted-foreground">Accion: {fault.recommendedAction}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card>
         <CardHeader>

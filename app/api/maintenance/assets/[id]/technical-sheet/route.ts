@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { inferMachineFamilyFromText } from '@/lib/maintenance/cost-center-machines';
+import { resolveTechnicalSheetReference } from '@/lib/maintenance/technical-sheet-library';
 
 type AssetRow = {
   id: string;
@@ -130,10 +131,21 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const assetFamily = inferMachineFamilyFromText(
       `${asset.asset_name || ''} ${asset.asset_type || ''} ${asset.model || ''} ${asset.manufacturer || ''}`,
     );
+    const technicalReference = resolveTechnicalSheetReference(
+      `${asset.asset_name || ''} ${asset.asset_type || ''} ${asset.model || ''} ${asset.manufacturer || ''}`,
+      assetFamily,
+    );
 
     const specs = (asset.specs || {}) as Record<string, unknown>;
     const technicalFields = flattenSpecs(specs);
-    const sourceUrl = pickSourceUrl(specs);
+    const sourceUrl = pickSourceUrl(specs) || technicalReference?.sourceUrl || null;
+    const referenceFields = technicalReference
+      ? [
+          ...technicalReference.keySpecs,
+          { key: 'Fuente oficial', value: technicalReference.sourceLabel },
+          { key: 'Familia', value: technicalReference.family },
+        ]
+      : [];
 
     const templateRows = Array.isArray(templates) ? (templates as TemplateRow[]) : [];
     const faultModeRows = Array.isArray(faultModes) ? (faultModes as FaultModeRow[]) : [];
@@ -177,9 +189,21 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       technicalSheet: {
         family: assetFamily,
         sourceUrl,
-        fields: technicalFields,
+        fields: technicalFields.length > 0 ? technicalFields : referenceFields,
         rawSpecs: specs,
       },
+      referenceSheet: technicalReference
+        ? {
+            brand: technicalReference.brand,
+            model: technicalReference.model,
+            family: technicalReference.family,
+            sourceUrl: technicalReference.sourceUrl,
+            sourceLabel: technicalReference.sourceLabel,
+            summary: technicalReference.summary,
+            keySpecs: technicalReference.keySpecs,
+            components: technicalReference.components,
+          }
+        : null,
       componentProfile: suggestedTemplates,
     });
   } catch (error) {

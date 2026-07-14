@@ -87,6 +87,12 @@ function normalizeText(value: string | null | undefined) {
     .toLowerCase();
 }
 
+function resolveAssetScope(assetType?: string | null, model?: string | null, manufacturer?: string | null) {
+  const text = normalizeText([assetType, model, manufacturer].filter(Boolean).join(' '));
+  const vehicleHints = ['vehiculo', 'vehiculos', 'camioneta', 'camion', 'bus', 'furgon', 'pickup', 'tractor'];
+  return vehicleHints.some((hint) => text.includes(hint)) ? 'vehiculos' : 'equipos';
+}
+
 function statusLabel(status: string) {
   const labels: Record<string, string> = {
     open: 'Abierta',
@@ -173,6 +179,7 @@ export function AssetDetailView({ scope = 'vehiculos' }: AssetDetailViewProps) {
     [assetId, workOrders],
   );
   const machineCatalog: MachineCatalogItem[] = Array.isArray(machineCatalogData?.machines) ? machineCatalogData.machines : [];
+  const assetScope = resolveAssetScope(asset?.asset_type, asset?.model, asset?.manufacturer);
   const machineFamily = useMemo(() => {
     const text = `${asset?.asset_name || ''} ${asset?.asset_type || ''} ${asset?.model || ''} ${asset?.manufacturer || ''}`;
     return inferMachineFamilyFromText(text);
@@ -192,7 +199,7 @@ export function AssetDetailView({ scope = 'vehiculos' }: AssetDetailViewProps) {
   const totalMaintenanceCost = history.reduce((sum, item) => sum + Number(item.parts_cost || 0) + Number(item.labor_cost || 0), 0);
   const totalLaborHours = history.reduce((sum, item) => sum + Number(item.labor_hours || 0), 0);
 
-  const qrTargetUrl = `${origin}/dashboard/mantenimiento/${isEquipmentScope ? 'equipos' : 'vehiculos'}/${assetId}/ficha`;
+  const qrTargetUrl = `${origin}/dashboard/mantenimiento/${assetScope}/${assetId}/ficha`;
   const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(qrTargetUrl)}`;
 
   const copyQrLink = async () => {
@@ -250,6 +257,12 @@ export function AssetDetailView({ scope = 'vehiculos' }: AssetDetailViewProps) {
             </Link>
           </Button>
           <Button asChild variant="outline" className="gap-2">
+            <Link href={`${isEquipmentScope ? '/dashboard/mantenimiento/equipos' : '/dashboard/mantenimiento/vehiculos'}/${assetId}/qr`}>
+              <QrCode className="h-4 w-4" />
+              Tarjeta QR
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="gap-2">
             <Link href="/dashboard/mantenimiento/gerencial">
               <LayoutDashboard className="h-4 w-4" />
               Dashboard gerencial
@@ -266,8 +279,8 @@ export function AssetDetailView({ scope = 'vehiculos' }: AssetDetailViewProps) {
         <CardContent>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
             <Button asChild variant="outline" className="justify-between">
-              <Link href={isEquipmentScope ? `/dashboard/mantenimiento/equipos/${asset.id}/ficha` : `/dashboard/mantenimiento/vehiculos/${asset.id}/qr`}>
-                {isEquipmentScope ? 'Ficha completa' : 'Tarjeta QR'}
+              <Link href={isEquipmentScope ? `/dashboard/mantenimiento/equipos/${asset.id}/ficha` : `/dashboard/mantenimiento/vehiculos/${asset.id}/ficha`}>
+                Ficha completa
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -295,15 +308,21 @@ export function AssetDetailView({ scope = 'vehiculos' }: AssetDetailViewProps) {
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href={`/dashboard/mantenimiento/${isEquipmentScope ? 'equipos' : 'vehiculos'}/${asset.id}/arbol`}>
-                Arbol de fallas
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href={`/dashboard/mantenimiento/${isEquipmentScope ? 'equipos' : 'vehiculos'}/${asset.id}/arbol`}>
+                  Arbol de fallas
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href={`${isEquipmentScope ? '/dashboard/mantenimiento/equipos' : '/dashboard/mantenimiento/vehiculos'}/${asset.id}/qr`}>
+                  Tarjeta QR
+                  <QrCode className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
