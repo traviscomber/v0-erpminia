@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
@@ -79,12 +79,15 @@ type AssetHistoryResponse = {
   history?: SelectedHistoryRow[];
 };
 
-function statusLabel(status: string) {
-  const normalized = String(status || '')
+function normalizeText(value: string) {
+  return String(value || '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .trim()
     .toLowerCase();
+}
+
+function statusLabel(status: string) {
   const labels: Record<string, string> = {
     open: 'Abierta',
     abierta: 'Abierta',
@@ -99,17 +102,13 @@ function statusLabel(status: string) {
     closed: 'Cerrada',
     cerrada: 'Cerrada',
   };
-  return labels[normalized] || status || 'Sin estado';
+  return labels[normalizeText(status)] || status || 'Sin estado';
 }
 
 function resolveAssetScope(assetType?: string | null, model?: string | null, manufacturer?: string | null) {
-  const text = `${assetType || ''} ${model || ''} ${manufacturer || ''}`
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .trim()
-    .toLowerCase();
+  const text = `${assetType || ''} ${model || ''} ${manufacturer || ''}`;
   const vehicleHints = ['vehiculo', 'vehiculos', 'camioneta', 'camion', 'bus', 'furgon', 'pickup', 'tractor'];
-  return vehicleHints.some((hint) => text.includes(hint)) ? 'vehiculos' : 'equipos';
+  return vehicleHints.some((hint) => normalizeText(text).includes(hint)) ? 'vehiculos' : 'equipos';
 }
 
 export function MaintenanceMobilePanel() {
@@ -130,28 +129,19 @@ export function MaintenanceMobilePanel() {
   const openOrders = useMemo(
     () =>
       workOrders
-        .filter((order) => ['open', 'pending', 'pendiente', 'in_progress', 'en_progreso', 'assigned', 'asignada'].includes(
-          String(order.status || '')
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .trim()
-            .toLowerCase(),
-        ))
+        .filter((order) =>
+          ['open', 'pending', 'pendiente', 'in_progress', 'en_progreso', 'assigned', 'asignada'].includes(
+            normalizeText(order.status || ''),
+          ),
+        )
         .slice(0, 8),
     [workOrders],
   );
+
   const urgentOrders = useMemo(
     () =>
       workOrders
-        .filter((order) =>
-          ['high', 'critical', 'urgente', 'alta', 'critica'].includes(
-            String(order.priority || '')
-              .normalize('NFD')
-              .replace(/[\u0300-\u036f]/g, '')
-              .trim()
-              .toLowerCase(),
-          ),
-        )
+        .filter((order) => ['high', 'critical', 'urgente', 'alta', 'critica'].includes(normalizeText(order.priority || '')))
         .slice(0, 3),
     [workOrders],
   );
@@ -161,8 +151,8 @@ export function MaintenanceMobilePanel() {
   const [timeNotes, setTimeNotes] = useState('');
   const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
   const [evidenceLabel, setEvidenceLabel] = useState('');
-  const [upcargandoTime, setUpcargandoTime] = useState(false);
-  const [upcargandoEvidence, setUpcargandoEvidence] = useState(false);
+  const [registeringTime, setRegisteringTime] = useState(false);
+  const [uploadingEvidence, setUploadingEvidence] = useState(false);
 
   const currentOrder = workOrders.find((order) => order.id === selectedOtId) || openOrders[0] || workOrders[0] || null;
 
@@ -187,6 +177,12 @@ export function MaintenanceMobilePanel() {
   const timeEntries = (Array.isArray(selectedTimeData?.time_entries) ? selectedTimeData.time_entries : []) as TimeEntryRow[];
   const evidenceEntries = (Array.isArray(selectedEvidenceData?.evidence) ? selectedEvidenceData.evidence : []) as EvidenceRow[];
 
+  const selectedAssetFamily = useMemo(() => {
+    const text = `${selectedAsset?.asset_name || ''} ${selectedAsset?.asset_type || ''} ${selectedAsset?.model || ''} ${selectedAsset?.manufacturer || ''}`;
+    return inferMachineFamilyFromText(text) || 'Sin familia';
+  }, [selectedAsset?.asset_name, selectedAsset?.asset_type, selectedAsset?.model, selectedAsset?.manufacturer]);
+  const selectedAssetScope = resolveAssetScope(selectedAsset?.asset_type, selectedAsset?.model, selectedAsset?.manufacturer);
+
   const stats = [
     { label: 'Equipos', value: String(assets.length), icon: Smartphone },
     { label: 'OT abiertas', value: String(openOrders.length), icon: Wrench },
@@ -202,11 +198,11 @@ export function MaintenanceMobilePanel() {
 
     const parsedHours = Number(hoursWorked);
     if (!Number.isFinite(parsedHours) || parsedHours <= 0) {
-      toast.error('Ingresa horas válidas');
+      toast.error('Ingresa horas validas');
       return;
     }
 
-    setUpcargandoTime(true);
+    setRegisteringTime(true);
     try {
       const response = await fetch('/api/mantenimiento/tiempo', {
         method: 'POST',
@@ -229,7 +225,7 @@ export function MaintenanceMobilePanel() {
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'No se pudo registrar el tiempo');
     } finally {
-      setUpcargandoTime(false);
+      setRegisteringTime(false);
     }
   };
 
@@ -244,7 +240,7 @@ export function MaintenanceMobilePanel() {
       return;
     }
 
-    setUpcargandoEvidence(true);
+    setUploadingEvidence(true);
     try {
       const response = await fetch('/api/mantenimiento/evidencia', {
         method: 'POST',
@@ -263,9 +259,7 @@ export function MaintenanceMobilePanel() {
       if (payload?.signed_url) {
         const uploadResponse = await fetch(payload.signed_url, {
           method: 'PUT',
-          headers: {
-            'Content-Type': evidenceFile.type || 'application/octet-stream',
-          },
+          headers: { 'Content-Type': evidenceFile.type || 'application/octet-stream' },
           body: evidenceFile,
         });
 
@@ -281,22 +275,16 @@ export function MaintenanceMobilePanel() {
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'No se pudo subir la evidencia');
     } finally {
-      setUpcargandoEvidence(false);
+      setUploadingEvidence(false);
     }
   };
-
-  const selectedAssetFamily = useMemo(() => {
-    const text = `${selectedAsset?.asset_name || ''} ${selectedAsset?.asset_type || ''} ${selectedAsset?.model || ''} ${selectedAsset?.manufacturer || ''}`;
-    return inferMachineFamilyFromText(text) || 'Sin familia';
-  }, [selectedAsset?.asset_name, selectedAsset?.asset_type, selectedAsset?.model, selectedAsset?.manufacturer]);
-  const selectedAssetScope = resolveAssetScope(selectedAsset?.asset_type, selectedAsset?.model, selectedAsset?.manufacturer);
 
   return (
     <div className="mx-auto max-w-md space-y-4 pb-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Panel móvil de mantención</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Panel movil de mantencion</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Vista optimizada para terreno con OT reales, horas, evidencia y acceso rápido a la ficha del equipo.
+          Vista para terreno con OT reales, horas, evidencia y acceso rapido a la ficha del equipo.
         </p>
       </div>
 
@@ -316,18 +304,18 @@ export function MaintenanceMobilePanel() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Acceso rápido</CardTitle>
+          <CardTitle>Acceso rapido</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-2">
           <Button asChild variant="outline" className="w-full justify-between">
             <Link href={`/dashboard/mantenimiento/${selectedAssetScope}`}>
-              Vehículos y QR
+              Vehiculos y QR
               <QrCode className="h-4 w-4" />
             </Link>
           </Button>
           <Button asChild variant="outline" className="w-full justify-between">
             <Link href="/dashboard/mantenimiento/bitacora">
-              Bitácora
+              Bitacora
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
@@ -348,17 +336,17 @@ export function MaintenanceMobilePanel() {
           <div className="rounded-lg border border-border p-3">
             <p className="text-xs text-muted-foreground">Personal</p>
             <p className="text-xl font-bold">{personalSummary.technicians || 0}</p>
-              <p className="text-xs text-muted-foreground">Técnicos con registros</p>
+            <p className="text-xs text-muted-foreground">Tecnicos con registros</p>
           </div>
           <div className="rounded-lg border border-border p-3">
             <p className="text-xs text-muted-foreground">Horas</p>
             <p className="text-xl font-bold">{Number(personalSummary.totalHours || 0).toFixed(1)}</p>
-              <p className="text-xs text-muted-foreground">Horas cargadas hoy</p>
+            <p className="text-xs text-muted-foreground">Horas cargadas hoy</p>
           </div>
           <div className="rounded-lg border border-border p-3">
             <p className="text-xs text-muted-foreground">Urgentes</p>
             <p className="text-xl font-bold text-orange-500">{urgentOrders.length}</p>
-            <p className="text-xs text-muted-foreground">OT críticas activas</p>
+            <p className="text-xs text-muted-foreground">OT criticas activas</p>
           </div>
           <div className="rounded-lg border border-border p-3">
             <p className="text-xs text-muted-foreground">MTTR</p>
@@ -378,7 +366,7 @@ export function MaintenanceMobilePanel() {
               <>
                 <div className="rounded-lg border border-border p-3">
                   <p className="font-semibold">{selectedAsset.asset_name || 'Equipo'}</p>
-                  <p className="text-muted-foreground">{selectedAsset.asset_code || 'Sin código'}</p>
+                  <p className="text-muted-foreground">{selectedAsset.asset_code || 'Sin codigo'}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="rounded-lg border border-border p-3">
@@ -386,15 +374,15 @@ export function MaintenanceMobilePanel() {
                     <p className="font-semibold">{selectedAsset.asset_type || '-'}</p>
                   </div>
                   <div className="rounded-lg border border-border p-3">
-                    <p className="text-xs text-muted-foreground">Ubicación</p>
+                    <p className="text-xs text-muted-foreground">Ubicacion</p>
                     <p className="font-semibold">{selectedAsset.location || '-'}</p>
                   </div>
                   <div className="rounded-lg border border-border p-3">
-                    <p className="text-xs text-muted-foreground">Horómetro técnico</p>
+                    <p className="text-xs text-muted-foreground">Horometro tecnico</p>
                     <p className="font-semibold">{selectedAsset.mtbf_hours ? `${selectedAsset.mtbf_hours} h` : 'Sin lectura'}</p>
                   </div>
                   <div className="rounded-lg border border-border p-3">
-                    <p className="text-xs text-muted-foreground">Última trazabilidad</p>
+                    <p className="text-xs text-muted-foreground">Ultima trazabilidad</p>
                     <p className="font-semibold">
                       {selectedHistory[0]?.created_at ? new Date(selectedHistory[0].created_at).toLocaleDateString('es-CL') : 'Sin registro'}
                     </p>
@@ -455,14 +443,14 @@ export function MaintenanceMobilePanel() {
               <Input id="hours" type="number" step="0.1" min="0" value={hoursWorked} onChange={(event) => setHoursWorked(event.target.value)} />
             </div>
             <div className="flex items-end">
-              <Button type="button" className="w-full" onClick={handleRegisterTime} disabled={upcargandoTime}>
-                {upcargandoTime ? 'Guardando...' : 'Registrar horas'}
+              <Button type="button" className="w-full" onClick={handleRegisterTime} disabled={registeringTime}>
+                {registeringTime ? 'Guardando...' : 'Registrar horas'}
               </Button>
             </div>
           </div>
 
           <div>
-            <Label htmlFor="timeNotes">Descripción del trabajo</Label>
+            <Label htmlFor="timeNotes">Descripcion del trabajo</Label>
             <Textarea
               id="timeNotes"
               rows={3}
@@ -473,19 +461,19 @@ export function MaintenanceMobilePanel() {
           </div>
 
           <div className="rounded-lg border border-border p-3 text-sm">
-            <p className="font-semibold">Horómetro técnico</p>
+            <p className="font-semibold">Horometro tecnico</p>
             <p className="text-muted-foreground">
-              {selectedAsset?.mtbf_hours ? `${selectedAsset.mtbf_hours} horas técnicas registradas en el activo` : 'Sin lectura directa aún en la base actual'}
+              {selectedAsset?.mtbf_hours ? `${selectedAsset.mtbf_hours} horas tecnicas registradas en el activo` : 'Sin lectura directa aun en la base actual'}
             </p>
           </div>
 
           {timeEntries.length > 0 ? (
             <div className="space-y-2 rounded-lg border border-border p-3 text-sm">
-              <p className="font-semibold">Últimos registros de esta OT</p>
+              <p className="font-semibold">Ultimos registros de esta OT</p>
               {timeEntries.slice(0, 3).map((entry) => (
                 <div key={entry.id} className="rounded-md bg-muted/40 p-2">
                   <p className="font-medium">{Number(entry.horas_trabajadas || 0).toFixed(1)} h</p>
-                  <p className="text-xs text-muted-foreground">{entry.descripcion || 'Sin descripción'}</p>
+                  <p className="text-xs text-muted-foreground">{entry.descripcion || 'Sin descripcion'}</p>
                 </div>
               ))}
             </div>
@@ -509,35 +497,31 @@ export function MaintenanceMobilePanel() {
           </div>
           <div>
             <Label htmlFor="evidenceFile">Archivo</Label>
-            <Input
-              id="evidenceFile"
-              type="file"
-              onChange={(event) => setEvidenceFile(event.target.files?.[0] || null)}
-            />
+            <Input id="evidenceFile" type="file" onChange={(event) => setEvidenceFile(event.target.files?.[0] || null)} />
           </div>
-          <Button type="button" variant="outline" className="w-full gap-2" onClick={handleUploadEvidence} disabled={upcargandoEvidence}>
+          <Button type="button" variant="outline" className="w-full gap-2" onClick={handleUploadEvidence} disabled={uploadingEvidence}>
             <Upload className="h-4 w-4" />
-            {upcargandoEvidence ? 'Subiendo...' : 'Subir evidencia'}
+            {uploadingEvidence ? 'Subiendo...' : 'Subir evidencia'}
           </Button>
 
           {evidenceEntries.length > 0 ? (
             <div className="space-y-2">
               {evidenceEntries.slice(0, 3).map((item) => (
                 <div key={item.id} className="rounded-lg border border-border p-3 text-sm">
-                  <p className="font-semibold">{item.file_name}</p>
+                  <p className="font-semibold">{item.file_name || 'Archivo'}</p>
                   <p className="text-muted-foreground">{item.file_type || 'Archivo'}</p>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">Todavía no hay evidencia cargada para esta OT.</p>
+            <p className="text-sm text-muted-foreground">Todavia no hay evidencia cargada para esta OT.</p>
           )}
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Acciones rápidas</CardTitle>
+          <CardTitle>Acciones rapidas</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-3">
           <Button asChild className="justify-between">
@@ -556,13 +540,13 @@ export function MaintenanceMobilePanel() {
           ) : null}
           <Button asChild variant="outline" className="justify-between">
             <Link href="/dashboard/mantenimiento/bitacora">
-              Ver bitácora
+              Ver bitacora
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
           <Button asChild variant="outline" className="justify-between">
             <Link href="/dashboard/mantenimiento/planificacion">
-              Ver planificación
+              Ver planificacion
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
@@ -589,7 +573,7 @@ export function MaintenanceMobilePanel() {
           {openOrders.length === 0 ? (
             <div className="flex items-center gap-2 rounded-lg border border-dashed border-border p-3 text-sm text-muted-foreground">
               <AlertCircle className="h-4 w-4" />
-              No hay órdenes abiertas en este momento.
+              No hay ordenes abiertas en este momento.
             </div>
           ) : (
             openOrders.map((order) => (
@@ -625,7 +609,7 @@ export function MaintenanceMobilePanel() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Personal de mantención</CardTitle>
+          <CardTitle>Personal de mantencion</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <div className="grid grid-cols-3 gap-3">
@@ -638,7 +622,7 @@ export function MaintenanceMobilePanel() {
               <p className="text-xl font-bold">{personalSummary.totalEntries || 0}</p>
             </div>
             <div className="rounded-lg border border-border p-3">
-              <p className="text-xs text-muted-foreground">Técnicos</p>
+              <p className="text-xs text-muted-foreground">Tecnicos</p>
               <p className="text-xl font-bold">{personalSummary.technicians || 0}</p>
             </div>
           </div>
@@ -648,7 +632,7 @@ export function MaintenanceMobilePanel() {
               {technicians.slice(0, 3).map((tech) => (
                 <div key={tech.technicianId} className="rounded-lg border border-border p-3">
                   <div className="flex items-center justify-between">
-                    <p className="font-semibold">{tech.name || 'Técnico'}</p>
+                    <p className="font-semibold">{tech.name || 'Tecnico'}</p>
                     <Badge variant="outline">{Number(tech.hours || 0).toFixed(1)} h</Badge>
                   </div>
                   <p className="text-xs text-muted-foreground">{tech.entries} registros</p>
@@ -658,7 +642,7 @@ export function MaintenanceMobilePanel() {
           ) : (
             <div className="flex items-center gap-2 rounded-lg border border-dashed border-border p-3 text-muted-foreground">
               <Users className="h-4 w-4" />
-              Todavía no hay registros de tiempo para resumir.
+              Todavia no hay registros de tiempo para resumir.
             </div>
           )}
         </CardContent>
@@ -667,7 +651,7 @@ export function MaintenanceMobilePanel() {
       {recentEntries.length > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>Últimos registros de tiempo</CardTitle>
+            <CardTitle>Ultimos registros de tiempo</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             {recentEntries.slice(0, 3).map((item) => (
@@ -684,13 +668,13 @@ export function MaintenanceMobilePanel() {
       {selectedHistory.length > 0 ? (
         <Card>
           <CardHeader>
-          <CardTitle>Última trazabilidad</CardTitle>
+            <CardTitle>Ultima trazabilidad</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             {selectedHistory.slice(0, 3).map((item) => (
               <div key={item.id} className="rounded-lg border border-border p-3">
-              <p className="font-semibold">{item.work_order?.work_order_number || 'Sin OT'}</p>
-                <p className="text-muted-foreground">{item.notes || item.parts_replaced || 'Mantención registrada'}</p>
+                <p className="font-semibold">{item.work_order?.work_order_number || 'Sin OT'}</p>
+                <p className="text-muted-foreground">{item.notes || item.parts_replaced || 'Mantencion registrada'}</p>
                 <p className="mt-1 text-xs text-muted-foreground">{item.created_at ? new Date(item.created_at).toLocaleDateString('es-CL') : 'Sin fecha'}</p>
               </div>
             ))}
