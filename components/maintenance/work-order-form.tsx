@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CostCenterSelect } from '@/components/common/cost-center-select';
-import { toast } from 'sonner';
 
 interface WorkOrderFormProps {
   assetId: string;
@@ -28,8 +28,8 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title) {
-      toast.error('El título es obligatorio');
+    if (!formData.title.trim()) {
+      toast.error('El titulo es obligatorio');
       return;
     }
 
@@ -41,24 +41,23 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          title: formData.title,
-          description: formData.description,
+          title: formData.title.trim(),
+          description: formData.description.trim(),
           workType: formData.workType,
           priority: formData.priority,
-          plannedDurationHours: parseFloat(formData.plannedDurationHours.toString()),
-          scheduledDate: formData.scheduledDate,
-          costCenterId: formData.costCenterId,
+          plannedDurationHours: Number(formData.plannedDurationHours || 0),
+          scheduledDate: formData.scheduledDate || undefined,
+          costCenterId: formData.costCenterId || undefined,
           assetId,
         }),
       });
 
+      const payload = await res.json().catch(() => null);
       if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || 'No se pudo crear la orden de trabajo');
+        throw new Error(payload?.error || 'No se pudo crear la orden de trabajo');
       }
 
-      const { data } = await res.json();
-      toast.success(`Orden de trabajo ${data.work_order_number} creada con éxito`);
+      toast.success(`Orden de trabajo ${payload?.data?.work_order_number || ''} creada con exito`);
       onSuccess();
       setFormData({
         title: '',
@@ -84,12 +83,12 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="title">Título</Label>
+            <Label htmlFor="title">Titulo</Label>
             <Input id="title" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} required />
           </div>
 
           <div>
-            <Label htmlFor="description">Descripción</Label>
+            <Label htmlFor="description">Descripcion</Label>
             <textarea
               id="description"
               value={formData.description}
@@ -133,7 +132,7 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
                   <SelectItem value="low">Baja</SelectItem>
                   <SelectItem value="medium">Media</SelectItem>
                   <SelectItem value="high">Alta</SelectItem>
-                  <SelectItem value="critical">Crítica</SelectItem>
+                  <SelectItem value="critical">Critica</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -141,13 +140,18 @@ export function WorkOrderForm({ assetId, onSuccess }: WorkOrderFormProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="plannedDuration">Duración planificada (horas)</Label>
+              <Label htmlFor="plannedDuration">Duracion planificada (horas)</Label>
               <Input
                 id="plannedDuration"
                 type="number"
                 step="0.5"
                 value={formData.plannedDurationHours}
-                onChange={(e) => setFormData({ ...formData, plannedDurationHours: parseFloat(e.target.value) })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    plannedDurationHours: Number(e.target.value || 0),
+                  })
+                }
                 required
               />
             </div>
