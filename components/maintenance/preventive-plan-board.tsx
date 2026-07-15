@@ -110,6 +110,14 @@ export function PreventivePlanBoard() {
   }, [schedules, searchTerm]);
 
   const summary: PreventiveSummary = data?.summary || { total: 0, enabled: 0, overdue: 0, dueSoon: 0 };
+  const overdueSchedules = useMemo(
+    () => filteredSchedules.filter((schedule) => (schedule.daysUntil ?? 9999) < 0).slice(0, 3),
+    [filteredSchedules],
+  );
+  const dueSoonSchedules = useMemo(
+    () => filteredSchedules.filter((schedule) => (schedule.daysUntil ?? 9999) >= 0 && (schedule.daysUntil ?? 9999) <= 30).slice(0, 3),
+    [filteredSchedules],
+  );
 
   const grouped = useMemo(() => {
     const groups: Record<string, PreventiveSchedule[]> = {};
@@ -187,6 +195,70 @@ export function PreventivePlanBoard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-500">{summary.dueSoon}</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <Card className="border-destructive/20 bg-destructive/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <AlertCircle className="h-4 w-4 text-destructive" />
+              Vencidas ahora
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            {overdueSchedules.length > 0 ? (
+              overdueSchedules.map((schedule) => (
+                <div key={schedule.id} className="rounded-lg border border-border bg-background p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-semibold">{schedule.taskName}</p>
+                      <p className="text-muted-foreground">
+                        {schedule.assetName}
+                        {schedule.assetCode ? ` | ${schedule.assetCode}` : ''}
+                      </p>
+                    </div>
+                    <Badge variant="destructive">{daysLabel(schedule.daysUntil)}</Badge>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-lg border border-dashed border-border bg-background p-3 text-muted-foreground">
+                No hay mantenimientos vencidos con el filtro actual.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="border-orange-500/20 bg-orange-500/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <CalendarClock className="h-4 w-4 text-orange-500" />
+              Proximos 30 dias
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            {dueSoonSchedules.length > 0 ? (
+              dueSoonSchedules.map((schedule) => (
+                <div key={schedule.id} className="rounded-lg border border-border bg-background p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-semibold">{schedule.taskName}</p>
+                      <p className="text-muted-foreground">
+                        {schedule.assetName}
+                        {schedule.location ? ` | ${schedule.location}` : ''}
+                      </p>
+                    </div>
+                    <Badge variant="outline">{daysLabel(schedule.daysUntil)}</Badge>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-lg border border-dashed border-border bg-background p-3 text-muted-foreground">
+                No hay mantenimientos proximos con el filtro actual.
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
