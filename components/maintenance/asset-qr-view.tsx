@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import useSWR from 'swr';
-import { ArrowLeft, Copy, Printer, QrCode, Wrench } from 'lucide-react';
+import { ArrowLeft, Copy, History, Printer, QrCode, Wrench } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -104,6 +104,8 @@ export function AssetQrView({ scope }: AssetQrViewProps) {
     (order) => order.status === 'open' || order.status === 'assigned' || order.status === 'in_progress',
   );
   const lastOrder = assetOrders[0];
+  const recentOrders = assetOrders.slice(0, 3);
+  const recentHistory = history.slice(0, 3);
   const lastHistory = history[0];
   const totalMaintenanceCost = history.reduce((sum, item) => sum + Number(item.parts_cost || 0) + Number(item.labor_cost || 0), 0);
   const totalLaborHours = history.reduce((sum, item) => sum + Number(item.labor_hours || 0), 0);
@@ -295,6 +297,79 @@ export function AssetQrView({ scope }: AssetQrViewProps) {
               <Button asChild variant="outline">
                 <Link href="/dashboard/mantenimiento/movil">Vista movil</Link>
               </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="print:shadow-none">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <History className="h-4 w-4" />
+                Trazabilidad reciente
+              </CardTitle>
+              <CardDescription>Lo ultimo asociado a este activo, listo para terreno y supervision.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-3">
+                <div>
+                  <p className="text-muted-foreground">Familia</p>
+                  <p className="font-semibold">{machineFamily || 'Sin familia derivada'}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">OT activas</p>
+                  <p className="font-semibold">{activeOrders.length}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Mantenciones registradas</p>
+                  <p className="font-semibold">{history.length}</p>
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="rounded-lg border border-border/60 p-4">
+                  <p className="mb-3 text-sm font-semibold">Ultimas OT</p>
+                  <div className="space-y-3">
+                    {recentOrders.length ? (
+                      recentOrders.map((order) => (
+                        <div key={order.id} className="rounded-md bg-muted/40 p-3 text-sm">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-medium">{order.work_order_number || order.id}</span>
+                            <span className="text-xs text-muted-foreground">{statusLabel(order.status)}</span>
+                          </div>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {order.created_at ? new Date(order.created_at).toLocaleDateString('es-CL') : 'Sin fecha'}
+                            {order.completion_date ? ` - cierre ${new Date(order.completion_date).toLocaleDateString('es-CL')}` : ''}
+                          </p>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Sin OT registradas.</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-border/60 p-4">
+                  <p className="mb-3 text-sm font-semibold">Ultimas mantenciones</p>
+                  <div className="space-y-3">
+                    {recentHistory.length ? (
+                      recentHistory.map((entry) => (
+                        <div key={entry.id} className="rounded-md bg-muted/40 p-3 text-sm">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-medium">{entry.maintenance_type || 'Mantencion'}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {entry.created_at ? new Date(entry.created_at).toLocaleDateString('es-CL') : 'Sin fecha'}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {entry.performed_by_name || 'Sin tecnico'} - ${Number((entry.parts_cost || 0) + (entry.labor_cost || 0)).toLocaleString('es-CL')}
+                          </p>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Sin mantenciones registradas.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
