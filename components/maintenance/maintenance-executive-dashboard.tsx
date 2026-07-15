@@ -234,6 +234,67 @@ export function MaintenanceExecutiveDashboard() {
         ))}
       </div>
 
+      <Card className="border-border/70 bg-card/90">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <AlertCircle className="h-5 w-5" />
+            Senales del dia
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-lg border border-border p-3">
+              <p className="text-xs text-muted-foreground">Preventivos vencidos</p>
+              <p className="text-2xl font-bold text-destructive">{preventiveSummary.overdue}</p>
+            </div>
+            <div className="rounded-lg border border-border p-3">
+              <p className="text-xs text-muted-foreground">Preventivos proximos</p>
+              <p className="text-2xl font-bold text-orange-500">{preventiveSummary.dueSoon}</p>
+            </div>
+            <div className="rounded-lg border border-border p-3">
+              <p className="text-xs text-muted-foreground">OT atrasadas</p>
+              <p className="text-2xl font-bold text-destructive">{overdueOrders}</p>
+            </div>
+            <div className="rounded-lg border border-border p-3">
+              <p className="text-xs text-muted-foreground">Foco en abastecimiento</p>
+              <p className="text-2xl font-bold text-amber-500">
+                {tireSummary.lowStock + fuelSummary.lowStock}
+              </p>
+            </div>
+          </div>
+
+          {executiveWarnings.length > 0 ? (
+            <div className="space-y-2">
+              {executiveWarnings.slice(0, 4).map((warning) => (
+                <div key={warning} className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-sm text-amber-700">
+                  <AlertCircle className="mt-0.5 h-4 w-4" />
+                  <span>{warning}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-lg border border-border p-3 text-sm text-muted-foreground">
+              No hay señales criticas con la base actual.
+            </div>
+          )}
+
+          <div className="flex flex-wrap gap-2">
+            <Button asChild variant="outline" className="gap-2">
+              <Link href="/dashboard/mantenimiento/planificacion">
+                <CalendarClock className="h-4 w-4" />
+                Ver planificacion
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="gap-2">
+              <Link href="/dashboard/mantenimiento/bitacora">
+                <ArrowRight className="h-4 w-4" />
+                Ver bitacora
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         <Card>
           <CardHeader>
