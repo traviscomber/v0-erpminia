@@ -250,6 +250,17 @@ Checklist:
 4. Documentos gestion
 5. Legal
 
+## Objetivo actual
+
+Cerrar la cobertura real de fichas tecnicas y maquinaria tomando como base los centros de costo y el inventario real, sin introducir mock data.
+
+En este bloque el foco es:
+
+1. ampliar la ficha tecnica por equipo real
+2. asegurar que los nombres derivados desde centros de costo apunten a modelos reales
+3. dejar mantenimiento, bodega y telemetria conectados con la misma base de activos
+4. mantener copy en espanol simple y estable
+
 ## Siguiente paso practico
 
 Auditar modulo por modulo con este orden:

@@ -610,7 +610,7 @@ const TECHNICAL_SHEET_LIBRARY: TechnicalSheetReference[] = [
     brand: 'Epiroc',
     model: 'Boomer S1D',
     family: 'Equipos de Perforacion',
-    aliases: ['boomer s1d', 'boomer s1', 'atlas copco boomer s1d', 'epiroc boomer s1d'],
+    aliases: ['boomer s1d', 'boomer s1', 'atlas copco boomer s1d', 'epiroc boomer s1d', 'jumbo atlas copco boomer s1d', 'boomer s1d 2019'],
     sourceUrl: 'https://www.epiroc.com/content/dam/epiroc/underground-mining-and-tunneling/tme/drilling-technical-specifications/boomer/9869_0094_01c_Boomer_S1_technical_specification_english.pdf',
     sourceLabel: 'Boomer S1 technical specification',
     summary: 'Equipo de perforacion frontal de un brazo para galerias pequenas y tuneles de alta precision.',
@@ -680,7 +680,7 @@ const TECHNICAL_SHEET_LIBRARY: TechnicalSheetReference[] = [
     brand: 'Epiroc',
     model: 'Boomer 281',
     family: 'Equipos de Perforacion',
-    aliases: ['boomer 281', 'jumbo boomer 281', 'boomer 281-15', 'boomer 281 15'],
+    aliases: ['boomer 281', 'jumbo boomer 281', 'boomer 281-15', 'boomer 281 15', 'jumbo atlas copco boomer 281'],
     sourceUrl: 'https://www.epiroc.com/es-cl/products/drill-rigs/face-drill-rigs/boomer-281',
     sourceLabel: 'Boomer 281',
     summary: 'Equipo de perforacion frontal hidraulico para mineria y excavacion subterranea de tamanos medianos.',
@@ -854,7 +854,7 @@ const TECHNICAL_SHEET_LIBRARY: TechnicalSheetReference[] = [
     brand: 'Caterpillar',
     model: '938K',
     family: 'Cargadores Frontales',
-    aliases: ['938k', 'cat 938k', 'caterpillar 938k', '938-k'],
+    aliases: ['938k', 'cat 938k', 'caterpillar 938k', '938-k', 'cat 938', 'caterpillar 938', '938'],
     sourceUrl: 'https://h-cpc.cat.com/cmms/v2?cid=406&f=product&gid=263&it=product&lid=en&nc=1&pid=18263412&sc=NACD',
     sourceLabel: 'Cat 938K',
     summary: 'Cargador frontal orientado a productividad, visibilidad y eficiencia operacional.',
@@ -1026,7 +1026,7 @@ const TECHNICAL_SHEET_LIBRARY: TechnicalSheetReference[] = [
     brand: 'Epiroc',
     model: 'Diamec 232',
     family: 'Equipos de Sondaje',
-    aliases: ['diamec 232', 'diamec 230', 'diamec 232-2008', 'diamec 232-2012', 'diamec 232 2008', 'diamec 232 2012', 'atlas copco diamec 232', 'diamec 230'],
+    aliases: ['diamec 232', 'diamec 230', 'diamec 232-2008', 'diamec 232-2012', 'diamec 232 2008', 'diamec 232 2012', 'atlas copco diamec 232', 'diamec 230', 'atlas copco diamec 230', 'diamec 230 2008', 'diamec 230 2012'],
     sourceUrl: 'https://www.epiroc.com/es-mx/products/drill-rigs/exploration-drill-rigs/core-drilling-rigs/diamec-232',
     sourceLabel: 'Diamec 232',
     summary: 'Sonda subterranea compacta para extraccion de testigos en galerias estrechas y trabajos de exploracion.',
@@ -1079,7 +1079,7 @@ const TECHNICAL_SHEET_LIBRARY: TechnicalSheetReference[] = [
     brand: 'Sandvik',
     model: 'DE-130',
     family: 'Equipos de Sondaje',
-    aliases: ['de-130', 'de130', 'de130x', 'sandvik de-130', 'sandvik de130x'],
+    aliases: ['de-130', 'de130', 'de130x', 'sandvik de-130', 'sandvik de130x', 'sandvik de 130', 'sonda sandvik de-130'],
     sourceUrl: 'https://www.rocktechnology.sandvik/en/news-and-media/news-archive/2012/12/sandvik-expands-an-already-successful-product-line-to-include-a-certified-rig-for-high-risk-environments-/',
     sourceLabel: 'Sandvik DE130x',
     summary: 'Sonda de exploracion subterránea para entornos de alto riesgo y perforacion de testigos.',
@@ -1339,7 +1339,7 @@ const TECHNICAL_SHEET_LIBRARY: TechnicalSheetReference[] = [
     brand: 'Hagby',
     model: 'Onram 1000/3',
     family: 'Equipos de Sondaje',
-    aliases: ['onram 1000/3', 'onram 1000', 'hagby onram 1000/3', 'hagby onram 1000', '1000/3'],
+    aliases: ['onram 1000/3', 'onram 1000', 'hagby onram 1000/3', 'hagby onram 1000', '1000/3', 'sonda onram 1000/3'],
     sourceUrl: 'https://dasmithdrilling.com/equipment/hagby-onram-10003-msha-permissible-diamond-core-drill',
     sourceLabel: 'Hagby Onram 1000/3',
     summary: 'Equipo de perforacion diamantina compacto para exploracion subterranea y acceso restringido.',
@@ -1440,10 +1440,112 @@ const TECHNICAL_SHEET_LIBRARY: TechnicalSheetReference[] = [
     ],
   },
   {
+    brand: 'GHH',
+    model: 'MK-A20',
+    family: 'Camiones de Bajo Perfil',
+    aliases: ['mk-a20', 'ghh mk-a20', 'dumper ghh', 'ghh dumper mk-a20', 'ghh mk a20', 'dumper ghh modelo mk a20', 'modelo mk-a20'],
+    sourceUrl: 'https://www.ghh-fahrzeuge.de/',
+    sourceLabel: 'GHH MK-A20',
+    summary: 'Dumper subterraneo de referencia para transporte y acarreo en labores de mina.',
+    keySpecs: [
+      { label: 'Aplicacion', value: 'Acarreo subterraneo' },
+      { label: 'Tipo', value: 'Dump truck' },
+      { label: 'Enfoque', value: 'Capacidad y estabilidad' },
+    ],
+    components: [
+      {
+        code: 'TRN',
+        name: 'Transmision',
+        level: 1,
+        criticality: 'alta',
+        description: 'Sistema de arrastre y transferencia de potencia.',
+        faults: [
+          {
+            code: 'TRN-SLIP',
+            name: 'Patinamiento',
+            severity: 'media',
+            symptom: 'Perdida de fuerza o cambios bruscos',
+            cause: 'Aceite degradado o desgaste interno',
+            effect: 'Menor productividad y mayor desgaste',
+            recommendedAction: 'Verificar aceite y diagnostico del sistema',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    brand: 'MDS',
+    model: 'MDS-141',
+    family: 'Equipos de Sondaje',
+    aliases: ['mds-141', 'mds 141', 'sonda mds-141', 'sonda mds 141', 'modelo 141'],
+    sourceUrl: 'https://www.epiroc.com/en-us/products/drill-rigs/exploration-drill-rigs/core-drilling-rigs',
+    sourceLabel: 'Core Drilling Rigs',
+    summary: 'Sonda de exploracion usada como referencia local para perforacion y testigos de diamantina.',
+    keySpecs: [
+      { label: 'Aplicacion', value: 'Perforacion de exploracion' },
+      { label: 'Tipo', value: 'Core drill rig' },
+      { label: 'Enfoque', value: 'Profundidad y precision' },
+    ],
+    components: [
+      {
+        code: 'DRL',
+        name: 'Sistema de perforacion',
+        level: 1,
+        criticality: 'alta',
+        description: 'Cabezal, avance y rotacion de la sonda.',
+        faults: [
+          {
+            code: 'DRL-TORQ',
+            name: 'Perdida de torque',
+            severity: 'media',
+            symptom: 'Menor avance o atascos',
+            cause: 'Desgaste mecanico o presion insuficiente',
+            effect: 'Baja velocidad de sondaje',
+            recommendedAction: 'Revisar sistema hidraulico y cabezal',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    brand: 'Ingetrol',
+    model: 'H-600',
+    family: 'Equipos de Sondaje',
+    aliases: ['h-600', 'h600', 'ingetrol h-600', 'ingetrol h600', 'ingetrol h 600', 'sonda ingetrol h-600'],
+    sourceUrl: 'https://www.construex.com.mx/exhibidores/ingetrol/productos',
+    sourceLabel: 'Ingetrol H-600',
+    summary: 'Perforadora subterranea de exploracion con alcance de referencia local en faena.',
+    keySpecs: [
+      { label: 'Aplicacion', value: 'Perforacion subterranea' },
+      { label: 'Tipo', value: 'Core drilling rig' },
+      { label: 'Enfoque', value: 'Alcance y control' },
+    ],
+    components: [
+      {
+        code: 'DRL',
+        name: 'Sistema de perforacion',
+        level: 1,
+        criticality: 'alta',
+        description: 'Conjunto de avance, rotacion y perforacion.',
+        faults: [
+          {
+            code: 'DRL-LOWP',
+            name: 'Baja presion de perforacion',
+            severity: 'alta',
+            symptom: 'Bajo avance o vibracion anormal',
+            cause: 'Bomba o circuito con desgaste',
+            effect: 'Menor velocidad de perforacion',
+            recommendedAction: 'Revisar presion y elementos del circuito',
+          },
+        ],
+      },
+    ],
+  },
+  {
     brand: 'JCB',
     model: '225 NXT',
     family: 'Excavadoras y Retroexcavadoras',
-    aliases: ['225', 'jcb 225', 'jcb 225 nxt', '225 nxt', 'jcb 225lc', '225lc'],
+    aliases: ['225', 'jcb 225', 'jcb 225 nxt', '225 nxt', 'jcb 225lc', '225lc', 'jcb 225 2011', 'minicargador jcb 225', 'mini cargador jcb 225'],
     sourceUrl: 'https://www.jcb.com/en-SG/products/machines/tracked-excavators/225-nxt/',
     sourceLabel: 'JCB 225 NXT',
     summary: 'Excavadora de orugas de 22 toneladas para movimiento de tierra, zanjas y apoyo operativo.',
@@ -1570,6 +1672,74 @@ const TECHNICAL_SHEET_LIBRARY: TechnicalSheetReference[] = [
             cause: 'Pastillas, liquido o aire en el circuito',
             effect: 'Riesgo de seguridad',
             recommendedAction: 'Purgar, revisar y reemplazar componentes',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    brand: 'Ford',
+    model: 'F-150',
+    family: 'Camionetas',
+    aliases: ['f-150', 'f150', 'ford f-150', 'ford f150', 'f-150 2025'],
+    sourceUrl: 'https://www.ford.com/f-150/',
+    sourceLabel: 'Ford F-150',
+    summary: 'Pickup de trabajo y soporte operacional para traslado, inspeccion y apoyo liviano.',
+    keySpecs: [
+      { label: 'Aplicacion', value: 'Traslado y soporte' },
+      { label: 'Tipo', value: 'Pickup 4x4' },
+      { label: 'Enfoque', value: 'Capacidad y durabilidad' },
+    ],
+    components: [
+      {
+        code: 'ENG',
+        name: 'Motor',
+        level: 1,
+        criticality: 'alta',
+        description: 'Motorizacion para trabajo mixto en ruta y terreno.',
+        faults: [
+          {
+            code: 'ENG-FUEL',
+            name: 'Falla de alimentacion',
+            severity: 'media',
+            symptom: 'Arranque lento o perdida de potencia',
+            cause: 'Filtro, inyeccion o combustible contaminado',
+            effect: 'Menor disponibilidad del vehiculo',
+            recommendedAction: 'Revisar filtros y circuito de combustible',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    brand: 'Ford Trucks',
+    model: 'Cargo',
+    family: 'Camiones',
+    aliases: ['cargo', 'ford cargo', 'ford cargo sc1676', 'sc1676', 'cargo sc1676'],
+    sourceUrl: 'https://www.fordtrucks.com.tr/en',
+    sourceLabel: 'Ford Trucks Cargo',
+    summary: 'Camion de apoyo para transporte y servicio en faena, referenciado por la flota operativa local.',
+    keySpecs: [
+      { label: 'Aplicacion', value: 'Transporte de carga' },
+      { label: 'Tipo', value: 'Truck / cab-over' },
+      { label: 'Enfoque', value: 'Robustez y servicio' },
+    ],
+    components: [
+      {
+        code: 'ENG',
+        name: 'Motor',
+        level: 1,
+        criticality: 'alta',
+        description: 'Motorizacion de servicio pesado para ruta y faena.',
+        faults: [
+          {
+            code: 'ENG-POWER',
+            name: 'Perdida de potencia',
+            severity: 'media',
+            symptom: 'Respuesta lenta o humo anormal',
+            cause: 'Filtro, inyeccion o combustible',
+            effect: 'Menor capacidad operacional',
+            recommendedAction: 'Revisar circuito de combustible y admision',
           },
         ],
       },
@@ -1733,7 +1903,7 @@ const TECHNICAL_SHEET_LIBRARY: TechnicalSheetReference[] = [
     brand: 'Doosan Portable Power',
     model: 'XP-825',
     family: 'Compresores',
-    aliases: ['xp-825', 'xp 825', 'doosan xp-825', 'doosan xp 825'],
+    aliases: ['xp-825', 'xp 825', 'doosan xp-825', 'doosan xp 825', 'modelo xp-825', 'compresor doosan modelo xp-825'],
     sourceUrl: 'https://www.doosanportablepower.com/na/en/equipment/air-compressors/750-1600-cfm-air-compressors',
     sourceLabel: 'Doosan Portable Power Air Compressors',
     summary: 'Compresor portatil de alta demanda usado para perforacion y apoyo en faena.',
@@ -1767,7 +1937,7 @@ const TECHNICAL_SHEET_LIBRARY: TechnicalSheetReference[] = [
     brand: 'Epiroc',
     model: 'Simba S7',
     family: 'Equipos de Perforacion',
-    aliases: ['simba s7', 'simba s7d', 's7d', 'simba', 'jumbo simba'],
+    aliases: ['simba s7', 'simba s7d', 's7d', 'simba', 'jumbo simba', 'simba h1253', 'jumbo atlas copco simba s7d'],
     sourceUrl: 'https://www.epiroc.com/en-us/products/drill-rigs/production-drill-rigs/simba-s7',
     sourceLabel: 'Simba S7',
     summary: 'Equipo de perforacion subterranea para produccion, con foco en precision y continuidad operacional.',
@@ -1923,7 +2093,7 @@ const TECHNICAL_SHEET_LIBRARY: TechnicalSheetReference[] = [
     brand: 'Liugong',
     model: 'CPCD25A',
     family: 'Otros Equipos',
-    aliases: ['cpcd25a', 'cpcd25', 'liugong cpcd25a', 'grua horquilla liugong'],
+    aliases: ['cpcd25a', 'cpcd25', 'liugong cpcd25a', 'grua horquilla liugong', 'grua horquilla liugong cpcd25a'],
     sourceUrl: 'https://www.liugong.com/en/product/cpcd25/index.html',
     sourceLabel: 'Liugong CPCD25',
     summary: 'Grua horquilla diésel para apoyo logístico, movimiento de carga y abastecimiento interno.',
@@ -1966,6 +2136,108 @@ const TECHNICAL_SHEET_LIBRARY: TechnicalSheetReference[] = [
             cause: 'Sellos, mangueras o bomba desgastada',
             effect: 'Riesgo operacional y menor productividad',
             recommendedAction: 'Inspeccionar circuito y reemplazar elementos',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    brand: 'Atlas Copco',
+    model: 'GA 132',
+    family: 'Compresores',
+    aliases: ['ga-132', 'ga 132', 'atlas copco ga-132', 'atlas copco ga 132'],
+    sourceUrl: 'https://www.atlascopco.com/content/dam/atlas-copco/local-countries/united-states/documents/GA%20125-215%20Horsepower%20VSD%20Air%20Compressors.pdf',
+    sourceLabel: 'Atlas Copco GA 132',
+    summary: 'Compresor estacionario de alta eficiencia usado como referencia local para mantenimiento industrial.',
+    keySpecs: [
+      { label: 'Aplicacion', value: 'Aire comprimido industrial' },
+      { label: 'Enfoque', value: 'Eficiencia y continuidad' },
+      { label: 'Tipo', value: 'Rotary screw compressor' },
+    ],
+    components: [
+      {
+        code: 'AIR',
+        name: 'Sistema de compresion',
+        level: 1,
+        criticality: 'alta',
+        description: 'Conjunto compresor y circuito de aire.',
+        faults: [
+          {
+            code: 'AIR-LOSS',
+            name: 'Baja presion de aire',
+            severity: 'alta',
+            symptom: 'Caida de presion o salida irregular',
+            cause: 'Fugas, filtro o desgaste interno',
+            effect: 'Menor capacidad de trabajo',
+            recommendedAction: 'Prueba de presion y revision de fugas',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    brand: 'Atlas Copco',
+    model: 'V 900',
+    family: 'Compresores',
+    aliases: ['v-900', 'v 900', 'atlas copco v900', 'atlas copco v-900'],
+    sourceUrl: 'https://www.atlascopco.com/ru-uz/construction-equipment/products/mobile-air-compressors/large-range/v900',
+    sourceLabel: 'Atlas Copco V 900',
+    summary: 'Compresor portatil de alta presion usado como referencia local en perforacion y soplado.',
+    keySpecs: [
+      { label: 'Aplicacion', value: 'Aire comprimido de alta presion' },
+      { label: 'Enfoque', value: 'Rendimiento y presion' },
+      { label: 'Tipo', value: 'Portable air compressor' },
+    ],
+    components: [
+      {
+        code: 'AIR',
+        name: 'Sistema de compresion',
+        level: 1,
+        criticality: 'alta',
+        description: 'Cabezal y circuito de aire comprimido.',
+        faults: [
+          {
+            code: 'AIR-LOSS',
+            name: 'Baja presion de aire',
+            severity: 'alta',
+            symptom: 'Salida por debajo de lo esperado',
+            cause: 'Fuga, filtro o cabezal desgastado',
+            effect: 'Menor capacidad de uso',
+            recommendedAction: 'Prueba de presion y revision de fugas',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    brand: 'Schulz',
+    model: 'SCT-204',
+    family: 'Compresores',
+    aliases: ['sct-204', 'sct 204', 'schulz sct-204', 'compresor de tornillo shulz sct-204'],
+    sourceUrl: 'https://www.schulzamerica.com/',
+    sourceLabel: 'Schulz Compressors',
+    summary: 'Compresor de tornillo de referencia local para aire comprimido continuo.',
+    keySpecs: [
+      { label: 'Aplicacion', value: 'Aire comprimido' },
+      { label: 'Enfoque', value: 'Continuidad y servicio' },
+      { label: 'Tipo', value: 'Rotary screw compressor' },
+    ],
+    components: [
+      {
+        code: 'AIR',
+        name: 'Sistema de compresion',
+        level: 1,
+        criticality: 'alta',
+        description: 'Cabezal y circuito de aire comprimido.',
+        faults: [
+          {
+            code: 'AIR-LOSS',
+            name: 'Baja presion de aire',
+            severity: 'alta',
+            symptom: 'Caida de presion o salida irregular',
+            cause: 'Fuga, filtro o desgaste interno',
+            effect: 'Menor capacidad de uso',
+            recommendedAction: 'Prueba de presion y revision de fugas',
           },
         ],
       },
@@ -2018,6 +2290,74 @@ const TECHNICAL_SHEET_LIBRARY: TechnicalSheetReference[] = [
             cause: 'Pastillas, discos o liquido con desgaste',
             effect: 'Riesgo operacional y menor control',
             recommendedAction: 'Inspeccionar frenos y programar recambio',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    brand: 'Volkswagen Camiones y Buses',
+    model: 'Constellation 15.180',
+    family: 'Camiones',
+    aliases: ['15180m', '15.180', 'volkswagen 15180m', 'vw 15180m', 'constellation 15.180'],
+    sourceUrl: 'https://vwcamionesybuses.com.ar/novedad/23',
+    sourceLabel: 'Volkswagen Constellation 15.180',
+    summary: 'Camion mediano de la familia Constellation usado como referencia local para transporte de carga y servicio.',
+    keySpecs: [
+      { label: 'Aplicacion', value: 'Transporte de carga' },
+      { label: 'Tipo', value: 'Camion mediano' },
+      { label: 'Enfoque', value: 'Versatilidad y continuidad' },
+    ],
+    components: [
+      {
+        code: 'ENG',
+        name: 'Motor',
+        level: 1,
+        criticality: 'alta',
+        description: 'Motorizacion de servicio para transporte y faena.',
+        faults: [
+          {
+            code: 'ENG-POWER',
+            name: 'Perdida de potencia',
+            severity: 'media',
+            symptom: 'Aceleracion lenta o humo anormal',
+            cause: 'Filtro, admision o combustible',
+            effect: 'Menor disponibilidad del camion',
+            recommendedAction: 'Revisar filtro, admision y combustible',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    brand: 'Volkswagen Camiones y Buses',
+    model: 'Volksbus',
+    family: 'Buses',
+    aliases: ['trendy', 'volksbus', 'vw trendy', 'bus volkswagen trendy'],
+    sourceUrl: 'https://vwcamionesybuses.com.ar/modelos',
+    sourceLabel: 'Volksbus',
+    summary: 'Familia de buses Volkswagen usada como referencia local para transporte de pasajeros.',
+    keySpecs: [
+      { label: 'Aplicacion', value: 'Transporte de pasajeros' },
+      { label: 'Tipo', value: 'Bus' },
+      { label: 'Enfoque', value: 'Capacidad y confort' },
+    ],
+    components: [
+      {
+        code: 'ENG',
+        name: 'Motor',
+        level: 1,
+        criticality: 'alta',
+        description: 'Motorizacion de servicio para transporte de pasajeros.',
+        faults: [
+          {
+            code: 'ENG-POWER',
+            name: 'Perdida de potencia',
+            severity: 'media',
+            symptom: 'Respuesta lenta o humo anormal',
+            cause: 'Filtro, admision o combustible',
+            effect: 'Menor disponibilidad del bus',
+            recommendedAction: 'Revisar sistema de combustible y admision',
           },
         ],
       },
@@ -2226,6 +2566,40 @@ const TECHNICAL_SHEET_LIBRARY: TechnicalSheetReference[] = [
             cause: 'Pastillas, discos o liquido con desgaste',
             effect: 'Riesgo de seguridad y detencion',
             recommendedAction: 'Inspeccionar frenos y programar recambio',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    brand: 'Nissan',
+    model: 'FLO 2M25',
+    family: 'Otros Equipos',
+    aliases: ['flo 2m25', 'nissan flo 2m25', 'grua horquilla nissan flo 2m25', 'nissan forklift flo 2m25'],
+    sourceUrl: 'https://global.nissannews.com/en/channels/forklift',
+    sourceLabel: 'Nissan Forklift',
+    summary: 'Grua horquilla Nissan de referencia local para movimiento de carga y apoyo logistico.',
+    keySpecs: [
+      { label: 'Aplicacion', value: 'Movimiento de carga' },
+      { label: 'Tipo', value: 'Forklift' },
+      { label: 'Enfoque', value: 'Maniobrabilidad y continuidad' },
+    ],
+    components: [
+      {
+        code: 'HID',
+        name: 'Sistema hidraulico',
+        level: 1,
+        criticality: 'alta',
+        description: 'Levante de horquillas y mastil.',
+        faults: [
+          {
+            code: 'HID-LEAK',
+            name: 'Fuga o baja fuerza de levante',
+            severity: 'alta',
+            symptom: 'Horquillas lentas o caida de carga',
+            cause: 'Sellos, mangueras o bomba desgastada',
+            effect: 'Riesgo operacional y menor productividad',
+            recommendedAction: 'Inspeccionar circuito y reemplazar elementos',
           },
         ],
       },
@@ -2755,7 +3129,7 @@ const TECHNICAL_SHEET_LIBRARY: TechnicalSheetReference[] = [
     brand: 'Positrón',
     model: 'Positron 63 KVA',
     family: 'Grupos Generadores',
-    aliases: ['positron 63', 'postron 63', 'gen positron 63 kva', 'generador positron 63 kva'],
+    aliases: ['positron 63', 'postron 63', 'gen positron 63 kva', 'generador positron 63 kva', 'positron 63 kva', 'gen positron 63'],
     sourceUrl: 'https://www.positron.cl/wp-content/uploads/2018/05/positron-catalogo-de-servicios.pdf',
     sourceLabel: 'Positrón generadores',
     summary: 'Grupo generador de respaldo de menor potencia para faena y servicios auxiliares.',
@@ -2807,7 +3181,7 @@ const TECHNICAL_SHEET_LIBRARY: TechnicalSheetReference[] = [
     brand: 'Positrón',
     model: 'Positron 150 KVA',
     family: 'Grupos Generadores',
-    aliases: ['positron 150', 'gen positron 150 kva', 'generador positron 150 kva'],
+    aliases: ['positron 150', 'gen positron 150 kva', 'generador positron 150 kva', 'positron 150 kva', 'gen positron 150'],
     sourceUrl: 'https://www.positron.cl/wp-content/uploads/2018/05/positron-catalogo-de-servicios.pdf',
     sourceLabel: 'Positrón generadores',
     summary: 'Grupo generador de 150 kVA para respaldo y servicios de mayor demanda.',
@@ -3017,18 +3391,26 @@ function normalizeText(value: string | null | undefined) {
   return String(value || '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
     .trim()
     .toLowerCase();
 }
 
+function normalizeKey(value: string | null | undefined) {
+  return normalizeText(value).replace(/\s+/g, '');
+}
+
 function scoreReference(reference: TechnicalSheetReference, text: string, family: string | null | undefined) {
   const normalizedText = normalizeText(text);
+  const normalizedKey = normalizeKey(text);
   const normalizedFamily = normalizeText(family);
   let score = 0;
 
   if (normalizedText.includes(normalizeText(reference.model))) score += 5;
+  if (normalizedKey.includes(normalizeKey(reference.model))) score += 4;
   if (normalizedText.includes(normalizeText(reference.brand))) score += 2;
-  if (reference.aliases.some((alias) => normalizedText.includes(normalizeText(alias)))) score += 4;
+  if (reference.aliases.some((alias) => normalizedText.includes(normalizeText(alias)) || normalizedKey.includes(normalizeKey(alias)))) score += 4;
   if (normalizedFamily && normalizedFamily === normalizeText(reference.family)) score += 3;
 
   return score;
