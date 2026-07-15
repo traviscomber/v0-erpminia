@@ -145,7 +145,7 @@ function LoginPanel({ onSuccess }: { onSuccess: () => void }) {
         <div>
           <CardTitle className="text-2xl">Ingreso por RUT</CardTitle>
           <CardDescription className="mt-2 text-base">
-            Ingresa con tu RUT y la clave derivada. La clave es <span className="font-semibold">lapatagua</span> + los 4 digitos antes del guion.
+            Usa tu RUT y la clave <span className="font-semibold">lapatagua</span> + los 4 digitos antes del guion.
           </CardDescription>
         </div>
       </CardHeader>
@@ -184,8 +184,7 @@ function LoginPanel({ onSuccess }: { onSuccess: () => void }) {
           </div>
 
           <div className="rounded-lg border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
-            Ejemplo: si tu RUT es <span className="font-mono text-foreground">12.345.678-9</span>,
-            la clave es <span className="font-mono text-foreground">lapatagua5678</span>.
+            Solo necesitas el RUT y la clave generada para tu empresa.
           </div>
 
           <Button type="submit" className="w-full gap-2" disabled={loading}>
@@ -604,33 +603,17 @@ export function SubcontractorPortal() {
 
   if (error || !data?.authenticated) {
     return (
-      <div className="mx-auto flex min-h-[70vh] w-full max-w-5xl items-center px-4 py-10">
-        <div className="grid w-full gap-6 lg:grid-cols-[1fr_0.9fr]">
-          <div className="space-y-4">
+      <div className="mx-auto flex min-h-[70vh] w-full max-w-xl items-center px-4 py-10">
+        <div className="w-full space-y-4">
+          <div className="text-center space-y-2">
             <div className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-1 text-xs text-muted-foreground">
               <ShieldCheck className="h-3.5 w-3.5 text-primary" />
-              Portal externo de documentos
+              Portal de subcontratistas
             </div>
-            <h1 className="max-w-xl text-4xl font-semibold text-balance">
-              Subida de documentos para subcontratistas
-            </h1>
-            <p className="max-w-xl text-base text-muted-foreground">
-              Ingresa con tu RUT y carga documentos, trazabilidad y estados sin entrar al sistema interno.
+            <h1 className="text-3xl font-semibold text-balance">Ingreso simple por RUT</h1>
+            <p className="text-sm text-muted-foreground">
+              Ingresa tu RUT y la clave generada para subir documentos.
             </p>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-xl border border-border bg-card/80 p-4">
-                <p className="text-sm font-medium">Documentos</p>
-                <p className="mt-1 text-xs text-muted-foreground">Carga por slots reales y seguimiento continuo.</p>
-              </div>
-              <div className="rounded-xl border border-border bg-card/80 p-4">
-                <p className="text-sm font-medium">EECC</p>
-                <p className="mt-1 text-xs text-muted-foreground">Lista asociada al RUT para control operativo.</p>
-              </div>
-              <div className="rounded-xl border border-border bg-card/80 p-4">
-                <p className="text-sm font-medium">Revision</p>
-                <p className="mt-1 text-xs text-muted-foreground">Envio directo a revision una vez completo.</p>
-              </div>
-            </div>
           </div>
           <LoginPanel onSuccess={refresh} />
         </div>
