@@ -102,7 +102,13 @@ export async function proxy(request: NextRequest) {
   const isAuthenticated = !!user || customAuthValid;
 
   if (request.nextUrl.pathname.startsWith('/api/')) {
-    const publicApiRoutes = ['/api/health', '/api/auth/login', '/api/auth/register', '/api/auth/logout'];
+    const publicApiRoutes = [
+      '/api/health',
+      '/api/auth/login',
+      '/api/auth/register',
+      '/api/auth/logout',
+      '/api/portal/subcontratistas',
+    ];
     const isPublicRoute = publicApiRoutes.some((route) => request.nextUrl.pathname.startsWith(route));
 
     const isDemoMode = process.env.DEMO_PUBLIC_READ === 'true';
