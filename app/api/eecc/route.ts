@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
 
     const eecc = await createEecc({
       organizationId: auth.organizationId,
-      createdBy: auth.user.id,
+      createdBy: auth.source === 'supabase' ? auth.user.id : undefined,
       name,
       rut: String(body.rut || '').trim() || undefined,
       representative: String(body.representative || '').trim() || undefined,

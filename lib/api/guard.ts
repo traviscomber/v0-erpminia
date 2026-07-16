@@ -15,6 +15,7 @@ export async function requireAuth(request: NextRequest) {
       user: null,
       role: null,
       organizationId: null,
+      source: null,
       response: NextResponse.json({ error: 'No autorizado' }, { status: 401 }),
     };
   }
@@ -24,6 +25,7 @@ export async function requireAuth(request: NextRequest) {
     user: authContext.user,
     role: authContext.role || null,
     organizationId: authContext.organizationId || authContext.user.organization_id || null,
+    source: authContext.source,
     response: null,
   };
 }
@@ -34,14 +36,14 @@ export async function requireAuth(request: NextRequest) {
  */
 export async function requireAdmin(
   request: NextRequest
-): Promise<{ authorized: boolean; user: any; organizationId: string | null; response: any }> {
+): Promise<{ authorized: boolean; user: any; organizationId: string | null; source: 'custom-cookie' | 'supabase' | null; response: any }> {
   const auth = await requireAuth(request);
   if (!auth.authorized || !auth.user) {
-    return { authorized: false, user: null, organizationId: null, response: auth.response };
+    return { authorized: false, user: null, organizationId: null, source: null, response: auth.response };
   }
 
   if (auth.role === 'admin') {
-    return { authorized: true, user: auth.user, organizationId: auth.organizationId, response: null };
+    return { authorized: true, user: auth.user, organizationId: auth.organizationId, source: auth.source, response: null };
   }
 
   const supabase = getSupabaseServerClient();
@@ -56,11 +58,12 @@ export async function requireAdmin(
       authorized: false,
       user: null,
       organizationId: null,
+      source: null,
       response: NextResponse.json({ error: 'Forbidden: Admin required' }, { status: 403 }),
     };
   }
 
-  return { authorized: true, user: auth.user, organizationId: auth.organizationId, response: null };
+  return { authorized: true, user: auth.user, organizationId: auth.organizationId, source: auth.source, response: null };
 }
 
 /**

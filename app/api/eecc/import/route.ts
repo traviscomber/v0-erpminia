@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
           email: record.email,
           phone: record.phone,
           is_active: true,
-          created_by: auth.user.id,
+          created_by: auth.source === 'supabase' ? auth.user.id : null,
         })),
         {
           onConflict: 'organization_id,rut',
