@@ -310,7 +310,7 @@ export default function ProcedimientosPage() {
 
               {filteredProcedures.length === 0 && (
                 <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-                  No hay procedimientos que coincidan con la busqueda.
+                  No hay procedimientos que coincidan con la búsqueda.
                 </div>
               )}
             </div>

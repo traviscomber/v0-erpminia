@@ -178,7 +178,7 @@ export function FinanzasDashboard() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Finanzas</h1>
           <p className="mt-1 max-w-2xl text-muted-foreground">
-            Seguimiento rapido de ingresos, egresos y balance para revisar el flujo financiero del proyecto.
+            Seguimiento rápido de ingresos, egresos y balance para revisar el flujo financiero del proyecto.
           </p>
         </div>
         <Button asChild>
@@ -236,7 +236,7 @@ export function FinanzasDashboard() {
               <FileSpreadsheet className="h-5 w-5 text-[var(--brand-verde)]" />
               Movimientos recientes
             </CardTitle>
-            <CardDescription>Ultimos registros disponibles en el sistema.</CardDescription>
+            <CardDescription>Últimos registros disponibles en el sistema.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {loading ? (
@@ -250,7 +250,7 @@ export function FinanzasDashboard() {
                 {error}
               </div>
             ) : recentMovements.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Aun no hay movimientos cargados. Puedes importarlos desde Excel para comenzar.</p>
+              <p className="text-sm text-muted-foreground">Aún no hay movimientos cargados. Puedes importarlos desde Excel para comenzar.</p>
             ) : (
               recentMovements.map((movement, index) => (
                 <div
@@ -258,7 +258,7 @@ export function FinanzasDashboard() {
                   className="flex items-center justify-between rounded-lg border p-3"
                 >
                   <div className="space-y-1">
-                    <p className="font-medium">{movement.description || 'Movimiento sin descripcion'}</p>
+                    <p className="font-medium">{movement.description || 'Movimiento sin descripción'}</p>
                     <p className="text-xs text-muted-foreground">
                       {movement.date || 'Sin fecha'} · {movement.category || 'general'}
                     </p>
@@ -276,11 +276,11 @@ export function FinanzasDashboard() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Siguiente paso</CardTitle>
-            <CardDescription>Completa el circuito financiero con carga masiva y revision.</CardDescription>
+            <CardDescription>Completa el circuito financiero con carga masiva y revisión.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              La importacion por Excel ya esta lista. Desde ahi puedes poblar el sistema y mantener el modulo sincronizado.
+              La importación por Excel ya está lista. Desde ahí puedes poblar el sistema y mantener el módulo sincronizado.
             </p>
             <div className="flex flex-col gap-2">
               <Button asChild>
@@ -308,7 +308,7 @@ export function FinanzasDashboard() {
               Proveedores
             </CardTitle>
             <CardDescription>
-              Seccion separada para revisar proveedores, contacto y acciones asociadas sin mezclarlo con otros modulos.
+              Sección separada para revisar proveedores, contacto y acciones asociadas sin mezclarlo con otros módulos.
             </CardDescription>
           </div>
           <Button asChild variant="outline">
@@ -374,7 +374,7 @@ export function FinanzasDashboard() {
               Costos de equipos desde Mantenimiento
             </CardTitle>
             <CardDescription>
-              Resumen cruzado desde el ledger real de mantenimiento. La data vive en Mantenimiento y aqui solo se visualiza.
+              Resumen cruzado desde el ledger real de mantenimiento. La data vive en Mantenimiento y aquí solo se visualiza.
             </CardDescription>
           </div>
           <Button asChild variant="outline">
@@ -414,7 +414,7 @@ export function FinanzasDashboard() {
                 <CardDescription>Sin cruce</CardDescription>
                 <CardTitle className="text-3xl">{maintenanceEquipmentCostsLoading ? '...' : maintenanceEquipmentCosts.unmatchedRows}</CardTitle>
               </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">Quedan para revisar nombre, familia o categoria.</CardContent>
+              <CardContent className="text-sm text-muted-foreground">Quedan para revisar nombre, familia o categoría.</CardContent>
             </Card>
           </div>
           <div className="mt-4 flex flex-col gap-2 sm:flex-row">

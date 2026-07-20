@@ -322,7 +322,7 @@ export function BodegaDashboard() {
       <Card>
         <CardHeader>
           <CardTitle className="text-foreground">Detalle de inventario {pagination.page > 0 && `(Pagina ${pagination.page + 1} de ${pagination.totalPages})`}</CardTitle>
-          <p className="text-sm text-muted-foreground">Usa la busqueda y la categoria para reducir el listado.</p>
+            <p className="text-sm text-muted-foreground">Usa la búsqueda y la categoría para reducir el listado.</p>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -375,7 +375,7 @@ export function BodegaDashboard() {
                         <td className="p-3 text-sm text-muted-foreground">{hierarchy.team || '-'}</td>
                         <td className={`p-3 text-right font-semibold ${item.quantity < 10 ? 'text-destructive' : item.quantity <= item.min_stock ? 'text-yellow-600' : 'text-foreground'}`}>
                           {item.quantity.toLocaleString()}
-                          {item.quantity < 10 && <span className="ml-2 font-bold">Critico</span>}
+                          {item.quantity < 10 && <span className="ml-2 font-bold">Crítico</span>}
                           {item.quantity >= 10 && item.quantity <= item.min_stock && <span className="ml-2 font-bold">Reorden</span>}
                         </td>
                         <td className="p-3 text-right font-semibold text-muted-foreground">

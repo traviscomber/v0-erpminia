@@ -13,8 +13,8 @@ export default function FinanzasProveedoresPage() {
         <div>
           <h1 className="text-3xl font-bold">Proveedores</h1>
           <p className="mt-2 max-w-3xl text-muted-foreground">
-            Directorio real de proveedores cargados desde la tabla `suppliers`. Aqui se revisa la informacion,
-            los datos de contacto y los accesos rapidos sin duplicar inventario ni compras.
+            Directorio real de proveedores cargados desde la tabla `suppliers`. Aquí se revisa la información,
+            los datos de contacto y los accesos rápidos sin duplicar inventario ni compras.
           </p>
         </div>
         <Button asChild className="gap-2">
@@ -66,8 +66,8 @@ export default function FinanzasProveedoresPage() {
 
       <Card className="border-border/70 bg-card/90">
         <CardHeader>
-          <CardTitle>Accesos rapidos</CardTitle>
-          <CardDescription>Rutas utiles para revisar la relacion financiera de cada proveedor.</CardDescription>
+          <CardTitle>Accesos rápidos</CardTitle>
+          <CardDescription>Rutas útiles para revisar la relación financiera de cada proveedor.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <Button asChild variant="outline" className="justify-between">

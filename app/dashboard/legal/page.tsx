@@ -587,7 +587,7 @@ export default function LegalPage() {
               <div className="space-y-3">
                 {legalDocs.length === 0 && (
                   <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
-                    No hay documentos legales cargados todavia.
+                    No hay documentos legales cargados todavía.
                   </div>
                 )}
 
@@ -685,7 +685,7 @@ export default function LegalPage() {
                       <li key={item.id}>{item.title}</li>
                     ))}
                     {(compliance.contracts_pending_review || []).length === 0 && (
-                      <li>No hay contratos pendientes de revision.</li>
+                      <li>No hay contratos pendientes de revisión.</li>
                     )}
                   </ul>
                 </div>

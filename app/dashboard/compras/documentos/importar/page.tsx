@@ -20,7 +20,7 @@ export default function ComprasDocumentosImportarPage() {
         <div>
           <h1 className="text-3xl font-bold">Importar documentos de compras</h1>
           <p className="mt-2 max-w-3xl text-muted-foreground">
-            Ruta dedicada para cargar ordenes, cotizaciones, contratos, anexos y respaldos documentales del modulo de compras.
+            Ruta dedicada para cargar órdenes, cotizaciones, contratos, anexos y respaldos documentales del módulo de compras.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -43,14 +43,14 @@ export default function ComprasDocumentosImportarPage() {
             Subir documento de compras
           </CardTitle>
           <CardDescription>
-            Acepta PDF, Word y Excel. El archivo queda asociado al modulo compras para revision y trazabilidad.
+            Acepta PDF, Word y Excel. El archivo queda asociado al módulo compras para revisión y trazabilidad.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <DocumentUpload module="compras" category="documentos" onUploadSuccess={handleUploadSuccess} />
           {uploadedName ? (
             <div className="rounded-lg border border-border/70 bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
-              Ultimo archivo cargado: <span className="font-medium text-foreground">{uploadedName}</span>
+              Último archivo cargado: <span className="font-medium text-foreground">{uploadedName}</span>
             </div>
           ) : null}
         </CardContent>

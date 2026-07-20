@@ -346,7 +346,7 @@ export default function ContratosPage() {
           {filteredContracts.length === 0 ? (
             <div className="py-12 text-center text-muted-foreground">
               <FileText className="mx-auto mb-4 h-12 w-12 opacity-50" />
-              <p>No hay contratos que coincidan con tu busqueda</p>
+              <p>No hay contratos que coincidan con tu búsqueda</p>
             </div>
           ) : (
             <div className="overflow-x-auto">

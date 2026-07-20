@@ -33,7 +33,7 @@ export default function FinanzasImportPage() {
         <div>
           <h1 className="text-3xl font-bold">Importar movimientos financieros</h1>
           <p className="mt-2 max-w-3xl text-muted-foreground">
-            Carga ingresos y egresos desde Excel para mantener la trazabilidad del flujo de caja con el mismo criterio que el resto de los modulos.
+            Carga ingresos y egresos desde Excel para mantener la trazabilidad del flujo de caja con el mismo criterio que el resto de los módulos.
           </p>
         </div>
         <div className="flex gap-2">
@@ -54,9 +54,9 @@ export default function FinanzasImportPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Sparkles className="h-5 w-5 text-[var(--brand-verde)]" />
-            Flujo de importacion
+            Flujo de importación
           </CardTitle>
-          <CardDescription>El archivo debe traer fecha, descripcion, monto, tipo, categoria y centro de costo.</CardDescription>
+          <CardDescription>El archivo debe traer fecha, descripción, monto, tipo, categoría y centro de costo.</CardDescription>
         </CardHeader>
         <CardContent>
           <MovementsImport />

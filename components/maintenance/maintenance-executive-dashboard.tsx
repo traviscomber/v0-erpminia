@@ -165,12 +165,12 @@ export function MaintenanceExecutiveDashboard() {
     { label: 'Disponibilidad', value: `${availability}%`, tone: availability >= 85 ? 'text-green-500' : availability >= 70 ? 'text-amber-500' : 'text-destructive' },
     { label: 'Cobertura de OT', value: `${maintenanceCoverage}%`, tone: maintenanceCoverage >= 80 ? 'text-green-500' : 'text-amber-500' },
     { label: 'Activos criticos', value: number(criticalAssets), tone: criticalAssets > 0 ? 'text-orange-500' : 'text-green-500' },
-    { label: 'OT criticas', value: number(criticalOrders.length), tone: criticalOrders.length > 0 ? 'text-destructive' : 'text-green-500' },
+    { label: 'OT críticas', value: number(criticalOrders.length), tone: criticalOrders.length > 0 ? 'text-destructive' : 'text-green-500' },
   ];
 
   const executiveWarnings = [
-    overdueOrders > 0 ? `${overdueOrders} ordenes atrasadas requieren atencion.` : null,
-    preventiveSummary.overdue > 0 ? `${preventiveSummary.overdue} mantenimientos preventivos estan vencidos.` : null,
+    overdueOrders > 0 ? `${overdueOrders} órdenes atrasadas requieren atención.` : null,
+    preventiveSummary.overdue > 0 ? `${preventiveSummary.overdue} mantenimientos preventivos están vencidos.` : null,
     tireSummary.lowStock > 0 ? `${tireSummary.lowStock} repuestos de neumaticos estan bajo minimo.` : null,
     fuelSummary.lowStock > 0 ? `${fuelSummary.lowStock} items de combustible estan bajo minimo.` : null,
     componentSummary.failures > 0 ? `${componentSummary.failures} componentes mayores estan en falla.` : null,
@@ -198,7 +198,7 @@ export function MaintenanceExecutiveDashboard() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard gerencial de mantenimiento</h1>
           <p className="mt-2 max-w-2xl text-muted-foreground">
-            Vista ejecutiva real para gerencia: estado del dia, riesgos, costos, OT criticas y foco operativo en una sola pantalla.
+            Vista ejecutiva real para gerencia: estado del día, riesgos, costos, OT críticas y foco operativo en una sola pantalla.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -275,7 +275,7 @@ export function MaintenanceExecutiveDashboard() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <AlertCircle className="h-5 w-5" />
-            Senales del dia
+            Señales del día
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -311,7 +311,7 @@ export function MaintenanceExecutiveDashboard() {
             </div>
           ) : (
             <div className="rounded-lg border border-border p-3 text-sm text-muted-foreground">
-              No hay señales criticas con la base actual.
+              No hay señales críticas con la base actual.
             </div>
           )}
 
@@ -368,7 +368,7 @@ export function MaintenanceExecutiveDashboard() {
               </div>
             ) : (
               <div className="rounded-lg border border-border p-3 text-sm text-muted-foreground">
-                Sin alertas criticas visibles con la base actual.
+                Sin alertas críticas visibles con la base actual.
               </div>
             )}
           </CardContent>
@@ -400,7 +400,7 @@ export function MaintenanceExecutiveDashboard() {
               <Badge variant="secondary">{componentSummary.degraded}</Badge>
             </div>
             <div className="flex items-center justify-between rounded-lg border border-border p-3">
-              <span className="text-muted-foreground">OT criticas activas</span>
+              <span className="text-muted-foreground">OT críticas activas</span>
               <Badge variant={criticalOrders.length > 0 ? 'destructive' : 'outline'}>{criticalOrders.length}</Badge>
             </div>
           </CardContent>
@@ -458,7 +458,7 @@ export function MaintenanceExecutiveDashboard() {
               </div>
             ) : (
               <div className="rounded-lg border border-border p-3 text-sm text-muted-foreground">
-                No hay OT criticas activas en este momento.
+                No hay OT críticas activas en este momento.
               </div>
             )}
 

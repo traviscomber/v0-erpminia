@@ -349,7 +349,7 @@ export function MaintenanceMobilePanel() {
           <div className="rounded-lg border border-border p-3">
             <p className="text-xs text-muted-foreground">Urgentes</p>
             <p className="text-xl font-bold text-orange-500">{urgentOrders.length}</p>
-            <p className="text-xs text-muted-foreground">OT criticas activas</p>
+            <p className="text-xs text-muted-foreground">OT críticas activas</p>
           </div>
           <div className="rounded-lg border border-border p-3">
             <p className="text-xs text-muted-foreground">MTTR</p>
@@ -466,7 +466,7 @@ export function MaintenanceMobilePanel() {
           <div className="rounded-lg border border-border p-3 text-sm">
             <p className="font-semibold">Horometro tecnico</p>
             <p className="text-muted-foreground">
-              {selectedAsset?.mtbf_hours ? `${selectedAsset.mtbf_hours} horas tecnicas registradas en el activo` : 'Sin lectura directa aun en la base actual'}
+              {selectedAsset?.mtbf_hours ? `${selectedAsset.mtbf_hours} horas tecnicas registradas en el activo` : 'Sin lectura directa aún en la base actual'}
             </p>
           </div>
 
@@ -524,7 +524,7 @@ export function MaintenanceMobilePanel() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Acciones rapidas</CardTitle>
+          <CardTitle>Acciones rápidas</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-3">
           <Button asChild className="justify-between">
@@ -576,7 +576,7 @@ export function MaintenanceMobilePanel() {
           {openOrders.length === 0 ? (
             <div className="flex items-center gap-2 rounded-lg border border-dashed border-border p-3 text-sm text-muted-foreground">
               <AlertCircle className="h-4 w-4" />
-              No hay ordenes abiertas en este momento.
+              No hay órdenes abiertas en este momento.
             </div>
           ) : (
             openOrders.map((order) => (

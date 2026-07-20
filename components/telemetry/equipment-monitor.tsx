@@ -97,7 +97,7 @@ export function EquipmentMonitor() {
           <CardDescription>No se pudo leer el resumen de produccion para mostrar el estado de equipos.</CardDescription>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
-          La vista sigue estable y reintentara automaticamente la lectura por API.
+          La vista sigue estable y reintentará automáticamente la lectura por API.
         </CardContent>
       </Card>
     );
@@ -138,7 +138,7 @@ export function EquipmentMonitor() {
   });
 
   if (equipment.length === 0) {
-    return <div className="text-muted-foreground">No hay equipos con telemetria disponible.</div>;
+    return <div className="text-muted-foreground">No hay equipos con telemetría disponible.</div>;
   }
 
   const summary = equipment.reduce(
@@ -276,7 +276,7 @@ export function EquipmentMonitor() {
 
                 {eq.lastReading && (
                   <div className="border-t border-border/50 pt-2">
-                    <p className="text-xs text-muted-foreground">Ultima lectura</p>
+                    <p className="text-xs text-muted-foreground">Última lectura</p>
                     <div className="flex items-baseline gap-1">
                       <span className="text-sm font-semibold">{eq.lastReading.value}</span>
                       <span className="text-xs text-muted-foreground">{eq.lastReading.unit}</span>

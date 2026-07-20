@@ -186,9 +186,9 @@ export function MantenimientoDashboard() {
     overdueOrders > 0
       ? {
           title: 'Atender OT vencidas',
-          description: 'Revisa las ordenes atrasadas antes de abrir nuevas tareas.',
+          description: 'Revisa las órdenes atrasadas antes de abrir nuevas tareas.',
           href: '/dashboard/work-orders',
-          cta: 'Ver ordenes atrasadas',
+          cta: 'Ver órdenes atrasadas',
         }
       : criticalAssets.length > 0
         ? {
@@ -364,7 +364,7 @@ export function MantenimientoDashboard() {
           </p>
           {topMachineFamilies.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-              No hay maquinaria derivada aun desde centros de costo. Revisa la carga de la base para
+              No hay maquinaria derivada aún desde centros de costo. Revisa la carga de la base para
               habilitar esta lectura.
             </div>
           ) : (
@@ -398,7 +398,7 @@ export function MantenimientoDashboard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/work-orders">
-                Ver ordenes
+                Ver órdenes
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -580,7 +580,7 @@ export function MantenimientoDashboard() {
               {criticalAssets.length === 0 ? (
                 <div className="flex items-center gap-2 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
                   <AlertCircle className="h-4 w-4" />
-                  No hay equipos criticos visibles.
+                No hay equipos críticos visibles.
                 </div>
               ) : (
                 criticalAssets.map((asset) => (
@@ -609,7 +609,7 @@ export function MantenimientoDashboard() {
             {recentOrders.length === 0 ? (
               <div className="flex items-center gap-2 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
                 <AlertCircle className="h-4 w-4" />
-                No hay ordenes registradas todavia.
+                No hay órdenes registradas todavía.
               </div>
             ) : (
               recentOrders.map((orden) => (

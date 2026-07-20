@@ -270,3 +270,70 @@ Auditar modulo por modulo con este orden:
 3. detectar vacios o fallback
 4. sacar una mejora de inteligencia minera
 5. cerrar textos y estados vacios
+
+## Auditoria actual 2026-07-20
+
+Hallazgos verificados en el codigo actual:
+
+### Mantenimiento
+
+- La vista principal ya usa data real, pero aun muestra estados vacios genericos en familias sin derivacion visible.
+- Persisten textos como `No hay maquinaria derivada aun desde centros de costo` y `No hay ordenes registradas todavia`.
+- La ficha de activo necesita seguir cerrando el circuito de `ficha`, `ficha tecnica`, `arbol` y OT solo para activos reales.
+- La vista gerencial sigue teniendo lineas de resumen que pueden afinarse para que cada KPI diga exactamente de donde sale.
+
+### Documentos gestion
+
+- La base funcional ya esta conectada, pero las subrutas de `procedimientos`, `seguridad` y `reportes` siguen teniendo mucho copy de estado vacio.
+- Hay varias frases sin tildes y con redaccion uniforme pendiente, por ejemplo en busquedas, vacios y botones secundarios.
+- El siguiente ajuste claro es homogeneizar mensajes entre la vista principal y las subrutas.
+
+### Sostenibilidad y HSE
+
+- La pantalla de prevencion de riesgos sigue usando textos genericos como `Fuente conectada al modulo` en varios cards.
+- EPP ya esta conectado a la fuente real, pero la experiencia aun necesita mejor lectura ejecutiva cuando hay cero registros o cuando se usa el flujo canonico de sostenibilidad.
+- HSE y sostenibilidad siguen conviviendo como superficies cercanas; conviene mantener una unica lectura visual y un alias tecnico claro.
+
+### Bodega e inventario
+
+- La importacion real ya esta, pero las categorias y familias todavia requieren mas limpieza para no duplicar labels.
+- Falta reforzar la vista de stock critico y reposicion para que el usuario vea antes lo que se va a quedar corto.
+- El flujo de importacion ya evito vaciar data al fallar, asi que el siguiente paso es visual y de normalizacion.
+
+### Legal
+
+- El modulo esta usable con data real, pero tiene todavia vacios y textos secundarios que pueden quedar mas ejecutivos.
+- Las pantallas de contratos y documentos legales necesitan la misma terminologia en toda la navegacion.
+
+### Telemetria
+
+- La integracion ya expone contrato y validacion, pero el modulo sigue siendo mas declarativo que operativo.
+- Falta convertirlo en un monitor de produccion con eventos y alertas utiles sobre equipos reales.
+
+### Compras y finanzas
+
+- Proveedores, compras e importacion ya estan conectados, pero hay oportunidad de mejorar consolidacion y lectura de costos atipicos.
+- Conviene separar mejor la vista de proveedores en finanzas para que quede como bloque propio de acciones y trazabilidad.
+
+### Admin, permisos y alertas
+
+- Usuarios, roles y permisos ya existen, pero aun falta pulir la experiencia de acceso y la relacion con rutas reales.
+- Alertas y auditoria tienen base, pero necesitan ser mas accionables y menos ruido operativo.
+
+## Objetivo corto de esta fase
+
+1. Reducir estados vacios genericos.
+2. Homogeneizar copy sin inventar data.
+3. Separar activos reales de elementos derivados.
+4. Mantener rutas y botones solo sobre IDs validos.
+5. Seguir cerrando el modulo por modulo sin romper data real.
+
+## Progreso del pase 2026-07-20
+
+Se aplicaron mejoras visibles sin tocar data:
+
+- Mantenimiento: copy de órdenes, equipos críticos y estados vacíos más claro.
+- Legal: mensajes de vacíos y revisión más uniformes.
+- Documentos gestión: títulos y búsquedas con terminología consistente.
+- Telemetría: textos visibles con ortografía y acentos normalizados.
+- Bodega: búsqueda y estados de criticidad con copy más limpio.

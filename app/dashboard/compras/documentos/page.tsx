@@ -251,7 +251,7 @@ export default function ComprasDocumentosPage() {
           <Card>
             <CardHeader>
               <CardTitle>Subir nuevo documento</CardTitle>
-              <CardDescription>Sube ordenes, respaldos, contratos y archivos de soporte de compras</CardDescription>
+              <CardDescription>Sube órdenes, respaldos, contratos y archivos de soporte de compras.</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="mb-4 flex flex-wrap gap-2">

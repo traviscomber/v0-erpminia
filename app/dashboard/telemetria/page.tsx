@@ -10,7 +10,7 @@ const TelemetryExecutiveSummary = dynamic(
   () => import('@/components/telemetry/telemetry-executive-summary').then((mod) => mod.TelemetryExecutiveSummary),
   {
     ssr: false,
-    loading: () => <div className="text-sm text-muted-foreground">Cargando resumen de telemetria...</div>,
+    loading: () => <div className="text-sm text-muted-foreground">Cargando resumen de telemetría...</div>,
   },
 );
 
@@ -35,9 +35,9 @@ export default function TelemetriaPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Telemetria de sensores</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Telemetría de sensores</h1>
           <p className="mt-2 text-muted-foreground">
-            Monitoreo real de equipos, alertas activas y sugerencias de orden de trabajo desde datos reales de produccion
+            Monitoreo real de equipos, alertas activas y sugerencias de orden de trabajo desde datos reales de producción
             y mantenimiento.
           </p>
         </div>
@@ -61,7 +61,7 @@ export default function TelemetriaPage() {
         <CardHeader className="pb-2">
           <CardTitle className="text-sm">Modo estable</CardTitle>
           <CardDescription>
-            La telemetria sigue operando con lecturas historicas, equipos reales y consultas por API sin depender de
+            La telemetría sigue operando con lecturas históricas, equipos reales y consultas por API sin depender de
             conexiones en tiempo real.
           </CardDescription>
         </CardHeader>
@@ -150,12 +150,12 @@ export default function TelemetriaPage() {
             </CardTitle>
             <Button asChild variant="outline" size="sm" className="gap-2">
               <Link href="/dashboard/telemetria/integracion">
-                Ver configuracion
+                Ver configuración
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
           </div>
-          <CardDescription>Preparado para recibir lecturas desde otra maquina de la red local de la Patagua.</CardDescription>
+          <CardDescription>Preparado para recibir lecturas desde otra máquina de la red local de La Patagua.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <div className="rounded-lg border border-border bg-background p-3">
@@ -197,7 +197,7 @@ export default function TelemetriaPage() {
               <Cpu className="h-4 w-4 text-[var(--brand-verde)]" />
               Equipos monitoreados
             </CardTitle>
-            <CardDescription>Estado vivo de disponibilidad, alarmas y ultima lectura.</CardDescription>
+            <CardDescription>Estado vivo de disponibilidad, alarmas y última lectura.</CardDescription>
           </CardHeader>
           <CardContent>
             <EquipmentMonitor />

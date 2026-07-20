@@ -134,7 +134,7 @@ export default function DocumentosGestionPage() {
         <Card className="border-[var(--secondary)]/30 bg-[var(--secondary)]/5">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-[var(--secondary)]">
-              Pendientes de aprobacion
+              Pendientes de aprobación
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -168,11 +168,11 @@ export default function DocumentosGestionPage() {
         <Card className="border-[var(--secondary)]/30 bg-[var(--secondary)]/5">
           <CardHeader>
             <CardTitle className="text-base">Resumen de control</CardTitle>
-            <CardDescription>Lectura rapida para supervision y aprobacion.</CardDescription>
+            <CardDescription>Lectura rápida para supervisión y aprobación.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-lg border border-border bg-background/70 p-3">
-              <p className="text-xs text-muted-foreground">Pendientes de aprobacion</p>
+              <p className="text-xs text-muted-foreground">Pendientes de aprobación</p>
               <p className="text-2xl font-bold text-[var(--secondary)]">{stats.pending}</p>
             </div>
             <div className="rounded-lg border border-border bg-background/70 p-3">
@@ -273,7 +273,7 @@ export default function DocumentosGestionPage() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-[var(--secondary)]" />
-              <CardTitle>Documentos pendientes de aprobacion</CardTitle>
+              <CardTitle>Documentos pendientes de aprobación</CardTitle>
             </div>
             <CardDescription>{pendingApprovals.length} documentos requieren revision</CardDescription>
           </CardHeader>
@@ -327,7 +327,7 @@ export default function DocumentosGestionPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Buscar categorias</CardTitle>
+          <CardTitle>Buscar categorías</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="relative">
@@ -373,7 +373,7 @@ export default function DocumentosGestionPage() {
       {filteredCategories.length === 0 && (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
-            No se encontraron categorias que coincidan con tu busqueda.
+            No se encontraron categorías que coincidan con tu búsqueda.
           </CardContent>
         </Card>
       )}

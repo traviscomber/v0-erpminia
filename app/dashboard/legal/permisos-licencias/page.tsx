@@ -173,7 +173,7 @@ export default function PermisosLicenciasPage() {
           />
 
           {filtered.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No hay permisos ni licencias cargados todavia.</p>
+            <p className="text-sm text-muted-foreground">No hay permisos ni licencias cargados todavía.</p>
           ) : (
             filtered.map((doc) => (
               <div key={doc.id} className="flex items-center justify-between rounded-lg border p-3">
