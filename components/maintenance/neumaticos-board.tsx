@@ -160,7 +160,7 @@ export function NeumaticosBoard() {
 
   const submitEvent = async () => {
     if (!eventForm.tireCode.trim()) {
-      setEventMessage('Debes ingresar un codigo de neumatico.');
+      setEventMessage('Debes ingresar un código de neumático.');
       return;
     }
 
@@ -202,9 +202,9 @@ export function NeumaticosBoard() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Gestion de neumaticos</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Gestión de neumáticos</h1>
           <p className="mt-2 text-muted-foreground">
-            Stock real, condicion de uso y trazabilidad por compra, OT, instalacion y reposicion.
+            Stock real, condición de uso y trazabilidad por compra, OT, instalación y reposición.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -255,7 +255,7 @@ export function NeumaticosBoard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{money(summary.totalValue)}</div>
-            <p className="text-xs text-muted-foreground">Valorizacion estimada</p>
+            <p className="text-xs text-muted-foreground">Valorización estimada</p>
           </CardContent>
         </Card>
       </div>
@@ -266,7 +266,7 @@ export function NeumaticosBoard() {
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <div className="space-y-2">
-            <Label htmlFor="tire-code">Codigo de neumatico</Label>
+            <Label htmlFor="tire-code">Código de neumático</Label>
             <Input
               id="tire-code"
               list="tire-codes"
@@ -288,7 +288,7 @@ export function NeumaticosBoard() {
               id="tire-name"
               value={eventForm.tireName}
               onChange={(event) => setEventForm((current) => ({ ...current, tireName: event.target.value }))}
-              placeholder="Neumatico 18.00R25"
+              placeholder="Neumático 18.00R25"
             />
           </div>
           <div className="space-y-2">
@@ -307,7 +307,7 @@ export function NeumaticosBoard() {
             </datalist>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="condition">Condicion</Label>
+            <Label htmlFor="condition">Condición</Label>
             <Input
               id="condition"
               list="conditions"
@@ -360,7 +360,7 @@ export function NeumaticosBoard() {
               id="notes"
               value={eventForm.notes}
               onChange={(event) => setEventForm((current) => ({ ...current, notes: event.target.value }))}
-              placeholder="Instalado en equipo / retirado para reposicion / observaciones"
+              placeholder="Instalado en equipo / retirado para reposición / observaciones"
             />
           </div>
           <div className="md:col-span-2 xl:col-span-3 flex flex-wrap items-center gap-3">
@@ -375,7 +375,7 @@ export function NeumaticosBoard() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Neumaticos nuevos</CardTitle>
+            <CardTitle className="text-sm">Neumáticos nuevos</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-emerald-500">{number(traceabilitySummary.newTires)}</div>
@@ -383,7 +383,7 @@ export function NeumaticosBoard() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Neumaticos usados</CardTitle>
+            <CardTitle className="text-sm">Neumáticos usados</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-amber-500">{number(traceabilitySummary.usedTires)}</div>
@@ -399,7 +399,7 @@ export function NeumaticosBoard() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">En reposicion</CardTitle>
+            <CardTitle className="text-sm">En reposición</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-500">{number(traceabilitySummary.replaced)}</div>
@@ -411,20 +411,20 @@ export function NeumaticosBoard() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Truck className="h-4 w-4" />
-            Detalle de neumaticos en bodega
+            Detalle de neumáticos en bodega
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {isLoading ? (
-            <div className="text-sm text-muted-foreground">Cargando neumaticos...</div>
+            <div className="text-sm text-muted-foreground">Cargando neumáticos...</div>
           ) : error ? (
             <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
               <AlertCircle className="h-4 w-4" />
-              No fue posible cargar la gestion de neumaticos.
+              No fue posible cargar la gestión de neumáticos.
             </div>
           ) : items.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-              No hay neumaticos detectados en la base real.
+              No hay neumáticos detectados en la base real.
             </div>
           ) : (
             items.map((item) => (
@@ -477,7 +477,7 @@ export function NeumaticosBoard() {
           <CardContent className="space-y-3">
             {tireTraceability.length === 0 ? (
               <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-                Aun no hay neumaticos trazados con registro de condicion y ciclo de vida.
+                Aún no hay neumáticos trazados con registro de condición y ciclo de vida.
               </div>
             ) : (
               tireTraceability.map((tire) => (
@@ -506,7 +506,7 @@ export function NeumaticosBoard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Ultimos eventos</CardTitle>
+            <CardTitle>Últimos eventos</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {tireEvents.length === 0 ? (
@@ -518,7 +518,7 @@ export function NeumaticosBoard() {
                 <div key={event.id} className="rounded-lg border border-border p-3">
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge variant="secondary">{event.eventLabel || event.eventType || 'Evento'}</Badge>
-                    <span className="text-sm font-medium">{event.tireCode || event.tireName || 'Neumatico'}</span>
+                    <span className="text-sm font-medium">{event.tireCode || event.tireName || 'Neumático'}</span>
                   </div>
                   <p className="mt-2 text-xs text-muted-foreground">
                     {event.eventDate || 'Sin fecha'} · {event.purchaseOrderNumber ? `OC ${event.purchaseOrderNumber}` : 'Sin OC'}

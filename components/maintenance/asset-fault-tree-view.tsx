@@ -316,13 +316,13 @@ export function AssetFaultTreeView({ scope }: AssetFaultTreeViewProps) {
   const preventiveActionHref = `/dashboard/work-orders/create?assetId=${assetId}&workType=preventive`;
 
   if (historyLoading || ordersLoading) {
-    return <div className="text-sm text-muted-foreground">Cargando arbol de fallas...</div>;
+    return <div className="text-sm text-muted-foreground">Cargando árbol de fallas...</div>;
   }
 
   if (historyError || workOrderError || technicalSheetError) {
     return (
       <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-        No se pudo cargar el arbol de fallas real del activo.
+        No se pudo cargar el árbol de fallas real del activo.
       </div>
     );
   }
@@ -352,7 +352,7 @@ export function AssetFaultTreeView({ scope }: AssetFaultTreeViewProps) {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Arbol de fallas</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Árbol de fallas</h1>
           <p className="mt-2 text-muted-foreground">
             Analisis real de causas, eventos y acciones del activo {asset.asset_name || asset.asset_code || 'seleccionado'}.
           </p>
@@ -438,7 +438,7 @@ export function AssetFaultTreeView({ scope }: AssetFaultTreeViewProps) {
         <CardContent>
           {causeGroups.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
-              No hay suficientes eventos para construir un arbol de fallas todavia.
+              No hay suficientes eventos para construir un árbol de fallas todavía.
             </div>
           ) : (
             <div className="space-y-4">
@@ -511,10 +511,10 @@ export function AssetFaultTreeView({ scope }: AssetFaultTreeViewProps) {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Route className="h-5 w-5" />
-              Base tecnica de referencia
+              Base técnica de referencia
             </CardTitle>
             <CardDescription>
-              La ficha tecnica oficial aporta una base de componentes y fallas para este activo, aun cuando el historial real sea corto.
+              La ficha técnica oficial aporta una base de componentes y fallas para este activo, aún cuando el historial real sea corto.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -539,7 +539,7 @@ export function AssetFaultTreeView({ scope }: AssetFaultTreeViewProps) {
                       <p className="text-muted-foreground">{fault.symptom}</p>
                       <p className="mt-1 text-xs text-muted-foreground">Causa: {fault.cause}</p>
                       <p className="text-xs text-muted-foreground">Efecto: {fault.effect}</p>
-                      <p className="mt-1 text-xs text-muted-foreground">Accion: {fault.recommendedAction}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">Acción: {fault.recommendedAction}</p>
                     </div>
                   ))}
                 </div>
@@ -557,7 +557,7 @@ export function AssetFaultTreeView({ scope }: AssetFaultTreeViewProps) {
               Alertas preventivas sugeridas
             </CardTitle>
             <CardDescription>
-              Estas alertas salen de la ficha tecnica de referencia y se pueden convertir en OT preventivas sin salir de la vista.
+              Estas alertas salen de la ficha técnica de referencia y se pueden convertir en OT preventivas sin salir de la vista.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -586,7 +586,7 @@ export function AssetFaultTreeView({ scope }: AssetFaultTreeViewProps) {
                     <p className="mt-1">{alert.effect}</p>
                   </div>
                   <div className="rounded-md bg-muted/40 p-3 text-sm">
-                    <p className="text-xs text-muted-foreground">Accion</p>
+                    <p className="text-xs text-muted-foreground">Acción</p>
                     <p className="mt-1">{alert.recommendedAction}</p>
                   </div>
                 </div>
@@ -600,14 +600,14 @@ export function AssetFaultTreeView({ scope }: AssetFaultTreeViewProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <History className="h-5 w-5" />
-            Linea de tiempo reciente
+            Línea de tiempo reciente
           </CardTitle>
           <CardDescription>Eventos combinados de historial y ordenes reales del activo.</CardDescription>
         </CardHeader>
         <CardContent>
           {combinedEvents.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
-              No hay eventos suficientes para mostrar una linea de tiempo.
+              No hay eventos suficientes para mostrar una línea de tiempo.
             </div>
           ) : (
             <div className="space-y-3">
@@ -636,7 +636,7 @@ export function AssetFaultTreeView({ scope }: AssetFaultTreeViewProps) {
 
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Activity className="h-4 w-4" />
-        Esta vista usa historial, OT y causa raiz reales. Si faltan causas, la base todavia no las trae.
+        Esta vista usa historial, OT y causa raíz reales. Si faltan causas, la base todavía no las trae.
       </div>
     </div>
   );

@@ -285,9 +285,9 @@ export function MaintenanceMobilePanel() {
   return (
     <div className="mx-auto max-w-md space-y-4 pb-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Panel movil de mantencion</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Panel móvil de mantención</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Vista para terreno con OT reales, horas, evidencia y acceso rapido a la ficha del equipo.
+          Vista para terreno con OT reales, horas, evidencia y acceso rápido a la ficha del equipo.
         </p>
       </div>
 
@@ -307,7 +307,7 @@ export function MaintenanceMobilePanel() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Acceso rapido</CardTitle>
+          <CardTitle>Acceso rápido</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-2">
           <Button asChild variant="outline" className="w-full justify-between">
@@ -318,7 +318,7 @@ export function MaintenanceMobilePanel() {
           </Button>
           <Button asChild variant="outline" className="w-full justify-between">
             <Link href="/dashboard/mantenimiento/bitacora">
-              Bitacora
+              Bitácora
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
@@ -369,7 +369,7 @@ export function MaintenanceMobilePanel() {
               <>
                 <div className="rounded-lg border border-border p-3">
                   <p className="font-semibold">{selectedAsset.asset_name || 'Equipo'}</p>
-                  <p className="text-muted-foreground">{selectedAsset.asset_code || 'Sin codigo'}</p>
+                  <p className="text-muted-foreground">{selectedAsset.asset_code || 'Sin código'}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="rounded-lg border border-border p-3">
@@ -453,7 +453,7 @@ export function MaintenanceMobilePanel() {
           </div>
 
           <div>
-            <Label htmlFor="timeNotes">Descripcion del trabajo</Label>
+            <Label htmlFor="timeNotes">Descripción del trabajo</Label>
             <Textarea
               id="timeNotes"
               rows={3}
@@ -466,17 +466,17 @@ export function MaintenanceMobilePanel() {
           <div className="rounded-lg border border-border p-3 text-sm">
             <p className="font-semibold">Horometro tecnico</p>
             <p className="text-muted-foreground">
-              {selectedAsset?.mtbf_hours ? `${selectedAsset.mtbf_hours} horas tecnicas registradas en el activo` : 'Sin lectura directa aún en la base actual'}
+              {selectedAsset?.mtbf_hours ? `${selectedAsset.mtbf_hours} horas técnicas registradas en el activo` : 'Sin lectura directa aún en la base actual'}
             </p>
           </div>
 
           {timeEntries.length > 0 ? (
             <div className="space-y-2 rounded-lg border border-border p-3 text-sm">
-              <p className="font-semibold">Ultimos registros de esta OT</p>
+              <p className="font-semibold">Últimos registros de esta OT</p>
               {timeEntries.slice(0, 3).map((entry) => (
                 <div key={entry.id} className="rounded-md bg-muted/40 p-2">
                   <p className="font-medium">{Number(entry.horas_trabajadas || 0).toFixed(1)} h</p>
-                  <p className="text-xs text-muted-foreground">{entry.descripcion || 'Sin descripcion'}</p>
+                  <p className="text-xs text-muted-foreground">{entry.descripcion || 'Sin descripción'}</p>
                 </div>
               ))}
             </div>
@@ -517,7 +517,7 @@ export function MaintenanceMobilePanel() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">Todavia no hay evidencia cargada para esta OT.</p>
+            <p className="text-sm text-muted-foreground">Todavía no hay evidencia cargada para esta OT.</p>
           )}
         </CardContent>
       </Card>
@@ -645,7 +645,7 @@ export function MaintenanceMobilePanel() {
           ) : (
             <div className="flex items-center gap-2 rounded-lg border border-dashed border-border p-3 text-muted-foreground">
               <Users className="h-4 w-4" />
-              Todavia no hay registros de tiempo para resumir.
+              Todavía no hay registros de tiempo para resumir.
             </div>
           )}
         </CardContent>
@@ -654,7 +654,7 @@ export function MaintenanceMobilePanel() {
       {recentEntries.length > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>Ultimos registros de tiempo</CardTitle>
+            <CardTitle>Últimos registros de tiempo</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             {recentEntries.slice(0, 3).map((item) => (
