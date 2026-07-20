@@ -385,7 +385,7 @@ export function MaintenanceMobilePanel() {
                     <p className="font-semibold">{selectedAsset.mtbf_hours ? `${selectedAsset.mtbf_hours} h` : 'Sin lectura'}</p>
                   </div>
                   <div className="rounded-lg border border-border p-3">
-                    <p className="text-xs text-muted-foreground">Ultima trazabilidad</p>
+                    <p className="text-xs text-muted-foreground">Última trazabilidad</p>
                     <p className="font-semibold">
                       {selectedHistory[0]?.created_at ? new Date(selectedHistory[0].created_at).toLocaleDateString('es-CL') : 'Sin registro'}
                     </p>
@@ -671,7 +671,7 @@ export function MaintenanceMobilePanel() {
       {selectedHistory.length > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>Ultima trazabilidad</CardTitle>
+            <CardTitle>Última trazabilidad</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             {selectedHistory.slice(0, 3).map((item) => (
