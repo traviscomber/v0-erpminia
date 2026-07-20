@@ -110,7 +110,7 @@ export default function EeccPage() {
       setDeleteTarget(null);
       mutate();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Ocurrio un error');
+      toast.error(error instanceof Error ? error.message : 'Ocurrió un error');
     } finally {
       setDeleting(false);
     }

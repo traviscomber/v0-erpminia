@@ -104,7 +104,7 @@ export default function ContratosReportesPage() {
       {requestTimedOut && !reportData && !error && (
         <Card className="border-amber-500/30 bg-amber-500/5">
           <CardContent className="pt-6 text-sm text-muted-foreground">
-            La carga de reportes tardo mas de lo esperado. Se muestran los accesos y los estados disponibles
+            La carga de reportes tardó más de lo esperado. Se muestran los accesos y los estados disponibles
             mientras el modulo termina de responder.
           </CardContent>
         </Card>
@@ -113,7 +113,7 @@ export default function ContratosReportesPage() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-3xl font-bold">Reportes de contratos</h1>
-          <p className="text-muted-foreground">Seguimiento real de pagos, garantias y regalias, con lectura ejecutiva.</p>
+          <p className="text-muted-foreground">Seguimiento real de pagos, garantías y regalías, con lectura ejecutiva.</p>
         </div>
 
         <Button variant="outline" size="sm" className="w-fit">
@@ -127,7 +127,7 @@ export default function ContratosReportesPage() {
           <div className="flex flex-wrap gap-2">
             {['mes', 'trimestre', 'anual'].map((p) => (
               <Button key={p} variant={periodo === p ? 'default' : 'outline'} onClick={() => setPeriodo(p)} size="sm">
-                {p === 'mes' ? 'Mes actual' : p === 'trimestre' ? 'Trimestre actual' : 'Ano actual'}
+                {p === 'mes' ? 'Mes actual' : p === 'trimestre' ? 'Trimestre actual' : 'Año actual'}
               </Button>
             ))}
           </div>
@@ -137,8 +137,8 @@ export default function ContratosReportesPage() {
       <Tabs defaultValue="pagos" className="space-y-4">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="pagos">Pagos</TabsTrigger>
-          <TabsTrigger value="garantias">Garantias</TabsTrigger>
-          <TabsTrigger value="regalias">Regalias</TabsTrigger>
+          <TabsTrigger value="garantias">Garantías</TabsTrigger>
+          <TabsTrigger value="regalias">Regalías</TabsTrigger>
           <TabsTrigger value="estado">Estado</TabsTrigger>
         </TabsList>
 
@@ -172,7 +172,7 @@ export default function ContratosReportesPage() {
         <TabsContent value="garantias" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Estado de garantias retenidas</CardTitle>
+              <CardTitle>Estado de garantías retenidas</CardTitle>
             </CardHeader>
             <CardContent>
               {garantiasActivas.length > 0 ? (
@@ -198,7 +198,7 @@ export default function ContratosReportesPage() {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <p className="py-8 text-center text-muted-foreground">Sin garantias activas</p>
+                <p className="py-8 text-center text-muted-foreground">Sin garantías activas</p>
               )}
             </CardContent>
           </Card>
@@ -226,7 +226,7 @@ export default function ContratosReportesPage() {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <p className="py-8 text-center text-muted-foreground">No hay datos de regalias para el periodo seleccionado.</p>
+                <p className="py-8 text-center text-muted-foreground">No hay datos de regalías para el periodo seleccionado.</p>
               )}
             </CardContent>
           </Card>

@@ -354,7 +354,7 @@ export default function ContratosPage() {
                 <thead>
                   <tr className="border-b border-white/10">
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Contrato</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Numero</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Número</th>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Tipo</th>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Estado</th>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Valor</th>
@@ -458,7 +458,7 @@ export default function ContratosPage() {
                     />
                   </div>
                   <div>
-                    <label className="mb-2 block text-sm font-medium">Numero de contrato *</label>
+                    <label className="mb-2 block text-sm font-medium">Número de contrato *</label>
                     <Input
                       value={formState.contractNumber}
                       onChange={(e) => updateField('contractNumber', e.target.value)}

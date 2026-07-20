@@ -37,7 +37,7 @@ export default function FinanzasProveedoresPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Acciones utiles</CardTitle>
+            <CardTitle className="text-sm">Acciones útiles</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">4</p>
