@@ -35,7 +35,7 @@ export default function Home() {
           <div className="flex gap-4 justify-center pt-8">
             <Link href="/login">
               <Button size="lg" className="gap-2 bg-[var(--brand-cobre)] hover:bg-[var(--brand-cobre)]/90 text-base px-8">
-                Solicitar Demo
+                Solicitar demostración
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
@@ -115,7 +115,7 @@ export default function Home() {
           {[
             { icon: BarChart3, name: 'Producci\u00f3n', desc: 'KPIs en tiempo real, sensores integrados' },
             { icon: Wrench, name: 'Mantenci\u00f3n', desc: '\u00d3rdenes de trabajo, preventivo, MTTR' },
-            { icon: Package, name: 'Bodega', desc: 'Stock, reorden automatico, trazabilidad' },
+            { icon: Package, name: 'Bodega', desc: 'Stock, reorden automático, trazabilidad' },
             { icon: Shield, name: 'HSE', desc: 'Incidentes, auditoria, cumplimiento' },
             { icon: FileText, name: 'Documentos', desc: 'Contratos, normativas, evidencia auditada' },
           ].map((mod, i) => (
@@ -179,13 +179,13 @@ export default function Home() {
       </section>
 
       <section className="max-w-7xl mx-auto px-4 py-20 border-t border-border text-center">
-        <h2 className="text-4xl font-bold text-foreground mb-6">Listo para transformar tu operacion</h2>
+        <h2 className="text-4xl font-bold text-foreground mb-6">Listo para transformar tu operación</h2>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
           {'Conecta producci\u00f3n, mantenci\u00f3n, bodega, HSE, documentos y gerencia en una sola plataforma trazable.'}
         </p>
         <Link href="/login">
           <Button size="lg" className="gap-2 bg-[var(--brand-cobre)] hover:bg-[var(--brand-cobre)]/90 text-base px-8">
-            Solicitar Demo
+            Solicitar demostración
             <ArrowRight className="h-4 w-4" />
           </Button>
         </Link>

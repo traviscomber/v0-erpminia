@@ -339,7 +339,7 @@ export function FinanzasDashboard() {
                 <CardDescription>Estado</CardDescription>
                 <CardTitle className="text-3xl">Real</CardTitle>
               </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">Sin mock visible y con la tabla real del sistema.</CardContent>
+            <CardContent className="text-sm text-muted-foreground">Contenido real del sistema y tabla sincronizada.</CardContent>
             </Card>
           </div>
 
