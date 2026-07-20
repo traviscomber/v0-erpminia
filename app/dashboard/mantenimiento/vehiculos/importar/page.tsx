@@ -65,7 +65,7 @@ export default function VehiclesImportPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Importacion estandarizada</CardTitle>
+          <CardTitle>Importación estandarizada</CardTitle>
           <CardDescription>
             El archivo puede venir en CSV, XLS o XLSX. El alta o actualizacion se hace por `ASSET_CODE`.
           </CardDescription>

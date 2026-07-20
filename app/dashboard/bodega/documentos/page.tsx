@@ -245,7 +245,7 @@ export default function DocumentosBodegaPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center justify-between text-sm font-medium">
-               <span>En revision</span>
+              <span>En revisión</span>
               <Clock className="h-4 w-4 text-yellow-500" />
             </CardTitle>
           </CardHeader>
@@ -264,7 +264,7 @@ export default function DocumentosBodegaPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-red-500">{stats.rechazados}</p>
-            <p className="text-xs text-muted-foreground">Pendientes de correccion</p>
+            <p className="text-xs text-muted-foreground">Pendientes de corrección</p>
           </CardContent>
         </Card>
       </div>
@@ -278,7 +278,7 @@ export default function DocumentosBodegaPage() {
             Vigentes
           </TabsTrigger>
           <TabsTrigger value="revision" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-             En revision
+             En revisión
           </TabsTrigger>
           <TabsTrigger value="upload" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             Subir documentos
@@ -328,7 +328,7 @@ export default function DocumentosBodegaPage() {
 
           <Card className="border-border/70 bg-card/80">
             <CardHeader>
-              <CardTitle>Importacion tabular de bodega</CardTitle>
+              <CardTitle>Importación tabular de bodega</CardTitle>
               <CardDescription>
                 La carga de inventario y centros de costo ahora vive en una ruta operativa dedicada para mantener separado el flujo documental.
               </CardDescription>

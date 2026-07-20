@@ -93,7 +93,7 @@ export default function MaintenanceCostsImportPage() {
 
       setResult({
         success: true,
-        message: payload?.message || (dryRun ? 'Validacion completada' : 'Importacion completada'),
+        message: payload?.message || (dryRun ? 'Validación completada' : 'Importación completada'),
         dry_run: Boolean(payload?.dry_run),
         updated_orders: payload?.updated_orders || 0,
         inserted_history: payload?.inserted_history || 0,

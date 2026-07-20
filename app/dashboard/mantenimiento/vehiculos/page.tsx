@@ -86,7 +86,7 @@ export default function VehiclesPage() {
 
       <Card className="border-border/70 bg-card/80">
         <CardHeader>
-          <CardTitle>Importacion operativa de vehiculos</CardTitle>
+          <CardTitle>Importación operativa de vehículos</CardTitle>
           <CardDescription>
             La carga masiva se ejecuta desde una ruta dedicada para separar el maestro operativo de la vista de consulta.
           </CardDescription>

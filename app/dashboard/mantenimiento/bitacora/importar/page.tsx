@@ -83,7 +83,7 @@ export default function MaintenanceHistoryImportPage() {
 
       setResult({
         success: true,
-        message: payload?.message || 'Importacion completada',
+        message: payload?.message || 'Importación completada',
         imported: payload?.imported || 0,
         updated: payload?.updated || 0,
         skipped: payload?.skipped || 0,

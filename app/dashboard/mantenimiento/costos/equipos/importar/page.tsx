@@ -33,7 +33,7 @@ type ImportResult = {
 function buildTemplateCsv() {
   const headers = ['CUENTA', 'NOMBRE', 'COMPROBANTE', 'TIPO', 'FECHA', 'MES', 'ANO', 'CONCEPTO', 'COSTO', 'EQUIPO / VEHICULO', 'CATEGORIA', 'RUT', 'NOMBRE RUT'];
   const rows = [
-    ['3204008', 'Mantenciones', '88551', 'T', '2026-05-19', 'mayo', '2026', 'Cambio de aceite', '68067', 'Bus Ford Transit Ano 2023 - SKYB-57', 'FURGON', '---', '---'],
+    ['3204008', 'Mantenciones', '88551', 'T', '2026-05-19', 'mayo', '2026', 'Cambio de aceite', '68067', 'Bus Ford Transit Año 2023 - SKYB-57', 'FURGON', '---', '---'],
     ['3204008', 'Mantenciones', '88552', 'T', '2026-05-20', 'mayo', '2026', 'Neumaticos', '2450000', 'Scoop Atlas Copco ST-1030 (4)', 'CARGADORES DE BAJO PERFIL', '---', '---'],
   ];
 
@@ -96,7 +96,7 @@ export default function EquipmentCostsImportPage() {
 
       setResult({
         success: true,
-        message: payload?.message || (dryRun ? 'Validacion completada' : 'Importacion completada'),
+        message: payload?.message || (dryRun ? 'Validación completada' : 'Importación completada'),
         dry_run: Boolean(payload?.dry_run),
         imported: payload?.imported || 0,
         matched_assets: payload?.matched_assets || 0,
