@@ -407,7 +407,7 @@ export function FinanzasDashboard() {
                 <CardDescription>Con cruce</CardDescription>
                 <CardTitle className="text-3xl">{maintenanceEquipmentCostsLoading ? '...' : maintenanceEquipmentCosts.matchedRows}</CardTitle>
               </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">Filas asociadas a maquinaria real o centro de costo.</CardContent>
+              <CardContent className="text-sm text-muted-foreground">Filas asociadas a maquinaria real o centros de costo.</CardContent>
             </Card>
             <Card>
               <CardHeader className="pb-2">

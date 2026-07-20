@@ -448,7 +448,7 @@ export default function ContratosPage() {
               <form className="space-y-5" onSubmit={handleCreateContract}>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="mb-2 block text-sm font-medium">Titulo del contrato *</label>
+                    <label className="mb-2 block text-sm font-medium">Título del contrato *</label>
                     <Input
                       value={formState.title}
                       onChange={(e) => updateField('title', e.target.value)}
