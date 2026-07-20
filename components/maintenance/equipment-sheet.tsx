@@ -42,6 +42,14 @@ function getCriticalityVariant(criticality: string): 'destructive' | 'secondary'
   return 'outline';
 }
 
+function isDerivedEquipment(equipment: Equipment) {
+  return equipment.source === 'cost_center' || !equipment.asset_id;
+}
+
+function getEquipmentDetailId(equipment: Equipment) {
+  return equipment.asset_id || equipment.id;
+}
+
 export function EquipmentSheet({ equipment, isOpen, onClose, canEdit = false }: EquipmentSheetProps) {
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -107,19 +115,24 @@ export function EquipmentSheet({ equipment, isOpen, onClose, canEdit = false }: 
               <Button variant="outline" onClick={onClose}>
                 Cerrar
               </Button>
-              {equipment && (
+              {!isDerivedEquipment(equipment) && (
                 <Button asChild variant="outline">
-                  <Link href={`/dashboard/mantenimiento/equipos/${equipment.id}/ficha`}>Ficha completa</Link>
+                  <Link href={`/dashboard/mantenimiento/equipos/${getEquipmentDetailId(equipment)}/ficha`}>Ficha completa</Link>
                 </Button>
               )}
-              {equipment && (
+              {!isDerivedEquipment(equipment) && (
                 <Button asChild variant="outline">
-                  <Link href={`/dashboard/mantenimiento/equipos/${equipment.id}/ficha-tecnica`}>Ficha tecnica</Link>
+                  <Link href={`/dashboard/mantenimiento/equipos/${getEquipmentDetailId(equipment)}/ficha-tecnica`}>Ficha tecnica</Link>
                 </Button>
               )}
-              {equipment && (
+              {!isDerivedEquipment(equipment) && (
                 <Button asChild variant="outline">
-                  <Link href={`/dashboard/mantenimiento/equipos/${equipment.id}/arbol`}>Ver arbol de fallas</Link>
+                  <Link href={`/dashboard/mantenimiento/equipos/${getEquipmentDetailId(equipment)}/arbol`}>Ver arbol de fallas</Link>
+                </Button>
+              )}
+              {isDerivedEquipment(equipment) && (
+                <Button variant="outline" disabled>
+                  Equipo derivado
                 </Button>
               )}
               {canEdit && (

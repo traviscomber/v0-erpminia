@@ -5,19 +5,27 @@ import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { resolveAuthContext } from '@/lib/api/auth-session';
 import { canonicalCategory } from '@/lib/bodega-normalization';
 
-type WarehouseStockRow = {
+type BodegaInventoryRow = {
   id: string;
-  part_code?: string | null;
-  part_name?: string | null;
-  quantity_on_hand?: number | null;
+  sku?: string | null;
+  name?: string | null;
+  category?: string | null;
+  description?: string | null;
+  quantity?: number | null;
   quantity_available?: number | null;
   quantity_reserved?: number | null;
-  reorder_level?: number | null;
-  reorder_quantity?: number | null;
+  min_stock?: number | null;
+  max_stock?: number | null;
   unit_cost?: number | null;
-  batch_number?: string | null;
-  bin_id?: string | null;
+  location?: string | null;
+  organization_id?: string | null;
+  created_at?: string | null;
 };
+
+function toNumber(value: unknown) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
 
 export async function GET(request: NextRequest) {
   const auth = await resolveAuthContext(request);
@@ -32,59 +40,60 @@ export async function GET(request: NextRequest) {
   const search = searchParams.get('search') || '';
   const category = searchParams.get('category') || '';
 
+  const validPageSize = Math.min(Math.max(pageSize, 10), 500);
+  const validPage = Math.max(page, 0);
+  const offset = validPage * validPageSize;
+
   if (searchParams.get('categories') === 'true') {
     const categorySet = new Set<string>();
     let from = 0;
     const chunk = 1000;
 
     while (true) {
-      let q = supabase
-        .from('warehouse_stock')
-        .select('part_code')
-        .order('part_code')
+      let query = supabase
+        .from('bodega_inventory')
+        .select('category')
+        .order('category')
         .range(from, from + chunk - 1);
-      if (orgId) q = q.eq('organization_id', orgId);
 
-      const { data, error } = await q;
+      if (orgId) {
+        query = query.or(`organization_id.eq.${orgId},organization_id.is.null`);
+      }
+
+      const { data, error } = await query;
       if (error) {
         return NextResponse.json({ categories: [], warning: error.message });
       }
       if (!data || data.length === 0) break;
 
-      for (const row of data) {
-        const label = canonicalCategory(row.part_code);
-        if (label) categorySet.add(label);
+      for (const row of data as Array<{ category?: string | null }>) {
+        const label = String(row.category || '').trim();
+        if (label) categorySet.add(canonicalCategory(label) || label);
       }
 
       if (data.length < chunk) break;
       from += chunk;
     }
 
-    const categories = Array.from(categorySet).sort((a, b) =>
-      a.localeCompare(b, 'es', { sensitivity: 'base' }),
-    );
-    return NextResponse.json({ categories });
+    return NextResponse.json({
+      categories: Array.from(categorySet).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' })),
+    });
   }
 
-  const validPageSize = Math.min(Math.max(pageSize, 10), 500);
-  const validPage = Math.max(page, 0);
-  const offset = validPage * validPageSize;
-
-  // Real columns: quantity_on_hand, quantity_available, reorder_level, reorder_quantity, part_name, bin_id
   let query = supabase
-    .from('warehouse_stock')
+    .from('bodega_inventory')
     .select(
-      'id, part_code, part_name, quantity_on_hand, quantity_available, quantity_reserved, reorder_level, reorder_quantity, unit_cost, batch_number, bin_id, organization_id, created_at',
+      'id, sku, name, category, description, quantity, min_stock, max_stock, unit_cost, location, organization_id, created_at',
       { count: 'exact' },
     );
 
-  if (orgId) query = query.eq('organization_id', orgId);
-  if (search) query = query.or(`part_code.ilike.%${search}%,part_name.ilike.%${search}%,batch_number.ilike.%${search}%`);
-  if (category) query = query.ilike('part_code', `%${category}%`);
+  if (orgId) {
+    query = query.or(`organization_id.eq.${orgId},organization_id.is.null`);
+  }
+  if (search) query = query.or(`sku.ilike.%${search}%,name.ilike.%${search}%,category.ilike.%${search}%,description.ilike.%${search}%`);
+  if (category) query = query.ilike('category', `%${category}%`);
 
-  const { data, error, count } = await query
-    .order('part_code')
-    .range(offset, offset + validPageSize - 1);
+  const { data, error, count } = await query.order('sku').range(offset, offset + validPageSize - 1);
 
   if (error) {
     return NextResponse.json({
@@ -99,19 +108,18 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  // Map warehouse_stock â†’ InventoryItem shape expected by the UI hook
-  const inventory = (data || [] as WarehouseStockRow[]).map((item) => ({
+  const inventory = (Array.isArray(data) ? (data as BodegaInventoryRow[]) : []).map((item) => ({
     id: item.id,
-    sku: item.part_code,
-    name: item.part_name || item.batch_number || item.part_code,
-    category: canonicalCategory(item.part_code) || item.part_code,
-    quantity: item.quantity_on_hand ?? 0,
-    quantity_available: item.quantity_available ?? 0,
-    quantity_reserved: item.quantity_reserved ?? 0,
-    min_stock: item.reorder_level ?? 0,
-    max_stock: item.reorder_quantity ?? 0,
-    unit_cost: item.unit_cost ?? 0,
-    description: item.bin_id || '',
+    sku: String(item.sku || ''),
+    name: String(item.name || item.sku || ''),
+    category: String(item.category || 'Otros'),
+    quantity: toNumber(item.quantity),
+    quantity_available: toNumber(item.quantity),
+    quantity_reserved: 0,
+    min_stock: toNumber(item.min_stock),
+    max_stock: toNumber(item.max_stock),
+    unit_cost: toNumber(item.unit_cost),
+    description: String(item.description || item.location || ''),
   }));
 
   return NextResponse.json({

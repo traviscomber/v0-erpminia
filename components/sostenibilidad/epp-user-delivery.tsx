@@ -2,10 +2,9 @@
 
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Users, Package, Download, Plus, Calendar, Check, AlertCircle } from 'lucide-react';
+import { Users, Package, Download, Calendar, Check, AlertCircle } from 'lucide-react';
 
 interface User {
   id: string;
@@ -141,10 +140,6 @@ export function EPPUserDelivery({
                 </CardDescription>
               )}
             </div>
-            <Button size="sm" className="gap-2" disabled>
-              <Plus className="w-4 h-4" />
-              Entregar EPP
-            </Button>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -154,7 +149,7 @@ export function EPPUserDelivery({
             <div className="text-center py-8 space-y-2">
               <p className="text-muted-foreground">No hay entregas registradas para este usuario</p>
               <p className="text-xs text-muted-foreground">
-                Conecta esta sección a la tabla real de entregas cuando esté disponible.
+                Esta vista queda lista para conectar una tabla real de entregas por usuario.
               </p>
             </div>
           ) : (

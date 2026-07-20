@@ -27,6 +27,9 @@ const fetcher = async (url: string) => {
   return data;
 };
 
+const PREVENCION_MODULE = 'prevenci\u00f3n';
+const DOCUMENTOS_HSE_CATEGORY = 'documentos-hse';
+
 type ListResponse<T = unknown> = {
   data?: T[];
   total?: number;
@@ -123,10 +126,15 @@ const modules = [
 ];
 
 export default function PrevencionRiesgosPage() {
-  const { data: documentosData } = useSWR<ListResponse>('/api/documents/list?module=prevencion&category=documentos-hse', fetcher);
+  const { data: documentosData } = useSWR<ListResponse>(
+    `/api/documents/list?module=${encodeURIComponent(PREVENCION_MODULE)}&category=${encodeURIComponent(DOCUMENTOS_HSE_CATEGORY)}`,
+    fetcher
+  );
   const { data: capacitacionesData } = useSWR<ListResponse>('/api/sostenibilidad/capacitaciones', fetcher);
   const { data: eppData } = useSWR<ListResponse>('/api/sostenibilidad/epp', fetcher);
   const { data: inspeccionesData } = useSWR<ListResponse>('/api/sostenibilidad/inspecciones', fetcher);
+  const { data: inspeccionesExternasData } = useSWR<ListResponse>('/api/sostenibilidad/inspecciones?tipo=externas', fetcher);
+  const { data: kpiData } = useSWR<ListResponse>('/api/sostenibilidad/kpi', fetcher);
   const { data: noConformidadesData } = useSWR<ListResponse>('/api/sostenibilidad/no-conformidades', fetcher);
   const { data: accionesCorrectivasData } = useSWR<ListResponse>('/api/sostenibilidad/corrective-actions', fetcher);
 
@@ -134,6 +142,8 @@ export default function PrevencionRiesgosPage() {
   const trainingCount = normalizeCount(capacitacionesData);
   const eppCount = normalizeCount(eppData);
   const inspectionCount = normalizeCount(inspeccionesData);
+  const externalInspectionCount = normalizeCount(inspeccionesExternasData);
+  const kpiCount = normalizeCount(kpiData);
   const nonConformanceCount = normalizeCount(noConformidadesData);
   const correctiveActionCount = normalizeCount(accionesCorrectivasData);
 
@@ -153,16 +163,9 @@ export default function PrevencionRiesgosPage() {
     'No conformidades': nonConformanceCount,
     'Acciones correctivas': correctiveActionCount,
     Inspecciones: inspectionCount,
-    'Inspecciones externas': inspectionCount,
+    'Inspecciones externas': externalInspectionCount,
     'Carpeta de Arranque': documentCount,
-    'Indicadores de prevencion': Math.max(
-      documentCount,
-      trainingCount,
-      eppCount,
-      inspectionCount,
-      nonConformanceCount,
-      correctiveActionCount
-    ),
+    'Indicadores de prevencion': kpiCount,
   };
 
   return (

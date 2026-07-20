@@ -25,15 +25,18 @@ export function HSEDashboard() {
 
   const summary = data?.summary || {};
   const kpis = (Array.isArray(data?.kpis) ? data.kpis : []) as HseKpiItem[];
+  const documents = Array.isArray(data?.documents) ? data.documents : [];
+  const inspections = Array.isArray(data?.inspections) ? data.inspections : [];
   const trainings = Array.isArray(data?.trainings) ? data.trainings : [];
   const epp = Array.isArray(data?.epp) ? data.epp : [];
   const incidents = Array.isArray(data?.incidents) ? data.incidents : [];
 
   const cards = [
-    { label: 'Incidentes', value: summary.total_incidents || incidents.length || 0, icon: <AlertTriangle className="h-4 w-4" /> },
-    { label: 'Capacitaciones', value: summary.total_trainings || trainings.length || 0, icon: <BookOpen className="h-4 w-4" /> },
-    { label: 'EPP', value: summary.total_epp || epp.length || 0, icon: <ShieldCheck className="h-4 w-4" /> },
-    { label: 'Investigaciones', value: summary.open_investigations || 0, icon: <Users className="h-4 w-4" /> },
+    { label: 'Documentos', value: summary.totalDocuments || documents.length || 0, icon: <BookOpen className="h-4 w-4" /> },
+    { label: 'Inspecciones', value: summary.totalInspections || inspections.length || 0, icon: <AlertTriangle className="h-4 w-4" /> },
+    { label: 'Capacitaciones', value: summary.totalTrainings || trainings.length || 0, icon: <Users className="h-4 w-4" /> },
+    { label: 'EPP', value: summary.totalEpp || epp.length || 0, icon: <ShieldCheck className="h-4 w-4" /> },
+    { label: 'Investigaciones', value: summary.openInvestigations || 0, icon: <Users className="h-4 w-4" /> },
   ];
 
   return (

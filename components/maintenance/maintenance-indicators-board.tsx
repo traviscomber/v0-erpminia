@@ -29,6 +29,14 @@ type AssetRow = {
   status: string | null;
 };
 
+type CostCenterMachine = {
+  status: string;
+};
+
+type CostCenterMachineResponse = {
+  machines?: CostCenterMachine[];
+};
+
 type SummaryCosts = {
   totalCost: number;
   totalWorkOrders: number;
@@ -41,10 +49,12 @@ export function MaintenanceIndicatorsBoard() {
   const { data: mttrData, mutate: mutateMttr } = useSWR('/api/maintenance/mttr', fetcher);
   const { data: ordersData, mutate: mutateOrders } = useSWR('/api/maintenance/work-orders', fetcher);
   const { data: assetsData, mutate: mutateAssets } = useSWR('/api/maintenance/assets', fetcher);
-  const { data: costsData, mutate: mutateCosts } = useSWR('/api/maintenance/costs', fetcher);
+  const { data: machineCatalogData, mutate: mutateMachineCatalog } = useSWR<CostCenterMachineResponse>('/api/maintenance/cost-center-machines', fetcher);
+  const { data: costsData, mutate: mutateCosts } = useSWR('/api/maintenance/equipment-costs?view=summary', fetcher);
 
   const workOrders = (Array.isArray(ordersData?.workOrders) ? ordersData.workOrders : []) as WorkOrderRow[];
   const assets = (Array.isArray(assetsData?.assets) ? assetsData.assets : []) as AssetRow[];
+  const machineCatalog = (Array.isArray(machineCatalogData?.machines) ? machineCatalogData.machines : []) as CostCenterMachine[];
   const summaryCosts: SummaryCosts = costsData?.summary || {
     totalCost: 0,
     totalWorkOrders: 0,
@@ -64,13 +74,13 @@ export function MaintenanceIndicatorsBoard() {
     due.setHours(0, 0, 0, 0);
     return due < today && !['completed', 'completado', 'closed'].includes(String(order.status || '').toLowerCase());
   }).length;
-  const activeAssets = assets.filter((asset) => ['active', 'activo', 'operativo'].includes(normalizeStatus(asset.status))).length;
-  const availability = assets.length > 0 ? Math.round((activeAssets / assets.length) * 100) : 0;
+  const activeAssets = machineCatalog.filter((asset) => ['active', 'activo', 'operativo', 'operational'].includes(normalizeStatus(asset.status))).length;
+  const availability = machineCatalog.length > 0 ? Math.round((activeAssets / machineCatalog.length) * 100) : 0;
 
   const cards = [
     { label: 'MTTR promedio', value: `${Number(mttrData?.averageMTTR || 0).toFixed(1)} h`, icon: Gauge, tone: 'text-primary' },
     { label: 'Disponibilidad', value: `${Number(mttrData?.availability || availability || 0).toFixed(1)}%`, icon: TrendingUp, tone: 'text-green-500' },
-    { label: 'Costo 30d', value: money(summaryCosts.totalCost || 0), icon: TrendingDown, tone: 'text-orange-500' },
+    { label: 'Costo', value: money(summaryCosts.totalCost || 0), icon: TrendingDown, tone: 'text-orange-500' },
     { label: 'OT cerradas', value: String(completedOrders), icon: Wrench, tone: 'text-secondary' },
   ];
 
@@ -78,7 +88,7 @@ export function MaintenanceIndicatorsBoard() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Indicadores de mantención</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Indicadores de mantencion</h1>
           <p className="mt-2 text-muted-foreground">Visibilidad ejecutiva con MTTR, disponibilidad, OT y costo real.</p>
         </div>
         <Button
@@ -87,6 +97,7 @@ export function MaintenanceIndicatorsBoard() {
             void mutateMttr();
             void mutateOrders();
             void mutateAssets();
+            void mutateMachineCatalog();
             void mutateCosts();
           }}
           className="gap-2"
@@ -121,7 +132,7 @@ export function MaintenanceIndicatorsBoard() {
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
               <div className="rounded-lg border border-border p-3">
                 <p className="text-xs text-muted-foreground">Activos</p>
-                <p className="text-2xl font-bold">{assets.length}</p>
+                <p className="text-2xl font-bold">{machineCatalog.length || assets.length}</p>
               </div>
               <div className="rounded-lg border border-border p-3">
                 <p className="text-xs text-muted-foreground">Operativos</p>
@@ -145,7 +156,7 @@ export function MaintenanceIndicatorsBoard() {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between rounded-lg border border-border p-3">
-              <span className="text-sm text-muted-foreground">Órdenes en progreso</span>
+              <span className="text-sm text-muted-foreground">Ordenes en progreso</span>
               <Badge variant="outline">{inProgressOrders}</Badge>
             </div>
             <div className="flex items-center justify-between rounded-lg border border-border p-3">

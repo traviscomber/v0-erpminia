@@ -10,6 +10,9 @@ import { DocumentUpload } from '@/components/documents/document-upload';
 import { DocumentList, Document } from '@/components/documents/document-list';
 import { DocumentReviewModal, type DocumentReviewDocument } from '@/components/documents/document-review-modal';
 
+const PREVENCION_MODULE = 'prevenci\u00f3n';
+const DOCUMENTOS_HSE_CATEGORY = 'documentos-hse';
+
 interface DocumentStats {
   total: number;
   vigentes: number;
@@ -32,9 +35,12 @@ export default function DocumentosHSEPage() {
   const loadDocuments = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/documents/list?module=prevencion&category=documentos-hse', {
-        credentials: 'include',
-      });
+      const response = await fetch(
+        `/api/documents/list?module=${encodeURIComponent(PREVENCION_MODULE)}&category=${encodeURIComponent(DOCUMENTOS_HSE_CATEGORY)}`,
+        {
+          credentials: 'include',
+        }
+      );
       const data = await response.json().catch(() => null);
       const docs = Array.isArray(data?.documents) ? data.documents : Array.isArray(data) ? data : [];
 
@@ -225,7 +231,7 @@ export default function DocumentosHSEPage() {
               <CardDescription>Sube documentos HSE: politicas, procedimientos, instructivos y programas de seguridad</CardDescription>
             </CardHeader>
             <CardContent>
-              <DocumentUpload module="prevencion" category="documentos-hse" onUploadSuccess={loadDocuments} />
+              <DocumentUpload module={PREVENCION_MODULE} category={DOCUMENTOS_HSE_CATEGORY} onUploadSuccess={loadDocuments} />
             </CardContent>
           </Card>
         </TabsContent>

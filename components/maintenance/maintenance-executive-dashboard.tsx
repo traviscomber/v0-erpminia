@@ -61,37 +61,66 @@ type FuelItem = {
 };
 
 type CostSummary = {
+  rows: number;
   totalCost: number;
-  totalWorkOrders: number;
-  totalRecords: number;
   assets: number;
   averageCostPerAsset: number;
+  matchedRows?: number;
+  unmatchedRows?: number;
+};
+
+type CostCenterMachine = {
+  id: string;
+  code: string;
+  name: string;
+  family: string;
+  rootCode: string;
+  status: string;
+  source: 'cost_center';
+  description?: string | null;
+};
+
+type CostCenterMachineResponse = {
+  machines?: CostCenterMachine[];
+  summary?: {
+    total?: number;
+    families?: number;
+    source?: string;
+  };
 };
 
 type AssetCostRow = {
-  assetId: string;
+  id: string;
   assetName: string | null;
   assetCode: string | null;
-  workOrders: number;
+  category?: string | null;
   totalCost: number;
+  rows?: number | null;
+  lastDate?: string | null;
 };
 
 export function MaintenanceExecutiveDashboard() {
-  const { data: assetsData, mutate: mutateAssets } = useSWR('/api/maintenance/assets', fetcher);
+  const { data: assetsData, mutate: mutateAssets } = useSWR('/api/maquinaria/machinery', fetcher);
+  const { data: machineCatalogData, isLoading: machineCatalogLoading, mutate: mutateMachineCatalog } = useSWR<CostCenterMachineResponse>(
+    '/api/maintenance/cost-center-machines',
+    fetcher,
+  );
   const { data: ordersData, mutate: mutateOrders } = useSWR('/api/maintenance/work-orders', fetcher);
-  const { data: costsData, mutate: mutateCosts } = useSWR('/api/maintenance/costs', fetcher);
+  const { data: costsData, mutate: mutateCosts } = useSWR('/api/maintenance/equipment-costs?view=summary', fetcher);
   const { data: mttrData, mutate: mutateMttr } = useSWR('/api/maintenance/mttr', fetcher);
   const { data: preventiveData, mutate: mutatePreventive } = useSWR('/api/maintenance/preventive', fetcher);
   const { data: tiresData, mutate: mutateTires } = useSWR('/api/maintenance/neumaticos', fetcher);
   const { data: componentsData, mutate: mutateComponents } = useSWR('/api/maintenance/componentes-mayores', fetcher);
   const { data: fuelData, mutate: mutateFuel } = useSWR('/api/bodega/inventory?category=Combustible&pageSize=100', fetcher);
 
-  const assets = (Array.isArray(assetsData?.assets) ? assetsData.assets : []) as AssetRow[];
+  const machinery = (Array.isArray(assetsData?.machinery) ? assetsData.machinery : []) as Array<AssetRow & { code?: string | null }>;
+  const assets = machinery as AssetRow[];
+  const machineCatalog = Array.isArray(machineCatalogData?.machines) ? machineCatalogData.machines : [];
   const workOrders = (Array.isArray(ordersData?.workOrders) ? ordersData.workOrders : []) as WorkOrderRow[];
   const tireSummary = tiresData?.summary || { totalItems: 0, lowStock: 0, totalQuantity: 0, totalValue: 0 };
   const preventiveSummary = preventiveData?.summary || { total: 0, enabled: 0, overdue: 0, dueSoon: 0 };
   const componentSummary = componentsData?.summary || { totalTemplates: 0, totalComponents: 0, degraded: 0, failures: 0 };
-  const costSummary: CostSummary = costsData?.summary || { totalCost: 0, totalWorkOrders: 0, totalRecords: 0, assets: 0, averageCostPerAsset: 0 };
+  const costSummary: CostSummary = costsData?.summary || { rows: 0, totalCost: 0, assets: 0, averageCostPerAsset: 0 };
   const assetCosts = Array.isArray(costsData?.assetCosts) ? (costsData.assetCosts as AssetCostRow[]) : [];
   const fuelItems = (Array.isArray(fuelData?.inventory) ? fuelData.inventory : []) as FuelItem[];
   const fuelSummary = fuelItems.reduce(
@@ -108,7 +137,10 @@ export function MaintenanceExecutiveDashboard() {
     { totalItems: 0, totalQuantity: 0, totalValue: 0, lowStock: 0 },
   );
 
-  const activeAssets = assets.filter((asset) => ['active', 'activo', 'operativo'].includes(normalizeStatus(asset.status))).length;
+  const isLoading = machineCatalogLoading;
+
+  const totalAssets = machineCatalog.length || machinery.length;
+  const activeAssets = machineCatalog.filter((asset) => ['activo', 'operativo', 'active', 'operational'].includes(normalizeStatus(asset.status))).length;
   const maintenanceAssets = assets.filter((asset) => ['maintenance', 'mantenimiento'].includes(normalizeStatus(asset.status))).length;
   const criticalAssets = assets.filter((asset) => ['critical', 'critico', 'high', 'alto'].includes(normalizeStatus(asset.criticality))).length;
   const overdueOrders = workOrders.filter((order) => {
@@ -127,7 +159,7 @@ export function MaintenanceExecutiveDashboard() {
       ['open', 'pending', 'pendiente', 'in_progress', 'en_progreso'].includes(String(order.status || '').toLowerCase()) &&
       ['high', 'critical', 'urgente'].includes(String(order.priority || '').toLowerCase()),
   );
-  const availability = assets.length > 0 ? Math.round((activeAssets / assets.length) * 100) : 0;
+  const availability = totalAssets > 0 ? Math.round((activeAssets / totalAssets) * 100) : 0;
   const maintenanceCoverage = workOrders.length > 0 ? Math.round((completedOrders / workOrders.length) * 100) : 0;
   const executivePulse = [
     { label: 'Disponibilidad', value: `${availability}%`, tone: availability >= 85 ? 'text-green-500' : availability >= 70 ? 'text-amber-500' : 'text-destructive' },
@@ -144,11 +176,15 @@ export function MaintenanceExecutiveDashboard() {
     componentSummary.failures > 0 ? `${componentSummary.failures} componentes mayores estan en falla.` : null,
   ].filter(Boolean) as string[];
 
+  if (isLoading) {
+    return <div className="text-sm text-muted-foreground">Cargando mantenimiento...</div>;
+  }
+
   const cards = [
-    { label: 'Equipos totales', value: number(assets.length), icon: CircleCheckBig, tone: 'text-primary', hint: `${availability}% operativos` },
+    { label: 'Equipos totales', value: number(totalAssets), icon: CircleCheckBig, tone: 'text-primary', hint: `${availability}% operativos` },
     { label: 'OT abiertas', value: number(openOrders), icon: Wrench, tone: 'text-orange-500', hint: `${inProgressOrders} en progreso` },
     { label: 'OT atrasadas', value: number(overdueOrders), icon: CircleAlert, tone: 'text-destructive', hint: 'Requieren accion inmediata' },
-    { label: 'Costo 30 dias', value: money(costSummary.totalCost || 0), icon: DollarSign, tone: 'text-orange-500', hint: `${number(costSummary.totalWorkOrders || 0)} OT con costo` },
+    { label: 'Costo', value: money(costSummary.totalCost || 0), icon: DollarSign, tone: 'text-orange-500', hint: `${number(costSummary.rows || 0)} registros importados` },
     { label: 'MTTR', value: `${Number(mttrData?.averageMTTR || 0).toFixed(1)} h`, icon: Gauge, tone: 'text-primary', hint: 'Tiempo promedio de reparacion' },
     { label: 'Preventivos', value: number(preventiveSummary.enabled), icon: CalendarClock, tone: 'text-blue-500', hint: `${preventiveSummary.dueSoon} proximos a vencer` },
     { label: 'Neumaticos bajo minimo', value: number(tireSummary.lowStock), icon: TrendingDown, tone: 'text-orange-500', hint: `${number(tireSummary.totalItems)} items de neumaticos` },
@@ -188,6 +224,7 @@ export function MaintenanceExecutiveDashboard() {
             variant="outline"
             onClick={() => {
               void mutateAssets();
+              void mutateMachineCatalog();
               void mutateOrders();
               void mutateCosts();
               void mutateMttr();
@@ -378,10 +415,12 @@ export function MaintenanceExecutiveDashboard() {
           <CardContent className="space-y-2">
             {assetCosts.length > 0 ? (
               assetCosts.map((asset) => (
-                <div key={asset.assetId} className="flex items-center justify-between rounded-lg border border-border p-3 text-sm">
+                <div key={asset.id} className="flex items-center justify-between rounded-lg border border-border p-3 text-sm">
                   <div>
                     <p className="font-medium">{asset.assetName || asset.assetCode || 'Equipo'}</p>
-                    <p className="text-muted-foreground">{asset.workOrders} OT con costo registrado</p>
+                    <p className="text-muted-foreground">
+                      {asset.rows || 0} filas importadas {asset.category ? `· ${asset.category}` : ''}
+                    </p>
                   </div>
                   <Badge variant="outline">{money(asset.totalCost || 0)}</Badge>
                 </div>

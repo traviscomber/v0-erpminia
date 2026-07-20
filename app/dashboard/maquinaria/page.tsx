@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import useSWR from 'swr';
-import { Download, Package, Route, Search, Truck, Upload, Wrench } from 'lucide-react';
+import { Download, FileText, Package, Route, Search, Truck, Upload, Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -346,7 +346,7 @@ export default function MaquinariaPage() {
                             {fichaHref ? (
                               <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
                                 <Link href={fichaHref}>
-                                  <Route className="mr-1 h-3 w-3" />
+                                  <FileText className="mr-1 h-3 w-3" />
                                   Ficha
                                 </Link>
                               </Button>

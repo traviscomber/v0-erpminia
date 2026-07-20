@@ -69,6 +69,16 @@ type HseTrainingSource = HseRecord & {
   estado?: string | null;
 };
 
+type HseInspectionSource = HseRecord & {
+  inspection_number?: string | null;
+  inspection_type?: string | null;
+  scope?: string | null;
+  scheduled_date?: string | null;
+  actual_date?: string | null;
+  findings_count?: number | string | null;
+  status?: string | null;
+};
+
 type HseEppSource = HseRecord & {
   cargo_puesto?: string | null;
   elemento_epp?: string | null;
@@ -156,6 +166,17 @@ type HseTraining = {
   estado: 'realizada' | 'cancelada' | 'programada';
   asistentes_count: number;
   cargos_aplica: string | null;
+};
+
+type HseInspection = {
+  id: string;
+  numero: string;
+  tipo: string;
+  alcance: string;
+  fecha_programada: string | null;
+  fecha_real: string | null;
+  hallazgos: number;
+  estado: string | null;
 };
 
 type HseEpp = {
@@ -362,6 +383,19 @@ export function mapHseTraining(row: HseTrainingSource): HseTraining {
   };
 }
 
+export function mapHseInspection(row: HseInspectionSource): HseInspection {
+  return {
+    id: row.id,
+    numero: row.inspection_number || 'SIN-NUMERO',
+    tipo: row.inspection_type || 'Inspeccion',
+    alcance: row.scope || 'Sin alcance',
+    fecha_programada: resolveNullableDateString(row.scheduled_date),
+    fecha_real: resolveNullableDateString(row.actual_date),
+    hallazgos: toNumber(row.findings_count),
+    estado: row.status || null,
+  };
+}
+
 export function mapHseEpp(row: HseEppSource): HseEpp {
   return {
     id: row.id,
@@ -467,6 +501,7 @@ export async function getHseModuleData(
     incidentsRaw,
     riskMatrixRaw,
     documentsRaw,
+    inspectionsRaw,
     trainingsRaw,
     eppRaw,
     frameworksRaw,
@@ -490,6 +525,12 @@ export async function getHseModuleData(
       'hse_master_documents',
       'id, nombre_documento, tipo, descripcion, version_actual, estado, fecha_actualizacion, url_documento, created_at, updated_at',
       { organizationId, organizationScoped: true, orderBy: 'fecha_actualizacion', ascending: false, limit: 50 }
+    ),
+    safeSelectRows(
+      supabase,
+      'hse_inspections',
+      'id, inspection_number, inspection_type, scope, scheduled_date, actual_date, findings_count, status, created_at',
+      { organizationId, organizationScoped: true, orderBy: 'scheduled_date', ascending: false, limit: 50 }
     ),
     safeSelectRows(
       supabase,
@@ -540,6 +581,7 @@ export async function getHseModuleData(
 
   const incidents = incidentsRaw.map(mapHseIncident);
   const documents = documentsRaw.map(mapHseDocument);
+  const inspections = inspectionsRaw.map(mapHseInspection);
   const trainings = trainingsRaw.map(mapHseTraining);
   const epp = eppRaw.map(mapHseEpp);
 
@@ -707,6 +749,10 @@ export async function getHseModuleData(
     summary: {
       complianceScore,
       incidentsThisMonth: incidentsThisMonth.length,
+      totalDocuments: documents.length,
+      totalInspections: inspections.length,
+      totalTrainings: trainings.length,
+      totalEpp: epp.length,
       openInvestigations: incidents.filter((incident) => incident.status === 'investigating').length,
       dueRequirements: dueRequirements.length,
       openCorrectiveActions: openCorrectiveActions.length,
@@ -714,6 +760,7 @@ export async function getHseModuleData(
     },
     incidents: incidents.slice(0, 8),
     documents: documents.slice(0, 8),
+    inspections: inspections.slice(0, 8),
     trainings: trainings.slice(0, 8),
     epp: epp.slice(0, 12),
     frameworks: frameworkCards,

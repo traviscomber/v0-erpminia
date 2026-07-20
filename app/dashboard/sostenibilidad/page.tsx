@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useMemo, type ReactNode } from 'react';
 import Link from 'next/link';
@@ -17,6 +17,9 @@ const fetcher = async (url: string) => {
   if (!response.ok) return null;
   return payload;
 };
+
+const PREVENCION_MODULE = 'prevenci\u00f3n';
+const DOCUMENTOS_HSE_CATEGORY = 'documentos-hse';
 
 type OverviewResponse = {
   period: string;
@@ -102,7 +105,10 @@ export default function SostenibilidadDashboard() {
   const { data: overviewData } = useSWR<OverviewResponse>('/api/sostenibilidad/dashboard/overview', fetcher, {
     refreshInterval: 60000,
   });
-  const { data: documentosData } = useSWR<ListResponse>('/api/documents/list?module=prevencion&category=documentos-hse', fetcher);
+  const { data: documentosData } = useSWR<ListResponse>(
+    `/api/documents/list?module=${encodeURIComponent(PREVENCION_MODULE)}&category=${encodeURIComponent(DOCUMENTOS_HSE_CATEGORY)}`,
+    fetcher
+  );
   const { data: capacitacionesData } = useSWR<ListResponse>('/api/sostenibilidad/capacitaciones', fetcher);
   const { data: eppData } = useSWR<ListResponse>('/api/sostenibilidad/epp', fetcher);
   const { data: inspeccionesData } = useSWR<ListResponse>('/api/sostenibilidad/inspecciones', fetcher);

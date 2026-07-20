@@ -113,7 +113,7 @@ export function shouldForceInactiveCostCenter(code: string) {
 
 export function isVisibleCostCenter(code: string) {
   const normalized = normalizeCode(code);
-  return /^[0-9]/.test(normalized);
+  return /^[0-9]/.test(normalized) && !shouldForceInactiveCostCenter(normalized);
 }
 
 export function getCostCenterPriority(code: string) {

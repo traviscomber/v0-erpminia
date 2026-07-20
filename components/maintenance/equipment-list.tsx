@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertCircle, CheckCircle, Route, Search, Wrench } from 'lucide-react';
+import { AlertCircle, CheckCircle, FileText, Route, Search, Wrench } from 'lucide-react';
 
 const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((r) => r.json());
 
@@ -61,6 +61,14 @@ function getStatusLabel(status: string) {
   if (s === 'mantenimiento') return 'Mantenimiento';
   if (s === 'inactivo') return 'Inactivo';
   return status || 'Desconocido';
+}
+
+function getEquipmentDetailId(equipment: Equipment) {
+  return equipment.asset_id || equipment.id;
+}
+
+function canOpenEquipmentDetails(equipment: Equipment) {
+  return Boolean(equipment.asset_id);
 }
 
 const TYPE_ORDER = [
@@ -282,6 +290,11 @@ export function EquipmentList({
                   <span className="text-muted-foreground">Tipo</span>
                   <span className="font-medium">{equipment.type}</span>
                 </div>
+                {equipment.source === 'cost_center' && (
+                  <div className="rounded bg-muted px-2 py-1 text-xs text-muted-foreground">
+                    Derivado desde centro de costo
+                  </div>
+                )}
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground">Estado</span>
                   <div className="flex items-center gap-1.5">
@@ -302,54 +315,63 @@ export function EquipmentList({
                 )}
 
                 <div className="mt-3 flex gap-2">
-                  <Button
-                    asChild
-                    size="sm"
-                    variant="outline"
-                    className="h-8 flex-1"
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    <Link href={`/dashboard/mantenimiento/equipos/${equipment.id}/ficha`}>
-                      <Route className="mr-2 h-3.5 w-3.5" />
-                      Ficha
-                    </Link>
-                  </Button>
-                  <Button
-                    asChild
-                    size="sm"
-                    variant="outline"
-                    className="h-8 flex-1"
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    <Link href={`/dashboard/mantenimiento/equipos/${equipment.id}/ficha-tecnica`}>
-                      <Route className="mr-2 h-3.5 w-3.5" />
-                      Tecnica
-                    </Link>
-                  </Button>
-                  <Button
-                    asChild
-                    size="sm"
-                    variant="outline"
-                    className="h-8 flex-1"
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    <Link href={`/dashboard/mantenimiento/equipos/${equipment.id}/arbol`}>
-                      <Route className="mr-2 h-3.5 w-3.5" />
-                      Arbol
-                    </Link>
-                  </Button>
-                  <Button
-                    asChild
-                    size="sm"
-                    variant="outline"
-                    className="h-8 flex-1"
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    <Link href={`/dashboard/work-orders/create?assetId=${equipment.id}`}>
-                      <Wrench className="mr-2 h-3.5 w-3.5" />
-                      OT
-                    </Link>
-                  </Button>
+                  {canOpenEquipmentDetails(equipment) ? (
+                    <>
+                      <Button
+                        asChild
+                        size="sm"
+                        variant="outline"
+                        className="h-8 flex-1"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        <Link href={`/dashboard/mantenimiento/equipos/${getEquipmentDetailId(equipment)}/ficha`}>
+                          <FileText className="mr-2 h-3.5 w-3.5" />
+                          Ficha
+                        </Link>
+                      </Button>
+                      <Button
+                        asChild
+                        size="sm"
+                        variant="outline"
+                        className="h-8 flex-1"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        <Link href={`/dashboard/mantenimiento/equipos/${getEquipmentDetailId(equipment)}/ficha-tecnica`}>
+                          <Route className="mr-2 h-3.5 w-3.5" />
+                          Tecnica
+                        </Link>
+                      </Button>
+                      <Button
+                        asChild
+                        size="sm"
+                        variant="outline"
+                        className="h-8 flex-1"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        <Link href={`/dashboard/mantenimiento/equipos/${getEquipmentDetailId(equipment)}/arbol`}>
+                          <Route className="mr-2 h-3.5 w-3.5" />
+                          Arbol
+                        </Link>
+                      </Button>
+                      <Button
+                        asChild
+                        size="sm"
+                        variant="outline"
+                        className="h-8 flex-1"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        <Link href={`/dashboard/work-orders/create?assetId=${getEquipmentDetailId(equipment)}`}>
+                          <Wrench className="mr-2 h-3.5 w-3.5" />
+                          OT
+                        </Link>
+                      </Button>
+                    </>
+                  ) : (
+                    <div className="flex w-full items-center justify-between gap-2 rounded-md border border-dashed px-3 py-2 text-xs text-muted-foreground">
+                      <span>Equipo derivado de centro de costo</span>
+                      <span>Sin ficha operativa</span>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

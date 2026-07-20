@@ -1,5 +1,7 @@
 export interface Equipment {
   id: string;
+  asset_id?: string | null;
+  source?: 'maintenance_asset' | 'cost_center';
   code: string;
   name: string;
   model: string | null;

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -9,9 +9,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface MaintenanceCostsSummary {
+  rows?: number | string;
   totalCost?: number | string;
-  totalWorkOrders?: number | string;
-  totalRecords?: number | string;
+  matchedRows?: number | string;
+  unmatchedRows?: number | string;
   assets?: number | string;
   averageCostPerAsset?: number | string;
 }
@@ -20,16 +21,16 @@ interface AssetCostRow {
   id: string;
   assetName: string;
   assetCode?: string | null;
-  machineFamily?: string | null;
-  partsCost?: number | string | null;
-  laborCost?: number | string | null;
-  workOrderCost?: number | string | null;
+  category?: string | null;
   totalCost?: number | string | null;
+  rows?: number | string | null;
+  lastDate?: string | null;
 }
 
-interface FamilyCostRow {
-  family: string;
-  value: number | string;
+interface CategoryCostRow {
+  category: string;
+  totalCost: number | string;
+  rows: number | string;
 }
 
 interface MonthlyCostRow {
@@ -40,7 +41,7 @@ interface MonthlyCostRow {
 interface MaintenanceCostsResponse {
   summary?: MaintenanceCostsSummary;
   assetCosts?: AssetCostRow[];
-  familyCosts?: FamilyCostRow[];
+  categoryCosts?: CategoryCostRow[];
   monthlyCosts?: MonthlyCostRow[];
 }
 
@@ -48,7 +49,7 @@ const fetcher = async (url: string): Promise<MaintenanceCostsResponse> => {
   const response = await fetch(url, { credentials: 'include' });
   const payload = await response.json().catch(() => null);
   if (!response.ok) {
-    throw new Error(payload?.error || 'No se pudo calcular el costo por equipo');
+    throw new Error(payload?.error || 'No se pudo leer el ledger de costos');
   }
   return payload;
 };
@@ -69,14 +70,14 @@ export function MaintenanceCostsBoard() {
     error: summaryError,
     isLoading: summaryLoading,
     mutate: mutateSummary,
-  } = useSWR<MaintenanceCostsResponse>('/api/maintenance/costs?view=summary', fetcher);
+  } = useSWR<MaintenanceCostsResponse>('/api/maintenance/equipment-costs?view=summary', fetcher);
   const {
     data: detailData,
     error: detailError,
     isLoading: detailLoading,
     mutate: mutateDetails,
   } = useSWR<MaintenanceCostsResponse>(
-    loadDetails ? '/api/maintenance/costs?view=full' : null,
+    loadDetails ? '/api/maintenance/equipment-costs?view=full' : null,
     fetcher,
     { revalidateOnFocus: false },
   );
@@ -87,11 +88,12 @@ export function MaintenanceCostsBoard() {
     return () => window.clearTimeout(timeout);
   }, [loadDetails, summaryData]);
 
-  const summary: MaintenanceCostsSummary = detailData?.summary || summaryData?.summary || { totalCost: 0, totalWorkOrders: 0, totalRecords: 0, assets: 0, averageCostPerAsset: 0 };
+  const summary: MaintenanceCostsSummary = detailData?.summary || summaryData?.summary || { rows: 0, totalCost: 0, matchedRows: 0, unmatchedRows: 0, assets: 0, averageCostPerAsset: 0 };
   const assetCosts: AssetCostRow[] = Array.isArray(detailData?.assetCosts) ? detailData.assetCosts : [];
-  const familyCosts: FamilyCostRow[] = Array.isArray(detailData?.familyCosts) ? detailData.familyCosts : [];
+  const categoryCosts: CategoryCostRow[] = Array.isArray(detailData?.categoryCosts) ? detailData.categoryCosts : [];
   const monthlyCosts: MonthlyCostRow[] = Array.isArray(detailData?.monthlyCosts) ? detailData.monthlyCosts : [];
   const error = summaryError || detailError;
+
   const refreshCosts = () => {
     void mutateSummary();
     void mutateDetails();
@@ -102,7 +104,7 @@ export function MaintenanceCostsBoard() {
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Costo por equipo</h1>
-          <p className="mt-2 text-muted-foreground">Costos reales acumulados por equipo, repuestos y mano de obra.</p>
+          <p className="mt-2 text-muted-foreground">Ledger real de costos importados desde Excel y cruzados con maquinaria y centros de costo.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline" className="gap-2">
@@ -128,7 +130,7 @@ export function MaintenanceCostsBoard() {
             </Link>
           </Button>
           <Button asChild variant="outline" className="gap-2">
-              <Link href="/dashboard/mantenimiento/vehiculos">
+            <Link href="/dashboard/mantenimiento/vehiculos">
               Vehículos y QR
               <ArrowRight className="h-4 w-4" />
             </Link>
@@ -153,23 +155,23 @@ export function MaintenanceCostsBoard() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Equipos con costo</CardTitle>
+            <CardTitle className="text-sm">Registros importados</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{summaryLoading ? '...' : toNumber(summary.assets)}</div>
+            <div className="text-2xl font-bold">{summaryLoading ? '...' : toNumber(summary.rows)}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">OT con costo</CardTitle>
+            <CardTitle className="text-sm">Con cruce</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{summaryLoading ? '...' : toNumber(summary.totalWorkOrders)}</div>
+            <div className="text-2xl font-bold">{summaryLoading ? '...' : toNumber(summary.matchedRows)}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Promedio por equipo</CardTitle>
+            <CardTitle className="text-sm">Promedio por activo</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{summaryLoading ? '...' : money(summary.averageCostPerAsset)}</div>
@@ -228,7 +230,7 @@ export function MaintenanceCostsBoard() {
             ) : error ? (
               <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
                 <AlertCircle className="h-4 w-4" />
-                No fue posible calcular el costo por equipo.
+                No fue posible leer el ledger de costos.
               </div>
             ) : assetCosts.length === 0 ? (
               <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
@@ -241,9 +243,9 @@ export function MaintenanceCostsBoard() {
                     <div>
                       <p className="font-semibold">{asset.assetName}</p>
                       <p className="text-xs text-muted-foreground">{asset.assetCode || '-'}</p>
-                      <p className="mt-1 text-xs text-muted-foreground">{asset.machineFamily || 'Sin familia derivada'}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{asset.category || 'Sin categoria'}</p>
                       <p className="mt-2 text-xs text-muted-foreground">
-                        Repuestos {money(asset.partsCost)} | Mano de obra {money(asset.laborCost)} | OT {money(asset.workOrderCost)}
+                        Filas {toNumber(asset.rows)} | Ultima fecha {asset.lastDate || '-'}
                       </p>
                     </div>
                     <Badge variant="secondary">{money(asset.totalCost)}</Badge>
@@ -256,23 +258,23 @@ export function MaintenanceCostsBoard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Costos por familia</CardTitle>
+            <CardTitle>Costos por categoria</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {detailLoading ? (
-              <div className="text-sm text-muted-foreground">Cargando costos por familia...</div>
-            ) : familyCosts.length === 0 ? (
+              <div className="text-sm text-muted-foreground">Cargando costos por categoria...</div>
+            ) : categoryCosts.length === 0 ? (
               <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-                Sin datos por familia todavía.
+                Sin datos por categoria todavía.
               </div>
             ) : (
-              familyCosts.map((row) => (
-                <div key={row.family} className="flex items-center justify-between rounded-lg border border-border p-3">
+              categoryCosts.map((row) => (
+                <div key={row.category} className="flex items-center justify-between rounded-lg border border-border p-3">
                   <div>
-                    <p className="font-medium">{row.family}</p>
-                    <p className="text-xs text-muted-foreground">Costo acumulado por familia operativa</p>
+                    <p className="font-medium">{row.category}</p>
+                    <p className="text-xs text-muted-foreground">Costo acumulado por categoria importada</p>
                   </div>
-                  <Badge variant="outline">{money(row.value)}</Badge>
+                  <Badge variant="outline">{money(row.totalCost)}</Badge>
                 </div>
               ))
             )}
@@ -307,4 +309,3 @@ export function MaintenanceCostsBoard() {
     </div>
   );
 }
-

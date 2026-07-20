@@ -1,6 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Shield, Plus } from 'lucide-react';
 
 interface HSEEPPEntrega {
@@ -20,7 +19,15 @@ const estadoColores = {
   descarte: 'bg-red-100 text-red-800',
 };
 
-export function HSEEPPCard({ entregas, cargo }: { entregas: HSEEPPEntrega[]; cargo: string }) {
+export function HSEEPPCard({
+  entregas,
+  cargo,
+  showAction = false,
+}: {
+  entregas: HSEEPPEntrega[];
+  cargo: string;
+  showAction?: boolean;
+}) {
   const pendingDevoluciones = entregas.filter((e) => e.devolucion_requerida && !e.fecha_devolucion);
 
   return (
@@ -71,10 +78,12 @@ export function HSEEPPCard({ entregas, cargo }: { entregas: HSEEPPEntrega[]; car
           ))}
         </div>
 
-        <Button className="w-full" size="sm" variant="outline">
-          <Plus className="mr-1 h-3 w-3" />
-          Nuevo registro EPP
-        </Button>
+        {showAction && (
+          <button className="w-full rounded-md border border-border px-3 py-2 text-sm hover:bg-accent">
+            <Plus className="mr-1 inline-block h-3 w-3" />
+            Nuevo registro EPP
+          </button>
+        )}
       </CardContent>
     </Card>
   );

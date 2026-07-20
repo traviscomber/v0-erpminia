@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Search, AlertCircle, Edit, Trash2, Download, Package } from 'lucide-react';
 import useSWR from 'swr';
-import { EPPUserDelivery } from '@/components/sostenibilidad/epp-user-delivery';
+import { HSEEPPCard } from '@/components/hse/hse-epp-card';
 import { useModuleAccess } from '@/hooks/use-module-access';
 import {
   Dialog,
@@ -32,13 +32,20 @@ interface EPP {
   activo: boolean;
 }
 
-type AdminUser = {
+type HseEppDelivery = {
   id: string;
-  full_name?: string | null;
-  nombre?: string | null;
-  email?: string | null;
-  role?: string | null;
-  active?: boolean | null;
+  cargo: string;
+  cargo_puesto?: string | null;
+  personal_nombre: string;
+  epp_elemento: string;
+  cantidad: number;
+  fecha_entrega: string;
+  estado_anterior: 'nuevo';
+  devolucion_requerida: false;
+  fecha_devolucion: null;
+  frecuencia_reemplazo?: string | null;
+  marca_modelo?: string | null;
+  activo: boolean;
 };
 
 const fetcher = async (url: string) => {
@@ -85,24 +92,26 @@ export default function EPPPage() {
   };
 
   const { data: epp, isLoading, mutate } = useSWR('/api/sostenibilidad/epp', fetcher);
-  const { data: usersData } = useSWR('/api/admin/users', authFetcher);
+  const { data: hseEppPayload } = useSWR(
+    `/api/hse/epp${selectedCargo ? `?cargo=${encodeURIComponent(selectedCargo)}` : ''}`,
+    authFetcher
+  );
 
   const eppData = ((epp?.data || []) as EPP[]);
   const activeEppCount = eppData.filter((item: EPP) => item.activo).length;
   const inactiveEppCount = eppData.length - activeEppCount;
-  const users = Array.isArray(usersData?.users)
-    ? (usersData.users as AdminUser[]).map((user) => ({
-        id: user.id,
-        nombre: user.full_name || user.nombre || user.email || 'Sin nombre',
-        cargo: user.role || 'Usuario',
-        activo: user.active ?? true,
-      }))
-    : [];
   const cargos = [...new Set(eppData.map((item: EPP) => item.cargo_puesto))];
+  const hseEppData = Array.isArray(hseEppPayload?.entregas)
+    ? (hseEppPayload.entregas as HseEppDelivery[])
+    : [];
+  const hseEppCardData = hseEppData.map((entrega) => ({
+    ...entrega,
+    fecha_devolucion: entrega.fecha_devolucion ?? '',
+  }));
   const miningEppRecommendations = [
     {
       role: 'Operador de equipo pesado',
-      items: ['Casco minero con barboquejo', 'Lentes sellados', 'Proteccion auditiva', 'Guantes anticorte', 'Botas dieléctricas'],
+      items: ['Casco minero con barboquejo', 'Lentes sellados', 'Proteccion auditiva', 'Guantes anticorte', 'Botas dielectricas'],
     },
     {
       role: 'Perforista / sondaje',
@@ -181,7 +190,7 @@ export default function EPPPage() {
   };
 
   const handleDelete = async (id: string, nombre: string) => {
-    if (!confirm(`¿Eliminar "${nombre}"`)) return;
+    if (!confirm(`Â¿Eliminar "${nombre}"`)) return;
     try {
       const response = await fetch(`/api/sostenibilidad/epp?id=${id}`, { method: 'DELETE' });
       if (response.ok) {
@@ -202,9 +211,9 @@ export default function EPPPage() {
       <div className="mb-8 flex justify-between items-start">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-3xl font-bold text-foreground">Gestión de Artículos de EPP</h1>
+            <h1 className="text-3xl font-bold text-foreground">Gestion de Articulos de EPP</h1>
           </div>
-          <p className="text-muted-foreground">Equipos de Protección Personal por puesto de trabajo</p>
+          <p className="text-muted-foreground">Equipos de proteccion personal por puesto de trabajo</p>
         </div>
         {canEditEpp && (
           <div className="flex gap-2">
@@ -232,8 +241,8 @@ export default function EPPPage() {
               <DialogTitle>{editingId ? 'Editar EPP' : 'Registrar Nuevo EPP'}</DialogTitle>
               <DialogDescription>
                 {editingId
-                  ? 'Modifica los datos del equipo de protección personal'
-                  : 'Agrega un nuevo equipo de protección personal'}
+                  ? 'Modifica los datos del equipo de proteccion personal'
+                  : 'Agrega un nuevo equipo de proteccion personal'}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -282,7 +291,7 @@ export default function EPPPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="ficha_tecnica_url">Ficha técnica / documento</Label>
+                <Label htmlFor="ficha_tecnica_url">Ficha tecnica / documento</Label>
                 <Input
                   id="ficha_tecnica_url"
                   name="ficha_tecnica_url"
@@ -291,7 +300,7 @@ export default function EPPPage() {
                   placeholder="Ej: /documentos/epp/casco-seguridad.pdf o https://..."
                 />
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Enlace opcional a la ficha técnica, catálogo o documento interno.
+                  Enlace opcional a la ficha tecnica, catalogo o documento interno.
                 </p>
               </div>
               <div>
@@ -344,7 +353,7 @@ export default function EPPPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{inactiveEppCount}</div>
-            <p className="text-xs text-muted-foreground">Catálogo por depurar o reemplazar</p>
+            <p className="text-xs text-muted-foreground">Catalogo por depurar o reemplazar</p>
           </CardContent>
         </Card>
       </div>
@@ -380,7 +389,7 @@ export default function EPPPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{eppData.filter((e: EPP) => e.activo).length}</div>
-            <p className="text-xs text-muted-foreground">Artículos vigentes</p>
+            <p className="text-xs text-muted-foreground">Articulos vigentes</p>
           </CardContent>
         </Card>
         <Card>
@@ -394,7 +403,7 @@ export default function EPPPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Elementos Únicos</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Elementos unicos</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{[...new Set(eppData.map((e: EPP) => e.elemento_epp))].length}</div>
@@ -410,7 +419,7 @@ export default function EPPPage() {
             EPP minero recomendado
           </CardTitle>
           <CardDescription>
-            Base de referencia para cargos de faena. Vigentes: {activeEppCount} · Inactivos: {inactiveEppCount}.
+            Base de referencia para cargos de faena. Vigentes: {activeEppCount} - Inactivos: {inactiveEppCount}.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -419,7 +428,7 @@ export default function EPPPage() {
               <p className="font-semibold">{role.role}</p>
               <ul className="mt-3 space-y-1 text-sm text-muted-foreground">
                 {role.items.map((item) => (
-                  <li key={item}>• {item}</li>
+                  <li key={item}>- {item}</li>
                 ))}
               </ul>
             </div>
@@ -431,7 +440,7 @@ export default function EPPPage() {
       <Card>
         <CardHeader>
           <CardTitle>Matriz de EPP por Cargo</CardTitle>
-          <CardDescription>Especificaciones técnicas, cantidad y frecuencia de reemplazo</CardDescription>
+          <CardDescription>Especificaciones tecnicas, cantidad y frecuencia de reemplazo</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -447,7 +456,7 @@ export default function EPPPage() {
                     <th className="text-left py-3 px-4 font-medium">Elemento EPP</th>
                     <th className="text-left py-3 px-4 font-medium">Cantidad</th>
                     <th className="text-left py-3 px-4 font-medium">Marca/Modelo</th>
-                    <th className="text-left py-3 px-4 font-medium">Ficha técnica</th>
+                    <th className="text-left py-3 px-4 font-medium">Ficha tecnica</th>
                     <th className="text-left py-3 px-4 font-medium">Frecuencia Reemplazo</th>
                     <th className="text-left py-3 px-4 font-medium">Estado</th>
                     <th className="text-right py-3 px-4 font-medium">Acciones</th>
@@ -475,7 +484,7 @@ export default function EPPPage() {
                             rel="noreferrer"
                             className="text-primary underline underline-offset-4 hover:opacity-80"
                           >
-                            Ver ficha técnica
+                            Ver ficha tecnica
                           </a>
                         ) : (
                           <span className="text-muted-foreground">Sin enlace</span>
@@ -530,21 +539,21 @@ export default function EPPPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <AlertCircle className="w-5 h-5 text-primary" />
-            EPP Próximo a Reemplazarse
+            EPP Proximo a Reemplazarse
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">No hay EPP vencidos en el próximo mes</p>
+          <p className="text-sm text-muted-foreground">No hay EPP vencidos en el proximo mes</p>
         </CardContent>
       </Card>
 
-      {/* EPP User Delivery Section */}
+      {/* Trazabilidad real */}
       <div className="mt-8">
         <div className="mb-4">
-          <h2 className="text-2xl font-bold text-foreground">Entregas por Usuario</h2>
-          <p className="text-muted-foreground">Gestiona la entrega y devolución de EPP por trabajador</p>
+          <h2 className="text-2xl font-bold text-foreground">Trazabilidad real de EPP</h2>
+          <p className="text-muted-foreground">Vista basada en la matriz HSE real disponible en el sistema</p>
         </div>
-        <EPPUserDelivery users={users} deliveries={[]} />
+        <HSEEPPCard entregas={hseEppCardData} cargo={selectedCargo || 'Todos los cargos'} />
       </div>
     </div>
   );

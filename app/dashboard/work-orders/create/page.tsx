@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { inferMachineFamilyFromText } from '@/lib/maintenance/cost-center-machines';
+import { resolveTechnicalSheetReference } from '@/lib/maintenance/technical-sheet-library';
 
 type MaintenanceAsset = {
   id: string;
@@ -38,6 +39,26 @@ type AssetCard = MaintenanceAsset & { family: string };
 
 type MachineCatalogItem = {
   family?: string | null;
+};
+
+type MachineryItem = {
+  id: string;
+  asset_id: string | null;
+  code: string;
+  name: string;
+  model: string;
+  plate: string | null;
+  year: number | null;
+  category_code: string;
+  category: string;
+  status: string;
+  technical_sheet_reference?: {
+    brand?: string;
+    model?: string;
+    family?: string;
+    sourceLabel?: string;
+    sourceUrl?: string;
+  } | null;
 };
 
 const COMPONENT_TEMPLATES: Record<string, ComponentTemplate[]> = {
@@ -100,6 +121,30 @@ function resolveAssetTemplate(asset: MaintenanceAsset | null) {
   return COMPONENT_TEMPLATES.generic;
 }
 
+function resolveMachineryComponents(item: MachineryItem | null): ComponentTemplate[] {
+  if (!item) return COMPONENT_TEMPLATES.generic;
+
+  const reference = resolveTechnicalSheetReference(
+    `${item.name || ''} ${item.model || ''} ${item.category || ''}`,
+    item.technical_sheet_reference?.family || item.category || undefined
+  );
+
+  if (reference?.components?.length) {
+    return reference.components.map((component) => ({
+      id: component.code,
+      name: component.name,
+      code: component.code,
+      estimatedHours: Math.max(1, component.level * 2),
+    }));
+  }
+
+  return resolveAssetTemplate({
+    asset_type: item.category,
+    asset_name: item.name,
+    model: item.model,
+  } as MaintenanceAsset);
+}
+
 function normalizeAsset(asset: MaintenanceAsset) {
   return {
     ...asset,
@@ -140,41 +185,36 @@ export default function CreateWorkOrderPage() {
   const [submitting, setSubmitting] = useState(false);
   const [familyFilter, setFamilyFilter] = useState('all');
 
-  const { data, error, isLoading } = useSWR('/api/maintenance/assets', fetcher, {
-    revalidateOnFocus: false,
-  });
-  const { data: machineCatalogData } = useSWR('/api/maintenance/cost-center-machines', fetcher, {
+  const { data, error, isLoading } = useSWR('/api/maquinaria/machinery', fetcher, {
     revalidateOnFocus: false,
   });
 
-  const assets = useMemo(() => ((data?.assets || []) as MaintenanceAsset[]).map(normalizeAsset), [data]);
-  const assetCards = useMemo<AssetCard[]>(() => {
-    return assets
+  const machinery = useMemo(() => (Array.isArray(data?.machinery) ? (data.machinery as MachineryItem[]) : []), [data]);
+  const assetCards = useMemo(() => {
+    return machinery
       .map((asset) => {
-        const family = inferMachineFamilyFromText(`${asset.asset_name || ''} ${asset.asset_type || ''} ${asset.model || ''} ${asset.manufacturer || ''}`) || 'Sin familia';
+        const family =
+          asset.technical_sheet_reference?.family ||
+          inferMachineFamilyFromText(`${asset.name || ''} ${asset.category || ''} ${asset.model || ''}`) ||
+          'Sin familia';
         return { ...asset, family };
       })
       .sort((a, b) => {
         const familyCompare = String(a.family || '').localeCompare(String(b.family || ''), 'es', { sensitivity: 'base' });
         if (familyCompare !== 0) return familyCompare;
-        return String(a.asset_name || '').localeCompare(String(b.asset_name || ''), 'es', { sensitivity: 'base' });
+        return String(a.name || '').localeCompare(String(b.name || ''), 'es', { sensitivity: 'base' });
       });
-  }, [assets]);
+  }, [machinery]);
   const machineFamilies = useMemo(() => {
     const derivedFamilies = new Set<string>();
-    const catalogItems = Array.isArray(machineCatalogData?.machines)
-      ? (machineCatalogData.machines as MachineCatalogItem[])
-      : [];
-    catalogItems.forEach((item) => {
-      if (item?.family) derivedFamilies.add(String(item.family));
-    });
     assetCards.forEach((asset) => {
       if (asset.family && asset.family !== 'Sin familia') derivedFamilies.add(String(asset.family));
     });
     return ['all', ...Array.from(derivedFamilies).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }))];
-  }, [assetCards, machineCatalogData?.machines]);
-  const selectedAsset = assetCards.find((asset) => asset.id === selectedAssetId) ?? null;
-  const availableComponents = useMemo(() => resolveAssetTemplate(selectedAsset), [selectedAsset]);
+  }, [assetCards]);
+  const selectedAsset =
+    assetCards.find((asset) => asset.id === selectedAssetId || asset.asset_id === selectedAssetId) ?? null;
+  const availableComponents = useMemo(() => resolveMachineryComponents(selectedAsset), [selectedAsset]);
   const selectedComponentsData = useMemo(
     () => availableComponents.filter((component) => selectedComponents.includes(component.id)),
     [availableComponents, selectedComponents],
@@ -186,16 +226,17 @@ export default function CreateWorkOrderPage() {
   );
 
   useEffect(() => {
-    if (!selectedAssetId && initialAssetId && assets.some((asset) => asset.id === initialAssetId)) {
-      setSelectedAssetId(initialAssetId);
+    const matched = machinery.find((asset) => asset.id === initialAssetId || asset.asset_id === initialAssetId);
+    if (!selectedAssetId && matched) {
+      setSelectedAssetId(matched.id);
     }
-  }, [assets, initialAssetId, selectedAssetId]);
+  }, [machinery, initialAssetId, selectedAssetId]);
 
   useEffect(() => {
-    if (initialAssetId && assets.some((asset) => asset.id === initialAssetId)) {
+    if (initialAssetId && machinery.some((asset) => asset.id === initialAssetId || asset.asset_id === initialAssetId)) {
       setStep(2);
     }
-  }, [assets, initialAssetId]);
+  }, [machinery, initialAssetId]);
 
   const handleComponentToggle = (componentId: string) => {
     setSelectedComponents((prev) =>
@@ -216,10 +257,9 @@ export default function CreateWorkOrderPage() {
     setSubmitting(true);
     try {
       // If coming from maquinaria, use the cost-center name; otherwise use maintenance_assets
-      const assetName = fromMaquinaria
-        ? prefilledMachine
-        : (selectedAsset?.asset_name || 'Activo');
-      const assetId = fromMaquinaria ? null : selectedAsset?.id;
+      const assetName = fromMaquinaria ? prefilledMachine : (selectedAsset?.name || 'Activo');
+      const assetId = fromMaquinaria ? null : selectedAsset?.asset_id || null;
+      const costCenterCode = fromMaquinaria ? prefilledCostCenter : (!selectedAsset?.asset_id ? selectedAsset?.code : null);
       const componentNames = selectedComponentsData.map((component) => component.name).join(', ');
       const resolvedTitle = title.trim() || `${assetName} - ${componentNames || 'Mantenimiento preventivo'}`;
 
@@ -229,7 +269,7 @@ export default function CreateWorkOrderPage() {
         credentials: 'include',
         body: JSON.stringify({
           ...(assetId ? { assetId } : {}),
-          costCenterCode: fromMaquinaria ? prefilledCostCenter : undefined,
+          ...(costCenterCode ? { costCenterCode } : {}),
           title: resolvedTitle,
           description: description || `Mantenimiento ${orderType} para ${assetName}. Componentes: ${componentNames}`,
           workType: orderType,
@@ -353,14 +393,14 @@ export default function CreateWorkOrderPage() {
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h3 className="font-semibold">{asset.asset_name || 'Activo sin nombre'}</h3>
-                    <p className="text-sm text-muted-foreground">Código: {asset.asset_code || '-'}</p>
+                    <h3 className="font-semibold">{asset.name || 'Activo sin nombre'}</h3>
+                    <p className="text-sm text-muted-foreground">Codigo: {asset.code || '-'}</p>
                     <p className="text-sm text-muted-foreground">
-                      {asset.asset_type || 'Sin tipo'} - {asset.location || 'Sin ubicación'}
+                      {asset.category || 'Sin tipo'} - {asset.plate || 'Sin patente'}
                     </p>
-                    {(asset.manufacturer || asset.model) && (
+                    {asset.model && (
                       <p className="text-sm text-muted-foreground">
-                        {[asset.manufacturer, asset.model].filter(Boolean).join(' - ')}
+                        {asset.model || 'Sin modelo'}
                       </p>
                     )}
                     <div className="mt-2">
@@ -379,7 +419,7 @@ export default function CreateWorkOrderPage() {
         <Card>
           <CardHeader>
             <CardTitle>Seleccionar componentes</CardTitle>
-            <CardDescription>Define el alcance del trabajo para {selectedAsset?.asset_name || 'el activo'}</CardDescription>
+            <CardDescription>Define el alcance del trabajo para {selectedAsset?.name || 'el activo'}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {availableComponents.map((component) => (
@@ -485,8 +525,8 @@ export default function CreateWorkOrderPage() {
 
             <div className="space-y-2 rounded-lg bg-muted p-3 text-sm">
               <p className="font-semibold">Resumen</p>
-              <p>Activo: {fromMaquinaria ? prefilledMachine : (selectedAsset?.asset_name || '-')}</p>
-              <p>Código CC: {fromMaquinaria ? prefilledCostCenter : (selectedAsset?.asset_code || '-')}</p>
+              <p>Activo: {fromMaquinaria ? prefilledMachine : (selectedAsset?.name || '-')}</p>
+              <p>Codigo CC: {fromMaquinaria ? prefilledCostCenter : (selectedAsset?.code || '-')}</p>
               <p>Componentes: {selectedComponents.length}</p>
               <p>Tiempo total: {totalHours}h</p>
             </div>

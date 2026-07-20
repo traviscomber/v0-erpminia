@@ -121,25 +121,30 @@ function normalizeText(value: string | null | undefined) {
 export function MantenimientoDashboard() {
   const { ordenes, isLoading: ordersLoading, error: ordersError, mutate: mutateOrders } = useMantenimientoOrdenes();
   const { data: assetsData, isLoading: assetsLoading, mutate: mutateAssets, error: assetsError } = useSWR(
-    '/api/maintenance/assets',
+    '/api/maquinaria/machinery',
     fetcher,
   );
-  const { data: machineCatalogData } = useSWR<CostCenterMachineResponse>('/api/maintenance/cost-center-machines', fetcher);
+  const {
+    data: machineCatalogData,
+    isLoading: machineCatalogLoading,
+    mutate: mutateMachineCatalog,
+  } = useSWR<CostCenterMachineResponse>('/api/maintenance/cost-center-machines', fetcher);
 
-  const isLoading = ordersLoading || assetsLoading;
+  const isLoading = ordersLoading || assetsLoading || machineCatalogLoading;
 
-  const assets = (Array.isArray(assetsData?.assets) ? assetsData.assets : []) as MaintenanceAsset[];
+  const machinery = (Array.isArray(assetsData?.machinery) ? assetsData.machinery : []) as Array<{ status?: string | null; family?: string | null; name?: string | null; code?: string | null }>;
+  const assets = machinery as unknown as MaintenanceAsset[];
   const derivedMachines = Array.isArray(machineCatalogData?.machines) ? machineCatalogData.machines : [];
   const derivedMachineCount = derivedMachines.length;
-  const totalAssets = assets.length;
-  const activeAssets = assets.filter((asset) =>
-    ['activo', 'operativo', 'active', 'operational'].includes(normalizeText(asset.status)),
+  const totalAssets = derivedMachineCount;
+  const activeAssets = derivedMachines.filter((machine) =>
+    ['activo', 'operativo', 'active', 'operational'].includes(normalizeText(machine.status)),
   ).length;
   const maintenanceAssets = assets.filter((asset) =>
     ['maintenance', 'mantenimiento'].includes(normalizeText(asset.status)),
   ).length;
-  const inactiveAssets = assets.filter((asset) =>
-    ['inactive', 'inactivo', 'decommissioned', 'baja'].includes(normalizeText(asset.status)),
+  const inactiveAssets = derivedMachines.filter((machine) =>
+    ['inactive', 'inactivo', 'decommissioned', 'baja'].includes(normalizeText(machine.status)),
   ).length;
   const machineFamilySummary = derivedMachines.reduce<Record<string, number>>((acc, machine) => {
     const family = machine.family || inferMachineFamilyFromText(`${machine.name} ${machine.code}`) || 'Sin familia';
@@ -175,6 +180,7 @@ export function MantenimientoDashboard() {
   };
   const handleRefreshAssets = () => {
     void mutateAssets();
+    void mutateMachineCatalog();
   };
   const nextAction =
     overdueOrders > 0

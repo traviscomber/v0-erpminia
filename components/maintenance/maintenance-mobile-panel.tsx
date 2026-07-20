@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { inferMachineFamilyFromText } from '@/lib/maintenance/cost-center-machines';
+import type { DerivedCostCenterMachine } from '@/lib/maintenance/cost-center-machines';
 
 const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
 
@@ -116,12 +117,14 @@ export function MaintenanceMobilePanel() {
   const assetId = searchParams.get('assetId') || '';
 
   const { data: assetsData } = useSWR('/api/maintenance/assets', fetcher);
+  const { data: machineCatalogData } = useSWR('/api/maintenance/cost-center-machines', fetcher);
   const { data: ordersData } = useSWR('/api/maintenance/work-orders', fetcher);
   const { data: mttrData } = useSWR('/api/maintenance/mttr', fetcher);
   const { data: assetHistoryData } = useSWR(assetId ? `/api/maintenance/assets/${assetId}/history` : null, fetcher);
   const { data: personalData, mutate: mutatePersonal } = useSWR('/api/maintenance/personal', fetcher);
 
   const assets = (Array.isArray(assetsData?.assets) ? assetsData.assets : []) as AssetRow[];
+  const machineCatalog = (Array.isArray(machineCatalogData?.machines) ? machineCatalogData.machines : []) as DerivedCostCenterMachine[];
   const workOrders = (Array.isArray(ordersData?.workOrders) ? ordersData.workOrders : []) as WorkOrderRow[];
   const selectedAsset = (assetHistoryData as AssetHistoryResponse | undefined)?.asset || null;
   const selectedHistory = ((assetHistoryData as AssetHistoryResponse | undefined)?.history || []) as SelectedHistoryRow[];
@@ -184,7 +187,7 @@ export function MaintenanceMobilePanel() {
   const selectedAssetScope = resolveAssetScope(selectedAsset?.asset_type, selectedAsset?.model, selectedAsset?.manufacturer);
 
   const stats = [
-    { label: 'Equipos', value: String(assets.length), icon: Smartphone },
+    { label: 'Equipos', value: String(machineCatalog.length || assets.length), icon: Smartphone },
     { label: 'OT abiertas', value: String(openOrders.length), icon: Wrench },
     { label: 'Urgentes', value: String(urgentOrders.length), icon: AlertCircle },
     { label: 'MTTR', value: `${Number(mttrData?.averageMTTR || 0).toFixed(1)} h`, icon: Gauge },

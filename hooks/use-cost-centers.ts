@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { sortCostCenters, type CostCenterRecord } from '@/lib/cost-centers';
+import { isVisibleCostCenter, sortCostCenters, type CostCenterRecord } from '@/lib/cost-centers';
 
 export function useCostCenters() {
   const [costCenters, setCostCenters] = useState<CostCenterRecord[]>([]);
@@ -18,7 +18,11 @@ export function useCostCenters() {
           throw new Error(payload?.error || 'No se pudieron cargar los centros de costo');
         }
 
-        setCostCenters(Array.isArray(payload) ? sortCostCenters(payload) : []);
+        setCostCenters(
+          Array.isArray(payload)
+            ? sortCostCenters(payload.filter((center) => isVisibleCostCenter(center.code)))
+            : [],
+        );
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error desconocido');
         setCostCenters([]);
