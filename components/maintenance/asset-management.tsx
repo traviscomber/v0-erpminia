@@ -160,7 +160,7 @@ export function AssetManagement() {
 
         <Card className="border-border bg-yellow-500/5">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm text-yellow-700">Requieren revision</CardTitle>
+            <CardTitle className="text-sm text-yellow-700">Requieren revisión</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-yellow-600">{stats.urgentes}</div>

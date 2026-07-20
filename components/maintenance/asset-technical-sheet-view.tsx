@@ -106,7 +106,7 @@ const fetcher = async (url: string): Promise<TechnicalSheetResponse> => {
   const response = await fetch(url, { credentials: 'include' });
   const payload = await response.json().catch(() => null);
   if (!response.ok) {
-    throw new Error(payload?.error || 'No fue posible cargar la ficha tecnica');
+    throw new Error(payload?.error || 'No fue posible cargar la ficha técnica');
   }
   return payload;
 };
@@ -147,14 +147,14 @@ export function AssetTechnicalSheetView({ scope }: AssetTechnicalSheetViewProps)
   );
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Cargando ficha tecnica...</div>;
+    return <div className="text-sm text-muted-foreground">Cargando ficha técnica...</div>;
   }
 
   if (error) {
     return (
       <div className="space-y-4">
         <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-          No se pudo cargar la ficha tecnica real del activo.
+          No se pudo cargar la ficha técnica real del activo.
         </div>
         <Button variant="outline" onClick={() => void mutate()}>
           Reintentar
@@ -168,7 +168,7 @@ export function AssetTechnicalSheetView({ scope }: AssetTechnicalSheetViewProps)
       <div className="space-y-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Activo no encontrado</h1>
-          <p className="mt-2 text-muted-foreground">No se encontro la informacion tecnica solicitada.</p>
+          <p className="mt-2 text-muted-foreground">No se encontró la información técnica solicitada.</p>
         </div>
         <Button variant="outline" onClick={() => router.back()}>
           Volver
@@ -181,9 +181,9 @@ export function AssetTechnicalSheetView({ scope }: AssetTechnicalSheetViewProps)
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{asset.name || 'Ficha tecnica'}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{asset.name || 'Ficha técnica'}</h1>
           <p className="mt-2 text-muted-foreground">
-            Base tecnica real del activo, con especificaciones, componentes sugeridos y fallas asociadas.
+            Base técnica real del activo, con especificaciones, componentes sugeridos y fallas asociadas.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -284,7 +284,7 @@ export function AssetTechnicalSheetView({ scope }: AssetTechnicalSheetViewProps)
             </div>
 
             <div className="rounded-lg border border-border p-4">
-              <p className="text-muted-foreground">Fuente tecnica</p>
+              <p className="text-muted-foreground">Fuente técnica</p>
               {sheet?.sourceUrl ? (
                 <a
                   href={sheet.sourceUrl}
@@ -297,7 +297,7 @@ export function AssetTechnicalSheetView({ scope }: AssetTechnicalSheetViewProps)
                 </a>
               ) : (
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Sin enlace oficial cargado. Se puede completar desde la ficha tecnica o desde el importador.
+                  Sin enlace oficial cargado. Se puede completar desde la ficha técnica o desde el importador.
                 </p>
               )}
             </div>
@@ -306,7 +306,7 @@ export function AssetTechnicalSheetView({ scope }: AssetTechnicalSheetViewProps)
 
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Ficha tecnica</CardTitle>
+            <CardTitle>Ficha técnica</CardTitle>
             <CardDescription>Especificaciones cargadas en el activo, listas para completar con fuentes oficiales.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -322,7 +322,7 @@ export function AssetTechnicalSheetView({ scope }: AssetTechnicalSheetViewProps)
             ) : (
               <div className="flex items-center gap-3 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
                 <PackageOpen className="h-4 w-4" />
-                Todavia no hay especificaciones tecnicas cargadas para este activo.
+                Todavía no hay especificaciones técnicas cargadas para este activo.
               </div>
             )}
           </CardContent>
@@ -334,7 +334,7 @@ export function AssetTechnicalSheetView({ scope }: AssetTechnicalSheetViewProps)
           <CardHeader>
             <CardTitle>Ficha oficial de referencia</CardTitle>
             <CardDescription>
-              Modelo real detectado para este activo. Sirve como base tecnica inicial mientras se completa la ficha interna.
+              Modelo real detectado para este activo. Sirve como base técnica inicial mientras se completa la ficha interna.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -419,7 +419,7 @@ export function AssetTechnicalSheetView({ scope }: AssetTechnicalSheetViewProps)
           <CardHeader>
             <CardTitle>Alertas preventivas sugeridas</CardTitle>
             <CardDescription>
-              Se generan desde la ficha tecnica de referencia para empujar la planificacion preventiva y crear OT mas rapido.
+              Se generan desde la ficha técnica de referencia para empujar la planificación preventiva y crear OT más rápido.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -490,7 +490,7 @@ export function AssetTechnicalSheetView({ scope }: AssetTechnicalSheetViewProps)
       <Card>
         <CardHeader>
           <CardTitle>Datos crudos de referencia</CardTitle>
-          <CardDescription>Salida directa del registro para validar la carga tecnica sin perder trazabilidad.</CardDescription>
+          <CardDescription>Salida directa del registro para validar la carga técnica sin perder trazabilidad.</CardDescription>
         </CardHeader>
         <CardContent>
           <pre className="overflow-x-auto rounded-lg border bg-muted p-4 text-xs leading-6">

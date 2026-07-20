@@ -127,7 +127,7 @@ export default function ReportesGestionDocumentalPage() {
           <Sparkles className="h-4 w-4 text-primary" />
           <span className="text-sm font-medium">Datos reales</span>
         </div>
-        <h1 className="text-3xl font-bold">Reportes de gestion documental</h1>
+        <h1 className="text-3xl font-bold">Reportes de gestión documental</h1>
         <p className="text-muted-foreground">
           Vista ejecutiva con secciones, aprobaciones pendientes, documentos recientes y vencimientos.
         </p>
@@ -150,7 +150,7 @@ export default function ReportesGestionDocumentalPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary">{stats.pending}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Requieren revision</p>
+            <p className="mt-1 text-xs text-muted-foreground">Requieren revisión</p>
           </CardContent>
         </Card>
 
@@ -177,7 +177,7 @@ export default function ReportesGestionDocumentalPage() {
 
       <Card className="border-border/70 bg-card/80">
         <CardHeader>
-          <CardTitle>Atajos del modulo</CardTitle>
+          <CardTitle>Atajos del módulo</CardTitle>
           <CardDescription>Entra a las secciones clave sin perder contexto.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -202,7 +202,7 @@ export default function ReportesGestionDocumentalPage() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/documentos-gestion">
-                Gestion documental
+                Gestión documental
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -214,7 +214,7 @@ export default function ReportesGestionDocumentalPage() {
         <Card>
           <CardHeader>
             <CardTitle>Documentos recientes</CardTitle>
-            <CardDescription>Ultimos registros que entraron al sistema real</CardDescription>
+            <CardDescription>Últimos registros que entraron al sistema real</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {recentDocuments.length === 0 ? (
@@ -273,13 +273,13 @@ export default function ReportesGestionDocumentalPage() {
       <Card>
         <CardHeader>
           <CardTitle>Buscar secciones</CardTitle>
-          <CardDescription>Filtra el resumen por nombre, descripcion o id de seccion.</CardDescription>
+          <CardDescription>Filtra el resumen por nombre, descripción o id de sección.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar seccion o descripcion..."
+              placeholder="Buscar sección o descripción..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -321,7 +321,7 @@ export default function ReportesGestionDocumentalPage() {
       {filteredCategories.length === 0 && (
         <Card>
           <CardContent className="py-8 text-center text-sm text-muted-foreground">
-            No se encontraron secciones que coincidan con la busqueda.
+            No se encontraron secciones que coincidan con la búsqueda.
           </CardContent>
         </Card>
       )}
@@ -330,7 +330,7 @@ export default function ReportesGestionDocumentalPage() {
         <Card>
           <CardHeader>
           <CardTitle>Documentos pendientes</CardTitle>
-          <CardDescription>{pendingApprovals.length} documentos en revision</CardDescription>
+          <CardDescription>{pendingApprovals.length} documentos en revisión</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {pendingApprovals.length === 0 ? (

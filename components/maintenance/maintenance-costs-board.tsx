@@ -243,7 +243,7 @@ export function MaintenanceCostsBoard() {
                     <div>
                       <p className="font-semibold">{asset.assetName}</p>
                       <p className="text-xs text-muted-foreground">{asset.assetCode || '-'}</p>
-                      <p className="mt-1 text-xs text-muted-foreground">{asset.category || 'Sin categoria'}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{asset.category || 'Sin categoría'}</p>
                       <p className="mt-2 text-xs text-muted-foreground">
                         Filas {toNumber(asset.rows)} | Ultima fecha {asset.lastDate || '-'}
                       </p>
@@ -258,21 +258,21 @@ export function MaintenanceCostsBoard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Costos por categoria</CardTitle>
+            <CardTitle>Costos por categoría</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {detailLoading ? (
-              <div className="text-sm text-muted-foreground">Cargando costos por categoria...</div>
+              <div className="text-sm text-muted-foreground">Cargando costos por categoría...</div>
             ) : categoryCosts.length === 0 ? (
               <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-                Sin datos por categoria todavía.
+                Sin datos por categoría todavía.
               </div>
             ) : (
               categoryCosts.map((row) => (
                 <div key={row.category} className="flex items-center justify-between rounded-lg border border-border p-3">
                   <div>
                     <p className="font-medium">{row.category}</p>
-                    <p className="text-xs text-muted-foreground">Costo acumulado por categoria importada</p>
+                    <p className="text-xs text-muted-foreground">Costo acumulado por categoría importada</p>
                   </div>
                   <Badge variant="outline">{money(row.totalCost)}</Badge>
                 </div>

@@ -100,16 +100,16 @@ export default function DocumentosGestionPage() {
   }
 
   if (isLoading) {
-    return <div className="text-gray-500">Cargando gestion documental...</div>;
+    return <div className="text-gray-500">Cargando gestión documental...</div>;
   }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Gestion documental</h1>
+          <h1 className="text-3xl font-bold">Gestión documental</h1>
           <p className="mt-1 text-muted-foreground">
-            Centraliza, revisa y organiza los documentos operativos en una sola vista, con alertas de revision y vencimiento.
+            Centraliza, revisa y organiza los documentos operativos en una sola vista, con alertas de revisión y vencimiento.
           </p>
         </div>
         <Button asChild className="gap-2 bg-[var(--brand-naranja)] hover:bg-[var(--brand-naranja)]/90">
@@ -139,7 +139,7 @@ export default function DocumentosGestionPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-[var(--secondary)]">{stats.pending}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Requieren revision</p>
+            <p className="mt-1 text-xs text-muted-foreground">Requieren revisión</p>
           </CardContent>
         </Card>
 
@@ -149,13 +149,13 @@ export default function DocumentosGestionPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-[var(--brand-verde)]">{recentDocuments.length}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Ultimos documentos</p>
+            <p className="mt-1 text-xs text-muted-foreground">Últimos documentos</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Categorias activas</CardTitle>
+            <CardTitle className="text-sm font-medium">Categorías activas</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{categories.length}</div>
@@ -180,7 +180,7 @@ export default function DocumentosGestionPage() {
               <p className="text-2xl font-bold text-[var(--brand-verde)]">{recentDocuments.length}</p>
             </div>
             <div className="rounded-lg border border-border bg-background/70 p-3">
-              <p className="text-xs text-muted-foreground">Categorias activas</p>
+              <p className="text-xs text-muted-foreground">Categorías activas</p>
               <p className="text-2xl font-bold">{categories.length}</p>
             </div>
             <div className="rounded-lg border border-border bg-background/70 p-3">
@@ -219,8 +219,8 @@ export default function DocumentosGestionPage() {
 
       <Card className="border-border/70 bg-card/80">
         <CardHeader>
-          <CardTitle>Accesos rapidos</CardTitle>
-          <CardDescription>Entra directo a las subrutas mas usadas del modulo.</CardDescription>
+          <CardTitle>Accesos rápidos</CardTitle>
+          <CardDescription>Entra directo a las subrutas más usadas del módulo.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
           <Link href="/dashboard/documentos-gestion/contratos" className="rounded-lg border border-border p-4 transition hover:bg-muted/50">
@@ -228,7 +228,7 @@ export default function DocumentosGestionPage() {
               <Scale className="h-4 w-4 text-[var(--brand-naranja)]" />
               <span className="font-semibold">Contratos</span>
             </div>
-            <p className="mt-2 text-sm text-muted-foreground">Vigencia, revision y respaldo contractual.</p>
+            <p className="mt-2 text-sm text-muted-foreground">Vigencia, revisión y respaldo contractual.</p>
           </Link>
           <Link href="/dashboard/documentos-gestion/procedimientos" className="rounded-lg border border-border p-4 transition hover:bg-muted/50">
             <div className="flex items-center gap-2">
@@ -242,7 +242,7 @@ export default function DocumentosGestionPage() {
               <Shield className="h-4 w-4 text-[var(--secondary)]" />
               <span className="font-semibold">Seguridad</span>
             </div>
-            <p className="mt-2 text-sm text-muted-foreground">MSDS, auditorias, incidentes y protocolos HSE.</p>
+            <p className="mt-2 text-sm text-muted-foreground">MSDS, auditorías, incidentes y protocolos HSE.</p>
           </Link>
           <Link href="/dashboard/documentos-gestion/reportes" className="rounded-lg border border-border p-4 transition hover:bg-muted/50">
             <div className="flex items-center gap-2">
@@ -256,7 +256,7 @@ export default function DocumentosGestionPage() {
               <Search className="h-4 w-4 text-[var(--secondary)]" />
               <span className="font-semibold">Adquisiciones</span>
             </div>
-            <p className="mt-2 text-sm text-muted-foreground">Ordenes de compra, proveedores y respaldo asociado.</p>
+            <p className="mt-2 text-sm text-muted-foreground">Órdenes de compra, proveedores y respaldo asociado.</p>
           </Link>
           <Link href="/dashboard/documentos-gestion/eecc" className="rounded-lg border border-border p-4 transition hover:bg-muted/50">
             <div className="flex items-center gap-2">
@@ -275,7 +275,7 @@ export default function DocumentosGestionPage() {
               <AlertCircle className="h-5 w-5 text-[var(--secondary)]" />
               <CardTitle>Documentos pendientes de aprobación</CardTitle>
             </div>
-            <CardDescription>{pendingApprovals.length} documentos requieren revision</CardDescription>
+            <CardDescription>{pendingApprovals.length} documentos requieren revisión</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {pendingApprovals.map((doc) => (
@@ -301,7 +301,7 @@ export default function DocumentosGestionPage() {
         <Card>
           <CardHeader>
             <CardTitle>Documentos recientes</CardTitle>
-            <CardDescription>Ultimos documentos creados o actualizados</CardDescription>
+            <CardDescription>Últimos documentos creados o actualizados</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">

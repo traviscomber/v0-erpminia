@@ -132,7 +132,7 @@ export default function DocumentosHSEPage() {
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <h1 className="text-3xl font-bold">Documentos HSE</h1>
-          <p className="mt-2 text-muted-foreground">Gestion de politicas, procedimientos, instructivos y programas de seguridad.</p>
+          <p className="mt-2 text-muted-foreground">Gestión de políticas, procedimientos, instructivos y programas de seguridad.</p>
         </div>
         <Button asChild variant="outline">
           <Link href="/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse/importar">
@@ -172,13 +172,13 @@ export default function DocumentosHSEPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center justify-between text-sm font-medium">
-              <span>En revision</span>
+            <span>En revisión</span>
               <Clock className="h-4 w-4 text-yellow-500" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-yellow-500">{stats.en_revision}</p>
-            <p className="text-xs text-muted-foreground">Esperando aprobacion</p>
+            <p className="text-xs text-muted-foreground">Esperando aprobación</p>
           </CardContent>
         </Card>
 
@@ -205,7 +205,7 @@ export default function DocumentosHSEPage() {
             Vigentes ({vigentesDocs.length})
           </TabsTrigger>
           <TabsTrigger value="revision" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-            En revision ({revisionDocs.length})
+            En revisión ({revisionDocs.length})
           </TabsTrigger>
           <TabsTrigger value="upload" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             Subir
@@ -228,7 +228,7 @@ export default function DocumentosHSEPage() {
           <Card>
             <CardHeader>
               <CardTitle>Subir nuevo documento</CardTitle>
-              <CardDescription>Sube documentos HSE: politicas, procedimientos, instructivos y programas de seguridad</CardDescription>
+              <CardDescription>Sube documentos HSE: políticas, procedimientos, instructivos y programas de seguridad.</CardDescription>
             </CardHeader>
             <CardContent>
               <DocumentUpload module={PREVENCION_MODULE} category={DOCUMENTOS_HSE_CATEGORY} onUploadSuccess={loadDocuments} />

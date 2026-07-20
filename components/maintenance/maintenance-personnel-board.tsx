@@ -125,7 +125,7 @@ export function MaintenancePersonnelBoard() {
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Personal de mantencion</h1>
-          <p className="mt-2 text-muted-foreground">Horas reales, tecnicos activos y registros recientes del modulo.</p>
+          <p className="mt-2 text-muted-foreground">Horas reales, técnicos activos y registros recientes del módulo.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline" className="gap-2">
@@ -139,7 +139,7 @@ export function MaintenancePersonnelBoard() {
             Recargar
           </Button>
           <Button asChild variant="outline" className="gap-2">
-            <Link href="/dashboard/mantenimiento/bitacora">Bitacora</Link>
+            <Link href="/dashboard/mantenimiento/bitacora">Bitácora</Link>
           </Button>
           <Button asChild className="gap-2">
             <Link href="/dashboard/mantenimiento/gerencial">Gerencial</Link>
@@ -174,7 +174,7 @@ export function MaintenancePersonnelBoard() {
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm">
               <Users className="h-4 w-4 text-green-500" />
-              Tecnicos
+              Técnicos
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -235,7 +235,7 @@ export function MaintenancePersonnelBoard() {
 
       <Card className="border-border/70 bg-card/80">
         <CardHeader className="pb-3">
-          <CardTitle className="text-foreground">Acceso rapido a mantenimiento</CardTitle>
+          <CardTitle className="text-foreground">Acceso rápido a mantenimiento</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -269,7 +269,7 @@ export function MaintenancePersonnelBoard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Top tecnicos por horas</CardTitle>
+          <CardTitle>Top técnicos por horas</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {isLoading ? (
@@ -290,7 +290,7 @@ export function MaintenancePersonnelBoard() {
             ))
           ) : (
             <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-              Todavia no hay horas registradas para resumir.
+              Todavía no hay horas registradas para resumir.
             </div>
           )}
         </CardContent>
@@ -298,7 +298,7 @@ export function MaintenancePersonnelBoard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Ultimos registros</CardTitle>
+          <CardTitle>Últimos registros</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           {recentEntries.length > 0 ? (

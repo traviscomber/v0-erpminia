@@ -39,7 +39,7 @@ const fetcher = async (url: string): Promise<TechnicalSheetsResponse> => {
   const response = await fetch(url, { credentials: 'include' });
   const payload = await response.json().catch(() => null);
   if (!response.ok) {
-    throw new Error(payload?.error || 'No fue posible cargar las fichas tecnicas');
+    throw new Error(payload?.error || 'No fue posible cargar las fichas técnicas');
   }
   return payload;
 };
@@ -67,9 +67,9 @@ export function TechnicalSheetsBoard() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Fichas tecnicas</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Fichas técnicas</h1>
           <p className="mt-2 text-muted-foreground">
-            Base tecnica real de activos, componentes y fallas para mantenimiento.
+            Base técnica real de activos, componentes y fallas para mantenimiento.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -120,15 +120,15 @@ export function TechnicalSheetsBoard() {
       </div>
 
       {isLoading ? (
-        <div className="text-sm text-muted-foreground">Cargando fichas tecnicas...</div>
+        <div className="text-sm text-muted-foreground">Cargando fichas técnicas...</div>
       ) : error ? (
         <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-          No fue posible cargar las fichas tecnicas.
+          No fue posible cargar las fichas técnicas.
         </div>
       ) : sheets.length === 0 ? (
         <Card>
           <CardContent className="p-6 text-sm text-muted-foreground">
-            No hay fichas tecnicas cargadas todavia.
+            No hay fichas técnicas cargadas todavía.
           </CardContent>
         </Card>
       ) : (
@@ -138,9 +138,9 @@ export function TechnicalSheetsBoard() {
               <CardHeader>
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                   <div>
-                    <CardTitle className="text-lg">{sheet.asset?.asset_name || sheet.model_name || 'Ficha tecnica'}</CardTitle>
+                    <CardTitle className="text-lg">{sheet.asset?.asset_name || sheet.model_name || 'Ficha técnica'}</CardTitle>
                     <CardDescription>
-                      {sheet.asset?.asset_code || 'Sin codigo'} | {sheet.brand_name || 'Sin marca'} | {sheet.asset?.model || sheet.model_name || '-'}
+                      {sheet.asset?.asset_code || 'Sin código'} | {sheet.brand_name || 'Sin marca'} | {sheet.asset?.model || sheet.model_name || '-'}
                     </CardDescription>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -151,7 +151,7 @@ export function TechnicalSheetsBoard() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  {sheet.source_url || 'Sin fuente tecnica cargada'} {sheet.source_version ? `| v${sheet.source_version}` : ''}
+                  {sheet.source_url || 'Sin fuente técnica cargada'} {sheet.source_version ? `| v${sheet.source_version}` : ''}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <Button size="sm" variant="outline" asChild>

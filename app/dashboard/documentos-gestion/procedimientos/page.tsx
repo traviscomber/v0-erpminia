@@ -115,13 +115,13 @@ export default function ProcedimientosPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold">Procedimientos operacionales</h1>
-        <p className="text-muted-foreground">Gestion real de procedimientos, protocolos y procesos operacionales.</p>
+        <p className="text-muted-foreground">Gestión real de procedimientos, protocolos y procesos operacionales.</p>
       </div>
 
       <div className="flex flex-wrap gap-2">
         <Button asChild variant="outline" size="sm" className="gap-2">
           <Link href="/dashboard/documentos-gestion">
-            Gestion documental
+            Gestión documental
             <ArrowRight className="h-4 w-4" />
           </Link>
         </Button>
@@ -168,7 +168,7 @@ export default function ProcedimientosPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">En revision</CardTitle>
+            <CardTitle className="text-sm">En revisión</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">{stats.pendientes}</div>
@@ -191,7 +191,7 @@ export default function ProcedimientosPage() {
         <Card className="border-[var(--secondary)]/30 bg-[var(--secondary)]/5">
           <CardHeader>
             <CardTitle className="text-base">Pendientes recientes</CardTitle>
-            <CardDescription>Documentos que siguen en revision dentro de procesos operacionales reales.</CardDescription>
+            <CardDescription>Documentos que siguen en revisión dentro de procesos operacionales reales.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {latestPending.map((doc) => (
@@ -212,7 +212,7 @@ export default function ProcedimientosPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Accesos rapidos</CardTitle>
+          <CardTitle>Accesos rápidos</CardTitle>
           <CardDescription>Atajos utiles para revisar, medir y cruzar documentos.</CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-2 md:grid-cols-3">

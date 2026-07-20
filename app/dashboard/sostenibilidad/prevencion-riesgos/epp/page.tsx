@@ -211,7 +211,7 @@ export default function EPPPage() {
       <div className="mb-8 flex justify-between items-start">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-3xl font-bold text-foreground">Gestion de Articulos de EPP</h1>
+            <h1 className="text-3xl font-bold text-foreground">Gestión de artículos de EPP</h1>
           </div>
           <p className="text-muted-foreground">Equipos de proteccion personal por puesto de trabajo</p>
         </div>
@@ -291,7 +291,7 @@ export default function EPPPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="ficha_tecnica_url">Ficha tecnica / documento</Label>
+                <Label htmlFor="ficha_tecnica_url">Ficha técnica / documento</Label>
                 <Input
                   id="ficha_tecnica_url"
                   name="ficha_tecnica_url"
@@ -300,7 +300,7 @@ export default function EPPPage() {
                   placeholder="Ej: /documentos/epp/casco-seguridad.pdf o https://..."
                 />
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Enlace opcional a la ficha tecnica, catalogo o documento interno.
+                  Enlace opcional a la ficha técnica, catálogo o documento interno.
                 </p>
               </div>
               <div>
@@ -440,7 +440,7 @@ export default function EPPPage() {
       <Card>
         <CardHeader>
           <CardTitle>Matriz de EPP por Cargo</CardTitle>
-          <CardDescription>Especificaciones tecnicas, cantidad y frecuencia de reemplazo</CardDescription>
+          <CardDescription>Especificaciones técnicas, cantidad y frecuencia de reemplazo</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -456,7 +456,7 @@ export default function EPPPage() {
                     <th className="text-left py-3 px-4 font-medium">Elemento EPP</th>
                     <th className="text-left py-3 px-4 font-medium">Cantidad</th>
                     <th className="text-left py-3 px-4 font-medium">Marca/Modelo</th>
-                    <th className="text-left py-3 px-4 font-medium">Ficha tecnica</th>
+                    <th className="text-left py-3 px-4 font-medium">Ficha técnica</th>
                     <th className="text-left py-3 px-4 font-medium">Frecuencia Reemplazo</th>
                     <th className="text-left py-3 px-4 font-medium">Estado</th>
                     <th className="text-right py-3 px-4 font-medium">Acciones</th>
@@ -484,7 +484,7 @@ export default function EPPPage() {
                             rel="noreferrer"
                             className="text-primary underline underline-offset-4 hover:opacity-80"
                           >
-                            Ver ficha tecnica
+                            Ver ficha técnica
                           </a>
                         ) : (
                           <span className="text-muted-foreground">Sin enlace</span>

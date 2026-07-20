@@ -146,7 +146,7 @@ export function AssetQrView({ scope }: AssetQrViewProps) {
       <div className="flex flex-wrap items-start justify-between gap-4 print:hidden">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Tarjeta QR del activo</h1>
-          <p className="mt-2 text-muted-foreground">Acceso rapido a la ficha completa, historial y ordenes del activo.</p>
+          <p className="mt-2 text-muted-foreground">Acceso rápido a la ficha completa, historial y órdenes del activo.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline" className="gap-2">
@@ -265,7 +265,7 @@ export function AssetQrView({ scope }: AssetQrViewProps) {
               </CardHeader>
               <CardContent>
                 <div className="text-sm font-semibold">{lastOrder?.work_order_number || 'Sin OT'}</div>
-                <p className="text-xs text-muted-foreground">{lastOrder?.status ? statusLabel(lastOrder.status) : 'Sin historial aun'}</p>
+                <p className="text-xs text-muted-foreground">{lastOrder?.status ? statusLabel(lastOrder.status) : 'Sin historial aún'}</p>
               </CardContent>
             </Card>
             <Card className="print:shadow-none">
@@ -282,7 +282,7 @@ export function AssetQrView({ scope }: AssetQrViewProps) {
           <Card className="print:shadow-none">
             <CardHeader>
               <CardTitle>Acceso a ficha completa</CardTitle>
-              <CardDescription>Desde este QR se navega a la ficha completa con historial real y ordenes.</CardDescription>
+              <CardDescription>Desde este QR se navega a la ficha completa con historial real y órdenes.</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-wrap gap-2">
               <Button asChild className="gap-2">

@@ -233,7 +233,7 @@ export function WorkOrderPartsPanel({ workOrderId }: { workOrderId: string }) {
           {reservedParts.length === 0 ? (
             <div className="flex items-center gap-2 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
               <AlertCircle className="h-4 w-4" />
-              Aun no hay repuestos reservados para esta OT.
+              Aún no hay repuestos reservados para esta OT.
             </div>
           ) : (
             <div className="space-y-2">
@@ -257,7 +257,7 @@ export function WorkOrderPartsPanel({ workOrderId }: { workOrderId: string }) {
           {movements.length === 0 ? (
             <div className="flex items-center gap-2 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
               <AlertCircle className="h-4 w-4" />
-              Todavia no hay movimientos de repuestos para esta OT.
+              Todavía no hay movimientos de repuestos para esta OT.
             </div>
           ) : (
             <div className="space-y-2">

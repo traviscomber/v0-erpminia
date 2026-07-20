@@ -125,8 +125,8 @@ export default function DocumentosLegalPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Gestion documental legal</h1>
-          <p className="mt-2 text-muted-foreground">Gestion de contratos, politicas y documentos legales.</p>
+          <h1 className="text-3xl font-bold">Gestión documental legal</h1>
+          <p className="mt-2 text-muted-foreground">Gestión de contratos, políticas y documentos legales.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild>
@@ -140,8 +140,8 @@ export default function DocumentosLegalPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Acceso rapido al flujo legal</CardTitle>
-          <CardDescription>Rutas directas para contratos, documentos y reportes sin salir del modulo.</CardDescription>
+          <CardTitle>Acceso rápido al flujo legal</CardTitle>
+          <CardDescription>Rutas directas para contratos, documentos y reportes sin salir del módulo.</CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-2 md:grid-cols-4">
           <Button asChild variant="outline" className="justify-between">
@@ -152,7 +152,7 @@ export default function DocumentosLegalPage() {
           </Button>
           <Button asChild variant="outline" className="justify-between">
             <Link href="/dashboard/legal/documentos">
-              Gestion documental legal
+              Gestión documental legal
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
@@ -201,13 +201,13 @@ export default function DocumentosLegalPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center justify-between text-sm font-medium">
-              <span>En revision</span>
+              <span>En revisión</span>
               <Clock className="h-4 w-4 text-yellow-500" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-yellow-500">{stats.en_revision}</p>
-            <p className="text-xs text-muted-foreground">Esperando aprobacion</p>
+            <p className="text-xs text-muted-foreground">Esperando aprobación</p>
           </CardContent>
         </Card>
 
@@ -234,7 +234,7 @@ export default function DocumentosLegalPage() {
             Vigentes
           </TabsTrigger>
           <TabsTrigger value="revision" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-            En revision
+            En revisión
           </TabsTrigger>
           <TabsTrigger value="upload" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             Subir documentos
@@ -267,7 +267,7 @@ export default function DocumentosLegalPage() {
           <Card>
             <CardHeader>
               <CardTitle>Subir nuevo documento</CardTitle>
-              <CardDescription>Sube contratos, politicas y documentos legales.</CardDescription>
+              <CardDescription>Sube contratos, políticas y documentos legales.</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="mb-4 flex flex-wrap gap-2">

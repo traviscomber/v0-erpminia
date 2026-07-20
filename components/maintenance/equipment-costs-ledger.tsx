@@ -174,7 +174,7 @@ export function EquipmentCostsLedger() {
 
       <Card className="border-border/70 bg-card/80">
         <CardHeader className="pb-3">
-          <CardTitle>Acceso rapido</CardTitle>
+          <CardTitle>Acceso rápido</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
           <Button asChild variant="outline" className="justify-between">
@@ -221,7 +221,7 @@ export function EquipmentCostsLedger() {
                     <div>
                       <p className="font-semibold">{asset.assetName}</p>
                       <p className="text-xs text-muted-foreground">{asset.assetCode || 'Sin codigo'}</p>
-                      <p className="mt-1 text-xs text-muted-foreground">{asset.category || 'Sin categoria'}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{asset.category || 'Sin categoría'}</p>
                       <p className="mt-1 text-xs text-muted-foreground">
                         {asset.rows || 0} registros | ultima fecha {asset.lastDate || 'Sin fecha'}
                       </p>
@@ -236,12 +236,12 @@ export function EquipmentCostsLedger() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Costo por categoria</CardTitle>
+            <CardTitle>Costo por categoría</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {categoryCosts.length === 0 ? (
               <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-                Sin categorias cargadas.
+                No hay categorías cargadas.
               </div>
             ) : (
               categoryCosts.map((row) => (
@@ -283,7 +283,7 @@ export function EquipmentCostsLedger() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Ultimos movimientos importados</CardTitle>
+          <CardTitle>Últimos movimientos importados</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {recentRows.length === 0 ? (
@@ -300,7 +300,7 @@ export function EquipmentCostsLedger() {
                       {row.accountName || 'Sin cuenta'} | {row.documentNumber || 'Sin comprobante'}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {row.category || 'Sin categoria'} | {row.costDate || 'Sin fecha'} | {row.costCenterName || 'Sin centro de costo'}
+                      {row.category || 'Sin categoría'} | {row.costDate || 'Sin fecha'} | {row.costCenterName || 'Sin centro de costo'}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       Cruce: {row.matchedBy || 'sin cruce'} ({toNumber(row.matchConfidence).toFixed(2)})

@@ -216,7 +216,7 @@ export default function CarpetaArranqueImportPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Importar Carpeta de Arranque</h1>
           <p className="mt-2 max-w-3xl text-muted-foreground">
-            Carga empresas contratistas desde Excel para crear carpetas base o reutilizar una carpeta existente y completar el flujo de revision documental.
+            Carga empresas contratistas desde Excel para crear carpetas base o reutilizar una carpeta existente y completar el flujo de revisión documental.
           </p>
         </div>
         <div className="flex gap-2">
