@@ -192,10 +192,10 @@ export function MantenimientoDashboard() {
         }
       : criticalAssets.length > 0
         ? {
-            title: 'Revisar activos criticos',
-            description: 'Enlaza la planificacion preventiva con los equipos de mayor riesgo.',
+            title: 'Revisar activos críticos',
+            description: 'Enlaza la planificación preventiva con los equipos de mayor riesgo.',
             href: '/dashboard/mantenimiento/planificacion',
-            cta: 'Abrir planificacion',
+            cta: 'Abrir planificación',
           }
         : {
             title: 'Crear una OT preventiva',
