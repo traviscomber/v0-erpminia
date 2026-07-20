@@ -202,7 +202,7 @@ export function AssetTechnicalSheetView({ scope }: AssetTechnicalSheetViewProps)
           <Button asChild variant="outline">
             <Link href={`/dashboard/mantenimiento/${resolvedScope}/${asset.id}/arbol`}>
               <History className="mr-2 h-4 w-4" />
-              Arbol de fallas
+              Árbol de fallas
             </Link>
           </Button>
         </div>
@@ -250,7 +250,7 @@ export function AssetTechnicalSheetView({ scope }: AssetTechnicalSheetViewProps)
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-1">
           <CardHeader>
-            <CardTitle>Resumen tecnico</CardTitle>
+            <CardTitle>Resumen técnico</CardTitle>
             <CardDescription>Datos del activo y enlace a la fuente base, si existe.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
@@ -448,7 +448,7 @@ export function AssetTechnicalSheetView({ scope }: AssetTechnicalSheetViewProps)
         <CardHeader>
           <CardTitle>Componentes y fallas sugeridas</CardTitle>
           <CardDescription>
-            Bloque tecnico basado en la familia detectada. Sirve para armar la ficha de falla por componente del activo.
+            Bloque técnico basado en la familia detectada. Sirve para armar la ficha de falla por componente del activo.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

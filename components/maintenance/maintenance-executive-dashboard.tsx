@@ -173,7 +173,7 @@ export function MaintenanceExecutiveDashboard() {
     preventiveSummary.overdue > 0 ? `${preventiveSummary.overdue} mantenimientos preventivos están vencidos.` : null,
     tireSummary.lowStock > 0 ? `${tireSummary.lowStock} repuestos de neumáticos están bajo mínimo.` : null,
     fuelSummary.lowStock > 0 ? `${fuelSummary.lowStock} ítems de combustible están bajo mínimo.` : null,
-    componentSummary.failures > 0 ? `${componentSummary.failures} componentes mayores estan en falla.` : null,
+    componentSummary.failures > 0 ? `${componentSummary.failures} componentes mayores están en falla.` : null,
   ].filter(Boolean) as string[];
 
   if (isLoading) {
@@ -183,9 +183,9 @@ export function MaintenanceExecutiveDashboard() {
   const cards = [
     { label: 'Equipos totales', value: number(totalAssets), icon: CircleCheckBig, tone: 'text-primary', hint: `${availability}% operativos` },
     { label: 'OT abiertas', value: number(openOrders), icon: Wrench, tone: 'text-orange-500', hint: `${inProgressOrders} en progreso` },
-    { label: 'OT atrasadas', value: number(overdueOrders), icon: CircleAlert, tone: 'text-destructive', hint: 'Requieren accion inmediata' },
+    { label: 'OT atrasadas', value: number(overdueOrders), icon: CircleAlert, tone: 'text-destructive', hint: 'Requieren acción inmediata' },
     { label: 'Costo', value: money(costSummary.totalCost || 0), icon: DollarSign, tone: 'text-orange-500', hint: `${number(costSummary.rows || 0)} registros importados` },
-    { label: 'MTTR', value: `${Number(mttrData?.averageMTTR || 0).toFixed(1)} h`, icon: Gauge, tone: 'text-primary', hint: 'Tiempo promedio de reparacion' },
+    { label: 'MTTR', value: `${Number(mttrData?.averageMTTR || 0).toFixed(1)} h`, icon: Gauge, tone: 'text-primary', hint: 'Tiempo promedio de reparación' },
     { label: 'Preventivos', value: number(preventiveSummary.enabled), icon: CalendarClock, tone: 'text-blue-500', hint: `${preventiveSummary.dueSoon} próximos a vencer` },
     { label: 'Neumáticos bajo mínimo', value: number(tireSummary.lowStock), icon: TrendingDown, tone: 'text-orange-500', hint: `${number(tireSummary.totalItems)} ítems de neumáticos` },
     { label: 'Combustible bajo mínimo', value: number(fuelSummary.lowStock), icon: TrendingDown, tone: 'text-amber-500', hint: `${number(fuelSummary.totalItems)} ítems de combustible` },
@@ -211,7 +211,7 @@ export function MaintenanceExecutiveDashboard() {
           <Button asChild variant="outline" className="gap-2">
             <Link href="/dashboard/mantenimiento/movil">
               <Smartphone className="h-4 w-4" />
-              Vista movil
+              Vista móvil
             </Link>
           </Button>
           <Button asChild variant="outline" className="gap-2">

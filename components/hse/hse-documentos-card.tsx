@@ -53,8 +53,8 @@ export function HSEDocumentosCard({ documentos, faena }: { documentos: HSEDocume
           <div className="flex gap-2 rounded-lg border border-red-200 bg-red-50 p-3">
             <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-600" />
             <div>
-              <p className="text-sm font-semibold text-red-800">{documentosVencidos.length} documento(s) requiere(n) actualizacion</p>
-              <p className="text-xs text-red-600">Ultima actualizacion hace mas de 1 ano</p>
+              <p className="text-sm font-semibold text-red-800">{documentosVencidos.length} documento(s) requiere(n) actualización</p>
+              <p className="text-xs text-red-600">Ultima actualización hace más de 1 año</p>
             </div>
           </div>
         )}
