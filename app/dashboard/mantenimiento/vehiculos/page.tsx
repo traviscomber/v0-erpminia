@@ -225,7 +225,7 @@ export default function VehiclesPage() {
                       <Badge variant="outline">{machine.source}</Badge>
                     </div>
                     <p className="mt-3 text-xs text-muted-foreground">
-                      Este modelo viene del centro de costo y puede usarse como base del maestro de maquinas.
+                      Este modelo viene del centro de costo y puede usarse como base del maestro de máquinas.
                     </p>
                   </div>
                 ))}

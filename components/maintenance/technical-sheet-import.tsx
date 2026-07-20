@@ -1687,7 +1687,7 @@ export function TechnicalSheetImportComponent() {
 
       setResult({
         success: true,
-        message: payload?.message || 'Importacion completada',
+        message: payload?.message || 'Importación completada',
         imported_sheets: payload?.imported_sheets || 0,
         updated_sheets: payload?.updated_sheets || 0,
         imported_components: payload?.imported_components || 0,
@@ -1750,7 +1750,7 @@ export function TechnicalSheetImportComponent() {
               }`}
             >
               <Upload className="mx-auto mb-3 h-10 w-10 text-primary" />
-              <p className="font-medium">Arrastra tu archivo aqui o usa el selector</p>
+              <p className="font-medium">Arrastra tu archivo aquí o usa el selector</p>
             <p className="mt-1 text-sm text-muted-foreground">Acepta CSV, XLS y XLSX.</p>
             <p className="mt-1 text-xs text-muted-foreground">
               La plantilla ya incluye modelos con ficha tecnica de referencia para ayudar a empezar con data real.

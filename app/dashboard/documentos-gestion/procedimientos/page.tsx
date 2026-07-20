@@ -182,7 +182,7 @@ export default function ProcedimientosPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-[var(--brand-rojo)]">{stats.rechazados}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Requieren correccion</p>
+            <p className="mt-1 text-xs text-muted-foreground">Requieren corrección</p>
           </CardContent>
         </Card>
       </div>

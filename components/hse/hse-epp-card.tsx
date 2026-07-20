@@ -46,7 +46,7 @@ export function HSEEPPCard({
               {pendingDevoluciones.length} devolucion(es) pendiente(s)
             </p>
             <p className="mt-1 text-xs text-yellow-700">
-              Hay entregas que todavia no cierran su devolucion anterior.
+              Hay entregas que todavía no cierran su devolución anterior.
             </p>
           </div>
         )}

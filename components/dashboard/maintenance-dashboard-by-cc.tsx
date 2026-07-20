@@ -120,7 +120,7 @@ export function MaintenanceDashboardByCC() {
         {orderedCostCenters.length === 0 ? (
           <Card>
             <CardContent className="py-8 text-center text-sm text-muted-foreground">
-              No hay centros de costo cargados todavia.
+              No hay centros de costo cargados todavía.
             </CardContent>
           </Card>
         ) : orderedCostCenters.map((cc) => {

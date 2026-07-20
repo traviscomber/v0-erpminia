@@ -15,7 +15,7 @@ export default function MaintenanceFuelPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Combustible</h1>
           <p className="mt-2 text-muted-foreground">
-            Resumen real del stock de combustible desde bodega, con acceso directo a importacion Excel.
+            Resumen real del stock de combustible desde bodega, con acceso directo a importación Excel.
           </p>
         </div>
         <Button asChild variant="outline" className="gap-2">

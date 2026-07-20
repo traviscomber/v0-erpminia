@@ -30,7 +30,7 @@ type ImportResult = {
 function buildTemplateCsv() {
   const headers = ['OT', 'ACTIVO', 'FECHA_CIERRE', 'COSTO_TOTAL', 'PARTES', 'MANO_OBRA', 'OBSERVACIONES'];
   const rows = [
-    ['WO-2026-0001', 'EQ-001', '2026-07-01', '3500000', '1200000', '2300000', 'Costo completado por importacion'],
+    ['WO-2026-0001', 'EQ-001', '2026-07-01', '3500000', '1200000', '2300000', 'Costo completado por importación'],
     ['WO-2026-0002', 'EQ-002', '2026-07-02', '1825000', '450000', '1375000', 'Incluye bitacora historica'],
   ];
 
@@ -143,7 +143,7 @@ export default function MaintenanceCostsImportPage() {
           <CardHeader>
             <CardTitle>Cargar archivo</CardTitle>
             <CardDescription>
-              La importacion actualiza la OT por numero y crea o corrige el historial de costos asociado.
+              La importación actualiza la OT por número y crea o corrige el historial de costos asociado.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -159,7 +159,7 @@ export default function MaintenanceCostsImportPage() {
               }`}
             >
               <Upload className="mx-auto mb-3 h-10 w-10 text-primary" />
-              <p className="font-medium">Arrastra tu archivo aqui o usa el selector</p>
+              <p className="font-medium">Arrastra tu archivo aquí o usa el selector</p>
               <p className="mt-1 text-sm text-muted-foreground">Acepta CSV, XLS y XLSX.</p>
               <div className="mt-4 flex flex-wrap justify-center gap-2">
                 <Button variant="outline" onClick={downloadTemplate} className="gap-2">
@@ -241,7 +241,7 @@ export default function MaintenanceCostsImportPage() {
               <p>{result.message}</p>
               {result.success ? (
                 <div className="text-sm">
-                  <p>Modo: {result.dry_run ? 'validacion' : 'importacion'}</p>
+                  <p>Modo: {result.dry_run ? 'validación' : 'importación'}</p>
                   <p>OT actualizadas: {result.updated_orders || 0}</p>
                   <p>Historial insertado: {result.inserted_history || 0}</p>
                   <p>Historial actualizado: {result.updated_history || 0}</p>

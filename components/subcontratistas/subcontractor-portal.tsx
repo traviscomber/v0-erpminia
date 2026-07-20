@@ -94,7 +94,7 @@ function statusBadge(status: string) {
     return <Badge className="bg-green-500/15 text-green-400 border-green-500/30">Aprobado</Badge>;
   }
   if (normalized === 'en_revision_l1' || normalized === 'en_revision_l2') {
-    return <Badge className="bg-amber-500/15 text-amber-400 border-amber-500/30">En revision</Badge>;
+    return <Badge className="bg-amber-500/15 text-amber-400 border-amber-500/30">En revisión</Badge>;
   }
   if (normalized === 'rechazado') {
     return <Badge className="bg-red-500/15 text-red-400 border-red-500/30">Rechazado</Badge>;
@@ -337,7 +337,7 @@ function PortalContent({
         throw new Error(payload.error || 'No se pudo enviar la carpeta');
       }
 
-      toast.success('Carpeta enviada a revision');
+      toast.success('Carpeta enviada a revisión');
       onRefresh();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'No se pudo enviar la carpeta');
@@ -384,19 +384,19 @@ function PortalContent({
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Estado de carpeta</p>
               <div className="mt-2">{statusBadge(session.carpeta?.status || 'pendiente')}</div>
               <p className="mt-3 text-sm text-muted-foreground">
-                {session.carpeta ? 'La carpeta ya esta lista para continuar.' : 'No se pudo crear la carpeta todavia.'}
+                {session.carpeta ? 'La carpeta ya está lista para continuar.' : 'No se pudo crear la carpeta todavía.'}
               </p>
             </div>
             <div className="rounded-xl border border-border bg-background/60 p-4">
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Accion</p>
-              <p className="mt-2 text-sm font-medium">Sube documentos y envialos a revision cuando termines.</p>
+              <p className="mt-2 text-sm font-medium">Sube documentos y envíalos a revisión cuando termines.</p>
               <Button
                 className="mt-3 w-full gap-2"
                 disabled={!session.carpeta || session.carpeta.status !== 'pendiente' || submitting}
                 onClick={submitCarpeta}
               >
                 {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                Enviar a revision
+                Enviar a revisión
               </Button>
             </div>
           </CardContent>
@@ -451,7 +451,7 @@ function PortalContent({
             <CardContent className="space-y-4">
               {!session.carpeta ? (
                 <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-100">
-                  No se pudo crear la carpeta todavia. Revisa que la EECC tenga correo de contacto.
+                  No se pudo crear la carpeta todavía. Revisa que la EECC tenga correo de contacto.
                 </div>
               ) : null}
               <div className="flex items-center justify-between gap-4">
@@ -482,7 +482,7 @@ function PortalContent({
             <CardHeader>
               <CardTitle>Listado de EECC</CardTitle>
               <CardDescription>
-                Las empresas asociadas al RUT se muestran aqui para trazabilidad y control.
+                Las empresas asociadas al RUT se muestran aquí para trazabilidad y control.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">

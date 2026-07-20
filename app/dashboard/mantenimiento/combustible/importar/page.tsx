@@ -106,7 +106,7 @@ export default function CombustibleImportPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Importar combustible</h1>
           <p className="mt-2 text-muted-foreground">
-            Actualiza combustibles y consumibles desde CSV, XLS o XLSX usando la importacion de bodega.
+            Actualiza combustibles y consumibles desde CSV, XLS o XLSX usando la importación de bodega.
           </p>
         </div>
         <Button asChild variant="outline" className="gap-2">
@@ -121,7 +121,7 @@ export default function CombustibleImportPage() {
         <Card className="border-border/70 bg-card/80 md:col-span-2">
           <CardHeader>
             <CardTitle>Cargar archivo</CardTitle>
-            <CardDescription>La plantilla crea o actualiza registros de bodega para el modulo de combustible.</CardDescription>
+            <CardDescription>La plantilla crea o actualiza registros de bodega para el módulo de combustible.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div
@@ -136,7 +136,7 @@ export default function CombustibleImportPage() {
               }`}
             >
               <Upload className="mx-auto mb-3 h-10 w-10 text-primary" />
-              <p className="font-medium">Arrastra tu archivo aqui o usa el selector</p>
+              <p className="font-medium">Arrastra tu archivo aquí o usa el selector</p>
               <p className="mt-1 text-sm text-muted-foreground">Acepta CSV, XLS y XLSX.</p>
               <div className="mt-4 flex flex-wrap justify-center gap-2">
                 <Button variant="outline" onClick={downloadTemplate} className="gap-2">
@@ -182,7 +182,7 @@ export default function CombustibleImportPage() {
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <p>Campos obligatorios: `CODIGO`, `FAMILIA`, `PRODUCTO`, `STOCK`.</p>
             <p>Campos recomendados: `SUB_FAMILIA`, `EQUIPO`, `VALOR_UNITARIO`, `VALOR`.</p>
-            <p>Los registros entran a bodega y el tablero de combustible los muestra automaticamente.</p>
+            <p>Los registros entran a bodega y el tablero de combustible los muestra automáticamente.</p>
           </CardContent>
         </Card>
       </div>

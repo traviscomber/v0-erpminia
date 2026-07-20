@@ -156,7 +156,7 @@ export function MaintenanceFuelBoard() {
           ) : topItems.length === 0 ? (
             <div className="flex items-center gap-2 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
               <AlertCircle className="h-4 w-4" />
-              No hay items de combustible cargados todavia.
+              No hay ítems de combustible cargados todavía.
             </div>
           ) : (
             <div className="space-y-3">

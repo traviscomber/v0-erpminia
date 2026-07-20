@@ -481,7 +481,7 @@ export function AssetTechnicalSheetView({ scope }: AssetTechnicalSheetViewProps)
             ))
           ) : (
             <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-              No hay componentes sugeridos para esta familia todavia. Se puede completar con el maestro tecnico.
+              No hay componentes sugeridos para esta familia todavía. Se puede completar con el maestro técnico.
             </div>
           )}
         </CardContent>

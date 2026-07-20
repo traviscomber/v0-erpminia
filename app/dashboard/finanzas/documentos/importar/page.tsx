@@ -43,7 +43,7 @@ export default function FinanzasDocumentosImportarPage() {
             Subir documento financiero
           </CardTitle>
           <CardDescription>
-            Acepta PDF, Word y Excel. El archivo queda asociado al modulo finanzas para revision y trazabilidad.
+            Acepta PDF, Word y Excel. El archivo queda asociado al módulo finanzas para revisión y trazabilidad.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

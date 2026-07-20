@@ -180,7 +180,7 @@ export default function MaintenancePersonnelImportPage() {
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <p>Campos obligatorios: `WORK_ORDER_NUMBER` y `HOURS`.</p>
             <p>Campos recomendados: `DESCRIPTION` y `DATE`.</p>
-            <p>Las horas se asocian al usuario autenticado que realiza la importacion.</p>
+            <p>Las horas se asocian al usuario autenticado que realiza la importación.</p>
           </CardContent>
         </Card>
       </div>

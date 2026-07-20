@@ -162,7 +162,7 @@ export default function EquipmentCostsImportPage() {
               }`}
             >
               <Upload className="mx-auto mb-3 h-10 w-10 text-primary" />
-              <p className="font-medium">Arrastra tu archivo aqui o usa el selector</p>
+              <p className="font-medium">Arrastra tu archivo aquí o usa el selector</p>
               <p className="mt-1 text-sm text-muted-foreground">Acepta CSV, XLS y XLSX.</p>
               <div className="mt-4 flex flex-wrap justify-center gap-2">
                 <Button variant="outline" onClick={downloadTemplate} className="gap-2">
@@ -244,7 +244,7 @@ export default function EquipmentCostsImportPage() {
               <p>{result.message}</p>
               {result.success ? (
                 <div className="text-sm">
-                  <p>Modo: {result.dry_run ? 'validacion' : 'importacion'}</p>
+                  <p>Modo: {result.dry_run ? 'validación' : 'importación'}</p>
                   <p>Filas procesadas: {result.imported || 0}</p>
                   <p>Activos cruzados: {result.matched_assets || 0}</p>
                   <p>Centros de costo cruzados: {result.matched_cost_centers || 0}</p>

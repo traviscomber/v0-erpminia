@@ -68,7 +68,7 @@ export default function BodegaImportPage() {
             <ShieldCheck className="h-5 w-5 text-[var(--secondary)]" />
             Carga segura
           </CardTitle>
-          <CardDescription>La importacion sincroniza por codigo y mantiene el resto intacto.</CardDescription>
+          <CardDescription>La importación sincroniza por código y mantiene el resto intacto.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-3">
           <div className="rounded-lg border border-border bg-background/70 p-3">

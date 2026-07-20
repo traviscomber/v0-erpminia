@@ -50,7 +50,7 @@ export default function FinanzasProveedoresPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">Real</p>
-            <p className="mt-1 text-xs text-muted-foreground">Sin mock ni datos de ejemplo visibles.</p>
+            <p className="mt-1 text-xs text-muted-foreground">Datos cargados desde la tabla real de proveedores.</p>
           </CardContent>
         </Card>
         <Card>

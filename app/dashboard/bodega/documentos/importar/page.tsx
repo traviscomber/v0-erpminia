@@ -20,7 +20,7 @@ export default function BodegaDocumentosImportarPage() {
         <div>
           <h1 className="text-3xl font-bold">Importar documentos de bodega</h1>
           <p className="mt-2 max-w-3xl text-muted-foreground">
-            Ruta dedicada para cargar procedimientos, instructivos, politicas y respaldos operativos del modulo bodega.
+            Ruta dedicada para cargar procedimientos, instructivos, políticas y respaldos operativos del módulo bodega.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -43,7 +43,7 @@ export default function BodegaDocumentosImportarPage() {
             Subir documento de bodega
           </CardTitle>
           <CardDescription>
-            Acepta PDF, Word y Excel. El archivo queda asociado al modulo bodega para revision y trazabilidad.
+            Acepta PDF, Word y Excel. El archivo queda asociado al módulo bodega para revisión y trazabilidad.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

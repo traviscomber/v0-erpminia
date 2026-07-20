@@ -143,7 +143,7 @@ export default function MaintenanceHistoryImportPage() {
               }`}
             >
               <Upload className="mx-auto mb-3 h-10 w-10 text-primary" />
-              <p className="font-medium">Arrastra tu archivo aqui o usa el selector</p>
+              <p className="font-medium">Arrastra tu archivo aquí o usa el selector</p>
               <p className="mt-1 text-sm text-muted-foreground">Acepta CSV, XLS y XLSX.</p>
               <div className="mt-4 flex flex-wrap justify-center gap-2">
                 <Button variant="outline" onClick={downloadTemplate} className="gap-2">
@@ -189,7 +189,7 @@ export default function MaintenanceHistoryImportPage() {
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <p>Campos obligatorios: `MAINTENANCE_TYPE`.</p>
             <p>Campos recomendados: `ASSET_CODE`, `WORK_ORDER_NUMBER`, `PERFORMED_BY_NAME`, `START_TIME`, `END_TIME`, `PARTS_COST`, `LABOR_HOURS`, `LABOR_COST`, `NOTES`.</p>
-            <p>La importacion usa el activo o la OT para enlazar el historial real.</p>
+            <p>La importación usa el activo o la OT para enlazar el historial real.</p>
           </CardContent>
         </Card>
       </div>
