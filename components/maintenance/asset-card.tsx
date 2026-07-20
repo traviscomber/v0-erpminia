@@ -80,7 +80,7 @@ export function AssetCard({ asset, onCreateWorkOrder, onViewHistory }: AssetCard
             <p className="font-semibold">{asset.assetType}</p>
           </div>
           <div>
-            <p className="text-muted-foreground">Ubicacion</p>
+            <p className="text-muted-foreground">Ubicación</p>
             <p className="font-semibold">{asset.location}</p>
           </div>
           <div>

@@ -253,13 +253,13 @@ export function MaintenancePersonnelBoard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/planificacion">
-                Planificacion
+                Planificación
                 <Wrench className="h-4 w-4" />
               </Link>
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/vehiculos">
-                Vehiculos y QR
+                Vehículos y QR
                 <Users className="h-4 w-4" />
               </Link>
             </Button>
@@ -282,7 +282,7 @@ export function MaintenancePersonnelBoard() {
             technicians.map((tech) => (
               <div key={tech.technicianId} className="flex items-center justify-between rounded-lg border border-border p-3">
                 <div>
-                  <p className="font-semibold">{tech.name || 'Tecnico'}</p>
+                  <p className="font-semibold">{tech.name || 'Técnico'}</p>
                   <p className="text-xs text-muted-foreground">{tech.entries} registros</p>
                 </div>
                 <Badge variant="outline">{Number(tech.hours || 0).toFixed(1)} h</Badge>

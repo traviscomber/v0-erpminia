@@ -186,7 +186,7 @@ export function MaintenanceExecutiveDashboard() {
     { label: 'OT atrasadas', value: number(overdueOrders), icon: CircleAlert, tone: 'text-destructive', hint: 'Requieren accion inmediata' },
     { label: 'Costo', value: money(costSummary.totalCost || 0), icon: DollarSign, tone: 'text-orange-500', hint: `${number(costSummary.rows || 0)} registros importados` },
     { label: 'MTTR', value: `${Number(mttrData?.averageMTTR || 0).toFixed(1)} h`, icon: Gauge, tone: 'text-primary', hint: 'Tiempo promedio de reparacion' },
-    { label: 'Preventivos', value: number(preventiveSummary.enabled), icon: CalendarClock, tone: 'text-blue-500', hint: `${preventiveSummary.dueSoon} proximos a vencer` },
+    { label: 'Preventivos', value: number(preventiveSummary.enabled), icon: CalendarClock, tone: 'text-blue-500', hint: `${preventiveSummary.dueSoon} próximos a vencer` },
     { label: 'Neumáticos bajo mínimo', value: number(tireSummary.lowStock), icon: TrendingDown, tone: 'text-orange-500', hint: `${number(tireSummary.totalItems)} ítems de neumáticos` },
     { label: 'Combustible bajo mínimo', value: number(fuelSummary.lowStock), icon: TrendingDown, tone: 'text-amber-500', hint: `${number(fuelSummary.totalItems)} ítems de combustible` },
     { label: 'Componentes con fallas', value: number(componentSummary.failures), icon: TrendingUp, tone: 'text-green-500', hint: `${number(componentSummary.totalTemplates)} familias` },
@@ -205,7 +205,7 @@ export function MaintenanceExecutiveDashboard() {
           <Button asChild variant="outline" className="gap-2">
             <Link href="/dashboard/mantenimiento/planificacion">
               <CalendarClock className="h-4 w-4" />
-              Planificacion
+              Planificación
             </Link>
           </Button>
           <Button asChild variant="outline" className="gap-2">
@@ -217,7 +217,7 @@ export function MaintenanceExecutiveDashboard() {
           <Button asChild variant="outline" className="gap-2">
             <Link href="/dashboard/mantenimiento/vehiculos">
               <QrCode className="h-4 w-4" />
-              Vehiculos y QR
+              Vehículos y QR
             </Link>
           </Button>
           <Button
@@ -285,7 +285,7 @@ export function MaintenanceExecutiveDashboard() {
               <p className="text-2xl font-bold text-destructive">{preventiveSummary.overdue}</p>
             </div>
             <div className="rounded-lg border border-border p-3">
-              <p className="text-xs text-muted-foreground">Preventivos proximos</p>
+              <p className="text-xs text-muted-foreground">Preventivos próximos</p>
               <p className="text-2xl font-bold text-orange-500">{preventiveSummary.dueSoon}</p>
             </div>
             <div className="rounded-lg border border-border p-3">
@@ -325,7 +325,7 @@ export function MaintenanceExecutiveDashboard() {
             <Button asChild variant="outline" className="gap-2">
               <Link href="/dashboard/mantenimiento/bitacora">
                 <ArrowRight className="h-4 w-4" />
-                Ver bitacora
+                Ver bitácora
               </Link>
             </Button>
           </div>
@@ -477,7 +477,7 @@ export function MaintenanceExecutiveDashboard() {
               </Button>
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/planificacion">
-                  Planificacion preventiva
+                  Planificación preventiva
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>

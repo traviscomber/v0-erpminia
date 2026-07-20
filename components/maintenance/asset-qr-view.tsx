@@ -220,7 +220,7 @@ export function AssetQrView({ scope }: AssetQrViewProps) {
                 <p className="font-semibold">{asset.asset_type || '-'}</p>
               </div>
               <div>
-                <p className="text-muted-foreground">Ubicacion</p>
+                <p className="text-muted-foreground">Ubicación</p>
                 <p className="font-semibold">{asset.location || '-'}</p>
               </div>
               <div>
@@ -360,7 +360,7 @@ export function AssetQrView({ scope }: AssetQrViewProps) {
                             </span>
                           </div>
                           <p className="mt-1 text-xs text-muted-foreground">
-                            {entry.performed_by_name || 'Sin tecnico'} - ${Number((entry.parts_cost || 0) + (entry.labor_cost || 0)).toLocaleString('es-CL')}
+                            {entry.performed_by_name || 'Sin técnico'} - ${Number((entry.parts_cost || 0) + (entry.labor_cost || 0)).toLocaleString('es-CL')}
                           </p>
                         </div>
                       ))
@@ -377,7 +377,7 @@ export function AssetQrView({ scope }: AssetQrViewProps) {
             <Card className="print:shadow-none">
               <CardHeader>
                 <CardTitle>Ultima mantencion</CardTitle>
-                <CardDescription>Registro real mas reciente asociado al QR.</CardDescription>
+              <CardDescription>Registro real más reciente asociado al QR.</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4 md:grid-cols-3">
                 <div>
@@ -385,7 +385,7 @@ export function AssetQrView({ scope }: AssetQrViewProps) {
                   <p className="font-semibold">{lastHistory.created_at ? new Date(lastHistory.created_at).toLocaleDateString('es-CL') : '-'}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Tecnico</p>
+                  <p className="text-muted-foreground">Técnico</p>
                   <p className="font-semibold">{lastHistory.performed_by_name || '-'}</p>
                 </div>
                 <div>

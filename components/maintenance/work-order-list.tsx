@@ -164,7 +164,7 @@ export function WorkOrderList({ filters, limit = 10 }: WorkOrderListProps) {
                 <div>
                   <p className="flex items-center gap-1 text-xs text-muted-foreground">
                     <User className="h-3 w-3" />
-                    Tecnico
+                    Técnico
                   </p>
                   <p className="font-semibold">{order.assigned_to_name}</p>
                 </div>

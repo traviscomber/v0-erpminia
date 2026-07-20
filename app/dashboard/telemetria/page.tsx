@@ -88,7 +88,7 @@ export default function TelemetriaPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-[var(--secondary)]">Ruta estable</div>
-            <p className="text-xs text-muted-foreground">La integracion LAN sigue lista para usarse sin conexiones en vivo.</p>
+            <p className="text-xs text-muted-foreground">La integración LAN sigue lista para usarse sin conexiones en vivo.</p>
           </CardContent>
         </Card>
 
@@ -146,7 +146,7 @@ export default function TelemetriaPage() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <CardTitle className="flex items-center gap-2">
               <RadioTower className="h-4 w-4 text-[var(--brand-verde)]" />
-              Integracion LAN
+              Integración LAN
             </CardTitle>
             <Button asChild variant="outline" size="sm" className="gap-2">
               <Link href="/dashboard/telemetria/integracion">

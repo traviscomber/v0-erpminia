@@ -65,8 +65,8 @@ function daysLabel(daysUntil?: number | null) {
 function bucketLabel(daysUntil?: number | null) {
   if (daysUntil === null || daysUntil === undefined) return 'Sin fecha';
   if (daysUntil < 0) return 'Vencidas';
-  if (daysUntil <= 30) return 'Proximos 30 dias';
-  if (daysUntil <= 90) return 'Proximos 3 meses';
+  if (daysUntil <= 30) return 'Próximos 30 días';
+  if (daysUntil <= 90) return 'Próximos 3 meses';
   return 'Resto del ano';
 }
 
@@ -129,14 +129,14 @@ export function PreventivePlanBoard() {
     return groups;
   }, [filteredSchedules]);
 
-  const orderedBuckets = ['Vencidas', 'Proximos 30 dias', 'Proximos 3 meses', 'Resto del ano', 'Sin fecha'];
+  const orderedBuckets = ['Vencidas', 'Próximos 30 días', 'Próximos 3 meses', 'Resto del año', 'Sin fecha'];
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Planificacion preventiva</h1>
-          <p className="mt-2 text-muted-foreground">Vista de los mantenimientos programados para los proximos 12 meses.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Planificación preventiva</h1>
+          <p className="mt-2 text-muted-foreground">Vista de los mantenimientos programados para los próximos 12 meses.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={() => void mutate()} className="gap-2">
@@ -158,7 +158,7 @@ export function PreventivePlanBoard() {
           <Button asChild className="gap-2">
             <Link href="/dashboard/mantenimiento/bitacora">
               <CalendarClock className="h-4 w-4" />
-              Ver bitacora
+              Ver bitácora
             </Link>
           </Button>
         </div>
@@ -191,7 +191,7 @@ export function PreventivePlanBoard() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Proximos 30 dias</CardTitle>
+            <CardTitle className="text-sm">Próximos 30 días</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-500">{summary.dueSoon}</div>
@@ -235,7 +235,7 @@ export function PreventivePlanBoard() {
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
               <CalendarClock className="h-4 w-4 text-orange-500" />
-              Proximos 30 dias
+              Próximos 30 días
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
@@ -256,7 +256,7 @@ export function PreventivePlanBoard() {
               ))
             ) : (
               <div className="rounded-lg border border-dashed border-border bg-background p-3 text-muted-foreground">
-                No hay mantenimientos proximos con el filtro actual.
+                No hay mantenimientos próximos con el filtro actual.
               </div>
             )}
           </CardContent>
@@ -276,7 +276,7 @@ export function PreventivePlanBoard() {
           </Button>
           <Button asChild variant="outline" className="justify-between">
             <Link href="/dashboard/mantenimiento/bitacora">
-              Bitacora
+              Bitácora
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
@@ -288,7 +288,7 @@ export function PreventivePlanBoard() {
           </Button>
           <Button asChild variant="outline" className="justify-between">
             <Link href="/dashboard/mantenimiento/vehiculos">
-              Vehiculos y QR
+              Vehículos y QR
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>

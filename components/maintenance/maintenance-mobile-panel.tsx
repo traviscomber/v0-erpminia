@@ -312,7 +312,7 @@ export function MaintenanceMobilePanel() {
         <CardContent className="grid grid-cols-1 gap-2">
           <Button asChild variant="outline" className="w-full justify-between">
             <Link href={`/dashboard/mantenimiento/${selectedAssetScope}`}>
-              Vehiculos y QR
+              Vehículos y QR
               <QrCode className="h-4 w-4" />
             </Link>
           </Button>
@@ -339,7 +339,7 @@ export function MaintenanceMobilePanel() {
           <div className="rounded-lg border border-border p-3">
             <p className="text-xs text-muted-foreground">Personal</p>
             <p className="text-xl font-bold">{personalSummary.technicians || 0}</p>
-            <p className="text-xs text-muted-foreground">Tecnicos con registros</p>
+            <p className="text-xs text-muted-foreground">Técnicos con registros</p>
           </div>
           <div className="rounded-lg border border-border p-3">
             <p className="text-xs text-muted-foreground">Horas</p>
@@ -377,11 +377,11 @@ export function MaintenanceMobilePanel() {
                     <p className="font-semibold">{selectedAsset.asset_type || '-'}</p>
                   </div>
                   <div className="rounded-lg border border-border p-3">
-                    <p className="text-xs text-muted-foreground">Ubicacion</p>
+                    <p className="text-xs text-muted-foreground">Ubicación</p>
                     <p className="font-semibold">{selectedAsset.location || '-'}</p>
                   </div>
                   <div className="rounded-lg border border-border p-3">
-                    <p className="text-xs text-muted-foreground">Horometro tecnico</p>
+                    <p className="text-xs text-muted-foreground">Horómetro técnico</p>
                     <p className="font-semibold">{selectedAsset.mtbf_hours ? `${selectedAsset.mtbf_hours} h` : 'Sin lectura'}</p>
                   </div>
                   <div className="rounded-lg border border-border p-3">
@@ -464,7 +464,7 @@ export function MaintenanceMobilePanel() {
           </div>
 
           <div className="rounded-lg border border-border p-3 text-sm">
-            <p className="font-semibold">Horometro tecnico</p>
+              <p className="font-semibold">Horómetro técnico</p>
             <p className="text-muted-foreground">
               {selectedAsset?.mtbf_hours ? `${selectedAsset.mtbf_hours} horas técnicas registradas en el activo` : 'Sin lectura directa aún en la base actual'}
             </p>
@@ -543,13 +543,13 @@ export function MaintenanceMobilePanel() {
           ) : null}
           <Button asChild variant="outline" className="justify-between">
             <Link href="/dashboard/mantenimiento/bitacora">
-              Ver bitacora
+              Ver bitácora
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
           <Button asChild variant="outline" className="justify-between">
             <Link href="/dashboard/mantenimiento/planificacion">
-              Ver planificacion
+              Ver planificación
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
@@ -625,7 +625,7 @@ export function MaintenanceMobilePanel() {
               <p className="text-xl font-bold">{personalSummary.totalEntries || 0}</p>
             </div>
             <div className="rounded-lg border border-border p-3">
-              <p className="text-xs text-muted-foreground">Tecnicos</p>
+              <p className="text-xs text-muted-foreground">Técnicos</p>
               <p className="text-xl font-bold">{personalSummary.technicians || 0}</p>
             </div>
           </div>
@@ -635,7 +635,7 @@ export function MaintenanceMobilePanel() {
               {technicians.slice(0, 3).map((tech) => (
                 <div key={tech.technicianId} className="rounded-lg border border-border p-3">
                   <div className="flex items-center justify-between">
-                    <p className="font-semibold">{tech.name || 'Tecnico'}</p>
+                    <p className="font-semibold">{tech.name || 'Técnico'}</p>
                     <Badge variant="outline">{Number(tech.hours || 0).toFixed(1)} h</Badge>
                   </div>
                   <p className="text-xs text-muted-foreground">{tech.entries} registros</p>

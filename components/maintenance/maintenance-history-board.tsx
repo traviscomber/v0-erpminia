@@ -213,7 +213,7 @@ export function MaintenanceHistoryBoard() {
           No fue posible cargar la bitácora real de mantenimiento.
         </div>
       ) : isLoading ? (
-        <div className="text-sm text-muted-foreground">Cargando bitacora...</div>
+        <div className="text-sm text-muted-foreground">Cargando bitácora...</div>
       ) : groupedByAsset.length === 0 ? (
         <Card>
           <CardContent className="flex items-center gap-2 p-6 text-sm text-muted-foreground">

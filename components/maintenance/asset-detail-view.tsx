@@ -375,7 +375,7 @@ export function AssetDetailView({ scope = 'vehiculos' }: AssetDetailViewProps) {
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-1">
           <CardHeader>
-          <CardTitle>{isEquipmentScope ? 'QR del equipo' : 'QR del vehiculo'}</CardTitle>
+          <CardTitle>{isEquipmentScope ? 'QR del equipo' : 'QR del vehículo'}</CardTitle>
             <CardDescription>Apunta a la ficha real del activo y su historial.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
