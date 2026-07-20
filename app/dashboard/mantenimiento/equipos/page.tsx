@@ -28,7 +28,7 @@ export default function EquiposPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Equipos</h1>
           <p className="text-muted-foreground">
-            Gestiona el registro tecnico de los equipos con seguimiento de mantenimiento preventivo.
+            Gestiona el registro técnico de los equipos con seguimiento de mantenimiento preventivo.
           </p>
         </div>
         <div className="flex gap-2">

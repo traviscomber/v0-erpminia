@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -79,27 +79,27 @@ export function AddDocumentModal({ onSubmit }: AddDocumentModalProps) {
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Titulo del documento</Label>
+            <Label htmlFor="title">Título del documento</Label>
             <Input
               id="title"
-              placeholder="Ej: Politica de Cumplimiento Contractual"
+              placeholder="Ej: Política de Cumplimiento Contractual"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               required
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="category">Categoria</Label>
+            <Label htmlFor="category">Categoría</Label>
             <Select value={formData.category} onValueChange={(val) => setFormData({ ...formData, category: val })}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecciona una categoria" />
+                <SelectValue placeholder="Selecciona una categoría" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="compliance">Cumplimiento</SelectItem>
                 <SelectItem value="regulatory">Regulatorio</SelectItem>
                 <SelectItem value="legal">Legal general</SelectItem>
                 <SelectItem value="contracts">Contratos</SelectItem>
-                <SelectItem value="policies">Politicas</SelectItem>
+                <SelectItem value="policies">Políticas</SelectItem>
                 <SelectItem value="regulations">Reglamentos</SelectItem>
                 <SelectItem value="permits">Permisos</SelectItem>
                 <SelectItem value="reports">Informes</SelectItem>
@@ -109,7 +109,7 @@ export function AddDocumentModal({ onSubmit }: AddDocumentModalProps) {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="desc">Descripcion breve</Label>
+            <Label htmlFor="desc">Descripción breve</Label>
             <Textarea
               id="desc"
               placeholder="Contexto breve, alcance y uso del documento..."
@@ -121,7 +121,7 @@ export function AddDocumentModal({ onSubmit }: AddDocumentModalProps) {
           <div className="space-y-2">
             <Label htmlFor="file">Archivo opcional</Label>
             <Input id="file" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx" onChange={handleFileChange} />
-            <p className="text-xs text-muted-foreground">PDF, DOC, DOCX, XLS o XLSX. Maximo 50MB.</p>
+            <p className="text-xs text-muted-foreground">PDF, DOC, DOCX, XLS o XLSX. Máximo 50MB.</p>
           </div>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>

@@ -315,13 +315,13 @@ export function MantenimientoDashboard() {
 
       <Card className="border-border/70 bg-card/90">
         <CardHeader>
-          <CardTitle>Acceso rapido al ecosistema</CardTitle>
+          <CardTitle>Acceso rápido al ecosistema</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/telemetria">
-                Telemetria de sensores
+                Telemetría de sensores
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -333,7 +333,7 @@ export function MantenimientoDashboard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/planificacion">
-                Planificacion preventiva
+                Planificación preventiva
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -386,7 +386,7 @@ export function MantenimientoDashboard() {
 
       <Card className="border-border/70 bg-card/90">
         <CardHeader>
-          <CardTitle>Acceso rapido</CardTitle>
+          <CardTitle>Acceso rápido</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -404,7 +404,7 @@ export function MantenimientoDashboard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/vehiculos">
-                Vehiculos, QR y ficha
+                Vehículos, QR y ficha
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -416,13 +416,13 @@ export function MantenimientoDashboard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/bitacora">
-                Ver bitacora
+                Ver bitácora
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/planificacion">
-                Ver planificacion
+                Ver planificación
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -434,7 +434,7 @@ export function MantenimientoDashboard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/movil">
-                Panel movil
+                Panel móvil
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -452,7 +452,7 @@ export function MantenimientoDashboard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/neumaticos">
-                Ver neumaticos
+                Ver neumáticos
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -464,7 +464,7 @@ export function MantenimientoDashboard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/fichas-tecnicas">
-                Fichas tecnicas
+                Fichas técnicas
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -495,7 +495,7 @@ export function MantenimientoDashboard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/planificacion/importar">
-                Planificacion
+                Planificación
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -507,13 +507,13 @@ export function MantenimientoDashboard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/fichas-tecnicas/importar">
-                Fichas tecnicas
+                Fichas técnicas
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/neumaticos/importar">
-                Neumaticos
+                Neumáticos
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -571,7 +571,7 @@ export function MantenimientoDashboard() {
                 <p className="text-2xl font-bold text-muted-foreground">{inactiveAssets}</p>
               </div>
               <div className="rounded-lg border border-border p-3">
-              <p className="text-xs text-muted-foreground">Criticos</p>
+              <p className="text-xs text-muted-foreground">Críticos</p>
                 <p className="text-2xl font-bold text-orange-500">{criticalAssets.length}</p>
               </div>
             </div>
@@ -588,7 +588,7 @@ export function MantenimientoDashboard() {
                     <div>
                       <p className="font-semibold">{asset.assetName || asset.assetCode || 'Equipo'}</p>
                       <p className="text-xs text-muted-foreground">
-                        {asset.assetType || 'Sin tipo'} - {asset.location || 'Sin ubicacion'}
+                        {asset.assetType || 'Sin tipo'} - {asset.location || 'Sin ubicación'}
                       </p>
                     </div>
                     <Badge variant={assetStatusVariant(String(asset.status || '').toLowerCase())}>

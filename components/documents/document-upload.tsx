@@ -428,7 +428,7 @@ export function DocumentUpload({ module, category, onUploadSuccess, onCancel }: 
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Ej: Politica de Cumplimiento Contractual"
+            placeholder="Ej: Política de Cumplimiento Contractual"
             className="border-primary/30 focus:border-primary/70"
             disabled={isUploading}
           />

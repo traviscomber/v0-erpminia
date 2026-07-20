@@ -154,7 +154,7 @@ export function BodegaDashboard() {
 
       <Card className="border-border/70 bg-card/80">
         <CardHeader className="pb-3">
-          <CardTitle className="text-foreground">Acceso rapido al flujo operativo</CardTitle>
+          <CardTitle className="text-foreground">Acceso rápido al flujo operativo</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -215,7 +215,7 @@ export function BodegaDashboard() {
           <div className="rounded-lg border border-border bg-background/60 p-4">
             <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Familias activas</div>
             <div className="mt-2 text-3xl font-bold text-foreground">{familyCount.toLocaleString()}</div>
-            <div className="mt-1 text-sm text-muted-foreground">Categorias canonicas visibles</div>
+            <div className="mt-1 text-sm text-muted-foreground">Categorías canónicas visibles</div>
           </div>
           <div className="rounded-lg border border-border bg-background/60 p-4">
             <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Subfamilias activas</div>
@@ -223,7 +223,7 @@ export function BodegaDashboard() {
             <div className="mt-1 text-sm text-muted-foreground">Agrupaciones limpias bajo cada familia</div>
           </div>
           <div className="rounded-lg border border-border bg-background/60 p-4">
-            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Familias con mas volumen</div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Familias con más volumen</div>
             <div className="mt-2 flex flex-wrap gap-2">
               {topFamiliesPreview.length > 0 ? (
                 topFamiliesPreview.map((cat) => (
@@ -242,7 +242,7 @@ export function BodegaDashboard() {
             </div>
             {topFamilies.length > topFamiliesPreview.length && (
               <p className="mt-2 text-xs text-muted-foreground">
-                +{topFamilies.length - topFamiliesPreview.length} familias mas con volumen relevante
+                +{topFamilies.length - topFamiliesPreview.length} familias más con volumen relevante
               </p>
             )}
           </div>

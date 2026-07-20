@@ -246,7 +246,7 @@ export default function DashboardPage() {
                     topRisksPreview.map((risk) => (
                       <div key={risk.id} className="flex items-center justify-between gap-3 rounded-xl border border-border/60 bg-background/70 px-3 py-2 text-sm">
                         <div className="min-w-0">
-                          <p className="font-medium">{risk.nc_number || 'NC sin numero'}</p>
+                          <p className="font-medium">{risk.nc_number || 'NC sin número'}</p>
                           <p className="truncate text-xs text-muted-foreground">{risk.title}</p>
                         </div>
                         <Badge variant="outline">{risk.severity || 'sin estado'}</Badge>
