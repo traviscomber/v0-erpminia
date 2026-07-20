@@ -18,7 +18,7 @@ export default function PermisosLicenciasImportarPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Importacion de permisos y licencias</h1>
+          <h1 className="text-3xl font-bold">Importación de permisos y licencias</h1>
           <p className="mt-2 max-w-3xl text-muted-foreground">
             Ruta dedicada para cargar permisos, licencias, patentes, resoluciones y autorizaciones del módulo legal.
           </p>

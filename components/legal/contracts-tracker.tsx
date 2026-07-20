@@ -87,8 +87,8 @@ export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
       {sortedContracts.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
           <AlertCircle className="mx-auto mb-2 h-6 w-6" />
-          <p>No hay contratos cargados todavia.</p>
-          <p className="mt-1 text-xs">Usa el boton "Nuevo contrato" para agregar contratos a la gestion.</p>
+          <p>No hay contratos cargados todavía.</p>
+          <p className="mt-1 text-xs">Usa el botón "Nuevo contrato" para agregar contratos a la gestión.</p>
         </div>
       ) : (
         <>

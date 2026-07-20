@@ -144,7 +144,7 @@ export function LegalContractDialog({ open, onOpenChange, onSuccess }: LegalCont
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Numero de contrato</label>
+              <label className="text-sm font-medium text-foreground">Número de contrato</label>
               <Input
                 placeholder="CNT-2026-001"
                 value={contractNumber}
