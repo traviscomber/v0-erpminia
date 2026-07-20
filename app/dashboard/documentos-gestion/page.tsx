@@ -193,7 +193,7 @@ export default function DocumentosGestionPage() {
         <Card className="border-amber-500/30 bg-amber-500/5">
           <CardHeader>
             <CardTitle className="text-base">Documentos por vencer</CardTitle>
-            <CardDescription>{expiringDocuments.length} documentos proximos a vencerse</CardDescription>
+            <CardDescription>{expiringDocuments.length} documentos próximos a vencerse</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {expiringPreview.length > 0 ? (
@@ -333,7 +333,7 @@ export default function DocumentosGestionPage() {
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Busca por nombre o descripcion..."
+              placeholder="Busca por nombre o descripción..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"

@@ -456,7 +456,7 @@ export default function LegalPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-primary">{pendingReviewCount}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Contratos en cola de validacion</p>
+            <p className="mt-1 text-xs text-muted-foreground">Contratos en cola de validación</p>
           </CardContent>
         </Card>
 

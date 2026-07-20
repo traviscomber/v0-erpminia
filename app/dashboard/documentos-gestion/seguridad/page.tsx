@@ -123,7 +123,7 @@ export default function SeguridadPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">{stats.pendientes}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Pendientes de validacion</p>
+            <p className="mt-1 text-xs text-muted-foreground">Pendientes de validación</p>
           </CardContent>
         </Card>
         <Card>

@@ -152,7 +152,7 @@ export default function ProcedimientosPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Documentos reales en el catalogo</p>
+            <p className="mt-1 text-xs text-muted-foreground">Documentos reales en el catálogo</p>
           </CardContent>
         </Card>
 
@@ -172,7 +172,7 @@ export default function ProcedimientosPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">{stats.pendientes}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Pendientes de actualizacion</p>
+            <p className="mt-1 text-xs text-muted-foreground">Pendientes de actualización</p>
           </CardContent>
         </Card>
 
@@ -213,7 +213,7 @@ export default function ProcedimientosPage() {
       <Card>
         <CardHeader>
           <CardTitle>Accesos rápidos</CardTitle>
-          <CardDescription>Atajos utiles para revisar, medir y cruzar documentos.</CardDescription>
+            <CardDescription>Atajos útiles para revisar, medir y cruzar documentos.</CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-2 md:grid-cols-3">
           <Button asChild variant="outline" className="justify-between">
@@ -260,7 +260,7 @@ export default function ProcedimientosPage() {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar por nombre, codigo o responsable..."
+                  placeholder="Buscar por nombre, código o responsable..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"

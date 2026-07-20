@@ -190,7 +190,7 @@ export default function EPPPage() {
   };
 
   const handleDelete = async (id: string, nombre: string) => {
-    if (!confirm(`Â¿Eliminar "${nombre}"`)) return;
+    if (!confirm(`¿Eliminar "${nombre}"`)) return;
     try {
       const response = await fetch(`/api/sostenibilidad/epp?id=${id}`, { method: 'DELETE' });
       if (response.ok) {
@@ -213,7 +213,7 @@ export default function EPPPage() {
           <div className="flex items-center gap-3 mb-2">
             <h1 className="text-3xl font-bold text-foreground">Gestión de artículos de EPP</h1>
           </div>
-          <p className="text-muted-foreground">Equipos de proteccion personal por puesto de trabajo</p>
+          <p className="text-muted-foreground">Equipos de protección personal por puesto de trabajo</p>
         </div>
         {canEditEpp && (
           <div className="flex gap-2">
@@ -241,8 +241,8 @@ export default function EPPPage() {
               <DialogTitle>{editingId ? 'Editar EPP' : 'Registrar Nuevo EPP'}</DialogTitle>
               <DialogDescription>
                 {editingId
-                  ? 'Modifica los datos del equipo de proteccion personal'
-                  : 'Agrega un nuevo equipo de proteccion personal'}
+                  ? 'Modifica los datos del equipo de protección personal'
+                  : 'Agrega un nuevo equipo de protección personal'}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">

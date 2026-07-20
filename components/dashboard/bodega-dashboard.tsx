@@ -278,7 +278,7 @@ export function BodegaDashboard() {
                 );
               })}
             </div>
-            {lowStock.length > 6 && <p className="mt-3 text-xs text-muted-foreground">+{lowStock.length - 6} items mas con bajo stock</p>}
+            {lowStock.length > 6 && <p className="mt-3 text-xs text-muted-foreground">+{lowStock.length - 6} items más con bajo stock</p>}
           </CardContent>
         </Card>
       )}
@@ -292,7 +292,7 @@ export function BodegaDashboard() {
             <div className="relative">
               <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
               <Input
-                placeholder="Buscar SKU, nombre o categoria"
+                placeholder="Buscar SKU, nombre o categoría"
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
@@ -304,7 +304,7 @@ export function BodegaDashboard() {
 
             {categories.length > 0 && (
               <div>
-                <p className="mb-2 text-sm font-medium text-foreground">Categoria</p>
+                <p className="mb-2 text-sm font-medium text-foreground">Categoría</p>
                 <CategoryFilter
                   categories={categories}
                   selectedCategory={category}

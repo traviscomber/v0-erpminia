@@ -249,7 +249,7 @@ export default function ReportesGestionDocumentalPage() {
         <Card className="border-amber-500/30 bg-amber-500/5">
           <CardHeader>
             <CardTitle>Documentos por vencer</CardTitle>
-            <CardDescription>{expiringDocuments.length} documentos proximos a vencer</CardDescription>
+            <CardDescription>{expiringDocuments.length} documentos próximos a vencer</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
             {expiringDocuments.length > 0 ? (
