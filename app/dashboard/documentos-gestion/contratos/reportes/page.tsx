@@ -105,7 +105,7 @@ export default function ContratosReportesPage() {
         <Card className="border-amber-500/30 bg-amber-500/5">
           <CardContent className="pt-6 text-sm text-muted-foreground">
             La carga de reportes tardó más de lo esperado. Se muestran los accesos y los estados disponibles
-            mientras el modulo termina de responder.
+            mientras el módulo termina de responder.
           </CardContent>
         </Card>
       )}

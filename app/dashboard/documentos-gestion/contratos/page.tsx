@@ -552,7 +552,7 @@ export default function ContratosPage() {
                       <SelectContent>
                         {eeccOptions.length === 0 ? (
                           <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                            No hay Empresas contratistas registradas
+                            No hay empresas contratistas registradas
                           </div>
                         ) : (
                           eeccOptions.map((option) => (
