@@ -56,7 +56,7 @@ export function BodegaDashboard() {
     () =>
       inventory.map((item) => ({
         ...item,
-        categoryLabel: formatCategoryLabel(canonicalCategory(item.category) || 'Sin categoria'),
+        categoryLabel: formatCategoryLabel(canonicalCategory(item.category) || 'Sin categoría'),
       })),
     [inventory],
   );
@@ -321,7 +321,7 @@ export function BodegaDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-foreground">Detalle de inventario {pagination.page > 0 && `(Pagina ${pagination.page + 1} de ${pagination.totalPages})`}</CardTitle>
+          <CardTitle className="text-foreground">Detalle de inventario {pagination.page > 0 && `(Página ${pagination.page + 1} de ${pagination.totalPages})`}</CardTitle>
             <p className="text-sm text-muted-foreground">Usa la búsqueda y la categoría para reducir el listado.</p>
         </CardHeader>
         <CardContent>

@@ -114,7 +114,7 @@ export function DocumentUploadModal({ open, onOpenChange, organizationId, onSucc
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Titulo del documento</label>
+            <label className="text-sm font-medium text-foreground">Título del documento</label>
             <Input
               placeholder="Ej: Certificado de Seguridad 2026"
               value={title}
@@ -154,7 +154,7 @@ export function DocumentUploadModal({ open, onOpenChange, organizationId, onSucc
               <label className="text-sm font-medium text-foreground">Categoria</label>
               <Select value={category} onValueChange={setCategory} disabled={isLoading}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecciona una categoria" />
+                  <SelectValue placeholder="Selecciona una categoría" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="safety">Seguridad</SelectItem>

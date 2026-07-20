@@ -153,7 +153,7 @@ export default function BodegaImportPage() {
                 <CardTitle className="text-base">Estructura del inventario</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
-                <p>El inventario se organiza en categorias principales para control operativo y compras.</p>
+                <p>El inventario se organiza en categorías principales para control operativo y compras.</p>
                 <ul className="list-inside list-disc space-y-1 text-muted-foreground">
                   <li>Acero y metalmecanica</li>
                   <li>Consumos de molienda</li>
@@ -165,7 +165,7 @@ export default function BodegaImportPage() {
 
             <Card className="border-green-200 bg-green-50/50">
               <CardHeader>
-                <CardTitle className="text-base">Integracion</CardTitle>
+                <CardTitle className="text-base">Integración</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 <p>El inventario se integra con:</p>

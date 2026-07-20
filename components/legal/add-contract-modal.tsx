@@ -91,7 +91,7 @@ export function AddContractModal({ onSubmit }: AddContractModalProps) {
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Titulo del contrato</Label>
+            <Label htmlFor="title">Título del contrato</Label>
             <Input
               id="title"
               placeholder="Ej: Contrato Proveedor 2026"

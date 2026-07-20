@@ -107,7 +107,7 @@ export function ApprovalWorkflowCard({
     <Card>
       <CardHeader>
         <CardTitle>Flujo de aprobacion</CardTitle>
-        <CardDescription>{steps.length} niveles de revision requeridos</CardDescription>
+        <CardDescription>{steps.length} niveles de revisión requeridos</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-4">

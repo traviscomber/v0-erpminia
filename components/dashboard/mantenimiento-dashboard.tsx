@@ -212,7 +212,7 @@ export function MantenimientoDashboard() {
           No se pudo cargar mantenimiento
         </div>
         <p className="mt-2 text-sm text-destructive/80">
-          Revisa la conexion a las APIs de mantenimiento y activos antes de volver a intentar.
+          Revisa la conexión a las APIs de mantenimiento y activos antes de volver a intentar.
         </p>
       </div>
     );
@@ -243,7 +243,7 @@ export function MantenimientoDashboard() {
 
       <Card className="border-border/70 bg-card/90">
         <CardHeader className="pb-3">
-          <CardTitle>Siguiente accion recomendada</CardTitle>
+          <CardTitle>Siguiente acción recomendada</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="space-y-1">
@@ -360,7 +360,7 @@ export function MantenimientoDashboard() {
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
             Familias de maquinaria derivadas de la estructura real de centros de costo para apoyar
-            planificacion, repuestos y control operativo.
+            planificación, repuestos y control operativo.
           </p>
           {topMachineFamilies.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
@@ -489,7 +489,7 @@ export function MantenimientoDashboard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/vehiculos/importar">
-                Vehiculos
+                Vehículos
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -537,7 +537,7 @@ export function MantenimientoDashboard() {
             </Button>
             <Button asChild variant="outline" className="justify-between">
               <Link href="/dashboard/mantenimiento/bitacora/importar">
-                Bitacora
+                Bitácora
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>

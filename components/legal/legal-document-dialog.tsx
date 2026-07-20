@@ -61,7 +61,7 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
     event.preventDefault();
 
     if (!title || !documentType || !category || !file) {
-      toast.error('Completa titulo, tipo, categoria y archivo.');
+      toast.error('Completa título, tipo, categoría y archivo.');
       return;
     }
 
@@ -124,7 +124,7 @@ export function LegalDocumentDialog({ open, onOpenChange, onSuccess }: LegalDocu
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Descripción</label>
             <Textarea
-              placeholder="Contexto breve del documento y su aplicacion"
+              placeholder="Contexto breve del documento y su aplicación"
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               disabled={isLoading}
