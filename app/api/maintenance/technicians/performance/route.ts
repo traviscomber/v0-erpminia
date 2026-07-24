@@ -42,6 +42,20 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error;
 
+    // Get technician details from profiles (full_name + cargo)
+    const { data: profiles } = await context.supabase
+      .from('profiles')
+      .select('full_name, cargo_id, cargos(name)')
+      .eq('organization_id', context.organizationId);
+
+    const profileMap = new Map<string, { cargoId: string; cargoName: string }>();
+    for (const p of profiles || []) {
+      profileMap.set(p.full_name, {
+        cargoId: p.cargo_id,
+        cargoName: (p.cargos as any)?.name || 'Sin cargo',
+      });
+    }
+
     const rows = (Array.isArray(workOrders) ? workOrders : []) as WorkOrderRow[];
 
     // Group by technician name
@@ -49,6 +63,7 @@ export async function GET(request: NextRequest) {
       string,
       {
         name: string;
+        cargo: string;
         total: number;
         completed: number;
         inProgress: number;
@@ -68,8 +83,10 @@ export async function GET(request: NextRequest) {
 
     for (const wo of rows) {
       const techName = wo.assigned_to_name?.trim() || 'Sin asignar';
+      const techProfile = profileMap.get(techName);
       const existing = techMap.get(techName) ?? {
         name: techName,
+        cargo: techProfile?.cargoName || 'Sin cargo',
         total: 0,
         completed: 0,
         inProgress: 0,
@@ -136,6 +153,7 @@ export async function GET(request: NextRequest) {
         );
         return {
           name: t.name,
+          cargo: t.cargo,
           total: t.total,
           completed: t.completed,
           inProgress: t.inProgress,
