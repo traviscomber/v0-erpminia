@@ -121,11 +121,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         context.supabase.from('fault_modes').select('id, component_template_id, fault_code, fault_name, severity'),
       ]);
 
-    if (assetError) throw assetError;
-    if (templatesError) throw templatesError;
-    if (faultModesError) throw faultModesError;
+    // components_template and fault_modes may not exist yet — treat as empty on error
+    const safeTemplates = templatesError ? [] : templates;
+    const safeFaultModes = faultModesError ? [] : faultModes;
 
-    let asset = assetRaw as AssetRow | null;
+    // assetError (400/RLS) or missing asset — both fall through to cost_center lookup
+    let asset = (!assetError && assetRaw) ? (assetRaw as AssetRow) : null;
 
     // Fallback: id may be a cost_center.id — synthesize an asset from it
     if (!asset) {
@@ -180,8 +181,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         ]
       : [];
 
-    const templateRows = Array.isArray(templates) ? (templates as TemplateRow[]) : [];
-    const faultModeRows = Array.isArray(faultModes) ? (faultModes as FaultModeRow[]) : [];
+    const templateRows = Array.isArray(safeTemplates) ? (safeTemplates as TemplateRow[]) : [];
+    const faultModeRows = Array.isArray(safeFaultModes) ? (safeFaultModes as FaultModeRow[]) : [];
     const suggestedTemplates = templateRows
       .filter((template) => familyMatchesTemplate(assetFamily, template))
       .map((template) => ({

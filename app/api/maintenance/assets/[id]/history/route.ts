@@ -34,9 +34,8 @@ export async function GET(
       .eq('organization_id', context.organizationId)
       .maybeSingle();
 
-    if (assetError) throw assetError;
-
-    let asset: AssetShape | null = assetFromDB as AssetShape | null;
+    // assetError (400/RLS) means the maintenance_assets lookup failed — fall through to cost_center
+    let asset: AssetShape | null = (!assetError && assetFromDB) ? (assetFromDB as AssetShape) : null;
 
     // Fallback: id may be a cost_center.id — synthesize from cost center data
     if (!asset) {
