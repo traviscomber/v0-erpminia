@@ -93,34 +93,34 @@ export function MobileSimpleFlow() {
 
   if (currentStep === 'success') {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-emerald-50 to-white p-4">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4">
         <div className="text-center space-y-4">
-          <CheckCircle2 className="w-20 h-20 text-emerald-600 mx-auto animate-bounce" />
-          <h1 className="text-3xl font-bold text-emerald-900">Trabajo Completado</h1>
-          <p className="text-gray-600">
+          <CheckCircle2 className="w-20 h-20 text-emerald-500 mx-auto animate-bounce" />
+          <h1 className="text-3xl font-bold text-foreground">Trabajo Completado</h1>
+          <p className="text-muted-foreground">
             {selectedWorkOrder?.work_order_number} - {selectedWorkOrder?.title}
           </p>
-          <p className="text-sm text-gray-500">Redirigiendo...</p>
+          <p className="text-sm text-muted-foreground">Redirigiendo...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-4">
+    <div className="min-h-screen bg-background p-4">
       <div className="max-w-md mx-auto space-y-4">
         {/* Header */}
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Panel de Trabajo</h1>
-          <p className="text-sm text-gray-600">Completa tu orden en 3 pasos</p>
+          <h1 className="text-2xl font-bold text-foreground">Panel de Trabajo</h1>
+          <p className="text-sm text-muted-foreground">Completa tu orden en 3 pasos</p>
         </div>
 
         {/* Error Alert */}
         {currentStep === 'qr' && workOrders.length === 0 && (
-          <Alert className="border-amber-200 bg-amber-50">
-            <AlertCircle className="h-4 w-4 text-amber-600" />
-            <AlertDescription className="text-amber-800">
-              No hay órdenes disponibles en este momento
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              No hay ordenes disponibles en este momento
             </AlertDescription>
           </Alert>
         )}
@@ -137,13 +137,15 @@ export function MobileSimpleFlow() {
         {/* Step 2: Photo */}
         {currentStep === 'photo' && selectedWorkOrder && (
           <div className="space-y-3">
-            <Card className="border-gray-200 bg-white">
-              <CardContent className="pt-6">
-                <div className="text-sm text-gray-600">
-                  <strong>Orden:</strong> {selectedWorkOrder.work_order_number}
+            <Card>
+              <CardContent className="pt-6 space-y-1">
+                <div className="text-sm text-muted-foreground">
+                  <strong className="text-foreground">Orden:</strong>{' '}
+                  {selectedWorkOrder.work_order_number}
                 </div>
-                <div className="text-sm text-gray-600">
-                  <strong>Trabajo:</strong> {selectedWorkOrder.title}
+                <div className="text-sm text-muted-foreground">
+                  <strong className="text-foreground">Trabajo:</strong>{' '}
+                  {selectedWorkOrder.title}
                 </div>
               </CardContent>
             </Card>
@@ -166,22 +168,22 @@ export function MobileSimpleFlow() {
           <div
             className={`flex-1 h-1 rounded-full transition-colors ${
               ['qr', 'photo', 'complete', 'success'].indexOf(currentStep) >= 0
-                ? 'bg-amber-600'
-                : 'bg-gray-200'
+                ? 'bg-primary'
+                : 'bg-muted'
             }`}
           />
           <div
             className={`flex-1 h-1 rounded-full transition-colors ${
               ['photo', 'complete', 'success'].indexOf(currentStep) >= 0
-                ? 'bg-blue-600'
-                : 'bg-gray-200'
+                ? 'bg-blue-500'
+                : 'bg-muted'
             }`}
           />
           <div
             className={`flex-1 h-1 rounded-full transition-colors ${
               ['complete', 'success'].indexOf(currentStep) >= 0
-                ? 'bg-emerald-600'
-                : 'bg-gray-200'
+                ? 'bg-emerald-500'
+                : 'bg-muted'
             }`}
           />
         </div>

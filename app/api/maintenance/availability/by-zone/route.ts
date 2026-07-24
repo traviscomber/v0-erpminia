@@ -61,9 +61,31 @@ export async function GET(request: NextRequest) {
       .eq('organization_id', context.organizationId)
       .order('location', { ascending: true });
 
-    if (error) throw error;
+    // Fallback to cost_centers when maintenance_assets is empty or errors
+    let assetRows: AssetRow[] = (!error && Array.isArray(assets) && assets.length > 0)
+      ? (assets as unknown as AssetRow[])
+      : [];
 
-    const assetRows = (Array.isArray(assets) ? (assets as unknown as AssetRow[]) : []) || [];
+    if (assetRows.length === 0) {
+      const { data: costCenters } = await context.supabase
+        .from('cost_centers')
+        .select('id, code, name, status')
+        .eq('organization_id', context.organizationId)
+        .order('name', { ascending: true });
+
+      assetRows = (costCenters || []).map((cc) => ({
+        id: cc.id,
+        asset_code: cc.code ?? null,
+        asset_name: cc.name ?? null,
+        asset_type: null,
+        location: null,
+        status: cc.status ?? 'activo',
+        mtbf_hours: null,
+        work_orders: null,
+        cost_center_id: null,
+        cost_center: { code: cc.code ?? null, name: cc.name ?? null },
+      }));
+    }
 
     const statusMap: Record<string, 'operational' | 'maintenance' | 'critical'> = {
       operational: 'operational',

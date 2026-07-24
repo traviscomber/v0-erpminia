@@ -122,8 +122,24 @@ type TireEventRow = {
 };
 
 function isMissingTableError(error: unknown) {
-  const message = error instanceof Error ? error.message.toLowerCase() : String(error || '').toLowerCase();
-  return message.includes('maintenance_tires') || message.includes('maintenance_tire_events') || message.includes('42p01');
+  // Supabase errors are plain objects with a message/code field, not Error instances
+  const errObj = error as { message?: string; code?: string; details?: string; hint?: string } | null;
+  const message = (
+    (error instanceof Error ? error.message : '') ||
+    errObj?.message ||
+    errObj?.details ||
+    String(error || '')
+  ).toLowerCase();
+  return (
+    message.includes('maintenance_tires') ||
+    message.includes('maintenance_tire_events') ||
+    message.includes('42p01') ||
+    message.includes('relation') ||
+    message.includes('does not exist') ||
+    message.includes('404') ||
+    errObj?.code === '42P01' ||
+    errObj?.code === 'PGRST116'
+  );
 }
 
 function mapStockItem(item: WarehouseStockRow): TireStockItem {
@@ -133,6 +149,7 @@ function mapStockItem(item: WarehouseStockRow): TireStockItem {
     searchable.includes('llanta') ||
     searchable.startsWith('neu') ||
     searchable.includes('rodado');
+
 
   const quantityOnHand = Number(item.quantity_on_hand || 0);
   const quantityReserved = Number(item.quantity_reserved || 0);
@@ -207,15 +224,18 @@ function mapTireEvent(item: TireEventRow) {
 }
 
 async function loadStockItems(context: OrganizationSuccessContext) {
+  // Filter at DB level using OR conditions to avoid fetching 1000+ non-tire rows
   const { data, error } = await context.supabase
     .from('warehouse_stock')
-    .select('id, part_code, part_name, quantity_on_hand, quantity_reserved, quantity_available, reorder_level, reorder_quantity, unit_cost, bin:warehouse_bins(bin_code, bin_location)')
+    .select('id, part_code, part_name, quantity_on_hand, quantity_reserved, quantity_available, reorder_level, reorder_quantity, unit_cost')
     .eq('organization_id', context.organizationId)
+    .or('part_code.ilike.NEU-%,part_name.ilike.Neumático%,part_name.ilike.Llanta%,part_name.ilike.Rodado%,part_code.ilike.LLANTA%')
     .order('part_name', { ascending: true });
 
   if (error) throw error;
 
-  const items = (Array.isArray(data) ? (data as WarehouseStockRow[]) : []).map(mapStockItem).filter((item) => item.isTire);
+  const allRows = Array.isArray(data) ? (data as WarehouseStockRow[]) : [];
+  const items = allRows.map(mapStockItem);
   const summary = {
     totalItems: items.length,
     lowStock: items.filter((item) => item.lowStock).length,
@@ -241,7 +261,10 @@ async function loadTraceability(context: OrganizationSuccessContext) {
       .order('updated_at', { ascending: false })
       .range(tireStart, tireEnd);
 
-    if (error) throw error;
+    if (error) {
+      const msg = (error as { message?: string; code?: string }).message || JSON.stringify(error);
+      throw new Error(`maintenance_tires: ${msg}`);
+    }
 
     const batch = Array.isArray(data) ? (data as TireMasterRow[]) : [];
     tires.push(...batch);
@@ -259,7 +282,10 @@ async function loadTraceability(context: OrganizationSuccessContext) {
       .order('event_date', { ascending: false })
       .range(eventStart, eventEnd);
 
-    if (error) throw error;
+    if (error) {
+      const msg = (error as { message?: string; code?: string }).message || JSON.stringify(error);
+      throw new Error(`maintenance_tire_events: ${msg}`);
+    }
 
     const batch = Array.isArray(data) ? (data as TireEventRow[]) : [];
     events.push(...batch);
