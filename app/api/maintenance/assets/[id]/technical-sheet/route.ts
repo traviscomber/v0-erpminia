@@ -109,7 +109,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const { id } = await params;
 
   try {
-    const [{ data: asset, error: assetError }, { data: templates, error: templatesError }, { data: faultModes, error: faultModesError }] =
+    const [{ data: assetRaw, error: assetError }, { data: templates, error: templatesError }, { data: faultModes, error: faultModesError }] =
       await Promise.all([
         context.supabase
           .from('maintenance_assets')
@@ -121,9 +121,43 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         context.supabase.from('fault_modes').select('id, component_template_id, fault_code, fault_name, severity'),
       ]);
 
-    if (assetError) throw assetError;
-    if (templatesError) throw templatesError;
-    if (faultModesError) throw faultModesError;
+    // components_template and fault_modes may not exist yet — treat as empty on error
+    const safeTemplates = templatesError ? [] : templates;
+    const safeFaultModes = faultModesError ? [] : faultModes;
+
+    // assetError (400/RLS) or missing asset — both fall through to cost_center lookup
+    let asset = (!assetError && assetRaw) ? (assetRaw as AssetRow) : null;
+
+    // Fallback: id may be a cost_center.id — synthesize an asset from it
+    if (!asset) {
+      const { data: costCenter } = await context.supabase
+        .from('cost_centers')
+        .select('id, code, name, status')
+        .eq('id', id)
+        .eq('organization_id', context.organizationId)
+        .maybeSingle();
+
+      if (costCenter) {
+        asset = {
+          id: costCenter.id,
+          asset_code: costCenter.code ?? null,
+          asset_name: costCenter.name ?? null,
+          asset_type: null,
+          location: null,
+          status: costCenter.status ?? 'activo',
+          manufacturer: null,
+          model: null,
+          serial_number: null,
+          criticality: null,
+          mtbf_hours: null,
+          purchase_date: null,
+          last_maintenance: null,
+          next_maintenance: null,
+          specs: null,
+        };
+      }
+    }
+
     if (!asset) {
       return NextResponse.json({ error: 'No se encontro el activo solicitado' }, { status: 404 });
     }
@@ -147,8 +181,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         ]
       : [];
 
-    const templateRows = Array.isArray(templates) ? (templates as TemplateRow[]) : [];
-    const faultModeRows = Array.isArray(faultModes) ? (faultModes as FaultModeRow[]) : [];
+    const templateRows = Array.isArray(safeTemplates) ? (safeTemplates as TemplateRow[]) : [];
+    const faultModeRows = Array.isArray(safeFaultModes) ? (safeFaultModes as FaultModeRow[]) : [];
     const suggestedTemplates = templateRows
       .filter((template) => familyMatchesTemplate(assetFamily, template))
       .map((template) => ({

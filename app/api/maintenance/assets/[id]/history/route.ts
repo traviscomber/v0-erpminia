@@ -13,14 +13,55 @@ export async function GET(
   const { id } = await params;
 
   try {
-    const { data: asset, error: assetError } = await context.supabase
+    type AssetShape = {
+      id: string;
+      asset_code: string | null;
+      asset_name: string | null;
+      asset_type: string | null;
+      location: string | null;
+      status: string | null;
+      manufacturer: string | null;
+      model: string | null;
+      criticality: string | null;
+      mtbf_hours: number | null;
+    };
+
+    // Primary lookup: by UUID in maintenance_assets
+    const { data: assetFromDB, error: assetError } = await context.supabase
       .from('maintenance_assets')
       .select('id, asset_code, asset_name, asset_type, location, status, manufacturer, model, criticality, mtbf_hours')
       .eq('id', id)
       .eq('organization_id', context.organizationId)
       .maybeSingle();
 
-    if (assetError) throw assetError;
+    // assetError (400/RLS) means the maintenance_assets lookup failed — fall through to cost_center
+    let asset: AssetShape | null = (!assetError && assetFromDB) ? (assetFromDB as AssetShape) : null;
+
+    // Fallback: id may be a cost_center.id — synthesize from cost center data
+    if (!asset) {
+      const { data: costCenter } = await context.supabase
+        .from('cost_centers')
+        .select('id, code, name, status')
+        .eq('id', id)
+        .eq('organization_id', context.organizationId)
+        .maybeSingle();
+
+      if (costCenter) {
+        asset = {
+          id: costCenter.id,
+          asset_code: costCenter.code ?? null,
+          asset_name: costCenter.name ?? null,
+          asset_type: null,
+          location: null,
+          status: costCenter.status ?? 'activo',
+          manufacturer: null,
+          model: null,
+          criticality: null,
+          mtbf_hours: null,
+        };
+      }
+    }
+
     if (!asset) {
       return NextResponse.json({ error: 'No se encontro el activo solicitado' }, { status: 404 });
     }
@@ -46,7 +87,8 @@ export async function GET(
       .eq('asset_id', id)
       .order('created_at', { ascending: false });
 
-    if (historyError) throw historyError;
+    // Don't throw on historyError — the table may not exist yet for this asset.
+    // Return empty history so the ficha still renders with asset data.
 
     return NextResponse.json({ asset, history: history || [] });
   } catch (error) {

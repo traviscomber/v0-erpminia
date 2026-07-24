@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { inferMachineFamilyFromText } from '@/lib/maintenance/cost-center-machines';
+import { EquipmentPhoto } from '@/components/maintenance/equipment-photo';
 
 type MaintenanceAsset = {
   id: string;
@@ -184,6 +185,7 @@ export function AssetDetailView({ scope = 'vehiculos' }: AssetDetailViewProps) {
     const text = `${asset?.asset_name || ''} ${asset?.asset_type || ''} ${asset?.model || ''} ${asset?.manufacturer || ''}`;
     return inferMachineFamilyFromText(text);
   }, [asset?.asset_name, asset?.asset_type, asset?.model, asset?.manufacturer]);
+
   const relatedMachines = useMemo(
     () =>
       machineFamily
@@ -375,10 +377,15 @@ export function AssetDetailView({ scope = 'vehiculos' }: AssetDetailViewProps) {
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-1">
           <CardHeader>
-          <CardTitle>{isEquipmentScope ? 'QR del equipo' : 'QR del vehículo'}</CardTitle>
+            <CardTitle>{isEquipmentScope ? 'QR del equipo' : 'QR del vehículo'}</CardTitle>
             <CardDescription>Apunta a la ficha real del activo y su historial.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <EquipmentPhoto
+              assetName={asset.asset_name}
+              assetType={asset.asset_type}
+              machineFamily={machineFamily}
+            />
             <div className="flex justify-center rounded-lg border border-border bg-white p-4">
               <img src={qrImageUrl} alt={`QR de ${asset.asset_name || 'activo'}`} className="h-56 w-56 object-contain" />
             </div>
