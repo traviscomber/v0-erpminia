@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
 
         // Subtract pause durations
         if (actionRecord.pauses) {
-          totalTime -= actionRecord.pauses.reduce((sum, p) => sum + (p.duration_ms || 0), 0);
+          totalTime -= actionRecord.pauses.reduce((sum: number, p: any) => sum + (p.duration_ms || 0), 0);
         }
 
         timeDelta = totalTime / (1000 * 60 * 60); // Convert to hours

@@ -43,21 +43,33 @@ async function aggregateAnalyticsForOrg(sb: any, orgId: string) {
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
   try {
+    interface WorkOrder {
+      id: string;
+      status: string;
+      priority: string;
+      created_at: string;
+      completion_date: string | null;
+      scheduled_date: string | null;
+      total_timer_minutes: number | null;
+    }
+
     // Fetch work orders
     const { data: workOrders } = await sb
       .from('maintenance_work_orders')
       .select('id, status, priority, created_at, completion_date, scheduled_date, total_timer_minutes')
       .eq('organization_id', orgId)
-      .gte('created_at', thirtyDaysAgo.toISOString());
+      .gte('created_at', thirtyDaysAgo.toISOString()) as { data: WorkOrder[] | null };
+
+    const woList: WorkOrder[] = workOrders || [];
 
     // Calculate metrics
-    const total = workOrders?.length || 0;
-    const completed = workOrders?.filter((wo) => wo.status === 'completed').length || 0;
-    const pending = workOrders?.filter((wo) => wo.status === 'pending').length || 0;
+    const total = woList.length;
+    const completed = woList.filter((wo: WorkOrder) => wo.status === 'completed').length;
+    const pending = woList.filter((wo: WorkOrder) => wo.status === 'pending').length;
 
     let overdue = 0;
     const now = new Date();
-    workOrders?.forEach((wo) => {
+    woList.forEach((wo: WorkOrder) => {
       if (wo.scheduled_date) {
         const scheduled = new Date(wo.scheduled_date);
         if (scheduled < now && wo.status !== 'completed') {
@@ -69,13 +81,13 @@ async function aggregateAnalyticsForOrg(sb: any, orgId: string) {
     const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
 
     let avgCompletionHours = 0;
-    const completedWOs = workOrders?.filter((wo) => wo.status === 'completed' && wo.total_timer_minutes) || [];
+    const completedWOs = woList.filter((wo: WorkOrder) => wo.status === 'completed' && wo.total_timer_minutes);
     if (completedWOs.length > 0) {
-      const totalMinutes = completedWOs.reduce((sum, wo) => sum + (wo.total_timer_minutes || 0), 0);
+      const totalMinutes = completedWOs.reduce((sum: number, wo: WorkOrder) => sum + (wo.total_timer_minutes || 0), 0);
       avgCompletionHours = Math.round((totalMinutes / completedWOs.length) / 60 * 100) / 100;
     }
 
-    const totalHoursLogged = workOrders?.reduce((sum, wo) => sum + (wo.total_timer_minutes || 0), 0) / 60 || 0;
+    const totalHoursLogged = woList.reduce((sum: number, wo: WorkOrder) => sum + (wo.total_timer_minutes || 0), 0) / 60;
 
     // Insert aggregation data
     await sb.from('maintenance_analytics_daily').upsert(

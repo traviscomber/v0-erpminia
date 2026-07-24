@@ -1,19 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { getOrganizationContext } from '@/lib/maintenance/auth';
+import { getOrganizationContext } from '@/lib/api/organization-context';
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { action, notes } = await request.json();
-  const woId = params.id;
+  const { id: woId } = await params;
 
   if (!['play', 'pause', 'resume', 'terminate'].includes(action)) {
     return NextResponse.json({ ok: false, error: 'Invalid action' }, { status: 400 });
   }
 
-  const context = await getOrganizationContext();
+  const context = await getOrganizationContext(request);
   if (!context.ok) return NextResponse.json(context.response);
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const now = new Date();
 
   try {
@@ -96,12 +96,12 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
   }
 }
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  const woId = params.id;
-  const context = await getOrganizationContext();
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id: woId } = await params;
+  const context = await getOrganizationContext(request);
   if (!context.ok) return NextResponse.json(context.response);
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { data: wo, error } = await supabase
     .from('maintenance_work_orders')
