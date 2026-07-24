@@ -13,10 +13,51 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const period = searchParams.get('period') || getCurrentPeriod();
 
+    // Get organization from auth context
+    const { data: { session } } = await supabase.auth.getSession();
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('organization_id')
+      .eq('id', session?.user?.id)
+      .maybeSingle();
+
+    const orgId = profile?.organization_id;
+    const DEMO_ORG = '550e8400-e29b-41d4-a716-446655440000';
+
+    // Return mock data for demo organization - never mix with real data
+    if (orgId === DEMO_ORG) {
+      return NextResponse.json({
+        period,
+        overview: {
+          compliance_score: 78,
+          total_ncs: 5,
+          open_ncs: 2,
+          closed_ncs: 3,
+          overdue_cas: 1,
+          trend: 'improving',
+        },
+        nc_stats: { critical: 0, high: 2, medium: 2, low: 1 },
+        ca_stats: { total: 6, planned: 1, in_progress: 2, completed: 3, overdue: 1, completionRate: 50 },
+        trends: [
+          { compliance_score: 75, report_period: period },
+          { compliance_score: 72, report_period: getMonthBefore(period, 1) },
+          { compliance_score: 68, report_period: getMonthBefore(period, 2) },
+        ],
+        top_risks: [
+          { id: '1', nc_number: 'NC-2025-001', title: 'Inspección de equipo EX-001 vencida', severity: 'alta', status: 'abierta' },
+          { id: '2', nc_number: 'NC-2025-002', title: 'Falta de calibración de manómetros', severity: 'media', status: 'abierta' },
+        ],
+        inspections_completed: 8,
+        generated_at: new Date().toISOString(),
+      });
+    }
+
+    // Real data for other organizations
     const { data: complianceData } = await supabase
       .from('sostenibilidad_compliance_history')
       .select('*')
       .eq('report_period', period)
+      .eq('organization_id', orgId)
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -27,12 +68,14 @@ export async function GET(request: NextRequest) {
     const { data: trends } = await supabase
       .from('sostenibilidad_compliance_history')
       .select('compliance_score, report_period')
+      .eq('organization_id', orgId)
       .order('report_period', { ascending: false })
       .limit(12);
 
     const { data: topRisks } = await supabase
       .from('sostenibilidad_nonconformances')
       .select('id, nc_number, title, severity, status')
+      .eq('organization_id', orgId)
       .in('status', ['abierta', 'open'])
       .order('discovered_date', { ascending: true })
       .limit(5);
@@ -40,6 +83,7 @@ export async function GET(request: NextRequest) {
     const { count: inspectionsCompleted = 0 } = await supabase
       .from('inspecciones_internas')
       .select('id', { count: 'exact', head: true })
+      .eq('organization_id', orgId)
       .eq('estado', 'completada');
 
     const nc = ((ncStats as NumericStatsRow[] | null | undefined)?.[0] ?? {}) as NumericStatsRow;
@@ -88,4 +132,15 @@ export async function GET(request: NextRequest) {
 function getCurrentPeriod(): string {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function getMonthBefore(period: string, monthsBack: number): string {
+  const [year, month] = period.split('-');
+  let y = parseInt(year);
+  let m = parseInt(month) - monthsBack;
+  while (m <= 0) {
+    m += 12;
+    y -= 1;
+  }
+  return `${y}-${String(m).padStart(2, '0')}`;
 }

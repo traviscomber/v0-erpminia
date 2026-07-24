@@ -160,7 +160,69 @@ export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
 
+  const DEMO_ORG = '550e8400-e29b-41d4-a716-446655440000';
+
   try {
+    // Return mock alerts for demo organization - never mix with real data
+    if (context.organizationId === DEMO_ORG) {
+      const mockAlerts: AlertItem[] = [
+        {
+          id: 'demo-wo-1',
+          title: 'Orden crítica - Mantenimiento urgente Perforadora Atlas Copco ROC',
+          description: 'OT-DEMO-0001 asociada a Perforadora Atlas Copco ROC. Requiere atención inmediata.',
+          severity: 'critica',
+          type: 'mantenimiento',
+          timestamp: new Date(Date.now() - 2 * 3600000).toISOString(),
+          read: false,
+          actionRequired: true,
+          actionUrl: '/dashboard/mantenimiento/planificacion',
+        },
+        {
+          id: 'demo-wo-2',
+          title: 'Orden prioritaria - Revisión preventiva Excavadora CAT 320',
+          description: 'OT-DEMO-0002 asociada a Excavadora CAT 320. Revisión de sistemas principales.',
+          severity: 'alta',
+          type: 'mantenimiento',
+          timestamp: new Date(Date.now() - 5 * 3600000).toISOString(),
+          read: false,
+          actionRequired: true,
+          actionUrl: '/dashboard/mantenimiento/planificacion',
+        },
+        {
+          id: 'demo-nc-1',
+          title: 'No conformidad abierta - Inspección de equipo EX-001 vencida',
+          description: 'NC-2025-001. Inspección del equipo EX-001 se encuentra vencida. Requiere seguimiento.',
+          severity: 'alta',
+          type: 'sostenibilidad',
+          timestamp: new Date(Date.now() - 24 * 3600000).toISOString(),
+          read: false,
+          actionRequired: true,
+          actionUrl: '/dashboard/sostenibilidad',
+        },
+        {
+          id: 'demo-ca-1',
+          title: 'Acción correctiva en progreso - Calibración de manómetros',
+          description: 'CA-2025-001. En progreso hace 5 días. Estimado para completar en 3 días más.',
+          severity: 'media',
+          type: 'sostenibilidad',
+          timestamp: new Date(Date.now() - 5 * 86400000).toISOString(),
+          read: false,
+          actionRequired: true,
+          actionUrl: '/dashboard/sostenibilidad',
+        },
+      ];
+
+      return NextResponse.json({
+        alerts: mockAlerts,
+        stats: {
+          total: mockAlerts.length,
+          unread: mockAlerts.filter((alert) => !alert.read).length,
+          critical: mockAlerts.filter((alert) => alert.severity === 'critica').length,
+          actionRequired: mockAlerts.filter((alert) => alert.actionRequired).length,
+        },
+        generatedAt: new Date().toISOString(),
+      });
+    }
     const [pendingApprovals, legalCompliance, workOrders, lowStockRows, overdueNCs, overdueCAs] =
       await Promise.all([
         safeQuery(
