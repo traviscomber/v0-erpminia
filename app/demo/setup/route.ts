@@ -29,8 +29,24 @@ export async function POST(request: NextRequest) {
 
     console.log('[Demo] ✓ Organization created');
 
-    // 2. Create admin profile
+    // 2. Create admin user in Auth
+    const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+      email: 'demo@seguria.tech',
+      password: 'seguria2026',
+      email_confirm: true,
+    });
+
+    if (authError) {
+      console.log('[Demo] Auth user might exist already:', authError.message);
+    } else {
+      console.log('[Demo] ✓ Auth user created');
+    }
+
+    const userId = authUser?.user?.id || 'demo-user-id';
+
+    // 3. Create admin profile
     await supabase.from('profiles').insert({
+      id: userId,
       email: 'demo@seguria.tech',
       full_name: 'Demo Admin',
       role: 'admin',
@@ -39,24 +55,38 @@ export async function POST(request: NextRequest) {
       active: true,
     });
 
-    // 3. Create technicians
+    // 4. Create technicians in Auth and Profiles
     const techs = [
       { email: 'tech1@demo.tech', name: 'Técnico 1', cargo: 'Especialista' },
       { email: 'tech2@demo.tech', name: 'Técnico 2', cargo: 'Especialista' },
     ];
 
-    await supabase.from('profiles').insert(
-      techs.map(t => ({
+    const techProfiles = [];
+    for (const t of techs) {
+      const { data: techUser } = await supabase.auth.admin.createUser({
         email: t.email,
-        full_name: t.name,
-        role: 'technician',
-        cargo: t.cargo,
-        organization_id: DEMO_ORG_ID,
-        active: true,
-      }))
-    );
+        password: 'seguria2026',
+        email_confirm: true,
+      });
 
-    // 4. Create equipment
+      if (techUser?.user?.id) {
+        techProfiles.push({
+          id: techUser.user.id,
+          email: t.email,
+          full_name: t.name,
+          role: 'technician',
+          cargo: t.cargo,
+          organization_id: DEMO_ORG_ID,
+          active: true,
+        });
+      }
+    }
+
+    if (techProfiles.length > 0) {
+      await supabase.from('profiles').insert(techProfiles);
+    }
+
+    // 5. Create equipment
     const equipmentNames = [
       'EX-001: Excavadora CAT 320',
       'EX-002: Cargador Frontal',
