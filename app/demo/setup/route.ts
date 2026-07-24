@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import bcrypt from 'bcrypt';
 
 export const runtime = 'nodejs';
 
@@ -13,6 +14,8 @@ export async function POST(request: NextRequest) {
     const DEMO_ORG_ID = '550e8400-e29b-41d4-a716-446655440000';
 
     console.log('[Demo] Setting up Seguria Spa Demo...');
+
+    const DEMO_PASSWORD_HASH = await bcrypt.hash('seguria2026', 12);
 
     // 1. Create organization
     const { error: orgError } = await supabase
@@ -44,16 +47,16 @@ export async function POST(request: NextRequest) {
 
     const userId = authUser?.user?.id || 'demo-user-id';
 
-    // 3. Create admin profile
-    await supabase.from('profiles').insert({
+    // 3. Create admin profile with password_hash
+    await supabase.from('profiles').upsert({
       id: userId,
       email: 'demo@seguria.tech',
-      full_name: 'Demo Admin',
+      full_name: 'Demo Admin - Seguria Spa Demo',
       role: 'admin',
-      cargo: 'Jefe de Operaciones',
+      status: 'active',
       organization_id: DEMO_ORG_ID,
-      active: true,
-    });
+      password_hash: DEMO_PASSWORD_HASH,
+    }, { onConflict: 'email' });
 
     // 4. Create technicians in Auth and Profiles
     const techs = [
