@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import useSWR from 'swr';
-import { AlertCircle, ArrowRight, CircleAlert, CircleCheckBig, Factory, RefreshCw, Wrench } from 'lucide-react';
+import { AlertCircle, ArrowRight, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -259,58 +259,27 @@ export function MantenimientoDashboard() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <Factory className="h-4 w-4 text-primary" />
-              Equipos totales
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{totalAssets}</div>
-            <p className="text-xs text-muted-foreground">{availability}% disponibilidad operativa</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <CircleCheckBig className="h-4 w-4 text-green-500" />
-              Operativos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-green-500">{activeAssets}</div>
-            <p className="text-xs text-muted-foreground">Equipos en servicio</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <Wrench className="h-4 w-4 text-secondary" />
-              OT abiertas
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-secondary">{openOrders}</div>
-            <p className="text-xs text-muted-foreground">Incluye pendientes y abiertas</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <CircleAlert className="h-4 w-4 text-orange-500" />
-              Atrasadas
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-orange-500">{overdueOrders}</div>
-            <p className="text-xs text-muted-foreground">OT con fecha vencida</p>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="rounded-lg border border-border bg-card px-4 py-3">
+          <p className="text-xs text-muted-foreground">Equipos</p>
+          <p className="text-2xl font-bold">{totalAssets}</p>
+          <p className="text-xs text-muted-foreground">{availability}% operativos</p>
+        </div>
+        <div className="rounded-lg border border-border bg-card px-4 py-3">
+          <p className="text-xs text-muted-foreground">OT abiertas</p>
+          <p className="text-2xl font-bold text-secondary">{openOrders}</p>
+          <p className="text-xs text-muted-foreground">{inProgressOrders} en progreso</p>
+        </div>
+        <div className="rounded-lg border border-border bg-card px-4 py-3">
+          <p className="text-xs text-muted-foreground">OT atrasadas</p>
+          <p className="text-2xl font-bold text-destructive">{overdueOrders}</p>
+          <p className="text-xs text-muted-foreground">Requieren atención</p>
+        </div>
+        <div className="rounded-lg border border-border bg-card px-4 py-3">
+          <p className="text-xs text-muted-foreground">Urgentes</p>
+          <p className="text-2xl font-bold text-orange-500">{urgentOrders}</p>
+          <p className="text-xs text-muted-foreground">{completedOrders} completadas</p>
+        </div>
       </div>
 
       <Card className="border-border/70 bg-card/90">

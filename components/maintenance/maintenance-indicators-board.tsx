@@ -1,8 +1,7 @@
 'use client';
 
 import useSWR from 'swr';
-import { AlertCircle, Gauge, RefreshCw, TrendingDown, TrendingUp, Wrench } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Gauge, RefreshCw, TrendingDown, TrendingUp, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -123,65 +122,29 @@ export function MaintenanceIndicatorsBoard() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Estado operativo</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-              <div className="rounded-lg border border-border p-3">
-                <p className="text-xs text-muted-foreground">Activos</p>
-                <p className="text-2xl font-bold">{machineCatalog.length || assets.length}</p>
-              </div>
-              <div className="rounded-lg border border-border p-3">
-                <p className="text-xs text-muted-foreground">Operativos</p>
-                <p className="text-2xl font-bold text-green-500">{activeAssets}</p>
-              </div>
-              <div className="rounded-lg border border-border p-3">
-                <p className="text-xs text-muted-foreground">Abiertas</p>
-                <p className="text-2xl font-bold text-orange-500">{openOrders}</p>
-              </div>
-              <div className="rounded-lg border border-border p-3">
-                <p className="text-xs text-muted-foreground">Atrasadas</p>
-                <p className="text-2xl font-bold text-destructive">{overdueOrders}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Lectura ejecutiva</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center justify-between rounded-lg border border-border p-3">
-              <span className="text-sm text-muted-foreground">Ordenes en progreso</span>
-              <Badge variant="outline">{inProgressOrders}</Badge>
-            </div>
-            <div className="flex items-center justify-between rounded-lg border border-border p-3">
-              <span className="text-sm text-muted-foreground">Disponibilidad calculada</span>
-              <Badge variant="secondary">{availability}%</Badge>
-            </div>
-            <div className="flex items-center justify-between rounded-lg border border-border p-3">
-              <span className="text-sm text-muted-foreground">Costo promedio por equipo</span>
-              <Badge variant="outline">{money(summaryCosts.averageCostPerAsset || 0)}</Badge>
-            </div>
-            <div className="flex items-center justify-between rounded-lg border border-border p-3">
-              <span className="text-sm text-muted-foreground">Horas MTTR</span>
-              <Badge variant="outline">{Number(mttrData?.averageMTTR || 0).toFixed(1)} h</Badge>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
       <Card>
         <CardHeader>
-          <CardTitle>Notas de control</CardTitle>
+          <CardTitle>Desglose de órdenes de trabajo</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2 text-sm text-muted-foreground">
-          <p className="flex items-center gap-2"><AlertCircle className="h-4 w-4" />Estos indicadores usan OT, activos y costos reales del sistema.</p>
-          <p className="flex items-center gap-2"><AlertCircle className="h-4 w-4" />La disponibilidad se calcula con activos operativos sobre total de activos visibles.</p>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <div className="rounded-lg border border-border p-3">
+              <p className="text-xs text-muted-foreground">Abiertas</p>
+              <p className="text-2xl font-bold text-orange-500">{openOrders}</p>
+            </div>
+            <div className="rounded-lg border border-border p-3">
+              <p className="text-xs text-muted-foreground">En progreso</p>
+              <p className="text-2xl font-bold text-primary">{inProgressOrders}</p>
+            </div>
+            <div className="rounded-lg border border-border p-3">
+              <p className="text-xs text-muted-foreground">Completadas</p>
+              <p className="text-2xl font-bold text-green-500">{completedOrders}</p>
+            </div>
+            <div className="rounded-lg border border-border p-3">
+              <p className="text-xs text-muted-foreground">Atrasadas</p>
+              <p className="text-2xl font-bold text-destructive">{overdueOrders}</p>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
