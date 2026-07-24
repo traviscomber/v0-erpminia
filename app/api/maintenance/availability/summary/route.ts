@@ -20,33 +20,36 @@ export async function GET(request: NextRequest) {
   if (!context.ok) return context.response;
 
   try {
-    const { data: assets, error } = await context.supabase
-      .from('maintenance_assets')
-      .select(
-        'id, asset_code, asset_name, asset_type, status, work_orders:maintenance_work_orders(id, status)'
-      )
-      .eq('organization_id', context.organizationId);
-
-    // Fallback to cost_centers when maintenance_assets is empty or errors
-    let assetRows: AssetRow[] = (!error && Array.isArray(assets) && assets.length > 0)
-      ? (assets as AssetRow[])
-      : [];
-
-    if (assetRows.length === 0) {
-      const { data: costCenters } = await context.supabase
+    // Use cost_centers as the source of truth for fleet size (always 140+ equipos)
+    // Enrich with maintenance_assets work_orders when available
+    const [{ data: costCenters }, { data: assets }] = await Promise.all([
+      context.supabase
         .from('cost_centers')
         .select('id, code, name, status')
-        .eq('organization_id', context.organizationId);
+        .eq('organization_id', context.organizationId),
+      context.supabase
+        .from('maintenance_assets')
+        .select('id, status, work_orders:maintenance_work_orders(id, status)')
+        .eq('organization_id', context.organizationId),
+    ]);
 
-      assetRows = (costCenters || []).map((cc) => ({
+    // Build a lookup from asset id → work_orders for enrichment
+    const assetLookup = new Map<string, { status: string | null; work_orders: Array<{ id: string; status: string }> | null }>();
+    for (const a of (assets || [])) {
+      assetLookup.set(a.id, { status: a.status, work_orders: a.work_orders });
+    }
+
+    const assetRows: AssetRow[] = (costCenters || []).map((cc) => {
+      const enriched = assetLookup.get(cc.id);
+      return {
         id: cc.id,
         asset_code: cc.code ?? null,
         asset_name: cc.name ?? null,
         asset_type: null,
-        status: cc.status ?? 'activo',
-        work_orders: null,
-      }));
-    }
+        status: enriched?.status ?? cc.status ?? 'activo',
+        work_orders: enriched?.work_orders ?? null,
+      };
+    });
 
     const statusMap: Record<string, 'operational' | 'maintenance' | 'critical'> = {
       operational: 'operational',

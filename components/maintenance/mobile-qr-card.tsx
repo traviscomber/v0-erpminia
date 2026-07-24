@@ -1,5 +1,5 @@
 'use client';
-// v2 — uses theme tokens instead of hardcoded amber bg colors
+
 import { useState } from 'react';
 import { QrCode, Type } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,13 +7,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-interface MobileQuickQRProps {
+interface MobileQrCardProps {
   onQRScanned: (value: string) => void;
   loading?: boolean;
   workOrders?: Array<{ id: string; work_order_number: string; title: string }>;
 }
 
-export function MobileQuickQR({ onQRScanned, loading, workOrders = [] }: MobileQuickQRProps) {
+export function MobileQrCard({ onQRScanned, loading, workOrders = [] }: MobileQrCardProps) {
   const [manualCode, setManualCode] = useState('');
   const [showManual, setShowManual] = useState(false);
 
@@ -34,7 +34,6 @@ export function MobileQuickQR({ onQRScanned, loading, workOrders = [] }: MobileQ
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Quick Select from Available Orders */}
         {workOrders.length > 0 && (
           <div className="space-y-2">
             <Label className="text-sm font-medium">Ordenes disponibles:</Label>
@@ -54,7 +53,6 @@ export function MobileQuickQR({ onQRScanned, loading, workOrders = [] }: MobileQ
           </div>
         )}
 
-        {/* Manual Entry Toggle */}
         {!showManual ? (
           <Button
             onClick={() => setShowManual(true)}
@@ -76,7 +74,11 @@ export function MobileQuickQR({ onQRScanned, loading, workOrders = [] }: MobileQ
               }}
               autoFocus
             />
-            <Button onClick={handleManualSubmit} disabled={!manualCode.trim() || loading} className="w-full">
+            <Button
+              onClick={handleManualSubmit}
+              disabled={!manualCode.trim() || loading}
+              className="w-full"
+            >
               Confirmar
             </Button>
           </div>

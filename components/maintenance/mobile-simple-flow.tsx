@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { MobileQuickQR } from './mobile-quick-qr';
+import { MobileQrCard } from './mobile-qr-card';
 import { MobilePhotoCapture } from './mobile-photo-capture';
 import { MobileCompletionBadge } from './mobile-completion-badge';
 
@@ -127,7 +127,7 @@ export function MobileSimpleFlow() {
 
         {/* Step 1: QR Selection */}
         {currentStep === 'qr' && (
-          <MobileQuickQR
+          <MobileQrCard
             onQRScanned={handleQRScanned}
             loading={isCompleting}
             workOrders={workOrders}
