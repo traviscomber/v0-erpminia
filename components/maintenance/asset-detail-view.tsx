@@ -9,7 +9,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { inferMachineFamilyFromText } from '@/lib/maintenance/cost-center-machines';
-import { getEquipmentImage } from '@/lib/maintenance/equipment-images';
 import { EquipmentPhoto } from '@/components/maintenance/equipment-photo';
 
 type MaintenanceAsset = {
@@ -145,7 +144,6 @@ export function AssetDetailView({ scope = 'vehiculos' }: AssetDetailViewProps) {
   const router = useRouter();
   const assetId = decodeURIComponent(String(params.id || ''));
   const [origin, setOrigin] = useState('https://www.motil.app');
-  const [equipmentImageSrc, setEquipmentImageSrc] = useState<string | null>(null);
   const isEquipmentScope = scope === 'equipos';
 
   useEffect(() => {
@@ -188,13 +186,6 @@ export function AssetDetailView({ scope = 'vehiculos' }: AssetDetailViewProps) {
     return inferMachineFamilyFromText(text);
   }, [asset?.asset_name, asset?.asset_type, asset?.model, asset?.manufacturer]);
 
-  // Client-only: resolve image after hydration to avoid SSR mismatch
-  useEffect(() => {
-    const img =
-      getEquipmentImage(machineFamily) ||
-      getEquipmentImage(`${asset?.asset_name || ''} ${asset?.asset_type || ''}`);
-    setEquipmentImageSrc(img);
-  }, [asset?.asset_name, asset?.asset_type, machineFamily]);
   const relatedMachines = useMemo(
     () =>
       machineFamily
@@ -390,15 +381,11 @@ export function AssetDetailView({ scope = 'vehiculos' }: AssetDetailViewProps) {
             <CardDescription>Apunta a la ficha real del activo y su historial.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {equipmentImageSrc && (
-              <div className="overflow-hidden rounded-lg border border-border">
-                <img
-                  src={equipmentImageSrc}
-                  alt={`Foto referencial de ${asset.asset_name || 'equipo'}`}
-                  className="h-44 w-full object-cover"
-                />
-              </div>
-            )}
+            <EquipmentPhoto
+              assetName={asset.asset_name}
+              assetType={asset.asset_type}
+              machineFamily={machineFamily}
+            />
             <div className="flex justify-center rounded-lg border border-border bg-white p-4">
               <img src={qrImageUrl} alt={`QR de ${asset.asset_name || 'activo'}`} className="h-56 w-56 object-contain" />
             </div>
