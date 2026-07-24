@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import useSWR from 'swr';
-import { Activity, AlertCircle, ArrowRight, CalendarClock, History, Route, Wrench } from 'lucide-react';
+import { Activity, AlertCircle, ArrowRight, CalendarClock, History, Route, ShieldAlert, Wrench, Zap } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -307,6 +307,39 @@ export function AssetFaultTreeView({ scope }: AssetFaultTreeViewProps) {
     return Array.from(map.values()).sort((a, b) => b.count - a.count || new Date(b.lastDate || 0).getTime() - new Date(a.lastDate || 0).getTime());
   }, [combinedEvents]);
 
+  // Predictive risk: cross reference fault_modes severity with cause frequency from history
+  const predictiveRisks = useMemo(() => {
+    if (!referenceSheet?.components?.length) return [];
+
+    const severityScore: Record<string, number> = { critical: 4, high: 3, medium: 2, low: 1 };
+
+    return referenceSheet.components
+      .flatMap((component) =>
+        (component.faults || []).map((fault) => {
+          // Count how many combinedEvents match this fault/component by keyword
+          const keyword = normalizeText(fault.name || component.name);
+          const matchCount = combinedEvents.filter((ev) =>
+            normalizeText(ev.cause).includes(keyword.split(' ')[0])
+          ).length;
+          const sev = severityScore[normalizeText(fault.severity)] ?? 1;
+          const riskScore = sev * 25 + matchCount * 10;
+          return {
+            componentName: component.name,
+            componentCode: component.code,
+            faultName: fault.name,
+            faultCode: fault.code,
+            severity: fault.severity,
+            recommendedAction: fault.recommendedAction,
+            matchCount,
+            riskScore: Math.min(100, riskScore),
+          };
+        })
+      )
+      .filter((r) => r.riskScore >= 25)
+      .sort((a, b) => b.riskScore - a.riskScore)
+      .slice(0, 6);
+  }, [referenceSheet, combinedEvents]);
+
   const openOrders = assetOrders.filter((order) => ['open', 'assigned', 'in_progress'].includes(normalizeText(order.status)));
   const criticalOrders = assetOrders.filter((order) => ['critical', 'critico', 'critica', 'high', 'alta'].includes(normalizeText(order.priority)));
   const totalCost = history.reduce((sum, item) => sum + Number(item.parts_cost || 0) + Number(item.labor_cost || 0), 0);
@@ -595,6 +628,71 @@ export function AssetFaultTreeView({ scope }: AssetFaultTreeViewProps) {
           </CardContent>
         </Card>
       ) : null}
+
+      {predictiveRisks.length > 0 && (
+        <Card className="border-border/70 bg-card/90">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ShieldAlert className="h-5 w-5 text-amber-500" />
+              Riesgo predictivo por componente
+            </CardTitle>
+            <CardDescription>
+              Score combinado de severidad tecnica + frecuencia observada en el historial real. Mayor score = mayor prioridad de intervencion.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {predictiveRisks.map((risk) => (
+              <div key={risk.faultCode} className="flex items-start gap-4 rounded-lg border border-border bg-background p-4">
+                <div className="flex-1 space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-semibold">{risk.faultName}</span>
+                    <span className="rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">
+                      {risk.componentName}
+                    </span>
+                    {risk.severity && (
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                          ['critical', 'alta'].includes(normalizeText(risk.severity))
+                            ? 'bg-destructive/10 text-destructive'
+                            : 'bg-amber-500/10 text-amber-700 dark:text-amber-400'
+                        }`}
+                      >
+                        {risk.severity}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">{risk.recommendedAction}</p>
+                  {risk.matchCount > 0 && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400">
+                      Coincide con {risk.matchCount} evento{risk.matchCount !== 1 ? 's' : ''} en el historial
+                    </p>
+                  )}
+                </div>
+                <div className="flex shrink-0 flex-col items-end gap-1">
+                  <span
+                    className={`text-2xl font-bold tabular-nums ${
+                      risk.riskScore >= 75
+                        ? 'text-destructive'
+                        : risk.riskScore >= 50
+                          ? 'text-amber-600 dark:text-amber-400'
+                          : 'text-muted-foreground'
+                    }`}
+                  >
+                    {risk.riskScore}
+                  </span>
+                  <span className="text-xs text-muted-foreground">/ 100</span>
+                  <Button asChild variant="outline" size="sm" className="mt-1 h-7 text-xs">
+                    <a href={`${preventiveActionHref}&title=${encodeURIComponent(`Preventivo: ${risk.faultName}`)}`}>
+                      <Zap className="mr-1 h-3 w-3" />
+                      OT
+                    </a>
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="border-border/70 bg-card/90">
         <CardHeader>

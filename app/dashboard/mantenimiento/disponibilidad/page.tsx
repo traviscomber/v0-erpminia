@@ -1,4 +1,5 @@
 import { AvailabilitySemaphore } from '@/components/maintenance/availability-semaphore';
+import { AlertsBanner } from '@/components/maintenance/alerts-banner';
 
 export const metadata = {
   title: 'Disponibilidad de Equipos | Mantenimiento',
@@ -8,15 +9,16 @@ export const metadata = {
 export default function AvailabilityPage() {
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Disponibilidad de Equipos</h1>
-        <p className="text-gray-600 mt-1">
-          Visualización en tiempo real del estado operativo de los equipos
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Disponibilidad de Equipos</h1>
+        <p className="mt-1 text-muted-foreground">
+          Visualizacion en tiempo real del estado operativo de los equipos
         </p>
       </div>
 
-      {/* Main Component */}
+      {/* Live alerts — only renders when there are active alerts */}
+      <AlertsBanner />
+
       <AvailabilitySemaphore />
     </div>
   );

@@ -1,10 +1,10 @@
-import { MaintenancePersonnelBoard } from '@/components/maintenance/maintenance-personnel-board';
+import { TechnicianPerformanceBoard } from '@/components/maintenance/technician-performance-board';
 
 export const metadata = {
-  title: 'Personal de mantenimiento',
-  description: 'Horas y técnicos reales del módulo de mantenimiento',
+  title: 'Desempeno de Tecnicos | Mantenimiento',
+  description: 'Ranking y metricas de rendimiento de tecnicos de mantenimiento por ordenes de trabajo completadas',
 };
 
 export default function MaintenancePersonnelPage() {
-  return <MaintenancePersonnelBoard />;
+  return <TechnicianPerformanceBoard />;
 }
