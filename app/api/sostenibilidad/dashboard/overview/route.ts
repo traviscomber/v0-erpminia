@@ -30,24 +30,19 @@ export async function GET(request: NextRequest) {
         period,
         overview: {
           compliance_score: 78,
-          total_ncs: 5,
+          total_ncs: 2,
           open_ncs: 2,
-          closed_ncs: 3,
+          closed_ncs: 0,
           overdue_cas: 1,
-          trend: 'improving',
+          trend: 'stable',
         },
-        nc_stats: { critical: 0, high: 2, medium: 2, low: 1 },
-        ca_stats: { total: 6, planned: 1, in_progress: 2, completed: 3, overdue: 1, completionRate: 50 },
-        trends: [
-          { compliance_score: 75, report_period: period },
-          { compliance_score: 72, report_period: getMonthBefore(period, 1) },
-          { compliance_score: 68, report_period: getMonthBefore(period, 2) },
-        ],
+        nc_stats: { critical: 0, high: 1, medium: 1, low: 0 },
+        ca_stats: { total: 1, planned: 0, in_progress: 0, completed: 0, overdue: 1, completionRate: 0 },
+        trends: [],
         top_risks: [
-          { id: '1', nc_number: 'NC-2025-001', title: 'Inspección de equipo EX-001 vencida', severity: 'alta', status: 'abierta' },
-          { id: '2', nc_number: 'NC-2025-002', title: 'Falta de calibración de manómetros', severity: 'media', status: 'abierta' },
+          { id: '1', nc_number: 'NC-2025-001', title: 'Inspección equipo EX-001 vencida', severity: 'alta', status: 'abierta' },
         ],
-        inspections_completed: 8,
+        inspections_completed: 0,
         generated_at: new Date().toISOString(),
       });
     }
