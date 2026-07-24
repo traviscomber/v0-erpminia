@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import useSWR from 'swr';
-import { AlertCircle, ArrowRight, CircleAlert, CircleCheckBig, Factory, RefreshCw, Upload, Wrench } from 'lucide-react';
+import { AlertCircle, ArrowRight, CircleAlert, CircleCheckBig, Factory, RefreshCw, Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -315,41 +315,202 @@ export function MantenimientoDashboard() {
 
       <Card className="border-border/70 bg-card/90">
         <CardHeader>
-          <CardTitle>Acceso rápido al ecosistema</CardTitle>
+          <CardTitle>Navegación del módulo</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/telemetria">
-                Telemetría de sensores
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/bodega">
-                Bodega e inventario
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/planificacion">
-                Planificación preventiva
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/documentos">
-                Documentos de mantenimiento
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/centro-costo">
-                Mantenimiento por centro de costo
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
+        <CardContent className="space-y-5">
+
+          {/* Operaciones */}
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Operaciones</p>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
+              <Button asChild className="justify-between">
+                <Link href="/dashboard/work-orders/create">
+                  Crear orden de trabajo
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/work-orders">
+                  Ver órdenes de trabajo
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/planificacion">
+                  Planificación preventiva
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/bitacora">
+                  Bitácora
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/centro-costo">
+                  Por centro de costo
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/movil">
+                  Panel móvil
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
           </div>
+
+          {/* Equipos */}
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Equipos</p>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/maquinaria">
+                  Maquinaria y vehículos
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/neumaticos">
+                  Neumáticos
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/componentes-mayores">
+                  Componentes mayores
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/disponibilidad">
+                  Disponibilidad en tiempo real
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+
+          {/* Recursos y Costos */}
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Recursos y costos</p>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/personal">
+                  Personal
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/combustible">
+                  Combustible
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/costos">
+                  Costo por equipo
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+
+          {/* Reportes */}
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Reportes</p>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/gerencial">
+                  Dashboard gerencial
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/indicadores">
+                  Indicadores
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+
+          {/* Documentos e Importaciones */}
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Documentos e importaciones</p>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-4">
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/documentos">
+                  Documentos
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/fichas-tecnicas">
+                  Fichas técnicas
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/equipos/importar">
+                  Importar equipos
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/vehiculos/importar">
+                  Importar vehículos
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/planificacion/importar">
+                  Importar planificación
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/neumaticos/importar">
+                  Importar neumáticos
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/personal/importar">
+                  Importar personal
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/bitacora/importar">
+                  Importar bitácora
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+
+          {/* Ecosistema externo */}
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Ecosistema</p>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/telemetria">
+                  Telemetría de sensores
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/bodega">
+                  Bodega e inventario
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+
         </CardContent>
       </Card>
 
@@ -384,172 +545,7 @@ export function MantenimientoDashboard() {
         </CardContent>
       </Card>
 
-      <Card className="border-border/70 bg-card/90">
-        <CardHeader>
-          <CardTitle>Acceso rápido</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <Button asChild className="justify-between">
-              <Link href="/dashboard/work-orders/create">
-                Crear orden de trabajo
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/work-orders">
-                Ver órdenes
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/vehiculos">
-                Vehículos, QR y ficha
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/equipos">
-                Maquinaria y equipos
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/bitacora">
-                Ver bitácora
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/planificacion">
-                Ver planificación
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/gerencial">
-                Ver dashboard gerencial
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/movil">
-                Panel móvil
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/costos">
-                Ver costos
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/indicadores">
-                Ver indicadores
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/neumaticos">
-                Ver neumáticos
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/componentes-mayores">
-                Ver componentes mayores
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/fichas-tecnicas">
-                Fichas técnicas
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
 
-      <Card className="border-border/70 bg-card/90">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Upload className="h-4 w-4 text-primary" />
-            Importaciones estandarizadas
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/equipos/importar">
-                Equipos
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/vehiculos/importar">
-                Vehículos
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/planificacion/importar">
-                Planificación
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/componentes-mayores/importar">
-                Componentes
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/fichas-tecnicas/importar">
-                Fichas técnicas
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/neumaticos/importar">
-                Neumáticos
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/combustible/importar">
-                Combustible
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/centro-costo/importar">
-                Centro de costo
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/costos/importar">
-                Costos
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/bitacora/importar">
-                Bitácora
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/personal/importar">
-                Personal
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         <Card>
