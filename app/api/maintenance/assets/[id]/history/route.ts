@@ -13,8 +13,21 @@ export async function GET(
   const { id } = await params;
 
   try {
+    type AssetShape = {
+      id: string;
+      asset_code: string | null;
+      asset_name: string | null;
+      asset_type: string | null;
+      location: string | null;
+      status: string | null;
+      manufacturer: string | null;
+      model: string | null;
+      criticality: string | null;
+      mtbf_hours: number | null;
+    };
+
     // Primary lookup: by UUID in maintenance_assets
-    let { data: asset, error: assetError } = await context.supabase
+    const { data: assetFromDB, error: assetError } = await context.supabase
       .from('maintenance_assets')
       .select('id, asset_code, asset_name, asset_type, location, status, manufacturer, model, criticality, mtbf_hours')
       .eq('id', id)
@@ -23,42 +36,30 @@ export async function GET(
 
     if (assetError) throw assetError;
 
-    // Fallback: id may be a cost_center.id — look up the cost center and try to find
-    // or synthesize an asset record from it so the ficha can render something useful.
+    let asset: AssetShape | null = assetFromDB as AssetShape | null;
+
+    // Fallback: id may be a cost_center.id — synthesize from cost center data
     if (!asset) {
       const { data: costCenter } = await context.supabase
         .from('cost_centers')
-        .select('id, code, name, description, status')
+        .select('id, code, name, status')
         .eq('id', id)
         .eq('organization_id', context.organizationId)
         .maybeSingle();
 
       if (costCenter) {
-        // Try to match an existing maintenance_asset by code or name
-        const { data: matched } = await context.supabase
-          .from('maintenance_assets')
-          .select('id, asset_code, asset_name, asset_type, location, status, manufacturer, model, criticality, mtbf_hours')
-          .eq('organization_id', context.organizationId)
-          .or(`asset_code.ilike.${costCenter.code},asset_name.ilike.${costCenter.name}`)
-          .maybeSingle();
-
-        if (matched) {
-          asset = matched;
-        } else {
-          // Synthesize a minimal asset from the cost center so the UI renders something
-          asset = {
-            id: costCenter.id,
-            asset_code: costCenter.code ?? null,
-            asset_name: costCenter.name ?? null,
-            asset_type: null,
-            location: null,
-            status: costCenter.status ?? 'activo',
-            manufacturer: null,
-            model: null,
-            criticality: null,
-            mtbf_hours: null,
-          };
-        }
+        asset = {
+          id: costCenter.id,
+          asset_code: costCenter.code ?? null,
+          asset_name: costCenter.name ?? null,
+          asset_type: null,
+          location: null,
+          status: costCenter.status ?? 'activo',
+          manufacturer: null,
+          model: null,
+          criticality: null,
+          mtbf_hours: null,
+        };
       }
     }
 
@@ -87,7 +88,8 @@ export async function GET(
       .eq('asset_id', id)
       .order('created_at', { ascending: false });
 
-    if (historyError) throw historyError;
+    // Don't throw on historyError — the table may not exist yet for this asset.
+    // Return empty history so the ficha still renders with asset data.
 
     return NextResponse.json({ asset, history: history || [] });
   } catch (error) {

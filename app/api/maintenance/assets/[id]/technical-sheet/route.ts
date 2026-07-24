@@ -137,15 +137,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         .maybeSingle();
 
       if (costCenter) {
-        // Try to find an exact match first
-        const { data: matched } = await context.supabase
-          .from('maintenance_assets')
-          .select('id, asset_code, asset_name, asset_type, location, status, manufacturer, model, serial_number, criticality, mtbf_hours, purchase_date, last_maintenance, next_maintenance, specs')
-          .eq('organization_id', context.organizationId)
-          .or(`asset_code.ilike.${costCenter.code},asset_name.ilike.${costCenter.name}`)
-          .maybeSingle();
-
-        asset = (matched as AssetRow | null) ?? {
+        asset = {
           id: costCenter.id,
           asset_code: costCenter.code ?? null,
           asset_name: costCenter.name ?? null,
