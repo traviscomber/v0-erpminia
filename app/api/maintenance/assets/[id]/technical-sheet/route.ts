@@ -109,7 +109,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const { id } = await params;
 
   try {
-    const [{ data: asset, error: assetError }, { data: templates, error: templatesError }, { data: faultModes, error: faultModesError }] =
+    const [{ data: assetRaw, error: assetError }, { data: templates, error: templatesError }, { data: faultModes, error: faultModesError }] =
       await Promise.all([
         context.supabase
           .from('maintenance_assets')
@@ -124,6 +124,47 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     if (assetError) throw assetError;
     if (templatesError) throw templatesError;
     if (faultModesError) throw faultModesError;
+
+    let asset = assetRaw as AssetRow | null;
+
+    // Fallback: id may be a cost_center.id — synthesize an asset from it
+    if (!asset) {
+      const { data: costCenter } = await context.supabase
+        .from('cost_centers')
+        .select('id, code, name, status')
+        .eq('id', id)
+        .eq('organization_id', context.organizationId)
+        .maybeSingle();
+
+      if (costCenter) {
+        // Try to find an exact match first
+        const { data: matched } = await context.supabase
+          .from('maintenance_assets')
+          .select('id, asset_code, asset_name, asset_type, location, status, manufacturer, model, serial_number, criticality, mtbf_hours, purchase_date, last_maintenance, next_maintenance, specs')
+          .eq('organization_id', context.organizationId)
+          .or(`asset_code.ilike.${costCenter.code},asset_name.ilike.${costCenter.name}`)
+          .maybeSingle();
+
+        asset = (matched as AssetRow | null) ?? {
+          id: costCenter.id,
+          asset_code: costCenter.code ?? null,
+          asset_name: costCenter.name ?? null,
+          asset_type: null,
+          location: null,
+          status: costCenter.status ?? 'activo',
+          manufacturer: null,
+          model: null,
+          serial_number: null,
+          criticality: null,
+          mtbf_hours: null,
+          purchase_date: null,
+          last_maintenance: null,
+          next_maintenance: null,
+          specs: null,
+        };
+      }
+    }
+
     if (!asset) {
       return NextResponse.json({ error: 'No se encontro el activo solicitado' }, { status: 404 });
     }

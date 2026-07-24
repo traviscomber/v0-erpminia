@@ -44,25 +44,30 @@ const fetcher = async (url: string) => {
 
 const VEHICLE_GROUPS = ['8', '9', '12'];
 
+// Use asset_id when available, fall back to the machine's own id (cost center row id)
+function resolveId(item: Machine) {
+  return item.asset_id || item.id;
+}
+
 function getFaultTreeHref(item: Machine) {
-  if (!item.asset_id) return null;
+  const id = resolveId(item);
   return VEHICLE_GROUPS.includes(item.category_code)
-    ? `/dashboard/mantenimiento/vehiculos/${item.asset_id}/arbol`
-    : `/dashboard/mantenimiento/equipos/${item.asset_id}/arbol`;
+    ? `/dashboard/mantenimiento/vehiculos/${id}/arbol`
+    : `/dashboard/mantenimiento/equipos/${id}/arbol`;
 }
 
 function getFichaHref(item: Machine) {
-  if (!item.asset_id) return null;
+  const id = resolveId(item);
   return VEHICLE_GROUPS.includes(item.category_code)
-    ? `/dashboard/mantenimiento/vehiculos/${item.asset_id}/ficha`
-    : `/dashboard/mantenimiento/equipos/${item.asset_id}/ficha`;
+    ? `/dashboard/mantenimiento/vehiculos/${id}/ficha`
+    : `/dashboard/mantenimiento/equipos/${id}/ficha`;
 }
 
 function getTechnicalSheetHref(item: Machine) {
-  if (!item.asset_id) return null;
+  const id = resolveId(item);
   return VEHICLE_GROUPS.includes(item.category_code)
-    ? `/dashboard/mantenimiento/vehiculos/${item.asset_id}/ficha-tecnica`
-    : `/dashboard/mantenimiento/equipos/${item.asset_id}/ficha-tecnica`;
+    ? `/dashboard/mantenimiento/vehiculos/${id}/ficha-tecnica`
+    : `/dashboard/mantenimiento/equipos/${id}/ficha-tecnica`;
 }
 
 function normalizeText(value: string | null | undefined) {
