@@ -28,6 +28,7 @@ const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((r)
 
 type Technician = {
   name: string;
+  cargo: string;
   total: number;
   completed: number;
   inProgress: number;
@@ -83,8 +84,11 @@ function TechRow({ tech, rank }: { tech: Technician; rank: number }) {
           {rank === 1 ? <Award className="mx-auto h-4 w-4 text-yellow-500" /> : rank}
         </span>
 
-        {/* Name */}
-        <span className="flex-1 font-medium">{tech.name}</span>
+        {/* Name and Cargo */}
+        <div className="flex-1">
+          <span className="font-medium block">{tech.name}</span>
+          <span className="text-xs text-muted-foreground">{tech.cargo}</span>
+        </div>
 
         {/* Score */}
         <span className={`text-xl font-bold tabular-nums ${scoreColor(tech.performanceScore)}`}>
