@@ -259,6 +259,38 @@ export function MantenimientoDashboard() {
         </CardContent>
       </Card>
 
+      <Card className="border-border/70 bg-card/90">
+        <CardHeader className="pb-3">
+          <CardTitle>Expedientes prioritarios</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-4">
+          <Button asChild className="justify-between">
+            <Link href="/dashboard/mantenimiento/documentos/expedientes/cat-938h-n2">
+              CAT 938H N2
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/mantenimiento/documentos/expedientes/cat-938h-n1">
+              CAT 938H N1
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/mantenimiento/documentos/expedientes/generador-atlas-copco-qas-500-kva">
+              Atlas QAS 500
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="justify-between">
+            <Link href="/dashboard/mantenimiento/documentos/expedientes">
+              Todos los expedientes
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <div className="rounded-lg border border-border bg-card px-4 py-3">
           <p className="text-xs text-muted-foreground">Equipos</p>
@@ -412,7 +444,13 @@ export function MantenimientoDashboard() {
             <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-4">
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/documentos">
-                  Documentos
+                  Centro documental
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/documentos/expedientes">
+                  Expedientes por equipo
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
