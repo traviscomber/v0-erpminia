@@ -172,28 +172,28 @@ const menuItems = [
   // Mantenimiento — Resumen
   { label: 'Mantenimiento', href: '/dashboard/mantenimiento', icon: Wrench, group: 'Mantenimiento' },
   // Mantenimiento — Operaciones
-  { label: 'Órdenes de Trabajo', href: '/dashboard/work-orders', icon: Plus, group: 'Operaciones' },
-  { label: 'Bitácora de Mantenimiento', href: '/dashboard/mantenimiento/bitacora', icon: File, group: 'Operaciones' },
-  { label: 'Planificación Preventiva', href: '/dashboard/mantenimiento/planificacion', icon: Calendar, group: 'Operaciones' },
-  { label: 'Mantenimiento por Centro de Costo', href: '/dashboard/mantenimiento/centro-costo', icon: Building2, group: 'Operaciones' },
-  { label: 'Panel Móvil Mantención', href: '/dashboard/mantenimiento/movil', icon: Smartphone, group: 'Operaciones' },
+  { label: 'Órdenes de Trabajo', href: '/dashboard/work-orders', icon: Plus, group: 'Mantenimiento' },
+  { label: 'Bitácora de Mantenimiento', href: '/dashboard/mantenimiento/bitacora', icon: File, group: 'Mantenimiento' },
+  { label: 'Planificación Preventiva', href: '/dashboard/mantenimiento/planificacion', icon: Calendar, group: 'Mantenimiento' },
+  { label: 'Mantenimiento por Centro de Costo', href: '/dashboard/mantenimiento/centro-costo', icon: Building2, group: 'Mantenimiento' },
+  { label: 'Panel Móvil Mantención', href: '/dashboard/mantenimiento/movil', icon: Smartphone, group: 'Mantenimiento' },
   // Mantenimiento — Equipos
-  { label: 'Equipos', href: '/dashboard/mantenimiento/equipos', icon: Truck, group: 'Equipos' },
-  { label: 'Vehículos y Traslados', href: '/dashboard/mantenimiento/vehiculos', icon: Truck, group: 'Equipos' },
-  { label: 'Gestión de Neumáticos', href: '/dashboard/mantenimiento/neumaticos', icon: Boxes, group: 'Equipos' },
-  { label: 'Componentes Mayores', href: '/dashboard/mantenimiento/componentes-mayores', icon: Wrench, group: 'Equipos' },
-  { label: 'Disponibilidad de Equipos', href: '/dashboard/mantenimiento/disponibilidad', icon: Activity, group: 'Equipos' },
+  { label: 'Equipos', href: '/dashboard/mantenimiento/equipos', icon: Truck, group: 'Mantenimiento' },
+  { label: 'Vehículos y Traslados', href: '/dashboard/mantenimiento/vehiculos', icon: Truck, group: 'Mantenimiento' },
+  { label: 'Gestión de Neumáticos', href: '/dashboard/mantenimiento/neumaticos', icon: Boxes, group: 'Mantenimiento' },
+  { label: 'Componentes Mayores', href: '/dashboard/mantenimiento/componentes-mayores', icon: Wrench, group: 'Mantenimiento' },
+  { label: 'Disponibilidad de Equipos', href: '/dashboard/mantenimiento/disponibilidad', icon: Activity, group: 'Mantenimiento' },
   // Mantenimiento — Recursos y Costos
-  { label: 'Personal Mantención', href: '/dashboard/mantenimiento/personal', icon: Users, group: 'Recursos' },
-  { label: 'Combustible', href: '/dashboard/mantenimiento/combustible', icon: Fuel, group: 'Recursos' },
-  { label: 'Costo por Equipo', href: '/dashboard/mantenimiento/costos', icon: DollarSign, group: 'Recursos' },
+  { label: 'Personal Mantención', href: '/dashboard/mantenimiento/personal', icon: Users, group: 'Mantenimiento' },
+  { label: 'Combustible', href: '/dashboard/mantenimiento/combustible', icon: Fuel, group: 'Mantenimiento' },
+  { label: 'Costo por Equipo', href: '/dashboard/mantenimiento/costos', icon: DollarSign, group: 'Mantenimiento' },
   // Mantenimiento — Reportes
-  { label: 'Dashboard Gerencial Mantención', href: '/dashboard/mantenimiento/gerencial', icon: BarChart3, group: 'Reportes' },
-  { label: 'Indicadores de Mantención', href: '/dashboard/mantenimiento/indicadores', icon: BarChart3, group: 'Reportes' },
+  { label: 'Dashboard Gerencial Mantención', href: '/dashboard/mantenimiento/gerencial', icon: BarChart3, group: 'Mantenimiento' },
+  { label: 'Indicadores de Mantención', href: '/dashboard/mantenimiento/indicadores', icon: BarChart3, group: 'Mantenimiento' },
   // Mantenimiento — Documentos
-  { label: 'Documentos Mantenimiento', href: '/dashboard/mantenimiento/documentos', icon: File, group: 'Documentos' },
-  { label: 'Expedientes por Equipo', href: '/dashboard/mantenimiento/documentos/expedientes', icon: FolderOpen, group: 'Documentos' },
-  { label: 'Fichas Técnicas', href: '/dashboard/mantenimiento/fichas-tecnicas', icon: FileCheck, group: 'Documentos' },
+  { label: 'Documentos Mantenimiento', href: '/dashboard/mantenimiento/documentos', icon: File, group: 'Mantenimiento' },
+  { label: 'Expedientes por Equipo', href: '/dashboard/mantenimiento/documentos/expedientes', icon: FolderOpen, group: 'Mantenimiento' },
+  { label: 'Fichas Técnicas', href: '/dashboard/mantenimiento/fichas-tecnicas', icon: FileCheck, group: 'Mantenimiento' },
   { label: 'Bodega e Inventario', href: '/dashboard/bodega', icon: Boxes, group: 'Bodega e Inventario' },
   { label: 'Documentos Bodega', href: '/dashboard/bodega/documentos', icon: File, group: 'Bodega e Inventario' },
   { label: 'Tablero Sostenibilidad', href: '/dashboard/sostenibilidad', icon: Leaf, group: 'Sostenibilidad' },
@@ -236,11 +236,6 @@ export function Sidebar() {
     Core: true,
     Producción: true,
     Mantenimiento: true,
-    Operaciones: true,
-    Equipos: false,
-    Recursos: false,
-    Reportes: false,
-    Documentos: false,
     'Bodega e Inventario': true,
     Sostenibilidad: true,
     Finanzas: true,
@@ -334,7 +329,7 @@ export function Sidebar() {
 
         <nav className="flex-1 px-4 py-6 overflow-y-auto">
           <div className="space-y-2">
-            {['Core', 'Producción', 'Mantenimiento', 'Operaciones', 'Equipos', 'Recursos', 'Reportes', 'Documentos', 'Bodega e Inventario', 'Sostenibilidad', 'Finanzas', 'Legal', 'Inteligencia Artificial', 'Administración', 'Ayuda'].map(
+            {['Core', 'Producción', 'Mantenimiento', 'Bodega e Inventario', 'Sostenibilidad', 'Finanzas', 'Legal', 'Inteligencia Artificial', 'Administración', 'Ayuda'].map(
               (group) => {
                 const groupItems = filteredMenuItems.filter((item) => item.group === group);
                 if (groupItems.length === 0) return null;
