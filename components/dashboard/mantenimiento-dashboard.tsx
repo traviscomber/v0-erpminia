@@ -368,8 +368,14 @@ export function MantenimientoDashboard() {
             <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Equipos</p>
             <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
               <Button asChild variant="outline" className="justify-between">
-                <Link href="/dashboard/maquinaria">
-                  Maquinaria y vehículos
+                <Link href="/dashboard/mantenimiento/equipos">
+                  Equipos
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/vehiculos">
+                  Vehiculos y traslados
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>

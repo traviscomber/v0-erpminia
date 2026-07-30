@@ -58,9 +58,9 @@ export default function VehiclesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Gestion de vehiculos</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Vehiculos y traslados</h1>
         <p className="mt-2 text-muted-foreground">
-          Administra vehiculos y arbol de fallas con datos reales del sistema.
+          Administra vehiculos operativos, soporte de traslado y arbol de fallas con datos reales del sistema.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <Button asChild variant="outline">

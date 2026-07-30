@@ -178,7 +178,8 @@ const menuItems = [
   { label: 'Mantenimiento por Centro de Costo', href: '/dashboard/mantenimiento/centro-costo', icon: Building2, group: 'Operaciones' },
   { label: 'Panel Móvil Mantención', href: '/dashboard/mantenimiento/movil', icon: Smartphone, group: 'Operaciones' },
   // Mantenimiento — Equipos
-  { label: 'Maquinaria y Vehículos', href: '/dashboard/maquinaria', icon: Truck, group: 'Equipos' },
+  { label: 'Equipos', href: '/dashboard/mantenimiento/equipos', icon: Truck, group: 'Equipos' },
+  { label: 'Vehículos y Traslados', href: '/dashboard/mantenimiento/vehiculos', icon: Truck, group: 'Equipos' },
   { label: 'Gestión de Neumáticos', href: '/dashboard/mantenimiento/neumaticos', icon: Boxes, group: 'Equipos' },
   { label: 'Componentes Mayores', href: '/dashboard/mantenimiento/componentes-mayores', icon: Wrench, group: 'Equipos' },
   { label: 'Disponibilidad de Equipos', href: '/dashboard/mantenimiento/disponibilidad', icon: Activity, group: 'Equipos' },
