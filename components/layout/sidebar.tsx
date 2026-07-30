@@ -69,6 +69,7 @@ const itemModuleKey: Record<string, string> = {
   'Componentes Mayores':                  'mant_recursos',
   'Disponibilidad de Equipos':            'mant_gerencial',
   'Documentos Mantenimiento':             'mant_documentos',
+  'Expedientes por Equipo':               'mant_documentos',
   'Fichas Técnicas':                      'mant_documentos',
   'Maquinaria y Vehículos':               'mant_documentos',
   // Bodega
@@ -123,6 +124,7 @@ const rolePermissions: Record<string, string[]> = {
   'Gestión de Neumáticos': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
   'Componentes Mayores': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
   'Documentos Mantenimiento': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
+  'Expedientes por Equipo': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
   'Fichas Técnicas': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
   'Disponibilidad de Equipos': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
   'Órdenes de Trabajo': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
@@ -189,6 +191,7 @@ const menuItems = [
   { label: 'Indicadores de Mantención', href: '/dashboard/mantenimiento/indicadores', icon: BarChart3, group: 'Reportes' },
   // Mantenimiento — Documentos
   { label: 'Documentos Mantenimiento', href: '/dashboard/mantenimiento/documentos', icon: File, group: 'Documentos' },
+  { label: 'Expedientes por Equipo', href: '/dashboard/mantenimiento/documentos/expedientes', icon: FolderOpen, group: 'Documentos' },
   { label: 'Fichas Técnicas', href: '/dashboard/mantenimiento/fichas-tecnicas', icon: FileCheck, group: 'Documentos' },
   { label: 'Bodega e Inventario', href: '/dashboard/bodega', icon: Boxes, group: 'Bodega e Inventario' },
   { label: 'Documentos Bodega', href: '/dashboard/bodega/documentos', icon: File, group: 'Bodega e Inventario' },

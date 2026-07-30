@@ -156,6 +156,12 @@ export function ExpedientBatchView({ definition }: { definition: ExpedientDefini
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline">
+            <Link href="/dashboard/mantenimiento/documentos/expedientes">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Volver a expedientes
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
             <Link href="/dashboard/mantenimiento/documentos">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Volver a documentos
@@ -249,6 +255,9 @@ export function ExpedientBatchView({ definition }: { definition: ExpedientDefini
         <CardContent className="flex flex-wrap gap-2">
           <Button asChild variant="outline">
             <Link href="/dashboard/mantenimiento/equipos">Ir al equipo</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/dashboard/mantenimiento/documentos/expedientes">Abrir indice de expedientes</Link>
           </Button>
           <Button asChild variant="outline">
             <Link href="/dashboard/mantenimiento/documentos">Volver al centro documental</Link>
