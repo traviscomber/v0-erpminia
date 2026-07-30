@@ -2,10 +2,39 @@
 
 import Link from 'next/link';
 import Script from 'next/script';
+import { ArrowRight, BarChart3, CheckCircle2, Cpu, FileText, Package, Shield, Wrench, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Zap, CheckCircle2, BarChart3, ArrowRight, FileText, Package, Wrench, Shield, Cpu } from 'lucide-react';
-import { organizationSchema, productSchema, faqSchema } from '@/lib/schema-markup';
+import { faqSchema, organizationSchema, productSchema } from '@/lib/schema-markup';
+
+const painPoints = [
+  { icon: Cpu, label: 'Sensores aislados', desc: 'Sin integración ni contexto operativo' },
+  { icon: Wrench, label: 'Órdenes manuales', desc: 'Sin trazabilidad de punta a punta' },
+  { icon: Package, label: 'Bodega ciega', desc: 'Stock descontrolado y sin visibilidad' },
+  { icon: Shield, label: 'HSE tardío', desc: 'Respuesta lenta ante incidentes' },
+  { icon: FileText, label: 'Sin auditoría', desc: 'Cumplimiento manual y disperso' },
+];
+
+const modules = [
+  { icon: BarChart3, name: 'Producción', desc: 'KPIs en tiempo real, sensores integrados y seguimiento operacional' },
+  { icon: Wrench, name: 'Mantención', desc: 'Órdenes de trabajo, preventivo y control de MTTR' },
+  { icon: Package, name: 'Bodega', desc: 'Stock, reorden automático y trazabilidad de repuestos' },
+  { icon: Shield, name: 'HSE', desc: 'Incidentes, auditorías y cumplimiento con evidencia' },
+  { icon: FileText, name: 'Documentos', desc: 'Contratos, normativas y respaldo auditado' },
+];
+
+const roles = [
+  { role: 'Operador de terreno', items: ['Alertas en tiempo real', 'Checklists HSE', 'Órdenes de trabajo'] },
+  { role: 'Técnico / Jefe de mantención', items: ['MTTR optimizado', 'Stock de repuestos', 'Preventivo planificado'] },
+  { role: 'Gerencia', items: ['Dashboard KPI', 'Auditoría trazable', 'Disponibilidad de equipos'] },
+];
+
+const benefits = [
+  { metric: '+15%', label: 'Disponibilidad de equipos' },
+  { metric: '-40%', label: 'MTTR promedio' },
+  { metric: '-25%', label: 'Costos de mantención' },
+  { metric: '100%', label: 'Trazabilidad auditada' },
+];
 
 export default function Home() {
   return (
@@ -14,72 +43,67 @@ export default function Home() {
       <Script id="product-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }} strategy="afterInteractive" />
       <Script id="faq-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema[0]) }} strategy="afterInteractive" />
 
-      <nav className="border-b border-border sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="font-bold text-xl text-[var(--brand-cobre)]">Motil</div>
-          <Link href="/login">
-            <Button className="bg-[var(--brand-cobre)] hover:bg-[var(--brand-cobre)]/90">{'Iniciar sesi\u00f3n'}</Button>
-          </Link>
+      <nav className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
+          <div className="text-xl font-bold text-[var(--brand-cobre)]">Motil</div>
+          <Button asChild className="bg-[var(--brand-cobre)] hover:bg-[var(--brand-cobre)]/90">
+            <Link href="/login">Iniciar sesión</Link>
+          </Button>
         </div>
       </nav>
 
-      <section className="max-w-7xl mx-auto px-4 py-16 md:py-32">
-        <div className="text-center space-y-6 mb-16">
-          <div className="inline-block px-4 py-2 rounded-sm bg-[var(--brand-cobre)]/10 border border-[var(--brand-cobre)]/20">
-            <p className="text-sm font-semibold text-[var(--brand-cobre)] tracking-wide">PLATAFORMA OPERACIONAL MINERA</p>
+      <section className="mx-auto max-w-7xl px-4 py-16 md:py-32">
+        <div className="mb-16 space-y-6 text-center">
+          <div className="inline-block rounded-sm border border-[var(--brand-cobre)]/20 bg-[var(--brand-cobre)]/10 px-4 py-2">
+            <p className="text-sm font-semibold tracking-wide text-[var(--brand-cobre)]">PLATAFORMA OPERACIONAL MINERA</p>
           </div>
-          <h1 className="text-6xl md:text-7xl font-bold text-foreground leading-tight">Control Operacional Minero en Tiempo Real</h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            {'Conecta producci\u00f3n, mantenci\u00f3n, bodega, HSE, documentos y gerencia en un flujo trazable desde terreno hasta direcci\u00f3n.'}
+          <h1 className="text-5xl font-bold leading-tight text-foreground md:text-7xl">Control operacional minero en tiempo real</h1>
+          <p className="mx-auto max-w-3xl text-lg leading-relaxed text-muted-foreground md:text-xl">
+            Conecta producción, mantención, bodega, HSE, documentos y gerencia en un flujo trazable desde terreno hasta dirección.
           </p>
-          <div className="flex gap-4 justify-center pt-8">
-            <Link href="/login">
-              <Button size="lg" className="gap-2 bg-[var(--brand-cobre)] hover:bg-[var(--brand-cobre)]/90 text-base px-8">
+          <div className="flex flex-col justify-center gap-4 pt-8 sm:flex-row">
+            <Button asChild size="lg" className="gap-2 bg-[var(--brand-cobre)] px-8 text-base hover:bg-[var(--brand-cobre)]/90">
+              <Link href="/login">
                 Solicitar demostración
                 <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-            <Link href="#modules">
-              <Button size="lg" variant="outline" className="gap-2 text-base px-8">
-                {'Explorar M\u00f3dulos'}
-              </Button>
-            </Link>
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="gap-2 px-8 text-base">
+              <Link href="#modules">Explorar módulos</Link>
+            </Button>
           </div>
+          <p className="text-sm text-muted-foreground">
+            Trazabilidad operativa para equipos que necesitan reaccionar rápido, auditar mejor y ejecutar con menos fricción.
+          </p>
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 py-16 border-t border-border">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-foreground mb-4">{'El Problema: Informaci\u00f3n Fragmentada en Faena'}</h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            {'Sensores dispersos. \u00d3rdenes de trabajo perdidas. Repuestos no localizados. HSE desconectado. Auditor\u00eda imposible.'}
+      <section className="mx-auto max-w-7xl border-t border-border px-4 py-16">
+        <div className="mb-12 text-center">
+          <h2 className="mb-4 text-4xl font-bold text-foreground">El problema: información fragmentada en faena</h2>
+          <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
+            Sensores dispersos. Órdenes de trabajo perdidas. Repuestos no localizados. HSE desconectado. Auditoría imposible.
           </p>
         </div>
-        <div className="grid md:grid-cols-5 gap-4">
-          {[
-            { icon: Cpu, label: 'Sensores aislados', desc: 'Sin integracion' },
-            { icon: Wrench, label: '\u00d3rdenes manuales', desc: 'Sin trazabilidad' },
-            { icon: Package, label: 'Bodega ciega', desc: 'Stock descontrolado' },
-            { icon: Shield, label: 'HSE tardio', desc: 'Respuesta lenta' },
-            { icon: FileText, label: 'Sin auditoria', desc: 'Cumplimiento manual' },
-          ].map((item, i) => (
-            <Card key={i} className="border-border bg-card/50 hover:bg-card/80 transition-colors">
+        <div className="grid gap-4 md:grid-cols-5">
+          {painPoints.map((item) => (
+            <Card key={item.label} className="border-border bg-card/50 transition-colors hover:bg-card/80">
               <CardContent className="pt-6 text-center">
-                <item.icon className="h-8 w-8 text-[var(--brand-cobre)] mx-auto mb-3" />
-                <p className="font-semibold text-sm text-foreground">{item.label}</p>
-                <p className="text-xs text-muted-foreground mt-1">{item.desc}</p>
+                <item.icon className="mx-auto mb-3 h-8 w-8 text-[var(--brand-cobre)]" />
+                <p className="text-sm font-semibold text-foreground">{item.label}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{item.desc}</p>
               </CardContent>
             </Card>
           ))}
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 py-16 border-t border-border">
-        <h2 className="text-4xl font-bold text-foreground mb-12 text-center">Flujo Operacional Integrado</h2>
-        <p className="text-center text-muted-foreground max-w-4xl mx-auto mb-8">
-          {'Evento operacional > Alerta > Orden de trabajo > Repuestos > HSE > Evidencia > Auditor\u00eda > KPIs'}
+      <section className="mx-auto max-w-7xl border-t border-border px-4 py-16">
+        <h2 className="mb-12 text-center text-4xl font-bold text-foreground">Flujo operacional integrado</h2>
+        <p className="mx-auto mb-8 max-w-4xl text-center text-muted-foreground">
+          Evento operacional &gt; alerta &gt; orden de trabajo &gt; repuestos &gt; HSE &gt; evidencia &gt; auditoría &gt; KPIs
         </p>
-        <div className="grid md:grid-cols-11 gap-2 items-center">
+        <div className="grid items-center gap-2 md:grid-cols-11">
           {[
             { step: '1', label: 'Alerta', icon: Zap },
             { step: 'arrow', label: '', icon: ArrowRight },
@@ -92,36 +116,30 @@ export default function Home() {
             { step: '5', label: 'Evidencia', icon: FileText },
             { step: 'arrow', label: '', icon: ArrowRight },
             { step: '6', label: 'KPI', icon: BarChart3 },
-          ].map((item, i) =>
+          ].map((item, index) =>
             item.step === 'arrow' ? (
-              <div key={i} className="text-[var(--brand-cobre)] h-5">
+              <div key={index} className="h-5 text-[var(--brand-cobre)]">
                 <item.icon className="h-5 w-5" />
               </div>
             ) : (
-              <div key={i} className="text-center">
-                <div className="bg-[var(--brand-cobre)]/10 border border-[var(--brand-cobre)]/30 rounded-sm px-2 py-1 mb-2">
+              <div key={index} className="text-center">
+                <div className="mb-2 rounded-sm border border-[var(--brand-cobre)]/30 bg-[var(--brand-cobre)]/10 px-2 py-1">
                   <p className="text-xs font-bold text-[var(--brand-cobre)]">{item.step}</p>
                 </div>
-                {item.label && <p className="text-xs font-semibold text-foreground">{item.label}</p>}
+                <p className="text-xs font-semibold text-foreground">{item.label}</p>
               </div>
-            )
+            ),
           )}
         </div>
       </section>
 
-      <section id="modules" className="max-w-7xl mx-auto px-4 py-16 border-t border-border">
-        <h2 className="text-4xl font-bold text-foreground mb-12 text-center">{'M\u00f3dulos Operacionales'}</h2>
-        <div className="grid md:grid-cols-5 gap-6">
-          {[
-            { icon: BarChart3, name: 'Producci\u00f3n', desc: 'KPIs en tiempo real, sensores integrados' },
-            { icon: Wrench, name: 'Mantenci\u00f3n', desc: '\u00d3rdenes de trabajo, preventivo, MTTR' },
-            { icon: Package, name: 'Bodega', desc: 'Stock, reorden automático, trazabilidad' },
-            { icon: Shield, name: 'HSE', desc: 'Incidentes, auditoria, cumplimiento' },
-            { icon: FileText, name: 'Documentos', desc: 'Contratos, normativas, evidencia auditada' },
-          ].map((mod, i) => (
-            <Card key={i} className="border-border bg-card">
+      <section id="modules" className="mx-auto max-w-7xl border-t border-border px-4 py-16">
+        <h2 className="mb-12 text-center text-4xl font-bold text-foreground">Módulos operacionales</h2>
+        <div className="grid gap-6 md:grid-cols-5">
+          {modules.map((mod) => (
+            <Card key={mod.name} className="border-border bg-card">
               <CardHeader>
-                <mod.icon className="h-8 w-8 text-[var(--brand-cobre)] mb-3" />
+                <mod.icon className="mb-3 h-8 w-8 text-[var(--brand-cobre)]" />
                 <CardTitle>{mod.name}</CardTitle>
               </CardHeader>
               <CardContent>
@@ -132,23 +150,19 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 py-16 border-t border-border">
-        <h2 className="text-4xl font-bold text-foreground mb-12 text-center">Para Cada Rol</h2>
-        <div className="grid md:grid-cols-3 gap-6">
-          {[
-            { role: 'Operador de terreno', items: ['Alertas en tiempo real', 'Checklists HSE', '\u00d3rdenes de trabajo'] },
-            { role: 'T\u00e9cnico / Jefe de mantenci\u00f3n', items: ['MTTR optimizado', 'Stock de repuestos', 'Preventivo planificado'] },
-            { role: 'Gerencia', items: ['Dashboard KPI', 'Auditor\u00eda trazable', 'Disponibilidad de equipo'] },
-          ].map((section, i) => (
-            <Card key={i} className="border-border bg-card">
+      <section className="mx-auto max-w-7xl border-t border-border px-4 py-16">
+        <h2 className="mb-12 text-center text-4xl font-bold text-foreground">Para cada rol</h2>
+        <div className="grid gap-6 md:grid-cols-3">
+          {roles.map((section) => (
+            <Card key={section.role} className="border-border bg-card">
               <CardHeader>
                 <CardTitle>{section.role}</CardTitle>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2">
-                  {section.items.map((item, j) => (
-                    <li key={j} className="flex gap-2 text-sm text-muted-foreground">
-                      <CheckCircle2 className="h-4 w-4 text-[var(--brand-cobre)] flex-shrink-0 mt-0.5" />
+                  {section.items.map((item) => (
+                    <li key={item} className="flex gap-2 text-sm text-muted-foreground">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-[var(--brand-cobre)]" />
                       {item}
                     </li>
                   ))}
@@ -159,18 +173,13 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 py-16 border-t border-border">
-        <h2 className="text-4xl font-bold text-foreground mb-12 text-center">Beneficios Ejecutivos</h2>
-        <div className="grid md:grid-cols-4 gap-6">
-          {[
-            { metric: '+15%', label: 'Disponibilidad de equipos' },
-            { metric: '-40%', label: 'MTTR promedio' },
-            { metric: '-25%', label: 'Costos de mantenci\u00f3n' },
-            { metric: '100%', label: 'Trazabilidad auditada' },
-          ].map((item, i) => (
-            <Card key={i} className="border-border bg-card text-center">
-              <CardContent className="pt-8 pb-8">
-                <p className="text-4xl font-bold text-[var(--brand-cobre)] mb-2">{item.metric}</p>
+      <section className="mx-auto max-w-7xl border-t border-border px-4 py-16">
+        <h2 className="mb-12 text-center text-4xl font-bold text-foreground">Beneficios ejecutivos</h2>
+        <div className="grid gap-6 md:grid-cols-4">
+          {benefits.map((item) => (
+            <Card key={item.label} className="border-border bg-card text-center">
+              <CardContent className="pb-8 pt-8">
+                <p className="mb-2 text-4xl font-bold text-[var(--brand-cobre)]">{item.metric}</p>
                 <p className="text-sm text-muted-foreground">{item.label}</p>
               </CardContent>
             </Card>
@@ -178,21 +187,21 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 py-20 border-t border-border text-center">
-        <h2 className="text-4xl font-bold text-foreground mb-6">Listo para transformar tu operación</h2>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-          {'Conecta producci\u00f3n, mantenci\u00f3n, bodega, HSE, documentos y gerencia en una sola plataforma trazable.'}
+      <section className="mx-auto max-w-7xl border-t border-border px-4 py-20 text-center">
+        <h2 className="mb-6 text-4xl font-bold text-foreground">Listo para transformar tu operación</h2>
+        <p className="mx-auto mb-8 max-w-2xl text-lg text-muted-foreground">
+          Conecta producción, mantención, bodega, HSE, documentos y gerencia en una sola plataforma trazable.
         </p>
-        <Link href="/login">
-          <Button size="lg" className="gap-2 bg-[var(--brand-cobre)] hover:bg-[var(--brand-cobre)]/90 text-base px-8">
+        <Button asChild size="lg" className="gap-2 bg-[var(--brand-cobre)] px-8 text-base hover:bg-[var(--brand-cobre)]/90">
+          <Link href="/login">
             Solicitar demostración
             <ArrowRight className="h-4 w-4" />
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </section>
 
-      <footer className="border-t border-border bg-card/30 mt-20">
-        <div className="max-w-7xl mx-auto px-4 py-12 text-center text-sm text-muted-foreground">
+      <footer className="mt-20 border-t border-border bg-card/30">
+        <div className="mx-auto max-w-7xl px-4 py-12 text-center text-sm text-muted-foreground">
           <p>Motil 2026 - n3uralia</p>
         </div>
       </footer>

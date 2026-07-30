@@ -32,6 +32,9 @@ export interface Document {
   documentNumber: string;
   documentType: string;
   category: string;
+  asset_id?: string | null;
+  canonical_section?: string | null;
+  extracted_data?: Record<string, unknown> | null;
   createdAt: string;
   createdByUser: { name: string };
   expiryDate: string;
@@ -336,6 +339,16 @@ export function DocumentList({
                         <span className="text-xs text-muted-foreground truncate max-w-[300px]">
                           {doc.document_type_category}
                         </span>
+                      )}
+                      {doc.canonical_section && (
+                        <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+                          {doc.canonical_section}
+                        </Badge>
+                      )}
+                      {doc.asset_id && (
+                        <Badge variant="secondary" className="text-[10px] uppercase tracking-wide">
+                          Con equipo
+                        </Badge>
                       )}
                     </div>
 

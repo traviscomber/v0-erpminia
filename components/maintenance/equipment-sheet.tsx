@@ -127,6 +127,11 @@ export function EquipmentSheet({ equipment, isOpen, onClose, canEdit = false }: 
               )}
               {!isDerivedEquipment(equipment) && (
                 <Button asChild variant="outline">
+                  <Link href={`/dashboard/mantenimiento/equipos/${getEquipmentDetailId(equipment)}/documentos`}>Documentos</Link>
+                </Button>
+              )}
+              {!isDerivedEquipment(equipment) && (
+                <Button asChild variant="outline">
                   <Link href={`/dashboard/mantenimiento/equipos/${getEquipmentDetailId(equipment)}/arbol`}>Ver arbol de fallas</Link>
                 </Button>
               )}

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { resolveAuthContext } from '@/lib/api/auth-session';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
+import { listDocumentsForOrganization } from '@/lib/api/documents';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,10 +11,7 @@ export async function GET(request: NextRequest) {
   try {
     const auth = await resolveAuthContext(request);
     if (!auth) {
-      return NextResponse.json(
-        { error: 'No autenticado. Inicia sesión nuevamente.' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'No autenticado. Inicia sesiÃ³n nuevamente.' }, { status: 401 });
     }
 
     const searchParams = request.nextUrl.searchParams;
@@ -21,64 +19,80 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category');
     const status = searchParams.get('status');
     const search = searchParams.get('search');
+    const assetId = searchParams.get('assetId');
+    const canonicalSection = searchParams.get('canonicalSection');
+    const limit = Number(searchParams.get('limit') || '50');
+    const offset = Number(searchParams.get('offset') || '0');
 
-    if (!module) {
-      return NextResponse.json(
-        { error: 'El parámetro "module" es requerido' },
-        { status: 400 }
-      );
-    }
+    if (module) {
+      const supabase = getSupabaseServerClient();
 
-    const supabase = getSupabaseServerClient();
+      let query = supabase
+        .from('module_documents')
+        .select('*')
+        .eq('module', module)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
 
-    let query = supabase
-      .from('module_documents')
-      .select('*')
-      .eq('module', module)
-      .eq('is_active', true)
-      .order('created_at', { ascending: false });
+      if (category) {
+        query = query.eq('category', category);
+      }
 
-    if (category) {
-      query = query.eq('category', category);
-    }
+      if (status) {
+        query = query.eq('status', status);
+      }
 
-    if (status) {
-      query = query.eq('status', status);
-    }
+      if (assetId) {
+        query = query.eq('asset_id', assetId);
+      }
 
-    if (search) {
-      query = query.ilike('document_name', `%${search}%`);
-    }
+      if (canonicalSection) {
+        query = query.eq('canonical_section', canonicalSection);
+      }
 
-    const { data, error } = await query;
+      if (search) {
+        query = query.ilike('document_name', `%${search}%`);
+      }
 
-    if (error) {
-      console.error('[v0] Query error:', error);
-      return NextResponse.json(
-        { error: `Error al obtener documentos: ${error.message}` },
-        { status: 500 }
-      );
-    }
+      const { data, error } = await query;
 
-    // Generate signed download URLs for the private bucket
-    const documents = await Promise.all(
-      (data || []).map(async (doc) => {
-        let file_url: string | null = null;
+      if (error) {
+        return NextResponse.json({ error: `Error al obtener documentos: ${error.message}` }, { status: 500 });
+      }
+
+      const documents = await Promise.all(
+        (data || []).map(async (doc) => {
+          let file_url: string | null = null;
           if (doc.file_path) {
-            const { data: signed } = await supabase.storage
-            .from(BUCKET)
-            .createSignedUrl(doc.file_path, 60 * 60);
-          file_url = signed?.signedUrl || null;
+            const { data: signed } = await supabase.storage.from(BUCKET).createSignedUrl(doc.file_path, 60 * 60);
+            file_url = signed?.signedUrl || null;
           }
-        return { ...doc, file_url };
-      })
-    );
+          return { ...doc, file_url };
+        })
+      );
 
-    return NextResponse.json(documents);
+      return NextResponse.json({ documents });
+    }
+
+    if (!auth.organizationId) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    }
+
+    const data = await listDocumentsForOrganization(auth.organizationId, {
+      status,
+      category,
+      search,
+      limit,
+      offset,
+    });
+
+    return NextResponse.json(data);
   } catch (error) {
-    console.error('[v0] API error:', error);
     return NextResponse.json(
-      { error: 'Error interno del servidor' },
+      {
+        documents: [],
+        total: 0,
+      },
       { status: 500 }
     );
   }
