@@ -11,6 +11,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
+import { resolveExpedientForAsset } from '@/lib/maintenance/expedient-catalog';
 
 type EquipmentSheetProps = {
   equipment: Equipment | null;
@@ -51,6 +52,15 @@ function getEquipmentDetailId(equipment: Equipment) {
 }
 
 export function EquipmentSheet({ equipment, isOpen, onClose, canEdit = false }: EquipmentSheetProps) {
+  const expedientKey = equipment
+    ? resolveExpedientForAsset({
+        assetName: equipment.name,
+        assetCode: equipment.code,
+        model: equipment.model,
+        assetType: equipment.type,
+      })
+    : null;
+
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-xl">
@@ -115,6 +125,11 @@ export function EquipmentSheet({ equipment, isOpen, onClose, canEdit = false }: 
               <Button variant="outline" onClick={onClose}>
                 Cerrar
               </Button>
+              {!isDerivedEquipment(equipment) && expedientKey && (
+                <Button asChild>
+                  <Link href={`/dashboard/mantenimiento/documentos/expedientes/${expedientKey}`}>Expediente</Link>
+                </Button>
+              )}
               {!isDerivedEquipment(equipment) && (
                 <Button asChild variant="outline">
                   <Link href={`/dashboard/mantenimiento/equipos/${getEquipmentDetailId(equipment)}/ficha`}>Ficha completa</Link>

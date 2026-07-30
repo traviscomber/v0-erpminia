@@ -202,7 +202,7 @@ export default function DocumentosMantenimientoPage() {
       <div className="flex items-center justify-between gap-4">
         <div>
           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[var(--brand-cobre)]/20 bg-[var(--brand-cobre)]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-[var(--brand-cobre)]">
-            Fulvio · Centro documental
+            Fulvio / Centro documental
           </div>
           <h1 className="text-3xl font-bold">Documentacion de mantenimiento</h1>
           <p className="mt-2 max-w-3xl text-muted-foreground">
@@ -212,18 +212,18 @@ export default function DocumentosMantenimientoPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild>
-            <Link href="/dashboard/mantenimiento/documentos/expedientes">
-              Abrir expedientes
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline">
             <Link href="/dashboard/mantenimiento/documentos/expedientes/cat-938h-n2">
-              CAT 938H N2
+              Abrir CAT 938H N2
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
           <Button asChild variant="outline">
+            <Link href="/dashboard/mantenimiento/documentos/expedientes">
+              Ver todos los expedientes
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="ghost">
             <Link href="/dashboard/mantenimiento/documentos/importar">
               Importar documentos
               <ArrowRight className="ml-2 h-4 w-4" />
@@ -243,8 +243,8 @@ export default function DocumentosMantenimientoPage() {
             Entradas rapidas por equipo
           </CardTitle>
           <CardDescription>
-            Los expedientes mas consultados quedan visibles aqui. La idea es evitar que operacion tenga que navegar por
-            varias pantallas para llegar al activo correcto.
+            Primero abre el expediente consolidado del activo. La carga, clasificacion e importacion documental quedan
+            como pasos secundarios cuando ya no basta con el historial resumido.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">

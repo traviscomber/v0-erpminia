@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import useSWR from 'swr';
-import { AlertCircle, ArrowLeft, FileText, RefreshCw, Upload } from 'lucide-react';
+import { AlertCircle, ArrowLeft, ArrowRight, FileText, RefreshCw, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DocumentList, Document } from '@/components/documents/document-list';
 import { DocumentReviewModal } from '@/components/documents/document-review-modal';
+import { getExpedientDefinition, resolveExpedientForAsset } from '@/lib/maintenance/expedient-catalog';
 
 type MaintenanceDocument = Document & {
   asset_id?: string | null;
@@ -143,6 +144,17 @@ export function EquipmentDocumentWorkspace({ assetId }: EquipmentDocumentWorkspa
   const docsForSection = (section: string) =>
     documents.filter((doc) => String(doc.canonical_section || 'pendiente_clasificar') === section);
 
+  const expedientDefinition = useMemo(() => {
+    const expedientKey = resolveExpedientForAsset({
+      assetName: assetInfo?.asset_name,
+      assetCode: assetInfo?.asset_code,
+      model: assetInfo?.model,
+      assetType: assetInfo?.asset_type,
+    });
+
+    return expedientKey ? getExpedientDefinition(expedientKey) : null;
+  }, [assetInfo]);
+
   const handleUpload = async (event: React.FormEvent) => {
     event.preventDefault();
     setError(null);
@@ -266,6 +278,14 @@ export function EquipmentDocumentWorkspace({ assetId }: EquipmentDocumentWorkspa
           {assetSubtitle ? <p className="mt-1 text-sm text-muted-foreground">{assetSubtitle}</p> : null}
         </div>
         <div className="flex flex-wrap gap-2">
+          {expedientDefinition ? (
+            <Button asChild>
+              <Link href={`/dashboard/mantenimiento/documentos/expedientes/${expedientDefinition.expedientKey}`}>
+                Abrir expediente consolidado
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          ) : null}
           <Button asChild variant="outline">
             <Link href="/dashboard/mantenimiento/equipos">
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -278,6 +298,30 @@ export function EquipmentDocumentWorkspace({ assetId }: EquipmentDocumentWorkspa
           </Button>
         </div>
       </div>
+
+      {expedientDefinition ? (
+        <Card className="border-[var(--brand-cobre)]/30 bg-[var(--brand-cobre)]/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Expediente consolidado disponible</CardTitle>
+            <CardDescription>
+              Este equipo ya tiene historial consolidado. Usa el expediente para consultar OT historicas, componentes
+              y fallas sin pasar por la carga documental.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="font-semibold">{expedientDefinition.title}</p>
+              <p className="text-sm text-muted-foreground">{expedientDefinition.location}</p>
+            </div>
+            <Button asChild variant="outline">
+              <Link href={`/dashboard/mantenimiento/documentos/expedientes/${expedientDefinition.expedientKey}`}>
+                Ir al expediente
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <div className="grid gap-4 md:grid-cols-4">
         <Card>

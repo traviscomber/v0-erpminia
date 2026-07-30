@@ -106,3 +106,55 @@ export const EXPEDIENT_CATALOG: ExpedientDefinition[] = [
 export function getExpedientDefinition(expedientKey: string) {
   return EXPEDIENT_CATALOG.find((entry) => entry.expedientKey === expedientKey) || null;
 }
+
+function normalizeExpedientText(value: string | null | undefined) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9]+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+type ExpedientAssetInput = {
+  assetName?: string | null;
+  assetCode?: string | null;
+  model?: string | null;
+  assetType?: string | null;
+};
+
+export function resolveExpedientForAsset(input: ExpedientAssetInput) {
+  const assetName = normalizeExpedientText(input.assetName);
+  const assetCode = normalizeExpedientText(input.assetCode);
+  const model = normalizeExpedientText(input.model);
+  const assetType = normalizeExpedientText(input.assetType);
+  const combined = [assetName, assetCode, model, assetType].filter(Boolean).join(' ');
+
+  if (!combined) return null;
+
+  const isCat938h = combined.includes('938h');
+  const isN2 = /\bn\s*2\b|\bno\s*2\b|\bn2\b/.test(combined);
+  const isN1 = /\bn\s*1\b|\bno\s*1\b|\bn1\b/.test(combined);
+
+  if (isCat938h && isN2) {
+    return 'cat-938h-n2';
+  }
+
+  if (isCat938h && isN1) {
+    return 'cat-938h-n1';
+  }
+
+  if (combined.includes('atlas copco') && combined.includes('qas 500')) {
+    return 'generador-atlas-copco-qas-500-kva';
+  }
+
+  if (combined.includes('scoop') && combined.includes('st1030')) {
+    return 'scoop-atlas-st1030';
+  }
+
+  if (combined.includes('amarok')) {
+    return 'volkswagen-amarok-skyb57';
+  }
+
+  return null;
+}
