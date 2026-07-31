@@ -513,7 +513,7 @@ export default function DashboardPage() {
             </p>
           </div>
           <Button asChild className="gap-2 bg-[var(--brand-naranja)] hover:bg-[var(--brand-naranja)]/90">
-            <Link href="/dashboard/crear-tarea">
+            <Link href="/dashboard/mantenimiento/ordenes-trabajo/create">
               <Plus className="h-4 w-4" />
               Crear tarea
               <ArrowRight className="h-4 w-4" />
