@@ -332,19 +332,19 @@ export function MantenimientoDashboard() {
               </Button>
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/ordenes-trabajo">
-                  Ver órdenes de trabajo
+                  Ver ordenes de trabajo
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/planificacion">
-                  Planificación preventiva
+                  Planificacion preventiva
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/bitacora">
-                  Bitácora
+                  Bitacora
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
@@ -356,7 +356,7 @@ export function MantenimientoDashboard() {
               </Button>
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/movil">
-                  Operación en terreno
+                  Operacion en terreno
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
@@ -387,7 +387,7 @@ export function MantenimientoDashboard() {
               </Button>
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/neumaticos">
-                  Neumáticos
+                  Neumaticos
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
@@ -411,7 +411,7 @@ export function MantenimientoDashboard() {
               </Button>
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/vehiculos/importar">
-                  Importar vehículos
+                  Importar vehiculos
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
@@ -462,9 +462,9 @@ export function MantenimientoDashboard() {
             </div>
           </div>
 
-          {/* Documentación */}
+          {/* Documentacion */}
           <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Documentación</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Documentacion</p>
             <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/documentos">
@@ -474,7 +474,7 @@ export function MantenimientoDashboard() {
               </Button>
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/fichas-tecnicas">
-                  Fichas técnicas
+                  Fichas tecnicas
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
@@ -483,13 +483,13 @@ export function MantenimientoDashboard() {
               </div>
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/planificacion/importar">
-                  Importar planificación
+                  Importar planificacion
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/neumaticos/importar">
-                  Importar neumáticos
+                  Importar neumaticos
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
@@ -501,7 +501,7 @@ export function MantenimientoDashboard() {
               </Button>
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/bitacora/importar">
-                  Importar bitácora
+                  Importar bitacora
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
