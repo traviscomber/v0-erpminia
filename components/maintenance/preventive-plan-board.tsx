@@ -81,7 +81,7 @@ function buildWorkOrderHref(schedule: PreventiveSchedule) {
   if (schedule.estimatedDurationHours !== null && schedule.estimatedDurationHours !== undefined) {
     params.set('plannedDurationHours', String(schedule.estimatedDurationHours));
   }
-  return `/dashboard/work-orders/create?${params.toString()}`;
+  return `/dashboard/mantenimiento/ordenes-trabajo/create?${params.toString()}`;
 }
 
 export function PreventivePlanBoard() {

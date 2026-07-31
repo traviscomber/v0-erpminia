@@ -190,7 +190,7 @@ export function AssetQrView({ scope }: AssetQrViewProps) {
                 </Link>
               </Button>
               <Button asChild variant="outline">
-                <Link href={`/dashboard/work-orders/create?assetId=${asset.id}`}>Crear OT</Link>
+                <Link href={`/dashboard/mantenimiento/ordenes-trabajo/create?assetId=${asset.id}`}>Crear OT</Link>
               </Button>
             </div>
           </CardContent>

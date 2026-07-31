@@ -528,7 +528,7 @@ export function MaintenanceMobilePanel() {
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-3">
           <Button asChild className="justify-between">
-            <Link href="/dashboard/work-orders/create">
+            <Link href="/dashboard/mantenimiento/ordenes-trabajo/create">
               Crear orden de trabajo
               <ArrowRight className="h-4 w-4" />
             </Link>

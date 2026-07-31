@@ -360,7 +360,7 @@ export function EquipmentList({
                         className="h-8 flex-1"
                         onClick={(event) => event.stopPropagation()}
                       >
-                        <Link href={`/dashboard/work-orders/create?assetId=${getEquipmentDetailId(equipment)}`}>
+                        <Link href={`/dashboard/mantenimiento/ordenes-trabajo/create?assetId=${getEquipmentDetailId(equipment)}`}>
                           <Wrench className="mr-2 h-3.5 w-3.5" />
                           OT
                         </Link>

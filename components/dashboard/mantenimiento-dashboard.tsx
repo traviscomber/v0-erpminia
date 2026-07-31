@@ -187,7 +187,7 @@ export function MantenimientoDashboard() {
       ? {
           title: 'Atender OT vencidas',
           description: 'Revisa las órdenes atrasadas antes de abrir nuevas tareas.',
-          href: '/dashboard/work-orders',
+          href: '/dashboard/mantenimiento/ordenes-trabajo',
           cta: 'Ver órdenes atrasadas',
         }
       : criticalAssets.length > 0
@@ -200,7 +200,7 @@ export function MantenimientoDashboard() {
         : {
             title: 'Crear una OT preventiva',
             description: 'Inicia el flujo operativo con una orden nueva y un activo real.',
-            href: '/dashboard/work-orders/create',
+            href: '/dashboard/mantenimiento/ordenes-trabajo/create',
             cta: 'Crear OT',
           };
 
@@ -325,13 +325,13 @@ export function MantenimientoDashboard() {
             <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Operaciones</p>
             <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
               <Button asChild className="justify-between">
-                <Link href="/dashboard/work-orders/create">
+                <Link href="/dashboard/mantenimiento/ordenes-trabajo/create">
                   Crear orden de trabajo
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
               <Button asChild variant="outline" className="justify-between">
-                <Link href="/dashboard/work-orders">
+                <Link href="/dashboard/mantenimiento/ordenes-trabajo">
                   Ver órdenes de trabajo
                   <ArrowRight className="h-4 w-4" />
                 </Link>

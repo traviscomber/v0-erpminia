@@ -346,7 +346,7 @@ export function AssetFaultTreeView({ scope }: AssetFaultTreeViewProps) {
   const totalHours = history.reduce((sum, item) => sum + Number(item.labor_hours || 0), 0);
   const resolvedScope = scope || (pathname.includes('/mantenimiento/equipos/') ? 'equipos' : 'vehiculos');
   const backHref = resolvedScope === 'equipos' ? '/dashboard/mantenimiento/equipos' : '/dashboard/mantenimiento/vehiculos';
-  const preventiveActionHref = `/dashboard/work-orders/create?assetId=${assetId}&workType=preventive`;
+  const preventiveActionHref = `/dashboard/mantenimiento/ordenes-trabajo/create?assetId=${assetId}&workType=preventive`;
 
   if (historyLoading || ordersLoading) {
     return <div className="text-sm text-muted-foreground">Cargando árbol de fallas...</div>;
@@ -414,7 +414,7 @@ export function AssetFaultTreeView({ scope }: AssetFaultTreeViewProps) {
             </Link>
           </Button>
           <Button asChild className="gap-2">
-            <Link href={`/dashboard/work-orders/create?assetId=${asset.id}`}>
+            <Link href={`/dashboard/mantenimiento/ordenes-trabajo/create?assetId=${asset.id}`}>
               <Wrench className="h-4 w-4" />
               Crear OT
             </Link>

@@ -172,7 +172,7 @@ const menuItems = [
   // Mantenimiento — Resumen
   { label: 'Mantenimiento', href: '/dashboard/mantenimiento', icon: Wrench, group: 'Mantenimiento' },
   // Mantenimiento — Operaciones
-  { label: 'Órdenes de Trabajo', href: '/dashboard/work-orders', icon: Plus, group: 'Mantenimiento' },
+  { label: 'Órdenes de Trabajo', href: '/dashboard/mantenimiento/ordenes-trabajo', icon: Plus, group: 'Mantenimiento' },
   { label: 'Bitácora de Mantenimiento', href: '/dashboard/mantenimiento/bitacora', icon: File, group: 'Mantenimiento' },
   { label: 'Planificación Preventiva', href: '/dashboard/mantenimiento/planificacion', icon: Calendar, group: 'Mantenimiento' },
   { label: 'Mantenimiento por Centro de Costo', href: '/dashboard/mantenimiento/centro-costo', icon: Building2, group: 'Mantenimiento' },

@@ -247,7 +247,7 @@ export function AssetDetailView({ scope = 'vehiculos' }: AssetDetailViewProps) {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild className="gap-2">
-            <Link href={`/dashboard/work-orders/create?assetId=${asset.id}`}>
+            <Link href={`/dashboard/mantenimiento/ordenes-trabajo/create?assetId=${asset.id}`}>
               <Wrench className="h-4 w-4" />
               Crear orden de trabajo
             </Link>
@@ -293,7 +293,7 @@ export function AssetDetailView({ scope = 'vehiculos' }: AssetDetailViewProps) {
               </Link>
             </Button>
             <Button asChild variant="outline" className="justify-between">
-              <Link href={`/dashboard/work-orders/create?assetId=${asset.id}`}>
+              <Link href={`/dashboard/mantenimiento/ordenes-trabajo/create?assetId=${asset.id}`}>
                 Crear OT
                 <ArrowRight className="h-4 w-4" />
               </Link>
@@ -412,7 +412,7 @@ export function AssetDetailView({ scope = 'vehiculos' }: AssetDetailViewProps) {
                 <Link href={`/dashboard/mantenimiento/${isEquipmentScope ? 'equipos' : 'vehiculos'}/${asset.id}/arbol`}>Ver árbol de fallas</Link>
               </Button>
               <Button variant="outline" asChild>
-                <Link href={`/dashboard/work-orders/create?assetId=${asset.id}`}>Nueva OT</Link>
+                <Link href={`/dashboard/mantenimiento/ordenes-trabajo/create?assetId=${asset.id}`}>Nueva OT</Link>
               </Button>
             </div>
           </CardContent>

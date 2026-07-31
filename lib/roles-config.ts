@@ -53,7 +53,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     accessibleModules: [
       '/dashboard',
       '/dashboard/mantenimiento',
-      '/dashboard/work-orders',
+      '/dashboard/mantenimiento/ordenes-trabajo',
       '/dashboard/produccion', // See production to understand issues
       '/dashboard/inventario', // Full inventory management
       '/dashboard/bodega', // Full warehouse management
@@ -89,7 +89,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     color: 'text-blue-500',
     accessibleModules: [
       '/dashboard',
-      '/dashboard/work-orders',
+      '/dashboard/mantenimiento/ordenes-trabajo',
       '/dashboard/bodega', // Check and consume parts
       '/dashboard/alertas',
     ],
@@ -194,7 +194,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
       '/dashboard/reportes',
       '/dashboard/integracion-completa', // See full integration
       '/dashboard/integracion-arquitectura', // Architecture view
-      '/dashboard/work-orders',
+      '/dashboard/mantenimiento/ordenes-trabajo',
       '/dashboard/finanzas',
       '/dashboard/compras',
     ],
