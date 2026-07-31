@@ -320,9 +320,9 @@ export function MantenimientoDashboard() {
         </CardHeader>
         <CardContent className="space-y-5">
 
-          {/* Operaciones */}
+          {/* Mantenimiento */}
           <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Operaciones</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Mantenimiento</p>
             <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
               <Button asChild className="justify-between">
                 <Link href="/dashboard/mantenimiento/ordenes-trabajo/create">
@@ -400,7 +400,7 @@ export function MantenimientoDashboard() {
             </div>
           </div>
 
-          {/* Recursos y Costos */}
+          {/* Recursos y costos */}
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Recursos y costos</p>
             <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
@@ -425,9 +425,9 @@ export function MantenimientoDashboard() {
             </div>
           </div>
 
-          {/* Reportes */}
+          {/* Control y reportes */}
           <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Reportes</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Control y reportes</p>
             <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/gerencial">
@@ -444,13 +444,19 @@ export function MantenimientoDashboard() {
             </div>
           </div>
 
-          {/* Documentos e Importaciones */}
+          {/* Documentación */}
           <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Documentos e importaciones</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Documentación</p>
             <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-4">
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/documentos">
                   Documentos
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/documentos/expedientes">
+                  Expedientes por equipo
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
@@ -460,6 +466,9 @@ export function MantenimientoDashboard() {
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
+              <div className="col-span-full mt-2 pt-2">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Importaciones</p>
+              </div>
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/equipos/importar">
                   Importar equipos
