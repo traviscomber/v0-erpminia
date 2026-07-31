@@ -206,8 +206,8 @@ export default function DocumentosMantenimientoPage() {
           </div>
           <h1 className="text-3xl font-bold">Documentacion de mantenimiento</h1>
           <p className="mt-2 max-w-3xl text-muted-foreground">
-            Esta portada funciona como mesa de entrada. Primero te lleva al expediente correcto del equipo y despues al
-            flujo documental general.
+            Esta portada resuelve solo el flujo documental del modulo de mantenimiento. Equipos, traslados e importaciones
+            generales siguen viviendo en mantenimiento y aqui entras directo al expediente correcto.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -223,9 +223,9 @@ export default function DocumentosMantenimientoPage() {
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
-          <Button asChild variant="ghost">
-            <Link href="/dashboard/mantenimiento/documentos/importar">
-              Importar documentos
+          <Button asChild variant="outline">
+            <Link href="/dashboard/mantenimiento">
+              Volver a mantenimiento
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
@@ -362,7 +362,7 @@ export default function DocumentosMantenimientoPage() {
       <Card>
         <CardHeader>
           <CardTitle>Mapa canonico</CardTitle>
-          <CardDescription>La documentacion se organiza con la misma logica que usa operacion para mantener equipos.</CardDescription>
+          <CardDescription>La documentacion respeta la estructura de mantenimiento, pero no reemplaza la navegacion principal del modulo.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -377,18 +377,6 @@ export default function DocumentosMantenimientoPage() {
             <Button asChild variant="outline">
               <Link href="/dashboard/mantenimiento/documentos/expedientes">
                 Ir al indice de expedientes
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link href="/dashboard/mantenimiento/equipos">
-                Ir a equipos
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link href="/dashboard/mantenimiento/equipos/importar">
-                Importar equipos
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
@@ -448,15 +436,12 @@ export default function DocumentosMantenimientoPage() {
             <CardHeader>
               <CardTitle>Documentos vinculados a activos</CardTitle>
               <CardDescription>
-                Estos documentos ya tienen `asset_id` y pueden abrirse desde el flujo documental por equipo.
+                Estos documentos ya tienen `asset_id` y deben abrirse desde la bandeja de equipos dentro de mantenimiento.
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-wrap gap-2">
               <Button asChild variant="outline">
                 <Link href="/dashboard/mantenimiento/equipos">Abrir bandeja por equipo</Link>
-              </Button>
-              <Button asChild variant="outline">
-                <Link href="/dashboard/mantenimiento/equipos/importar">Importar activos</Link>
               </Button>
             </CardContent>
           </Card>
@@ -480,57 +465,6 @@ export default function DocumentosMantenimientoPage() {
           </Card>
         </TabsContent>
       </Tabs>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Atajos operativos</CardTitle>
-          <CardDescription>Accesos utiles para operacion y supervision.</CardDescription>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-2 md:grid-cols-3">
-          <Button asChild variant="outline" className="justify-between">
-            <Link href="/dashboard/mantenimiento/vehiculos">
-              Vehiculos y traslados
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="justify-between">
-            <Link href="/dashboard/mantenimiento/bitacora">
-              Bitacora
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="justify-between">
-            <Link href="/dashboard/mantenimiento/gerencial">
-              Dashboard gerencial
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="justify-between">
-            <Link href="/dashboard/mantenimiento/documentos/expedientes/cat-938h-n2">
-              CAT 938H N2
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="justify-between">
-            <Link href="/dashboard/mantenimiento/documentos/expedientes/cat-938h-n1">
-              CAT 938H N1
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="justify-between">
-            <Link href="/dashboard/mantenimiento/documentos/expedientes/generador-atlas-copco-qas-500-kva">
-              Generador Atlas QAS 500
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="justify-between">
-            <Link href="/dashboard/mantenimiento/documentos/expedientes">
-              Ver todos los expedientes
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-        </CardContent>
-      </Card>
 
       <DocumentReviewModal
         document={selectedDoc}
