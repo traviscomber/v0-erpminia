@@ -363,9 +363,9 @@ export function MantenimientoDashboard() {
             </div>
           </div>
 
-          {/* Equipos y traslados */}
+          {/* Activos y traslados */}
           <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Equipos y traslados</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Activos y traslados</p>
             <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/equipos">
@@ -376,6 +376,12 @@ export function MantenimientoDashboard() {
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/vehiculos">
                   Vehiculos y traslados
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/documentos/expedientes">
+                  Expedientes por equipo
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
@@ -394,6 +400,18 @@ export function MantenimientoDashboard() {
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/disponibilidad">
                   Disponibilidad en tiempo real
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/equipos/importar">
+                  Importar equipos
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/dashboard/mantenimiento/vehiculos/importar">
+                  Importar vehículos
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
@@ -447,16 +465,10 @@ export function MantenimientoDashboard() {
           {/* Documentación */}
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Documentación</p>
-            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/documentos">
                   Documentos
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="justify-between">
-                <Link href="/dashboard/mantenimiento/documentos/expedientes">
-                  Expedientes por equipo
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
@@ -469,18 +481,6 @@ export function MantenimientoDashboard() {
               <div className="col-span-full mt-2 pt-2">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Importaciones</p>
               </div>
-              <Button asChild variant="outline" className="justify-between">
-                <Link href="/dashboard/mantenimiento/equipos/importar">
-                  Importar equipos
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="justify-between">
-                <Link href="/dashboard/mantenimiento/vehiculos/importar">
-                  Importar vehículos
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/planificacion/importar">
                   Importar planificación
