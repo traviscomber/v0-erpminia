@@ -356,16 +356,16 @@ export function MantenimientoDashboard() {
               </Button>
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/movil">
-                  Panel móvil
+                  Operación en terreno
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
             </div>
           </div>
 
-          {/* Equipos */}
+          {/* Equipos y traslados */}
           <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Equipos</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Equipos y traslados</p>
             <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/equipos">
@@ -493,25 +493,6 @@ export function MantenimientoDashboard() {
               <Button asChild variant="outline" className="justify-between">
                 <Link href="/dashboard/mantenimiento/bitacora/importar">
                   Importar bitácora
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-          </div>
-
-          {/* Ecosistema externo */}
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Ecosistema</p>
-            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
-              <Button asChild variant="outline" className="justify-between">
-                <Link href="/dashboard/telemetria">
-                  Telemetría de sensores
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="justify-between">
-                <Link href="/dashboard/bodega">
-                  Bodega e inventario
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>

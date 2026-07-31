@@ -295,7 +295,7 @@ export function AssetQrView({ scope }: AssetQrViewProps) {
                 <Link href={`/dashboard/mantenimiento/${scope}/${asset.id}/arbol`}>Ver arbol de fallas</Link>
               </Button>
               <Button asChild variant="outline">
-                <Link href="/dashboard/mantenimiento/movil">Vista movil</Link>
+                <Link href={`/dashboard/mantenimiento/${scope}`}>{scope === 'equipos' ? 'Volver a equipos' : 'Volver a vehículos y traslados'}</Link>
               </Button>
             </CardContent>
           </Card>

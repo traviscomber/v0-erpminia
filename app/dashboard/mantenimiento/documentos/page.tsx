@@ -489,7 +489,7 @@ export default function DocumentosMantenimientoPage() {
         <CardContent className="grid grid-cols-1 gap-2 md:grid-cols-3">
           <Button asChild variant="outline" className="justify-between">
             <Link href="/dashboard/mantenimiento/vehiculos">
-              Vehiculos y QR
+              Vehiculos y traslados
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>

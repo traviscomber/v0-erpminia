@@ -146,7 +146,7 @@ export function MaintenanceHistoryBoard() {
           </Button>
           <Button asChild variant="outline" className="gap-2">
             <Link href="/dashboard/mantenimiento/vehiculos">
-              Vehículos y QR
+              Vehículos y traslados
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>

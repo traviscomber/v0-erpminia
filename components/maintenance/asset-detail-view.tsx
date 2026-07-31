@@ -253,9 +253,9 @@ export function AssetDetailView({ scope = 'vehiculos' }: AssetDetailViewProps) {
             </Link>
           </Button>
           <Button asChild variant="outline" className="gap-2">
-            <Link href={isEquipmentScope ? '/dashboard/mantenimiento/equipos' : '/dashboard/mantenimiento/movil'}>
+            <Link href={isEquipmentScope ? '/dashboard/mantenimiento/equipos' : '/dashboard/mantenimiento/vehiculos'}>
               <Smartphone className="h-4 w-4" />
-              {isEquipmentScope ? 'Volver a equipos' : 'Vista móvil'}
+              {isEquipmentScope ? 'Volver a equipos' : 'Volver a vehículos y traslados'}
             </Link>
           </Button>
           <Button asChild variant="outline" className="gap-2">
