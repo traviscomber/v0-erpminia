@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Upload } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import Link from 'next/link';
 import type { Equipment } from '@/lib/types/equipment';
 import { Button } from '@/components/ui/button';
@@ -24,26 +24,20 @@ export default function EquiposPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <section className="flex flex-col gap-4 border-b border-border/70 pb-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Equipos</h1>
-          <p className="text-muted-foreground">
-            Gestiona el registro técnico de los equipos con seguimiento de mantenimiento preventivo.
+          <p className="text-sm font-medium text-muted-foreground">Mantenimiento · Activos</p>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Equipos</h1>
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+            Consulta el catálogo técnico, estado, criticidad y accesos operativos de todos los equipos registrados.
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button asChild variant="outline">
-            <Link href="/dashboard/mantenimiento/equipos/importar">
-              <Upload className="mr-2 h-4 w-4" />
-              Importar
-            </Link>
-          </Button>
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Nuevo equipo
-          </Button>
-        </div>
-      </div>
+        <Button asChild variant="outline">
+          <Link href="/dashboard/mantenimiento/equipos/importar">
+            <Upload className="mr-2 h-4 w-4" /> Importar equipos
+          </Link>
+        </Button>
+      </section>
 
       <EquipmentList onSelectEquipment={handleSelectEquipment} />
 
