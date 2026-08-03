@@ -2,32 +2,37 @@
 
 import Link from 'next/link';
 import useSWR from 'swr';
-import { AlertCircle, ArrowRight, RefreshCw } from 'lucide-react';
+import {
+  Activity,
+  AlertCircle,
+  ArrowRight,
+  BarChart3,
+  Boxes,
+  CalendarClock,
+  ClipboardList,
+  DollarSign,
+  FileText,
+  Fuel,
+  Gauge,
+  HardHat,
+  Plus,
+  RefreshCw,
+  Smartphone,
+  Truck,
+  Users,
+  Wrench,
+} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useMantenimientoOrdenes } from '@/hooks/use-module-apis';
-import { inferMachineFamilyFromText } from '@/lib/maintenance/cost-center-machines';
-
-const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
-
-type MaintenanceAsset = {
-  status?: string | null;
-  criticality?: string | null;
-  id?: string | number;
-  name?: string | null;
-  assetName?: string | null;
-  assetCode?: string | null;
-  assetType?: string | null;
-  location?: string | null;
-};
 
 type MaintenanceOrder = {
+  id?: string | number;
+  description?: string | null;
   status: string;
   priority: string;
   scheduled_date?: string | null;
-  id?: string | number;
-  description?: string | null;
 };
 
 type DerivedMachine = {
@@ -35,82 +40,27 @@ type DerivedMachine = {
   code: string;
   name: string;
   family: string;
-  rootCode: string;
   status: string;
-  source: 'cost_center';
-  description?: string | null;
 };
 
 type CostCenterMachineResponse = {
   machines?: DerivedMachine[];
-  summary?: {
-    total?: number;
-    families?: number;
-    source?: string;
-  };
 };
 
-function statusLabel(status: string) {
-  const labels: Record<string, string> = {
-    pendiente: 'Pendiente',
-    en_progreso: 'En progreso',
-    completado: 'Completada',
-    open: 'Abierta',
-    pending: 'Pendiente',
-    in_progress: 'En progreso',
-    completed: 'Completada',
-  };
+type ModuleLink = {
+  label: string;
+  description: string;
+  href: string;
+  icon: typeof Wrench;
+};
 
-  return labels[status] || status;
-}
+const fetcher = async (url: string) => {
+  const response = await fetch(url, { credentials: 'include' });
+  if (!response.ok) throw new Error('No se pudo cargar la información');
+  return response.json();
+};
 
-function priorityLabel(priority: string) {
-  const labels: Record<string, string> = {
-    urgente: 'Urgente',
-    critical: 'Critica',
-    alta: 'Alta',
-    high: 'Alta',
-    media: 'Media',
-    medium: 'Media',
-    baja: 'Baja',
-    low: 'Baja',
-  };
-
-  return labels[priority] || priority;
-}
-
-function priorityVariant(priority: string) {
-  if (priority === 'urgente' || priority === 'critical') return 'destructive' as const;
-  if (priority === 'alta' || priority === 'high') return 'secondary' as const;
-  return 'outline' as const;
-}
-
-function assetStatusLabel(status: string) {
-  const normalized = normalizeText(status);
-  const labels: Record<string, string> = {
-    activo: 'Operativo',
-    operativa: 'Operativo',
-    operativo: 'Operativo',
-    active: 'Operativo',
-    inactive: 'Inactivo',
-    inactivo: 'Inactivo',
-    maintenance: 'En mantenimiento',
-    mantenimiento: 'En mantenimiento',
-    decommissioned: 'Baja',
-    baja: 'Baja',
-  };
-
-  return labels[normalized] || status;
-}
-
-function assetStatusVariant(status: string) {
-  const normalized = normalizeText(status);
-  if (normalized === 'maintenance' || normalized === 'mantenimiento') return 'secondary' as const;
-  if (normalized === 'inactive' || normalized === 'inactivo' || normalized === 'decommissioned' || normalized === 'baja') return 'outline' as const;
-  return 'default' as const;
-}
-
-function normalizeText(value: string | null | undefined) {
+function normalize(value: string | null | undefined) {
   return String(value || '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -118,545 +68,336 @@ function normalizeText(value: string | null | undefined) {
     .toLowerCase();
 }
 
+function priorityLabel(priority: string) {
+  const labels: Record<string, string> = {
+    urgente: 'Urgente',
+    critical: 'Crítica',
+    alta: 'Alta',
+    high: 'Alta',
+    media: 'Media',
+    medium: 'Media',
+    baja: 'Baja',
+    low: 'Baja',
+  };
+  return labels[priority] || priority;
+}
+
+function statusLabel(status: string) {
+  const labels: Record<string, string> = {
+    pendiente: 'Pendiente',
+    open: 'Abierta',
+    pending: 'Pendiente',
+    en_progreso: 'En progreso',
+    in_progress: 'En progreso',
+    completado: 'Completada',
+    completed: 'Completada',
+  };
+  return labels[status] || status;
+}
+
+const moduleSections: Array<{ title: string; description: string; links: ModuleLink[] }> = [
+  {
+    title: 'Operación diaria',
+    description: 'Planifica, ejecuta y registra el trabajo de mantenimiento.',
+    links: [
+      { label: 'Órdenes de trabajo', description: 'Prioridades, responsables y avance.', href: '/dashboard/mantenimiento/ordenes-trabajo', icon: ClipboardList },
+      { label: 'Planificación preventiva', description: 'Calendario y tareas programadas.', href: '/dashboard/mantenimiento/planificacion', icon: CalendarClock },
+      { label: 'Bitácora', description: 'Historial operacional consolidado.', href: '/dashboard/mantenimiento/bitacora', icon: FileText },
+      { label: 'Operación en terreno', description: 'Ejecución móvil para supervisores.', href: '/dashboard/mantenimiento/movil', icon: Smartphone },
+      { label: 'Por centro de costo', description: 'Carga y desempeño por unidad.', href: '/dashboard/mantenimiento/centro-costo', icon: Gauge },
+    ],
+  },
+  {
+    title: 'Activos',
+    description: 'Control técnico y disponibilidad de equipos y componentes.',
+    links: [
+      { label: 'Equipos', description: 'Maestro técnico de activos.', href: '/dashboard/mantenimiento/equipos', icon: Truck },
+      { label: 'Vehículos', description: 'Flota y traslados operacionales.', href: '/dashboard/mantenimiento/vehiculos', icon: Truck },
+      { label: 'Neumáticos', description: 'Ciclo de vida, posición y consumo.', href: '/dashboard/mantenimiento/neumaticos', icon: Boxes },
+      { label: 'Componentes mayores', description: 'Seguimiento de componentes críticos.', href: '/dashboard/mantenimiento/componentes-mayores', icon: Wrench },
+      { label: 'Disponibilidad', description: 'Estado y continuidad de la flota.', href: '/dashboard/mantenimiento/disponibilidad', icon: Activity },
+    ],
+  },
+  {
+    title: 'Recursos y costos',
+    description: 'Gestiona personas, insumos y gasto por activo.',
+    links: [
+      { label: 'Personal', description: 'Dotación y asignación de técnicos.', href: '/dashboard/mantenimiento/personal', icon: Users },
+      { label: 'Combustible', description: 'Consumo y control operacional.', href: '/dashboard/mantenimiento/combustible', icon: Fuel },
+      { label: 'Costo por equipo', description: 'Costo acumulado y tendencias.', href: '/dashboard/mantenimiento/costos', icon: DollarSign },
+    ],
+  },
+  {
+    title: 'Control',
+    description: 'Indicadores para supervisión y toma de decisiones.',
+    links: [
+      { label: 'Indicadores', description: 'KPIs operacionales de mantenimiento.', href: '/dashboard/mantenimiento/indicadores', icon: BarChart3 },
+      { label: 'Dashboard gerencial', description: 'Visión ejecutiva de desempeño.', href: '/dashboard/mantenimiento/gerencial', icon: Gauge },
+    ],
+  },
+  {
+    title: 'Documentación',
+    description: 'Centraliza evidencia técnica y expedientes de activos.',
+    links: [
+      { label: 'Biblioteca documental', description: 'Documentos de mantenimiento.', href: '/dashboard/mantenimiento/documentos', icon: FileText },
+      { label: 'Expedientes por equipo', description: 'Historial documental por activo.', href: '/dashboard/mantenimiento/documentos/expedientes', icon: Boxes },
+      { label: 'Fichas técnicas', description: 'Especificaciones y antecedentes.', href: '/dashboard/mantenimiento/fichas-tecnicas', icon: HardHat },
+    ],
+  },
+];
+
 export function MantenimientoDashboard() {
   const { ordenes, isLoading: ordersLoading, error: ordersError, mutate: mutateOrders } = useMantenimientoOrdenes();
-  const { data: assetsData, isLoading: assetsLoading, mutate: mutateAssets, error: assetsError } = useSWR(
-    '/api/maquinaria/machinery',
-    fetcher,
-  );
   const {
-    data: machineCatalogData,
-    isLoading: machineCatalogLoading,
-    mutate: mutateMachineCatalog,
+    data: machineData,
+    isLoading: machinesLoading,
+    error: machinesError,
+    mutate: mutateMachines,
   } = useSWR<CostCenterMachineResponse>('/api/maintenance/cost-center-machines', fetcher);
 
-  const isLoading = ordersLoading || assetsLoading || machineCatalogLoading;
+  const machines = Array.isArray(machineData?.machines) ? machineData.machines : [];
+  const orders = Array.isArray(ordenes) ? (ordenes as MaintenanceOrder[]) : [];
+  const isLoading = ordersLoading || machinesLoading;
 
-  const machinery = (Array.isArray(assetsData?.machinery) ? assetsData.machinery : []) as Array<{ status?: string | null; family?: string | null; name?: string | null; code?: string | null }>;
-  const assets = machinery as unknown as MaintenanceAsset[];
-  const derivedMachines = Array.isArray(machineCatalogData?.machines) ? machineCatalogData.machines : [];
-  const derivedMachineCount = derivedMachines.length;
-  const totalAssets = derivedMachineCount;
-  const activeAssets = derivedMachines.filter((machine) =>
-    ['activo', 'operativo', 'active', 'operational'].includes(normalizeText(machine.status)),
-  ).length;
-  const maintenanceAssets = assets.filter((asset) =>
-    ['maintenance', 'mantenimiento'].includes(normalizeText(asset.status)),
-  ).length;
-  const inactiveAssets = derivedMachines.filter((machine) =>
-    ['inactive', 'inactivo', 'decommissioned', 'baja'].includes(normalizeText(machine.status)),
-  ).length;
-  const machineFamilySummary = derivedMachines.reduce<Record<string, number>>((acc, machine) => {
-    const family = machine.family || inferMachineFamilyFromText(`${machine.name} ${machine.code}`) || 'Sin familia';
-    acc[family] = (acc[family] || 0) + 1;
-    return acc;
-  }, {});
-  const topMachineFamilies = Object.entries(machineFamilySummary)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 6);
-
-  const openOrders = ordenes.filter((o) => ['pendiente', 'open', 'pending'].includes(o.status)).length;
-  const inProgressOrders = ordenes.filter((o) => ['en_progreso', 'in_progress'].includes(o.status)).length;
-  const completedOrders = ordenes.filter((o) => ['completado', 'completed'].includes(o.status)).length;
-  const urgentOrders = ordenes.filter((o) => ['urgente', 'critical'].includes(o.priority)).length;
-  const overdueOrders = (ordenes as MaintenanceOrder[]).filter((order) => {
-    if (!order.scheduled_date) return false;
-    if (['completado', 'completed'].includes(order.status)) return false;
-    const scheduled = new Date(order.scheduled_date);
-    if (Number.isNaN(scheduled.getTime())) return false;
+  const activeAssets = machines.filter((machine) => ['activo', 'operativo', 'active', 'operational'].includes(normalize(machine.status))).length;
+  const inactiveAssets = machines.filter((machine) => ['inactive', 'inactivo', 'decommissioned', 'baja'].includes(normalize(machine.status))).length;
+  const totalAssets = machines.length;
+  const availability = totalAssets > 0 ? Math.round((activeAssets / totalAssets) * 100) : 0;
+  const openOrders = orders.filter((order) => ['pendiente', 'open', 'pending', 'en_progreso', 'in_progress'].includes(order.status)).length;
+  const urgentOrders = orders.filter((order) => ['urgente', 'critical'].includes(order.priority)).length;
+  const overdueOrders = orders.filter((order) => {
+    if (!order.scheduled_date || ['completado', 'completed'].includes(order.status)) return false;
+    const scheduledDate = new Date(order.scheduled_date);
+    if (Number.isNaN(scheduledDate.getTime())) return false;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    scheduled.setHours(0, 0, 0, 0);
-    return scheduled < today;
+    scheduledDate.setHours(0, 0, 0, 0);
+    return scheduledDate < today;
   }).length;
 
-  const availability = totalAssets > 0 ? Math.round((activeAssets / totalAssets) * 100) : 0;
-  const recentOrders = [...ordenes].slice(0, 6);
-  const criticalAssets = assets
-    .filter((asset) => ['critical', 'high', 'critico', 'critica', 'alto', 'alta'].includes(normalizeText(asset.criticality)))
-    .slice(0, 6);
-  const handleRefreshOrders = () => {
-    void mutateOrders();
-  };
-  const handleRefreshAssets = () => {
-    void mutateAssets();
-    void mutateMachineCatalog();
-  };
-  const nextAction =
-    overdueOrders > 0
+  const recentOrders = orders.slice(0, 5);
+  const recommendedAction = overdueOrders > 0
+    ? {
+        title: 'Resolver órdenes vencidas',
+        description: `${overdueOrders} órdenes están fuera de plazo y requieren reasignación o cierre.`,
+        href: '/dashboard/mantenimiento/ordenes-trabajo',
+        label: 'Revisar vencidas',
+      }
+    : urgentOrders > 0
       ? {
-          title: 'Atender OT vencidas',
-          description: 'Revisa las órdenes atrasadas antes de abrir nuevas tareas.',
+          title: 'Priorizar órdenes críticas',
+          description: `${urgentOrders} órdenes críticas necesitan seguimiento inmediato.`,
           href: '/dashboard/mantenimiento/ordenes-trabajo',
-          cta: 'Ver órdenes atrasadas',
+          label: 'Ver críticas',
         }
-      : criticalAssets.length > 0
-        ? {
-            title: 'Revisar activos críticos',
-            description: 'Enlaza la planificación preventiva con los equipos de mayor riesgo.',
-            href: '/dashboard/mantenimiento/planificacion',
-            cta: 'Abrir planificación',
-          }
-        : {
-            title: 'Crear una OT preventiva',
-            description: 'Inicia el flujo operativo con una orden nueva y un activo real.',
-            href: '/dashboard/mantenimiento/ordenes-trabajo/create',
-            cta: 'Crear OT',
-          };
+      : {
+          title: 'Programar mantenimiento preventivo',
+          description: 'Mantén la planificación alineada con la disponibilidad de los activos.',
+          href: '/dashboard/mantenimiento/planificacion',
+          label: 'Abrir planificación',
+        };
 
-  if (ordersError || assetsError) {
+  if (ordersError || machinesError) {
     return (
-      <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-6 text-destructive">
-        <div className="flex items-center gap-2 font-semibold">
-          <AlertCircle className="h-4 w-4" />
-          No se pudo cargar mantenimiento
+      <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6">
+        <div className="flex items-center gap-2 font-semibold text-destructive">
+          <AlertCircle className="h-5 w-5" />
+          No se pudo cargar el módulo de mantenimiento
         </div>
-        <p className="mt-2 text-sm text-destructive/80">
-          Revisa la conexión a las APIs de mantenimiento y activos antes de volver a intentar.
-        </p>
+        <p className="mt-2 text-sm text-muted-foreground">Revisa la conexión con las APIs de órdenes y activos.</p>
+        <Button
+          variant="outline"
+          className="mt-4 gap-2"
+          onClick={() => {
+            void mutateOrders();
+            void mutateMachines();
+          }}
+        >
+          <RefreshCw className="h-4 w-4" />
+          Reintentar
+        </Button>
       </div>
     );
   }
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Cargando mantenimiento...</div>;
+    return (
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {[0, 1, 2, 3].map((item) => (
+          <div key={item} className="h-28 animate-pulse rounded-xl border bg-card" />
+        ))}
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Mantenimiento</h1>
-          <p className="text-muted-foreground">Panel ejecutivo con equipos, OT y disponibilidad real.</p>
+    <div className="space-y-8">
+      <section className="flex flex-col gap-5 border-b pb-6 lg:flex-row lg:items-end lg:justify-between">
+        <div className="max-w-3xl">
+          <p className="text-sm font-medium text-primary">Módulo operacional</p>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Mantenimiento</h1>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            Controla órdenes de trabajo, activos, recursos, costos y documentación desde una única vista operacional.
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button size="sm" onClick={handleRefreshOrders} className="gap-2">
+          <Button asChild>
+            <Link href="/dashboard/mantenimiento/ordenes-trabajo/create">
+              <Plus className="mr-2 h-4 w-4" />
+              Nueva OT
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/dashboard/mantenimiento/planificacion">
+              <CalendarClock className="mr-2 h-4 w-4" />
+              Programar
+            </Link>
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Actualizar datos"
+            onClick={() => {
+              void mutateOrders();
+              void mutateMachines();
+            }}
+          >
             <RefreshCw className="h-4 w-4" />
-            Actualizar OT
-          </Button>
-          <Button size="sm" variant="outline" onClick={handleRefreshAssets} className="gap-2">
-            <RefreshCw className="h-4 w-4" />
-            Actualizar equipos
           </Button>
         </div>
-      </div>
+      </section>
 
-      <Card className="border-border/70 bg-card/90">
-        <CardHeader className="pb-3">
-          <CardTitle>Siguiente acción recomendada</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-1">
-            <p className="font-semibold text-foreground">{nextAction.title}</p>
-            <p className="text-sm text-muted-foreground">{nextAction.description}</p>
-          </div>
-          <Button asChild className="gap-2">
-            <Link href={nextAction.href}>
-              {nextAction.cta}
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card className="border-border/70 bg-card/90">
-        <CardHeader className="pb-3">
-          <CardTitle>Expedientes prioritarios</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-4">
-          <Button asChild className="justify-between">
-            <Link href="/dashboard/mantenimiento/documentos/expedientes/cat-938h-n2">
-              CAT 938H N2
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="justify-between">
-            <Link href="/dashboard/mantenimiento/documentos/expedientes/cat-938h-n1">
-              CAT 938H N1
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="justify-between">
-            <Link href="/dashboard/mantenimiento/documentos/expedientes/generador-atlas-copco-qas-500-kva">
-              Atlas QAS 500
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="justify-between">
-            <Link href="/dashboard/mantenimiento/documentos/expedientes">
-              Todos los expedientes
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-        </CardContent>
-      </Card>
-
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <div className="rounded-lg border border-border bg-card px-4 py-3">
-          <p className="text-xs text-muted-foreground">Equipos</p>
-          <p className="text-2xl font-bold">{totalAssets}</p>
-          <p className="text-xs text-muted-foreground">{availability}% operativos</p>
-        </div>
-        <div className="rounded-lg border border-border bg-card px-4 py-3">
-          <p className="text-xs text-muted-foreground">OT abiertas</p>
-          <p className="text-2xl font-bold text-secondary">{openOrders}</p>
-          <p className="text-xs text-muted-foreground">{inProgressOrders} en progreso</p>
-        </div>
-        <div className="rounded-lg border border-border bg-card px-4 py-3">
-          <p className="text-xs text-muted-foreground">OT atrasadas</p>
-          <p className="text-2xl font-bold text-destructive">{overdueOrders}</p>
-          <p className="text-xs text-muted-foreground">Requieren atención</p>
-        </div>
-        <div className="rounded-lg border border-border bg-card px-4 py-3">
-          <p className="text-xs text-muted-foreground">Urgentes</p>
-          <p className="text-2xl font-bold text-orange-500">{urgentOrders}</p>
-          <p className="text-xs text-muted-foreground">{completedOrders} completadas</p>
-        </div>
-      </div>
-
-      <Card className="border-border/70 bg-card/90">
-        <CardHeader>
-          <CardTitle>Navegación del módulo</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-5">
-
-          {/* Mantenimiento */}
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Mantenimiento</p>
-            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
-              <Button asChild className="justify-between">
-                <Link href="/dashboard/mantenimiento/ordenes-trabajo/create">
-                  Crear orden de trabajo
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="justify-between">
-                <Link href="/dashboard/mantenimiento/ordenes-trabajo">
-                  Ver ordenes de trabajo
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="justify-between">
-                <Link href="/dashboard/mantenimiento/planificacion">
-                  Planificacion preventiva
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="justify-between">
-                <Link href="/dashboard/mantenimiento/bitacora">
-                  Bitacora
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="justify-between">
-                <Link href="/dashboard/mantenimiento/centro-costo">
-                  Por centro de costo
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="justify-between">
-                <Link href="/dashboard/mantenimiento/movil">
-                  Operacion en terreno
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-          </div>
-
-          {/* Activos y traslados */}
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Activos y traslados</p>
-            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
-              <Button asChild variant="outline" className="justify-between">
-                <Link href="/dashboard/mantenimiento/equipos">
-                  Equipos
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="justify-between">
-                <Link href="/dashboard/mantenimiento/vehiculos">
-                  Vehiculos y traslados
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="justify-between">
-                <Link href="/dashboard/mantenimiento/documentos/expedientes">
-                  Expedientes por equipo
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="justify-between">
-                <Link href="/dashboard/mantenimiento/neumaticos">
-                  Neumaticos
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="justify-between">
-                <Link href="/dashboard/mantenimiento/componentes-mayores">
-                  Componentes mayores
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="justify-between">
-                <Link href="/dashboard/mantenimiento/disponibilidad">
-                  Disponibilidad en tiempo real
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="justify-between">
-                <Link href="/dashboard/mantenimiento/equipos/importar">
-                  Importar equipos
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="justify-between">
-                <Link href="/dashboard/mantenimiento/vehiculos/importar">
-                  Importar vehiculos
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-          </div>
-
-          {/* Recursos y costos */}
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Recursos y costos</p>
-            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
-              <Button asChild variant="outline" className="justify-between">
-                <Link href="/dashboard/mantenimiento/personal">
-                  Personal
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="justify-between">
-                <Link href="/dashboard/mantenimiento/combustible">
-                  Combustible
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="justify-between">
-                <Link href="/dashboard/mantenimiento/costos">
-                  Costo por equipo
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-          </div>
-
-          {/* Control y reportes */}
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Control y reportes</p>
-            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
-              <Button asChild variant="outline" className="justify-between">
-                <Link href="/dashboard/mantenimiento/gerencial">
-                  Dashboard gerencial
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="justify-between">
-                <Link href="/dashboard/mantenimiento/indicadores">
-                  Indicadores
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-          </div>
-
-          {/* Documentacion */}
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Documentacion</p>
-            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
-              <Button asChild variant="outline" className="justify-between">
-                <Link href="/dashboard/mantenimiento/documentos">
-                  Documentos
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="justify-between">
-                <Link href="/dashboard/mantenimiento/fichas-tecnicas">
-                  Fichas tecnicas
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <div className="col-span-full mt-2 pt-2">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Importaciones</p>
-              </div>
-              <Button asChild variant="outline" className="justify-between">
-                <Link href="/dashboard/mantenimiento/planificacion/importar">
-                  Importar planificacion
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="justify-between">
-                <Link href="/dashboard/mantenimiento/neumaticos/importar">
-                  Importar neumaticos
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="justify-between">
-                <Link href="/dashboard/mantenimiento/personal/importar">
-                  Importar personal
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="justify-between">
-                <Link href="/dashboard/mantenimiento/bitacora/importar">
-                  Importar bitacora
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-          </div>
-
-        </CardContent>
-      </Card>
-
-      <Card className="border-border/70 bg-card/90">
-        <CardHeader>
-          <CardTitle>Inteligencia minera desde centros de costo</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Familias de maquinaria derivadas de la estructura real de centros de costo para apoyar
-            planificación, repuestos y control operativo.
-          </p>
-          {topMachineFamilies.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-              No hay maquinaria derivada aún desde centros de costo. Revisa la carga de la base para
-              habilitar esta lectura.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {topMachineFamilies.map(([family, count]) => (
-                <div key={family} className="rounded-lg border border-border p-4">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">{family}</p>
-                  <p className="mt-2 text-2xl font-bold">{count}</p>
-                  <p className="text-xs text-muted-foreground">Activos derivados para mantenimiento</p>
-                </div>
-              ))}
-            </div>
-          )}
-          <p className="text-xs text-muted-foreground">
-            Total de modelos detectados: {derivedMachineCount}
-          </p>
-        </CardContent>
-      </Card>
-
-
-
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Card>
-          <CardHeader>
-            <CardTitle>Estado de equipos</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-              <div className="rounded-lg border border-border p-3">
-                <p className="text-xs text-muted-foreground">Operativos</p>
-                <p className="text-2xl font-bold text-green-500">{activeAssets}</p>
-              </div>
-              <div className="rounded-lg border border-border p-3">
-                <p className="text-xs text-muted-foreground">En mantenimiento</p>
-                <p className="text-2xl font-bold text-secondary">{maintenanceAssets}</p>
-              </div>
-              <div className="rounded-lg border border-border p-3">
-                <p className="text-xs text-muted-foreground">Inactivos</p>
-                <p className="text-2xl font-bold text-muted-foreground">{inactiveAssets}</p>
-              </div>
-              <div className="rounded-lg border border-border p-3">
-              <p className="text-xs text-muted-foreground">Críticos</p>
-                <p className="text-2xl font-bold text-orange-500">{criticalAssets.length}</p>
-              </div>
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">Disponibilidad</p>
+              <Activity className="h-4 w-4 text-muted-foreground" />
             </div>
-
-            <div className="space-y-2">
-              {criticalAssets.length === 0 ? (
-                <div className="flex items-center gap-2 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-                  <AlertCircle className="h-4 w-4" />
-                No hay equipos críticos visibles.
-                </div>
-              ) : (
-                criticalAssets.map((asset) => (
-                  <div key={asset.id} className="flex items-center justify-between rounded-lg border border-border p-3">
-                    <div>
-                      <p className="font-semibold">{asset.assetName || asset.assetCode || 'Equipo'}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {asset.assetType || 'Sin tipo'} - {asset.location || 'Sin ubicación'}
-                      </p>
-                    </div>
-                    <Badge variant={assetStatusVariant(String(asset.status || '').toLowerCase())}>
-                      {assetStatusLabel(String(asset.status || '').toLowerCase())}
-                    </Badge>
-                  </div>
-                ))
-              )}
-            </div>
+            <p className="mt-3 text-3xl font-semibold tracking-tight">{availability}%</p>
+            <p className="mt-1 text-xs text-muted-foreground">{activeAssets} de {totalAssets} activos operativos</p>
           </CardContent>
         </Card>
-
         <Card>
-          <CardHeader>
-            <CardTitle>OT recientes</CardTitle>
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">OT activas</p>
+              <ClipboardList className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <p className="mt-3 text-3xl font-semibold tracking-tight">{openOrders}</p>
+            <p className="mt-1 text-xs text-muted-foreground">Pendientes o en progreso</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">OT vencidas</p>
+              <AlertCircle className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <p className="mt-3 text-3xl font-semibold tracking-tight">{overdueOrders}</p>
+            <p className="mt-1 text-xs text-muted-foreground">Fuera de plazo</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">Activos fuera de servicio</p>
+              <Wrench className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <p className="mt-3 text-3xl font-semibold tracking-tight">{inactiveAssets}</p>
+            <p className="mt-1 text-xs text-muted-foreground">Requieren revisión operacional</p>
+          </CardContent>
+        </Card>
+      </section>
+
+      <section className="grid gap-5 xl:grid-cols-[1.25fr_0.75fr]">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <div>
+              <CardTitle className="text-base">Actividad reciente</CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">Últimas órdenes registradas en el módulo.</p>
+            </div>
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/dashboard/mantenimiento/ordenes-trabajo">Ver todas</Link>
+            </Button>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent>
             {recentOrders.length === 0 ? (
-              <div className="flex items-center gap-2 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-                <AlertCircle className="h-4 w-4" />
-                No hay órdenes registradas todavía.
+              <div className="rounded-lg border border-dashed p-6 text-sm text-muted-foreground">
+                No existen órdenes registradas todavía.
               </div>
             ) : (
-              recentOrders.map((orden) => (
-                <div key={orden.id} className="rounded-lg border border-border bg-background p-3">
-                  <div className="flex items-start justify-between gap-3">
+              <div className="divide-y">
+                {recentOrders.map((order, index) => (
+                  <div key={String(order.id ?? index)} className="flex flex-col gap-3 py-4 first:pt-0 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0">
-                      <div className="font-semibold text-foreground">
-                        {orden.order_number || orden.code || 'OT'} - {orden.title}
-                      </div>
-                      <p className="mt-1 text-sm text-muted-foreground">{orden.description}</p>
+                      <p className="truncate text-sm font-medium">{order.description || `Orden ${order.id ?? index + 1}`}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{statusLabel(order.status)}</p>
                     </div>
-                    <div className="flex shrink-0 flex-col items-end gap-2">
-                      <Badge variant={priorityVariant(orden.priority)}>{priorityLabel(orden.priority)}</Badge>
-                      <span className="text-xs text-muted-foreground">{statusLabel(orden.status)}</span>
-                    </div>
+                    <Badge variant={['urgente', 'critical'].includes(order.priority) ? 'destructive' : 'outline'}>
+                      {priorityLabel(order.priority)}
+                    </Badge>
                   </div>
-
-                  <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                    {orden.asset_name ? <span>Equipo: {orden.asset_name}</span> : null}
-                    {orden.scheduled_date ? <span>Programada: {new Date(orden.scheduled_date).toLocaleDateString('es-CL')}</span> : null}
-                    {orden.assigned_to_name ? <span>Responsable: {orden.assigned_to_name}</span> : null}
-                  </div>
-                </div>
-              ))
+                ))}
+              </div>
             )}
           </CardContent>
         </Card>
-      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Resumen operacional</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-            <div className="rounded-lg border border-border p-4">
-              <p className="text-xs text-muted-foreground">OT completadas</p>
-              <p className="text-2xl font-bold text-green-500">{completedOrders}</p>
-            </div>
-            <div className="rounded-lg border border-border p-4">
-              <p className="text-xs text-muted-foreground">OT en progreso</p>
-              <p className="text-2xl font-bold text-blue-500">{inProgressOrders}</p>
-            </div>
-            <div className="rounded-lg border border-border p-4">
-              <p className="text-xs text-muted-foreground">OT urgentes</p>
-              <p className="text-2xl font-bold text-orange-500">{urgentOrders}</p>
-            </div>
-            <div className="rounded-lg border border-border p-4">
-              <p className="text-xs text-muted-foreground">Disponibilidad</p>
-              <p className="text-2xl font-bold">{availability}%</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        <Card className="border-primary/20 bg-primary/[0.03]">
+          <CardHeader>
+            <CardTitle className="text-base">Acción recomendada</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="font-medium">{recommendedAction.title}</p>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">{recommendedAction.description}</p>
+            <Button asChild className="mt-5 w-full justify-between">
+              <Link href={recommendedAction.href}>
+                {recommendedAction.label}
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </section>
+
+      <section>
+        <div className="mb-4">
+          <h2 className="text-xl font-semibold tracking-tight">Áreas del módulo</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Navega por función, no por una lista plana de páginas.</p>
+        </div>
+        <div className="grid gap-5 xl:grid-cols-2">
+          {moduleSections.map((section) => (
+            <Card key={section.title} className="overflow-hidden">
+              <CardHeader className="border-b bg-muted/20 pb-4">
+                <CardTitle className="text-base">{section.title}</CardTitle>
+                <p className="text-sm text-muted-foreground">{section.description}</p>
+              </CardHeader>
+              <CardContent className="p-2">
+                {section.links.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className="group flex items-center gap-3 rounded-lg px-3 py-3 transition-colors hover:bg-muted/60"
+                    >
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border bg-background">
+                        <Icon className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium">{item.label}</p>
+                        <p className="truncate text-xs text-muted-foreground">{item.description}</p>
+                      </div>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                    </Link>
+                  );
+                })}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
