@@ -1,12 +1,14 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
-import { AlertCircle, CheckCircle2, Clock, Eye, Plus, Wrench } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Clock3, Eye, Plus, RefreshCw, Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MaintenanceSchedule } from '@/components/maintenance/maintenance-schedule';
 
 type WorkOrderItem = {
@@ -38,90 +40,121 @@ function normalizeText(value: string | null | undefined) {
     .toLowerCase();
 }
 
+function getStatusLabel(status: string | null | undefined) {
+  switch (normalizeText(status)) {
+    case 'completed':
+    case 'completado':
+      return 'Completada';
+    case 'in_progress':
+    case 'en_progreso':
+      return 'En progreso';
+    case 'open':
+    case 'abierta':
+    case 'pending':
+    case 'pendiente':
+      return 'Abierta';
+    default:
+      return status || 'Sin estado';
+  }
+}
+
+function getWorkTypeLabel(workType: string | null | undefined) {
+  switch (normalizeText(workType)) {
+    case 'corrective':
+      return 'Correctiva';
+    case 'preventive':
+      return 'Preventiva';
+    case 'predictive':
+      return 'Predictiva';
+    default:
+      return workType || 'Sin tipo';
+  }
+}
+
+function getPriorityLabel(priority: string | null | undefined) {
+  switch (normalizeText(priority)) {
+    case 'critical':
+    case 'urgente':
+      return 'Crítica';
+    case 'high':
+    case 'alta':
+      return 'Alta';
+    case 'medium':
+    case 'media':
+      return 'Media';
+    case 'low':
+    case 'baja':
+      return 'Baja';
+    default:
+      return priority || 'Sin prioridad';
+  }
+}
+
+function getStatusClass(status: string | null | undefined) {
+  const normalized = normalizeText(status);
+  if (['completed', 'completado'].includes(normalized)) return 'border-emerald-200 bg-emerald-50 text-emerald-700';
+  if (['in_progress', 'en_progreso'].includes(normalized)) return 'border-blue-200 bg-blue-50 text-blue-700';
+  return 'border-amber-200 bg-amber-50 text-amber-700';
+}
+
+function isOverdue(order: WorkOrderItem) {
+  if (!order.scheduled_date || ['completed', 'completado'].includes(normalizeText(order.status))) return false;
+  const scheduled = new Date(order.scheduled_date);
+  if (Number.isNaN(scheduled.getTime())) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  scheduled.setHours(0, 0, 0, 0);
+  return scheduled < today;
+}
+
 export default function WorkOrdersPage() {
   const [updatingScheduleId, setUpdatingScheduleId] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [priorityFilter, setPriorityFilter] = useState('all');
+
   const { data, error, isLoading, mutate } = useSWR('/api/maintenance/work-orders', async (url: string) => {
     const res = await fetch(url, { credentials: 'include' });
     const payload = await res.json().catch(() => null);
-    if (!res.ok) throw new Error(payload?.error || 'No se pudieron cargar las ordenes de trabajo');
+    if (!res.ok) throw new Error(payload?.error || 'No se pudieron cargar las órdenes de trabajo');
     return payload;
   });
 
   const workOrders = Array.isArray(data?.workOrders) ? (data.workOrders as WorkOrderItem[]) : [];
+  const open = workOrders.filter((wo) => ['open', 'pending', 'abierta', 'pendiente'].includes(normalizeText(wo.status))).length;
+  const inProgress = workOrders.filter((wo) => ['in_progress', 'en_progreso'].includes(normalizeText(wo.status))).length;
+  const critical = workOrders.filter((wo) => ['critical', 'urgente'].includes(normalizeText(wo.priority))).length;
+  const overdue = workOrders.filter(isOverdue).length;
 
-  const inProgress = workOrders.filter((wo) => normalizeText(wo.status) === 'in_progress').length;
-  const critical = workOrders.filter((wo) => normalizeText(wo.priority) === 'critical').length;
-  const completed = workOrders.filter((wo) => normalizeText(wo.status) === 'completed').length;
-
-  const getStatusColor = (status: string | null | undefined) => {
-    switch (normalizeText(status)) {
-      case 'completed':
-        return 'bg-accent/10 text-accent';
-      case 'in_progress':
-        return 'bg-primary/10 text-primary';
-      case 'open':
-      case 'abierta':
-        return 'bg-destructive/10 text-destructive';
-      default:
-        return 'bg-muted/50 text-muted-foreground';
-    }
-  };
-
-  const getPriorityColor = (priority: string | null | undefined) => {
-    switch (normalizeText(priority)) {
-      case 'critical':
-        return 'border-destructive/50 bg-destructive/5';
-      case 'high':
-        return 'border-orange-500/50 bg-orange-500/5';
-      default:
-        return 'border-border';
-    }
-  };
-
-  const getStatusLabel = (status: string | null | undefined) => {
-    switch (normalizeText(status)) {
-      case 'completed':
-        return 'Completada';
-      case 'in_progress':
-        return 'En progreso';
-      case 'open':
-      case 'abierta':
-        return 'Abierta';
-      default:
-        return status || 'Sin estado';
-    }
-  };
-
-  const getWorkTypeLabel = (workType: string | null | undefined) => {
-    switch (normalizeText(workType)) {
-      case 'corrective':
-        return 'Correctiva';
-      case 'preventive':
-        return 'Preventiva';
-      case 'predictive':
-        return 'Predictiva';
-      default:
-        return workType || 'Sin tipo';
-    }
-  };
+  const filteredOrders = useMemo(() => {
+    const query = normalizeText(search);
+    return workOrders.filter((order) => {
+      const matchesSearch =
+        !query ||
+        [order.work_order_number, order.title, order.asset_name, order.assigned_to_name]
+          .some((value) => normalizeText(value).includes(query));
+      const matchesStatus = statusFilter === 'all' || normalizeText(order.status) === statusFilter;
+      const matchesPriority = priorityFilter === 'all' || normalizeText(order.priority) === priorityFilter;
+      return matchesSearch && matchesStatus && matchesPriority;
+    });
+  }, [priorityFilter, search, statusFilter, workOrders]);
 
   const scheduleItems = useMemo(() => {
     return workOrders
-      .filter((wo) => wo.scheduled_date)
+      .filter((wo) => wo.scheduled_date && !['completed', 'completado'].includes(normalizeText(wo.status)))
       .map((wo): ScheduleItem => {
         const scheduledDate = new Date(wo.scheduled_date as string);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         scheduledDate.setHours(0, 0, 0, 0);
-        const daysUntil = Math.ceil((scheduledDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-        const priorityValue = normalizeText(wo.priority);
-
+        const daysUntil = Math.ceil((scheduledDate.getTime() - today.getTime()) / 86400000);
+        const priority = normalizeText(wo.priority);
         return {
           id: wo.id,
           assetName: wo.asset_name || 'Sin activo asociado',
-          taskName: `${wo.work_order_number || 'OT'} - ${wo.title}`,
+          taskName: `${wo.work_order_number || 'OT'} · ${wo.title || 'Sin título'}`,
           nextScheduledDate: wo.scheduled_date || '',
-          priority: priorityValue === 'critical' || priorityValue === 'high' ? 'high' : priorityValue === 'low' ? 'low' : 'medium',
+          priority: priority === 'critical' || priority === 'high' ? 'high' : priority === 'low' ? 'low' : 'medium',
           daysUntil,
         };
       })
@@ -138,12 +171,10 @@ export default function WorkOrdersPage() {
         credentials: 'include',
         body: JSON.stringify({ status: 'completed' }),
       });
-
       if (!res.ok) {
         const payload = await res.json().catch(() => null);
         throw new Error(payload?.error || 'No se pudo actualizar la orden de trabajo');
       }
-
       await mutate();
     } finally {
       setUpdatingScheduleId(null);
@@ -152,98 +183,140 @@ export default function WorkOrdersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+      <section className="flex flex-col gap-4 border-b border-border/70 pb-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Ordenes de trabajo</h1>
-          <p className="text-muted-foreground">Gestion de mantenimiento y seguimiento operativo con datos reales.</p>
+          <p className="text-sm font-medium text-muted-foreground">Mantenimiento · Operación diaria</p>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Órdenes de trabajo</h1>
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+            Planifica, asigna y controla trabajos correctivos, preventivos y predictivos sin perder el historial existente.
+          </p>
         </div>
-        <Link href="/dashboard/mantenimiento/ordenes-trabajo/create">
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" /> Crear nueva orden
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={() => void mutate()} disabled={isLoading}>
+            <RefreshCw className="mr-2 h-4 w-4" /> Actualizar
           </Button>
-        </Link>
+          <Button asChild>
+            <Link href="/dashboard/mantenimiento/ordenes-trabajo/create">
+              <Plus className="mr-2 h-4 w-4" /> Nueva OT
+            </Link>
+          </Button>
+        </div>
+      </section>
+
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {[
+          ['Abiertas', open, Clock3],
+          ['En progreso', inProgress, CheckCircle2],
+          ['Críticas', critical, AlertCircle],
+          ['Vencidas', overdue, AlertCircle],
+        ].map(([label, value, Icon]) => (
+          <Card key={String(label)} className="shadow-none">
+            <CardContent className="flex items-center justify-between p-4">
+              <div>
+                <p className="text-xs text-muted-foreground">{String(label)}</p>
+                <p className="mt-1 text-2xl font-semibold">{Number(value)}</p>
+              </div>
+              <div className="rounded-lg bg-muted p-2"><Icon className="h-4 w-4 text-muted-foreground" /></div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
-        <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">Total</p><p className="mt-2 text-3xl font-bold text-primary">{workOrders.length}</p></CardContent></Card>
-        <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">En progreso</p><p className="mt-2 text-3xl font-bold text-primary">{inProgress}</p></CardContent></Card>
-        <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">Criticas</p><p className="mt-2 text-3xl font-bold text-destructive">{critical}</p></CardContent></Card>
-        <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">Completadas</p><p className="mt-2 text-3xl font-bold text-accent">{completed}</p></CardContent></Card>
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        <Link href="/dashboard/mantenimiento">
-          <Button variant="outline" className="gap-2"><Wrench className="h-4 w-4" /> Volver a mantenimiento</Button>
-        </Link>
-      </div>
-
-      <Card>
-        <CardHeader><CardTitle>Planificacion visual</CardTitle></CardHeader>
-        <CardContent>
-          <div className="mb-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
-            <span>Vencidas y proximas primero</span>
-            <span>Â·</span>
-            <span>Actualiza el estado directo desde cada bloque</span>
+      <Card className="shadow-none">
+        <CardContent className="p-4">
+          <div className="grid gap-3 md:grid-cols-[minmax(240px,1fr)_180px_180px_auto]">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar OT, equipo o responsable" className="pl-9" />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger><SelectValue placeholder="Estado" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los estados</SelectItem>
+                <SelectItem value="open">Abiertas</SelectItem>
+                <SelectItem value="in_progress">En progreso</SelectItem>
+                <SelectItem value="completed">Completadas</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+              <SelectTrigger><SelectValue placeholder="Prioridad" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas las prioridades</SelectItem>
+                <SelectItem value="critical">Crítica</SelectItem>
+                <SelectItem value="high">Alta</SelectItem>
+                <SelectItem value="medium">Media</SelectItem>
+                <SelectItem value="low">Baja</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button variant="ghost" onClick={() => { setSearch(''); setStatusFilter('all'); setPriorityFilter('all'); }}>
+              Limpiar
+            </Button>
           </div>
-          {updatingScheduleId ? <p className="mb-3 text-sm text-muted-foreground">Actualizando orden {updatingScheduleId}...</p> : null}
-          <MaintenanceSchedule schedules={scheduleItems} onMarkComplete={markScheduleComplete} />
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader><CardTitle>Ordenes activas</CardTitle></CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {isLoading && (
-              <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
-                Cargando ordenes de trabajo...
-              </div>
-            )}
+      {scheduleItems.length > 0 && (
+        <Card className="shadow-none">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Próximas intervenciones</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {updatingScheduleId && <p className="mb-3 text-sm text-muted-foreground">Actualizando orden...</p>}
+            <MaintenanceSchedule schedules={scheduleItems} onMarkComplete={markScheduleComplete} />
+          </CardContent>
+        </Card>
+      )}
 
-            {error && !isLoading && (
-              <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-8 text-center">
-                <p className="font-medium text-destructive">No se pudieron cargar las ordenes de trabajo</p>
-                <p className="mt-2 text-sm text-muted-foreground">Reintenta la carga o revisa la conexion antes de crear nuevas tareas operativas.</p>
-              </div>
-            )}
-
-            {!isLoading && !error && workOrders.length === 0 && (
-              <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
-                No hay ordenes de trabajo registradas todavia
-              </div>
-            )}
-
-            {!error && workOrders.map((wo) => (
-              <div key={wo.id} className={`rounded-lg border-2 p-4 transition-colors hover:bg-muted/30 ${getPriorityColor(wo.priority)}`}>
-                <div className="mb-3 flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="mb-1 flex items-center gap-2">
-                      <code className="rounded bg-muted px-2 py-1 font-mono text-xs">{wo.work_order_number}</code>
-                      <Badge className={getStatusColor(wo.status)} variant="outline">{getStatusLabel(wo.status)}</Badge>
-                      <Badge variant="outline">{getWorkTypeLabel(wo.work_type || 'preventive')}</Badge>
-                    </div>
-                    <h3 className="font-semibold">{wo.title}</h3>
-                    <div className="mt-2 flex items-center gap-4 text-sm text-muted-foreground">
-                      <span>Activo: {wo.asset_name || 'Sin activo asociado'}</span>
-                      <span>Asignado: {wo.assigned_to_name || 'Sin asignar'}</span>
-                      <span>Programada: {wo.scheduled_date ? new Date(wo.scheduled_date).toLocaleDateString('es-CL') : 'Sin fecha'}</span>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/dashboard/mantenimiento/ordenes-trabajo/${wo.id}`}><Eye className="h-4 w-4" /></Link>
-                    </Button>
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/dashboard/mantenimiento/ordenes-trabajo/${wo.id}`}>Detalle</Link>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ))}
+      <Card className="shadow-none">
+        <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
+          <div>
+            <CardTitle className="text-base">Registro de órdenes</CardTitle>
+            <p className="mt-1 text-sm text-muted-foreground">{filteredOrders.length} de {workOrders.length} órdenes</p>
           </div>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="space-y-2">{Array.from({ length: 5 }).map((_, index) => <div key={index} className="h-20 animate-pulse rounded-lg bg-muted" />)}</div>
+          ) : error ? (
+            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-8 text-center">
+              <p className="font-medium text-destructive">No se pudieron cargar las órdenes</p>
+              <Button className="mt-4" variant="outline" onClick={() => void mutate()}>Reintentar</Button>
+            </div>
+          ) : filteredOrders.length === 0 ? (
+            <div className="rounded-lg border border-dashed p-10 text-center text-sm text-muted-foreground">No hay órdenes que coincidan con los filtros.</div>
+          ) : (
+            <div className="divide-y rounded-lg border">
+              {filteredOrders.map((order) => (
+                <div key={order.id} className="grid gap-4 p-4 transition-colors hover:bg-muted/30 lg:grid-cols-[minmax(0,1.5fr)_minmax(160px,.8fr)_minmax(150px,.7fr)_auto] lg:items-center">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-mono text-xs text-muted-foreground">{order.work_order_number || 'Sin folio'}</span>
+                      <Badge variant="outline" className={getStatusClass(order.status)}>{getStatusLabel(order.status)}</Badge>
+                      {isOverdue(order) && <Badge variant="destructive">Vencida</Badge>}
+                    </div>
+                    <p className="mt-2 truncate font-medium">{order.title || 'Orden sin título'}</p>
+                    <p className="mt-1 truncate text-sm text-muted-foreground">{order.asset_name || 'Sin activo asociado'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Tipo y prioridad</p>
+                    <p className="mt-1 text-sm">{getWorkTypeLabel(order.work_type)} · {getPriorityLabel(order.priority)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Responsable / fecha</p>
+                    <p className="mt-1 text-sm">{order.assigned_to_name || 'Sin asignar'}</p>
+                    <p className="text-xs text-muted-foreground">{order.scheduled_date ? new Date(order.scheduled_date).toLocaleDateString('es-CL') : 'Sin fecha'}</p>
+                  </div>
+                  <Button asChild variant="ghost" size="sm">
+                    <Link href={`/dashboard/mantenimiento/ordenes-trabajo/${order.id}`}>
+                      <Eye className="mr-2 h-4 w-4" /> Ver detalle
+                    </Link>
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
   );
 }
-
