@@ -1,15 +1,20 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
-import { AlertCircle, ArrowRight, CalendarClock, Download, Filter, History } from 'lucide-react';
+import { AlertCircle, ArrowRight, Download, History, Search, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 
-const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
+const fetcher = async (url: string) => {
+  const response = await fetch(url, { credentials: 'include' });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(payload?.error || 'No se pudo cargar la bitácora');
+  return payload;
+};
 
 type WorkOrderSummary = {
   workOrderNumber: string | null;
@@ -44,12 +49,15 @@ type MaintenanceHistoryEntry = {
 
 type MaintenanceHistoryResponse = {
   entries?: MaintenanceHistoryEntry[];
-  assets?: unknown[];
-  summary?: {
-    total?: number;
-    assets?: number;
-  };
 };
+
+function normalizeText(value: string | null | undefined) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
+}
 
 function maintenanceTypeLabel(type?: string | null) {
   const labels: Record<string, string> = {
@@ -57,237 +65,239 @@ function maintenanceTypeLabel(type?: string | null) {
     corrective: 'Correctiva',
     predictive: 'Predictiva',
   };
-  return labels[String(type || '').toLowerCase()] || type || 'Sin tipo';
+  return labels[normalizeText(type)] || type || 'Sin tipo';
 }
 
 function formatCurrency(value: number) {
-  return `$${Number(value || 0).toLocaleString('es-CL')}`;
+  return new Intl.NumberFormat('es-CL', {
+    style: 'currency',
+    currency: 'CLP',
+    maximumFractionDigits: 0,
+  }).format(Number(value || 0));
 }
 
 export function MaintenanceHistoryBoard() {
   const [searchTerm, setSearchTerm] = useState('');
   const { data, error, isLoading, mutate } = useSWR<MaintenanceHistoryResponse>(
     '/api/maintenance/history?limit=200',
-    fetcher
+    fetcher,
   );
 
   const entries = Array.isArray(data?.entries) ? data.entries : [];
+  const query = normalizeText(searchTerm);
+
+  const filteredEntries = useMemo(() => {
+    if (!query) return entries;
+    return entries.filter((entry) =>
+      [
+        entry.assetName,
+        entry.assetCode,
+        entry.assetType,
+        entry.location,
+        entry.maintenanceType,
+        entry.performedByName,
+        entry.notes,
+        entry.workOrder?.workOrderNumber,
+        entry.workOrder?.title,
+      ]
+        .map(normalizeText)
+        .join(' ')
+        .includes(query),
+    );
+  }, [entries, query]);
+
   const groupedByAsset = useMemo(() => {
     const groups = new Map<string, MaintenanceHistoryEntry[]>();
-    entries.forEach((entry) => {
+    filteredEntries.forEach((entry) => {
       const key = entry.assetId || entry.assetCode || entry.assetName || 'sin-activo';
-      const bucket = groups.get(key) || [];
-      bucket.push(entry);
-      groups.set(key, bucket);
+      const current = groups.get(key) || [];
+      current.push(entry);
+      groups.set(key, current);
     });
 
-    const query = searchTerm.trim().toLowerCase();
-
     return Array.from(groups.entries())
-      .map(([key, rows]) => {
-        const first = rows[0];
-        return {
-          key,
-          assetId: first.assetId,
-          assetName: first.assetName,
-          assetCode: first.assetCode,
-          assetType: first.assetType,
-          location: first.location,
-          criticality: first.criticality,
-          rows: rows.filter((row) => {
-            if (!query) return true;
-            const searchable = [
-              row.assetName,
-              row.assetCode,
-              row.assetType,
-              row.location,
-              row.maintenanceType,
-              row.performedByName,
-              row.notes,
-              row.workOrder?.workOrderNumber,
-              row.workOrder?.title,
-            ]
-              .map((value) => String(value || '').toLowerCase())
-              .join(' ');
-            return searchable.includes(query);
-          }),
-        };
-      })
-      .filter((group) => group.rows.length > 0)
+      .map(([key, rows]) => ({
+        key,
+        assetId: rows[0].assetId,
+        assetName: rows[0].assetName,
+        assetCode: rows[0].assetCode,
+        assetType: rows[0].assetType,
+        location: rows[0].location,
+        criticality: rows[0].criticality,
+        rows: [...rows].sort((a, b) => String(b.createdAt || b.createdDate || '').localeCompare(String(a.createdAt || a.createdDate || ''))),
+      }))
       .sort((a, b) => a.assetName.localeCompare(b.assetName, 'es'));
-  }, [entries, searchTerm]);
+  }, [filteredEntries]);
 
-  const summary = {
-    total: entries.length,
-    assets: groupedByAsset.length,
-    totalPartsCost: entries.reduce((sum, entry) => sum + Number(entry.partsCost || 0), 0),
-    totalLaborHours: entries.reduce((sum, entry) => sum + Number(entry.laborHours || 0), 0),
-  };
+  const summary = useMemo(
+    () => ({
+      total: entries.length,
+      assets: new Set(entries.map((entry) => entry.assetId || entry.assetCode || entry.assetName)).size,
+      laborHours: entries.reduce((sum, entry) => sum + Number(entry.laborHours || 0), 0),
+      totalCost: entries.reduce(
+        (sum, entry) => sum + Number(entry.partsCost || 0) + Number(entry.laborCost || 0),
+        0,
+      ),
+    }),
+    [entries],
+  );
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+      <section className="flex flex-col gap-4 border-b border-border/70 pb-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Bitácora de mantenimiento</h1>
-          <p className="mt-2 text-muted-foreground">
-            Historial real por equipo con mantenciones, repuestos y responsables.
+          <p className="text-sm font-medium text-primary">Mantenimiento · Operación diaria</p>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Bitácora de mantenimiento</h1>
+          <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+            Historial consolidado por equipo, orden de trabajo, responsables, horas y costos registrados.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button asChild variant="outline" className="gap-2">
+          <Button asChild variant="outline">
             <Link href="/dashboard/mantenimiento/bitacora/importar">
-              <Download className="h-4 w-4" />
-              Importar Excel
+              <Download className="mr-2 h-4 w-4" />
+              Importar
             </Link>
           </Button>
-          <Button variant="outline" onClick={() => void mutate()} className="gap-2">
-            <History className="h-4 w-4" />
-            Recargar bitácora
+          <Button variant="outline" onClick={() => void mutate()}>
+            <History className="mr-2 h-4 w-4" />
+            Actualizar
           </Button>
-          <Button asChild variant="outline" className="gap-2">
-            <Link href="/dashboard/mantenimiento/vehiculos">
-              Vehículos y traslados
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild className="gap-2">
+          <Button asChild>
             <Link href="/dashboard/mantenimiento/planificacion">
-              <CalendarClock className="h-4 w-4" />
               Ver planificación
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
         </div>
-      </div>
+      </section>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Registros</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{summary.total}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Equipos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{summary.assets}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Horas hombre</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{summary.totalLaborHours}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Costo repuestos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(summary.totalPartsCost)}</div>
-          </CardContent>
-        </Card>
-      </div>
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {[
+          ['Registros', summary.total],
+          ['Equipos intervenidos', summary.assets],
+          ['Horas hombre', summary.laborHours],
+          ['Costo acumulado', formatCurrency(summary.totalCost)],
+        ].map(([label, value]) => (
+          <Card key={String(label)} className="border-border/70 shadow-none">
+            <CardContent className="p-4">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+              <p className="mt-2 text-2xl font-semibold tracking-tight">{value}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </section>
 
-      <Card>
-        <CardHeader className="space-y-3">
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-4 w-4" />
-            Buscar equipo o mantención
-          </CardTitle>
-          <Input
-            value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="Buscar por equipo, OT, tipo, técnico o nota"
-          />
-        </CardHeader>
+      <Card className="border-border/70 shadow-none">
+        <CardContent className="p-4">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder="Buscar equipo, OT, técnico, tipo o nota"
+                className="pl-9"
+              />
+            </div>
+            {searchTerm ? (
+              <Button variant="ghost" onClick={() => setSearchTerm('')}>
+                <X className="mr-2 h-4 w-4" />
+                Limpiar
+              </Button>
+            ) : null}
+            <p className="text-sm text-muted-foreground">
+              {filteredEntries.length} de {entries.length} registros
+            </p>
+          </div>
+        </CardContent>
       </Card>
 
       {error ? (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-          No fue posible cargar la bitácora real de mantenimiento.
-        </div>
+        <Card className="border-destructive/30 bg-destructive/5 shadow-none">
+          <CardContent className="flex items-center justify-between gap-4 p-5">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="h-5 w-5 text-destructive" />
+              <div>
+                <p className="font-medium text-destructive">No se pudo cargar la bitácora</p>
+                <p className="text-sm text-muted-foreground">Los datos existentes no fueron modificados.</p>
+              </div>
+            </div>
+            <Button variant="outline" onClick={() => void mutate()}>Reintentar</Button>
+          </CardContent>
+        </Card>
       ) : isLoading ? (
-        <div className="text-sm text-muted-foreground">Cargando bitácora...</div>
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="h-28 animate-pulse rounded-xl bg-muted" />
+          ))}
+        </div>
       ) : groupedByAsset.length === 0 ? (
-        <Card>
-          <CardContent className="flex items-center gap-2 p-6 text-sm text-muted-foreground">
-            <AlertCircle className="h-4 w-4" />
-            No hay registros para mostrar con el filtro actual.
+        <Card className="border-dashed shadow-none">
+          <CardContent className="p-10 text-center text-sm text-muted-foreground">
+            No hay registros para los criterios seleccionados.
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <section className="space-y-4">
           {groupedByAsset.map((group) => (
-            <Card key={group.key}>
-              <CardHeader className="pb-3">
+            <Card key={group.key} className="overflow-hidden border-border/70 shadow-none">
+              <CardHeader className="border-b border-border/60 bg-muted/20 pb-4">
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                   <div>
-                    <CardTitle className="text-lg">{group.assetName}</CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      {group.assetCode || '-'} {group.assetType ? ` · ${group.assetType}` : ''}
-                      {group.location ? ` · ${group.location}` : ''}
+                    <CardTitle className="text-base">{group.assetName}</CardTitle>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {[group.assetCode, group.assetType, group.location].filter(Boolean).join(' · ') || 'Sin información adicional'}
                     </p>
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Badge variant="outline">{group.rows.length} registros</Badge>
-                    {group.criticality ? <Badge>{String(group.criticality)}</Badge> : null}
+                    {group.criticality ? <Badge variant="secondary">{String(group.criticality)}</Badge> : null}
                     {group.assetId ? (
-                      <Button variant="outline" size="sm" asChild className="gap-2">
-                        <Link href={`/dashboard/mantenimiento/vehiculos/${group.assetId}/arbol`}>
-                          Ver ficha
-                          <ArrowRight className="h-4 w-4" />
-                        </Link>
-                      </Button>
-                    ) : null}
-                    {group.assetId ? (
-                      <Button variant="outline" size="sm" asChild className="gap-2">
-                        <Link href={`/dashboard/mantenimiento/vehiculos/${group.assetId}/qr`}>
-                          Ver QR
-                          <ArrowRight className="h-4 w-4" />
+                      <Button asChild variant="outline" size="sm">
+                        <Link href={`/dashboard/mantenimiento/equipos/${group.assetId}/ficha`}>
+                          Ver equipo
+                          <ArrowRight className="ml-2 h-4 w-4" />
                         </Link>
                       </Button>
                     ) : null}
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="divide-y divide-border/60 p-0">
                 {group.rows.map((entry) => (
-                  <div key={entry.id} className="rounded-lg border border-border bg-background p-4">
-                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                      <div className="space-y-2">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <Badge variant="secondary">{maintenanceTypeLabel(entry.maintenanceType)}</Badge>
-                          <span className="text-sm font-semibold">
-                            {entry.workOrder?.workOrderNumber || 'Sin OT'}
-                          </span>
-                          <span className="text-sm text-muted-foreground">{entry.workOrder?.title || 'Mantención registrada'}</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{entry.notes || 'Sin observaciones'}</p>
-                        <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-                          {entry.partsReplaced ? <span>Repuestos: {entry.partsReplaced}</span> : null}
-                          <span>Horas: {entry.laborHours || 0}</span>
-                          <span>Costo: {formatCurrency(Number(entry.partsCost || 0) + Number(entry.laborCost || 0))}</span>
-                        </div>
+                  <article key={entry.id} className="grid gap-4 p-4 md:grid-cols-[1fr_auto] md:items-start">
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="secondary">{maintenanceTypeLabel(entry.maintenanceType)}</Badge>
+                        <span className="font-mono text-xs text-muted-foreground">
+                          {entry.workOrder?.workOrderNumber || 'Sin OT'}
+                        </span>
+                        <span className="text-sm font-medium">{entry.workOrder?.title || 'Mantención registrada'}</span>
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        <p>{entry.createdDate || 'Sin fecha'}</p>
-                        {entry.performedByName ? <p className="mt-1 font-medium text-foreground">{entry.performedByName}</p> : null}
+                      <p className="text-sm text-muted-foreground">{entry.notes || 'Sin observaciones registradas.'}</p>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                        {entry.partsReplaced ? <span>Repuestos: {entry.partsReplaced}</span> : null}
+                        <span>Horas: {Number(entry.laborHours || 0)}</span>
+                        <span>Costo: {formatCurrency(Number(entry.partsCost || 0) + Number(entry.laborCost || 0))}</span>
                       </div>
                     </div>
-                  </div>
+                    <div className="text-left text-sm md:text-right">
+                      <p className="font-medium">{entry.createdDate || 'Sin fecha'}</p>
+                      <p className="mt-1 text-muted-foreground">{entry.performedByName || 'Sin responsable'}</p>
+                      {entry.workOrderId ? (
+                        <Button asChild variant="link" size="sm" className="mt-1 h-auto p-0">
+                          <Link href={`/dashboard/mantenimiento/ordenes-trabajo/${entry.workOrderId}`}>Ver OT</Link>
+                        </Button>
+                      ) : null}
+                    </div>
+                  </article>
                 ))}
               </CardContent>
             </Card>
           ))}
-        </div>
+        </section>
       )}
     </div>
   );
 }
-
