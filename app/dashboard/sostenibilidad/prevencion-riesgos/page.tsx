@@ -14,20 +14,17 @@ import {
   Shield,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const fetcher = async (url: string) => {
   const response = await fetch(url, { credentials: 'include' });
   const data = await response.json().catch(() => null);
-
-  if (!response.ok) {
-    return null;
-  }
-
+  if (!response.ok) return null;
   return data;
 };
 
-const PREVENCION_MODULE = 'prevenci\u00f3n';
+const PREVENCION_MODULE = 'prevención';
 const DOCUMENTOS_HSE_CATEGORY = 'documentos-hse';
 
 type ListResponse<T = unknown> = {
@@ -35,6 +32,14 @@ type ListResponse<T = unknown> = {
   total?: number;
   items?: T[];
   count?: number;
+};
+
+type WorkspaceItem = {
+  title: string;
+  description: string;
+  href: string;
+  icon: typeof Shield;
+  count: number;
 };
 
 const normalizeCount = (payload: ListResponse | unknown): number => {
@@ -50,85 +55,49 @@ const normalizeCount = (payload: ListResponse | unknown): number => {
   return 0;
 };
 
-const modules = [
-  {
-    title: 'Documentos HSE',
-    description: 'Políticas, procedimientos, instructivos y programas de seguridad.',
-    href: '/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse',
-    icon: FileText,
-    color: 'text-primary',
-    bgColor: 'bg-primary/10',
-  },
-  {
-    title: 'Capacitaciones',
-    description: 'Gestión de cursos, entrenamientos y certificaciones del personal.',
-    href: '/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones',
-    icon: GraduationCap,
-    color: 'text-secondary',
-    bgColor: 'bg-secondary/10',
-  },
-  {
-    title: 'Elementos de EPP',
-    description: 'Catálogo maestro, asignaciones y control de equipos de protección.',
-    href: '/dashboard/sostenibilidad/prevencion-riesgos/epp',
-    icon: HardHat,
-    color: 'text-primary',
-    bgColor: 'bg-primary/10',
-  },
-  {
-    title: 'No conformidades',
-    description: 'Registro, clasificacion y trazabilidad de hallazgos preventivos.',
-    href: '/dashboard/sostenibilidad/prevencion-riesgos/no-conformidades',
-    icon: AlertTriangle,
-    color: 'text-destructive',
-    bgColor: 'bg-destructive/10',
-  },
-  {
-    title: 'Acciones correctivas',
-    description: 'Seguimiento de responsables, plazos y cierres asociados a hallazgos.',
-    href: '/dashboard/sostenibilidad/prevencion-riesgos/acciones-correctivas',
-    icon: ClipboardCheck,
-    color: 'text-primary',
-    bgColor: 'bg-primary/10',
-  },
-  {
-    title: 'Indicadores de prevención',
-    description: 'Indicadores de seguridad y tendencias operacionales.',
-    href: '/dashboard/sostenibilidad/prevencion-riesgos/kpi',
-    icon: Activity,
-    color: 'text-secondary',
-    bgColor: 'bg-secondary/10',
-  },
-  {
-    title: 'Inspecciones',
-    description: 'Planificación, ejecución y seguimiento de inspecciones de seguridad.',
-    href: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones',
-    icon: ClipboardCheck,
-    color: 'text-muted-foreground',
-    bgColor: 'bg-muted',
-  },
-  {
-    title: 'Inspecciones externas',
-    description: 'Control documental de inspecciones externas y evidencia asociada.',
-    href: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones-externas',
-    icon: Shield,
-    color: 'text-secondary',
-    bgColor: 'bg-secondary/10',
-  },
-  {
-    title: 'Carpeta de Arranque',
-    description: 'Validación de documentos de empresas contratistas y subcontratistas.',
-    href: '/dashboard/sostenibilidad/prevencion-riesgos/carpeta-arranque',
-    icon: FolderOpen,
-    color: 'text-primary',
-    bgColor: 'bg-primary/10',
-  },
-];
+function WorkspaceSection({ title, description, items }: { title: string; description: string; items: WorkspaceItem[] }) {
+  return (
+    <section className="space-y-3">
+      <div>
+        <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </div>
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {items.map((item) => {
+          const Icon = item.icon;
+          return (
+            <Link key={item.href} href={item.href} className="group">
+              <Card className="h-full border-border/70 shadow-none transition-colors hover:border-foreground/20 hover:bg-muted/20">
+                <CardHeader className="space-y-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="rounded-lg bg-muted p-2.5">
+                      <Icon className="h-5 w-5 text-foreground" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="rounded-full font-medium">
+                        {item.count}
+                      </Badge>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                    </div>
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">{item.title}</CardTitle>
+                    <CardDescription className="mt-1.5 leading-relaxed">{item.description}</CardDescription>
+                  </div>
+                </CardHeader>
+              </Card>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
 
 export default function PrevencionRiesgosPage() {
   const { data: documentosData } = useSWR<ListResponse>(
     `/api/documents/list?module=${encodeURIComponent(PREVENCION_MODULE)}&category=${encodeURIComponent(DOCUMENTOS_HSE_CATEGORY)}`,
-    fetcher
+    fetcher,
   );
   const { data: capacitacionesData } = useSWR<ListResponse>('/api/sostenibilidad/capacitaciones', fetcher);
   const { data: eppData } = useSWR<ListResponse>('/api/sostenibilidad/epp', fetcher);
@@ -147,88 +116,138 @@ export default function PrevencionRiesgosPage() {
   const nonConformanceCount = normalizeCount(noConformidadesData);
   const correctiveActionCount = normalizeCount(accionesCorrectivasData);
 
-  const summaryCards = [
-    { label: 'Documentos HSE', value: documentCount },
-    { label: 'Capacitaciones', value: trainingCount },
-    { label: 'EPP activos', value: eppCount },
-    { label: 'Inspecciones', value: inspectionCount },
-    { label: 'No conformidades', value: nonConformanceCount },
-    { label: 'Acciones correctivas', value: correctiveActionCount },
+  const immediateControl: WorkspaceItem[] = [
+    {
+      title: 'No conformidades',
+      description: 'Revisar hallazgos, criticidad, estado y trazabilidad de cierre.',
+      href: '/dashboard/sostenibilidad/prevencion-riesgos/no-conformidades',
+      icon: AlertTriangle,
+      count: nonConformanceCount,
+    },
+    {
+      title: 'Acciones correctivas',
+      description: 'Controlar responsables, plazos y acciones vencidas o pendientes.',
+      href: '/dashboard/sostenibilidad/prevencion-riesgos/acciones-correctivas',
+      icon: ClipboardCheck,
+      count: correctiveActionCount,
+    },
+    {
+      title: 'Indicadores de prevención',
+      description: 'Consultar desempeño, evolución y señales operacionales del área.',
+      href: '/dashboard/sostenibilidad/prevencion-riesgos/kpi',
+      icon: Activity,
+      count: kpiCount,
+    },
   ];
 
-  const countsByModule: Record<string, number> = {
-    'Documentos HSE': documentCount,
-    Capacitaciones: trainingCount,
-    'Elementos de EPP': eppCount,
-    'No conformidades': nonConformanceCount,
-    'Acciones correctivas': correctiveActionCount,
-    Inspecciones: inspectionCount,
-    'Inspecciones externas': externalInspectionCount,
-    'Carpeta de Arranque': documentCount,
-    'Indicadores de prevención': kpiCount,
-  };
+  const preventiveExecution: WorkspaceItem[] = [
+    {
+      title: 'Inspecciones',
+      description: 'Planificar, ejecutar y hacer seguimiento de inspecciones internas.',
+      href: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones',
+      icon: ClipboardCheck,
+      count: inspectionCount,
+    },
+    {
+      title: 'Inspecciones externas',
+      description: 'Concentrar revisiones externas, evidencia y observaciones asociadas.',
+      href: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones-externas',
+      icon: Shield,
+      count: externalInspectionCount,
+    },
+    {
+      title: 'Capacitaciones',
+      description: 'Administrar cursos, entrenamientos y certificaciones del personal.',
+      href: '/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones',
+      icon: GraduationCap,
+      count: trainingCount,
+    },
+    {
+      title: 'Elementos de EPP',
+      description: 'Controlar catálogo, asignaciones y disponibilidad de protección personal.',
+      href: '/dashboard/sostenibilidad/prevencion-riesgos/epp',
+      icon: HardHat,
+      count: eppCount,
+    },
+  ];
+
+  const documentation: WorkspaceItem[] = [
+    {
+      title: 'Documentos HSE',
+      description: 'Políticas, procedimientos, instructivos y programas de seguridad.',
+      href: '/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse',
+      icon: FileText,
+      count: documentCount,
+    },
+    {
+      title: 'Carpeta de Arranque',
+      description: 'Validar documentación requerida para contratistas y subcontratistas.',
+      href: '/dashboard/sostenibilidad/prevencion-riesgos/carpeta-arranque',
+      icon: FolderOpen,
+      count: documentCount,
+    },
+  ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div className="flex items-center gap-4">
-          <div className="rounded-lg bg-primary/10 p-3">
-            <Shield className="h-8 w-8 text-primary" />
-          </div>
-          <div>
-            <div className="mb-2 flex items-center gap-2">
-              <Badge variant="outline" className="rounded-full border-primary/30 bg-primary/10 text-primary">
-                Datos reales
-              </Badge>
-            </div>
-            <h1 className="text-2xl font-bold">Prevención de Riesgos</h1>
-            <p className="text-muted-foreground">Gestión integral de seguridad y salud ocupacional dentro de Sostenibilidad, conectada a datos reales.</p>
-          </div>
+    <div className="space-y-8">
+      <header className="flex flex-col gap-5 border-b border-border/70 pb-6 lg:flex-row lg:items-end lg:justify-between">
+        <div className="max-w-3xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Sostenibilidad y HSE · Seguridad y salud</p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight">Prevención de Riesgos</h1>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            Control operacional de hallazgos, acciones correctivas, inspecciones, capacitación, EPP y documentación preventiva.
+          </p>
         </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-6">
-        {summaryCards.map((card) => (
-          <Card key={card.label} className="rounded-xl shadow-none">
-            <CardHeader className="pb-3">
-              <CardDescription>{card.label}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-foreground">{card.value}</div>
-              <p className="mt-2 text-xs text-muted-foreground">Conteo directo desde fuentes reales del módulo</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {modules.map((module) => {
-          const Icon = module.icon;
-          const count = countsByModule[module.title] ?? 0;
-
-          return (
-            <Link key={module.href} href={module.href}>
-              <Card className="group h-full rounded-xl shadow-none transition hover:bg-muted/20">
-                <CardHeader>
-                  <div className="mb-4 flex items-start justify-between">
-                    <div className={`rounded-lg p-2 ${module.bgColor}`}>
-                      <Icon className={`h-6 w-6 ${module.color}`} />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="rounded-full text-xs">
-                        {count}
-                      </Badge>
-                      <ArrowRight className="h-5 w-5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-                    </div>
-                  </div>
-                  <CardTitle className="text-lg">{module.title}</CardTitle>
-                  <CardDescription className="text-sm">{module.description}</CardDescription>
-                </CardHeader>
-              </Card>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline">
+            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse">
+              <FileText className="mr-2 h-4 w-4" />
+              Documentos HSE
             </Link>
-          );
-        })}
+          </Button>
+          <Button asChild>
+            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/inspecciones">
+              <ClipboardCheck className="mr-2 h-4 w-4" />
+              Nueva inspección
+            </Link>
+          </Button>
+        </div>
+      </header>
+
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Card className="shadow-none">
+          <CardHeader className="pb-2"><CardDescription>No conformidades</CardDescription></CardHeader>
+          <CardContent><div className="text-3xl font-semibold">{nonConformanceCount}</div><p className="mt-1 text-xs text-muted-foreground">Hallazgos registrados</p></CardContent>
+        </Card>
+        <Card className="shadow-none">
+          <CardHeader className="pb-2"><CardDescription>Acciones correctivas</CardDescription></CardHeader>
+          <CardContent><div className="text-3xl font-semibold">{correctiveActionCount}</div><p className="mt-1 text-xs text-muted-foreground">Seguimientos operativos</p></CardContent>
+        </Card>
+        <Card className="shadow-none">
+          <CardHeader className="pb-2"><CardDescription>Inspecciones</CardDescription></CardHeader>
+          <CardContent><div className="text-3xl font-semibold">{inspectionCount}</div><p className="mt-1 text-xs text-muted-foreground">Registros disponibles</p></CardContent>
+        </Card>
+        <Card className="shadow-none">
+          <CardHeader className="pb-2"><CardDescription>Capacitaciones</CardDescription></CardHeader>
+          <CardContent><div className="text-3xl font-semibold">{trainingCount}</div><p className="mt-1 text-xs text-muted-foreground">Cursos y certificaciones</p></CardContent>
+        </Card>
       </div>
+
+      <WorkspaceSection
+        title="Control inmediato"
+        description="Lo que requiere revisión, decisión o seguimiento prioritario."
+        items={immediateControl}
+      />
+      <WorkspaceSection
+        title="Ejecución preventiva"
+        description="Actividades recurrentes para controlar riesgos y mantener cumplimiento operativo."
+        items={preventiveExecution}
+      />
+      <WorkspaceSection
+        title="Documentación y habilitación"
+        description="Respaldo documental y requisitos de ingreso para operación propia y contratista."
+        items={documentation}
+      />
     </div>
   );
 }
