@@ -23,9 +23,27 @@ Los esquemas `canonical` y `staging` están restringidos a `service_role`. No re
 2. Stock valorizado: `Análisis de bodega (1) / Hoja6`.
 3. Proveedores: `Existencias (2) / Proveedores`.
 4. Compras: `Existencias (2) / compras`.
-5. Centros de costo: `Base Existencias (1) / Centros de Costos`.
-6. Costos por activo: `Costos equipos Mayo 2026 (1) / Base`.
-7. Resúmenes y tablas dinámicas se regeneran; no se importan como hechos.
+5. Centros de costo activos: catálogo vigente de `public.cost_centers` del sitio.
+6. Centros de costo históricos o adicionales: `Base Existencias (1) / Centros de Costos`, siempre con `is_active=false` hasta aprobación manual.
+7. Costos por activo: `Costos equipos Mayo 2026 (1) / Base`.
+8. Resúmenes y tablas dinámicas se regeneran; no se importan como hechos.
+
+## Regla específica para centros de costo
+
+- Un centro está activo únicamente cuando existe en el catálogo vigente del sitio para la organización.
+- Un centro presente solo en archivos históricos se conserva en `canonical.cost_centers` con `is_active=false` y `validation_status='pending'`.
+- La existencia en un archivo Excel nunca activa automáticamente un centro.
+- `Actividades Centenario` y sus hijos se clasifican como `event`. Pueden permanecer activos como centros financieros si están vigentes en el sitio, pero no deben aparecer como equipos ni activos en Mantenimiento.
+- Proyectos, administración, áreas, vehículos y activos se distinguen mediante `center_type`; la interfaz debe filtrar por tipo según el módulo.
+
+## Promoción realizada
+
+El lote `Base Existencias (1).xlsx` fue conciliado con el catálogo vigente del sitio:
+
+- 277 centros promovidos.
+- 277 activos por precedencia del sitio.
+- 0 centros adicionales activados desde Excel.
+- Tipificación resultante: 18 administración, 72 áreas, 107 activos, 6 eventos, 4 operaciones, 30 proyectos y 40 vehículos.
 
 ## Hallazgos bloqueantes o de revisión
 
