@@ -1,322 +1,310 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-import { read, utils } from 'xlsx'
-import { createHash } from 'crypto'
+export const dynamic = 'force-dynamic';
+export const maxDuration = 300;
 
-export const dynamic = 'force-dynamic'
-export const maxDuration = 300
+import { NextRequest, NextResponse } from 'next/server';
+import { Client } from 'pg';
+import { read, utils } from 'xlsx/xlsx.mjs';
+import { createHash } from 'crypto';
+import { readFileSync } from 'fs';
+import path from 'path';
 
-const ORG_ID = '2bd7fe06-8e4f-4a3a-b261-e3f5d8aa3dee'
-const BUCKET = 'module-documents'
+// Canonical data belongs to the real (non-demo) organization.
+const ORG_ID = '2bd7fe06-8e4f-4a3a-b261-e3f5d8aa3dee';
 
-const FILES = [
-  {
-    path: 'prevencion/documentos-hse/1781099533099_19.1_matriz_iper.xlsx',
-    section: 'risk_management',
-    kind: 'risk' as const,
-  },
-  {
-    path: 'prevencion/documentos-hse/1781107901239_seguimiento_y_control_procedimientos_de_s_so.xls',
-    section: 'controlled_procedures',
-    kind: 'control' as const,
-  },
-  {
-    path: 'prevencion/documentos-hse/1781107927727_seguimiento_y_control_de_reglamentos_de_s_so.xls',
-    section: 'controlled_regulations',
-    kind: 'control' as const,
-  },
-  {
-    path: 'prevencion/documentos-hse/1781109263318_maestro_licencias_internas_de_conduccion_marzo_2026.xls',
-    section: 'internal_driving_licenses',
-    kind: 'credential' as const,
-  },
-  {
-    path: 'prevencion/documentos-hse/1781113725862_seguimiento_y_control_instructivos_de_s_so.xls',
-    section: 'controlled_instructions',
-    kind: 'control' as const,
-  },
-]
+// The HSE import is disabled by default. It only runs when
+// HSE_CANONICAL_IMPORT_ENABLED is explicitly set to 'true', so a normal deploy can
+// never accidentally expose it. The import has already been driven to completion.
+const IMPORT_ENABLED = process.env.HSE_CANONICAL_IMPORT_ENABLED === 'true';
 
-type Row = Record<string, unknown>
+type DatasetKey = 'hse_roles' | 'hse_commitments' | 'hse_facilities' | 'status';
 
-function normalizeKey(value: string) {
-  return value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_|_$/g, '')
+type FileSpec = {
+  relPath: string;
+  blobUrl: string;
+  logicalName: string;
+};
+
+const FILES: Record<string, FileSpec> = {
+  roles: {
+    relPath: 'data/ROLES-INTRANET-d4ae24.xlsx',
+    blobUrl: 'https://blobs.vusercontent.net/blob/ROLES-INTRANET-d4ae24.xlsx',
+    logicalName: 'ROLES-INTRANET.xlsx',
+  },
+  commitments: {
+    relPath: 'data/Registro-Maestro-Compromisos-Ambientales-Javito-dc3afa.xlsx',
+    blobUrl: 'https://blobs.vusercontent.net/blob/Registro-Maestro-Compromisos-Ambientales-Javito-dc3afa.xlsx',
+    logicalName: 'Registro-Maestro-Compromisos-Ambientales.xlsx',
+  },
+  facilities: {
+    relPath: 'data/LISTADO-EECC-2f5c74.xlsx',
+    blobUrl: 'https://blobs.vusercontent.net/blob/LISTADO-EECC-2f5c74.xlsx',
+    logicalName: 'LISTADO-EECC.xlsx',
+  },
+};
+
+// ---------- helpers ----------
+
+function isAuthorized(req: NextRequest) {
+  const token = process.env.ADMIN_INIT_TOKEN;
+  if (!token) return false;
+  const auth = req.headers.get('authorization') || '';
+  const bearer = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
+  const xToken = req.headers.get('x-admin-token') || '';
+  return bearer === token || xToken === token;
 }
 
-function cleanValue(value: unknown): unknown {
-  if (value instanceof Date) return value.toISOString()
-  if (typeof value === 'string') return value.trim()
-  return value
+function cleanText(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+  const text = String(value).trim();
+  if (!text || text === '---') return null;
+  return text;
 }
 
-function normalizeRow(row: Row) {
-  return Object.fromEntries(
-    Object.entries(row)
-      .map(([key, value]) => [normalizeKey(key), cleanValue(value)])
-      .filter(([key, value]) => key && value !== '' && value !== null && value !== undefined),
-  ) as Row
-}
-
-function first(row: Row, aliases: string[]) {
-  for (const alias of aliases) {
-    const value = row[alias]
-    if (value !== undefined && value !== null && value !== '') return value
+function toDateString(value: unknown): string | null {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toISOString().slice(0, 10);
   }
-  return null
+  const text = cleanText(value);
+  if (!text) return null;
+  const d = new Date(text);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
 }
 
-function text(row: Row, aliases: string[]) {
-  const value = first(row, aliases)
-  return value == null ? null : String(value).trim()
+function hashRow(file: string, sheet: string, row: number): string {
+  return createHash('sha256').update(`${file}::${sheet}::${row}`).digest('hex');
 }
 
-function numberValue(row: Row, aliases: string[]) {
-  const value = first(row, aliases)
-  if (value == null) return null
-  const n = Number(String(value).replace(/\./g, '').replace(',', '.').replace(/[^0-9.-]/g, ''))
-  return Number.isFinite(n) ? n : null
+function normalizeRow(row: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const key of Object.keys(row)) out[key.trim()] = row[key];
+  return out;
 }
 
-function dateValue(row: Row, aliases: string[]) {
-  const value = first(row, aliases)
-  if (value == null) return null
-  if (typeof value === 'number') {
-    const epoch = new Date(Date.UTC(1899, 11, 30))
-    epoch.setUTCDate(epoch.getUTCDate() + value)
-    return epoch.toISOString().slice(0, 10)
+// ---------- workbook cache & loading ----------
+
+const workbookCache = new Map<string, ReturnType<typeof read>>();
+
+async function loadWorkbook(spec: FileSpec) {
+  if (workbookCache.has(spec.relPath)) return workbookCache.get(spec.relPath)!;
+  let buffer: Buffer;
+  try {
+    buffer = readFileSync(path.join(process.cwd(), spec.relPath));
+  } catch {
+    const res = await fetch(spec.blobUrl);
+    if (!res.ok) throw new Error(`No se pudo leer ${spec.logicalName} (fs y blob fallaron)`);
+    buffer = Buffer.from(await res.arrayBuffer());
   }
-  const parsed = new Date(String(value))
-  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString().slice(0, 10)
+  const wb = read(buffer, { type: 'buffer', cellDates: true });
+  workbookCache.set(spec.relPath, wb);
+  return wb;
 }
 
-function listValue(row: Row, aliases: string[]) {
-  const value = text(row, aliases)
-  return value ? value.split(/[,;/|]/).map((item) => item.trim()).filter(Boolean) : []
+function sheetRows(wb: ReturnType<typeof read>, sheet: string): Record<string, unknown>[] {
+  const ws = wb.Sheets[sheet];
+  if (!ws) throw new Error(`Hoja "${sheet}" no encontrada`);
+  return (utils.sheet_to_json(ws, { defval: null }) as unknown as Record<string, unknown>[]).map(normalizeRow);
 }
 
-function rowHash(filePath: string, sheet: string, rowNumber: number, row: Row) {
-  return createHash('sha256')
-    .update(JSON.stringify({ filePath, sheet, rowNumber, row }))
-    .digest('hex')
+// ---------- pg client ----------
+
+async function withPgClient<T>(handler: (client: Client) => Promise<T>) {
+  const connectionString = process.env.POSTGRES_URL_NON_POOLING || process.env.POSTGRES_URL;
+  if (!connectionString) throw new Error('No hay conexión Postgres disponible');
+  const client = new Client({
+    connectionString,
+    ssl: connectionString.includes('supabase') ? { rejectUnauthorized: false } : undefined,
+  });
+  const prevTls = process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+  await client.connect();
+  try {
+    return await handler(client);
+  } finally {
+    await client.end();
+    if (prevTls === undefined) delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+    else process.env.NODE_TLS_REJECT_UNAUTHORIZED = prevTls;
+  }
 }
 
-function hasData(row: Row) {
-  return Object.values(row).some((value) => value !== null && value !== undefined && String(value).trim() !== '')
+// ---------- dataset builders ----------
+
+async function loadHseRoles(client: Client, offset: number, limit: number) {
+  const wb = await loadWorkbook(FILES.roles);
+  const rows = sheetRows(wb, 'ROLES');
+  const slice = rows.slice(offset, offset + limit);
+  const records = slice.map((row, idx) => ({
+    name: cleanText(row['Rol']) || 'Sin nombre',
+    description: cleanText(row['Descripción']),
+    permissions: cleanText(row['Permisos']),
+    is_active: cleanText(row['Activo']) === 'Sí',
+    source_row: offset + idx + 2,
+    source_hash: hashRow(FILES.roles.logicalName, 'ROLES', offset + idx + 2),
+    source_payload: row,
+  }));
+
+  const result = await client.query(
+    `INSERT INTO hse_roles (organization_id, name, description, permissions, is_active, source_row, source_hash, source_payload, source_file)
+     SELECT $1, r.name, r.description, r.permissions, r.is_active, r.source_row, r.source_hash, r.source_payload::jsonb, $2
+     FROM jsonb_to_recordset($3::jsonb) AS r(name text, description text, permissions text, is_active boolean, source_row int, source_hash text, source_payload jsonb)
+     ON CONFLICT (organization_id, source_hash) DO UPDATE SET
+       description = EXCLUDED.description,
+       permissions = EXCLUDED.permissions,
+       is_active = EXCLUDED.is_active
+     RETURNING id`,
+    [ORG_ID, FILES.roles.logicalName, JSON.stringify(records)],
+  );
+
+  return { processed: slice.length, inserted: result.rowCount || 0 };
 }
 
-function riskPayload(row: Row, sourceRowId: string) {
-  const hazard = text(row, ['peligro', 'factor_de_riesgo', 'agente', 'hazard'])
-  if (!hazard) return null
+async function loadHseCommitments(client: Client, offset: number, limit: number) {
+  const wb = await loadWorkbook(FILES.commitments);
+  const rows = sheetRows(wb, 'Hoja1');
+  const slice = rows.slice(offset, offset + limit);
+  const records = slice.map((row, idx) => ({
+    commitment_id: cleanText(row['ID Compromiso']) || `C${offset + idx}`,
+    description: cleanText(row['Descripción del Compromiso']),
+    requirement: cleanText(row['Requisito']),
+    responsible: cleanText(row['Responsable']),
+    due_date: toDateString(row['Fecha Vencimiento']),
+    status: cleanText(row['Estado']) || 'Pendiente',
+    source_row: offset + idx + 2,
+    source_hash: hashRow(FILES.commitments.logicalName, 'Hoja1', offset + idx + 2),
+    source_payload: row,
+  }));
+
+  const result = await client.query(
+    `INSERT INTO hse_commitments (organization_id, commitment_id, description, requirement, responsible, due_date, status, source_row, source_hash, source_payload, source_file)
+     SELECT $1, r.commitment_id, r.description, r.requirement, r.responsible, r.due_date, r.status, r.source_row, r.source_hash, r.source_payload::jsonb, $2
+     FROM jsonb_to_recordset($3::jsonb) AS r(commitment_id text, description text, requirement text, responsible text, due_date date, status text, source_row int, source_hash text, source_payload jsonb)
+     ON CONFLICT (organization_id, source_hash) DO UPDATE SET
+       description = EXCLUDED.description,
+       status = EXCLUDED.status
+     RETURNING id`,
+    [ORG_ID, FILES.commitments.logicalName, JSON.stringify(records)],
+  );
+
+  return { processed: slice.length, inserted: result.rowCount || 0 };
+}
+
+async function loadHseFacilities(client: Client, offset: number, limit: number) {
+  const wb = await loadWorkbook(FILES.facilities);
+  const rows = sheetRows(wb, 'Hoja1');
+  const slice = rows.slice(offset, offset + limit);
+  const records = slice.map((row, idx) => ({
+    code: cleanText(row['Código']) || `F${offset + idx}`,
+    name: cleanText(row['Nombre']) || cleanText(row['Instalación']) || 'Sin nombre',
+    location: cleanText(row['Ubicación']),
+    type: cleanText(row['Tipo']),
+    risk_level: cleanText(row['Nivel Riesgo']) || 'Medio',
+    source_row: offset + idx + 2,
+    source_hash: hashRow(FILES.facilities.logicalName, 'Hoja1', offset + idx + 2),
+    source_payload: row,
+  }));
+
+  const result = await client.query(
+    `INSERT INTO hse_facilities (organization_id, code, name, location, type, risk_level, source_row, source_hash, source_payload, source_file)
+     SELECT $1, r.code, r.name, r.location, r.type, r.risk_level, r.source_row, r.source_hash, r.source_payload::jsonb, $2
+     FROM jsonb_to_recordset($3::jsonb) AS r(code text, name text, location text, type text, risk_level text, source_row int, source_hash text, source_payload jsonb)
+     ON CONFLICT (organization_id, source_hash) DO UPDATE SET
+       name = EXCLUDED.name,
+       location = EXCLUDED.location
+     RETURNING id`,
+    [ORG_ID, FILES.facilities.logicalName, JSON.stringify(records)],
+  );
+
+  return { processed: slice.length, inserted: result.rowCount || 0 };
+}
+
+async function getImportStatus(client: Client) {
+  const roles = await client.query('SELECT count(*) as cnt FROM hse_roles WHERE organization_id=$1', [
+    ORG_ID,
+  ]);
+  const commitments = await client.query('SELECT count(*) as cnt FROM hse_commitments WHERE organization_id=$1', [
+    ORG_ID,
+  ]);
+  const facilities = await client.query('SELECT count(*) as cnt FROM hse_facilities WHERE organization_id=$1', [
+    ORG_ID,
+  ]);
+
   return {
-    organization_id: ORG_ID,
-    source_row_id: sourceRowId,
-    risk_code: text(row, ['codigo', 'id', 'n', 'numero']),
-    process_area: text(row, ['proceso', 'area', 'proceso_area', 'lugar']),
-    task_activity: text(row, ['actividad', 'tarea', 'actividad_tarea']),
-    hazard,
-    risk_description: text(row, ['riesgo', 'descripcion_del_riesgo', 'riesgo_asociado']),
-    consequence: text(row, ['consecuencia', 'consecuencias', 'dano']),
-    existing_controls: text(row, ['medidas_de_control', 'controles_existentes', 'control', 'medidas']),
-    likelihood: numberValue(row, ['probabilidad', 'p']),
-    severity: numberValue(row, ['consecuencia_valor', 'severidad', 'c']),
-    risk_score: numberValue(row, ['nivel_de_riesgo', 'valor_riesgo', 'nr']),
-    risk_level: text(row, ['clasificacion', 'nivel', 'criticidad', 'categoria_riesgo']),
-    residual_likelihood: numberValue(row, ['probabilidad_residual', 'pr']),
-    residual_severity: numberValue(row, ['severidad_residual', 'cr']),
-    residual_score: numberValue(row, ['riesgo_residual', 'nrr']),
-    residual_level: text(row, ['nivel_residual', 'clasificacion_residual']),
-    responsible_person: text(row, ['responsable', 'responsable_control', 'dueno_del_riesgo']),
-    review_date: dateValue(row, ['fecha_revision', 'proxima_revision', 'fecha_actualizacion']),
-    status: text(row, ['estado']) || 'active',
-    metadata: row,
+    hse_roles: parseInt(roles.rows[0].cnt) || 0,
+    hse_commitments: parseInt(commitments.rows[0].cnt) || 0,
+    hse_facilities: parseInt(facilities.rows[0].cnt) || 0,
+  };
+}
+
+// ---------- handlers ----------
+
+export async function GET(req: NextRequest) {
+  if (!IMPORT_ENABLED) {
+    return NextResponse.json({ error: 'Importador deshabilitado' }, { status: 403 });
+  }
+
+  if (!isAuthorized(req)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const { searchParams } = new URL(req.url);
+    const dataset = searchParams.get('dataset') || 'status';
+
+    return await withPgClient(async (client) => {
+      if (dataset === 'status') {
+        const status = await getImportStatus(client);
+        return NextResponse.json({ status, enabled: IMPORT_ENABLED });
+      }
+
+      return NextResponse.json({ error: 'GET: use POST' }, { status: 400 });
+    });
+  } catch (error) {
+    console.error('[API] HSE import GET error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error', details: String(error) },
+      { status: 500 },
+    );
   }
 }
 
-function controlPayload(row: Row, sourceRowId: string, section: string) {
-  const title = text(row, ['nombre', 'titulo', 'documento', 'nombre_documento', 'procedimiento', 'reglamento', 'instructivo'])
-  if (!title) return null
-  return {
-    organization_id: ORG_ID,
-    source_row_id: sourceRowId,
-    document_code: text(row, ['codigo', 'cod', 'codigo_documento', 'identificacion']),
-    title,
-    document_class: section.replace('controlled_', ''),
-    version_text: text(row, ['version', 'revision', 'rev']),
-    issue_date: dateValue(row, ['fecha_emision', 'fecha_vigencia', 'fecha']),
-    last_review_date: dateValue(row, ['ultima_revision', 'fecha_revision', 'fecha_actualizacion']),
-    next_review_date: dateValue(row, ['proxima_revision', 'fecha_proxima_revision', 'fecha_vencimiento']),
-    status: text(row, ['estado', 'vigencia', 'status']),
-    responsible_person: text(row, ['responsable', 'elaborado_por', 'dueno']),
-    responsible_area: text(row, ['area', 'departamento', 'gerencia']),
-    evidence: text(row, ['registro', 'evidencia', 'observaciones']),
-    metadata: row,
-  }
-}
-
-function credentialPayload(row: Row, sourceRowId: string) {
-  const personName = text(row, ['nombre', 'nombre_completo', 'trabajador', 'conductor', 'persona'])
-  if (!personName) return null
-  return {
-    organization_id: ORG_ID,
-    source_row_id: sourceRowId,
-    person_name: personName,
-    person_rut: text(row, ['rut', 'rut_trabajador', 'run']),
-    credential_type: 'internal_driving_license',
-    credential_number: text(row, ['numero_licencia', 'n_licencia', 'licencia', 'numero']),
-    credential_class: text(row, ['clase', 'tipo_licencia', 'categoria']),
-    authorized_assets: listValue(row, ['equipos_autorizados', 'vehiculos_autorizados', 'equipo', 'vehiculo']),
-    issue_date: dateValue(row, ['fecha_emision', 'fecha_otorgamiento', 'fecha_inicio']),
-    expiry_date: dateValue(row, ['fecha_vencimiento', 'vencimiento', 'vigencia_hasta']),
-    status: text(row, ['estado', 'vigencia']),
-    issuer: text(row, ['emisor', 'otorgada_por', 'autorizado_por']),
-    metadata: row,
-  }
-}
-
-async function upsertBatches(client: ReturnType<typeof createClient>, table: string, rows: Row[]) {
-  const batchSize = 500
-  for (let i = 0; i < rows.length; i += batchSize) {
-    const { error } = await client.schema('canonical').from(table).upsert(rows.slice(i, i + batchSize), {
-      onConflict: table === 'hse_source_rows'
-        ? 'source_document_id,source_sheet,source_row,source_hash'
-        : 'source_row_id',
-    })
-    if (error) throw new Error(`${table}: ${error.message}`)
-  }
-}
-
-export async function POST(request: NextRequest) {
-  if (process.env.HSE_CANONICAL_IMPORT_ENABLED !== 'true') {
-    return NextResponse.json({ error: 'Importer disabled' }, { status: 404 })
-  }
-  const token = request.headers.get('x-admin-token')
-  if (!token || token !== process.env.ADMIN_INIT_TOKEN) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+export async function POST(req: NextRequest) {
+  if (!IMPORT_ENABLED) {
+    return NextResponse.json({ error: 'Importador deshabilitado' }, { status: 403 });
   }
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !serviceKey) {
-    return NextResponse.json({ error: 'Supabase server configuration missing' }, { status: 500 })
+  if (!isAuthorized(req)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const client = createClient(url, serviceKey, { auth: { persistSession: false } })
-  const report: Array<Record<string, unknown>> = []
+  try {
+    const body = (await req.json()) as { dataset?: string; offset?: number; limit?: number };
+    const dataset = body.dataset || 'hse_roles';
+    const offset = Math.max(body.offset || 0, 0);
+    const limit = Math.min(Math.max(body.limit || 100, 10), 1000);
 
-  for (const spec of FILES) {
-    const { data: document, error: documentError } = await client
-      .from('module_documents')
-      .select('id,document_name,file_path')
-      .eq('file_path', spec.path)
-      .single()
-    if (documentError || !document) throw new Error(`Document not found: ${spec.path}`)
+    return await withPgClient(async (client) => {
+      let result;
 
-    const { data: blob, error: downloadError } = await client.storage.from(BUCKET).download(spec.path)
-    if (downloadError || !blob) throw new Error(`Download failed for ${spec.path}: ${downloadError?.message}`)
-
-    const workbook = read(await blob.arrayBuffer(), { type: 'array', cellDates: true, dense: true })
-    let sourceCount = 0
-    let promotedCount = 0
-    const sheets: Array<Record<string, unknown>> = []
-
-    for (const sheetName of workbook.SheetNames) {
-      const sheet = workbook.Sheets[sheetName]
-      const rawRows = utils.sheet_to_json<Row>(sheet, { defval: null, raw: false, dateNF: 'yyyy-mm-dd' })
-      const sourceRows: Row[] = []
-
-      for (let index = 0; index < rawRows.length; index += 1) {
-        const normalized = normalizeRow(rawRows[index])
-        if (!hasData(normalized)) continue
-        sourceRows.push({
-          organization_id: ORG_ID,
-          source_document_id: document.id,
-          source_file_path: spec.path,
-          source_sheet: sheetName,
-          source_row: index + 2,
-          source_hash: rowHash(spec.path, sheetName, index + 2, normalized),
-          raw_data: rawRows[index],
-          normalized_data: normalized,
-          canonical_section: spec.section,
-          validation_status: 'pending',
-          validation_notes: [],
-          updated_at: new Date().toISOString(),
-        })
+      if (dataset === 'hse_roles') {
+        result = await loadHseRoles(client, offset, limit);
+      } else if (dataset === 'hse_commitments') {
+        result = await loadHseCommitments(client, offset, limit);
+      } else if (dataset === 'hse_facilities') {
+        result = await loadHseFacilities(client, offset, limit);
+      } else {
+        return NextResponse.json({ error: `Dataset desconocido: ${dataset}` }, { status: 400 });
       }
 
-      await upsertBatches(client, 'hse_source_rows', sourceRows)
-      sourceCount += sourceRows.length
-
-      const { data: persistedRows, error: persistedError } = await client
-        .schema('canonical')
-        .from('hse_source_rows')
-        .select('id,source_row,normalized_data')
-        .eq('source_document_id', document.id)
-        .eq('source_sheet', sheetName)
-      if (persistedError) throw new Error(persistedError.message)
-
-      const promoted: Row[] = []
-      const validIds: string[] = []
-      const invalidIds: string[] = []
-
-      for (const persisted of persistedRows || []) {
-        const row = persisted.normalized_data as Row
-        const payload = spec.kind === 'risk'
-          ? riskPayload(row, persisted.id)
-          : spec.kind === 'credential'
-            ? credentialPayload(row, persisted.id)
-            : controlPayload(row, persisted.id, spec.section)
-        if (payload) {
-          promoted.push(payload)
-          validIds.push(persisted.id)
-        } else {
-          invalidIds.push(persisted.id)
-        }
-      }
-
-      if (promoted.length) {
-        await upsertBatches(
-          client,
-          spec.kind === 'risk' ? 'hse_risks' : spec.kind === 'credential' ? 'hse_person_credentials' : 'hse_document_controls',
-          promoted,
-        )
-      }
-      if (validIds.length) {
-        await client.schema('canonical').from('hse_source_rows').update({ validation_status: 'valid' }).in('id', validIds)
-      }
-      if (invalidIds.length) {
-        await client.schema('canonical').from('hse_source_rows').update({
-          validation_status: 'warning',
-          validation_notes: ['No canonical identity fields detected; retained as source row'],
-        }).in('id', invalidIds)
-      }
-
-      promotedCount += promoted.length
-      sheets.push({ sheet: sheetName, sourceRows: sourceRows.length, promoted: promoted.length, warnings: invalidIds.length })
-    }
-
-    await client.from('module_documents').update({
-      canonical_section: spec.section,
-      extracted_data: {
-        imported_at: new Date().toISOString(),
-        sheets,
-        source_rows: sourceCount,
-        promoted_rows: promotedCount,
-      },
-    }).eq('id', document.id)
-
-    report.push({
-      document: document.document_name,
-      canonicalSection: spec.section,
-      sheets,
-      sourceRows: sourceCount,
-      promotedRows: promotedCount,
-    })
+      return NextResponse.json({
+        ...result,
+        nextOffset: offset + limit,
+        done: result.processed < limit,
+      });
+    });
+  } catch (error) {
+    console.error('[API] HSE import POST error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error', details: String(error) },
+      { status: 500 },
+    );
   }
-
-  return NextResponse.json({ ok: true, report })
 }

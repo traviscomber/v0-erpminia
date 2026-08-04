@@ -118,7 +118,7 @@ export async function proxy(request: NextRequest) {
     }
 
     // Admin canonical import is guarded by ADMIN_INIT_TOKEN instead of a session.
-    if (request.nextUrl.pathname.startsWith('/api/admin/canonical-import')) {
+    if (request.nextUrl.pathname.startsWith('/api/admin/canonical-import') || request.nextUrl.pathname.startsWith('/api/admin/hse-canonical-import')) {
       const adminToken = process.env.ADMIN_INIT_TOKEN;
       const authHeader = request.headers.get('authorization') || '';
       const bearer = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';

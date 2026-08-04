@@ -15,53 +15,53 @@ const modules = [
 ];
 
 const benefits = [
-  { title: 'Operación conectada', text: 'Las áreas comparten contexto y una fuente común de información.' },
-  { title: 'Trazabilidad', text: 'Historial, acciones y evidencia disponibles para revisión.' },
-  { title: 'Control', text: 'Seguimiento de tareas, activos, inventario y costos.' },
-  { title: 'Decisión', text: 'Indicadores para priorizar acciones con información real.' },
+  { title: 'Operación conectada', text: 'Todos los sistemas integrados en una plataforma única.' },
+  { title: 'Trazabilidad completa', text: 'Auditoría y rastreo de cada acción en el sistema.' },
+  { title: 'Control centralizado', text: 'Gestión de permisos, usuarios y documentos en un solo lugar.' },
+  { title: 'Decisión informada', text: 'Reportes en tiempo real para tomar decisiones más rápidas.' },
 ];
 
-export default function Home() {
-  const organizationSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: 'Motil',
-    url: 'https://motil.app',
-    logo: 'https://motil.app/logo.png',
-    description: 'Plataforma operacional minera para producción, mantención, HSE, bodega, documentos y trazabilidad.',
-    contactPoint: {
-      '@type': 'ContactPoint',
-      contactType: 'Customer Support',
-      email: 'support@motil.app',
-      telephone: '+56-2-xxxx-xxxx',
-    },
-    areaServed: 'CL',
-  };
+const organizationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Motil',
+  url: 'https://motil.app',
+  logo: 'https://motil.app/logo.png',
+  description: 'Plataforma operacional minera para producción, mantención, HSE, bodega, documentos y trazabilidad.',
+  contactPoint: {
+    '@type': 'ContactPoint',
+    contactType: 'Customer Support',
+    email: 'support@motil.app',
+    telephone: '+56-2-xxxx-xxxx',
+  },
+  areaServed: 'CL',
+};
 
-  const productSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'SoftwareApplication',
-    name: 'Motil - Plataforma Operacional Minera',
-    description: 'Sistema integral de gestión operacional para operaciones mineras en Chile.',
-    url: 'https://motil.app',
-    applicationCategory: 'BusinessApplication',
-  };
+const productSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'Motil - Plataforma Operacional Minera',
+  description: 'Sistema integral de gestión operacional para operaciones mineras en Chile.',
+  url: 'https://motil.app',
+  applicationCategory: 'BusinessApplication',
+};
 
-  const faqSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: [
-      {
-        '@type': 'Question',
-        name: '¿Qué es Motil?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Motil es una plataforma integral de gestión operacional minera con módulos integrados.',
-        },
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: '¿Qué es Motil?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Motil es una plataforma integral de gestión operacional minera con módulos integrados.',
       },
-    ],
-  };
+    },
+  ],
+};
 
+export default function Home() {
   return (
     <main className="min-h-screen bg-background">
       <Script id="organization-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} strategy="afterInteractive" />
