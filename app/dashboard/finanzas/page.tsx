@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { FileSpreadsheet, FolderOpen } from 'lucide-react';
+import { FileSpreadsheet, FolderOpen, Users } from 'lucide-react';
 import { FinanzasDashboard } from '@/components/dashboard/finanzas-dashboard';
 import { Button } from '@/components/ui/button';
 
@@ -17,6 +17,11 @@ export default function FinanzasPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline">
+            <Link href="/dashboard/finanzas/proveedores">
+              <Users className="mr-2 h-4 w-4" /> Proveedores
+            </Link>
+          </Button>
           <Button asChild variant="outline">
             <Link href="/dashboard/finanzas/documentos">
               <FolderOpen className="mr-2 h-4 w-4" /> Documentos
