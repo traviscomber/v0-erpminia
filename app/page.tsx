@@ -16,24 +16,24 @@ const painPoints = [
 ];
 
 const modules = [
-  { icon: BarChart3, name: 'Producción', desc: 'KPIs en tiempo real, sensores integrados y seguimiento operacional' },
-  { icon: Wrench, name: 'Mantención', desc: 'Órdenes de trabajo, preventivo y control de MTTR' },
-  { icon: Package, name: 'Bodega', desc: 'Stock, reorden automático y trazabilidad de repuestos' },
-  { icon: Shield, name: 'HSE', desc: 'Incidentes, auditorías y cumplimiento con evidencia' },
-  { icon: FileText, name: 'Documentos', desc: 'Contratos, normativas y respaldo auditado' },
+  { icon: BarChart3, name: 'Producción', desc: 'KPIs operacionales, sensores integrados y seguimiento de actividad' },
+  { icon: Wrench, name: 'Mantención', desc: 'Órdenes de trabajo, planificación preventiva y control de equipos' },
+  { icon: Package, name: 'Bodega', desc: 'Stock, movimientos y trazabilidad de repuestos' },
+  { icon: Shield, name: 'HSE', desc: 'Incidentes, inspecciones y cumplimiento con evidencia' },
+  { icon: FileText, name: 'Documentos', desc: 'Contratos, normativas y respaldo centralizado' },
 ];
 
 const roles = [
-  { role: 'Operador de terreno', items: ['Alertas en tiempo real', 'Checklists HSE', 'Órdenes de trabajo'] },
-  { role: 'Técnico / Jefe de mantención', items: ['MTTR optimizado', 'Stock de repuestos', 'Preventivo planificado'] },
+  { role: 'Operador de terreno', items: ['Alertas operacionales', 'Checklists HSE', 'Órdenes de trabajo'] },
+  { role: 'Técnico / Jefe de mantención', items: ['Control de tiempos', 'Stock de repuestos', 'Preventivo planificado'] },
   { role: 'Gerencia', items: ['Dashboard KPI', 'Auditoría trazable', 'Disponibilidad de equipos'] },
 ];
 
 const benefits = [
-  { metric: '+15%', label: 'Disponibilidad de equipos' },
-  { metric: '-40%', label: 'MTTR promedio' },
-  { metric: '-25%', label: 'Costos de mantención' },
-  { metric: '100%', label: 'Trazabilidad auditada' },
+  { metric: 'Una vista', label: 'Operación conectada entre áreas' },
+  { metric: 'Trazabilidad', label: 'Historial y evidencia centralizados' },
+  { metric: 'Control', label: 'Seguimiento de tareas, equipos y costos' },
+  { metric: 'Decisión', label: 'Indicadores para priorizar acciones' },
 ];
 
 export default function Home() {
@@ -64,7 +64,7 @@ export default function Home() {
           <div className="flex flex-col justify-center gap-4 pt-8 sm:flex-row">
             <Button asChild size="lg" className="gap-2 bg-[var(--brand-cobre)] px-8 text-base hover:bg-[var(--brand-cobre)]/90">
               <Link href="/login">
-                Solicitar demostración
+                Ingresar a la plataforma
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -107,7 +107,7 @@ export default function Home() {
           {[
             { step: '1', label: 'Alerta', icon: Zap },
             { step: 'arrow', label: '', icon: ArrowRight },
-            { step: '2', label: 'OT auto', icon: Wrench },
+            { step: '2', label: 'Orden de trabajo', icon: Wrench },
             { step: 'arrow', label: '', icon: ArrowRight },
             { step: '3', label: 'Repuesto', icon: Package },
             { step: 'arrow', label: '', icon: ArrowRight },
@@ -179,7 +179,7 @@ export default function Home() {
           {benefits.map((item) => (
             <Card key={item.label} className="border-border bg-card text-center">
               <CardContent className="pb-8 pt-8">
-                <p className="mb-2 text-4xl font-bold text-[var(--brand-cobre)]">{item.metric}</p>
+                <p className="mb-2 text-2xl font-bold text-[var(--brand-cobre)]">{item.metric}</p>
                 <p className="text-sm text-muted-foreground">{item.label}</p>
               </CardContent>
             </Card>
@@ -188,13 +188,13 @@ export default function Home() {
       </section>
 
       <section className="mx-auto max-w-7xl border-t border-border px-4 py-20 text-center">
-        <h2 className="mb-6 text-4xl font-bold text-foreground">Listo para transformar tu operación</h2>
+        <h2 className="mb-6 text-4xl font-bold text-foreground">Una operación conectada y trazable</h2>
         <p className="mx-auto mb-8 max-w-2xl text-lg text-muted-foreground">
-          Conecta producción, mantención, bodega, HSE, documentos y gerencia en una sola plataforma trazable.
+          Producción, mantención, bodega, HSE, documentos y gerencia en una sola plataforma operacional.
         </p>
         <Button asChild size="lg" className="gap-2 bg-[var(--brand-cobre)] px-8 text-base hover:bg-[var(--brand-cobre)]/90">
           <Link href="/login">
-            Solicitar demostración
+            Ingresar a Motil
             <ArrowRight className="h-4 w-4" />
           </Link>
         </Button>
@@ -202,7 +202,7 @@ export default function Home() {
 
       <footer className="mt-20 border-t border-border bg-card/30">
         <div className="mx-auto max-w-7xl px-4 py-12 text-center text-sm text-muted-foreground">
-          <p>Motil 2026 - n3uralia</p>
+          <p>Motil 2026 · N3uralia</p>
         </div>
       </footer>
     </div>
