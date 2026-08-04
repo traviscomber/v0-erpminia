@@ -125,6 +125,17 @@ export async function proxy(request: NextRequest) {
       return withSecurityHeaders(response);
     }
 
+    // Admin canonical import is guarded by ADMIN_INIT_TOKEN instead of a session.
+    if (request.nextUrl.pathname.startsWith('/api/admin/canonical-import')) {
+      const adminToken = process.env.ADMIN_INIT_TOKEN;
+      const authHeader = request.headers.get('authorization') || '';
+      const bearer = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+      const providedToken = request.headers.get('x-admin-token') || bearer;
+      if (adminToken && providedToken === adminToken) {
+        return withSecurityHeaders(response);
+      }
+    }
+
     if (isDemoMode && isReadRequest && !isWriteRequest) {
       return withSecurityHeaders(response);
     }

@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Bundle the source XLS workbooks into the canonical-import serverless function
+  outputFileTracingIncludes: {
+    '/api/admin/canonical-import': ['./data/**'],
+  },
+
   // Enable image optimization
   images: {
     remotePatterns: [
