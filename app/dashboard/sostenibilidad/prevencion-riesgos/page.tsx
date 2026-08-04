@@ -173,6 +173,13 @@ export default function PrevencionRiesgosPage() {
 
   const documentation: WorkspaceItem[] = [
     {
+      title: 'Roles HSE',
+      description: 'Estructura organizacional y responsabilidades de seguridad canónicas.',
+      href: '/dashboard/sostenibilidad/prevencion-riesgos/roles',
+      icon: Shield,
+      count: 19,
+    },
+    {
       title: 'Documentos HSE',
       description: 'Políticas, procedimientos, instructivos y programas de seguridad.',
       href: '/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse',
