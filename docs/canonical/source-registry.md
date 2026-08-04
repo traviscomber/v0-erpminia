@@ -21,13 +21,17 @@ Los esquemas `canonical` y `staging` están restringidos a `service_role`. No re
 
 1. Productos activos: catálogo vigente de `public.warehouse_stock` del sitio.
 2. Productos históricos o adicionales: `Existencias (2) / Stock min-max`, siempre con `is_active=false` hasta aprobación manual.
-3. Stock valorizado: `Análisis de bodega (1) / Hoja6`.
-4. Proveedores: `Existencias (2) / Proveedores`.
-5. Compras: `Existencias (2) / compras`.
-6. Centros de costo activos: catálogo vigente de `public.cost_centers` del sitio.
-7. Centros de costo históricos o adicionales: `Base Existencias (1) / Centros de Costos`, siempre con `is_active=false` hasta aprobación manual.
-8. Costos por activo: `Costos equipos Mayo 2026 (1) / Base`.
-9. Resúmenes y tablas dinámicas se regeneran; no se importan como hechos.
+3. Stock operativo actual: `public.warehouse_stock`.
+4. Stock valorizado histórico o conciliatorio: `Análisis de bodega (1) / Hoja6`.
+5. Proveedores activos: `public.suppliers`.
+6. Proveedores históricos o enriquecimiento: `Existencias (2) / Proveedores`.
+7. Compras operativas: `public.purchase_orders`.
+8. Líneas históricas completas: `Existencias (2) / compras`.
+9. Centros de costo activos: catálogo vigente de `public.cost_centers` del sitio.
+10. Centros de costo históricos o adicionales: `Base Existencias (1) / Centros de Costos`, siempre con `is_active=false` hasta aprobación manual.
+11. Activos operativos: `public.maintenance_assets`.
+12. Costos históricos por activo: `Costos equipos Mayo 2026 (1) / Base`.
+13. Resúmenes y tablas dinámicas se regeneran; no se importan como hechos.
 
 ## Regla específica para productos
 
@@ -38,6 +42,27 @@ Los esquemas `canonical` y `staging` están restringidos a `service_role`. No re
 - Descripciones repetidas con códigos distintos no se fusionan automáticamente.
 - Coincidencias aproximadas por descripción, unidad o familia se marcan para revisión y nunca generan una fusión automática.
 - Las filas estructuralmente desplazadas se bloquean hasta corrección.
+
+## Promoción operativa verificada
+
+Para la organización `2bd7fe06-8e4f-4a3a-b261-e3f5d8aa3dee` se promovió la data ya existente en el sitio, sin modificar las tablas públicas:
+
+| Dominio | Registros canónicos | Advertencias | Clave de deduplicación |
+|---|---:|---:|---|
+| Productos | 12.268 | 0 | `organization_id + product_code` |
+| Centros de costo | 277 | 0 | `organization_id + code` |
+| Proveedores | 2.158 | 4 | `organization_id + RUT normalizado` |
+| Inventario actual | 12.268 | 0 | `organization_id + snapshot_date + product_code + warehouse` |
+| Órdenes de compra | 23.337 | 0 | `organization_id + order_number` |
+| Líneas operativas de compra | 23.337 | 0 | `organization_id + order_number + line_number` |
+| Activos | 5 | 0 | `organization_id + asset_code` |
+| Costos de adquisición | 5 | 0 | hash determinístico por activo y tipo de costo |
+
+Las cuatro advertencias de proveedores corresponden a registros sin RUT. Se conservaron activos porque existen en el sitio y recibieron una clave técnica `NO-RUT:<uuid>`; no se fusionaron por nombre.
+
+Las líneas de compra promovidas desde `public.purchase_orders` representan el nivel operativo actualmente disponible en el sitio: una línea por orden. El archivo `Existencias (2) / compras` ampliará posteriormente esas órdenes al detalle histórico completo, sin duplicar cabeceras.
+
+Los cinco costos promovidos desde `public.maintenance_assets` corresponden exclusivamente a adquisición. No se mezclan con mantenimiento, repuestos, combustible ni otros costos históricos.
 
 ## Promoción de productos realizada
 
@@ -76,12 +101,13 @@ El lote `Base Existencias (1).xlsx` fue conciliado con el catálogo vigente del 
 
 - 6 centros de costo pertenecen a `Actividades Centenario`; se clasifican como `event` y no deben mostrarse como activos.
 - 133 centros son candidatos a activo y 44 a vehículo; requieren conciliación con el maestro de equipos.
-- 6 productos tienen stock negativo.
-- 36 filas presentan diferencia de valorización.
-- 354 líneas de compra tienen cantidad no numérica.
-- 1 código de compras no aparece en el maestro de productos.
+- 6 productos tienen stock negativo en el Excel de análisis de bodega.
+- 36 filas del Excel presentan diferencia de valorización.
+- 354 líneas históricas de compra tienen cantidad no numérica.
+- 1 código histórico de compras no aparece en el maestro de productos.
 - 2 filas de `Stock min-max` tienen columnas desplazadas.
-- 1 proveedor tiene el RUT interpretado como fecha.
+- 1 proveedor del Excel tiene el RUT interpretado como fecha.
+- 4 proveedores activos del sitio no tienen RUT y requieren regularización manual.
 
 ## Tablas creadas
 
@@ -89,6 +115,7 @@ El lote `Base Existencias (1).xlsx` fue conciliado con el catálogo vigente del 
 
 - `import_batches`
 - `validation_errors`
+- `product_import_candidates`
 
 ### `canonical`
 
