@@ -4,19 +4,20 @@ import { TechnicalSheetsBoard } from '@/components/maintenance/technical-sheets-
 import { Button } from '@/components/ui/button';
 
 export const metadata = {
-  title: 'Fichas técnicas | Mantenimiento',
-  description: 'Documentación técnica y antecedentes operacionales de los activos.',
+  title: 'Catálogo técnico | Mantenimiento',
+  description: 'Acceso central a fichas técnicas y antecedentes de los activos.',
 };
 
 export default function TechnicalSheetsPage() {
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+      <section className="flex flex-col gap-4 border-b border-border pb-5 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="text-sm font-medium text-muted-foreground">Mantenimiento · Documentación técnica</p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight">Fichas técnicas</h1>
-          <p className="mt-2 max-w-3xl text-muted-foreground">
-            Consulta especificaciones, antecedentes y documentación asociada a los equipos registrados.
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Catálogo técnico</h1>
+          <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+            Localiza un activo para abrir su ficha técnica. La ficha del activo conserva el resumen operacional,
+            mientras esta sección concentra especificaciones, componentes y documentación técnica.
           </p>
         </div>
         <Button asChild variant="outline" className="gap-2">
@@ -25,7 +26,7 @@ export default function TechnicalSheetsPage() {
             Volver a mantenimiento
           </Link>
         </Button>
-      </div>
+      </section>
       <TechnicalSheetsBoard />
     </div>
   );
