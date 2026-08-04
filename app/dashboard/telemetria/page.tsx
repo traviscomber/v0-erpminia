@@ -8,146 +8,75 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 const TelemetryExecutiveSummary = dynamic(
   () => import('@/components/telemetry/telemetry-executive-summary').then((mod) => mod.TelemetryExecutiveSummary),
-  {
-    ssr: false,
-    loading: () => <div className="text-sm text-muted-foreground">Cargando resumen de telemetría...</div>,
-  },
+  { ssr: false, loading: () => <div className="h-28 animate-pulse rounded-xl bg-muted" /> },
 );
 
 const EquipmentMonitor = dynamic(
   () => import('@/components/telemetry/equipment-monitor').then((mod) => mod.EquipmentMonitor),
-  {
-    ssr: false,
-    loading: () => <div className="text-sm text-muted-foreground">Cargando monitoreo de equipos...</div>,
-  },
+  { ssr: false, loading: () => <div className="h-64 animate-pulse rounded-xl bg-muted" /> },
 );
 
 const SensorAlerts = dynamic(
   () => import('@/components/production/sensor-alerts').then((mod) => mod.SensorAlerts),
-  {
-    ssr: false,
-    loading: () => <div className="text-sm text-muted-foreground">Cargando alertas sugeridas...</div>,
-  },
+  { ssr: false, loading: () => <div className="h-40 animate-pulse rounded-xl bg-muted" /> },
 );
 
 export default function TelemetriaPage() {
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Telemetría de sensores</h1>
-          <p className="mt-2 text-muted-foreground">
-            Monitoreo real de equipos, alertas activas y sugerencias de orden de trabajo desde datos reales de producción
-            y mantenimiento.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Link href="/dashboard/produccion">
-            <Button variant="outline" className="gap-2">
-              <ArrowRight className="h-4 w-4" />
-              Volver a produccion
-            </Button>
-          </Link>
-          <Link href="/dashboard/mantenimiento">
-            <Button variant="outline" className="gap-2">
-              <ArrowRight className="h-4 w-4" />
-              Ir a mantenimiento
-            </Button>
-          </Link>
-        </div>
-      </div>
-
-      <Card className="border-border/70 bg-card/90">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Modo estable</CardTitle>
-          <CardDescription>
-            La telemetría sigue operando con lecturas históricas, equipos reales y consultas por API sin depender de
-            conexiones en tiempo real.
-          </CardDescription>
-        </CardHeader>
-      </Card>
-
-      <TelemetryExecutiveSummary />
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <Card className="border-border/70 bg-card/90">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Monitoreo</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-primary">Datos reales</div>
-            <p className="text-xs text-muted-foreground">
-              La pagina permanece estable y usa equipos reales del dashboard de produccion.
+      <section className="rounded-2xl border border-border/70 bg-card p-5 md:p-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Operaciones · Telemetría</p>
+            <h1 className="mt-2 text-3xl font-semibold tracking-tight">Monitoreo de sensores</h1>
+            <p className="mt-2 text-sm text-muted-foreground md:text-base">
+              Consulta lecturas históricas, alarmas y estado de equipos conectados desde las integraciones existentes.
             </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border/70 bg-card/90">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Alertas</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-[var(--secondary)]">Ruta estable</div>
-            <p className="text-xs text-muted-foreground">La integración LAN sigue lista para usarse sin conexiones en vivo.</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border/70 bg-card/90">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Cobertura</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-[var(--brand-verde)]">Sin tiempo real</div>
-            <p className="text-xs text-muted-foreground">El sistema queda estable con lecturas por API y alarma sugerida.</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card className="border-border/70 bg-card/90">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="h-4 w-4 text-[var(--brand-naranja)]" />
-            Acceso rapido al flujo operativo
-          </CardTitle>
-          <CardDescription>Salta entre produccion, mantenimiento, bodega y legal sin perder el contexto.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento">
-                Mantenimiento
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/bodega">
-                Bodega
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/legal">
-                Legal
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild variant="outline" className="gap-2">
               <Link href="/dashboard/produccion">
-                Produccion
+                Ver producción
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild className="gap-2">
+              <Link href="/dashboard/telemetria/integracion">
+                Configurar integración
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
-      <Card className="border-border/70 bg-card/90">
+      <TelemetryExecutiveSummary />
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base"><Activity className="h-4 w-4" />Alertas de sensores</CardTitle>
+            <CardDescription>Lecturas que requieren atención o una revisión operacional.</CardDescription>
+          </CardHeader>
+          <CardContent><SensorAlerts /></CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base"><Cpu className="h-4 w-4" />Equipos monitoreados</CardTitle>
+            <CardDescription>Disponibilidad, alarmas y última lectura registrada.</CardDescription>
+          </CardHeader>
+          <CardContent><EquipmentMonitor /></CardContent>
+        </Card>
+      </div>
+
+      <Card>
         <CardHeader>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <RadioTower className="h-4 w-4 text-[var(--brand-verde)]" />
-              Integración LAN
-            </CardTitle>
+            <div>
+              <CardTitle className="flex items-center gap-2 text-base"><RadioTower className="h-4 w-4" />Integración LAN</CardTitle>
+              <CardDescription className="mt-1">Punto de ingreso disponible para gateways autorizados de la red local.</CardDescription>
+            </div>
             <Button asChild variant="outline" size="sm" className="gap-2">
               <Link href="/dashboard/telemetria/integracion">
                 Ver configuración
@@ -155,55 +84,26 @@ export default function TelemetriaPage() {
               </Link>
             </Button>
           </div>
-          <CardDescription>Preparado para recibir lecturas desde otra máquina de la red local de La Patagua.</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-lg border border-border bg-background p-3">
-            <p className="text-xs text-muted-foreground">Endpoint de ingreso</p>
-            <p className="mt-1 font-semibold">POST /api/telemetry/ingest</p>
+        <CardContent className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="rounded-lg border border-border/70 p-4">
+            <p className="text-xs text-muted-foreground">Endpoint</p>
+            <p className="mt-1 break-all text-sm font-medium">POST /api/telemetry/ingest</p>
           </div>
-          <div className="rounded-lg border border-border bg-background p-3">
-            <p className="text-xs text-muted-foreground">Autenticacion</p>
-            <p className="mt-1 font-semibold">x-telemetry-token</p>
+          <div className="rounded-lg border border-border/70 p-4">
+            <p className="text-xs text-muted-foreground">Autenticación</p>
+            <p className="mt-1 break-all text-sm font-medium">x-telemetry-token</p>
           </div>
-          <div className="rounded-lg border border-border bg-background p-3">
-            <p className="text-xs text-muted-foreground">Modo de uso</p>
-            <p className="mt-1 font-semibold">Envio desde gateway local</p>
+          <div className="rounded-lg border border-border/70 p-4">
+            <p className="text-xs text-muted-foreground">Origen esperado</p>
+            <p className="mt-1 text-sm font-medium">Gateway local autorizado</p>
           </div>
-          <div className="rounded-lg border border-border bg-background p-3">
-            <p className="text-xs text-muted-foreground">Campos minimos</p>
-            <p className="mt-1 font-semibold">ID del equipo o codigo operativo</p>
+          <div className="rounded-lg border border-border/70 p-4">
+            <p className="text-xs text-muted-foreground">Identificación mínima</p>
+            <p className="mt-1 text-sm font-medium">ID o código operacional</p>
           </div>
         </CardContent>
       </Card>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-1">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-4 w-4 text-[var(--brand-naranja)]" />
-              Sensor activo
-            </CardTitle>
-            <CardDescription>Lectura resumida y alertas del equipo seleccionado.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <SensorAlerts />
-          </CardContent>
-        </Card>
-
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Cpu className="h-4 w-4 text-[var(--brand-verde)]" />
-              Equipos monitoreados
-            </CardTitle>
-            <CardDescription>Estado vivo de disponibilidad, alarmas y última lectura.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <EquipmentMonitor />
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 }
