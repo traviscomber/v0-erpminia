@@ -48,13 +48,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
     }
 
-    const role = profile.role || 'viewer';
+    const { data: roleRows } = await supabase
+      .from('user_roles')
+      .select('role, organization_id')
+      .eq('user_id', profile.id)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    const roleAssignment = roleRows?.[0];
+    const role = profile.role || roleAssignment?.role || 'viewer';
+    const organizationId = profile.organization_id || roleAssignment?.organization_id || null;
+
     const authToken = await signCustomSession({
       user: {
         id: profile.id,
         email: profile.email,
         full_name: profile.full_name,
-        organization_id: profile.organization_id,
+        organization_id: organizationId,
       },
       role,
     });
@@ -65,7 +75,7 @@ export async function POST(request: NextRequest) {
         id: profile.id,
         email: profile.email,
         full_name: profile.full_name,
-        organization_id: profile.organization_id,
+        organization_id: organizationId,
         role,
       },
     });
