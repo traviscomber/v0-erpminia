@@ -15,3 +15,8 @@ node_modules
 .next/
 .DS_Store
 .vercel
+
+# Operational data exports must not be committed
+/data/*.xlsx
+/data/*.xls
+/data/*.csv
