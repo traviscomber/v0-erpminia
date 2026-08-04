@@ -74,7 +74,7 @@ async function buildCanonicalStock(
     start += pageSize;
   }
 
-  if (rows.length === 0) return null;
+    if (rows.length === 0) return null;
 
   const items: WarehouseStockItem[] = rows.map((row) => {
     const quantityOnHand = Number(row.quantity || 0);

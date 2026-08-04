@@ -4,6 +4,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { resolveAuthContext } from '@/lib/api/auth-session';
 import { canonicalCategory } from '@/lib/bodega-normalization';
+import { orgHasCanonicalData } from '@/lib/api/canonical';
+
+type CanonicalInventoryRow = {
+  id: string;
+  sku: string | null;
+  name: string | null;
+  category: string | null;
+  description: string | null;
+  quantity: number | string | null;
+  min_stock: number | string | null;
+  max_stock: number | string | null;
+  unit_cost: number | string | null;
+  warehouse_code: string | null;
+};
 
 type BodegaInventoryRow = {
   id: string;
@@ -43,6 +57,89 @@ export async function GET(request: NextRequest) {
   const validPageSize = Math.min(Math.max(pageSize, 10), 500);
   const validPage = Math.max(page, 0);
   const offset = validPage * validPageSize;
+
+  // Real org reads authoritative inventory from the canonical view.
+  if (orgHasCanonicalData(orgId)) {
+    if (searchParams.get('categories') === 'true') {
+      // Canonical categories
+      const categorySet = new Set<string>();
+      let from = 0;
+      const chunk = 1000;
+
+      while (true) {
+        let query = supabase
+          .from('canonical_inventory_current')
+          .select('category')
+          .eq('organization_id', orgId)
+          .order('category')
+          .range(from, from + chunk - 1);
+
+        const { data, error } = await query;
+        if (error) {
+          return NextResponse.json({ categories: [], warning: error.message });
+        }
+        if (!data || data.length === 0) break;
+
+        for (const row of data as Array<{ category?: string | null }>) {
+          const label = String(row.category || '').trim();
+          if (label) categorySet.add(canonicalCategory(label) || label);
+        }
+
+        if (data.length < chunk) break;
+        from += chunk;
+      }
+
+      return NextResponse.json({
+        categories: Array.from(categorySet).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' })),
+      });
+    }
+
+    // Canonical inventory list
+    let canonicalQuery = supabase
+      .from('canonical_inventory_current')
+      .select('id, sku, name, category, description, quantity, min_stock, max_stock, unit_cost, warehouse_code', { count: 'exact' })
+      .eq('organization_id', orgId);
+
+    if (search) {
+      canonicalQuery = canonicalQuery.or(`sku.ilike.%${search}%,name.ilike.%${search}%,category.ilike.%${search}%,description.ilike.%${search}%`);
+    }
+    if (category) {
+      canonicalQuery = canonicalQuery.ilike('category', `%${category}%`);
+    }
+
+    const { data, error, count } = await canonicalQuery
+      .order('sku')
+      .range(offset, offset + validPageSize - 1);
+
+    if (error) {
+      console.error('[v0] canonical inventory error:', error);
+      // Fall through to operational fallback
+    } else if (data && data.length > 0) {
+      const inventory = (data as CanonicalInventoryRow[]).map((item) => ({
+        id: item.id,
+        sku: String(item.sku || ''),
+        name: String(item.name || item.sku || ''),
+        category: String(item.category || 'Otros'),
+        quantity: toNumber(item.quantity),
+        quantity_available: toNumber(item.quantity),
+        quantity_reserved: 0,
+        min_stock: toNumber(item.min_stock),
+        max_stock: toNumber(item.max_stock),
+        unit_cost: toNumber(item.unit_cost),
+        description: String(item.description || item.warehouse_code || ''),
+      }));
+
+      return NextResponse.json({
+        inventory,
+        pagination: {
+          page: validPage,
+          pageSize: validPageSize,
+          total: count || 0,
+          totalPages: Math.ceil((count || 0) / validPageSize),
+        },
+      });
+    }
+  }
 
   if (searchParams.get('categories') === 'true') {
     const categorySet = new Set<string>();
