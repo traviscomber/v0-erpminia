@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Bell, ChevronRight, LogOut, User } from 'lucide-react';
+import { Bell, ChevronRight, LogOut, Settings, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -69,6 +69,7 @@ function formatSegment(segment: string) {
 export function Header() {
   const pathname = usePathname();
   const { user, role, logout } = useAuth();
+  const canAdminister = role === 'admin' || role === 'superadmin';
 
   const segments = pathname.split('/').filter(Boolean);
   const dashboardIndex = segments.indexOf('dashboard');
@@ -128,6 +129,15 @@ export function Header() {
                 <p className="truncate text-xs capitalize text-muted-foreground">{role || 'Sin rol'}</p>
               </div>
               <DropdownMenuSeparator className="sm:hidden" />
+              {canAdminister ? (
+                <DropdownMenuItem asChild className="cursor-pointer gap-2">
+                  <Link href="/dashboard/admin">
+                    <Settings className="h-4 w-4" />
+                    Centro de administración
+                  </Link>
+                </DropdownMenuItem>
+              ) : null}
+              {canAdminister ? <DropdownMenuSeparator /> : null}
               <DropdownMenuItem
                 className="cursor-pointer gap-2 text-destructive focus:bg-destructive/10 focus:text-destructive"
                 onClick={logout}
