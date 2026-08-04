@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 
 const items = [
   { href: '/dashboard/sostenibilidad/prevencion-riesgos', label: 'Resumen', icon: ShieldCheck },
-  { href: '/dashboard/sostenibilidad/prevencion-riesgos/kpi', label: 'KPI', icon: BarChart3 },
+  { href: '/dashboard/sostenibilidad/prevencion-riesgos/kpi', label: 'Indicadores', icon: BarChart3 },
   { href: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones', label: 'Inspecciones', icon: ClipboardCheck },
   { href: '/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones', label: 'Capacitaciones', icon: GraduationCap },
   { href: '/dashboard/sostenibilidad/prevencion-riesgos/epp', label: 'EPP', icon: HardHat },
@@ -21,10 +21,14 @@ export default function RiskPreventionLayout({ children }: { children: ReactNode
 
   return (
     <div className="space-y-5">
-      <section className="rounded-xl border border-border bg-card px-4 py-3">
+      <section className="border-b border-border pb-4">
         <div className="mb-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Sostenibilidad y HSE · Seguridad y salud</p>
-          <p className="mt-1 text-sm text-muted-foreground">Control preventivo, inspecciones, formación, habilitación y cumplimiento.</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            Sostenibilidad y HSE · Seguridad y salud
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Control preventivo, inspecciones, formación, habilitación y cumplimiento.
+          </p>
         </div>
         <nav className="flex gap-2 overflow-x-auto pb-1" aria-label="Navegación de prevención de riesgos">
           {items.map((item) => {
@@ -38,7 +42,7 @@ export default function RiskPreventionLayout({ children }: { children: ReactNode
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  'inline-flex shrink-0 items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors',
+                  'inline-flex min-h-9 shrink-0 items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                   active
                     ? 'border-primary bg-primary text-primary-foreground'
                     : 'border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground',
