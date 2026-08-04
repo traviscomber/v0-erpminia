@@ -14,6 +14,13 @@ const modules = [
   { icon: FileText, name: 'Documentos', desc: 'Contratos, normativas y respaldo centralizado.' },
 ];
 
+const benefits = [
+  { title: 'Operación conectada', text: 'Todos los sistemas integrados en una plataforma única.' },
+  { title: 'Trazabilidad completa', text: 'Auditoría y rastreo de cada acción en el sistema.' },
+  { title: 'Control centralizado', text: 'Gestión de permisos, usuarios y documentos en un solo lugar.' },
+  { title: 'Decisión informada', text: 'Reportes en tiempo real para tomar decisiones más rápidas.' },
+];
+
 const organizationSchema = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
