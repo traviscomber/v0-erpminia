@@ -35,12 +35,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es-CL" className="dark scroll-smooth" suppressHydrationWarning>
+    <html lang="es-CL" className="scroll-smooth" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
       </head>
       <body className="font-sans antialiased bg-background text-foreground selection:bg-primary/20 selection:text-foreground">
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} forcedTheme="dark">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem={false}
+          storageKey="motil-theme"
+          disableTransitionOnChange
+        >
           {children}
           <Toaster position="top-right" />
         </ThemeProvider>
