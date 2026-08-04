@@ -19,14 +19,41 @@ Los esquemas `canonical` y `staging` están restringidos a `service_role`. No re
 
 ## Precedencia
 
-1. Productos: `Existencias (2) / Stock min-max`.
-2. Stock valorizado: `Análisis de bodega (1) / Hoja6`.
-3. Proveedores: `Existencias (2) / Proveedores`.
-4. Compras: `Existencias (2) / compras`.
-5. Centros de costo activos: catálogo vigente de `public.cost_centers` del sitio.
-6. Centros de costo históricos o adicionales: `Base Existencias (1) / Centros de Costos`, siempre con `is_active=false` hasta aprobación manual.
-7. Costos por activo: `Costos equipos Mayo 2026 (1) / Base`.
-8. Resúmenes y tablas dinámicas se regeneran; no se importan como hechos.
+1. Productos activos: catálogo vigente de `public.warehouse_stock` del sitio.
+2. Productos históricos o adicionales: `Existencias (2) / Stock min-max`, siempre con `is_active=false` hasta aprobación manual.
+3. Stock valorizado: `Análisis de bodega (1) / Hoja6`.
+4. Proveedores: `Existencias (2) / Proveedores`.
+5. Compras: `Existencias (2) / compras`.
+6. Centros de costo activos: catálogo vigente de `public.cost_centers` del sitio.
+7. Centros de costo históricos o adicionales: `Base Existencias (1) / Centros de Costos`, siempre con `is_active=false` hasta aprobación manual.
+8. Costos por activo: `Costos equipos Mayo 2026 (1) / Base`.
+9. Resúmenes y tablas dinámicas se regeneran; no se importan como hechos.
+
+## Regla específica para productos
+
+- La clave de deduplicación automática es `organization_id + product_code` normalizado.
+- Un producto está activo únicamente cuando existe en el catálogo vigente del sitio.
+- El registro existente conserva su identidad y prioridad; el Excel solo puede enriquecer campos faltantes.
+- Un producto presente solo en archivos históricos se conserva con `is_active=false` y `validation_status='pending'`.
+- Descripciones repetidas con códigos distintos no se fusionan automáticamente.
+- Coincidencias aproximadas por descripción, unidad o familia se marcan para revisión y nunca generan una fusión automática.
+- Las filas estructuralmente desplazadas se bloquean hasta corrección.
+
+## Promoción de productos realizada
+
+El catálogo vigente del sitio fue consolidado en `canonical.products`:
+
+- 12.268 productos activos.
+- 12.268 códigos únicos.
+- 0 filas duplicadas por código.
+- Fuente operativa: `public.warehouse_stock`.
+
+La hoja `Stock min-max` contiene:
+
+- 13.176 filas con código.
+- 13.176 códigos únicos.
+- 125 grupos de descripción repetida, que abarcan 3.084 filas y no se fusionan automáticamente.
+- 2 filas estructuralmente desplazadas: `Filtro0203` y `Repuesto1688`.
 
 ## Regla específica para centros de costo
 
@@ -36,7 +63,7 @@ Los esquemas `canonical` y `staging` están restringidos a `service_role`. No re
 - `Actividades Centenario` y sus hijos se clasifican como `event`. Pueden permanecer activos como centros financieros si están vigentes en el sitio, pero no deben aparecer como equipos ni activos en Mantenimiento.
 - Proyectos, administración, áreas, vehículos y activos se distinguen mediante `center_type`; la interfaz debe filtrar por tipo según el módulo.
 
-## Promoción realizada
+## Promoción de centros de costo realizada
 
 El lote `Base Existencias (1).xlsx` fue conciliado con el catálogo vigente del sitio:
 
@@ -53,7 +80,7 @@ El lote `Base Existencias (1).xlsx` fue conciliado con el catálogo vigente del 
 - 36 filas presentan diferencia de valorización.
 - 354 líneas de compra tienen cantidad no numérica.
 - 1 código de compras no aparece en el maestro de productos.
-- Al menos 4 filas de `Stock min-max` tienen columnas desplazadas.
+- 2 filas de `Stock min-max` tienen columnas desplazadas.
 - 1 proveedor tiene el RUT interpretado como fecha.
 
 ## Tablas creadas
