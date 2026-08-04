@@ -15,7 +15,7 @@ const items = [
   { href: '/dashboard/mantenimiento/combustible', label: 'Combustible', icon: Fuel },
   { href: '/dashboard/mantenimiento/neumaticos', label: 'Neumáticos', icon: Activity },
   { href: '/dashboard/mantenimiento/componentes-mayores', label: 'Componentes', icon: Settings },
-  { href: '/dashboard/mantenimiento/fichas-tecnicas', label: 'Fichas técnicas', icon: FileText },
+  { href: '/dashboard/mantenimiento/fichas-tecnicas', label: 'Catálogo técnico', icon: FileText },
 ];
 
 export default function MaintenanceLayout({ children }: { children: ReactNode }) {
@@ -23,9 +23,9 @@ export default function MaintenanceLayout({ children }: { children: ReactNode })
 
   return (
     <div className="space-y-5">
-      <section className="rounded-xl border border-border bg-card px-4 py-3">
+      <section className="border-b border-border pb-4">
         <div className="mb-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Mantenimiento</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Mantenimiento</p>
           <p className="mt-1 text-sm text-muted-foreground">Operación, activos, disponibilidad, costos y trazabilidad técnica.</p>
         </div>
         <nav className="flex gap-2 overflow-x-auto pb-1" aria-label="Navegación de mantenimiento">
@@ -40,7 +40,7 @@ export default function MaintenanceLayout({ children }: { children: ReactNode })
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  'inline-flex shrink-0 items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors',
+                  'inline-flex min-h-9 shrink-0 items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                   active
                     ? 'border-primary bg-primary text-primary-foreground'
                     : 'border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground',
