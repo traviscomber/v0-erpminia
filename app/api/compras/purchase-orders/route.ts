@@ -90,36 +90,14 @@ export async function GET(request: NextRequest) {
   }
   if (status) canonicalQuery = canonicalQuery.eq('status', status);
 
-<<<<<<< HEAD
-    // Real org reads authoritative purchase orders from the canonical view.
-    const useCanonical = orgHasCanonicalData(orgId);
-    const table = useCanonical ? 'canonical_purchase_orders_current' : 'purchase_orders';
-    const orderColumn = useCanonical ? 'order_date' : 'delivery_date';
-    const searchColumns = useCanonical
-      ? `po_number.ilike.%${search}%,vendor_name.ilike.%${search}%,item_code.ilike.%${search}%`
-      : `po_number.ilike.%${search}%,vendor_name.ilike.%${search}%,item_code.ilike.%${search}%`;
-
-    let query = supabase.from(table).select('*', { count: 'exact' });
-
-    if (orgId) query = query.eq('organization_id', orgId);
-    if (search) query = query.or(searchColumns);
-    if (status) query = query.eq('status', status);
-
-    const { data, error, count } = await query
-      .order(orderColumn, { ascending: false })
-      .range(offset, offset + validPageSize - 1);
-
-    if (error) throw error;
-=======
-  const canonicalResult = await canonicalQuery
-    .order('order_date', { ascending: false, nullsFirst: false })
+  const { data, error, count } = await canonicalQuery
+    .order('order_date', { ascending: false })
     .range(offset, offset + validPageSize - 1);
->>>>>>> 526e7df
 
-  if (!canonicalResult.error) {
-    const total = canonicalResult.count || 0;
+  if (!error) {
+    const total = count || 0;
     return NextResponse.json({
-      orders: ((canonicalResult.data || []) as PurchaseOrderRow[]).map(normalizeOrder),
+      orders: ((data || []) as PurchaseOrderRow[]).map(normalizeOrder),
       pagination: {
         page: validPage,
         pageSize: validPageSize,
@@ -147,11 +125,8 @@ export async function GET(request: NextRequest) {
   if (legacyResult.error) {
     return NextResponse.json(
       {
-        error: 'No fue posible cargar las órdenes canónicas ni su respaldo operativo.',
-        details: {
-          canonical: canonicalResult.error.message,
-          legacy: legacyResult.error.message,
-        },
+        error: 'No fue posible cargar las órdenes desde la tabla operativa.',
+        details: legacyResult.error.message,
         orders: [],
         pagination: { page: validPage, pageSize: validPageSize, total: 0, totalPages: 0 },
       },
