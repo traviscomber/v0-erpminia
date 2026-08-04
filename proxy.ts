@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { verifyCustomSession } from '@/lib/auth/signed-session';
 
 const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
@@ -15,6 +16,19 @@ const CONTENT_SECURITY_POLICY = [
 
 function withSecurityHeaders(response: NextResponse) {
   response.headers.set('Content-Security-Policy', CONTENT_SECURITY_POLICY);
+  return response;
+}
+
+function clearCustomSession(response: NextResponse) {
+  for (const name of ['auth_token', 'user_role', 'user_email']) {
+    response.cookies.set(name, '', {
+      path: '/',
+      maxAge: 0,
+      httpOnly: name === 'auth_token',
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production',
+    });
+  }
   return response;
 }
 
@@ -34,18 +48,10 @@ export async function proxy(request: NextRequest) {
           return request.cookies.get(name)?.value;
         },
         set(name: string, value: string, options: CookieOptions) {
-          response.cookies.set({
-            name,
-            value,
-            ...options,
-          });
+          response.cookies.set({ name, value, ...options });
         },
         remove(name: string, options: CookieOptions) {
-          response.cookies.set({
-            name,
-            value: '',
-            ...options,
-          });
+          response.cookies.set({ name, value: '', ...options });
         },
       },
     }
@@ -54,12 +60,11 @@ export async function proxy(request: NextRequest) {
   if (request.nextUrl.pathname === '/auth/callback') {
     const code = request.nextUrl.searchParams.get('code');
     const error = request.nextUrl.searchParams.get('error');
-    const error_description = request.nextUrl.searchParams.get('error_description');
+    const errorDescription = request.nextUrl.searchParams.get('error_description');
 
     if (error) {
-      console.error('[v0] Auth callback error:', error, error_description);
       return withSecurityHeaders(
-        NextResponse.redirect(new URL(`/auth/login?error=${encodeURIComponent(error_description || error)}`, request.url))
+        NextResponse.redirect(new URL(`/auth/login?error=${encodeURIComponent(errorDescription || error)}`, request.url))
       );
     }
 
@@ -67,15 +72,12 @@ export async function proxy(request: NextRequest) {
       try {
         const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
         if (exchangeError) {
-          console.error('[v0] Code exchange error:', exchangeError);
           return withSecurityHeaders(
             NextResponse.redirect(new URL(`/auth/login?error=${encodeURIComponent(exchangeError.message)}`, request.url))
           );
         }
-
         return withSecurityHeaders(NextResponse.redirect(new URL('/dashboard', request.url)));
-      } catch (err) {
-        console.error('[v0] Callback error:', err);
+      } catch {
         return withSecurityHeaders(
           NextResponse.redirect(new URL('/auth/login?error=authentication_failed', request.url))
         );
@@ -88,18 +90,12 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const authToken = request.cookies.get('auth_token')?.value;
-  let customAuthValid = false;
+  const customSession = await verifyCustomSession(authToken);
+  const isAuthenticated = Boolean(user || customSession);
 
-  if (authToken) {
-    try {
-      const sessionData = JSON.parse(authToken);
-      customAuthValid = !!(sessionData?.user?.id && sessionData?.session_token);
-    } catch {
-      customAuthValid = false;
-    }
+  if (authToken && !customSession) {
+    response = clearCustomSession(response);
   }
-
-  const isAuthenticated = !!user || customAuthValid;
 
   if (request.nextUrl.pathname.startsWith('/api/')) {
     const publicApiRoutes = [
@@ -110,41 +106,31 @@ export async function proxy(request: NextRequest) {
       '/api/portal/subcontratistas',
     ];
     const isPublicRoute = publicApiRoutes.some((route) => request.nextUrl.pathname.startsWith(route));
-
     const isDemoMode = process.env.DEMO_PUBLIC_READ === 'true';
     const isReadRequest = request.method === 'GET';
-    const isWriteRequest = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method);
 
     if (request.nextUrl.pathname.startsWith('/api/debug') || request.nextUrl.pathname.startsWith('/api/test')) {
-      return withSecurityHeaders(
-        NextResponse.json({ error: 'Debug endpoints disabled in production' }, { status: 404 })
-      );
+      return withSecurityHeaders(NextResponse.json({ error: 'Debug endpoints disabled in production' }, { status: 404 }));
     }
 
-    if (isPublicRoute) {
-      return withSecurityHeaders(response);
-    }
-
-    if (isDemoMode && isReadRequest && !isWriteRequest) {
+    if (isPublicRoute || (isDemoMode && isReadRequest)) {
       return withSecurityHeaders(response);
     }
 
     if (!isAuthenticated) {
-      return withSecurityHeaders(
-        NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-      );
+      return withSecurityHeaders(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }));
     }
 
     return withSecurityHeaders(response);
   }
 
-  const protectedPaths = ['/dashboard', '/admin', '/api/admin', '/setup'];
+  const protectedPaths = ['/dashboard', '/admin', '/setup'];
   const isProtectedPath = protectedPaths.some((path) => request.nextUrl.pathname.startsWith(path));
 
   if (isProtectedPath && !isAuthenticated) {
     const loginUrl = new URL('/auth/login', request.url);
-    loginUrl.searchParams.set('redirect', request.nextUrl.pathname);
-    return withSecurityHeaders(NextResponse.redirect(loginUrl));
+    loginUrl.searchParams.set('redirect', `${request.nextUrl.pathname}${request.nextUrl.search}`);
+    return withSecurityHeaders(clearCustomSession(NextResponse.redirect(loginUrl)));
   }
 
   return withSecurityHeaders(response);
