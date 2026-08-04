@@ -62,31 +62,6 @@ const faqSchema = {
 };
 
 export default function Home() {
-
-  const productSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'SoftwareApplication',
-    name: 'Motil - Plataforma Operacional Minera',
-    description: 'Sistema integral de gestión operacional para operaciones mineras en Chile.',
-    url: 'https://motil.app',
-    applicationCategory: 'BusinessApplication',
-  };
-
-  const faqSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: [
-      {
-        '@type': 'Question',
-        name: '¿Qué es Motil?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Motil es una plataforma integral de gestión operacional minera con módulos integrados.',
-        },
-      },
-    ],
-  };
-
   return (
     <main className="min-h-screen bg-background">
       <Script id="organization-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} strategy="afterInteractive" />
