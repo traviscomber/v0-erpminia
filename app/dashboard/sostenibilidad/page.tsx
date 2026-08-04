@@ -10,6 +10,7 @@ import { ArrowRight, CheckCircle, Clock, Leaf, Shield, Target, Upload, Users } f
 import { SustainabilityKPIDashboard } from '@/components/sostenibilidad/kpi-dashboard';
 import { SustainabilityModuleConnections } from '@/components/sostenibilidad/module-connections';
 import { SustainabilityWorkflowDiagram } from '@/components/sostenibilidad/sustainability-workflow-diagram';
+import { HSECanonicalDashboard } from '@/components/sostenibilidad/hse-canonical-dashboard';
 
 const fetcher = async (url: string) => {
   const response = await fetch(url, { credentials: 'include' });
@@ -333,6 +334,10 @@ export default function SostenibilidadDashboard() {
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      <div className="mb-12 rounded-xl border border-border/70 p-6 bg-card shadow-none">
+        <HSECanonicalDashboard />
       </div>
 
       <Card className="mb-12 rounded-xl border shadow-none">
