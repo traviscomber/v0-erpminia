@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AlertCircle, ArrowRight, CheckCircle2, ShieldCheck, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,11 +12,29 @@ const accessBenefits = [
   'Menos fricción para entrar al entorno productivo',
 ];
 
+function getSafeRedirect() {
+  if (typeof window === 'undefined') return '/dashboard';
+
+  const redirect = new URLSearchParams(window.location.search).get('redirect');
+  if (!redirect || !redirect.startsWith('/') || redirect.startsWith('//')) {
+    return '/dashboard';
+  }
+
+  return redirect;
+}
+
 export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const errorMessage = new URLSearchParams(window.location.search).get('error');
+    if (errorMessage) {
+      setError(errorMessage === 'session_expired' ? 'Tu sesión expiró. Inicia sesión nuevamente.' : errorMessage);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,16 +49,16 @@ export function LoginPage() {
         credentials: 'include',
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
 
-      if (response.ok && data.success) {
-        window.location.href = '/dashboard';
+      if (response.ok && data?.success) {
+        window.location.assign(getSafeRedirect());
         return;
       }
 
-      setError(data.error || 'Credenciales inválidas');
+      setError(data?.error || 'Credenciales inválidas');
     } catch {
-      setError('Error al iniciar sesión');
+      setError('No fue posible conectar con el servicio de acceso. Intenta nuevamente.');
     } finally {
       setIsLoading(false);
     }
@@ -116,6 +134,7 @@ export function LoginPage() {
                     autoComplete="email"
                     autoFocus
                     required
+                    disabled={isLoading}
                   />
                 </div>
 
@@ -131,6 +150,7 @@ export function LoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     autoComplete="current-password"
                     required
+                    disabled={isLoading}
                   />
                 </div>
 
