@@ -2,6 +2,21 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
+import { orgHasCanonicalData } from '@/lib/api/canonical';
+
+type CanonicalInventoryRow = {
+  id: string;
+  sku: string | null;
+  name: string | null;
+  category: string | null;
+  description: string | null;
+  quantity: number | string | null;
+  min_stock: number | string | null;
+  max_stock: number | string | null;
+  unit_cost: number | string | null;
+  total_value: number | string | null;
+  warehouse_code: string | null;
+};
 
 type WarehouseBinRow = {
   bin_code: string | null;
@@ -37,11 +52,75 @@ type WarehouseStockItem = {
   is_critical: boolean;
 };
 
+async function buildCanonicalStock(
+  context: Extract<Awaited<ReturnType<typeof getOrganizationContext>>, { ok: true }>,
+): Promise<{ items: WarehouseStockItem[]; summary: Record<string, number> } | null> {
+  const pageSize = 1000;
+  let start = 0;
+  const rows: CanonicalInventoryRow[] = [];
+
+  while (true) {
+    const { data, error } = await context.supabase
+      .from('canonical_inventory_current')
+      .select('id, sku, name, category, description, quantity, min_stock, max_stock, unit_cost, total_value, warehouse_code')
+      .eq('organization_id', context.organizationId)
+      .order('sku')
+      .range(start, start + pageSize - 1);
+
+    if (error) return null;
+    const batch = Array.isArray(data) ? (data as CanonicalInventoryRow[]) : [];
+    rows.push(...batch);
+    if (batch.length < pageSize) break;
+    start += pageSize;
+  }
+
+  if (rows.length === 0) return null;
+
+  const items: WarehouseStockItem[] = rows.map((row) => {
+    const quantityOnHand = Number(row.quantity || 0);
+    const reorderLevel = Number(row.min_stock || 0);
+    const unitCost = Number(row.unit_cost || 0);
+    const totalValue = Number(row.total_value ?? quantityOnHand * unitCost);
+
+    return {
+      id: row.id,
+      part_code: row.sku,
+      part_name: row.name || row.description || row.sku,
+      quantity_on_hand: quantityOnHand,
+      quantity_reserved: 0,
+      quantity_available: quantityOnHand,
+      reorder_level: reorderLevel,
+      reorder_quantity: Number(row.max_stock || 0),
+      unit_cost: unitCost,
+      total_value: totalValue,
+      bin_location: row.warehouse_code || 'N/A',
+      is_low_stock: reorderLevel > 0 && quantityOnHand <= reorderLevel,
+      is_critical: quantityOnHand <= 0,
+    };
+  });
+
+  const summary = {
+    total_items: items.length,
+    total_quantity: items.reduce((sum, i) => sum + i.quantity_on_hand, 0),
+    total_value: items.reduce((sum, i) => sum + i.total_value, 0),
+    low_stock_count: items.filter((i) => i.is_low_stock).length,
+    critical_count: items.filter((i) => i.is_critical).length,
+  };
+
+  return { items, summary };
+}
+
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
 
   try {
+    // Real org reads the authoritative valued inventory from the canonical view.
+    if (orgHasCanonicalData(context.organizationId)) {
+      const canonical = await buildCanonicalStock(context);
+      if (canonical) return NextResponse.json(canonical);
+    }
+
     const { data: stock, error } = await context.supabase
       .from('warehouse_stock')
       .select('*, bin:warehouse_bins(bin_code, bin_location)')

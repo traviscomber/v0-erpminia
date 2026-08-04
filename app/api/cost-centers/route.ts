@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { isActiveCostCenterStatus } from '@/lib/cost-centers';
+import { orgHasCanonicalData } from '@/lib/api/canonical';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +11,15 @@ type CostCenterRow = {
   name: string | null;
   description: string | null;
   status: string | null;
+};
+
+type CanonicalCostCenterRow = {
+  id: string;
+  cost_center_code: string | null;
+  name: string | null;
+  full_path: string | null;
+  center_type: string | null;
+  is_active: boolean | null;
 };
 
 type CostCenterResponse = {
@@ -25,6 +35,31 @@ export async function GET(request: NextRequest) {
     const context = await getOrganizationContext(request);
     if (!context.ok) return context.response;
 
+    // Real org reads authoritative cost centers from the canonical view.
+    if (orgHasCanonicalData(context.organizationId)) {
+      const { data, error } = await context.supabase
+        .from('canonical_cost_centers_current')
+        .select('id, cost_center_code, name, full_path, center_type, is_active')
+        .eq('organization_id', context.organizationId)
+        .order('cost_center_code');
+
+      if (!error && Array.isArray(data) && data.length > 0) {
+        const normalized = (data as CanonicalCostCenterRow[])
+          .filter((center) => Boolean(center.id && center.cost_center_code && center.name))
+          .filter((center) => center.is_active !== false)
+          .map<CostCenterResponse>((center) => ({
+            id: center.id,
+            code: String(center.cost_center_code || '').trim(),
+            name: String(center.name || '').trim(),
+            description: center.full_path || center.center_type || null,
+            status: 'active',
+          }));
+
+        return NextResponse.json(normalized);
+      }
+    }
+
+    // Operational fallback (demo org and any org without canonical data).
     const { data: costCenters, error } = await context.supabase
       .from('cost_centers')
       .select('id, code, name, description, status')

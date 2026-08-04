@@ -112,7 +112,7 @@ async function loadWorkbook(spec: FileSpec) {
 function sheetRows(wb: ReturnType<typeof read>, sheet: string): Record<string, unknown>[] {
   const ws = wb.Sheets[sheet];
   if (!ws) throw new Error(`Hoja "${sheet}" no encontrada`);
-  return (utils.sheet_to_json(ws, { defval: null }) as Record<string, unknown>[]).map(normalizeRow);
+  return (utils.sheet_to_json(ws, { defval: null }) as unknown as Record<string, unknown>[]).map(normalizeRow);
 }
 
 // ---------- pg client ----------
@@ -349,7 +349,7 @@ async function upsertLines(client: Client, batchId: string, slice: LineRecord[])
         quantity, unit, unit_cost, net_amount, cost_center_code, asset_reference,
         validation_status, validation_notes, source_file, source_sheet, source_row,
         import_batch_id, source_hash, source_payload, imported_at)
-     SELECT $1, po.id, r.order_number, r.line_number, r.product_code, r.description,
+     SELECT $1, po.id, COALESCE(po.order_number, 'EX-' || r.order_number), r.line_number, r.product_code, r.description,
         r.quantity, NULL, r.unit_cost, r.net_amount, r.cost_center_code, r.asset_reference,
         r.validation_status,
         CASE WHEN r.validation_notes IS NULL THEN NULL
@@ -361,7 +361,7 @@ async function upsertLines(client: Client, batchId: string, slice: LineRecord[])
         asset_reference text, validation_status text, validation_notes jsonb,
         source_row int, source_hash text, source_payload jsonb)
      LEFT JOIN canonical.purchase_orders po
-        ON po.organization_id = $1 AND po.order_number = r.order_number
+        ON po.organization_id = $1 AND po.order_number = 'EX-' || r.order_number
      ON CONFLICT (organization_id, order_number, line_number) DO UPDATE SET
         purchase_order_id = EXCLUDED.purchase_order_id,
         product_code = EXCLUDED.product_code,
@@ -490,8 +490,13 @@ async function statusCounts(client: Client) {
 
 // ---------- handlers ----------
 
+// The one-shot canonical importer is disabled by default. It only runs when
+// CANONICAL_IMPORT_ENABLED is explicitly set to 'true', so a normal deploy can
+// never accidentally expose it. The import has already been driven to completion.
+const IMPORT_ENABLED = process.env.CANONICAL_IMPORT_ENABLED === 'true';
+
 export async function GET(req: NextRequest) {
-  if (process.env.CANONICAL_IMPORT_DISABLED === 'true') {
+  if (!IMPORT_ENABLED) {
     return NextResponse.json({ error: 'Importador deshabilitado' }, { status: 403 });
   }
   if (!isAuthorized(req)) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
@@ -504,7 +509,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if (process.env.CANONICAL_IMPORT_DISABLED === 'true') {
+  if (!IMPORT_ENABLED) {
     return NextResponse.json({ error: 'Importador deshabilitado' }, { status: 403 });
   }
   if (!isAuthorized(req)) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });

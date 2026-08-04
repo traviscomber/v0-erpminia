@@ -6,6 +6,19 @@ import {
   type MaintenanceEquipmentAssetRow,
   type MaintenanceCostCenterRow,
 } from '@/lib/maintenance/equipment-cost-ledger';
+import { orgHasCanonicalData } from '@/lib/api/canonical';
+
+type CanonicalAssetCostRow = {
+  id: string;
+  asset_code: string | null;
+  asset_name: string | null;
+  category: string | null;
+  cost_center_code: string | null;
+  document_number: string | null;
+  description: string | null;
+  total_cost: number | string | null;
+  transaction_date: string | null;
+};
 
 type EquipmentCostLedgerRow = {
   id: string;
@@ -87,11 +100,114 @@ async function fetchLedgerRows(context: OrganizationSuccessContext) {
   return rows;
 }
 
+async function buildCanonicalEquipmentCosts(context: OrganizationSuccessContext) {
+  const pageSize = 1000;
+  let start = 0;
+  const rows: CanonicalAssetCostRow[] = [];
+
+  while (true) {
+    const { data, error } = await context.supabase
+      .from('canonical_asset_costs_current')
+      .select('id, asset_code, asset_name, category, cost_center_code, document_number, description, total_cost, transaction_date')
+      .eq('organization_id', context.organizationId)
+      .order('transaction_date', { ascending: false })
+      .range(start, start + pageSize - 1);
+
+    if (error) return null;
+    const batch = Array.isArray(data) ? (data as CanonicalAssetCostRow[]) : [];
+    rows.push(...batch);
+    if (batch.length < pageSize) break;
+    start += pageSize;
+  }
+
+  if (rows.length === 0) return null;
+
+  const monthlyTotals = new Map<string, number>();
+  const assetTotals = new Map<
+    string,
+    { id: string; assetName: string; assetCode: string | null; category: string; totalCost: number; rows: number; lastDate: string | null }
+  >();
+  const categoryTotals = new Map<string, { totalCost: number; rows: number }>();
+
+  for (const row of rows) {
+    const cost = toNumber(row.total_cost);
+    const key = monthKey(row.transaction_date);
+    if (key) monthlyTotals.set(key, (monthlyTotals.get(key) || 0) + cost);
+
+    const assetKey = row.asset_code || 'sin-activo';
+    const bucket = assetTotals.get(assetKey) || {
+      id: assetKey,
+      assetName: row.asset_name || row.asset_code || 'Sin activo',
+      assetCode: row.asset_code,
+      category: row.category || 'Sin categoria',
+      totalCost: 0,
+      rows: 0,
+      lastDate: null,
+    };
+    bucket.totalCost += cost;
+    bucket.rows += 1;
+    if (row.transaction_date && (!bucket.lastDate || String(row.transaction_date) > bucket.lastDate)) {
+      bucket.lastDate = String(row.transaction_date);
+    }
+    assetTotals.set(assetKey, bucket);
+
+    const category = row.category || 'Sin categoria';
+    const categoryBucket = categoryTotals.get(category) || { totalCost: 0, rows: 0 };
+    categoryBucket.totalCost += cost;
+    categoryBucket.rows += 1;
+    categoryTotals.set(category, categoryBucket);
+  }
+
+  const totalCost = rows.reduce((sum, row) => sum + toNumber(row.total_cost), 0);
+
+  return {
+    summary: {
+      rows: rows.length,
+      totalCost: Number(totalCost.toFixed(2)),
+      matchedRows: rows.length,
+      matchedCost: Number(totalCost.toFixed(2)),
+      unmatchedRows: 0,
+      unmatchedCost: 0,
+      assets: assetTotals.size,
+      averageCostPerAsset: assetTotals.size > 0 ? Number((totalCost / assetTotals.size).toFixed(2)) : 0,
+    },
+    assetCosts: Array.from(assetTotals.values())
+      .sort((a, b) => b.totalCost - a.totalCost)
+      .map((item) => ({ ...item, totalCost: Number(item.totalCost.toFixed(2)) })),
+    categoryCosts: Array.from(categoryTotals.entries())
+      .sort((a, b) => b[1].totalCost - a[1].totalCost)
+      .map(([category, value]) => ({ category, totalCost: Number(value.totalCost.toFixed(2)), rows: value.rows })),
+    monthlyCosts: Array.from(monthlyTotals.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, value]) => ({ month, value: Number(value.toFixed(2)) })),
+    recentRows: rows.slice(0, 100).map((row) => ({
+      id: row.id,
+      costDate: row.transaction_date,
+      accountName: row.description,
+      documentNumber: row.document_number,
+      equipmentName: row.asset_name,
+      category: row.category,
+      totalCost: row.total_cost,
+      assetName: row.asset_name,
+      assetCode: row.asset_code,
+      costCenterName: row.cost_center_code,
+      matchedBy: 'canonical',
+      matchConfidence: 1,
+    })),
+  };
+}
+
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
 
   try {
+    // Real org reads authoritative equipment costs from the canonical view.
+    if (orgHasCanonicalData(context.organizationId)) {
+      const canonical = await buildCanonicalEquipmentCosts(context);
+      if (canonical) return NextResponse.json(canonical);
+    }
+
     const ledgerRows = await fetchLedgerRows(context);
 
     const monthlyTotals = new Map<string, number>();

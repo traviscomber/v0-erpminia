@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { resolveAuthContext } from '@/lib/api/auth-session';
+import { orgHasCanonicalData } from '@/lib/api/canonical';
 
 type PurchaseOrderRow = {
   id: string;
@@ -23,6 +24,7 @@ type PurchaseOrderRow = {
   cost?: number | string | null;
   delivery_date: string | null;
   expected_delivery_date?: string | null;
+  order_date?: string | null;
   quantity: number | string | null;
   qty?: number | string | null;
   unit_price: number | string | null;
@@ -51,7 +53,7 @@ function normalizeOrder(row: PurchaseOrderRow): NormalizedPurchaseOrder {
     item_code: row.item_code || row.reference || row.description || '',
     status: row.status || 'draft',
     total_amount: Number(row.total_amount || row.amount || row.cost || 0),
-    delivery_date: row.delivery_date || row.expected_delivery_date || row.created_at || '',
+    delivery_date: row.delivery_date || row.expected_delivery_date || row.order_date || row.created_at || '',
     quantity: Number(row.quantity || row.qty || 0),
     unit_price: Number(row.unit_price || row.price || 0),
     created_at: row.created_at,
@@ -76,16 +78,22 @@ export async function GET(request: NextRequest) {
     const validPage = Math.max(page, 0);
     const offset = validPage * validPageSize;
 
-    let query = supabase
-      .from('purchase_orders')
-      .select('*', { count: 'exact' });
+    // Real org reads authoritative purchase orders from the canonical view.
+    const useCanonical = orgHasCanonicalData(orgId);
+    const table = useCanonical ? 'canonical_purchase_orders_current' : 'purchase_orders';
+    const orderColumn = useCanonical ? 'order_date' : 'delivery_date';
+    const searchColumns = useCanonical
+      ? `po_number.ilike.%${search}%,vendor_name.ilike.%${search}%,item_code.ilike.%${search}%`
+      : `po_number.ilike.%${search}%,vendor_name.ilike.%${search}%,item_code.ilike.%${search}%`;
+
+    let query = supabase.from(table).select('*', { count: 'exact' });
 
     if (orgId) query = query.eq('organization_id', orgId);
-    if (search) query = query.or(`po_number.ilike.%${search}%,vendor_name.ilike.%${search}%,item_code.ilike.%${search}%`);
+    if (search) query = query.or(searchColumns);
     if (status) query = query.eq('status', status);
 
     const { data, error, count } = await query
-      .order('delivery_date', { ascending: false })
+      .order(orderColumn, { ascending: false })
       .range(offset, offset + validPageSize - 1);
 
     if (error) throw error;
