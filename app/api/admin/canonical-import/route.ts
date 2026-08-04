@@ -146,7 +146,7 @@ async function createBatch(
   const res = await client.query(
     `INSERT INTO staging.import_batches
        (organization_id, source_file, source_file_sha256, source_type, status, total_rows)
-     VALUES ($1,$2,$3,$4,'processing',$5)
+     VALUES ($1,$2,$3,$4,'staged',$5)
      RETURNING id`,
     [ORG_ID, logicalName, sha, sourceType, totalRows],
   );
@@ -444,11 +444,11 @@ async function deriveAssets(client: Client, batchId: string) {
         validation_status, source_file, source_sheet, source_row,
         import_batch_id, source_hash, source_payload, imported_at, updated_at)
      SELECT DISTINCT ON (ac.asset_code)
-        $1, ac.asset_code, ac.asset_name, NULL, ac.category, true,
-        'valid', $2, 'Base', ac.source_row, $3,
-        'asset:' || md5($1::text || ac.asset_code), '{}'::jsonb, now(), now()
+        $1::uuid, ac.asset_code, ac.asset_name, NULL::text, ac.category, true,
+        'valid', $2::text, 'Base', ac.source_row, $3::uuid,
+        'asset:' || md5($1::text || '::' || ac.asset_code::text), '{}'::jsonb, now(), now()
      FROM canonical.asset_costs ac
-     WHERE ac.organization_id = $1 AND ac.asset_code IS NOT NULL AND ac.asset_code <> ''
+     WHERE ac.organization_id = $1::uuid AND ac.asset_code IS NOT NULL AND ac.asset_code <> ''
      ORDER BY ac.asset_code, ac.source_row
      ON CONFLICT (organization_id, asset_code) DO NOTHING`,
     [ORG_ID, FILES.costos.logicalName, batchId],
