@@ -143,7 +143,7 @@ async function loadHseRoles(client: Client, offset: number, limit: number) {
   }));
 
   const result = await client.query(
-    `INSERT INTO canonical.hse_roles (organization_id, name, description, permissions, is_active, source_row, source_hash, source_payload, source_file)
+    `INSERT INTO hse_roles (organization_id, name, description, permissions, is_active, source_row, source_hash, source_payload, source_file)
      SELECT $1, r.name, r.description, r.permissions, r.is_active, r.source_row, r.source_hash, r.source_payload::jsonb, $2
      FROM jsonb_to_recordset($3::jsonb) AS r(name text, description text, permissions text, is_active boolean, source_row int, source_hash text, source_payload jsonb)
      ON CONFLICT (organization_id, source_hash) DO UPDATE SET
@@ -174,7 +174,7 @@ async function loadHseCommitments(client: Client, offset: number, limit: number)
   }));
 
   const result = await client.query(
-    `INSERT INTO canonical.hse_commitments (organization_id, commitment_id, description, requirement, responsible, due_date, status, source_row, source_hash, source_payload, source_file)
+    `INSERT INTO hse_commitments (organization_id, commitment_id, description, requirement, responsible, due_date, status, source_row, source_hash, source_payload, source_file)
      SELECT $1, r.commitment_id, r.description, r.requirement, r.responsible, r.due_date, r.status, r.source_row, r.source_hash, r.source_payload::jsonb, $2
      FROM jsonb_to_recordset($3::jsonb) AS r(commitment_id text, description text, requirement text, responsible text, due_date date, status text, source_row int, source_hash text, source_payload jsonb)
      ON CONFLICT (organization_id, source_hash) DO UPDATE SET
@@ -203,7 +203,7 @@ async function loadHseFacilities(client: Client, offset: number, limit: number) 
   }));
 
   const result = await client.query(
-    `INSERT INTO canonical.hse_facilities (organization_id, code, name, location, type, risk_level, source_row, source_hash, source_payload, source_file)
+    `INSERT INTO hse_facilities (organization_id, code, name, location, type, risk_level, source_row, source_hash, source_payload, source_file)
      SELECT $1, r.code, r.name, r.location, r.type, r.risk_level, r.source_row, r.source_hash, r.source_payload::jsonb, $2
      FROM jsonb_to_recordset($3::jsonb) AS r(code text, name text, location text, type text, risk_level text, source_row int, source_hash text, source_payload jsonb)
      ON CONFLICT (organization_id, source_hash) DO UPDATE SET
@@ -217,13 +217,13 @@ async function loadHseFacilities(client: Client, offset: number, limit: number) 
 }
 
 async function getImportStatus(client: Client) {
-  const roles = await client.query('SELECT count(*) as cnt FROM canonical.hse_roles WHERE organization_id=$1', [
+  const roles = await client.query('SELECT count(*) as cnt FROM hse_roles WHERE organization_id=$1', [
     ORG_ID,
   ]);
-  const commitments = await client.query('SELECT count(*) as cnt FROM canonical.hse_commitments WHERE organization_id=$1', [
+  const commitments = await client.query('SELECT count(*) as cnt FROM hse_commitments WHERE organization_id=$1', [
     ORG_ID,
   ]);
-  const facilities = await client.query('SELECT count(*) as cnt FROM canonical.hse_facilities WHERE organization_id=$1', [
+  const facilities = await client.query('SELECT count(*) as cnt FROM hse_facilities WHERE organization_id=$1', [
     ORG_ID,
   ]);
 
