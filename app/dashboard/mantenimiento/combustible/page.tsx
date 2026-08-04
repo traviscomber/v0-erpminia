@@ -1,11 +1,11 @@
 import Link from 'next/link';
-import { Download } from 'lucide-react';
+import { ArrowLeft, Download } from 'lucide-react';
 import { MaintenanceFuelBoard } from '@/components/maintenance/maintenance-fuel-board';
 import { Button } from '@/components/ui/button';
 
 export const metadata = {
-  title: 'Combustible',
-  description: 'Resumen real del stock de combustible desde bodega',
+  title: 'Combustible | Mantenimiento',
+  description: 'Disponibilidad y stock real de combustible desde bodega.',
 };
 
 export default function MaintenanceFuelPage() {
@@ -13,17 +13,26 @@ export default function MaintenanceFuelPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Combustible</h1>
-          <p className="mt-2 text-muted-foreground">
-            Resumen real del stock de combustible desde bodega, con acceso directo a importación Excel.
+          <p className="text-sm font-medium text-muted-foreground">Mantenimiento · Insumos operacionales</p>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight">Combustible</h1>
+          <p className="mt-2 max-w-3xl text-muted-foreground">
+            Controla la disponibilidad real de combustible y su relación con el inventario operativo de bodega.
           </p>
         </div>
-        <Button asChild variant="outline" className="gap-2">
-          <Link href="/dashboard/mantenimiento/combustible/importar">
-            <Download className="h-4 w-4" />
-            Importar Excel
-          </Link>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline" className="gap-2">
+            <Link href="/dashboard/mantenimiento">
+              <ArrowLeft className="h-4 w-4" />
+              Mantenimiento
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="gap-2">
+            <Link href="/dashboard/mantenimiento/combustible/importar">
+              <Download className="h-4 w-4" />
+              Importar Excel
+            </Link>
+          </Button>
+        </div>
       </div>
       <MaintenanceFuelBoard />
     </div>
