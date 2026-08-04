@@ -12,7 +12,7 @@ const items = [
   { href: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones', label: 'Inspecciones', icon: ClipboardCheck },
   { href: '/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones', label: 'Capacitaciones', icon: GraduationCap },
   { href: '/dashboard/sostenibilidad/prevencion-riesgos/epp', label: 'EPP', icon: HardHat },
-  { href: '/dashboard/sostenibilidad/prevencion-riesgos/documentos', label: 'Documentos', icon: BookOpenCheck },
+  { href: '/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse', label: 'Documentos', icon: BookOpenCheck },
   { href: '/dashboard/sostenibilidad/prevencion-riesgos/carpeta-arranque', label: 'Carpeta de arranque', icon: FileArchive },
 ];
 
@@ -41,6 +41,7 @@ export default function RiskPreventionLayout({ children }: { children: ReactNode
               <Link
                 key={item.href}
                 href={item.href}
+                aria-current={active ? 'page' : undefined}
                 className={cn(
                   'inline-flex min-h-9 shrink-0 items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                   active
