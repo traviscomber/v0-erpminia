@@ -143,7 +143,7 @@ export async function POST(req: NextRequest) {
       const workbookReport: Row[] = []
 
       for (const sheetName of workbook.SheetNames) {
-        const rawRows = utils.sheet_to_json<Row>(workbook.Sheets[sheetName], { defval: null, raw: false, dateNF: 'yyyy-mm-dd' })
+        const rawRows = utils.sheet_to_json(workbook.Sheets[sheetName], { defval: null, raw: false, dateNF: 'yyyy-mm-dd' }) as unknown as Row[]
         const batch = rawRows.slice(offset, offset + limit)
         if (offset + limit < rawRows.length) anyRemaining = true
         const candidates = batch.map((raw, index) => {
@@ -189,7 +189,7 @@ export async function POST(req: NextRequest) {
         workbookReport.push({ sheet: sheetName, rows: rawRows.length, processed: candidates.length, promoted: promoted.length, warnings: warningIds.length })
       }
 
-      const totals = workbookReport.reduce((acc, item) => ({ source: acc.source + Number(item.processed || 0), promoted: acc.promoted + Number(item.promoted || 0), warnings: acc.warnings + Number(item.warnings || 0) }), { source: 0, promoted: 0, warnings: 0 })
+      const totals = workbookReport.reduce((acc: { source: number; promoted: number; warnings: number }, item) => ({ source: acc.source + Number(item.processed || 0), promoted: acc.promoted + Number(item.promoted || 0), warnings: acc.warnings + Number(item.warnings || 0) }), { source: 0, promoted: 0, warnings: 0 })
       await sb.from('module_documents').update({
         canonical_section: spec.section,
         extracted_data: { ...(document.extracted_data || {}), imported_at: new Date().toISOString(), sheets: workbookReport, source_rows: totals.source, promoted_rows: totals.promoted, warning_rows: totals.warnings },
