@@ -3,28 +3,15 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
-import { AlertTriangle, Building2, FileText, Filter, Heart, Leaf, Plus, Search, Trash2, Users, Users2 } from 'lucide-react';
+import { AlertTriangle, Building2, Filter, Heart, Leaf, Plus, Search, Trash2, Users, Users2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type Comunidad = {
   id: string;
@@ -47,56 +34,36 @@ type Comunidad = {
   prioridad: 'alta' | 'media' | 'baja';
 };
 
-type ComunidadForm = {
-  tipo: Comunidad['tipo'];
-  descripcion: string;
-  stakeholder: string;
-  estado: Comunidad['estado'];
-  tipo_stakeholder: Comunidad['tipo_stakeholder'];
-  ubicacion: string;
-  contacto_persona: string;
-  contacto_email: string;
-  contacto_telefono: string;
-  impactado_por: string;
-  fecha_seguimiento: string;
-  responsable: string;
-  observaciones: string;
-  tipo_documento: string;
-  prioridad: Comunidad['prioridad'];
-  fecha: string;
-};
-
-type ApiResponse = {
-  data: Comunidad[];
-};
+type ComunidadForm = Omit<Comunidad, 'id' | 'numero_registro'>;
+type ApiResponse = { data: Comunidad[] };
 
 const STAKEHOLDER_TYPES = {
-  indigena: { label: 'Comunidad Indígena', color: 'bg-purple-500/15 text-purple-400', icon: Heart },
-  comunidad: { label: 'Comunidad Local', color: 'bg-blue-500/15 text-blue-400', icon: Users },
-  gobierno: { label: 'Gobierno', color: 'bg-amber-500/15 text-amber-400', icon: Building2 },
-  ong: { label: 'ONG', color: 'bg-teal-500/15 text-teal-400', icon: Leaf },
-  vecino: { label: 'Vecinos', color: 'bg-slate-500/15 text-slate-400', icon: Users2 },
+  indigena: { label: 'Comunidad indígena', className: 'bg-purple-500/10 text-purple-700', icon: Heart },
+  comunidad: { label: 'Comunidad local', className: 'bg-blue-500/10 text-blue-700', icon: Users },
+  gobierno: { label: 'Gobierno', className: 'bg-amber-500/10 text-amber-700', icon: Building2 },
+  ong: { label: 'ONG', className: 'bg-teal-500/10 text-teal-700', icon: Leaf },
+  vecino: { label: 'Vecinos', className: 'bg-slate-500/10 text-slate-700', icon: Users2 },
 } as const;
 
 const STATUS_COLOR = {
-  pendiente: 'bg-blue-500/15 text-blue-400',
-  en_progreso: 'bg-amber-500/15 text-amber-400',
-  completado: 'bg-green-500/15 text-green-400',
+  pendiente: 'bg-blue-500/10 text-blue-700',
+  en_progreso: 'bg-amber-500/10 text-amber-700',
+  completado: 'bg-green-500/10 text-green-700',
 } as const;
 
 const PRIORITY_COLOR = {
-  alta: 'bg-red-500/15 text-red-400 border border-red-500/30',
-  media: 'bg-amber-500/15 text-amber-400 border border-amber-500/30',
-  baja: 'bg-slate-500/15 text-slate-400 border border-slate-500/30',
+  alta: 'border border-red-500/20 bg-red-500/10 text-red-700',
+  media: 'border border-amber-500/20 bg-amber-500/10 text-amber-700',
+  baja: 'border border-slate-500/20 bg-slate-500/10 text-slate-700',
 } as const;
 
 const DOCUMENT_TYPES = {
-  acta_reunion: 'Acta de Reunión',
-  carta_compromiso: 'Carta de Compromiso',
+  acta_reunion: 'Acta de reunión',
+  carta_compromiso: 'Carta de compromiso',
   comunicado: 'Comunicado',
-  informe_seguimiento: 'Informe de Seguimiento',
-  evaluacion_impacto: 'Evaluación de Impacto',
-  protocolo_consulta: 'Protocolo de Consulta',
+  informe_seguimiento: 'Informe de seguimiento',
+  evaluacion_impacto: 'Evaluación de impacto',
+  protocolo_consulta: 'Protocolo de consulta',
   acuerdo: 'Acuerdo',
   otro: 'Otro',
 } as const;
@@ -127,12 +94,19 @@ const fetcher = async (url: string) => {
   return payload;
 };
 
-function normalizeEstado(value: string) {
+function normalizeEstado(value: string): Comunidad['estado'] {
   const text = value.trim().toLowerCase();
-  if (['pendiente', 'pending', 'abierto', 'open'].includes(text)) return 'pendiente';
-  if (['en progreso', 'en_progreso', 'in_progress', 'progreso'].includes(text)) return 'en_progreso';
   if (['completado', 'completed', 'completada', 'closed'].includes(text)) return 'completado';
+  if (['en progreso', 'en_progreso', 'in_progress', 'progreso'].includes(text)) return 'en_progreso';
   return 'pendiente';
+}
+
+function isOverdue(record: Comunidad, now: Date) {
+  return Boolean(
+    record.fecha_seguimiento &&
+      new Date(`${record.fecha_seguimiento}T00:00:00`) < now &&
+      normalizeEstado(record.estado) !== 'completado'
+  );
 }
 
 export default function ComunidadesPage() {
@@ -142,440 +116,191 @@ export default function ComunidadesPage() {
   const [search, setSearch] = useState('');
   const [formData, setFormData] = useState<ComunidadForm>({ ...BLANK_FORM });
 
-  const { data: res, mutate } = useSWR<ApiResponse>('/api/sostenibilidad/comunidades', fetcher);
-  const handleReload = () => {
-    void mutate();
-  };
-  const allRecords = res?.data || [];
+  const { data: response, mutate, isLoading, error } = useSWR<ApiResponse>('/api/sostenibilidad/comunidades', fetcher);
+  const records = response?.data || [];
 
-  const filteredRecords = useMemo(() => {
-    return allRecords
-      .filter((r) => filterStakeholder === 'todos' || r.tipo_stakeholder === filterStakeholder)
-      .filter((r) => filterStatus === 'todos' || normalizeEstado(r.estado) === filterStatus)
-      .filter(
-        (r) =>
-          !search ||
-          r.numero_registro.toLowerCase().includes(search.toLowerCase()) ||
-          r.stakeholder.toLowerCase().includes(search.toLowerCase()) ||
-          (r.contacto_email || '').toLowerCase().includes(search.toLowerCase())
-      )
-      .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
-  }, [allRecords, filterStakeholder, filterStatus, search]);
+  const now = useMemo(() => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }, []);
 
   const stats = useMemo(() => {
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
+    const active = records.filter((record) => normalizeEstado(record.estado) !== 'completado').length;
+    const completed = records.filter((record) => normalizeEstado(record.estado) === 'completado').length;
     return {
-      total: allRecords.length,
-      alta: allRecords.filter((r) => r.prioridad === 'alta').length,
-      pendientes: allRecords.filter((r) => normalizeEstado(r.estado) === 'pendiente').length,
-      completados: allRecords.filter((r) => normalizeEstado(r.estado) === 'completado').length,
-      vencidos: allRecords.filter(
-        (r) => r.fecha_seguimiento && new Date(`${r.fecha_seguimiento}T00:00:00`) < now && normalizeEstado(r.estado) !== 'completado'
-      ).length,
-      indigenas: allRecords.filter((r) => r.tipo_stakeholder === 'indigena').length,
+      active,
+      overdue: records.filter((record) => isOverdue(record, now)).length,
+      highPriority: records.filter((record) => record.prioridad === 'alta' && normalizeEstado(record.estado) !== 'completado').length,
+      compliance: records.length ? Math.round((completed / records.length) * 100) : 0,
     };
-  }, [allRecords]);
+  }, [records, now]);
 
-  const handleInput = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-    setFormData((current) => ({ ...current, [e.target.name]: e.target.value }));
+  const filteredRecords = useMemo(() => {
+    const priorityWeight = { alta: 0, media: 1, baja: 2 } as const;
+    return records
+      .filter((record) => filterStakeholder === 'todos' || record.tipo_stakeholder === filterStakeholder)
+      .filter((record) => filterStatus === 'todos' || normalizeEstado(record.estado) === filterStatus)
+      .filter((record) => {
+        const term = search.trim().toLowerCase();
+        return (
+          !term ||
+          record.numero_registro.toLowerCase().includes(term) ||
+          record.stakeholder.toLowerCase().includes(term) ||
+          record.descripcion.toLowerCase().includes(term) ||
+          (record.contacto_email || '').toLowerCase().includes(term)
+        );
+      })
+      .sort((a, b) => {
+        const overdueDifference = Number(isOverdue(b, now)) - Number(isOverdue(a, now));
+        if (overdueDifference) return overdueDifference;
+        const priorityDifference = priorityWeight[a.prioridad] - priorityWeight[b.prioridad];
+        if (priorityDifference) return priorityDifference;
+        const aFollowUp = a.fecha_seguimiento ? new Date(`${a.fecha_seguimiento}T00:00:00`).getTime() : Number.MAX_SAFE_INTEGER;
+        const bFollowUp = b.fecha_seguimiento ? new Date(`${b.fecha_seguimiento}T00:00:00`).getTime() : Number.MAX_SAFE_INTEGER;
+        return aFollowUp - bFollowUp;
+      });
+  }, [records, filterStakeholder, filterStatus, search, now]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const response = await fetch('/api/sostenibilidad/comunidades', {
+  const handleInput = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData((current) => ({ ...current, [event.target.name]: event.target.value }));
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const result = await fetch('/api/sostenibilidad/comunidades', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify(formData),
     });
-
-    if (response.ok) {
-      toast.success('Registro creado');
-      setIsOpen(false);
-      setFormData({ ...BLANK_FORM });
-      handleReload();
-    } else {
-      toast.error('Error al crear registro');
-    }
+    if (!result.ok) return toast.error('Error al crear registro');
+    toast.success('Registro creado');
+    setIsOpen(false);
+    setFormData({ ...BLANK_FORM });
+    void mutate();
   };
 
-  const handleDelete = async (id: string, numero: string) => {
-    if (!confirm(`¿Eliminar "${numero}"`)) return;
-    const response = await fetch(`/api/sostenibilidad/comunidades?id=${id}`, {
-      method: 'DELETE',
-      credentials: 'include',
-    });
-
-    if (response.ok) {
-      toast.success('Registro eliminado');
-      handleReload();
-    } else {
-      toast.error('Error al eliminar registro');
-    }
+  const handleDelete = async (id: string, number: string) => {
+    if (!confirm(`¿Eliminar "${number}"?`)) return;
+    const result = await fetch(`/api/sostenibilidad/comunidades?id=${id}`, { method: 'DELETE', credentials: 'include' });
+    if (!result.ok) return toast.error('Error al eliminar registro');
+    toast.success('Registro eliminado');
+    void mutate();
   };
 
-  const summaryCards = [
-    { label: 'Total', value: stats.total, tone: 'text-foreground' },
-    { label: 'Alta prioridad', value: stats.alta, tone: 'text-red-400' },
-    { label: 'Pendientes', value: stats.pendientes, tone: 'text-blue-400' },
-    { label: 'Completados', value: stats.completados, tone: 'text-green-400' },
-    { label: 'Vencidos', value: stats.vencidos, tone: 'text-red-400' },
-    { label: 'Indígenas', value: stats.indigenas, tone: 'text-purple-400' },
-  ];
+  const resetFilters = () => {
+    setSearch('');
+    setFilterStakeholder('todos');
+    setFilterStatus('todos');
+  };
 
   return (
-    <div className="min-h-screen bg-background p-6 space-y-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <div className="min-h-screen space-y-6 bg-background p-4 sm:p-6">
+      <header className="flex flex-col gap-4 border-b border-border pb-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <div className="mb-2 flex items-center gap-2">
-            <Badge variant="outline" className="rounded-full border-primary/30 bg-primary/10 text-primary">
-              Datos reales
-            </Badge>
-            <Badge variant="outline" className="rounded-full">
-              Sostenibilidad
-            </Badge>
-          </div>
-          <h1 className="text-4xl font-bold text-foreground">Relación con Comunidades</h1>
-          <p className="mt-2 max-w-3xl text-muted-foreground">
-            Gestión de eventos, comunicaciones y compromisos con stakeholders con trazabilidad operativa real.
+          <p className="mb-2 text-sm font-medium text-primary">Sostenibilidad y HSE · Comunidades</p>
+          <h1 className="text-3xl font-semibold tracking-tight text-foreground">Relación con comunidades</h1>
+          <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+            Controla compromisos, comunicaciones, responsables y seguimientos con stakeholders del territorio.
           </p>
         </div>
-
-        <div className="flex items-center gap-2">
-          <Button asChild variant="outline">
-            <Link href="/dashboard/sostenibilidad/comunidades/importar">Plantilla</Link>
-          </Button>
+        <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline">
             <Link href="/dashboard/sostenibilidad/comunidades/importar">Importar Excel</Link>
           </Button>
-          <Dialog
-            open={isOpen}
-            onOpenChange={(nextOpen) => {
-              setIsOpen(nextOpen);
-              if (!nextOpen) setFormData({ ...BLANK_FORM });
-            }}
-          >
+          <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) setFormData({ ...BLANK_FORM }); }}>
             <DialogTrigger asChild>
-              <Button className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 shrink-0">
-                <Plus className="h-4 w-4" />
-                Nuevo Registro
-              </Button>
+              <Button><Plus className="mr-2 h-4 w-4" />Nuevo registro</Button>
             </DialogTrigger>
-            <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
+            <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Nuevo Registro de Comunidad</DialogTitle>
-                <DialogDescription>
-                  Registra eventos, comunicaciones o compromisos con stakeholders
-                </DialogDescription>
+                <DialogTitle>Nuevo registro comunitario</DialogTitle>
+                <DialogDescription>Registra un evento, comunicación o compromiso y su seguimiento.</DialogDescription>
               </DialogHeader>
-
-              <form onSubmit={handleSubmit} className="mt-2 space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="col-span-2">
-                  <Label htmlFor="stakeholder">Stakeholder *</Label>
-                  <Input
-                    id="stakeholder"
-                    name="stakeholder"
-                    value={formData.stakeholder}
-                    onChange={handleInput}
-                    placeholder="Nombre de la comunidad o institución"
-                    required
-                  />
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="sm:col-span-2"><Label htmlFor="stakeholder">Stakeholder *</Label><Input id="stakeholder" name="stakeholder" value={formData.stakeholder} onChange={handleInput} required /></div>
+                  <div><Label>Tipo de stakeholder</Label><Select value={formData.tipo_stakeholder} onValueChange={(value) => setFormData((current) => ({ ...current, tipo_stakeholder: value as Comunidad['tipo_stakeholder'] }))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{Object.entries(STAKEHOLDER_TYPES).map(([value, config]) => <SelectItem key={value} value={value}>{config.label}</SelectItem>)}</SelectContent></Select></div>
+                  <div><Label>Tipo de registro</Label><Select value={formData.tipo} onValueChange={(value) => setFormData((current) => ({ ...current, tipo: value as Comunidad['tipo'] }))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Evento">Evento</SelectItem><SelectItem value="Comunicación">Comunicación</SelectItem><SelectItem value="Compromiso">Compromiso</SelectItem></SelectContent></Select></div>
+                  <div><Label htmlFor="fecha">Fecha *</Label><Input id="fecha" type="date" name="fecha" value={formData.fecha} onChange={handleInput} required /></div>
+                  <div><Label htmlFor="fecha_seguimiento">Fecha de seguimiento</Label><Input id="fecha_seguimiento" type="date" name="fecha_seguimiento" value={formData.fecha_seguimiento} onChange={handleInput} /></div>
+                  <div><Label>Prioridad</Label><Select value={formData.prioridad} onValueChange={(value) => setFormData((current) => ({ ...current, prioridad: value as Comunidad['prioridad'] }))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="alta">Alta</SelectItem><SelectItem value="media">Media</SelectItem><SelectItem value="baja">Baja</SelectItem></SelectContent></Select></div>
+                  <div><Label>Estado</Label><Select value={formData.estado} onValueChange={(value) => setFormData((current) => ({ ...current, estado: value as Comunidad['estado'] }))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="pendiente">Pendiente</SelectItem><SelectItem value="en_progreso">En progreso</SelectItem><SelectItem value="completado">Completado</SelectItem></SelectContent></Select></div>
+                  <div><Label>Tipo de documento</Label><Select value={formData.tipo_documento} onValueChange={(value) => setFormData((current) => ({ ...current, tipo_documento: value }))}><SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger><SelectContent>{Object.entries(DOCUMENT_TYPES).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent></Select></div>
+                  <div><Label htmlFor="ubicacion">Ubicación</Label><Input id="ubicacion" name="ubicacion" value={formData.ubicacion} onChange={handleInput} /></div>
+                  <div><Label htmlFor="responsable">Responsable</Label><Input id="responsable" name="responsable" value={formData.responsable} onChange={handleInput} /></div>
+                  <div><Label htmlFor="contacto_persona">Persona de contacto</Label><Input id="contacto_persona" name="contacto_persona" value={formData.contacto_persona} onChange={handleInput} /></div>
+                  <div><Label htmlFor="contacto_email">Email</Label><Input id="contacto_email" type="email" name="contacto_email" value={formData.contacto_email} onChange={handleInput} /></div>
+                  <div><Label htmlFor="contacto_telefono">Teléfono</Label><Input id="contacto_telefono" name="contacto_telefono" value={formData.contacto_telefono} onChange={handleInput} /></div>
+                  <div><Label htmlFor="impactado_por">Impactado por</Label><Input id="impactado_por" name="impactado_por" value={formData.impactado_por} onChange={handleInput} /></div>
+                  <div className="sm:col-span-2"><Label htmlFor="descripcion">Descripción *</Label><textarea id="descripcion" name="descripcion" value={formData.descripcion} onChange={handleInput} rows={3} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" required /></div>
+                  <div className="sm:col-span-2"><Label htmlFor="observaciones">Observaciones</Label><textarea id="observaciones" name="observaciones" value={formData.observaciones} onChange={handleInput} rows={2} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" /></div>
                 </div>
-
-                <div>
-                  <Label>Tipo de Stakeholder</Label>
-                  <Select
-                    value={formData.tipo_stakeholder}
-                    onValueChange={(value) => setFormData((current) => ({ ...current, tipo_stakeholder: value as Comunidad['tipo_stakeholder'] }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(STAKEHOLDER_TYPES).map(([value, { label }]) => (
-                        <SelectItem key={value} value={value}>
-                          {label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label>Tipo de Evento</Label>
-                  <Select
-                    value={formData.tipo}
-                    onValueChange={(value) => setFormData((current) => ({ ...current, tipo: value as Comunidad['tipo'] }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Evento">Evento</SelectItem>
-                      <SelectItem value="Comunicación">Comunicación</SelectItem>
-                      <SelectItem value="Compromiso">Compromiso</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="fecha">Fecha *</Label>
-                  <Input id="fecha" type="date" name="fecha" value={formData.fecha} onChange={handleInput} required />
-                </div>
-
-                <div>
-                  <Label>Prioridad</Label>
-                  <Select
-                    value={formData.prioridad}
-                    onValueChange={(value) => setFormData((current) => ({ ...current, prioridad: value as Comunidad['prioridad'] }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="alta">Alta</SelectItem>
-                      <SelectItem value="media">Media</SelectItem>
-                      <SelectItem value="baja">Baja</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label>Estado</Label>
-                  <Select
-                    value={formData.estado}
-                    onValueChange={(value) => setFormData((current) => ({ ...current, estado: value as Comunidad['estado'] }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pendiente">Pendiente</SelectItem>
-                      <SelectItem value="en_progreso">En Progreso</SelectItem>
-                      <SelectItem value="completado">Completado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label>Tipo de Documento</Label>
-                  <Select
-                    value={formData.tipo_documento}
-                    onValueChange={(value) => setFormData((current) => ({ ...current, tipo_documento: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona tipo..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(DOCUMENT_TYPES).map(([value, label]) => (
-                        <SelectItem key={value} value={value}>
-                          {label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="ubicacion">Ubicación</Label>
-                  <Input id="ubicacion" name="ubicacion" value={formData.ubicacion} onChange={handleInput} placeholder="Sector/localidad" />
-                </div>
-
-                <div>
-                  <Label htmlFor="contacto_persona">Persona Contacto</Label>
-                  <Input id="contacto_persona" name="contacto_persona" value={formData.contacto_persona} onChange={handleInput} placeholder="Nombre" />
-                </div>
-
-                <div>
-                  <Label htmlFor="contacto_email">Email Contacto</Label>
-                  <Input id="contacto_email" type="email" name="contacto_email" value={formData.contacto_email} onChange={handleInput} placeholder="Correo del contacto" />
-                </div>
-
-                <div>
-                  <Label htmlFor="contacto_telefono">Teléfono Contacto</Label>
-                  <Input id="contacto_telefono" name="contacto_telefono" value={formData.contacto_telefono} onChange={handleInput} placeholder="+56 9..." />
-                </div>
-
-                <div className="col-span-2">
-                  <Label htmlFor="impactado_por">Impactado Por</Label>
-                  <Input id="impactado_por" name="impactado_por" value={formData.impactado_por} onChange={handleInput} placeholder="Ej: Impacto ambiental, laboral, territorial" />
-                </div>
-
-                <div className="col-span-2">
-                  <Label htmlFor="descripcion">Descripción *</Label>
-                  <textarea
-                    id="descripcion"
-                    name="descripcion"
-                    value={formData.descripcion}
-                    onChange={handleInput}
-                    className="min-h-24 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-                    rows={3}
-                    placeholder="Detalles del evento, comunicación o compromiso"
-                    required
-                  />
-                </div>
-
-                <div className="col-span-2">
-                  <Label htmlFor="observaciones">Observaciones</Label>
-                  <textarea
-                    id="observaciones"
-                    name="observaciones"
-                    value={formData.observaciones}
-                    onChange={handleInput}
-                    className="min-h-20 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-                    rows={2}
-                    placeholder="Notas adicionales"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="responsable">Responsable</Label>
-                  <Input id="responsable" name="responsable" value={formData.responsable} onChange={handleInput} placeholder="Nombre del responsable" />
-                </div>
-
-                <div>
-                  <Label htmlFor="fecha_seguimiento">Fecha Seguimiento</Label>
-                  <Input id="fecha_seguimiento" type="date" name="fecha_seguimiento" value={formData.fecha_seguimiento} onChange={handleInput} />
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                  Crear Registro
-                </Button>
-              </div>
-            </form>
+                <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setIsOpen(false)}>Cancelar</Button><Button type="submit">Crear registro</Button></div>
+              </form>
             </DialogContent>
           </Dialog>
         </div>
-      </div>
+      </header>
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
-        {summaryCards.map((item) => (
-          <Card key={item.label} className="rounded-xl shadow-none">
-            <CardHeader className="pb-2">
-              <CardDescription>{item.label}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className={`text-3xl font-bold ${item.tone}`}>{item.value}</div>
-            </CardContent>
-          </Card>
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {[
+          ['Compromisos activos', stats.active, 'Pendientes o en progreso'],
+          ['Vencidos', stats.overdue, 'Requieren atención inmediata'],
+          ['Alta prioridad', stats.highPriority, 'Activos con prioridad alta'],
+          ['Cumplimiento', `${stats.compliance}%`, 'Registros completados'],
+        ].map(([label, value, description]) => (
+          <Card key={label} className="shadow-none"><CardHeader className="pb-2"><CardDescription>{label}</CardDescription><CardTitle className="text-2xl">{value}</CardTitle></CardHeader><CardContent className="text-xs text-muted-foreground">{description}</CardContent></Card>
         ))}
-      </div>
+      </section>
 
-      <Card className="rounded-xl shadow-none">
+      <Card className="shadow-none">
         <CardContent className="p-4">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                className="h-10 pl-9"
-                placeholder="Buscar por nombre, email o registro..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-            <Select value={filterStakeholder} onValueChange={setFilterStakeholder}>
-              <SelectTrigger className="h-10 w-full lg:w-56">
-                <Filter className="mr-2 h-4 w-4 text-muted-foreground" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos los stakeholders</SelectItem>
-                {Object.entries(STAKEHOLDER_TYPES).map(([value, { label }]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="h-10 w-full lg:w-48">
-                <Filter className="mr-2 h-4 w-4 text-muted-foreground" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos los estados</SelectItem>
-                <SelectItem value="pendiente">Pendiente</SelectItem>
-                <SelectItem value="en_progreso">En Progreso</SelectItem>
-                <SelectItem value="completado">Completado</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="relative flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input className="pl-9" placeholder="Buscar por stakeholder, descripción, email o registro" value={search} onChange={(event) => setSearch(event.target.value)} /></div>
+            <Select value={filterStakeholder} onValueChange={setFilterStakeholder}><SelectTrigger className="w-full lg:w-56"><Filter className="mr-2 h-4 w-4" /><SelectValue /></SelectTrigger><SelectContent><SelectItem value="todos">Todos los stakeholders</SelectItem>{Object.entries(STAKEHOLDER_TYPES).map(([value, config]) => <SelectItem key={value} value={value}>{config.label}</SelectItem>)}</SelectContent></Select>
+            <Select value={filterStatus} onValueChange={setFilterStatus}><SelectTrigger className="w-full lg:w-48"><Filter className="mr-2 h-4 w-4" /><SelectValue /></SelectTrigger><SelectContent><SelectItem value="todos">Todos los estados</SelectItem><SelectItem value="pendiente">Pendiente</SelectItem><SelectItem value="en_progreso">En progreso</SelectItem><SelectItem value="completado">Completado</SelectItem></SelectContent></Select>
+            {(search || filterStakeholder !== 'todos' || filterStatus !== 'todos') && <Button variant="ghost" onClick={resetFilters}>Limpiar</Button>}
           </div>
         </CardContent>
       </Card>
 
-      {filteredRecords.length === 0 ? (
-        <Card className="rounded-xl shadow-none">
-          <CardContent className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground">
-            <AlertTriangle className="mb-4 h-12 w-12 opacity-30" />
-            <p className="text-lg font-medium text-foreground">Sin registros</p>
-            <p className="text-sm">Crea un nuevo registro para comenzar a gestionar las relaciones comunitarias</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-3">
-          {filteredRecords.map((record) => {
-            const stakeholderCfg = STAKEHOLDER_TYPES[record.tipo_stakeholder] || STAKEHOLDER_TYPES.comunidad;
-            const StakeholderIcon = stakeholderCfg.icon;
-
-            return (
-              <Card key={record.id} className="rounded-xl shadow-none transition hover:bg-muted/20">
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0 flex-1">
-                      <div className="mb-2 flex flex-wrap items-center gap-2">
-                        <span className="rounded-full bg-muted px-2 py-1 font-mono text-xs text-muted-foreground">
-                          {record.numero_registro}
-                        </span>
-                        <Badge className={`h-6 px-2 py-0 text-[10px] ${stakeholderCfg.color}`}>
-                          <span className="flex items-center gap-1">
-                            <StakeholderIcon className="h-3 w-3" />
-                            {stakeholderCfg.label}
-                          </span>
-                        </Badge>
-                        <Badge className={`h-6 px-2 py-0 text-[10px] ${STATUS_COLOR[normalizeEstado(record.estado)]}`}>
-                          {normalizeEstado(record.estado).replace(/_/g, ' ')}
-                        </Badge>
-                        <Badge className={`h-6 px-2 py-0 text-[10px] ${PRIORITY_COLOR[record.prioridad]}`}>
-                          {record.prioridad}
-                        </Badge>
-                      </div>
-
-                      <h3 className="mb-1 text-sm font-semibold text-foreground">{record.stakeholder}</h3>
-
-                      {record.descripcion && <p className="mb-2 line-clamp-2 text-xs text-muted-foreground">{record.descripcion}</p>}
-
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                        <span>{new Date(`${record.fecha}T00:00:00`).toLocaleDateString('es-CL')}</span>
-                        {record.ubicacion && <span>{record.ubicacion}</span>}
-                        {record.contacto_persona && <span>{record.contacto_persona}</span>}
-                        {record.contacto_email && <span>{record.contacto_email}</span>}
-                        {record.tipo_documento && <span>{DOCUMENT_TYPES[record.tipo_documento as keyof typeof DOCUMENT_TYPES]}</span>}
-                      </div>
-
-                      {record.observaciones && <p className="mt-2 text-xs italic text-muted-foreground">{record.observaciones}</p>}
+      <Card className="shadow-none">
+        <CardHeader className="flex-row items-center justify-between space-y-0"><div><CardTitle>Compromisos y relacionamiento</CardTitle><CardDescription>{filteredRecords.length} registros, ordenados por urgencia</CardDescription></div></CardHeader>
+        <CardContent className="p-0">
+          {isLoading ? <div className="p-8 text-center text-sm text-muted-foreground">Cargando registros...</div> : error ? <div className="p-8 text-center text-sm text-destructive">No fue posible cargar los registros.</div> : filteredRecords.length === 0 ? <div className="flex flex-col items-center py-14 text-center"><AlertTriangle className="mb-3 h-8 w-8 text-muted-foreground" /><p className="font-medium">Sin registros para los filtros actuales</p><p className="text-sm text-muted-foreground">Ajusta los filtros o crea un nuevo registro.</p></div> : <div className="divide-y divide-border">
+            {filteredRecords.map((record) => {
+              const stakeholder = STAKEHOLDER_TYPES[record.tipo_stakeholder] || STAKEHOLDER_TYPES.comunidad;
+              const StakeholderIcon = stakeholder.icon;
+              const overdue = isOverdue(record, now);
+              return <article key={record.id} className="p-4 transition-colors hover:bg-muted/30 sm:p-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-2 flex flex-wrap items-center gap-2">
+                      {overdue && <Badge variant="destructive">Vencido</Badge>}
+                      <Badge className={PRIORITY_COLOR[record.prioridad]}>{record.prioridad}</Badge>
+                      <Badge className={STATUS_COLOR[normalizeEstado(record.estado)]}>{normalizeEstado(record.estado).replace('_', ' ')}</Badge>
+                      <Badge className={stakeholder.className}><StakeholderIcon className="mr-1 h-3 w-3" />{stakeholder.label}</Badge>
+                      <span className="font-mono text-xs text-muted-foreground">{record.numero_registro}</span>
                     </div>
-
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
-                      onClick={() => handleDelete(record.id, record.numero_registro)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <h3 className="font-semibold text-foreground">{record.stakeholder}</h3>
+                    <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{record.descripcion}</p>
+                    <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground">
+                      <span>Registro: {new Date(`${record.fecha}T00:00:00`).toLocaleDateString('es-CL')}</span>
+                      {record.fecha_seguimiento && <span>Seguimiento: {new Date(`${record.fecha_seguimiento}T00:00:00`).toLocaleDateString('es-CL')}</span>}
+                      {record.responsable && <span>Responsable: {record.responsable}</span>}
+                      {record.ubicacion && <span>{record.ubicacion}</span>}
+                      {record.contacto_persona && <span>Contacto: {record.contacto_persona}</span>}
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
+                  <Button variant="ghost" size="icon" aria-label={`Eliminar ${record.numero_registro}`} className="shrink-0 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(record.id, record.numero_registro)}><Trash2 className="h-4 w-4" /></Button>
+                </div>
+              </article>;
+            })}
+          </div>}
+        </CardContent>
+      </Card>
     </div>
   );
 }

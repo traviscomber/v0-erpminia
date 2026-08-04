@@ -3,102 +3,115 @@
 import { useEffect, useState } from 'react';
 import { ExportReportForm } from '@/components/reportes/export-report-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, ShieldAlert, History } from 'lucide-react';
+import { AlertCircle, FileText, ShieldCheck } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 type ReportSummary = {
   total: number;
+  pending: number;
   status: string;
-  lastDownloadedAt: string | null;
 };
 
 export default function ReportesPage() {
-  const [summary, setSummary] = useState<ReportSummary>({
-    total: 0,
-    status: 'Operativo',
-    lastDownloadedAt: null,
-  });
+  const [summary, setSummary] = useState<ReportSummary>({ total: 0, pending: 0, status: 'Sin sincronizar' });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  const loadSummary = async () => {
+    setIsLoading(true);
+    setError(false);
+    try {
+      const response = await fetch('/api/documents/stats', { credentials: 'include' });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok || !payload) throw new Error('No fue posible cargar el resumen documental');
+
+      const pending = Number(payload.pending || 0);
+      setSummary({
+        total: Number(payload.totalDocuments || 0),
+        pending,
+        status: pending > 0 ? 'Con pendientes' : 'Operativo',
+      });
+    } catch {
+      setError(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    let active = true;
-
-    const loadSummary = async () => {
-      try {
-        const response = await fetch('/api/documents/stats', { credentials: 'include' });
-        const payload = await response.json().catch(() => null);
-
-        if (!response.ok || !payload) return;
-
-        if (active) {
-          setSummary({
-            total: Number(payload.totalDocuments || 0),
-            status: payload.pending > 0 ? 'Con pendientes' : 'Operativo',
-            lastDownloadedAt: null,
-          });
-        }
-      } catch {
-        if (active) {
-          setSummary((current) => current);
-        }
-      }
-    };
-
     void loadSummary();
-    return () => {
-      active = false;
-    };
   }, []);
 
   return (
-    <div className="space-y-6 p-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Reportes</h1>
-        <p className="text-muted-foreground">
-          Descarga los reportes que necesitas en un solo lugar, en español y con foco operativo.
+    <div className="space-y-6">
+      <header className="flex flex-col gap-3 border-b border-border pb-6">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+          Abastecimiento · Análisis y exportación
         </p>
-      </div>
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight">Reportes y análisis</h1>
+          <p className="mt-2 max-w-3xl text-sm text-muted-foreground md:text-base">
+            Genera exportaciones operacionales desde las fuentes disponibles y revisa el estado documental antes de descargar.
+          </p>
+        </div>
+      </header>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="border-border/60 bg-card/90">
+      {error && (
+        <Card className="border-destructive/30">
+          <CardContent className="flex flex-col gap-4 py-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3 text-sm">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+              <div>
+                <p className="font-medium">No fue posible cargar el resumen documental.</p>
+                <p className="text-muted-foreground">El generador de reportes sigue disponible.</p>
+              </div>
+            </div>
+            <Button variant="outline" onClick={() => void loadSummary()}>Reintentar</Button>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm font-medium">
               <FileText className="h-4 w-4 text-primary" />
-              Documentos totales
+              Documentos disponibles
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{summary.total}</div>
-            <p className="text-xs text-muted-foreground">Datos cargados desde el resumen documental</p>
+            <div className="text-3xl font-semibold">{isLoading ? '—' : summary.total}</div>
+            <p className="mt-1 text-xs text-muted-foreground">Fuente documental conectada</p>
           </CardContent>
         </Card>
 
-        <Card className="border-border/60 bg-card/90">
+        <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium">
-              <ShieldAlert className="h-4 w-4 text-primary" />
-              Estado
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Pendientes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{summary.status}</div>
-            <p className="text-xs text-muted-foreground">Se actualiza segun el flujo documental</p>
+            <div className="text-3xl font-semibold text-primary">{isLoading ? '—' : summary.pending}</div>
+            <p className="mt-1 text-xs text-muted-foreground">Revisiones antes de exportar</p>
           </CardContent>
         </Card>
 
-        <Card className="border-border/60 bg-card/90">
+        <Card className="sm:col-span-2 xl:col-span-1">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm font-medium">
-              <History className="h-4 w-4 text-primary" />
-              Ultima descarga
+              <ShieldCheck className="h-4 w-4 text-secondary" />
+              Estado de la fuente
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{summary.lastDownloadedAt || 'Sin registro'}</div>
-            <p className="text-xs text-muted-foreground">Se mostrara cuando exista telemetria de exportacion</p>
+            <div className="text-2xl font-semibold">{isLoading ? 'Sincronizando' : summary.status}</div>
+            <p className="mt-1 text-xs text-muted-foreground">Calculado desde datos reales</p>
           </CardContent>
         </Card>
       </div>
 
-      <ExportReportForm />
+      <div className="min-w-0 overflow-x-auto">
+        <ExportReportForm />
+      </div>
     </div>
   );
 }

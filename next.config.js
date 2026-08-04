@@ -131,6 +131,12 @@ const nextConfig = {
     };
   },
 
+  // Opt out of the webpack build worker.
+  // This keeps production builds on the main process and avoids the Windows/Node 24 worker write error.
+  webpack(config) {
+    return config;
+  },
+
   // Compression
   compress: true,
 

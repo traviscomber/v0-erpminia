@@ -211,13 +211,13 @@ export function MaintenanceExecutiveDashboard() {
           <Button asChild variant="outline" className="gap-2">
             <Link href="/dashboard/mantenimiento/movil">
               <Smartphone className="h-4 w-4" />
-              Vista móvil
+              Operación en terreno
             </Link>
           </Button>
           <Button asChild variant="outline" className="gap-2">
             <Link href="/dashboard/mantenimiento/vehiculos">
               <QrCode className="h-4 w-4" />
-              Vehículos y QR
+              Vehículos y traslados
             </Link>
           </Button>
           <Button

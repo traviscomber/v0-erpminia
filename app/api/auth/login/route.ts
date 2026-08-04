@@ -3,108 +3,109 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'bcrypt';
+import { signCustomSession } from '@/lib/auth/signed-session';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password } = body;
+    const email = String(body?.email || '').trim().toLowerCase();
+    const password = String(body?.password || '');
 
     if (!email || !password) {
-      return NextResponse.json({ error: 'Email and password required' }, { status: 400 });
+      return NextResponse.json({ error: 'Email y contraseña requeridos' }, { status: 400 });
     }
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
-      return NextResponse.json({ error: 'Server error' }, { status: 500 });
+      console.error('[auth] Missing Supabase server configuration');
+      return NextResponse.json({ error: 'Error del servidor' }, { status: 500 });
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
 
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('id, email, full_name, password_hash, organization_id, role')
-      .eq('email', email);
+      .eq('email', email)
+      .limit(1);
 
     if (profileError) {
-      console.error('[v0] Database error:', profileError);
-      return NextResponse.json({ error: 'Server error' }, { status: 500 });
+      console.error('[auth] Profile lookup failed:', profileError.message);
+      return NextResponse.json({ error: 'Error del servidor' }, { status: 500 });
     }
 
-    if (!profileData || profileData.length === 0) {
-      console.log('[v0] User not found:', email);
-      return NextResponse.json({ error: 'Credenciales inv\u00e1lidas' }, { status: 401 });
+    const profile = profileData?.[0];
+    if (!profile?.password_hash) {
+      return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
     }
 
-    const profile = profileData[0];
-
-    if (!profile.password_hash) {
-      console.error('[v0] No password hash for user:', email);
-      return NextResponse.json({ error: 'Credenciales inv\u00e1lidas' }, { status: 401 });
-    }
-
-    let passwordMatch = false;
-    try {
-      passwordMatch = await bcrypt.compare(password, profile.password_hash);
-    } catch (err) {
-      console.error('[v0] Bcrypt error:', err);
-      return NextResponse.json({ error: 'Credenciales inv\u00e1lidas' }, { status: 401 });
-    }
-
+    const passwordMatch = await bcrypt.compare(password, profile.password_hash).catch(() => false);
     if (!passwordMatch) {
-      console.log('[v0] Password mismatch for:', email);
-      return NextResponse.json({ error: 'Credenciales inv\u00e1lidas' }, { status: 401 });
+      return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
     }
 
-    console.log('[v0] Password matched for:', email);
+    const { data: roleRows } = await supabase
+      .from('user_roles')
+      .select('role, organization_id')
+      .eq('user_id', profile.id)
+      .order('created_at', { ascending: false })
+      .limit(1);
 
-    const role = profile.role || 'viewer';
-    console.log('[v0] User role from profile:', role);
+    const roleAssignment = roleRows?.[0];
+    const role = profile.role || roleAssignment?.role || 'viewer';
+    const organizationId = profile.organization_id || roleAssignment?.organization_id || null;
 
-    const sessionData = {
+    const authToken = await signCustomSession({
       user: {
         id: profile.id,
         email: profile.email,
         full_name: profile.full_name,
-        organization_id: profile.organization_id,
+        organization_id: organizationId,
       },
       role,
-      session_token: `${profile.id}-${Date.now()}`,
-    };
+    });
 
-    const response = NextResponse.json({ success: true, user: sessionData });
+    const response = NextResponse.json({
+      success: true,
+      user: {
+        id: profile.id,
+        email: profile.email,
+        full_name: profile.full_name,
+        organization_id: organizationId,
+        role,
+      },
+    });
 
     const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
-
-    response.cookies.set('auth_token', JSON.stringify(sessionData), {
-      httpOnly: true,
+    const cookieOptions = {
       secure: isProduction,
-      sameSite: 'lax',
+      sameSite: 'lax' as const,
       path: '/',
-      maxAge: 86400 * 7,
+      maxAge: 60 * 60 * 24 * 7,
+    };
+
+    response.cookies.set('auth_token', authToken, {
+      ...cookieOptions,
+      httpOnly: true,
     });
 
     response.cookies.set('user_role', role, {
+      ...cookieOptions,
       httpOnly: false,
-      secure: isProduction,
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 86400 * 7,
     });
 
-    response.cookies.set('user_email', email, {
+    response.cookies.set('user_email', profile.email, {
+      ...cookieOptions,
       httpOnly: false,
-      secure: isProduction,
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 86400 * 7,
     });
 
-    console.log('[v0] Login successful:', { email, role });
     return response;
   } catch (error) {
-    console.error('[v0] Login error:', error instanceof Error ? error.message : String(error));
-    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+    console.error('[auth] Login failed:', error instanceof Error ? error.message : String(error));
+    return NextResponse.json({ error: 'Solicitud inválida' }, { status: 400 });
   }
 }

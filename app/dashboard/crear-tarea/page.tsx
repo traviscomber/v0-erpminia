@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
 
 export default function CrearTareaPage() {
-  redirect('/dashboard/work-orders/create');
+  redirect('/dashboard/mantenimiento/ordenes-trabajo/create');
 }

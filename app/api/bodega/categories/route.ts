@@ -5,41 +5,27 @@ import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { resolveAuthContext } from '@/lib/api/auth-session';
 import { canonicalCategory, getCategoryColor } from '@/lib/bodega-normalization';
 
-export async function GET(request: NextRequest) {
-  const auth = await resolveAuthContext(request);
-  if (!auth) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+type CategoryRow = {
+  category?: string | null;
+  quantity?: number | null;
+  min_stock?: number | null;
+};
 
-  const supabase = getSupabaseServerClient();
-  const orgId = auth.organizationId;
-
-  let query = supabase.from('bodega_inventory').select('category, quantity, min_stock');
-  if (orgId) {
-    query = query.or(`organization_id.eq.${orgId},organization_id.is.null`);
-  }
-
-  const { data, error } = await query;
-
-  if (error) {
-    return NextResponse.json({ categories: [], warning: error.message });
-  }
-
+function summarize(rows: CategoryRow[]) {
   const map = new Map<string, { count: number; low_stock: number; total_stock: number }>();
 
-  for (const row of data ?? []) {
-    const rawLabel = String((row as { category?: string | null }).category || '').trim();
-    const label = canonicalCategory(rawLabel || 'Otros');
+  for (const row of rows) {
+    const label = canonicalCategory(String(row.category || '').trim() || 'Otros');
     const existing = map.get(label) ?? { count: 0, low_stock: 0, total_stock: 0 };
-    const quantity = Number((row as { quantity?: number | null }).quantity || 0);
-    const minStock = Number((row as { min_stock?: number | null }).min_stock || 0);
+    const quantity = Number(row.quantity || 0);
+    const minStock = Number(row.min_stock || 0);
     existing.count += 1;
     existing.total_stock += quantity;
-    if (quantity < minStock) {
-      existing.low_stock += 1;
-    }
+    if (quantity < minStock) existing.low_stock += 1;
     map.set(label, existing);
   }
 
-  const categories = Array.from(map.entries())
+  return Array.from(map.entries())
     .map(([label, stats]) => ({
       label,
       color: getCategoryColor(label),
@@ -48,6 +34,48 @@ export async function GET(request: NextRequest) {
       low_stock: stats.low_stock,
     }))
     .sort((a, b) => b.count - a.count);
+}
 
-  return NextResponse.json({ categories });
+export async function GET(request: NextRequest) {
+  const auth = await resolveAuthContext(request);
+  if (!auth) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+
+  const supabase = getSupabaseServerClient();
+  const orgId = auth.organizationId;
+
+  const canonicalResult = await supabase
+    .from('canonical_inventory_current')
+    .select('category, quantity, min_stock')
+    .eq('organization_id', orgId);
+
+  if (!canonicalResult.error) {
+    return NextResponse.json({
+      categories: summarize((canonicalResult.data as CategoryRow[] | null) || []),
+      dataSource: 'canonical',
+    });
+  }
+
+  let legacyQuery = supabase.from('bodega_inventory').select('category, quantity, min_stock');
+  if (orgId) legacyQuery = legacyQuery.or(`organization_id.eq.${orgId},organization_id.is.null`);
+
+  const legacyResult = await legacyQuery;
+  if (legacyResult.error) {
+    return NextResponse.json(
+      {
+        categories: [],
+        error: 'No fue posible cargar las familias del inventario.',
+        details: {
+          canonical: canonicalResult.error.message,
+          legacy: legacyResult.error.message,
+        },
+      },
+      { status: 500 },
+    );
+  }
+
+  return NextResponse.json({
+    categories: summarize((legacyResult.data as CategoryRow[] | null) || []),
+    dataSource: 'legacy',
+    warning: 'Familias servidas desde la tabla operativa de respaldo.',
+  });
 }

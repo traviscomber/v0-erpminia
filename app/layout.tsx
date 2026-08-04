@@ -1,9 +1,28 @@
 import type { Metadata } from 'next';
 export const dynamic = 'force-dynamic';
 
+import { Geist, Geist_Mono, Montserrat } from 'next/font/google';
 import { ThemeProvider } from 'next-themes';
 import { Toaster } from 'sonner';
 import './globals.css';
+
+const geist = Geist({
+  subsets: ['latin'],
+  variable: '--font-geist-sans',
+  display: 'swap',
+});
+
+const geistMono = Geist_Mono({
+  subsets: ['latin'],
+  variable: '--font-geist-mono',
+  display: 'swap',
+});
+
+const montserrat = Montserrat({
+  subsets: ['latin'],
+  variable: '--font-montserrat',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'Motil | Plataforma Operacional Minera',
@@ -35,12 +54,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es-CL" className="dark scroll-smooth" suppressHydrationWarning>
+    <html
+      lang="es-CL"
+      className={`${geist.variable} ${geistMono.variable} ${montserrat.variable} scroll-smooth`}
+      suppressHydrationWarning
+    >
       <head>
         <meta charSet="utf-8" />
       </head>
-      <body className="font-sans antialiased bg-background text-foreground selection:bg-primary/20 selection:text-foreground">
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} forcedTheme="dark">
+      <body className="bg-background font-sans text-foreground antialiased selection:bg-primary/20 selection:text-foreground">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem={false}
+          storageKey="motil-theme"
+          disableTransitionOnChange
+        >
           {children}
           <Toaster position="top-right" />
         </ThemeProvider>

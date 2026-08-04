@@ -7,29 +7,31 @@ import { orgHasCanonicalData } from '@/lib/api/canonical';
 
 type PurchaseOrderRow = {
   id: string;
-  po_number: string | null;
+  po_number?: string | null;
   purchase_order_number?: string | null;
   number?: string | null;
   code?: string | null;
-  vendor_name: string | null;
+  vendor_name?: string | null;
   vendor?: string | null;
   supplier_name?: string | null;
   supplier?: string | null;
-  item_code: string | null;
+  item_code?: string | null;
   reference?: string | null;
   description?: string | null;
-  status: string | null;
-  total_amount: number | string | null;
+  item_description?: string | null;
+  status?: string | null;
+  total_amount?: number | string | null;
   amount?: number | string | null;
   cost?: number | string | null;
-  delivery_date: string | null;
+  delivery_date?: string | null;
   expected_delivery_date?: string | null;
   order_date?: string | null;
-  quantity: number | string | null;
+  quantity?: number | string | null;
   qty?: number | string | null;
-  unit_price: number | string | null;
+  unit_price?: number | string | null;
   price?: number | string | null;
-  created_at: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 };
 
 type NormalizedPurchaseOrder = {
@@ -50,13 +52,14 @@ function normalizeOrder(row: PurchaseOrderRow): NormalizedPurchaseOrder {
     id: row.id,
     po_number: row.po_number || row.purchase_order_number || row.number || row.code || row.id,
     vendor_name: row.vendor_name || row.vendor || row.supplier_name || row.supplier || 'Proveedor',
-    item_code: row.item_code || row.reference || row.description || '',
+    item_code: row.item_code || row.reference || row.item_description || row.description || '',
     status: row.status || 'draft',
     total_amount: Number(row.total_amount || row.amount || row.cost || 0),
-    delivery_date: row.delivery_date || row.expected_delivery_date || row.order_date || row.created_at || '',
+    delivery_date:
+      row.delivery_date || row.expected_delivery_date || row.order_date || row.created_at || row.updated_at || '',
     quantity: Number(row.quantity || row.qty || 0),
     unit_price: Number(row.unit_price || row.price || 0),
-    created_at: row.created_at,
+    created_at: row.created_at || row.order_date || row.updated_at || null,
   };
 }
 
@@ -66,18 +69,28 @@ export async function GET(request: NextRequest) {
 
   const supabase = getSupabaseServerClient();
   const orgId = auth.organizationId;
+  const searchParams = request.nextUrl.searchParams;
+  const search = searchParams.get('search')?.trim() || '';
+  const page = parseInt(searchParams.get('page') || '0', 10);
+  const pageSize = parseInt(searchParams.get('pageSize') || '50', 10);
+  const status = searchParams.get('status')?.trim() || '';
+  const validPageSize = Math.min(Math.max(pageSize, 10), 500);
+  const validPage = Math.max(page, 0);
+  const offset = validPage * validPageSize;
 
-  try {
-    const searchParams = request.nextUrl.searchParams;
-    const search = searchParams.get('search') || '';
-    const page = parseInt(searchParams.get('page') || '0');
-    const pageSize = parseInt(searchParams.get('pageSize') || '50');
-    const status = searchParams.get('status') || '';
+  let canonicalQuery = supabase
+    .from('canonical_purchase_orders_current')
+    .select('*', { count: 'exact' })
+    .eq('organization_id', orgId);
 
-    const validPageSize = Math.min(Math.max(pageSize, 10), 500);
-    const validPage = Math.max(page, 0);
-    const offset = validPage * validPageSize;
+  if (search) {
+    canonicalQuery = canonicalQuery.or(
+      `po_number.ilike.%${search}%,vendor_name.ilike.%${search}%,item_code.ilike.%${search}%,item_description.ilike.%${search}%`,
+    );
+  }
+  if (status) canonicalQuery = canonicalQuery.eq('status', status);
 
+<<<<<<< HEAD
     // Real org reads authoritative purchase orders from the canonical view.
     const useCanonical = orgHasCanonicalData(orgId);
     const table = useCanonical ? 'canonical_purchase_orders_current' : 'purchase_orders';
@@ -97,21 +110,68 @@ export async function GET(request: NextRequest) {
       .range(offset, offset + validPageSize - 1);
 
     if (error) throw error;
+=======
+  const canonicalResult = await canonicalQuery
+    .order('order_date', { ascending: false, nullsFirst: false })
+    .range(offset, offset + validPageSize - 1);
+>>>>>>> 526e7df
 
+  if (!canonicalResult.error) {
+    const total = canonicalResult.count || 0;
     return NextResponse.json({
-      orders: ((data || []) as PurchaseOrderRow[]).map(normalizeOrder),
+      orders: ((canonicalResult.data || []) as PurchaseOrderRow[]).map(normalizeOrder),
       pagination: {
         page: validPage,
         pageSize: validPageSize,
-        total: count || 0,
-        totalPages: Math.ceil((count || 0) / validPageSize),
+        total,
+        totalPages: Math.ceil(total / validPageSize),
       },
+      dataSource: 'canonical',
       generated_at: new Date().toISOString(),
     });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'No se pudieron cargar las ordenes de compra';
-    return NextResponse.json({ error: message, orders: [], pagination: { page: 0, pageSize: 50, total: 0, totalPages: 0 } }, { status: 200 });
   }
+
+  let legacyQuery = supabase.from('purchase_orders').select('*', { count: 'exact' });
+  if (orgId) legacyQuery = legacyQuery.eq('organization_id', orgId);
+  if (search) {
+    legacyQuery = legacyQuery.or(
+      `po_number.ilike.%${search}%,vendor_name.ilike.%${search}%,item_code.ilike.%${search}%`,
+    );
+  }
+  if (status) legacyQuery = legacyQuery.eq('status', status);
+
+  const legacyResult = await legacyQuery
+    .order('delivery_date', { ascending: false })
+    .range(offset, offset + validPageSize - 1);
+
+  if (legacyResult.error) {
+    return NextResponse.json(
+      {
+        error: 'No fue posible cargar las órdenes canónicas ni su respaldo operativo.',
+        details: {
+          canonical: canonicalResult.error.message,
+          legacy: legacyResult.error.message,
+        },
+        orders: [],
+        pagination: { page: validPage, pageSize: validPageSize, total: 0, totalPages: 0 },
+      },
+      { status: 500 },
+    );
+  }
+
+  const total = legacyResult.count || 0;
+  return NextResponse.json({
+    orders: ((legacyResult.data || []) as PurchaseOrderRow[]).map(normalizeOrder),
+    pagination: {
+      page: validPage,
+      pageSize: validPageSize,
+      total,
+      totalPages: Math.ceil(total / validPageSize),
+    },
+    dataSource: 'legacy',
+    warning: 'Órdenes servidas desde la tabla operativa de respaldo.',
+    generated_at: new Date().toISOString(),
+  });
 }
 
 export async function POST(request: NextRequest) {
@@ -137,13 +197,9 @@ export async function POST(request: NextRequest) {
     }
 
     const total_amount = quantity * unit_price;
-
-    let countQuery = supabase
-      .from('purchase_orders')
-      .select('id', { count: 'exact', head: true });
+    let countQuery = supabase.from('purchase_orders').select('id', { count: 'exact', head: true });
     if (orgId) countQuery = countQuery.eq('organization_id', orgId);
     const { count } = await countQuery;
-
     const po_number = `PO-${new Date().getFullYear()}-${String((count || 0) + 1).padStart(4, '0')}`;
 
     const { data, error } = await supabase
@@ -164,7 +220,6 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) throw error;
-
     return NextResponse.json({ data: normalizeOrder(data as PurchaseOrderRow) }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudo crear la orden de compra';

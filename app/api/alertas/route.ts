@@ -363,7 +363,7 @@ export async function GET(request: NextRequest) {
         timestamp: safeDate(workOrder.created_at || workOrder.scheduled_date),
         read: false,
         actionRequired: severity !== 'media' || workOrder.status === 'open',
-        actionUrl: '/dashboard/work-orders',
+        actionUrl: '/dashboard/mantenimiento/ordenes-trabajo',
       });
     }
 

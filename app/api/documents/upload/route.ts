@@ -12,56 +12,54 @@ const allowedTypes = [
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'application/vnd.ms-excel',
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'image/jpeg',
+  'image/png',
 ];
+
+function safeParseJson(value: string) {
+  if (!value) return {};
+  try {
+    return JSON.parse(value);
+  } catch {
+    return {};
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
-    // Authenticate using the app's custom cookie session
     const auth = await resolveAuthContext(request);
     if (!auth) {
-      return NextResponse.json(
-        { error: 'No autenticado. Inicia sesión nuevamente.' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'No autenticado. Inicia sesiÃ³n nuevamente.' }, { status: 401 });
     }
 
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const module = formData.get('module') as string;
     const category = formData.get('category') as string;
+    const title = String(formData.get('title') || '').trim();
     const documentType = formData.get('documentType') as string;
     const description = formData.get('description') as string;
     const validFrom = formData.get('validFrom') as string;
     const validUntil = formData.get('validUntil') as string;
+    const assetId = String(formData.get('assetId') || '').trim();
+    const canonicalSection = String(formData.get('canonicalSection') || '').trim();
+    const extractedDataRaw = String(formData.get('extractedData') || '').trim();
     const bypassDuplicate = formData.get('bypassDuplicate') === 'true';
 
     if (!file || !module || !category) {
-      return NextResponse.json(
-        { error: 'Faltan parámetros requeridos' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Faltan parÃ¡metros requeridos' }, { status: 400 });
     }
 
     if (!allowedTypes.includes(file.type)) {
-      return NextResponse.json(
-        { error: 'Tipo de archivo no permitido' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Tipo de archivo no permitido' }, { status: 400 });
     }
 
     if (file.size > 50 * 1024 * 1024) {
-      return NextResponse.json(
-        { error: 'El archivo no debe superar 50MB' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'El archivo no debe superar 50MB' }, { status: 400 });
     }
 
     const supabase = getSupabaseServerClient();
 
-    const ext = file.name.split('.').pop() || 'bin';
-    const fileType = ext.toLowerCase();
-
-    // Check for duplicate documents by name in the same module and category (unless bypass flag is set)
     if (!bypassDuplicate) {
       const { data: existingDocs, error: searchError } = await supabase
         .from('module_documents')
@@ -78,8 +76,8 @@ export async function POST(request: NextRequest) {
 
       if (existingDocs && existingDocs.length > 0) {
         return NextResponse.json(
-          { 
-            error: `El documento "${file.name}" ya ha sido subido en esta categoría. Por favor, revisa si el archivo es duplicado.`,
+          {
+            error: `El documento "${file.name}" ya ha sido subido en esta categorÃ­a. Por favor, revisa si el archivo es duplicado.`,
             isDuplicate: true,
             existingDocument: existingDocs[0],
           },
@@ -88,18 +86,17 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Sanitize path segments: remove accents, then strip any char that isn't alphanumeric, dash or dot
     const sanitizePathSegment = (s: string) =>
       s
         .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')   // strip diacritics (é → e, etc.)
-        .replace(/[^a-z0-9.\-]/gi, '_')    // replace remaining special chars
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9.\-]/gi, '_')
         .toLowerCase();
 
     const timestamp = Date.now();
-    const sanitizedModule   = sanitizePathSegment(module);
+    const sanitizedModule = sanitizePathSegment(module);
     const sanitizedCategory = sanitizePathSegment(category);
-    const sanitizedName     = sanitizePathSegment(file.name);
+    const sanitizedName = sanitizePathSegment(file.name);
     const filePath = `${sanitizedModule}/${sanitizedCategory}/${timestamp}_${sanitizedName}`;
 
     const buffer = await file.arrayBuffer();
@@ -113,10 +110,7 @@ export async function POST(request: NextRequest) {
 
     if (uploadError) {
       console.error('[v0] Storage error:', uploadError);
-      return NextResponse.json(
-        { error: `Error al subir archivo: ${uploadError.message}` },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: `Error al subir archivo: ${uploadError.message}` }, { status: 500 });
     }
 
     const { data: document, error: dbError } = await supabase
@@ -125,9 +119,12 @@ export async function POST(request: NextRequest) {
         {
           module,
           category,
-          document_name: file.name,
-          document_type: fileType,
+          document_name: title || file.name,
+          document_type: file.type.split('/').pop() || 'bin',
           document_type_category: documentType || null,
+          asset_id: assetId || null,
+          canonical_section: canonicalSection || null,
+          extracted_data: safeParseJson(extractedDataRaw),
           file_path: uploadData.path,
           file_size_bytes: file.size,
           description: description || null,
@@ -141,13 +138,9 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (dbError) {
-      // Roll back the stored file if the DB insert fails
       await supabase.storage.from(BUCKET).remove([uploadData.path]);
       console.error('[v0] Database error:', dbError);
-      return NextResponse.json(
-        { error: `Error al crear registro: ${dbError.message}` },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: `Error al crear registro: ${dbError.message}` }, { status: 500 });
     }
 
     return NextResponse.json({
@@ -157,9 +150,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('[v0] Upload error:', error);
-    return NextResponse.json(
-      { error: 'Error interno del servidor' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }

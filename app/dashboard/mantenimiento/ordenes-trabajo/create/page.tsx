@@ -1,0 +1,570 @@
+﻿'use client';
+
+import { useEffect, useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import useSWR from 'swr';
+import { AlertCircle, ArrowRight, CheckCircle2, ChevronLeft } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { inferMachineFamilyFromText } from '@/lib/maintenance/cost-center-machines';
+import { resolveTechnicalSheetReference } from '@/lib/maintenance/technical-sheet-library';
+
+type MaintenanceAsset = {
+  id: string;
+  asset_code?: string;
+  assetCode?: string;
+  asset_name?: string;
+  assetName?: string;
+  asset_type?: string;
+  assetType?: string;
+  status: string;
+  location?: string;
+  manufacturer?: string;
+  model?: string;
+  criticality?: string;
+};
+
+type ComponentTemplate = {
+  id: string;
+  name: string;
+  code: string;
+  estimatedHours: number;
+};
+
+type AssetCard = MaintenanceAsset & { family: string };
+
+type MachineCatalogItem = {
+  family?: string | null;
+};
+
+type MachineryItem = {
+  id: string;
+  asset_id: string | null;
+  code: string;
+  name: string;
+  model: string;
+  plate: string | null;
+  year: number | null;
+  category_code: string;
+  category: string;
+  status: string;
+  technical_sheet_reference?: {
+    brand?: string;
+    model?: string;
+    family?: string;
+    sourceLabel?: string;
+    sourceUrl?: string;
+  } | null;
+};
+
+const COMPONENT_TEMPLATES: Record<string, ComponentTemplate[]> = {
+  excavator: [
+    { id: 'motor', name: 'Sistema motor y transmision', code: 'EXC-MOTOR', estimatedHours: 4 },
+    { id: 'hydraulics', name: 'Sistema hidraulico', code: 'EXC-HIDRAULICO', estimatedHours: 3 },
+    { id: 'undercarriage', name: 'Tren de rodaje', code: 'EXC-RODAJE', estimatedHours: 6 },
+    { id: 'cooling', name: 'Sistema de enfriamiento', code: 'EXC-ENFRIAMIENTO', estimatedHours: 2 },
+  ],
+  pump: [
+    { id: 'impeller', name: 'Impulsor y carcasa', code: 'PMP-IMP', estimatedHours: 3 },
+    { id: 'seal', name: 'Sellos mecanicos', code: 'PMP-SEAL', estimatedHours: 2 },
+    { id: 'bearings', name: 'Rodamientos', code: 'PMP-BEAR', estimatedHours: 2 },
+    { id: 'lubrication', name: 'Sistema de lubricacion', code: 'PMP-LUBE', estimatedHours: 1 },
+  ],
+  motor: [
+    { id: 'stator', name: 'Estator y bobinado', code: 'MTR-STAT', estimatedHours: 5 },
+    { id: 'bearings', name: 'Rodamientos y soporte', code: 'MTR-BEAR', estimatedHours: 2 },
+    { id: 'alignment', name: 'Alineacion y acople', code: 'MTR-ALIGN', estimatedHours: 2 },
+    { id: 'cooling', name: 'Ventilacion y enfriamiento', code: 'MTR-COOL', estimatedHours: 1 },
+  ],
+  conveyor: [
+    { id: 'belt', name: 'Correa transportadora', code: 'CNV-BELT', estimatedHours: 4 },
+    { id: 'rollers', name: 'Polines y estaciones', code: 'CNV-ROLL', estimatedHours: 3 },
+    { id: 'drive', name: 'Unidad motriz', code: 'CNV-DRIVE', estimatedHours: 3 },
+    { id: 'structure', name: 'Estructura y guardas', code: 'CNV-STRU', estimatedHours: 2 },
+  ],
+  mill: [
+    { id: 'liner', name: 'Revestimientos', code: 'MIL-LINER', estimatedHours: 8 },
+    { id: 'gear', name: 'Corona y pinon', code: 'MIL-GEAR', estimatedHours: 6 },
+    { id: 'lubrication', name: 'Lubricacion', code: 'MIL-LUBE', estimatedHours: 2 },
+    { id: 'drive', name: 'Sistema de accionamiento', code: 'MIL-DRIVE', estimatedHours: 4 },
+  ],
+  generic: [
+    { id: 'inspection', name: 'Inspeccion general', code: 'GEN-INSP', estimatedHours: 2 },
+    { id: 'power', name: 'Sistema de potencia', code: 'GEN-POWER', estimatedHours: 3 },
+    { id: 'fluids', name: 'Fluidos y sellos', code: 'GEN-FLUID', estimatedHours: 2 },
+    { id: 'structure', name: 'Estructura y fijaciones', code: 'GEN-STRUC', estimatedHours: 2 },
+  ],
+};
+
+const fetcher = async (url: string) => {
+  const response = await fetch(url, { credentials: 'include' });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) return null;
+  return payload;
+};
+
+function resolveAssetTemplate(asset: MaintenanceAsset | null) {
+  if (!asset) return COMPONENT_TEMPLATES.generic;
+
+  const haystack = `${asset.asset_type || asset.assetType || ''} ${asset.asset_name || asset.assetName || ''}`.toLowerCase();
+
+  if (haystack.includes('excav')) return COMPONENT_TEMPLATES.excavator;
+  if (haystack.includes('pump') || haystack.includes('bomba')) return COMPONENT_TEMPLATES.pump;
+  if (haystack.includes('motor')) return COMPONENT_TEMPLATES.motor;
+  if (haystack.includes('conveyor') || haystack.includes('correa')) return COMPONENT_TEMPLATES.conveyor;
+  if (haystack.includes('mill') || haystack.includes('molino') || haystack.includes('sag')) return COMPONENT_TEMPLATES.mill;
+
+  return COMPONENT_TEMPLATES.generic;
+}
+
+function resolveMachineryComponents(item: MachineryItem | null): ComponentTemplate[] {
+  if (!item) return COMPONENT_TEMPLATES.generic;
+
+  const reference = resolveTechnicalSheetReference(
+    `${item.name || ''} ${item.model || ''} ${item.category || ''}`,
+    item.technical_sheet_reference?.family || item.category || undefined
+  );
+
+  if (reference?.components?.length) {
+    return reference.components.map((component) => ({
+      id: component.code,
+      name: component.name,
+      code: component.code,
+      estimatedHours: Math.max(1, component.level * 2),
+    }));
+  }
+
+  return resolveAssetTemplate({
+    asset_type: item.category,
+    asset_name: item.name,
+    model: item.model,
+  } as MaintenanceAsset);
+}
+
+function normalizeAsset(asset: MaintenanceAsset) {
+  return {
+    ...asset,
+    asset_code: asset.asset_code || asset.assetCode || '',
+    asset_name: asset.asset_name || asset.assetName || '',
+    asset_type: asset.asset_type || asset.assetType || '',
+  };
+}
+
+export default function CreateWorkOrderPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialAssetId = searchParams.get('assetId') || '';
+  const initialTitle = searchParams.get('title') || '';
+  const initialDescription = searchParams.get('description') || '';
+  const initialWorkType = searchParams.get('workType') || 'preventive';
+  const initialPriority = searchParams.get('priority') || 'high';
+  const initialScheduledDate = searchParams.get('scheduledDate') || '';
+  const initialPlannedDurationHours = searchParams.get('plannedDurationHours') || '';
+  // Pre-fill from maquinaria page: ?cost_center=10-3&machine=Scoop+Atlas+Copco
+  const prefilledCostCenter = searchParams.get('cost_center') || '';
+  const prefilledMachine = searchParams.get('machine') || '';
+
+  // If coming from maquinaria, start at step 2 (skip asset picker: machine is known)
+  const fromMaquinaria = !!prefilledCostCenter && !!prefilledMachine;
+  const [step, setStep] = useState(initialAssetId || fromMaquinaria ? 2 : 1);
+  const [selectedAssetId, setSelectedAssetId] = useState(initialAssetId);
+  const [selectedComponents, setSelectedComponents] = useState<string[]>([]);
+  const [orderType, setOrderType] = useState(initialWorkType);
+  const [priority, setPriority] = useState(initialPriority);
+  const [title, setTitle] = useState(initialTitle);
+  const [description, setDescription] = useState(
+    initialDescription ||
+      (prefilledMachine ? `Mantenimiento de ${prefilledMachine}${prefilledCostCenter ? ` (CC: ${prefilledCostCenter})` : ''}` : '')
+  );
+  const [scheduledDate, setScheduledDate] = useState(initialScheduledDate || new Date().toISOString().split('T')[0]);
+  const [plannedDurationHours, setPlannedDurationHours] = useState(initialPlannedDurationHours);
+  const [submitting, setSubmitting] = useState(false);
+  const [familyFilter, setFamilyFilter] = useState('all');
+
+  const { data, error, isLoading } = useSWR('/api/maquinaria/machinery', fetcher, {
+    revalidateOnFocus: false,
+  });
+
+  const machinery = useMemo(() => (Array.isArray(data?.machinery) ? (data.machinery as MachineryItem[]) : []), [data]);
+  const assetCards = useMemo(() => {
+    return machinery
+      .map((asset) => {
+        const family =
+          asset.technical_sheet_reference?.family ||
+          inferMachineFamilyFromText(`${asset.name || ''} ${asset.category || ''} ${asset.model || ''}`) ||
+          'Sin familia';
+        return { ...asset, family };
+      })
+      .sort((a, b) => {
+        const familyCompare = String(a.family || '').localeCompare(String(b.family || ''), 'es', { sensitivity: 'base' });
+        if (familyCompare !== 0) return familyCompare;
+        return String(a.name || '').localeCompare(String(b.name || ''), 'es', { sensitivity: 'base' });
+      });
+  }, [machinery]);
+  const machineFamilies = useMemo(() => {
+    const derivedFamilies = new Set<string>();
+    assetCards.forEach((asset) => {
+      if (asset.family && asset.family !== 'Sin familia') derivedFamilies.add(String(asset.family));
+    });
+    return ['all', ...Array.from(derivedFamilies).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }))];
+  }, [assetCards]);
+  const selectedAsset =
+    assetCards.find((asset) => asset.id === selectedAssetId || asset.asset_id === selectedAssetId) ?? null;
+  const availableComponents = useMemo(() => resolveMachineryComponents(selectedAsset), [selectedAsset]);
+  const selectedComponentsData = useMemo(
+    () => availableComponents.filter((component) => selectedComponents.includes(component.id)),
+    [availableComponents, selectedComponents],
+  );
+  const totalHours = selectedComponentsData.reduce((sum, component) => sum + component.estimatedHours, 0);
+  const visibleAssets = useMemo(
+    () => assetCards.filter((asset) => familyFilter === 'all' || String(asset.family || '') === familyFilter),
+    [assetCards, familyFilter],
+  );
+
+  useEffect(() => {
+    const matched = machinery.find((asset) => asset.id === initialAssetId || asset.asset_id === initialAssetId);
+    if (!selectedAssetId && matched) {
+      setSelectedAssetId(matched.id);
+    }
+  }, [machinery, initialAssetId, selectedAssetId]);
+
+  useEffect(() => {
+    if (initialAssetId && machinery.some((asset) => asset.id === initialAssetId || asset.asset_id === initialAssetId)) {
+      setStep(2);
+    }
+  }, [machinery, initialAssetId]);
+
+  const handleComponentToggle = (componentId: string) => {
+    setSelectedComponents((prev) =>
+      prev.includes(componentId) ? prev.filter((id) => id !== componentId) : [...prev, componentId],
+    );
+  };
+
+  const handleCreateOT = async () => {
+    if (!fromMaquinaria && !selectedAsset) {
+      toast.error('Selecciona un activo');
+      return;
+    }
+    if (selectedComponents.length === 0) {
+      toast.error('Selecciona al menos un componente');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      // If coming from maquinaria, use the cost-center name; otherwise use maintenance_assets
+      const assetName = fromMaquinaria ? prefilledMachine : (selectedAsset?.name || 'Activo');
+      const assetId = fromMaquinaria ? null : selectedAsset?.asset_id || null;
+      const costCenterCode = fromMaquinaria ? prefilledCostCenter : (!selectedAsset?.asset_id ? selectedAsset?.code : null);
+      const componentNames = selectedComponentsData.map((component) => component.name).join(', ');
+      const resolvedTitle = title.trim() || `${assetName} - ${componentNames || 'Mantenimiento preventivo'}`;
+
+      const response = await fetch('/api/maintenance/work-orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          ...(assetId ? { assetId } : {}),
+          ...(costCenterCode ? { costCenterCode } : {}),
+          title: resolvedTitle,
+          description: description || `Mantenimiento ${orderType} para ${assetName}. Componentes: ${componentNames}`,
+          workType: orderType,
+          priority,
+          plannedDurationHours: plannedDurationHours ? Number(plannedDurationHours) : totalHours,
+          scheduledDate: scheduledDate || new Date().toISOString().split('T')[0],
+        }),
+      });
+
+      const result = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(result?.error || 'No fue posible crear la orden');
+
+      const createdId = result?.data?.id;
+      toast.success('Orden de trabajo creada');
+      if (createdId) {
+        router.push(`/dashboard/mantenimiento/ordenes-trabajo/${createdId}`);
+      } else {
+        router.push('/dashboard/mantenimiento/ordenes-trabajo');
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error al crear la orden');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold">Crear orden de mantenimiento</h1>
+        <p className="mt-2 text-muted-foreground">Flujo base del MVP con activos reales de mantenimiento.</p>
+      </div>
+
+      {initialTitle && (
+        <div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-sm">
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
+          <span>
+            OT prellenada desde planificación: <span className="font-semibold">{initialTitle}</span>
+          </span>
+        </div>
+      )}
+
+      {prefilledMachine && (
+        <div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-sm">
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
+          <span>
+            Creando OT para <span className="font-semibold">{prefilledMachine}</span>
+            {prefilledCostCenter && <span className="text-muted-foreground"> - Centro de costo {prefilledCostCenter}</span>}
+          </span>
+        </div>
+      )}
+
+      <div className="flex gap-4">
+        {[1, 2, 3].map((n) => (
+          <div
+            key={n}
+            className={`flex items-center gap-2 pb-2 ${step >= n ? 'border-b-2 border-primary' : 'border-b-2 border-muted'}`}
+          >
+            <div
+              className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${
+                step >= n ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'
+              }`}
+            >
+              {n}
+            </div>
+            <span className="text-sm font-medium">{n === 1 ? 'Activo' : n === 2 ? 'Componentes' : 'Detalles'}</span>
+          </div>
+        ))}
+      </div>
+
+      {step === 1 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Seleccionar activo</CardTitle>
+            <CardDescription>Elige el equipo real para esta orden de trabajo</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {machineFamilies.length > 1 ? (
+              <div className="flex flex-wrap gap-2">
+                {machineFamilies.map((family) => (
+                  <Button
+                    key={family}
+                    type="button"
+                    variant={familyFilter === family ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFamilyFilter(family)}
+                  >
+                    {family === 'all' ? 'Todas las familias' : family}
+                  </Button>
+                ))}
+              </div>
+            ) : null}
+
+            {isLoading && <div className="text-sm text-muted-foreground">Cargando activos...</div>}
+
+            {error && (
+              <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm">
+                <div className="flex items-center gap-2 text-destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <span>No fue posible cargar los activos de mantenimiento.</span>
+                </div>
+              </div>
+            )}
+
+            {!isLoading && !error && visibleAssets.length === 0 && (
+              <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
+                No hay activos registrados para esta familia.
+              </div>
+            )}
+
+            {visibleAssets.map((asset) => (
+              <div
+                key={asset.id}
+                onClick={() => {
+                  setSelectedAssetId(asset.id);
+                  setSelectedComponents([]);
+                }}
+                className={`cursor-pointer rounded-lg border-2 p-4 transition ${
+                  selectedAssetId === asset.id ? 'border-primary bg-primary/5' : 'border-muted hover:border-primary/50'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 className="font-semibold">{asset.name || 'Activo sin nombre'}</h3>
+                    <p className="text-sm text-muted-foreground">Codigo: {asset.code || '-'}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {asset.category || 'Sin tipo'} - {asset.plate || 'Sin patente'}
+                    </p>
+                    {asset.model && (
+                      <p className="text-sm text-muted-foreground">
+                        {asset.model || 'Sin modelo'}
+                      </p>
+                    )}
+                    <div className="mt-2">
+                      <Badge variant="outline">{asset.family || 'Sin familia'}</Badge>
+                    </div>
+                  </div>
+                  {selectedAssetId === asset.id && <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-primary" />}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {step === 2 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Seleccionar componentes</CardTitle>
+            <CardDescription>Define el alcance del trabajo para {selectedAsset?.name || 'el activo'}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {availableComponents.map((component) => (
+              <label
+                key={component.id}
+                className="flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition hover:bg-accent/50"
+              >
+                <Checkbox
+                  checked={selectedComponents.includes(component.id)}
+                  onCheckedChange={() => handleComponentToggle(component.id)}
+                  className="mt-1"
+                />
+                <div className="flex-1">
+                  <h4 className="font-semibold">{component.name}</h4>
+                  <p className="text-sm text-muted-foreground">{component.code}</p>
+                  <p className="text-sm text-muted-foreground">Tiempo estimado: {component.estimatedHours}h</p>
+                </div>
+              </label>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {step === 3 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Detalles de la orden</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Tipo de mantenimiento</label>
+              <Select value={orderType} onValueChange={setOrderType}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="preventive">Preventivo</SelectItem>
+                  <SelectItem value="corrective">Correctivo</SelectItem>
+                  <SelectItem value="predictive">Predictivo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Prioridad</label>
+              <Select value={priority} onValueChange={setPriority}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="critical">Crítica</SelectItem>
+                  <SelectItem value="high">Alta</SelectItem>
+                  <SelectItem value="medium">Media</SelectItem>
+                  <SelectItem value="low">Baja</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Fecha programada</label>
+                <input
+                  type="date"
+                  value={scheduledDate}
+                  onChange={(event) => setScheduledDate(event.target.value)}
+                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Horas planificadas</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.5"
+                  value={plannedDurationHours}
+                  onChange={(event) => setPlannedDurationHours(event.target.value)}
+                  placeholder={String(totalHours || 0)}
+                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Título</label>
+              <input
+                type="text"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                placeholder="Título de la orden"
+                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Descripción</label>
+              <textarea
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                placeholder="Notas adicionales del trabajo..."
+                className="min-h-24 w-full rounded-lg border p-2"
+              />
+            </div>
+
+            <div className="space-y-2 rounded-lg bg-muted p-3 text-sm">
+              <p className="font-semibold">Resumen</p>
+              <p>Activo: {fromMaquinaria ? prefilledMachine : (selectedAsset?.name || '-')}</p>
+              <p>Codigo CC: {fromMaquinaria ? prefilledCostCenter : (selectedAsset?.code || '-')}</p>
+              <p>Componentes: {selectedComponents.length}</p>
+              <p>Tiempo total: {totalHours}h</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="flex gap-3">
+        {step > 1 && (
+          <Button variant="outline" onClick={() => setStep(step - 1)} className="gap-2">
+            <ChevronLeft className="h-4 w-4" /> Anterior
+          </Button>
+        )}
+
+        {step < 3 && (
+          <Button
+            onClick={() => setStep(step + 1)}
+            disabled={
+              (step === 1 && !selectedAssetId && !fromMaquinaria) ||
+              (step === 2 && selectedComponents.length === 0)
+            }
+            className="ml-auto gap-2"
+          >
+            Siguiente <ArrowRight className="h-4 w-4" />
+          </Button>
+        )}
+
+        {step === 3 && (
+          <Button
+            onClick={handleCreateOT}
+            disabled={submitting}
+            className="ml-auto gap-2 bg-[var(--brand-verde)] hover:bg-[var(--brand-verde)]/90"
+          >
+            <CheckCircle2 className="h-4 w-4" /> {submitting ? 'Creando...' : 'Crear orden'}
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+

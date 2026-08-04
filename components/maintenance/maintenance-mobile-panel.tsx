@@ -285,7 +285,7 @@ export function MaintenanceMobilePanel() {
   return (
     <div className="mx-auto max-w-md space-y-4 pb-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Panel móvil de mantención</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Operación en terreno de mantenimiento</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Vista para terreno con OT reales, horas, evidencia y acceso rápido a la ficha del equipo.
         </p>
@@ -312,7 +312,7 @@ export function MaintenanceMobilePanel() {
         <CardContent className="grid grid-cols-1 gap-2">
           <Button asChild variant="outline" className="w-full justify-between">
             <Link href={`/dashboard/mantenimiento/${selectedAssetScope}`}>
-              Vehículos y QR
+              {selectedAssetScope === 'vehiculos' ? 'Vehículos y traslados' : 'Equipos'}
               <QrCode className="h-4 w-4" />
             </Link>
           </Button>
@@ -528,7 +528,7 @@ export function MaintenanceMobilePanel() {
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-3">
           <Button asChild className="justify-between">
-            <Link href="/dashboard/work-orders/create">
+            <Link href="/dashboard/mantenimiento/ordenes-trabajo/create">
               Crear orden de trabajo
               <ArrowRight className="h-4 w-4" />
             </Link>

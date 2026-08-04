@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
-import { deriveMachinesFromCostCenters, inferMachineFamilyFromText } from '@/lib/maintenance/cost-center-machines';
+import { deriveMachinesFromCostCenters } from '@/lib/maintenance/cost-center-machines';
 
 type CostCenterRow = {
   id: string;
@@ -15,14 +15,16 @@ type AssetRow = {
   asset_code: string | null;
   asset_name: string | null;
   asset_type: string | null;
+  location: string | null;
+  status: string | null;
+  acquisition_date: string | null;
+  acquisition_cost: number | null;
+  expected_lifespan_years: number | null;
+  manufacturer: string | null;
   model: string | null;
   serial_number: string | null;
-  status: string | null;
   criticality: string | null;
-  purchase_date: string | null;
-  last_maintenance: string | null;
-  next_maintenance: string | null;
-  specs: Record<string, unknown> | null;
+  mtbf_hours: number | null;
 };
 
 type DerivedEquipmentRow = {
@@ -80,7 +82,9 @@ export async function GET(request: NextRequest) {
   try {
     const { data: assets, error } = await context.supabase
       .from('maintenance_assets')
-      .select('id, asset_code, asset_name, asset_type, model, serial_number, status, criticality, purchase_date, last_maintenance, next_maintenance, specs')
+      .select(
+        'id, asset_code, asset_name, asset_type, location, status, acquisition_date, acquisition_cost, expected_lifespan_years, manufacturer, model, serial_number, criticality, mtbf_hours',
+      )
       .eq('organization_id', context.organizationId)
       .order('asset_name', { ascending: true });
 
@@ -105,22 +109,28 @@ export async function GET(request: NextRequest) {
       assetRows.flatMap((asset) => [normalizeText(asset.asset_code), normalizeText(asset.asset_name), normalizeText(asset.model)]).filter(Boolean),
     );
 
-    const equipmentFromAssets = assetRows.map((asset: AssetRow) => ({
-        id: asset.id,
-        asset_id: asset.id,
-        source: 'maintenance_asset' as const,
-        code: asset.asset_code || '',
-        name: asset.asset_name || '',
-        model: asset.model || null,
-        serial_number: asset.serial_number || null,
-        type: asset.asset_type || 'Activo',
-        status: normalizeStatus(asset.status),
-        criticality: normalizeCriticality(asset.criticality),
-        purchase_date: asset.purchase_date || null,
-        last_maintenance: asset.last_maintenance || null,
-        next_maintenance: asset.next_maintenance || null,
-        specs: asset.specs || null,
-      }));
+    const equipmentFromAssets: DerivedEquipmentRow[] = assetRows.map((asset) => ({
+      id: asset.id,
+      asset_id: asset.id,
+      source: 'maintenance_asset',
+      code: asset.asset_code || '',
+      name: asset.asset_name || '',
+      model: asset.model || null,
+      serial_number: asset.serial_number || null,
+      type: asset.asset_type || 'Activo',
+      status: normalizeStatus(asset.status),
+      criticality: normalizeCriticality(asset.criticality),
+      purchase_date: asset.acquisition_date || null,
+      last_maintenance: null,
+      next_maintenance: null,
+      specs: {
+        manufacturer: asset.manufacturer,
+        location: asset.location,
+        acquisition_cost: asset.acquisition_cost,
+        expected_lifespan_years: asset.expected_lifespan_years,
+        mtbf_hours: asset.mtbf_hours,
+      },
+    }));
 
     const costCenters = Array.isArray(costCentersRaw)
       ? (costCentersRaw as CostCenterRow[]).flatMap((center) => {

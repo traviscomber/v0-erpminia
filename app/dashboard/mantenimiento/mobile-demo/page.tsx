@@ -1,8 +1,8 @@
 import { MobileSimpleFlow } from '@/components/maintenance/mobile-simple-flow';
 
 export const metadata = {
-  title: 'Panel Móvil Demo | Mantenimiento',
-  description: 'Demostración del panel móvil simplificado para mecánicos',
+  title: 'Operación en terreno demo | Mantenimiento',
+  description: 'Demostración del flujo simplificado de operación en terreno para mecánicos',
 };
 
 export default function MobileDemoPage() {

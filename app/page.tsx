@@ -2,200 +2,147 @@
 
 import Link from 'next/link';
 import Script from 'next/script';
+import { ArrowRight, BarChart3, CheckCircle2, FileText, Package, Shield, Wrench, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Zap, CheckCircle2, BarChart3, ArrowRight, FileText, Package, Wrench, Shield, Cpu } from 'lucide-react';
-import { organizationSchema, productSchema, faqSchema } from '@/lib/schema-markup';
+import { faqSchema, organizationSchema, productSchema } from '@/lib/schema-markup';
+
+const modules = [
+  { icon: BarChart3, name: 'Producción', desc: 'Indicadores operacionales y seguimiento de actividad.' },
+  { icon: Wrench, name: 'Mantenimiento', desc: 'Órdenes, planificación preventiva y control de activos.' },
+  { icon: Package, name: 'Inventario', desc: 'Stock, movimientos y trazabilidad de repuestos.' },
+  { icon: Shield, name: 'HSE', desc: 'Inspecciones, incidentes y cumplimiento con evidencia.' },
+  { icon: FileText, name: 'Documentos', desc: 'Contratos, normativas y respaldo centralizado.' },
+];
+
+const benefits = [
+  { title: 'Operación conectada', text: 'Las áreas comparten contexto y una fuente común de información.' },
+  { title: 'Trazabilidad', text: 'Historial, acciones y evidencia disponibles para revisión.' },
+  { title: 'Control', text: 'Seguimiento de tareas, activos, inventario y costos.' },
+  { title: 'Decisión', text: 'Indicadores para priorizar acciones con información real.' },
+];
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background">
       <Script id="organization-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} strategy="afterInteractive" />
       <Script id="product-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }} strategy="afterInteractive" />
       <Script id="faq-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema[0]) }} strategy="afterInteractive" />
 
-      <nav className="border-b border-border sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="font-bold text-xl text-[var(--brand-cobre)]">Motil</div>
-          <Link href="/login">
-            <Button className="bg-[var(--brand-cobre)] hover:bg-[var(--brand-cobre)]/90">{'Iniciar sesi\u00f3n'}</Button>
-          </Link>
+      <nav className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
+          <Link href="/" className="font-heading text-xl font-bold tracking-tight text-foreground">Motil</Link>
+          <Button asChild>
+            <Link href="/auth/login">Iniciar sesión</Link>
+          </Button>
         </div>
       </nav>
 
-      <section className="max-w-7xl mx-auto px-4 py-16 md:py-32">
-        <div className="text-center space-y-6 mb-16">
-          <div className="inline-block px-4 py-2 rounded-sm bg-[var(--brand-cobre)]/10 border border-[var(--brand-cobre)]/20">
-            <p className="text-sm font-semibold text-[var(--brand-cobre)] tracking-wide">PLATAFORMA OPERACIONAL MINERA</p>
-          </div>
-          <h1 className="text-6xl md:text-7xl font-bold text-foreground leading-tight">Control Operacional Minero en Tiempo Real</h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            {'Conecta producci\u00f3n, mantenci\u00f3n, bodega, HSE, documentos y gerencia en un flujo trazable desde terreno hasta direcci\u00f3n.'}
+      <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 md:py-28">
+        <div className="mx-auto max-w-4xl text-center">
+          <p className="mx-auto inline-flex rounded-md border border-primary/25 bg-primary/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+            Plataforma operacional
           </p>
-          <div className="flex gap-4 justify-center pt-8">
-            <Link href="/login">
-              <Button size="lg" className="gap-2 bg-[var(--brand-cobre)] hover:bg-[var(--brand-cobre)]/90 text-base px-8">
-                Solicitar demostración
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-            <Link href="#modules">
-              <Button size="lg" variant="outline" className="gap-2 text-base px-8">
-                {'Explorar M\u00f3dulos'}
-              </Button>
-            </Link>
+          <h1 className="mt-6 text-4xl font-bold leading-tight tracking-tight sm:text-5xl md:text-6xl">
+            Control operacional conectado y trazable
+          </h1>
+          <p className="mx-auto mt-5 max-w-3xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+            Producción, mantenimiento, inventario, HSE, documentos y control financiero en un solo entorno para operar, revisar y decidir con claridad.
+          </p>
+          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+            <Button asChild size="lg" className="gap-2">
+              <Link href="/auth/login">Ingresar a la plataforma <ArrowRight className="h-4 w-4" /></Link>
+            </Button>
+            <Button asChild size="lg" variant="outline">
+              <Link href="#modulos">Explorar módulos</Link>
+            </Button>
           </div>
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 py-16 border-t border-border">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-foreground mb-4">{'El Problema: Informaci\u00f3n Fragmentada en Faena'}</h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            {'Sensores dispersos. \u00d3rdenes de trabajo perdidas. Repuestos no localizados. HSE desconectado. Auditor\u00eda imposible.'}
-          </p>
-        </div>
-        <div className="grid md:grid-cols-5 gap-4">
-          {[
-            { icon: Cpu, label: 'Sensores aislados', desc: 'Sin integracion' },
-            { icon: Wrench, label: '\u00d3rdenes manuales', desc: 'Sin trazabilidad' },
-            { icon: Package, label: 'Bodega ciega', desc: 'Stock descontrolado' },
-            { icon: Shield, label: 'HSE tardio', desc: 'Respuesta lenta' },
-            { icon: FileText, label: 'Sin auditoria', desc: 'Cumplimiento manual' },
-          ].map((item, i) => (
-            <Card key={i} className="border-border bg-card/50 hover:bg-card/80 transition-colors">
-              <CardContent className="pt-6 text-center">
-                <item.icon className="h-8 w-8 text-[var(--brand-cobre)] mx-auto mb-3" />
-                <p className="font-semibold text-sm text-foreground">{item.label}</p>
-                <p className="text-xs text-muted-foreground mt-1">{item.desc}</p>
-              </CardContent>
-            </Card>
+      <section className="border-y border-border bg-muted/30">
+        <div className="mx-auto grid max-w-7xl gap-6 px-4 py-12 sm:px-6 md:grid-cols-4">
+          {benefits.map((item) => (
+            <div key={item.title}>
+              <p className="font-heading text-lg font-semibold">{item.title}</p>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.text}</p>
+            </div>
           ))}
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 py-16 border-t border-border">
-        <h2 className="text-4xl font-bold text-foreground mb-12 text-center">Flujo Operacional Integrado</h2>
-        <p className="text-center text-muted-foreground max-w-4xl mx-auto mb-8">
-          {'Evento operacional > Alerta > Orden de trabajo > Repuestos > HSE > Evidencia > Auditor\u00eda > KPIs'}
-        </p>
-        <div className="grid md:grid-cols-11 gap-2 items-center">
-          {[
-            { step: '1', label: 'Alerta', icon: Zap },
-            { step: 'arrow', label: '', icon: ArrowRight },
-            { step: '2', label: 'OT auto', icon: Wrench },
-            { step: 'arrow', label: '', icon: ArrowRight },
-            { step: '3', label: 'Repuesto', icon: Package },
-            { step: 'arrow', label: '', icon: ArrowRight },
-            { step: '4', label: 'HSE', icon: Shield },
-            { step: 'arrow', label: '', icon: ArrowRight },
-            { step: '5', label: 'Evidencia', icon: FileText },
-            { step: 'arrow', label: '', icon: ArrowRight },
-            { step: '6', label: 'KPI', icon: BarChart3 },
-          ].map((item, i) =>
-            item.step === 'arrow' ? (
-              <div key={i} className="text-[var(--brand-cobre)] h-5">
-                <item.icon className="h-5 w-5" />
-              </div>
-            ) : (
-              <div key={i} className="text-center">
-                <div className="bg-[var(--brand-cobre)]/10 border border-[var(--brand-cobre)]/30 rounded-sm px-2 py-1 mb-2">
-                  <p className="text-xs font-bold text-[var(--brand-cobre)]">{item.step}</p>
-                </div>
-                {item.label && <p className="text-xs font-semibold text-foreground">{item.label}</p>}
-              </div>
-            )
-          )}
+      <section id="modulos" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-20">
+        <div className="max-w-3xl">
+          <p className="text-sm font-semibold text-primary">Cobertura operacional</p>
+          <h2 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">Módulos integrados en un mismo sistema</h2>
+          <p className="mt-3 text-muted-foreground">Cada módulo mantiene su función, pero comparte usuarios, permisos, documentos y contexto operacional.</p>
         </div>
-      </section>
-
-      <section id="modules" className="max-w-7xl mx-auto px-4 py-16 border-t border-border">
-        <h2 className="text-4xl font-bold text-foreground mb-12 text-center">{'M\u00f3dulos Operacionales'}</h2>
-        <div className="grid md:grid-cols-5 gap-6">
-          {[
-            { icon: BarChart3, name: 'Producci\u00f3n', desc: 'KPIs en tiempo real, sensores integrados' },
-            { icon: Wrench, name: 'Mantenci\u00f3n', desc: '\u00d3rdenes de trabajo, preventivo, MTTR' },
-            { icon: Package, name: 'Bodega', desc: 'Stock, reorden automático, trazabilidad' },
-            { icon: Shield, name: 'HSE', desc: 'Incidentes, auditoria, cumplimiento' },
-            { icon: FileText, name: 'Documentos', desc: 'Contratos, normativas, evidencia auditada' },
-          ].map((mod, i) => (
-            <Card key={i} className="border-border bg-card">
+        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {modules.map((item) => (
+            <Card key={item.name}>
               <CardHeader>
-                <mod.icon className="h-8 w-8 text-[var(--brand-cobre)] mb-3" />
-                <CardTitle>{mod.name}</CardTitle>
+                <item.icon className="mb-2 h-5 w-5 text-primary" />
+                <CardTitle className="text-base">{item.name}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">{mod.desc}</p>
+                <p className="text-sm text-muted-foreground">{item.desc}</p>
               </CardContent>
             </Card>
           ))}
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 py-16 border-t border-border">
-        <h2 className="text-4xl font-bold text-foreground mb-12 text-center">Para Cada Rol</h2>
-        <div className="grid md:grid-cols-3 gap-6">
-          {[
-            { role: 'Operador de terreno', items: ['Alertas en tiempo real', 'Checklists HSE', '\u00d3rdenes de trabajo'] },
-            { role: 'T\u00e9cnico / Jefe de mantenci\u00f3n', items: ['MTTR optimizado', 'Stock de repuestos', 'Preventivo planificado'] },
-            { role: 'Gerencia', items: ['Dashboard KPI', 'Auditor\u00eda trazable', 'Disponibilidad de equipo'] },
-          ].map((section, i) => (
-            <Card key={i} className="border-border bg-card">
-              <CardHeader>
-                <CardTitle>{section.role}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {section.items.map((item, j) => (
-                    <li key={j} className="flex gap-2 text-sm text-muted-foreground">
-                      <CheckCircle2 className="h-4 w-4 text-[var(--brand-cobre)] flex-shrink-0 mt-0.5" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          ))}
+      <section className="border-y border-border bg-card">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-20">
+          <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+            <div>
+              <p className="text-sm font-semibold text-primary">Flujo operacional</p>
+              <h2 className="mt-2 text-3xl font-bold tracking-tight">De la alerta a la evidencia</h2>
+              <p className="mt-3 text-muted-foreground">El sistema conecta eventos, acciones, recursos y respaldo para evitar información fragmentada.</p>
+            </div>
+            <ol className="grid gap-3 sm:grid-cols-2">
+              {['Alerta operacional', 'Orden de trabajo', 'Repuesto o recurso', 'Control HSE', 'Documento o evidencia', 'Indicador para decisión'].map((label, index) => (
+                <li key={label} className="flex items-center gap-3 rounded-md border border-border bg-background p-4">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-sm font-semibold text-primary">{index + 1}</span>
+                  <span className="text-sm font-medium">{label}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 py-16 border-t border-border">
-        <h2 className="text-4xl font-bold text-foreground mb-12 text-center">Beneficios Ejecutivos</h2>
-        <div className="grid md:grid-cols-4 gap-6">
-          {[
-            { metric: '+15%', label: 'Disponibilidad de equipos' },
-            { metric: '-40%', label: 'MTTR promedio' },
-            { metric: '-25%', label: 'Costos de mantenci\u00f3n' },
-            { metric: '100%', label: 'Trazabilidad auditada' },
-          ].map((item, i) => (
-            <Card key={i} className="border-border bg-card text-center">
-              <CardContent className="pt-8 pb-8">
-                <p className="text-4xl font-bold text-[var(--brand-cobre)] mb-2">{item.metric}</p>
-                <p className="text-sm text-muted-foreground">{item.label}</p>
-              </CardContent>
-            </Card>
-          ))}
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-20">
+        <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
+          <div>
+            <Zap className="h-6 w-6 text-primary" />
+            <h2 className="mt-4 text-3xl font-bold tracking-tight">Una operación más clara para cada rol</h2>
+            <p className="mt-3 text-muted-foreground">Operadores, supervisores, mantenedores y gerencia acceden a la información necesaria según sus permisos.</p>
+          </div>
+          <ul className="space-y-3">
+            {['Menos duplicación entre áreas', 'Acciones y evidencia centralizadas', 'Información organizada por organización y contexto', 'Navegación consistente en escritorio y móvil'].map((item) => (
+              <li key={item} className="flex gap-3 rounded-md border border-border p-4 text-sm">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-secondary" />
+                {item}
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 py-20 border-t border-border text-center">
-        <h2 className="text-4xl font-bold text-foreground mb-6">Listo para transformar tu operación</h2>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-          {'Conecta producci\u00f3n, mantenci\u00f3n, bodega, HSE, documentos y gerencia en una sola plataforma trazable.'}
-        </p>
-        <Link href="/login">
-          <Button size="lg" className="gap-2 bg-[var(--brand-cobre)] hover:bg-[var(--brand-cobre)]/90 text-base px-8">
-            Solicitar demostración
-            <ArrowRight className="h-4 w-4" />
+      <section className="border-t border-border bg-muted/30">
+        <div className="mx-auto max-w-4xl px-4 py-16 text-center sm:px-6 md:py-20">
+          <h2 className="text-3xl font-bold tracking-tight">Accede al entorno operacional</h2>
+          <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">Utiliza las credenciales asignadas por el administrador de tu organización.</p>
+          <Button asChild size="lg" className="mt-7 gap-2">
+            <Link href="/auth/login">Ingresar a Motil <ArrowRight className="h-4 w-4" /></Link>
           </Button>
-        </Link>
+        </div>
       </section>
 
-      <footer className="border-t border-border bg-card/30 mt-20">
-        <div className="max-w-7xl mx-auto px-4 py-12 text-center text-sm text-muted-foreground">
-          <p>Motil 2026 - n3uralia</p>
-        </div>
+      <footer className="border-t border-border">
+        <div className="mx-auto max-w-7xl px-4 py-8 text-center text-sm text-muted-foreground sm:px-6">Motil 2026 · N3uralia</div>
       </footer>
-    </div>
+    </main>
   );
 }

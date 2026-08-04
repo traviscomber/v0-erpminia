@@ -2,7 +2,17 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { AlertCircle, ArrowRight, CheckCircle2, Clock, FileText, RefreshCw, Search } from 'lucide-react';
+import {
+  AlertCircle,
+  ArrowRight,
+  CheckCircle2,
+  Clock,
+  FileSearch,
+  FileText,
+  MapPinned,
+  RefreshCw,
+  Search,
+} from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,13 +20,24 @@ import { Input } from '@/components/ui/input';
 import { DocumentUpload } from '@/components/documents/document-upload';
 import { DocumentList, Document } from '@/components/documents/document-list';
 import { DocumentReviewModal } from '@/components/documents/document-review-modal';
+import { EXPEDIENT_CATALOG } from '@/lib/maintenance/expedient-catalog';
 
-interface DocumentStats {
-  total: number;
-  vigentes: number;
-  en_revision: number;
-  rechazados: number;
-}
+const canonicalLabels: Record<string, string> = {
+  ot_historica: 'OT historicas',
+  componentes: 'Componentes',
+  arbol_fallas: 'Arbol de fallas',
+  ficha_equipo: 'Ficha de equipo',
+  evidencia: 'Evidencia',
+  modificaciones: 'Modificaciones',
+  pendiente_clasificar: 'Pendiente de clasificar',
+};
+
+const FEATURED_EXPEDIENT_KEYS = [
+  'cat-938h-n2',
+  'cat-938h-n1',
+  'generador-atlas-copco-qas-500-kva',
+  'scoop-atlas-st1030',
+];
 
 export default function DocumentosMantenimientoPage() {
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -24,29 +45,17 @@ export default function DocumentosMantenimientoPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
   const [reviewOpen, setReviewOpen] = useState(false);
-  const [stats, setStats] = useState<DocumentStats>({
-    total: 0,
-    vigentes: 0,
-    en_revision: 0,
-    rechazados: 0,
-  });
 
   const loadDocuments = async () => {
     setCargando(true);
     try {
-      const response = await fetch('/api/documents/list?module=mantenimiento&category=documentos', {
+      const response = await fetch('/api/documents/list?module=mantenimiento', {
         credentials: 'include',
       });
       const data = await response.json();
       const docs = Array.isArray(data?.documents) ? data.documents : Array.isArray(data) ? data : [];
 
       setDocuments(docs);
-      setStats({
-        total: docs.length,
-        vigentes: docs.filter((d: Document) => d.status === 'active' || d.status === 'aprobado').length,
-        en_revision: docs.filter((d: Document) => d.status === 'pending_l1' || d.status === 'pending_l2' || d.status === 'en_revision_l1' || d.status === 'en_revision_l2').length,
-        rechazados: docs.filter((d: Document) => d.status === 'rejected' || d.status === 'rechazado').length,
-      });
     } catch (error) {
       console.error('Error cargando documentos:', error);
     } finally {
@@ -74,6 +83,8 @@ export default function DocumentosMantenimientoPage() {
         doc.documentType,
         doc.owner,
         doc.created_by,
+        doc.canonical_section,
+        doc.asset_id,
       ]
         .map((value) => String(value || '').toLowerCase())
         .join(' ');
@@ -94,8 +105,29 @@ export default function DocumentosMantenimientoPage() {
           d.status === 'en_revision_l2'
       ).length,
       rechazados: filteredDocuments.filter((d: Document) => d.status === 'rejected' || d.status === 'rechazado').length,
+      con_equipo: filteredDocuments.filter((d: Document) => Boolean(d.asset_id)).length,
     }),
     [filteredDocuments]
+  );
+
+  const canonicalStats = useMemo(
+    () =>
+      Object.entries(canonicalLabels).map(([key, label]) => ({
+        key,
+        label,
+        count: filteredDocuments.filter((doc) => String(doc.canonical_section || 'pendiente_clasificar') === key).length,
+      })),
+    [filteredDocuments]
+  );
+
+  const equipmentDocuments = useMemo(() => filteredDocuments.filter((doc) => Boolean(doc.asset_id)), [filteredDocuments]);
+
+  const featuredExpedients = useMemo(
+    () =>
+      FEATURED_EXPEDIENT_KEYS.map((expedientKey) =>
+        EXPEDIENT_CATALOG.find((entry) => entry.expedientKey === expedientKey)
+      ).filter((entry): entry is (typeof EXPEDIENT_CATALOG)[number] => Boolean(entry)),
+    []
   );
 
   const handleDelete = async (documentId: string) => {
@@ -169,31 +201,31 @@ export default function DocumentosMantenimientoPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Documentos de mantenimiento</h1>
-          <p className="mt-2 text-muted-foreground">Gestión de manuales, procedimientos e instructivos de mantenimiento.</p>
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[var(--brand-cobre)]/20 bg-[var(--brand-cobre)]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-[var(--brand-cobre)]">
+            Fulvio / Centro documental
+          </div>
+          <h1 className="text-3xl font-bold">Documentacion de mantenimiento</h1>
+          <p className="mt-2 max-w-3xl text-muted-foreground">
+            Esta portada resuelve solo el flujo documental del modulo de mantenimiento. Equipos, traslados e importaciones
+            generales siguen viviendo en mantenimiento y aqui entras directo al expediente correcto.
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild>
-            <Link href="/dashboard/mantenimiento/documentos/importar">
-              Importar documentos
+            <Link href="/dashboard/mantenimiento/documentos/expedientes/cat-938h-n2">
+              Abrir CAT 938H N2
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
           <Button asChild variant="outline">
-              <Link href="/dashboard/mantenimiento/bitacora">
-               Bitácora
+            <Link href="/dashboard/mantenimiento/documentos/expedientes">
+              Ver todos los expedientes
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
           <Button asChild variant="outline">
-              <Link href="/dashboard/mantenimiento/planificacion">
-               Planificación
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/dashboard/mantenimiento/gerencial">
-              Gerencial
+            <Link href="/dashboard/mantenimiento">
+              Volver a mantenimiento
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
@@ -204,7 +236,45 @@ export default function DocumentosMantenimientoPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileSearch className="h-5 w-5 text-[var(--brand-cobre)]" />
+            Entradas rapidas por equipo
+          </CardTitle>
+          <CardDescription>
+            Primero abre el expediente consolidado del activo. La carga, clasificacion e importacion documental quedan
+            como pasos secundarios cuando ya no basta con el historial resumido.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {featuredExpedients.map((definition) => (
+            <div key={definition.expedientKey} className="rounded-xl border border-border/70 bg-muted/20 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="font-semibold">{definition.title}</p>
+                  <p className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                    <MapPinned className="h-3.5 w-3.5" />
+                    {definition.location}
+                  </p>
+                </div>
+                <span className="rounded-full border border-border/70 px-2 py-1 text-xs text-muted-foreground">
+                  {definition.summary.records} docs
+                </span>
+              </div>
+              <p className="mt-3 text-sm text-muted-foreground">{definition.description}</p>
+              <Button asChild variant="outline" className="mt-4 w-full justify-between">
+                <Link href={`/dashboard/mantenimiento/documentos/expedientes/${definition.expedientKey}`}>
+                  Abrir expediente
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center justify-between text-sm font-medium">
@@ -214,7 +284,7 @@ export default function DocumentosMantenimientoPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{filteredStats.total}</p>
-            <p className="text-xs text-muted-foreground">documentos reales cargados</p>
+            <p className="text-xs text-muted-foreground">documentos cargados</p>
           </CardContent>
         </Card>
 
@@ -234,13 +304,13 @@ export default function DocumentosMantenimientoPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center justify-between text-sm font-medium">
-              <span>En revisión</span>
+              <span>En revision</span>
               <Clock className="h-4 w-4 text-yellow-500" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-yellow-500">{filteredStats.en_revision}</p>
-            <p className="text-xs text-muted-foreground">esperando aprobación</p>
+            <p className="text-xs text-muted-foreground">esperando aprobacion</p>
           </CardContent>
         </Card>
 
@@ -253,7 +323,20 @@ export default function DocumentosMantenimientoPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-red-500">{filteredStats.rechazados}</p>
-            <p className="text-xs text-muted-foreground">Pendientes de corrección</p>
+            <p className="text-xs text-muted-foreground">pendientes de correccion</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center justify-between text-sm font-medium">
+              <span>Con equipo</span>
+              <CheckCircle2 className="h-4 w-4 text-blue-500" />
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold text-blue-500">{filteredStats.con_equipo}</p>
+            <p className="text-xs text-muted-foreground">documentos vinculados</p>
           </CardContent>
         </Card>
       </div>
@@ -261,7 +344,7 @@ export default function DocumentosMantenimientoPage() {
       <Card>
         <CardHeader>
           <CardTitle>Buscar documentos</CardTitle>
-          <CardDescription>Filtra por título, descripción, categoría o responsable.</CardDescription>
+          <CardDescription>Filtra por titulo, descripcion, categoria, seccion canonica o responsable.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="relative">
@@ -276,6 +359,31 @@ export default function DocumentosMantenimientoPage() {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle>Mapa canonico</CardTitle>
+          <CardDescription>La documentacion respeta la estructura de mantenimiento, pero no reemplaza la navegacion principal del modulo.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+            {canonicalStats.map((item) => (
+              <div key={item.key} className="rounded-xl border border-border/70 bg-muted/20 p-4">
+                <p className="text-sm font-semibold">{item.label}</p>
+                <p className="mt-1 text-2xl font-bold">{item.count}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button asChild variant="outline">
+              <Link href="/dashboard/mantenimiento/documentos/expedientes">
+                Ir al indice de expedientes
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       <Tabs defaultValue="all" className="space-y-4">
         <TabsList className="border-b-2 border-border bg-muted/60 p-1">
           <TabsTrigger value="all" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
@@ -285,7 +393,10 @@ export default function DocumentosMantenimientoPage() {
             Vigentes
           </TabsTrigger>
           <TabsTrigger value="revision" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-            En revisión
+            En revision
+          </TabsTrigger>
+          <TabsTrigger value="equipos" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            Por equipo
           </TabsTrigger>
           <TabsTrigger value="upload" className="font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             Subir documentos
@@ -307,18 +418,41 @@ export default function DocumentosMantenimientoPage() {
 
         <TabsContent value="revision" className="space-y-4">
           <DocumentList
-            documents={filteredDocuments.filter((d) => d.status === 'pending_l1' || d.status === 'pending_l2')}
+            documents={filteredDocuments.filter(
+              (d) =>
+                d.status === 'pending_l1' ||
+                d.status === 'pending_l2' ||
+                d.status === 'en_revision_l1' ||
+                d.status === 'en_revision_l2'
+            )}
             isLoading={cargando}
             onView={handleVer}
             onDelete={handleDelete}
           />
         </TabsContent>
 
+        <TabsContent value="equipos" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Documentos vinculados a activos</CardTitle>
+              <CardDescription>
+                Estos documentos ya tienen `asset_id` y deben abrirse desde la bandeja de equipos dentro de mantenimiento.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-wrap gap-2">
+              <Button asChild variant="outline">
+                <Link href="/dashboard/mantenimiento/equipos">Abrir bandeja por equipo</Link>
+              </Button>
+            </CardContent>
+          </Card>
+          <DocumentList documents={equipmentDocuments} isLoading={cargando} onView={handleVer} onDelete={handleDelete} />
+        </TabsContent>
+
         <TabsContent value="upload" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Subir nuevo documento</CardTitle>
-              <CardDescription>Sube manuales, procedimientos e instructivos de mantenimiento</CardDescription>
+              <CardDescription>Sube manuales, procedimientos e instructivos de mantenimiento.</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="mb-4 flex flex-wrap gap-2">
@@ -331,33 +465,6 @@ export default function DocumentosMantenimientoPage() {
           </Card>
         </TabsContent>
       </Tabs>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Accesos rápidos</CardTitle>
-          <CardDescription>Atajos útiles para operación y supervisión.</CardDescription>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-2 md:grid-cols-3">
-          <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/vehiculos">
-               Vehículos y QR
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/bitacora">
-               Bitácora
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="justify-between">
-            <Link href="/dashboard/mantenimiento/gerencial">
-              Dashboard gerencial
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-        </CardContent>
-      </Card>
 
       <DocumentReviewModal
         document={selectedDoc}

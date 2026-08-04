@@ -17,10 +17,7 @@ type AssetRow = {
   serial_number: string | null;
   criticality: string | null;
   mtbf_hours: number | string | null;
-  purchase_date: string | null;
-  last_maintenance: string | null;
-  next_maintenance: string | null;
-  specs: Record<string, unknown> | null;
+  acquisition_date: string | null;
 };
 
 type TemplateRow = {
@@ -46,34 +43,6 @@ function normalizeText(value: string | null | undefined) {
     .replace(/[\u0300-\u036f]/g, '')
     .trim()
     .toLowerCase();
-}
-
-function pickSourceUrl(specs: Record<string, unknown> | null) {
-  if (!specs) return null;
-  const keys = ['source_url', 'manual_url', 'document_url', 'datasheet_url', 'ficha_url', 'pdf_url'];
-  for (const key of keys) {
-    const value = specs[key];
-    if (typeof value === 'string' && value.trim()) return value.trim();
-  }
-  const technicalSheet = specs.technical_sheet;
-  if (technicalSheet && typeof technicalSheet === 'object' && !Array.isArray(technicalSheet)) {
-    for (const key of keys) {
-      const value = (technicalSheet as Record<string, unknown>)[key];
-      if (typeof value === 'string' && value.trim()) return value.trim();
-    }
-  }
-  return null;
-}
-
-function flattenSpecs(specs: Record<string, unknown> | null) {
-  if (!specs) return [];
-  return Object.entries(specs)
-    .filter(([key, value]) => value !== null && value !== undefined && key !== 'technical_sheet')
-    .map(([key, value]) => ({
-      key,
-      value: typeof value === 'object' ? JSON.stringify(value) : String(value),
-    }))
-    .filter((item) => item.value.trim() !== '');
 }
 
 function familyMatchesTemplate(family: string | null, template: TemplateRow) {
@@ -109,26 +78,21 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const { id } = await params;
 
   try {
-    const [{ data: assetRaw, error: assetError }, { data: templates, error: templatesError }, { data: faultModes, error: faultModesError }] =
-      await Promise.all([
-        context.supabase
-          .from('maintenance_assets')
-          .select('id, asset_code, asset_name, asset_type, location, status, manufacturer, model, serial_number, criticality, mtbf_hours, purchase_date, last_maintenance, next_maintenance, specs')
-          .eq('id', id)
-          .eq('organization_id', context.organizationId)
-          .maybeSingle(),
-        context.supabase.from('components_template').select('id, vehicle_type, name, code, level, description'),
-        context.supabase.from('fault_modes').select('id, component_template_id, fault_code, fault_name, severity'),
-      ]);
+    const [assetResult, templateResult, faultModeResult] = await Promise.all([
+      context.supabase
+        .from('maintenance_assets')
+        .select('id, asset_code, asset_name, asset_type, location, status, manufacturer, model, serial_number, criticality, mtbf_hours, acquisition_date')
+        .eq('id', id)
+        .eq('organization_id', context.organizationId)
+        .maybeSingle(),
+      context.supabase.from('components_template').select('id, vehicle_type, name, code, level, description'),
+      context.supabase.from('fault_modes').select('id, component_template_id, fault_code, fault_name, severity'),
+    ]);
 
-    // components_template and fault_modes may not exist yet — treat as empty on error
-    const safeTemplates = templatesError ? [] : templates;
-    const safeFaultModes = faultModesError ? [] : faultModes;
+    const safeTemplates = templateResult.error ? [] : templateResult.data;
+    const safeFaultModes = faultModeResult.error ? [] : faultModeResult.data;
+    let asset = !assetResult.error && assetResult.data ? (assetResult.data as AssetRow) : null;
 
-    // assetError (400/RLS) or missing asset — both fall through to cost_center lookup
-    let asset = (!assetError && assetRaw) ? (assetRaw as AssetRow) : null;
-
-    // Fallback: id may be a cost_center.id — synthesize an asset from it
     if (!asset) {
       const { data: costCenter } = await context.supabase
         .from('cost_centers')
@@ -150,10 +114,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           serial_number: null,
           criticality: null,
           mtbf_hours: null,
-          purchase_date: null,
-          last_maintenance: null,
-          next_maintenance: null,
-          specs: null,
+          acquisition_date: null,
         };
       }
     }
@@ -162,20 +123,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'No se encontro el activo solicitado' }, { status: 404 });
     }
 
-    const assetFamily = inferMachineFamilyFromText(
-      `${asset.asset_name || ''} ${asset.asset_type || ''} ${asset.model || ''} ${asset.manufacturer || ''}`,
-    );
-    const technicalReference = resolveTechnicalSheetReference(
-      `${asset.asset_name || ''} ${asset.asset_type || ''} ${asset.model || ''} ${asset.manufacturer || ''}`,
-      assetFamily,
-    );
-
-    const specs = (asset.specs || {}) as Record<string, unknown>;
-    const technicalFields = flattenSpecs(specs);
-    const sourceUrl = pickSourceUrl(specs) || technicalReference?.sourceUrl || null;
+    const assetText = `${asset.asset_name || ''} ${asset.asset_type || ''} ${asset.model || ''} ${asset.manufacturer || ''}`;
+    const assetFamily = inferMachineFamilyFromText(assetText);
+    const technicalReference = resolveTechnicalSheetReference(assetText, assetFamily);
     const referenceFields = technicalReference
       ? [
-          ...technicalReference.keySpecs,
+          ...technicalReference.keySpecs.map((item) => ({ key: item.label, value: item.value })),
           { key: 'Fuente oficial', value: technicalReference.sourceLabel },
           { key: 'Familia', value: technicalReference.family },
         ]
@@ -216,15 +169,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         serialNumber: asset.serial_number,
         criticality: asset.criticality,
         mtbfHours: asset.mtbf_hours !== null && asset.mtbf_hours !== undefined ? Number(asset.mtbf_hours) : null,
-        purchaseDate: asset.purchase_date,
-        lastMaintenance: asset.last_maintenance,
-        nextMaintenance: asset.next_maintenance,
+        purchaseDate: asset.acquisition_date,
+        lastMaintenance: null,
+        nextMaintenance: null,
       },
       technicalSheet: {
         family: assetFamily,
-        sourceUrl,
-        fields: technicalFields.length > 0 ? technicalFields : referenceFields,
-        rawSpecs: specs,
+        sourceUrl: technicalReference?.sourceUrl || null,
+        fields: referenceFields,
+        rawSpecs: {},
+        status: referenceFields.length > 0 ? 'reference_available' : 'pending',
       },
       referenceSheet: technicalReference
         ? {

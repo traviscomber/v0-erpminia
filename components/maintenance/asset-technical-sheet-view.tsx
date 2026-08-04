@@ -188,7 +188,7 @@ export function AssetTechnicalSheetView({ scope }: AssetTechnicalSheetViewProps)
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline">
-            <Link href={`/dashboard/work-orders/create?assetId=${asset.id}`}>
+            <Link href={`/dashboard/mantenimiento/ordenes-trabajo/create?assetId=${asset.id}`}>
               <Wrench className="mr-2 h-4 w-4" />
               Crear OT
             </Link>

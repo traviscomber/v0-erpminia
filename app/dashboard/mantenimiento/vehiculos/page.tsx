@@ -2,11 +2,10 @@
 
 import Link from 'next/link';
 import useSWR from 'swr';
-import { Download, FileSearch, Plus, Upload, Wrench } from 'lucide-react';
+import { Download, FileSearch, Upload, Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BrandCard } from '@/components/ui/brand-card';
 import type { DerivedCostCenterMachine } from '@/lib/maintenance/cost-center-machines';
 
 type MaintenanceAsset = {
@@ -58,21 +57,21 @@ export default function VehiclesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Gestion de vehiculos</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Vehiculos y traslados</h1>
         <p className="mt-2 text-muted-foreground">
-          Administra vehiculos y arbol de fallas con datos reales del sistema.
+          Administra vehiculos operativos y traslados desde un solo modulo de mantenimiento, con arbol de fallas y datos reales del sistema.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
+          <Button asChild variant="outline">
+            <Link href="/dashboard/mantenimiento">
+              <Wrench className="mr-2 h-4 w-4" />
+              Volver a mantenimiento
+            </Link>
+          </Button>
           <Button asChild variant="outline">
             <Link href="/dashboard/mantenimiento/vehiculos/importar">
               <Upload className="mr-2 h-4 w-4" />
               Importar vehiculos
-            </Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/dashboard/mantenimiento/equipos">
-              <FileSearch className="mr-2 h-4 w-4" />
-              Ver equipos
             </Link>
           </Button>
         </div>
@@ -84,46 +83,6 @@ export default function VehiclesPage() {
         </div>
       </div>
 
-      <Card className="border-border/70 bg-card/80">
-        <CardHeader>
-          <CardTitle>Importación operativa de vehículos</CardTitle>
-          <CardDescription>
-            La carga masiva se ejecuta desde una ruta dedicada para separar el maestro operativo de la vista de consulta.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-wrap gap-2">
-          <Button asChild>
-            <Link href="/dashboard/mantenimiento/vehiculos/importar">
-              <Upload className="mr-2 h-4 w-4" />
-              Abrir importador de vehiculos
-            </Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/dashboard/mantenimiento/equipos">
-              <FileSearch className="mr-2 h-4 w-4" />
-              Ver equipos relacionados
-            </Link>
-          </Button>
-        </CardContent>
-      </Card>
-
-      <BrandCard variant="default">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="rounded-full bg-[var(--brand-naranja)]/10 p-2 text-[var(--brand-naranja)]">
-              <Wrench className="h-4 w-4" />
-            </div>
-            <div>
-              <p className="text-sm font-medium">Alta de vehiculos</p>
-              <p className="text-xs text-muted-foreground">Disponible cuando el flujo operativo lo habilite</p>
-            </div>
-          </div>
-          <Button className="gap-2 bg-[var(--brand-naranja)] hover:bg-[var(--brand-naranja)]/90" disabled>
-            <Plus className="h-4 w-4" />
-            Crear nuevo vehiculo
-          </Button>
-        </div>
-      </BrandCard>
 
       <Card>
         <CardHeader>
@@ -225,7 +184,7 @@ export default function VehiclesPage() {
                       <Badge variant="outline">{machine.source}</Badge>
                     </div>
                     <p className="mt-3 text-xs text-muted-foreground">
-                      Este modelo viene del centro de costo y puede usarse como base del maestro de máquinas.
+                      Este modelo viene del centro de costo y puede usarse como base del maestro de maquinas.
                     </p>
                   </div>
                 ))}

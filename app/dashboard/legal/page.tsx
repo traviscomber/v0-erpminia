@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
-import { AlertCircle, ArrowRight, CheckCircle2, Download, Eye, FileText, Scale, Search, Upload } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Download, Eye, FileText, Scale, Search, Upload } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -17,7 +17,7 @@ import { AddContractModal } from '@/components/legal/add-contract-modal';
 const fetcher = async (url: string) => {
   const response = await fetch(url, { credentials: 'include' });
   const payload = await response.json().catch(() => null);
-  if (!response.ok) return null;
+  if (!response.ok) throw new Error(payload?.error || 'No fue posible cargar la información');
   return payload;
 };
 
@@ -46,7 +46,7 @@ type LegalContract = {
 };
 
 type CompliancePayload = {
-  summary: {
+  summary?: {
     total_contracts: number;
     active_contracts: number;
     contracts_pending_review: number;
@@ -55,45 +55,30 @@ type CompliancePayload = {
     expired_contracts: number;
     legal_documents: number;
     expiring_documents: number;
-  approved_documents: number;
+    approved_documents: number;
   };
-  contracts_pending_review: Array<{ id: string; title: string }>;
-  contracts_missing_file: Array<{ id: string; title: string }>;
-  expiring_contracts: Array<{ id: string; title: string; days_until_expiry: number }>;
-  expiring_documents: Array<{ id: string; title: string; expiry_date: string }>;
+  contracts_pending_review?: Array<{ id: string; title: string }>;
+  contracts_missing_file?: Array<{ id: string; title: string }>;
+  expiring_contracts?: Array<{ id: string; title: string; days_until_expiry: number }>;
+  expiring_documents?: Array<{ id: string; title: string; expiry_date: string }>;
 };
 
-type LegalDocumentForm = {
+type FormPayload = {
   [key: string]: string | number | boolean | File | null | undefined;
 };
 
-type LegalContractForm = LegalDocumentForm;
-
 function getStatusBadge(status: string) {
-  switch (status) {
-    case 'active':
-    case 'vigente':
-    case 'approved':
-      return <Badge className="bg-secondary/10 text-secondary">Activo</Badge>;
-    case 'pending':
-    case 'pendiente':
-    case 'draft':
-    case 'submitted':
-    case 'under_review':
-      return <Badge className="bg-primary/10 text-primary">Pendiente</Badge>;
-    case 'expired':
-    case 'vencido':
-    case 'rejected':
-      return <Badge className="bg-destructive/10 text-destructive">Vencido</Badge>;
-    default:
-      return <Badge variant="outline">{status || 'Sin estado'}</Badge>;
+  const value = String(status || '').toLowerCase();
+  if (['active', 'vigente', 'approved'].includes(value)) {
+    return <Badge className="bg-secondary/10 text-secondary">Activo</Badge>;
   }
-}
-
-function getComplianceTone(value: number) {
-  if (value >= 90) return 'bg-secondary/10 text-secondary';
-  if (value >= 70) return 'bg-primary/10 text-primary';
-  return 'bg-destructive/10 text-destructive';
+  if (['pending', 'pendiente', 'draft', 'submitted', 'under_review'].includes(value)) {
+    return <Badge className="bg-primary/10 text-primary">Pendiente</Badge>;
+  }
+  if (['expired', 'vencido', 'rejected'].includes(value)) {
+    return <Badge className="bg-destructive/10 text-destructive">Vencido</Badge>;
+  }
+  return <Badge variant="outline">{status || 'Sin estado'}</Badge>;
 }
 
 function mapContractStatus(status: string): 'active' | 'expiring' | 'expired' {
@@ -118,6 +103,12 @@ function formatContractValue(value: number, currency: string) {
   }).format(value);
 }
 
+function getComplianceTone(value: number) {
+  if (value >= 90) return 'bg-secondary/10 text-secondary';
+  if (value >= 70) return 'bg-primary/10 text-primary';
+  return 'bg-destructive/10 text-destructive';
+}
+
 export default function LegalPage() {
   const [activeTab, setActiveTab] = useState('documents');
   const [searchQuery, setSearchQuery] = useState('');
@@ -127,7 +118,6 @@ export default function LegalPage() {
   const [reviewError, setReviewError] = useState<string | null>(null);
 
   const searchParam = searchQuery.trim() ? `?search=${encodeURIComponent(searchQuery.trim())}` : '';
-
   const { data: documentData, error: documentsError, mutate: mutateDocuments } = useSWR(
     `/api/legal/documentos${searchParam}`,
     fetcher,
@@ -144,187 +134,49 @@ export default function LegalPage() {
     { revalidateOnFocus: false }
   );
 
-  const handleOpenDoc = async (doc: LegalDocument, download = false) => {
-    if (download) {
-      if (loadingDocId === doc.id) return;
-      setLoadingDocId(doc.id);
-      try {
-        let url = doc.fileUrl;
-        if (!url) {
-          const res = await fetch(`/api/legal/documentos/download?id=${doc.id}`, {
-            credentials: 'include',
-          });
-          const json = await res.json();
-          url = json.url ?? null;
-        }
-        if (url) {
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = doc.title || 'documento';
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-        }
-      } finally {
-        setLoadingDocId(null);
-      }
-      return;
-    }
-
-    setReviewError(null);
-    setReviewingDoc(doc);
-    setReviewModalOpen(true);
-  };
-
-  const handleDocumentReview = async (
-    docId: string,
-    level: 'L1' | 'L2',
-    status: 'cumple' | 'no_cumple' | null,
-    observations: string
-  ) => {
-    try {
-      const res = await fetch('/api/legal/documentos/review', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ docId, level, status, observations }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Error en la revisión');
-      }
-
-      await mutateDocuments();
-      setReviewError(null);
-      setReviewingDoc(null);
-    } catch (error) {
-      console.error('Error al revisar documento:', error);
-      setReviewError(error instanceof Error ? error.message : 'Error desconocido al revisar el documento');
-    }
-  };
-
-  const handleAddDocument = async (doc: LegalDocumentForm) => {
-    const hasFile = doc.file instanceof File;
-    let body: BodyInit;
-    let headers: HeadersInit | undefined;
-
-    if (hasFile) {
-      const formData = new FormData();
-      Object.entries(doc).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          formData.append(key, value instanceof File ? value : String(value));
-        }
-      });
-      body = formData;
-      headers = undefined;
-    } else {
-      body = JSON.stringify(doc);
-      headers = { 'Content-Type': 'application/json' };
-    }
-
-    const res = await fetch('/api/legal/documentos', {
-      method: 'POST',
-      headers,
-      credentials: 'include',
-      body,
-    });
-    if (res.ok) {
-      await mutateDocuments();
-      await mutateCompliance();
-    }
-  };
-
-  const handleAddContract = async (contract: LegalContractForm) => {
-    const hasFile = contract.file instanceof File;
-    let body: BodyInit;
-    let headers: HeadersInit | undefined;
-
-    if (hasFile) {
-      const formData = new FormData();
-      Object.entries(contract).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          formData.append(key, value instanceof File ? value : String(value));
-        }
-      });
-      body = formData;
-      headers = undefined;
-    } else {
-      body = JSON.stringify(contract);
-      headers = { 'Content-Type': 'application/json' };
-    }
-
-    const res = await fetch('/api/legal/contratos', {
-      method: 'POST',
-      headers,
-      credentials: 'include',
-      body,
-    });
-    if (res.ok) {
-      await mutateContracts();
-      await mutateCompliance();
-    }
-  };
-
   const legalDocs = (documentData?.documents || []) as LegalDocument[];
   const contracts = (contractData?.contracts || []) as LegalContract[];
   const compliance = (complianceData || {}) as CompliancePayload;
-
-  const documentCount = documentData?.total ?? legalDocs.length;
-  const documentsWithFile = legalDocs.filter((doc) => Boolean(doc.fileUrl || doc.filePath)).length;
-  const activeContracts = compliance.summary?.active_contracts ?? 0;
-  const pendingReviewCount = compliance.summary?.contracts_pending_review ?? 0;
-  const expiringContractsCount = compliance.summary?.expiring_contracts ?? 0;
-  const expiringDocumentsCount = compliance.summary?.expiring_documents ?? 0;
+  const summary = compliance.summary;
 
   const compliancePercent = useMemo(() => {
-    const summary = compliance.summary;
     if (!summary) return 0;
-
     const checks = [
-      summary.total_contracts ? (summary.active_contracts || 0) / summary.total_contracts : 1,
-      summary.total_contracts
-        ? ((summary.total_contracts || 0) - (summary.contracts_missing_file || 0)) / summary.total_contracts
-        : 1,
-      summary.legal_documents ? (summary.approved_documents || 0) / summary.legal_documents : 1,
-      summary.legal_documents
-        ? ((summary.legal_documents || 0) - (summary.expiring_documents || 0)) / summary.legal_documents
-        : 1,
+      summary.total_contracts ? summary.active_contracts / summary.total_contracts : 1,
+      summary.total_contracts ? (summary.total_contracts - summary.contracts_missing_file) / summary.total_contracts : 1,
+      summary.legal_documents ? summary.approved_documents / summary.legal_documents : 1,
+      summary.legal_documents ? (summary.legal_documents - summary.expiring_documents) / summary.legal_documents : 1,
     ];
+    return Math.round((checks.reduce((total, item) => total + Math.max(0, Math.min(1, item)), 0) / checks.length) * 100);
+  }, [summary]);
 
-    const score = checks.reduce((acc, value) => acc + Math.max(0, Math.min(1, value)), 0) / checks.length;
-    return Math.round(score * 100);
-  }, [compliance.summary]);
-
-  const complianceItems = useMemo(
-    () => [
+  const complianceItems = useMemo(() => {
+    if (!summary) return [];
+    return [
       {
         requirement: 'Contratos vigentes',
-        percentage: compliance.summary?.total_contracts
-          ? Math.round(((compliance.summary?.active_contracts || 0) / Math.max(compliance.summary?.total_contracts || 1, 1)) * 100)
+        percentage: summary.total_contracts ? Math.round((summary.active_contracts / summary.total_contracts) * 100) : 100,
+      },
+      {
+        requirement: 'Contratos con respaldo',
+        percentage: summary.total_contracts
+          ? Math.round(((summary.total_contracts - summary.contracts_missing_file) / summary.total_contracts) * 100)
           : 100,
       },
       {
-        requirement: 'Contratos con respaldo documental',
-        percentage: compliance.summary?.total_contracts
-          ? Math.round((((compliance.summary?.total_contracts || 0) - (compliance.summary?.contracts_missing_file || 0)) / Math.max(compliance.summary?.total_contracts || 1, 1)) * 100)
-          : 100,
-      },
-      {
-        requirement: 'Documentos legales aprobados',
-        percentage: compliance.summary?.legal_documents
-          ? Math.round(((compliance.summary?.approved_documents || 0) / Math.max(compliance.summary?.legal_documents || 1, 1)) * 100)
+        requirement: 'Documentos aprobados',
+        percentage: summary.legal_documents
+          ? Math.round((summary.approved_documents / summary.legal_documents) * 100)
           : 100,
       },
       {
         requirement: 'Documentos sin vencimiento inmediato',
-        percentage: compliance.summary?.legal_documents
-          ? Math.round((((compliance.summary?.legal_documents || 0) - (compliance.summary?.expiring_documents || 0)) / Math.max(compliance.summary?.legal_documents || 1, 1)) * 100)
+        percentage: summary.legal_documents
+          ? Math.round(((summary.legal_documents - summary.expiring_documents) / summary.legal_documents) * 100)
           : 100,
       },
-    ],
-    [compliance.summary]
-  );
+    ];
+  }, [summary]);
 
   const trackerContracts = useMemo(
     () =>
@@ -342,189 +194,146 @@ export default function LegalPage() {
     [contracts]
   );
 
-  const hasError = documentsError || contractsError || complianceError;
+  const handleOpenDoc = async (doc: LegalDocument, download = false) => {
+    if (!download) {
+      setReviewError(null);
+      setReviewingDoc(doc);
+      setReviewModalOpen(true);
+      return;
+    }
 
-  const downloadTemplate = (kind: 'documents' | 'contracts') => {
-    const config = {
-      documents: {
-        filename: 'plantilla-documentos-legales.csv',
-        headers: ['TITLE', 'DESCRIPTION', 'DOCUMENT_TYPE', 'CATEGORY', 'STATUS'],
-        rows: [
-          ['Política HSE', 'Política corporativa de seguridad', 'policy', 'HSE', 'pending'],
-          ['Procedimiento vehículos', 'Uso seguro de vehículos', 'procedure', 'Operación', 'active'],
-        ],
-      },
-      contracts: {
-        filename: 'plantilla-contratos-legales.csv',
-        headers: ['TITLE', 'CONTRACTOR_NAME', 'START_DATE', 'END_DATE', 'STATUS', 'CONTRACT_VALUE', 'CURRENCY', 'COMPLIANCE_STATUS'],
-        rows: [
-          ['Contrato transporte', 'Transportes del Norte', '2026-07-01', '2027-06-30', 'active', '15000000', 'CLP', 'Pendiente'],
-          ['Contrato mantencion', 'Servicios Andes', '2026-07-01', '2026-12-31', 'active', '8500000', 'CLP', 'Cumple'],
-        ],
-      },
-    }[kind];
-
-    const csv = [config.headers, ...config.rows]
-      .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(';'))
-      .join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = config.filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
+    if (loadingDocId === doc.id) return;
+    setLoadingDocId(doc.id);
+    try {
+      let url = doc.fileUrl;
+      if (!url) {
+        const response = await fetch(`/api/legal/documentos/download?id=${doc.id}`, { credentials: 'include' });
+        const payload = await response.json();
+        url = payload.url ?? null;
+      }
+      if (url) {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = doc.title || 'documento';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      }
+    } finally {
+      setLoadingDocId(null);
+    }
   };
+
+  const handleDocumentReview = async (
+    docId: string,
+    level: 'L1' | 'L2',
+    status: 'cumple' | 'no_cumple' | null,
+    observations: string
+  ) => {
+    try {
+      const response = await fetch('/api/legal/documentos/review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ docId, level, status, observations }),
+      });
+      if (!response.ok) {
+        const payload = await response.json();
+        throw new Error(payload.error || 'Error en la revisión');
+      }
+      await Promise.all([mutateDocuments(), mutateCompliance()]);
+      setReviewError(null);
+      setReviewingDoc(null);
+    } catch (error) {
+      setReviewError(error instanceof Error ? error.message : 'Error desconocido al revisar el documento');
+    }
+  };
+
+  const submitPayload = async (url: string, payload: FormPayload) => {
+    const hasFile = payload.file instanceof File;
+    const body = hasFile
+      ? (() => {
+          const formData = new FormData();
+          Object.entries(payload).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) {
+              formData.append(key, value instanceof File ? value : String(value));
+            }
+          });
+          return formData;
+        })()
+      : JSON.stringify(payload);
+
+    return fetch(url, {
+      method: 'POST',
+      headers: hasFile ? undefined : { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body,
+    });
+  };
+
+  const handleAddDocument = async (payload: FormPayload) => {
+    const response = await submitPayload('/api/legal/documentos', payload);
+    if (response.ok) await Promise.all([mutateDocuments(), mutateCompliance()]);
+  };
+
+  const handleAddContract = async (payload: FormPayload) => {
+    const response = await submitPayload('/api/legal/contratos', payload);
+    if (response.ok) await Promise.all([mutateContracts(), mutateCompliance()]);
+  };
+
+  const hasError = documentsError || contractsError || complianceError;
+  const kpis = [
+    { label: 'Contratos vigentes', value: summary?.active_contracts ?? 0, note: 'Activos y en seguimiento' },
+    { label: 'Por vencer', value: summary?.expiring_contracts ?? 0, note: 'Requieren gestión prioritaria' },
+    { label: 'Pendientes de revisión', value: summary?.contracts_pending_review ?? 0, note: 'En cola de validación' },
+    { label: 'Cumplimiento', value: `${compliancePercent}%`, note: 'Contratos y documentos' },
+  ];
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">Módulo Legal</h1>
-        <p className="mt-2 max-w-3xl text-muted-foreground">
-          Vista ejecutiva para documentos, contratos y cumplimiento normativo, con foco en respaldo, vencimientos y seguimiento.
-        </p>
-        {reviewError ? (
-          <div className="mt-4 flex max-w-3xl items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-            <span>{reviewError}</span>
-          </div>
-        ) : null}
-        <div className="mt-4 flex flex-wrap gap-2">
+      <section className="flex flex-col gap-4 border-b border-border/70 pb-6 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p className="text-sm font-medium text-primary">Legal y contratistas · Control contractual</p>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight text-foreground">Gestión legal</h1>
+          <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+            Controla contratos, respaldo documental, revisiones y vencimientos desde un único espacio operativo.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline">
             <Link href="/dashboard/legal/importar">
               <Upload className="mr-2 h-4 w-4" />
-              Importar Excel
+              Importar
             </Link>
           </Button>
-          <Button variant="outline" onClick={() => downloadTemplate('documents')}>
-            <Download className="mr-2 h-4 w-4" />
-            Plantilla documentos
-          </Button>
-          <Button variant="outline" onClick={() => downloadTemplate('contracts')}>
-            <Download className="mr-2 h-4 w-4" />
-            Plantilla contratos
+          <Button asChild variant="outline">
+            <Link href="/dashboard/legal/permisos-licencias">Permisos y licencias</Link>
           </Button>
         </div>
+      </section>
+
+      {reviewError ? (
+        <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>{reviewError}</span>
+        </div>
+      ) : null}
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {kpis.map((item) => (
+          <Card key={item.label} className="shadow-none">
+            <CardHeader className="pb-2">
+              <CardDescription>{item.label}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-semibold">{item.value}</div>
+              <p className="mt-1 text-xs text-muted-foreground">{item.note}</p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Documentos legales</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{documentCount}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Registrados en el sistema</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Contratos vigentes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{activeContracts}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Activos y en seguimiento</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Documentos con respaldo</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{documentsWithFile}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Con respaldo listo</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Cumplimiento</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{compliancePercent}%</div>
-            <p className="mt-1 text-xs text-muted-foreground">Basado en contratos y documentos legales.</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-primary/30 bg-primary/5">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-primary">Pendientes de revisión</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-primary">{pendingReviewCount}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Contratos en cola de validación</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-amber-500/30 bg-amber-500/5">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-amber-600">Contratos por vencer</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-amber-600">{expiringContractsCount}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Requieren seguimiento cercano</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-destructive/30 bg-destructive/5">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-destructive">Documentos por vencer</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-destructive">{expiringDocumentsCount}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Revisar respaldo y vigencia</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card className="border-border/70 bg-card/90">
-        <CardHeader>
-          <CardTitle>Accesos rápidos al flujo documental</CardTitle>
-          <CardDescription>
-            Legal trabaja conectado a mantenimiento, bodega y telemetría para cerrar trazabilidad.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/mantenimiento/documentos">
-                Documentos de mantenimiento
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/bodega/documentos">
-                Documentos de bodega
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/telemetria">
-                Telemetria
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/legal/documentos">
-                Documentos legales
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-between">
-              <Link href="/dashboard/legal/permisos-licencias">
-                Permisos y licencias
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {hasError && (
+      {hasError ? (
         <Card className="border-destructive/30">
           <CardContent className="flex items-center justify-between gap-4 pt-6">
             <div className="flex items-center gap-3 text-sm">
@@ -534,44 +343,44 @@ export default function LegalPage() {
             <Button
               variant="outline"
               onClick={() => {
-                mutateDocuments();
-                mutateContracts();
-                mutateCompliance();
+                void mutateDocuments();
+                void mutateContracts();
+                void mutateCompliance();
               }}
             >
               Reintentar
             </Button>
           </CardContent>
         </Card>
-      )}
+      ) : null}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="documents" className="flex items-center gap-2">
+          <TabsTrigger value="documents" className="gap-2">
             <FileText className="h-4 w-4" />
-            <span className="hidden sm:inline">Documentos</span>
+            Documentos
           </TabsTrigger>
-          <TabsTrigger value="contracts" className="flex items-center gap-2">
+          <TabsTrigger value="contracts" className="gap-2">
             <Scale className="h-4 w-4" />
-            <span className="hidden sm:inline">Contratos</span>
+            Contratos
           </TabsTrigger>
-          <TabsTrigger value="compliance" className="flex items-center gap-2">
+          <TabsTrigger value="compliance" className="gap-2">
             <CheckCircle2 className="h-4 w-4" />
-            <span className="hidden sm:inline">Cumplimiento</span>
+            Cumplimiento
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="documents">
+        <TabsContent value="documents" className="mt-4">
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between gap-4">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <CardTitle>Documentos legales</CardTitle>
                   <CardDescription>Políticas, procedimientos, protocolos y respaldo regulatorio.</CardDescription>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                   <AddDocumentModal onSubmit={handleAddDocument} />
-                  <div className="relative max-w-sm flex-1">
+                  <div className="relative min-w-64">
                     <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       placeholder="Buscar documentos..."
@@ -583,69 +392,56 @@ export default function LegalPage() {
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {legalDocs.length === 0 && (
-                  <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
-                    No hay documentos legales cargados todavía.
-                  </div>
-                )}
-
-                {legalDocs.map((doc) => (
-                  <div
-                    key={doc.id}
-                    className="flex items-center justify-between rounded-lg border p-3 transition hover:bg-muted/50"
-                  >
-                    <div className="flex min-w-0 flex-1 items-center gap-3">
-                      <FileText className="h-5 w-5 flex-shrink-0 text-primary" />
-                      <div className="min-w-0 flex-1">
+            <CardContent className="space-y-3">
+              {legalDocs.length === 0 ? (
+                <div className="rounded-lg border border-dashed p-10 text-center text-sm text-muted-foreground">
+                  No hay documentos legales cargados.
+                </div>
+              ) : (
+                legalDocs.map((doc) => (
+                  <div key={doc.id} className="flex items-center justify-between gap-4 rounded-lg border p-3 hover:bg-muted/40">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <FileText className="h-5 w-5 shrink-0 text-primary" />
+                      <div className="min-w-0">
                         <p className="truncate font-medium">{doc.title}</p>
                         <p className="truncate text-xs text-muted-foreground">
-                          {(doc.documentType || 'Documento').replace(/_/g, ' ')} - {doc.description || 'Sin descripción'}
+                          {(doc.documentType || 'Documento').replace(/_/g, ' ')} · {doc.description || 'Sin descripción'}
                         </p>
                       </div>
                     </div>
-                    <div className="flex flex-shrink-0 items-center gap-2">
+                    <div className="flex shrink-0 items-center gap-2">
                       {getStatusBadge(doc.status)}
-                      {(doc.fileUrl || doc.filePath) && (
+                      {(doc.fileUrl || doc.filePath) ? (
                         <>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0"
-                            disabled={loadingDocId === doc.id}
-                            onClick={() => handleOpenDoc(doc, false)}
-                            title="Vista previa"
-                          >
+                          <Button variant="ghost" size="icon" onClick={() => handleOpenDoc(doc, false)} title="Revisar documento">
                             <Eye className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0"
+                            size="icon"
                             disabled={loadingDocId === doc.id}
                             onClick={() => handleOpenDoc(doc, true)}
-                            title="Descargar"
+                            title="Descargar documento"
                           >
                             <Download className="h-4 w-4" />
                           </Button>
                         </>
-                      )}
+                      ) : null}
                     </div>
                   </div>
-                ))}
-              </div>
+                ))
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="contracts">
+        <TabsContent value="contracts" className="mt-4">
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <CardTitle>Contratos vigentes</CardTitle>
-                  <CardDescription>Seguimiento de contratos activos y vencimientos próximos.</CardDescription>
+                  <CardTitle>Contratos</CardTitle>
+                  <CardDescription>Seguimiento de vigencia, contratistas, montos y cumplimiento.</CardDescription>
                 </div>
                 <AddContractModal onSubmit={handleAddContract} />
               </div>
@@ -656,21 +452,21 @@ export default function LegalPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="compliance">
+        <TabsContent value="compliance" className="mt-4">
           <Card>
             <CardHeader>
               <CardTitle>Matriz de cumplimiento</CardTitle>
-              <CardDescription>Seguimiento de respaldo contractual y documental del módulo legal.</CardDescription>
+              <CardDescription>Respaldo contractual, aprobaciones y vencimientos próximos.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 {complianceItems.map((item) => (
                   <div key={item.requirement} className="space-y-2">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-4">
                       <span className="text-sm font-medium">{item.requirement}</span>
                       <Badge className={getComplianceTone(item.percentage)}>{item.percentage}%</Badge>
                     </div>
-                    <div className="h-2 w-full rounded-full bg-muted">
+                    <div className="h-2 rounded-full bg-muted">
                       <div className="h-2 rounded-full bg-secondary" style={{ width: `${item.percentage}%` }} />
                     </div>
                   </div>
@@ -679,29 +475,24 @@ export default function LegalPage() {
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="rounded-lg border p-4">
-                  <p className="mb-2 text-sm font-semibold">Contratos por revisar</p>
+                  <p className="mb-3 text-sm font-semibold">Contratos por revisar</p>
                   <ul className="space-y-2 text-sm text-muted-foreground">
                     {(compliance.contracts_pending_review || []).slice(0, 5).map((item) => (
                       <li key={item.id}>{item.title}</li>
                     ))}
-                    {(compliance.contracts_pending_review || []).length === 0 && (
-                      <li>No hay contratos pendientes de revisión.</li>
-                    )}
+                    {(compliance.contracts_pending_review || []).length === 0 ? <li>Sin contratos pendientes.</li> : null}
                   </ul>
                 </div>
-
                 <div className="rounded-lg border p-4">
-                  <p className="mb-2 text-sm font-semibold">Documentos por vencer</p>
+                  <p className="mb-3 text-sm font-semibold">Documentos por vencer</p>
                   <ul className="space-y-2 text-sm text-muted-foreground">
                     {(compliance.expiring_documents || []).slice(0, 5).map((item) => (
                       <li key={item.id}>
                         {item.title}
-                        {item.expiry_date ? ` - ${new Date(item.expiry_date).toLocaleDateString('es-CL')}` : ''}
+                        {item.expiry_date ? ` · ${new Date(item.expiry_date).toLocaleDateString('es-CL')}` : ''}
                       </li>
                     ))}
-                    {(compliance.expiring_documents || []).length === 0 && (
-                      <li>No hay documentos con vencimiento cercano.</li>
-                    )}
+                    {(compliance.expiring_documents || []).length === 0 ? <li>Sin vencimientos próximos.</li> : null}
                   </ul>
                 </div>
               </div>

@@ -10,105 +10,74 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  /* Cobre Minería */
-  --primary: oklch(0.58 0.18 35);
+  --primary: oklch(0.62 0.18 40);
   --primary-foreground: oklch(1 0 0);
-  /* Grafito Secondary */
-  --secondary: oklch(0.35 0.02 0);
+  --secondary: oklch(0.48 0.14 142);
   --secondary-foreground: oklch(1 0 0);
   --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  /* Gris plata Accent */
-  --accent: oklch(0.75 0.02 0);
+  --muted-foreground: oklch(0.45 0 0);
+  --accent: oklch(0.95 0 0);
   --accent-foreground: oklch(0.145 0 0);
-  /* Rojo Critical */
   --destructive: oklch(0.45 0.18 25);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.58 0.18 35);
-  --chart-1: oklch(0.58 0.18 35);
-  --chart-2: oklch(0.35 0.02 0);
-  --chart-3: oklch(0.75 0.02 0);
-  --chart-4: oklch(0.65 0.12 35);
-  --chart-5: oklch(0.55 0.08 0);
+  --border: oklch(0.9 0 0);
+  --input: oklch(0.9 0 0);
+  --ring: oklch(0.62 0.18 40);
+  --chart-1: oklch(0.62 0.18 40);
+  --chart-2: oklch(0.48 0.14 142);
+  --chart-3: oklch(0.45 0.18 25);
+  --chart-4: oklch(0.45 0 0);
+  --chart-5: oklch(0.7 0 0);
   --radius: 0.3rem;
-  /* Sidebar */
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.58 0.18 35);
+  --sidebar-primary: oklch(0.62 0.18 40);
   --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.75 0.02 0);
+  --sidebar-accent: oklch(0.95 0 0);
   --sidebar-accent-foreground: oklch(0.145 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.58 0.18 35);
-  
-  /* Motil Premium Minería */
-  --brand-cobre: oklch(0.58 0.18 35);
-  --brand-cobre-rgb: 186, 117, 62;
-  --brand-grafito: oklch(0.35 0.02 0);
-  --brand-grafito-rgb: 89, 89, 89;
-  --brand-negro: oklch(0.145 0 0);
-  --brand-negro-rgb: 37, 37, 37;
-  --brand-plata: oklch(0.75 0.02 0);
-  --brand-plata-rgb: 191, 191, 191;
-  --brand-rojo: oklch(0.45 0.18 25);
-  --brand-rojo-rgb: 192, 57, 43;
+  --sidebar-border: oklch(0.9 0 0);
+  --sidebar-ring: oklch(0.62 0.18 40);
 }
 
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
+  --card: oklch(0.18 0 0);
   --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
+  --popover: oklch(0.18 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  /* Cobre en Dark */
-  --primary: oklch(0.65 0.22 35);
+  --primary: oklch(0.62 0.18 40);
   --primary-foreground: oklch(0.145 0 0);
-  /* Grafito en Dark */
-  --secondary: oklch(0.45 0.03 0);
+  --secondary: oklch(0.48 0.14 142);
   --secondary-foreground: oklch(1 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  /* Plata Accent Dark */
-  --accent: oklch(0.8 0.02 0);
-  --accent-foreground: oklch(0.145 0 0);
-  /* Rojo Dark */
-  --destructive: oklch(0.55 0.22 25);
+  --muted: oklch(0.24 0 0);
+  --muted-foreground: oklch(0.72 0 0);
+  --accent: oklch(0.24 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.45 0.18 25);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.65 0.22 35);
-  --chart-1: oklch(0.65 0.22 40);
-  --chart-2: oklch(0.52 0.18 142);
-  --chart-3: oklch(0.55 0.22 25);
-  --chart-4: oklch(0.68 0.18 60);
-  --chart-5: oklch(0.60 0.15 200);
-  --sidebar: oklch(0.205 0 0);
+  --border: oklch(0.28 0 0);
+  --input: oklch(0.28 0 0);
+  --ring: oklch(0.62 0.18 40);
+  --chart-1: oklch(0.62 0.18 40);
+  --chart-2: oklch(0.48 0.14 142);
+  --chart-3: oklch(0.45 0.18 25);
+  --chart-4: oklch(0.72 0 0);
+  --chart-5: oklch(0.5 0 0);
+  --sidebar: oklch(0.18 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.65 0.22 40);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.52 0.18 142);
-  --sidebar-accent-foreground: oklch(1 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.65 0.22 40);
-  
-  /* La Patagua Brand Colors Dark */
-  --brand-naranja: oklch(0.65 0.22 40);
-  --brand-naranja-rgb: 245, 165, 95;
-  --brand-verde: oklch(0.52 0.18 142);
-  --brand-verde-rgb: 85, 180, 115;
-  --brand-gris-oscuro: oklch(0.145 0 0);
-  --brand-rojo: oklch(0.55 0.22 25);
-  --brand-rojo-rgb: 220, 100, 80;
-  --brand-gold: oklch(0.68 0.18 60);
+  --sidebar-primary: oklch(0.62 0.18 40);
+  --sidebar-primary-foreground: oklch(0.145 0 0);
+  --sidebar-accent: oklch(0.24 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(0.28 0 0);
+  --sidebar-ring: oklch(0.62 0.18 40);
 }
 
 @theme inline {
-  --font-sans: 'Segoe UI', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
-  --font-mono: 'Cascadia Code', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-  --font-heading: 'Aptos Display', 'Segoe UI', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-heading: var(--font-montserrat), var(--font-geist-sans), ui-sans-serif, sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -158,15 +127,14 @@
 
   body {
     @apply min-h-screen bg-background text-foreground antialiased;
-    background-image:
-      radial-gradient(circle at top left, rgba(var(--brand-cobre-rgb), 0.14), transparent 28%),
-      radial-gradient(circle at top right, rgba(var(--brand-verde-rgb), 0.1), transparent 24%),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 18%);
-    background-attachment: fixed;
   }
 
-  /* La Patagua Brand Typography */
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-heading font-bold;
   }
 
@@ -184,5 +152,128 @@
 
   h4 {
     @apply text-xl font-semibold;
+  }
+}
+
+@layer utilities {
+  /* Temporary compatibility for legacy components. New code must use semantic tokens. */
+  .text-orange-500,
+  .text-orange-600,
+  .text-orange-700,
+  .text-amber-500,
+  .text-amber-600,
+  .text-amber-700 {
+    color: var(--primary) !important;
+  }
+
+  .bg-orange-500,
+  .bg-orange-600,
+  .bg-amber-500,
+  .bg-amber-600 {
+    background-color: var(--primary) !important;
+  }
+
+  .bg-orange-500\/10,
+  .bg-orange-600\/10,
+  .bg-amber-500\/10,
+  .bg-amber-600\/10 {
+    background-color: color-mix(in oklch, var(--primary) 10%, transparent) !important;
+  }
+
+  .border-orange-500,
+  .border-orange-600,
+  .border-amber-500,
+  .border-amber-600 {
+    border-color: var(--primary) !important;
+  }
+
+  .text-green-500,
+  .text-green-600,
+  .text-green-700,
+  .text-emerald-500,
+  .text-emerald-600,
+  .text-emerald-700,
+  .text-blue-500,
+  .text-blue-600,
+  .text-blue-700,
+  .text-cyan-500,
+  .text-cyan-600,
+  .text-cyan-700 {
+    color: var(--secondary) !important;
+  }
+
+  .bg-green-500,
+  .bg-green-600,
+  .bg-emerald-500,
+  .bg-emerald-600,
+  .bg-blue-500,
+  .bg-blue-600,
+  .bg-cyan-500,
+  .bg-cyan-600 {
+    background-color: var(--secondary) !important;
+  }
+
+  .bg-green-500\/10,
+  .bg-green-600\/10,
+  .bg-emerald-500\/10,
+  .bg-emerald-600\/10,
+  .bg-blue-500\/10,
+  .bg-blue-600\/10,
+  .bg-cyan-500\/10,
+  .bg-cyan-600\/10 {
+    background-color: color-mix(in oklch, var(--secondary) 10%, transparent) !important;
+  }
+
+  .border-green-500,
+  .border-green-600,
+  .border-emerald-500,
+  .border-emerald-600,
+  .border-blue-500,
+  .border-blue-600,
+  .border-cyan-500,
+  .border-cyan-600 {
+    border-color: var(--secondary) !important;
+  }
+
+  .text-red-500,
+  .text-red-600,
+  .text-red-700,
+  .text-rose-500,
+  .text-rose-600,
+  .text-rose-700 {
+    color: var(--destructive) !important;
+  }
+
+  .bg-red-500,
+  .bg-red-600,
+  .bg-rose-500,
+  .bg-rose-600 {
+    background-color: var(--destructive) !important;
+  }
+
+  .bg-red-500\/10,
+  .bg-red-600\/10,
+  .bg-rose-500\/10,
+  .bg-rose-600\/10 {
+    background-color: color-mix(in oklch, var(--destructive) 10%, transparent) !important;
+  }
+
+  .border-red-500,
+  .border-red-600,
+  .border-rose-500,
+  .border-rose-600 {
+    border-color: var(--destructive) !important;
+  }
+
+  .text-slate-600,
+  .text-slate-700,
+  .text-gray-600,
+  .text-gray-700 {
+    color: var(--muted-foreground) !important;
+  }
+
+  .bg-slate-600\/10,
+  .bg-gray-600\/10 {
+    background-color: var(--muted) !important;
   }
 }

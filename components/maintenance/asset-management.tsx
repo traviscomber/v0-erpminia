@@ -226,7 +226,7 @@ export function AssetManagement() {
                 </div>
 
                 <Button className="mt-3 w-full" size="sm" variant="outline" asChild>
-                  <Link href={`/dashboard/work-orders/create?assetId=${asset.id}`}>Crear orden de trabajo</Link>
+                  <Link href={`/dashboard/mantenimiento/ordenes-trabajo/create?assetId=${asset.id}`}>Crear orden de trabajo</Link>
                 </Button>
               </CardContent>
             </Card>

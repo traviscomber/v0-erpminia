@@ -18,6 +18,9 @@ export interface DocumentReviewDocument {
   uploaded_by: string;
   l1_observations: string;
   file_url: string;
+  asset_id?: string | null;
+  canonical_section?: string | null;
+  extracted_data?: Record<string, unknown> | null;
 }
 
 interface DocumentReviewModalProps {
@@ -102,6 +105,18 @@ export function DocumentReviewModal({ document, isOpen, onClose, onApprove, onRe
                 <span className="text-muted-foreground">Cargado por:</span>
                 <p className="mt-1">{document.uploaded_by}</p>
               </div>
+              {document.asset_id && (
+                <div>
+                  <span className="text-muted-foreground">Activo:</span>
+                  <p className="mt-1 font-medium">{document.asset_id}</p>
+                </div>
+              )}
+              {document.canonical_section && (
+                <div>
+                  <span className="text-muted-foreground">Sección canónica:</span>
+                  <p className="mt-1 font-medium">{document.canonical_section}</p>
+                </div>
+              )}
               {document.valid_until && (
                 <div>
                   <span className="text-muted-foreground">Válido hasta:</span>
@@ -109,6 +124,15 @@ export function DocumentReviewModal({ document, isOpen, onClose, onApprove, onRe
                 </div>
               )}
             </div>
+
+            {document.extracted_data && Object.keys(document.extracted_data).length > 0 && (
+              <div className="rounded-md border border-border bg-background p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Datos extraídos</p>
+                <pre className="mt-2 overflow-x-auto text-xs leading-5 text-muted-foreground">
+                  {JSON.stringify(document.extracted_data, null, 2)}
+                </pre>
+              </div>
+            )}
           </div>
 
           {document.file_url && (

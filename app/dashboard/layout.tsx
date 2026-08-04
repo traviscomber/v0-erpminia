@@ -16,15 +16,14 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex min-h-screen bg-muted/20">
       <Sidebar />
-      <div className="flex-1 flex flex-col lg:ml-0 ml-0">
+      <div className="flex min-w-0 flex-1 flex-col">
         <Header />
-        <main className="flex-1 overflow-auto p-4 md:p-6">
-          <div className="max-w-7xl mx-auto">{children}</div>
+        <main className="flex-1 overflow-x-hidden px-4 py-5 md:px-6 md:py-6 xl:px-8">
+          <div className="mx-auto w-full max-w-[1600px]">{children}</div>
         </main>
       </div>
     </div>
   );
 }
-
