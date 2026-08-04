@@ -1,5 +1,6 @@
 import { type NextRequest } from 'next/server';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { verifyCustomSession } from '@/lib/auth/signed-session';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 
 export interface AuthSessionUser {
@@ -9,37 +10,11 @@ export interface AuthSessionUser {
   organization_id?: string;
 }
 
-export interface AuthSessionData {
-  user: AuthSessionUser;
-  role?: string;
-  session_token: string;
-}
-
 export interface AuthContext {
   user: AuthSessionUser;
   role?: string;
   organizationId?: string;
-  sessionToken?: string;
   source: 'custom-cookie' | 'supabase';
-}
-
-function parseAuthToken(token?: string | null): AuthSessionData | null {
-  if (!token) return null;
-
-  try {
-    const parsed = JSON.parse(token) as Partial<AuthSessionData>;
-    if (!parsed.user?.id || !parsed.session_token) {
-      return null;
-    }
-
-    return {
-      user: parsed.user,
-      role: parsed.role,
-      session_token: parsed.session_token,
-    };
-  } catch {
-    return null;
-  }
 }
 
 async function resolveSupabaseAuth(request: NextRequest): Promise<AuthContext | null> {
@@ -88,8 +63,7 @@ async function resolveSupabaseAuth(request: NextRequest): Promise<AuthContext | 
         .limit(1),
     ]);
 
-    organizationId =
-      profile?.organization_id || roleRows?.[0]?.organization_id || undefined;
+    organizationId = profile?.organization_id || roleRows?.[0]?.organization_id || undefined;
     role = profile?.role || roleRows?.[0]?.role || undefined;
     fullName =
       profile?.full_name ||
@@ -112,17 +86,19 @@ async function resolveSupabaseAuth(request: NextRequest): Promise<AuthContext | 
   };
 }
 
-export async function resolveAuthContext(
-  request: NextRequest
-): Promise<AuthContext | null> {
-  const customSession = parseAuthToken(request.cookies.get('auth_token')?.value);
+export async function resolveAuthContext(request: NextRequest): Promise<AuthContext | null> {
+  const customSession = await verifyCustomSession(request.cookies.get('auth_token')?.value);
 
   if (customSession) {
     return {
-      user: customSession.user,
+      user: {
+        id: customSession.user.id,
+        email: customSession.user.email,
+        full_name: customSession.user.full_name || undefined,
+        organization_id: customSession.user.organization_id || undefined,
+      },
       role: customSession.role,
-      organizationId: customSession.user.organization_id,
-      sessionToken: customSession.session_token,
+      organizationId: customSession.user.organization_id || undefined,
       source: 'custom-cookie',
     };
   }
