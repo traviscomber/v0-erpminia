@@ -1,5 +1,6 @@
 import { AssetDetailView } from '@/components/maintenance/asset-detail-view';
 import { CertifiedFinancialSummary } from '@/components/finance/certified-financial-summary';
+import { EntityTimeline } from '@/components/shared/entity-timeline';
 
 export const metadata = {
   title: 'Ficha del activo | Mantenimiento',
@@ -18,6 +19,7 @@ export default async function EquipmentFichaPage({ params }: EquipmentFichaPageP
     <div className="space-y-6">
       <AssetDetailView scope="equipos" />
       <CertifiedFinancialSummary entity="asset" id={assetId} />
+      <EntityTimeline entity="asset" id={assetId} />
     </div>
   );
 }
