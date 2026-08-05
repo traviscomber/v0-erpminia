@@ -3,17 +3,11 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 
-type MaintenanceAssetRow = {
-  id: string | null;
-  asset_name: string | null;
-  asset_code: string | null;
-  asset_type: string | null;
-};
-
-type MaintenanceWorkOrderRow = {
+type WorkOrderRow = {
   id: string;
   work_order_number: string;
   asset_id: string | null;
+  canonical_asset_id: string | null;
   title: string | null;
   description: string | null;
   work_type: string | null;
@@ -27,13 +21,21 @@ type MaintenanceWorkOrderRow = {
   completion_date: string | null;
   root_cause: string | null;
   preventive_actions: string | null;
+  meter_reading: number | string | null;
+  meter_unit: string | null;
   created_at: string;
-  asset?: MaintenanceAssetRow | null;
+};
+
+type CanonicalAssetRow = {
+  id: string;
+  asset_code: string;
+  name: string;
+  asset_type: string | null;
 };
 
 type WorkOrderPayload = {
-  assetId?: string;
-  asset_id?: string;
+  canonicalAssetId?: string;
+  canonical_asset_id?: string;
   title?: string;
   description?: string | null;
   workType?: string;
@@ -45,37 +47,41 @@ type WorkOrderPayload = {
   planned_duration_hours?: number | string;
   assignedToName?: string | null;
   assigned_to_name?: string | null;
+  meterReading?: number | string | null;
+  meter_reading?: number | string | null;
+  meterUnit?: string | null;
+  meter_unit?: string | null;
   costCenterId?: string | null;
   cost_center_id?: string | null;
-  costCenterCode?: string | null;
-  cost_center_code?: string | null;
 };
 
-function mapWorkOrder(row: MaintenanceWorkOrderRow) {
-  const asset = row.asset ?? null;
+function mapWorkOrder(row: WorkOrderRow, asset?: CanonicalAssetRow | null) {
   return {
-    id: row.id,
-    work_order_number: row.work_order_number,
-    asset_id: row.asset_id || asset?.id || null,
-    asset_name: asset?.asset_name || null,
+    ...row,
+    asset_id: row.canonical_asset_id,
+    asset_name: asset?.name || null,
     asset_code: asset?.asset_code || null,
     asset_type: asset?.asset_type || null,
-    title: row.title,
-    description: row.description,
-    work_type: row.work_type,
-    status: row.status,
-    priority: row.priority,
-    assigned_to_name: row.assigned_to_name,
-    cost_center_id: row.cost_center_id || null,
     progress_percentage: row.status === 'completed' ? 100 : row.status === 'in_progress' ? 50 : 0,
-    planned_duration_hours: row.planned_duration_hours,
-    actual_duration_hours: row.actual_duration_hours,
-    scheduled_date: row.scheduled_date,
-    completion_date: row.completion_date,
-    root_cause: row.root_cause,
-    preventive_actions: row.preventive_actions,
-    created_at: row.created_at,
   };
+}
+
+async function loadAssetMap(
+  context: Awaited<ReturnType<typeof getOrganizationContext>> & { ok: true },
+  rows: WorkOrderRow[],
+) {
+  const ids = [...new Set(rows.map((row) => row.canonical_asset_id).filter((id): id is string => Boolean(id)))];
+  if (ids.length === 0) return new Map<string, CanonicalAssetRow>();
+
+  const { data, error } = await context.supabase
+    .schema('canonical')
+    .from('assets')
+    .select('id, asset_code, name, asset_type')
+    .eq('organization_id', context.organizationId)
+    .in('id', ids);
+
+  if (error) throw error;
+  return new Map((data || []).map((asset) => [asset.id, asset as CanonicalAssetRow]));
 }
 
 export async function GET(request: NextRequest) {
@@ -83,36 +89,32 @@ export async function GET(request: NextRequest) {
   if (!context.ok) return context.response;
 
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const status = searchParams.get('status')?.trim();
-    const priority = searchParams.get('priority')?.trim();
-    const limit = Number(searchParams.get('limit') || '0');
+    const status = request.nextUrl.searchParams.get('status')?.trim();
+    const priority = request.nextUrl.searchParams.get('priority')?.trim();
+    const limit = Number(request.nextUrl.searchParams.get('limit') || '0');
 
     let query = context.supabase
       .from('maintenance_work_orders')
-      .select('*, asset:maintenance_assets(id, asset_name, asset_code, asset_type)')
+      .select('*')
       .eq('organization_id', context.organizationId)
       .order('created_at', { ascending: false });
 
-    if (status) {
-      query = query.eq('status', status);
-    }
-
-    if (priority) {
-      query = query.eq('priority', priority);
-    }
-
-    if (Number.isFinite(limit) && limit > 0) {
-      query = query.limit(limit);
-    }
+    if (status) query = query.eq('status', status);
+    if (priority) query = query.eq('priority', priority);
+    if (Number.isFinite(limit) && limit > 0) query = query.limit(limit);
 
     const { data, error } = await query;
-
     if (error) throw error;
 
-    return NextResponse.json({ workOrders: (data || []).map(mapWorkOrder) });
+    const rows = (data || []) as WorkOrderRow[];
+    const assetMap = await loadAssetMap(context, rows);
+
+    return NextResponse.json({
+      workOrders: rows.map((row) => mapWorkOrder(row, row.canonical_asset_id ? assetMap.get(row.canonical_asset_id) : null)),
+      canonical: true,
+    });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'No se pudieron obtener las ordenes de trabajo';
+    const message = error instanceof Error ? error.message : 'No se pudieron obtener las órdenes de trabajo';
     return NextResponse.json({ workOrders: [], error: message }, { status: 500 });
   }
 }
@@ -123,19 +125,22 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = (await request.json()) as WorkOrderPayload;
-    let resolvedCostCenterId = body.costCenterId || body.cost_center_id || null;
-    const costCenterCode = String(body.costCenterCode || body.cost_center_code || '').trim();
-
-    if (!resolvedCostCenterId && costCenterCode) {
-      const { data: costCenter } = await context.supabase
-        .from('cost_centers')
-        .select('id')
-        .eq('organization_id', context.organizationId)
-        .eq('code', costCenterCode)
-        .maybeSingle();
-
-      resolvedCostCenterId = costCenter?.id || null;
+    const canonicalAssetId = body.canonicalAssetId || body.canonical_asset_id;
+    if (!canonicalAssetId) {
+      return NextResponse.json({ error: 'Selecciona un activo canónico' }, { status: 400 });
     }
+
+    const { data: asset, error: assetError } = await context.supabase
+      .schema('canonical')
+      .from('assets')
+      .select('id, asset_code, name, asset_type')
+      .eq('organization_id', context.organizationId)
+      .eq('id', canonicalAssetId)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (assetError) throw assetError;
+    if (!asset) return NextResponse.json({ error: 'Activo canónico no encontrado o inactivo' }, { status: 404 });
 
     const { count } = await context.supabase
       .from('maintenance_work_orders')
@@ -143,31 +148,35 @@ export async function POST(request: NextRequest) {
       .eq('organization_id', context.organizationId);
 
     const workOrderNumber = `WO-${new Date().getFullYear()}-${String((count || 0) + 1).padStart(4, '0')}`;
+    const plannedHours = Number(body.plannedDurationHours ?? body.planned_duration_hours ?? 0);
+    const meterReading = body.meterReading ?? body.meter_reading ?? null;
 
     const { data, error } = await context.supabase
       .from('maintenance_work_orders')
       .insert({
         organization_id: context.organizationId,
         work_order_number: workOrderNumber,
-        asset_id: body.assetId || body.asset_id || null,
-        title: body.title || null,
-        description: body.description || null,
+        canonical_asset_id: canonicalAssetId,
+        asset_id: null,
+        title: body.title?.trim() || null,
+        description: body.description?.trim() || null,
         work_type: body.workType || body.work_type || 'preventive',
         status: 'open',
         priority: body.priority || 'medium',
         scheduled_date: body.scheduledDate || body.scheduled_date || null,
-        planned_duration_hours: Number(body.plannedDurationHours || body.planned_duration_hours || 0),
+        planned_duration_hours: Number.isFinite(plannedHours) ? plannedHours : 0,
         assigned_to_name: body.assignedToName || body.assigned_to_name || null,
-        cost_center_id: resolvedCostCenterId,
+        meter_reading: meterReading === null || meterReading === '' ? null : Number(meterReading),
+        meter_unit: body.meterUnit || body.meter_unit || null,
+        cost_center_id: body.costCenterId || body.cost_center_id || null,
         created_by: context.userId,
         updated_at: new Date().toISOString(),
       })
-      .select('*, asset:maintenance_assets(id, asset_name, asset_code, asset_type)')
+      .select('*')
       .single();
 
     if (error) throw error;
-
-    return NextResponse.json({ data: mapWorkOrder(data) }, { status: 201 });
+    return NextResponse.json({ data: mapWorkOrder(data as WorkOrderRow, asset as CanonicalAssetRow) }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudo crear la orden de trabajo';
     return NextResponse.json({ error: message }, { status: 500 });
