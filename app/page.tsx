@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import Script from 'next/script';
 import { ArrowRight, BarChart3, CheckCircle2, FileText, Package, Shield, Wrench, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,52 +20,10 @@ const benefits = [
   { title: 'Decisión informada', text: 'Reportes en tiempo real para tomar decisiones más rápidas.' },
 ];
 
-const organizationSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: 'Motil',
-  url: 'https://motil.app',
-  logo: 'https://motil.app/logo.png',
-  description: 'Plataforma operacional minera para producción, mantención, HSE, bodega, documentos y trazabilidad.',
-  contactPoint: {
-    '@type': 'ContactPoint',
-    contactType: 'Customer Support',
-    email: 'support@motil.app',
-    telephone: '+56-2-xxxx-xxxx',
-  },
-  areaServed: 'CL',
-};
-
-const productSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'SoftwareApplication',
-  name: 'Motil - Plataforma Operacional Minera',
-  description: 'Sistema integral de gestión operacional para operaciones mineras en Chile.',
-  url: 'https://motil.app',
-  applicationCategory: 'BusinessApplication',
-};
-
-const faqSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: [
-    {
-      '@type': 'Question',
-      name: '¿Qué es Motil?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Motil es una plataforma integral de gestión operacional minera con módulos integrados.',
-      },
-    },
-  ],
-};
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-background">
-      <Script id="organization-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} strategy="afterInteractive" />
-      <Script id="product-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }} strategy="afterInteractive" />
-      <Script id="faq-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} strategy="afterInteractive" />
 
       <nav className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
