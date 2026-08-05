@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Bell, ChevronRight, LogOut, Settings, User } from 'lucide-react';
+import { Bell, ChevronRight, Ellipsis, LogOut, Settings, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -62,7 +62,10 @@ const routeLabels: Record<string, string> = {
   guias: 'Ayuda',
 };
 
+const technicalSegmentPattern = /^(?:[0-9a-f]{8}-[0-9a-f-]{27,}|\d{5,}|[0-9a-f]{20,})$/i;
+
 function formatSegment(segment: string) {
+  if (technicalSegmentPattern.test(segment)) return 'Detalle';
   return routeLabels[segment] || segment.replaceAll('-', ' ').replace(/^./, (letter) => letter.toUpperCase());
 }
 
@@ -74,12 +77,20 @@ export function Header() {
   const segments = pathname.split('/').filter(Boolean);
   const dashboardIndex = segments.indexOf('dashboard');
   const visibleSegments = dashboardIndex >= 0 ? segments.slice(dashboardIndex) : segments;
-  const breadcrumbs = visibleSegments.map((segment, index) => ({
+  const allBreadcrumbs = visibleSegments.map((segment, index) => ({
     label: formatSegment(segment),
     href: `/${segments.slice(0, dashboardIndex + index + 1).join('/')}`,
     current: index === visibleSegments.length - 1,
   }));
-  const currentTitle = breadcrumbs.at(-1)?.label || 'Inicio';
+  const breadcrumbs =
+    allBreadcrumbs.length > 4
+      ? [
+          allBreadcrumbs[0],
+          { label: '…', href: '', current: false, collapsed: true },
+          ...allBreadcrumbs.slice(-2),
+        ]
+      : allBreadcrumbs;
+  const currentTitle = allBreadcrumbs.at(-1)?.label || 'Inicio';
 
   return (
     <header className="sticky top-0 z-30 w-full border-b border-border/70 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85">
@@ -89,7 +100,11 @@ export function Header() {
             {breadcrumbs.map((item, index) => (
               <div key={`${item.href}-${index}`} className="flex min-w-0 items-center gap-1">
                 {index > 0 && <ChevronRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />}
-                {item.current ? (
+                {'collapsed' in item && item.collapsed ? (
+                  <span className="flex h-5 w-5 items-center justify-center" aria-label="Niveles intermedios omitidos">
+                    <Ellipsis className="h-3.5 w-3.5" aria-hidden="true" />
+                  </span>
+                ) : item.current ? (
                   <span className="truncate font-medium text-foreground" aria-current="page">
                     {item.label}
                   </span>
@@ -101,7 +116,7 @@ export function Header() {
               </div>
             ))}
           </nav>
-          <h1 className="truncate text-base font-semibold tracking-tight sm:text-lg">{currentTitle}</h1>
+          <p className="truncate text-base font-semibold tracking-tight sm:text-lg">{currentTitle}</p>
         </div>
 
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
