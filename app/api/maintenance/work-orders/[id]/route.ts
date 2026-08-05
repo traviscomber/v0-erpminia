@@ -3,164 +3,138 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 
-type MaintenanceAssetRow = {
-  id: string | null;
-  asset_name: string | null;
-  asset_code: string | null;
-  asset_type: string | null;
-};
-
-type MaintenanceWorkOrderRow = {
-  id: string;
-  work_order_number: string;
-  asset_id: string | null;
-  title: string | null;
-  description: string | null;
-  work_type: string | null;
-  status: string | null;
-  priority: string | null;
-  assigned_to_name: string | null;
-  planned_duration_hours: number | string | null;
-  actual_duration_hours: number | string | null;
-  scheduled_date: string | null;
-  completion_date: string | null;
-  root_cause: string | null;
-  preventive_actions: string | null;
-  created_at: string;
-  updated_at: string | null;
-  asset?: MaintenanceAssetRow | null;
-};
-
 type WorkOrderPatchPayload = {
   status?: string;
   assigned_to_name?: string | null;
   actual_duration_hours?: number | string | null;
   root_cause?: string | null;
-  actual_cost?: number | string | null;
+  preventive_actions?: string | null;
+  meter_reading?: number | string | null;
+  meter_unit?: string | null;
 };
 
-function mapWorkOrder(row: MaintenanceWorkOrderRow) {
-  const asset = row.asset ?? null;
+function progressFromStatus(status: string | null) {
+  if (status === 'completed') return 100;
+  if (status === 'in_progress') return 50;
+  return 0;
+}
+
+async function loadCanonicalAsset(
+  context: Awaited<ReturnType<typeof getOrganizationContext>> & { ok: true },
+  assetId: string | null,
+) {
+  if (!assetId) return null;
+  const { data, error } = await context.supabase
+    .schema('canonical')
+    .from('assets')
+    .select('id, asset_code, name, asset_type, category, manufacturer, model, serial_number, license_plate')
+    .eq('organization_id', context.organizationId)
+    .eq('id', assetId)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+function mapWorkOrder(row: Record<string, unknown>, asset: Record<string, unknown> | null) {
   return {
-    id: row.id,
-    work_order_number: row.work_order_number,
-    asset_id: row.asset_id || asset?.id || null,
-    asset_name: asset?.asset_name || null,
+    ...row,
+    asset_id: row.canonical_asset_id || null,
+    asset_name: asset?.name || null,
     asset_code: asset?.asset_code || null,
     asset_type: asset?.asset_type || null,
-    title: row.title,
-    description: row.description,
-    work_type: row.work_type,
-    status: row.status,
-    priority: row.priority,
-    assigned_to_name: row.assigned_to_name,
-    progress_percentage:
-      row.status === 'completed' ? 100 : row.status === 'in_progress' ? 50 : 0,
-    planned_duration_hours: row.planned_duration_hours,
-    actual_duration_hours: row.actual_duration_hours,
-    scheduled_date: row.scheduled_date,
-    completion_date: row.completion_date,
-    root_cause: row.root_cause,
-    preventive_actions: row.preventive_actions,
-    created_at: row.created_at,
-    updated_at: row.updated_at,
+    asset_category: asset?.category || null,
+    asset_manufacturer: asset?.manufacturer || null,
+    asset_model: asset?.model || null,
+    asset_serial_number: asset?.serial_number || null,
+    asset_license_plate: asset?.license_plate || null,
+    progress_percentage: progressFromStatus(String(row.status || '')),
   };
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
-
   const { id } = await params;
 
   try {
     const { data, error } = await context.supabase
       .from('maintenance_work_orders')
-      .select('*, asset:maintenance_assets(id, asset_name, asset_code, asset_type)')
+      .select('*')
       .eq('id', id)
       .eq('organization_id', context.organizationId)
       .maybeSingle();
 
     if (error) throw error;
+    if (!data) return NextResponse.json({ error: 'No se encontró la orden de trabajo' }, { status: 404 });
 
-    if (!data) {
-      return NextResponse.json({ error: 'No se encontró la orden de trabajo' }, { status: 404 });
-    }
-
-    return NextResponse.json({ data: mapWorkOrder(data) });
+    const asset = await loadCanonicalAsset(context, data.canonical_asset_id || null);
+    return NextResponse.json({ data: mapWorkOrder(data, asset), canonical: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudo cargar la orden de trabajo';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
-
   const { id } = await params;
 
   try {
     const body = (await request.json()) as WorkOrderPatchPayload;
-    const { status, assigned_to_name, actual_duration_hours, root_cause, actual_cost } = body;
+    const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() };
 
-    const updateData: Partial<{
-      status: string;
-      assigned_to_name: string | null;
-      actual_duration_hours: number | string | null;
-      root_cause: string | null;
-      actual_cost: number | string | null;
-      completion_date: string | null;
-      updated_at: string;
-    }> = {};
-    if (status) updateData.status = status;
-    if (assigned_to_name) updateData.assigned_to_name = assigned_to_name;
-    if (actual_duration_hours !== undefined) updateData.actual_duration_hours = actual_duration_hours;
-    if (root_cause) updateData.root_cause = root_cause;
-    if (actual_cost !== undefined) updateData.actual_cost = actual_cost;
-    if (status === 'completed') updateData.completion_date = new Date().toISOString();
-    updateData.updated_at = new Date().toISOString();
+    if (body.status) updateData.status = body.status;
+    if (body.assigned_to_name !== undefined) updateData.assigned_to_name = body.assigned_to_name;
+    if (body.actual_duration_hours !== undefined) updateData.actual_duration_hours = body.actual_duration_hours;
+    if (body.root_cause !== undefined) updateData.root_cause = body.root_cause;
+    if (body.preventive_actions !== undefined) updateData.preventive_actions = body.preventive_actions;
+    if (body.meter_reading !== undefined) updateData.meter_reading = body.meter_reading;
+    if (body.meter_unit !== undefined) updateData.meter_unit = body.meter_unit;
+    if (body.status === 'completed') {
+      updateData.completion_date = new Date().toISOString();
+      updateData.closed_at = new Date().toISOString();
+      updateData.closed_by = context.userId;
+    }
 
     const { data, error } = await context.supabase
       .from('maintenance_work_orders')
       .update(updateData)
       .eq('id', id)
       .eq('organization_id', context.organizationId)
-      .select('*, asset:maintenance_assets(id, asset_name, asset_code, asset_type)')
+      .select('*')
       .single();
 
     if (error) throw error;
-    if (!data) return NextResponse.json({ error: 'No se encontró la orden de trabajo' }, { status: 404 });
-
-    return NextResponse.json({ data: mapWorkOrder(data) });
+    const asset = await loadCanonicalAsset(context, data.canonical_asset_id || null);
+    return NextResponse.json({ data: mapWorkOrder(data, asset) });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudo actualizar la orden de trabajo';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
-
   const { id } = await params;
 
   try {
+    const { count, error: countError } = await context.supabase
+      .from('work_order_events')
+      .select('*', { head: true, count: 'exact' })
+      .eq('organization_id', context.organizationId)
+      .eq('work_order_id', id);
+    if (countError) throw countError;
+    if ((count || 0) > 1) {
+      return NextResponse.json({ error: 'La OT ya tiene trazabilidad y no puede eliminarse. Cancélala en su lugar.' }, { status: 409 });
+    }
+
     const { error } = await context.supabase
       .from('maintenance_work_orders')
       .delete()
       .eq('id', id)
       .eq('organization_id', context.organizationId);
-
     if (error) throw error;
     return NextResponse.json({ success: true });
   } catch (error) {
