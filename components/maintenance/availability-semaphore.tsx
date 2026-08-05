@@ -248,17 +248,17 @@ export function AvailabilitySemaphore() {
                         key={asset.id}
                         className={`p-2 rounded border-l-4 ${getStatusColor(asset.status)}`}
                       >
-                        <div className="font-semibold text-sm">{asset.assetCode}</div>
-                        <div className="text-xs text-gray-600 truncate">{asset.assetName}</div>
+                        <div className="font-semibold text-sm text-slate-200">{asset.assetCode}</div>
+                        <div className="text-xs text-slate-400 truncate">{asset.assetName}</div>
                         {asset.currentWorkOrder && (
-                          <div className="text-xs italic text-gray-700 mt-1">
+                          <div className="text-xs italic text-slate-400 mt-1">
                             {asset.currentWorkOrder.workOrderNumber}
                           </div>
                         )}
                       </div>
                     ))}
                     {zone.assets.length > 2 && (
-                      <div className="text-xs text-gray-500 text-center p-1">
+                      <div className="text-xs text-slate-500 text-center p-1">
                         +{zone.assets.length - 2} más
                       </div>
                     )}
@@ -271,7 +271,7 @@ export function AvailabilitySemaphore() {
       )}
 
       {/* Last Updated */}
-      <div className="text-xs text-gray-500 text-center">
+      <div className="text-xs text-slate-500 text-center">
         Actualizado: {new Date(summary.timestamp).toLocaleTimeString('es-CL')}
       </div>
     </div>
