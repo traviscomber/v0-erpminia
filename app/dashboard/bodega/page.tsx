@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import useSWR from 'swr';
 import Link from 'next/link';
-import { AlertTriangle, Boxes, FileText, PackageCheck, Search, Upload } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Boxes, FileText, PackageCheck, Search, Upload } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -20,6 +20,19 @@ const fetcher = async (url: string) => {
 const number = (value: unknown) => new Intl.NumberFormat('es-CL').format(Number(value || 0));
 const money = (value: unknown) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(Number(value || 0));
 
+type InventoryPosition = {
+  stock_id: string;
+  product_id: string;
+  product_code: string;
+  product_name: string;
+  family?: string | null;
+  unit?: string | null;
+  quantity_available: number;
+  quantity_reserved: number;
+  stock_value: number;
+  stock_status: string;
+};
+
 export default function BodegaPage() {
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState('all');
@@ -28,7 +41,7 @@ export default function BodegaPage() {
   if (status !== 'all') params.set('status', status);
   const { data, error, isLoading } = useSWR(`/api/inventory/intelligence?${params.toString()}`, fetcher);
   const overview = data?.overview || {};
-  const positions = data?.positions || [];
+  const positions: InventoryPosition[] = data?.positions || [];
 
   return (
     <div className="space-y-6">
@@ -60,12 +73,26 @@ export default function BodegaPage() {
         </div>
 
         <div className="overflow-hidden rounded-lg border">
-          <div className="hidden grid-cols-[140px_1fr_130px_130px_140px_120px] gap-4 border-b bg-muted/40 px-4 py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground lg:grid">
-            <span>Código</span><span>Producto</span><span>Disponible</span><span>Reservado</span><span>Valor</span><span>Estado</span>
+          <div className="hidden grid-cols-[140px_1fr_120px_120px_130px_120px_36px] gap-4 border-b bg-muted/40 px-4 py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground lg:grid">
+            <span>Código</span><span>Producto</span><span>Disponible</span><span>Reservado</span><span>Valor</span><span>Estado</span><span />
           </div>
           {isLoading ? <p className="p-6 text-sm text-muted-foreground">Cargando inventario...</p> : null}
           {!isLoading && !positions.length ? <p className="p-8 text-center text-sm text-muted-foreground">No hay posiciones para los filtros seleccionados.</p> : null}
-          {positions.map((row: any) => <div key={row.stock_id} className="grid gap-2 border-b px-4 py-4 last:border-0 lg:grid-cols-[140px_1fr_130px_130px_140px_120px] lg:items-center lg:gap-4"><p className="font-mono text-sm">{row.product_code}</p><div><p className="font-medium">{row.product_name}</p><p className="text-xs text-muted-foreground">{row.family || 'Sin familia'} · {row.unit || 'unidad'}</p></div><p className="text-sm"><span className="lg:hidden text-muted-foreground">Disponible: </span>{number(row.quantity_available)}</p><p className="text-sm"><span className="lg:hidden text-muted-foreground">Reservado: </span>{number(row.quantity_reserved)}</p><p className="text-sm font-medium">{money(row.stock_value)}</p><Badge variant={row.stock_status === 'healthy' ? 'secondary' : 'outline'}>{row.stock_status}</Badge></div>)}
+          {positions.map((row) => (
+            <Link
+              key={row.stock_id}
+              href={`/dashboard/bodega/productos/${row.product_id}`}
+              className="group grid gap-2 border-b px-4 py-4 transition-colors last:border-0 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring lg:grid-cols-[140px_1fr_120px_120px_130px_120px_36px] lg:items-center lg:gap-4"
+            >
+              <p className="font-mono text-sm">{row.product_code}</p>
+              <div><p className="font-medium group-hover:text-primary">{row.product_name}</p><p className="text-xs text-muted-foreground">{row.family || 'Sin familia'} · {row.unit || 'unidad'}</p></div>
+              <p className="text-sm"><span className="lg:hidden text-muted-foreground">Disponible: </span>{number(row.quantity_available)}</p>
+              <p className="text-sm"><span className="lg:hidden text-muted-foreground">Reservado: </span>{number(row.quantity_reserved)}</p>
+              <p className="text-sm font-medium">{money(row.stock_value)}</p>
+              <Badge variant={row.stock_status === 'healthy' ? 'secondary' : 'outline'}>{row.stock_status}</Badge>
+              <ArrowRight className="hidden h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1 lg:block" />
+            </Link>
+          ))}
         </div>
       </section>
     </div>
