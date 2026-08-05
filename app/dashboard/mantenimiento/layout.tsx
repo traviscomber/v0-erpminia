@@ -10,7 +10,7 @@ const items = [
   { href: '/dashboard/mantenimiento', label: 'Resumen', icon: Wrench },
   { href: '/dashboard/mantenimiento/ordenes-trabajo', label: 'Órdenes', icon: ClipboardList },
   { href: '/dashboard/mantenimiento/planificacion', label: 'Planificación', icon: Calendar },
-  { href: '/dashboard/mantenimiento/equipos', label: 'Equipos', icon: Settings },
+  { href: '/dashboard/mantenimiento/equipos', label: 'Activos', icon: Settings },
   { href: '/dashboard/mantenimiento/indicadores', label: 'Indicadores', icon: BarChart3 },
   { href: '/dashboard/mantenimiento/documentos', label: 'Documentos', icon: FileText },
 ];
@@ -23,6 +23,7 @@ const assetViewPrefixes = [
   '/dashboard/mantenimiento/fichas-tecnicas',
   '/dashboard/mantenimiento/documentos/expedientes',
   '/dashboard/mantenimiento/centro-costo',
+  '/dashboard/mantenimiento/vehiculos',
 ];
 
 export default function MaintenanceLayout({ children }: { children: ReactNode }) {
