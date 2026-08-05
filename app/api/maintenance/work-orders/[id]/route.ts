@@ -19,54 +19,25 @@ function progressFromStatus(status: string | null) {
   return 0;
 }
 
-async function loadCanonicalAsset(
-  context: Awaited<ReturnType<typeof getOrganizationContext>> & { ok: true },
-  assetId: string | null,
-) {
+async function loadCanonicalAsset(context: Awaited<ReturnType<typeof getOrganizationContext>> & { ok: true }, assetId: string | null) {
   if (!assetId) return null;
-  const { data, error } = await context.supabase
-    .schema('canonical')
-    .from('assets')
-    .select('id, asset_code, name, asset_type, category, manufacturer, model, serial_number, license_plate')
-    .eq('organization_id', context.organizationId)
-    .eq('id', assetId)
-    .maybeSingle();
+  const { data, error } = await context.supabase.schema('canonical').from('assets').select('id, asset_code, name, asset_type, category, manufacturer, model, serial_number, license_plate').eq('organization_id', context.organizationId).eq('id', assetId).maybeSingle();
   if (error) throw error;
   return data;
 }
 
 function mapWorkOrder(row: Record<string, unknown>, asset: Record<string, unknown> | null) {
-  return {
-    ...row,
-    asset_id: row.canonical_asset_id || null,
-    asset_name: asset?.name || null,
-    asset_code: asset?.asset_code || null,
-    asset_type: asset?.asset_type || null,
-    asset_category: asset?.category || null,
-    asset_manufacturer: asset?.manufacturer || null,
-    asset_model: asset?.model || null,
-    asset_serial_number: asset?.serial_number || null,
-    asset_license_plate: asset?.license_plate || null,
-    progress_percentage: progressFromStatus(String(row.status || '')),
-  };
+  return { ...row, asset_id: row.canonical_asset_id || null, asset_name: asset?.name || null, asset_code: asset?.asset_code || null, asset_type: asset?.asset_type || null, asset_category: asset?.category || null, asset_manufacturer: asset?.manufacturer || null, asset_model: asset?.model || null, asset_serial_number: asset?.serial_number || null, asset_license_plate: asset?.license_plate || null, progress_percentage: progressFromStatus(String(row.status || '')) };
 }
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
   const { id } = await params;
-
   try {
-    const { data, error } = await context.supabase
-      .from('maintenance_work_orders')
-      .select('*')
-      .eq('id', id)
-      .eq('organization_id', context.organizationId)
-      .maybeSingle();
-
+    const { data, error } = await context.supabase.from('maintenance_work_orders').select('*').eq('id', id).eq('organization_id', context.organizationId).maybeSingle();
     if (error) throw error;
     if (!data) return NextResponse.json({ error: 'No se encontró la orden de trabajo' }, { status: 404 });
-
     const asset = await loadCanonicalAsset(context, data.canonical_asset_id || null);
     return NextResponse.json({ data: mapWorkOrder(data, asset), canonical: true });
   } catch (error) {
@@ -79,11 +50,19 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
   const { id } = await params;
-
   try {
     const body = (await request.json()) as WorkOrderPatchPayload;
-    const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() };
 
+    if (body.status === 'completed') {
+      const { error: closeError } = await context.supabase.rpc('close_work_order_safely', { p_work_order_id: id });
+      if (closeError) throw closeError;
+      const { data: closed, error: loadError } = await context.supabase.from('maintenance_work_orders').select('*').eq('id', id).eq('organization_id', context.organizationId).single();
+      if (loadError) throw loadError;
+      const asset = await loadCanonicalAsset(context, closed.canonical_asset_id || null);
+      return NextResponse.json({ data: mapWorkOrder(closed, asset) });
+    }
+
+    const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() };
     if (body.status) updateData.status = body.status;
     if (body.assigned_to_name !== undefined) updateData.assigned_to_name = body.assigned_to_name;
     if (body.actual_duration_hours !== undefined) updateData.actual_duration_hours = body.actual_duration_hours;
@@ -91,20 +70,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (body.preventive_actions !== undefined) updateData.preventive_actions = body.preventive_actions;
     if (body.meter_reading !== undefined) updateData.meter_reading = body.meter_reading;
     if (body.meter_unit !== undefined) updateData.meter_unit = body.meter_unit;
-    if (body.status === 'completed') {
-      updateData.completion_date = new Date().toISOString();
-      updateData.closed_at = new Date().toISOString();
-      updateData.closed_by = context.userId;
-    }
 
-    const { data, error } = await context.supabase
-      .from('maintenance_work_orders')
-      .update(updateData)
-      .eq('id', id)
-      .eq('organization_id', context.organizationId)
-      .select('*')
-      .single();
-
+    const { data, error } = await context.supabase.from('maintenance_work_orders').update(updateData).eq('id', id).eq('organization_id', context.organizationId).select('*').single();
     if (error) throw error;
     const asset = await loadCanonicalAsset(context, data.canonical_asset_id || null);
     return NextResponse.json({ data: mapWorkOrder(data, asset) });
@@ -118,23 +85,11 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
   const { id } = await params;
-
   try {
-    const { count, error: countError } = await context.supabase
-      .from('work_order_events')
-      .select('*', { head: true, count: 'exact' })
-      .eq('organization_id', context.organizationId)
-      .eq('work_order_id', id);
+    const { count, error: countError } = await context.supabase.from('work_order_events').select('*', { head: true, count: 'exact' }).eq('organization_id', context.organizationId).eq('work_order_id', id);
     if (countError) throw countError;
-    if ((count || 0) > 1) {
-      return NextResponse.json({ error: 'La OT ya tiene trazabilidad y no puede eliminarse. Cancélala en su lugar.' }, { status: 409 });
-    }
-
-    const { error } = await context.supabase
-      .from('maintenance_work_orders')
-      .delete()
-      .eq('id', id)
-      .eq('organization_id', context.organizationId);
+    if ((count || 0) > 1) return NextResponse.json({ error: 'La OT ya tiene trazabilidad y no puede eliminarse. Cancélala en su lugar.' }, { status: 409 });
+    const { error } = await context.supabase.from('maintenance_work_orders').delete().eq('id', id).eq('organization_id', context.organizationId);
     if (error) throw error;
     return NextResponse.json({ success: true });
   } catch (error) {
