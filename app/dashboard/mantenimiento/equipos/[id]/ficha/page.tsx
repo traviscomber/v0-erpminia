@@ -1,10 +1,23 @@
 import { AssetDetailView } from '@/components/maintenance/asset-detail-view';
+import { CertifiedFinancialSummary } from '@/components/finance/certified-financial-summary';
 
 export const metadata = {
   title: 'Ficha del activo | Mantenimiento',
   description: 'Resumen operacional, historial y acciones asociadas al equipo.',
 };
 
-export default function EquipmentFichaPage() {
-  return <AssetDetailView scope="equipos" />;
+type EquipmentFichaPageProps = {
+  params: Promise<{ id: string }>;
+};
+
+export default async function EquipmentFichaPage({ params }: EquipmentFichaPageProps) {
+  const { id } = await params;
+  const assetId = decodeURIComponent(id);
+
+  return (
+    <div className="space-y-6">
+      <AssetDetailView scope="equipos" />
+      <CertifiedFinancialSummary entity="asset" id={assetId} />
+    </div>
+  );
 }
