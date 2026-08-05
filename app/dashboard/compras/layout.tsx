@@ -3,11 +3,12 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FileText, ShoppingCart, Upload } from 'lucide-react';
+import { BrainCircuit, FileText, ShoppingCart, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const items = [
   { href: '/dashboard/compras', label: 'Órdenes de compra', icon: ShoppingCart },
+  { href: '/dashboard/compras/inteligencia', label: 'Inteligencia', icon: BrainCircuit },
   { href: '/dashboard/compras/importar-existencias', label: 'Importar existencias', icon: Upload },
   { href: '/dashboard/compras/documentos', label: 'Documentos', icon: FileText },
 ];
@@ -19,8 +20,8 @@ export default function PurchasesLayout({ children }: { children: ReactNode }) {
     <div className="space-y-5">
       <section className="border-b border-border pb-4">
         <div className="mb-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Abastecimiento · Compras</p>
-          <p className="mt-1 text-sm text-muted-foreground">Órdenes, importaciones y respaldo documental de abastecimiento.</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Abastecimiento</p>
+          <p className="mt-1 text-sm text-muted-foreground">Órdenes, productos comprados, proveedores, inteligencia y respaldo documental.</p>
         </div>
         <nav className="flex gap-2 overflow-x-auto pb-1" aria-label="Navegación de compras">
           {items.map((item) => {
