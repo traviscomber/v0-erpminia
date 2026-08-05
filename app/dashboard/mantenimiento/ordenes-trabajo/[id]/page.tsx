@@ -13,6 +13,7 @@ import { WorkOrderExecutionPanel } from '@/components/maintenance/work-order-exe
 import { WorkOrderMaterialCoverage } from '@/components/maintenance/work-order-material-coverage';
 import { WorkOrderPartsPanel } from '@/components/maintenance/work-order-parts-panel';
 import { WorkOrderTimer } from '@/components/maintenance/work-order-timer';
+import { EntityTimeline } from '@/components/shared/entity-timeline';
 
 const fetcher = async (url: string) => {
   const response = await fetch(url, { credentials: 'include' });
@@ -107,6 +108,7 @@ export default function WorkOrderDetailPage() {
       <WorkOrderMaterialCoverage workOrderId={id} />
       <WorkOrderPartsPanel workOrderId={id} />
       <WorkOrderExecutionPanel workOrderId={id} />
+      <EntityTimeline entity="work_order" id={id} limit={50} />
     </div>
   );
 }
