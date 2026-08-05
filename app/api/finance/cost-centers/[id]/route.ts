@@ -27,17 +27,17 @@ export async function GET(request: NextRequest, routeContext: RouteContext) {
     const code = centerResult.data.cost_center_code;
     const publicCostCenterId = centerResult.data.public_cost_center_id;
 
-    const [costsResult, ordersResult, workOrdersResult] = await Promise.all([
-      canonical
-        .from('asset_costs')
+    const [costsResult, ordersResult, workOrdersResult, assetsResult] = await Promise.all([
+      intelligence
+        .from('cost_center_actual_costs')
         .select('id, transaction_date, asset_code, asset_name, category, document_number, description, quantity, unit_cost, total_cost, currency, validation_status')
         .eq('organization_id', context.organizationId)
         .eq('cost_center_code', code)
         .order('transaction_date', { ascending: false })
         .limit(200),
-      canonical
-        .from('purchase_orders')
-        .select('id, order_number, order_date, supplier_name, currency, net_amount, total_amount, status, operational_status, validation_status')
+      intelligence
+        .from('cost_center_purchase_orders')
+        .select('purchase_order_id, order_number, order_date, supplier_name, currency, committed_amount, line_count, status, operational_status, validation_status')
         .eq('organization_id', context.organizationId)
         .eq('cost_center_code', code)
         .order('order_date', { ascending: false })
@@ -51,24 +51,36 @@ export async function GET(request: NextRequest, routeContext: RouteContext) {
             .order('updated_at', { ascending: false })
             .limit(100)
         : Promise.resolve({ data: [], error: null }),
+      canonical
+        .from('assets')
+        .select('id, asset_code, name, category, status')
+        .eq('organization_id', context.organizationId)
+        .eq('cost_center_code', code)
+        .eq('is_active', true)
+        .order('asset_code'),
     ]);
 
-    const error = costsResult.error || ordersResult.error || workOrdersResult.error;
+    const error = costsResult.error || ordersResult.error || workOrdersResult.error || assetsResult.error;
     if (error) throw error;
-
-    const assetIds = [...new Set((workOrdersResult.data || []).map((row) => row.canonical_asset_id).filter(Boolean))];
-    const assetsResult = assetIds.length
-      ? await canonical.from('assets').select('id, asset_code, name, category, status').in('id', assetIds)
-      : { data: [], error: null };
-    if (assetsResult.error) throw assetsResult.error;
 
     return NextResponse.json({
       costCenter: centerResult.data,
       actualCosts: costsResult.data || [],
-      purchaseOrders: ordersResult.data || [],
+      purchaseOrders: (ordersResult.data || []).map((row) => ({
+        id: row.purchase_order_id,
+        order_number: row.order_number,
+        order_date: row.order_date,
+        supplier_name: row.supplier_name,
+        currency: row.currency,
+        total_amount: row.committed_amount,
+        line_count: row.line_count,
+        status: row.status,
+        operational_status: row.operational_status,
+        validation_status: row.validation_status,
+      })),
       workOrders: workOrdersResult.data || [],
       assets: assetsResult.data || [],
-      source: 'canonical + intelligence',
+      source: 'intelligence + canonical',
       canonical: true,
     });
   } catch (error) {
