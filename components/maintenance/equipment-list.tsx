@@ -1,19 +1,41 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
-import Link from 'next/link';
+import {
+  AlertCircle,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  MoreHorizontal,
+  Route,
+  Search,
+  SlidersHorizontal,
+  Wrench,
+} from 'lucide-react';
 import type { Equipment } from '@/lib/types/equipment';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertCircle, CheckCircle, FileText, Route, Search, Wrench } from 'lucide-react';
 
-const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((r) => r.json());
+const fetcher = async (url: string) => {
+  const response = await fetch(url, { credentials: 'include' });
+  if (!response.ok) throw new Error('No fue posible cargar el registro de equipos');
+  return response.json();
+};
 
-const PAGE_SIZE = 24;
+const PAGE_SIZE = 20;
 
 function normalizeText(value: string | null | undefined) {
   return String(value || '')
@@ -25,7 +47,7 @@ function normalizeText(value: string | null | undefined) {
 
 function normalizeStatus(value: string | null | undefined) {
   const normalized = normalizeText(value);
-  if (['operativo', 'activo', 'active', '1', 'true', 'si'].includes(normalized)) return 'operativo';
+  if (['operativo', 'activo', 'active', 'operational', '1', 'true', 'si'].includes(normalized)) return 'operativo';
   if (['mantenimiento', 'maintenance'].includes(normalized)) return 'mantenimiento';
   if (['inactivo', 'inactive', 'fuera de servicio', 'decommissioned'].includes(normalized)) return 'inactivo';
   return normalized || 'desconocido';
@@ -33,41 +55,50 @@ function normalizeStatus(value: string | null | undefined) {
 
 function normalizeCriticality(value: string | null | undefined) {
   const normalized = normalizeText(value);
-  if (['critico', 'critical'].includes(normalized)) return 'critico';
-  if (['alto', 'high'].includes(normalized)) return 'alto';
-  if (['medio', 'medium'].includes(normalized)) return 'medio';
-  if (['bajo', 'low'].includes(normalized)) return 'bajo';
+  if (['critico', 'critica', 'critical'].includes(normalized)) return 'critico';
+  if (['alto', 'alta', 'high'].includes(normalized)) return 'alto';
+  if (['medio', 'media', 'medium'].includes(normalized)) return 'medio';
+  if (['bajo', 'baja', 'low'].includes(normalized)) return 'bajo';
   return normalized || 'medio';
 }
 
-function getCriticalityClass(criticality: string) {
-  const c = normalizeCriticality(criticality);
-  if (c === 'critico') return 'border-red-400 bg-red-50 text-red-800';
-  if (c === 'alto') return 'border-orange-400 bg-orange-50 text-orange-800';
-  if (c === 'medio') return 'border-yellow-400 bg-yellow-50 text-yellow-800';
-  return 'border-green-400 bg-green-50 text-green-800';
+function statusLabel(value: string | null | undefined) {
+  const status = normalizeStatus(value);
+  if (status === 'operativo') return 'Operativo';
+  if (status === 'mantenimiento') return 'En mantenimiento';
+  if (status === 'inactivo') return 'Inactivo';
+  return 'Sin estado';
 }
 
-function getStatusIcon(status: string) {
-  const s = normalizeStatus(status);
-  if (s === 'operativo') return <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />;
-  if (s === 'mantenimiento') return <Wrench className="h-3.5 w-3.5 text-blue-600" />;
-  return <AlertCircle className="h-3.5 w-3.5 text-gray-400" />;
+function statusClass(value: string | null | undefined) {
+  const status = normalizeStatus(value);
+  if (status === 'operativo') return 'border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300';
+  if (status === 'mantenimiento') return 'border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-300';
+  if (status === 'inactivo') return 'border-slate-500/25 bg-slate-500/10 text-slate-600 dark:text-slate-300';
+  return 'border-border bg-muted text-muted-foreground';
 }
 
-function getStatusLabel(status: string) {
-  const s = normalizeStatus(status);
-  if (s === 'operativo') return 'Operativo';
-  if (s === 'mantenimiento') return 'Mantenimiento';
-  if (s === 'inactivo') return 'Inactivo';
-  return status || 'Desconocido';
+function criticalityLabel(value: string | null | undefined) {
+  const criticality = normalizeCriticality(value);
+  if (criticality === 'critico') return 'Crítica';
+  if (criticality === 'alto') return 'Alta';
+  if (criticality === 'bajo') return 'Baja';
+  return 'Media';
 }
 
-function getEquipmentDetailId(equipment: Equipment) {
+function criticalityClass(value: string | null | undefined) {
+  const criticality = normalizeCriticality(value);
+  if (criticality === 'critico') return 'border-red-500/25 bg-red-500/10 text-red-700 dark:text-red-300';
+  if (criticality === 'alto') return 'border-orange-500/25 bg-orange-500/10 text-orange-700 dark:text-orange-300';
+  if (criticality === 'bajo') return 'border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300';
+  return 'border-yellow-500/25 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300';
+}
+
+function detailId(equipment: Equipment) {
   return equipment.asset_id || equipment.id;
 }
 
-function canOpenEquipmentDetails(equipment: Equipment) {
+function isCanonicalAsset(equipment: Equipment) {
   return Boolean(equipment.asset_id);
 }
 
@@ -87,13 +118,59 @@ const TYPE_ORDER = [
   'Otro Equipo',
 ];
 
-export function EquipmentList({
-  onSelectEquipment,
-}: {
-  onSelectEquipment?: (equipment: Equipment) => void;
-}) {
-  const { data, isLoading, error } = useSWR<{ equipment: Equipment[] }>('/api/maintenance/equipment', fetcher);
+function EquipmentActions({ equipment }: { equipment: Equipment }) {
+  if (!isCanonicalAsset(equipment)) {
+    return (
+      <Badge variant="outline" className="font-normal text-muted-foreground">
+        Referencia operativa
+      </Badge>
+    );
+  }
 
+  const id = detailId(equipment);
+
+  return (
+    <div className="flex items-center justify-end gap-2" onClick={(event) => event.stopPropagation()}>
+      <Button asChild size="sm" variant="outline" className="h-8">
+        <Link href={`/dashboard/mantenimiento/equipos/${id}/ficha`}>
+          <FileText className="mr-2 h-3.5 w-3.5" />
+          Abrir ficha
+        </Link>
+      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button size="icon" variant="ghost" className="h-8 w-8" aria-label={`Más acciones para ${equipment.name}`}>
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-52">
+          <DropdownMenuItem asChild>
+            <Link href={`/dashboard/mantenimiento/equipos/${id}/ficha-tecnica`}>
+              <FileText className="h-4 w-4" />
+              Ficha técnica
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href={`/dashboard/mantenimiento/equipos/${id}/arbol`}>
+              <Route className="h-4 w-4" />
+              Árbol del activo
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link href={`/dashboard/mantenimiento/ordenes-trabajo/create?assetId=${id}`}>
+              <Wrench className="h-4 w-4" />
+              Crear orden de trabajo
+            </Link>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+}
+
+export function EquipmentList({ onSelectEquipment }: { onSelectEquipment?: (equipment: Equipment) => void }) {
+  const { data, isLoading, error } = useSWR<{ equipment: Equipment[] }>('/api/maintenance/equipment', fetcher);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [criticityFilter, setCriticityFilter] = useState('all');
@@ -101,310 +178,221 @@ export function EquipmentList({
   const [page, setPage] = useState(1);
 
   const all = data?.equipment || [];
+  const canonicalCount = all.filter(isCanonicalAsset).length;
+  const referenceCount = all.length - canonicalCount;
 
   const types = useMemo(() => {
-    const found = [...new Set(all.map((e) => e.type))];
-    return TYPE_ORDER.filter((t) => found.includes(t)).concat(found.filter((t) => !TYPE_ORDER.includes(t)));
+    const found = [...new Set(all.map((equipment) => equipment.type).filter(Boolean))];
+    return TYPE_ORDER.filter((type) => found.includes(type)).concat(found.filter((type) => !TYPE_ORDER.includes(type)));
   }, [all]);
 
-  const kpis = useMemo(
+  const metrics = useMemo(
     () => ({
       total: all.length,
-      criticos: all.filter((e) => normalizeCriticality(e.criticality) === 'critico').length,
-      mantenimiento: all.filter((e) => normalizeStatus(e.status) === 'mantenimiento').length,
-      operativos: all.filter((e) => normalizeStatus(e.status) === 'operativo').length,
+      operativos: all.filter((equipment) => normalizeStatus(equipment.status) === 'operativo').length,
+      mantenimiento: all.filter((equipment) => normalizeStatus(equipment.status) === 'mantenimiento').length,
+      criticos: all.filter((equipment) => normalizeCriticality(equipment.criticality) === 'critico').length,
     }),
     [all],
   );
 
   const filtered = useMemo(() => {
-    let list = all;
-    const q = normalizeText(search);
-
-    if (q) {
-      list = list.filter(
-        (e) =>
-          normalizeText(e.name).includes(q) ||
-          normalizeText(e.code).includes(q) ||
-          normalizeText(e.type).includes(q) ||
-          normalizeText(e.model).includes(q),
-      );
-    }
-
-    if (typeFilter !== 'all') list = list.filter((e) => e.type === typeFilter);
-    if (criticityFilter !== 'all') list = list.filter((e) => normalizeCriticality(e.criticality) === criticityFilter);
-    if (statusFilter !== 'all') list = list.filter((e) => normalizeStatus(e.status) === statusFilter);
-
-    return list;
+    const query = normalizeText(search);
+    return all.filter((equipment) => {
+      const matchesSearch =
+        !query ||
+        [equipment.name, equipment.code, equipment.type, equipment.model].some((value) => normalizeText(value).includes(query));
+      const matchesType = typeFilter === 'all' || equipment.type === typeFilter;
+      const matchesCriticality =
+        criticityFilter === 'all' || normalizeCriticality(equipment.criticality) === criticityFilter;
+      const matchesStatus = statusFilter === 'all' || normalizeStatus(equipment.status) === statusFilter;
+      return matchesSearch && matchesType && matchesCriticality && matchesStatus;
+    });
   }, [all, search, typeFilter, criticityFilter, statusFilter]);
 
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const hasFilters = search || typeFilter !== 'all' || criticityFilter !== 'all' || statusFilter !== 'all';
 
-  const handleFilter = (fn: (v: string) => void) => (v: string) => {
-    fn(v);
+  const resetFilters = () => {
+    setSearch('');
+    setTypeFilter('all');
+    setCriticityFilter('all');
+    setStatusFilter('all');
     setPage(1);
   };
 
   if (error) {
     return (
-      <Card className="border-red-200 bg-red-50">
-        <CardContent className="pt-6">
-          <p className="text-sm text-red-800">Error al cargar equipos: {error.message}</p>
+      <Card className="border-destructive/30 bg-destructive/5">
+        <CardContent className="flex items-center gap-3 py-6">
+          <AlertCircle className="h-5 w-5 text-destructive" />
+          <div>
+            <p className="font-medium">No se pudo cargar el registro de equipos</p>
+            <p className="text-sm text-muted-foreground">Revisa la conexión o intenta nuevamente.</p>
+          </div>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Card>
-          <CardContent className="pb-3 pt-4">
-            <p className="text-xs text-muted-foreground">Total equipos</p>
-            <p className="mt-1 text-3xl font-bold">{kpis.total}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pb-3 pt-4">
-            <p className="text-xs text-muted-foreground">Operativos</p>
-            <p className="mt-1 text-3xl font-bold text-emerald-600">{kpis.operativos}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pb-3 pt-4">
-            <p className="text-xs text-muted-foreground">En mantenimiento</p>
-            <p className="mt-1 text-3xl font-bold text-blue-600">{kpis.mantenimiento}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pb-3 pt-4">
-            <p className="text-xs text-muted-foreground">Criticidad alta</p>
-            <p className="mt-1 text-3xl font-bold text-red-600">{kpis.criticos}</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardContent className="pb-4 pt-4">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar equipo o codigo..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1);
-                }}
-                className="pl-8"
-              />
-            </div>
-
-            <Select value={typeFilter} onValueChange={handleFilter(setTypeFilter)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los tipos</SelectItem>
-                {types.map((t) => (
-                  <SelectItem key={t} value={t}>
-                    {t}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={criticityFilter} onValueChange={handleFilter(setCriticityFilter)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Criticidad" />
-              </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Toda criticidad</SelectItem>
-                  <SelectItem value="critico">Critico</SelectItem>
-                  <SelectItem value="alto">Alto</SelectItem>
-                  <SelectItem value="medio">Medio</SelectItem>
-                  <SelectItem value="bajo">Bajo</SelectItem>
-                </SelectContent>
-              </Select>
-
-            <Select value={statusFilter} onValueChange={handleFilter(setStatusFilter)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los estados</SelectItem>
-                <SelectItem value="operativo">Operativo</SelectItem>
-                <SelectItem value="activo">Activo</SelectItem>
-                <SelectItem value="mantenimiento">Mantenimiento</SelectItem>
-                <SelectItem value="inactivo">Inactivo</SelectItem>
-              </SelectContent>
-            </Select>
+    <div className="space-y-5">
+      <Card className="overflow-hidden">
+        <CardContent className="p-0">
+          <div className="grid grid-cols-2 divide-x divide-y divide-border sm:grid-cols-4 sm:divide-y-0">
+            {[
+              ['Registro total', metrics.total, `${canonicalCount} con ficha canónica`],
+              ['Operativos', metrics.operativos, 'Disponibles para operación'],
+              ['En mantenimiento', metrics.mantenimiento, 'Requieren seguimiento'],
+              ['Criticidad alta', metrics.criticos, 'Prioridad operacional'],
+            ].map(([label, value, helper]) => (
+              <div key={String(label)} className="px-4 py-4 sm:px-5">
+                <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">{label}</p>
+                <p className="mt-1 text-2xl font-semibold tracking-tight">{value}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{helper}</p>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
 
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span>
-          Mostrando {Math.min((page - 1) * PAGE_SIZE + 1, filtered.length)}-{Math.min(page * PAGE_SIZE, filtered.length)} de{' '}
-          {filtered.length} equipos
-          {filtered.length !== all.length && ` (${all.length} total)`}
-        </span>
-        {totalPages > 1 && <span>Pagina {page} de {totalPages}</span>}
-      </div>
+      <Card>
+        <CardContent className="space-y-4 p-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+            <div className="relative min-w-0 flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={(event) => {
+                  setSearch(event.target.value);
+                  setPage(1);
+                }}
+                placeholder="Buscar por código, nombre, tipo o modelo"
+                className="pl-9"
+              />
+            </div>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 lg:flex lg:shrink-0">
+              <Select value={typeFilter} onValueChange={(value) => { setTypeFilter(value); setPage(1); }}>
+                <SelectTrigger className="lg:w-44"><SelectValue placeholder="Tipo" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los tipos</SelectItem>
+                  {types.map((type) => <SelectItem key={type} value={type}>{type}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={statusFilter} onValueChange={(value) => { setStatusFilter(value); setPage(1); }}>
+                <SelectTrigger className="lg:w-44"><SelectValue placeholder="Estado" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los estados</SelectItem>
+                  <SelectItem value="operativo">Operativo</SelectItem>
+                  <SelectItem value="mantenimiento">En mantenimiento</SelectItem>
+                  <SelectItem value="inactivo">Inactivo</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={criticityFilter} onValueChange={(value) => { setCriticityFilter(value); setPage(1); }}>
+                <SelectTrigger className="lg:w-44"><SelectValue placeholder="Criticidad" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Toda criticidad</SelectItem>
+                  <SelectItem value="critico">Crítica</SelectItem>
+                  <SelectItem value="alto">Alta</SelectItem>
+                  <SelectItem value="medio">Media</SelectItem>
+                  <SelectItem value="bajo">Baja</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2 border-t pt-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2">
+              <SlidersHorizontal className="h-4 w-4" />
+              <span>{filtered.length} equipos encontrados</span>
+              {referenceCount > 0 && <span className="hidden sm:inline">· {referenceCount} referencias desde centros de costo</span>}
+            </div>
+            {hasFilters && (
+              <Button variant="ghost" size="sm" onClick={resetFilters} className="self-start sm:self-auto">
+                Limpiar filtros
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {isLoading ? (
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="h-36 animate-pulse rounded-lg bg-muted" />
-          ))}
-        </div>
+        <Card><CardContent className="space-y-3 py-6">{Array.from({ length: 8 }).map((_, index) => <div key={index} className="h-12 animate-pulse rounded-md bg-muted" />)}</CardContent></Card>
       ) : paginated.length === 0 ? (
-        <Card className="border-dashed">
-          <CardContent className="py-10 text-center">
-            <p className="text-sm text-muted-foreground">Sin equipos para los filtros seleccionados</p>
-          </CardContent>
-        </Card>
+        <Card className="border-dashed"><CardContent className="py-14 text-center"><p className="font-medium">No hay equipos para esta búsqueda</p><p className="mt-1 text-sm text-muted-foreground">Ajusta los filtros o limpia la búsqueda.</p></CardContent></Card>
       ) : (
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {paginated.map((equipment) => (
-            <Card
-              key={equipment.id}
-              className="flex cursor-pointer flex-col transition-shadow hover:shadow-md"
-              onClick={() => onSelectEquipment?.(equipment)}
-            >
-              <CardHeader className="pb-2 pt-4">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0 flex-1">
-                    <CardTitle className="truncate text-sm font-semibold leading-tight">{equipment.name}</CardTitle>
-                    <p className="mt-0.5 font-mono text-xs text-muted-foreground">{equipment.code}</p>
-                  </div>
-                  <Badge variant="outline" className={`shrink-0 text-xs ${getCriticalityClass(equipment.criticality)}`}>
-                    {equipment.criticality}
-                  </Badge>
-                </div>
-              </CardHeader>
+        <>
+          <Card className="hidden overflow-hidden md:block">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="border-b bg-muted/35 text-left text-xs uppercase tracking-[0.08em] text-muted-foreground">
+                  <tr>
+                    <th className="px-4 py-3 font-medium">Equipo</th>
+                    <th className="px-4 py-3 font-medium">Tipo / modelo</th>
+                    <th className="px-4 py-3 font-medium">Estado</th>
+                    <th className="px-4 py-3 font-medium">Criticidad</th>
+                    <th className="px-4 py-3 font-medium">Origen</th>
+                    <th className="px-4 py-3 text-right font-medium">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {paginated.map((equipment) => (
+                    <tr key={equipment.id} className="transition-colors hover:bg-muted/25" onClick={() => onSelectEquipment?.(equipment)}>
+                      <td className="px-4 py-3.5">
+                        <div className="font-medium">{equipment.name}</div>
+                        <div className="mt-0.5 font-mono text-xs text-muted-foreground">{equipment.code}</div>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <div>{equipment.type || 'Sin clasificar'}</div>
+                        <div className="mt-0.5 text-xs text-muted-foreground">{equipment.model && equipment.model !== equipment.name ? equipment.model : 'Modelo no informado'}</div>
+                      </td>
+                      <td className="px-4 py-3.5"><Badge variant="outline" className={statusClass(equipment.status)}>{statusLabel(equipment.status)}</Badge></td>
+                      <td className="px-4 py-3.5"><Badge variant="outline" className={criticalityClass(equipment.criticality)}>{criticalityLabel(equipment.criticality)}</Badge></td>
+                      <td className="px-4 py-3.5 text-muted-foreground">{isCanonicalAsset(equipment) ? 'Activo canónico' : 'Centro de costo'}</td>
+                      <td className="px-4 py-3.5"><EquipmentActions equipment={equipment} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
 
-              <CardContent className="flex-1 space-y-2 pb-3 pt-0">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">Tipo</span>
-                  <span className="font-medium">{equipment.type}</span>
-                </div>
-                {equipment.source === 'cost_center' && (
-                  <div className="rounded bg-muted px-2 py-1 text-xs text-muted-foreground">
-                    Derivado desde centro de costo
-                  </div>
-                )}
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">Estado</span>
-                  <div className="flex items-center gap-1.5">
-                    {getStatusIcon(equipment.status)}
-                    <span>{getStatusLabel(equipment.status)}</span>
-                  </div>
-                </div>
-                {equipment.model && equipment.model !== equipment.name && (
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">Modelo</span>
-                    <span className="max-w-[120px] truncate">{equipment.model}</span>
-                  </div>
-                )}
-                {equipment.next_maintenance && (
-                  <div className="rounded bg-blue-50 px-2 py-1 text-xs text-blue-700">
-                    PM: {new Date(equipment.next_maintenance).toLocaleDateString('es-CL')}
-                  </div>
-                )}
-
-                <div className="mt-3 flex gap-2">
-                  {canOpenEquipmentDetails(equipment) ? (
-                    <>
-                      <Button
-                        asChild
-                        size="sm"
-                        variant="outline"
-                        className="h-8 flex-1"
-                        onClick={(event) => event.stopPropagation()}
-                      >
-                        <Link href={`/dashboard/mantenimiento/equipos/${getEquipmentDetailId(equipment)}/ficha`}>
-                          <FileText className="mr-2 h-3.5 w-3.5" />
-                          Ficha
-                        </Link>
-                      </Button>
-                      <Button
-                        asChild
-                        size="sm"
-                        variant="outline"
-                        className="h-8 flex-1"
-                        onClick={(event) => event.stopPropagation()}
-                      >
-                        <Link href={`/dashboard/mantenimiento/equipos/${getEquipmentDetailId(equipment)}/ficha-tecnica`}>
-                          <Route className="mr-2 h-3.5 w-3.5" />
-                          Tecnica
-                        </Link>
-                      </Button>
-                      <Button
-                        asChild
-                        size="sm"
-                        variant="outline"
-                        className="h-8 flex-1"
-                        onClick={(event) => event.stopPropagation()}
-                      >
-                        <Link href={`/dashboard/mantenimiento/equipos/${getEquipmentDetailId(equipment)}/arbol`}>
-                          <Route className="mr-2 h-3.5 w-3.5" />
-                          Arbol
-                        </Link>
-                      </Button>
-                      <Button
-                        asChild
-                        size="sm"
-                        variant="outline"
-                        className="h-8 flex-1"
-                        onClick={(event) => event.stopPropagation()}
-                      >
-                        <Link href={`/dashboard/mantenimiento/ordenes-trabajo/create?assetId=${getEquipmentDetailId(equipment)}`}>
-                          <Wrench className="mr-2 h-3.5 w-3.5" />
-                          OT
-                        </Link>
-                      </Button>
-                    </>
-                  ) : (
-                    <div className="flex w-full items-center justify-between gap-2 rounded-md border border-dashed px-3 py-2 text-xs text-muted-foreground">
-                      <span>Equipo derivado de centro de costo</span>
-                      <span>Sin ficha operativa</span>
+          <div className="space-y-3 md:hidden">
+            {paginated.map((equipment) => (
+              <Card key={equipment.id} onClick={() => onSelectEquipment?.(equipment)}>
+                <CardContent className="space-y-4 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">{equipment.name}</p>
+                      <p className="mt-0.5 font-mono text-xs text-muted-foreground">{equipment.code}</p>
                     </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                    <Badge variant="outline" className={statusClass(equipment.status)}>{statusLabel(equipment.status)}</Badge>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div><p className="text-xs text-muted-foreground">Tipo</p><p className="mt-1 font-medium">{equipment.type || 'Sin clasificar'}</p></div>
+                    <div><p className="text-xs text-muted-foreground">Criticidad</p><Badge variant="outline" className={`mt-1 ${criticalityClass(equipment.criticality)}`}>{criticalityLabel(equipment.criticality)}</Badge></div>
+                  </div>
+                  <div className="border-t pt-3"><EquipmentActions equipment={equipment} /></div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </>
       )}
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2">
-          <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
-            Anterior
-          </Button>
-          <div className="flex gap-1">
-            {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-              const p =
-                totalPages <= 5 ? i + 1 : page <= 3 ? i + 1 : page >= totalPages - 2 ? totalPages - 4 + i : page - 2 + i;
-
-              return (
-                <Button
-                  key={p}
-                  variant={p === page ? 'default' : 'outline'}
-                  size="sm"
-                  className="w-8"
-                  onClick={() => setPage(p)}
-                >
-                  {p}
-                </Button>
-              );
-            })}
+        <div className="flex flex-col gap-3 border-t pt-4 text-sm sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-muted-foreground">Página {currentPage} de {totalPages}</p>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>
+              <ChevronLeft className="mr-1 h-4 w-4" /> Anterior
+            </Button>
+            <Button variant="outline" size="sm" disabled={currentPage === totalPages} onClick={() => setPage((value) => Math.min(totalPages, value + 1))}>
+              Siguiente <ChevronRight className="ml-1 h-4 w-4" />
+            </Button>
           </div>
-          <Button variant="outline" size="sm" disabled={page === totalPages} onClick={() => setPage((p) => p + 1)}>
-            Siguiente
-          </Button>
         </div>
       )}
     </div>
