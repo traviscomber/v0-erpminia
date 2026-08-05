@@ -9,42 +9,40 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const origin = searchParams.get('origin');
     const status = searchParams.get('status');
     const q = searchParams.get('q')?.trim();
+    const intelligence = context.supabase.schema('intelligence');
 
-    let query = context.supabase
-      .schema('intelligence')
-      .from('cost_event_ledger')
+    let query = intelligence
+      .from('canonical_clp_cost_ledger')
       .select('*')
       .eq('organization_id', context.organizationId)
       .order('event_at', { ascending: false })
       .limit(250);
 
-    if (origin && origin !== 'all') query = query.eq('origin', origin);
     if (status && status !== 'all') query = query.eq('recognition_status', status);
     if (q) query = query.or(`description.ilike.%${q}%,source_record_id.ilike.%${q}%,cost_center_code.ilike.%${q}%`);
 
-    const { data, error } = await query;
-    if (error) throw error;
+    const [eventsResult, overviewResult] = await Promise.all([
+      query,
+      intelligence.from('canonical_finance_overview').select('*').eq('organization_id', context.organizationId).maybeSingle(),
+    ]);
 
-    const rows = data || [];
-    const overview = rows.reduce(
-      (acc, row) => {
-        const amount = Number(row.amount || 0);
-        if (row.recognition_status === 'recognized') acc.recognized += amount;
-        if (row.recognition_status === 'committed') acc.committed += amount;
-        if (row.recognition_status === 'pending') acc.pending += amount;
-        if (row.origin === 'CANONICAL') acc.canonicalRows += 1;
-        if (row.origin === 'ERP') acc.erpRows += 1;
-        return acc;
+    if (eventsResult.error) throw eventsResult.error;
+    if (overviewResult.error) throw overviewResult.error;
+
+    return NextResponse.json({
+      overview: overviewResult.data || null,
+      events: eventsResult.data || [],
+      capped: (eventsResult.data || []).length === 250,
+      certification: {
+        origin: 'CANONICAL',
+        currency: 'CLP',
+        sources: ['canonical.asset_costs', 'canonical.purchase_order_lines'],
       },
-      { recognized: 0, committed: 0, pending: 0, canonicalRows: 0, erpRows: 0 },
-    );
-
-    return NextResponse.json({ overview, events: rows, capped: rows.length === 250 });
+    });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'No se pudo cargar el libro de eventos';
-    return NextResponse.json({ overview: {}, events: [], error: message }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'No se pudo cargar la trazabilidad certificada';
+    return NextResponse.json({ overview: null, events: [], error: message }, { status: 500 });
   }
 }
