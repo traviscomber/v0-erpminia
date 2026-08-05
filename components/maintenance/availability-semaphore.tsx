@@ -51,43 +51,43 @@ type AvailabilityByZone = {
 function getStatusColor(status: string): string {
   switch (status) {
     case 'operational':
-      return 'bg-green-100 text-green-900 border-green-300';
+      return 'bg-green-950/40 text-green-300 border-green-800';
     case 'maintenance':
-      return 'bg-amber-100 text-amber-900 border-amber-300';
+      return 'bg-amber-950/40 text-amber-300 border-amber-800';
     case 'critical':
-      return 'bg-red-100 text-red-900 border-red-300';
+      return 'bg-red-950/40 text-red-300 border-red-800';
     default:
-      return 'bg-gray-100 text-gray-900 border-gray-300';
+      return 'bg-slate-900/40 text-slate-300 border-slate-700';
   }
 }
 
 function getHealthColor(health: string): string {
   switch (health) {
     case 'excellent':
-      return 'from-green-50 to-emerald-50 border-green-200';
+      return 'from-slate-900/60 to-slate-800/60 border-green-700/50';
     case 'good':
-      return 'from-blue-50 to-cyan-50 border-blue-200';
+      return 'from-slate-900/60 to-slate-800/60 border-blue-700/50';
     case 'warning':
-      return 'from-amber-50 to-orange-50 border-amber-200';
+      return 'from-slate-900/60 to-slate-800/60 border-amber-700/50';
     case 'critical':
-      return 'from-red-50 to-rose-50 border-red-200';
+      return 'from-slate-900/60 to-slate-800/60 border-red-700/50';
     default:
-      return 'from-gray-50 to-gray-100 border-gray-200';
+      return 'from-slate-900/60 to-slate-800/60 border-slate-700';
   }
 }
 
 function getHealthBadgeColor(health: string): string {
   switch (health) {
     case 'excellent':
-      return 'bg-green-200 text-green-900';
+      return 'bg-green-900/60 text-green-300 border border-green-700/50';
     case 'good':
-      return 'bg-blue-200 text-blue-900';
+      return 'bg-blue-900/60 text-blue-300 border border-blue-700/50';
     case 'warning':
-      return 'bg-amber-200 text-amber-900';
+      return 'bg-amber-900/60 text-amber-300 border border-amber-700/50';
     case 'critical':
-      return 'bg-red-200 text-red-900';
+      return 'bg-red-900/60 text-red-300 border border-red-700/50';
     default:
-      return 'bg-gray-200 text-gray-900';
+      return 'bg-slate-900/60 text-slate-300 border border-slate-700/50';
   }
 }
 
@@ -158,57 +158,47 @@ export function AvailabilitySemaphore() {
               <span
                 className={
                   s.availabilityPercentage >= 80
-                    ? 'text-green-600'
+                    ? 'text-green-400'
                     : s.availabilityPercentage >= 60
-                      ? 'text-blue-600'
+                      ? 'text-blue-400'
                       : s.availabilityPercentage >= 40
-                        ? 'text-amber-600'
-                        : 'text-red-600'
+                        ? 'text-amber-400'
+                        : 'text-red-400'
                 }
               >
                 {s.availabilityPercentage}%
               </span>
             </div>
-            <p className="text-gray-600 text-sm mt-1">Equipos disponibles operando</p>
+            <p className="text-muted-foreground text-sm mt-1">Equipos disponibles operando</p>
           </div>
 
           {/* Progress Bar */}
           <Progress
             value={s.availabilityPercentage}
-            className="h-3"
-            style={{
-              background:
-                s.availabilityPercentage >= 80
-                  ? 'lightgreen'
-                  : s.availabilityPercentage >= 60
-                    ? 'lightblue'
-                    : s.availabilityPercentage >= 40
-                      ? 'lightyellow'
-                      : 'lightcoral',
-            }}
+            className="h-3 bg-slate-800"
           />
 
           {/* Asset Stats */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="text-center p-3 bg-white rounded-lg">
-              <div className="text-2xl font-bold text-green-600">{s.operational}</div>
-              <p className="text-xs text-gray-600">Operando</p>
+            <div className="text-center p-3 bg-slate-900/50 rounded-lg border border-green-800/50">
+              <div className="text-2xl font-bold text-green-400">{s.operational}</div>
+              <p className="text-xs text-green-300/70">Operando</p>
             </div>
-            <div className="text-center p-3 bg-white rounded-lg">
-              <div className="text-2xl font-bold text-amber-600">{s.maintenance}</div>
-              <p className="text-xs text-gray-600">Mantenimiento</p>
+            <div className="text-center p-3 bg-slate-900/50 rounded-lg border border-amber-800/50">
+              <div className="text-2xl font-bold text-amber-400">{s.maintenance}</div>
+              <p className="text-xs text-amber-300/70">Mantenimiento</p>
             </div>
-            <div className="text-center p-3 bg-white rounded-lg">
-              <div className="text-2xl font-bold text-red-600">{s.critical}</div>
-              <p className="text-xs text-gray-600">Críticos</p>
+            <div className="text-center p-3 bg-slate-900/50 rounded-lg border border-red-800/50">
+              <div className="text-2xl font-bold text-red-400">{s.critical}</div>
+              <p className="text-xs text-red-300/70">Críticos</p>
             </div>
           </div>
 
           {/* Warning Alert */}
           {isWarning && (
-            <Alert className="border-red-300 bg-red-50">
-              <AlertCircle className="h-4 w-4 text-red-600" />
-              <AlertDescription className="text-red-800">
+            <Alert className="border-red-800/50 bg-red-950/30">
+              <AlertCircle className="h-4 w-4 text-red-400" />
+              <AlertDescription className="text-red-300">
                 ⚠️ Disponibilidad por debajo del 70%. Revisar operaciones inmediatamente.
               </AlertDescription>
             </Alert>
@@ -225,11 +215,11 @@ export function AvailabilitySemaphore() {
           </h3>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
             {byZone.byZone.map((zone) => (
-              <Card key={zone.zone} className="border-2 border-gray-200">
+              <Card key={zone.zone} className="border border-slate-700/50 bg-slate-900/30">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center justify-between">
                     <span>{zone.zone}</span>
-                    <span className="text-2xl font-bold text-gray-900">
+                    <span className="text-2xl font-bold text-slate-200">
                       {zone.summary.availabilityPercentage}%
                     </span>
                   </CardTitle>
@@ -237,17 +227,17 @@ export function AvailabilitySemaphore() {
                 <CardContent className="space-y-3">
                   {/* Inline Stats */}
                   <div className="grid grid-cols-3 gap-2 text-center text-sm">
-                    <div className="p-2 bg-green-50 rounded">
-                      <div className="font-bold text-green-700">{zone.summary.operational}</div>
-                      <div className="text-xs text-green-600">OK</div>
+                    <div className="p-2 bg-green-950/40 rounded border border-green-800/50">
+                      <div className="font-bold text-green-400">{zone.summary.operational}</div>
+                      <div className="text-xs text-green-300/70">OK</div>
                     </div>
-                    <div className="p-2 bg-amber-50 rounded">
-                      <div className="font-bold text-amber-700">{zone.summary.maintenance}</div>
-                      <div className="text-xs text-amber-600">Mto.</div>
+                    <div className="p-2 bg-amber-950/40 rounded border border-amber-800/50">
+                      <div className="font-bold text-amber-400">{zone.summary.maintenance}</div>
+                      <div className="text-xs text-amber-300/70">Mto.</div>
                     </div>
-                    <div className="p-2 bg-red-50 rounded">
-                      <div className="font-bold text-red-700">{zone.summary.critical}</div>
-                      <div className="text-xs text-red-600">Crítico</div>
+                    <div className="p-2 bg-red-950/40 rounded border border-red-800/50">
+                      <div className="font-bold text-red-400">{zone.summary.critical}</div>
+                      <div className="text-xs text-red-300/70">Crítico</div>
                     </div>
                   </div>
 
