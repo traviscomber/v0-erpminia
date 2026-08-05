@@ -13,7 +13,7 @@ const modules = [
   { icon: FileText, name: 'Documentos', desc: 'Contratos, normativas y respaldo centralizado.' },
 ];
 
-const benefits = [
+const benefits: { title: string; text: string }[] = [
   { title: 'Operación conectada', text: 'Todos los sistemas integrados en una plataforma única.' },
   { title: 'Trazabilidad completa', text: 'Auditoría y rastreo de cada acción en el sistema.' },
   { title: 'Control centralizado', text: 'Gestión de permisos, usuarios y documentos en un solo lugar.' },
