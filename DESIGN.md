@@ -10,7 +10,145 @@ Este documento es la fuente canónica para la interfaz del ERP MOTIL. Aplica al 
 - Evitar duplicar información, títulos, accesos o acciones en una misma pantalla.
 - Mantener una experiencia equivalente en modo claro y oscuro.
 
-## 2. Jerarquía de página
+## 2. Los 10 principios MOTIL de simplificación y deduplicación
+
+Este método se inspira en Kaizen, 5S y diseño Lean. Debe aplicarse antes de crear una nueva ruta, tabla, botón, tarjeta, filtro, métrica o fuente de datos.
+
+### 1. Una entidad, una fuente maestra
+
+Cada concepto operacional debe tener una única fuente canónica. Las demás tablas o archivos pueden actuar como evidencia, staging, historial o vista derivada, pero nunca como maestros paralelos.
+
+Ejemplos:
+
+- Equipos: un maestro de activos.
+- Proveedores: un maestro de proveedores.
+- Productos: un maestro de productos.
+- Centros de costo: un maestro financiero-operacional.
+- Documentos: un repositorio de evidencia, no un sustituto de los datos estructurados.
+
+### 2. Una función, una entrada principal
+
+Cada función debe tener un único acceso principal en la navegación. Las vistas especializadas deben aparecer dentro del contexto de la entidad, no como módulos paralelos.
+
+Ejemplo: disponibilidad, costos, fichas, expedientes y componentes deben vivir dentro del dominio Equipos.
+
+### 3. Mostrar una vez, derivar siempre
+
+Una cifra, estado o atributo no debe copiarse manualmente en varias tablas o pantallas. Debe calcularse o consultarse desde la fuente canónica.
+
+No duplicar:
+
+- KPIs;
+- estados;
+- nombres;
+- códigos;
+- totales;
+- clasificaciones;
+- fechas de vigencia.
+
+### 4. Separar entidad, proceso y evidencia
+
+No mezclar conceptos distintos en la misma estructura.
+
+- Entidad: equipo, proveedor, persona, producto.
+- Proceso: compra, mantenimiento, inspección, capacitación.
+- Evidencia: documento, fotografía, certificado, XLS, PDF.
+
+Un centro de costo no es un equipo. Un documento no es un procedimiento estructurado. Una orden de compra no es un proveedor.
+
+### 5. Reducir antes de agregar
+
+Antes de crear algo nuevo se debe revisar si ya existe una ruta, tabla, componente, acción o dato equivalente. Primero se fusiona, renombra o reutiliza; solo después se agrega.
+
+Toda nueva función debe responder:
+
+- ¿Ya existe?
+- ¿Puede vivir dentro de una sección actual?
+- ¿Puede ser una vista derivada?
+- ¿Puede reemplazar algo antiguo?
+
+### 6. Una pantalla, una intención principal
+
+Cada pantalla debe responder una pregunta principal y ofrecer una acción primaria.
+
+Ejemplos:
+
+- Equipos: encontrar y abrir un activo.
+- Compras: revisar y gestionar órdenes.
+- Proveedores: administrar el maestro de proveedores.
+- Sostenibilidad: identificar riesgos, vencimientos y brechas.
+
+Si una pantalla intenta resolver más de una intención principal, debe dividirse en pestañas contextuales o vistas derivadas.
+
+### 7. Menos controles, mayor contexto
+
+Mostrar solo los controles necesarios para la tarea actual.
+
+- Máximo una acción primaria.
+- Máximo una acción secundaria visible.
+- Acciones adicionales en `Más acciones`.
+- Máximo tres filtros visibles.
+- Filtros adicionales en `Más filtros`.
+- Acciones por fila dentro de menú contextual.
+
+### 8. Nombres únicos y consistentes
+
+Un concepto debe tener un único nombre en todo el sistema.
+
+No usar simultáneamente:
+
+- Equipos / Maquinaria / Activos para la misma entidad.
+- Ficha / Ficha técnica cuando no existe una diferencia funcional real.
+- Documentos / Gestión documental / Flujo documental sin una definición explícita.
+- Compras / Órdenes / OCs para pantallas equivalentes.
+
+Cuando existan diferencias reales, deben documentarse en la interfaz y en el modelo de datos.
+
+### 9. Lo derivado no compite con lo canónico
+
+Las filas derivadas, inferidas o reconstruidas deben identificarse claramente y no mezclarse visualmente como si fueran registros maestros completos.
+
+Estados recomendados:
+
+- Canónico.
+- Derivado.
+- Pendiente de promoción.
+- Histórico.
+- Inactivo.
+- Evidencia solamente.
+
+Los registros derivados no deben ofrecer funciones que requieran un ID canónico.
+
+### 10. Mejorar en ciclos pequeños y verificables
+
+Cada bloque de limpieza debe terminar con:
+
+1. fuente canónica definida;
+2. duplicados identificados;
+3. navegación simplificada;
+4. acciones reducidas;
+5. datos derivados documentados;
+6. build exitoso;
+7. deployment `READY`;
+8. cero errores de runtime;
+9. validación en modo claro y oscuro;
+10. registro de lo eliminado, fusionado o movido.
+
+## 3. Clasificación obligatoria de cada elemento
+
+Durante una auditoría, toda ruta, tabla, componente, botón, métrica o fuente debe clasificarse en una de estas categorías:
+
+- **Conservar:** es canónica, necesaria y clara.
+- **Fusionar:** duplica parcialmente otra función o entidad.
+- **Mover:** es válida, pero está en el nivel o módulo incorrecto.
+- **Derivar:** debe calcularse desde una fuente canónica.
+- **Renombrar:** representa un concepto válido con una etiqueta confusa.
+- **Archivar:** sirve como historial o evidencia, pero no debe competir en producción.
+- **Eliminar:** no tiene uso, está duplicado o induce a error.
+
+No se elimina información operacional sin conservar trazabilidad o confirmar que existe una copia canónica equivalente.
+
+## 4. Jerarquía de página
 
 Cada página debe usar este orden:
 
@@ -31,7 +169,7 @@ No repetir el mismo título en el header global y dentro de tarjetas.
 - Ancho máximo recomendado del contenido: `1600px`.
 - Espaciado vertical estándar entre bloques: `space-y-6`.
 
-## 3. Acciones y botones
+## 5. Acciones y botones
 
 ### Límite de acciones
 
@@ -49,7 +187,7 @@ No repetir el mismo título en el header global y dentro de tarjetas.
 
 Los botones de solo icono siempre deben tener `aria-label` y tooltip cuando el significado no sea evidente.
 
-## 4. Navegación
+## 6. Navegación
 
 - El sidebar contiene accesos de módulo, no todas las operaciones posibles.
 - Las rutas secundarias deben agruparse dentro del módulo y estar colapsadas por defecto cuando el grupo sea extenso.
@@ -58,7 +196,7 @@ Los botones de solo icono siempre deben tener `aria-label` y tooltip cuando el s
 - Mostrar un máximo de cuatro niveles. Los niveles intermedios se resumen con `…`.
 - Toda segunda sección debe ofrecer un camino claro de regreso mediante breadcrumb; no agregar botones redundantes de “volver” cuando ya existe ese camino.
 
-## 5. Tarjetas y métricas
+## 7. Tarjetas y métricas
 
 - Usar tarjetas para resumir entidades o métricas, no como contenedor universal.
 - Una fila de KPI debe tener entre dos y cuatro tarjetas.
@@ -67,7 +205,7 @@ Los botones de solo icono siempre deben tener `aria-label` y tooltip cuando el s
 - Evitar tarjetas anidadas.
 - Una tarjeta clickeable debe ser completamente clickeable, no contener varios botones internos.
 
-## 6. Tablas y listados
+## 8. Tablas y listados
 
 - Filtros principales visibles: búsqueda, estado y rango de fecha cuando corresponda.
 - Filtros adicionales dentro de `Más filtros`.
@@ -77,7 +215,7 @@ Los botones de solo icono siempre deben tener `aria-label` y tooltip cuando el s
 - Siempre incluir estados de carga, vacío, error y sin permisos.
 - El estado vacío debe explicar qué falta y ofrecer una única acción relevante.
 
-## 7. Formularios y modales
+## 9. Formularios y modales
 
 - Agrupar campos por propósito, no por estructura de base de datos.
 - Etiquetas visibles; no depender solo de placeholders.
@@ -86,7 +224,7 @@ Los botones de solo icono siempre deben tener `aria-label` y tooltip cuando el s
 - Los formularios extensos deben usar secciones o pasos.
 - No abrir un modal sobre otro modal.
 
-## 8. Estados del sistema
+## 10. Estados del sistema
 
 Los estados permitidos son:
 
@@ -100,7 +238,7 @@ Los estados permitidos son:
 
 `Datos parciales` debe explicar qué fuente no está disponible. Nunca mostrarlo como una etiqueta sin contexto.
 
-## 9. Color y accesibilidad
+## 11. Color y accesibilidad
 
 - Usar tokens semánticos del tema; evitar colores hardcodeados salvo estados operacionales justificados.
 - Contraste mínimo WCAG AA.
@@ -109,7 +247,7 @@ Los estados permitidos son:
 - Área mínima táctil: 40px.
 - Respetar `prefers-reduced-motion`.
 
-## 10. Responsive
+## 12. Responsive
 
 - Diseñar primero para móvil y escalar a desktop.
 - Los encabezados pasan a columna en pantallas pequeñas.
@@ -117,7 +255,7 @@ Los estados permitidos son:
 - Tablas complejas usan columnas adaptativas o vistas tipo tarjeta; no scroll horizontal sin control.
 - Sidebar móvil debe cerrar después de navegar.
 
-## 11. Reglas por rutas secundarias
+## 13. Reglas por rutas secundarias
 
 Toda ruta secundaria debe cumplir:
 
@@ -132,7 +270,7 @@ Toda ruta secundaria debe cumplir:
 - Datos provenientes de la fuente canónica correspondiente.
 - Sin accesos duplicados a la misma función.
 
-## 12. Checklist antes de publicar
+## 14. Checklist antes de publicar
 
 - [ ] Build sin errores.
 - [ ] Sin errores de runtime.
@@ -145,3 +283,7 @@ Toda ruta secundaria debe cumplir:
 - [ ] No hay texto técnico o IDs internos visibles.
 - [ ] Estados de carga, vacío, error y permisos implementados.
 - [ ] Breadcrumbs y navegación de regreso correctos.
+- [ ] Cada entidad tiene una fuente maestra definida.
+- [ ] No existen maestros paralelos sin justificación.
+- [ ] Todo dato derivado está identificado.
+- [ ] Se registró qué se conservó, fusionó, movió, renombró, archivó o eliminó.
