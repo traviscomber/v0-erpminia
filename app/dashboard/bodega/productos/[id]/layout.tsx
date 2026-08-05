@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { CertifiedFinancialSummary } from '@/components/finance/certified-financial-summary';
+import { EntityTimeline } from '@/components/shared/entity-timeline';
 
 type ProductLayoutProps = {
   children: ReactNode;
@@ -14,6 +15,7 @@ export default async function ProductLayout({ children, params }: ProductLayoutP
     <div className="space-y-6">
       {children}
       <CertifiedFinancialSummary entity="product" id={productId} />
+      <EntityTimeline entity="product" id={productId} />
     </div>
   );
 }
