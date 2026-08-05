@@ -1,7 +1,7 @@
 export interface Equipment {
   id: string;
   asset_id?: string | null;
-  source?: 'maintenance_asset' | 'cost_center';
+  source?: 'canonical_asset' | 'maintenance_asset' | 'cost_center';
   code: string;
   name: string;
   model: string | null;
@@ -12,5 +12,5 @@ export interface Equipment {
   purchase_date: string | null;
   last_maintenance: string | null;
   next_maintenance: string | null;
-  specs: Record<string, any> | null;
+  specs: Record<string, unknown> | null;
 }
