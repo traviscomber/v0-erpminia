@@ -8,6 +8,7 @@ type WorkOrderRow = {
   work_order_number: string;
   asset_id: string | null;
   canonical_asset_id: string | null;
+  assigned_person_id: string | null;
   title: string | null;
   description: string | null;
   work_type: string | null;
@@ -36,6 +37,8 @@ type CanonicalAssetRow = {
 type WorkOrderPayload = {
   canonicalAssetId?: string;
   canonical_asset_id?: string;
+  assignedPersonId?: string | null;
+  assigned_person_id?: string | null;
   title?: string;
   description?: string | null;
   workType?: string;
@@ -126,6 +129,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as WorkOrderPayload;
     const canonicalAssetId = body.canonicalAssetId || body.canonical_asset_id;
+    const assignedPersonId = body.assignedPersonId || body.assigned_person_id || null;
     if (!canonicalAssetId) {
       return NextResponse.json({ error: 'Selecciona un activo canónico' }, { status: 400 });
     }
@@ -141,6 +145,20 @@ export async function POST(request: NextRequest) {
 
     if (assetError) throw assetError;
     if (!asset) return NextResponse.json({ error: 'Activo canónico no encontrado o inactivo' }, { status: 404 });
+
+    let assignedPersonName = body.assignedToName || body.assigned_to_name || null;
+    if (assignedPersonId) {
+      const { data: person, error: personError } = await context.supabase
+        .from('people')
+        .select('id, full_name')
+        .eq('organization_id', context.organizationId)
+        .eq('id', assignedPersonId)
+        .eq('employment_status', 'active')
+        .maybeSingle();
+      if (personError) throw personError;
+      if (!person) return NextResponse.json({ error: 'La persona seleccionada no está disponible' }, { status: 400 });
+      assignedPersonName = person.full_name;
+    }
 
     const { count } = await context.supabase
       .from('maintenance_work_orders')
@@ -158,6 +176,7 @@ export async function POST(request: NextRequest) {
         work_order_number: workOrderNumber,
         canonical_asset_id: canonicalAssetId,
         asset_id: null,
+        assigned_person_id: assignedPersonId,
         title: body.title?.trim() || null,
         description: body.description?.trim() || null,
         work_type: body.workType || body.work_type || 'preventive',
@@ -165,7 +184,7 @@ export async function POST(request: NextRequest) {
         priority: body.priority || 'medium',
         scheduled_date: body.scheduledDate || body.scheduled_date || null,
         planned_duration_hours: Number.isFinite(plannedHours) ? plannedHours : 0,
-        assigned_to_name: body.assignedToName || body.assigned_to_name || null,
+        assigned_to_name: assignedPersonName,
         meter_reading: meterReading === null || meterReading === '' ? null : Number(meterReading),
         meter_unit: body.meterUnit || body.meter_unit || null,
         cost_center_id: body.costCenterId || body.cost_center_id || null,
