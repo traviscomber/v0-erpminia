@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const intelligence = context.supabase.schema('intelligence');
     const organizationId = context.organizationId;
 
-    const [overview, assets, products, suppliers, costCenters, validation, recent] = await Promise.all([
+    const [overview, assets, products, suppliers, costCenters, validation, recent, alerts] = await Promise.all([
       intelligence.from('canonical_finance_overview').select('*').eq('organization_id', organizationId).maybeSingle(),
       intelligence.from('canonical_finance_assets').select('*').eq('organization_id', organizationId).order('recognized_clp', { ascending: false }).limit(10),
       intelligence.from('canonical_finance_products').select('*').eq('organization_id', organizationId).order('committed_clp', { ascending: false }).limit(10),
@@ -19,9 +19,10 @@ export async function GET(request: NextRequest) {
       intelligence.from('canonical_finance_cost_centers').select('*').eq('organization_id', organizationId).order('committed_clp', { ascending: false }).limit(10),
       intelligence.from('latest_canonical_financial_validation').select('*').eq('organization_id', organizationId).maybeSingle(),
       intelligence.from('canonical_finance_source_audit').select('event_id,event_at,recognition_status,source_table,source_record_id,amount,currency,description,cost_center_code,metadata').eq('organization_id', organizationId).order('event_at', { ascending: false }).limit(20),
+      intelligence.from('canonical_finance_alerts').select('*').eq('organization_id', organizationId).gt('exception_count', 0).order('severity', { ascending: true }),
     ]);
 
-    const error = overview.error || assets.error || products.error || suppliers.error || costCenters.error || validation.error || recent.error;
+    const error = overview.error || assets.error || products.error || suppliers.error || costCenters.error || validation.error || recent.error || alerts.error;
     if (error) throw error;
 
     return NextResponse.json({
@@ -32,6 +33,7 @@ export async function GET(request: NextRequest) {
       topCostCenters: costCenters.data || [],
       validation: validation.data || null,
       recentEvents: recent.data || [],
+      alerts: alerts.data || [],
       certification: {
         origin: 'CANONICAL',
         currency: 'CLP',
