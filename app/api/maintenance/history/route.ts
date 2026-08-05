@@ -103,7 +103,14 @@ export async function GET(request: NextRequest) {
         .order('created_at', { ascending: false })
         .range(start, end);
 
-      if (historyError) throw historyError;
+      if (historyError) {
+        // If table doesn't exist, return empty entries instead of error
+        if (historyError.message.includes('Could not find the table') || 
+            historyError.message.includes('does not exist')) {
+          break;
+        }
+        throw historyError;
+      }
 
       const batchRows = Array.isArray(batch) ? (batch as HistoryRow[]) : [];
       historyRows.push(...batchRows);
