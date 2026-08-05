@@ -3,19 +3,26 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Activity, CircleDollarSign, FileText, Fuel, Gauge, Settings, Users, Wrench } from 'lucide-react';
+import { BarChart3, Calendar, FileText, Settings, Wrench, ClipboardList } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const items = [
   { href: '/dashboard/mantenimiento', label: 'Resumen', icon: Wrench },
+  { href: '/dashboard/mantenimiento/ordenes-trabajo', label: 'Órdenes', icon: ClipboardList },
+  { href: '/dashboard/mantenimiento/planificacion', label: 'Planificación', icon: Calendar },
   { href: '/dashboard/mantenimiento/equipos', label: 'Equipos', icon: Settings },
-  { href: '/dashboard/mantenimiento/disponibilidad', label: 'Disponibilidad', icon: Gauge },
-  { href: '/dashboard/mantenimiento/personal', label: 'Personal', icon: Users },
-  { href: '/dashboard/mantenimiento/costos', label: 'Costos', icon: CircleDollarSign },
-  { href: '/dashboard/mantenimiento/combustible', label: 'Combustible', icon: Fuel },
-  { href: '/dashboard/mantenimiento/neumaticos', label: 'Neumáticos', icon: Activity },
-  { href: '/dashboard/mantenimiento/componentes-mayores', label: 'Componentes', icon: Settings },
-  { href: '/dashboard/mantenimiento/fichas-tecnicas', label: 'Catálogo técnico', icon: FileText },
+  { href: '/dashboard/mantenimiento/indicadores', label: 'Indicadores', icon: BarChart3 },
+  { href: '/dashboard/mantenimiento/documentos', label: 'Documentos', icon: FileText },
+];
+
+const assetViewPrefixes = [
+  '/dashboard/mantenimiento/disponibilidad',
+  '/dashboard/mantenimiento/costos',
+  '/dashboard/mantenimiento/neumaticos',
+  '/dashboard/mantenimiento/componentes-mayores',
+  '/dashboard/mantenimiento/fichas-tecnicas',
+  '/dashboard/mantenimiento/documentos/expedientes',
+  '/dashboard/mantenimiento/centro-costo',
 ];
 
 export default function MaintenanceLayout({ children }: { children: ReactNode }) {
@@ -26,14 +33,16 @@ export default function MaintenanceLayout({ children }: { children: ReactNode })
       <section className="border-b border-border pb-4">
         <div className="mb-3">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Mantenimiento</p>
-          <p className="mt-1 text-sm text-muted-foreground">Operación, activos, disponibilidad, costos y trazabilidad técnica.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Trabajo, activos, control y documentación en un flujo único.</p>
         </div>
         <nav className="flex gap-2 overflow-x-auto pb-1" aria-label="Navegación de mantenimiento">
           {items.map((item) => {
             const Icon = item.icon;
+            const isAssetContext = item.href === '/dashboard/mantenimiento/equipos'
+              && assetViewPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
             const active = item.href === '/dashboard/mantenimiento'
               ? pathname === item.href
-              : pathname === item.href || pathname.startsWith(`${item.href}/`);
+              : isAssetContext || pathname === item.href || pathname.startsWith(`${item.href}/`);
 
             return (
               <Link
