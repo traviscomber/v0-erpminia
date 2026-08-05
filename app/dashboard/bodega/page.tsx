@@ -1,38 +1,73 @@
 'use client';
 
+import { useState } from 'react';
+import useSWR from 'swr';
 import Link from 'next/link';
-import { FileText, RefreshCw, Upload } from 'lucide-react';
-import { BodegaDashboard } from '@/components/dashboard/bodega-dashboard';
+import { AlertTriangle, Boxes, FileText, PackageCheck, Search, Upload } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+const fetcher = async (url: string) => {
+  const response = await fetch(url, { credentials: 'include' });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(payload?.error || 'No se pudo cargar el inventario');
+  return payload;
+};
+
+const number = (value: unknown) => new Intl.NumberFormat('es-CL').format(Number(value || 0));
+const money = (value: unknown) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(Number(value || 0));
 
 export default function BodegaPage() {
+  const [query, setQuery] = useState('');
+  const [status, setStatus] = useState('all');
+  const params = new URLSearchParams();
+  if (query.trim()) params.set('q', query.trim());
+  if (status !== 'all') params.set('status', status);
+  const { data, error, isLoading } = useSWR(`/api/inventory/intelligence?${params.toString()}`, fetcher);
+  const overview = data?.overview || {};
+  const positions = data?.positions || [];
+
   return (
     <div className="space-y-6">
       <section className="flex flex-col gap-4 border-b border-border/70 pb-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-sm font-medium text-muted-foreground">Abastecimiento · Inventario</p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Bodega e inventario</h1>
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Consulta existencias, niveles de reposición, valorización y estructura de familias usando el inventario real disponible.
-          </p>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Inventario canónico</h1>
+          <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Una sola posición de stock conecta producto, compra, recepción, reserva, consumo en OT y costo del activo.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button asChild variant="outline">
-            <Link href="/dashboard/bodega/documentos">
-              <FileText className="mr-2 h-4 w-4" /> Documentos
-            </Link>
-          </Button>
-          <Button asChild>
-            <Link href="/dashboard/bodega/importar-datos">
-              <Upload className="mr-2 h-4 w-4" /> Importar inventario
-            </Link>
-          </Button>
+          <Button asChild variant="outline"><Link href="/dashboard/bodega/documentos"><FileText className="mr-2 h-4 w-4" />Documentos</Link></Button>
+          <Button asChild><Link href="/dashboard/bodega/importar-datos"><Upload className="mr-2 h-4 w-4" />Importar evidencia</Link></Button>
         </div>
       </section>
 
-      <div className="[&>div]:min-h-0 [&>div]:p-0 [&>div>div:first-child]:hidden">
-        <BodegaDashboard />
+      {error ? <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{error.message}</div> : null}
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <Card className="shadow-none"><CardContent className="flex items-center justify-between p-5"><div><p className="text-sm text-muted-foreground">Productos con stock</p><p className="mt-1 text-2xl font-semibold">{number(overview.products_with_stock)}</p></div><Boxes className="h-5 w-5 text-muted-foreground" /></CardContent></Card>
+        <Card className="shadow-none"><CardContent className="flex items-center justify-between p-5"><div><p className="text-sm text-muted-foreground">Valor inventario</p><p className="mt-1 text-2xl font-semibold">{money(overview.total_stock_value)}</p></div><PackageCheck className="h-5 w-5 text-muted-foreground" /></CardContent></Card>
+        <Card className="shadow-none"><CardContent className="flex items-center justify-between p-5"><div><p className="text-sm text-muted-foreground">Reposición requerida</p><p className="mt-1 text-2xl font-semibold">{number(overview.reorder_products)}</p></div><AlertTriangle className="h-5 w-5 text-muted-foreground" /></CardContent></Card>
+        <Card className="shadow-none"><CardContent className="flex items-center justify-between p-5"><div><p className="text-sm text-muted-foreground">Conteo vencido</p><p className="mt-1 text-2xl font-semibold">{number(overview.count_overdue_products)}</p></div><AlertTriangle className="h-5 w-5 text-muted-foreground" /></CardContent></Card>
       </div>
+
+      <section className="space-y-4">
+        <div className="flex flex-col gap-3 lg:flex-row">
+          <div className="relative flex-1"><Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" /><Input className="pl-9" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar código o producto" /></div>
+          <Select value={status} onValueChange={setStatus}><SelectTrigger className="w-full lg:w-56"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">Todos los estados</SelectItem><SelectItem value="healthy">Saludable</SelectItem><SelectItem value="reorder">Reposición</SelectItem><SelectItem value="out_of_stock">Sin stock</SelectItem><SelectItem value="negative">Stock negativo</SelectItem><SelectItem value="expired">Vencido</SelectItem><SelectItem value="expiring">Próximo a vencer</SelectItem></SelectContent></Select>
+        </div>
+
+        <div className="overflow-hidden rounded-lg border">
+          <div className="hidden grid-cols-[140px_1fr_130px_130px_140px_120px] gap-4 border-b bg-muted/40 px-4 py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground lg:grid">
+            <span>Código</span><span>Producto</span><span>Disponible</span><span>Reservado</span><span>Valor</span><span>Estado</span>
+          </div>
+          {isLoading ? <p className="p-6 text-sm text-muted-foreground">Cargando inventario...</p> : null}
+          {!isLoading && !positions.length ? <p className="p-8 text-center text-sm text-muted-foreground">No hay posiciones para los filtros seleccionados.</p> : null}
+          {positions.map((row: any) => <div key={row.stock_id} className="grid gap-2 border-b px-4 py-4 last:border-0 lg:grid-cols-[140px_1fr_130px_130px_140px_120px] lg:items-center lg:gap-4"><p className="font-mono text-sm">{row.product_code}</p><div><p className="font-medium">{row.product_name}</p><p className="text-xs text-muted-foreground">{row.family || 'Sin familia'} · {row.unit || 'unidad'}</p></div><p className="text-sm"><span className="lg:hidden text-muted-foreground">Disponible: </span>{number(row.quantity_available)}</p><p className="text-sm"><span className="lg:hidden text-muted-foreground">Reservado: </span>{number(row.quantity_reserved)}</p><p className="text-sm font-medium">{money(row.stock_value)}</p><Badge variant={row.stock_status === 'healthy' ? 'secondary' : 'outline'}>{row.stock_status}</Badge></div>)}
+        </div>
+      </section>
     </div>
   );
 }
