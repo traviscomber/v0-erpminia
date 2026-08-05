@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
-import { ArrowRight, CheckCircle2, ClipboardList, PackageCheck, Plus, ReceiptText, Search } from 'lucide-react';
+import { ArrowRight, CheckCircle2, ClipboardList, PackageCheck, Plus, ReceiptText, Search, type LucideIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,6 +28,8 @@ type RequestRow = { id: string; request_number: string; status: string; priority
 type QuoteRow = { id: string; request_id: string; quotation_number: string; supplier_id: string; total_amount: number; currency: string; lead_time_days?: number | null; status: string };
 type PurchaseOrderLine = { id: number; purchase_order_id: string; product_code?: string | null; description?: string | null; quantity: number; quantity_received: number; unit?: string | null; unit_cost?: number | null };
 type PurchaseOrder = { id: string; order_number: string; supplier_name?: string | null; total_amount?: number | null; operational_status?: string | null; status?: string | null; expected_delivery_date?: string | null; procurement_request_id?: string | null };
+
+type MetricCard = { label: string; value: number; icon: LucideIcon };
 
 export default function ProcurementWorkflowPage() {
   const { data, error, isLoading, mutate } = useSWR('/api/procurement/workflow', fetcher);
@@ -62,6 +64,13 @@ export default function ProcurementWorkflowPage() {
     ordered: orders.filter((row) => !['received', 'closed'].includes(row.operational_status || row.status || '')).length,
     received: orders.filter((row) => (row.operational_status || row.status) === 'received').length,
   }), [orders, quotations, requests]);
+
+  const metrics: MetricCard[] = [
+    { label: 'Solicitudes activas', value: counts.requests, icon: ClipboardList },
+    { label: 'Cotizaciones recibidas', value: counts.quoted, icon: ReceiptText },
+    { label: 'OC por recibir', value: counts.ordered, icon: ArrowRight },
+    { label: 'OC recibidas', value: counts.received, icon: PackageCheck },
+  ];
 
   const execute = async (body: unknown) => {
     setBusy(true);
@@ -137,13 +146,8 @@ export default function ProcurementWorkflowPage() {
       {error ? <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{error.message}</div> : null}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {[
-          ['Solicitudes activas', counts.requests, ClipboardList],
-          ['Cotizaciones recibidas', counts.quoted, ReceiptText],
-          ['OC por recibir', counts.ordered, ArrowRight],
-          ['OC recibidas', counts.received, PackageCheck],
-        ].map(([label, value, Icon]) => (
-          <Card key={String(label)} className="shadow-none"><CardContent className="flex items-center justify-between p-5"><div><p className="text-sm text-muted-foreground">{String(label)}</p><p className="mt-1 text-2xl font-semibold">{String(value)}</p></div><Icon className="h-5 w-5 text-muted-foreground" /></CardContent></Card>
+        {metrics.map(({ label, value, icon: Icon }) => (
+          <Card key={label} className="shadow-none"><CardContent className="flex items-center justify-between p-5"><div><p className="text-sm text-muted-foreground">{label}</p><p className="mt-1 text-2xl font-semibold">{value}</p></div><Icon className="h-5 w-5 text-muted-foreground" /></CardContent></Card>
         ))}
       </div>
 
