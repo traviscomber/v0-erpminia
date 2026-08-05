@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { WorkOrderExecutionPanel } from '@/components/maintenance/work-order-execution-panel';
+import { WorkOrderMaterialCoverage } from '@/components/maintenance/work-order-material-coverage';
 import { WorkOrderPartsPanel } from '@/components/maintenance/work-order-parts-panel';
 import { WorkOrderTimer } from '@/components/maintenance/work-order-timer';
 
@@ -103,6 +104,7 @@ export default function WorkOrderDetailPage() {
         <WorkOrderTimer workOrderId={id} />
       </CardContent></Card>
 
+      <WorkOrderMaterialCoverage workOrderId={id} />
       <WorkOrderPartsPanel workOrderId={id} />
       <WorkOrderExecutionPanel workOrderId={id} />
     </div>
