@@ -16,11 +16,11 @@ import { EquipmentSheet } from '@/components/maintenance/equipment-sheet';
 
 const assetViews = [
   { href: '/dashboard/mantenimiento/disponibilidad', label: 'Disponibilidad', icon: Activity },
-  { href: '/dashboard/mantenimiento/costos', label: 'Costos por equipo', icon: CircleDollarSign },
-  { href: '/dashboard/mantenimiento/fichas-tecnicas', label: 'Catálogo técnico', icon: FileText },
-  { href: '/dashboard/mantenimiento/documentos/expedientes', label: 'Expedientes', icon: FolderOpen },
+  { href: '/dashboard/mantenimiento/costos', label: 'Costos', icon: CircleDollarSign },
+  { href: '/dashboard/mantenimiento/fichas-tecnicas', label: 'Datos técnicos', icon: FileText },
+  { href: '/dashboard/mantenimiento/documentos/expedientes', label: 'Documentos', icon: FolderOpen },
   { href: '/dashboard/mantenimiento/neumaticos', label: 'Neumáticos', icon: Settings },
-  { href: '/dashboard/mantenimiento/componentes-mayores', label: 'Componentes mayores', icon: Wrench },
+  { href: '/dashboard/mantenimiento/componentes-mayores', label: 'Componentes', icon: Wrench },
 ];
 
 export default function EquiposPage() {
@@ -41,10 +41,10 @@ export default function EquiposPage() {
     <div className="space-y-6">
       <section className="flex flex-col gap-4 border-b border-border/70 pb-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="text-sm font-medium text-muted-foreground">Mantenimiento · Activos</p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Equipos</h1>
+          <p className="text-sm font-medium text-muted-foreground">Mantenimiento · Registro maestro</p>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Activos</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Registro maestro de activos, estado, criticidad y trazabilidad técnica.
+            Fuente única para equipos, maquinaria y vehículos, con estado, criticidad y trazabilidad operacional.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -70,7 +70,7 @@ export default function EquiposPage() {
           <Button asChild>
             <Link href="/dashboard/mantenimiento/equipos/importar">
               <Upload className="mr-2 h-4 w-4" />
-              Importar equipos
+              Importar activos
             </Link>
           </Button>
         </div>
