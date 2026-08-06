@@ -1,28 +1,24 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import useSWR from 'swr';
 import {
   AlertTriangle,
-  ArrowRight,
   CalendarDays,
-  CheckCircle2,
-  Clock3,
+  ChevronLeft,
+  ChevronRight,
   History,
-  ListChecks,
-  MapPin,
   RefreshCw,
   Search,
   ShieldCheck,
   ShoppingCart,
-  UserRound,
   Wrench,
   type LucideIcon,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -78,92 +74,83 @@ type CalendarResponse = {
   };
 };
 
-const SOURCE_META: Record<CalendarSource, { label: string; icon: LucideIcon }> = {
-  maintenance: { label: 'Mantenimiento', icon: Wrench },
-  compliance: { label: 'Cumplimiento', icon: ShieldCheck },
-  procurement: { label: 'Abastecimiento', icon: ShoppingCart },
-};
+const DAY_WIDTH = 58;
+const LABEL_WIDTH = 300;
 
-const PRIORITY_CLASSES: Record<CalendarPriority, string> = {
-  critical: 'border-destructive/40 bg-destructive/10 text-destructive',
-  high: 'border-destructive/30 bg-destructive/5 text-destructive',
-  medium: 'border-border bg-muted text-foreground',
-  low: 'border-border bg-background text-muted-foreground',
+const SOURCE_META: Record<CalendarSource, { label: string; icon: LucideIcon; bar: string }> = {
+  maintenance: {
+    label: 'Mantenimiento',
+    icon: Wrench,
+    bar: 'border-orange-500/50 bg-orange-500/15 text-orange-100',
+  },
+  compliance: {
+    label: 'Cumplimiento',
+    icon: ShieldCheck,
+    bar: 'border-cyan-500/50 bg-cyan-500/15 text-cyan-100',
+  },
+  procurement: {
+    label: 'Abastecimiento',
+    icon: ShoppingCart,
+    bar: 'border-violet-500/50 bg-violet-500/15 text-violet-100',
+  },
 };
 
 const fetcher = async (url: string): Promise<CalendarResponse> => {
-  const response = await fetch(url, {
-    credentials: 'include',
-    cache: 'no-store',
-  });
+  const response = await fetch(url, { credentials: 'include', cache: 'no-store' });
   const payload = await response.json().catch(() => null);
-  if (!response.ok) {
-    throw new Error(payload?.error || 'No se pudo cargar el calendario operativo');
-  }
+  if (!response.ok) throw new Error(payload?.error || 'No se pudo cargar el calendario operativo');
   return payload as CalendarResponse;
 };
 
-function capitalize(value: string) {
-  return value ? value.charAt(0).toUpperCase() + value.slice(1) : value;
+function toDateKey(date: Date) {
+  return date.toISOString().slice(0, 10);
 }
 
-function formatDateHeading(value: string, today: string) {
-  if (value === today) return 'Hoy';
-  const date = new Date(`${value}T12:00:00`);
-  return capitalize(date.toLocaleDateString('es-CL', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
+function addDays(dateKey: string, amount: number) {
+  const date = new Date(`${dateKey}T12:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + amount);
+  return toDateKey(date);
+}
+
+function diffDays(from: string, to: string) {
+  const a = new Date(`${from}T12:00:00Z`).getTime();
+  const b = new Date(`${to}T12:00:00Z`).getTime();
+  return Math.round((b - a) / 86_400_000);
+}
+
+function buildDates(start: string, end: string) {
+  const total = Math.max(0, diffDays(start, end));
+  return Array.from({ length: total + 1 }, (_, index) => addDays(start, index));
+}
+
+function formatMonth(dateKey: string) {
+  return new Date(`${dateKey}T12:00:00`).toLocaleDateString('es-CL', {
+    month: 'short',
     year: 'numeric',
-  }));
+  });
 }
 
-function formatCompactDate(value: string) {
-  return new Date(`${value}T12:00:00`).toLocaleDateString('es-CL', {
+function formatCompletion(value: string) {
+  return new Date(`${value.slice(0, 10)}T12:00:00`).toLocaleDateString('es-CL', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
   });
 }
 
-function relativeDateLabel(item: OperationalCalendarItem) {
-  if (item.historical) {
-    return item.completed_at
-      ? `Completada el ${formatCompactDate(item.completed_at)}`
-      : 'Registro histórico';
-  }
-  if (item.days_until < -1) return `Vencido hace ${Math.abs(item.days_until)} días`;
-  if (item.days_until === -1) return 'Vencido ayer';
-  if (item.days_until === 0) return 'Hoy';
-  if (item.days_until === 1) return 'Mañana';
-  return `En ${item.days_until} días`;
-}
-
-function statusClass(item: OperationalCalendarItem) {
-  if (item.historical) {
-    return 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300';
-  }
-  if (['in_progress', 'partially_received'].includes(item.status.toLowerCase())) {
-    return 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300';
-  }
-  return 'border-border bg-background text-muted-foreground';
-}
-
 export default function CalendarioPage() {
-  const [days, setDays] = useState('60');
-  const [scope, setScope] = useState<CalendarScope>('active');
+  const [scope, setScope] = useState<CalendarScope>('all');
   const [source, setSource] = useState<'all' | CalendarSource>('all');
   const [search, setSearch] = useState('');
+  const timelineRef = useRef<HTMLDivElement>(null);
 
-  const { data, error, isLoading, mutate, isValidating } = useSWR<CalendarResponse>(
-    `/api/calendar/operational?days=${days}&scope=${scope}`,
+  const { data, error, isLoading, isValidating, mutate } = useSWR<CalendarResponse>(
+    `/api/calendar/operational?days=120&scope=${scope}`,
     fetcher,
-    {
-      revalidateOnFocus: false,
-      refreshInterval: 60_000,
-    },
+    { revalidateOnFocus: false, refreshInterval: 60_000 },
   );
 
+  const today = data?.range.today || toDateKey(new Date());
   const items = data?.data || [];
   const summary = data?.summary || {
     overdue: 0,
@@ -179,185 +166,208 @@ export default function CalendarioPage() {
     return items.filter((item) => {
       if (source !== 'all' && item.source !== source) return false;
       if (!term) return true;
-      return [item.title, item.subtitle, item.reference, item.owner, item.location, item.kind]
+      return [item.title, item.reference, item.owner, item.kind, item.location]
         .some((value) => value?.toLocaleLowerCase('es-CL').includes(term));
     });
   }, [items, search, source]);
 
-  const groups = useMemo(() => {
-    const map = new Map<string, OperationalCalendarItem[]>();
-    filteredItems.forEach((item) => {
-      map.set(item.date, [...(map.get(item.date) || []), item]);
-    });
-    return Array.from(map.entries());
-  }, [filteredItems]);
+  const range = useMemo(() => {
+    const historicalStart = filteredItems
+      .filter((item) => item.historical)
+      .map((item) => item.date)
+      .sort()[0];
+    const activeEnd = filteredItems
+      .filter((item) => !item.historical)
+      .map((item) => item.date)
+      .sort()
+      .at(-1);
 
-  const metrics = scope === 'historical'
-    ? [
-        { label: 'Históricos', value: summary.historical, description: 'Últimos 12 meses', icon: History, className: 'text-foreground' },
-        { label: 'Mantenimiento', value: summary.by_source.maintenance, description: 'OT y mantenimiento', icon: Wrench, className: 'text-foreground' },
-        { label: 'Cumplimiento', value: summary.by_source.compliance, description: 'HSE y obligaciones', icon: ShieldCheck, className: 'text-foreground' },
-        { label: 'Abastecimiento', value: summary.by_source.procurement, description: 'Compras y recepciones', icon: ShoppingCart, className: 'text-foreground' },
-      ]
-    : [
-        { label: 'Vencidos', value: summary.overdue, description: 'Requieren revisión', icon: AlertTriangle, className: summary.overdue ? 'text-destructive' : 'text-muted-foreground' },
-        { label: 'Hoy', value: summary.today, description: 'Acciones del día', icon: CalendarDays, className: 'text-foreground' },
-        { label: 'Próximos 7 días', value: summary.next_7_days, description: 'Carga inmediata', icon: Clock3, className: 'text-foreground' },
-        { label: scope === 'all' ? 'En calendario' : 'En agenda', value: summary.total, description: scope === 'all' ? `${summary.historical} históricos` : `Horizonte de ${days} días`, icon: ListChecks, className: 'text-foreground' },
-      ];
+    return {
+      start: scope === 'active' ? addDays(today, -30) : historicalStart || addDays(today, -365),
+      end: scope === 'historical' ? today : activeEnd || addDays(today, 120),
+    };
+  }, [filteredItems, scope, today]);
+
+  const dates = useMemo(() => buildDates(range.start, range.end), [range.end, range.start]);
+  const todayIndex = Math.max(0, dates.indexOf(today));
+  const totalWidth = LABEL_WIDTH + dates.length * DAY_WIDTH;
+
+  const scrollToToday = () => {
+    const container = timelineRef.current;
+    if (!container) return;
+    container.scrollTo({ left: Math.max(0, LABEL_WIDTH + todayIndex * DAY_WIDTH - 300), behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    if (!isLoading && dates.length) {
+      const timer = window.setTimeout(scrollToToday, 80);
+      return () => window.clearTimeout(timer);
+    }
+    return undefined;
+  }, [isLoading, scope, dates.length]);
+
+  const shiftTimeline = (days: number) => {
+    timelineRef.current?.scrollBy({ left: days * DAY_WIDTH, behavior: 'smooth' });
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Calendario operativo</h1>
-          <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-            Agenda activa e historial de mantenimiento, cumplimiento y abastecimiento. Las modificaciones se realizan en el módulo de origen.
+          <h1 className="text-2xl font-semibold tracking-tight">Calendario operativo continuo</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Línea de tiempo horizontal de OT, cumplimiento y abastecimiento. Desplázate libremente entre históricos y fechas futuras.
           </p>
         </div>
-        <Button variant="outline" onClick={() => void mutate()} disabled={isValidating}>
-          <RefreshCw className={`mr-2 h-4 w-4 ${isValidating ? 'animate-spin' : ''}`} />
-          Actualizar
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" onClick={() => shiftTimeline(-14)}>
+            <ChevronLeft className="mr-1 h-4 w-4" /> 2 semanas
+          </Button>
+          <Button variant="outline" size="sm" onClick={scrollToToday}>
+            <CalendarDays className="mr-1 h-4 w-4" /> Hoy
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => shiftTimeline(14)}>
+            2 semanas <ChevronRight className="ml-1 h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => void mutate()} disabled={isValidating}>
+            <RefreshCw className={`mr-1 h-4 w-4 ${isValidating ? 'animate-spin' : ''}`} /> Actualizar
+          </Button>
+        </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {metrics.map((metric) => {
-          const Icon = metric.icon;
-          return (
-            <Card key={metric.label} className="shadow-none">
-              <CardContent className="flex items-start justify-between p-5">
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{metric.label}</p>
-                  <p className={`mt-2 text-3xl font-semibold ${metric.className}`}>{metric.value}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{metric.description}</p>
-                </div>
-                <Icon className={`h-5 w-5 ${metric.className}`} />
-              </CardContent>
-            </Card>
-          );
-        })}
+      <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_170px_210px]">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar OT, evento, responsable o referencia" className="pl-9" />
+        </div>
+        <Select value={scope} onValueChange={(value) => setScope(value as CalendarScope)}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="active">Pendientes</SelectItem>
+            <SelectItem value="historical">Históricos</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={source} onValueChange={(value) => setSource(value as 'all' | CalendarSource)}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas las áreas</SelectItem>
+            <SelectItem value="maintenance">Mantenimiento ({summary.by_source.maintenance})</SelectItem>
+            <SelectItem value="compliance">Cumplimiento ({summary.by_source.compliance})</SelectItem>
+            <SelectItem value="procurement">Abastecimiento ({summary.by_source.procurement})</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
-      <Card className="shadow-none">
-        <CardContent className="grid gap-3 p-4 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_190px_210px_180px]">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar evento, responsable o referencia" className="pl-9" />
-          </div>
-          <Select value={scope} onValueChange={(value) => setScope(value as CalendarScope)}>
-            <SelectTrigger><SelectValue placeholder="Vista" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="active">Pendientes</SelectItem>
-              <SelectItem value="historical">Históricos</SelectItem>
-              <SelectItem value="all">Todos</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={source} onValueChange={(value) => setSource(value as 'all' | CalendarSource)}>
-            <SelectTrigger><SelectValue placeholder="Todas las áreas" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas las áreas</SelectItem>
-              <SelectItem value="maintenance">Mantenimiento ({summary.by_source.maintenance})</SelectItem>
-              <SelectItem value="compliance">Cumplimiento ({summary.by_source.compliance})</SelectItem>
-              <SelectItem value="procurement">Abastecimiento ({summary.by_source.procurement})</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={days} onValueChange={setDays} disabled={scope === 'historical'}>
-            <SelectTrigger><SelectValue placeholder="Horizonte" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="30">Próximos 30 días</SelectItem>
-              <SelectItem value="60">Próximos 60 días</SelectItem>
-              <SelectItem value="90">Próximos 90 días</SelectItem>
-            </SelectContent>
-          </Select>
-        </CardContent>
-      </Card>
+      <div className="flex flex-wrap gap-2 text-xs">
+        <Badge variant="outline">{summary.total} registros</Badge>
+        <Badge variant="outline" className="border-destructive/40 text-destructive">{summary.overdue} vencidos</Badge>
+        <Badge variant="outline" className="border-emerald-500/40 text-emerald-500"><History className="mr-1 h-3 w-3" />{summary.historical} históricos</Badge>
+        <Badge variant="outline">{summary.today} hoy</Badge>
+      </div>
 
       {data?.warnings?.length ? (
-        <div className="flex gap-3 rounded-md border border-amber-500/30 bg-amber-500/10 p-4 text-sm">
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700 dark:text-amber-300" />
-          <div><p className="font-medium">La agenda se cargó parcialmente.</p><p className="mt-1 text-muted-foreground">{data.warnings.join(' ')}</p></div>
+        <div className="flex gap-3 rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-sm">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+          <span>{data.warnings.join(' ')}</span>
         </div>
-      ) : null}
-
-      {isLoading ? (
-        <Card className="shadow-none"><CardContent className="space-y-4 p-5">{[0, 1, 2, 3].map((item) => <div key={item} className="h-20 animate-pulse rounded-md bg-muted" />)}</CardContent></Card>
       ) : null}
 
       {error ? (
-        <Card className="border-destructive/40 shadow-none">
-          <CardContent className="flex flex-col items-center gap-3 p-8 text-center">
-            <AlertTriangle className="h-6 w-6 text-destructive" />
-            <div><p className="font-medium">No fue posible cargar el calendario.</p><p className="mt-1 text-sm text-muted-foreground">{error.message}</p></div>
-            <Button variant="outline" onClick={() => void mutate()}>Reintentar</Button>
-          </CardContent>
-        </Card>
+        <Card className="border-destructive/40"><CardContent className="p-6 text-sm text-destructive">{error.message}</CardContent></Card>
       ) : null}
 
-      {!isLoading && !error && groups.length === 0 ? (
-        <Card className="shadow-none">
-          <CardContent className="flex flex-col items-center gap-3 p-10 text-center">
-            <CheckCircle2 className="h-7 w-7 text-muted-foreground" />
-            <div><p className="font-medium">No hay fechas para mostrar.</p><p className="mt-1 text-sm text-muted-foreground">Ajusta la vista, los filtros o el horizonte.</p></div>
-          </CardContent>
-        </Card>
-      ) : null}
-
-      {!isLoading && !error ? (
-        <div className="space-y-7">
-          {groups.map(([date, dateItems]) => (
-            <section key={date} className="space-y-3">
-              <div className="flex items-center gap-2">
-                <h2 className="text-sm font-semibold">{formatDateHeading(date, data?.range.today || '')}</h2>
-                <Badge variant="secondary">{dateItems.length}</Badge>
-              </div>
-              <Card className="overflow-hidden shadow-none">
-                <div className="divide-y">
-                  {dateItems.map((item) => {
-                    const SourceIcon = SOURCE_META[item.source].icon;
-                    return (
-                      <div key={item.id} className={`grid gap-4 p-4 md:grid-cols-[44px_minmax(0,1fr)_auto] md:items-center ${item.historical ? 'bg-muted/30' : ''}`}>
-                        <div className="flex h-11 w-11 items-center justify-center rounded-md bg-muted">
-                          <SourceIcon className="h-5 w-5 text-muted-foreground" />
-                        </div>
-                        <div className="min-w-0">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <Badge variant="outline">{SOURCE_META[item.source].label}</Badge>
-                            <Badge variant="outline">{item.kind}</Badge>
-                            <Badge variant="outline" className={PRIORITY_CLASSES[item.priority]}>{item.priority_label}</Badge>
-                            <Badge variant="outline" className={statusClass(item)}>{item.status_label}</Badge>
-                            {item.historical ? <Badge variant="secondary">Histórico</Badge> : null}
-                          </div>
-                          <h3 className="mt-2 font-medium leading-6">{item.title}</h3>
-                          {item.subtitle ? <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{item.subtitle}</p> : null}
-                          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                            {item.reference ? <span>{item.reference}</span> : null}
-                            {item.owner ? <span className="inline-flex items-center gap-1"><UserRound className="h-3.5 w-3.5" />{item.owner}</span> : null}
-                            {item.location ? <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{item.location}</span> : null}
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between gap-4 md:flex-col md:items-end">
-                          <p className={`text-xs font-medium ${item.overdue ? 'text-destructive' : 'text-muted-foreground'}`}>{relativeDateLabel(item)}</p>
-                          <Button asChild variant="outline" size="sm">
-                            <Link href={item.href}>Abrir<ArrowRight className="ml-2 h-4 w-4" /></Link>
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })}
+      <Card className="overflow-hidden shadow-none">
+        <div ref={timelineRef} className="max-h-[68vh] overflow-auto bg-card">
+          <div className="relative" style={{ width: totalWidth, minWidth: '100%' }}>
+            <div className="sticky top-0 z-30 flex h-20 border-b bg-card/95 backdrop-blur">
+              <div className="sticky left-0 z-40 flex shrink-0 items-end border-r bg-card px-4 pb-3" style={{ width: LABEL_WIDTH }}>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Actividad</p>
+                  <p className="mt-1 text-sm font-semibold">{filteredItems.length} filas visibles</p>
                 </div>
-              </Card>
-            </section>
-          ))}
-        </div>
-      ) : null}
+              </div>
+              <div className="relative flex" style={{ width: dates.length * DAY_WIDTH }}>
+                {dates.map((dateKey, index) => {
+                  const date = new Date(`${dateKey}T12:00:00`);
+                  const isToday = dateKey === today;
+                  const isWeekend = [0, 6].includes(date.getDay());
+                  const monthStart = index === 0 || dateKey.slice(0, 7) !== dates[index - 1].slice(0, 7);
+                  return (
+                    <div key={dateKey} className={`relative shrink-0 border-r px-1 pb-2 pt-2 text-center ${isWeekend ? 'bg-muted/30' : ''} ${isToday ? 'bg-orange-500/10' : ''}`} style={{ width: DAY_WIDTH }}>
+                      {monthStart ? <span className="absolute left-1 top-1 whitespace-nowrap text-[10px] font-semibold uppercase text-muted-foreground">{formatMonth(dateKey)}</span> : null}
+                      <div className="mt-5 text-[10px] uppercase text-muted-foreground">{date.toLocaleDateString('es-CL', { weekday: 'short' }).slice(0, 2)}</div>
+                      <div className={`text-sm font-semibold ${isToday ? 'text-orange-500' : ''}`}>{date.getDate()}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
 
-      <Card className="border-dashed shadow-none">
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Agenda e historial en una sola vista</CardTitle></CardHeader>
-        <CardContent className="text-sm text-muted-foreground">
-          “Pendientes” concentra el trabajo activo. “Históricos” permite revisar OT y procesos terminados durante los últimos 12 meses. La edición continúa en cada módulo de origen.
-        </CardContent>
+            {isLoading ? (
+              <div className="space-y-1 p-3">{Array.from({ length: 8 }).map((_, index) => <div key={index} className="h-16 animate-pulse rounded bg-muted" />)}</div>
+            ) : null}
+
+            {!isLoading && filteredItems.length === 0 ? (
+              <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">No hay registros para los filtros seleccionados.</div>
+            ) : null}
+
+            {!isLoading ? filteredItems.map((item) => {
+              const SourceIcon = SOURCE_META[item.source].icon;
+              const startIndex = Math.max(0, diffDays(range.start, item.date));
+              const completionKey = item.completed_at?.slice(0, 10);
+              const duration = item.historical && completionKey
+                ? Math.max(1, diffDays(item.date, completionKey) + 1)
+                : 1;
+              const width = Math.max(DAY_WIDTH - 8, duration * DAY_WIDTH - 8);
+              const left = LABEL_WIDTH + startIndex * DAY_WIDTH + 4;
+              const historicalClass = item.historical ? 'opacity-75 saturate-50' : '';
+
+              return (
+                <div key={item.id} className="relative h-[72px] border-b" style={{ width: totalWidth }}>
+                  <div className="absolute inset-y-0 flex" style={{ left: LABEL_WIDTH, width: dates.length * DAY_WIDTH }}>
+                    {dates.map((dateKey) => {
+                      const date = new Date(`${dateKey}T12:00:00`);
+                      const isWeekend = [0, 6].includes(date.getDay());
+                      const isToday = dateKey === today;
+                      return <div key={dateKey} className={`h-full shrink-0 border-r ${isWeekend ? 'bg-muted/20' : ''} ${isToday ? 'bg-orange-500/5' : ''}`} style={{ width: DAY_WIDTH }} />;
+                    })}
+                  </div>
+
+                  <div className="sticky left-0 z-20 flex h-full items-center gap-3 border-r bg-card px-4" style={{ width: LABEL_WIDTH }}>
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted"><SourceIcon className="h-4 w-4 text-muted-foreground" /></div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="truncate text-sm font-medium">{item.title}</p>
+                        {item.historical ? <History className="h-3.5 w-3.5 shrink-0 text-emerald-500" /> : null}
+                      </div>
+                      <p className="truncate text-xs text-muted-foreground">{item.reference || item.kind}{item.owner ? ` · ${item.owner}` : ''}</p>
+                    </div>
+                  </div>
+
+                  <Link
+                    href={item.href}
+                    title={`${item.title} · ${item.status_label}`}
+                    className={`absolute top-3 z-10 flex h-11 items-center overflow-hidden rounded-md border px-3 text-xs shadow-sm transition hover:brightness-125 ${SOURCE_META[item.source].bar} ${historicalClass}`}
+                    style={{ left, width }}
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold">{item.reference || item.kind}</p>
+                      <p className="truncate opacity-80">{item.historical && completionKey ? `Completada ${formatCompletion(completionKey)}` : item.status_label}</p>
+                    </div>
+                  </Link>
+                </div>
+              );
+            }) : null}
+
+            <div className="pointer-events-none absolute bottom-0 top-0 z-10 border-l-2 border-orange-500/70" style={{ left: LABEL_WIDTH + todayIndex * DAY_WIDTH + DAY_WIDTH / 2 }} />
+          </div>
+        </div>
       </Card>
+
+      <p className="text-xs text-muted-foreground">
+        Calendario continuo de solo lectura. Cada barra abre el registro original; las modificaciones siguen realizándose en su módulo responsable.
+      </p>
     </div>
   );
 }
