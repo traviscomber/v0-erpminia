@@ -79,7 +79,7 @@ type OverviewResponse = {
 const fetcher = async <T,>(url: string): Promise<T> => {
   const response = await fetch(url, { credentials: 'include', cache: 'no-store' });
   const payload = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(payload?.error || 'No fue posible cargar la fuente');
+  if (!response.ok) throw new Error(payload?.error || 'No fue posible cargar la información');
   return payload as T;
 };
 
@@ -115,19 +115,19 @@ export default function DailyManagementPage() {
   }).length;
   const lowStock = (inventory.data?.categories || []).reduce((sum, category) => sum + Number(category.low_stock || 0), 0);
   const alertStats = alerts.data?.stats || { total: 0, unread: 0, critical: 0, actionRequired: 0 };
-  const hse = overview.data?.overview || { compliance_score: 0, open_ncs: 0, overdue_cas: 0 };
+  const safety = overview.data?.overview || { compliance_score: 0, open_ncs: 0, overdue_cas: 0 };
   const todayItems = commitments.filter((item) => item.days_until === 0 || item.overdue).slice(0, 8);
 
   const indicators = [
     {
       label: 'Producción',
       value: latestProduction ? `${Math.round(latestProduction.production_tons || 0)} ton` : 'Sin registro',
-      detail: latestProduction ? `${Number(latestProduction.equipment_uptime || 0).toFixed(1)}% disponibilidad` : 'Fuente sin datos',
+      detail: latestProduction ? `${Number(latestProduction.equipment_uptime || 0).toFixed(1)}% de disponibilidad` : 'Sin información',
       icon: Factory,
       href: '/dashboard/produccion',
     },
     {
-      label: 'OT críticas',
+      label: 'Órdenes críticas',
       value: criticalOrders,
       detail: 'Abiertas con prioridad alta',
       icon: Wrench,
@@ -143,7 +143,7 @@ export default function DailyManagementPage() {
     {
       label: 'Stock crítico',
       value: lowStock,
-      detail: 'Ítems bajo mínimo',
+      detail: 'Artículos bajo el mínimo',
       icon: Boxes,
       href: '/dashboard/bodega',
     },
@@ -155,9 +155,9 @@ export default function DailyManagementPage() {
       href: '/dashboard/tareas',
     },
     {
-      label: 'Cumplimiento HSE',
-      value: `${Number(hse.compliance_score || 0).toFixed(0)}%`,
-      detail: `${hse.open_ncs} NC abiertas · ${hse.overdue_cas} acciones vencidas`,
+      label: 'Cumplimiento de seguridad',
+      value: `${Number(safety.compliance_score || 0).toFixed(0)}%`,
+      detail: `${safety.open_ncs} hallazgos abiertos · ${safety.overdue_cas} acciones vencidas`,
       icon: ShieldAlert,
       href: '/dashboard/sostenibilidad',
     },
@@ -167,14 +167,16 @@ export default function DailyManagementPage() {
     <div className="space-y-6">
       <PageHeader>
         <PageHeaderContent>
-          <PageHeaderEyebrow>Lean · Gestión diaria</PageHeaderEyebrow>
-          <PageHeaderTitle>Daily Management</PageHeaderTitle>
+          <PageHeaderEyebrow>Control y mejora</PageHeaderEyebrow>
+          <PageHeaderTitle>Revisión diaria</PageHeaderTitle>
           <PageHeaderDescription>
-            Desviaciones, compromisos y estado operacional del día, reunidos desde las fuentes canónicas de Motil.
+            Problemas, compromisos y estado de la operación reunidos para comenzar el día con responsables y próximos pasos claros.
           </PageHeaderDescription>
         </PageHeaderContent>
         <PageHeaderActions>
-          <Badge variant={partial ? 'destructive' : 'outline'}>{partial ? 'Datos parciales' : loading ? 'Sincronizando' : 'Actualizado'}</Badge>
+          <Badge variant={partial ? 'destructive' : 'outline'}>
+            {partial ? 'Información parcial' : loading ? 'Actualizando' : 'Información al día'}
+          </Badge>
           <Button variant="outline" onClick={refresh} disabled={loading}>
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             Actualizar
@@ -185,8 +187,8 @@ export default function DailyManagementPage() {
       {partial ? (
         <StatePanel
           tone="warning"
-          title="Una o más fuentes no respondieron"
-          description="La información disponible sigue visible. Ningún dato fue reemplazado ni estimado."
+          title="Parte de la información no está disponible"
+          description="Se mantiene visible todo lo que pudo comprobarse. No se completaron valores mediante estimaciones."
           className="min-h-0 py-5"
         />
       ) : null}
@@ -211,7 +213,7 @@ export default function DailyManagementPage() {
           <CardHeader className="flex flex-row items-start justify-between gap-4">
             <div>
               <CardTitle>Compromisos del día</CardTitle>
-              <CardDescription>Vencidos y programados para hoy, ordenados desde el calendario operacional.</CardDescription>
+              <CardDescription>Vencidos y programados para hoy, ordenados por urgencia.</CardDescription>
             </div>
             <Button asChild variant="ghost" size="sm"><Link href="/dashboard/tareas">Ver todos</Link></Button>
           </CardHeader>
@@ -219,7 +221,13 @@ export default function DailyManagementPage() {
             {loading ? (
               <StatePanel tone="loading" title="Cargando compromisos" className="min-h-52 border-0 bg-transparent" />
             ) : todayItems.length === 0 ? (
-              <StatePanel tone="success" icon={CheckCircle2} title="Sin compromisos vencidos o para hoy" description="La operación no registra pendientes inmediatos en las fuentes conectadas." className="min-h-52 border-0 bg-transparent" />
+              <StatePanel
+                tone="success"
+                icon={CheckCircle2}
+                title="Sin compromisos vencidos o para hoy"
+                description="La operación no registra pendientes inmediatos."
+                className="min-h-52 border-0 bg-transparent"
+              />
             ) : (
               <div className="divide-y divide-border/70">
                 {todayItems.map((item) => (
@@ -243,15 +251,15 @@ export default function DailyManagementPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Reunión diaria</CardTitle>
-            <CardDescription>Secuencia recomendada para una revisión breve y accionable.</CardDescription>
+            <CardTitle>Orden de la reunión</CardTitle>
+            <CardDescription>Una revisión breve que debe terminar con acciones asignadas.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-1">
             {[
-              ['1', 'Seguridad', 'Incidentes, NC y acciones vencidas'],
-              ['2', 'Producción', 'Resultado y disponibilidad del último registro'],
-              ['3', 'Mantenimiento', 'OT críticas y equipos con atención prioritaria'],
-              ['4', 'Abastecimiento', 'Stock bajo mínimo y bloqueos de suministro'],
+              ['1', 'Seguridad', 'Incidentes, hallazgos y acciones vencidas'],
+              ['2', 'Producción', 'Resultado y disponibilidad más recientes'],
+              ['3', 'Mantenimiento', 'Órdenes críticas y equipos prioritarios'],
+              ['4', 'Abastecimiento', 'Stock bajo y esperas de materiales'],
               ['5', 'Compromisos', 'Vencidos, responsables y próximos pasos'],
             ].map(([number, title, description]) => (
               <div key={number} className="flex gap-3 border-b border-border/60 py-3 last:border-0">
@@ -270,11 +278,13 @@ export default function DailyManagementPage() {
         <div className="flex items-start gap-3">
           <CalendarDays className="mt-0.5 h-4 w-4 text-primary" />
           <div>
-            <p className="text-sm font-medium">Planificación visual</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">Revisa la carga semanal y mensual en el calendario operacional.</p>
+            <p className="text-sm font-medium">Calendario de compromisos</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">Revisa la carga de la semana y del mes.</p>
           </div>
         </div>
-        <Button asChild variant="outline" size="sm"><Link href="/dashboard/sostenibilidad/calendario">Abrir calendario<ArrowRight className="h-4 w-4" /></Link></Button>
+        <Button asChild variant="outline" size="sm">
+          <Link href="/dashboard/sostenibilidad/calendario">Abrir calendario<ArrowRight className="h-4 w-4" /></Link>
+        </Button>
       </div>
     </div>
   );

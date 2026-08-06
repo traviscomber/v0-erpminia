@@ -28,8 +28,13 @@ const routeLabels: Record<string, string> = {
   dashboard: 'Inicio',
   alertas: 'Alertas',
   tareas: 'Acciones pendientes',
+  lean: 'Centro de gestión',
+  'daily-management': 'Revisión diaria',
+  andon: 'Alertas operacionales',
+  kanban: 'Flujo de trabajo',
+  kaizen: 'Mejoras y seguimiento',
   produccion: 'Producción',
-  telemetria: 'Telemetría',
+  telemetria: 'Monitoreo de equipos',
   'centros-costos': 'Centros de costos',
   mantenimiento: 'Mantenimiento',
   'ordenes-trabajo': 'Órdenes de trabajo',
@@ -55,10 +60,10 @@ const routeLabels: Record<string, string> = {
   finanzas: 'Finanzas',
   proveedores: 'Proveedores',
   reportes: 'Reportes',
-  sostenibilidad: 'Sostenibilidad y HSE',
+  sostenibilidad: 'Seguridad y sostenibilidad',
   'prevencion-riesgos': 'Prevención de riesgos',
   capacitaciones: 'Capacitaciones',
-  epp: 'EPP',
+  epp: 'Equipos de protección',
   inspecciones: 'Inspecciones',
   'carpeta-arranque': 'Carpeta de arranque',
   calendario: 'Calendario',
@@ -74,11 +79,31 @@ const routeLabels: Record<string, string> = {
   guias: 'Ayuda',
 };
 
+const roleLabels: Record<string, string> = {
+  superadmin: 'Administrador general',
+  admin: 'Administrador',
+  manager: 'Gerencia',
+  supervisor: 'Supervisor',
+  viewer: 'Consulta',
+  jefe_mantencion: 'Jefatura de mantenimiento',
+  'Operaciones-Supervisor': 'Supervisión de operaciones',
+  'Finanzas-Supervisor': 'Supervisión de finanzas',
+  'Bodega-Supervisor': 'Supervisión de bodega',
+  'Compras-Supervisor': 'Supervisión de compras',
+  'Sostenibilidad-Supervisor': 'Supervisión de sostenibilidad',
+  'HSE-Supervisor': 'Supervisión de seguridad',
+};
+
 const technicalSegmentPattern = /^(?:[0-9a-f]{8}-[0-9a-f-]{27,}|\d{5,}|[0-9a-f]{20,})$/i;
 
 function formatSegment(segment: string) {
   if (technicalSegmentPattern.test(segment)) return 'Detalle';
   return routeLabels[segment] || segment.replaceAll('-', ' ').replace(/^./, (letter) => letter.toUpperCase());
+}
+
+function formatRole(role: string | null | undefined) {
+  if (!role) return 'Sin rol asignado';
+  return roleLabels[role] || role.replaceAll('-', ' ').replaceAll('_', ' ');
 }
 
 type HeaderProps = {
@@ -108,6 +133,7 @@ export function Header({ sidebarCollapsed = false, onToggleSidebar }: HeaderProp
         ]
       : allBreadcrumbs;
   const sidebarAction = sidebarCollapsed ? 'Mostrar menú' : 'Ocultar menú';
+  const roleLabel = formatRole(role);
 
   return (
     <header className="sticky top-0 z-30 w-full border-b border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/88">
@@ -161,21 +187,21 @@ export function Header({ sidebarCollapsed = false, onToggleSidebar }: HeaderProp
                 <div className="flex h-7 w-7 items-center justify-center rounded-full bg-sidebar-primary">
                   <User className="h-3.5 w-3.5 text-sidebar-primary-foreground" />
                 </div>
-                <div className="hidden max-w-36 text-left lg:block">
+                <div className="hidden max-w-40 text-left lg:block">
                   <p className="truncate text-xs font-medium">{user?.name || user?.email || 'Usuario'}</p>
-                  <p className="truncate text-[11px] capitalize text-muted-foreground">{role || 'Sin rol'}</p>
+                  <p className="truncate text-[11px] text-muted-foreground">{roleLabel}</p>
                 </div>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-56">
+            <DropdownMenuContent align="end" className="min-w-64">
               <div className="px-2 py-1.5 lg:hidden">
                 <p className="truncate text-sm font-medium">{user?.name || user?.email || 'Usuario'}</p>
-                <p className="truncate text-xs capitalize text-muted-foreground">{role || 'Sin rol'}</p>
+                <p className="truncate text-xs text-muted-foreground">{roleLabel}</p>
               </div>
               <DropdownMenuSeparator className="lg:hidden" />
               {canAdminister ? (
                 <DropdownMenuItem asChild className="cursor-pointer gap-2">
-                  <Link href="/dashboard/admin"><Settings className="h-4 w-4" />Centro de administración</Link>
+                  <Link href="/dashboard/admin"><Settings className="h-4 w-4" />Administración</Link>
                 </DropdownMenuItem>
               ) : null}
               {canAdminister ? <DropdownMenuSeparator /> : null}

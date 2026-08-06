@@ -3,10 +3,17 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 
-type KanbanColumn = 'backlog' | 'ready' | 'in_progress' | 'waiting_material' | 'waiting_approval' | 'validation' | 'completed';
+type WorkColumn =
+  | 'backlog'
+  | 'ready'
+  | 'in_progress'
+  | 'waiting_material'
+  | 'waiting_approval'
+  | 'validation'
+  | 'completed';
 type SourceType = 'maintenance' | 'compliance' | 'procurement';
 
-type KanbanCard = {
+type WorkCard = {
   id: string;
   source: SourceType;
   sourceLabel: string;
@@ -16,7 +23,7 @@ type KanbanCard = {
   subtitle: string | null;
   owner: string | null;
   priority: string;
-  column: KanbanColumn;
+  column: WorkColumn;
   updatedAt: string;
   ageHours: number;
   dueDate: string | null;
@@ -24,7 +31,7 @@ type KanbanCard = {
   movable: boolean;
 };
 
-const WIP_LIMITS: Record<KanbanColumn, number | null> = {
+const WORK_LIMITS: Record<WorkColumn, number | null> = {
   backlog: null,
   ready: 12,
   in_progress: 10,
@@ -32,6 +39,11 @@ const WIP_LIMITS: Record<KanbanColumn, number | null> = {
   waiting_approval: 8,
   validation: 6,
   completed: null,
+};
+
+const movableColumns: Record<'maintenance' | 'compliance', WorkColumn[]> = {
+  maintenance: ['backlog', 'ready', 'in_progress', 'validation', 'completed'],
+  compliance: ['ready', 'in_progress', 'completed'],
 };
 
 function hoursSince(value: string | null | undefined) {
@@ -48,7 +60,7 @@ function normalizePriority(value: unknown) {
   return 'medium';
 }
 
-function maintenanceColumn(status: string | null | undefined, waitingMaterial: boolean): KanbanColumn {
+function maintenanceColumn(status: string | null | undefined, waitingMaterial: boolean): WorkColumn {
   if (waitingMaterial) return 'waiting_material';
   const normalized = String(status || '').toLowerCase();
   if (['completed', 'closed', 'completada', 'cerrada'].includes(normalized)) return 'completed';
@@ -58,14 +70,14 @@ function maintenanceColumn(status: string | null | undefined, waitingMaterial: b
   return 'backlog';
 }
 
-function complianceColumn(status: string | null | undefined): KanbanColumn {
+function complianceColumn(status: string | null | undefined): WorkColumn {
   const normalized = String(status || '').toLowerCase();
   if (['completed', 'cancelled', 'cerrada'].includes(normalized)) return 'completed';
   if (['in_progress', 'en_progreso'].includes(normalized)) return 'in_progress';
   return 'ready';
 }
 
-function procurementColumn(status: string | null | undefined): KanbanColumn {
+function procurementColumn(status: string | null | undefined): WorkColumn {
   const normalized = String(status || '').toLowerCase();
   if (['received', 'closed', 'completed'].includes(normalized)) return 'completed';
   if (['issued', 'ordered', 'partially_received'].includes(normalized)) return 'waiting_material';
@@ -74,12 +86,31 @@ function procurementColumn(status: string | null | undefined): KanbanColumn {
   return 'ready';
 }
 
+function maintenanceStatus(column: WorkColumn) {
+  if (column === 'in_progress') return 'in_progress';
+  if (column === 'completed') return 'completed';
+  if (column === 'validation') return 'pending_validation';
+  if (column === 'ready') return 'scheduled';
+  return 'open';
+}
+
+function complianceStatus(column: WorkColumn) {
+  if (column === 'in_progress') return 'in_progress';
+  if (column === 'completed') return 'completed';
+  return 'pending';
+}
+
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
 
   try {
-    const [{ data: workOrders, error: woError }, { data: materialNeeds, error: materialError }, { data: compliance, error: complianceError }, { data: procurement, error: procurementError }] = await Promise.all([
+    const [
+      { data: workOrders, error: workOrderError },
+      { data: materialNeeds, error: materialError },
+      { data: compliance, error: complianceError },
+      { data: procurement, error: procurementError },
+    ] = await Promise.all([
       context.supabase
         .from('maintenance_work_orders')
         .select('id, work_order_number, title, description, status, priority, scheduled_date, assigned_to_name, created_at, updated_at, asset:maintenance_assets(asset_name)')
@@ -106,8 +137,9 @@ export async function GET(request: NextRequest) {
         .limit(120),
     ]);
 
-    if (woError) throw woError;
-    if (materialError) throw materialError;
+    if (workOrderError || materialError) {
+      return NextResponse.json({ error: 'No fue posible cargar el trabajo de mantenimiento.' }, { status: 500 });
+    }
 
     const waitingMaterial = new Set(
       (materialNeeds || [])
@@ -115,14 +147,14 @@ export async function GET(request: NextRequest) {
         .map((item) => item.work_order_id),
     );
 
-    const cards: KanbanCard[] = (workOrders || []).map((row) => {
+    const cards: WorkCard[] = (workOrders || []).map((row) => {
       const asset = Array.isArray(row.asset) ? row.asset[0] : row.asset;
       return {
         id: `maintenance:${row.id}`,
         source: 'maintenance',
         sourceLabel: 'Mantenimiento',
         sourceId: row.id,
-        reference: row.work_order_number || 'OT sin número',
+        reference: row.work_order_number || 'Orden sin número',
         title: row.title,
         subtitle: asset?.asset_name || row.description || null,
         owner: row.assigned_to_name || null,
@@ -141,7 +173,7 @@ export async function GET(request: NextRequest) {
         cards.push({
           id: `compliance:${row.id}`,
           source: 'compliance',
-          sourceLabel: 'HSE',
+          sourceLabel: 'Seguridad',
           sourceId: row.id,
           reference: 'Compromiso',
           title: row.title,
@@ -180,14 +212,22 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const counts = cards.reduce<Record<KanbanColumn, number>>((acc, card) => {
-      acc[card.column] += 1;
-      return acc;
-    }, { backlog: 0, ready: 0, in_progress: 0, waiting_material: 0, waiting_approval: 0, validation: 0, completed: 0 });
+    const counts = cards.reduce<Record<WorkColumn, number>>((accumulator, card) => {
+      accumulator[card.column] += 1;
+      return accumulator;
+    }, {
+      backlog: 0,
+      ready: 0,
+      in_progress: 0,
+      waiting_material: 0,
+      waiting_approval: 0,
+      validation: 0,
+      completed: 0,
+    });
 
     return NextResponse.json({
       data: cards,
-      columns: WIP_LIMITS,
+      columns: WORK_LIMITS,
       counts,
       summary: {
         total: cards.length,
@@ -195,26 +235,14 @@ export async function GET(request: NextRequest) {
         blocked: cards.filter((card) => ['waiting_material', 'waiting_approval'].includes(card.column)).length,
         overdue: cards.filter((card) => card.dueDate && new Date(card.dueDate).getTime() < Date.now() && card.column !== 'completed').length,
       },
-      warnings: [complianceError ? 'No se pudo cargar cumplimiento.' : null, procurementError ? 'No se pudo cargar abastecimiento.' : null].filter(Boolean),
+      warnings: [
+        complianceError ? 'No se pudo cargar el trabajo de seguridad.' : null,
+        procurementError ? 'No se pudo cargar el trabajo de abastecimiento.' : null,
+      ].filter(Boolean),
     });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'No se pudo cargar el Kanban';
-    return NextResponse.json({ error: message }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: 'No fue posible cargar el flujo de trabajo.' }, { status: 500 });
   }
-}
-
-function maintenanceStatus(column: KanbanColumn) {
-  if (column === 'in_progress') return 'in_progress';
-  if (column === 'completed') return 'completed';
-  if (column === 'validation') return 'pending_validation';
-  if (column === 'ready') return 'scheduled';
-  return 'open';
-}
-
-function complianceStatus(column: KanbanColumn) {
-  if (column === 'in_progress') return 'in_progress';
-  if (column === 'completed') return 'completed';
-  return 'pending';
 }
 
 export async function PATCH(request: NextRequest) {
@@ -225,11 +253,18 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json();
     const source = body.source as SourceType;
     const sourceId = String(body.sourceId || '');
-    const column = body.column as KanbanColumn;
-    const allowedColumns: KanbanColumn[] = ['backlog', 'ready', 'in_progress', 'validation', 'completed'];
+    const column = body.column as WorkColumn;
 
-    if (!sourceId || !allowedColumns.includes(column)) {
-      return NextResponse.json({ error: 'Movimiento Kanban inválido' }, { status: 400 });
+    if (!sourceId || !['maintenance', 'compliance', 'procurement'].includes(source)) {
+      return NextResponse.json({ error: 'Selecciona un trabajo válido.' }, { status: 400 });
+    }
+
+    if (source === 'procurement') {
+      return NextResponse.json({ error: 'Este trabajo debe actualizarse desde Compras.' }, { status: 409 });
+    }
+
+    if (!movableColumns[source].includes(column)) {
+      return NextResponse.json({ error: 'Ese cambio no está disponible para este trabajo.' }, { status: 400 });
     }
 
     if (source === 'maintenance') {
@@ -239,16 +274,24 @@ export async function PATCH(request: NextRequest) {
         .eq('id', sourceId)
         .eq('organization_id', context.organizationId)
         .single();
-      if (currentError) throw currentError;
+
+      if (currentError || !current) {
+        return NextResponse.json({ error: 'La orden ya no está disponible.' }, { status: 404 });
+      }
 
       const newStatus = maintenanceStatus(column);
       const now = new Date().toISOString();
       const payload: Record<string, unknown> = { status: newStatus, updated_at: now };
+
       if (column === 'in_progress' && !current.start_date) payload.start_date = now;
       if (column === 'completed') {
         payload.completion_date = now;
         payload.closed_at = now;
         payload.closed_by = context.userId;
+      } else if (['completed', 'closed', 'completada', 'cerrada'].includes(String(current.status || '').toLowerCase())) {
+        payload.completion_date = null;
+        payload.closed_at = null;
+        payload.closed_by = null;
       }
 
       const { error } = await context.supabase
@@ -256,37 +299,45 @@ export async function PATCH(request: NextRequest) {
         .update(payload)
         .eq('id', sourceId)
         .eq('organization_id', context.organizationId);
-      if (error) throw error;
+
+      if (error) return NextResponse.json({ error: 'No fue posible actualizar la orden.' }, { status: 500 });
 
       await context.supabase.from('work_order_events').insert({
         organization_id: context.organizationId,
         work_order_id: sourceId,
         canonical_asset_id: current.canonical_asset_id,
-        event_type: 'kanban_status_changed',
+        event_type: 'work_status_changed',
         actor_id: context.userId,
         actor_name: context.userName,
         source_table: 'maintenance_work_orders',
         source_record_id: sourceId,
-        summary: `Kanban: ${current.status || 'sin estado'} → ${newStatus}`,
+        summary: `Flujo de trabajo: ${current.status || 'sin estado'} → ${newStatus}`,
         payload: { previous_status: current.status, new_status: newStatus, column },
       });
 
       return NextResponse.json({ success: true });
     }
 
-    if (source === 'compliance') {
-      const { error } = await context.supabase
-        .from('compliance_events')
-        .update({ status: complianceStatus(column), updated_at: new Date().toISOString() })
-        .eq('id', sourceId)
-        .eq('org_id', context.organizationId);
-      if (error) throw error;
-      return NextResponse.json({ success: true });
+    const { data: current, error: currentError } = await context.supabase
+      .from('compliance_events')
+      .select('status')
+      .eq('id', sourceId)
+      .eq('org_id', context.organizationId)
+      .single();
+
+    if (currentError || !current) {
+      return NextResponse.json({ error: 'El compromiso ya no está disponible.' }, { status: 404 });
     }
 
-    return NextResponse.json({ error: 'Esta fuente es de solo lectura en Kanban' }, { status: 409 });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'No se pudo mover la tarjeta';
-    return NextResponse.json({ error: message }, { status: 500 });
+    const { error } = await context.supabase
+      .from('compliance_events')
+      .update({ status: complianceStatus(column), updated_at: new Date().toISOString() })
+      .eq('id', sourceId)
+      .eq('org_id', context.organizationId);
+
+    if (error) return NextResponse.json({ error: 'No fue posible actualizar el compromiso.' }, { status: 500 });
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json({ error: 'No fue posible actualizar el trabajo.' }, { status: 500 });
   }
 }
