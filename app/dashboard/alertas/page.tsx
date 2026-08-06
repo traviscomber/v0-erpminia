@@ -1,13 +1,20 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import useSWR from 'swr';
-import { AlertCircle, AlertTriangle, CheckCircle2, Clock, Info, RefreshCw } from 'lucide-react';
+import { AlertCircle, AlertTriangle, Clock, Info, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FilterToolbar, FilterToolbarActions, FilterToolbarGroup } from '@/components/ui/filter-toolbar';
-import { PageHeader, PageHeaderActions, PageHeaderContent, PageHeaderDescription, PageHeaderEyebrow, PageHeaderTitle } from '@/components/ui/page-header';
+import {
+  PageHeader,
+  PageHeaderActions,
+  PageHeaderContent,
+  PageHeaderDescription,
+  PageHeaderEyebrow,
+  PageHeaderTitle,
+} from '@/components/ui/page-header';
 import { StatePanel } from '@/components/ui/state-panel';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -54,22 +61,27 @@ function typeLabel(type: AlertType) {
 
 function formatTime(timestamp: string) {
   const date = new Date(timestamp);
-  return Number.isNaN(date.getTime()) ? 'Sin fecha' : date.toLocaleString('es-CL', { dateStyle: 'medium', timeStyle: 'short' });
+  return Number.isNaN(date.getTime())
+    ? 'Sin fecha'
+    : date.toLocaleString('es-CL', { dateStyle: 'medium', timeStyle: 'short' });
 }
 
 export default function AlertasPage() {
   const [filter, setFilter] = useState<'todos' | 'no-leidas' | 'criticas' | 'accion'>('todos');
-  const [alerts, setAlerts] = useState<Alert[]>([]);
-  const { data, error, isLoading, isValidating, mutate } = useSWR<AlertResponse>('/api/alertas', fetcher, { revalidateOnFocus: false });
+  const { data, error, isLoading, isValidating, mutate } = useSWR<AlertResponse>('/api/alertas', fetcher, {
+    revalidateOnFocus: false,
+  });
 
-  useEffect(() => setAlerts(data?.alerts ?? []), [data]);
-
-  const filteredAlerts = useMemo(() => alerts.filter((alert) => {
-    if (filter === 'no-leidas') return !alert.read;
-    if (filter === 'criticas') return alert.severity === 'critica';
-    if (filter === 'accion') return alert.actionRequired;
-    return true;
-  }), [alerts, filter]);
+  const alerts = data?.alerts ?? [];
+  const filteredAlerts = useMemo(
+    () => alerts.filter((alert) => {
+      if (filter === 'no-leidas') return !alert.read;
+      if (filter === 'criticas') return alert.severity === 'critica';
+      if (filter === 'accion') return alert.actionRequired;
+      return true;
+    }),
+    [alerts, filter],
+  );
 
   const unreadCount = alerts.filter((alert) => !alert.read).length;
   const criticalCount = alerts.filter((alert) => alert.severity === 'critica').length;
@@ -124,8 +136,17 @@ export default function AlertasPage() {
       </FilterToolbar>
 
       {isLoading ? <StatePanel tone="loading" title="Cargando alertas" description="Consultando las fuentes operacionales." /> : null}
-      {error ? <StatePanel tone="error" title="No fue posible cargar las alertas" description={error.message} actions={<Button variant="outline" onClick={() => void mutate()}>Reintentar</Button>} /> : null}
-      {!isLoading && !error && filteredAlerts.length === 0 ? <StatePanel tone="neutral" title="No hay alertas para este filtro" description="No existen registros que coincidan con la vista seleccionada." /> : null}
+      {error ? (
+        <StatePanel
+          tone="error"
+          title="No fue posible cargar las alertas"
+          description={error.message}
+          actions={<Button variant="outline" onClick={() => void mutate()}>Reintentar</Button>}
+        />
+      ) : null}
+      {!isLoading && !error && filteredAlerts.length === 0 ? (
+        <StatePanel tone="neutral" title="No hay alertas para este filtro" description="No existen registros que coincidan con la vista seleccionada." />
+      ) : null}
 
       {!isLoading && !error && filteredAlerts.length > 0 ? (
         <div className="overflow-hidden rounded-lg border border-border bg-card">
@@ -153,15 +174,7 @@ export default function AlertasPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-                    {!alert.read ? (
-                      <Button size="sm" variant="outline" onClick={() => setAlerts((current) => current.map((item) => item.id === alert.id ? { ...item, read: true } : item))}>
-                        <CheckCircle2 className="h-4 w-4" />Marcar leída
-                      </Button>
-                    ) : null}
-                    <Button size="sm" asChild><Link href={alert.actionUrl}>Abrir</Link></Button>
-                    <Button size="sm" variant="ghost" onClick={() => setAlerts((current) => current.filter((item) => item.id !== alert.id))}>Ocultar</Button>
-                  </div>
+                  <Button size="sm" asChild><Link href={alert.actionUrl}>Abrir fuente</Link></Button>
                 </article>
               );
             })}
