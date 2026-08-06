@@ -4,13 +4,22 @@ import { useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import useSWR from 'swr';
-import { ArrowLeft, Wrench } from 'lucide-react';
+import { ArrowLeft, LoaderCircle, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  PageHeader,
+  PageHeaderActions,
+  PageHeaderContent,
+  PageHeaderDescription,
+  PageHeaderEyebrow,
+  PageHeaderTitle,
+} from '@/components/ui/page-header';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { StatePanel } from '@/components/ui/state-panel';
 import { Textarea } from '@/components/ui/textarea';
 
 type Asset = {
@@ -25,8 +34,15 @@ type Asset = {
 const fetcher = async (url: string) => {
   const response = await fetch(url, { credentials: 'include' });
   const payload = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(payload?.error || 'No se pudieron cargar los activos');
+  if (!response.ok) throw new Error(payload?.error || 'No fue posible cargar los equipos.');
   return payload;
+};
+
+const assetStatusLabels: Record<string, string> = {
+  active: 'Disponible',
+  operational: 'Operativo',
+  maintenance: 'En mantenimiento',
+  inactive: 'Fuera de servicio',
 };
 
 export default function CreateWorkOrderPage() {
@@ -45,13 +61,26 @@ export default function CreateWorkOrderPage() {
   const [meterUnit, setMeterUnit] = useState('hours');
   const [submitting, setSubmitting] = useState(false);
 
-  const { data, error, isLoading } = useSWR('/api/maintenance/equipment', fetcher, { revalidateOnFocus: false });
+  const { data, error, isLoading, mutate } = useSWR('/api/maintenance/equipment', fetcher, { revalidateOnFocus: false });
   const assets = useMemo(() => (Array.isArray(data?.equipment) ? (data.equipment as Asset[]) : []), [data]);
   const selectedAsset = assets.find((asset) => asset.id === canonicalAssetId) || null;
 
+  const validate = () => {
+    if (!canonicalAssetId) return 'Selecciona el equipo que requiere el trabajo.';
+    if (!title.trim()) return 'Describe brevemente el trabajo a realizar.';
+    if (!scheduledDate) return 'Selecciona una fecha programada.';
+    if (plannedHours && (!Number.isFinite(Number(plannedHours)) || Number(plannedHours) < 0)) {
+      return 'Las horas planificadas deben ser un valor igual o mayor que cero.';
+    }
+    if (meterReading && (!Number.isFinite(Number(meterReading)) || Number(meterReading) < 0)) {
+      return 'La lectura inicial debe ser un valor igual o mayor que cero.';
+    }
+    return null;
+  };
+
   const submit = async () => {
-    if (!canonicalAssetId) return toast.error('Selecciona un activo');
-    if (!title.trim()) return toast.error('Ingresa el trabajo a realizar');
+    const validationError = validate();
+    if (validationError) return toast.error(validationError);
 
     setSubmitting(true);
     try {
@@ -65,7 +94,7 @@ export default function CreateWorkOrderPage() {
           description: description.trim() || null,
           workType,
           priority,
-          scheduledDate: scheduledDate || null,
+          scheduledDate,
           plannedDurationHours: plannedHours ? Number(plannedHours) : 0,
           assignedToName: assignedToName.trim() || null,
           meterReading: meterReading ? Number(meterReading) : null,
@@ -73,11 +102,11 @@ export default function CreateWorkOrderPage() {
         }),
       });
       const payload = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(payload?.error || 'No se pudo crear la OT');
+      if (!response.ok) throw new Error(payload?.error || 'No fue posible crear la orden.');
       toast.success('Orden de trabajo creada');
       router.push(`/dashboard/mantenimiento/ordenes-trabajo/${payload.data.id}`);
     } catch (submitError) {
-      toast.error(submitError instanceof Error ? submitError.message : 'No se pudo crear la OT');
+      toast.error(submitError instanceof Error ? submitError.message : 'No fue posible crear la orden.');
     } finally {
       setSubmitting(false);
     }
@@ -85,43 +114,93 @@ export default function CreateWorkOrderPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      <section className="flex flex-col gap-4 border-b border-border/70 pb-6 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-sm font-medium text-muted-foreground">Mantenimiento · Flujo central</p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Nueva orden de trabajo</h1>
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">La OT quedará vinculada al activo, sus repuestos, costos, mano de obra y trazabilidad.</p>
-        </div>
-        <Button asChild variant="outline"><Link href="/dashboard/mantenimiento/ordenes-trabajo"><ArrowLeft className="mr-2 h-4 w-4" />Volver</Link></Button>
-      </section>
+      <PageHeader>
+        <PageHeaderContent>
+          <PageHeaderEyebrow>Mantenimiento</PageHeaderEyebrow>
+          <PageHeaderTitle>Crear orden de trabajo</PageHeaderTitle>
+          <PageHeaderDescription>
+            Registra el equipo, el trabajo requerido y la planificación inicial. Los repuestos, horas y costos se agregan durante la ejecución.
+          </PageHeaderDescription>
+        </PageHeaderContent>
+        <PageHeaderActions>
+          <Button asChild variant="outline">
+            <Link href="/dashboard/mantenimiento/ordenes-trabajo"><ArrowLeft className="h-4 w-4" />Volver</Link>
+          </Button>
+        </PageHeaderActions>
+      </PageHeader>
 
-      <Card className="shadow-none">
+      {error ? (
+        <StatePanel
+          tone="error"
+          title="No fue posible cargar los equipos"
+          description={error.message}
+          actions={<Button variant="outline" onClick={() => void mutate()}>Reintentar</Button>}
+          className="min-h-0 py-5"
+        />
+      ) : null}
+
+      <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2"><Wrench className="h-5 w-5" />Datos de la intervención</CardTitle>
-          <CardDescription>Una OT siempre debe pertenecer a un activo canónico.</CardDescription>
+          <CardTitle className="text-base">1. Equipo y trabajo</CardTitle>
+          <CardDescription>Los campos marcados son necesarios para crear la orden.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-5 md:grid-cols-2">
           <div className="space-y-2 md:col-span-2">
-            <Label>Activo</Label>
-            <Select value={canonicalAssetId} onValueChange={setCanonicalAssetId} disabled={isLoading}>
-              <SelectTrigger><SelectValue placeholder={isLoading ? 'Cargando activos...' : 'Seleccionar activo'} /></SelectTrigger>
+            <Label htmlFor="asset">Equipo *</Label>
+            <Select value={canonicalAssetId} onValueChange={setCanonicalAssetId} disabled={isLoading || Boolean(error)}>
+              <SelectTrigger id="asset"><SelectValue placeholder={isLoading ? 'Cargando equipos…' : 'Seleccionar equipo'} /></SelectTrigger>
               <SelectContent>{assets.map((asset) => <SelectItem key={asset.id} value={asset.id}>{asset.code} · {asset.name}</SelectItem>)}</SelectContent>
             </Select>
-            {selectedAsset ? <p className="text-xs text-muted-foreground">{selectedAsset.type}{selectedAsset.model ? ` · ${selectedAsset.model}` : ''} · {selectedAsset.status}</p> : null}
-            {error ? <p className="text-sm text-destructive">No se pudieron cargar los activos.</p> : null}
+            {selectedAsset ? (
+              <p className="text-xs text-muted-foreground">
+                {selectedAsset.type}{selectedAsset.model ? ` · ${selectedAsset.model}` : ''} · {assetStatusLabels[selectedAsset.status] || selectedAsset.status}
+              </p>
+            ) : null}
           </div>
 
-          <div className="space-y-2 md:col-span-2"><Label>Trabajo a realizar</Label><Input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Ej. Cambio de filtros y revisión del sistema hidráulico" /></div>
-          <div className="space-y-2 md:col-span-2"><Label>Descripción y alcance</Label><Textarea value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Diagnóstico inicial, condiciones observadas y alcance esperado" rows={4} /></div>
-          <div className="space-y-2"><Label>Tipo</Label><Select value={workType} onValueChange={setWorkType}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="corrective">Correctiva</SelectItem><SelectItem value="preventive">Preventiva</SelectItem><SelectItem value="predictive">Predictiva</SelectItem><SelectItem value="inspection">Inspección</SelectItem></SelectContent></Select></div>
-          <div className="space-y-2"><Label>Prioridad</Label><Select value={priority} onValueChange={setPriority}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="low">Baja</SelectItem><SelectItem value="medium">Media</SelectItem><SelectItem value="high">Alta</SelectItem><SelectItem value="critical">Crítica</SelectItem></SelectContent></Select></div>
-          <div className="space-y-2"><Label>Fecha programada</Label><Input type="date" value={scheduledDate} onChange={(event) => setScheduledDate(event.target.value)} /></div>
-          <div className="space-y-2"><Label>Horas planificadas</Label><Input type="number" min="0" step="0.5" value={plannedHours} onChange={(event) => setPlannedHours(event.target.value)} placeholder="0" /></div>
-          <div className="space-y-2"><Label>Responsable</Label><Input value={assignedToName} onChange={(event) => setAssignedToName(event.target.value)} placeholder="Nombre del técnico o cuadrilla" /></div>
-          <div className="grid grid-cols-[1fr_130px] gap-2"><div className="space-y-2"><Label>Lectura inicial</Label><Input type="number" min="0" step="0.1" value={meterReading} onChange={(event) => setMeterReading(event.target.value)} placeholder="Opcional" /></div><div className="space-y-2"><Label>Unidad</Label><Select value={meterUnit} onValueChange={setMeterUnit}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="hours">Horas</SelectItem><SelectItem value="km">Kilómetros</SelectItem><SelectItem value="cycles">Ciclos</SelectItem></SelectContent></Select></div></div>
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="work-title">Trabajo a realizar *</Label>
+            <Input id="work-title" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Ej. Cambiar filtros y revisar sistema hidráulico" maxLength={160} />
+            <p className="text-xs text-muted-foreground">Usa una descripción breve que permita identificar la orden rápidamente.</p>
+          </div>
+
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="description">Descripción y alcance</Label>
+            <Textarea id="description" value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Condición observada, diagnóstico inicial y alcance esperado" rows={4} />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Tipo de trabajo *</Label>
+            <Select value={workType} onValueChange={setWorkType}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="corrective">Correctivo</SelectItem><SelectItem value="preventive">Preventivo</SelectItem><SelectItem value="predictive">Predictivo</SelectItem><SelectItem value="inspection">Inspección</SelectItem></SelectContent></Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Prioridad *</Label>
+            <Select value={priority} onValueChange={setPriority}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="low">Baja</SelectItem><SelectItem value="medium">Media</SelectItem><SelectItem value="high">Alta</SelectItem><SelectItem value="critical">Crítica</SelectItem></SelectContent></Select>
+          </div>
         </CardContent>
       </Card>
 
-      <div className="flex justify-end"><Button onClick={submit} disabled={submitting || isLoading || !canonicalAssetId}>{submitting ? 'Creando OT...' : 'Crear orden de trabajo'}</Button></div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">2. Planificación inicial</CardTitle>
+          <CardDescription>La asignación y las estimaciones pueden ajustarse después.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-5 md:grid-cols-2">
+          <div className="space-y-2"><Label htmlFor="scheduled-date">Fecha programada *</Label><Input id="scheduled-date" type="date" value={scheduledDate} onChange={(event) => setScheduledDate(event.target.value)} /></div>
+          <div className="space-y-2"><Label htmlFor="planned-hours">Horas estimadas</Label><Input id="planned-hours" type="number" min="0" step="0.5" value={plannedHours} onChange={(event) => setPlannedHours(event.target.value)} placeholder="Ej. 4" /></div>
+          <div className="space-y-2 md:col-span-2"><Label htmlFor="assigned-to">Responsable o cuadrilla</Label><Input id="assigned-to" value={assignedToName} onChange={(event) => setAssignedToName(event.target.value)} placeholder="Puede asignarse después" /></div>
+          <div className="space-y-2"><Label htmlFor="meter-reading">Lectura inicial</Label><Input id="meter-reading" type="number" min="0" step="0.1" value={meterReading} onChange={(event) => setMeterReading(event.target.value)} placeholder="Opcional" /></div>
+          <div className="space-y-2"><Label>Unidad de lectura</Label><Select value={meterUnit} onValueChange={setMeterUnit} disabled={!meterReading}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="hours">Horas</SelectItem><SelectItem value="km">Kilómetros</SelectItem><SelectItem value="cycles">Ciclos</SelectItem></SelectContent></Select></div>
+        </CardContent>
+      </Card>
+
+      <div className="flex flex-col-reverse gap-2 border-t pt-5 sm:flex-row sm:justify-end">
+        <Button asChild variant="outline"><Link href="/dashboard/mantenimiento/ordenes-trabajo">Cancelar</Link></Button>
+        <Button onClick={submit} disabled={submitting || isLoading || Boolean(error)}>
+          {submitting ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+          {submitting ? 'Creando orden…' : 'Crear orden'}
+        </Button>
+      </div>
     </div>
   );
 }
