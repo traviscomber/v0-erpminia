@@ -8,6 +8,7 @@ type AssetRow = { id?: string | number; name?: string | null; status?: string | 
 type WorkOrderRow = { id?: string | number; title?: string | null; work_order_number?: string | null; status?: string | null; priority?: string | null; scheduled_date?: string | null; created_at?: string | null; asset_id?: string | null };
 type DocumentRow = { id?: string | number; title?: string | null; days_until_expiry?: number | null };
 type StockRow = { id?: string | number; part_name?: string | null; part_code?: string | null; quantity_on_hand?: number | string | null; reorder_level?: number | string | null };
+type DecisionLevel = 'critical' | 'high' | 'medium' | 'low';
 
 function normalized(value: unknown) {
   return String(value || '').trim().toLowerCase();
@@ -24,6 +25,13 @@ function priorityWeight(value: unknown) {
   if (priority === 'high') return 25;
   if (priority === 'medium') return 12;
   return 5;
+}
+
+function levelWeight(level: DecisionLevel) {
+  if (level === 'critical') return 4;
+  if (level === 'high') return 3;
+  if (level === 'medium') return 2;
+  return 1;
 }
 
 export async function GET(request: NextRequest) {
@@ -72,7 +80,7 @@ export async function GET(request: NextRequest) {
       }
 
       score = Math.min(100, score);
-      const level = score >= 70 ? 'critical' : score >= 40 ? 'high' : score >= 20 ? 'medium' : 'low';
+      const level: DecisionLevel = score >= 70 ? 'critical' : score >= 40 ? 'high' : score >= 20 ? 'medium' : 'low';
       const action = overdue.length > 0
         ? 'Reprogramar o resolver las órdenes atrasadas'
         : open.length > 0
@@ -88,7 +96,7 @@ export async function GET(request: NextRequest) {
       id: doc.id,
       title: doc.title || 'Documento',
       days: numberValue(doc.days_until_expiry),
-      level: numberValue(doc.days_until_expiry) <= 7 ? 'critical' : 'medium',
+      level: (numberValue(doc.days_until_expiry) <= 7 ? 'critical' : 'medium') as DecisionLevel,
       action: 'Renovar o validar vigencia',
     }));
 
@@ -97,7 +105,7 @@ export async function GET(request: NextRequest) {
       title: item.part_name || item.part_code || 'Repuesto',
       quantity: numberValue(item.quantity_on_hand),
       reorderLevel: numberValue(item.reorder_level),
-      level: numberValue(item.quantity_on_hand) <= 0 ? 'critical' : 'high',
+      level: (numberValue(item.quantity_on_hand) <= 0 ? 'critical' : 'high') as DecisionLevel,
       action: 'Revisar reposición y órdenes relacionadas',
     }));
 
@@ -105,7 +113,7 @@ export async function GET(request: NextRequest) {
       ...healthItems.filter((item) => item.level !== 'low').map((item) => ({ type: 'equipment', id: item.id, title: item.name, detail: item.reasons.join(' · '), level: item.level, action: item.action })),
       ...documents.map((item) => ({ type: 'document', id: item.id, title: item.title, detail: `Vence en ${item.days} día(s)`, level: item.level, action: item.action })),
       ...stock.map((item) => ({ type: 'stock', id: item.id, title: item.title, detail: `Disponible ${item.quantity}; mínimo ${item.reorderLevel}`, level: item.level, action: item.action })),
-    ].sort((a, b) => ({ critical: 4, high: 3, medium: 2, low: 1 }[b.level] - ({ critical: 4, high: 3, medium: 2, low: 1 }[a.level]))).slice(0, 30);
+    ].sort((a, b) => levelWeight(b.level) - levelWeight(a.level)).slice(0, 30);
 
     return NextResponse.json({
       summary: {
