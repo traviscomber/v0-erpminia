@@ -29,6 +29,7 @@ import {
 
 const destinations = [
   { group: 'General', label: 'Inicio', keywords: 'dashboard resumen ejecutivo', href: '/dashboard', icon: Home },
+  { group: 'General', label: 'Daily Management', keywords: 'lean reunion diaria gemba control operacional', href: '/dashboard/daily-management', icon: CalendarDays },
   { group: 'General', label: 'Alertas', keywords: 'riesgos prioridades avisos', href: '/dashboard/alertas', icon: Bell },
   { group: 'General', label: 'Acciones pendientes', keywords: 'tareas pendientes acciones compromisos', href: '/dashboard/tareas', icon: ClipboardList },
   { group: 'General', label: 'Centros de costos', keywords: 'costos estructura imputacion', href: '/dashboard/centros-costos', icon: Building2 },
