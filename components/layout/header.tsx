@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import {
   Bell,
   ChevronRight,
+  ClipboardList,
   Ellipsis,
   LogOut,
   PanelLeftClose,
@@ -20,11 +21,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { GlobalSearch } from '@/components/layout/global-search';
 import { useAuth } from '@/hooks/use-auth';
 
 const routeLabels: Record<string, string> = {
   dashboard: 'Inicio',
   alertas: 'Alertas',
+  tareas: 'Tasks',
   produccion: 'Producción',
   telemetria: 'Telemetría',
   'centros-costos': 'Centros de costos',
@@ -120,11 +123,7 @@ export function Header({ sidebarCollapsed = false, onToggleSidebar }: HeaderProp
               title={sidebarAction}
               className="hidden shrink-0 gap-2 text-muted-foreground hover:text-foreground lg:inline-flex"
             >
-              {sidebarCollapsed ? (
-                <PanelLeftOpen className="h-4 w-4" />
-              ) : (
-                <PanelLeftClose className="h-4 w-4" />
-              )}
+              {sidebarCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
               <span className="hidden 2xl:inline">{sidebarAction}</span>
             </Button>
           ) : null}
@@ -138,13 +137,9 @@ export function Header({ sidebarCollapsed = false, onToggleSidebar }: HeaderProp
                     <Ellipsis className="h-3.5 w-3.5" aria-hidden="true" />
                   </span>
                 ) : item.current ? (
-                  <span className="truncate font-medium text-foreground" aria-current="page">
-                    {item.label}
-                  </span>
+                  <span className="truncate font-medium text-foreground" aria-current="page">{item.label}</span>
                 ) : (
-                  <Link href={item.href} className="truncate transition-colors hover:text-foreground">
-                    {item.label}
-                  </Link>
+                  <Link href={item.href} className="truncate transition-colors hover:text-foreground">{item.label}</Link>
                 )}
               </div>
             ))}
@@ -152,10 +147,12 @@ export function Header({ sidebarCollapsed = false, onToggleSidebar }: HeaderProp
         </div>
 
         <div className="flex shrink-0 items-center gap-1">
+          <GlobalSearch />
+          <Button asChild variant="ghost" size="icon-sm" aria-label="Ver tasks">
+            <Link href="/dashboard/tareas"><ClipboardList className="h-4 w-4" /></Link>
+          </Button>
           <Button asChild variant="ghost" size="icon-sm" aria-label="Ver alertas">
-            <Link href="/dashboard/alertas">
-              <Bell className="h-4 w-4" />
-            </Link>
+            <Link href="/dashboard/alertas"><Bell className="h-4 w-4" /></Link>
           </Button>
 
           <DropdownMenu>
@@ -178,19 +175,12 @@ export function Header({ sidebarCollapsed = false, onToggleSidebar }: HeaderProp
               <DropdownMenuSeparator className="lg:hidden" />
               {canAdminister ? (
                 <DropdownMenuItem asChild className="cursor-pointer gap-2">
-                  <Link href="/dashboard/admin">
-                    <Settings className="h-4 w-4" />
-                    Centro de administración
-                  </Link>
+                  <Link href="/dashboard/admin"><Settings className="h-4 w-4" />Centro de administración</Link>
                 </DropdownMenuItem>
               ) : null}
               {canAdminister ? <DropdownMenuSeparator /> : null}
-              <DropdownMenuItem
-                className="cursor-pointer gap-2 text-destructive focus:bg-destructive/10 focus:text-destructive"
-                onClick={logout}
-              >
-                <LogOut className="h-4 w-4" />
-                Cerrar sesión
+              <DropdownMenuItem className="cursor-pointer gap-2 text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={logout}>
+                <LogOut className="h-4 w-4" />Cerrar sesión
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
