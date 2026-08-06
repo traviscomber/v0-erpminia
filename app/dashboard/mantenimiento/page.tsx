@@ -2,16 +2,25 @@
 
 import Link from 'next/link';
 import useSWR from 'swr';
-import { AlertTriangle, ArrowRight, ClipboardList, PackageCheck, ShoppingCart, Wrench } from 'lucide-react';
+import { ArrowRight, ClipboardList, PackageCheck, Plus, RefreshCw, ShoppingCart, Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  PageHeader,
+  PageHeaderActions,
+  PageHeaderContent,
+  PageHeaderDescription,
+  PageHeaderEyebrow,
+  PageHeaderTitle,
+} from '@/components/ui/page-header';
+import { StatePanel } from '@/components/ui/state-panel';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 const fetcher = async (url: string) => {
-  const response = await fetch(url, { credentials: 'include' });
+  const response = await fetch(url, { credentials: 'include', cache: 'no-store' });
   const payload = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(payload?.error || 'No se pudo cargar el flujo');
+  if (!response.ok) throw new Error(payload?.error || 'No fue posible cargar las órdenes de trabajo.');
   return payload;
 };
 
@@ -56,76 +65,165 @@ const labels: Record<string, string> = {
   in_progress: 'En ejecución',
   waiting_procurement: 'Esperando compra',
   waiting_parts: 'Esperando repuestos',
-  missing_asset: 'Sin activo',
+  missing_asset: 'Sin equipo',
   missing_person: 'Sin responsable',
   completed: 'Completada',
 };
 
-const money = (value: number) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(value || 0);
+const priorityLabels: Record<string, string> = {
+  critical: 'Crítica',
+  critica: 'Crítica',
+  high: 'Alta',
+  alta: 'Alta',
+  medium: 'Media',
+  media: 'Media',
+  low: 'Baja',
+  baja: 'Baja',
+};
+
+const money = (value: number) => new Intl.NumberFormat('es-CL', {
+  style: 'currency',
+  currency: 'CLP',
+  maximumFractionDigits: 0,
+}).format(value || 0);
 
 export default function MantenimientoPage() {
-  const { data, error, isLoading, mutate } = useSWR<FlowResponse>('/api/maintenance/work-order-flow?limit=200', fetcher);
+  const { data, error, isLoading, isValidating, mutate } = useSWR<FlowResponse>(
+    '/api/maintenance/work-order-flow?limit=200',
+    fetcher,
+    { revalidateOnFocus: false },
+  );
   const rows = data?.rows || [];
   const overview = data?.overview;
 
+  const metrics = [
+    { label: 'Órdenes activas', value: overview ? overview.total - overview.completed : '—', detail: 'Trabajo aún no completado' },
+    { label: 'Esperando abastecimiento', value: overview ? overview.waiting_procurement + overview.waiting_parts : '—', detail: 'Compras o repuestos pendientes' },
+    { label: 'Costo ejecutado', value: overview ? money(overview.totalCost) : '—', detail: 'Costo registrado en órdenes' },
+    { label: 'Compras comprometidas', value: overview ? money(overview.purchaseCommitment) : '—', detail: 'Órdenes de compra asociadas' },
+  ];
+
   return (
     <div className="space-y-6">
-      <section className="flex flex-col gap-4 border-b border-border/70 pb-6 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <p className="text-sm font-medium text-muted-foreground">Mantenimiento · Flujo operativo</p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Órdenes de trabajo</h1>
-          <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-            Una sola vista para activo, responsable, compras, recepción, repuestos, mano de obra, costos y cierre.
-          </p>
-        </div>
-        <Button asChild>
-          <Link href="/dashboard/mantenimiento/ordenes-trabajo/nueva">
-            Nueva OT <ArrowRight className="ml-2 h-4 w-4" />
-          </Link>
-        </Button>
+      <PageHeader>
+        <PageHeaderContent>
+          <PageHeaderEyebrow>Mantenimiento</PageHeaderEyebrow>
+          <PageHeaderTitle>Órdenes de trabajo</PageHeaderTitle>
+          <PageHeaderDescription>
+            Equipos, responsables, repuestos, compras, horas y costos reunidos en una sola vista de seguimiento.
+          </PageHeaderDescription>
+        </PageHeaderContent>
+        <PageHeaderActions>
+          <Button variant="outline" onClick={() => void mutate()} disabled={isValidating}>
+            <RefreshCw className={`h-4 w-4 ${isValidating ? 'animate-spin' : ''}`} />
+            Actualizar
+          </Button>
+          <Button asChild>
+            <Link href="/dashboard/mantenimiento/ordenes-trabajo/create">
+              <Plus className="h-4 w-4" />
+              Crear orden
+            </Link>
+          </Button>
+        </PageHeaderActions>
+      </PageHeader>
+
+      <section aria-label="Resumen de mantenimiento" className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 xl:grid-cols-4">
+        {metrics.map((metric) => (
+          <div key={metric.label} className="bg-card px-5 py-5">
+            <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">{metric.label}</p>
+            <p className="mt-4 text-2xl font-semibold tracking-[-0.03em]">{isLoading ? '—' : metric.value}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{metric.detail}</p>
+          </div>
+        ))}
       </section>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">OT activas</CardTitle></CardHeader><CardContent className="text-2xl font-semibold">{overview ? overview.total - overview.completed : '—'}</CardContent></Card>
-        <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Esperando abastecimiento</CardTitle></CardHeader><CardContent className="text-2xl font-semibold">{overview ? overview.waiting_procurement + overview.waiting_parts : '—'}</CardContent></Card>
-        <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Costo ejecutado</CardTitle></CardHeader><CardContent className="text-xl font-semibold">{overview ? money(overview.totalCost) : '—'}</CardContent></Card>
-        <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Compromisos de compra</CardTitle></CardHeader><CardContent className="text-xl font-semibold">{overview ? money(overview.purchaseCommitment) : '—'}</CardContent></Card>
-      </div>
-
-      {error && (
-        <div className="flex items-center justify-between rounded-lg border border-destructive/30 bg-destructive/5 p-4">
-          <div className="flex items-center gap-2 text-sm text-destructive"><AlertTriangle className="h-4 w-4" /> No se pudo cargar el flujo de OT.</div>
-          <Button variant="outline" size="sm" onClick={() => void mutate()}>Reintentar</Button>
-        </div>
-      )}
+      {error ? (
+        <StatePanel
+          tone="error"
+          title="No fue posible cargar las órdenes de trabajo"
+          description={error.message}
+          actions={<Button variant="outline" onClick={() => void mutate()}>Reintentar</Button>}
+          className="min-h-0 py-6"
+        />
+      ) : null}
 
       <Card>
-        <CardHeader><CardTitle className="text-base">Flujo central</CardTitle></CardHeader>
+        <CardHeader className="flex flex-row items-start justify-between gap-4">
+          <div>
+            <CardTitle className="text-base">Seguimiento de órdenes</CardTitle>
+            <CardDescription>Estado, abastecimiento, ejecución y costo de cada trabajo.</CardDescription>
+          </div>
+          {!isLoading && !error ? <Badge variant="outline">{rows.length} registros</Badge> : null}
+        </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="py-10 text-center text-sm text-muted-foreground">Cargando órdenes...</div>
-          ) : rows.length === 0 ? (
-            <div className="py-10 text-center text-sm text-muted-foreground">No hay órdenes de trabajo para mostrar.</div>
-          ) : (
+            <StatePanel tone="loading" title="Cargando órdenes" className="min-h-64 border-0 bg-transparent" />
+          ) : !error && rows.length === 0 ? (
+            <StatePanel
+              tone="empty"
+              title="No hay órdenes de trabajo"
+              description="Crea una orden cuando exista un trabajo que planificar o ejecutar."
+              actions={<Button asChild><Link href="/dashboard/mantenimiento/ordenes-trabajo/create"><Plus className="h-4 w-4" />Crear orden</Link></Button>}
+              className="min-h-64 border-0 bg-transparent"
+            />
+          ) : !error ? (
             <div className="overflow-x-auto">
               <Table>
-                <TableHeader><TableRow><TableHead>OT</TableHead><TableHead>Activo</TableHead><TableHead>Responsable</TableHead><TableHead>Flujo</TableHead><TableHead>Abastecimiento</TableHead><TableHead>Ejecución</TableHead><TableHead className="text-right">Costo</TableHead></TableRow></TableHeader>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Orden</TableHead>
+                    <TableHead>Equipo</TableHead>
+                    <TableHead>Responsable</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead>Abastecimiento</TableHead>
+                    <TableHead>Ejecución</TableHead>
+                    <TableHead className="text-right">Costo</TableHead>
+                    <TableHead className="w-20 text-right">Acción</TableHead>
+                  </TableRow>
+                </TableHeader>
                 <TableBody>
                   {rows.map((row) => (
-                    <TableRow key={row.work_order_id} className="cursor-pointer">
-                      <TableCell><Link className="font-medium hover:underline" href={`/dashboard/mantenimiento/ordenes-trabajo/${row.work_order_id}`}>{row.work_order_number}</Link><div className="mt-1 text-xs text-muted-foreground">{row.priority || 'Sin prioridad'}</div></TableCell>
-                      <TableCell><div className="font-medium">{row.asset_name || 'Activo pendiente'}</div><div className="text-xs text-muted-foreground">{row.asset_code || 'Sin código'}</div></TableCell>
+                    <TableRow key={row.work_order_id}>
+                      <TableCell>
+                        <p className="font-medium">{row.work_order_number}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {priorityLabels[String(row.priority || '').toLowerCase()] || 'Sin prioridad'}
+                        </p>
+                      </TableCell>
+                      <TableCell>
+                        <p className="font-medium">{row.asset_name || 'Equipo pendiente'}</p>
+                        <p className="text-xs text-muted-foreground">{row.asset_code || 'Sin código'}</p>
+                      </TableCell>
                       <TableCell>{row.assigned_person_name || 'Sin asignar'}</TableCell>
-                      <TableCell><Badge variant={row.flow_status === 'completed' ? 'secondary' : row.flow_status.startsWith('missing') ? 'destructive' : 'outline'}>{labels[row.flow_status] || row.flow_status}</Badge></TableCell>
-                      <TableCell><div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="inline-flex items-center gap-1"><ShoppingCart className="h-3.5 w-3.5" />{row.purchase_order_count}</span><span className="inline-flex items-center gap-1"><PackageCheck className="h-3.5 w-3.5" />{row.receipt_count}</span></div></TableCell>
-                      <TableCell><div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="inline-flex items-center gap-1"><Wrench className="h-3.5 w-3.5" />{row.quantity_installed}/{row.quantity_requested}</span><span className="inline-flex items-center gap-1"><ClipboardList className="h-3.5 w-3.5" />{Number(row.labor_hours || 0).toFixed(1)} h</span></div></TableCell>
+                      <TableCell>
+                        <Badge variant={row.flow_status === 'completed' ? 'secondary' : row.flow_status.startsWith('missing') ? 'destructive' : 'outline'}>
+                          {labels[row.flow_status] || 'Pendiente'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                          <span className="inline-flex items-center gap-1" title="Órdenes de compra"><ShoppingCart className="h-3.5 w-3.5" />{row.purchase_order_count}</span>
+                          <span className="inline-flex items-center gap-1" title="Recepciones"><PackageCheck className="h-3.5 w-3.5" />{row.receipt_count}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                          <span className="inline-flex items-center gap-1" title="Repuestos instalados"><Wrench className="h-3.5 w-3.5" />{row.quantity_installed}/{row.quantity_requested}</span>
+                          <span className="inline-flex items-center gap-1" title="Horas registradas"><ClipboardList className="h-3.5 w-3.5" />{Number(row.labor_hours || 0).toFixed(1)} h</span>
+                        </div>
+                      </TableCell>
                       <TableCell className="text-right font-medium">{money(Number(row.total_cost || 0))}</TableCell>
+                      <TableCell className="text-right">
+                        <Button asChild variant="ghost" size="icon-sm" aria-label={`Abrir orden ${row.work_order_number}`}>
+                          <Link href={`/dashboard/mantenimiento/ordenes-trabajo/${row.work_order_id}`}><ArrowRight className="h-4 w-4" /></Link>
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             </div>
-          )}
+          ) : null}
         </CardContent>
       </Card>
     </div>
