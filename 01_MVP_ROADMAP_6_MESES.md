@@ -13,7 +13,7 @@ Principios:
 
 ## Estado actual
 
-La base funcional cubre autenticacion, roles, produccion, mantenimiento, ordenes de trabajo, inventario, compras, recepciones parciales, documentos, seguridad, personas, calendario y relaciones entre equipos, repuestos, proveedores y costos.
+La base funcional cubre autenticacion, roles, produccion, mantenimiento, ordenes de trabajo, inventario, compras, recepciones parciales, devoluciones, conciliacion de facturas, proveedores, productos, documentos, seguridad, personas, calendario y relaciones entre equipos, repuestos, proveedores y costos.
 
 ## Bloques completados recientemente
 
@@ -30,8 +30,11 @@ La base funcional cubre autenticacion, roles, produccion, mantenimiento, ordenes
 
 - recepciones parciales validadas;
 - faltantes de una orden enviados directamente a Compras;
-- trazabilidad desde mantenimiento hasta compra y recepcion;
-- etapas expresadas en lenguaje operacional claro.
+- devoluciones y conciliacion de facturas;
+- evaluacion del proveedor;
+- ficha Proveedor 360°;
+- ficha Producto 360° y trazabilidad de inventario;
+- trazabilidad desde mantenimiento hasta compra, recepcion, consumo y costo.
 
 ---
 
@@ -41,72 +44,94 @@ La base funcional cubre autenticacion, roles, produccion, mantenimiento, ordenes
 
 Estado: **Completado**
 
-1. **Devoluciones a proveedor**
-   - vinculadas a orden, recepcion, proveedor y productos rechazados;
-   - cantidad y costo validados contra la recepcion;
-   - motivo y solucion esperada;
-   - seguimiento de reposicion, nota de credito, devolucion de dinero o reparacion;
-   - proteccion contra cantidades superiores a lo rechazado y registros incompletos.
-
-2. **Conciliacion orden de compra–recepcion–factura**
-   - registro de factura desde una orden operacional;
-   - comparacion de cantidades facturadas con cantidades recibidas;
-   - comparacion de precio unitario con la orden;
-   - deteccion de producto desconocido o recepcion faltante;
-   - factura marcada como coincidente o con diferencias por resolver.
-
-3. **Cumplimiento del proveedor**
-   - nombre y RUT del proveedor;
-   - ordenes totales y completadas;
-   - entregas a tiempo;
-   - devoluciones;
-   - facturas coincidentes;
-   - diferencias abiertas;
-   - puntaje calculado de 0 a 100.
+1. Devoluciones a proveedor vinculadas a orden, recepcion y productos rechazados.
+2. Conciliacion entre orden de compra, recepcion y factura.
+3. Cumplimiento del proveedor basado en entregas, devoluciones y diferencias.
 
 Resultado operativo:
 
 `Orden de compra → Recepcion → Devolucion si corresponde → Factura → Conciliacion → Evaluacion del proveedor`
 
-Entrega tecnica:
-
-- tablas nuevas protegidas con RLS y acceso exclusivo del servidor;
-- vista calculada `intelligence.supplier_performance_v1`;
-- API `/api/procurement/supplier-control`;
-- pantalla `/dashboard/compras/control-proveedores`;
-- acceso visible desde la navegacion de Compras.
-
 ## Bloque 11 — Proveedor 360°
 
-Estado: **Siguiente**
+Estado: **Completado**
 
-1. Ficha unica del proveedor con datos generales, contactos, estado y documentos vigentes.
-2. Contratos, cotizaciones, ordenes, recepciones, facturas, devoluciones y pagos relacionados.
-3. Desempeno, riesgo, productos suministrados, precios historicos y proveedores alternativos.
+1. **Ficha unica del proveedor**
+   - datos canonicos, RUT, razon social, nombre comercial, actividad, contacto, region y condiciones de pago;
+   - busqueda por nombre o RUT;
+   - estado y validacion del maestro canonico.
 
-Resultado esperado:
+2. **Relaciones comerciales y operacionales**
+   - cotizaciones;
+   - ordenes historicas y operacionales;
+   - contratos y documentos compatibles por RUT;
+   - facturas conciliadas y diferencias abiertas;
+   - devoluciones y soluciones pendientes.
 
-`Proveedor → Contratos → Cotizaciones → Ordenes → Recepciones → Facturas → Devoluciones → Desempeno → Riesgo`
+3. **Desempeno y suministro**
+   - puntaje de cumplimiento del Bloque 10;
+   - compras acumuladas y facturacion;
+   - productos suministrados;
+   - cantidades, gasto y ultimo costo conocido;
+   - visibilidad de diferencias pendientes.
+
+Resultado operativo:
+
+`Proveedor → Contratos → Cotizaciones → Ordenes → Facturas → Devoluciones → Productos → Desempeno`
+
+Entrega tecnica:
+
+- API `/api/procurement/suppliers-360`;
+- pantalla `/dashboard/compras/proveedores-360`;
+- acceso visible desde Compras;
+- reutilizacion de `canonical.suppliers` sin crear un maestro paralelo.
 
 ## Bloque 12 — Inventario canonico y trazabilidad completa
 
-Estado: **Planificado**
+Estado: **Completado**
 
-1. Producto 360° con existencias, ubicaciones, lotes y vencimientos.
-2. Historial completo de movimientos, compras, entregas, devoluciones y consumo.
-3. Costos, rotacion, reorden y necesidades de mantenimiento relacionadas.
+1. **Producto 360°**
+   - maestro `canonical.products`;
+   - existencias, cantidades disponibles y reservadas;
+   - lotes, vencimientos y valor de inventario;
+   - alertas de stock minimo y vencimiento dentro de 90 dias.
 
-Resultado esperado:
+2. **Historia operacional completa**
+   - movimientos de inventario;
+   - compras y recepciones;
+   - devoluciones a proveedor;
+   - consumo, instalacion y devolucion en ordenes de trabajo;
+   - equipos y ordenes relacionadas.
 
-`Producto → Stock → Ubicaciones → Movimientos → Compras → Ordenes de trabajo → Consumo → Costos`
+3. **Costos y alternativas de suministro**
+   - costo estandar y valorizacion actual;
+   - proveedores historicos;
+   - cantidades compradas y gasto acumulado;
+   - rango de precios unitarios por proveedor;
+   - ultima fecha de compra.
+
+Resultado operativo:
+
+`Producto → Stock → Lotes → Movimientos → Compras → Recepciones → Proveedores → Ordenes de trabajo → Equipos → Costos`
+
+Entrega tecnica:
+
+- API `/api/inventory/products-360`;
+- pantalla `/dashboard/bodega/productos-360`;
+- acceso visible desde Bodega;
+- reutilizacion de `canonical.products` y relaciones existentes sin duplicar inventario.
 
 ## Bloque 13 — Equipo 360° y gemelo operacional
 
-Estado: **Planificado**
+Estado: **Siguiente**
 
 1. Arbol real de equipo, sistemas y componentes.
 2. Historia unica de ordenes, componentes, documentos, personas y costos.
 3. Disponibilidad, confiabilidad, tiempo detenido y costo de ciclo de vida.
+
+Resultado esperado:
+
+`Equipo → Sistemas → Componentes → Ordenes → Repuestos → Personas → Documentos → Costos → Disponibilidad`
 
 ## Bloque 14 — Mantenimiento preventivo y predictivo
 
@@ -161,8 +186,8 @@ Cada bloque se ejecuta con el siguiente proceso obligatorio:
 
 ## Prioridad inmediata
 
-Comenzar el **Bloque 11 — Proveedor 360°**:
+Comenzar el **Bloque 13 — Equipo 360° y gemelo operacional**:
 
-1. ficha unica y contactos;
-2. todas sus relaciones comerciales y operacionales;
-3. desempeno, riesgo, precios historicos y alternativas.
+1. jerarquia real de equipo, sistemas y componentes;
+2. ficha unica con historia operacional completa;
+3. disponibilidad, confiabilidad, detencion y costo de ciclo de vida.
