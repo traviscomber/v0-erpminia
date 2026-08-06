@@ -1,184 +1,103 @@
 'use client';
 
 import useSWR from 'swr';
-import { AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Link from 'next/link';
+import { AlertTriangle, CheckCircle2, Clock3, PackageSearch, ShieldAlert, Wrench } from 'lucide-react';
+import { apiFetch } from '@/lib/api-client';
 
-type CriticalEquipmentItem = {
-  name?: string | null;
-  title?: string | null;
-  description?: string | null;
-  issue?: string | null;
-  status?: string | null;
-  action?: string | null;
+const fetcher = async (url: string) => {
+  const response = await apiFetch(url);
+  const payload = await response.json();
+  if (!response.ok) throw new Error(payload.error || 'No fue posible cargar el estado operacional.');
+  return payload;
 };
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const labels: Record<string, string> = {
+  critical: 'Atención inmediata',
+  high: 'Prioridad alta',
+  medium: 'Seguimiento',
+  low: 'Sin urgencia',
+};
 
-export default function IAOperacionalPage() {
-  const { data, error, isLoading } = useSWR('/api/dashboard/ia-operacional', fetcher, {
+const styles: Record<string, string> = {
+  critical: 'border-destructive/40 bg-destructive/5 text-destructive',
+  high: 'border-orange-500/40 bg-orange-500/5',
+  medium: 'border-amber-500/40 bg-amber-500/5',
+  low: 'border-emerald-500/30 bg-emerald-500/5',
+};
+
+export default function OperationalHealthPage() {
+  const { data, error, isLoading, mutate } = useSWR('/api/dashboard/ia-operacional', fetcher, {
     revalidateOnFocus: false,
-    revalidateOnReconnect: true,
-    refreshInterval: 30000,
+    refreshInterval: 60000,
   });
 
-  if (error) return <div className="text-red-500">Error al cargar perspectivas IA</div>;
-  if (isLoading) return <div className="text-gray-500">Cargando inteligencia operacional...</div>;
+  if (isLoading) return <div className="p-6 text-sm text-muted-foreground">Cargando estado operacional…</div>;
+  if (error) return <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-5 text-sm text-destructive">{error.message}</div>;
 
-  const insightsData = data?.insights || {};
-  const detailsData = data?.details || {};
+  const summary = data?.summary || {};
+  const decisions = data?.decisions || [];
+  const assets = data?.healthItems || [];
 
-  const criticalCount = insightsData.equipment_risks || 0;
-  const warningCount = insightsData.expiring_documents || 0;
-  const efficiency = insightsData.operational_efficiency || 0;
-  const predictions = insightsData.pending_maintenance || 0;
-
-  const criticalEquipment = (detailsData.critical_equipment || []) as CriticalEquipmentItem[];
-  const expiringDocs = detailsData.expiring_documents || [];
-  const criticalStock = detailsData.critical_stock || [];
-  const pendingMaint = detailsData.pending_maintenance || [];
-  const overdueOrders = detailsData.overdue_orders || [];
-
-  return (
-    <div className="space-y-6">
+  return <main className="space-y-6">
+    <header className="flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 className="text-3xl font-bold">IA Operacional Minera</h1>
-        <p className="mt-2 text-muted-foreground">
-          Sistema inteligente que analiza datos en vivo de equipos, documentos, inventario y operaciones para generar insights accionables.
-        </p>
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Operación</p>
+        <h1 className="mt-1 text-2xl font-semibold">Centro de salud operacional</h1>
+        <p className="mt-1 max-w-3xl text-sm text-muted-foreground">Muestra condiciones registradas que requieren acción. Cada prioridad indica la razón y el siguiente paso.</p>
       </div>
+      <button onClick={() => mutate()} className="rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted">Actualizar</button>
+    </header>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Alertas Críticas</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-[var(--brand-rojo)]">{criticalCount}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Requieren atención inmediata</p>
-          </CardContent>
-        </Card>
+    <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+      <Metric label="Atención inmediata" value={summary.critical || 0} icon={ShieldAlert}/>
+      <Metric label="Prioridad alta" value={summary.high || 0} icon={AlertTriangle}/>
+      <Metric label="Seguimiento" value={summary.medium || 0} icon={Clock3}/>
+      <Metric label="Equipos sin urgencia" value={summary.healthyAssets || 0} icon={CheckCircle2}/>
+      <Metric label="Eficiencia registrada" value={`${Number(summary.operationalEfficiency || 0).toFixed(0)}%`} icon={Wrench}/>
+    </section>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Advertencias</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-[var(--secondary)]">{warningCount}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Monitoreo recomendado</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Eficiencia</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-[var(--brand-verde)]">{efficiency}%</div>
-            <p className="mt-1 text-xs text-muted-foreground">Operación normal</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Predicciones</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-[var(--secondary)]">{predictions}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Falla potencial detectada</p>
-          </CardContent>
-        </Card>
+    <section className="rounded-lg border bg-card">
+      <div className="border-b p-4">
+        <h2 className="font-semibold">Decisiones requeridas</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Ordenadas por urgencia. No incluye recomendaciones sin respaldo registrado.</p>
       </div>
-
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Insights Actuales</h2>
-
-        {criticalEquipment.length === 0 ? (
-          <p className="py-4 text-center text-muted-foreground">No hay insights disponibles</p>
-        ) : (
-          <div className="space-y-4">
-            {criticalEquipment.map((item, idx: number) => (
-              <div key={idx} className="rounded-lg border border-[var(--brand-rojo)]/30 bg-[var(--brand-rojo)]/5 p-4">
-                <div className="flex items-start gap-4">
-                  <div className="mt-0.5 text-[var(--brand-rojo)]">⚠️</div>
-                  <div className="flex-1">
-                    <AlertDescription className="mb-1 text-base font-semibold">
-                      {item.name || item.title || 'Equipo Crítico'}
-                    </AlertDescription>
-                    <AlertDescription className="mb-3 text-sm">
-                      {item.description || item.issue || 'Requiere atención inmediata'}
-                    </AlertDescription>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs">
-                        {String(item.status || 'CRITICO').toUpperCase()}
-                      </Badge>
-                      {item.action && <button className="text-xs font-semibold hover:underline">→ {item.action}</button>}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
+      <div className="divide-y">
+        {decisions.length === 0 ? <p className="p-6 text-sm text-muted-foreground">No existen decisiones urgentes con los datos actuales.</p> : decisions.map((item: any, index: number) => <article key={`${item.type}-${item.id}-${index}`} className="grid gap-3 p-4 md:grid-cols-[150px_1fr_auto] md:items-center">
+          <span className={`w-fit rounded-full border px-2.5 py-1 text-xs font-medium ${styles[item.level] || styles.medium}`}>{labels[item.level] || 'Seguimiento'}</span>
+          <div>
+            <p className="font-medium">{item.title}</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">{item.detail}</p>
+            <p className="mt-1 text-sm">Siguiente acción: {item.action}</p>
           </div>
-        )}
+          {item.type === 'equipment' && <Link href={`/dashboard/mantenimiento/equipos/${item.id}`} className="text-sm font-medium underline-offset-4 hover:underline">Abrir equipo</Link>}
+          {item.type === 'stock' && <Link href="/dashboard/bodega/productos-360" className="text-sm font-medium underline-offset-4 hover:underline">Abrir bodega</Link>}
+          {item.type === 'document' && <Link href="/dashboard/documentos" className="text-sm font-medium underline-offset-4 hover:underline">Abrir documentos</Link>}
+        </article>)}
       </div>
+    </section>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Casos de Uso</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <div>• Detección de riesgos en equipos críticos</div>
-            <div>• Alertas de vencimiento de documentos HSE</div>
-            <div>• Monitoreo de niveles de stock</div>
-            <div>• Predicción de fallas (mantenimiento predictivo)</div>
-            <div>• Seguimiento de órdenes de compra vencidas</div>
-            <div>• Resumen ejecutivo de operaciones</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Próximas Mejoras</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <div>• Integración con telemetría en vivo (real-time)</div>
-            <div>• ML models para predicciones más precisas</div>
-            <div>• Notificaciones push en tiempo real</div>
-            <div>• Análisis de tendencias históricas</div>
-            <div>• Recomendaciones automáticas de acciones</div>
-            <div>• Reportes automáticos por email</div>
-          </CardContent>
-        </Card>
+    <section className="rounded-lg border bg-card">
+      <div className="border-b p-4">
+        <h2 className="font-semibold">Estado de los equipos</h2>
+        <p className="mt-1 text-sm text-muted-foreground">El nivel usa estado, criticidad y órdenes registradas.</p>
       </div>
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Documentos en riesgo</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-[var(--secondary)]">{expiringDocs.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Stock critico</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-[var(--brand-rojo)]">{criticalStock.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Pendientes de mantención</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-[var(--brand-verde)]">{pendingMaint.length + overdueOrders.length}</div>
-          </CardContent>
-        </Card>
+      <div className="grid gap-3 p-4 md:grid-cols-2 xl:grid-cols-3">
+        {assets.map((asset: any) => <Link key={String(asset.id)} href={`/dashboard/mantenimiento/equipos/${asset.id}`} className={`rounded-lg border p-4 transition-colors hover:bg-muted/40 ${styles[asset.level] || ''}`}>
+          <div className="flex items-start justify-between gap-4">
+            <div><p className="font-medium">{asset.name}</p><p className="text-xs text-muted-foreground">{labels[asset.level]}</p></div>
+            <span className="text-lg font-semibold">{asset.score}</span>
+          </div>
+          <div className="mt-3 space-y-1 text-sm">{asset.reasons.length ? asset.reasons.map((reason: string) => <p key={reason}>• {reason}</p>) : <p>Sin señales operacionales urgentes.</p>}</div>
+          <p className="mt-3 text-xs text-muted-foreground">{asset.action}</p>
+        </Link>)}
       </div>
-    </div>
-  );
+    </section>
+
+    <p className="text-xs text-muted-foreground">{data?.policy} Última actualización: {data?.generatedAt ? new Date(data.generatedAt).toLocaleString('es-CL') : 'sin fecha'}.</p>
+  </main>;
+}
+
+function Metric({ label, value, icon: Icon }: { label: string; value: string | number; icon: typeof PackageSearch }) {
+  return <article className="rounded-lg border bg-card p-4"><div className="flex items-center justify-between text-muted-foreground"><span className="text-xs">{label}</span><Icon className="h-4 w-4"/></div><p className="mt-2 text-2xl font-semibold">{value}</p></article>;
 }
