@@ -1,0 +1,357 @@
+export const dynamic = 'force-dynamic';
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getOrganizationContext } from '@/lib/api/organization-context';
+
+type CalendarSource = 'maintenance' | 'compliance' | 'procurement';
+type CalendarPriority = 'critical' | 'high' | 'medium' | 'low';
+
+type OperationalCalendarItem = {
+  id: string;
+  source: CalendarSource;
+  source_label: string;
+  kind: string;
+  date: string;
+  title: string;
+  subtitle: string | null;
+  reference: string | null;
+  status: string;
+  status_label: string;
+  priority: CalendarPriority;
+  priority_label: string;
+  owner: string | null;
+  location: string | null;
+  href: string;
+  overdue: boolean;
+  days_until: number;
+};
+
+const CLOSED_STATUSES = new Set([
+  'completed',
+  'closed',
+  'cancelled',
+  'canceled',
+  'received',
+  'void',
+  'voided',
+]);
+
+const PRIORITY_RANK: Record<CalendarPriority, number> = {
+  critical: 0,
+  high: 1,
+  medium: 2,
+  low: 3,
+};
+
+function localDateKey() {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Santiago',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
+}
+
+function addDays(dateKey: string, amount: number) {
+  const date = new Date(`${dateKey}T12:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + amount);
+  return date.toISOString().slice(0, 10);
+}
+
+function differenceInDays(dateKey: string, comparisonKey: string) {
+  const date = new Date(`${dateKey}T12:00:00Z`).getTime();
+  const comparison = new Date(`${comparisonKey}T12:00:00Z`).getTime();
+  return Math.round((date - comparison) / 86_400_000);
+}
+
+function normalizeText(value: unknown) {
+  const text = String(value ?? '').trim();
+  return text || null;
+}
+
+function normalizePriority(value: unknown): CalendarPriority {
+  const priority = String(value ?? '').trim().toLowerCase();
+  if (['critica', 'crítica', 'critical', 'urgente', 'urgent'].includes(priority)) return 'critical';
+  if (['alta', 'high'].includes(priority)) return 'high';
+  if (['baja', 'low'].includes(priority)) return 'low';
+  return 'medium';
+}
+
+function priorityLabel(priority: CalendarPriority) {
+  if (priority === 'critical') return 'Crítica';
+  if (priority === 'high') return 'Alta';
+  if (priority === 'low') return 'Baja';
+  return 'Media';
+}
+
+function statusLabel(value: unknown) {
+  const status = String(value ?? '').trim().toLowerCase();
+  const labels: Record<string, string> = {
+    pending: 'Pendiente',
+    planned: 'Planificado',
+    open: 'Abierto',
+    in_progress: 'En curso',
+    draft: 'Borrador',
+    approved: 'Aprobado',
+    issued: 'Emitida',
+    partially_received: 'Recepción parcial',
+    awaiting_quote: 'Esperando cotización',
+    awaiting_award: 'Esperando adjudicación',
+    awaiting_receipt: 'Esperando recepción',
+    vigente: 'Vigente',
+    programado: 'Programado',
+  };
+  return labels[status] || (status ? status.replaceAll('_', ' ') : 'Pendiente');
+}
+
+function isOpenStatus(value: unknown) {
+  return !CLOSED_STATUSES.has(String(value ?? '').trim().toLowerCase());
+}
+
+function complianceKind(value: unknown) {
+  const eventType = String(value ?? '').trim().toLowerCase();
+  const labels: Record<string, string> = {
+    inspection: 'Inspección',
+    training: 'Capacitación',
+    audit: 'Auditoría',
+    monitoring: 'Monitoreo',
+    legal: 'Vencimiento legal',
+    meeting: 'Reunión',
+    report: 'Informe',
+  };
+  return labels[eventType] || 'Cumplimiento';
+}
+
+function complianceHref(value: unknown) {
+  const eventType = String(value ?? '').trim().toLowerCase();
+  if (eventType === 'training') return '/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones';
+  if (eventType === 'inspection' || eventType === 'audit') {
+    return '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones';
+  }
+  if (eventType === 'monitoring') return '/dashboard/sostenibilidad/medio-ambiente';
+  if (eventType === 'legal') return '/dashboard/legal';
+  return '/dashboard/sostenibilidad';
+}
+
+function buildItem(
+  item: Omit<OperationalCalendarItem, 'overdue' | 'days_until' | 'priority_label'>,
+  today: string,
+): OperationalCalendarItem {
+  const daysUntil = differenceInDays(item.date, today);
+  return {
+    ...item,
+    priority_label: priorityLabel(item.priority),
+    overdue: daysUntil < 0,
+    days_until: daysUntil,
+  };
+}
+
+export async function GET(request: NextRequest) {
+  const context = await getOrganizationContext(request);
+  if (!context.ok) return context.response;
+
+  const requestedDays = Number(new URL(request.url).searchParams.get('days') || 60);
+  const days = Math.min(Math.max(Number.isFinite(requestedDays) ? Math.trunc(requestedDays) : 60, 7), 120);
+  const today = localDateKey();
+  const startDate = addDays(today, -30);
+  const endDate = addDays(today, days);
+
+  try {
+    const [workOrdersResult, preventiveResult, complianceResult, requestsResult, ordersResult] = await Promise.all([
+      context.supabase
+        .from('maintenance_work_orders')
+        .select('id,work_order_number,title,description,status,priority,scheduled_date,assigned_to_name')
+        .eq('organization_id', context.organizationId)
+        .not('scheduled_date', 'is', null)
+        .gte('scheduled_date', startDate)
+        .lte('scheduled_date', endDate)
+        .limit(500),
+      context.supabase
+        .from('preventive_maintenance_schedules')
+        .select('id,task_name,description,next_scheduled_date,priority,enabled,generated_work_order_id')
+        .eq('organization_id', context.organizationId)
+        .not('next_scheduled_date', 'is', null)
+        .gte('next_scheduled_date', startDate)
+        .lte('next_scheduled_date', endDate)
+        .or('enabled.eq.true,enabled.is.null')
+        .is('generated_work_order_id', null)
+        .limit(500),
+      context.supabase
+        .from('compliance_events')
+        .select('id,title,description,event_type,due_date,status,priority,responsible_person_name,location')
+        .eq('org_id', context.organizationId)
+        .gte('due_date', startDate)
+        .lte('due_date', endDate)
+        .limit(500),
+      context.supabase
+        .from('procurement_intake_requests')
+        .select('id,request_number,justification,status,priority,required_date,requested_by_name')
+        .eq('organization_id', context.organizationId)
+        .not('required_date', 'is', null)
+        .gte('required_date', startDate)
+        .lte('required_date', endDate)
+        .limit(500),
+      context.supabase
+        .from('procurement_operational_orders')
+        .select('id,intake_request_id,order_number,status,expected_delivery_date')
+        .eq('organization_id', context.organizationId)
+        .not('expected_delivery_date', 'is', null)
+        .gte('expected_delivery_date', startDate)
+        .lte('expected_delivery_date', endDate)
+        .limit(500),
+    ]);
+
+    const warnings: string[] = [];
+    if (workOrdersResult.error) warnings.push('No se pudieron cargar las órdenes de trabajo.');
+    if (preventiveResult.error) warnings.push('No se pudo cargar la planificación preventiva.');
+    if (complianceResult.error) warnings.push('No se pudieron cargar los compromisos de cumplimiento.');
+    if (requestsResult.error) warnings.push('No se pudieron cargar los requerimientos de compra.');
+    if (ordersResult.error) warnings.push('No se pudieron cargar las entregas de órdenes de compra.');
+
+    const items: OperationalCalendarItem[] = [];
+
+    for (const row of workOrdersResult.data || []) {
+      if (!row.scheduled_date || !isOpenStatus(row.status)) continue;
+      const priority = normalizePriority(row.priority);
+      items.push(buildItem({
+        id: `work-order:${row.id}`,
+        source: 'maintenance',
+        source_label: 'Mantenimiento',
+        kind: 'Orden de trabajo',
+        date: row.scheduled_date,
+        title: row.title,
+        subtitle: normalizeText(row.description),
+        reference: normalizeText(row.work_order_number),
+        status: normalizeText(row.status) || 'pending',
+        status_label: statusLabel(row.status),
+        priority,
+        owner: normalizeText(row.assigned_to_name),
+        location: null,
+        href: `/dashboard/mantenimiento/ordenes-trabajo/${row.id}`,
+      }, today));
+    }
+
+    for (const row of preventiveResult.data || []) {
+      if (!row.next_scheduled_date) continue;
+      const priority = normalizePriority(row.priority);
+      items.push(buildItem({
+        id: `preventive:${row.id}`,
+        source: 'maintenance',
+        source_label: 'Mantenimiento',
+        kind: 'Plan preventivo',
+        date: row.next_scheduled_date,
+        title: row.task_name,
+        subtitle: normalizeText(row.description),
+        reference: null,
+        status: 'planned',
+        status_label: 'Planificado',
+        priority,
+        owner: null,
+        location: null,
+        href: '/dashboard/mantenimiento/planificacion',
+      }, today));
+    }
+
+    for (const row of complianceResult.data || []) {
+      if (!row.due_date || !isOpenStatus(row.status)) continue;
+      const priority = normalizePriority(row.priority);
+      items.push(buildItem({
+        id: `compliance:${row.id}`,
+        source: 'compliance',
+        source_label: 'Cumplimiento',
+        kind: complianceKind(row.event_type),
+        date: row.due_date,
+        title: row.title,
+        subtitle: normalizeText(row.description),
+        reference: null,
+        status: normalizeText(row.status) || 'pending',
+        status_label: statusLabel(row.status),
+        priority,
+        owner: normalizeText(row.responsible_person_name),
+        location: normalizeText(row.location),
+        href: complianceHref(row.event_type),
+      }, today));
+    }
+
+    const orderedRequestIds = new Set(
+      (ordersResult.data || []).map((row) => row.intake_request_id).filter(Boolean),
+    );
+
+    for (const row of requestsResult.data || []) {
+      if (!row.required_date || !isOpenStatus(row.status) || orderedRequestIds.has(row.id)) continue;
+      const priority = normalizePriority(row.priority);
+      items.push(buildItem({
+        id: `purchase-request:${row.id}`,
+        source: 'procurement',
+        source_label: 'Abastecimiento',
+        kind: 'Requerimiento',
+        date: row.required_date,
+        title: `Atender requerimiento ${row.request_number}`,
+        subtitle: normalizeText(row.justification),
+        reference: normalizeText(row.request_number),
+        status: normalizeText(row.status) || 'pending',
+        status_label: statusLabel(row.status),
+        priority,
+        owner: normalizeText(row.requested_by_name),
+        location: null,
+        href: '/dashboard/compras',
+      }, today));
+    }
+
+    for (const row of ordersResult.data || []) {
+      if (!row.expected_delivery_date || !isOpenStatus(row.status)) continue;
+      const priority: CalendarPriority = row.status === 'partially_received' ? 'high' : 'medium';
+      items.push(buildItem({
+        id: `purchase-order:${row.id}`,
+        source: 'procurement',
+        source_label: 'Abastecimiento',
+        kind: 'Entrega OC',
+        date: row.expected_delivery_date,
+        title: `Recepción esperada ${row.order_number}`,
+        subtitle: null,
+        reference: normalizeText(row.order_number),
+        status: normalizeText(row.status) || 'issued',
+        status_label: statusLabel(row.status),
+        priority,
+        owner: null,
+        location: null,
+        href: '/dashboard/compras',
+      }, today));
+    }
+
+    items.sort((a, b) => {
+      const byDate = a.date.localeCompare(b.date);
+      if (byDate !== 0) return byDate;
+      const byPriority = PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority];
+      if (byPriority !== 0) return byPriority;
+      return a.title.localeCompare(b.title, 'es');
+    });
+
+    const summary = {
+      overdue: items.filter((item) => item.days_until < 0).length,
+      today: items.filter((item) => item.days_until === 0).length,
+      next_7_days: items.filter((item) => item.days_until > 0 && item.days_until <= 7).length,
+      total: items.length,
+      by_source: {
+        maintenance: items.filter((item) => item.source === 'maintenance').length,
+        compliance: items.filter((item) => item.source === 'compliance').length,
+        procurement: items.filter((item) => item.source === 'procurement').length,
+      },
+    };
+
+    return NextResponse.json({
+      data: items,
+      summary,
+      warnings,
+      range: {
+        today,
+        start_date: startDate,
+        end_date: endDate,
+        future_days: days,
+      },
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'No se pudo cargar el calendario operativo';
+    return NextResponse.json({ error: message, data: [] }, { status: 500 });
+  }
+}
