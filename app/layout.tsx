@@ -5,6 +5,7 @@ import { Geist, Geist_Mono, Montserrat } from 'next/font/google';
 import { ThemeProvider } from 'next-themes';
 import { Toaster } from 'sonner';
 import './globals.css';
+import './motil-system.css';
 
 const geist = Geist({
   subsets: ['latin'],
