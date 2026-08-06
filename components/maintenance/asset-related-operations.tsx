@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import useSWR from 'swr';
-import { ArrowRight, RefreshCw } from 'lucide-react';
+import { ArrowRight, PackageCheck, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StatePanel } from '@/components/ui/state-panel';
@@ -17,6 +17,22 @@ type WorkOrder = {
   completion_date?: string | null;
 };
 
+type InstalledPart = {
+  id: string;
+  work_order_id: string;
+  quantity_installed?: number | null;
+  unit_cost?: number | null;
+  installed_at?: string | null;
+  installedCost?: number | null;
+  notes?: string | null;
+  product?: {
+    product_code?: string | null;
+    name?: string | null;
+    unit?: string | null;
+  } | null;
+  workOrder?: WorkOrder | null;
+};
+
 type AssetTimelineResponse = {
   asset?: {
     id: string;
@@ -25,6 +41,7 @@ type AssetTimelineResponse = {
   };
   workOrders?: WorkOrder[];
   events?: Array<{ id: number; event_at?: string | null }>;
+  installedParts?: InstalledPart[];
   totals?: {
     partsCost?: number;
     laborCost?: number;
@@ -66,13 +83,14 @@ export function AssetRelatedOperations({ assetId }: { assetId: string }) {
   );
 
   const orders = data?.workOrders || [];
+  const installedParts = data?.installedParts || [];
   const activeOrders = orders.filter((order) => !['completed', 'cancelled'].includes(order.status || ''));
   const completedOrders = orders.filter((order) => order.status === 'completed');
   const recentOrders = orders.slice(0, 5);
   const lastActivity = data?.events?.[0]?.event_at;
 
   if (isLoading) {
-    return <StatePanel tone="loading" title="Cargando actividad del equipo" description="Reuniendo órdenes y costos asociados." />;
+    return <StatePanel tone="loading" title="Cargando actividad del equipo" description="Reuniendo órdenes, componentes y costos asociados." />;
   }
 
   if (error) {
@@ -91,13 +109,13 @@ export function AssetRelatedOperations({ assetId }: { assetId: string }) {
       <CardHeader className="flex flex-row items-start justify-between gap-4">
         <div>
           <CardTitle className="text-base">Actividad relacionada</CardTitle>
-          <p className="mt-1 text-sm text-muted-foreground">Órdenes, costos y movimientos vinculados a este equipo.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Órdenes, componentes instalados y costos vinculados a este equipo.</p>
         </div>
         <Button variant="outline" size="sm" onClick={() => void mutate()}>
           <RefreshCw className="h-4 w-4" />Actualizar
         </Button>
       </CardHeader>
-      <CardContent className="space-y-5">
+      <CardContent className="space-y-6">
         <div className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 lg:grid-cols-4">
           {[
             ['Órdenes activas', activeOrders.length.toLocaleString('es-CL')],
@@ -112,32 +130,77 @@ export function AssetRelatedOperations({ assetId }: { assetId: string }) {
           ))}
         </div>
 
-        {recentOrders.length === 0 ? (
-          <div className="rounded-lg border border-dashed p-5 text-sm text-muted-foreground">
-            Este equipo todavía no tiene órdenes de trabajo relacionadas.
+        <section className="space-y-3">
+          <div>
+            <h3 className="text-sm font-semibold">Órdenes recientes</h3>
+            <p className="mt-1 text-xs text-muted-foreground">Últimos trabajos asociados a este equipo.</p>
           </div>
-        ) : (
-          <div className="divide-y rounded-lg border">
-            {recentOrders.map((order) => (
-              <div key={order.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="min-w-0">
-                  <p className="font-medium">{order.work_order_number || 'Orden de trabajo'}</p>
-                  <p className="truncate text-sm text-muted-foreground">{order.title || 'Sin descripción'}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {statusLabel[order.status || ''] || order.status || 'Sin estado'}
-                    {order.priority ? ` · ${priorityLabel[order.priority] || order.priority}` : ''}
-                    {order.scheduled_date ? ` · ${new Date(order.scheduled_date).toLocaleDateString('es-CL')}` : ''}
-                  </p>
+          {recentOrders.length === 0 ? (
+            <div className="rounded-lg border border-dashed p-5 text-sm text-muted-foreground">
+              Este equipo todavía no tiene órdenes de trabajo relacionadas.
+            </div>
+          ) : (
+            <div className="divide-y rounded-lg border">
+              {recentOrders.map((order) => (
+                <div key={order.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="font-medium">{order.work_order_number || 'Orden de trabajo'}</p>
+                    <p className="truncate text-sm text-muted-foreground">{order.title || 'Sin descripción'}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {statusLabel[order.status || ''] || order.status || 'Sin estado'}
+                      {order.priority ? ` · ${priorityLabel[order.priority] || order.priority}` : ''}
+                      {order.scheduled_date ? ` · ${new Date(order.scheduled_date).toLocaleDateString('es-CL')}` : ''}
+                    </p>
+                  </div>
+                  <Button asChild variant="outline" size="sm">
+                    <Link href={`/dashboard/mantenimiento/ordenes-trabajo/${encodeURIComponent(order.id)}`}>
+                      Abrir <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
                 </div>
-                <Button asChild variant="outline" size="sm">
-                  <Link href={`/dashboard/mantenimiento/ordenes-trabajo/${encodeURIComponent(order.id)}`}>
-                    Abrir <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
-            ))}
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="space-y-3">
+          <div>
+            <h3 className="flex items-center gap-2 text-sm font-semibold"><PackageCheck className="h-4 w-4" />Componentes instalados</h3>
+            <p className="mt-1 text-xs text-muted-foreground">Historial generado desde las entregas confirmadas en cada orden.</p>
           </div>
-        )}
+          {installedParts.length === 0 ? (
+            <div className="rounded-lg border border-dashed p-5 text-sm text-muted-foreground">
+              Aún no existen componentes con instalación confirmada para este equipo.
+            </div>
+          ) : (
+            <div className="divide-y rounded-lg border">
+              {installedParts.slice(0, 10).map((part) => (
+                <div key={part.id} className="grid gap-3 p-4 sm:grid-cols-[minmax(0,1fr)_120px_140px_auto] sm:items-center">
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">{part.product?.name || 'Componente'}</p>
+                    <p className="text-xs text-muted-foreground">{part.product?.product_code || 'Sin código'}{part.workOrder?.work_order_number ? ` · ${part.workOrder.work_order_number}` : ''}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Cantidad</p>
+                    <p className="font-medium">{Number(part.quantity_installed || 0)} {part.product?.unit || ''}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Instalado</p>
+                    <p className="font-medium">{part.installed_at ? new Date(part.installed_at).toLocaleDateString('es-CL') : 'Sin fecha'}</p>
+                  </div>
+                  <div className="flex items-center justify-between gap-3 sm:justify-end">
+                    <span className="font-semibold">{money(part.installedCost)}</span>
+                    <Button asChild variant="ghost" size="sm">
+                      <Link href={`/dashboard/mantenimiento/ordenes-trabajo/${encodeURIComponent(part.work_order_id)}`} aria-label="Abrir orden relacionada">
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
 
         <div className="grid gap-3 sm:grid-cols-3">
           <div className="rounded-lg border p-4">
