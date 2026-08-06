@@ -27,7 +27,7 @@ import { useAuth } from '@/hooks/use-auth';
 const routeLabels: Record<string, string> = {
   dashboard: 'Inicio',
   alertas: 'Alertas',
-  tareas: 'Tasks',
+  tareas: 'Acciones pendientes',
   produccion: 'Producción',
   telemetria: 'Telemetría',
   'centros-costos': 'Centros de costos',
@@ -148,7 +148,7 @@ export function Header({ sidebarCollapsed = false, onToggleSidebar }: HeaderProp
 
         <div className="flex shrink-0 items-center gap-1">
           <GlobalSearch />
-          <Button asChild variant="ghost" size="icon-sm" aria-label="Ver tasks">
+          <Button asChild variant="ghost" size="icon-sm" aria-label="Ver acciones pendientes">
             <Link href="/dashboard/tareas"><ClipboardList className="h-4 w-4" /></Link>
           </Button>
           <Button asChild variant="ghost" size="icon-sm" aria-label="Ver alertas">
