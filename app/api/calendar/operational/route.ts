@@ -5,6 +5,7 @@ import { getOrganizationContext } from '@/lib/api/organization-context';
 
 type CalendarSource = 'maintenance' | 'compliance' | 'procurement';
 type CalendarPriority = 'critical' | 'high' | 'medium' | 'low';
+type CalendarScope = 'active' | 'historical' | 'all';
 
 type OperationalCalendarItem = {
   id: string;
@@ -22,6 +23,8 @@ type OperationalCalendarItem = {
   owner: string | null;
   location: string | null;
   href: string;
+  historical: boolean;
+  completed_at: string | null;
   overdue: boolean;
   days_until: number;
 };
@@ -69,6 +72,11 @@ function normalizeText(value: unknown) {
   return text || null;
 }
 
+function normalizeDate(value: unknown) {
+  const text = normalizeText(value);
+  return text ? text.slice(0, 10) : null;
+}
+
 function normalizePriority(value: unknown): CalendarPriority {
   const priority = String(value ?? '').trim().toLowerCase();
   if (['critica', 'crítica', 'critical', 'urgente', 'urgent'].includes(priority)) return 'critical';
@@ -100,12 +108,26 @@ function statusLabel(value: unknown) {
     awaiting_receipt: 'Esperando recepción',
     vigente: 'Vigente',
     programado: 'Programado',
+    completed: 'Completada',
+    closed: 'Cerrada',
+    received: 'Recibida',
+    cancelled: 'Cancelada',
+    canceled: 'Cancelada',
+    void: 'Anulada',
+    voided: 'Anulada',
   };
   return labels[status] || (status ? status.replaceAll('_', ' ') : 'Pendiente');
 }
 
-function isOpenStatus(value: unknown) {
-  return !CLOSED_STATUSES.has(String(value ?? '').trim().toLowerCase());
+function isHistoricalStatus(value: unknown) {
+  return CLOSED_STATUSES.has(String(value ?? '').trim().toLowerCase());
+}
+
+function includeForScope(status: unknown, scope: CalendarScope) {
+  const historical = isHistoricalStatus(status);
+  if (scope === 'historical') return historical;
+  if (scope === 'active') return !historical;
+  return true;
 }
 
 function complianceKind(value: unknown) {
@@ -141,7 +163,7 @@ function buildItem(
   return {
     ...item,
     priority_label: priorityLabel(item.priority),
-    overdue: daysUntil < 0,
+    overdue: !item.historical && daysUntil < 0,
     days_until: daysUntil,
   };
 }
@@ -150,22 +172,27 @@ export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
 
-  const requestedDays = Number(new URL(request.url).searchParams.get('days') || 60);
+  const searchParams = new URL(request.url).searchParams;
+  const requestedDays = Number(searchParams.get('days') || 60);
+  const requestedScope = searchParams.get('scope');
+  const scope: CalendarScope = requestedScope === 'historical' || requestedScope === 'all'
+    ? requestedScope
+    : 'active';
   const days = Math.min(Math.max(Number.isFinite(requestedDays) ? Math.trunc(requestedDays) : 60, 7), 120);
   const today = localDateKey();
-  const startDate = addDays(today, -30);
-  const endDate = addDays(today, days);
+  const startDate = addDays(today, scope === 'active' ? -30 : -365);
+  const endDate = scope === 'historical' ? today : addDays(today, days);
 
   try {
     const [workOrdersResult, preventiveResult, complianceResult, requestsResult, ordersResult] = await Promise.all([
       context.supabase
         .from('maintenance_work_orders')
-        .select('id,work_order_number,title,description,status,priority,scheduled_date,assigned_to_name')
+        .select('id,work_order_number,title,description,status,priority,scheduled_date,completion_date,closed_at,assigned_to_name')
         .eq('organization_id', context.organizationId)
         .not('scheduled_date', 'is', null)
         .gte('scheduled_date', startDate)
         .lte('scheduled_date', endDate)
-        .limit(500),
+        .limit(1000),
       context.supabase
         .from('preventive_maintenance_schedules')
         .select('id,task_name,description,next_scheduled_date,priority,enabled,generated_work_order_id')
@@ -182,7 +209,7 @@ export async function GET(request: NextRequest) {
         .eq('org_id', context.organizationId)
         .gte('due_date', startDate)
         .lte('due_date', endDate)
-        .limit(500),
+        .limit(1000),
       context.supabase
         .from('procurement_intake_requests')
         .select('id,request_number,justification,status,priority,required_date,requested_by_name')
@@ -190,15 +217,15 @@ export async function GET(request: NextRequest) {
         .not('required_date', 'is', null)
         .gte('required_date', startDate)
         .lte('required_date', endDate)
-        .limit(500),
+        .limit(1000),
       context.supabase
         .from('procurement_operational_orders')
-        .select('id,intake_request_id,order_number,status,expected_delivery_date')
+        .select('id,intake_request_id,order_number,status,expected_delivery_date,actual_delivery_date')
         .eq('organization_id', context.organizationId)
         .not('expected_delivery_date', 'is', null)
         .gte('expected_delivery_date', startDate)
         .lte('expected_delivery_date', endDate)
-        .limit(500),
+        .limit(1000),
     ]);
 
     const warnings: string[] = [];
@@ -211,7 +238,8 @@ export async function GET(request: NextRequest) {
     const items: OperationalCalendarItem[] = [];
 
     for (const row of workOrdersResult.data || []) {
-      if (!row.scheduled_date || !isOpenStatus(row.status)) continue;
+      if (!row.scheduled_date || !includeForScope(row.status, scope)) continue;
+      const historical = isHistoricalStatus(row.status);
       const priority = normalizePriority(row.priority);
       items.push(buildItem({
         id: `work-order:${row.id}`,
@@ -228,32 +256,39 @@ export async function GET(request: NextRequest) {
         owner: normalizeText(row.assigned_to_name),
         location: null,
         href: `/dashboard/mantenimiento/ordenes-trabajo/${row.id}`,
+        historical,
+        completed_at: normalizeDate(row.completion_date || row.closed_at),
       }, today));
     }
 
-    for (const row of preventiveResult.data || []) {
-      if (!row.next_scheduled_date) continue;
-      const priority = normalizePriority(row.priority);
-      items.push(buildItem({
-        id: `preventive:${row.id}`,
-        source: 'maintenance',
-        source_label: 'Mantenimiento',
-        kind: 'Plan preventivo',
-        date: row.next_scheduled_date,
-        title: row.task_name,
-        subtitle: normalizeText(row.description),
-        reference: null,
-        status: 'planned',
-        status_label: 'Planificado',
-        priority,
-        owner: null,
-        location: null,
-        href: '/dashboard/mantenimiento/planificacion',
-      }, today));
+    if (scope !== 'historical') {
+      for (const row of preventiveResult.data || []) {
+        if (!row.next_scheduled_date) continue;
+        const priority = normalizePriority(row.priority);
+        items.push(buildItem({
+          id: `preventive:${row.id}`,
+          source: 'maintenance',
+          source_label: 'Mantenimiento',
+          kind: 'Plan preventivo',
+          date: row.next_scheduled_date,
+          title: row.task_name,
+          subtitle: normalizeText(row.description),
+          reference: null,
+          status: 'planned',
+          status_label: 'Planificado',
+          priority,
+          owner: null,
+          location: null,
+          href: '/dashboard/mantenimiento/planificacion',
+          historical: false,
+          completed_at: null,
+        }, today));
+      }
     }
 
     for (const row of complianceResult.data || []) {
-      if (!row.due_date || !isOpenStatus(row.status)) continue;
+      if (!row.due_date || !includeForScope(row.status, scope)) continue;
+      const historical = isHistoricalStatus(row.status);
       const priority = normalizePriority(row.priority);
       items.push(buildItem({
         id: `compliance:${row.id}`,
@@ -270,6 +305,8 @@ export async function GET(request: NextRequest) {
         owner: normalizeText(row.responsible_person_name),
         location: normalizeText(row.location),
         href: complianceHref(row.event_type),
+        historical,
+        completed_at: null,
       }, today));
     }
 
@@ -278,7 +315,8 @@ export async function GET(request: NextRequest) {
     );
 
     for (const row of requestsResult.data || []) {
-      if (!row.required_date || !isOpenStatus(row.status) || orderedRequestIds.has(row.id)) continue;
+      if (!row.required_date || !includeForScope(row.status, scope) || orderedRequestIds.has(row.id)) continue;
+      const historical = isHistoricalStatus(row.status);
       const priority = normalizePriority(row.priority);
       items.push(buildItem({
         id: `purchase-request:${row.id}`,
@@ -295,11 +333,14 @@ export async function GET(request: NextRequest) {
         owner: normalizeText(row.requested_by_name),
         location: null,
         href: '/dashboard/compras',
+        historical,
+        completed_at: null,
       }, today));
     }
 
     for (const row of ordersResult.data || []) {
-      if (!row.expected_delivery_date || !isOpenStatus(row.status)) continue;
+      if (!row.expected_delivery_date || !includeForScope(row.status, scope)) continue;
+      const historical = isHistoricalStatus(row.status);
       const priority: CalendarPriority = row.status === 'partially_received' ? 'high' : 'medium';
       items.push(buildItem({
         id: `purchase-order:${row.id}`,
@@ -316,22 +357,28 @@ export async function GET(request: NextRequest) {
         owner: null,
         location: null,
         href: '/dashboard/compras',
+        historical,
+        completed_at: normalizeDate(row.actual_delivery_date),
       }, today));
     }
 
     items.sort((a, b) => {
-      const byDate = a.date.localeCompare(b.date);
+      const byDate = scope === 'historical'
+        ? b.date.localeCompare(a.date)
+        : a.date.localeCompare(b.date);
       if (byDate !== 0) return byDate;
       const byPriority = PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority];
       if (byPriority !== 0) return byPriority;
       return a.title.localeCompare(b.title, 'es');
     });
 
+    const activeItems = items.filter((item) => !item.historical);
     const summary = {
-      overdue: items.filter((item) => item.days_until < 0).length,
-      today: items.filter((item) => item.days_until === 0).length,
-      next_7_days: items.filter((item) => item.days_until > 0 && item.days_until <= 7).length,
+      overdue: activeItems.filter((item) => item.days_until < 0).length,
+      today: activeItems.filter((item) => item.days_until === 0).length,
+      next_7_days: activeItems.filter((item) => item.days_until > 0 && item.days_until <= 7).length,
       total: items.length,
+      historical: items.filter((item) => item.historical).length,
       by_source: {
         maintenance: items.filter((item) => item.source === 'maintenance').length,
         compliance: items.filter((item) => item.source === 'compliance').length,
@@ -348,6 +395,7 @@ export async function GET(request: NextRequest) {
         start_date: startDate,
         end_date: endDate,
         future_days: days,
+        scope,
       },
     });
   } catch (error) {
