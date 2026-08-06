@@ -97,9 +97,29 @@ export async function POST(request: NextRequest) {
         p_actor_id: context.userId,
       });
     } else if (action === 'receive_purchase_order') {
+      const lines = Array.isArray(body.lines) ? body.lines : [];
+      if (!body.purchaseOrderId || lines.length === 0) {
+        return NextResponse.json({ error: 'Selecciona una orden e ingresa al menos una cantidad recibida.' }, { status: 400 });
+      }
+
+      for (const line of lines) {
+        const received = Number(line.quantity_received || 0);
+        const accepted = Number(line.quantity_accepted || 0);
+        const rejected = Number(line.quantity_rejected || 0);
+        if (!Number.isFinite(received) || received <= 0) {
+          return NextResponse.json({ error: 'Cada cantidad recibida debe ser mayor que cero.' }, { status: 400 });
+        }
+        if (![accepted, rejected].every((value) => Number.isFinite(value) && value >= 0)) {
+          return NextResponse.json({ error: 'Las cantidades aceptadas y rechazadas deben ser válidas.' }, { status: 400 });
+        }
+        if (Math.abs(accepted + rejected - received) > 0.0001) {
+          return NextResponse.json({ error: 'La cantidad aceptada más la rechazada debe coincidir con lo recibido.' }, { status: 400 });
+        }
+      }
+
       result = await context.supabase.rpc('receive_purchase_order', {
         p_purchase_order_id: body.purchaseOrderId,
-        p_lines: body.lines || [],
+        p_lines: lines,
         p_warehouse_code: body.warehouseCode || null,
         p_received_by: context.userId,
         p_received_by_name: body.receivedByName || null,
