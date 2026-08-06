@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Activity,
+  AlertTriangle,
   Bell,
   Boxes,
   Building2,
@@ -29,7 +30,8 @@ import {
 
 const destinations = [
   { group: 'General', label: 'Inicio', keywords: 'dashboard resumen ejecutivo', href: '/dashboard', icon: Home },
-  { group: 'General', label: 'Daily Management', keywords: 'lean reunion diaria gemba control operacional', href: '/dashboard/daily-management', icon: CalendarDays },
+  { group: 'Lean', label: 'Daily Management', keywords: 'lean reunion diaria gemba control operacional', href: '/dashboard/daily-management', icon: CalendarDays },
+  { group: 'Lean', label: 'Andon', keywords: 'desviaciones alertas causa raiz contramedida respuesta', href: '/dashboard/andon', icon: AlertTriangle },
   { group: 'General', label: 'Alertas', keywords: 'riesgos prioridades avisos', href: '/dashboard/alertas', icon: Bell },
   { group: 'General', label: 'Acciones pendientes', keywords: 'tareas pendientes acciones compromisos', href: '/dashboard/tareas', icon: ClipboardList },
   { group: 'General', label: 'Centros de costos', keywords: 'costos estructura imputacion', href: '/dashboard/centros-costos', icon: Building2 },
@@ -67,37 +69,13 @@ export function GlobalSearch() {
 
   return (
     <>
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        className="hidden min-w-44 justify-start gap-2 border border-border/70 text-muted-foreground hover:text-foreground md:inline-flex"
-        onClick={() => setOpen(true)}
-        aria-label="Ir a una sección de Motil"
-      >
+      <Button type="button" variant="ghost" size="sm" className="hidden min-w-44 justify-start gap-2 border border-border/70 text-muted-foreground hover:text-foreground md:inline-flex" onClick={() => setOpen(true)} aria-label="Ir a una sección de Motil">
         <Search className="h-4 w-4" />
         <span className="flex-1 text-left">Ir a…</span>
         <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium">⌘K</kbd>
       </Button>
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon-sm"
-        className="md:hidden"
-        onClick={() => setOpen(true)}
-        aria-label="Ir a una sección de Motil"
-      >
-        <Search className="h-4 w-4" />
-      </Button>
-
-      <CommandDialog
-        open={open}
-        onOpenChange={setOpen}
-        title="Navegación rápida"
-        description="Navega a una sección del sistema"
-        className="max-w-xl"
-        showCloseButton={false}
-      >
+      <Button type="button" variant="ghost" size="icon-sm" className="md:hidden" onClick={() => setOpen(true)} aria-label="Ir a una sección de Motil"><Search className="h-4 w-4" /></Button>
+      <CommandDialog open={open} onOpenChange={setOpen} title="Navegación rápida" description="Navega a una sección del sistema" className="max-w-xl" showCloseButton={false}>
         <CommandInput placeholder="Buscar módulo o función..." />
         <CommandList>
           <CommandEmpty>No se encontró una sección.</CommandEmpty>
@@ -105,24 +83,12 @@ export function GlobalSearch() {
             <CommandGroup key={group} heading={group}>
               {destinations.filter((item) => item.group === group).map((item) => {
                 const Icon = item.icon;
-                return (
-                  <CommandItem
-                    key={item.href}
-                    value={`${item.label} ${item.keywords}`}
-                    onSelect={() => goTo(item.href)}
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span>{item.label}</span>
-                  </CommandItem>
-                );
+                return <CommandItem key={item.href} value={`${item.label} ${item.keywords}`} onSelect={() => goTo(item.href)}><Icon className="h-4 w-4" /><span>{item.label}</span></CommandItem>;
               })}
             </CommandGroup>
           ))}
         </CommandList>
-        <div className="flex items-center justify-between border-t border-border px-3 py-2 text-xs text-muted-foreground">
-          <span>Navega por las secciones disponibles de Motil</span>
-          <CommandShortcut>ESC para cerrar</CommandShortcut>
-        </div>
+        <div className="flex items-center justify-between border-t border-border px-3 py-2 text-xs text-muted-foreground"><span>Navega por las secciones disponibles de Motil</span><CommandShortcut>ESC para cerrar</CommandShortcut></div>
       </CommandDialog>
     </>
   );
