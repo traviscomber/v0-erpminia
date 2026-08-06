@@ -6,7 +6,7 @@ import useSWR from 'swr';
 import { AlertCircle, AlertTriangle, CheckCircle2, Clock, Info, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FilterToolbar, FilterToolbarActions, FilterToolbarContent } from '@/components/ui/filter-toolbar';
+import { FilterToolbar, FilterToolbarActions, FilterToolbarGroup } from '@/components/ui/filter-toolbar';
 import { PageHeader, PageHeaderActions, PageHeaderContent, PageHeaderDescription, PageHeaderEyebrow, PageHeaderTitle } from '@/components/ui/page-header';
 import { StatePanel } from '@/components/ui/state-panel';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -108,9 +108,9 @@ export default function AlertasPage() {
       </div>
 
       <FilterToolbar>
-        <FilterToolbarContent>
+        <FilterToolbarGroup>
           <p className="text-sm text-muted-foreground">{filteredAlerts.length} alertas visibles</p>
-        </FilterToolbarContent>
+        </FilterToolbarGroup>
         <FilterToolbarActions>
           <Tabs value={filter} onValueChange={(value) => setFilter(value as typeof filter)}>
             <TabsList>
