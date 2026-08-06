@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageHeader, PageHeaderActions, PageHeaderContent, PageHeaderDescription, PageHeaderEyebrow, PageHeaderTitle } from '@/components/ui/page-header';
 import { StatePanel } from '@/components/ui/state-panel';
-import { FilterToolbar, FilterToolbarActions, FilterToolbarContent } from '@/components/ui/filter-toolbar';
+import { FilterToolbar, FilterToolbarActions, FilterToolbarGroup } from '@/components/ui/filter-toolbar';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 type TaskSource = 'maintenance' | 'compliance' | 'procurement';
@@ -96,9 +96,7 @@ export default function TareasPage() {
             <RefreshCw className={`h-4 w-4 ${isValidating ? 'animate-spin' : ''}`} />
             Actualizar
           </Button>
-          <Button asChild>
-            <Link href="/dashboard/mantenimiento/ordenes-trabajo/create">Nueva OT</Link>
-          </Button>
+          <Button asChild><Link href="/dashboard/mantenimiento/ordenes-trabajo/create">Nueva OT</Link></Button>
         </PageHeaderActions>
       </PageHeader>
 
@@ -117,12 +115,12 @@ export default function TareasPage() {
       </div>
 
       <FilterToolbar>
-        <FilterToolbarContent>
+        <FilterToolbarGroup>
           <div className="relative min-w-0 flex-1 sm:max-w-md">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar task, responsable o referencia" className="pl-9" />
           </div>
-        </FilterToolbarContent>
+        </FilterToolbarGroup>
         <FilterToolbarActions>
           <Tabs value={view} onValueChange={(value) => setView(value as typeof view)}>
             <TabsList>
@@ -136,12 +134,8 @@ export default function TareasPage() {
       </FilterToolbar>
 
       {isLoading ? <StatePanel tone="loading" title="Cargando tasks" description="Consultando las fuentes operacionales." /> : null}
-      {error ? (
-        <StatePanel tone="error" title="No fue posible cargar las tasks" description={error.message} actions={<Button variant="outline" onClick={() => void mutate()}>Reintentar</Button>} />
-      ) : null}
-      {!isLoading && !error && tasks.length === 0 ? (
-        <StatePanel tone="neutral" icon={CheckCircle2} title="No hay tasks para este filtro" description="La vista no contiene acciones abiertas con los criterios seleccionados." />
-      ) : null}
+      {error ? <StatePanel tone="error" title="No fue posible cargar las tasks" description={error.message} actions={<Button variant="outline" onClick={() => void mutate()}>Reintentar</Button>} /> : null}
+      {!isLoading && !error && tasks.length === 0 ? <StatePanel tone="neutral" icon={CheckCircle2} title="No hay tasks para este filtro" description="La vista no contiene acciones abiertas con los criterios seleccionados." /> : null}
 
       {!isLoading && !error && tasks.length > 0 ? (
         <div className="overflow-hidden rounded-lg border border-border bg-card">
@@ -165,12 +159,9 @@ export default function TareasPage() {
                 </div>
                 <div className="flex items-center justify-between gap-4 md:justify-end">
                   <span className={`text-xs font-medium ${task.overdue ? 'text-destructive' : 'text-muted-foreground'}`}>
-                    {task.overdue ? <AlertTriangle className="mr-1 inline h-3.5 w-3.5" /> : null}
-                    {relativeLabel(task.days_until)}
+                    {task.overdue ? <AlertTriangle className="mr-1 inline h-3.5 w-3.5" /> : null}{relativeLabel(task.days_until)}
                   </span>
-                  <Button asChild variant="outline" size="sm">
-                    <Link href={task.href}>Abrir<ArrowRight className="h-4 w-4" /></Link>
-                  </Button>
+                  <Button asChild variant="outline" size="sm"><Link href={task.href}>Abrir<ArrowRight className="h-4 w-4" /></Link></Button>
                 </div>
               </article>
             ))}
