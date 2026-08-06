@@ -7,7 +7,14 @@ import { AlertTriangle, ArrowRight, CalendarDays, CheckCircle2, RefreshCw, Searc
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { PageHeader, PageHeaderActions, PageHeaderContent, PageHeaderDescription, PageHeaderEyebrow, PageHeaderTitle } from '@/components/ui/page-header';
+import {
+  PageHeader,
+  PageHeaderActions,
+  PageHeaderContent,
+  PageHeaderDescription,
+  PageHeaderEyebrow,
+  PageHeaderTitle,
+} from '@/components/ui/page-header';
 import { StatePanel } from '@/components/ui/state-panel';
 import { FilterToolbar, FilterToolbarActions, FilterToolbarGroup } from '@/components/ui/filter-toolbar';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -40,7 +47,7 @@ type TasksResponse = {
 const fetcher = async (url: string): Promise<TasksResponse> => {
   const response = await fetch(url, { credentials: 'include', cache: 'no-store' });
   const payload = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(payload?.error || 'No fue posible cargar las tasks');
+  if (!response.ok) throw new Error(payload?.error || 'No fue posible cargar los pendientes');
   return payload;
 };
 
@@ -50,6 +57,13 @@ function relativeLabel(days: number) {
   if (days === 0) return 'Hoy';
   if (days === 1) return 'Mañana';
   return `En ${days} días`;
+}
+
+function formatDate(value: string) {
+  const date = new Date(`${value}T12:00:00`);
+  return Number.isNaN(date.getTime())
+    ? value
+    : date.toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 function priorityVariant(priority: TaskItem['priority']) {
@@ -86,9 +100,9 @@ export default function TareasPage() {
       <PageHeader>
         <PageHeaderContent>
           <PageHeaderEyebrow>Gestión transversal</PageHeaderEyebrow>
-          <PageHeaderTitle>Tasks</PageHeaderTitle>
+          <PageHeaderTitle>Acciones pendientes</PageHeaderTitle>
           <PageHeaderDescription>
-            Acciones abiertas de mantenimiento, cumplimiento y abastecimiento reunidas desde sus fuentes canónicas.
+            Compromisos abiertos de mantenimiento, cumplimiento y abastecimiento reunidos desde sus fuentes canónicas.
           </PageHeaderDescription>
         </PageHeaderContent>
         <PageHeaderActions>
@@ -96,7 +110,7 @@ export default function TareasPage() {
             <RefreshCw className={`h-4 w-4 ${isValidating ? 'animate-spin' : ''}`} />
             Actualizar
           </Button>
-          <Button asChild><Link href="/dashboard/mantenimiento/ordenes-trabajo/create">Nueva OT</Link></Button>
+          <Button asChild><Link href="/dashboard/mantenimiento/ordenes-trabajo/create">Crear OT</Link></Button>
         </PageHeaderActions>
       </PageHeader>
 
@@ -118,7 +132,7 @@ export default function TareasPage() {
         <FilterToolbarGroup>
           <div className="relative min-w-0 flex-1 sm:max-w-md">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar task, responsable o referencia" className="pl-9" />
+            <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar pendiente, responsable o referencia" className="pl-9" />
           </div>
         </FilterToolbarGroup>
         <FilterToolbarActions>
@@ -133,9 +147,9 @@ export default function TareasPage() {
         </FilterToolbarActions>
       </FilterToolbar>
 
-      {isLoading ? <StatePanel tone="loading" title="Cargando tasks" description="Consultando las fuentes operacionales." /> : null}
-      {error ? <StatePanel tone="error" title="No fue posible cargar las tasks" description={error.message} actions={<Button variant="outline" onClick={() => void mutate()}>Reintentar</Button>} /> : null}
-      {!isLoading && !error && tasks.length === 0 ? <StatePanel tone="neutral" icon={CheckCircle2} title="No hay tasks para este filtro" description="La vista no contiene acciones abiertas con los criterios seleccionados." /> : null}
+      {isLoading ? <StatePanel tone="loading" title="Cargando pendientes" description="Consultando las fuentes operacionales." /> : null}
+      {error ? <StatePanel tone="error" title="No fue posible cargar los pendientes" description={error.message} actions={<Button variant="outline" onClick={() => void mutate()}>Reintentar</Button>} /> : null}
+      {!isLoading && !error && tasks.length === 0 ? <StatePanel tone="neutral" icon={CheckCircle2} title="No hay pendientes para este filtro" description="La vista no contiene acciones abiertas con los criterios seleccionados." /> : null}
 
       {!isLoading && !error && tasks.length > 0 ? (
         <div className="overflow-hidden rounded-lg border border-border bg-card">
@@ -154,7 +168,7 @@ export default function TareasPage() {
                   <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                     {task.reference ? <span>{task.reference}</span> : null}
                     {task.owner ? <span>{task.owner}</span> : null}
-                    <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" />{task.date}</span>
+                    <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" />{formatDate(task.date)}</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between gap-4 md:justify-end">
