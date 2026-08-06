@@ -22,9 +22,23 @@ type PipelineItem = {
   progress_percent: number;
   order_number?: string | null;
   supplier_name?: string | null;
+  required_supplier_quotes?: number | null;
+  distinct_supplier_count?: number | null;
+  missing_supplier_quotes?: number | null;
+  uses_exception_policy?: boolean | null;
+  quotation_exception_type?: string | null;
+  quotation_exception_reason?: string | null;
 };
 
 type Response = { data?: PipelineItem[] };
+
+const quotationExceptionLabels: Record<string, string> = {
+  emergency: 'Emergencia',
+  single_source: 'Proveedor único',
+  framework_contract: 'Contrato marco',
+  technical_single_source: 'Proveedor único técnico',
+  other: 'Otra excepción',
+};
 
 const fetcher = async (url: string): Promise<Response> => {
   const response = await fetch(url, { credentials: 'include' });
@@ -55,8 +69,12 @@ export function OperationalPipelineBoard() {
         <div className="divide-y">
           {items.map((item) => {
             const blockers = item.blockers || [];
+            const requiredSupplierQuotes = Math.max(1, item.required_supplier_quotes || 1);
+            const distinctSupplierCount = Math.max(0, item.distinct_supplier_count || 0);
+            const exceptionLabel = quotationExceptionLabels[item.quotation_exception_type || ''] || 'Excepción';
+
             return (
-              <div key={item.pipeline_id} className="grid gap-3 py-4 lg:grid-cols-[minmax(0,1fr)_180px_220px] lg:items-center">
+              <div key={item.pipeline_id} className="grid gap-3 py-4 lg:grid-cols-[minmax(0,1fr)_260px_220px] lg:items-center">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="font-medium">{item.request_number || item.work_order_number || 'Pipeline'}</p>
@@ -76,7 +94,19 @@ export function OperationalPipelineBoard() {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Siguiente acción</p>
-                  <p className="mt-1 text-sm font-medium">{item.next_action}</p>
+                  {item.uses_exception_policy ? (
+                    <div className="mt-1 space-y-1" title={item.quotation_exception_reason || undefined}>
+                      <p className="text-xs text-muted-foreground">Con excepción aprobada:</p>
+                      <p className="text-sm">
+                        {exceptionLabel} <span className="text-muted-foreground">· mínimo {requiredSupplierQuotes}</span>
+                      </p>
+                      <p className="text-sm font-medium">
+                        {distinctSupplierCount} de {requiredSupplierQuotes} <span aria-hidden="true">→</span> {item.next_action}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="mt-1 text-sm font-medium">{item.next_action}</p>
+                  )}
                 </div>
                 <Button asChild className="w-full justify-between">
                   <Link href={item.next_action_href || '/dashboard/compras'}>
