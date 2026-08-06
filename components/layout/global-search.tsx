@@ -14,6 +14,7 @@ import {
   FileText,
   Home,
   Lightbulb,
+  Route,
   Search,
   Shield,
   ShoppingCart,
@@ -32,6 +33,7 @@ import {
 
 const destinations = [
   { group: 'General', label: 'Inicio', keywords: 'dashboard resumen ejecutivo', href: '/dashboard', icon: Home },
+  { group: 'Lean', label: 'Centro Lean', keywords: 'control operacional circuito andon kanban kaizen pendientes', href: '/dashboard/lean', icon: Route },
   { group: 'Lean', label: 'Daily Management', keywords: 'lean reunion diaria gemba control operacional', href: '/dashboard/daily-management', icon: CalendarDays },
   { group: 'Lean', label: 'Andon', keywords: 'desviaciones alertas causa raiz contramedida respuesta', href: '/dashboard/andon', icon: AlertTriangle },
   { group: 'Lean', label: 'Kanban operacional', keywords: 'flujo trabajo wip backlog bloqueos aging', href: '/dashboard/kanban', icon: Columns3 },
