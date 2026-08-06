@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 
 type ExecutionPayload = {
-  action?: 'install_part' | 'return_part' | 'add_labor';
+  action?: 'install_part' | 'return_part' | 'add_labor' | 'add_external_service';
   workOrderPartId?: string;
   quantity?: number;
   technicianId?: string | null;
@@ -12,6 +12,12 @@ type ExecutionPayload = {
   hours?: number;
   hourlyCost?: number;
   notes?: string | null;
+  providerName?: string;
+  serviceDescription?: string;
+  documentNumber?: string | null;
+  serviceDate?: string;
+  amount?: number;
+  serviceStatus?: 'pending' | 'approved' | 'completed';
 };
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -20,7 +26,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const { id } = await params;
 
   try {
-    const [partsResult, laborResult, eventsResult, costsResult] = await Promise.all([
+    const [orderResult, partsResult, laborResult, servicesResult, eventsResult, costsResult] = await Promise.all([
+      context.supabase
+        .from('maintenance_work_orders')
+        .select('id, work_order_number, title, description, status, assigned_to_name, scheduled_date, start_date, completion_date, actual_duration_hours, down_time_hours, root_cause, preventive_actions')
+        .eq('organization_id', context.organizationId)
+        .eq('id', id)
+        .maybeSingle(),
       context.supabase
         .from('work_order_parts')
         .select('*, stock:warehouse_stock(id, part_code, part_name, unit_cost)')
@@ -33,6 +45,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         .eq('organization_id', context.organizationId)
         .eq('work_order_id', id)
         .order('created_at', { ascending: false }),
+      context.supabase
+        .from('work_order_external_services')
+        .select('*')
+        .eq('organization_id', context.organizationId)
+        .eq('work_order_id', id)
+        .order('service_date', { ascending: false }),
       context.supabase
         .from('work_order_events')
         .select('*')
@@ -48,17 +66,20 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         .maybeSingle(),
     ]);
 
-    const firstError = partsResult.error || laborResult.error || eventsResult.error || costsResult.error;
+    const firstError = orderResult.error || partsResult.error || laborResult.error || servicesResult.error || eventsResult.error || costsResult.error;
     if (firstError) throw firstError;
+    if (!orderResult.data) return NextResponse.json({ error: 'La orden no existe' }, { status: 404 });
 
     return NextResponse.json({
+      workOrder: orderResult.data,
       parts: partsResult.data || [],
       labor: laborResult.data || [],
+      externalServices: servicesResult.data || [],
       events: eventsResult.data || [],
       costs: costsResult.data || { parts_cost: 0, labor_cost: 0, external_cost: 0, total_cost: 0 },
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'No se pudo cargar la ejecución de la OT';
+    const message = error instanceof Error ? error.message : 'No se pudo cargar la ejecución de la orden';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -106,9 +127,43 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ data }, { status: 201 });
     }
 
+    if (body.action === 'add_external_service') {
+      const amount = Number(body.amount || 0);
+      if (!body.providerName?.trim() || !body.serviceDescription?.trim() || !Number.isFinite(amount) || amount < 0) {
+        return NextResponse.json({ error: 'Proveedor, servicio y monto válido son obligatorios' }, { status: 400 });
+      }
+      const { data: order, error: orderError } = await context.supabase
+        .from('maintenance_work_orders')
+        .select('id')
+        .eq('organization_id', context.organizationId)
+        .eq('id', id)
+        .maybeSingle();
+      if (orderError) throw orderError;
+      if (!order) return NextResponse.json({ error: 'La orden no existe' }, { status: 404 });
+
+      const { data, error } = await context.supabase
+        .from('work_order_external_services')
+        .insert({
+          organization_id: context.organizationId,
+          work_order_id: id,
+          provider_name: body.providerName.trim(),
+          service_description: body.serviceDescription.trim(),
+          document_number: body.documentNumber?.trim() || null,
+          service_date: body.serviceDate || new Date().toISOString().slice(0, 10),
+          amount,
+          status: body.serviceStatus || 'approved',
+          notes: body.notes || null,
+          created_by: context.userId,
+        })
+        .select('*')
+        .single();
+      if (error) throw error;
+      return NextResponse.json({ data }, { status: 201 });
+    }
+
     return NextResponse.json({ error: 'Acción no soportada' }, { status: 400 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'No se pudo registrar la ejecución de la OT';
+    const message = error instanceof Error ? error.message : 'No se pudo registrar la ejecución de la orden';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
