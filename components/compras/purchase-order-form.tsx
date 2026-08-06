@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { AlertCircle, CheckCircle, ChevronsUpDown, Search, X } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertCircle, CheckCircle, ChevronsUpDown, LoaderCircle, Search, X } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
 
 type Supplier = {
   id: string;
@@ -29,6 +30,12 @@ type PurchaseOrderResult = {
   po_number?: string;
   total_amount?: number | string;
 } | null;
+
+const money = (value: number | string | undefined) => new Intl.NumberFormat('es-CL', {
+  style: 'currency',
+  currency: 'CLP',
+  maximumFractionDigits: 0,
+}).format(Number(value || 0));
 
 export function PurchaseOrderForm() {
   const searchParams = useSearchParams();
@@ -54,6 +61,12 @@ export function PurchaseOrderForm() {
   const [result, setResult] = useState<PurchaseOrderResult>(null);
   const [error, setError] = useState('');
 
+  const total = useMemo(() => {
+    const quantity = Number.isFinite(formData.quantity) ? formData.quantity : 0;
+    const price = Number.isFinite(formData.unit_price) ? formData.unit_price : 0;
+    return quantity * price;
+  }, [formData.quantity, formData.unit_price]);
+
   useEffect(() => {
     if (!showDropdown) return;
 
@@ -61,16 +74,11 @@ export function PurchaseOrderForm() {
     const timer = setTimeout(async () => {
       setLoadingSuppliers(true);
       try {
-        const params = new URLSearchParams({
-          search: supplierSearch,
-          pageSize: '100',
-          page: '0',
-        });
-        const res = await fetch(`/api/compras/suppliers?${params}`);
-        if (res.ok) {
-          const data = await res.json();
-          setSuppliers(data.suppliers || []);
-        }
+        const params = new URLSearchParams({ search: supplierSearch, pageSize: '100', page: '0' });
+        const res = await fetch(`/api/compras/suppliers?${params}`, { credentials: 'include' });
+        if (!res.ok) throw new Error('No fue posible buscar proveedores.');
+        const data = await res.json();
+        setSuppliers(data.suppliers || []);
       } catch {
         setSuppliers([]);
       } finally {
@@ -82,57 +90,64 @@ export function PurchaseOrderForm() {
   }, [supplierSearch, showDropdown]);
 
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setShowDropdown(false);
-      }
+    const handler = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) setShowDropdown(false);
     };
-
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
   const selectSupplier = (supplier: Supplier) => {
     setSelectedSupplier(supplier);
-    setFormData((f) => ({ ...f, vendor_name: supplier.name, supplier_id: supplier.id }));
+    setFormData((current) => ({ ...current, vendor_name: supplier.name, supplier_id: supplier.id }));
     setSupplierSearch(supplier.name);
     setShowDropdown(false);
+    setError('');
   };
 
   const clearSupplier = () => {
     setSelectedSupplier(null);
     setSupplierSearch('');
-    setFormData((f) => ({ ...f, vendor_name: '', supplier_id: '' }));
+    setFormData((current) => ({ ...current, vendor_name: '', supplier_id: '' }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedSupplier) {
-      setError('Selecciona un proveedor de la lista');
+  const validate = () => {
+    if (!selectedSupplier) return 'Selecciona un proveedor de la lista.';
+    if (!formData.item_code.trim()) return 'Ingresa el producto o referencia de compra.';
+    if (!Number.isFinite(formData.quantity) || formData.quantity <= 0) return 'La cantidad debe ser mayor que cero.';
+    if (!Number.isFinite(formData.unit_price) || formData.unit_price <= 0) return 'El costo unitario debe ser mayor que cero.';
+    if (!formData.delivery_date) return 'Selecciona una fecha de entrega.';
+    return null;
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const validationError = validate();
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
     setLoading(true);
     setError('');
+    setResult(null);
 
     try {
       const res = await fetch('/api/compras/purchase-orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        credentials: 'include',
+        body: JSON.stringify({ ...formData, item_code: formData.item_code.trim() }),
       });
+      const payload = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(payload?.error || 'No fue posible crear la orden de compra.');
 
-      if (res.ok) {
-        const { data } = await res.json();
-        setResult(data);
-        setFormData({ vendor_name: '', supplier_id: '', item_code: '', quantity: 1, unit_price: 0, delivery_date: '' });
-        setSelectedSupplier(null);
-        setSupplierSearch('');
-      } else {
-        setError('No se pudo crear la orden de compra');
-      }
-    } catch {
-      setError('No se pudo crear la orden de compra');
+      setResult(payload?.data || null);
+      setFormData({ vendor_name: '', supplier_id: '', item_code: '', quantity: 1, unit_price: 0, delivery_date: '' });
+      setSelectedSupplier(null);
+      setSupplierSearch('');
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : 'No fue posible crear la orden de compra.');
     } finally {
       setLoading(false);
     }
@@ -141,152 +156,131 @@ export function PurchaseOrderForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Crear orden de compra</CardTitle>
+        <CardTitle className="text-base">Datos de la orden</CardTitle>
+        <CardDescription>Selecciona el proveedor, identifica el producto y confirma cantidad, costo y entrega.</CardDescription>
       </CardHeader>
       <CardContent>
-        {prefilledRef && (
-          <div className="mb-4 flex items-center gap-2 rounded border border-primary/30 bg-primary/5 px-3 py-2 text-sm">
-            <CheckCircle className="h-4 w-4 shrink-0 text-primary" />
+        {prefilledRef ? (
+          <div className="mb-5 flex items-start gap-2 rounded-lg border border-primary/25 bg-primary/5 px-3 py-2.5 text-sm">
+            <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
             <span>
-              Repuestos para <span className="font-semibold">{prefilledRef}</span>
-              {prefilledCostCenter && <span className="text-muted-foreground"> - CC {prefilledCostCenter}</span>}
+              Compra vinculada a <span className="font-semibold">{prefilledRef}</span>
+              {prefilledCostCenter ? <span className="text-muted-foreground"> · Centro de costo {prefilledCostCenter}</span> : null}
             </span>
           </div>
-        )}
+        ) : null}
 
-        {result && (
-          <div className="mb-4 flex gap-2 rounded border border-green-200 bg-green-50 p-3">
-            <CheckCircle className="h-5 w-5 shrink-0 text-green-600" />
+        {result ? (
+          <div className="mb-5 flex gap-2 rounded-lg border border-secondary/30 bg-secondary/10 p-3">
+            <CheckCircle className="h-5 w-5 shrink-0 text-secondary" />
             <div>
-              <p className="text-sm font-semibold text-green-800">Orden de compra creada</p>
-              <p className="text-sm text-green-700">
-                {result.po_number} - Total: ${result.total_amount}
-              </p>
+              <p className="text-sm font-semibold">Orden de compra creada</p>
+              <p className="text-sm text-muted-foreground">{result.po_number || 'Orden registrada'} · Total {money(result.total_amount)}</p>
             </div>
           </div>
-        )}
+        ) : null}
 
-        {error && (
-          <div className="mb-4 flex gap-2 rounded border border-red-200 bg-red-50 p-3">
-            <AlertCircle className="h-5 w-5 shrink-0 text-red-600" />
-            <p className="text-sm text-red-700">{error}</p>
+        {error ? (
+          <div className="mb-5 flex gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3" role="alert">
+            <AlertCircle className="h-5 w-5 shrink-0 text-destructive" />
+            <p className="text-sm text-destructive">{error}</p>
           </div>
-        )}
+        ) : null}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="mb-1 block text-sm font-semibold">Proveedor</label>
+        <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+          <div className="space-y-2">
+            <Label htmlFor="supplier-search">Proveedor *</Label>
             <div className="relative" ref={dropdownRef}>
-              <div className="flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring">
+              <div className="flex min-h-10 items-center gap-2 rounded-md border border-input bg-background px-3 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring">
                 <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
                 <input
-                  className="flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
-                  placeholder="Buscar proveedor por nombre o RUT..."
+                  id="supplier-search"
+                  className="min-w-0 flex-1 bg-transparent py-2 outline-none placeholder:text-muted-foreground"
+                  placeholder="Buscar por nombre o RUT"
                   value={supplierSearch}
-                  onChange={(e) => {
-                    setSupplierSearch(e.target.value);
+                  autoComplete="off"
+                  aria-expanded={showDropdown}
+                  aria-controls="supplier-options"
+                  onChange={(event) => {
+                    setSupplierSearch(event.target.value);
                     setShowDropdown(true);
-                    if (!e.target.value) clearSupplier();
+                    if (!event.target.value) clearSupplier();
+                    else if (selectedSupplier && event.target.value !== selectedSupplier.name) {
+                      setSelectedSupplier(null);
+                      setFormData((current) => ({ ...current, vendor_name: '', supplier_id: '' }));
+                    }
                   }}
                   onFocus={() => setShowDropdown(true)}
                 />
                 {selectedSupplier ? (
-                  <button type="button" onClick={clearSupplier}>
-                    <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                  <button type="button" onClick={clearSupplier} aria-label="Quitar proveedor" className="rounded p-1 hover:bg-muted">
+                    <X className="h-4 w-4 text-muted-foreground" />
                   </button>
-                ) : (
-                  <ChevronsUpDown className="h-4 w-4 text-muted-foreground" />
-                )}
+                ) : <ChevronsUpDown className="h-4 w-4 text-muted-foreground" />}
               </div>
 
-              {selectedSupplier && (
-                <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                  <Badge variant="secondary" className="font-mono">
-                    {selectedSupplier.rut}
-                  </Badge>
-                  {selectedSupplier.contact_person && <span>{selectedSupplier.contact_person}</span>}
-                  {selectedSupplier.email && <span>{selectedSupplier.email}</span>}
+              {selectedSupplier ? (
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                  <Badge variant="secondary" className="font-mono">{selectedSupplier.rut}</Badge>
+                  {selectedSupplier.contact_person ? <span>{selectedSupplier.contact_person}</span> : null}
+                  {selectedSupplier.email ? <span>{selectedSupplier.email}</span> : null}
                 </div>
-              )}
+              ) : null}
 
-              {showDropdown && (
-                <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-popover shadow-lg">
+              {showDropdown ? (
+                <div id="supplier-options" className="absolute z-50 mt-1 w-full rounded-md border border-border bg-popover shadow-lg">
                   {loadingSuppliers ? (
-                    <div className="px-3 py-4 text-center text-sm text-muted-foreground">Buscando...</div>
+                    <div className="flex items-center justify-center gap-2 px-3 py-4 text-sm text-muted-foreground"><LoaderCircle className="h-4 w-4 animate-spin" />Buscando proveedores…</div>
                   ) : suppliers.length === 0 ? (
-                    <div className="px-3 py-4 text-center text-sm text-muted-foreground">
-                      No se encontraron proveedores
-                    </div>
+                    <div className="px-3 py-4 text-center text-sm text-muted-foreground">No se encontraron proveedores.</div>
                   ) : (
                     <ul className="max-h-60 overflow-y-auto py-1">
                       {suppliers.map((supplier) => (
                         <li key={supplier.id}>
-                          <button
-                            type="button"
-                            className="flex w-full flex-col gap-0.5 px-3 py-2 text-left text-sm hover:bg-accent"
-                            onClick={() => selectSupplier(supplier)}
-                          >
+                          <button type="button" className="flex w-full flex-col gap-0.5 px-3 py-2 text-left text-sm hover:bg-accent" onClick={() => selectSupplier(supplier)}>
                             <span className="font-medium">{supplier.name}</span>
-                            <span className="font-mono text-xs text-muted-foreground">
-                              {supplier.rut}
-                              {supplier.contact_person && ` - ${supplier.contact_person}`}
-                            </span>
+                            <span className="font-mono text-xs text-muted-foreground">{supplier.rut}{supplier.contact_person ? ` · ${supplier.contact_person}` : ''}</span>
                           </button>
                         </li>
                       ))}
                     </ul>
                   )}
                 </div>
-              )}
+              ) : null}
             </div>
           </div>
 
-          <div>
-            <label className="mb-1 block text-sm font-semibold">Codigo del producto / referencia</label>
-            <Input
-              value={formData.item_code}
-              onChange={(e) => setFormData({ ...formData, item_code: e.target.value })}
-              placeholder="Ej: PART-001"
-              required
-            />
+          <div className="space-y-2">
+            <Label htmlFor="item-code">Producto o referencia *</Label>
+            <Input id="item-code" value={formData.item_code} onChange={(event) => setFormData({ ...formData, item_code: event.target.value })} placeholder="Ej. Filtro hidráulico CAT 336" />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="quantity">Cantidad *</Label>
+              <Input id="quantity" type="number" min="1" step="1" value={Number.isFinite(formData.quantity) ? formData.quantity : ''} onChange={(event) => setFormData({ ...formData, quantity: event.target.value === '' ? Number.NaN : Number(event.target.value) })} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="unit-price">Costo unitario en pesos *</Label>
+              <Input id="unit-price" type="number" min="1" step="1" value={Number.isFinite(formData.unit_price) ? formData.unit_price : ''} onChange={(event) => setFormData({ ...formData, unit_price: event.target.value === '' ? Number.NaN : Number(event.target.value) })} />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="delivery-date">Fecha esperada de entrega *</Label>
+            <Input id="delivery-date" type="date" value={formData.delivery_date} onChange={(event) => setFormData({ ...formData, delivery_date: event.target.value })} />
+          </div>
+
+          <div className="flex flex-col gap-3 rounded-lg border bg-muted/20 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <label className="mb-1 block text-sm font-semibold">Cantidad</label>
-              <Input
-                type="number"
-                min="1"
-                value={formData.quantity}
-                onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) })}
-                required
-              />
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Total estimado</p>
+              <p className="mt-1 text-2xl font-semibold">{money(total)}</p>
             </div>
-            <div>
-              <label className="mb-1 block text-sm font-semibold">Costo unitario ($)</label>
-              <Input
-                type="number"
-                step="0.01"
-                value={formData.unit_price}
-                onChange={(e) => setFormData({ ...formData, unit_price: parseFloat(e.target.value) })}
-                required
-              />
-            </div>
+            <Button type="submit" disabled={loading} className="sm:min-w-44">
+              {loading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
+              {loading ? 'Creando orden…' : 'Crear orden'}
+            </Button>
           </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-semibold">Fecha de entrega</label>
-            <Input
-              type="date"
-              value={formData.delivery_date}
-              onChange={(e) => setFormData({ ...formData, delivery_date: e.target.value })}
-              required
-            />
-          </div>
-
-          <Button type="submit" disabled={loading || !selectedSupplier} className="w-full">
-            {loading ? 'Creando...' : 'Crear orden de compra'}
-          </Button>
         </form>
       </CardContent>
     </Card>
