@@ -1,8 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Bundle the source XLS workbooks into the canonical-import serverless function
+  // Bundle only the HSE source workbooks required by the canonical import route.
   outputFileTracingIncludes: {
-    '/api/admin/canonical-import': ['./data/**'],
+    '/api/admin/hse-canonical-import': [
+      './data/ROLES-INTRANET-d4ae24.xlsx',
+      './data/Registro-Maestro-Compromisos-Ambientales-Javito-dc3afa.xlsx',
+      './data/LISTADO-EECC-2f5c74.xlsx',
+    ],
   },
 
   // Enable image optimization
