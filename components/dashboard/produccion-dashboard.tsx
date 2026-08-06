@@ -108,7 +108,7 @@ export function ProduccionDashboard() {
         <StatePanel tone="loading" title="Cargando producción" description="Consultando los registros operacionales." />
       ) : !error && kpis.length === 0 ? (
         <StatePanel
-          tone="empty"
+          tone="neutral"
           title="No hay registros de producción"
           description="La información aparecerá cuando la fuente operacional entregue nuevos registros."
         />
