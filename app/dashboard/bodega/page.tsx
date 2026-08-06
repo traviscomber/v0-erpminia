@@ -154,7 +154,7 @@ export default function BodegaPage() {
           <StatePanel tone="loading" title="Cargando inventario" description="Consultando las existencias registradas." />
         ) : !error && positions.length === 0 ? (
           <StatePanel
-            tone="empty"
+            tone="neutral"
             title="No hay productos para mostrar"
             description="Prueba con otros filtros o revisa si las existencias ya fueron importadas."
           />
