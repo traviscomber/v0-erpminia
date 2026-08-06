@@ -104,82 +104,78 @@ export function Header({ sidebarCollapsed = false, onToggleSidebar }: HeaderProp
           ...allBreadcrumbs.slice(-2),
         ]
       : allBreadcrumbs;
-  const currentTitle = allBreadcrumbs.at(-1)?.label || 'Inicio';
   const sidebarAction = sidebarCollapsed ? 'Mostrar menú' : 'Ocultar menú';
 
   return (
-    <header className="sticky top-0 z-30 w-full border-b border-border/70 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85">
-      <div className="flex min-h-16 items-center justify-between gap-4 px-4 pl-16 md:px-6 lg:pl-6">
+    <header className="sticky top-0 z-30 w-full border-b border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/88">
+      <div className="flex h-14 items-center justify-between gap-4 px-4 pl-16 md:px-6 lg:pl-6">
         <div className="flex min-w-0 items-center gap-3">
           {onToggleSidebar ? (
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={onToggleSidebar}
               aria-label={sidebarAction}
               title={sidebarAction}
-              className="hidden shrink-0 gap-2 lg:inline-flex"
+              className="hidden shrink-0 gap-2 text-muted-foreground hover:text-foreground lg:inline-flex"
             >
               {sidebarCollapsed ? (
                 <PanelLeftOpen className="h-4 w-4" />
               ) : (
                 <PanelLeftClose className="h-4 w-4" />
               )}
-              <span className="hidden xl:inline">{sidebarAction}</span>
+              <span className="hidden 2xl:inline">{sidebarAction}</span>
             </Button>
           ) : null}
 
-          <div className="min-w-0 py-3">
-            <nav aria-label="Ruta de navegación" className="mb-1 hidden items-center gap-1 text-xs text-muted-foreground sm:flex">
-              {breadcrumbs.map((item, index) => (
-                <div key={`${item.href}-${index}`} className="flex min-w-0 items-center gap-1">
-                  {index > 0 && <ChevronRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />}
-                  {'collapsed' in item && item.collapsed ? (
-                    <span className="flex h-5 w-5 items-center justify-center" aria-label="Niveles intermedios omitidos">
-                      <Ellipsis className="h-3.5 w-3.5" aria-hidden="true" />
-                    </span>
-                  ) : item.current ? (
-                    <span className="truncate font-medium text-foreground" aria-current="page">
-                      {item.label}
-                    </span>
-                  ) : (
-                    <Link href={item.href} className="truncate transition-colors hover:text-foreground">
-                      {item.label}
-                    </Link>
-                  )}
-                </div>
-              ))}
-            </nav>
-            <p className="truncate text-base font-semibold tracking-tight sm:text-lg">{currentTitle}</p>
-          </div>
+          <nav aria-label="Ruta de navegación" className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
+            {breadcrumbs.map((item, index) => (
+              <div key={`${item.href}-${index}`} className="flex min-w-0 items-center gap-1">
+                {index > 0 && <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-60" aria-hidden="true" />}
+                {'collapsed' in item && item.collapsed ? (
+                  <span className="flex h-5 w-5 items-center justify-center" aria-label="Niveles intermedios omitidos">
+                    <Ellipsis className="h-3.5 w-3.5" aria-hidden="true" />
+                  </span>
+                ) : item.current ? (
+                  <span className="truncate font-medium text-foreground" aria-current="page">
+                    {item.label}
+                  </span>
+                ) : (
+                  <Link href={item.href} className="truncate transition-colors hover:text-foreground">
+                    {item.label}
+                  </Link>
+                )}
+              </div>
+            ))}
+          </nav>
         </div>
 
-        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-          <Button asChild variant="ghost" size="icon" aria-label="Ver alertas">
+        <div className="flex shrink-0 items-center gap-1">
+          <Button asChild variant="ghost" size="icon-sm" aria-label="Ver alertas">
             <Link href="/dashboard/alertas">
-              <Bell className="h-5 w-5" />
+              <Bell className="h-4 w-4" />
             </Link>
           </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-10 gap-2 px-2 sm:px-3" aria-label="Abrir menú de usuario">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-primary">
-                  <User className="h-4 w-4 text-sidebar-primary-foreground" />
+              <Button variant="ghost" className="h-9 gap-2 px-1.5 sm:px-2.5" aria-label="Abrir menú de usuario">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-sidebar-primary">
+                  <User className="h-3.5 w-3.5 text-sidebar-primary-foreground" />
                 </div>
-                <div className="hidden max-w-40 text-left sm:block">
-                  <p className="truncate text-sm font-medium">{user?.name || user?.email || 'Usuario'}</p>
-                  <p className="truncate text-xs capitalize text-muted-foreground">{role || 'Sin rol'}</p>
+                <div className="hidden max-w-36 text-left lg:block">
+                  <p className="truncate text-xs font-medium">{user?.name || user?.email || 'Usuario'}</p>
+                  <p className="truncate text-[11px] capitalize text-muted-foreground">{role || 'Sin rol'}</p>
                 </div>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-56">
-              <div className="px-2 py-1.5 sm:hidden">
+              <div className="px-2 py-1.5 lg:hidden">
                 <p className="truncate text-sm font-medium">{user?.name || user?.email || 'Usuario'}</p>
                 <p className="truncate text-xs capitalize text-muted-foreground">{role || 'Sin rol'}</p>
               </div>
-              <DropdownMenuSeparator className="sm:hidden" />
+              <DropdownMenuSeparator className="lg:hidden" />
               {canAdminister ? (
                 <DropdownMenuItem asChild className="cursor-pointer gap-2">
                   <Link href="/dashboard/admin">
