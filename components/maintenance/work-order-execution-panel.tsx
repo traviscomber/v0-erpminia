@@ -2,12 +2,13 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import { Clock3, History, PackageCheck, RotateCcw, Wrench } from 'lucide-react';
+import { Clock3, FileText, History, PackageCheck, Printer, RotateCcw, Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 const fetcher = async (url: string) => {
   const response = await fetch(url, { credentials: 'include' });
@@ -18,6 +19,9 @@ const fetcher = async (url: string) => {
 
 const money = (value: number | string | null | undefined) =>
   `$${Number(value || 0).toLocaleString('es-CL', { maximumFractionDigits: 0 })}`;
+
+const dateLabel = (value?: string | null) =>
+  value ? new Date(value).toLocaleDateString('es-CL') : 'Sin fecha';
 
 type WorkOrderPart = {
   id: string;
@@ -37,12 +41,37 @@ type LaborEntry = {
   notes?: string | null;
 };
 
+type ExternalService = {
+  id: string;
+  provider_name: string;
+  service_description: string;
+  document_number?: string | null;
+  service_date: string;
+  amount: number;
+  status: string;
+  notes?: string | null;
+};
+
 type WorkOrderEvent = {
   id: number;
   event_type: string;
   event_at: string;
   summary: string;
   actor_name?: string | null;
+};
+
+type WorkOrderSummary = {
+  work_order_number?: string;
+  title?: string;
+  description?: string | null;
+  status?: string;
+  assigned_to_name?: string | null;
+  scheduled_date?: string | null;
+  completion_date?: string | null;
+  actual_duration_hours?: number | null;
+  down_time_hours?: number | null;
+  root_cause?: string | null;
+  preventive_actions?: string | null;
 };
 
 export function WorkOrderExecutionPanel({ workOrderId }: { workOrderId: string }) {
@@ -53,12 +82,20 @@ export function WorkOrderExecutionPanel({ workOrderId }: { workOrderId: string }
   const [technicianName, setTechnicianName] = useState('');
   const [hours, setHours] = useState('');
   const [hourlyCost, setHourlyCost] = useState('');
-  const [notes, setNotes] = useState('');
+  const [laborNotes, setLaborNotes] = useState('');
+  const [providerName, setProviderName] = useState('');
+  const [serviceDescription, setServiceDescription] = useState('');
+  const [documentNumber, setDocumentNumber] = useState('');
+  const [serviceDate, setServiceDate] = useState(new Date().toISOString().slice(0, 10));
+  const [serviceAmount, setServiceAmount] = useState('');
+  const [serviceNotes, setServiceNotes] = useState('');
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
+  const workOrder = (data?.workOrder || {}) as WorkOrderSummary;
   const parts = (Array.isArray(data?.parts) ? data.parts : []) as WorkOrderPart[];
   const labor = (Array.isArray(data?.labor) ? data.labor : []) as LaborEntry[];
+  const services = (Array.isArray(data?.externalServices) ? data.externalServices : []) as ExternalService[];
   const events = (Array.isArray(data?.events) ? data.events : []) as WorkOrderEvent[];
   const costs = data?.costs || {};
 
@@ -75,28 +112,55 @@ export function WorkOrderExecutionPanel({ workOrderId }: { workOrderId: string }
       const result = await response.json().catch(() => null);
       if (!response.ok) throw new Error(result?.error || 'No se pudo registrar la operación');
       await mutate();
+      return true;
     } catch (executionError) {
       setMessage(executionError instanceof Error ? executionError.message : 'No se pudo registrar la operación');
+      return false;
     } finally {
       setBusyKey(null);
     }
   };
 
   const addLabor = async () => {
-    await execute(
+    const saved = await execute(
       {
         action: 'add_labor',
         technicianName,
         hours: Number(hours),
         hourlyCost: Number(hourlyCost || 0),
-        notes: notes || null,
+        notes: laborNotes || null,
       },
       'labor',
     );
-    setTechnicianName('');
-    setHours('');
-    setHourlyCost('');
-    setNotes('');
+    if (saved) {
+      setTechnicianName('');
+      setHours('');
+      setHourlyCost('');
+      setLaborNotes('');
+    }
+  };
+
+  const addExternalService = async () => {
+    const saved = await execute(
+      {
+        action: 'add_external_service',
+        providerName,
+        serviceDescription,
+        documentNumber: documentNumber || null,
+        serviceDate,
+        amount: Number(serviceAmount),
+        serviceStatus: 'approved',
+        notes: serviceNotes || null,
+      },
+      'service',
+    );
+    if (saved) {
+      setProviderName('');
+      setServiceDescription('');
+      setDocumentNumber('');
+      setServiceAmount('');
+      setServiceNotes('');
+    }
   };
 
   return (
@@ -121,7 +185,7 @@ export function WorkOrderExecutionPanel({ workOrderId }: { workOrderId: string }
       <Card className="shadow-none">
         <CardHeader><CardTitle className="flex items-center gap-2 text-base"><PackageCheck className="h-4 w-4" />Destino de repuestos entregados</CardTitle></CardHeader>
         <CardContent className="space-y-3">
-          {isLoading ? <p className="text-sm text-muted-foreground">Cargando...</p> : parts.length === 0 ? (
+          {isLoading ? <p className="text-sm text-muted-foreground">Cargando…</p> : parts.length === 0 ? (
             <p className="rounded-lg border border-dashed p-5 text-sm text-muted-foreground">Aún no hay repuestos entregados desde bodega.</p>
           ) : parts.map((part) => {
             const pending = Number(part.quantity_issued || 0) - Number(part.quantity_installed || 0) - Number(part.quantity_returned || 0);
@@ -155,25 +219,77 @@ export function WorkOrderExecutionPanel({ workOrderId }: { workOrderId: string }
         <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Clock3 className="h-4 w-4" />Mano de obra</CardTitle></CardHeader>
         <CardContent className="space-y-5">
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-            <div><Label>Técnico</Label><Input className="mt-2" value={technicianName} onChange={(event) => setTechnicianName(event.target.value)} placeholder="Nombre completo" /></div>
-            <div><Label>Horas</Label><Input className="mt-2" type="number" min="0.1" step="0.1" value={hours} onChange={(event) => setHours(event.target.value)} /></div>
-            <div><Label>Costo por hora</Label><Input className="mt-2" type="number" min="0" value={hourlyCost} onChange={(event) => setHourlyCost(event.target.value)} /></div>
+            <div><Label htmlFor="labor-technician">Técnico</Label><Input id="labor-technician" className="mt-2" value={technicianName} onChange={(event) => setTechnicianName(event.target.value)} placeholder="Nombre completo" /></div>
+            <div><Label htmlFor="labor-hours">Horas</Label><Input id="labor-hours" className="mt-2" type="number" min="0.1" step="0.1" value={hours} onChange={(event) => setHours(event.target.value)} /></div>
+            <div><Label htmlFor="labor-cost">Costo por hora</Label><Input id="labor-cost" className="mt-2" type="number" min="0" value={hourlyCost} onChange={(event) => setHourlyCost(event.target.value)} /></div>
             <div className="flex items-end"><Button className="w-full" onClick={addLabor} disabled={busyKey === 'labor' || !technicianName.trim() || Number(hours) <= 0}>Registrar</Button></div>
           </div>
-          <div><Label>Nota</Label><Input className="mt-2" value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Trabajo realizado o especialidad" /></div>
+          <div><Label htmlFor="labor-notes">Trabajo realizado</Label><Input id="labor-notes" className="mt-2" value={laborNotes} onChange={(event) => setLaborNotes(event.target.value)} placeholder="Actividad, especialidad u observación" /></div>
           {labor.length > 0 ? <div className="divide-y rounded-lg border">{labor.map((entry) => (
             <div key={entry.id} className="flex items-center justify-between gap-4 p-3 text-sm">
-              <div><p className="font-medium">{entry.technician_name}</p><p className="text-muted-foreground">{entry.notes || 'Sin nota'}</p></div>
+              <div><p className="font-medium">{entry.technician_name}</p><p className="text-muted-foreground">{entry.notes || 'Sin observación'}</p></div>
               <div className="text-right"><p>{entry.hours} h</p><p className="text-muted-foreground">{money(Number(entry.hours) * Number(entry.hourly_cost))}</p></div>
             </div>
-          ))}</div> : null}
+          ))}</div> : <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">Aún no hay mano de obra registrada.</p>}
         </CardContent>
       </Card>
 
       <Card className="shadow-none">
-        <CardHeader><CardTitle className="flex items-center gap-2 text-base"><History className="h-4 w-4" />Trazabilidad de la orden</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Wrench className="h-4 w-4" />Servicios externos</CardTitle></CardHeader>
+        <CardContent className="space-y-5">
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            <div><Label htmlFor="service-provider">Proveedor</Label><Input id="service-provider" className="mt-2" value={providerName} onChange={(event) => setProviderName(event.target.value)} placeholder="Empresa o profesional" /></div>
+            <div><Label htmlFor="service-description">Servicio realizado</Label><Input id="service-description" className="mt-2" value={serviceDescription} onChange={(event) => setServiceDescription(event.target.value)} placeholder="Descripción breve" /></div>
+            <div><Label htmlFor="service-document">Documento</Label><Input id="service-document" className="mt-2" value={documentNumber} onChange={(event) => setDocumentNumber(event.target.value)} placeholder="Factura, guía u orden" /></div>
+            <div><Label htmlFor="service-date">Fecha</Label><Input id="service-date" className="mt-2" type="date" value={serviceDate} onChange={(event) => setServiceDate(event.target.value)} /></div>
+            <div><Label htmlFor="service-amount">Monto</Label><Input id="service-amount" className="mt-2" type="number" min="0" value={serviceAmount} onChange={(event) => setServiceAmount(event.target.value)} /></div>
+            <div className="flex items-end"><Button className="w-full" onClick={addExternalService} disabled={busyKey === 'service' || !providerName.trim() || !serviceDescription.trim() || Number(serviceAmount) < 0 || serviceAmount === ''}>Registrar servicio</Button></div>
+          </div>
+          <div><Label htmlFor="service-notes">Observaciones</Label><Textarea id="service-notes" className="mt-2" rows={2} value={serviceNotes} onChange={(event) => setServiceNotes(event.target.value)} placeholder="Alcance, garantía o condición relevante" /></div>
+          {services.length > 0 ? <div className="divide-y rounded-lg border">{services.map((service) => (
+            <div key={service.id} className="flex flex-col gap-2 p-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+              <div><p className="font-medium">{service.provider_name} · {service.service_description}</p><p className="text-muted-foreground">{dateLabel(service.service_date)}{service.document_number ? ` · ${service.document_number}` : ''}{service.notes ? ` · ${service.notes}` : ''}</p></div>
+              <div className="flex items-center gap-3"><Badge variant="outline">{service.status === 'pending' ? 'Pendiente' : 'Aprobado'}</Badge><p className="font-medium">{money(service.amount)}</p></div>
+            </div>
+          ))}</div> : <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">No hay servicios externos registrados.</p>}
+        </CardContent>
+      </Card>
+
+      <Card className="shadow-none print:shadow-none" id="work-order-final-report">
+        <CardHeader className="flex flex-row items-center justify-between gap-4">
+          <CardTitle className="flex items-center gap-2 text-base"><FileText className="h-4 w-4" />Informe final de la orden</CardTitle>
+          <Button variant="outline" size="sm" onClick={() => window.print()} className="print:hidden"><Printer className="mr-2 h-4 w-4" />Imprimir</Button>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div><p className="text-xs text-muted-foreground">Orden</p><p className="mt-1 font-medium">{workOrder.work_order_number || 'Sin número'}</p></div>
+            <div><p className="text-xs text-muted-foreground">Responsable</p><p className="mt-1 font-medium">{workOrder.assigned_to_name || 'Sin asignar'}</p></div>
+            <div><p className="text-xs text-muted-foreground">Fecha programada</p><p className="mt-1 font-medium">{dateLabel(workOrder.scheduled_date)}</p></div>
+            <div><p className="text-xs text-muted-foreground">Fecha de cierre</p><p className="mt-1 font-medium">{dateLabel(workOrder.completion_date)}</p></div>
+          </div>
+          <div><p className="text-xs text-muted-foreground">Trabajo solicitado</p><p className="mt-1 text-sm">{workOrder.title || 'Sin título'}{workOrder.description ? ` · ${workOrder.description}` : ''}</p></div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div><p className="text-xs text-muted-foreground">Causa principal</p><p className="mt-1 text-sm">{workOrder.root_cause || 'No registrada'}</p></div>
+            <div><p className="text-xs text-muted-foreground">Acción aplicada</p><p className="mt-1 text-sm">{workOrder.preventive_actions || 'No registrada'}</p></div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div><p className="text-xs text-muted-foreground">Horas reales</p><p className="mt-1 font-medium">{Number(workOrder.actual_duration_hours || 0)} h</p></div>
+            <div><p className="text-xs text-muted-foreground">Tiempo detenido</p><p className="mt-1 font-medium">{Number(workOrder.down_time_hours || 0)} h</p></div>
+            <div><p className="text-xs text-muted-foreground">Técnicos</p><p className="mt-1 font-medium">{labor.length}</p></div>
+            <div><p className="text-xs text-muted-foreground">Costo total</p><p className="mt-1 font-medium">{money(costs.total_cost)}</p></div>
+          </div>
+          <div className="grid gap-5 lg:grid-cols-3">
+            <div><p className="text-sm font-medium">Repuestos instalados</p><ul className="mt-2 space-y-1 text-sm text-muted-foreground">{parts.filter((part) => Number(part.quantity_installed || 0) > 0).map((part) => <li key={part.id}>{part.stock?.part_name || 'Repuesto'} · {part.quantity_installed}</li>)}{parts.every((part) => Number(part.quantity_installed || 0) <= 0) ? <li>Sin repuestos instalados</li> : null}</ul></div>
+            <div><p className="text-sm font-medium">Mano de obra</p><ul className="mt-2 space-y-1 text-sm text-muted-foreground">{labor.map((entry) => <li key={entry.id}>{entry.technician_name} · {entry.hours} h</li>)}{labor.length === 0 ? <li>Sin mano de obra registrada</li> : null}</ul></div>
+            <div><p className="text-sm font-medium">Servicios externos</p><ul className="mt-2 space-y-1 text-sm text-muted-foreground">{services.map((service) => <li key={service.id}>{service.provider_name} · {money(service.amount)}</li>)}{services.length === 0 ? <li>Sin servicios externos</li> : null}</ul></div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="shadow-none print:hidden">
+        <CardHeader><CardTitle className="flex items-center gap-2 text-base"><History className="h-4 w-4" />Historial de la orden</CardTitle></CardHeader>
         <CardContent>
-          {events.length === 0 ? <p className="rounded-lg border border-dashed p-5 text-sm text-muted-foreground">La bitácora se completará con cada acción operativa.</p> : (
+          {events.length === 0 ? <p className="rounded-lg border border-dashed p-5 text-sm text-muted-foreground">El historial se completará con cada acción operativa.</p> : (
             <div className="space-y-0">{events.map((event, index) => (
               <div key={event.id} className="relative flex gap-4 pb-5">
                 {index < events.length - 1 ? <span className="absolute left-[7px] top-4 h-full w-px bg-border" /> : null}
