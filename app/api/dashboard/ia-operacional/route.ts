@@ -4,41 +4,27 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { getDashboardSnapshot } from '@/lib/api/dashboard-snapshot';
 
-type AssetRow = {
-  id?: string | number;
-  name?: string | null;
-  status?: string | null;
-  criticality?: string | null;
-  created_at?: string | null;
-};
+type AssetRow = { id?: string | number; name?: string | null; status?: string | null; criticality?: string | null };
+type WorkOrderRow = { id?: string | number; title?: string | null; work_order_number?: string | null; status?: string | null; priority?: string | null; scheduled_date?: string | null; created_at?: string | null; asset_id?: string | null };
+type DocumentRow = { id?: string | number; title?: string | null; days_until_expiry?: number | null };
+type StockRow = { id?: string | number; part_name?: string | null; part_code?: string | null; quantity_on_hand?: number | string | null; reorder_level?: number | string | null };
 
-type ExpiringDocumentRow = {
-  id?: string | number;
-  title?: string | null;
-  days_until_expiry?: number | null;
-};
+function normalized(value: unknown) {
+  return String(value || '').trim().toLowerCase();
+}
 
-type StockItemRow = {
-  id?: string | number;
-  part_name?: string | null;
-  part_code?: string | null;
-  quantity_on_hand?: number | string | null;
-};
+function numberValue(value: unknown) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
 
-type WorkOrderRow = {
-  id?: string | number;
-  title?: string | null;
-  status?: string | null;
-  scheduled_date?: string | null;
-  created_at?: string | null;
-};
-
-type ContractRow = {
-  id?: string | number;
-  contractor_name?: string | null;
-  title?: string | null;
-  days_until_expiry?: number | string | null;
-};
+function priorityWeight(value: unknown) {
+  const priority = normalized(value);
+  if (priority === 'critical') return 35;
+  if (priority === 'high') return 25;
+  if (priority === 'medium') return 12;
+  return 5;
+}
 
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
@@ -46,85 +32,97 @@ export async function GET(request: NextRequest) {
 
   try {
     const snapshot = await getDashboardSnapshot({ organizationId: context.organizationId, supabase: context.supabase });
+    const assets = snapshot.assets as AssetRow[];
+    const workOrders = snapshot.workOrders as WorkOrderRow[];
+    const now = Date.now();
 
-    const criticalEquipment = (snapshot.assets as AssetRow[])
-      .filter((asset) => {
-        const status = String(asset.status || '').toLowerCase();
-        const criticality = String(asset.criticality || '').toLowerCase();
-        return ['critical', 'maintenance'].includes(status) || criticality === 'critical';
-      })
-      .slice(0, 5)
-      .map((asset) => ({
-        id: asset.id,
-        name: asset.name,
-        risk: String(asset.criticality || 'warning').toLowerCase() === 'critical' ? 'critical' : 'warning',
-        status: String(asset.status || asset.criticality || 'warning').toUpperCase(),
-        issue:
-          String(asset.status || '').toLowerCase() === 'maintenance'
-            ? 'Activo en mantenimiento preventivo o correctivo'
-            : 'Activo marcado como crítico para seguimiento prioritario',
-        action:
-          String(asset.status || '').toLowerCase() === 'maintenance'
-            ? 'Revisar programación de mantención'
-            : 'Validar condición operacional y repuestos',
-        timestamp: asset.created_at || new Date().toISOString(),
-      }));
+    const healthItems = assets.map((asset) => {
+      const related = workOrders.filter((order) => String(order.asset_id || '') === String(asset.id || ''));
+      const open = related.filter((order) => ['open', 'in_progress'].includes(normalized(order.status)));
+      const overdue = open.filter((order) => order.scheduled_date && new Date(order.scheduled_date).getTime() < now);
+      const recentCorrective = related.filter((order) => {
+        const created = new Date(order.created_at || 0).getTime();
+        return created >= now - 30 * 24 * 60 * 60 * 1000 && normalized(order.title).includes('correct');
+      });
 
-    const expiringDocuments = (snapshot.expiringDocuments as ExpiringDocumentRow[]).slice(0, 5).map((doc) => ({
+      let score = 0;
+      const reasons: string[] = [];
+      const status = normalized(asset.status);
+      const criticality = normalized(asset.criticality);
+
+      if (['critical', 'fuera de servicio', 'out_of_service'].includes(status) || criticality === 'critical') {
+        score += 45;
+        reasons.push('Equipo marcado como crítico o fuera de servicio');
+      } else if (['maintenance', 'mantenimiento'].includes(status)) {
+        score += 25;
+        reasons.push('Equipo actualmente en mantenimiento');
+      }
+
+      if (open.length > 0) {
+        score += Math.min(25, open.reduce((sum, order) => sum + priorityWeight(order.priority), 0));
+        reasons.push(`${open.length} orden(es) de trabajo abiertas`);
+      }
+      if (overdue.length > 0) {
+        score += Math.min(25, overdue.length * 10);
+        reasons.push(`${overdue.length} orden(es) atrasadas`);
+      }
+      if (recentCorrective.length >= 3) {
+        score += 15;
+        reasons.push(`${recentCorrective.length} intervenciones correctivas recientes`);
+      }
+
+      score = Math.min(100, score);
+      const level = score >= 70 ? 'critical' : score >= 40 ? 'high' : score >= 20 ? 'medium' : 'low';
+      const action = overdue.length > 0
+        ? 'Reprogramar o resolver las órdenes atrasadas'
+        : open.length > 0
+          ? 'Revisar responsables, materiales y fecha comprometida'
+          : score >= 40
+            ? 'Validar condición operacional del equipo'
+            : 'Sin acción urgente';
+
+      return { id: asset.id, name: asset.name || 'Equipo sin nombre', status: asset.status, score, level, reasons, action, openOrders: open.length, overdueOrders: overdue.length };
+    }).sort((a, b) => b.score - a.score);
+
+    const documents = (snapshot.expiringDocuments as DocumentRow[]).map((doc) => ({
       id: doc.id,
-      title: doc.title,
-      expiresIn: doc.days_until_expiry ?? 0,
+      title: doc.title || 'Documento',
+      days: numberValue(doc.days_until_expiry),
+      level: numberValue(doc.days_until_expiry) <= 7 ? 'critical' : 'medium',
+      action: 'Renovar o validar vigencia',
     }));
 
-    const criticalStock = (snapshot.lowStockItems as StockItemRow[]).slice(0, 5).map((item) => ({
+    const stock = (snapshot.lowStockItems as StockRow[]).map((item) => ({
       id: item.id,
-      item: item.part_name || item.part_code,
-      level: Number(item.quantity_on_hand || 0) === 0 ? 'critical' : 'warning',
-      qty: Number(item.quantity_on_hand || 0),
+      title: item.part_name || item.part_code || 'Repuesto',
+      quantity: numberValue(item.quantity_on_hand),
+      reorderLevel: numberValue(item.reorder_level),
+      level: numberValue(item.quantity_on_hand) <= 0 ? 'critical' : 'high',
+      action: 'Revisar reposición y órdenes relacionadas',
     }));
 
-    const pendingMaintenance = (snapshot.workOrders as WorkOrderRow[])
-      .filter((order) => ['open', 'in_progress'].includes(String(order.status || '').toLowerCase()))
-      .slice(0, 5)
-      .map((order) => ({
-        id: order.id,
-        task: order.title,
-        dueDate: order.scheduled_date || order.created_at || null,
-      }));
-
-    const overdueOrders = (snapshot.contracts as ContractRow[])
-      .filter((contract) => Number(contract.days_until_expiry || 0) >= 0 && Number(contract.days_until_expiry || 0) <= 7)
-      .slice(0, 5)
-      .map((contract) => ({
-        id: contract.id,
-        supplier: contract.contractor_name || contract.title || 'Proveedor',
-        days: Number(contract.days_until_expiry || 0),
-      }));
+    const decisions = [
+      ...healthItems.filter((item) => item.level !== 'low').map((item) => ({ type: 'equipment', id: item.id, title: item.name, detail: item.reasons.join(' · '), level: item.level, action: item.action })),
+      ...documents.map((item) => ({ type: 'document', id: item.id, title: item.title, detail: `Vence en ${item.days} día(s)`, level: item.level, action: item.action })),
+      ...stock.map((item) => ({ type: 'stock', id: item.id, title: item.title, detail: `Disponible ${item.quantity}; mínimo ${item.reorderLevel}`, level: item.level, action: item.action })),
+    ].sort((a, b) => ({ critical: 4, high: 3, medium: 2, low: 1 }[b.level] - ({ critical: 4, high: 3, medium: 2, low: 1 }[a.level]))).slice(0, 30);
 
     return NextResponse.json({
-      insights: {
-        equipment_risks: criticalEquipment.length,
-        expiring_documents: expiringDocuments.length,
-        critical_stock: criticalStock.length,
-        pending_maintenance: pendingMaintenance.length,
-        overdue_orders: overdueOrders.length,
-        operational_efficiency: snapshot.insights.efficiency,
+      summary: {
+        critical: decisions.filter((item) => item.level === 'critical').length,
+        high: decisions.filter((item) => item.level === 'high').length,
+        medium: decisions.filter((item) => item.level === 'medium').length,
+        healthyAssets: healthItems.filter((item) => item.level === 'low').length,
+        totalAssets: healthItems.length,
+        operationalEfficiency: snapshot.insights.efficiency,
       },
-      details: {
-        critical_equipment: criticalEquipment,
-        expiring_documents: expiringDocuments,
-        critical_stock: criticalStock,
-        pending_maintenance: pendingMaintenance,
-        overdue_orders: overdueOrders,
-      },
-      lastAnalysis: new Date().toISOString(),
-      nextUpdate: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+      healthItems,
+      decisions,
+      generatedAt: new Date().toISOString(),
+      policy: 'El nivel se calcula únicamente con estado, criticidad y órdenes registradas. No es una predicción de falla.',
     });
   } catch (error) {
-    console.error('[v0] Error in IA operacional API:', error);
-    return NextResponse.json(
-      { error: 'Error al cargar perspectivas IA' },
-      { status: 500 }
-    );
+    console.error('[operational-health]', error);
+    return NextResponse.json({ error: 'No fue posible cargar el estado operacional.' }, { status: 500 });
   }
 }
