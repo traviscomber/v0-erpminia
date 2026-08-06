@@ -7,8 +7,15 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { PageHeader } from '@/components/shared/page-header';
-import { OperationalState } from '@/components/shared/operational-state';
+import {
+  PageHeader,
+  PageHeaderActions,
+  PageHeaderContent,
+  PageHeaderDescription,
+  PageHeaderEyebrow,
+  PageHeaderTitle,
+} from '@/components/ui/page-header';
+import { StatePanel } from '@/components/ui/state-panel';
 
 type Stage = 'plan' | 'do' | 'check' | 'act' | 'closed';
 type Item = {
@@ -67,9 +74,25 @@ export default function KaizenPage() {
     const index = columns.findIndex((column) => column.key === item.pdca_stage);
     const next = columns[Math.min(index + 1, columns.length - 1)].key;
     const additions: Record<string, unknown> = {};
-    if (next === 'do') additions.proposed_countermeasure = item.proposed_countermeasure || 'Contramedida por completar';
-    if (next === 'check') additions.implementation_notes = item.implementation_notes || 'Implementación registrada desde tablero PDCA';
-    if (next === 'act') additions.actual_result = item.actual_result || 'Resultado pendiente de cuantificación final';
+
+    if (next === 'do' && !item.proposed_countermeasure?.trim()) {
+      const value = window.prompt('Contramedida que se ejecutará:');
+      if (!value?.trim()) return;
+      additions.proposed_countermeasure = value.trim();
+    }
+    if (next === 'check' && !item.implementation_notes?.trim()) {
+      const value = window.prompt('Evidencia o notas de implementación:');
+      if (!value?.trim()) return;
+      additions.implementation_notes = value.trim();
+    }
+    if (next === 'act' && !item.actual_result?.trim()) {
+      const value = window.prompt('Resultado real observado:');
+      if (!value?.trim()) return;
+      additions.actual_result = value.trim();
+    }
+    if (next === 'closed' && !window.confirm('¿La mejora fue estandarizada y puede cerrarse?')) return;
+
+    setError('');
     const response = await fetch('/api/lean/kaizen', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: item.id, pdca_stage: next, ...additions }) });
     const body = await response.json();
     if (!response.ok) { setError(body.error || 'No se pudo avanzar'); return; }
@@ -78,10 +101,17 @@ export default function KaizenPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader eyebrow="Lean" title="Kaizen + PDCA" description="Convierte problemas operacionales en mejoras verificadas y estandarizadas." actions={<Button variant="outline" onClick={() => void load()}><RefreshCw className="h-4 w-4" />Actualizar</Button>} />
+      <PageHeader>
+        <PageHeaderContent>
+          <PageHeaderEyebrow>Lean · Mejora continua</PageHeaderEyebrow>
+          <PageHeaderTitle>Kaizen + PDCA</PageHeaderTitle>
+          <PageHeaderDescription>Convierte problemas operacionales en mejoras verificadas y estandarizadas.</PageHeaderDescription>
+        </PageHeaderContent>
+        <PageHeaderActions><Button variant="outline" onClick={() => void load()}><RefreshCw className="h-4 w-4" />Actualizar</Button></PageHeaderActions>
+      </PageHeader>
 
-      {error && <OperationalState variant="error" title="No se pudo completar la operación" description={error} />}
-      {loading && <OperationalState variant="loading" title="Cargando mejoras" description="Leyendo el registro Kaizen de la organización." />}
+      {error && <StatePanel tone="error" title="No se pudo completar la operación" description={error} className="min-h-0 py-5" />}
+      {loading && <StatePanel tone="loading" title="Cargando mejoras" description="Leyendo el registro Kaizen de la organización." />}
 
       {payload && <>
         <div className="grid gap-px overflow-hidden rounded-md border bg-border sm:grid-cols-5">
