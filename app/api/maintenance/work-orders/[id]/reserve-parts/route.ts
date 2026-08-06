@@ -9,6 +9,11 @@ type IssuePartPayload = {
   notes?: string | null;
 };
 
+type InstallPartPayload = {
+  partRecordId?: string;
+  quantity?: number | string;
+};
+
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: workOrderId } = await params;
   const context = await getOrganizationContext(request);
@@ -32,6 +37,65 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return NextResponse.json({ data: { id: data }, issued: true }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudo entregar el repuesto';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id: workOrderId } = await params;
+  const context = await getOrganizationContext(request);
+  if (!context.ok) return context.response;
+
+  try {
+    const body = (await request.json()) as InstallPartPayload;
+    const quantity = Number(body.quantity || 0);
+
+    if (!body.partRecordId || !Number.isInteger(quantity) || quantity <= 0) {
+      return NextResponse.json(
+        { error: 'Selecciona un repuesto entregado y una cantidad entera mayor que cero' },
+        { status: 400 },
+      );
+    }
+
+    const { data: current, error: currentError } = await context.supabase
+      .from('work_order_parts')
+      .select('id, quantity_issued, quantity_installed, quantity_returned')
+      .eq('organization_id', context.organizationId)
+      .eq('work_order_id', workOrderId)
+      .eq('id', body.partRecordId)
+      .maybeSingle();
+
+    if (currentError) throw currentError;
+    if (!current) return NextResponse.json({ error: 'El repuesto no pertenece a esta orden' }, { status: 404 });
+
+    const issued = Number(current.quantity_issued || 0);
+    const installed = Number(current.quantity_installed || 0);
+    const returned = Number(current.quantity_returned || 0);
+    const availableToInstall = Math.max(0, issued - installed - returned);
+
+    if (quantity > availableToInstall) {
+      return NextResponse.json(
+        { error: `Solo quedan ${availableToInstall} unidades entregadas por confirmar` },
+        { status: 409 },
+      );
+    }
+
+    const nextInstalled = installed + quantity;
+    const nextStatus = nextInstalled + returned >= issued ? 'installed' : 'issued';
+
+    const { data, error } = await context.supabase
+      .from('work_order_parts')
+      .update({ quantity_installed: nextInstalled, status: nextStatus })
+      .eq('organization_id', context.organizationId)
+      .eq('work_order_id', workOrderId)
+      .eq('id', body.partRecordId)
+      .select('id, quantity_issued, quantity_installed, quantity_returned, status, unit_cost, total_cost')
+      .single();
+
+    if (error) throw error;
+    return NextResponse.json({ data, installed: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'No se pudo confirmar la instalación del repuesto';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -77,17 +141,29 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     const productMap = new Map((products || []).map((item) => [item.id, item]));
     const stockMap = new Map((stock || []).map((item) => [item.id, item]));
+    const normalizedParts = (parts || []).map((row) => ({
+      ...row,
+      quantity: row.quantity_issued,
+      part: productMap.get(row.canonical_product_id) || stockMap.get(row.warehouse_stock_id) || null,
+    }));
+
+    const totals = normalizedParts.reduce(
+      (summary, row) => ({
+        issued: summary.issued + Number(row.quantity_issued || 0),
+        installed: summary.installed + Number(row.quantity_installed || 0),
+        returned: summary.returned + Number(row.quantity_returned || 0),
+        cost: summary.cost + Number(row.total_cost || 0),
+      }),
+      { issued: 0, installed: 0, returned: 0, cost: 0 },
+    );
 
     return NextResponse.json({
-      reservedParts: (parts || []).map((row) => ({
-        ...row,
-        quantity: row.quantity_issued,
-        part: productMap.get(row.canonical_product_id) || stockMap.get(row.warehouse_stock_id) || null,
-      })),
+      reservedParts: normalizedParts,
       movements: (movements || []).map((row) => ({
         ...row,
         stock: stockMap.get(row.stock_id) || null,
       })),
+      totals,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudo cargar la trazabilidad de repuestos';
