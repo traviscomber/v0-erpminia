@@ -3,13 +3,14 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BrainCircuit, FileText, History, ShieldCheck, Waypoints } from 'lucide-react';
+import { BrainCircuit, Building2, FileText, History, ShieldCheck, Waypoints } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const items = [
   { href: '/dashboard/compras/flujo', label: 'Flujo', icon: Waypoints },
   { href: '/dashboard/compras', label: 'Histórico OC', icon: History },
-  { href: '/dashboard/compras/control-proveedores', label: 'Proveedores', icon: ShieldCheck },
+  { href: '/dashboard/compras/control-proveedores', label: 'Control', icon: ShieldCheck },
+  { href: '/dashboard/compras/proveedores-360', label: 'Proveedor 360°', icon: Building2 },
   { href: '/dashboard/compras/inteligencia', label: 'Inteligencia', icon: BrainCircuit },
   { href: '/dashboard/compras/documentos', label: 'Documentos', icon: FileText },
 ];
