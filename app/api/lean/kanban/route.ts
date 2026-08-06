@@ -235,7 +235,7 @@ export async function PATCH(request: NextRequest) {
     if (source === 'maintenance') {
       const { data: current, error: currentError } = await context.supabase
         .from('maintenance_work_orders')
-        .select('status, canonical_asset_id')
+        .select('status, canonical_asset_id, start_date')
         .eq('id', sourceId)
         .eq('organization_id', context.organizationId)
         .single();
