@@ -160,7 +160,7 @@ export default function MantenimientoPage() {
             <StatePanel tone="loading" title="Cargando órdenes" className="min-h-64 border-0 bg-transparent" />
           ) : !error && rows.length === 0 ? (
             <StatePanel
-              tone="empty"
+              tone="neutral"
               title="No hay órdenes de trabajo"
               description="Crea una orden cuando exista un trabajo que planificar o ejecutar."
               actions={<Button asChild><Link href="/dashboard/mantenimiento/ordenes-trabajo/create"><Plus className="h-4 w-4" />Crear orden</Link></Button>}
