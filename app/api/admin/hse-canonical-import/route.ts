@@ -19,24 +19,24 @@ const IMPORT_ENABLED = process.env.HSE_CANONICAL_IMPORT_ENABLED === 'true';
 type DatasetKey = 'hse_roles' | 'hse_commitments' | 'hse_facilities' | 'status';
 
 type FileSpec = {
-  relPath: string;
+  fileName: string;
   blobUrl: string;
   logicalName: string;
 };
 
 const FILES: Record<string, FileSpec> = {
   roles: {
-    relPath: 'data/ROLES-INTRANET-d4ae24.xlsx',
+    fileName: 'ROLES-INTRANET-d4ae24.xlsx',
     blobUrl: 'https://blobs.vusercontent.net/blob/ROLES-INTRANET-d4ae24.xlsx',
     logicalName: 'ROLES-INTRANET.xlsx',
   },
   commitments: {
-    relPath: 'data/Registro-Maestro-Compromisos-Ambientales-Javito-dc3afa.xlsx',
+    fileName: 'Registro-Maestro-Compromisos-Ambientales-Javito-dc3afa.xlsx',
     blobUrl: 'https://blobs.vusercontent.net/blob/Registro-Maestro-Compromisos-Ambientales-Javito-dc3afa.xlsx',
     logicalName: 'Registro-Maestro-Compromisos-Ambientales.xlsx',
   },
   facilities: {
-    relPath: 'data/LISTADO-EECC-2f5c74.xlsx',
+    fileName: 'LISTADO-EECC-2f5c74.xlsx',
     blobUrl: 'https://blobs.vusercontent.net/blob/LISTADO-EECC-2f5c74.xlsx',
     logicalName: 'LISTADO-EECC.xlsx',
   },
@@ -85,17 +85,19 @@ function normalizeRow(row: Record<string, unknown>): Record<string, unknown> {
 const workbookCache = new Map<string, ReturnType<typeof read>>();
 
 async function loadWorkbook(spec: FileSpec) {
-  if (workbookCache.has(spec.relPath)) return workbookCache.get(spec.relPath)!;
+  if (workbookCache.has(spec.fileName)) return workbookCache.get(spec.fileName)!;
   let buffer: Buffer;
   try {
-    buffer = readFileSync(path.join(process.cwd(), spec.relPath));
+    // Keep the filesystem trace statically scoped to data/ so Turbopack does not
+    // include the whole repository in this serverless function.
+    buffer = readFileSync(path.join(process.cwd(), 'data', spec.fileName));
   } catch {
     const res = await fetch(spec.blobUrl);
     if (!res.ok) throw new Error(`No se pudo leer ${spec.logicalName} (fs y blob fallaron)`);
     buffer = Buffer.from(await res.arrayBuffer());
   }
   const wb = read(buffer, { type: 'buffer', cellDates: true });
-  workbookCache.set(spec.relPath, wb);
+  workbookCache.set(spec.fileName, wb);
   return wb;
 }
 
