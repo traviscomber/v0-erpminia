@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { GlobalSearch } from '@/components/layout/global-search';
 import { useAuth } from '@/hooks/use-auth';
+import { useModuleAccess } from '@/hooks/use-module-access';
 
 const routeLabels: Record<string, string> = {
   dashboard: 'Inicio',
@@ -94,6 +95,20 @@ const roleLabels: Record<string, string> = {
   'HSE-Supervisor': 'Supervisión de seguridad',
 };
 
+const alertRoles = ['superadmin', 'admin', 'manager', 'supervisor', 'jefe_mantencion'];
+const pendingActionRoles = [
+  'superadmin',
+  'admin',
+  'manager',
+  'supervisor',
+  'jefe_mantencion',
+  'Operaciones-Supervisor',
+  'Bodega-Supervisor',
+  'Compras-Supervisor',
+  'Sostenibilidad-Supervisor',
+  'HSE-Supervisor',
+];
+
 const technicalSegmentPattern = /^(?:[0-9a-f]{8}-[0-9a-f-]{27,}|\d{5,}|[0-9a-f]{20,})$/i;
 
 function formatSegment(segment: string) {
@@ -114,7 +129,10 @@ type HeaderProps = {
 export function Header({ sidebarCollapsed = false, onToggleSidebar }: HeaderProps) {
   const pathname = usePathname();
   const { user, role, logout } = useAuth();
+  const { enforced, canView } = useModuleAccess();
   const canAdminister = role === 'admin' || role === 'superadmin';
+  const canSeeAlerts = Boolean(role && alertRoles.includes(role) && (!enforced || canView('core_alertas')));
+  const canSeePendingActions = Boolean(role && pendingActionRoles.includes(role));
 
   const segments = pathname.split('/').filter(Boolean);
   const dashboardIndex = segments.indexOf('dashboard');
@@ -174,12 +192,16 @@ export function Header({ sidebarCollapsed = false, onToggleSidebar }: HeaderProp
 
         <div className="flex shrink-0 items-center gap-1">
           <GlobalSearch />
-          <Button asChild variant="ghost" size="icon-sm" aria-label="Ver acciones pendientes">
-            <Link href="/dashboard/tareas"><ClipboardList className="h-4 w-4" /></Link>
-          </Button>
-          <Button asChild variant="ghost" size="icon-sm" aria-label="Ver alertas">
-            <Link href="/dashboard/alertas"><Bell className="h-4 w-4" /></Link>
-          </Button>
+          {canSeePendingActions ? (
+            <Button asChild variant="ghost" size="icon-sm" aria-label="Ver acciones pendientes">
+              <Link href="/dashboard/tareas"><ClipboardList className="h-4 w-4" /></Link>
+            </Button>
+          ) : null}
+          {canSeeAlerts ? (
+            <Button asChild variant="ghost" size="icon-sm" aria-label="Ver alertas">
+              <Link href="/dashboard/alertas"><Bell className="h-4 w-4" /></Link>
+            </Button>
+          ) : null}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
