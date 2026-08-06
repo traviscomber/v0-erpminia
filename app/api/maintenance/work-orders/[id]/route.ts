@@ -54,6 +54,30 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const body = (await request.json()) as WorkOrderPatchPayload;
 
     if (body.status === 'completed') {
+      const rootCause = String(body.root_cause || '').trim();
+      const preventiveActions = String(body.preventive_actions || '').trim();
+      const actualHours = Number(body.actual_duration_hours);
+
+      if (!rootCause) return NextResponse.json({ error: 'Registra la causa principal antes de completar la orden.' }, { status: 400 });
+      if (!preventiveActions) return NextResponse.json({ error: 'Registra la acción preventiva antes de completar la orden.' }, { status: 400 });
+      if (!Number.isFinite(actualHours) || actualHours <= 0) return NextResponse.json({ error: 'Registra las horas reales utilizadas antes de completar la orden.' }, { status: 400 });
+
+      const closureData: Record<string, unknown> = {
+        root_cause: rootCause,
+        preventive_actions: preventiveActions,
+        actual_duration_hours: actualHours,
+        updated_at: new Date().toISOString(),
+      };
+      if (body.meter_reading !== undefined) closureData.meter_reading = body.meter_reading;
+      if (body.meter_unit !== undefined) closureData.meter_unit = body.meter_unit;
+
+      const { error: detailError } = await context.supabase
+        .from('maintenance_work_orders')
+        .update(closureData)
+        .eq('id', id)
+        .eq('organization_id', context.organizationId);
+      if (detailError) throw detailError;
+
       const { error: closeError } = await context.supabase.rpc('close_work_order_safely', { p_work_order_id: id });
       if (closeError) throw closeError;
       const { data: closed, error: loadError } = await context.supabase.from('maintenance_work_orders').select('*').eq('id', id).eq('organization_id', context.organizationId).single();
