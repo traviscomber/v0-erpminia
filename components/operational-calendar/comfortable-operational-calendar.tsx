@@ -30,6 +30,7 @@ import {
 
 type CalendarSource = 'maintenance' | 'compliance' | 'procurement';
 type CalendarScope = 'active' | 'historical' | 'all';
+type CalendarPeriod = '7' | '14' | 'month';
 
 type OperationalCalendarItem = {
   id: string;
@@ -62,27 +63,32 @@ type CalendarResponse = {
   };
 };
 
-const DAY_WIDTH = 82;
-const LABEL_WIDTH = 380;
-const ROW_HEIGHT = 92;
-const HEADER_HEIGHT = 92;
-const BAR_HEIGHT = 58;
+const LABEL_WIDTH = 420;
+const ROW_HEIGHT = 104;
+const HEADER_HEIGHT = 94;
+const BAR_HEIGHT = 66;
+
+const PERIOD_CONFIG: Record<CalendarPeriod, { label: string; days: number; dayWidth: number }> = {
+  '7': { label: '7 días', days: 7, dayWidth: 122 },
+  '14': { label: '14 días', days: 14, dayWidth: 78 },
+  month: { label: 'Mes', days: 31, dayWidth: 48 },
+};
 
 const SOURCE_META: Record<CalendarSource, { label: string; icon: LucideIcon; bar: string }> = {
   maintenance: {
     label: 'Mantenimiento',
     icon: Wrench,
-    bar: 'border-orange-500/60 bg-orange-500/20 text-orange-50',
+    bar: 'border-orange-500/70 bg-orange-500/25 text-orange-50',
   },
   compliance: {
     label: 'Cumplimiento',
     icon: ShieldCheck,
-    bar: 'border-cyan-500/60 bg-cyan-500/20 text-cyan-50',
+    bar: 'border-cyan-500/70 bg-cyan-500/25 text-cyan-50',
   },
   procurement: {
     label: 'Abastecimiento',
     icon: ShoppingCart,
-    bar: 'border-violet-500/60 bg-violet-500/20 text-violet-50',
+    bar: 'border-violet-500/70 bg-violet-500/25 text-violet-50',
   },
 };
 
@@ -109,19 +115,18 @@ function diffDays(from: string, to: string) {
   return Math.round((b - a) / 86_400_000);
 }
 
-function buildDates(start: string, end: string) {
-  const total = Math.max(0, diffDays(start, end));
-  return Array.from({ length: total + 1 }, (_, index) => addDays(start, index));
+function buildDates(start: string, days: number) {
+  return Array.from({ length: days }, (_, index) => addDays(start, index));
 }
 
 function formatMonth(dateKey: string) {
   return new Date(`${dateKey}T12:00:00`).toLocaleDateString('es-CL', {
-    month: 'short',
+    month: 'long',
     year: 'numeric',
   });
 }
 
-function formatCompletion(value: string) {
+function formatShortDate(value: string) {
   return new Date(`${value.slice(0, 10)}T12:00:00`).toLocaleDateString('es-CL', {
     day: '2-digit',
     month: 'short',
@@ -132,6 +137,8 @@ function formatCompletion(value: string) {
 export function ComfortableOperationalCalendar() {
   const [scope, setScope] = useState<CalendarScope>('all');
   const [source, setSource] = useState<'all' | CalendarSource>('all');
+  const [period, setPeriod] = useState<CalendarPeriod>('7');
+  const [anchorDate, setAnchorDate] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const timelineRef = useRef<HTMLDivElement>(null);
 
@@ -142,6 +149,17 @@ export function ComfortableOperationalCalendar() {
   );
 
   const today = data?.range.today || toDateKey(new Date());
+  const currentAnchor = anchorDate || today;
+  const periodConfig = PERIOD_CONFIG[period];
+  const dates = useMemo(
+    () => buildDates(currentAnchor, periodConfig.days),
+    [currentAnchor, periodConfig.days],
+  );
+  const rangeEnd = dates.at(-1) || currentAnchor;
+  const dayWidth = periodConfig.dayWidth;
+  const totalWidth = LABEL_WIDTH + dates.length * dayWidth;
+  const todayIndex = dates.indexOf(today);
+
   const items = data?.data || [];
   const summary = data?.summary || {
     overdue: 0,
@@ -153,55 +171,33 @@ export function ComfortableOperationalCalendar() {
 
   const filteredItems = useMemo(() => {
     const term = search.trim().toLocaleLowerCase('es-CL');
+
     return items.filter((item) => {
       if (source !== 'all' && item.source !== source) return false;
-      if (!term) return true;
-      return [item.title, item.reference, item.owner, item.kind, item.location]
-        .some((value) => value?.toLocaleLowerCase('es-CL').includes(term));
+      if (term && ![item.title, item.reference, item.owner, item.kind, item.location]
+        .some((value) => value?.toLocaleLowerCase('es-CL').includes(term))) return false;
+
+      const itemEnd = item.historical && item.completed_at
+        ? item.completed_at.slice(0, 10)
+        : item.date;
+
+      return item.date <= rangeEnd && itemEnd >= currentAnchor;
     });
-  }, [items, search, source]);
+  }, [currentAnchor, items, rangeEnd, search, source]);
 
-  const range = useMemo(() => {
-    const historicalStart = filteredItems
-      .filter((item) => item.historical)
-      .map((item) => item.date)
-      .sort()[0];
-    const activeEnd = filteredItems
-      .filter((item) => !item.historical)
-      .map((item) => item.date)
-      .sort()
-      .at(-1);
+  const goToToday = () => {
+    setAnchorDate(today);
+    timelineRef.current?.scrollTo({ left: 0, behavior: 'smooth' });
+  };
 
-    return {
-      start: scope === 'active' ? addDays(today, -30) : historicalStart || addDays(today, -365),
-      end: scope === 'historical' ? today : activeEnd || addDays(today, 120),
-    };
-  }, [filteredItems, scope, today]);
-
-  const dates = useMemo(() => buildDates(range.start, range.end), [range.end, range.start]);
-  const todayIndex = Math.max(0, dates.indexOf(today));
-  const totalWidth = LABEL_WIDTH + dates.length * DAY_WIDTH;
-
-  const scrollToToday = () => {
-    const container = timelineRef.current;
-    if (!container) return;
-    container.scrollTo({
-      left: Math.max(0, LABEL_WIDTH + todayIndex * DAY_WIDTH - container.clientWidth * 0.45),
-      behavior: 'smooth',
-    });
+  const shiftPeriod = (direction: -1 | 1) => {
+    setAnchorDate(addDays(currentAnchor, direction * periodConfig.days));
+    timelineRef.current?.scrollTo({ left: 0, behavior: 'smooth' });
   };
 
   useEffect(() => {
-    if (!isLoading && dates.length) {
-      const timer = window.setTimeout(scrollToToday, 80);
-      return () => window.clearTimeout(timer);
-    }
-    return undefined;
-  }, [isLoading, scope, dates.length]);
-
-  const shiftTimeline = (days: number) => {
-    timelineRef.current?.scrollBy({ left: days * DAY_WIDTH, behavior: 'smooth' });
-  };
+    timelineRef.current?.scrollTo({ left: 0 });
+  }, [period, currentAnchor]);
 
   return (
     <div className="space-y-5">
@@ -209,18 +205,18 @@ export function ComfortableOperationalCalendar() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Calendario operativo continuo</h1>
           <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">
-            Línea de tiempo horizontal de OT, cumplimiento y abastecimiento, optimizada para lectura y operación diaria.
+            OT, cumplimiento y abastecimiento en una línea de tiempo clara. La vista inicial muestra siete días para facilitar la lectura.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={() => shiftTimeline(-14)}>
-            <ChevronLeft className="mr-1 h-4 w-4" /> 2 semanas
+          <Button variant="outline" size="sm" onClick={() => shiftPeriod(-1)}>
+            <ChevronLeft className="mr-1 h-4 w-4" /> Anterior
           </Button>
-          <Button variant="outline" size="sm" onClick={scrollToToday}>
+          <Button variant="outline" size="sm" onClick={goToToday}>
             <CalendarDays className="mr-1 h-4 w-4" /> Hoy
           </Button>
-          <Button variant="outline" size="sm" onClick={() => shiftTimeline(14)}>
-            2 semanas <ChevronRight className="ml-1 h-4 w-4" />
+          <Button variant="outline" size="sm" onClick={() => shiftPeriod(1)}>
+            Siguiente <ChevronRight className="ml-1 h-4 w-4" />
           </Button>
           <Button variant="outline" size="sm" onClick={() => void mutate()} disabled={isValidating}>
             <RefreshCw className={`mr-1 h-4 w-4 ${isValidating ? 'animate-spin' : ''}`} /> Actualizar
@@ -228,10 +224,15 @@ export function ComfortableOperationalCalendar() {
         </div>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_170px_220px]">
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(320px,1fr)_160px_210px_150px]">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar OT, evento, responsable o referencia" className="pl-9" />
+          <Input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Buscar OT, evento, responsable o referencia"
+            className="pl-9"
+          />
         </div>
         <Select value={scope} onValueChange={(value) => setScope(value as CalendarScope)}>
           <SelectTrigger><SelectValue /></SelectTrigger>
@@ -250,13 +251,26 @@ export function ComfortableOperationalCalendar() {
             <SelectItem value="procurement">Abastecimiento ({summary.by_source.procurement})</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={period} onValueChange={(value) => setPeriod(value as CalendarPeriod)}>
+          <SelectTrigger aria-label="Escala temporal"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="7">7 días</SelectItem>
+            <SelectItem value="14">14 días</SelectItem>
+            <SelectItem value="month">Mes</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
-      <div className="flex flex-wrap gap-2 text-xs">
-        <Badge variant="outline">{summary.total} registros</Badge>
+      <div className="flex flex-wrap items-center gap-2 text-xs">
+        <Badge variant="outline">{filteredItems.length} visibles</Badge>
+        <Badge variant="outline">{periodConfig.label}</Badge>
         <Badge variant="outline" className="border-destructive/40 text-destructive">{summary.overdue} vencidos</Badge>
-        <Badge variant="outline" className="border-emerald-500/40 text-emerald-500"><History className="mr-1 h-3 w-3" />{summary.historical} históricos</Badge>
-        <Badge variant="outline">{summary.today} hoy</Badge>
+        <Badge variant="outline" className="border-emerald-500/40 text-emerald-500">
+          <History className="mr-1 h-3 w-3" />{summary.historical} históricos
+        </Badge>
+        <span className="ml-auto text-sm font-medium text-foreground">
+          {formatShortDate(currentAnchor)} — {formatShortDate(rangeEnd)}
+        </span>
       </div>
 
       {data?.warnings?.length ? (
@@ -267,7 +281,9 @@ export function ComfortableOperationalCalendar() {
       ) : null}
 
       {error ? (
-        <Card className="border-destructive/40"><CardContent className="p-6 text-sm text-destructive">{error.message}</CardContent></Card>
+        <Card className="border-destructive/40">
+          <CardContent className="p-6 text-sm text-destructive">{error.message}</CardContent>
+        </Card>
       ) : null}
 
       <Card className="overflow-hidden shadow-none">
@@ -277,75 +293,127 @@ export function ComfortableOperationalCalendar() {
               <div className="sticky left-0 z-40 flex shrink-0 items-end border-r bg-card px-5 pb-4" style={{ width: LABEL_WIDTH }}>
                 <div>
                   <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Actividad</p>
-                  <p className="mt-1 text-base font-semibold">{filteredItems.length} filas visibles</p>
+                  <p className="mt-1 text-base font-semibold">{filteredItems.length} registros en el período</p>
                 </div>
               </div>
-              <div className="relative flex" style={{ width: dates.length * DAY_WIDTH }}>
+
+              <div className="relative flex" style={{ width: dates.length * dayWidth }}>
                 {dates.map((dateKey, index) => {
                   const date = new Date(`${dateKey}T12:00:00`);
                   const isToday = dateKey === today;
                   const isWeekend = [0, 6].includes(date.getDay());
                   const monthStart = index === 0 || dateKey.slice(0, 7) !== dates[index - 1].slice(0, 7);
+
                   return (
-                    <div key={dateKey} className={`relative shrink-0 border-r px-1 pb-3 pt-2 text-center ${isWeekend ? 'bg-muted/30' : ''} ${isToday ? 'bg-orange-500/10' : ''}`} style={{ width: DAY_WIDTH }}>
-                      {monthStart ? <span className="absolute left-2 top-2 whitespace-nowrap text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{formatMonth(dateKey)}</span> : null}
-                      <div className="mt-6 text-[11px] uppercase tracking-wide text-muted-foreground">{date.toLocaleDateString('es-CL', { weekday: 'short' }).slice(0, 2)}</div>
-                      <div className={`mt-1 text-base font-semibold ${isToday ? 'text-orange-500' : ''}`}>{date.getDate()}</div>
+                    <div
+                      key={dateKey}
+                      className={`relative shrink-0 border-r px-1 pb-3 pt-2 text-center ${isWeekend ? 'bg-muted/30' : ''} ${isToday ? 'bg-orange-500/10' : ''}`}
+                      style={{ width: dayWidth }}
+                    >
+                      {monthStart ? (
+                        <span className="absolute left-2 top-2 whitespace-nowrap text-[11px] font-semibold capitalize text-muted-foreground">
+                          {formatMonth(dateKey)}
+                        </span>
+                      ) : null}
+                      <div className="mt-7 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        {date.toLocaleDateString('es-CL', { weekday: 'short' })}
+                      </div>
+                      <div className={`mt-1 text-lg font-semibold ${isToday ? 'text-orange-500' : 'text-foreground'}`}>
+                        {date.getDate()}
+                      </div>
                     </div>
                   );
                 })}
               </div>
             </div>
 
-            {isLoading ? <div className="space-y-2 p-4">{Array.from({ length: 8 }).map((_, index) => <div key={index} className="h-20 animate-pulse rounded bg-muted" />)}</div> : null}
-            {!isLoading && filteredItems.length === 0 ? <div className="flex h-56 items-center justify-center text-sm text-muted-foreground">No hay registros para los filtros seleccionados.</div> : null}
+            {isLoading ? (
+              <div className="space-y-2 p-4">
+                {Array.from({ length: 6 }).map((_, index) => <div key={index} className="h-24 animate-pulse rounded bg-muted" />)}
+              </div>
+            ) : null}
+
+            {!isLoading && filteredItems.length === 0 ? (
+              <div className="flex h-56 items-center justify-center px-6 text-center text-sm text-muted-foreground">
+                No hay registros dentro de este período. Usa Anterior, Siguiente o cambia la escala temporal.
+              </div>
+            ) : null}
 
             {!isLoading ? filteredItems.map((item) => {
               const SourceIcon = SOURCE_META[item.source].icon;
-              const startIndex = Math.max(0, diffDays(range.start, item.date));
-              const completionKey = item.completed_at?.slice(0, 10);
-              const duration = item.historical && completionKey ? Math.max(1, diffDays(item.date, completionKey) + 1) : 1;
-              const width = Math.max(DAY_WIDTH - 12, duration * DAY_WIDTH - 12);
-              const left = LABEL_WIDTH + startIndex * DAY_WIDTH + 6;
+              const rawEnd = item.historical && item.completed_at ? item.completed_at.slice(0, 10) : item.date;
+              const clippedStart = item.date < currentAnchor ? currentAnchor : item.date;
+              const clippedEnd = rawEnd > rangeEnd ? rangeEnd : rawEnd;
+              const startIndex = Math.max(0, diffDays(currentAnchor, clippedStart));
+              const duration = Math.max(1, diffDays(clippedStart, clippedEnd) + 1);
+              const width = Math.max(dayWidth - 12, duration * dayWidth - 12);
+              const left = LABEL_WIDTH + startIndex * dayWidth + 6;
+              const barPrimary = period === 'month' ? item.reference || item.kind : item.title;
+              const barSecondary = item.historical && item.completed_at
+                ? `Completada ${formatShortDate(item.completed_at)}`
+                : `${item.reference || item.kind} · ${item.status_label}`;
+
               return (
                 <div key={item.id} className="relative border-b" style={{ width: totalWidth, height: ROW_HEIGHT }}>
-                  <div className="absolute inset-y-0 flex" style={{ left: LABEL_WIDTH, width: dates.length * DAY_WIDTH }}>
+                  <div className="absolute inset-y-0 flex" style={{ left: LABEL_WIDTH, width: dates.length * dayWidth }}>
                     {dates.map((dateKey) => {
                       const date = new Date(`${dateKey}T12:00:00`);
                       const isWeekend = [0, 6].includes(date.getDay());
                       const isToday = dateKey === today;
-                      return <div key={dateKey} className={`h-full shrink-0 border-r ${isWeekend ? 'bg-muted/20' : ''} ${isToday ? 'bg-orange-500/5' : ''}`} style={{ width: DAY_WIDTH }} />;
+                      return (
+                        <div
+                          key={dateKey}
+                          className={`h-full shrink-0 border-r ${isWeekend ? 'bg-muted/20' : ''} ${isToday ? 'bg-orange-500/5' : ''}`}
+                          style={{ width: dayWidth }}
+                        />
+                      );
                     })}
                   </div>
 
                   <div className="sticky left-0 z-20 flex h-full items-center gap-4 border-r bg-card px-5" style={{ width: LABEL_WIDTH }}>
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border bg-muted/70"><SourceIcon className="h-5 w-5 text-muted-foreground" /></div>
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border bg-muted/70">
+                      <SourceIcon className="h-5 w-5 text-muted-foreground" />
+                    </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start gap-2">
-                        <p className="line-clamp-2 text-[15px] font-medium leading-5">{item.title}</p>
-                        {item.historical ? <History className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" /> : null}
+                        <p className="line-clamp-2 text-base font-semibold leading-5 text-foreground">{item.title}</p>
+                        {item.historical ? <History className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" /> : null}
                       </div>
-                      <p className="mt-1 truncate text-xs text-muted-foreground">{item.reference || item.kind}{item.owner ? ` · ${item.owner}` : ''}</p>
+                      <p className="mt-1 line-clamp-2 text-sm leading-5 text-muted-foreground">
+                        {item.reference || item.kind}
+                        {item.owner ? ` · ${item.owner}` : ''}
+                        {item.location ? ` · ${item.location}` : ''}
+                      </p>
                     </div>
                   </div>
 
-                  <Link href={item.href} title={`${item.title} · ${item.status_label}`} className={`absolute z-10 flex items-center overflow-hidden rounded-lg border px-3 text-xs shadow-sm transition hover:z-20 hover:brightness-125 ${SOURCE_META[item.source].bar} ${item.historical ? 'opacity-75 saturate-50' : ''}`} style={{ left, width, height: BAR_HEIGHT, top: (ROW_HEIGHT - BAR_HEIGHT) / 2 }}>
+                  <Link
+                    href={item.href}
+                    title={`${item.title} · ${item.status_label}`}
+                    className={`absolute z-10 flex items-center overflow-hidden rounded-lg border px-3 shadow-sm transition hover:z-20 hover:brightness-125 ${SOURCE_META[item.source].bar} ${item.historical ? 'opacity-80 saturate-75' : ''}`}
+                    style={{ left, width, height: BAR_HEIGHT, top: (ROW_HEIGHT - BAR_HEIGHT) / 2 }}
+                  >
                     <div className="min-w-0">
-                      <p className="truncate font-semibold">{item.reference || item.kind}</p>
-                      <p className="mt-1 truncate opacity-80">{item.historical && completionKey ? `Completada ${formatCompletion(completionKey)}` : item.status_label}</p>
+                      <p className="line-clamp-2 text-sm font-semibold leading-4">{barPrimary}</p>
+                      <p className="mt-1 truncate text-xs opacity-85">{barSecondary}</p>
                     </div>
                   </Link>
                 </div>
               );
             }) : null}
 
-            <div className="pointer-events-none absolute bottom-0 top-0 z-10 border-l-2 border-orange-500/70" style={{ left: LABEL_WIDTH + todayIndex * DAY_WIDTH + DAY_WIDTH / 2 }} />
+            {todayIndex >= 0 ? (
+              <div
+                className="pointer-events-none absolute bottom-0 top-0 z-10 border-l-2 border-orange-500/80"
+                style={{ left: LABEL_WIDTH + todayIndex * dayWidth + dayWidth / 2 }}
+              />
+            ) : null}
           </div>
         </div>
       </Card>
 
       <p className="text-xs leading-5 text-muted-foreground">
-        Vista continua de solo lectura. Cada barra abre el registro original y las modificaciones se realizan en su módulo responsable.
+        Vista continua de solo lectura. Cada barra abre el registro original; las modificaciones se realizan en el módulo responsable.
       </p>
     </div>
   );
