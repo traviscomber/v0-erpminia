@@ -16,6 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { WorkOrderExecutionPanel } from '@/components/maintenance/work-order-execution-panel';
 import { WorkOrderMaterialCoverage } from '@/components/maintenance/work-order-material-coverage';
 import { WorkOrderPartsPanel } from '@/components/maintenance/work-order-parts-panel';
+import { WorkOrderPurchasingFlow } from '@/components/maintenance/work-order-purchasing-flow';
 import { WorkOrderTimer } from '@/components/maintenance/work-order-timer';
 import { EntityTimeline } from '@/components/shared/entity-timeline';
 
@@ -139,6 +140,7 @@ export default function WorkOrderDetailPage() {
 
       <WorkOrderMaterialCoverage workOrderId={id} />
       <WorkOrderPartsPanel workOrderId={id} />
+      <WorkOrderPurchasingFlow workOrderId={id} />
       <WorkOrderExecutionPanel workOrderId={id} />
       <EntityTimeline entity="work_order" id={id} limit={50} />
 
