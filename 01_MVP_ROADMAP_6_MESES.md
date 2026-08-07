@@ -12,7 +12,7 @@ Principios:
 - ningun informe, alerta o automatizacion puede inventar informacion ausente.
 
 ## Estado actual
-Motil cubre autenticacion, roles, mantenimiento, OT, inventario, compras, recepciones, devoluciones, proveedores, productos, documentos, personas, preventivos, entidades 360, decisiones ejecutivas, aislamiento por organizacion, QA, acciones, automatizaciones seguras, planificacion de recursos, terreno, entrega de turno, auditoria operacional, calidad de datos, telemetria, campañas, confiabilidad, repuestos criticos, BOM tecnica, planes estandar de trabajo, estrategia de mantenimiento por criticidad, ciclo de vida de activos, planificacion de inversion para renovacion, ejecucion trazable de renovacion, puesta en servicio/cierre de renovacion y validacion post-puesta en servicio.
+Motil cubre autenticacion, roles, mantenimiento, OT, inventario, compras, recepciones, devoluciones, proveedores, productos, documentos, personas, preventivos, entidades 360, decisiones ejecutivas, aislamiento por organizacion, QA, acciones, automatizaciones seguras, planificacion de recursos, terreno, entrega de turno, auditoria operacional, calidad de datos, telemetria, campañas, confiabilidad, repuestos criticos, BOM tecnica, planes estandar de trabajo, estrategia de mantenimiento por criticidad, ciclo de vida de activos, planificacion de inversion para renovacion, ejecucion trazable de renovacion, puesta en servicio/cierre de renovacion, validacion post-puesta en servicio y gobernanza ejecutiva de la cartera de renovacion.
 
 ## Bloques 10 a 35
 Estado: **Completados**
@@ -49,11 +49,36 @@ Regla de integridad:
 - aprobar una validación no altera ninguna fuente operacional.
 
 ## Bloque 37 — Gobernanza de cartera de renovación y resultados verificados
+Estado: **Completado**
+1. Cada necesidad de inversión aprobada se consolida con su ejecución, cierre y validación existentes, conservando trazabilidad por activo y centro de costo.
+2. La cartera diferencia resultado validado, seguimiento requerido, evidencia pendiente y aún sin validación sin crear estados financieros o técnicos ficticios.
+3. Inversión objetivo, compromiso por OC, compromiso contractual, pagos contractuales y costo real de OT permanecen como fuentes separadas; Motil no las suma como si representaran una sola ejecución financiera.
+4. Las referencias de OC, contratos y OT se deduplican dentro de cada centro de costo antes de agregarse dentro de su propia fuente.
+5. Las brechas de proceso y evidencia permanecen visibles: sin iniciativa, ejecución incompleta, sin cierre, cierre pendiente, sin fecha de puesta en servicio, sin validación, validación propuesta o evidencia insuficiente.
+6. La vista ejecutiva permite filtrar por resultado y buscar por activo o centro de costo sin convertir variaciones observadas en ahorro, beneficio o ROI.
+7. La gobernanza es solo lectura sobre registros existentes; no duplica ni modifica necesidades, iniciativas, cierres, validaciones, activos ni fuentes financieras.
+
+Entrega tecnica:
+- `/api/maintenance/renewal-portfolio`;
+- `/dashboard/mantenimiento/cartera-renovacion`;
+- resumen ejecutivo por centro de costo;
+- estado verificable por renovación;
+- métricas financieras separadas por fuente;
+- acceso desde Mantenimiento.
+
+Regla de integridad:
+- la cartera parte únicamente de necesidades de inversión aprobadas;
+- ningún monto de OC, contrato, pago contractual o costo de OT se interpreta automáticamente como equivalente a otro;
+- no se calcula ahorro, ROI ni beneficio financiero sin una fuente explícita que lo demuestre;
+- cero renovaciones aprobadas produce una cartera vacía, no datos de demostración;
+- este bloque no introduce tablas ni datos paralelos.
+
+## Bloque 38 — Retroalimentación verificada a estrategia y ciclo de vida
 Estado: **Siguiente**
-1. Consolidar cierres y validaciones aprobadas por activo y centro de costo sin mezclar compromisos financieros de fuentes distintas.
-2. Diferenciar renovaciones validadas, pendientes de evidencia, con seguimiento requerido y aún sin validación.
-3. Mostrar inversión objetivo, ejecución y resultado únicamente desde registros existentes y mantener visibles las brechas de evidencia.
-4. Permitir revisión ejecutiva de la cartera sin convertir variaciones observadas en beneficios o ahorros no demostrados.
+1. Convertir resultados de renovación aprobados en insumos trazables para revisión de estrategia de mantenimiento y ciclo de vida, sin mutarlos automáticamente.
+2. Diferenciar recomendaciones de seguimiento, evidencia pendiente y resultados satisfactorios usando únicamente validaciones aprobadas.
+3. Permitir que una persona acepte o descarte una propuesta de ajuste antes de modificar estrategia, frecuencia preventiva o decisión de ciclo de vida.
+4. Conservar referencia explícita a la validación que originó cada propuesta y evitar duplicados sobre el mismo resultado.
 
 ---
 
@@ -71,4 +96,4 @@ Cada bloque se ejecuta con el siguiente proceso obligatorio:
 10. Marcar el bloque completado y listar el siguiente.
 
 ## Prioridad inmediata
-**Bloque 37 — Gobernanza de cartera de renovación y resultados verificados.**
+**Bloque 38 — Retroalimentación verificada a estrategia y ciclo de vida.**
