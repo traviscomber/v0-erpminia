@@ -12,7 +12,7 @@ Principios:
 - ningun informe, alerta o automatizacion puede inventar informacion ausente.
 
 ## Estado actual
-La base funcional cubre autenticacion, roles, produccion, mantenimiento, ordenes de trabajo, inventario, compras, recepciones parciales, devoluciones, conciliacion de facturas, proveedores, productos, documentos, personas, planes preventivos, Equipo/Proveedor/Producto 360, centro ejecutivo de decisiones, aislamiento por organizacion, QA de lanzamiento, bandeja personal de acciones, reglas seguras de aviso, planificacion de recursos, operacion personal de terreno, entrega de turno trazable, auditoria operacional referenciada, conciliacion humana de calidad de datos, telemetria operacional conectada a mantenimiento, campañas/paradas mayores trazables, analisis de confiabilidad basado en fallas observadas y control de repuestos criticos/obsolescencia con aprobacion humana.
+La base funcional cubre autenticacion, roles, produccion, mantenimiento, ordenes de trabajo, inventario, compras, recepciones parciales, devoluciones, conciliacion de facturas, proveedores, productos, documentos, personas, planes preventivos, Equipo/Proveedor/Producto 360, centro ejecutivo de decisiones, aislamiento por organizacion, QA de lanzamiento, bandeja personal de acciones, reglas seguras de aviso, planificacion de recursos, operacion personal de terreno, entrega de turno trazable, auditoria operacional referenciada, conciliacion humana de calidad de datos, telemetria operacional conectada a mantenimiento, campañas/paradas mayores trazables, analisis de confiabilidad basado en fallas observadas, control de repuestos criticos/obsolescencia con aprobacion humana y BOM tecnica aprobada por equipo/componente/repuesto.
 
 ## Bloques 10 a 19
 Todos completados: compras inteligentes, Proveedor 360, inventario canonico, Equipo 360, mantenimiento preventivo, centro ejecutivo, seguridad organizacional, QA, acciones personales y automatizaciones seguras.
@@ -21,9 +21,6 @@ Todos completados: compras inteligentes, Proveedor 360, inventario canonico, Equ
 
 ## Bloque 20 — Planificacion avanzada y recursos
 Estado: **Completado**
-1. Carga real desde OT y preventivos.
-2. Ventanas de personas/equipos y conflictos antes de programar.
-3. Programacion escrita directamente sobre la OT canonica.
 
 ## Bloque 21 — Operacion movil de terreno
 Estado: **Completado**
@@ -42,60 +39,37 @@ Estado: **Completado**
 
 ## Bloque 26 — Paradas mayores y campañas de mantenimiento
 Estado: **Completado**
-1. Agrupacion de OT existentes bajo una parada o campaña mediante relaciones, sin copiar ni recrear las OT.
-2. Plan de fechas y dependencias de campaña conectado a responsables, equipos, ventanas de disponibilidad y requerimientos de materiales existentes.
-3. Avance, bloqueos, faltantes y costo real calculados desde estados y costos operacionales de las OT vinculadas.
-
-Entrega tecnica:
-- `maintenance_campaigns`;
-- `maintenance_campaign_work_orders`;
-- `maintenance_campaign_dependencies`;
-- `/api/maintenance/campaigns`;
-- `/dashboard/mantenimiento/campanas`.
 
 ## Bloque 27 — Confiabilidad y fallas repetitivas
 Estado: **Completado**
-1. Recurrencias identificadas exclusivamente desde OT correctivas asociadas a equipos registrados.
-2. Priorizacion por frecuencia, horas de detencion y costo real; MTBF observado solo cuando existen eventos consecutivos suficientes.
-3. Causas raiz y componentes repetidos se muestran unicamente cuando fueron registrados explicitamente; no se infieren diagnosticos ni probabilidades.
-
-Entrega tecnica:
-- `/api/maintenance/reliability`;
-- `/dashboard/mantenimiento/confiabilidad`;
-- acceso desde la navegacion de Mantenimiento.
-
-Regla de integridad:
-- una recurrencia significa repeticion observada, no prediccion de falla;
-- MTBF observado se calcula desde fechas de OT correctivas consecutivas y no reemplaza mediciones registradas;
-- causas raiz ausentes permanecen como ausentes;
-- componentes solo entran al analisis cuando existe instalacion registrada en `work_order_parts`;
-- costos provienen de `work_order_cost_summary`.
 
 ## Bloque 28 — Repuestos criticos y obsolescencia
 Estado: **Completado**
-1. Demanda y evidencia reunidas desde OT, movimientos de stock y compras historicas, manteniendo cada fuente diferenciada.
-2. Priorizacion deterministica por faltantes, disponibilidad frente a minimos registrados, equipos afectados y plazos solo cuando existen datos reales.
-3. Sustituciones, reemplazos y obsolescencia gestionados mediante relaciones propuestas/aprobadas; ninguna equivalencia se infiere automaticamente.
-
-Entrega tecnica:
-- `spare_part_lifecycle_relations`;
-- `critical_spare_observations_v1`;
-- `/api/inventory/critical-spares`;
-- `/dashboard/bodega/repuestos-criticos`;
-- acceso desde la navegacion de Bodega.
-
-Regla de integridad:
-- el stock base proviene de `canonical_inventory_current`; `warehouse_stock` solo aporta reservas/reorden cuando existen;
-- compra historica demuestra abastecimiento, no consumo;
-- si no existen movimientos, requerimientos de OT o plazos de entrega, Motil muestra la ausencia y no la estima;
-- una sustitucion/reemplazo solo tiene validez cuando su relacion esta aprobada explicitamente;
-- la obsolescencia no elimina ni modifica el producto canonico ni su historia.
 
 ## Bloque 29 — BOM tecnica y repuestos por equipo
+Estado: **Completado**
+1. Relaciones equipo-componente-repuesto creadas solo mediante referencia canónica y propuesta explícita.
+2. Vista “Dónde se usa” construida exclusivamente desde líneas BOM aprobadas.
+3. Contexto operacional conectado con requerimientos de OT, instalaciones registradas, preventivos del equipo, campañas y stock crítico existente.
+
+Entrega tecnica:
+- `equipment_technical_bom_lines`;
+- `/api/maintenance/technical-bom`;
+- `/dashboard/mantenimiento/bom`;
+- acceso desde la navegacion de Mantenimiento.
+
+Regla de integridad:
+- cada línea BOM referencia un equipo y producto canónicos existentes;
+- componente, cantidad, fundamento y evidencia quedan trazables;
+- una relación propuesta no se considera parte de la BOM hasta aprobación explícita;
+- no se infieren compatibilidades por nombre, familia, modelo o similitud textual;
+- la BOM no copia OT, preventivos, campañas ni stock: solo muestra su relación operacional existente.
+
+## Bloque 30 — Planes estandar de trabajo y kits de mantenimiento
 Estado: **Siguiente**
-1. Construir relaciones equipo-componente-repuesto solo desde instalaciones registradas, documentacion tecnica o aprobacion humana.
-2. Mostrar donde se usa cada repuesto y que equipos dependen de el, sin inferir compatibilidad por nombre o familia.
-3. Conectar BOM aprobada con preventivos, OT, campañas y repuestos criticos para preparar materiales con trazabilidad.
+1. Definir tareas estandar aprobadas por tipo de intervención/equipo sin reemplazar las OT reales.
+2. Asociar mano de obra esperada, BOM aprobada, documentos y controles necesarios a cada plan.
+3. Preparar una OT o preventivo desde un plan estándar mediante copia controlada y trazable de requerimientos, nunca mediante datos inventados.
 
 ---
 
@@ -113,4 +87,4 @@ Cada bloque se ejecuta con el siguiente proceso obligatorio:
 10. Marcar el bloque completado y listar el siguiente.
 
 ## Prioridad inmediata
-**Bloque 29 — BOM tecnica y repuestos por equipo.**
+**Bloque 30 — Planes estandar de trabajo y kits de mantenimiento.**
