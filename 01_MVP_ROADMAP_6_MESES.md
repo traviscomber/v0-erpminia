@@ -12,7 +12,7 @@ Principios:
 - ningun informe, alerta o automatizacion puede inventar informacion ausente.
 
 ## Estado actual
-La base funcional cubre autenticacion, roles, produccion, mantenimiento, ordenes de trabajo, inventario, compras, recepciones parciales, devoluciones, conciliacion de facturas, proveedores, productos, documentos, personas, planes preventivos, Equipo/Proveedor/Producto 360, centro ejecutivo de decisiones, aislamiento por organizacion, QA de lanzamiento, bandeja personal de acciones, reglas seguras de aviso, planificacion de recursos, operacion personal de terreno, entrega de turno trazable y auditoria operacional referenciada.
+La base funcional cubre autenticacion, roles, produccion, mantenimiento, ordenes de trabajo, inventario, compras, recepciones parciales, devoluciones, conciliacion de facturas, proveedores, productos, documentos, personas, planes preventivos, Equipo/Proveedor/Producto 360, centro ejecutivo de decisiones, aislamiento por organizacion, QA de lanzamiento, bandeja personal de acciones, reglas seguras de aviso, planificacion de recursos, operacion personal de terreno, entrega de turno trazable, auditoria operacional referenciada y conciliacion humana de calidad de datos.
 
 ## Bloques 10 a 19
 Todos completados: compras inteligentes, Proveedor 360, inventario canonico, Equipo 360, mantenimiento preventivo, centro ejecutivo, seguridad organizacional, QA, acciones personales y automatizaciones seguras.
@@ -53,41 +53,33 @@ Entrega tecnica:
 
 ## Bloque 23 — Centro de cumplimiento y auditoria operacional
 Estado: **Completado**
-
-1. **Fuentes auditables con pertenencia verificable**
-   - ordenes de trabajo;
-   - planes preventivos;
-   - registros documentales de mantenimiento con `organization_id`;
-   - ejecuciones de automatizaciones seguras con `organization_id`;
-   - se excluyen fuentes documentales globales cuya organizacion no puede demostrarse.
-
-2. **Hallazgo referenciado**
-   - criterio revisado y hallazgo son declaraciones explicitas del revisor;
-   - fuente, responsable, severidad y estado quedan trazados;
-   - la informacion de la fuente se resuelve al leer y no se copia a la tabla de auditoria.
-
-3. **Cierre verificable**
-   - cerrar exige una descripcion de resolucion;
-   - puede agregar una referencia de evidencia: URL, archivo, folio o identificador verificable;
-   - se conserva quien reviso, cuando reviso, quien cerro y cuando cerro;
-   - cerrar un hallazgo no modifica automaticamente el registro fuente.
-
-Resultado operativo:
-`Fuente canonica → Criterio explicito → Hallazgo → Responsable → Resolucion/Evidencia → Cierre trazable`
+1. Revisiones sobre OT, preventivos, registros documentales de mantenimiento y ejecuciones de automatizacion con pertenencia organizacional verificable.
+2. Hallazgos referenciados con criterio, severidad, responsable y fuente.
+3. Cierre con resolucion y evidencia explicitas sin modificar automaticamente el registro fuente.
 
 Entrega tecnica:
-- tabla `operational_audit_findings` de acceso servidor;
-- API `/api/audit/operational`;
-- pantalla `/dashboard/auditoria-operacional`.
+- `operational_audit_findings`;
+- `/api/audit/operational`;
+- `/dashboard/auditoria-operacional`.
 
 ## Bloque 24 — Calidad de datos maestros y conciliacion
-Estado: **Siguiente**
-1. Detectar referencias huerfanas, duplicados candidatos y campos canonicos incompletos sin fusion automatica destructiva.
-2. Cola de conciliacion con evidencia y resolucion humana.
-3. Indicadores de calidad derivados del estado real de equipos, personas, productos y proveedores.
+Estado: **Completado**
+1. Deteccion dinamica de campos incompletos, duplicados candidatos, referencias huerfanas y cantidades inconsistentes sobre fuentes reales.
+2. Cola de conciliacion con decision humana, fundamento y evidencia, sin fusion automatica destructiva.
+3. Indicadores de calidad derivados de productos, proveedores, equipos, personas, inventario y OT de la organizacion activa.
+
+Entrega tecnica:
+- `data_reconciliation_reviews` de acceso servidor;
+- `/api/data-quality/reconciliation`;
+- `/dashboard/calidad-datos`.
+
+Regla de integridad:
+- una revision registra la decision humana y su evidencia;
+- el Centro de Conciliacion no modifica automaticamente productos, proveedores, equipos, personas, inventario ni OT;
+- incidencias que dejan de existir en la fuente se conservan como historial de revision.
 
 ## Bloque 25 — Telemetria operacional conectada a mantenimiento
-Estado: **Planificado**
+Estado: **Siguiente**
 1. Vincular lecturas reales a equipos canonicos.
 2. Convertir condiciones verificables en eventos y excepciones operacionales.
 3. Conectar tendencias y limites reales con preventivos y OT sin generar diagnosticos ficticios.
@@ -114,4 +106,4 @@ Cada bloque se ejecuta con el siguiente proceso obligatorio:
 10. Marcar el bloque completado y listar el siguiente.
 
 ## Prioridad inmediata
-**Bloque 24 — Calidad de datos maestros y conciliacion.**
+**Bloque 25 — Telemetria operacional conectada a mantenimiento.**
