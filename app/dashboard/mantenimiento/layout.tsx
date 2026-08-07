@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart3, Calendar, CalendarRange, FileText, Settings, Wrench, ClipboardList } from 'lucide-react';
+import { BarChart3, Calendar, CalendarRange, FileText, Repeat2, Settings, Wrench, ClipboardList } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const items = [
@@ -11,6 +11,7 @@ const items = [
   { href: '/dashboard/mantenimiento/ordenes-trabajo', label: 'Órdenes', icon: ClipboardList },
   { href: '/dashboard/mantenimiento/planificacion', label: 'Planificación', icon: Calendar },
   { href: '/dashboard/mantenimiento/campanas', label: 'Campañas', icon: CalendarRange },
+  { href: '/dashboard/mantenimiento/confiabilidad', label: 'Confiabilidad', icon: Repeat2 },
   { href: '/dashboard/mantenimiento/equipos', label: 'Activos', icon: Settings },
   { href: '/dashboard/mantenimiento/indicadores', label: 'Indicadores', icon: BarChart3 },
   { href: '/dashboard/mantenimiento/documentos', label: 'Documentos', icon: FileText },
