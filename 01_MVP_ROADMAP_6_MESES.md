@@ -12,69 +12,10 @@ Principios:
 - ningun informe, alerta o automatizacion puede inventar informacion ausente.
 
 ## Estado actual
-La base funcional cubre autenticacion, roles, produccion, mantenimiento, ordenes de trabajo, inventario, compras, recepciones parciales, devoluciones, conciliacion de facturas, proveedores, productos, documentos, personas, planes preventivos, Equipo/Proveedor/Producto 360, centro ejecutivo de decisiones, aislamiento por organizacion, QA de lanzamiento, bandeja personal de acciones, reglas seguras de aviso, planificacion de recursos, operacion personal de terreno y entrega de turno trazable.
+La base funcional cubre autenticacion, roles, produccion, mantenimiento, ordenes de trabajo, inventario, compras, recepciones parciales, devoluciones, conciliacion de facturas, proveedores, productos, documentos, personas, planes preventivos, Equipo/Proveedor/Producto 360, centro ejecutivo de decisiones, aislamiento por organizacion, QA de lanzamiento, bandeja personal de acciones, reglas seguras de aviso, planificacion de recursos, operacion personal de terreno, entrega de turno trazable y auditoria operacional referenciada.
 
 ## Bloques 10 a 19
-
-### Bloque 10 — Cierre economico y de calidad de Compras
-Estado: **Completado**
-1. Devoluciones a proveedor.
-2. Conciliacion orden–recepcion–factura.
-3. Cumplimiento del proveedor.
-
-### Bloque 11 — Proveedor 360°
-Estado: **Completado**
-1. Ficha unica de proveedor.
-2. Relaciones comerciales y operacionales.
-3. Desempeno, productos y precios historicos.
-
-### Bloque 12 — Inventario canonico y trazabilidad completa
-Estado: **Completado**
-1. Producto 360°.
-2. Movimientos, compras, recepciones, devoluciones y consumo.
-3. Costos, proveedores y necesidades de mantenimiento.
-
-### Bloque 13 — Equipo 360° y gemelo operacional
-Estado: **Completado**
-1. Cabecera unica del equipo.
-2. Historia de OT, componentes, personas, documentos y costos.
-3. Tiempos de intervencion y confiabilidad derivados de registros reales.
-
-### Bloque 14 — Mantenimiento preventivo
-Estado: **Completado**
-1. Planes preventivos reales.
-2. Vencimientos operacionales.
-3. Generacion controlada de OT.
-
-### Bloque 15 — Centro ejecutivo de decisiones
-Estado: **Completado**
-1. Excepciones verificadas de mantenimiento, inventario, documentos y finanzas.
-2. Responsable y acceso directo al flujo que resuelve cada excepcion.
-3. Lectura ejecutiva sin indices sinteticos ni predicciones sin fuente canonica.
-
-### Bloque 16 — Seguridad, permisos y aislamiento por organizacion
-Estado: **Completado**
-1. RLS y pertenencia organizacional en el nucleo operacional.
-2. Funciones privilegiadas y vistas expuestas protegidas.
-3. Legacy sin relacion confiable restringido al servidor, sin inventar pertenencia.
-
-### Bloque 17 — QA operacional y lanzamiento estable
-Estado: **Completado**
-1. Comprobacion real de sesion, organizacion y fuentes clave.
-2. Estado visible: correcto, observacion o bloqueo.
-3. QA read-only, sin semillas ni alteracion de produccion.
-
-### Bloque 18 — Centro de notificaciones y acciones
-Estado: **Completado**
-1. Bandeja personal sobre las excepciones canonicas.
-2. Estado individual pendiente, leido o pospuesto.
-3. Resolucion directa en el registro fuente.
-
-### Bloque 19 — Reglas y automatizaciones seguras
-Estado: **Completado**
-1. Reglas sobre excepciones verificables.
-2. Automatizacion limitada a avisos.
-3. Historial trazable por referencia canonica.
+Todos completados: compras inteligentes, Proveedor 360, inventario canonico, Equipo 360, mantenimiento preventivo, centro ejecutivo, seguridad organizacional, QA, acciones personales y automatizaciones seguras.
 
 ---
 
@@ -85,9 +26,9 @@ Estado: **Completado**
 3. Programacion escrita directamente sobre la OT canonica.
 
 Entrega tecnica:
-- tabla `maintenance_resource_windows` de acceso servidor;
-- API `/api/planning/maintenance`;
-- pantalla `/dashboard/planificacion-recursos`.
+- `maintenance_resource_windows`;
+- `/api/planning/maintenance`;
+- `/dashboard/planificacion-recursos`.
 
 ## Bloque 21 — Operacion movil de terreno
 Estado: **Completado**
@@ -96,44 +37,66 @@ Estado: **Completado**
 3. Repuestos, historial y cierre mantenidos en la OT canonica.
 
 Entrega tecnica:
-- API `/api/field/work-orders`;
-- pantalla `/dashboard/terreno`.
+- `/api/field/work-orders`;
+- `/dashboard/terreno`.
 
 ## Bloque 22 — Entrega de turno y continuidad operacional
 Estado: **Completado**
-
-1. **Entrega referenciada, no duplicada**
-   - el turno saliente se identifica por la persona vinculada al usuario;
-   - cada entrega referencia al siguiente responsable y, cuando corresponde, una OT y/o equipo reales;
-   - la tabla solo guarda el pendiente explicito, riesgo y estado de recepcion.
-
-2. **Continuidad visible**
-   - el receptor ve sus entregas pendientes;
-   - OT, equipo y nombres se resuelven desde las entidades canonicas al leer la entrega;
-   - el historial conserva emisor, receptor, fecha y estado.
-
-3. **Recepcion controlada**
-   - solo la persona receptora puede confirmar la entrega;
-   - confirmar no cambia el estado de la OT ni del equipo;
-   - no se inventa cierre ni resolucion del pendiente operacional.
-
-Resultado operativo:
-`Persona saliente → Pendiente real → OT/Equipo → Persona entrante → Recepcion → Continuidad`
+1. Entrega referenciada a personas, OT y equipos reales.
+2. Pendiente y riesgo explicitos sin copiar el estado operacional.
+3. Recepcion confirmada solo por el siguiente responsable.
 
 Entrega tecnica:
-- tabla `operational_shift_handovers` de acceso servidor;
-- API `/api/operations/handovers`;
-- pantalla `/dashboard/entrega-turno`.
+- `operational_shift_handovers`;
+- `/api/operations/handovers`;
+- `/dashboard/entrega-turno`.
 
 ## Bloque 23 — Centro de cumplimiento y auditoria operacional
+Estado: **Completado**
+
+1. **Fuentes auditables con pertenencia verificable**
+   - ordenes de trabajo;
+   - planes preventivos;
+   - registros documentales de mantenimiento con `organization_id`;
+   - ejecuciones de automatizaciones seguras con `organization_id`;
+   - se excluyen fuentes documentales globales cuya organizacion no puede demostrarse.
+
+2. **Hallazgo referenciado**
+   - criterio revisado y hallazgo son declaraciones explicitas del revisor;
+   - fuente, responsable, severidad y estado quedan trazados;
+   - la informacion de la fuente se resuelve al leer y no se copia a la tabla de auditoria.
+
+3. **Cierre verificable**
+   - cerrar exige una descripcion de resolucion;
+   - puede agregar una referencia de evidencia: URL, archivo, folio o identificador verificable;
+   - se conserva quien reviso, cuando reviso, quien cerro y cuando cerro;
+   - cerrar un hallazgo no modifica automaticamente el registro fuente.
+
+Resultado operativo:
+`Fuente canonica → Criterio explicito → Hallazgo → Responsable → Resolucion/Evidencia → Cierre trazable`
+
+Entrega tecnica:
+- tabla `operational_audit_findings` de acceso servidor;
+- API `/api/audit/operational`;
+- pantalla `/dashboard/auditoria-operacional`.
+
+## Bloque 24 — Calidad de datos maestros y conciliacion
 Estado: **Siguiente**
+1. Detectar referencias huerfanas, duplicados candidatos y campos canonicos incompletos sin fusion automatica destructiva.
+2. Cola de conciliacion con evidencia y resolucion humana.
+3. Indicadores de calidad derivados del estado real de equipos, personas, productos y proveedores.
 
-1. Revisiones sobre OT, documentos, preventivos y acciones usando criterios verificables.
-2. Hallazgos con referencia al registro fuente, responsable y estado de resolucion.
-3. Evidencia de cierre y trazabilidad de quien reviso y cuando, sin inventar cumplimiento.
+## Bloque 25 — Telemetria operacional conectada a mantenimiento
+Estado: **Planificado**
+1. Vincular lecturas reales a equipos canonicos.
+2. Convertir condiciones verificables en eventos y excepciones operacionales.
+3. Conectar tendencias y limites reales con preventivos y OT sin generar diagnosticos ficticios.
 
-Resultado esperado:
-`Registro canonico → Revision → Hallazgo → Responsable → Evidencia → Cierre`
+## Bloque 26 — Paradas mayores y campañas de mantenimiento
+Estado: **Planificado**
+1. Agrupar OT existentes bajo una parada/campana sin duplicarlas.
+2. Planificar recursos, materiales, ventanas y dependencias.
+3. Seguir avance, bloqueos y costo real desde las fuentes operacionales existentes.
 
 ---
 
@@ -151,4 +114,4 @@ Cada bloque se ejecuta con el siguiente proceso obligatorio:
 10. Marcar el bloque completado y listar el siguiente.
 
 ## Prioridad inmediata
-**Bloque 23 — Centro de cumplimiento y auditoria operacional.**
+**Bloque 24 — Calidad de datos maestros y conciliacion.**
