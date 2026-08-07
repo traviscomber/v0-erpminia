@@ -34,37 +34,32 @@ Solo verificaciones `diverged` o `needs_follow_up` originan seguimiento con resp
 
 ## Bloque 43 — Escalamiento de excepciones recurrentes y decisiones derivadas
 Estado: **Completado**
-1. La recurrencia se detecta exclusivamente desde verificaciones cerradas reales del mismo activo y tipo de destino.
-2. Un seguimiento abierto vencido tambien puede justificar un candidato de escalamiento sin inventar severidad o impacto.
-3. El escalamiento exige responsable real de la organizacion y fundamento humano explicito.
-4. Cada escalamiento conserva las verificaciones y seguimientos que lo originan.
-5. Solo puede existir un escalamiento abierto por organizacion, activo y tipo de destino.
-6. Cerrar o cancelar exige nota humana y no modifica la fuente operacional.
-7. Escalamiento, decision, propuesta, aplicacion y rollback permanecen separados.
-8. Cero recurrencias o vencimientos produce cero candidatos y cero datos demo.
-
-Entrega tecnica:
-- `maintenance_feedback_exception_escalations`;
-- `maintenance_feedback_exception_escalation_sources`;
-- `/api/maintenance/feedback-exception-escalations`;
-- `/dashboard/mantenimiento/escalamiento-excepciones`.
+La recurrencia se detecta exclusivamente desde evidencia real del mismo activo/tipo de destino o desde seguimientos abiertos vencidos. Escalamiento, decision, propuesta, aplicacion y rollback permanecen separados.
 
 ## Bloque 44 — Hardening integral de Motil
-Estado: **Siguiente**
-1. Auditar RLS, permisos server-side, aislamiento multi-tenant y superficies legacy.
-2. Revisar integridad referencial, constraints, indices y consultas N+1 o no acotadas.
-3. Ejecutar build, TypeScript y revision de rutas/API criticas.
-4. Revisar errores, estados vacios, loading, responsive y navegacion de circuitos principales.
-5. Corregir deuda tecnica y regresiones sin agregar nuevas funciones de negocio.
-6. Dejar GitHub, Supabase y Vercel alineados en un unico estado productivo verificable.
+Estado: **Completado**
+1. Las 178 tablas publicas verificadas mantienen RLS habilitado.
+2. Las superficies con `organization_id` que conservaban policies permisivas fueron reemplazadas por aislamiento de organizacion para usuarios autenticados.
+3. Las superficies legacy sin `organization_id` y policy permisiva quedaron cerradas para `anon` y `authenticated`; permanecen accesibles solo desde servidor hasta una reconciliacion canonica explicita.
+4. Se revocaron privilegios `TRUNCATE`, `REFERENCES` y `TRIGGER` a clientes directos sobre tablas publicas.
+5. Las fuentes de escalamiento ahora incluyen `organization_id` y se filtran por tenant en servidor.
+6. El constraint de escalamiento acepta correctamente recurrencia real o seguimiento vencido, sin exigir dos verificaciones cuando existe un vencimiento valido.
+7. Los grupos de indices duplicados detectados bajaron de 19 a 0 sin eliminar constraints unicos.
+8. Las APIs de seguimiento y escalamiento ya no reportan exito cuando una fila fue cerrada previamente o no existe, y eliminan filtros N x M evitables en memoria.
+9. Supabase y las migraciones del repositorio quedaron alineados para todas las correcciones del bloque.
+
+Migraciones:
+- `20260807174615_block_44_harden_tenant_surfaces.sql`;
+- `20260807174822_block_44_reduce_legacy_exposure_and_duplicate_indexes.sql`;
+- `20260807175037_block_44_close_unscoped_authenticated_legacy_surfaces.sql`.
 
 ## Bloque 45 — QA operacional y release estable
-Estado: **Pendiente**
+Estado: **Siguiente**
 1. Probar end-to-end los circuitos criticos con datos reales disponibles.
 2. Validar permisos por rol y organizacion en flujos consecuenciales.
 3. Corregir regresiones finales y limpiar rutas, codigo muerto y duplicaciones demostradas.
 4. Confirmar migraciones, build, deployment y dominios productivos.
-5. Congelar una version estable canónica y cerrar este roadmap.
+5. Congelar una version estable canonica y cerrar este roadmap.
 
 ---
 
@@ -72,4 +67,4 @@ Estado: **Pendiente**
 Cada bloque se ejecuta con rama especifica desde `main`, datos canonicos, migraciones seguras, validacion de build/tipos, Pull Request, merge y comprobacion de deployment. No se agregan bloques funcionales posteriores al 45 dentro de este roadmap; nuevas capacidades deben abrir una nueva fase/version.
 
 ## Prioridad inmediata
-**Bloque 44 — Hardening integral de Motil.**
+**Bloque 45 — QA operacional y release estable.**
