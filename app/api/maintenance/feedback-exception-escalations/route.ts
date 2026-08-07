@@ -1,22 +1,213 @@
-export const dynamic='force-dynamic';
-import {NextRequest,NextResponse} from 'next/server';
-import {getOrganizationContext} from '@/lib/api/organization-context';
-const text=(v:unknown)=>String(v??'').trim();
-type Verification={id:string;proposal_id:string;canonical_asset_id:string;result:string;status:string;verified_at:string};
-type Proposal={id:string;canonical_asset_id:string;target_type:string;status:string};
-type Followup={id:string;verification_id:string;status:string;due_date:string};
-export async function GET(request:NextRequest){const c=await getOrganizationContext(request);if(!c.ok)return c.response;const [vr,pr,fr,er,sr,ar,rr]=await Promise.all([
- c.supabase.from('maintenance_feedback_change_verifications').select('id,proposal_id,canonical_asset_id,result,status,verified_at').eq('organization_id',c.organizationId).eq('status','closed').in('result',['diverged','needs_follow_up']),
- c.supabase.from('maintenance_feedback_change_proposals').select('id,canonical_asset_id,target_type,status').eq('organization_id',c.organizationId).eq('status','applied'),
- c.supabase.from('maintenance_feedback_exception_followups').select('id,verification_id,status,due_date').eq('organization_id',c.organizationId),
- c.supabase.from('maintenance_feedback_exception_escalations').select('*').eq('organization_id',c.organizationId).order('created_at',{ascending:false}),
- c.supabase.from('maintenance_feedback_exception_escalation_sources').select('escalation_id,verification_id,followup_id'),
- c.supabase.schema('canonical').from('assets').select('id,asset_code,name').eq('organization_id',c.organizationId),
- c.supabase.from('profiles').select('id,full_name,first_name,last_name,email').eq('organization_id',c.organizationId).order('full_name')]);
- const error=vr.error||pr.error||fr.error||er.error||sr.error||ar.error||rr.error;if(error)return NextResponse.json({error:error.message},{status:500});
- const proposals=new Map(((pr.data||[]) as Proposal[]).map(p=>[p.id,p]));const followups=(fr.data||[]) as Followup[];const today=new Date().toISOString().slice(0,10);const groups=new Map<string,{assetId:string;targetType:string;verificationIds:string[];followupIds:string[];overdue:number}>();
- for(const v of (vr.data||[]) as Verification[]){const p=proposals.get(v.proposal_id);if(!p||p.canonical_asset_id!==v.canonical_asset_id)continue;const key=`${v.canonical_asset_id}:${p.target_type}`;const g=groups.get(key)||{assetId:v.canonical_asset_id,targetType:p.target_type,verificationIds:[],followupIds:[],overdue:0};g.verificationIds.push(v.id);for(const f of followups.filter(x=>x.verification_id===v.id)){g.followupIds.push(f.id);if(f.status==='open'&&f.due_date<today)g.overdue++;}groups.set(key,g);}
- const candidates=[...groups.values()].filter(g=>g.verificationIds.length>=2||g.overdue>0);const assets=new Map((ar.data||[]).map((a:any)=>[a.id,a]));const sources=sr.data||[];const escalations=(er.data||[]).map((e:any)=>({...e,asset:assets.get(e.canonical_asset_id)||null,sources:sources.filter((s:any)=>s.escalation_id===e.id)}));
- return NextResponse.json({counts:{candidates:candidates.length,open:escalations.filter((e:any)=>e.status==='open').length,overdue:candidates.filter(g=>g.overdue>0).length},candidates:candidates.map(g=>({...g,asset:assets.get(g.assetId)||null})),escalations,profiles:rr.data||[],integrityRule:'La recurrencia se detecta solo desde verificaciones reales del mismo activo y tipo de destino. Escalar no modifica la fuente operacional ni ejecuta rollback o cambios.'});}
-export async function POST(request:NextRequest){const c=await getOrganizationContext(request);if(!c.ok)return c.response;const b=await request.json().catch(()=>null);const assetId=text(b?.assetId),targetType=text(b?.targetType),assignedTo=text(b?.assignedTo),rationale=text(b?.rationale),evidence=text(b?.evidenceReference);if(!assetId||!['strategy','preventive','lifecycle'].includes(targetType)||!assignedTo||!rationale)return NextResponse.json({error:'Activo, destino, responsable y fundamento son obligatorios.'},{status:400});const {data:profile}=await c.supabase.from('profiles').select('id').eq('organization_id',c.organizationId).eq('id',assignedTo).maybeSingle();if(!profile)return NextResponse.json({error:'Responsable inválido para la organización.'},{status:409});const {data:vs}=await c.supabase.from('maintenance_feedback_change_verifications').select('id,proposal_id,canonical_asset_id,result,status').eq('organization_id',c.organizationId).eq('canonical_asset_id',assetId).eq('status','closed').in('result',['diverged','needs_follow_up']);const {data:ps}=await c.supabase.from('maintenance_feedback_change_proposals').select('id,target_type').eq('organization_id',c.organizationId).eq('canonical_asset_id',assetId).eq('status','applied');const ids=new Set((ps||[]).filter((p:any)=>p.target_type===targetType).map((p:any)=>p.id));const eligible=(vs||[]).filter((v:any)=>ids.has(v.proposal_id));const verificationIds=eligible.map((v:any)=>v.id);const {data:fs}=verificationIds.length?await c.supabase.from('maintenance_feedback_exception_followups').select('id,verification_id,status,due_date').eq('organization_id',c.organizationId).in('verification_id',verificationIds):{data:[] as any[]};const today=new Date().toISOString().slice(0,10);const overdue=(fs||[]).filter((f:any)=>f.status==='open'&&f.due_date<today);if(eligible.length<2&&overdue.length===0)return NextResponse.json({error:'No existe recurrencia ni seguimiento vencido suficiente para escalar.'},{status:409});const {data:e,error}=await c.supabase.from('maintenance_feedback_exception_escalations').insert({organization_id:c.organizationId,canonical_asset_id:assetId,target_type:targetType,recurrence_count:eligible.length,overdue_followup_count:overdue.length,assigned_to:assignedTo,rationale,evidence_reference:evidence||null,created_by:c.userId}).select('id').single();if(error)return NextResponse.json({error:error.code==='23505'?'Ya existe un escalamiento abierto para este activo y destino.':error.message},{status:error.code==='23505'?409:500});const latest=new Map<string,string>();for(const f of fs||[])latest.set((f as any).verification_id,(f as any).id);const rows=eligible.map((v:any)=>({escalation_id:e.id,verification_id:v.id,followup_id:latest.get(v.id)||null}));if(rows.length){const {error:se}=await c.supabase.from('maintenance_feedback_exception_escalation_sources').insert(rows);if(se){await c.supabase.from('maintenance_feedback_exception_escalations').delete().eq('id',e.id);return NextResponse.json({error:se.message},{status:500});}}return NextResponse.json({ok:true,id:e.id},{status:201});}
-export async function PATCH(request:NextRequest){const c=await getOrganizationContext(request);if(!c.ok)return c.response;const b=await request.json().catch(()=>null);const id=text(b?.id),action=text(b?.action),note=text(b?.note);if(!id||!['close','cancel'].includes(action)||!note)return NextResponse.json({error:'Escalamiento, acción y nota son obligatorios.'},{status:400});const status=action==='close'?'closed':'cancelled';const {error}=await c.supabase.from('maintenance_feedback_exception_escalations').update({status,closure_note:note,closed_by:c.userId,closed_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('organization_id',c.organizationId).eq('id',id).eq('status','open');if(error)return NextResponse.json({error:error.message},{status:500});return NextResponse.json({ok:true,status});}
+export const dynamic = 'force-dynamic';
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getOrganizationContext } from '@/lib/api/organization-context';
+
+const text = (value: unknown) => String(value ?? '').trim();
+const targetTypes = ['strategy', 'preventive', 'lifecycle'] as const;
+
+type Verification = {
+  id: string;
+  proposal_id: string;
+  canonical_asset_id: string;
+  result: string;
+  status: string;
+  verified_at: string;
+};
+
+type Proposal = {
+  id: string;
+  canonical_asset_id: string;
+  target_type: string;
+  status: string;
+};
+
+type Followup = {
+  id: string;
+  verification_id: string;
+  status: string;
+  due_date: string;
+};
+
+type Candidate = {
+  assetId: string;
+  targetType: string;
+  verificationIds: string[];
+  followupIds: string[];
+  overdue: number;
+};
+
+export async function GET(request: NextRequest) {
+  const context = await getOrganizationContext(request);
+  if (!context.ok) return context.response;
+
+  const [verificationResult, proposalResult, followupResult, escalationResult, sourceResult, assetResult, profileResult] = await Promise.all([
+    context.supabase.from('maintenance_feedback_change_verifications').select('id,proposal_id,canonical_asset_id,result,status,verified_at').eq('organization_id', context.organizationId).eq('status', 'closed').in('result', ['diverged', 'needs_follow_up']),
+    context.supabase.from('maintenance_feedback_change_proposals').select('id,canonical_asset_id,target_type,status').eq('organization_id', context.organizationId).eq('status', 'applied'),
+    context.supabase.from('maintenance_feedback_exception_followups').select('id,verification_id,status,due_date').eq('organization_id', context.organizationId),
+    context.supabase.from('maintenance_feedback_exception_escalations').select('*').eq('organization_id', context.organizationId).order('created_at', { ascending: false }),
+    context.supabase.from('maintenance_feedback_exception_escalation_sources').select('escalation_id,verification_id,followup_id').eq('organization_id', context.organizationId),
+    context.supabase.schema('canonical').from('assets').select('id,asset_code,name').eq('organization_id', context.organizationId),
+    context.supabase.from('profiles').select('id,full_name,first_name,last_name,email').eq('organization_id', context.organizationId).order('full_name'),
+  ]);
+
+  const error = verificationResult.error || proposalResult.error || followupResult.error || escalationResult.error || sourceResult.error || assetResult.error || profileResult.error;
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  const proposals = new Map(((proposalResult.data || []) as Proposal[]).map((proposal) => [proposal.id, proposal]));
+  const followups = (followupResult.data || []) as Followup[];
+  const followupsByVerification = new Map<string, Followup[]>();
+  for (const followup of followups) {
+    const rows = followupsByVerification.get(followup.verification_id) || [];
+    rows.push(followup);
+    followupsByVerification.set(followup.verification_id, rows);
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+  const groups = new Map<string, Candidate>();
+  for (const verification of (verificationResult.data || []) as Verification[]) {
+    const proposal = proposals.get(verification.proposal_id);
+    if (!proposal || proposal.canonical_asset_id !== verification.canonical_asset_id) continue;
+
+    const key = `${verification.canonical_asset_id}:${proposal.target_type}`;
+    const group = groups.get(key) || {
+      assetId: verification.canonical_asset_id,
+      targetType: proposal.target_type,
+      verificationIds: [],
+      followupIds: [],
+      overdue: 0,
+    };
+
+    group.verificationIds.push(verification.id);
+    for (const followup of followupsByVerification.get(verification.id) || []) {
+      group.followupIds.push(followup.id);
+      if (followup.status === 'open' && followup.due_date < today) group.overdue += 1;
+    }
+    groups.set(key, group);
+  }
+
+  const candidates = [...groups.values()].filter((group) => group.verificationIds.length >= 2 || group.overdue > 0);
+  const assets = new Map((assetResult.data || []).map((asset) => [asset.id, asset]));
+  const sources = sourceResult.data || [];
+  const escalations = (escalationResult.data || []).map((escalation) => ({
+    ...escalation,
+    asset: assets.get(escalation.canonical_asset_id) || null,
+    sources: sources.filter((source) => source.escalation_id === escalation.id),
+  }));
+
+  return NextResponse.json({
+    counts: {
+      candidates: candidates.length,
+      open: escalations.filter((escalation) => escalation.status === 'open').length,
+      overdue: candidates.filter((candidate) => candidate.overdue > 0).length,
+    },
+    candidates: candidates.map((candidate) => ({ ...candidate, asset: assets.get(candidate.assetId) || null })),
+    escalations,
+    profiles: profileResult.data || [],
+    integrityRule: 'La recurrencia se detecta solo desde verificaciones reales del mismo activo y tipo de destino. Escalar no modifica la fuente operacional ni ejecuta rollback o cambios.',
+  });
+}
+
+export async function POST(request: NextRequest) {
+  const context = await getOrganizationContext(request);
+  if (!context.ok) return context.response;
+
+  const body = await request.json().catch(() => null);
+  const assetId = text(body?.assetId);
+  const targetType = text(body?.targetType);
+  const assignedTo = text(body?.assignedTo);
+  const rationale = text(body?.rationale);
+  const evidenceReference = text(body?.evidenceReference);
+
+  if (!assetId || !targetTypes.includes(targetType as (typeof targetTypes)[number]) || !assignedTo || !rationale) {
+    return NextResponse.json({ error: 'Activo, destino, responsable y fundamento son obligatorios.' }, { status: 400 });
+  }
+
+  const { data: profile } = await context.supabase.from('profiles').select('id').eq('organization_id', context.organizationId).eq('id', assignedTo).maybeSingle();
+  if (!profile) return NextResponse.json({ error: 'Responsable inválido para la organización.' }, { status: 409 });
+
+  const { data: verifications, error: verificationError } = await context.supabase.from('maintenance_feedback_change_verifications').select('id,proposal_id,canonical_asset_id,result,status').eq('organization_id', context.organizationId).eq('canonical_asset_id', assetId).eq('status', 'closed').in('result', ['diverged', 'needs_follow_up']);
+  if (verificationError) return NextResponse.json({ error: verificationError.message }, { status: 500 });
+
+  const { data: proposals, error: proposalError } = await context.supabase.from('maintenance_feedback_change_proposals').select('id,target_type').eq('organization_id', context.organizationId).eq('canonical_asset_id', assetId).eq('status', 'applied');
+  if (proposalError) return NextResponse.json({ error: proposalError.message }, { status: 500 });
+
+  const proposalIds = new Set((proposals || []).filter((proposal) => proposal.target_type === targetType).map((proposal) => proposal.id));
+  const eligible = (verifications || []).filter((verification) => proposalIds.has(verification.proposal_id));
+  const verificationIds = eligible.map((verification) => verification.id);
+
+  let followups: Followup[] = [];
+  if (verificationIds.length) {
+    const { data, error } = await context.supabase.from('maintenance_feedback_exception_followups').select('id,verification_id,status,due_date').eq('organization_id', context.organizationId).in('verification_id', verificationIds);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    followups = (data || []) as Followup[];
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+  const overdue = followups.filter((followup) => followup.status === 'open' && followup.due_date < today);
+  if (eligible.length < 2 && overdue.length === 0) {
+    return NextResponse.json({ error: 'No existe recurrencia ni seguimiento vencido suficiente para escalar.' }, { status: 409 });
+  }
+
+  const { data: escalation, error: escalationError } = await context.supabase.from('maintenance_feedback_exception_escalations').insert({
+    organization_id: context.organizationId,
+    canonical_asset_id: assetId,
+    target_type: targetType,
+    recurrence_count: eligible.length,
+    overdue_followup_count: overdue.length,
+    assigned_to: assignedTo,
+    rationale,
+    evidence_reference: evidenceReference || null,
+    created_by: context.userId,
+  }).select('id').single();
+
+  if (escalationError) {
+    return NextResponse.json({ error: escalationError.code === '23505' ? 'Ya existe un escalamiento abierto para este activo y destino.' : escalationError.message }, { status: escalationError.code === '23505' ? 409 : 500 });
+  }
+
+  const latestFollowupByVerification = new Map<string, string>();
+  for (const followup of followups) latestFollowupByVerification.set(followup.verification_id, followup.id);
+  const sourceRows = eligible.map((verification) => ({
+    organization_id: context.organizationId,
+    escalation_id: escalation.id,
+    verification_id: verification.id,
+    followup_id: latestFollowupByVerification.get(verification.id) || null,
+  }));
+
+  if (sourceRows.length) {
+    const { error: sourceError } = await context.supabase.from('maintenance_feedback_exception_escalation_sources').insert(sourceRows);
+    if (sourceError) {
+      await context.supabase.from('maintenance_feedback_exception_escalations').delete().eq('organization_id', context.organizationId).eq('id', escalation.id);
+      return NextResponse.json({ error: sourceError.message }, { status: 500 });
+    }
+  }
+
+  return NextResponse.json({ ok: true, id: escalation.id }, { status: 201 });
+}
+
+export async function PATCH(request: NextRequest) {
+  const context = await getOrganizationContext(request);
+  if (!context.ok) return context.response;
+
+  const body = await request.json().catch(() => null);
+  const id = text(body?.id);
+  const action = text(body?.action);
+  const note = text(body?.note);
+  if (!id || !['close', 'cancel'].includes(action) || !note) {
+    return NextResponse.json({ error: 'Escalamiento, acción y nota son obligatorios.' }, { status: 400 });
+  }
+
+  const status = action === 'close' ? 'closed' : 'cancelled';
+  const now = new Date().toISOString();
+  const { data, error } = await context.supabase.from('maintenance_feedback_exception_escalations').update({
+    status,
+    closure_note: note,
+    closed_by: context.userId,
+    closed_at: now,
+    updated_at: now,
+  }).eq('organization_id', context.organizationId).eq('id', id).eq('status', 'open').select('id').maybeSingle();
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (!data) return NextResponse.json({ error: 'El escalamiento no existe o ya no está abierto.' }, { status: 409 });
+  return NextResponse.json({ ok: true, status });
+}
