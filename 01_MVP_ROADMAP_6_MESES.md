@@ -13,7 +13,7 @@ Principios:
 
 ## Estado actual
 
-La base funcional cubre autenticacion, roles, produccion, mantenimiento, ordenes de trabajo, inventario, compras, recepciones parciales, devoluciones, conciliacion de facturas, proveedores, productos, documentos, personas, calendario, planes preventivos y relaciones entre equipos, repuestos, proveedores y costos.
+La base funcional cubre autenticacion, roles, produccion, mantenimiento, ordenes de trabajo, inventario, compras, recepciones parciales, devoluciones, conciliacion de facturas, proveedores, productos, documentos, personas, calendario, planes preventivos, centro ejecutivo de decisiones y relaciones entre equipos, repuestos, proveedores y costos.
 
 ## Bloques completados recientemente
 
@@ -26,6 +26,14 @@ La base funcional cubre autenticacion, roles, produccion, mantenimiento, ordenes
 - mano de obra, servicios externos e informe final;
 - planes preventivos por equipo, frecuencia y proxima fecha;
 - vencimientos visibles y generacion controlada de ordenes preventivas.
+
+### Control ejecutivo conectado
+
+- excepciones verificadas de mantenimiento, preventivos, inventario, documentos y finanzas;
+- prioridades ordenadas por severidad y fecha registrada;
+- area responsable y acceso directo al flujo operacional correspondiente;
+- actividad de ordenes de trabajo comparada entre los ultimos 7 dias y los 7 anteriores;
+- sin indices sinteticos de salud, eficiencia artificial ni predicciones sin datos canonicos.
 
 ### Compras e inventario conectados
 
@@ -117,19 +125,42 @@ Las alertas por condicion, kilometraje o comportamiento se habilitaran cuando ex
 
 ## Bloque 15 — Centro ejecutivo de decisiones
 
-Estado: **Siguiente**
+Estado: **Completado**
 
-1. Operacion detenida, atrasada o bloqueada.
-2. Decisiones requeridas hoy y responsables.
-3. Mejoras, costos, riesgos y tendencias semanales.
+1. **Excepciones operacionales verificadas**
+   - ordenes de trabajo vencidas;
+   - ordenes abiertas de prioridad alta o critica;
+   - preventivos vencidos o proximos sin OT generada;
+   - repuestos bajo nivel de reorden o sin stock;
+   - documentos registrados dentro de su ventana de vencimiento;
+   - compromisos financieros vencidos y contratos proximos a vencer.
 
-Resultado esperado:
+2. **Decision y responsabilidad operacional**
+   - severidad critica, atencion o seguimiento;
+   - area responsable identificada por dominio operacional;
+   - fecha y monto cuando existen en la fuente;
+   - acceso directo al registro o modulo que permite resolver la excepcion.
 
-`Dato operacional → Excepcion verificada → Responsable → Accion requerida → Seguimiento`
+3. **Lectura ejecutiva sin simulacion**
+   - conteo directo de decisiones abiertas y criticas;
+   - monto pendiente obtenido de compromisos financieros registrados;
+   - comparacion de OT abiertas y completadas en los ultimos 7 dias contra los 7 anteriores;
+   - eliminacion de indices sinteticos de salud, eficiencia artificial y predicciones sin fuente canonica.
+
+Resultado operativo:
+
+`Dato operacional → Excepcion verificada → Area responsable → Accion requerida → Seguimiento`
+
+Entrega tecnica:
+
+- API canonica `/api/dashboard/ia-operacional` transformada en feed ejecutivo de decisiones;
+- pantalla `/dashboard/ia-operacional` reemplazada por el Centro ejecutivo de decisiones;
+- alias funcional `/dashboard/decisiones`;
+- reutilizacion del snapshot operacional y tablas existentes, sin nuevas tablas ni datos ficticios.
 
 ## Bloque 16 — Seguridad, permisos y aislamiento por organizacion
 
-Estado: **Planificado**
+Estado: **Siguiente**
 
 1. Migracion gradual y verificada de aislamiento por organizacion.
 2. Revision de funciones antiguas, permisos de servidor y accesos directos.
@@ -164,8 +195,8 @@ Cada bloque se ejecuta con el siguiente proceso obligatorio:
 
 ## Prioridad inmediata
 
-Comenzar el **Bloque 15 — Centro ejecutivo de decisiones**:
+Comenzar el **Bloque 16 — Seguridad, permisos y aislamiento por organizacion**:
 
-1. identificar operacion detenida, atrasada o bloqueada;
-2. mostrar decisiones requeridas y responsables reales;
-3. resumir costos, riesgos y tendencias verificables.
+1. auditar accesos directos, funciones y politicas por organizacion;
+2. corregir brechas sin alterar datos historicos ni flujos productivos;
+3. validar cada rol contra operaciones reales antes de endurecer permisos.
