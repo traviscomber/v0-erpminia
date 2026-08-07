@@ -160,33 +160,42 @@ Entrega tecnica:
 
 ## Bloque 16 — Seguridad, permisos y aislamiento por organizacion
 
-Estado: **En progreso**
+Estado: **Completado**
 
-1. **Aislamiento del nucleo operacional**
+1. **Aislamiento organizacional verificable**
    - lectura publica eliminada de `profiles`, `user_roles` y `organizations`;
-   - aislamiento por membresia aplicado a ordenes de trabajo y planes preventivos;
-   - RLS habilitado con `USING` y `WITH CHECK` por organizacion en compras, stock y movimientos;
-   - todas las tablas publicas que ya poseen `organization_id` y estaban sin RLS fueron incorporadas al aislamiento gradual.
+   - ordenes de trabajo, preventivos, compras, stock y movimientos aislados por membresia organizacional;
+   - todas las tablas publicas con `organization_id` que estaban expuestas fueron incorporadas a RLS;
+   - tablas legacy con relacion verificable heredan organizacion desde usuario, planta, equipo, contrato, zona u OT.
 
-2. **Superficies privilegiadas**
-   - funciones mutadoras `SECURITY DEFINER` del flujo de mantenimiento, compras y recepcion retiradas de `PUBLIC`, `anon` y `authenticated`;
-   - ejecucion operacional preservada a traves de APIs de servidor con service role;
-   - funciones de trigger retiradas de exposicion RPC directa;
-   - vistas canonicas de costos y compras cambiadas a `security_invoker` y sus fuentes protegidas por organizacion.
+2. **Superficies privilegiadas cerradas**
+   - funciones mutadoras `SECURITY DEFINER` retiradas de `PUBLIC`, `anon` y `authenticated`;
+   - helpers antiguos de login y eventos retirados de exposicion RPC directa;
+   - `search_path` fijado en funciones antiguas revisadas;
+   - vistas canonicas expuestas cambiadas a `security_invoker`;
+   - vista materializada de mantenimiento retirada del Data API directo.
 
-3. **Frontera legacy pendiente de reconciliacion**
-   - existen tablas antiguas expuestas sin `organization_id` directo;
-   - no se habilita aislamiento ficticio ni se aplican politicas `allow all` para silenciar el linter;
-   - cada tabla debe relacionarse con su entidad canonica (equipo, documento, OT, planta o compromiso) antes de cerrar su politica;
-   - la siguiente pasada del bloque cubre esas relaciones y funciones antiguas con `search_path` mutable.
+3. **Legacy sin pertenencia inventada**
+   - tablas agregadas antiguas sin una clave organizacional real quedan server-only;
+   - RLS esta activado y los grants directos a `anon`/`authenticated` fueron retirados;
+   - el backend con service role conserva acceso para compatibilidad y migracion gradual;
+   - no se modificaron ni eliminaron registros historicos.
 
-Resultado parcial verificado:
+Validacion:
 
-`Sesion → Membresia → Organizacion → RLS → API operacional de servidor → Registro autorizado`
+- Security Advisor sin errores de RLS ni advertencias de funciones `SECURITY DEFINER` expuestas;
+- usuario autenticado limitado a su organizacion en tablas operacionales probadas;
+- `anon` sin acceso a tablas operacionales protegidas;
+- superficies server-only verificadas sin privilegios de lectura para `anon` ni `authenticated`;
+- permanece una advertencia de configuracion global de Supabase Auth: proteccion de contrasenas filtradas desactivada, fuera del esquema SQL del bloque.
+
+Resultado operativo:
+
+`Sesion → Membresia → Organizacion → RLS → API de servidor → Registro autorizado`
 
 ## Bloque 17 — QA operacional y lanzamiento estable
 
-Estado: **Planificado**
+Estado: **Siguiente**
 
 1. Pruebas de cadenas historicas completas con datos reales existentes.
 2. Revision de rutas, permisos, estados vacios, errores, importaciones y exportaciones.
@@ -213,8 +222,8 @@ Cada bloque se ejecuta con el siguiente proceso obligatorio:
 
 ## Prioridad inmediata
 
-Continuar el **Bloque 16 — Seguridad, permisos y aislamiento por organizacion**:
+Comenzar el **Bloque 17 — QA operacional y lanzamiento estable**:
 
-1. reconciliar tablas legacy sin `organization_id` mediante relaciones canonicas existentes;
-2. fijar `search_path` y privilegios de funciones antiguas sin romper autenticacion ni triggers;
-3. validar accesos de servidor y roles antes de declarar el bloque cerrado.
+1. probar cadenas completas de mantenimiento, inventario, compras, documentos y decisiones con datos reales existentes;
+2. revisar permisos, rutas, estados vacios, errores, importaciones y exportaciones sin alterar datos historicos;
+3. corregir regresiones, validar responsive/rendimiento y cerrar la lista de lanzamiento estable.
