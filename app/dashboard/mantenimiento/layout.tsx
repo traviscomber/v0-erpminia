@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart3, Calendar, CalendarRange, ClipboardCheck, FileText, GitBranch, Repeat2, Settings, Wrench, ClipboardList } from 'lucide-react';
+import { BarChart3, Calendar, CalendarRange, ClipboardCheck, FileText, GitBranch, MessageSquareText, Repeat2, Settings, Wrench, ClipboardList } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const items = [
@@ -14,6 +14,7 @@ const items = [
   { href: '/dashboard/mantenimiento/confiabilidad', label: 'Confiabilidad', icon: Repeat2 },
   { href: '/dashboard/mantenimiento/bom', label: 'BOM técnica', icon: GitBranch },
   { href: '/dashboard/mantenimiento/planes-estandar', label: 'Planes estándar', icon: ClipboardCheck },
+  { href: '/dashboard/mantenimiento/retroalimentacion-renovacion', label: 'Retroalimentación', icon: MessageSquareText },
   { href: '/dashboard/mantenimiento/equipos', label: 'Activos', icon: Settings },
   { href: '/dashboard/mantenimiento/indicadores', label: 'Indicadores', icon: BarChart3 },
   { href: '/dashboard/mantenimiento/documentos', label: 'Documentos', icon: FileText },
