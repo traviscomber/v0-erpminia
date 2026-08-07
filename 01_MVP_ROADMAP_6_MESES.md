@@ -12,9 +12,9 @@ Principios:
 - ningun informe, alerta o automatizacion puede inventar informacion ausente.
 
 ## Estado actual
-La base funcional cubre autenticacion, roles, produccion, mantenimiento, ordenes de trabajo, inventario, compras, recepciones parciales, devoluciones, conciliacion de facturas, proveedores, productos, documentos, personas, planes preventivos, Equipo/Proveedor/Producto 360, centro ejecutivo de decisiones, aislamiento por organizacion, QA de lanzamiento, bandeja personal de acciones y reglas seguras de aviso.
+La base funcional cubre autenticacion, roles, produccion, mantenimiento, ordenes de trabajo, inventario, compras, recepciones parciales, devoluciones, conciliacion de facturas, proveedores, productos, documentos, personas, planes preventivos, Equipo/Proveedor/Producto 360, centro ejecutivo de decisiones, aislamiento por organizacion, QA de lanzamiento, bandeja personal de acciones, reglas seguras de aviso y planificacion de recursos.
 
-## Bloques 10 a 16
+## Bloques 10 a 19
 
 ### Bloque 10 — Cierre economico y de calidad de Compras
 Estado: **Completado**
@@ -58,66 +58,82 @@ Estado: **Completado**
 2. Funciones privilegiadas y vistas expuestas protegidas.
 3. Legacy sin relacion confiable restringido al servidor, sin inventar pertenencia.
 
----
-
-## Bloque 17 — QA operacional y lanzamiento estable
+### Bloque 17 — QA operacional y lanzamiento estable
 Estado: **Completado**
 1. Comprobacion real de sesion, organizacion y fuentes clave.
 2. Estado visible: correcto, observacion o bloqueo.
 3. QA read-only, sin semillas ni alteracion de produccion.
 
-Entrega tecnica:
-- API `/api/admin/readiness`;
-- pantalla `/dashboard/estado-sistema`.
-
-## Bloque 18 — Centro de notificaciones y acciones
+### Bloque 18 — Centro de notificaciones y acciones
 Estado: **Completado**
-1. Bandeja personal sobre las excepciones canonicas, sin copiar el contenido fuente.
-2. Estado individual pendiente, leido o pospuesto con RLS por usuario y organizacion.
-3. Resolucion directa en el registro operacional original.
+1. Bandeja personal sobre las excepciones canonicas.
+2. Estado individual pendiente, leido o pospuesto.
+3. Resolucion directa en el registro fuente.
 
-Entrega tecnica:
-- tabla `user_action_states`;
-- API `/api/actions/state`;
-- pantalla `/dashboard/acciones`.
-
-## Bloque 19 — Reglas y automatizaciones seguras
+### Bloque 19 — Reglas y automatizaciones seguras
 Estado: **Completado**
+1. Reglas sobre excepciones verificables.
+2. Automatizacion limitada a avisos.
+3. Historial trazable por referencia canonica.
 
-1. **Reglas sobre excepciones verificables**
-   - reglas aisladas por organizacion;
-   - condicion por area operacional y prioridad;
-   - activacion y pausa controladas por su creador.
-
-2. **Automatizacion limitada a avisos**
-   - unica accion permitida en esta etapa: `notify`;
-   - no ejecuta pagos, compras, cierres de OT, movimientos de inventario ni cambios irreversibles;
-   - la evaluacion reutiliza el feed canonico del Centro ejecutivo en vez de replicar su logica de negocio.
-
-3. **Historial trazable**
-   - cada coincidencia guarda regla, usuario y referencia a la excepcion/registro fuente;
-   - no copia titulo, descripcion, monto ni otros datos del registro canonico;
-   - deduplicacion por regla, usuario y excepcion.
-
-Resultado operativo:
-`Excepcion real → Regla activa → Condicion → Aviso seguro → Referencia historica`
-
-Entrega tecnica:
-- tablas `automation_rules` y `automation_rule_runs` con RLS;
-- API `/api/automations/rules`;
-- API `/api/automations/evaluate`;
-- pantalla `/dashboard/automatizaciones`;
-- Security Advisor sin nuevos errores atribuibles al bloque.
-
-Nota de arquitectura:
-La infraestructura legacy `event_log/event_history` no se usa como fuente de verdad del bloque porque no posee aislamiento organizacional directo. Se mantiene cerrada como infraestructura antigua hasta su reconciliacion canonica; el nuevo historial guarda solo referencias y queda aislado por organizacion y usuario.
+---
 
 ## Bloque 20 — Planificacion avanzada y recursos
+Estado: **Completado**
+
+1. **Capacidad real**
+   - carga de personas calculada desde horas planificadas en OT existentes;
+   - equipos y personas se leen desde sus entidades canonicas;
+   - preventivos proximos se muestran junto al programa real.
+
+2. **Ventanas y conflictos**
+   - indisponibilidad de persona o equipo con rango de fechas y motivo;
+   - deteccion de doble asignacion de persona;
+   - deteccion de doble programacion de equipo;
+   - bloqueo de reprogramaciones que chocan con una indisponibilidad registrada.
+
+3. **Programacion sin calendario paralelo**
+   - la fecha y responsable se escriben directamente en `maintenance_work_orders`;
+   - no se replica la OT en una tabla de agenda;
+   - el planner solo agrega ventanas de recursos que no existian en el modelo.
+
+Resultado operativo:
+`OT/Preventivo → Persona/Equipo → Disponibilidad → Conflicto → Programacion canonica`
+
+Entrega tecnica:
+- tabla `maintenance_resource_windows` de acceso servidor;
+- API `/api/planning/maintenance`;
+- pantalla `/dashboard/planificacion-recursos`.
+
+## Bloque 21 — Operacion movil de terreno
 Estado: **Siguiente**
 
-1. Capacidad de personas, equipos y ventanas de mantenimiento.
-2. Conflictos, carga y prioridades visibles antes de programar.
-3. Programacion operacional conectada a OT y preventivos existentes.
+1. Lista movil de OT asignadas al usuario/persona real de la organizacion.
+2. Inicio de trabajo, notas de terreno y registro de horas usando eventos y mano de obra existentes.
+3. Acceso rapido a repuestos, historial y cierre desde la OT canonica, sin crear una OT movil paralela.
+
+Resultado esperado:
+`Tecnico → OT asignada → Inicio/Nota/Horas → Repuestos → OT canonica`
+
+## Bloque 22 — Entrega de turno y continuidad operacional
+Estado: **Planificado**
+
+1. Registro de entrega de turno vinculado a OT, equipos y responsables reales.
+2. Pendientes y riesgos que deben continuar en el siguiente turno.
+3. Confirmacion de recepcion por el siguiente responsable sin alterar la fuente operacional.
+
+Resultado esperado:
+`Turno saliente → Pendientes reales → Entrega → Recepcion → Continuidad`
+
+## Bloque 23 — Centro de cumplimiento y auditoria operacional
+Estado: **Planificado**
+
+1. Revisiones sobre OT, documentos, preventivos y acciones usando criterios verificables.
+2. Hallazgos con referencia al registro fuente, responsable y estado de resolucion.
+3. Evidencia de cierre y trazabilidad de quien reviso y cuando, sin inventar cumplimiento.
+
+Resultado esperado:
+`Registro canonico → Revision → Hallazgo → Responsable → Evidencia → Cierre`
 
 ---
 
@@ -135,4 +151,4 @@ Cada bloque se ejecuta con el siguiente proceso obligatorio:
 10. Marcar el bloque completado y listar el siguiente.
 
 ## Prioridad inmediata
-**Bloque 20 — Planificacion avanzada y recursos.**
+**Bloque 21 — Operacion movil de terreno.**
