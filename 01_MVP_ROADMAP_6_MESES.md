@@ -12,7 +12,7 @@ Principios:
 - ningun informe, alerta o automatizacion puede inventar informacion ausente.
 
 ## Estado actual
-Motil cubre autenticacion, roles, mantenimiento, OT, inventario, compras, recepciones, devoluciones, proveedores, productos, documentos, personas, preventivos, entidades 360, decisiones ejecutivas, aislamiento por organizacion, QA, acciones, automatizaciones seguras, planificacion de recursos, terreno, entrega de turno, auditoria operacional, calidad de datos, telemetria, campañas, confiabilidad, repuestos criticos, BOM tecnica, planes estandar de trabajo, estrategia de mantenimiento por criticidad, ciclo de vida de activos, planificacion y ejecucion de renovacion, puesta en servicio, validacion post-puesta en servicio, gobernanza de cartera, retroalimentacion verificada, propuestas controladas, aplicacion transaccional de cambios aprobados y verificacion posterior de integridad.
+Motil cubre autenticacion, roles, mantenimiento, OT, inventario, compras, recepciones, devoluciones, proveedores, productos, documentos, personas, preventivos, entidades 360, decisiones ejecutivas, aislamiento por organizacion, QA, acciones, automatizaciones seguras, planificacion de recursos, terreno, entrega de turno, auditoria operacional, calidad de datos, telemetria, campañas, confiabilidad, repuestos criticos, BOM tecnica, planes estandar de trabajo, estrategia de mantenimiento por criticidad, ciclo de vida de activos, planificacion y ejecucion de renovacion, puesta en servicio, validacion post-puesta en servicio, gobernanza de cartera, retroalimentacion verificada, propuestas controladas, aplicacion transaccional, verificacion posterior de integridad y seguimiento gobernado de excepciones.
 
 ## Bloques 10 a 38
 Estado: **Completados**
@@ -33,57 +33,52 @@ Estado: **Completado**
 1. Aprobar o rechazar una propuesta requiere decision humana y nota explicita.
 2. Solo una propuesta `approved` puede aplicarse.
 3. La aplicacion ocurre dentro de `apply_maintenance_feedback_change`, bloqueando la propuesta y el registro destino durante la transaccion.
-4. Estrategia y ciclo de vida preservan historial: el registro vigente se inactiva en la misma transaccion que crea el nuevo registro aprobado.
-5. Preventivos actualizan exclusivamente el registro destino validado del mismo activo.
-6. Cada aplicacion conserva `before_snapshot`, `after_snapshot`, `result_record_id`, actor y fecha.
-7. La propuesta cambia a `applied` solo cuando la fuente operacional fue modificada exitosamente; una falla revierte toda la operacion.
-
-Entrega tecnica:
-- columnas `before_snapshot` y `after_snapshot`;
-- funcion transaccional `apply_maintenance_feedback_change`;
-- `/api/maintenance/feedback-change-proposals/decision`;
-- `/dashboard/mantenimiento/aprobacion-retroalimentacion`;
-- acceso desde navegacion de Mantenimiento.
-
-Regla de integridad:
-- aprobacion y aplicacion son pasos distintos;
-- no existe aplicacion parcial;
-- una propuesta aplicada no puede reaplicarse;
-- la organizacion, activo y destino se revalidan al aplicar;
-- el historial anterior permanece disponible.
+4. Estrategia y ciclo de vida preservan historial; preventivos actualizan exclusivamente el registro validado.
+5. Cada aplicacion conserva `before_snapshot`, `after_snapshot`, `result_record_id`, actor y fecha.
+6. La propuesta cambia a `applied` solo cuando la fuente operacional fue modificada exitosamente.
 
 ## Bloque 41 — Auditoria y verificacion posterior de cambios aplicados
 Estado: **Completado**
 1. Solo propuestas `applied` entran a verificacion posterior.
-2. La verificacion compara el `after_snapshot` registrado durante la aplicacion contra el registro operacional vigente asociado por `result_record_id`.
-3. Para estrategia se verifican criticidad, estrategia y estado; para ciclo de vida decision, fecha objetivo y estado; para preventivos frecuencias y habilitacion.
-4. Motil diferencia coincidencia, divergencia, destino ausente y aplicacion incompleta sin interpretar ninguna coincidencia como mejora de desempeno.
-5. La interfaz expone snapshot anterior, snapshot aplicado y fuente vigente para auditoria directa.
-6. Una persona cierra la verificacion como `verified`, `diverged` o `needs_follow_up`, siempre con nota explicita.
-7. Al cerrar se conserva un `observed_snapshot`, actor y fecha independientes de la fuente operacional.
-8. Cerrar una verificacion no modifica estrategia, preventivo, ciclo de vida ni la propuesta aplicada.
+2. Se compara el `after_snapshot` contra el registro operacional vigente asociado por `result_record_id`.
+3. Motil diferencia coincidencia, divergencia, destino ausente y aplicacion incompleta sin interpretar coincidencias como mejora.
+4. Una persona cierra la verificacion como `verified`, `diverged` o `needs_follow_up`, siempre con nota explicita.
+5. Cerrar una verificacion no modifica estrategia, preventivo, ciclo de vida ni la propuesta aplicada.
 
-Entrega tecnica:
-- `maintenance_feedback_change_verifications`;
-- `/api/maintenance/feedback-change-verifications`;
-- `/dashboard/mantenimiento/verificacion-retroalimentacion`;
-- acceso desde navegacion de Mantenimiento;
-- deteccion de divergencias por campos relevantes del destino.
-
-Regla de integridad:
-- una aplicacion puede tener una sola verificacion cerrada activa;
-- la fuente vigente se lee en tiempo real y no se reconstruye desde el snapshot;
-- ausencia del destino se informa como brecha, no como eliminacion valida;
-- una coincidencia confirma integridad de aplicacion, no efectividad, ahorro ni mejora operacional;
-- cero cambios aplicados produce cero verificaciones, nunca datos demo.
+Entrega: `maintenance_feedback_change_verifications`, `/api/maintenance/feedback-change-verifications`, `/dashboard/mantenimiento/verificacion-retroalimentacion`.
 
 ## Bloque 42 — Gobernanza de excepciones y seguimiento derivado
+Estado: **Completado**
+1. Solo verificaciones cerradas `diverged` o `needs_follow_up` pueden originar acciones de seguimiento.
+2. Cada seguimiento conserva la relacion con verificacion, propuesta aplicada y activo canonico.
+3. El tipo de accion es explicito: investigacion, recoleccion de evidencia, revision de nuevo cambio o revision de rollback.
+4. Responsable y fecha objetivo son obligatorios y deben provenir de una persona real de la misma organizacion y una fecha ingresada por una persona.
+5. Una verificacion no puede tener dos acciones abiertas del mismo tipo.
+6. Cerrar una accion exige nota y referencia de evidencia real; cancelar exige nota explicita.
+7. Crear, cerrar o cancelar una accion no modifica la fuente operacional, no ejecuta rollback y no crea automaticamente una nueva propuesta de cambio.
+8. La verificacion de origen permanece inmutable y auditable.
+
+Entrega tecnica:
+- `maintenance_feedback_exception_followups`;
+- `/api/maintenance/feedback-exception-followups`;
+- `/dashboard/mantenimiento/seguimiento-excepciones`;
+- acceso desde navegacion de Mantenimiento;
+- control de responsable, fecha objetivo, evidencia y cierre humano.
+
+Regla de integridad:
+- no existe seguimiento sin una verificacion elegible;
+- responsable y fecha no se infieren ni se completan automaticamente;
+- rollback y nuevo cambio son revisiones, no ejecuciones automaticas;
+- evidencia de cierre no reescribe la verificacion original;
+- cero verificaciones elegibles produce cero seguimientos, nunca datos demo.
+
+## Bloque 43 — Escalamiento de excepciones recurrentes y decisiones derivadas
 Estado: **Siguiente**
-1. Permitir acciones de seguimiento solo desde verificaciones cerradas `diverged` o `needs_follow_up`.
-2. Conservar relacion explicita entre verificacion, propuesta aplicada, activo y accion derivada.
-3. Asignar responsable y fecha objetivo usando entidades reales disponibles; no inventar propietarios ni plazos.
-4. Mantener cualquier rollback o nuevo cambio como una decision humana separada, nunca automatica.
-5. Cerrar el seguimiento con evidencia real y sin alterar retrospectivamente la verificacion que lo origino.
+1. Detectar recurrencia solo a partir de verificaciones y seguimientos reales del mismo activo y tipo de destino.
+2. Exponer recurrencias y seguimientos vencidos sin crear severidad, causa raiz o impacto no demostrados.
+3. Permitir escalamiento humano con responsable y fundamento explicitos.
+4. Vincular cualquier nueva propuesta operacional al historial que justifica el escalamiento sin ejecutar cambios automaticamente.
+5. Mantener separados seguimiento, escalamiento, decision y aplicacion.
 
 ---
 
@@ -101,4 +96,4 @@ Cada bloque se ejecuta con el siguiente proceso obligatorio:
 10. Marcar el bloque completado y listar el siguiente.
 
 ## Prioridad inmediata
-**Bloque 42 — Gobernanza de excepciones y seguimiento derivado.**
+**Bloque 43 — Escalamiento de excepciones recurrentes y decisiones derivadas.**
