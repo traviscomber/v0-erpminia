@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
   const membership = await context.supabase
     .from('user_roles')
     .select('organization_id')
-    .eq('user_id', context.user.id)
+    .eq('user_id', context.userId)
     .eq('organization_id', context.organizationId)
     .maybeSingle();
 
