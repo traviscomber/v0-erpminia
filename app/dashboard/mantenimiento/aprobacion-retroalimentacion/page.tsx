@@ -1,0 +1,20 @@
+'use client';
+
+import { useState } from 'react';
+import useSWR from 'swr';
+import { RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+
+const fetcher = async (url:string) => { const r=await fetch(url,{credentials:'include',cache:'no-store'}); const p=await r.json().catch(()=>null); if(!r.ok) throw new Error(p?.error||'No se pudo cargar.'); return p; };
+const payloadLabel = (proposal:any) => proposal.target_type==='strategy' ? `${proposal.proposed_payload.criticalityLevel || '—'} · ${proposal.proposed_payload.maintenanceStrategy || '—'}` : proposal.target_type==='preventive' ? `Días ${proposal.proposed_payload.frequencyDays ?? '—'} · Horas ${proposal.proposed_payload.frequencyHours ?? '—'}` : `${proposal.proposed_payload.decisionType || '—'} · ${proposal.proposed_payload.targetDate || 'sin fecha'}`;
+
+export default function FeedbackApprovalPage(){
+  const {data,error,isLoading,isValidating,mutate}=useSWR('/api/maintenance/feedback-change-proposals',fetcher,{revalidateOnFocus:false});
+  const [notes,setNotes]=useState<Record<string,string>>({}); const [message,setMessage]=useState('');
+  const act=async(id:string,action:string)=>{ setMessage(''); const r=await fetch('/api/maintenance/feedback-change-proposals/decision',{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({id,action,note:notes[id]||''})}); const p=await r.json().catch(()=>null); if(!r.ok){setMessage(p?.error||'No se pudo ejecutar.');return;} setMessage(action==='apply'?'Cambio aplicado transaccionalmente.':'Decisión registrada.'); await mutate(); };
+  const proposals=data?.proposals||[];
+  return <div className="space-y-6"><section className="flex flex-col gap-4 border-b border-border/70 pb-6 md:flex-row md:items-end md:justify-between"><div><p className="text-sm font-medium text-muted-foreground">Mantenimiento · Control de cambios</p><h1 className="mt-1 text-3xl font-semibold tracking-tight">Aprobación y aplicación</h1><p className="mt-2 max-w-4xl text-sm text-muted-foreground">La aprobación humana y la aplicación son pasos separados. La aplicación ocurre en una transacción y conserva snapshot antes/después.</p></div><Button variant="outline" onClick={()=>void mutate()} disabled={isValidating}><RefreshCw className={`mr-2 h-4 w-4 ${isValidating?'animate-spin':''}`}/>Actualizar</Button></section>{message?<p className="text-sm">{message}</p>:null}{error?<p className="text-sm text-destructive">{error.message}</p>:null}{isLoading?<p className="text-sm text-muted-foreground">Cargando…</p>:proposals.length===0?<Card><CardContent className="p-8 text-center text-sm text-muted-foreground">No existen propuestas operacionales. No se generan cambios simulados.</CardContent></Card>:proposals.map((p:any)=><Card key={p.id}><CardHeader><div className="flex flex-wrap gap-2"><Badge>{p.target_type}</Badge><Badge variant="outline">{p.status}</Badge></div><CardTitle className="text-base">{payloadLabel(p)}</CardTitle><CardDescription>{p.reason}</CardDescription></CardHeader><CardContent className="space-y-3"><Input placeholder="Nota de decisión" value={notes[p.id]||''} onChange={(e)=>setNotes((n)=>({...n,[p.id]:e.target.value}))}/><div className="flex flex-wrap gap-2">{p.status==='proposed'?<><Button onClick={()=>void act(p.id,'approve')}>Aprobar</Button><Button variant="outline" onClick={()=>void act(p.id,'reject')}>Rechazar</Button></>:null}{p.status==='approved'?<Button onClick={()=>void act(p.id,'apply')}>Aplicar cambio</Button>:null}{p.status==='applied'?<p className="text-sm text-muted-foreground">Aplicado y registrado.</p>:null}</div></CardContent></Card>)}</div>;
+}
