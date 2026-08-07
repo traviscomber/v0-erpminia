@@ -12,7 +12,7 @@ Principios:
 - ningun informe, alerta o automatizacion puede inventar informacion ausente.
 
 ## Estado actual
-La base funcional cubre autenticacion, roles, produccion, mantenimiento, ordenes de trabajo, inventario, compras, recepciones parciales, devoluciones, conciliacion de facturas, proveedores, productos, documentos, personas, planes preventivos, Equipo/Proveedor/Producto 360, centro ejecutivo de decisiones y aislamiento por organizacion.
+La base funcional cubre autenticacion, roles, produccion, mantenimiento, ordenes de trabajo, inventario, compras, recepciones parciales, devoluciones, conciliacion de facturas, proveedores, productos, documentos, personas, planes preventivos, Equipo/Proveedor/Producto 360, centro ejecutivo de decisiones, aislamiento por organizacion, QA de lanzamiento y bandeja personal de acciones.
 
 ## Bloques 10 a 16
 
@@ -63,48 +63,48 @@ Estado: **Completado**
 ## Bloque 17 — QA operacional y lanzamiento estable
 Estado: **Completado**
 
-1. **Comprobacion real de fuentes**
-   - sesion y pertenencia a la organizacion activa;
-   - ordenes de trabajo;
-   - mantenimiento preventivo;
-   - inventario;
-   - compras;
-   - documentos.
-
-2. **Estado de lanzamiento visible**
-   - correcto, observacion o bloqueo por cada fuente;
-   - estados vacios tratados como observacion, no como error ficticio;
-   - enlaces directos a los modulos operacionales correspondientes.
-
-3. **QA sin alterar produccion**
-   - comprobaciones de solo lectura;
-   - sin semillas, registros de prueba ni cambios historicos;
-   - build de produccion y tipos como puerta obligatoria antes del merge.
-
-Resultado operativo:
-`Sesion → Organizacion → Fuente real → Comprobacion → Observacion/Bloqueo → Modulo responsable`
+1. Comprobacion real de sesion, organizacion y fuentes clave.
+2. Estado visible: correcto, observacion o bloqueo.
+3. QA read-only, sin semillas ni alteracion de produccion.
 
 Entrega tecnica:
 - API `/api/admin/readiness`;
-- pantalla `/dashboard/estado-sistema`;
-- comprobacion canonica y read-only de preparacion operacional.
+- pantalla `/dashboard/estado-sistema`.
 
 ## Bloque 18 — Centro de notificaciones y acciones
-Estado: **Siguiente**
+Estado: **Completado**
 
-1. Bandeja personal construida sobre las excepciones canonicas del Centro ejecutivo.
-2. Estado individual por usuario: pendiente, leido y pospuesto, sin copiar la informacion fuente.
-3. Acceso directo desde cada aviso al registro o flujo que debe resolverse.
+1. **Bandeja personal sin duplicar la fuente**
+   - reutiliza las excepciones canonicas del Centro ejecutivo;
+   - titulo, descripcion, severidad, responsable y enlace siguen viniendo del registro fuente;
+   - la nueva capa solo guarda el estado personal de cada usuario.
 
-Resultado esperado:
+2. **Estado individual seguro**
+   - pendiente;
+   - leida;
+   - pospuesta hasta el dia siguiente;
+   - RLS por usuario y organizacion.
+
+3. **Resolucion directa**
+   - cada accion conserva el enlace canonico al modulo o registro responsable;
+   - una accion pospuesta desaparece temporalmente sin modificar el dato operacional;
+   - ninguna excepcion se cierra automaticamente desde la bandeja.
+
+Resultado operativo:
 `Excepcion canonica → Usuario → Estado personal → Accion → Registro fuente`
 
+Entrega tecnica:
+- tabla `user_action_states` con RLS;
+- API `/api/actions/state`;
+- pantalla `/dashboard/acciones`;
+- sin copiar contenido operacional a una tabla de notificaciones.
+
 ## Bloque 19 — Reglas y automatizaciones seguras
-Estado: **Planificado**
+Estado: **Siguiente**
 
 1. Reglas por organizacion sobre eventos operacionales verificables.
 2. Primera etapa limitada a avisos y acciones reversibles; sin pagos, cierres ni compras irreversibles automaticas.
-3. Historial de ejecucion reutilizando la infraestructura de eventos existente cuando corresponda.
+3. Historial de ejecucion con referencia al evento y al registro canonico, sin duplicar el dato fuente.
 
 Resultado esperado:
 `Evento real → Regla activa → Condicion → Aviso/accion segura → Historial`
@@ -132,4 +132,4 @@ Cada bloque se ejecuta con el siguiente proceso obligatorio:
 10. Marcar el bloque completado y listar el siguiente.
 
 ## Prioridad inmediata
-**Bloque 18 — Centro de notificaciones y acciones.**
+**Bloque 19 — Reglas y automatizaciones seguras.**
