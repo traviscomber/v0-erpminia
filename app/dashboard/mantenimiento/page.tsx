@@ -114,6 +114,9 @@ export default function MantenimientoPage() {
           </PageHeaderDescription>
         </PageHeaderContent>
         <PageHeaderActions>
+          <Button variant="outline" asChild>
+            <Link href="/dashboard/mantenimiento/ejecucion-renovacion">Ejecución de renovación</Link>
+          </Button>
           <Button variant="outline" onClick={() => void mutate()} disabled={isValidating}>
             <RefreshCw className={`h-4 w-4 ${isValidating ? 'animate-spin' : ''}`} />
             Actualizar
