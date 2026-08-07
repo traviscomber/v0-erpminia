@@ -7,10 +7,13 @@
 - TM y LEY/LEYES representan granos distintos y no se mezclan en una tabla KPI.
 - Ninguna entidad textual crea automáticamente una persona, proveedor, activo, mina o sector canónico.
 - Toda normalización de unidades usa reglas versionadas con evidencia.
+- `TM 2026` define el contrato canónico `TM_2026_V1`; los años 2019–2025 se adaptan a ese contrato mediante perfiles versionados. Campos inexistentes en la fuente quedan NULL.
+- `LEY/LEYES` conservan valores reportados y Motil recalcula automáticamente las fórmulas determinísticas con reglas versionadas.
+- Los acumulados metalúrgicos son read models calculados, no valores canónicos copiados del Excel.
 - `produccion_kpi` es legacy y dejará de ser fuente de verdad cuando existan read models derivados y validados.
 - Ausencia de datos no equivale a cero, cumplimiento, eficiencia ni producción.
 
-## P1 — Fundación canónica e ingestión
+## P1 — Fundación canónica, ingreso e ingestión
 Estado: **En progreso**
 
 1. Registrar archivos fuente por hash y período.
@@ -19,24 +22,35 @@ Estado: **En progreso**
 4. Codificar reglas auditadas de escala/unidad.
 5. Crear ingestión idempotente por chunks y cierre por conteo esperado.
 6. Proteger mutaciones de Producción por rol y organización.
+7. Crear `Ingreso de Datos` con dos modos: `Transporte de Mineral` y `Planta / Leyes`.
+8. Soportar ingreso manual y carga Excel con preview, validación y commit explícito.
+9. Registrar cada sesión de ingreso y su template/version de adaptación.
 
-## P2 — TM histórico y reconciliación operacional
+## P2 — TM 2026 como contrato y adaptación histórica
 Estado: **Pendiente**
 
-1. Importar TM 2026 y verificar 2.897 movimientos identificados por parser.
-2. Importar 2019 → 2025 en orden cronológico conservando la regla de escala efectiva por fecha.
-3. Reconciliar minas y sectores con centros de costo existentes cuando exista evidencia suficiente.
-4. Crear cola de revisión para conductor, transportista y patente.
-5. Resolver coincidencias exactas contra `profiles`, `suppliers` y `canonical.assets`; aliases ambiguos requieren aprobación humana.
+1. Definir `TM_2026_V1` como esquema objetivo para Transporte de Mineral.
+2. Importar TM 2026 y verificar 2.897 movimientos identificados por parser.
+3. Construir perfiles de adaptación por año para 2019 → 2025 hacia `TM_2026_V1`.
+4. Nunca inventar valores ausentes: campos no presentes históricamente quedan NULL y se conserva el payload original.
+5. Aplicar la regla de escala efectiva por fecha y registrar `source_schema_version` + `adapter_version` en cada fila.
+6. Reconciliar minas y sectores con centros de costo existentes cuando exista evidencia suficiente.
+7. Crear cola de revisión para conductor, transportista y patente.
+8. Resolver coincidencias exactas contra `profiles`, `suppliers` y `canonical.assets`; aliases ambiguos requieren aprobación humana.
 
-## P3 — Planta, leyes y metalurgia
+## P3 — Planta, leyes y motor metalúrgico automático
 Estado: **Pendiente**
 
 1. Importar fecha + turno desde `LEY.xlsx` y `LEYES.xlsx` sin duplicar el mismo evento.
 2. Usar LEY/LEYES como fuentes contrastables, conservando discrepancias.
-3. Separar tonelaje tratado, humedad, ley cabeza, concentrado, relave, recuperación, fino y lote.
-4. Recalcular recuperación y fino mediante fórmulas determinísticas versionadas; conservar valores reportados por separado.
-5. Tratar el 06-08-2026 y fechas posteriores con campos incompletos como evidencia parcial, no resultados completos.
+3. Separar tonelaje tratado, humedad, ley cabeza, ley Galigher cuando exista, concentrado, relave, lote y variables de despacho.
+4. Recalcular automáticamente:
+   - recuperación teórica: `((cabeza - relave) * concentrado) / ((concentrado - relave) * cabeza) * 100`;
+   - fino teórico tratado: `humedad * toneladas_tratadas * ley_cabeza / 100` usando toneladas canónicas;
+   - fino real de despacho: `(1 - humedad_despacho/100) * (ley_despacho/100) * toneladas_despachadas`;
+   - acumulados de fino tratado y fino despacho mediante ventanas ordenadas por fecha/turno.
+5. Conservar siempre `reportado` vs `calculado` y mostrar discrepancia cuando no coincidan.
+6. Tratar divisiones inválidas, campos faltantes y el 06-08-2026 incompleto como estado `partial/review`, nunca como cero.
 
 ## P4 — Reconciliación mina → planta → despacho
 Estado: **Pendiente**
@@ -52,6 +66,7 @@ Estado: **Pendiente**
 Reestructurar `/dashboard/produccion` en superficies:
 
 - Resumen operacional;
+- Ingreso de datos;
 - Movimientos de mineral;
 - Mina y sectores;
 - Planta y turnos;
@@ -59,6 +74,8 @@ Reestructurar `/dashboard/produccion` en superficies:
 - Despachos;
 - Reconciliación;
 - Calidad del dato y fuentes.
+
+`Ingreso de datos` debe permitir elegir `Transporte` o `Planta/Leyes`, ingresar manualmente o cargar archivo, previsualizar adaptación/cálculos, resolver errores y recién después confirmar el commit.
 
 Estados `observado`, `calculado`, `pendiente`, `parcial` y `no reconciliado` deben ser visibles y semánticamente distintos.
 
