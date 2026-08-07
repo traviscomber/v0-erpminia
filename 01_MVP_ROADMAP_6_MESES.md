@@ -12,7 +12,7 @@ Principios:
 - ningun informe, alerta o automatizacion puede inventar informacion ausente.
 
 ## Estado actual
-La base funcional cubre autenticacion, roles, produccion, mantenimiento, ordenes de trabajo, inventario, compras, recepciones parciales, devoluciones, conciliacion de facturas, proveedores, productos, documentos, personas, planes preventivos, Equipo/Proveedor/Producto 360, centro ejecutivo de decisiones, aislamiento por organizacion, QA de lanzamiento, bandeja personal de acciones, reglas seguras de aviso y planificacion de recursos.
+La base funcional cubre autenticacion, roles, produccion, mantenimiento, ordenes de trabajo, inventario, compras, recepciones parciales, devoluciones, conciliacion de facturas, proveedores, productos, documentos, personas, planes preventivos, Equipo/Proveedor/Producto 360, centro ejecutivo de decisiones, aislamiento por organizacion, QA de lanzamiento, bandeja personal de acciones, reglas seguras de aviso, planificacion de recursos y operacion personal de terreno.
 
 ## Bloques 10 a 19
 
@@ -80,25 +80,9 @@ Estado: **Completado**
 
 ## Bloque 20 — Planificacion avanzada y recursos
 Estado: **Completado**
-
-1. **Capacidad real**
-   - carga de personas calculada desde horas planificadas en OT existentes;
-   - equipos y personas se leen desde sus entidades canonicas;
-   - preventivos proximos se muestran junto al programa real.
-
-2. **Ventanas y conflictos**
-   - indisponibilidad de persona o equipo con rango de fechas y motivo;
-   - deteccion de doble asignacion de persona;
-   - deteccion de doble programacion de equipo;
-   - bloqueo de reprogramaciones que chocan con una indisponibilidad registrada.
-
-3. **Programacion sin calendario paralelo**
-   - la fecha y responsable se escriben directamente en `maintenance_work_orders`;
-   - no se replica la OT en una tabla de agenda;
-   - el planner solo agrega ventanas de recursos que no existian en el modelo.
-
-Resultado operativo:
-`OT/Preventivo → Persona/Equipo → Disponibilidad → Conflicto → Programacion canonica`
+1. Carga real desde OT y preventivos.
+2. Ventanas de personas/equipos y conflictos antes de programar.
+3. Programacion escrita directamente sobre la OT canonica.
 
 Entrega tecnica:
 - tabla `maintenance_resource_windows` de acceso servidor;
@@ -106,17 +90,33 @@ Entrega tecnica:
 - pantalla `/dashboard/planificacion-recursos`.
 
 ## Bloque 21 — Operacion movil de terreno
-Estado: **Siguiente**
+Estado: **Completado**
 
-1. Lista movil de OT asignadas al usuario/persona real de la organizacion.
-2. Inicio de trabajo, notas de terreno y registro de horas usando eventos y mano de obra existentes.
-3. Acceso rapido a repuestos, historial y cierre desde la OT canonica, sin crear una OT movil paralela.
+1. **Trabajo personal asignado**
+   - el usuario se vincula a `people` por email dentro de la organizacion activa;
+   - la vista muestra solamente OT activas con `assigned_person_id` igual a esa persona;
+   - si no existe vinculacion, se informa sin inferir identidad ni mostrar OT ajenas.
 
-Resultado esperado:
-`Tecnico → OT asignada → Inicio/Nota/Horas → Repuestos → OT canonica`
+2. **Ejecucion sobre registros existentes**
+   - iniciar trabajo actualiza la OT original a `in_progress` y conserva/establece su `start_date`;
+   - notas de terreno se registran como `work_order_events`;
+   - intervalos de trabajo se registran en `work_order_labor_entries` con inicio y termino explicitos.
+
+3. **Continuidad con la OT completa**
+   - repuestos se resumen desde `work_order_parts`;
+   - historial se lee desde eventos y mano de obra reales;
+   - repuestos, materiales y cierre se mantienen en la OT canonica existente, sin cierre rapido paralelo.
+
+Resultado operativo:
+`Tecnico → Persona canonica → OT asignada → Inicio/Nota/Horas → Repuestos → OT canonica`
+
+Entrega tecnica:
+- API `/api/field/work-orders`;
+- pantalla movil `/dashboard/terreno`;
+- sin nuevas tablas ni duplicacion de OT.
 
 ## Bloque 22 — Entrega de turno y continuidad operacional
-Estado: **Planificado**
+Estado: **Siguiente**
 
 1. Registro de entrega de turno vinculado a OT, equipos y responsables reales.
 2. Pendientes y riesgos que deben continuar en el siguiente turno.
@@ -151,4 +151,4 @@ Cada bloque se ejecuta con el siguiente proceso obligatorio:
 10. Marcar el bloque completado y listar el siguiente.
 
 ## Prioridad inmediata
-**Bloque 21 — Operacion movil de terreno.**
+**Bloque 22 — Entrega de turno y continuidad operacional.**
