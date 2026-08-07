@@ -12,7 +12,7 @@ Principios:
 - ningun informe, alerta o automatizacion puede inventar informacion ausente.
 
 ## Estado actual
-Motil cubre autenticacion, roles, mantenimiento, OT, inventario, compras, recepciones, devoluciones, proveedores, productos, documentos, personas, preventivos, entidades 360, decisiones ejecutivas, aislamiento por organizacion, QA, acciones, automatizaciones seguras, planificacion de recursos, terreno, entrega de turno, auditoria operacional, calidad de datos, telemetria, campañas, confiabilidad, repuestos criticos, BOM tecnica, planes estandar de trabajo, estrategia de mantenimiento por criticidad, ciclo de vida de activos, planificacion de inversion para renovacion, ejecucion trazable de renovacion, puesta en servicio/cierre de renovacion, validacion post-puesta en servicio y gobernanza ejecutiva de la cartera de renovacion.
+Motil cubre autenticacion, roles, mantenimiento, OT, inventario, compras, recepciones, devoluciones, proveedores, productos, documentos, personas, preventivos, entidades 360, decisiones ejecutivas, aislamiento por organizacion, QA, acciones, automatizaciones seguras, planificacion de recursos, terreno, entrega de turno, auditoria operacional, calidad de datos, telemetria, campañas, confiabilidad, repuestos criticos, BOM tecnica, planes estandar de trabajo, estrategia de mantenimiento por criticidad, ciclo de vida de activos, planificacion de inversion para renovacion, ejecucion trazable de renovacion, puesta en servicio/cierre de renovacion, validacion post-puesta en servicio, gobernanza ejecutiva de la cartera de renovacion y retroalimentacion verificada hacia estrategia y ciclo de vida.
 
 ## Bloques 10 a 35
 Estado: **Completados**
@@ -74,18 +74,35 @@ Regla de integridad:
 - este bloque no introduce tablas ni datos paralelos.
 
 ## Bloque 38 — Retroalimentación verificada a estrategia y ciclo de vida
-Estado: **En progreso**
-1. Convertir resultados de renovación aprobados en insumos trazables para revisión de estrategia de mantenimiento y ciclo de vida, sin mutarlos automáticamente.
-2. Diferenciar recomendaciones de seguimiento, evidencia pendiente y resultados satisfactorios usando únicamente validaciones aprobadas.
-3. Permitir que una persona acepte o descarte una propuesta de ajuste antes de modificar estrategia, frecuencia preventiva o decisión de ciclo de vida.
-4. Conservar referencia explícita a la validación que originó cada propuesta y evitar duplicados sobre el mismo resultado.
+Estado: **Completado**
+1. Solo validaciones post-puesta en servicio aprobadas pueden originar propuestas de retroalimentación.
+2. Una persona selecciona explícitamente si corresponde revisar estrategia de mantenimiento, frecuencia preventiva o decisión de ciclo de vida; Motil no infiere el tipo de ajuste.
+3. Cada propuesta conserva activo canónico, validación de origen, resultado aprobado, fundamento y referencia de evidencia.
+4. Aceptar o descartar exige una decisión humana trazable con nota explícita.
+5. Una propuesta aceptada funciona únicamente como autorización para revisar la fuente correspondiente; no modifica automáticamente estrategia, preventivos ni ciclo de vida.
+6. Se evita más de una propuesta activa del mismo tipo sobre la misma validación.
+7. La interfaz muestra junto al resultado aprobado el contexto vigente de estrategia, preventivos y ciclo de vida sin reescribirlo.
 
-Regla de integridad en desarrollo:
-- solo una validación post-puesta en servicio aprobada puede originar retroalimentación;
-- una propuesta es una recomendación auditable, no una modificación automática del activo, estrategia, preventivo o decisión de ciclo de vida;
-- aceptar o descartar una propuesta requiere una acción humana explícita;
-- el resultado de la validación se conserva como evidencia de origen y no se reinterpreta como ahorro, ROI o beneficio;
-- la ausencia de validaciones aprobadas produce cero propuestas, nunca datos de demostración.
+Entrega tecnica:
+- `asset_renewal_verified_feedback`;
+- `/api/maintenance/renewal-feedback`;
+- `/dashboard/mantenimiento/retroalimentacion-renovacion`;
+- acceso desde la navegación de Mantenimiento;
+- aprobación/descartado humano con trazabilidad de decisión.
+
+Regla de integridad:
+- ninguna retroalimentación existe sin una validación aprobada;
+- el activo de la propuesta se deriva de la validación y no de entrada libre del cliente;
+- aceptar una propuesta no modifica `maintenance_asset_strategies`, `preventive_maintenance_schedules` ni `maintenance_asset_lifecycle_decisions`;
+- la ausencia de validaciones aprobadas produce cero propuestas, nunca datos de demostración;
+- no se reinterpretan resultados como ahorro, ROI o beneficio financiero.
+
+## Bloque 39 — Aplicación controlada de retroalimentación aceptada
+Estado: **Siguiente**
+1. Permitir iniciar un cambio de estrategia, preventivo o ciclo de vida únicamente desde retroalimentación aceptada, conservando el flujo de aprobación propio de cada fuente.
+2. Crear una relación trazable entre la retroalimentación aceptada y la propuesta operacional resultante sin sobrescribir decisiones anteriores.
+3. Verificar que una retroalimentación aceptada no pueda aplicarse dos veces al mismo destino activo.
+4. Mantener separación entre autorización para revisar y cambio operacional finalmente aprobado.
 
 ---
 
@@ -103,4 +120,4 @@ Cada bloque se ejecuta con el siguiente proceso obligatorio:
 10. Marcar el bloque completado y listar el siguiente.
 
 ## Prioridad inmediata
-**Bloque 38 — Retroalimentación verificada a estrategia y ciclo de vida (en progreso).**
+**Bloque 39 — Aplicación controlada de retroalimentación aceptada.**
