@@ -15,6 +15,7 @@ const items = [
   { href: '/dashboard/mantenimiento/bom', label: 'BOM técnica', icon: GitBranch },
   { href: '/dashboard/mantenimiento/planes-estandar', label: 'Planes estándar', icon: ClipboardCheck },
   { href: '/dashboard/mantenimiento/retroalimentacion-renovacion', label: 'Retroalimentación', icon: MessageSquareText },
+  { href: '/dashboard/mantenimiento/aplicacion-retroalimentacion', label: 'Aplicación', icon: ClipboardCheck },
   { href: '/dashboard/mantenimiento/equipos', label: 'Activos', icon: Settings },
   { href: '/dashboard/mantenimiento/indicadores', label: 'Indicadores', icon: BarChart3 },
   { href: '/dashboard/mantenimiento/documentos', label: 'Documentos', icon: FileText },
