@@ -12,7 +12,7 @@ Principios:
 - ningun informe, alerta o automatizacion puede inventar informacion ausente.
 
 ## Estado actual
-La base funcional cubre autenticacion, roles, produccion, mantenimiento, ordenes de trabajo, inventario, compras, recepciones parciales, devoluciones, conciliacion de facturas, proveedores, productos, documentos, personas, planes preventivos, Equipo/Proveedor/Producto 360, centro ejecutivo de decisiones, aislamiento por organizacion, QA de lanzamiento y bandeja personal de acciones.
+La base funcional cubre autenticacion, roles, produccion, mantenimiento, ordenes de trabajo, inventario, compras, recepciones parciales, devoluciones, conciliacion de facturas, proveedores, productos, documentos, personas, planes preventivos, Equipo/Proveedor/Producto 360, centro ejecutivo de decisiones, aislamiento por organizacion, QA de lanzamiento, bandeja personal de acciones y reglas seguras de aviso.
 
 ## Bloques 10 a 16
 
@@ -62,7 +62,6 @@ Estado: **Completado**
 
 ## Bloque 17 — QA operacional y lanzamiento estable
 Estado: **Completado**
-
 1. Comprobacion real de sesion, organizacion y fuentes clave.
 2. Estado visible: correcto, observacion o bloqueo.
 3. QA read-only, sin semillas ni alteracion de produccion.
@@ -73,44 +72,48 @@ Entrega tecnica:
 
 ## Bloque 18 — Centro de notificaciones y acciones
 Estado: **Completado**
-
-1. **Bandeja personal sin duplicar la fuente**
-   - reutiliza las excepciones canonicas del Centro ejecutivo;
-   - titulo, descripcion, severidad, responsable y enlace siguen viniendo del registro fuente;
-   - la nueva capa solo guarda el estado personal de cada usuario.
-
-2. **Estado individual seguro**
-   - pendiente;
-   - leida;
-   - pospuesta hasta el dia siguiente;
-   - RLS por usuario y organizacion.
-
-3. **Resolucion directa**
-   - cada accion conserva el enlace canonico al modulo o registro responsable;
-   - una accion pospuesta desaparece temporalmente sin modificar el dato operacional;
-   - ninguna excepcion se cierra automaticamente desde la bandeja.
-
-Resultado operativo:
-`Excepcion canonica → Usuario → Estado personal → Accion → Registro fuente`
+1. Bandeja personal sobre las excepciones canonicas, sin copiar el contenido fuente.
+2. Estado individual pendiente, leido o pospuesto con RLS por usuario y organizacion.
+3. Resolucion directa en el registro operacional original.
 
 Entrega tecnica:
-- tabla `user_action_states` con RLS;
+- tabla `user_action_states`;
 - API `/api/actions/state`;
-- pantalla `/dashboard/acciones`;
-- sin copiar contenido operacional a una tabla de notificaciones.
+- pantalla `/dashboard/acciones`.
 
 ## Bloque 19 — Reglas y automatizaciones seguras
-Estado: **Siguiente**
+Estado: **Completado**
 
-1. Reglas por organizacion sobre eventos operacionales verificables.
-2. Primera etapa limitada a avisos y acciones reversibles; sin pagos, cierres ni compras irreversibles automaticas.
-3. Historial de ejecucion con referencia al evento y al registro canonico, sin duplicar el dato fuente.
+1. **Reglas sobre excepciones verificables**
+   - reglas aisladas por organizacion;
+   - condicion por area operacional y prioridad;
+   - activacion y pausa controladas por su creador.
 
-Resultado esperado:
-`Evento real → Regla activa → Condicion → Aviso/accion segura → Historial`
+2. **Automatizacion limitada a avisos**
+   - unica accion permitida en esta etapa: `notify`;
+   - no ejecuta pagos, compras, cierres de OT, movimientos de inventario ni cambios irreversibles;
+   - la evaluacion reutiliza el feed canonico del Centro ejecutivo en vez de replicar su logica de negocio.
+
+3. **Historial trazable**
+   - cada coincidencia guarda regla, usuario y referencia a la excepcion/registro fuente;
+   - no copia titulo, descripcion, monto ni otros datos del registro canonico;
+   - deduplicacion por regla, usuario y excepcion.
+
+Resultado operativo:
+`Excepcion real → Regla activa → Condicion → Aviso seguro → Referencia historica`
+
+Entrega tecnica:
+- tablas `automation_rules` y `automation_rule_runs` con RLS;
+- API `/api/automations/rules`;
+- API `/api/automations/evaluate`;
+- pantalla `/dashboard/automatizaciones`;
+- Security Advisor sin nuevos errores atribuibles al bloque.
+
+Nota de arquitectura:
+La infraestructura legacy `event_log/event_history` no se usa como fuente de verdad del bloque porque no posee aislamiento organizacional directo. Se mantiene cerrada como infraestructura antigua hasta su reconciliacion canonica; el nuevo historial guarda solo referencias y queda aislado por organizacion y usuario.
 
 ## Bloque 20 — Planificacion avanzada y recursos
-Estado: **Planificado**
+Estado: **Siguiente**
 
 1. Capacidad de personas, equipos y ventanas de mantenimiento.
 2. Conflictos, carga y prioridades visibles antes de programar.
@@ -132,4 +135,4 @@ Cada bloque se ejecuta con el siguiente proceso obligatorio:
 10. Marcar el bloque completado y listar el siguiente.
 
 ## Prioridad inmediata
-**Bloque 19 — Reglas y automatizaciones seguras.**
+**Bloque 20 — Planificacion avanzada y recursos.**
