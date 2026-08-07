@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Activity, ArrowRight, RefreshCw } from 'lucide-react';
+import { Activity, ArrowRight, RefreshCw, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -71,6 +71,12 @@ export function ProduccionDashboard() {
           </PageHeaderDescription>
         </PageHeaderContent>
         <PageHeaderActions>
+          <Button asChild>
+            <Link href="/dashboard/produccion/ingreso-datos">
+              <Upload className="h-4 w-4" />
+              Ingreso de datos
+            </Link>
+          </Button>
           <Button asChild variant="outline">
             <Link href="/dashboard/telemetria">
               Monitoreo de equipos
