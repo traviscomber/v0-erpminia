@@ -12,7 +12,7 @@ Principios:
 - ningun informe, alerta o automatizacion puede inventar informacion ausente.
 
 ## Estado actual
-La base funcional cubre autenticacion, roles, produccion, mantenimiento, ordenes de trabajo, inventario, compras, recepciones parciales, devoluciones, conciliacion de facturas, proveedores, productos, documentos, personas, planes preventivos, Equipo/Proveedor/Producto 360, centro ejecutivo de decisiones, aislamiento por organizacion, QA de lanzamiento, bandeja personal de acciones, reglas seguras de aviso, planificacion de recursos y operacion personal de terreno.
+La base funcional cubre autenticacion, roles, produccion, mantenimiento, ordenes de trabajo, inventario, compras, recepciones parciales, devoluciones, conciliacion de facturas, proveedores, productos, documentos, personas, planes preventivos, Equipo/Proveedor/Producto 360, centro ejecutivo de decisiones, aislamiento por organizacion, QA de lanzamiento, bandeja personal de acciones, reglas seguras de aviso, planificacion de recursos, operacion personal de terreno y entrega de turno trazable.
 
 ## Bloques 10 a 19
 
@@ -91,42 +91,42 @@ Entrega tecnica:
 
 ## Bloque 21 — Operacion movil de terreno
 Estado: **Completado**
-
-1. **Trabajo personal asignado**
-   - el usuario se vincula a `people` por email dentro de la organizacion activa;
-   - la vista muestra solamente OT activas con `assigned_person_id` igual a esa persona;
-   - si no existe vinculacion, se informa sin inferir identidad ni mostrar OT ajenas.
-
-2. **Ejecucion sobre registros existentes**
-   - iniciar trabajo actualiza la OT original a `in_progress` y conserva/establece su `start_date`;
-   - notas de terreno se registran como `work_order_events`;
-   - intervalos de trabajo se registran en `work_order_labor_entries` con inicio y termino explicitos.
-
-3. **Continuidad con la OT completa**
-   - repuestos se resumen desde `work_order_parts`;
-   - historial se lee desde eventos y mano de obra reales;
-   - repuestos, materiales y cierre se mantienen en la OT canonica existente, sin cierre rapido paralelo.
-
-Resultado operativo:
-`Tecnico → Persona canonica → OT asignada → Inicio/Nota/Horas → Repuestos → OT canonica`
+1. OT asignadas a la persona vinculada al usuario autenticado.
+2. Inicio, notas y mano de obra sobre registros existentes.
+3. Repuestos, historial y cierre mantenidos en la OT canonica.
 
 Entrega tecnica:
 - API `/api/field/work-orders`;
-- pantalla movil `/dashboard/terreno`;
-- sin nuevas tablas ni duplicacion de OT.
+- pantalla `/dashboard/terreno`.
 
 ## Bloque 22 — Entrega de turno y continuidad operacional
-Estado: **Siguiente**
+Estado: **Completado**
 
-1. Registro de entrega de turno vinculado a OT, equipos y responsables reales.
-2. Pendientes y riesgos que deben continuar en el siguiente turno.
-3. Confirmacion de recepcion por el siguiente responsable sin alterar la fuente operacional.
+1. **Entrega referenciada, no duplicada**
+   - el turno saliente se identifica por la persona vinculada al usuario;
+   - cada entrega referencia al siguiente responsable y, cuando corresponde, una OT y/o equipo reales;
+   - la tabla solo guarda el pendiente explicito, riesgo y estado de recepcion.
 
-Resultado esperado:
-`Turno saliente → Pendientes reales → Entrega → Recepcion → Continuidad`
+2. **Continuidad visible**
+   - el receptor ve sus entregas pendientes;
+   - OT, equipo y nombres se resuelven desde las entidades canonicas al leer la entrega;
+   - el historial conserva emisor, receptor, fecha y estado.
+
+3. **Recepcion controlada**
+   - solo la persona receptora puede confirmar la entrega;
+   - confirmar no cambia el estado de la OT ni del equipo;
+   - no se inventa cierre ni resolucion del pendiente operacional.
+
+Resultado operativo:
+`Persona saliente → Pendiente real → OT/Equipo → Persona entrante → Recepcion → Continuidad`
+
+Entrega tecnica:
+- tabla `operational_shift_handovers` de acceso servidor;
+- API `/api/operations/handovers`;
+- pantalla `/dashboard/entrega-turno`.
 
 ## Bloque 23 — Centro de cumplimiento y auditoria operacional
-Estado: **Planificado**
+Estado: **Siguiente**
 
 1. Revisiones sobre OT, documentos, preventivos y acciones usando criterios verificables.
 2. Hallazgos con referencia al registro fuente, responsable y estado de resolucion.
@@ -151,4 +151,4 @@ Cada bloque se ejecuta con el siguiente proceso obligatorio:
 10. Marcar el bloque completado y listar el siguiente.
 
 ## Prioridad inmediata
-**Bloque 22 — Entrega de turno y continuidad operacional.**
+**Bloque 23 — Centro de cumplimiento y auditoria operacional.**
