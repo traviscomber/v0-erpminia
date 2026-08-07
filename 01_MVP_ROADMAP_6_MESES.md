@@ -12,7 +12,7 @@ Principios:
 - ningun informe, alerta o automatizacion puede inventar informacion ausente.
 
 ## Estado actual
-La base funcional cubre autenticacion, roles, produccion, mantenimiento, ordenes de trabajo, inventario, compras, recepciones parciales, devoluciones, conciliacion de facturas, proveedores, productos, documentos, personas, planes preventivos, Equipo/Proveedor/Producto 360, centro ejecutivo de decisiones, aislamiento por organizacion, QA de lanzamiento, bandeja personal de acciones, reglas seguras de aviso, planificacion de recursos, operacion personal de terreno, entrega de turno trazable, auditoria operacional referenciada y conciliacion humana de calidad de datos.
+La base funcional cubre autenticacion, roles, produccion, mantenimiento, ordenes de trabajo, inventario, compras, recepciones parciales, devoluciones, conciliacion de facturas, proveedores, productos, documentos, personas, planes preventivos, Equipo/Proveedor/Producto 360, centro ejecutivo de decisiones, aislamiento por organizacion, QA de lanzamiento, bandeja personal de acciones, reglas seguras de aviso, planificacion de recursos, operacion personal de terreno, entrega de turno trazable, auditoria operacional referenciada, conciliacion humana de calidad de datos y telemetria operacional conectada a mantenimiento.
 
 ## Bloques 10 a 19
 Todos completados: compras inteligentes, Proveedor 360, inventario canonico, Equipo 360, mantenimiento preventivo, centro ejecutivo, seguridad organizacional, QA, acciones personales y automatizaciones seguras.
@@ -79,13 +79,29 @@ Regla de integridad:
 - incidencias que dejan de existir en la fuente se conservan como historial de revision.
 
 ## Bloque 25 — Telemetria operacional conectada a mantenimiento
-Estado: **Siguiente**
-1. Vincular lecturas reales a equipos canonicos.
-2. Convertir condiciones verificables en eventos y excepciones operacionales.
-3. Conectar tendencias y limites reales con preventivos y OT sin generar diagnosticos ficticios.
+Estado: **Completado**
+1. Vinculacion explicita de equipos y sensores existentes con equipos canonicos de la organizacion.
+2. Condiciones operacionales creadas solo cuando una lectura real supera un umbral configurado en el sensor.
+3. Vinculacion de cada condicion con planes preventivos u OT del mismo equipo y creacion controlada de OT predictiva cuando el usuario lo decide.
+
+Entrega tecnica:
+- `organization_id` y `canonical_asset_id` agregados a sensores y lecturas;
+- `telemetry_asset_links`;
+- `telemetry_condition_events`;
+- `/api/telemetry/ingest` corregido para el esquema real;
+- `/api/telemetry/maintenance`;
+- `/dashboard/telemetria/mantenimiento`;
+- `/dashboard/telemetria/integracion` sin lecturas simuladas.
+
+Regla de integridad:
+- el gateway identifica un sensor real y entrega solamente la lectura observada;
+- la severidad y condicion se calculan desde umbrales registrados en Motil, no desde declaraciones del origen;
+- un equipo debe estar vinculado explicitamente a un equipo canonico antes de aceptar sus lecturas;
+- una condicion no constituye diagnostico ni causa raiz;
+- la generacion de una OT requiere una accion explicita del usuario.
 
 ## Bloque 26 — Paradas mayores y campañas de mantenimiento
-Estado: **Planificado**
+Estado: **Siguiente**
 1. Agrupar OT existentes bajo una parada/campana sin duplicarlas.
 2. Planificar recursos, materiales, ventanas y dependencias.
 3. Seguir avance, bloqueos y costo real desde las fuentes operacionales existentes.
@@ -106,4 +122,4 @@ Cada bloque se ejecuta con el siguiente proceso obligatorio:
 10. Marcar el bloque completado y listar el siguiente.
 
 ## Prioridad inmediata
-**Bloque 25 — Telemetria operacional conectada a mantenimiento.**
+**Bloque 26 — Paradas mayores y campañas de mantenimiento.**
