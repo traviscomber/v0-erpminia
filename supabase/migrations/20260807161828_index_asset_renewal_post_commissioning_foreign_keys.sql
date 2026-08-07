@@ -1,0 +1,6 @@
+create index if not exists asset_renewal_post_validation_commissioning_decision_idx
+  on public.asset_renewal_post_commissioning_validations (commissioning_decision_id);
+create index if not exists asset_renewal_post_validation_previous_asset_fk_idx
+  on public.asset_renewal_post_commissioning_validations (previous_asset_id);
+create index if not exists asset_renewal_post_validation_evaluated_asset_fk_idx
+  on public.asset_renewal_post_commissioning_validations (evaluated_asset_id);

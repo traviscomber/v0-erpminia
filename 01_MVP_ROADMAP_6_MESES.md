@@ -12,41 +12,48 @@ Principios:
 - ningun informe, alerta o automatizacion puede inventar informacion ausente.
 
 ## Estado actual
-Motil cubre autenticacion, roles, mantenimiento, OT, inventario, compras, recepciones, devoluciones, proveedores, productos, documentos, personas, preventivos, entidades 360, decisiones ejecutivas, aislamiento por organizacion, QA, acciones, automatizaciones seguras, planificacion de recursos, terreno, entrega de turno, auditoria operacional, calidad de datos, telemetria, campañas, confiabilidad, repuestos criticos, BOM tecnica, planes estandar de trabajo, estrategia de mantenimiento por criticidad, ciclo de vida de activos, planificacion de inversion para renovacion, ejecucion trazable de renovacion y puesta en servicio/cierre de renovacion.
+Motil cubre autenticacion, roles, mantenimiento, OT, inventario, compras, recepciones, devoluciones, proveedores, productos, documentos, personas, preventivos, entidades 360, decisiones ejecutivas, aislamiento por organizacion, QA, acciones, automatizaciones seguras, planificacion de recursos, terreno, entrega de turno, auditoria operacional, calidad de datos, telemetria, campañas, confiabilidad, repuestos criticos, BOM tecnica, planes estandar de trabajo, estrategia de mantenimiento por criticidad, ciclo de vida de activos, planificacion de inversion para renovacion, ejecucion trazable de renovacion, puesta en servicio/cierre de renovacion y validacion post-puesta en servicio.
 
-## Bloques 10 a 34
+## Bloques 10 a 35
 Estado: **Completados**
 
-## Bloque 35 — Puesta en servicio y cierre de renovación
+## Bloque 36 — Validación post-puesta en servicio y desempeño de renovación
 Estado: **Completado**
-1. Solo una iniciativa de renovación completada puede originar una decisión de puesta en servicio, cierre o reemplazo efectivo.
-2. El cierre valida evidencia operacional y documental realmente vinculada: OT, OC, contratos y documentos existentes.
-3. Una propuesta puede registrar brechas, pero la aprobación se bloquea cuando existen OT abiertas, OC sin recepción/cierre, contratos vinculados sin evidencia documental o ausencia total de evidencia de ejecución.
-4. Un reemplazo efectivo exige un activo canónico ya existente, activo y distinto del equipo anterior.
-5. El cierre conserva la relación histórica entre activo anterior y activo de reemplazo sin modificar automáticamente los registros canónicos.
+1. Solo cierres de renovación aprobados pueden entrar a validación post-puesta en servicio.
+2. La comparación exige una fecha de puesta en servicio explícita y períodos base/posterior ingresados por una persona; Motil no inventa ventanas de análisis.
+3. Se comparan únicamente registros existentes de OT, costos de OT, downtime, OT preventivas y telemetría vinculables al activo canónico.
+4. Para OT históricas sin `canonical_asset_id`, Motil usa únicamente la relación existente en `canonical.asset_reconciliation`; no reescribe ni corrige automáticamente el histórico.
+5. Para reemplazos efectivos, el período base corresponde al activo anterior y el período posterior al activo de reemplazo ya registrado.
+6. Motil normaliza conteos y costos por 30 días cuando las ventanas tienen distinta duración, pero no interpreta automáticamente una variación como mejora, ahorro o éxito.
+7. La conclusión es humana y trazable: satisfactoria, requiere seguimiento o evidencia insuficiente.
+8. Un resultado satisfactorio no puede aprobarse sin al menos una fuente con registros comparables en ambos períodos.
+9. Al aprobar, se conserva un snapshot de la evidencia observada para auditoría sin modificar OT, activos, telemetría, preventivos ni datos canónicos.
 
 Entrega tecnica:
-- `asset_renewal_commissioning_decisions`;
-- `/api/maintenance/renewal-commissioning`;
-- `/dashboard/mantenimiento/puesta-servicio`;
-- validación de brechas de cierre antes de aprobación;
-- relación explícita entre activo anterior y reemplazo existente.
+- `asset_renewal_post_commissioning_validations`;
+- `/api/maintenance/renewal-post-validation`;
+- `/dashboard/mantenimiento/validacion-renovacion`;
+- comparación explícita antes/después por ventanas definidas;
+- soporte para `canonical.asset_reconciliation` como fallback validado de OT históricas;
+- snapshot de evidencia al aprobar la validación.
 
 Regla de integridad:
-- Motil no crea el activo de reemplazo durante el cierre;
-- aprobar un cierre no modifica `is_active`, códigos, nombres, origen ni `source_payload` de los activos;
-- ninguna fecha de puesta en servicio se infiere: solo se guarda cuando fue ingresada explícitamente;
-- no se considera una OC cerrada si su estado registrado no indica recepción/cierre;
-- las OT vinculadas deben estar completadas para aprobar el cierre;
-- un contrato vinculado sin archivo o documento registrado se mantiene como brecha;
-- toda decisión conserva fundamento, evidencia, autor y fecha de aprobación.
+- la validación no existe sin un cierre aprobado;
+- la fecha de puesta en servicio no se infiere desde la fecha de aprobación;
+- el período base debe terminar antes de la puesta en servicio y el período posterior no puede comenzar antes de ella;
+- ninguna ventana puede incluir fechas futuras;
+- el historial del activo anterior y del reemplazo permanece separado;
+- cero registros se muestra como cero registros, no como ausencia de fallas;
+- downtime y telemetría solo se consideran comparables cuando existen registros en ambos períodos;
+- los preventivos actuales se muestran como contexto y no como evidencia histórica si no existe historial comparable;
+- aprobar una validación no altera ninguna fuente operacional.
 
-## Bloque 36 — Validación post-puesta en servicio y desempeño de renovación
+## Bloque 37 — Gobernanza de cartera de renovación y resultados verificados
 Estado: **Siguiente**
-1. Seguir activos con cierre aprobado y comparar evidencia posterior de OT, downtime, costos, preventivos y telemetría solo cuando esos datos existan realmente.
-2. Para reemplazos efectivos, mantener separado el historial del activo anterior y del activo nuevo; no trasladar ni reescribir historial entre equipos.
-3. Mostrar brechas cuando todavía no exista suficiente evidencia post-puesta en servicio y evitar declarar éxito, ahorro o mejora sin datos comparables.
-4. Permitir una validación humana trazable del resultado de la renovación con fundamento y referencia de evidencia.
+1. Consolidar cierres y validaciones aprobadas por activo y centro de costo sin mezclar compromisos financieros de fuentes distintas.
+2. Diferenciar renovaciones validadas, pendientes de evidencia, con seguimiento requerido y aún sin validación.
+3. Mostrar inversión objetivo, ejecución y resultado únicamente desde registros existentes y mantener visibles las brechas de evidencia.
+4. Permitir revisión ejecutiva de la cartera sin convertir variaciones observadas en beneficios o ahorros no demostrados.
 
 ---
 
@@ -64,4 +71,4 @@ Cada bloque se ejecuta con el siguiente proceso obligatorio:
 10. Marcar el bloque completado y listar el siguiente.
 
 ## Prioridad inmediata
-**Bloque 36 — Validación post-puesta en servicio y desempeño de renovación.**
+**Bloque 37 — Gobernanza de cartera de renovación y resultados verificados.**
