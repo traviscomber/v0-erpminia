@@ -12,7 +12,7 @@ Principios:
 - ningun informe, alerta o automatizacion puede inventar informacion ausente.
 
 ## Estado actual
-La base funcional cubre autenticacion, roles, produccion, mantenimiento, ordenes de trabajo, inventario, compras, recepciones parciales, devoluciones, conciliacion de facturas, proveedores, productos, documentos, personas, planes preventivos, Equipo/Proveedor/Producto 360, centro ejecutivo de decisiones, aislamiento por organizacion, QA de lanzamiento, bandeja personal de acciones, reglas seguras de aviso, planificacion de recursos, operacion personal de terreno, entrega de turno trazable, auditoria operacional referenciada, conciliacion humana de calidad de datos, telemetria operacional conectada a mantenimiento, campañas/paradas mayores trazables y analisis de confiabilidad basado en fallas observadas.
+La base funcional cubre autenticacion, roles, produccion, mantenimiento, ordenes de trabajo, inventario, compras, recepciones parciales, devoluciones, conciliacion de facturas, proveedores, productos, documentos, personas, planes preventivos, Equipo/Proveedor/Producto 360, centro ejecutivo de decisiones, aislamiento por organizacion, QA de lanzamiento, bandeja personal de acciones, reglas seguras de aviso, planificacion de recursos, operacion personal de terreno, entrega de turno trazable, auditoria operacional referenciada, conciliacion humana de calidad de datos, telemetria operacional conectada a mantenimiento, campañas/paradas mayores trazables, analisis de confiabilidad basado en fallas observadas y control de repuestos criticos/obsolescencia con aprobacion humana.
 
 ## Bloques 10 a 19
 Todos completados: compras inteligentes, Proveedor 360, inventario canonico, Equipo 360, mantenimiento preventivo, centro ejecutivo, seguridad organizacional, QA, acciones personales y automatizaciones seguras.
@@ -72,10 +72,30 @@ Regla de integridad:
 - costos provienen de `work_order_cost_summary`.
 
 ## Bloque 28 — Repuestos criticos y obsolescencia
+Estado: **Completado**
+1. Demanda y evidencia reunidas desde OT, movimientos de stock y compras historicas, manteniendo cada fuente diferenciada.
+2. Priorizacion deterministica por faltantes, disponibilidad frente a minimos registrados, equipos afectados y plazos solo cuando existen datos reales.
+3. Sustituciones, reemplazos y obsolescencia gestionados mediante relaciones propuestas/aprobadas; ninguna equivalencia se infiere automaticamente.
+
+Entrega tecnica:
+- `spare_part_lifecycle_relations`;
+- `critical_spare_observations_v1`;
+- `/api/inventory/critical-spares`;
+- `/dashboard/bodega/repuestos-criticos`;
+- acceso desde la navegacion de Bodega.
+
+Regla de integridad:
+- el stock base proviene de `canonical_inventory_current`; `warehouse_stock` solo aporta reservas/reorden cuando existen;
+- compra historica demuestra abastecimiento, no consumo;
+- si no existen movimientos, requerimientos de OT o plazos de entrega, Motil muestra la ausencia y no la estima;
+- una sustitucion/reemplazo solo tiene validez cuando su relacion esta aprobada explicitamente;
+- la obsolescencia no elimina ni modifica el producto canonico ni su historia.
+
+## Bloque 29 — BOM tecnica y repuestos por equipo
 Estado: **Siguiente**
-1. Identificar repuestos con demanda real desde OT, stock, movimientos y compras historicas.
-2. Priorizar faltantes y riesgo operacional por consumo, disponibilidad, tiempo de reposicion registrado y equipos afectados.
-3. Gestionar sustituciones u obsolescencia solo mediante relaciones aprobadas, sin inventar equivalencias tecnicas.
+1. Construir relaciones equipo-componente-repuesto solo desde instalaciones registradas, documentacion tecnica o aprobacion humana.
+2. Mostrar donde se usa cada repuesto y que equipos dependen de el, sin inferir compatibilidad por nombre o familia.
+3. Conectar BOM aprobada con preventivos, OT, campañas y repuestos criticos para preparar materiales con trazabilidad.
 
 ---
 
@@ -93,4 +113,4 @@ Cada bloque se ejecuta con el siguiente proceso obligatorio:
 10. Marcar el bloque completado y listar el siguiente.
 
 ## Prioridad inmediata
-**Bloque 28 — Repuestos criticos y obsolescencia.**
+**Bloque 29 — BOM tecnica y repuestos por equipo.**
