@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/api/guard';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 
+const maintenanceWriteRoles = new Set([
+  'superadmin',
+  'admin',
+  'operaciones-supervisor',
+  'jefe_mantencion',
+]);
+
 export type OrganizationContext =
   | {
       ok: false;
@@ -11,6 +18,7 @@ export type OrganizationContext =
       ok: true;
       organizationId: string;
       userId: string;
+      role?: string;
       userEmail?: string;
       userName?: string;
       supabase: ReturnType<typeof getSupabaseServerClient>;
@@ -24,6 +32,17 @@ export function isOrganizationSuccessContext(
   return context.ok;
 }
 
+function normalizeRole(role?: string | null) {
+  return String(role || '').trim().toLowerCase();
+}
+
+function isMaintenanceMutation(request: NextRequest) {
+  return (
+    request.nextUrl.pathname.startsWith('/api/maintenance/') &&
+    !['GET', 'HEAD', 'OPTIONS'].includes(request.method.toUpperCase())
+  );
+}
+
 export async function getOrganizationContext(
   request: NextRequest
 ): Promise<OrganizationContext> {
@@ -34,6 +53,17 @@ export async function getOrganizationContext(
       ok: false,
       response:
         auth.response || NextResponse.json({ error: 'No autorizado' }, { status: 401 }),
+    };
+  }
+
+  const role = normalizeRole(auth.role);
+  if (isMaintenanceMutation(request) && !maintenanceWriteRoles.has(role)) {
+    return {
+      ok: false,
+      response: NextResponse.json(
+        { error: 'Forbidden: maintenance write role required' },
+        { status: 403 }
+      ),
     };
   }
 
@@ -60,6 +90,7 @@ export async function getOrganizationContext(
     ok: true,
     organizationId: auth.organizationId,
     userId: auth.user.id,
+    role: auth.role || undefined,
     userEmail: auth.user.email,
     userName,
     supabase,
