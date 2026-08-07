@@ -49,11 +49,21 @@ Regla de integridad:
 - aprobar una validación no altera ninguna fuente operacional.
 
 ## Bloque 37 — Gobernanza de cartera de renovación y resultados verificados
-Estado: **Siguiente**
-1. Consolidar cierres y validaciones aprobadas por activo y centro de costo sin mezclar compromisos financieros de fuentes distintas.
-2. Diferenciar renovaciones validadas, pendientes de evidencia, con seguimiento requerido y aún sin validación.
-3. Mostrar inversión objetivo, ejecución y resultado únicamente desde registros existentes y mantener visibles las brechas de evidencia.
-4. Permitir revisión ejecutiva de la cartera sin convertir variaciones observadas en beneficios o ahorros no demostrados.
+Estado: **En progreso**
+1. Consolidar cada necesidad de inversión aprobada con su ejecución, cierre y validación existentes, conservando la trazabilidad por activo y centro de costo.
+2. Clasificar la cartera en resultado validado, seguimiento requerido, evidencia pendiente y aún sin validación, sin inventar estados intermedios.
+3. Mostrar por separado inversión objetivo, compromiso por OC, compromiso contractual, pagos contractuales y costo real de OT; estas fuentes no se suman entre sí como si fueran una sola ejecución financiera.
+4. Mantener visibles las brechas de evidencia y de proceso: sin iniciativa, ejecución incompleta, sin cierre aprobado, sin fecha de puesta en servicio, validación propuesta o evidencia insuficiente.
+5. Permitir revisión ejecutiva por centro de costo y activo sin convertir variaciones observadas en ahorros, beneficios o ROI no demostrado.
+6. La gobernanza es una vista de lectura sobre registros existentes; no duplica necesidades, iniciativas, cierres, validaciones ni datos financieros.
+
+Criterio de cierre:
+- cartera consultable desde Mantenimiento;
+- resumen por centro de costo con métricas financieras separadas por fuente;
+- estado verificable por cada renovación;
+- filtros de resultado y búsqueda por activo/centro de costo;
+- cero datos simulados o sembrados para demostrar la pantalla;
+- build y deployment verificados antes de fusionar a `main`.
 
 ---
 
