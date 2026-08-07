@@ -48,13 +48,31 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const now = new Date().toISOString();
   const { error: updateError } = await context.supabase
     .from('production_import_batches')
-    .update({ status: 'imported', updated_at: new Date().toISOString() })
+    .update({ status: 'imported', updated_at: now })
     .eq('id', batchId)
     .eq('organization_id', context.organizationId);
 
   if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 });
+
+  const { error: sessionError } = await context.supabase
+    .from('production_data_entry_sessions')
+    .update({
+      status: 'committed',
+      validation_summary: {
+        expectedRows,
+        persistedRows: count || 0,
+        finalizedAt: now,
+      },
+      updated_at: now,
+    })
+    .eq('organization_id', context.organizationId)
+    .eq('import_batch_id', batchId)
+    .eq('entry_source', 'excel_import');
+
+  if (sessionError) return NextResponse.json({ error: sessionError.message }, { status: 500 });
 
   return NextResponse.json({ batchId, persistedRows: count || 0, status: 'imported' });
 }
