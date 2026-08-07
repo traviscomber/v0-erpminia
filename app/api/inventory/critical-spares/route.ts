@@ -45,12 +45,16 @@ export async function GET(request: NextRequest) {
     const productMap = new Map(rows.map((row) => [row.product_id, row]));
     const items = rows.map((row) => {
       const classification = classify(row);
-      const demandEvidence = {
-        work_order_quantity: num(row.wo_quantity_requested),
-        movement_out_quantity: num(row.outbound_quantity),
-        purchase_lines: num(row.purchase_line_count),
+      return {
+        ...row,
+        priority: classification.level,
+        priority_reason: classification.reason,
+        demand_evidence: {
+          work_order_quantity: num(row.wo_quantity_requested),
+          movement_out_quantity: num(row.outbound_quantity),
+          purchase_lines: num(row.purchase_line_count),
+        },
       };
-      return { ...row, priority: classification.level, priority_reason: classification.reason, demand_evidence: demandEvidence };
     });
     const rank: Record<string, number> = { critical: 0, high: 1, attention: 2, normal: 3 };
     items.sort((a, b) => rank[a.priority] - rank[b.priority]
@@ -107,7 +111,14 @@ export async function POST(request: NextRequest) {
     if (target.id === source.id) return NextResponse.json({ error: 'El producto no puede reemplazarse por sí mismo.' }, { status: 400 });
   }
 
-  const { data, error } = await context.supabase.from('spare_part_lifecycle_relations').upsert({
+  let existingQuery = context.supabase.from('spare_part_lifecycle_relations')
+    .select('id')
+    .eq('organization_id', context.organizationId)
+    .eq('source_product_id', source.id)
+    .eq('relation_type', relationType);
+  existingQuery = target?.id ? existingQuery.eq('target_product_id', target.id) : existingQuery.is('target_product_id', null);
+  const { data: existing } = await existingQuery.maybeSingle();
+  const payload = {
     organization_id: context.organizationId,
     source_product_id: source.id,
     target_product_id: target?.id || null,
@@ -120,9 +131,12 @@ export async function POST(request: NextRequest) {
     approved_by: null,
     approved_at: null,
     updated_at: new Date().toISOString(),
-  }, { onConflict: 'organization_id,source_product_id,relation_type,target_product_id' }).select('id').single();
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ ok: true, id: data.id, status: 'proposed' });
+  };
+  const result = existing
+    ? await context.supabase.from('spare_part_lifecycle_relations').update(payload).eq('organization_id', context.organizationId).eq('id', existing.id).select('id').single()
+    : await context.supabase.from('spare_part_lifecycle_relations').insert(payload).select('id').single();
+  if (result.error) return NextResponse.json({ error: result.error.message }, { status: 500 });
+  return NextResponse.json({ ok: true, id: result.data.id, status: 'proposed' });
 }
 
 export async function PATCH(request: NextRequest) {
