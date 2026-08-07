@@ -19,12 +19,14 @@ La base funcional cubre autenticacion, roles, produccion, mantenimiento, ordenes
 
 ### Mantenimiento conectado
 
+- Equipo 360° con identificacion, estado y accesos relacionados;
 - ficha del equipo con ordenes y costos relacionados;
 - orden de trabajo conectada al flujo de compras;
 - entrega, instalacion y devolucion de repuestos;
 - costo final real y bloqueo de cierre con pendientes;
 - mano de obra y servicios externos;
-- informe final e historial de componentes instalados.
+- informe final e historial de componentes instalados;
+- tiempos de intervencion y confiabilidad derivados solo de registros existentes.
 
 ### Compras e inventario conectados
 
@@ -56,90 +58,69 @@ Resultado operativo:
 
 Estado: **Completado**
 
-1. **Ficha unica del proveedor**
-   - datos canonicos, RUT, razon social, nombre comercial, actividad, contacto, region y condiciones de pago;
-   - busqueda por nombre o RUT;
-   - estado y validacion del maestro canonico.
-
-2. **Relaciones comerciales y operacionales**
-   - cotizaciones;
-   - ordenes historicas y operacionales;
-   - contratos y documentos compatibles por RUT;
-   - facturas conciliadas y diferencias abiertas;
-   - devoluciones y soluciones pendientes.
-
-3. **Desempeno y suministro**
-   - puntaje de cumplimiento del Bloque 10;
-   - compras acumuladas y facturacion;
-   - productos suministrados;
-   - cantidades, gasto y ultimo costo conocido;
-   - visibilidad de diferencias pendientes.
+1. Ficha unica basada en `canonical.suppliers`.
+2. Relaciones comerciales y operacionales completas.
+3. Desempeno, productos suministrados y precios historicos.
 
 Resultado operativo:
 
 `Proveedor → Contratos → Cotizaciones → Ordenes → Facturas → Devoluciones → Productos → Desempeno`
 
-Entrega tecnica:
-
-- API `/api/procurement/suppliers-360`;
-- pantalla `/dashboard/compras/proveedores-360`;
-- acceso visible desde Compras;
-- reutilizacion de `canonical.suppliers` sin crear un maestro paralelo.
-
 ## Bloque 12 — Inventario canonico y trazabilidad completa
 
 Estado: **Completado**
 
-1. **Producto 360°**
-   - maestro `canonical.products`;
-   - existencias, cantidades disponibles y reservadas;
-   - lotes, vencimientos y valor de inventario;
-   - alertas de stock minimo y vencimiento dentro de 90 dias.
-
-2. **Historia operacional completa**
-   - movimientos de inventario;
-   - compras y recepciones;
-   - devoluciones a proveedor;
-   - consumo, instalacion y devolucion en ordenes de trabajo;
-   - equipos y ordenes relacionadas.
-
-3. **Costos y alternativas de suministro**
-   - costo estandar y valorizacion actual;
-   - proveedores historicos;
-   - cantidades compradas y gasto acumulado;
-   - rango de precios unitarios por proveedor;
-   - ultima fecha de compra.
+1. Producto 360° con existencias, lotes, vencimientos y valorizacion.
+2. Movimientos, compras, recepciones, devoluciones y consumo.
+3. Costos, proveedores historicos y necesidades de mantenimiento.
 
 Resultado operativo:
 
 `Producto → Stock → Lotes → Movimientos → Compras → Recepciones → Proveedores → Ordenes de trabajo → Equipos → Costos`
 
-Entrega tecnica:
-
-- API `/api/inventory/products-360`;
-- pantalla `/dashboard/bodega/productos-360`;
-- acceso visible desde Bodega;
-- reutilizacion de `canonical.products` y relaciones existentes sin duplicar inventario.
-
 ## Bloque 13 — Equipo 360° y gemelo operacional
 
-Estado: **Siguiente**
+Estado: **Completado**
 
-1. Arbol real de equipo, sistemas y componentes.
-2. Historia unica de ordenes, componentes, documentos, personas y costos.
-3. Disponibilidad, confiabilidad, tiempo detenido y costo de ciclo de vida.
+1. **Cabecera unica del equipo**
+   - identificacion canonica, fabricante, modelo, serie y estado;
+   - acceso directo al arbol tecnico, ficha tecnica, documentos y codigo QR;
+   - integracion dentro de la ficha existente, sin crear un maestro paralelo.
 
-Resultado esperado:
+2. **Historia operacional relacionada**
+   - ordenes activas, completadas y criticas;
+   - componentes instalados y ordenes de origen;
+   - costos de repuestos, mano de obra y servicios externos;
+   - timeline canonico y resumen financiero certificado.
 
-`Equipo → Sistemas → Componentes → Ordenes → Repuestos → Personas → Documentos → Costos → Disponibilidad`
+3. **Indicadores derivados de registros reales**
+   - tiempo total registrado entre inicio y termino de ordenes;
+   - promedio de reparacion calculado con ordenes completas;
+   - separacion promedio entre intervenciones historicas;
+   - costo acumulado de ciclo operacional disponible.
+
+Resultado operativo:
+
+`Equipo → Arbol tecnico → Ordenes → Componentes → Personas → Documentos → Costos → Tiempos → Confiabilidad`
+
+Entrega tecnica:
+
+- componente `Asset360Overview`;
+- integracion en `/dashboard/mantenimiento/equipos/[id]/ficha`;
+- reutilizacion de `/api/maintenance/assets/[id]/timeline`;
+- sin nuevas tablas, datos simulados ni calculos presentados sin base registrada.
 
 ## Bloque 14 — Mantenimiento preventivo y predictivo
 
-Estado: **Planificado**
+Estado: **Siguiente**
 
 1. Planes preventivos relacionados con equipo, componente, frecuencia y lectura.
 2. Alertas por fecha, horas, kilometraje, condicion y comportamiento historico.
 3. Recomendaciones basadas exclusivamente en datos canonicos disponibles.
+
+Resultado esperado:
+
+`Equipo → Plan preventivo → Proxima intervencion → Alerta → Orden de trabajo → Cumplimiento`
 
 ## Bloque 15 — Centro ejecutivo de decisiones
 
@@ -186,8 +167,8 @@ Cada bloque se ejecuta con el siguiente proceso obligatorio:
 
 ## Prioridad inmediata
 
-Comenzar el **Bloque 13 — Equipo 360° y gemelo operacional**:
+Comenzar el **Bloque 14 — Mantenimiento preventivo y predictivo**:
 
-1. jerarquia real de equipo, sistemas y componentes;
-2. ficha unica con historia operacional completa;
-3. disponibilidad, confiabilidad, detencion y costo de ciclo de vida.
+1. planes preventivos relacionados con equipos y componentes;
+2. alertas por fecha, uso y condicion registrada;
+3. generacion controlada de ordenes y seguimiento de cumplimiento.
