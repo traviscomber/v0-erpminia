@@ -12,7 +12,7 @@ Principios:
 - ningun informe, alerta o automatizacion puede inventar informacion ausente.
 
 ## Estado actual
-La base funcional cubre autenticacion, roles, produccion, mantenimiento, ordenes de trabajo, inventario, compras, recepciones parciales, devoluciones, conciliacion de facturas, proveedores, productos, documentos, personas, planes preventivos, Equipo/Proveedor/Producto 360, centro ejecutivo de decisiones, aislamiento por organizacion, QA de lanzamiento, bandeja personal de acciones, reglas seguras de aviso, planificacion de recursos, operacion personal de terreno, entrega de turno trazable, auditoria operacional referenciada, conciliacion humana de calidad de datos y telemetria operacional conectada a mantenimiento.
+La base funcional cubre autenticacion, roles, produccion, mantenimiento, ordenes de trabajo, inventario, compras, recepciones parciales, devoluciones, conciliacion de facturas, proveedores, productos, documentos, personas, planes preventivos, Equipo/Proveedor/Producto 360, centro ejecutivo de decisiones, aislamiento por organizacion, QA de lanzamiento, bandeja personal de acciones, reglas seguras de aviso, planificacion de recursos, operacion personal de terreno, entrega de turno trazable, auditoria operacional referenciada, conciliacion humana de calidad de datos, telemetria operacional conectada a mantenimiento y campañas/paradas mayores trazables.
 
 ## Bloques 10 a 19
 Todos completados: compras inteligentes, Proveedor 360, inventario canonico, Equipo 360, mantenimiento preventivo, centro ejecutivo, seguridad organizacional, QA, acciones personales y automatizaciones seguras.
@@ -101,10 +101,31 @@ Regla de integridad:
 - la generacion de una OT requiere una accion explicita del usuario.
 
 ## Bloque 26 — Paradas mayores y campañas de mantenimiento
+Estado: **Completado**
+1. Agrupacion de OT existentes bajo una parada o campaña mediante relaciones, sin copiar ni recrear las OT.
+2. Plan de fechas y dependencias de campaña conectado a responsables, equipos, ventanas de disponibilidad y requerimientos de materiales existentes.
+3. Avance, bloqueos, faltantes y costo real calculados desde estados y costos operacionales de las OT vinculadas.
+
+Entrega tecnica:
+- `maintenance_campaigns`;
+- `maintenance_campaign_work_orders`;
+- `maintenance_campaign_dependencies`;
+- `/api/maintenance/campaigns`;
+- `/dashboard/mantenimiento/campanas`.
+
+Regla de integridad:
+- una OT sigue teniendo una sola identidad operacional y la campaña solo la referencia;
+- una OT no puede incorporarse a dos campañas activas al mismo tiempo;
+- las dependencias solo pueden relacionar OT de la misma campaña y se rechazan ciclos;
+- los conflictos de recursos se comprueban contra ventanas reales existentes;
+- los faltantes provienen de `work_order_material_requirements` y el costo de `work_order_cost_summary`;
+- no se crean costos, materiales, avances ni bloqueos simulados.
+
+## Bloque 27 — Confiabilidad y fallas repetitivas
 Estado: **Siguiente**
-1. Agrupar OT existentes bajo una parada/campana sin duplicarlas.
-2. Planificar recursos, materiales, ventanas y dependencias.
-3. Seguir avance, bloqueos y costo real desde las fuentes operacionales existentes.
+1. Identificar recurrencias exclusivamente desde OT, eventos, tiempos detenidos, componentes y causas registradas.
+2. Priorizar equipos y componentes por frecuencia, indisponibilidad y costo real.
+3. Vincular acciones de confiabilidad a OT o preventivos existentes sin inventar diagnosticos ni probabilidades.
 
 ---
 
@@ -122,4 +143,4 @@ Cada bloque se ejecuta con el siguiente proceso obligatorio:
 10. Marcar el bloque completado y listar el siguiente.
 
 ## Prioridad inmediata
-**Bloque 26 — Paradas mayores y campañas de mantenimiento.**
+**Bloque 27 — Confiabilidad y fallas repetitivas.**
