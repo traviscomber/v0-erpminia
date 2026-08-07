@@ -1,5 +1,5 @@
 -- Block 16 - Seguridad, permisos y aislamiento por organizacion
--- Applied to production in three reviewed migrations.
+-- Applied to production in reviewed migrations.
 -- Server API routes use SUPABASE_SERVICE_ROLE_KEY and remain responsible for explicit organization filters.
 
 -- 1) Membership and identity metadata
@@ -103,3 +103,25 @@ revoke execute on function public.return_work_order_part(uuid, uuid, integer, uu
 revoke execute on function public.close_work_order_safely(uuid) from public, anon, authenticated;
 revoke execute on function public.audit_log_trigger() from public, anon, authenticated;
 revoke execute on function public.log_work_order_change() from public, anon, authenticated;
+
+-- 6) Legacy function hardening
+alter function public.handle_sensor_anomaly() set search_path = public, pg_temp;
+alter function public.handle_equipment_status_change() set search_path = public, pg_temp;
+alter function public.handle_alarm_created() set search_path = public, pg_temp;
+alter function public.get_pending_events(integer) set search_path = public, pg_temp;
+alter function public.mark_event_processed(uuid, jsonb) set search_path = public, pg_temp;
+alter function public.mark_event_failed(uuid, text) set search_path = public, pg_temp;
+alter function public.get_user_for_login(text) set search_path = public, pg_temp;
+alter function public.get_user_role(uuid) set search_path = public, pg_temp;
+alter function public.handle_incident_reported() set search_path = public, pg_temp;
+alter function public.update_module_documents_updated_at() set search_path = public, pg_temp;
+alter function public.get_nc_stats(text) set search_path = public, pg_temp;
+alter function public.get_ca_stats(text) set search_path = public, pg_temp;
+alter function public.audit_log_trigger() set search_path = public, pg_temp;
+alter function public.update_maintenance_expedient_records_updated_at() set search_path = public, pg_temp;
+
+revoke execute on function public.get_user_for_login(text) from public, anon, authenticated;
+revoke execute on function public.get_user_role(uuid) from public, anon, authenticated;
+revoke execute on function public.get_pending_events(integer) from public, anon, authenticated;
+revoke execute on function public.mark_event_processed(uuid, jsonb) from public, anon, authenticated;
+revoke execute on function public.mark_event_failed(uuid, text) from public, anon, authenticated;
