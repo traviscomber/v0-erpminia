@@ -160,11 +160,29 @@ Entrega tecnica:
 
 ## Bloque 16 — Seguridad, permisos y aislamiento por organizacion
 
-Estado: **Siguiente**
+Estado: **En progreso**
 
-1. Migracion gradual y verificada de aislamiento por organizacion.
-2. Revision de funciones antiguas, permisos de servidor y accesos directos.
-3. Pruebas por rol sin bloquear flujos productivos existentes.
+1. **Aislamiento del nucleo operacional**
+   - lectura publica eliminada de `profiles`, `user_roles` y `organizations`;
+   - aislamiento por membresia aplicado a ordenes de trabajo y planes preventivos;
+   - RLS habilitado con `USING` y `WITH CHECK` por organizacion en compras, stock y movimientos;
+   - todas las tablas publicas que ya poseen `organization_id` y estaban sin RLS fueron incorporadas al aislamiento gradual.
+
+2. **Superficies privilegiadas**
+   - funciones mutadoras `SECURITY DEFINER` del flujo de mantenimiento, compras y recepcion retiradas de `PUBLIC`, `anon` y `authenticated`;
+   - ejecucion operacional preservada a traves de APIs de servidor con service role;
+   - funciones de trigger retiradas de exposicion RPC directa;
+   - vistas canonicas de costos y compras cambiadas a `security_invoker` y sus fuentes protegidas por organizacion.
+
+3. **Frontera legacy pendiente de reconciliacion**
+   - existen tablas antiguas expuestas sin `organization_id` directo;
+   - no se habilita aislamiento ficticio ni se aplican politicas `allow all` para silenciar el linter;
+   - cada tabla debe relacionarse con su entidad canonica (equipo, documento, OT, planta o compromiso) antes de cerrar su politica;
+   - la siguiente pasada del bloque cubre esas relaciones y funciones antiguas con `search_path` mutable.
+
+Resultado parcial verificado:
+
+`Sesion → Membresia → Organizacion → RLS → API operacional de servidor → Registro autorizado`
 
 ## Bloque 17 — QA operacional y lanzamiento estable
 
@@ -195,8 +213,8 @@ Cada bloque se ejecuta con el siguiente proceso obligatorio:
 
 ## Prioridad inmediata
 
-Comenzar el **Bloque 16 — Seguridad, permisos y aislamiento por organizacion**:
+Continuar el **Bloque 16 — Seguridad, permisos y aislamiento por organizacion**:
 
-1. auditar accesos directos, funciones y politicas por organizacion;
-2. corregir brechas sin alterar datos historicos ni flujos productivos;
-3. validar cada rol contra operaciones reales antes de endurecer permisos.
+1. reconciliar tablas legacy sin `organization_id` mediante relaciones canonicas existentes;
+2. fijar `search_path` y privilegios de funciones antiguas sin romper autenticacion ni triggers;
+3. validar accesos de servidor y roles antes de declarar el bloque cerrado.
