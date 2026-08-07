@@ -74,11 +74,18 @@ Regla de integridad:
 - este bloque no introduce tablas ni datos paralelos.
 
 ## Bloque 38 — Retroalimentación verificada a estrategia y ciclo de vida
-Estado: **Siguiente**
+Estado: **En progreso**
 1. Convertir resultados de renovación aprobados en insumos trazables para revisión de estrategia de mantenimiento y ciclo de vida, sin mutarlos automáticamente.
 2. Diferenciar recomendaciones de seguimiento, evidencia pendiente y resultados satisfactorios usando únicamente validaciones aprobadas.
 3. Permitir que una persona acepte o descarte una propuesta de ajuste antes de modificar estrategia, frecuencia preventiva o decisión de ciclo de vida.
 4. Conservar referencia explícita a la validación que originó cada propuesta y evitar duplicados sobre el mismo resultado.
+
+Regla de integridad en desarrollo:
+- solo una validación post-puesta en servicio aprobada puede originar retroalimentación;
+- una propuesta es una recomendación auditable, no una modificación automática del activo, estrategia, preventivo o decisión de ciclo de vida;
+- aceptar o descartar una propuesta requiere una acción humana explícita;
+- el resultado de la validación se conserva como evidencia de origen y no se reinterpreta como ahorro, ROI o beneficio;
+- la ausencia de validaciones aprobadas produce cero propuestas, nunca datos de demostración.
 
 ---
 
@@ -96,4 +103,4 @@ Cada bloque se ejecuta con el siguiente proceso obligatorio:
 10. Marcar el bloque completado y listar el siguiente.
 
 ## Prioridad inmediata
-**Bloque 38 — Retroalimentación verificada a estrategia y ciclo de vida.**
+**Bloque 38 — Retroalimentación verificada a estrategia y ciclo de vida (en progreso).**
