@@ -49,7 +49,12 @@ type PreventiveScheduleRow = {
   priority?: string | null;
   enabled?: boolean | null;
   generated_work_order_id?: string | null;
-  asset?: { asset_name?: string | null; asset_code?: string | null }[] | { asset_name?: string | null; asset_code?: string | null } | null;
+};
+
+type AssetRow = {
+  id: string;
+  asset_name?: string | null;
+  asset_code?: string | null;
 };
 
 type Decision = {
@@ -110,27 +115,24 @@ export async function GET(request: NextRequest) {
   if (!context.ok) return context.response;
 
   try {
-    const [snapshot, preventiveResult] = await Promise.all([
+    const [snapshot, preventiveResult, assetsResult] = await Promise.all([
       getDashboardSnapshot({ organizationId: context.organizationId, supabase: context.supabase }),
       context.supabase
         .from('preventive_maintenance_schedules')
-        .select(`
-          id,
-          asset_id,
-          task_name,
-          next_scheduled_date,
-          priority,
-          enabled,
-          generated_work_order_id,
-          asset:maintenance_assets(asset_name, asset_code)
-        `)
+        .select('id, asset_id, task_name, next_scheduled_date, priority, enabled, generated_work_order_id')
         .eq('organization_id', context.organizationId)
         .eq('enabled', true)
-        .order('next_scheduled_date', { ascending: true })
+        .order('next_scheduled_date', { ascending: true, nullsFirst: false })
         .limit(250),
+      context.supabase
+        .from('maintenance_assets')
+        .select('id, asset_name, asset_code')
+        .eq('organization_id', context.organizationId)
+        .limit(1000),
     ]);
 
-    if (preventiveResult.error) throw preventiveResult.error;
+    const sourceError = preventiveResult.error || assetsResult.error;
+    if (sourceError) throw sourceError;
 
     const workOrders = (snapshot.workOrders || []) as WorkOrderRow[];
     const lowStockItems = (snapshot.lowStockItems || []) as StockRow[];
@@ -138,6 +140,8 @@ export async function GET(request: NextRequest) {
     const overdueFinancial = (snapshot.overdueFinancial || []) as ContractRow[];
     const expiringContracts = (snapshot.expiringContracts || []) as ContractRow[];
     const preventiveSchedules = (preventiveResult.data || []) as PreventiveScheduleRow[];
+    const assets = (assetsResult.data || []) as AssetRow[];
+    const assetsById = new Map(assets.map((asset) => [asset.id, asset]));
 
     const activeWorkOrders = workOrders.filter((order) => ['open', 'in_progress'].includes(normalize(order.status)));
     const overdueWorkOrders = activeWorkOrders.filter((order) => isBeforeToday(order.scheduled_date));
@@ -183,7 +187,7 @@ export async function GET(request: NextRequest) {
       if (schedule.generated_work_order_id) return;
       const days = daysFromToday(schedule.next_scheduled_date);
       if (days === null || days > 30) return;
-      const asset = Array.isArray(schedule.asset) ? schedule.asset[0] : schedule.asset;
+      const asset = schedule.asset_id ? assetsById.get(schedule.asset_id) : null;
       const assetName = asset?.asset_name || asset?.asset_code || 'equipo';
       decisions.push({
         id: `preventive-${schedule.id}`,
@@ -259,7 +263,7 @@ export async function GET(request: NextRequest) {
         responsibleArea: 'Administración / Finanzas',
         dueDate: dateOnly(contract.end_date),
         amount: toNumber(contract.pending_amount) || null,
-        href: '/dashboard/contratos',
+        href: '/dashboard/documentos-gestion/contratos',
         sourceId: contract.id,
       });
     });
@@ -282,19 +286,17 @@ export async function GET(request: NextRequest) {
     const completedLast7 = workOrders.filter((order) => inWindow(order.completion_date, sevenDaysAgo, now)).length;
     const completedPrevious7 = workOrders.filter((order) => inWindow(order.completion_date, fourteenDaysAgo, sevenDaysAgo)).length;
 
-    const summary = {
-      totalDecisions: decisions.length,
-      critical: decisions.filter((item) => item.severity === 'critical').length,
-      warning: decisions.filter((item) => item.severity === 'warning').length,
-      overdueWorkOrders: overdueWorkOrders.length,
-      preventiveDue: decisions.filter((item) => item.category === 'preventive').length,
-      lowStock: lowStockItems.length,
-      documentsAtRisk: expiringDocuments.length,
-      financialPendingAmount: overdueFinancial.reduce((sum, item) => sum + toNumber(item.pending_amount), 0),
-    };
-
     return NextResponse.json({
-      summary,
+      summary: {
+        totalDecisions: decisions.length,
+        critical: decisions.filter((item) => item.severity === 'critical').length,
+        warning: decisions.filter((item) => item.severity === 'warning').length,
+        overdueWorkOrders: overdueWorkOrders.length,
+        preventiveDue: decisions.filter((item) => item.category === 'preventive').length,
+        lowStock: lowStockItems.length,
+        documentsAtRisk: expiringDocuments.length,
+        financialPendingAmount: overdueFinancial.reduce((sum, item) => sum + toNumber(item.pending_amount), 0),
+      },
       decisions,
       weeklyActivity: {
         openedWorkOrders: { current: openedLast7, previous: openedPrevious7 },
