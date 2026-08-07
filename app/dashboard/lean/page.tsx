@@ -99,6 +99,9 @@ export default function LeanControlCenterPage() {
           <Badge variant={partial ? 'destructive' : 'outline'}>
             {partial ? 'Información parcial' : loading ? 'Actualizando' : 'Información al día'}
           </Badge>
+          <Button asChild variant="outline">
+            <Link href="/dashboard/decisiones">Centro ejecutivo</Link>
+          </Button>
           <Button variant="outline" onClick={refresh} disabled={loading}>
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             Actualizar
