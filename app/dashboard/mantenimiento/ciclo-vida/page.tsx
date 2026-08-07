@@ -1,8 +1,9 @@
 'use client';
 
+import Link from 'next/link';
 import useSWR from 'swr';
 import { useMemo, useState } from 'react';
-import { AlertTriangle, CheckCircle2, RefreshCw } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, DollarSign, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,7 +19,7 @@ export default function AssetLifecyclePage() {
   async function change(id: string, status: string) { await fetch('/api/maintenance/asset-lifecycle', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, status }) }); await mutate(); }
 
   return <div className="space-y-6 p-6">
-    <div className="flex items-start justify-between gap-4"><div><h1 className="text-2xl font-semibold">Ciclo de vida de activos</h1><p className="text-sm text-muted-foreground">Decisiones trazables de mantener, reparar, reconstruir, reemplazar o retirar, basadas en evidencia registrada.</p></div><Button variant="outline" onClick={() => mutate()}><RefreshCw className="mr-2 h-4 w-4" />Actualizar</Button></div>
+    <div className="flex flex-col items-start justify-between gap-4 md:flex-row"><div><h1 className="text-2xl font-semibold">Ciclo de vida de activos</h1><p className="text-sm text-muted-foreground">Decisiones trazables de mantener, reparar, reconstruir, reemplazar o retirar, basadas en evidencia registrada.</p></div><div className="flex gap-2"><Button asChild variant="outline"><Link href="/dashboard/mantenimiento/inversion-renovacion"><DollarSign className="mr-2 h-4 w-4" />Planificar inversión</Link></Button><Button variant="outline" onClick={() => mutate()}><RefreshCw className="mr-2 h-4 w-4" />Actualizar</Button></div></div>
     <div className="grid gap-3 md:grid-cols-4">{[['Activos', data?.counts?.assets], ['Decisión aprobada', data?.counts?.withApprovedDecision], ['Reemplazar / retirar', data?.counts?.replaceOrRetire], ['Con brechas de evidencia', data?.counts?.withEvidenceGaps]].map(([label, value]) => <Card key={String(label)}><CardContent className="p-4"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-2xl font-semibold">{value ?? '—'}</p></CardContent></Card>)}</div>
     <Card><CardHeader><CardTitle className="text-base">Proponer decisión</CardTitle></CardHeader><CardContent className="grid gap-3 md:grid-cols-5"><Input placeholder="Código equipo" value={form.assetCode} onChange={(e) => setForm({ ...form, assetCode: e.target.value })}/><select className="h-10 rounded-md border bg-background px-3 text-sm" value={form.decisionType} onChange={(e) => setForm({ ...form, decisionType: e.target.value })}>{Object.entries(labels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select><Input placeholder="Fundamento" value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })}/><Input placeholder="Referencia de evidencia" value={form.evidenceReference} onChange={(e) => setForm({ ...form, evidenceReference: e.target.value })}/><div className="flex gap-2"><Input type="date" value={form.targetDate} onChange={(e) => setForm({ ...form, targetDate: e.target.value })}/><Button onClick={() => submit().catch((err) => alert(err.message))}>Proponer</Button></div></CardContent></Card>
     {error ? <p className="text-sm text-destructive">{error.message}</p> : null}{isLoading ? <p className="text-sm text-muted-foreground">Cargando evidencia…</p> : null}
