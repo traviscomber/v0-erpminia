@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { FormEvent, useMemo, useState } from 'react';
 import useSWR from 'swr';
 import { CheckCircle2, Link2, Play, Plus, RefreshCw } from 'lucide-react';
@@ -35,7 +36,7 @@ export default function RenewalExecutionPage(){
 
   const counts=data?.counts;
   return <div className="space-y-6">
-    <section className="flex flex-col gap-4 border-b border-border/70 pb-6 md:flex-row md:items-end md:justify-between"><div><p className="text-sm font-medium text-muted-foreground">Mantenimiento · Renovación</p><h1 className="mt-1 text-3xl font-semibold tracking-tight">Ejecución de renovación de activos</h1><p className="mt-2 max-w-3xl text-sm text-muted-foreground">Da seguimiento a necesidades de inversión aprobadas y vincula únicamente OC, contratos y OT que ya existen. Los compromisos se muestran por fuente para evitar doble conteo.</p></div><Button variant="outline" onClick={()=>void mutate()} disabled={isValidating}><RefreshCw className={`mr-2 h-4 w-4 ${isValidating?'animate-spin':''}`}/>Actualizar</Button></section>
+    <section className="flex flex-col gap-4 border-b border-border/70 pb-6 md:flex-row md:items-end md:justify-between"><div><p className="text-sm font-medium text-muted-foreground">Mantenimiento · Renovación</p><h1 className="mt-1 text-3xl font-semibold tracking-tight">Ejecución de renovación de activos</h1><p className="mt-2 max-w-3xl text-sm text-muted-foreground">Da seguimiento a necesidades de inversión aprobadas y vincula únicamente OC, contratos y OT que ya existen. Los compromisos se muestran por fuente para evitar doble conteo.</p></div><div className="flex gap-2"><Button variant="outline" asChild><Link href="/dashboard/mantenimiento/puesta-servicio">Puesta en servicio</Link></Button><Button variant="outline" onClick={()=>void mutate()} disabled={isValidating}><RefreshCw className={`mr-2 h-4 w-4 ${isValidating?'animate-spin':''}`}/>Actualizar</Button></div></section>
     {message&&<Card className="shadow-none"><CardContent className="p-4 text-sm">{message}</CardContent></Card>}
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">{[['Necesidades aprobadas',counts?.approvedNeeds||0],['Sin iniciativa',counts?.withoutInitiative||0],['Planificadas',counts?.planned||0],['En ejecución',counts?.inProgress||0],['Completadas',counts?.completed||0]].map(([label,value])=><Card key={String(label)} className="shadow-none"><CardContent className="p-4"><p className="text-2xl font-semibold">{Number(value).toLocaleString('es-CL')}</p><p className="mt-1 text-xs text-muted-foreground">{label}</p></CardContent></Card>)}</div>
 
