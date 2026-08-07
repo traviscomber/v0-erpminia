@@ -12,64 +12,38 @@ Principios:
 - ningun informe, alerta o automatizacion puede inventar informacion ausente.
 
 ## Estado actual
-La base funcional cubre autenticacion, roles, produccion, mantenimiento, ordenes de trabajo, inventario, compras, recepciones parciales, devoluciones, conciliacion de facturas, proveedores, productos, documentos, personas, planes preventivos, Equipo/Proveedor/Producto 360, centro ejecutivo de decisiones, aislamiento por organizacion, QA de lanzamiento, bandeja personal de acciones, reglas seguras de aviso, planificacion de recursos, operacion personal de terreno, entrega de turno trazable, auditoria operacional referenciada, conciliacion humana de calidad de datos, telemetria operacional conectada a mantenimiento, campañas/paradas mayores trazables, analisis de confiabilidad basado en fallas observadas, control de repuestos criticos/obsolescencia con aprobacion humana y BOM tecnica aprobada por equipo/componente/repuesto.
+Motil cubre autenticacion, roles, mantenimiento, OT, inventario, compras, recepciones, devoluciones, proveedores, productos, documentos, personas, preventivos, entidades 360, decisiones ejecutivas, aislamiento por organizacion, QA, acciones, automatizaciones seguras, planificacion de recursos, terreno, entrega de turno, auditoria operacional, calidad de datos, telemetria, campañas, confiabilidad, repuestos criticos, BOM tecnica y planes estandar de trabajo.
 
-## Bloques 10 a 19
-Todos completados: compras inteligentes, Proveedor 360, inventario canonico, Equipo 360, mantenimiento preventivo, centro ejecutivo, seguridad organizacional, QA, acciones personales y automatizaciones seguras.
-
----
-
-## Bloque 20 — Planificacion avanzada y recursos
-Estado: **Completado**
-
-## Bloque 21 — Operacion movil de terreno
-Estado: **Completado**
-
-## Bloque 22 — Entrega de turno y continuidad operacional
-Estado: **Completado**
-
-## Bloque 23 — Centro de cumplimiento y auditoria operacional
-Estado: **Completado**
-
-## Bloque 24 — Calidad de datos maestros y conciliacion
-Estado: **Completado**
-
-## Bloque 25 — Telemetria operacional conectada a mantenimiento
-Estado: **Completado**
-
-## Bloque 26 — Paradas mayores y campañas de mantenimiento
-Estado: **Completado**
-
-## Bloque 27 — Confiabilidad y fallas repetitivas
-Estado: **Completado**
-
-## Bloque 28 — Repuestos criticos y obsolescencia
-Estado: **Completado**
-
-## Bloque 29 — BOM tecnica y repuestos por equipo
-Estado: **Completado**
-1. Relaciones equipo-componente-repuesto creadas solo mediante referencia canónica y propuesta explícita.
-2. Vista “Dónde se usa” construida exclusivamente desde líneas BOM aprobadas.
-3. Contexto operacional conectado con requerimientos de OT, instalaciones registradas, preventivos del equipo, campañas y stock crítico existente.
-
-Entrega tecnica:
-- `equipment_technical_bom_lines`;
-- `/api/maintenance/technical-bom`;
-- `/dashboard/mantenimiento/bom`;
-- acceso desde la navegacion de Mantenimiento.
-
-Regla de integridad:
-- cada línea BOM referencia un equipo y producto canónicos existentes;
-- componente, cantidad, fundamento y evidencia quedan trazables;
-- una relación propuesta no se considera parte de la BOM hasta aprobación explícita;
-- no se infieren compatibilidades por nombre, familia, modelo o similitud textual;
-- la BOM no copia OT, preventivos, campañas ni stock: solo muestra su relación operacional existente.
+## Bloques 10 a 29
+Estado: **Completados**
 
 ## Bloque 30 — Planes estandar de trabajo y kits de mantenimiento
+Estado: **Completado**
+1. Planes estándar propuestos/aprobados por tipo de intervención y, opcionalmente, equipo exacto.
+2. Pasos, duración, personas, competencia, controles, documentación y materiales canónicos asociados explícitamente.
+3. Aplicación controlada a OT o preventivo. Al generarse una OT desde un preventivo vinculado, el plan aprobado se aplica y solo crea requerimientos de material faltantes.
+
+Entrega tecnica:
+- `maintenance_standard_job_plans`;
+- `maintenance_standard_job_plan_steps`;
+- `maintenance_standard_job_plan_materials`;
+- `maintenance_standard_job_plan_applications`;
+- `/api/maintenance/standard-job-plans`;
+- `/dashboard/mantenimiento/planes-estandar`;
+- integración con generación de OT desde preventivo.
+
+Regla de integridad:
+- ningún plan entra en operación antes de aprobación;
+- materiales deben ser productos canónicos existentes;
+- una línea BOM indicada debe estar aprobada y corresponder al producto/equipo;
+- aplicar un plan no reemplaza cantidades ya registradas en una OT;
+- la generación desde preventivo conserva la relación con el mismo plan aprobado.
+
+## Bloque 31 — Estrategia de mantenimiento por criticidad
 Estado: **Siguiente**
-1. Definir tareas estandar aprobadas por tipo de intervención/equipo sin reemplazar las OT reales.
-2. Asociar mano de obra esperada, BOM aprobada, documentos y controles necesarios a cada plan.
-3. Preparar una OT o preventivo desde un plan estándar mediante copia controlada y trazable de requerimientos, nunca mediante datos inventados.
+1. Clasificar equipos por criticidad usando datos registrados y criterios explícitos.
+2. Asociar estrategia permitida: preventiva, predictiva, inspección o run-to-failure cuando corresponda.
+3. Verificar cobertura: equipo crítico sin preventivo, BOM, repuesto crítico o plan estándar aprobado debe aparecer como brecha, no como recomendación inventada.
 
 ---
 
@@ -87,4 +61,4 @@ Cada bloque se ejecuta con el siguiente proceso obligatorio:
 10. Marcar el bloque completado y listar el siguiente.
 
 ## Prioridad inmediata
-**Bloque 30 — Planes estandar de trabajo y kits de mantenimiento.**
+**Bloque 31 — Estrategia de mantenimiento por criticidad.**
