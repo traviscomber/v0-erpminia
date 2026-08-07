@@ -18,6 +18,7 @@ const items = [
   { href: '/dashboard/mantenimiento/aplicacion-retroalimentacion', label: 'Aplicación', icon: ClipboardCheck },
   { href: '/dashboard/mantenimiento/aprobacion-retroalimentacion', label: 'Aprobación', icon: ClipboardCheck },
   { href: '/dashboard/mantenimiento/verificacion-retroalimentacion', label: 'Verificación', icon: ClipboardCheck },
+  { href: '/dashboard/mantenimiento/seguimiento-excepciones', label: 'Seguimiento', icon: ClipboardCheck },
   { href: '/dashboard/mantenimiento/equipos', label: 'Activos', icon: Settings },
   { href: '/dashboard/mantenimiento/indicadores', label: 'Indicadores', icon: BarChart3 },
   { href: '/dashboard/mantenimiento/documentos', label: 'Documentos', icon: FileText },
