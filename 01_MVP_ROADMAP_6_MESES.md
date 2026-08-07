@@ -12,35 +12,35 @@ Principios:
 - ningun informe, alerta o automatizacion puede inventar informacion ausente.
 
 ## Estado actual
-Motil cubre autenticacion, roles, mantenimiento, OT, inventario, compras, recepciones, devoluciones, proveedores, productos, documentos, personas, preventivos, entidades 360, decisiones ejecutivas, aislamiento por organizacion, QA, acciones, automatizaciones seguras, planificacion de recursos, terreno, entrega de turno, auditoria operacional, calidad de datos, telemetria, campañas, confiabilidad, repuestos criticos, BOM tecnica, planes estandar de trabajo y estrategia de mantenimiento por criticidad.
+Motil cubre autenticacion, roles, mantenimiento, OT, inventario, compras, recepciones, devoluciones, proveedores, productos, documentos, personas, preventivos, entidades 360, decisiones ejecutivas, aislamiento por organizacion, QA, acciones, automatizaciones seguras, planificacion de recursos, terreno, entrega de turno, auditoria operacional, calidad de datos, telemetria, campañas, confiabilidad, repuestos criticos, BOM tecnica, planes estandar de trabajo, estrategia de mantenimiento por criticidad y ciclo de vida de activos.
 
-## Bloques 10 a 30
+## Bloques 10 a 31
 Estado: **Completados**
 
-## Bloque 31 — Estrategia de mantenimiento por criticidad
+## Bloque 32 — Ciclo de vida y renovación de activos
 Estado: **Completado**
-1. La criticidad y la estrategia se registran como decisiones explícitas por equipo canónico, con fundamento, evidencia, propuesta y aprobación.
-2. Las estrategias permitidas son preventiva, predictiva, inspección y run-to-failure; Motil no asigna una estrategia automáticamente.
-3. La cobertura de equipos críticos y de alta criticidad se verifica contra preventivos activos, BOM técnica aprobada, repuestos críticos vinculados por BOM, planes estándar aprobados y telemetría cuando la estrategia es predictiva.
+1. Cada equipo reúne evidencia real de OT, correctivos, downtime, costos, repuestos instalados, preventivos y estrategia aprobada.
+2. Fecha de adquisición, costo de adquisición y vida útil esperada solo se usan cuando existen explícitamente en la fuente canónica del activo.
+3. Las decisiones mantener, reparar, reconstruir, reemplazar o retirar se registran como propuestas aprobables con fundamento y referencia de evidencia.
 
 Entrega tecnica:
-- `maintenance_asset_strategies`;
-- `/api/maintenance/asset-strategies`;
-- `/dashboard/mantenimiento/estrategia`;
-- evaluación de brechas basada exclusivamente en relaciones operacionales existentes.
+- `maintenance_asset_lifecycle_decisions`;
+- `/api/maintenance/asset-lifecycle`;
+- `/dashboard/mantenimiento/ciclo-vida`;
+- brechas explícitas de evidencia para decisiones de renovación.
 
 Regla de integridad:
-- ninguna criticidad o estrategia se infiere por nombre, tipo, historial o scoring opaco;
-- solo una estrategia propuesta/aprobada puede permanecer activa por equipo;
-- una brecha expresa ausencia de cobertura verificable, no una recomendación inventada;
-- un repuesto cuenta como cobertura únicamente cuando está relacionado mediante BOM aprobada y existe evidencia operacional registrada en el módulo de repuestos críticos;
-- una estrategia predictiva sin telemetría vinculada se muestra como brecha explícita.
+- Motil no calcula automáticamente una decisión de reemplazo o retiro;
+- no se inventa antigüedad, vida útil, costo ni fecha de origen;
+- la ausencia de historial, costos, estrategia o fecha verificable se muestra como brecha;
+- solo una decisión propuesta/aprobada permanece activa por equipo;
+- toda decisión aprobada conserva fundamento, evidencia, autor y fecha.
 
-## Bloque 32 — Ciclo de vida y renovación de activos
+## Bloque 33 — Planificación de inversión para renovación de activos
 Estado: **Siguiente**
-1. Reunir por equipo la evidencia real de fallas, OT, costos, mantenimientos, criticidad, repuestos y antigüedad solo cuando exista una fecha registrada y verificable.
-2. Registrar decisiones de mantener, reparar, reconstruir, reemplazar o retirar como propuestas aprobables; Motil no calculará reemplazos automáticos ni inventará vida útil.
-3. Mostrar brechas de evidencia para decisiones de renovación y conservar trazabilidad entre la decisión, sus fuentes y el activo canónico.
+1. Convertir decisiones aprobadas de reconstrucción o reemplazo en necesidades de inversión trazables, sin crear presupuestos automáticos.
+2. Relacionar cada necesidad con centro de costo, activo, decisión de ciclo de vida y monto objetivo solo cuando sea ingresado o provenga de evidencia canónica.
+3. Comparar necesidades aprobadas con presupuesto disponible registrado y mostrar brechas de financiamiento sin inventar CAPEX, cotizaciones ni fechas.
 
 ---
 
@@ -58,4 +58,4 @@ Cada bloque se ejecuta con el siguiente proceso obligatorio:
 10. Marcar el bloque completado y listar el siguiente.
 
 ## Prioridad inmediata
-**Bloque 32 — Ciclo de vida y renovación de activos.**
+**Bloque 33 — Planificación de inversión para renovación de activos.**

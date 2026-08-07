@@ -55,6 +55,7 @@ const itemModuleKey: Record<string, string> = {
   Combustible: 'mant_recursos',
   'Indicadores de Mantención': 'mant_gerencial',
   'Estrategia de Mantenimiento': 'mant_gerencial',
+  'Ciclo de Vida de Activos': 'mant_gerencial',
   'Documentos Mantenimiento': 'mant_documentos',
   'Bodega e Inventario': 'bodega_inventario',
   'Documentos Bodega': 'bodega_documentos',
@@ -113,6 +114,7 @@ const rolePermissions: Record<string, string[]> = {
   Combustible: ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
   'Indicadores de Mantención': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
   'Estrategia de Mantenimiento': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
+  'Ciclo de Vida de Activos': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
   'Documentos Mantenimiento': ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'],
   'Bodega e Inventario': ['superadmin', 'admin', 'Bodega-Supervisor', 'jefe_mantencion'],
   'Documentos Bodega': ['superadmin', 'admin', 'Bodega-Supervisor', 'jefe_mantencion'],
@@ -167,6 +169,7 @@ const menuItems: MenuItem[] = [
   { label: 'Combustible', href: '/dashboard/mantenimiento/combustible', icon: Fuel, group: 'Mantenimiento', section: 'Gestión' },
   { label: 'Indicadores de Mantención', href: '/dashboard/mantenimiento/indicadores', icon: BarChart3, group: 'Mantenimiento', section: 'Control' },
   { label: 'Estrategia de Mantenimiento', href: '/dashboard/mantenimiento/estrategia', icon: ShieldCheck, group: 'Mantenimiento', section: 'Control' },
+  { label: 'Ciclo de Vida de Activos', href: '/dashboard/mantenimiento/ciclo-vida', icon: Activity, group: 'Mantenimiento', section: 'Control' },
   { label: 'Documentos Mantenimiento', href: '/dashboard/mantenimiento/documentos', icon: FolderOpen, group: 'Mantenimiento', section: 'Documentos' },
 
   { label: 'Bodega e Inventario', href: '/dashboard/bodega', icon: Boxes, group: 'Abastecimiento', section: 'Inventario' },
