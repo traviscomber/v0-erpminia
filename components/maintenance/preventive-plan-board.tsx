@@ -3,279 +3,98 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
-import { AlertCircle, ArrowRight, CalendarClock, RefreshCw, Search, Upload } from 'lucide-react';
+import { CalendarClock, CheckCircle2, PauseCircle, PlayCircle, Plus, RefreshCw, Wrench } from 'lucide-react';
+import { apiFetch } from '@/lib/api-client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-type PreventiveSummary = {
-  total?: number | string;
-  enabled?: number | string;
-  overdue?: number | string;
-  dueSoon?: number | string;
+type Asset = { id: string; asset_code: string; asset_name: string; asset_type?: string | null; location?: string | null };
+type Schedule = { id: string; asset_id: string; task_name: string; description?: string | null; frequency_days?: number | null; frequency_hours?: number | null; next_scheduled_date?: string | null; estimated_duration_hours?: number | null; priority?: string | null; enabled: boolean; generated_work_order_id?: string | null; asset?: Asset | null };
+type Response = { schedules: Schedule[]; assets: Asset[]; summary: { total: number; overdue: number; dueSoon: number; disabled: number; generated: number } };
+
+const fetcher = async (url: string): Promise<Response> => {
+  const response = await apiFetch(url);
+  const payload = await response.json();
+  if (!response.ok) throw new Error(payload.error || 'No se pudo cargar la planificación preventiva.');
+  return payload;
 };
 
-type PreventiveSchedule = {
-  id: string;
-  assetId?: string | null;
-  assetName?: string | null;
-  assetCode?: string | null;
-  assetType?: string | null;
-  location?: string | null;
-  taskName?: string | null;
-  description?: string | null;
-  priority?: string | null;
-  daysUntil?: number | null;
-  frequencyDays?: number | string | null;
-  frequencyHours?: number | string | null;
-  estimatedDurationHours?: number | string | null;
-  nextScheduledDate?: string | null;
-  enabled?: boolean;
-};
-
-type PreventivePlanResponse = {
-  summary?: PreventiveSummary;
-  schedules?: PreventiveSchedule[];
-};
-
-const fetcher = async (url: string): Promise<PreventivePlanResponse> => {
-  const response = await fetch(url, { credentials: 'include' });
-  const payload = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(payload?.error || 'No se pudo cargar la planificación preventiva');
-  return payload || {};
-};
-
-function normalizeText(value: string | null | undefined) {
-  return String(value || '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .trim()
-    .toLowerCase();
-}
-
-function priorityLabel(priority?: string | null) {
-  const labels: Record<string, string> = { low: 'Baja', medium: 'Media', high: 'Alta', critical: 'Crítica' };
-  return labels[normalizeText(priority)] || priority || 'Media';
-}
-
-function daysLabel(daysUntil?: number | null) {
-  if (daysUntil === null || daysUntil === undefined) return 'Sin fecha';
-  if (daysUntil < 0) return `Vencida hace ${Math.abs(daysUntil)} días`;
-  if (daysUntil === 0) return 'Vence hoy';
-  if (daysUntil === 1) return 'Vence mañana';
-  return `En ${daysUntil} días`;
-}
-
-function bucketKey(daysUntil?: number | null) {
-  if (daysUntil === null || daysUntil === undefined) return 'sin_fecha';
-  if (daysUntil < 0) return 'vencidas';
-  if (daysUntil === 0) return 'hoy';
-  if (daysUntil <= 30) return 'proximos_30';
-  if (daysUntil <= 90) return 'proximos_90';
-  return 'futuro';
-}
-
-function bucketLabel(bucket: string) {
-  const labels: Record<string, string> = {
-    vencidas: 'Vencidas',
-    hoy: 'Hoy',
-    proximos_30: 'Próximos 30 días',
-    proximos_90: 'Próximos 90 días',
-    futuro: 'Plan futuro',
-    sin_fecha: 'Sin fecha',
-  };
-  return labels[bucket] || bucket;
-}
-
-function buildWorkOrderHref(schedule: PreventiveSchedule) {
-  const params = new URLSearchParams();
-  if (schedule.assetId) params.set('assetId', schedule.assetId);
-  if (schedule.taskName) params.set('title', schedule.taskName);
-  if (schedule.description) params.set('description', schedule.description);
-  params.set('workType', 'preventive');
-  if (schedule.priority) params.set('priority', String(schedule.priority));
-  if (schedule.nextScheduledDate) params.set('scheduledDate', schedule.nextScheduledDate);
-  if (schedule.estimatedDurationHours !== null && schedule.estimatedDurationHours !== undefined) {
-    params.set('plannedDurationHours', String(schedule.estimatedDurationHours));
-  }
-  return `/dashboard/mantenimiento/ordenes-trabajo/create?${params.toString()}`;
+function dueState(date?: string | null) {
+  if (!date) return { label: 'Sin fecha', tone: 'secondary' as const };
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const due = new Date(`${date}T00:00:00`);
+  const days = Math.ceil((due.getTime() - today.getTime()) / 86400000);
+  if (days < 0) return { label: `Vencida hace ${Math.abs(days)} días`, tone: 'destructive' as const };
+  if (days === 0) return { label: 'Vence hoy', tone: 'destructive' as const };
+  if (days <= 30) return { label: `Vence en ${days} días`, tone: 'default' as const };
+  return { label: date, tone: 'secondary' as const };
 }
 
 export function PreventivePlanBoard() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [bucketFilter, setBucketFilter] = useState('all');
-  const [priorityFilter, setPriorityFilter] = useState('all');
-  const { data, error, isLoading, mutate } = useSWR<PreventivePlanResponse>('/api/maintenance/preventive?days=365', fetcher);
+  const { data, error, isLoading, mutate } = useSWR<Response>('/api/maintenance/preventive', fetcher, { revalidateOnFocus: false });
+  const [showForm, setShowForm] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
+  const [form, setForm] = useState({ assetId: '', taskName: '', description: '', frequencyDays: '', frequencyHours: '', nextScheduledDate: '', estimatedDurationHours: '', priority: 'medium' });
 
-  const schedules = Array.isArray(data?.schedules) ? data.schedules : [];
-  const summary = data?.summary || { total: 0, enabled: 0, overdue: 0, dueSoon: 0 };
+  const schedules = data?.schedules || [];
+  const ordered = useMemo(() => [...schedules].sort((a, b) => String(a.next_scheduled_date || '9999').localeCompare(String(b.next_scheduled_date || '9999'))), [schedules]);
 
-  const filteredSchedules = useMemo(() => {
-    const query = normalizeText(searchTerm);
-    return schedules.filter((schedule) => {
-      const searchable = [
-        schedule.assetName,
-        schedule.assetCode,
-        schedule.assetType,
-        schedule.location,
-        schedule.taskName,
-        schedule.description,
-        schedule.priority,
-      ].some((value) => normalizeText(value).includes(query));
-      const matchesBucket = bucketFilter === 'all' || bucketKey(schedule.daysUntil) === bucketFilter;
-      const matchesPriority = priorityFilter === 'all' || normalizeText(schedule.priority) === priorityFilter;
-      return (!query || searchable) && matchesBucket && matchesPriority;
-    });
-  }, [bucketFilter, priorityFilter, schedules, searchTerm]);
+  async function submit() {
+    setSaving(true); setMessage('');
+    try {
+      const response = await apiFetch('/api/maintenance/preventive', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || 'No se pudo crear el plan.');
+      setForm({ assetId: '', taskName: '', description: '', frequencyDays: '', frequencyHours: '', nextScheduledDate: '', estimatedDurationHours: '', priority: 'medium' });
+      setShowForm(false); setMessage('Plan preventivo creado.'); await mutate();
+    } catch (cause) { setMessage(cause instanceof Error ? cause.message : 'No se pudo crear el plan.'); }
+    finally { setSaving(false); }
+  }
 
-  const grouped = useMemo(() => {
-    const groups = new Map<string, PreventiveSchedule[]>();
-    filteredSchedules.forEach((schedule) => {
-      const key = bucketKey(schedule.daysUntil);
-      const rows = groups.get(key) || [];
-      rows.push(schedule);
-      groups.set(key, rows);
-    });
-    groups.forEach((rows) => rows.sort((a, b) => (a.daysUntil ?? 99999) - (b.daysUntil ?? 99999)));
-    return groups;
-  }, [filteredSchedules]);
+  async function act(scheduleId: string, action: 'toggle' | 'generate') {
+    setMessage('');
+    try {
+      const response = await apiFetch('/api/maintenance/preventive', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ scheduleId, action }) });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || 'No se pudo actualizar el plan.');
+      setMessage(action === 'generate' ? 'Orden de trabajo creada desde el plan.' : 'Estado actualizado.');
+      await mutate();
+    } catch (cause) { setMessage(cause instanceof Error ? cause.message : 'No se pudo actualizar el plan.'); }
+  }
 
-  const orderedBuckets = ['vencidas', 'hoy', 'proximos_30', 'proximos_90', 'futuro', 'sin_fecha'];
+  return <main className="space-y-6">
+    <header className="flex flex-wrap items-end justify-between gap-4 border-b pb-5">
+      <div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Mantenimiento</p><h1 className="mt-1 text-2xl font-semibold">Planificación preventiva</h1><p className="mt-1 text-sm text-muted-foreground">Planes reales por equipo, vencimientos y generación controlada de órdenes.</p></div>
+      <div className="flex gap-2"><Button variant="outline" onClick={() => void mutate()}><RefreshCw className="h-4 w-4"/>Actualizar</Button><Button onClick={() => setShowForm((value) => !value)}><Plus className="h-4 w-4"/>Nuevo plan</Button></div>
+    </header>
 
-  return (
-    <div className="space-y-6">
-      <section className="flex flex-col gap-4 border-b border-border/70 pb-6 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <p className="text-sm font-medium text-muted-foreground">Mantenimiento · Operación diaria</p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Planificación preventiva</h1>
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Prioriza mantenimientos vencidos, próximos y futuros usando la programación existente de los activos.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={() => void mutate()} disabled={isLoading}>
-            <RefreshCw className="mr-2 h-4 w-4" /> Actualizar
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/dashboard/mantenimiento/planificacion/importar">
-              <Upload className="mr-2 h-4 w-4" /> Importar
-            </Link>
-          </Button>
-          <Button asChild>
-            <Link href="/dashboard/mantenimiento/ordenes-trabajo/create?workType=preventive">
-              <CalendarClock className="mr-2 h-4 w-4" /> Nueva OT preventiva
-            </Link>
-          </Button>
-        </div>
-      </section>
+    <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">{[
+      ['Planes', data?.summary.total || 0], ['Vencidos', data?.summary.overdue || 0], ['Próximos 30 días', data?.summary.dueSoon || 0], ['Pausados', data?.summary.disabled || 0], ['OT generadas', data?.summary.generated || 0],
+    ].map(([label, value]) => <Card key={String(label)} className="shadow-none"><CardContent className="p-4"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-2 text-2xl font-semibold">{value}</p></CardContent></Card>)}</section>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Card className="shadow-none"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Programadas</p><p className="mt-1 text-2xl font-semibold">{Number(summary.total || 0)}</p></CardContent></Card>
-        <Card className="shadow-none"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Activas</p><p className="mt-1 text-2xl font-semibold">{Number(summary.enabled || 0)}</p></CardContent></Card>
-        <Card className="shadow-none"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Vencidas</p><p className="mt-1 text-2xl font-semibold text-destructive">{Number(summary.overdue || 0)}</p></CardContent></Card>
-        <Card className="shadow-none"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Próximos 30 días</p><p className="mt-1 text-2xl font-semibold">{Number(summary.dueSoon || 0)}</p></CardContent></Card>
-      </div>
+    {showForm && <Card className="shadow-none"><CardHeader><CardTitle className="text-base">Nuevo plan preventivo</CardTitle></CardHeader><CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+      <Select value={form.assetId} onValueChange={(value) => setForm({ ...form, assetId: value })}><SelectTrigger><SelectValue placeholder="Equipo"/></SelectTrigger><SelectContent>{(data?.assets || []).map((asset) => <SelectItem key={asset.id} value={asset.id}>{asset.asset_code} · {asset.asset_name}</SelectItem>)}</SelectContent></Select>
+      <Input placeholder="Tarea" value={form.taskName} onChange={(e) => setForm({ ...form, taskName: e.target.value })}/>
+      <Input type="date" value={form.nextScheduledDate} onChange={(e) => setForm({ ...form, nextScheduledDate: e.target.value })}/>
+      <Select value={form.priority} onValueChange={(value) => setForm({ ...form, priority: value })}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="low">Baja</SelectItem><SelectItem value="medium">Media</SelectItem><SelectItem value="high">Alta</SelectItem><SelectItem value="critical">Crítica</SelectItem></SelectContent></Select>
+      <Input type="number" min="1" placeholder="Frecuencia en días" value={form.frequencyDays} onChange={(e) => setForm({ ...form, frequencyDays: e.target.value })}/>
+      <Input type="number" min="1" placeholder="Frecuencia en horas" value={form.frequencyHours} onChange={(e) => setForm({ ...form, frequencyHours: e.target.value })}/>
+      <Input type="number" min="0" step="0.5" placeholder="Duración estimada" value={form.estimatedDurationHours} onChange={(e) => setForm({ ...form, estimatedDurationHours: e.target.value })}/>
+      <Input placeholder="Descripción" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}/>
+      <div className="md:col-span-2 xl:col-span-4 flex justify-end gap-2"><Button variant="outline" onClick={() => setShowForm(false)}>Cancelar</Button><Button disabled={saving} onClick={() => void submit()}>{saving ? 'Guardando…' : 'Guardar plan'}</Button></div>
+    </CardContent></Card>}
 
-      <Card className="shadow-none">
-        <CardContent className="p-4">
-          <div className="grid gap-3 md:grid-cols-[minmax(260px,1fr)_190px_180px_auto]">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Buscar equipo, tarea o ubicación" className="pl-9" />
-            </div>
-            <Select value={bucketFilter} onValueChange={setBucketFilter}>
-              <SelectTrigger><SelectValue placeholder="Horizonte" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los horizontes</SelectItem>
-                {orderedBuckets.map((bucket) => <SelectItem key={bucket} value={bucket}>{bucketLabel(bucket)}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-              <SelectTrigger><SelectValue placeholder="Prioridad" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas las prioridades</SelectItem>
-                <SelectItem value="critical">Crítica</SelectItem>
-                <SelectItem value="high">Alta</SelectItem>
-                <SelectItem value="medium">Media</SelectItem>
-                <SelectItem value="low">Baja</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="ghost" onClick={() => { setSearchTerm(''); setBucketFilter('all'); setPriorityFilter('all'); }}>Limpiar</Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {error ? (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-8 text-center">
-          <AlertCircle className="mx-auto h-5 w-5 text-destructive" />
-          <p className="mt-3 font-medium text-destructive">No se pudo cargar la planificación preventiva</p>
-          <Button className="mt-4" variant="outline" onClick={() => void mutate()}>Reintentar</Button>
-        </div>
-      ) : isLoading ? (
-        <div className="space-y-3">{Array.from({ length: 5 }).map((_, index) => <div key={index} className="h-24 animate-pulse rounded-lg bg-muted" />)}</div>
-      ) : filteredSchedules.length === 0 ? (
-        <Card className="border-dashed shadow-none"><CardContent className="p-10 text-center text-sm text-muted-foreground">No hay mantenimientos que coincidan con los filtros.</CardContent></Card>
-      ) : (
-        <div className="space-y-4">
-          {orderedBuckets.filter((bucket) => grouped.get(bucket)?.length).map((bucket) => {
-            const rows = grouped.get(bucket) || [];
-            return (
-              <Card key={bucket} className="shadow-none">
-                <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
-                  <div>
-                    <CardTitle className="text-base">{bucketLabel(bucket)}</CardTitle>
-                    <p className="mt-1 text-sm text-muted-foreground">{rows.length} mantenimientos</p>
-                  </div>
-                  {bucket === 'vencidas' && <Badge variant="destructive">Atención requerida</Badge>}
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="divide-y border-t">
-                    {rows.map((schedule) => (
-                      <div key={schedule.id} className="grid gap-4 p-4 transition-colors hover:bg-muted/30 lg:grid-cols-[minmax(0,1.5fr)_minmax(180px,.8fr)_minmax(150px,.6fr)_auto] lg:items-center">
-                        <div className="min-w-0">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <Badge variant="outline">{priorityLabel(schedule.priority)}</Badge>
-                            {!schedule.enabled && <Badge variant="secondary">Deshabilitada</Badge>}
-                          </div>
-                          <p className="mt-2 truncate font-medium">{schedule.taskName || 'Tarea preventiva sin nombre'}</p>
-                          <p className="mt-1 truncate text-sm text-muted-foreground">
-                            {schedule.assetName || 'Sin activo'}{schedule.assetCode ? ` · ${schedule.assetCode}` : ''}{schedule.location ? ` · ${schedule.location}` : ''}
-                          </p>
-                          {schedule.description && <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{schedule.description}</p>}
-                        </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">Frecuencia</p>
-                          <p className="mt-1 text-sm">
-                            {schedule.frequencyDays ? `Cada ${schedule.frequencyDays} días` : schedule.frequencyHours ? `Cada ${schedule.frequencyHours} horas` : 'Sin frecuencia'}
-                          </p>
-                          {schedule.estimatedDurationHours ? <p className="text-xs text-muted-foreground">Duración: {schedule.estimatedDurationHours} h</p> : null}
-                        </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">Próxima fecha</p>
-                          <p className={`mt-1 text-sm font-medium ${bucket === 'vencidas' ? 'text-destructive' : ''}`}>{daysLabel(schedule.daysUntil)}</p>
-                          <p className="text-xs text-muted-foreground">{schedule.nextScheduledDate || 'Sin fecha'}</p>
-                        </div>
-                        <div className="flex flex-wrap gap-2 lg:justify-end">
-                          {schedule.assetId && (
-                            <Button asChild size="sm" variant="ghost">
-                              <Link href={`/dashboard/mantenimiento/equipos/${schedule.assetId}/ficha`}>Ver activo</Link>
-                            </Button>
-                          )}
-                          <Button asChild size="sm">
-                            <Link href={buildWorkOrderHref(schedule)}>Crear OT <ArrowRight className="ml-2 h-4 w-4" /></Link>
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
+    {message && <p className="rounded-lg border p-3 text-sm">{message}</p>}
+    {error && <p className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">{error.message}</p>}
+    {isLoading ? <div className="h-40 animate-pulse rounded-lg bg-muted"/> : ordered.length === 0 ? <Card className="border-dashed shadow-none"><CardContent className="p-10 text-center text-sm text-muted-foreground">No existen planes preventivos registrados. Crea el primero desde “Nuevo plan”.</CardContent></Card> : <div className="space-y-3">{ordered.map((schedule) => { const state = dueState(schedule.next_scheduled_date); return <Card key={schedule.id} className="shadow-none"><CardContent className="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_180px_170px_auto] lg:items-center">
+      <div><div className="flex flex-wrap gap-2"><Badge variant={state.tone}>{state.label}</Badge><Badge variant="outline">{schedule.priority || 'medium'}</Badge>{!schedule.enabled && <Badge variant="secondary">Pausado</Badge>}</div><p className="mt-2 font-medium">{schedule.task_name}</p><p className="text-sm text-muted-foreground">{schedule.asset?.asset_code || 'Sin código'} · {schedule.asset?.asset_name || 'Equipo no disponible'}</p>{schedule.description && <p className="mt-1 text-sm text-muted-foreground">{schedule.description}</p>}</div>
+      <div><p className="text-xs text-muted-foreground">Frecuencia</p><p className="text-sm">{schedule.frequency_days ? `Cada ${schedule.frequency_days} días` : schedule.frequency_hours ? `Cada ${schedule.frequency_hours} horas` : 'No definida'}</p></div>
+      <div><p className="text-xs text-muted-foreground">Orden relacionada</p>{schedule.generated_work_order_id ? <Button asChild variant="link" className="h-auto p-0"><Link href={`/dashboard/mantenimiento/ordenes-trabajo/${schedule.generated_work_order_id}`}><CheckCircle2 className="h-4 w-4"/>Abrir OT</Link></Button> : <p className="text-sm text-muted-foreground">Aún no generada</p>}</div>
+      <div className="flex flex-wrap justify-end gap-2"><Button size="sm" variant="outline" onClick={() => void act(schedule.id, 'toggle')}>{schedule.enabled ? <PauseCircle className="h-4 w-4"/> : <PlayCircle className="h-4 w-4"/>}{schedule.enabled ? 'Pausar' : 'Activar'}</Button><Button size="sm" disabled={!schedule.enabled || Boolean(schedule.generated_work_order_id)} onClick={() => void act(schedule.id, 'generate')}><Wrench className="h-4 w-4"/>Crear OT</Button></div>
+    </CardContent></Card>; })}</div>}
+  </main>;
 }
