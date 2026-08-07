@@ -31,3 +31,5 @@ create index if not exists asset_renewal_commissioning_replacement_asset_idx
   where replacement_asset_id is not null;
 
 alter table public.asset_renewal_commissioning_decisions enable row level security;
+revoke select, insert, update, delete on public.asset_renewal_commissioning_decisions from anon, authenticated;
+grant select, insert, update, delete on public.asset_renewal_commissioning_decisions to service_role;
