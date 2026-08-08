@@ -117,6 +117,12 @@ export function ProduccionDashboard() {
           </PageHeaderDescription>
         </PageHeaderContent>
         <PageHeaderActions>
+          <Button asChild variant="outline">
+            <Link href="/dashboard/produccion/importacion-maestra">
+              <Database className="h-4 w-4" />
+              Importación histórica
+            </Link>
+          </Button>
           <Button asChild>
             <Link href="/dashboard/produccion/ingreso-datos">
               <Upload className="h-4 w-4" />
@@ -150,7 +156,7 @@ export function ProduccionDashboard() {
         <StatePanel
           tone="neutral"
           title="Modelo canónico disponible, datos aún no cargados"
-          description="Los lotes fuente están registrados, pero movimientos y turnos todavía no han sido materializados en las tablas canónicas. Usa Ingreso de datos para completar la ingesta; Motil no mostrará KPI legacy como si fueran producción oficial."
+          description="Los lotes fuente están registrados, pero movimientos y turnos todavía no han sido materializados en las tablas canónicas. Usa Importación histórica para cargar el master Motil validado o Ingreso de datos para operación corriente. Motil no mostrará KPI legacy como si fueran producción oficial."
         />
       ) : null}
 
