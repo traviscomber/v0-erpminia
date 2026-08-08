@@ -1,122 +1,29 @@
-# ACCESO ADMIN - n3uralia ERP
+# ACCESO ADMIN - Motil
 
-## Credenciales Proporcionadas
+## Política de acceso
 
-**Email:** juan@n3uralia.com  
-**Contraseña:** c4rlit0s
+Las credenciales administrativas no se almacenan en el repositorio, documentación versionada, frontend, logs ni archivos de ejemplo.
 
----
+El acceso administrativo debe gestionarse mediante Supabase Auth y roles de aplicación. Las contraseñas se crean o restablecen por un canal seguro y nunca deben quedar incluidas en Git.
 
-## Instrucciones de Acceso
+## Acceso al sistema
 
-### 1. CREAR EL USUARIO ADMIN
+1. Abrir `/auth/login` en el entorno correspondiente.
+2. Iniciar sesión con una cuenta autorizada existente.
+3. La autorización efectiva se determina en servidor mediante la organización y el rol del usuario.
 
-Primero necesitas crear el usuario en Supabase Auth ejecutando este comando:
+## Roles
 
-```bash
-# Desde la raíz del proyecto
-bash scripts/setup-admin.sh
-```
+Los módulos deben aplicar autorización server-side. Las escrituras sensibles no deben depender de metadata editable por el usuario ni de comprobaciones exclusivamente de cliente.
 
-O manualmente usando curl:
+## Recuperación de acceso
 
-```bash
-curl -X POST "https://[TU-PROYECTO].supabase.co/auth/v1/admin/users" \
-  -H "Authorization: Bearer [SUPABASE_SERVICE_ROLE_KEY]" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "juan@n3uralia.com",
-    "password": "c4rlit0s",
-    "email_confirm": true,
-    "user_metadata": {
-      "name": "Juan Admin",
-      "role": "admin"
-    }
-  }'
-```
+Si una cuenta administrativa perdió acceso, utilizar el flujo seguro de recuperación/restablecimiento de Supabase Auth o la consola administrativa correspondiente. No agregar contraseñas temporales a este archivo.
 
-### 2. ACCEDER AL SISTEMA
+## Seguridad
 
-1. Abre tu navegador y ve a:
-   ```
-   http://localhost:3000/auth/login
-   ```
-
-2. Ingresa las credenciales:
-   - **Email:** juan@n3uralia.com
-   - **Contraseña:** c4rlit0s
-
-3. Haz click en "Iniciar Sesión"
-
-### 3. ACCESO COMPLETAMENTE OPERATIVO
-
-Una vez logeado, tendrás acceso completo a:
-
-- **Dashboard Principal** - Vista general del sistema
-- **Módulo Contratos** - Control de pagos, hitos, garantías, regalías
-- **Módulo HSE** - Gestión de documentos, capacitaciones, EPP, KPIs
-- **Módulo Producción** - Telemetría y equipos
-- **Módulo Mantención** - Órdenes de trabajo, análisis MTBF/MTTR
-- **Módulo Bodega** - Inventario, ABC Analysis
-- **Módulo Compras** - Órdenes de compra
-- **Módulo Finanzas** - Cash flow, presupuestos
-
----
-
-## BOTÓN "NUEVO CONTRATO" - AHORA OPERATIVO
-
-El botón "+ Nuevo Contrato" en la página de contratos ahora es completamente funcional:
-
-1. Haz click en "+ Nuevo Contrato"
-2. Se abre un modal con un formulario
-3. Completa los campos:
-   - **Contratista/Prestador** - Nombre de la empresa/persona
-   - **Nombre Contrato** - Descripción del contrato
-   - **Monto Total CLP** - Valor en pesos chilenos
-   - **Fecha Inicio** - Fecha de inicio
-   - **Fecha Fin** - Fecha de término
-   - **Proyecto** - Selecciona uno (Flujo Eléctrico, Bodega, Química, Molino)
-   - **Propiedad** - 1, 2 o 3
-   - **Estado** - Activo, Pendiente o Pausado
-
-4. Haz click en "Crear Contrato"
-5. El contrato se guardará automáticamente en Supabase
-6. El dashboard se actualizará con los datos nuevos
-
----
-
-## RESOLUCIÓN DE PROBLEMAS
-
-### "Usuario no existe"
-Ejecuta el script `bash scripts/setup-admin.sh` para crear el usuario
-
-### "Contraseña incorrecta"
-Verifica que escribiste exactamente: `c4rlit0s`
-
-### "No puedo acceder al sistema"
-- Verifica que el servidor está corriendo: `npm run dev`
-- Asegúrate de estar en `http://localhost:3000` (no https)
-- Limpia el cache del navegador (Ctrl+Shift+Del)
-
-### "El botón Nuevo Contrato no funciona"
-- Recarga la página (F5)
-- Verifica que Supabase está conectado (debe haber datos en el dashboard)
-- Abre la consola (F12) y revisa si hay errores
-
----
-
-## DESARROLLO COMPLETADO
-
-✅ Sistema completamente operativo  
-✅ Autenticación con Supabase  
-✅ Todos los módulos funcionales  
-✅ Botón Nuevo Contrato operativo  
-✅ APIs REST completamente implementadas  
-✅ Base de datos con RLS policies activas  
-
-**El sistema está listo para producción.**
-
----
-
-**Contacto:** soporte@n3uralia.com  
-**Última actualización:** Mayo 2026
+- No exponer `SUPABASE_SERVICE_ROLE_KEY` ni otras claves secretas.
+- No usar variables `NEXT_PUBLIC_*` para secretos.
+- No documentar contraseñas reales o reutilizables.
+- Revocar o rotar credenciales que hayan sido publicadas accidentalmente.
+- Mantener auditoría de roles y acceso por organización.
