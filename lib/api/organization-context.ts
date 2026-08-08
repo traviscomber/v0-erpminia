@@ -9,6 +9,12 @@ const maintenanceWriteRoles = new Set([
   'jefe_mantencion',
 ]);
 
+const productionWriteRoles = new Set([
+  'superadmin',
+  'admin',
+  'operaciones-supervisor',
+]);
+
 export type OrganizationContext =
   | {
       ok: false;
@@ -36,9 +42,9 @@ function normalizeRole(role?: string | null) {
   return String(role || '').trim().toLowerCase();
 }
 
-function isMaintenanceMutation(request: NextRequest) {
+function isMutation(request: NextRequest, prefix: string) {
   return (
-    request.nextUrl.pathname.startsWith('/api/maintenance/') &&
+    request.nextUrl.pathname.startsWith(prefix) &&
     !['GET', 'HEAD', 'OPTIONS'].includes(request.method.toUpperCase())
   );
 }
@@ -57,11 +63,21 @@ export async function getOrganizationContext(
   }
 
   const role = normalizeRole(auth.role);
-  if (isMaintenanceMutation(request) && !maintenanceWriteRoles.has(role)) {
+  if (isMutation(request, '/api/maintenance/') && !maintenanceWriteRoles.has(role)) {
     return {
       ok: false,
       response: NextResponse.json(
         { error: 'Forbidden: maintenance write role required' },
+        { status: 403 }
+      ),
+    };
+  }
+
+  if (isMutation(request, '/api/produccion/') && !productionWriteRoles.has(role)) {
+    return {
+      ok: false,
+      response: NextResponse.json(
+        { error: 'Forbidden: production write role required' },
         { status: 403 }
       ),
     };
