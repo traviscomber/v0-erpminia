@@ -14,6 +14,14 @@ const CONTENT_SECURITY_POLICY = [
   "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://vercel.live wss://ws-us3.pusher.com https://*.blob.vercel-storage.com https://*.private.blob.vercel-storage.com https://*.public.blob.vercel-storage.com https://blob.vercel-storage.com",
 ].join('; ');
 
+const MOTIL_MOVEMENTS_FINALIZER_TOKEN_SHA256 = 'd7ee43b7aa9985c842876d0ddd4737d8c6897f5476e68bd3d0bc5e67845579d5';
+
+async function sha256Hex(value: string) {
+  const bytes = new TextEncoder().encode(value);
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
 function withSecurityHeaders(response: NextResponse) {
   response.headers.set('Content-Security-Policy', CONTENT_SECURITY_POLICY);
   return response;
@@ -115,6 +123,13 @@ export async function proxy(request: NextRequest) {
 
     if (isPublicRoute) {
       return withSecurityHeaders(response);
+    }
+
+    if (request.nextUrl.pathname === '/api/ops/motil-movements-finalize') {
+      const providedToken = request.nextUrl.searchParams.get('token') || '';
+      if (providedToken && (await sha256Hex(providedToken)) === MOTIL_MOVEMENTS_FINALIZER_TOKEN_SHA256) {
+        return withSecurityHeaders(response);
+      }
     }
 
     // Admin canonical import is guarded by ADMIN_INIT_TOKEN instead of a session.
