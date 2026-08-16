@@ -1,0 +1,67 @@
+import { createHash, timingSafeEqual } from "node:crypto"
+import { spawnSync } from "node:child_process"
+
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+const OPS_TOKEN_SHA256 = "e02c3b05cbaa062dd287e9e14817f66ab390166eee6a5a046d487e04b731115c"
+const MAX_COMPRESSED_BYTES = 2 * 1024 * 1024
+
+function authorized(request: Request) {
+  const token = request.headers.get("x-motil-ops-token") ?? ""
+  const digest = createHash("sha256").update(token).digest("hex")
+  return timingSafeEqual(Buffer.from(digest), Buffer.from(OPS_TOKEN_SHA256))
+}
+
+export async function POST(request: Request) {
+  if (process.env.VERCEL_ENV !== "preview") {
+    return Response.json({ ok: false, error: "preview_only" }, { status: 404 })
+  }
+  if (!authorized(request)) {
+    return Response.json({ ok: false, error: "unauthorized" }, { status: 401 })
+  }
+
+  try {
+    const body = await request.json()
+    const payload = typeof body?.payload === "string" ? body.payload : ""
+    const compressed = Buffer.from(payload, "base64")
+    if (!payload || compressed.length === 0 || compressed.length > MAX_COMPRESSED_BYTES) {
+      return Response.json({ ok: false, error: "invalid_payload" }, { status: 400 })
+    }
+
+    const result = spawnSync("xz", ["-dc"], {
+      input: compressed,
+      encoding: "buffer",
+      maxBuffer: 64 * 1024 * 1024,
+    })
+    if (result.error) throw result.error
+    if (result.status !== 0) {
+      throw new Error((result.stderr?.toString("utf8") || `xz exited ${result.status}`).slice(0, 1000))
+    }
+
+    const text = result.stdout.toString("utf8")
+    const parsed = JSON.parse(text)
+    const rows = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.r) ? parsed.r : Array.isArray(parsed?.rows) ? parsed.rows : null
+
+    if (body?.mode === "slice") {
+      if (!Array.isArray(parsed?.r) || !parsed?.d || typeof parsed.d !== "object") {
+        return Response.json({ ok: false, error: "not_compact_payload" }, { status: 422 })
+      }
+      const offset = Math.max(0, Number(body?.offset) || 0)
+      const limit = Math.min(500, Math.max(1, Number(body?.limit) || 250))
+      return Response.json({ ok: true, payload: { d: parsed.d, r: parsed.r.slice(offset, offset + limit) }, offset, returned: parsed.r.slice(offset, offset + limit).length, total: parsed.r.length })
+    }
+
+    return Response.json({
+      ok: true,
+      compressedBytes: compressed.length,
+      decodedBytes: result.stdout.length,
+      type: Array.isArray(parsed) ? "array" : typeof parsed,
+      keys: parsed && typeof parsed === "object" ? Object.keys(parsed).slice(0, 30) : [],
+      rowCount: rows?.length ?? null,
+      dictionaryKeys: parsed?.d && typeof parsed.d === "object" ? Object.keys(parsed.d).length : null,
+    })
+  } catch (error) {
+    return Response.json({ ok: false, error: error instanceof Error ? error.message : String(error) }, { status: 500 })
+  }
+}
