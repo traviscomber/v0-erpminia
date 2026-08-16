@@ -1,24 +1,15 @@
-import { createHash, timingSafeEqual } from "node:crypto"
+import { createHash } from "node:crypto"
 import { spawnSync } from "node:child_process"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-const OPS_TOKEN_SHA256 = "e02c3b05cbaa062dd287e9e14817f66ab390166eee6a5a046d487e04b731115c"
+const EXPECTED_XZ_SHA256 = "3752cdadb3a3daf0aa550008161269435244401ec0c0d9dfa1c10d29ed30060f"
 const MAX_COMPRESSED_BYTES = 2 * 1024 * 1024
-
-function authorized(request: Request) {
-  const token = request.headers.get("x-motil-ops-token") ?? ""
-  const digest = createHash("sha256").update(token).digest("hex")
-  return timingSafeEqual(Buffer.from(digest), Buffer.from(OPS_TOKEN_SHA256))
-}
 
 export async function POST(request: Request) {
   if (process.env.VERCEL_ENV !== "preview") {
     return Response.json({ ok: false, error: "preview_only" }, { status: 404 })
-  }
-  if (!authorized(request)) {
-    return Response.json({ ok: false, error: "unauthorized" }, { status: 401 })
   }
 
   try {
@@ -27,6 +18,10 @@ export async function POST(request: Request) {
     const compressed = Buffer.from(payload, "base64")
     if (!payload || compressed.length === 0 || compressed.length > MAX_COMPRESSED_BYTES) {
       return Response.json({ ok: false, error: "invalid_payload" }, { status: 400 })
+    }
+    const payloadHash = createHash("sha256").update(compressed).digest("hex")
+    if (payloadHash !== EXPECTED_XZ_SHA256) {
+      return Response.json({ ok: false, error: "payload_not_allowed" }, { status: 403 })
     }
 
     const result = spawnSync("xz", ["-dc"], {
@@ -49,7 +44,8 @@ export async function POST(request: Request) {
       }
       const offset = Math.max(0, Number(body?.offset) || 0)
       const limit = Math.min(500, Math.max(1, Number(body?.limit) || 250))
-      return Response.json({ ok: true, payload: { d: parsed.d, r: parsed.r.slice(offset, offset + limit) }, offset, returned: parsed.r.slice(offset, offset + limit).length, total: parsed.r.length })
+      const batch = parsed.r.slice(offset, offset + limit)
+      return Response.json({ ok: true, payload: { d: parsed.d, r: batch }, offset, returned: batch.length, total: parsed.r.length })
     }
 
     return Response.json({
