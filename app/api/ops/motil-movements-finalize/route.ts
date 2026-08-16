@@ -1,5 +1,5 @@
 import { createHash, timingSafeEqual } from "node:crypto"
-import { spawnSync } from "node:child_process"
+import { decodeXZ } from "xz-compat"
 import { getSupabaseAdmin } from "@/lib/db/supabase"
 
 export const runtime = "nodejs"
@@ -46,17 +46,8 @@ async function loadCompactPayload() {
   const payloadHash = createHash("sha256").update(compressed).digest("hex")
   if (payloadHash !== EXPECTED_COMPRESSED_SHA256) throw new Error("movement staging hash mismatch")
 
-  const result = spawnSync("xz", ["-dc"], {
-    input: compressed,
-    encoding: "buffer",
-    maxBuffer: 64 * 1024 * 1024,
-  })
-  if (result.error) throw result.error
-  if (result.status !== 0) {
-    throw new Error((result.stderr?.toString("utf8") || `xz exited ${result.status}`).slice(0, 1000))
-  }
-
-  const parsed = JSON.parse(result.stdout.toString("utf8"))
+  const decoded = decodeXZ(compressed)
+  const parsed = JSON.parse(Buffer.from(decoded).toString("utf8"))
   if (!Array.isArray(parsed?.r) || !parsed?.d || typeof parsed.d !== "object") {
     throw new Error("not compact movement payload")
   }
@@ -66,7 +57,7 @@ async function loadCompactPayload() {
     parsed,
     chunks: data.length,
     compressedBytes: compressed.length,
-    decodedBytes: result.stdout.length,
+    decodedBytes: Buffer.from(decoded).length,
   }
 }
 
