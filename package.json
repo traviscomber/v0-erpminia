@@ -79,7 +79,7 @@
     "uuid": "^14.0.1",
     "vaul": "^1.1.2",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
-    "xz-compat": "1.2.7",
+    "xz-decompress": "0.2.3",
     "zod": "^3.24.1"
   },
   "devDependencies": {
