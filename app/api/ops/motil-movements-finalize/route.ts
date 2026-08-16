@@ -1,5 +1,5 @@
 import { createHash, timingSafeEqual } from "node:crypto"
-import { createRequire } from "node:module"
+import { xz } from "@napi-rs/lzma"
 import { getSupabaseAdmin } from "@/lib/db/supabase"
 
 export const runtime = "nodejs"
@@ -37,10 +37,7 @@ async function loadCompactPayload() {
   const payloadHash = createHash("sha256").update(compressed).digest("hex")
   if (payloadHash !== EXPECTED_COMPRESSED_SHA256) throw new Error("movement staging hash mismatch")
 
-  const runtimeRequire = createRequire(import.meta.url)
-  const moduleName = ["@napi-rs", "lzma", "xz"].join("/")
-  const { decompress } = runtimeRequire(moduleName) as { decompress: (input: Buffer) => Promise<Uint8Array> }
-  const decoded = await decompress(compressed)
+  const decoded = await xz.decompress(compressed)
   const decodedText = Buffer.from(decoded).toString("utf8")
   const parsed = JSON.parse(decodedText)
   if (!Array.isArray(parsed?.r) || !parsed?.d || typeof parsed.d !== "object") throw new Error("not compact movement payload")
