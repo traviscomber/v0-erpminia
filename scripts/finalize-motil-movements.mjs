@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto'
+import { writeFileSync, unlinkSync } from 'node:fs'
+import { spawnSync } from 'node:child_process'
 import { createClient } from '@supabase/supabase-js'
-import { XzDecompressor } from '@napi-rs/lzma'
 
 const TRANSFER_ID = 'motil-movements-compact-v1'
 const ORG_ID = '2bd7fe06-8e4f-4a3a-b261-e3f5d8aa3dee'
@@ -52,15 +53,8 @@ function recoverCompactPayload(text) {
       else if (ch === '"') inString = false
       continue
     }
-    if (ch === '"') {
-      inString = true
-      continue
-    }
-    if (ch === '[') {
-      if (depth === 0) rowStart = i
-      depth += 1
-      continue
-    }
+    if (ch === '"') { inString = true; continue }
+    if (ch === '[') { if (depth === 0) rowStart = i; depth += 1; continue }
     if (ch === ']') {
       if (depth > 0) {
         depth -= 1
@@ -68,9 +62,7 @@ function recoverCompactPayload(text) {
           rows.push(JSON.parse(text.slice(rowStart, i + 1)))
           rowStart = -1
         }
-      } else {
-        break
-      }
+      } else break
     }
   }
   return { d: head.d, r: rows }
@@ -98,10 +90,7 @@ async function canonicalCount() {
 
 const before = await canonicalCount()
 console.log(`[motil-movements] canonical before: ${before}/${TARGET}`)
-if (before === TARGET) {
-  console.log('[motil-movements] already complete')
-  process.exit(0)
-}
+if (before === TARGET) { console.log('[motil-movements] already complete'); process.exit(0) }
 if (before > TARGET) throw new Error(`[motil-movements] count ${before} exceeds target ${TARGET}`)
 
 const { data: chunks, error: chunkError } = await supabase
@@ -125,32 +114,17 @@ const magic = compressed.subarray(0, 6).toString('hex')
 if (magic !== 'fd377a585a00') throw new Error(`[motil-movements] invalid XZ magic ${magic}`)
 console.log(`[motil-movements] verified truncated staging: ${compressed.length} bytes, ${chunks.length} chunks`)
 
-const decoder = new XzDecompressor()
-const output = []
-const BLOCK = 4096
-let decoderError = null
-for (let offset = 0; offset < compressed.length; offset += BLOCK) {
-  try {
-    const piece = decoder.update(compressed.subarray(offset, Math.min(compressed.length, offset + BLOCK)))
-    if (piece?.length) output.push(Buffer.from(piece))
-  } catch (error) {
-    decoderError = error
-    console.log(`[motil-movements] decoder stopped at compressed offset ${offset}: ${error instanceof Error ? error.message : String(error)}`)
-    break
-  }
-}
-if (!decoderError) {
-  try {
-    const tail = decoder.finish()
-    if (tail?.length) output.push(Buffer.from(tail))
-  } catch (error) {
-    decoderError = error
-    console.log(`[motil-movements] expected truncated finish error: ${error instanceof Error ? error.message : String(error)}`)
-  }
-}
-const recoveredText = Buffer.concat(output).toString('utf8')
-console.log(`[motil-movements] recovered decompressed bytes: ${Buffer.byteLength(recoveredText)}`)
-const payload = recoverCompactPayload(recoveredText)
+const tmp = '/tmp/motil-movements-truncated.xz'
+writeFileSync(tmp, compressed)
+const xz = spawnSync('xz', ['-dc', tmp], { encoding: null, maxBuffer: 64 * 1024 * 1024 })
+try { unlinkSync(tmp) } catch {}
+if (xz.error) throw new Error(`[motil-movements] system xz unavailable: ${xz.error.message}`)
+const recovered = Buffer.isBuffer(xz.stdout) ? xz.stdout : Buffer.from(xz.stdout ?? '')
+const stderr = Buffer.isBuffer(xz.stderr) ? xz.stderr.toString('utf8') : String(xz.stderr ?? '')
+console.log(`[motil-movements] xz exit=${xz.status}; recovered decompressed bytes=${recovered.length}; stderr=${stderr.trim().slice(0,240)}`)
+if (!recovered.length) throw new Error('[motil-movements] xz produced no partial output')
+
+const payload = recoverCompactPayload(recovered.toString('utf8'))
 console.log(`[motil-movements] recovered complete rows: ${payload.r.length}/${TARGET}`)
 if (payload.r.length === 0) throw new Error('[motil-movements] no complete rows recovered')
 
@@ -167,5 +141,5 @@ for (let offset = 0; offset < payload.r.length; offset += BATCH_SIZE) {
 }
 
 const after = await canonicalCount()
-console.log(`[motil-movements] RECOVERY COMPLETE: canonical=${after}/${TARGET}; recoveredRows=${payload.r.length}`)
+console.log(`[motil-movements] RECOVERY COMPLETE: canonical=${after}/${TARGET}; recoveredRows=${payload.r.length}; remaining=${TARGET-after}`)
 if (after !== TARGET) throw new Error(`[motil-movements] remaining rows after recovery: ${TARGET - after}`)
