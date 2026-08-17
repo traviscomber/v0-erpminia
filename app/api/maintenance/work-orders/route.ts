@@ -27,7 +27,7 @@ type WorkOrderRow = {
   created_at: string;
 };
 
-type CanonicalAssetRow = { asset_id: string; code: string; name: string; asset_type: string | null; is_active: boolean };
+type CanonicalAssetRow = { id: string; asset_code: string; name: string; asset_type: string | null; is_active: boolean };
 
 type WorkOrderPayload = {
   canonicalAssetId?: string;
@@ -58,7 +58,7 @@ function mapWorkOrder(row: WorkOrderRow, asset?: CanonicalAssetRow | null) {
     ...row,
     asset_id: row.canonical_asset_id,
     asset_name: asset?.name || null,
-    asset_code: asset?.code || null,
+    asset_code: asset?.asset_code || null,
     asset_type: asset?.asset_type || null,
     progress_percentage: row.status === 'completed' ? 100 : row.status === 'in_progress' ? 50 : 0,
   };
@@ -67,15 +67,13 @@ function mapWorkOrder(row: WorkOrderRow, asset?: CanonicalAssetRow | null) {
 async function loadAssetMap(context: Awaited<ReturnType<typeof getOrganizationContext>> & { ok: true }, rows: WorkOrderRow[]) {
   const ids = [...new Set(rows.map((row) => row.canonical_asset_id).filter((id): id is string => Boolean(id)))];
   if (ids.length === 0) return new Map<string, CanonicalAssetRow>();
-
   const { data, error } = await context.supabase
     .from('maintenance_canonical_assets_v1')
-    .select('asset_id,code,name,asset_type,is_active')
+    .select('id,asset_code,name,asset_type,is_active')
     .eq('organization_id', context.organizationId)
-    .in('asset_id', ids);
-
+    .in('id', ids);
   if (error) throw error;
-  return new Map(((data || []) as CanonicalAssetRow[]).map((asset) => [asset.asset_id, asset]));
+  return new Map(((data || []) as CanonicalAssetRow[]).map((asset) => [asset.id, asset]));
 }
 
 export async function GET(request: NextRequest) {
@@ -109,12 +107,11 @@ export async function POST(request: NextRequest) {
     const canonicalAssetId = body.canonicalAssetId || body.canonical_asset_id;
     const assignedPersonId = body.assignedPersonId || body.assigned_person_id || null;
     if (!canonicalAssetId) return NextResponse.json({ error: 'Selecciona un activo canónico' }, { status: 400 });
-
     const { data: asset, error: assetError } = await context.supabase
       .from('maintenance_canonical_assets_v1')
-      .select('asset_id,code,name,asset_type,is_active')
+      .select('id,asset_code,name,asset_type,is_active')
       .eq('organization_id', context.organizationId)
-      .eq('asset_id', canonicalAssetId)
+      .eq('id', canonicalAssetId)
       .eq('is_active', true)
       .maybeSingle();
     if (assetError) throw assetError;
@@ -122,7 +119,7 @@ export async function POST(request: NextRequest) {
 
     let assignedPersonName = body.assignedToName || body.assigned_to_name || null;
     if (assignedPersonId) {
-      const { data: person, error: personError } = await context.supabase.from('people').select('id, full_name').eq('organization_id', context.organizationId).eq('id', assignedPersonId).eq('employment_status', 'active').maybeSingle();
+      const { data: person, error: personError } = await context.supabase.from('people').select('id,full_name').eq('organization_id', context.organizationId).eq('id', assignedPersonId).eq('employment_status', 'active').maybeSingle();
       if (personError) throw personError;
       if (!person) return NextResponse.json({ error: 'La persona seleccionada no está disponible' }, { status: 400 });
       assignedPersonName = person.full_name;
