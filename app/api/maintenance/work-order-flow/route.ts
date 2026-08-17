@@ -24,10 +24,10 @@ export async function GET(request: NextRequest) {
     const status = request.nextUrl.searchParams.get('status')?.trim();
     const includeLegacy = request.nextUrl.searchParams.get('includeLegacy') === 'true';
     const limit = Math.min(Math.max(Number(request.nextUrl.searchParams.get('limit') || 100), 1), 500);
+    const sourceView = includeLegacy ? 'maintenance_work_order_flow_v1' : 'maintenance_operational_work_order_flow_v1';
 
     let query = context.supabase
-      .schema('intelligence')
-      .from(includeLegacy ? 'work_order_flow' : 'operational_work_order_flow')
+      .from(sourceView)
       .select('*')
       .eq('organization_id', context.organizationId)
       .order('scheduled_date', { ascending: false, nullsFirst: false })
@@ -66,14 +66,10 @@ export async function GET(request: NextRequest) {
       purchaseCommitment: 0,
     });
 
-    return NextResponse.json({
-      rows,
-      overview,
-      legacyExcluded: !includeLegacy,
-      source: includeLegacy ? 'intelligence.work_order_flow' : 'intelligence.operational_work_order_flow',
-    });
+    return NextResponse.json({ rows, overview, legacyExcluded: !includeLegacy, source: `public.${sourceView}` });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudo cargar el flujo de órdenes de trabajo';
+    console.error('[maintenance/work-order-flow]', error);
     return NextResponse.json({ rows: [], error: message }, { status: 500 });
   }
 }
