@@ -32,12 +32,19 @@ type CanonicalOverview = {
     materialMovements: number;
     plantShifts: number;
     metallurgyResults: number;
+    metallurgyAssayed: number;
+    metallurgyPartial: number;
+    metallurgyNoAssay: number;
     concentrateShipments: number;
     reconciliationPending: number;
   };
   freshness: {
     latestMaterialMovementDate: string | null;
     latestPlantOperationDate: string | null;
+  };
+  dispatch: {
+    status: 'available' | 'pending_reconciliation';
+    note: string;
   };
   legacy: {
     produccionKpiIsCanonical: boolean;
@@ -64,6 +71,9 @@ export function ProduccionDashboard() {
     materialMovements: 0,
     plantShifts: 0,
     metallurgyResults: 0,
+    metallurgyAssayed: 0,
+    metallurgyPartial: 0,
+    metallurgyNoAssay: 0,
     concentrateShipments: 0,
     reconciliationPending: 0,
   };
@@ -93,9 +103,9 @@ export function ProduccionDashboard() {
       icon: Factory,
     },
     {
-      label: 'Resultados metalúrgicos',
+      label: 'Metalurgia determinística',
       value: counts.metallurgyResults.toLocaleString('es-CL'),
-      detail: 'Leyes, recuperación y finos trazables por turno',
+      detail: `${counts.metallurgyAssayed.toLocaleString('es-CL')} con ensayo · ${counts.metallurgyPartial.toLocaleString('es-CL')} parciales · ${counts.metallurgyNoAssay.toLocaleString('es-CL')} sin ensayo`,
       icon: Activity,
     },
     {
@@ -113,7 +123,7 @@ export function ProduccionDashboard() {
           <PageHeaderEyebrow>Operaciones · Fuente canónica</PageHeaderEyebrow>
           <PageHeaderTitle>Producción</PageHeaderTitle>
           <PageHeaderDescription>
-            Trazabilidad operacional desde el movimiento mina→planta hasta turno, metalurgia, concentrado y despacho. Los KPI legacy no se usan como fuente de verdad.
+            Trazabilidad operacional desde el movimiento mina→planta hasta turno y metalurgia. Dato observado, calculado y pendiente se mantienen separados; no se presentan KPI legacy como fuente oficial.
           </PageHeaderDescription>
         </PageHeaderContent>
         <PageHeaderActions>
@@ -195,8 +205,10 @@ export function ProduccionDashboard() {
                 <p className="mt-1 text-xs text-muted-foreground">Una diferencia de fecha se interpreta como latencia de evidencia, no como falla productiva.</p>
               </div>
               <div className="rounded-md bg-muted/40 p-4 sm:col-span-2">
-                <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">Regla de integridad</p>
-                <p className="mt-2 text-sm text-foreground">Dato observado, dato calculado y dato pendiente se mantienen separados. Las entidades históricas no se crean automáticamente desde texto libre y los KPI ejecutivos deben derivarse del modelo canónico.</p>
+                <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">Cobertura metalúrgica</p>
+                <p className="mt-2 text-sm text-foreground">
+                  Los {counts.plantShifts.toLocaleString('es-CL')} turnos de planta están representados en la vista determinística. Los turnos sin ensayo permanecen explícitamente sin ensayo; no se convierten a cero.
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -204,11 +216,13 @@ export function ProduccionDashboard() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Despachos de concentrado</CardTitle>
-              <CardDescription>Registros canónicos disponibles.</CardDescription>
+              <CardDescription>{data?.dispatch.status === 'available' ? 'Registros canónicos disponibles.' : 'Pendiente de conciliación histórica.'}</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-semibold">{isLoading ? '—' : counts.concentrateShipments.toLocaleString('es-CL')}</p>
-              <p className="mt-2 text-xs text-muted-foreground">Separados de la operación de turno para preservar el grano físico del proceso.</p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {data?.dispatch.note ?? 'La interfaz no mostrará despachos simulados.'}
+              </p>
             </CardContent>
           </Card>
         </div>
