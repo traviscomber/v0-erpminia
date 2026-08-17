@@ -12,6 +12,9 @@ export async function GET(request: NextRequest) {
     movements,
     plantShifts,
     metallurgy,
+    metallurgyAssayed,
+    metallurgyPartial,
+    metallurgyNoAssay,
     shipments,
     reconciliation,
     latestMovement,
@@ -31,9 +34,24 @@ export async function GET(request: NextRequest) {
       .select('id', { count: 'exact', head: true })
       .eq('organization_id', context.organizationId),
     context.supabase
-      .from('production_metallurgy_results')
-      .select('id', { count: 'exact', head: true })
+      .from('production_metallurgy_deterministic_v2')
+      .select('plant_shift_id', { count: 'exact', head: true })
       .eq('organization_id', context.organizationId),
+    context.supabase
+      .from('production_metallurgy_deterministic_v2')
+      .select('plant_shift_id', { count: 'exact', head: true })
+      .eq('organization_id', context.organizationId)
+      .eq('metallurgy_state', 'assayed'),
+    context.supabase
+      .from('production_metallurgy_deterministic_v2')
+      .select('plant_shift_id', { count: 'exact', head: true })
+      .eq('organization_id', context.organizationId)
+      .eq('metallurgy_state', 'partial'),
+    context.supabase
+      .from('production_metallurgy_deterministic_v2')
+      .select('plant_shift_id', { count: 'exact', head: true })
+      .eq('organization_id', context.organizationId)
+      .eq('metallurgy_state', 'no_assay'),
     context.supabase
       .from('production_concentrate_shipments')
       .select('id', { count: 'exact', head: true })
@@ -59,7 +77,20 @@ export async function GET(request: NextRequest) {
       .maybeSingle(),
   ]);
 
-  const errors = [batches.error, movements.error, plantShifts.error, metallurgy.error, shipments.error, reconciliation.error, latestMovement.error, latestPlant.error].filter(Boolean);
+  const errors = [
+    batches.error,
+    movements.error,
+    plantShifts.error,
+    metallurgy.error,
+    metallurgyAssayed.error,
+    metallurgyPartial.error,
+    metallurgyNoAssay.error,
+    shipments.error,
+    reconciliation.error,
+    latestMovement.error,
+    latestPlant.error,
+  ].filter(Boolean);
+
   if (errors.length) {
     return NextResponse.json({ error: errors[0]?.message || 'No fue posible leer Producción canónica' }, { status: 500 });
   }
@@ -70,12 +101,22 @@ export async function GET(request: NextRequest) {
       materialMovements: movements.count || 0,
       plantShifts: plantShifts.count || 0,
       metallurgyResults: metallurgy.count || 0,
+      metallurgyAssayed: metallurgyAssayed.count || 0,
+      metallurgyPartial: metallurgyPartial.count || 0,
+      metallurgyNoAssay: metallurgyNoAssay.count || 0,
       concentrateShipments: shipments.count || 0,
       reconciliationPending: reconciliation.count || 0,
     },
     freshness: {
       latestMaterialMovementDate: latestMovement.data?.movement_date || null,
       latestPlantOperationDate: latestPlant.data?.operation_date || null,
+    },
+    dispatch: {
+      status: (shipments.count || 0) > 0 ? 'available' : 'pending_reconciliation',
+      note:
+        (shipments.count || 0) > 0
+          ? 'Despachos canónicos disponibles.'
+          : 'La estructura canónica está preparada, pero los despachos históricos aún no han sido conciliados y no se muestran valores simulados.',
     },
     legacy: {
       produccionKpiIsCanonical: false,
