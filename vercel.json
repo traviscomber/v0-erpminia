@@ -1,6 +1,5 @@
 {
-  "installCommand": "pnpm install --no-frozen-lockfile",
-  "buildCommand": "node scripts/finalize-motil-movements.mjs && node .v0/inject-built-with-v0.mjs && next build",
+  "buildCommand": "node .v0/inject-built-with-v0.mjs && next build",
   "crons": [
     {
       "path": "/api/cron/maintenance-analytics-daily",
