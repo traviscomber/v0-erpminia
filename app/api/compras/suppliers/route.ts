@@ -12,11 +12,9 @@ export async function GET(request: NextRequest) {
     const pageSize = Math.min(Math.max(Number(request.nextUrl.searchParams.get('pageSize') || 50), 10), 100);
     const search = request.nextUrl.searchParams.get('search')?.trim() || '';
     const offset = page * pageSize;
-    const canonical = context.supabase.schema('canonical');
-    const intelligence = context.supabase.schema('intelligence');
 
-    let supplierQuery = canonical
-      .from('suppliers')
+    let supplierQuery = context.supabase
+      .from('canonical_suppliers_v1')
       .select('id, tax_id, legal_name, trade_name, business_activity, payment_terms, address, commune, region, country, phone, email, is_active, validation_status', { count: 'exact' })
       .eq('organization_id', context.organizationId)
       .order('legal_name')
@@ -31,7 +29,7 @@ export async function GET(request: NextRequest) {
 
     const supplierIds = (supplierResult.data || []).map((supplier) => supplier.id);
     const performanceResult = supplierIds.length
-      ? await intelligence
+      ? await context.supabase
           .from('supplier_performance')
           .select('supplier_id, purchase_order_count, distinct_product_count, total_spend, average_order_value, last_purchase_date, days_since_last_purchase, warning_order_count, match_status')
           .eq('organization_id', context.organizationId)
@@ -40,26 +38,18 @@ export async function GET(request: NextRequest) {
 
     if (performanceResult.error) throw performanceResult.error;
     const performanceBySupplier = new Map((performanceResult.data || []).map((row) => [row.supplier_id, row]));
-
-    const suppliers = (supplierResult.data || []).map((supplier) => ({
-      ...supplier,
-      performance: performanceBySupplier.get(supplier.id) || null,
-    }));
-
+    const suppliers = (supplierResult.data || []).map((supplier) => ({ ...supplier, performance: performanceBySupplier.get(supplier.id) || null }));
     const total = supplierResult.count || 0;
+
     return NextResponse.json({
       suppliers,
-      pagination: {
-        page,
-        pageSize,
-        total,
-        totalPages: Math.ceil(total / pageSize),
-      },
-      source: 'canonical.suppliers',
+      pagination: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) },
+      source: 'public.canonical_suppliers_v1',
       canonical: true,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No fue posible cargar proveedores';
+    console.error('[compras/suppliers]', error);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
