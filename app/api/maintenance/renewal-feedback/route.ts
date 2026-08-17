@@ -5,29 +5,8 @@ import { getOrganizationContext } from '@/lib/api/organization-context';
 
 type QueryError = { message: string } | null;
 type RangeResult<T> = PromiseLike<{ data: T[] | null; error: QueryError }>;
-type Validation = {
-  id: string;
-  evaluated_asset_id: string;
-  previous_asset_id: string;
-  result: string;
-  status: string;
-  reason: string;
-  evidence_reference: string | null;
-  evidence_snapshot: { comparableSources?: string[]; gaps?: string[] } | null;
-  approved_at: string | null;
-};
-type Feedback = {
-  id: string;
-  validation_id: string;
-  canonical_asset_id: string;
-  feedback_type: string;
-  status: string;
-  reason: string;
-  evidence_reference: string | null;
-  proposed_at: string;
-  decided_at: string | null;
-  decision_note: string | null;
-};
+type Validation = { id: string; evaluated_asset_id: string; previous_asset_id: string; result: string; status: string; reason: string; evidence_reference: string | null; evidence_snapshot: { comparableSources?: string[]; gaps?: string[] } | null; approved_at: string | null };
+type Feedback = { id: string; validation_id: string; canonical_asset_id: string; feedback_type: string; status: string; reason: string; evidence_reference: string | null; proposed_at: string; decided_at: string | null; decision_note: string | null };
 type Asset = { id: string; asset_code: string; name: string; asset_type: string | null; is_active: boolean };
 type Strategy = { id: string; canonical_asset_id: string; criticality_level: string; maintenance_strategy: string; status: string; reason: string };
 type Lifecycle = { id: string; canonical_asset_id: string; decision_type: string; status: string; reason: string; target_date: string | null };
@@ -51,13 +30,12 @@ async function fetchAll<T>(queryFactory: (from: number, to: number) => RangeResu
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
-  const canonical = context.supabase.schema('canonical');
 
   try {
     const [validations, feedback, assetsResult, strategies, lifecycle, preventives] = await Promise.all([
       fetchAll<Validation>((from, to) => context.supabase.from('asset_renewal_post_commissioning_validations').select('id,evaluated_asset_id,previous_asset_id,result,status,reason,evidence_reference,evidence_snapshot,approved_at').eq('organization_id', context.organizationId).eq('status', 'approved').order('approved_at', { ascending: false }).range(from, to)),
       fetchAll<Feedback>((from, to) => context.supabase.from('asset_renewal_verified_feedback').select('id,validation_id,canonical_asset_id,feedback_type,status,reason,evidence_reference,proposed_at,decided_at,decision_note').eq('organization_id', context.organizationId).order('updated_at', { ascending: false }).range(from, to)),
-      canonical.from('assets').select('id,asset_code,name,asset_type,is_active').eq('organization_id', context.organizationId).order('asset_code'),
+      context.supabase.from('maintenance_canonical_assets_v1').select('id,asset_code,name,asset_type,is_active').eq('organization_id', context.organizationId).order('asset_code'),
       fetchAll<Strategy>((from, to) => context.supabase.from('maintenance_asset_strategies').select('id,canonical_asset_id,criticality_level,maintenance_strategy,status,reason').eq('organization_id', context.organizationId).eq('status', 'approved').range(from, to)),
       fetchAll<Lifecycle>((from, to) => context.supabase.from('maintenance_asset_lifecycle_decisions').select('id,canonical_asset_id,decision_type,status,reason,target_date').eq('organization_id', context.organizationId).in('status', ['proposed', 'approved']).order('updated_at', { ascending: false }).range(from, to)),
       fetchAll<Preventive>((from, to) => context.supabase.from('preventive_maintenance_schedules').select('id,canonical_asset_id,task_name,enabled,frequency_days').eq('organization_id', context.organizationId).eq('enabled', true).range(from, to)),
@@ -112,6 +90,7 @@ export async function GET(request: NextRequest) {
       integrityRule: 'La retroalimentación registra una revisión humana trazable. Aceptarla no modifica automáticamente estrategia, preventivos ni decisiones de ciclo de vida.',
     });
   } catch (error) {
+    console.error('[maintenance/renewal-feedback:get]', error);
     return NextResponse.json({ error: error instanceof Error ? error.message : 'No se pudo cargar la retroalimentación de renovación.' }, { status: 500 });
   }
 }
@@ -130,26 +109,15 @@ export async function POST(request: NextRequest) {
   }
 
   const { data: validation } = await context.supabase.from('asset_renewal_post_commissioning_validations')
-    .select('id,evaluated_asset_id,status')
-    .eq('organization_id', context.organizationId)
-    .eq('id', validationId)
-    .maybeSingle();
+    .select('id,evaluated_asset_id,status').eq('organization_id', context.organizationId).eq('id', validationId).maybeSingle();
   if (!validation || validation.status !== 'approved') return NextResponse.json({ error: 'Solo una validación aprobada puede originar retroalimentación.' }, { status: 409 });
 
-  const { data: asset } = await context.supabase.schema('canonical').from('assets')
-    .select('id')
-    .eq('organization_id', context.organizationId)
-    .eq('id', validation.evaluated_asset_id)
-    .maybeSingle();
+  const { data: asset } = await context.supabase.from('maintenance_canonical_assets_v1')
+    .select('id').eq('organization_id', context.organizationId).eq('id', validation.evaluated_asset_id).maybeSingle();
   if (!asset) return NextResponse.json({ error: 'El activo evaluado ya no está disponible en el modelo canónico.' }, { status: 409 });
 
   const { data: existing } = await context.supabase.from('asset_renewal_verified_feedback')
-    .select('id,status')
-    .eq('organization_id', context.organizationId)
-    .eq('validation_id', validation.id)
-    .eq('feedback_type', feedbackType)
-    .in('status', ['proposed', 'accepted'])
-    .maybeSingle();
+    .select('id,status').eq('organization_id', context.organizationId).eq('validation_id', validation.id).eq('feedback_type', feedbackType).in('status', ['proposed', 'accepted']).maybeSingle();
   if (existing) return NextResponse.json({ error: 'Ya existe una propuesta activa de este tipo para la validación.' }, { status: 409 });
 
   const { data, error } = await context.supabase.from('asset_renewal_verified_feedback').insert({
@@ -176,23 +144,14 @@ export async function PATCH(request: NextRequest) {
   if (!id || !['accepted', 'discarded', 'inactive'].includes(status)) return NextResponse.json({ error: 'Estado de retroalimentación inválido.' }, { status: 400 });
   if (['accepted', 'discarded'].includes(status) && !decisionNote) return NextResponse.json({ error: 'La decisión humana requiere una nota explícita.' }, { status: 400 });
 
-  const { data: existing } = await context.supabase.from('asset_renewal_verified_feedback')
-    .select('id,status')
-    .eq('organization_id', context.organizationId)
-    .eq('id', id)
-    .maybeSingle();
+  const { data: existing } = await context.supabase.from('asset_renewal_verified_feedback').select('id,status').eq('organization_id', context.organizationId).eq('id', id).maybeSingle();
   if (!existing) return NextResponse.json({ error: 'Retroalimentación no encontrada.' }, { status: 404 });
   if (['accepted', 'discarded'].includes(status) && existing.status !== 'proposed') return NextResponse.json({ error: 'Solo una propuesta pendiente puede aceptarse o descartarse.' }, { status: 409 });
   if (status === 'inactive' && existing.status !== 'accepted') return NextResponse.json({ error: 'Solo una retroalimentación aceptada puede inactivarse.' }, { status: 409 });
 
   const now = new Date().toISOString();
-  const updates = status === 'inactive'
-    ? { status, updated_at: now }
-    : { status, decision_note: decisionNote, decided_by: context.userId, decided_at: now, updated_at: now };
-  const { error } = await context.supabase.from('asset_renewal_verified_feedback')
-    .update(updates)
-    .eq('organization_id', context.organizationId)
-    .eq('id', id);
+  const updates = status === 'inactive' ? { status, updated_at: now } : { status, decision_note: decisionNote, decided_by: context.userId, decided_at: now, updated_at: now };
+  const { error } = await context.supabase.from('asset_renewal_verified_feedback').update(updates).eq('organization_id', context.organizationId).eq('id', id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true, status });
 }
