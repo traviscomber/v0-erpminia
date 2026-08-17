@@ -28,11 +28,10 @@ function validDate(value: unknown) {
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
-  const canonical = context.supabase.schema('canonical');
 
   try {
     const [assetsResult, decisions, workOrders, costs, strategies, preventives, parts] = await Promise.all([
-      canonical.from('assets').select('id,asset_code,name,asset_type,category,manufacturer,model,is_active,source_payload').eq('organization_id', context.organizationId).eq('is_active', true).order('asset_code'),
+      context.supabase.from('maintenance_canonical_assets_v1').select('id,asset_code,name,asset_type,category,manufacturer,model,is_active,source_payload').eq('organization_id', context.organizationId).eq('is_active', true).order('asset_code'),
       fetchAll((from, to) => context.supabase.from('maintenance_asset_lifecycle_decisions').select('*').eq('organization_id', context.organizationId).order('updated_at', { ascending: false }).range(from, to)),
       fetchAll((from, to) => context.supabase.from('maintenance_work_orders').select('id,canonical_asset_id,work_type,status,scheduled_date,start_date,completion_date,down_time_hours,root_cause,external_cost').eq('organization_id', context.organizationId).range(from, to)),
       fetchAll((from, to) => context.supabase.from('work_order_cost_summary').select('work_order_id,canonical_asset_id,total_cost,parts_cost,labor_cost,external_cost').eq('organization_id', context.organizationId).range(from, to)),
@@ -94,6 +93,7 @@ export async function GET(request: NextRequest) {
       generatedAt: new Date().toISOString(),
     });
   } catch (error) {
+    console.error('[maintenance/asset-lifecycle:get]', error);
     return NextResponse.json({ error: error instanceof Error ? error.message : 'No se pudo cargar el ciclo de vida de activos.' }, { status: 500 });
   }
 }
@@ -109,8 +109,7 @@ export async function POST(request: NextRequest) {
   const targetDate = validDate(body?.targetDate);
   if (!assetCode || !['maintain','repair','rebuild','replace','retire'].includes(decisionType) || !reason) return NextResponse.json({ error: 'Completa equipo, decisión y fundamento.' }, { status: 400 });
 
-  const canonical = context.supabase.schema('canonical');
-  const { data: asset } = await canonical.from('assets').select('id').eq('organization_id', context.organizationId).eq('asset_code', assetCode).eq('is_active', true).maybeSingle();
+  const { data: asset } = await context.supabase.from('maintenance_canonical_assets_v1').select('id').eq('organization_id', context.organizationId).eq('asset_code', assetCode).eq('is_active', true).maybeSingle();
   if (!asset) return NextResponse.json({ error: 'Equipo canónico activo no encontrado.' }, { status: 404 });
   const { data: existing } = await context.supabase.from('maintenance_asset_lifecycle_decisions').select('id,status').eq('organization_id', context.organizationId).eq('canonical_asset_id', asset.id).in('status', ['proposed','approved']).maybeSingle();
   if (existing?.status === 'approved') return NextResponse.json({ error: 'El equipo ya tiene una decisión aprobada. Inactívala antes de proponer otra.' }, { status: 409 });
