@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart3, BookOpenCheck, ClipboardCheck, FileArchive, GraduationCap, HardHat, ShieldCheck } from 'lucide-react';
+import { BarChart3, BookOpenCheck, ClipboardCheck, FileArchive, GraduationCap, HardHat, ShieldCheck, BadgeDollarSign } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const items = [
@@ -12,6 +12,7 @@ const items = [
   { href: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones', label: 'Inspecciones', icon: ClipboardCheck },
   { href: '/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones', label: 'Capacitaciones', icon: GraduationCap },
   { href: '/dashboard/sostenibilidad/prevencion-riesgos/epp', label: 'EPP', icon: HardHat },
+  { href: '/dashboard/sostenibilidad/prevencion-riesgos/epp/diagnostico', label: 'Diagnóstico EPP', icon: BadgeDollarSign },
   { href: '/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse', label: 'Documentos', icon: BookOpenCheck },
   { href: '/dashboard/sostenibilidad/prevencion-riesgos/carpeta-arranque', label: 'Carpeta de arranque', icon: FileArchive },
 ];
@@ -35,7 +36,9 @@ export default function RiskPreventionLayout({ children }: { children: ReactNode
             const Icon = item.icon;
             const active = item.href === '/dashboard/sostenibilidad/prevencion-riesgos'
               ? pathname === item.href
-              : pathname === item.href || pathname.startsWith(`${item.href}/`);
+              : item.href === '/dashboard/sostenibilidad/prevencion-riesgos/epp'
+                ? pathname === item.href || pathname === `${item.href}/importar`
+                : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
             return (
               <Link
