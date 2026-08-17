@@ -1,8 +1,6 @@
 import { MODULE_KEYS } from '@/lib/api/module-access';
 
-// Labels legibles + agrupacion para el editor de matriz.
 export const MODULE_DEFS = [
-  // HSEC
   { key: MODULE_KEYS.HSE_TABLERO, label: 'Tablero HSE', group: 'HSEC' },
   { key: MODULE_KEYS.HSE_KPLS, label: 'KPIs Prevencion', group: 'HSEC' },
   { key: MODULE_KEYS.HSE_RIESGOS, label: 'Prevencion de Riesgos', group: 'HSEC' },
@@ -12,36 +10,34 @@ export const MODULE_DEFS = [
   { key: MODULE_KEYS.HSE_CAPACITACIONES, label: 'Capacitaciones', group: 'HSEC' },
   { key: MODULE_KEYS.HSE_DOCUMENTACION, label: 'Documentos Prevencion', group: 'HSEC' },
   { key: MODULE_KEYS.HSE_DOCUMENTOS_EXTRA, label: 'Documentos HSE', group: 'HSEC' },
-  // Sostenibilidad
   { key: MODULE_KEYS.SOS_TABLERO, label: 'Tablero Sostenibilidad', group: 'Sostenibilidad' },
   { key: MODULE_KEYS.SOS_CALENDARIO, label: 'Calendario + Inspecciones + Carpeta Arranque', group: 'Sostenibilidad' },
   { key: MODULE_KEYS.SOS_MEDIO_AMBIENTE, label: 'Medio Ambiente', group: 'Sostenibilidad' },
   { key: MODULE_KEYS.SOS_COMUNIDADES, label: 'Comunidades', group: 'Sostenibilidad' },
   { key: MODULE_KEYS.SOS_DOCUMENTOS, label: 'Flujo Documental + Reporteria', group: 'Sostenibilidad' },
-  // Mantenimiento
   { key: MODULE_KEYS.MANT_OPERACIONES, label: 'Operaciones + CC + Bitacora + OT', group: 'Mantenimiento' },
   { key: MODULE_KEYS.MANT_GERENCIAL, label: 'Dashboard Gerencial + Indicadores', group: 'Mantenimiento' },
   { key: MODULE_KEYS.MANT_RECURSOS, label: 'Personal + Combustible + Costos + Neumaticos', group: 'Mantenimiento' },
   { key: MODULE_KEYS.MANT_DOCUMENTOS, label: 'Documentos + Maquinaria', group: 'Mantenimiento' },
-  // Bodega
   { key: MODULE_KEYS.BODEGA_INVENTARIO, label: 'Bodega e Inventario', group: 'Bodega' },
   { key: MODULE_KEYS.BODEGA_DOCUMENTOS, label: 'Documentos Bodega', group: 'Bodega' },
-  // Finanzas
   { key: MODULE_KEYS.FIN_COMPRAS, label: 'Compras y OCs', group: 'Finanzas' },
   { key: MODULE_KEYS.FIN_FINANZAS, label: 'Finanzas y Presupuesto', group: 'Finanzas' },
   { key: MODULE_KEYS.FIN_REPORTES, label: 'Reportes y Analisis', group: 'Finanzas' },
-  // Legal / Contratos
   { key: MODULE_KEYS.LEGAL_MODULO, label: 'Modulo Legal', group: 'Legal' },
   { key: MODULE_KEYS.LEGAL_CONTRATOS, label: 'Gestion Documental + Contratos', group: 'Legal' },
   { key: MODULE_KEYS.LEGAL_EECC, label: 'Empresas Contratistas (EECC)', group: 'Legal' },
-  // Contratos (acciones del portal)
   { key: MODULE_KEYS.CONTRATOS_SOLICITAR_LINK, label: 'Solicitar Link', group: 'Contratos' },
   { key: MODULE_KEYS.CONTRATOS_SUBIR_INFO, label: 'Subir Informacion', group: 'Contratos' },
   { key: MODULE_KEYS.CONTRATOS_APROBAR, label: 'Aprobar Documentacion', group: 'Contratos' },
   { key: MODULE_KEYS.CONTRATOS_AUTORIZAR, label: 'Autorizar Empresa', group: 'Contratos' },
   { key: MODULE_KEYS.CONTRATOS_VISUALIZACION, label: 'Visualizacion', group: 'Contratos' },
-  // Produccion / Core
-  { key: MODULE_KEYS.PROD_OPERACIONES, label: 'Produccion', group: 'Produccion' },
+  { key: MODULE_KEYS.PROD_OPERACIONES, label: 'Transporte de Mineral + Planta / Metalurgia', group: 'Produccion' },
+  { key: MODULE_KEYS.PROD_GEOLOGIA, label: 'Geologia', group: 'Produccion' },
+  { key: MODULE_KEYS.PROD_TOPOGRAFIA, label: 'Topografia', group: 'Produccion' },
+  { key: MODULE_KEYS.PROD_QUIMICA, label: 'Quimica', group: 'Produccion' },
+  { key: MODULE_KEYS.PROD_SONDAJE_EXPLORACION, label: 'Sondaje de Exploracion', group: 'Produccion' },
+  { key: MODULE_KEYS.PROD_SONDAJE_PRODUCCION, label: 'Sondaje de Produccion', group: 'Produccion' },
   { key: MODULE_KEYS.PROD_TELEMETRIA, label: 'Telemetria de Sensores', group: 'Produccion' },
   { key: MODULE_KEYS.CORE_ALERTAS, label: 'Alertas', group: 'Core' },
   { key: MODULE_KEYS.CORE_CENTROS_COSTOS, label: 'Centros de Costos', group: 'Core' },
