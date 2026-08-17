@@ -37,6 +37,6 @@ export async function PATCH(request: NextRequest) {
   const {data:profile}=await supabase.from('profiles').select('role,cargos(name)').eq('id',auth.user.id).maybeSingle();
   const cargoName=(profile as any)?.cargos?.name||''; const role=(profile as any)?.role||auth.role||'';
   if(!(['JEFE BODEGA','JEFE ADM.','GERENTE','SUBGERENTE OP.'].includes(cargoName)||['admin','superadmin'].includes(role))) return NextResponse.json({error:'No autorizado para aprobar proveedores'},{status:403});
-  const {data,error}=await supabase.rpc('approve_procurement_supplier_candidate',{p_candidate_id:body.id,p_approve:Boolean(body.approve),p_reason:body.reason||null});
+  const {data,error}=await supabase.rpc('approve_procurement_supplier_candidate_as',{p_actor_id:auth.user.id,p_candidate_id:body.id,p_approve:Boolean(body.approve),p_reason:body.reason||null});
   if(error)return NextResponse.json({error:error.message},{status:400}); return NextResponse.json({supplierId:data});
 }
