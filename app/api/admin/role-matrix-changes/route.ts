@@ -4,9 +4,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/api/guard';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 
-export async function GET(request: NextRequest) {
+function unauthorizedResponse(response: Response | null) {
+  return response ?? NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+}
+
+export async function GET(request: NextRequest): Promise<Response> {
   const auth = await requireAuth(request);
-  if (!auth.authorized || !auth.user || !auth.organizationId) return auth.response;
+  if (!auth.authorized || !auth.user || !auth.organizationId) return unauthorizedResponse(auth.response);
   const supabase = getSupabaseServerClient();
   const [{ data: profile }, { data: requests, error }] = await Promise.all([
     supabase.from('profiles').select('role,cargo_id,cargos(name)').eq('id', auth.user.id).maybeSingle(),
@@ -21,15 +25,15 @@ export async function GET(request: NextRequest) {
       id: auth.user.id,
       cargoName,
       role,
-      canApproveArea: String(cargoName).toUpperCase().startsWith('JEFE ') || ['admin','superadmin'].includes(role),
-      canApproveManagement: ['GERENTE','SUBGERENTE OP.'].includes(cargoName) || ['admin','superadmin'].includes(role),
+      canApproveArea: String(cargoName).toUpperCase().startsWith('JEFE ') || ['admin', 'superadmin'].includes(role),
+      canApproveManagement: ['GERENTE', 'SUBGERENTE OP.'].includes(cargoName) || ['admin', 'superadmin'].includes(role),
     },
   });
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<Response> {
   const auth = await requireAuth(request);
-  if (!auth.authorized || !auth.user || !auth.organizationId) return auth.response;
+  if (!auth.authorized || !auth.user || !auth.organizationId) return unauthorizedResponse(auth.response);
   const body = await request.json().catch(() => ({}));
   const { cargoId, moduleKey, accessLevel, operation = 'upsert', reason } = body;
   if (!cargoId || !moduleKey || !reason) return NextResponse.json({ error: 'cargoId, moduleKey y motivo son obligatorios' }, { status: 400 });
@@ -47,9 +51,9 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ id: data, status: 'pending_area_manager' }, { status: 201 });
 }
 
-export async function PATCH(request: NextRequest) {
+export async function PATCH(request: NextRequest): Promise<Response> {
   const auth = await requireAuth(request);
-  if (!auth.authorized || !auth.user) return auth.response;
+  if (!auth.authorized || !auth.user) return unauthorizedResponse(auth.response);
   const body = await request.json().catch(() => ({}));
   const { requestId, stage, approve, reason } = body;
   if (!requestId || !stage || typeof approve !== 'boolean') return NextResponse.json({ error: 'requestId, stage y approve son obligatorios' }, { status: 400 });
