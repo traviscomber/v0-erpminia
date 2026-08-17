@@ -20,11 +20,10 @@ async function fetchAll(queryFactory: (from: number, to: number) => any) {
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
-  const canonical = context.supabase.schema('canonical');
 
   try {
     const [assetsResult, strategies, preventive, bom, plans, telemetry, criticalSpareRows] = await Promise.all([
-      canonical.from('assets').select('id,asset_code,name,asset_type,category,manufacturer,model,is_active').eq('organization_id', context.organizationId).eq('is_active', true).order('asset_code'),
+      context.supabase.from('maintenance_canonical_assets_v1').select('id,asset_code,name,asset_type,category,manufacturer,model,is_active').eq('organization_id', context.organizationId).eq('is_active', true).order('asset_code'),
       fetchAll((from, to) => context.supabase.from('maintenance_asset_strategies').select('*').eq('organization_id', context.organizationId).order('updated_at', { ascending: false }).range(from, to)),
       fetchAll((from, to) => context.supabase.from('preventive_maintenance_schedules').select('id,canonical_asset_id,enabled').eq('organization_id', context.organizationId).eq('enabled', true).range(from, to)),
       fetchAll((from, to) => context.supabase.from('equipment_technical_bom_lines').select('id,canonical_asset_id,canonical_product_id,status').eq('organization_id', context.organizationId).eq('status', 'approved').range(from, to)),
@@ -36,9 +35,7 @@ export async function GET(request: NextRequest) {
     if (assetsResult.error) throw assetsResult.error;
     const assets = assetsResult.data || [];
     const strategyByAsset = new Map<string, any>();
-    for (const row of strategies) {
-      if (!strategyByAsset.has(row.canonical_asset_id)) strategyByAsset.set(row.canonical_asset_id, row);
-    }
+    for (const row of strategies) if (!strategyByAsset.has(row.canonical_asset_id)) strategyByAsset.set(row.canonical_asset_id, row);
     const preventiveCount = new Map<string, number>();
     for (const row of preventive) if (row.canonical_asset_id) preventiveCount.set(row.canonical_asset_id, (preventiveCount.get(row.canonical_asset_id) || 0) + 1);
     const bomByAsset = new Map<string, any[]>();
@@ -91,6 +88,7 @@ export async function GET(request: NextRequest) {
       generatedAt: new Date().toISOString(),
     });
   } catch (error) {
+    console.error('[maintenance/asset-strategies:get]', error);
     return NextResponse.json({ error: error instanceof Error ? error.message : 'No se pudo evaluar la estrategia de mantenimiento.' }, { status: 500 });
   }
 }
@@ -109,8 +107,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Completa equipo, criticidad, estrategia y fundamento.' }, { status: 400 });
   }
 
-  const canonical = context.supabase.schema('canonical');
-  const { data: asset } = await canonical.from('assets').select('id,asset_code,name').eq('organization_id', context.organizationId).eq('asset_code', assetCode).eq('is_active', true).maybeSingle();
+  const { data: asset } = await context.supabase.from('maintenance_canonical_assets_v1').select('id,asset_code,name').eq('organization_id', context.organizationId).eq('asset_code', assetCode).eq('is_active', true).maybeSingle();
   if (!asset) return NextResponse.json({ error: 'No existe un equipo canónico activo con ese código.' }, { status: 404 });
 
   const { data: existing } = await context.supabase.from('maintenance_asset_strategies').select('id,status').eq('organization_id', context.organizationId).eq('canonical_asset_id', asset.id).in('status', ['proposed','approved']).maybeSingle();
