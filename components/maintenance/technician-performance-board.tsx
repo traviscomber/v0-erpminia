@@ -2,33 +2,24 @@
 
 import useSWR from 'swr';
 import { useState } from 'react';
-import {
-  Award,
-  CheckCircle2,
-  Clock,
-  AlertTriangle,
-  Wrench,
-  TrendingUp,
-  ChevronDown,
-  ChevronUp,
-} from 'lucide-react';
+import { Award, CheckCircle2, Clock, AlertTriangle, Wrench, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { StatePanel } from '@/components/ui/state-panel';
 
-const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((r) => r.json());
+const fetcher = async (url: string) => {
+  const response = await fetch(url, { credentials: 'include' });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(payload?.error || 'No se pudo cargar el desempeño del personal');
+  return payload;
+};
 
-type Technician = {
+type MaintenanceWorker = {
   name: string;
   cargo: string;
+  workerType: 'Mecánico' | 'Operario';
   total: number;
   completed: number;
   inProgress: number;
@@ -50,12 +41,15 @@ type Summary = {
   completedWorkOrders: number;
   completionRate: number;
   avgMTTR: number;
-  activeTechnicians: number;
+  activeWorkers: number;
+  mechanics: number;
+  operators: number;
+  unclassifiedAssignments: number;
   periodDays: number;
 };
 
 type PerformanceResponse = {
-  technicians: Technician[];
+  workers: MaintenanceWorker[];
   summary: Summary;
 };
 
@@ -71,229 +65,110 @@ function scoreLabel(score: number) {
   return 'Bajo';
 }
 
-function TechRow({ tech, rank }: { tech: Technician; rank: number }) {
+function WorkerRow({ worker, rank }: { worker: MaintenanceWorker; rank: number }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="rounded-lg border border-border bg-card">
-      <button
-        className="flex w-full items-center gap-3 px-4 py-3 text-left"
-        onClick={() => setOpen((v) => !v)}
-      >
-        {/* Rank */}
+    <div className="border-b last:border-b-0">
+      <button className="flex w-full items-center gap-3 px-1 py-3 text-left" onClick={() => setOpen((value) => !value)}>
         <span className="w-6 shrink-0 text-center text-sm font-bold text-muted-foreground">
-          {rank === 1 ? <Award className="mx-auto h-4 w-4 text-yellow-500" /> : rank}
+          {rank === 1 ? <Award className="mx-auto h-4 w-4" /> : rank}
         </span>
-
-        {/* Name and Cargo */}
-        <div className="flex-1">
-          <span className="font-medium block">{tech.name}</span>
-          <span className="text-xs text-muted-foreground">{tech.cargo}</span>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-medium">{worker.name}</span>
+            <Badge variant="outline">{worker.workerType}</Badge>
+          </div>
+          <span className="block truncate text-xs text-muted-foreground">{worker.cargo}</span>
         </div>
-
-        {/* Score */}
-        <span className={`text-xl font-bold tabular-nums ${scoreColor(tech.performanceScore)}`}>
-          {tech.performanceScore}
-        </span>
-        <span className={`hidden text-xs sm:block ${scoreColor(tech.performanceScore)}`}>
-          {scoreLabel(tech.performanceScore)}
-        </span>
-
-        {/* Quick stats */}
+        <span className={`text-xl font-bold tabular-nums ${scoreColor(worker.performanceScore)}`}>{worker.performanceScore}</span>
+        <span className={`hidden text-xs sm:block ${scoreColor(worker.performanceScore)}`}>{scoreLabel(worker.performanceScore)}</span>
         <div className="hidden items-center gap-4 text-sm md:flex">
-          <span className="flex items-center gap-1 text-muted-foreground">
-            <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-            {tech.completed}/{tech.total}
-          </span>
-          {tech.overdue > 0 && (
-            <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
-              <AlertTriangle className="h-3.5 w-3.5" />
-              {tech.overdue} vencidas
-            </span>
-          )}
+          <span className="flex items-center gap-1 text-muted-foreground"><CheckCircle2 className="h-3.5 w-3.5" />{worker.completed}/{worker.total}</span>
+          {worker.overdue > 0 ? <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400"><AlertTriangle className="h-3.5 w-3.5" />{worker.overdue} vencidas</span> : null}
         </div>
-
         {open ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
       </button>
 
-      {open && (
-        <div className="border-t border-border px-4 pb-4 pt-3">
-          {/* Completion bar */}
+      {open ? (
+        <div className="border-t px-9 pb-4 pt-3">
           <div className="mb-4 space-y-1">
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Tasa de completacion</span>
-              <span>{tech.completionRate}%</span>
-            </div>
-            <Progress value={tech.completionRate} className="h-2" />
+            <div className="flex justify-between text-xs text-muted-foreground"><span>Tasa de completación</span><span>{worker.completionRate}%</span></div>
+            <Progress value={worker.completionRate} className="h-2" />
           </div>
-
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div className="rounded-md border border-border p-3">
-              <p className="text-xs text-muted-foreground">OT completadas</p>
-              <p className="mt-1 text-2xl font-bold">{tech.completed}</p>
-            </div>
-            <div className="rounded-md border border-border p-3">
-              <p className="text-xs text-muted-foreground">En progreso</p>
-              <p className="mt-1 text-2xl font-bold text-blue-600 dark:text-blue-400">{tech.inProgress}</p>
-            </div>
-            <div className="rounded-md border border-border p-3">
-              <p className="text-xs text-muted-foreground">Vencidas</p>
-              <p className={`mt-1 text-2xl font-bold ${tech.overdue > 0 ? 'text-amber-600 dark:text-amber-400' : ''}`}>
-                {tech.overdue}
-              </p>
-            </div>
-            <div className="rounded-md border border-border p-3">
-              <p className="text-xs text-muted-foreground">Criticas resueltas</p>
-              <p className="mt-1 text-2xl font-bold text-green-600 dark:text-green-400">{tech.criticalCompleted}</p>
-            </div>
+          <div className="grid gap-px overflow-hidden rounded-md border bg-border sm:grid-cols-4">
+            {[
+              ['OT completadas', worker.completed],
+              ['En progreso', worker.inProgress],
+              ['Vencidas', worker.overdue],
+              ['Críticas resueltas', worker.criticalCompleted],
+            ].map(([label, value]) => <div key={label} className="bg-card p-3"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-xl font-semibold">{value}</p></div>)}
           </div>
-
-          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <div className="rounded-md border border-border p-3">
-              <p className="text-xs text-muted-foreground">Horas reales</p>
-              <p className="mt-1 font-semibold">{tech.totalActualHours} h</p>
-              <p className="text-xs text-muted-foreground">Planificadas: {tech.totalPlannedHours} h</p>
-            </div>
-            <div className="rounded-md border border-border p-3">
-              <p className="text-xs text-muted-foreground">Eficiencia promedio</p>
-              <p className={`mt-1 font-semibold ${tech.avgEfficiency >= 100 ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}`}>
-                {tech.avgEfficiency}%
-              </p>
-              <p className="text-xs text-muted-foreground">Planificado / real</p>
-            </div>
-            <div className="rounded-md border border-border p-3">
-              <p className="text-xs text-muted-foreground">Distribucion de trabajo</p>
-              <div className="mt-1 flex flex-wrap gap-1">
-                {tech.preventive > 0 && <Badge variant="secondary" className="text-xs">{tech.preventive} prev</Badge>}
-                {tech.corrective > 0 && <Badge variant="outline" className="text-xs">{tech.corrective} corr</Badge>}
-                {tech.predictive > 0 && <Badge variant="outline" className="text-xs">{tech.predictive} pred</Badge>}
-              </div>
-            </div>
+          <div className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
+            <div><p className="text-xs text-muted-foreground">Horas reales</p><p className="font-medium">{worker.totalActualHours} h</p><p className="text-xs text-muted-foreground">Planificadas: {worker.totalPlannedHours} h</p></div>
+            <div><p className="text-xs text-muted-foreground">Eficiencia promedio</p><p className="font-medium">{worker.avgEfficiency}%</p><p className="text-xs text-muted-foreground">Planificado / real</p></div>
+            <div><p className="text-xs text-muted-foreground">Distribución</p><div className="mt-1 flex flex-wrap gap-1">{worker.preventive > 0 ? <Badge variant="secondary">{worker.preventive} prev</Badge> : null}{worker.corrective > 0 ? <Badge variant="outline">{worker.corrective} corr</Badge> : null}{worker.predictive > 0 ? <Badge variant="outline">{worker.predictive} pred</Badge> : null}</div></div>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
 
-export function TechnicianPerformanceBoard() {
+export function MaintenancePersonnelPerformanceBoard() {
   const [days, setDays] = useState('60');
-  const { data, isLoading, error } = useSWR<PerformanceResponse>(
-    `/api/maintenance/technicians/performance?days=${days}`,
-    fetcher,
-    { revalidateOnFocus: false }
-  );
-
-  const technicians = data?.technicians ?? [];
+  const { data, isLoading, error } = useSWR<PerformanceResponse>(`/api/maintenance/technicians/performance?days=${days}`, fetcher, { revalidateOnFocus: false });
+  const workers = data?.workers ?? [];
   const summary = data?.summary;
 
+  if (isLoading) return <StatePanel tone="loading" title="Cargando desempeño" description="Reuniendo órdenes y cargos de la matriz vigente." />;
+  if (error) return <StatePanel tone="error" title="No se pudo cargar el desempeño" description={error instanceof Error ? error.message : 'Reintenta la consulta.'} />;
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-4">
+    <div className="space-y-5">
+      <div className="flex flex-col gap-3 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Desempeno de tecnicos</h1>
-          <p className="mt-1 text-muted-foreground">
-            Analisis de rendimiento por tecnico basado en ordenes de trabajo reales.
-          </p>
+          <h2 className="text-base font-semibold">Desempeño por persona</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Sólo mecánicos y operarios con cargo identificable en la matriz.</p>
         </div>
         <Select value={days} onValueChange={setDays}>
-          <SelectTrigger className="w-44">
-            <SelectValue />
-          </SelectTrigger>
+          <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="30">Ultimos 30 dias</SelectItem>
-            <SelectItem value="60">Ultimos 60 dias</SelectItem>
-            <SelectItem value="90">Ultimos 90 dias</SelectItem>
-            <SelectItem value="180">Ultimos 6 meses</SelectItem>
-            <SelectItem value="365">Ultimo ano</SelectItem>
+            <SelectItem value="30">Últimos 30 días</SelectItem><SelectItem value="60">Últimos 60 días</SelectItem><SelectItem value="90">Últimos 90 días</SelectItem><SelectItem value="180">Últimos 6 meses</SelectItem><SelectItem value="365">Último año</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      {/* Fleet summary cards */}
-      {summary && (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Tecnicos activos</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">{summary.activeTechnicians}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">OT en el periodo</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">{summary.totalWorkOrders}</p>
-              <p className="text-xs text-muted-foreground">{summary.completedWorkOrders} completadas</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Tasa de completacion</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">{summary.completionRate}%</p>
-              <Progress value={summary.completionRate} className="mt-2 h-1.5" />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-                <Clock className="h-3.5 w-3.5" />
-                MTTR promedio
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">{summary.avgMTTR} h</p>
-              <p className="text-xs text-muted-foreground">Tiempo medio de reparacion</p>
-            </CardContent>
-          </Card>
+      {summary ? (
+        <div className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-5">
+          {[
+            ['Personal activo', summary.activeWorkers],
+            ['Mecánicos', summary.mechanics],
+            ['Operarios', summary.operators],
+            ['OT evaluadas', summary.totalWorkOrders],
+            ['Completación', `${summary.completionRate}%`],
+          ].map(([label, value]) => <div key={label} className="bg-card px-4 py-3"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-xl font-semibold">{value}</p></div>)}
         </div>
-      )}
+      ) : null}
 
-      {/* Ranking */}
-      <Card>
+      {summary?.unclassifiedAssignments ? (
+        <StatePanel tone="neutral" title="Asignaciones por clasificar" description={`${summary.unclassifiedAssignments} OT tienen una persona asignada cuyo cargo no permite identificarla como mecánico u operario. No se incluyen en el ranking hasta corregir su cargo en la matriz/perfil.`} />
+      ) : null}
+
+      <Card className="shadow-none">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
-            Ranking de desempeno
-          </CardTitle>
-          <CardDescription>
-            Puntaje calculado: 60% tasa completacion + 20% eficiencia de horas + 20% OT criticas resueltas.
-            Haz clic en un tecnico para ver el detalle.
-          </CardDescription>
+          <CardTitle className="flex items-center gap-2 text-base"><TrendingUp className="h-4 w-4" />Ranking de desempeño</CardTitle>
+          <CardDescription>Puntaje: 60% completación + 20% eficiencia de horas + 20% trabajos críticos resueltos.</CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoading && (
-            <p className="text-sm text-muted-foreground">Cargando datos...</p>
-          )}
-          {error && (
-            <p className="text-sm text-destructive">No se pudo cargar el desempeno de tecnicos.</p>
-          )}
-          {!isLoading && !error && technicians.length === 0 && (
-            <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-              No hay ordenes de trabajo con tecnico asignado en el periodo seleccionado.
-            </div>
-          )}
-          {!isLoading && technicians.length > 0 && (
-            <div className="space-y-2">
-              {technicians.map((tech, idx) => (
-                <TechRow key={tech.name} tech={tech} rank={idx + 1} />
-              ))}
-            </div>
-          )}
+          {workers.length === 0 ? <StatePanel tone="neutral" title="Sin mecánicos u operarios evaluables" description="No existen OT del período vinculadas a personas con un cargo de mecánico u operario identificable." /> : <div className="border-y">{workers.map((worker, index) => <WorkerRow key={`${worker.name}-${worker.cargo}`} worker={worker} rank={index + 1} />)}</div>}
         </CardContent>
       </Card>
 
-      {/* Work type legend */}
       <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
-        <span className="flex items-center gap-1"><Wrench className="h-3 w-3" /> prev = preventivo</span>
-        <span className="flex items-center gap-1"><Wrench className="h-3 w-3" /> corr = correctivo</span>
-        <span className="flex items-center gap-1"><Wrench className="h-3 w-3" /> pred = predictivo</span>
+        <span className="flex items-center gap-1"><Wrench className="h-3 w-3" />prev = preventivo</span><span className="flex items-center gap-1"><Wrench className="h-3 w-3" />corr = correctivo</span><span className="flex items-center gap-1"><Wrench className="h-3 w-3" />pred = predictivo</span><span className="flex items-center gap-1"><Clock className="h-3 w-3" />MTTR se calcula desde OT completadas</span>
       </div>
     </div>
   );
 }
+
+export const TechnicianPerformanceBoard = MaintenancePersonnelPerformanceBoard;
