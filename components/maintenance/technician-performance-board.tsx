@@ -32,8 +32,12 @@ type MaintenanceWorker = {
   totalActualHours: number;
   completionRate: number;
   avgEfficiency: number;
+  timelinessRate: number;
+  criticalAssigned: number;
   criticalCompleted: number;
-  performanceScore: number;
+  criticalResolutionRate: number;
+  performanceScore: number | null;
+  evaluationStatus: 'scored' | 'awaiting_operational_evidence';
 };
 
 type Summary = {
@@ -46,6 +50,10 @@ type Summary = {
   operators: number;
   unclassifiedAssignments: number;
   periodDays: number;
+  scoringMethod?: {
+    mechanic: string;
+    operator: string;
+  };
 };
 
 type PerformanceResponse = {
@@ -67,11 +75,13 @@ function scoreLabel(score: number) {
 
 function WorkerRow({ worker, rank }: { worker: MaintenanceWorker; rank: number }) {
   const [open, setOpen] = useState(false);
+  const hasScore = worker.performanceScore != null;
+
   return (
     <div className="border-b last:border-b-0">
       <button className="flex w-full items-center gap-3 px-1 py-3 text-left" onClick={() => setOpen((value) => !value)}>
         <span className="w-6 shrink-0 text-center text-sm font-bold text-muted-foreground">
-          {rank === 1 ? <Award className="mx-auto h-4 w-4" /> : rank}
+          {hasScore ? (rank === 1 ? <Award className="mx-auto h-4 w-4" /> : rank) : '—'}
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -80,8 +90,14 @@ function WorkerRow({ worker, rank }: { worker: MaintenanceWorker; rank: number }
           </div>
           <span className="block truncate text-xs text-muted-foreground">{worker.cargo}</span>
         </div>
-        <span className={`text-xl font-bold tabular-nums ${scoreColor(worker.performanceScore)}`}>{worker.performanceScore}</span>
-        <span className={`hidden text-xs sm:block ${scoreColor(worker.performanceScore)}`}>{scoreLabel(worker.performanceScore)}</span>
+        {hasScore ? (
+          <>
+            <span className={`text-xl font-bold tabular-nums ${scoreColor(worker.performanceScore!)}`}>{worker.performanceScore}</span>
+            <span className={`hidden text-xs sm:block ${scoreColor(worker.performanceScore!)}`}>{scoreLabel(worker.performanceScore!)}</span>
+          </>
+        ) : (
+          <Badge variant="secondary" className="hidden sm:inline-flex">Sin score aún</Badge>
+        )}
         <div className="hidden items-center gap-4 text-sm md:flex">
           <span className="flex items-center gap-1 text-muted-foreground"><CheckCircle2 className="h-3.5 w-3.5" />{worker.completed}/{worker.total}</span>
           {worker.overdue > 0 ? <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400"><AlertTriangle className="h-3.5 w-3.5" />{worker.overdue} vencidas</span> : null}
@@ -91,16 +107,25 @@ function WorkerRow({ worker, rank }: { worker: MaintenanceWorker; rank: number }
 
       {open ? (
         <div className="border-t px-9 pb-4 pt-3">
-          <div className="mb-4 space-y-1">
-            <div className="flex justify-between text-xs text-muted-foreground"><span>Tasa de completación</span><span>{worker.completionRate}%</span></div>
-            <Progress value={worker.completionRate} className="h-2" />
-          </div>
+          {worker.workerType === 'Operario' ? (
+            <StatePanel
+              tone="neutral"
+              title="Evaluación operacional pendiente de evidencia"
+              description="Las OT de mantenimiento se muestran como contexto, pero no generan una nota para operarios. El score se habilitará cuando Producción registre persona, turno y equipo de manera trazable."
+            />
+          ) : (
+            <div className="mb-4 space-y-1">
+              <div className="flex justify-between text-xs text-muted-foreground"><span>Cumplimiento de OT</span><span>{worker.completionRate}%</span></div>
+              <Progress value={worker.completionRate} className="h-2" />
+            </div>
+          )}
+
           <div className="grid gap-px overflow-hidden rounded-md border bg-border sm:grid-cols-4">
             {[
               ['OT completadas', worker.completed],
-              ['En progreso', worker.inProgress],
+              ['Puntualidad', `${worker.timelinessRate}%`],
               ['Vencidas', worker.overdue],
-              ['Críticas resueltas', worker.criticalCompleted],
+              ['Críticas resueltas', `${worker.criticalCompleted}/${worker.criticalAssigned}`],
             ].map(([label, value]) => <div key={label} className="bg-card p-3"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-xl font-semibold">{value}</p></div>)}
           </div>
           <div className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
@@ -119,6 +144,8 @@ export function MaintenancePersonnelPerformanceBoard() {
   const { data, isLoading, error } = useSWR<PerformanceResponse>(`/api/maintenance/technicians/performance?days=${days}`, fetcher, { revalidateOnFocus: false });
   const workers = data?.workers ?? [];
   const summary = data?.summary;
+  const mechanics = workers.filter((worker) => worker.workerType === 'Mecánico');
+  const operators = workers.filter((worker) => worker.workerType === 'Operario');
 
   if (isLoading) return <StatePanel tone="loading" title="Cargando desempeño" description="Reuniendo órdenes y cargos de la matriz vigente." />;
   if (error) return <StatePanel tone="error" title="No se pudo cargar el desempeño" description={error instanceof Error ? error.message : 'Reintenta la consulta.'} />;
@@ -128,7 +155,7 @@ export function MaintenancePersonnelPerformanceBoard() {
       <div className="flex flex-col gap-3 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-base font-semibold">Desempeño por persona</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Sólo mecánicos y operarios con cargo identificable en la matriz.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Mecánicos y operarios se evalúan con metodologías distintas. No se mezclan en un ranking único.</p>
         </div>
         <Select value={days} onValueChange={setDays}>
           <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
@@ -141,31 +168,49 @@ export function MaintenancePersonnelPerformanceBoard() {
       {summary ? (
         <div className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-5">
           {[
-            ['Personal activo', summary.activeWorkers],
+            ['Personal identificable', summary.activeWorkers],
             ['Mecánicos', summary.mechanics],
             ['Operarios', summary.operators],
-            ['OT evaluadas', summary.totalWorkOrders],
-            ['Completación', `${summary.completionRate}%`],
+            ['OT con cargo válido', summary.totalWorkOrders],
+            ['Completación OT', `${summary.completionRate}%`],
           ].map(([label, value]) => <div key={label} className="bg-card px-4 py-3"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-xl font-semibold">{value}</p></div>)}
         </div>
       ) : null}
 
       {summary?.unclassifiedAssignments ? (
-        <StatePanel tone="neutral" title="Asignaciones por clasificar" description={`${summary.unclassifiedAssignments} OT tienen una persona asignada cuyo cargo no permite identificarla como mecánico u operario. No se incluyen en el ranking hasta corregir su cargo en la matriz/perfil.`} />
+        <StatePanel tone="neutral" title="Asignaciones por clasificar" description={`${summary.unclassifiedAssignments} OT tienen una persona asignada cuyo cargo no permite identificarla como mecánico u operario. No participan de la evaluación hasta corregir el vínculo con la matriz.`} />
       ) : null}
 
       <Card className="shadow-none">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base"><TrendingUp className="h-4 w-4" />Ranking de desempeño</CardTitle>
-          <CardDescription>Puntaje: 60% completación + 20% eficiencia de horas + 20% trabajos críticos resueltos.</CardDescription>
+          <CardTitle className="flex items-center gap-2 text-base"><TrendingUp className="h-4 w-4" />Mecánicos</CardTitle>
+          <CardDescription>{summary?.scoringMethod?.mechanic || 'Score basado en cumplimiento, eficiencia, puntualidad y resolución de OT críticas.'}</CardDescription>
         </CardHeader>
         <CardContent>
-          {workers.length === 0 ? <StatePanel tone="neutral" title="Sin mecánicos u operarios evaluables" description="No existen OT del período vinculadas a personas con un cargo de mecánico u operario identificable." /> : <div className="border-y">{workers.map((worker, index) => <WorkerRow key={`${worker.name}-${worker.cargo}`} worker={worker} rank={index + 1} />)}</div>}
+          {mechanics.length === 0 ? <StatePanel tone="neutral" title="Sin mecánicos evaluables" description="No existen OT del período vinculadas a personas con un cargo de mecánico identificable." /> : <div className="border-y">{mechanics.map((worker, index) => <WorkerRow key={`${worker.name}-${worker.cargo}`} worker={worker} rank={index + 1} />)}</div>}
+        </CardContent>
+      </Card>
+
+      <Card className="shadow-none">
+        <CardHeader>
+          <CardTitle className="text-base">Operarios</CardTitle>
+          <CardDescription>{summary?.scoringMethod?.operator || 'La evaluación operacional requiere trazabilidad por persona, turno y equipo.'}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {operators.length === 0 ? (
+            <StatePanel
+              tone="neutral"
+              title="Sin operarios vinculados todavía"
+              description="La matriz actual no entrega operarios identificables en las OT consultadas. No se generará una nota artificial. Cuando Producción vincule persona, turno y equipo, aquí aparecerán cumplimiento operacional, cuidado del equipo, seguridad y reportabilidad."
+            />
+          ) : (
+            <div className="border-y">{operators.map((worker, index) => <WorkerRow key={`${worker.name}-${worker.cargo}`} worker={worker} rank={index + 1} />)}</div>
+          )}
         </CardContent>
       </Card>
 
       <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
-        <span className="flex items-center gap-1"><Wrench className="h-3 w-3" />prev = preventivo</span><span className="flex items-center gap-1"><Wrench className="h-3 w-3" />corr = correctivo</span><span className="flex items-center gap-1"><Wrench className="h-3 w-3" />pred = predictivo</span><span className="flex items-center gap-1"><Clock className="h-3 w-3" />MTTR se calcula desde OT completadas</span>
+        <span className="flex items-center gap-1"><Wrench className="h-3 w-3" />prev = preventivo</span><span className="flex items-center gap-1"><Wrench className="h-3 w-3" />corr = correctivo</span><span className="flex items-center gap-1"><Wrench className="h-3 w-3" />pred = predictivo</span><span className="flex items-center gap-1"><Clock className="h-3 w-3" />MTTR proviene de OT completadas</span>
       </div>
     </div>
   );
