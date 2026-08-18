@@ -3,11 +3,11 @@
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import useSWR from 'swr';
-import { ArrowLeft, Building2, ShoppingCart, Wrench } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CertifiedFinancialSummary } from '@/components/finance/certified-financial-summary';
+import { StatePanel } from '@/components/ui/state-panel';
 
 type CostCenter = {
   cost_center_code: string;
@@ -39,39 +39,91 @@ export default function CostCenterProfilePage() {
   const params = useParams<{ id: string }>();
   const { data, error, isLoading } = useSWR<Response>(params.id ? `/api/finance/cost-centers/${params.id}` : null, fetcher);
 
-  if (isLoading) return <p className="p-6 text-sm text-muted-foreground">Cargando centro de costo...</p>;
-  if (error) return <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">{error.message}</div>;
+  if (isLoading) return <StatePanel tone="loading" title="Cargando centro de costo" />;
+  if (error) return <StatePanel tone="error" title="No fue posible cargar el centro de costo" description={error.message} />;
   if (!data) return null;
 
   const center = data.costCenter;
+  const budgets = [
+    { label: 'Presupuesto operativo', value: money(center.budget_annual) },
+    { label: 'Disponible operativo', value: money(center.budget_available) },
+  ];
 
   return (
     <div className="space-y-6">
-      <section className="border-b border-border/70 pb-6">
-        <Button asChild variant="ghost" size="sm" className="mb-3 -ml-3"><Link href="/dashboard/finanzas/centros"><ArrowLeft className="mr-2 h-4 w-4" />Centros de costo</Link></Button>
+      <section className="border-b border-border/70 pb-4">
+        <Button asChild variant="ghost" size="sm" className="mb-2 -ml-3">
+          <Link href="/dashboard/finanzas/centros"><ArrowLeft className="mr-2 h-4 w-4" />Centros de costo</Link>
+        </Button>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-          <div><p className="font-mono text-sm text-muted-foreground">{center.cost_center_code}</p><h1 className="mt-1 text-3xl font-semibold tracking-tight">{center.name}</h1><p className="mt-2 text-sm text-muted-foreground">{center.full_path || 'Centro de costo canónico'}</p></div>
+          <div>
+            <p className="font-mono text-xs text-muted-foreground">{center.cost_center_code}</p>
+            <h1 className="mt-1 text-2xl font-semibold tracking-tight">{center.name}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">{center.full_path || 'Centro de costo canónico'}</p>
+          </div>
           <Badge variant="outline">{center.financial_status}</Badge>
         </div>
       </section>
 
       <CertifiedFinancialSummary entity="cost-center" id={center.cost_center_code} />
 
-      <Card className="shadow-none">
-        <CardContent className="grid gap-4 p-5 sm:grid-cols-2">
-          <div><p className="text-sm text-muted-foreground">Presupuesto operativo</p><p className="mt-1 text-xl font-semibold tabular-nums">{money(center.budget_annual)}</p></div>
-          <div><p className="text-sm text-muted-foreground">Disponible operativo</p><p className="mt-1 text-xl font-semibold tabular-nums">{money(center.budget_available)}</p></div>
-        </CardContent>
-      </Card>
+      <section className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2" aria-label="Presupuesto del centro de costo">
+        {budgets.map((item) => (
+          <div key={item.label} className="bg-card px-4 py-3">
+            <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">{item.label}</p>
+            <p className="mt-1 text-lg font-semibold tabular-nums">{item.value}</p>
+          </div>
+        ))}
+      </section>
 
       <div className="grid gap-6 xl:grid-cols-2">
-        <Card className="shadow-none"><CardHeader><CardTitle className="flex items-center gap-2 text-base"><Building2 className="h-4 w-4" />Movimientos reconocidos</CardTitle></CardHeader><CardContent className="space-y-3">{data.actualCosts.length ? data.actualCosts.map((row) => <div key={row.id} className="flex items-start justify-between gap-4 border-b pb-3 last:border-0"><div><p className="text-sm font-medium">{row.description || row.category || 'Movimiento'}</p><p className="text-xs text-muted-foreground">{date(row.transaction_date)} · {row.asset_code || row.document_number || 'Sin referencia'}</p></div><p className="text-sm font-medium">{money(row.total_cost)}</p></div>) : <p className="text-sm text-muted-foreground">Sin movimientos reconocidos asociados.</p>}</CardContent></Card>
+        <section>
+          <h2 className="mb-3 text-sm font-semibold">Movimientos reconocidos</h2>
+          <div className="divide-y divide-border/70 border-t border-border/70">
+            {data.actualCosts.length ? data.actualCosts.map((row) => (
+              <div key={row.id} className="flex items-start justify-between gap-4 py-3">
+                <div><p className="text-sm font-medium">{row.description || row.category || 'Movimiento'}</p><p className="text-xs text-muted-foreground">{date(row.transaction_date)} · {row.asset_code || row.document_number || 'Sin referencia'}</p></div>
+                <p className="text-sm font-medium tabular-nums">{money(row.total_cost)}</p>
+              </div>
+            )) : <p className="py-3 text-sm text-muted-foreground">Sin movimientos reconocidos asociados.</p>}
+          </div>
+        </section>
 
-        <Card className="shadow-none"><CardHeader><CardTitle className="flex items-center gap-2 text-base"><ShoppingCart className="h-4 w-4" />Órdenes de compra</CardTitle></CardHeader><CardContent className="space-y-3">{data.purchaseOrders.length ? data.purchaseOrders.map((row) => <div key={row.id} className="flex items-start justify-between gap-4 border-b pb-3 last:border-0"><div><p className="text-sm font-medium">{row.order_number}</p><p className="text-xs text-muted-foreground">{row.supplier_name || 'Sin proveedor'} · {date(row.order_date)}</p></div><p className="text-sm font-medium">{money(row.total_amount)}</p></div>) : <p className="text-sm text-muted-foreground">Sin compromisos asociados.</p>}</CardContent></Card>
+        <section>
+          <h2 className="mb-3 text-sm font-semibold">Órdenes de compra</h2>
+          <div className="divide-y divide-border/70 border-t border-border/70">
+            {data.purchaseOrders.length ? data.purchaseOrders.map((row) => (
+              <div key={row.id} className="flex items-start justify-between gap-4 py-3">
+                <div><p className="text-sm font-medium">{row.order_number}</p><p className="text-xs text-muted-foreground">{row.supplier_name || 'Sin proveedor'} · {date(row.order_date)}</p></div>
+                <p className="text-sm font-medium tabular-nums">{money(row.total_amount)}</p>
+              </div>
+            )) : <p className="py-3 text-sm text-muted-foreground">Sin compromisos asociados.</p>}
+          </div>
+        </section>
 
-        <Card className="shadow-none"><CardHeader><CardTitle className="flex items-center gap-2 text-base"><Wrench className="h-4 w-4" />Órdenes de trabajo</CardTitle></CardHeader><CardContent className="space-y-3">{data.workOrders.length ? data.workOrders.map((row) => <Link key={row.id} href={`/dashboard/mantenimiento/ordenes/${row.id}`} className="block border-b pb-3 last:border-0 hover:text-primary"><p className="text-sm font-medium">{row.work_order_number} · {row.title}</p><p className="text-xs text-muted-foreground">{row.status} · {row.assigned_to_name || 'Sin responsable'}</p></Link>) : <p className="text-sm text-muted-foreground">Sin OT asociadas.</p>}</CardContent></Card>
+        <section>
+          <h2 className="mb-3 text-sm font-semibold">Órdenes de trabajo</h2>
+          <div className="divide-y divide-border/70 border-t border-border/70">
+            {data.workOrders.length ? data.workOrders.map((row) => (
+              <Link key={row.id} href={`/dashboard/mantenimiento/ordenes/${row.id}`} className="block py-3 hover:text-primary">
+                <p className="text-sm font-medium">{row.work_order_number} · {row.title}</p>
+                <p className="text-xs text-muted-foreground">{row.status} · {row.assigned_to_name || 'Sin responsable'}</p>
+              </Link>
+            )) : <p className="py-3 text-sm text-muted-foreground">Sin OT asociadas.</p>}
+          </div>
+        </section>
 
-        <Card className="shadow-none"><CardHeader><CardTitle className="text-base">Activos relacionados</CardTitle></CardHeader><CardContent className="space-y-3">{data.assets.length ? data.assets.map((row) => <Link key={row.id} href={`/dashboard/mantenimiento/equipos/${row.id}`} className="block border-b pb-3 last:border-0 hover:text-primary"><p className="text-sm font-medium">{row.asset_code} · {row.name}</p><p className="text-xs text-muted-foreground">{row.category || 'Activo'} · {row.status || 'Sin estado'}</p></Link>) : <p className="text-sm text-muted-foreground">Sin activos vinculados.</p>}</CardContent></Card>
+        <section>
+          <h2 className="mb-3 text-sm font-semibold">Activos relacionados</h2>
+          <div className="divide-y divide-border/70 border-t border-border/70">
+            {data.assets.length ? data.assets.map((row) => (
+              <Link key={row.id} href={`/dashboard/mantenimiento/equipos/${row.id}`} className="block py-3 hover:text-primary">
+                <p className="text-sm font-medium">{row.asset_code} · {row.name}</p>
+                <p className="text-xs text-muted-foreground">{row.category || 'Activo'} · {row.status || 'Sin estado'}</p>
+              </Link>
+            )) : <p className="py-3 text-sm text-muted-foreground">Sin activos vinculados.</p>}
+          </div>
+        </section>
       </div>
     </div>
   );
