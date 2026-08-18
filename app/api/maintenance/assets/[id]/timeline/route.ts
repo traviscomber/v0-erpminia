@@ -10,8 +10,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   try {
     const { data: asset, error: assetError } = await context.supabase
-      .schema('canonical')
-      .from('assets')
+      .from('maintenance_canonical_assets_v1')
       .select('id, asset_code, name, asset_type, category, manufacturer, model, serial_number, license_plate, is_active')
       .eq('organization_id', context.organizationId)
       .eq('id', id)
@@ -54,8 +53,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const productIds = Array.from(new Set((partsResult.data || []).map((row) => row.canonical_product_id).filter(Boolean)));
     const productsResult = productIds.length > 0
       ? await context.supabase
-          .schema('canonical')
-          .from('products')
+          .from('canonical_products_v1')
           .select('id, product_code, name, unit')
           .eq('organization_id', context.organizationId)
           .in('id', productIds)
