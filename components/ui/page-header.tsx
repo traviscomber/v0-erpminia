@@ -6,7 +6,7 @@ function PageHeader({ className, ...props }: React.ComponentProps<'header'>) {
   return (
     <header
       data-slot="page-header"
-      className={cn('flex flex-col gap-4 border-b border-border/70 pb-5 md:flex-row md:items-start md:justify-between', className)}
+      className={cn('flex flex-col gap-3 border-b border-border/60 pb-4 md:flex-row md:items-end md:justify-between', className)}
       {...props}
     />
   )
@@ -17,15 +17,15 @@ function PageHeaderContent({ className, ...props }: React.ComponentProps<'div'>)
 }
 
 function PageHeaderEyebrow({ className, ...props }: React.ComponentProps<'p'>) {
-  return <p data-slot="page-header-eyebrow" className={cn('mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground', className)} {...props} />
+  return <p data-slot="page-header-eyebrow" className={cn('mb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground', className)} {...props} />
 }
 
 function PageHeaderTitle({ className, ...props }: React.ComponentProps<'h1'>) {
-  return <h1 data-slot="page-header-title" className={cn('text-2xl font-semibold leading-tight tracking-[-0.025em] text-foreground md:text-[1.75rem]', className)} {...props} />
+  return <h1 data-slot="page-header-title" className={cn('text-2xl font-semibold leading-tight tracking-[-0.025em] text-foreground', className)} {...props} />
 }
 
 function PageHeaderDescription({ className, ...props }: React.ComponentProps<'p'>) {
-  return <p data-slot="page-header-description" className={cn('mt-2 max-w-2xl text-sm leading-6 text-muted-foreground', className)} {...props} />
+  return <p data-slot="page-header-description" className={cn('mt-1.5 max-w-2xl text-sm leading-5 text-muted-foreground', className)} {...props} />
 }
 
 function PageHeaderActions({ className, ...props }: React.ComponentProps<'div'>) {
