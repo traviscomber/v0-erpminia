@@ -7,7 +7,14 @@ import { ArrowRight, Search, Upload } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { PageHeader } from '@/components/ui/page-header';
+import {
+  PageHeader,
+  PageHeaderActions,
+  PageHeaderContent,
+  PageHeaderDescription,
+  PageHeaderEyebrow,
+  PageHeaderTitle,
+} from '@/components/ui/page-header';
 import { StatePanel } from '@/components/ui/state-panel';
 
 type CanonicalVehicle = {
@@ -73,16 +80,20 @@ export default function VehiclesPage() {
 
   return (
     <div className="space-y-5">
-      <PageHeader
-        eyebrow="Mantenimiento · Activos móviles"
-        title="Vehículos"
-        description="Abre un vehículo para revisar su ficha 360°, órdenes de trabajo, costos, componentes e historial completo."
-        actions={
+      <PageHeader>
+        <PageHeaderContent>
+          <PageHeaderEyebrow>Mantenimiento · Activos móviles</PageHeaderEyebrow>
+          <PageHeaderTitle>Vehículos</PageHeaderTitle>
+          <PageHeaderDescription>
+            Abre un vehículo para revisar su ficha 360°, órdenes de trabajo, costos, componentes e historial completo.
+          </PageHeaderDescription>
+        </PageHeaderContent>
+        <PageHeaderActions>
           <Button asChild>
             <Link href="/dashboard/mantenimiento/vehiculos/importar"><Upload className="h-4 w-4" />Importar vehículos</Link>
           </Button>
-        }
-      />
+        </PageHeaderActions>
+      </PageHeader>
 
       {error ? (
         <StatePanel tone="error" title="No fue posible cargar los vehículos" description={error.message} actions={<Button variant="outline" onClick={() => void mutate()}>Reintentar</Button>} />
