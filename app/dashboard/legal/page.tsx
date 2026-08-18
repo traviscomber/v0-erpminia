@@ -3,12 +3,12 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
-import { AlertCircle, CheckCircle2, Download, Eye, FileText, Scale, Search, Upload } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertCircle, CheckCircle2, Download, Eye, FileText, Scale, Search } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { StatePanel } from '@/components/ui/state-panel';
 import { ContractsTracker } from '@/components/legal/contracts-tracker';
 import { AddDocumentModal } from '@/components/legal/add-document-modal';
 import { DocumentReviewModal } from '@/components/legal/document-review-modal';
@@ -63,21 +63,13 @@ type CompliancePayload = {
   expiring_documents?: Array<{ id: string; title: string; expiry_date: string }>;
 };
 
-type FormPayload = {
-  [key: string]: string | number | boolean | File | null | undefined;
-};
+type FormPayload = Record<string, string | number | boolean | File | null | undefined>;
 
 function getStatusBadge(status: string) {
   const value = String(status || '').toLowerCase();
-  if (['active', 'vigente', 'approved'].includes(value)) {
-    return <Badge className="bg-secondary/10 text-secondary">Activo</Badge>;
-  }
-  if (['pending', 'pendiente', 'draft', 'submitted', 'under_review'].includes(value)) {
-    return <Badge className="bg-primary/10 text-primary">Pendiente</Badge>;
-  }
-  if (['expired', 'vencido', 'rejected'].includes(value)) {
-    return <Badge className="bg-destructive/10 text-destructive">Vencido</Badge>;
-  }
+  if (['active', 'vigente', 'approved'].includes(value)) return <Badge variant="secondary">Activo</Badge>;
+  if (['pending', 'pendiente', 'draft', 'submitted', 'under_review'].includes(value)) return <Badge variant="outline">Pendiente</Badge>;
+  if (['expired', 'vencido', 'rejected'].includes(value)) return <Badge variant="destructive">Vencido</Badge>;
   return <Badge variant="outline">{status || 'Sin estado'}</Badge>;
 }
 
@@ -103,12 +95,6 @@ function formatContractValue(value: number, currency: string) {
   }).format(value);
 }
 
-function getComplianceTone(value: number) {
-  if (value >= 90) return 'bg-secondary/10 text-secondary';
-  if (value >= 70) return 'bg-primary/10 text-primary';
-  return 'bg-destructive/10 text-destructive';
-}
-
 export default function LegalPage() {
   const [activeTab, setActiveTab] = useState('documents');
   const [searchQuery, setSearchQuery] = useState('');
@@ -121,17 +107,17 @@ export default function LegalPage() {
   const { data: documentData, error: documentsError, mutate: mutateDocuments } = useSWR(
     `/api/legal/documentos${searchParam}`,
     fetcher,
-    { revalidateOnFocus: false }
+    { revalidateOnFocus: false },
   );
   const { data: contractData, error: contractsError, mutate: mutateContracts } = useSWR(
     `/api/legal/contratos${searchParam}`,
     fetcher,
-    { revalidateOnFocus: false }
+    { revalidateOnFocus: false },
   );
   const { data: complianceData, error: complianceError, mutate: mutateCompliance } = useSWR(
     '/api/legal/compliance',
     fetcher,
-    { revalidateOnFocus: false }
+    { revalidateOnFocus: false },
   );
 
   const legalDocs = (documentData?.documents || []) as LegalDocument[];
@@ -153,45 +139,26 @@ export default function LegalPage() {
   const complianceItems = useMemo(() => {
     if (!summary) return [];
     return [
-      {
-        requirement: 'Contratos vigentes',
-        percentage: summary.total_contracts ? Math.round((summary.active_contracts / summary.total_contracts) * 100) : 100,
-      },
-      {
-        requirement: 'Contratos con respaldo',
-        percentage: summary.total_contracts
-          ? Math.round(((summary.total_contracts - summary.contracts_missing_file) / summary.total_contracts) * 100)
-          : 100,
-      },
-      {
-        requirement: 'Documentos aprobados',
-        percentage: summary.legal_documents
-          ? Math.round((summary.approved_documents / summary.legal_documents) * 100)
-          : 100,
-      },
-      {
-        requirement: 'Documentos sin vencimiento inmediato',
-        percentage: summary.legal_documents
-          ? Math.round(((summary.legal_documents - summary.expiring_documents) / summary.legal_documents) * 100)
-          : 100,
-      },
-    ];
+      ['Contratos vigentes', summary.total_contracts ? Math.round((summary.active_contracts / summary.total_contracts) * 100) : 100],
+      ['Contratos con respaldo', summary.total_contracts ? Math.round(((summary.total_contracts - summary.contracts_missing_file) / summary.total_contracts) * 100) : 100],
+      ['Documentos aprobados', summary.legal_documents ? Math.round((summary.approved_documents / summary.legal_documents) * 100) : 100],
+      ['Documentos sin vencimiento inmediato', summary.legal_documents ? Math.round(((summary.legal_documents - summary.expiring_documents) / summary.legal_documents) * 100) : 100],
+    ] as Array<[string, number]>;
   }, [summary]);
 
   const trackerContracts = useMemo(
-    () =>
-      contracts.slice(0, 8).map((contract) => ({
-        id: contract.id,
-        title: contract.title,
-        provider: contract.contractor_name || 'Sin contratista',
-        startDate: contract.start_date || new Date().toISOString(),
-        endDate: contract.end_date || new Date().toISOString(),
-        status: mapContractStatus(contract.status),
-        value: formatContractValue(contract.contract_value, contract.currency),
-        approvalStatus: mapApprovalStatus(contract.compliance_status),
-        fileUrl: contract.file_url,
-      })),
-    [contracts]
+    () => contracts.slice(0, 8).map((contract) => ({
+      id: contract.id,
+      title: contract.title,
+      provider: contract.contractor_name || 'Sin contratista',
+      startDate: contract.start_date || new Date().toISOString(),
+      endDate: contract.end_date || new Date().toISOString(),
+      status: mapContractStatus(contract.status),
+      value: formatContractValue(contract.contract_value, contract.currency),
+      approvalStatus: mapApprovalStatus(contract.compliance_status),
+      fileUrl: contract.file_url,
+    })),
+    [contracts],
   );
 
   const handleOpenDoc = async (doc: LegalDocument, download = false) => {
@@ -201,7 +168,6 @@ export default function LegalPage() {
       setReviewModalOpen(true);
       return;
     }
-
     if (loadingDocId === doc.id) return;
     setLoadingDocId(doc.id);
     try {
@@ -224,12 +190,7 @@ export default function LegalPage() {
     }
   };
 
-  const handleDocumentReview = async (
-    docId: string,
-    level: 'L1' | 'L2',
-    status: 'cumple' | 'no_cumple' | null,
-    observations: string
-  ) => {
+  const handleDocumentReview = async (docId: string, level: 'L1' | 'L2', status: 'cumple' | 'no_cumple' | null, observations: string) => {
     try {
       const response = await fetch('/api/legal/documentos/review', {
         method: 'POST',
@@ -255,9 +216,7 @@ export default function LegalPage() {
       ? (() => {
           const formData = new FormData();
           Object.entries(payload).forEach(([key, value]) => {
-            if (value !== undefined && value !== null) {
-              formData.append(key, value instanceof File ? value : String(value));
-            }
+            if (value !== undefined && value !== null) formData.append(key, value instanceof File ? value : String(value));
           });
           return formData;
         })()
@@ -282,222 +241,130 @@ export default function LegalPage() {
   };
 
   const hasError = documentsError || contractsError || complianceError;
-  const kpis = [
-    { label: 'Contratos vigentes', value: summary?.active_contracts ?? 0, note: 'Activos y en seguimiento' },
-    { label: 'Por vencer', value: summary?.expiring_contracts ?? 0, note: 'Requieren gestión prioritaria' },
-    { label: 'Pendientes de revisión', value: summary?.contracts_pending_review ?? 0, note: 'En cola de validación' },
-    { label: 'Cumplimiento', value: `${compliancePercent}%`, note: 'Contratos y documentos' },
+  const metrics = [
+    ['Contratos vigentes', summary?.active_contracts ?? 0],
+    ['Por vencer', summary?.expiring_contracts ?? 0],
+    ['Pendientes de revisión', summary?.contracts_pending_review ?? 0],
+    ['Cumplimiento', `${compliancePercent}%`],
   ];
 
   return (
-    <div className="space-y-6">
-      <section className="flex flex-col gap-4 border-b border-border/70 pb-6 lg:flex-row lg:items-end lg:justify-between">
+    <div className="space-y-5">
+      <header className="flex flex-col gap-3 border-b border-border/70 pb-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="text-sm font-medium text-primary">Legal y contratistas · Control contractual</p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight text-foreground">Gestión legal</h1>
-          <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-            Controla contratos, respaldo documental, revisiones y vencimientos desde un único espacio operativo.
-          </p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Legal y contratos</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight">Gestión legal</h1>
+          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">Contratos, documentos, revisiones y vencimientos en un solo flujo.</p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button asChild variant="outline">
-            <Link href="/dashboard/legal/importar">
-              <Upload className="mr-2 h-4 w-4" />
-              Importar
-            </Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/dashboard/legal/permisos-licencias">Permisos y licencias</Link>
-          </Button>
-        </div>
+        <Button asChild variant="outline" size="sm">
+          <Link href="/dashboard/legal/permisos-licencias">Permisos y licencias</Link>
+        </Button>
+      </header>
+
+      {reviewError ? <StatePanel tone="error" title="No fue posible completar la revisión" description={reviewError} className="min-h-0" /> : null}
+      {hasError ? (
+        <StatePanel
+          tone="error"
+          title="Parte del módulo legal no pudo actualizarse"
+          actions={<Button variant="outline" size="sm" onClick={() => { void mutateDocuments(); void mutateContracts(); void mutateCompliance(); }}>Reintentar</Button>}
+          className="min-h-0"
+        />
+      ) : null}
+
+      <section aria-label="Resumen legal" className="grid overflow-hidden rounded-md border sm:grid-cols-2 xl:grid-cols-4">
+        {metrics.map(([label, value], index) => (
+          <div key={String(label)} className={`px-4 py-3 ${index ? 'border-t sm:border-t-0 sm:border-l' : ''}`}>
+            <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">{label}</p>
+            <p className="mt-1 text-xl font-semibold">{value}</p>
+          </div>
+        ))}
       </section>
 
-      {reviewError ? (
-        <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-          <span>{reviewError}</span>
-        </div>
-      ) : null}
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {kpis.map((item) => (
-          <Card key={item.label} className="shadow-none">
-            <CardHeader className="pb-2">
-              <CardDescription>{item.label}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-semibold">{item.value}</div>
-              <p className="mt-1 text-xs text-muted-foreground">{item.note}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {hasError ? (
-        <Card className="border-destructive/30">
-          <CardContent className="flex items-center justify-between gap-4 pt-6">
-            <div className="flex items-center gap-3 text-sm">
-              <AlertCircle className="h-4 w-4 text-destructive" />
-              <span>No fue posible cargar una parte del módulo legal.</span>
-            </div>
-            <Button
-              variant="outline"
-              onClick={() => {
-                void mutateDocuments();
-                void mutateContracts();
-                void mutateCompliance();
-              }}
-            >
-              Reintentar
-            </Button>
-          </CardContent>
-        </Card>
-      ) : null}
-
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="documents" className="gap-2">
-            <FileText className="h-4 w-4" />
-            Documentos
-          </TabsTrigger>
-          <TabsTrigger value="contracts" className="gap-2">
-            <Scale className="h-4 w-4" />
-            Contratos
-          </TabsTrigger>
-          <TabsTrigger value="compliance" className="gap-2">
-            <CheckCircle2 className="h-4 w-4" />
-            Cumplimiento
-          </TabsTrigger>
+        <TabsList className="h-auto w-fit gap-1 bg-transparent p-0">
+          <TabsTrigger value="documents" className="gap-2 px-3"><FileText className="h-4 w-4" />Documentos</TabsTrigger>
+          <TabsTrigger value="contracts" className="gap-2 px-3"><Scale className="h-4 w-4" />Contratos</TabsTrigger>
+          <TabsTrigger value="compliance" className="gap-2 px-3"><CheckCircle2 className="h-4 w-4" />Cumplimiento</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="documents" className="mt-4">
-          <Card>
-            <CardHeader>
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div>
-                  <CardTitle>Documentos legales</CardTitle>
-                  <CardDescription>Políticas, procedimientos, protocolos y respaldo regulatorio.</CardDescription>
+        <TabsContent value="documents" className="mt-4 space-y-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-base font-semibold">Documentos legales</h2>
+              <p className="text-sm text-muted-foreground">Respaldo regulatorio, políticas y procedimientos.</p>
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <div className="relative min-w-64">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Buscar documentos" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} className="pl-9" />
+              </div>
+              <AddDocumentModal onSubmit={handleAddDocument} />
+            </div>
+          </div>
+
+          <div className="divide-y overflow-hidden rounded-md border">
+            {legalDocs.length === 0 ? (
+              <StatePanel tone="neutral" title="No hay documentos legales" description="Agrega el primer documento cuando exista respaldo real que registrar." className="border-0" />
+            ) : legalDocs.map((doc) => (
+              <div key={doc.id} className="flex items-center justify-between gap-4 px-4 py-3 hover:bg-muted/30">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">{doc.title}</p>
+                  <p className="truncate text-xs text-muted-foreground">{(doc.documentType || 'Documento').replace(/_/g, ' ')} · {doc.description || 'Sin descripción'}</p>
                 </div>
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                  <AddDocumentModal onSubmit={handleAddDocument} />
-                  <div className="relative min-w-64">
-                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Buscar documentos..."
-                      value={searchQuery}
-                      onChange={(event) => setSearchQuery(event.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
+                <div className="flex shrink-0 items-center gap-1">
+                  {getStatusBadge(doc.status)}
+                  {(doc.fileUrl || doc.filePath) ? <>
+                    <Button variant="ghost" size="icon-sm" onClick={() => handleOpenDoc(doc, false)} aria-label={`Revisar ${doc.title}`}><Eye className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon-sm" disabled={loadingDocId === doc.id} onClick={() => handleOpenDoc(doc, true)} aria-label={`Descargar ${doc.title}`}><Download className="h-4 w-4" /></Button>
+                  </> : null}
                 </div>
               </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {legalDocs.length === 0 ? (
-                <div className="rounded-lg border border-dashed p-10 text-center text-sm text-muted-foreground">
-                  No hay documentos legales cargados.
-                </div>
-              ) : (
-                legalDocs.map((doc) => (
-                  <div key={doc.id} className="flex items-center justify-between gap-4 rounded-lg border p-3 hover:bg-muted/40">
-                    <div className="flex min-w-0 items-center gap-3">
-                      <FileText className="h-5 w-5 shrink-0 text-primary" />
-                      <div className="min-w-0">
-                        <p className="truncate font-medium">{doc.title}</p>
-                        <p className="truncate text-xs text-muted-foreground">
-                          {(doc.documentType || 'Documento').replace(/_/g, ' ')} · {doc.description || 'Sin descripción'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-2">
-                      {getStatusBadge(doc.status)}
-                      {(doc.fileUrl || doc.filePath) ? (
-                        <>
-                          <Button variant="ghost" size="icon" onClick={() => handleOpenDoc(doc, false)} title="Revisar documento">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            disabled={loadingDocId === doc.id}
-                            onClick={() => handleOpenDoc(doc, true)}
-                            title="Descargar documento"
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        </>
-                      ) : null}
-                    </div>
-                  </div>
-                ))
-              )}
-            </CardContent>
-          </Card>
+            ))}
+          </div>
         </TabsContent>
 
-        <TabsContent value="contracts" className="mt-4">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <CardTitle>Contratos</CardTitle>
-                  <CardDescription>Seguimiento de vigencia, contratistas, montos y cumplimiento.</CardDescription>
-                </div>
-                <AddContractModal onSubmit={handleAddContract} />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <ContractsTracker contracts={trackerContracts} />
-            </CardContent>
-          </Card>
+        <TabsContent value="contracts" className="mt-4 space-y-3">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h2 className="text-base font-semibold">Contratos</h2>
+              <p className="text-sm text-muted-foreground">Vigencia, contratista, monto y cumplimiento.</p>
+            </div>
+            <AddContractModal onSubmit={handleAddContract} />
+          </div>
+          <ContractsTracker contracts={trackerContracts} />
         </TabsContent>
 
-        <TabsContent value="compliance" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Matriz de cumplimiento</CardTitle>
-              <CardDescription>Respaldo contractual, aprobaciones y vencimientos próximos.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                {complianceItems.map((item) => (
-                  <div key={item.requirement} className="space-y-2">
-                    <div className="flex items-center justify-between gap-4">
-                      <span className="text-sm font-medium">{item.requirement}</span>
-                      <Badge className={getComplianceTone(item.percentage)}>{item.percentage}%</Badge>
-                    </div>
-                    <div className="h-2 rounded-full bg-muted">
-                      <div className="h-2 rounded-full bg-secondary" style={{ width: `${item.percentage}%` }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
+        <TabsContent value="compliance" className="mt-4 space-y-5">
+          <div>
+            <h2 className="text-base font-semibold">Cumplimiento</h2>
+            <p className="text-sm text-muted-foreground">Respaldo contractual, aprobaciones y vencimientos.</p>
+          </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-lg border p-4">
-                  <p className="mb-3 text-sm font-semibold">Contratos por revisar</p>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    {(compliance.contracts_pending_review || []).slice(0, 5).map((item) => (
-                      <li key={item.id}>{item.title}</li>
-                    ))}
-                    {(compliance.contracts_pending_review || []).length === 0 ? <li>Sin contratos pendientes.</li> : null}
-                  </ul>
-                </div>
-                <div className="rounded-lg border p-4">
-                  <p className="mb-3 text-sm font-semibold">Documentos por vencer</p>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    {(compliance.expiring_documents || []).slice(0, 5).map((item) => (
-                      <li key={item.id}>
-                        {item.title}
-                        {item.expiry_date ? ` · ${new Date(item.expiry_date).toLocaleDateString('es-CL')}` : ''}
-                      </li>
-                    ))}
-                    {(compliance.expiring_documents || []).length === 0 ? <li>Sin vencimientos próximos.</li> : null}
-                  </ul>
-                </div>
+          <div className="divide-y rounded-md border">
+            {complianceItems.map(([requirement, percentage]) => (
+              <div key={requirement} className="flex items-center justify-between gap-4 px-4 py-3">
+                <span className="text-sm font-medium">{requirement}</span>
+                <span className="text-sm font-semibold tabular-nums">{percentage}%</span>
               </div>
-            </CardContent>
-          </Card>
+            ))}
+          </div>
+
+          <div className="grid gap-5 md:grid-cols-2">
+            <div>
+              <p className="mb-2 text-sm font-semibold">Contratos por revisar</p>
+              <div className="divide-y rounded-md border">
+                {(compliance.contracts_pending_review || []).slice(0, 5).map((item) => <p key={item.id} className="px-4 py-3 text-sm">{item.title}</p>)}
+                {(compliance.contracts_pending_review || []).length === 0 ? <p className="px-4 py-3 text-sm text-muted-foreground">Sin contratos pendientes.</p> : null}
+              </div>
+            </div>
+            <div>
+              <p className="mb-2 text-sm font-semibold">Documentos por vencer</p>
+              <div className="divide-y rounded-md border">
+                {(compliance.expiring_documents || []).slice(0, 5).map((item) => <p key={item.id} className="px-4 py-3 text-sm">{item.title}{item.expiry_date ? ` · ${new Date(item.expiry_date).toLocaleDateString('es-CL')}` : ''}</p>)}
+                {(compliance.expiring_documents || []).length === 0 ? <p className="px-4 py-3 text-sm text-muted-foreground">Sin vencimientos próximos.</p> : null}
+              </div>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
 
@@ -505,10 +372,7 @@ export default function LegalPage() {
         open={reviewModalOpen}
         document={reviewingDoc}
         level="L1"
-        onClose={() => {
-          setReviewModalOpen(false);
-          setReviewingDoc(null);
-        }}
+        onClose={() => { setReviewModalOpen(false); setReviewingDoc(null); }}
         onReview={handleDocumentReview}
       />
     </div>
