@@ -16,9 +16,27 @@ type WorkOrderRow = {
   completion_date: string | null;
 };
 
-function safeNum(val: number | string | null | undefined): number {
-  const n = Number(val);
-  return isNaN(n) ? 0 : n;
+type WorkerType = 'Mecánico' | 'Operario';
+
+function safeNum(value: number | string | null | undefined): number {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : 0;
+}
+
+function normalize(value: string | null | undefined) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
+}
+
+function classifyWorker(cargo: string | null | undefined): WorkerType | null {
+  const value = normalize(cargo);
+  if (!value) return null;
+  if (/\bmecanico\b/.test(value)) return 'Mecánico';
+  if (/\boperario\b|\boperador\b/.test(value)) return 'Operario';
+  return null;
 }
 
 export async function GET(request: NextRequest) {
@@ -33,60 +51,60 @@ export async function GET(request: NextRequest) {
 
     const { data: workOrders, error } = await context.supabase
       .from('maintenance_work_orders')
-      .select(
-        'id, work_order_number, assigned_to_name, status, work_type, priority, planned_duration_hours, actual_duration_hours, scheduled_date, completion_date'
-      )
+      .select('id,work_order_number,assigned_to_name,status,work_type,priority,planned_duration_hours,actual_duration_hours,scheduled_date,completion_date')
       .eq('organization_id', context.organizationId)
       .gte('created_at', since.toISOString())
       .order('created_at', { ascending: false });
-
     if (error) throw error;
 
-    // Get technician details from profiles (full_name + cargo)
-    const { data: profiles } = await context.supabase
+    const { data: profiles, error: profilesError } = await context.supabase
       .from('profiles')
-      .select('full_name, cargo_id, cargos(name)')
+      .select('full_name,cargo_id,cargos(name)')
       .eq('organization_id', context.organizationId);
+    if (profilesError) throw profilesError;
 
-    const profileMap = new Map<string, { cargoId: string; cargoName: string }>();
-    for (const p of profiles || []) {
-      profileMap.set(p.full_name, {
-        cargoId: p.cargo_id,
-        cargoName: (p.cargos as any)?.name || 'Sin cargo',
+    const profileMap = new Map<string, { cargoName: string; workerType: WorkerType | null }>();
+    for (const profile of profiles || []) {
+      const cargoName = (profile.cargos as { name?: string } | null)?.name || 'Sin cargo';
+      profileMap.set(String(profile.full_name || '').trim(), {
+        cargoName,
+        workerType: classifyWorker(cargoName),
       });
     }
 
     const rows = (Array.isArray(workOrders) ? workOrders : []) as WorkOrderRow[];
+    const assignedRows = rows.filter((row) => Boolean(row.assigned_to_name?.trim()));
+    const eligibleRows = assignedRows.filter((row) => profileMap.get(row.assigned_to_name!.trim())?.workerType);
+    const unclassifiedAssignments = assignedRows.length - eligibleRows.length;
 
-    // Group by technician name
-    const techMap = new Map<
-      string,
-      {
-        name: string;
-        cargo: string;
-        total: number;
-        completed: number;
-        inProgress: number;
-        pending: number;
-        overdue: number;
-        preventive: number;
-        corrective: number;
-        predictive: number;
-        totalPlannedHours: number;
-        totalActualHours: number;
-        efficiencyScores: number[];
-        criticalCompleted: number;
-      }
-    >();
+    const workerMap = new Map<string, {
+      name: string;
+      cargo: string;
+      workerType: WorkerType;
+      total: number;
+      completed: number;
+      inProgress: number;
+      pending: number;
+      overdue: number;
+      preventive: number;
+      corrective: number;
+      predictive: number;
+      totalPlannedHours: number;
+      totalActualHours: number;
+      efficiencyScores: number[];
+      criticalCompleted: number;
+    }>();
 
     const now = Date.now();
-
-    for (const wo of rows) {
-      const techName = wo.assigned_to_name?.trim() || 'Sin asignar';
-      const techProfile = profileMap.get(techName);
-      const existing = techMap.get(techName) ?? {
-        name: techName,
-        cargo: techProfile?.cargoName || 'Sin cargo',
+    for (const workOrder of eligibleRows) {
+      const name = workOrder.assigned_to_name!.trim();
+      const profile = profileMap.get(name)!;
+      const workerType = profile.workerType!;
+      const key = `${name}::${profile.cargoName}`;
+      const existing = workerMap.get(key) ?? {
+        name,
+        cargo: profile.cargoName,
+        workerType,
         total: 0,
         completed: 0,
         inProgress: 0,
@@ -102,98 +120,67 @@ export async function GET(request: NextRequest) {
       };
 
       existing.total += 1;
-
-      const status = (wo.status ?? '').toLowerCase();
+      const status = normalize(workOrder.status);
       if (status === 'completed') existing.completed += 1;
       else if (status === 'in_progress') existing.inProgress += 1;
       else existing.pending += 1;
 
-      // Overdue: past scheduled_date and not completed
-      if (wo.scheduled_date && status !== 'completed' && new Date(wo.scheduled_date).getTime() < now) {
-        existing.overdue += 1;
-      }
+      if (workOrder.scheduled_date && status !== 'completed' && new Date(workOrder.scheduled_date).getTime() < now) existing.overdue += 1;
 
-      // Work type split
-      const wt = (wo.work_type ?? '').toLowerCase();
-      if (wt.includes('prevent')) existing.preventive += 1;
-      else if (wt.includes('correct')) existing.corrective += 1;
-      else if (wt.includes('predict')) existing.predictive += 1;
+      const workType = normalize(workOrder.work_type);
+      if (workType.includes('prevent')) existing.preventive += 1;
+      else if (workType.includes('correct')) existing.corrective += 1;
+      else if (workType.includes('predict')) existing.predictive += 1;
 
-      // Hours
-      const planned = safeNum(wo.planned_duration_hours);
-      const actual = safeNum(wo.actual_duration_hours);
+      const planned = safeNum(workOrder.planned_duration_hours);
+      const actual = safeNum(workOrder.actual_duration_hours);
       existing.totalPlannedHours += planned;
       existing.totalActualHours += actual;
-
-      // Efficiency: planned / actual (>1 means faster than planned)
-      if (status === 'completed' && planned > 0 && actual > 0) {
-        existing.efficiencyScores.push(planned / actual);
-      }
-
-      // Critical completed
-      if (status === 'completed' && ['critical', 'high'].includes((wo.priority ?? '').toLowerCase())) {
-        existing.criticalCompleted += 1;
-      }
-
-      techMap.set(techName, existing);
+      if (status === 'completed' && planned > 0 && actual > 0) existing.efficiencyScores.push(planned / actual);
+      if (status === 'completed' && ['critical', 'high'].includes(normalize(workOrder.priority))) existing.criticalCompleted += 1;
+      workerMap.set(key, existing);
     }
 
-    const technicians = Array.from(techMap.values())
-      .filter((t) => t.name !== 'Sin asignar')
-      .map((t) => {
-        const completionRate = t.total > 0 ? Math.round((t.completed / t.total) * 100) : 0;
-        const avgEfficiency =
-          t.efficiencyScores.length > 0
-            ? Math.round((t.efficiencyScores.reduce((s, v) => s + v, 0) / t.efficiencyScores.length) * 100)
-            : 0;
-        // Score 0-100: 60% completion rate + 20% efficiency + 20% critical tasks
-        const score = Math.min(
-          100,
-          Math.round(completionRate * 0.6 + Math.min(100, avgEfficiency) * 0.2 + Math.min(20, t.criticalCompleted * 4))
-        );
-        return {
-          name: t.name,
-          cargo: t.cargo,
-          total: t.total,
-          completed: t.completed,
-          inProgress: t.inProgress,
-          pending: t.pending,
-          overdue: t.overdue,
-          preventive: t.preventive,
-          corrective: t.corrective,
-          predictive: t.predictive,
-          totalPlannedHours: Math.round(t.totalPlannedHours * 10) / 10,
-          totalActualHours: Math.round(t.totalActualHours * 10) / 10,
-          completionRate,
-          avgEfficiency,
-          criticalCompleted: t.criticalCompleted,
-          performanceScore: score,
-        };
-      })
-      .sort((a, b) => b.performanceScore - a.performanceScore);
+    const workers = Array.from(workerMap.values()).map((worker) => {
+      const completionRate = worker.total > 0 ? Math.round((worker.completed / worker.total) * 100) : 0;
+      const avgEfficiency = worker.efficiencyScores.length > 0
+        ? Math.round((worker.efficiencyScores.reduce((sum, value) => sum + value, 0) / worker.efficiencyScores.length) * 100)
+        : 0;
+      const performanceScore = Math.min(100, Math.round(completionRate * 0.6 + Math.min(100, avgEfficiency) * 0.2 + Math.min(20, worker.criticalCompleted * 4)));
+      return {
+        ...worker,
+        totalPlannedHours: Math.round(worker.totalPlannedHours * 10) / 10,
+        totalActualHours: Math.round(worker.totalActualHours * 10) / 10,
+        completionRate,
+        avgEfficiency,
+        performanceScore,
+        efficiencyScores: undefined,
+      };
+    }).sort((a, b) => b.performanceScore - a.performanceScore);
 
-    // Fleet summary
-    const totalWOs = rows.length;
-    const completedWOs = rows.filter((w) => (w.status ?? '').toLowerCase() === 'completed').length;
-    const avgMTTR =
-      rows
-        .filter((w) => (w.status ?? '').toLowerCase() === 'completed' && safeNum(w.actual_duration_hours) > 0)
-        .reduce((sum, w) => sum + safeNum(w.actual_duration_hours), 0) /
-      Math.max(1, rows.filter((w) => (w.status ?? '').toLowerCase() === 'completed' && safeNum(w.actual_duration_hours) > 0).length);
+    const completedRows = eligibleRows.filter((row) => normalize(row.status) === 'completed');
+    const rowsWithActualDuration = completedRows.filter((row) => safeNum(row.actual_duration_hours) > 0);
+    const avgMTTR = rowsWithActualDuration.reduce((sum, row) => sum + safeNum(row.actual_duration_hours), 0) / Math.max(1, rowsWithActualDuration.length);
+    const mechanics = workers.filter((worker) => worker.workerType === 'Mecánico').length;
+    const operators = workers.filter((worker) => worker.workerType === 'Operario').length;
 
-    return NextResponse.json({
-      technicians,
-      summary: {
-        totalWorkOrders: totalWOs,
-        completedWorkOrders: completedWOs,
-        completionRate: totalWOs > 0 ? Math.round((completedWOs / totalWOs) * 100) : 0,
-        avgMTTR: Math.round(avgMTTR * 10) / 10,
-        activeTechnicians: technicians.length,
-        periodDays: days,
-      },
-    });
+    const summary = {
+      totalWorkOrders: eligibleRows.length,
+      completedWorkOrders: completedRows.length,
+      completionRate: eligibleRows.length > 0 ? Math.round((completedRows.length / eligibleRows.length) * 100) : 0,
+      avgMTTR: Math.round(avgMTTR * 10) / 10,
+      activeWorkers: workers.length,
+      mechanics,
+      operators,
+      unclassifiedAssignments,
+      periodDays: days,
+      activeTechnicians: workers.length,
+    };
+
+    return NextResponse.json({ workers, technicians: workers, summary });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Error al cargar desempeno de tecnicos';
-    return NextResponse.json({ error: message }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Error al cargar desempeño de mecánicos y operarios';
+    console.error('[maintenance/personnel/performance]', error);
+    return NextResponse.json({ workers: [], technicians: [], error: message }, { status: 500 });
   }
 }
