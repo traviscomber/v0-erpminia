@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import useSWR from 'swr';
-import { Card, CardContent } from '@/components/ui/card';
 
 type Entity = 'asset' | 'product' | 'supplier' | 'cost-center';
 
@@ -52,6 +51,11 @@ export function CertifiedFinancialSummary({ entity, id }: { entity: Entity; id: 
 
   const summary = data?.data || {};
   const eventCount = Number(summary.recognized_event_count || 0) + Number(summary.committed_event_count || 0);
+  const metrics = [
+    { label: 'Costo reconocido', value: money(summary.recognized_clp) },
+    { label: 'Compromisos', value: money(summary.committed_clp) },
+    { label: 'Eventos certificados', value: number(eventCount) },
+  ];
 
   return (
     <section className="space-y-3">
@@ -61,29 +65,17 @@ export function CertifiedFinancialSummary({ entity, id }: { entity: Entity; id: 
           <p className="text-sm text-muted-foreground">Origen canónico · CLP · reconocido y comprometido separados.</p>
         </div>
         <Link href="/dashboard/finanzas/trazabilidad" className="text-sm font-medium hover:underline">
-          Ver registros de origen
+          Ver origen
         </Link>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Card className="shadow-none">
-          <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground">Costo reconocido</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums">{money(summary.recognized_clp)}</p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-none">
-          <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground">Compromisos de compra</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums">{money(summary.committed_clp)}</p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-none">
-          <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground">Eventos certificados</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums">{number(eventCount)}</p>
-          </CardContent>
-        </Card>
+      <div className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-3">
+        {metrics.map((metric) => (
+          <div key={metric.label} className="bg-card px-4 py-3">
+            <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">{metric.label}</p>
+            <p className="mt-1 text-lg font-semibold tabular-nums">{metric.value}</p>
+          </div>
+        ))}
       </div>
     </section>
   );
