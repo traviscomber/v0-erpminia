@@ -1,72 +1,48 @@
 'use client';
 
-import { Suspense } from 'react';
 import Link from 'next/link';
-import { FileSpreadsheet, Plus } from 'lucide-react';
-import { PurchaseOrderForm } from '@/components/compras/purchase-order-form';
-import { PurchaseOrdersList } from '@/components/compras/purchase-orders-list';
-import { OperationalPipelineBoard } from '@/components/pipeline/operational-pipeline-board';
+import { ArrowRight, Plus, Search, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  PageHeader,
-  PageHeaderActions,
-  PageHeaderContent,
-  PageHeaderDescription,
-  PageHeaderEyebrow,
-  PageHeaderTitle,
-} from '@/components/ui/page-header';
-import { StatePanel } from '@/components/ui/state-panel';
+import { PageHeader, PageHeaderActions, PageHeaderContent, PageHeaderDescription, PageHeaderEyebrow, PageHeaderTitle } from '@/components/ui/page-header';
+import { OperationalPipelineBoard } from '@/components/pipeline/operational-pipeline-board';
+
+const shortcuts = [
+  { href: '/dashboard/compras/control-proveedores/candidatos', label: 'Cotizar', description: 'Comparar proveedores habilitados y candidatos del rubro.', icon: Search },
+  { href: '/dashboard/compras/flujo', label: 'Seguimiento', description: 'Revisar solicitudes, órdenes, recepciones y pendientes.', icon: ShoppingCart },
+];
 
 export default function ComprasPage() {
   return (
     <div className="space-y-6">
       <PageHeader>
         <PageHeaderContent>
-          <PageHeaderEyebrow>Abastecimiento · Compras</PageHeaderEyebrow>
-          <PageHeaderTitle>Compras y órdenes</PageHeaderTitle>
-          <PageHeaderDescription>
-            Requerimientos, cotizaciones, órdenes, recepciones y entregas reunidos en un solo flujo de trabajo.
-          </PageHeaderDescription>
+          <PageHeaderEyebrow>Abastecimiento</PageHeaderEyebrow>
+          <PageHeaderTitle>Compras</PageHeaderTitle>
+          <PageHeaderDescription>Compra, cotiza y sigue cada requerimiento desde un flujo simple.</PageHeaderDescription>
         </PageHeaderContent>
         <PageHeaderActions>
-          <Button asChild variant="outline">
-            <Link href="/dashboard/compras/importar-existencias">
-              <FileSpreadsheet className="h-4 w-4" />Importar existencias
-            </Link>
-          </Button>
           <Button asChild>
-            <Link href="#crear-orden"><Plus className="h-4 w-4" />Crear orden</Link>
+            <Link href="/dashboard/compras/flujo"><Plus className="h-4 w-4" />Nueva compra</Link>
           </Button>
         </PageHeaderActions>
       </PageHeader>
 
-      <section aria-labelledby="flujo-compras" className="space-y-3">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">Seguimiento</p>
-          <h2 id="flujo-compras" className="mt-1 text-xl font-semibold tracking-tight">Flujo de compras</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Revisa qué necesita atención y cuál es el siguiente paso de cada solicitud.</p>
-        </div>
+      <section className="grid gap-px overflow-hidden rounded-lg border bg-border md:grid-cols-2" aria-label="Acciones de compras">
+        {shortcuts.map((item) => {
+          const Icon = item.icon;
+          return (
+            <Link key={item.href} href={item.href} className="group flex items-center gap-4 bg-card px-5 py-4 transition-colors hover:bg-muted/35">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted"><Icon className="h-4 w-4" /></div>
+              <div className="min-w-0 flex-1"><p className="font-medium">{item.label}</p><p className="mt-0.5 text-sm text-muted-foreground">{item.description}</p></div>
+              <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1" />
+            </Link>
+          );
+        })}
+      </section>
+
+      <section aria-labelledby="compras-pendientes" className="space-y-3">
+        <div><h2 id="compras-pendientes" className="text-lg font-semibold tracking-tight">Qué necesita atención</h2><p className="text-sm text-muted-foreground">Pendientes y siguientes pasos del flujo de abastecimiento.</p></div>
         <OperationalPipelineBoard />
-      </section>
-
-      <section id="crear-orden" aria-labelledby="titulo-crear-orden" className="scroll-mt-20 space-y-3 rounded-lg border bg-card p-4 sm:p-5">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">Nueva compra</p>
-          <h2 id="titulo-crear-orden" className="mt-1 text-xl font-semibold tracking-tight">Crear orden de compra</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Completa únicamente la información necesaria para emitir la orden.</p>
-        </div>
-        <Suspense fallback={<StatePanel tone="loading" title="Preparando formulario" description="Cargando los datos necesarios para crear la orden." />}>
-          <PurchaseOrderForm />
-        </Suspense>
-      </section>
-
-      <section aria-labelledby="registro-ordenes" className="space-y-3">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">Historial y seguimiento</p>
-          <h2 id="registro-ordenes" className="mt-1 text-xl font-semibold tracking-tight">Órdenes de compra</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Consulta las órdenes registradas y abre cada caso para continuar su gestión.</p>
-        </div>
-        <PurchaseOrdersList />
       </section>
     </div>
   );
