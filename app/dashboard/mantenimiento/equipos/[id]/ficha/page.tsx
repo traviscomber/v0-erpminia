@@ -1,12 +1,11 @@
 import { Asset360Overview } from '@/components/maintenance/asset-360-overview';
-import { AssetDetailView } from '@/components/maintenance/asset-detail-view';
 import { AssetRelatedOperations } from '@/components/maintenance/asset-related-operations';
 import { CertifiedFinancialSummary } from '@/components/finance/certified-financial-summary';
 import { EntityTimeline } from '@/components/shared/entity-timeline';
 
 export const metadata = {
   title: 'Equipo 360° | Mantenimiento',
-  description: 'Vista operacional completa del equipo, sus relaciones, tiempos, componentes, costos e historial.',
+  description: 'Vista operacional del equipo, sus relaciones, costos e historial.',
 };
 
 type EquipmentFichaPageProps = {
@@ -18,9 +17,8 @@ export default async function EquipmentFichaPage({ params }: EquipmentFichaPageP
   const assetId = decodeURIComponent(id);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <Asset360Overview assetId={assetId} />
-      <AssetDetailView scope="equipos" />
       <AssetRelatedOperations assetId={assetId} />
       <CertifiedFinancialSummary entity="asset" id={assetId} />
       <EntityTimeline entity="asset" id={assetId} />
