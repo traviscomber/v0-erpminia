@@ -13,8 +13,8 @@ function normalize(value: unknown) {
     .toLowerCase();
 }
 
-function classifyWorker(cargo: string | null | undefined): WorkerType | null {
-  const value = normalize(cargo);
+function classifyWorker(roleTitle: string | null | undefined): WorkerType | null {
+  const value = normalize(roleTitle);
   if (/\bmecanico\b/.test(value)) return 'mecanico';
   if (/\boperario\b|\boperador\b/.test(value)) return 'operario';
   return null;
@@ -29,10 +29,10 @@ export async function GET(request: NextRequest) {
   const limit = Math.min(250, Math.max(1, Number(searchParams.get('limit') || 100)));
 
   try {
-    const [{ data: profiles, error: profilesError }, { data: assets, error: assetsError }] = await Promise.all([
+    const [{ data: people, error: peopleError }, { data: assets, error: assetsError }] = await Promise.all([
       context.supabase
-        .from('profiles')
-        .select('id,full_name,cargo_id,cargos(name)')
+        .from('people')
+        .select('id,full_name,role_title,employment_status')
         .eq('organization_id', context.organizationId)
         .order('full_name'),
       context.supabase
@@ -43,15 +43,15 @@ export async function GET(request: NextRequest) {
         .order('asset_code'),
     ]);
 
-    if (profilesError) throw profilesError;
+    if (peopleError) throw peopleError;
     if (assetsError) throw assetsError;
 
-    const workers = (profiles || [])
-      .map((profile) => {
-        const cargo = (profile.cargos as { name?: string } | null)?.name || 'Sin cargo';
+    const workers = (people || [])
+      .map((person) => {
+        const cargo = person.role_title || 'Sin cargo';
         const workerType = classifyWorker(cargo);
-        return workerType
-          ? { id: profile.id, name: profile.full_name || 'Sin nombre', cargo, workerType }
+        return workerType && person.employment_status === 'active'
+          ? { id: person.id, name: person.full_name || 'Sin nombre', cargo, workerType }
           : null;
       })
       .filter(Boolean);
@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
 
     const rows = (activity || []).map((row) => ({
       ...row,
-      person: workerMap.get(row.person_id) || { id: row.person_id, name: 'Persona no disponible', cargo: row.role_snapshot || 'Histórico', workerType: row.worker_type },
+      person: workerMap.get(row.person_id) || { id: row.person_id, name: 'Persona histórica', cargo: row.role_snapshot || 'Histórico', workerType: row.worker_type },
       asset: row.canonical_asset_id ? assetMap.get(row.canonical_asset_id) || null : null,
     }));
 
@@ -100,19 +100,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Persona, fecha, turno y actividad son obligatorios' }, { status: 400 });
     }
 
-    const { data: profile, error: profileError } = await context.supabase
-      .from('profiles')
-      .select('id,full_name,cargo_id,cargos(name)')
+    const { data: person, error: personError } = await context.supabase
+      .from('people')
+      .select('id,full_name,role_title,employment_status')
       .eq('organization_id', context.organizationId)
       .eq('id', personId)
       .maybeSingle();
-    if (profileError) throw profileError;
-    if (!profile) return NextResponse.json({ error: 'La persona no pertenece a esta organización' }, { status: 400 });
+    if (personError) throw personError;
+    if (!person) return NextResponse.json({ error: 'La persona no pertenece a esta organización' }, { status: 400 });
+    if (person.employment_status !== 'active') return NextResponse.json({ error: 'La persona no está activa laboralmente' }, { status: 400 });
 
-    const cargo = (profile.cargos as { name?: string } | null)?.name || '';
+    const cargo = person.role_title || '';
     const workerType = classifyWorker(cargo);
     if (!workerType) {
-      return NextResponse.json({ error: 'El cargo de la persona no está clasificado como mecánico u operario en la matriz' }, { status: 400 });
+      return NextResponse.json({ error: 'El cargo de la persona no está clasificado como mecánico u operario' }, { status: 400 });
     }
 
     const canonicalAssetId = body.canonical_asset_id ? String(body.canonical_asset_id) : null;
