@@ -70,26 +70,25 @@ const allStandardRoles = [
 const menuItems: MenuItem[] = [
   { label: 'Inicio', href: '/dashboard', icon: Home, group: 'Principal', roles: allStandardRoles },
   { label: 'Gestión diaria', href: '/dashboard/daily-management', icon: Activity, group: 'Principal', roles: operationalRoles },
-  { label: 'Producción', href: '/dashboard/produccion', icon: Zap, group: 'Principal', moduleKey: 'prod_operaciones', roles: ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'] },
-  { label: 'Mantenimiento', href: '/dashboard/mantenimiento', icon: Wrench, group: 'Principal', moduleKey: 'mant_operaciones', roles: ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'] },
 
-  { label: 'Inventario', href: '/dashboard/bodega', icon: Boxes, group: 'Abastecimiento', moduleKey: 'bodega_inventario', roles: ['superadmin', 'admin', 'Bodega-Supervisor', 'jefe_mantencion'] },
-  { label: 'Compras', href: '/dashboard/compras', icon: ShoppingCart, group: 'Abastecimiento', moduleKey: 'fin_compras', roles: ['superadmin', 'admin', 'Compras-Supervisor'] },
-  { label: 'Finanzas', href: '/dashboard/finanzas', icon: CircleDollarSign, group: 'Abastecimiento', moduleKey: 'fin_finanzas', roles: ['superadmin', 'admin', 'Finanzas-Supervisor'] },
+  { label: 'Producción', href: '/dashboard/produccion', icon: Zap, group: 'Áreas', moduleKey: 'prod_operaciones', roles: ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'] },
+  { label: 'Mantenimiento', href: '/dashboard/mantenimiento', icon: Wrench, group: 'Áreas', moduleKey: 'mant_operaciones', roles: ['superadmin', 'admin', 'Operaciones-Supervisor', 'jefe_mantencion'] },
+  { label: 'Inventario', href: '/dashboard/bodega', icon: Boxes, group: 'Áreas', moduleKey: 'bodega_inventario', roles: ['superadmin', 'admin', 'Bodega-Supervisor', 'jefe_mantencion'] },
+  { label: 'Compras', href: '/dashboard/compras', icon: ShoppingCart, group: 'Áreas', moduleKey: 'fin_compras', roles: ['superadmin', 'admin', 'Compras-Supervisor'] },
+  { label: 'Finanzas', href: '/dashboard/finanzas', icon: CircleDollarSign, group: 'Áreas', moduleKey: 'fin_finanzas', roles: ['superadmin', 'admin', 'Finanzas-Supervisor'] },
+  { label: 'RRHH', href: '/dashboard/rrhh', icon: Users, group: 'Áreas', roles: ['superadmin', 'admin', 'manager'] },
+  { label: 'Sostenibilidad', href: '/dashboard/sostenibilidad', icon: Leaf, group: 'Áreas', moduleKey: 'sos_tablero', roles: ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'] },
+  { label: 'Legal', href: '/dashboard/legal', icon: FileCheck, group: 'Áreas', moduleKey: 'legal_modulo', roles: ['superadmin', 'admin', 'manager'] },
 
-  { label: 'RRHH', href: '/dashboard/rrhh', icon: Users, group: 'Personas y entorno', roles: ['superadmin', 'admin', 'manager'] },
-  { label: 'Sostenibilidad', href: '/dashboard/sostenibilidad', icon: Leaf, group: 'Personas y entorno', moduleKey: 'sos_tablero', roles: ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'] },
-  { label: 'Legal y contratos', href: '/dashboard/legal', icon: FileCheck, group: 'Personas y entorno', moduleKey: 'legal_modulo', roles: ['superadmin', 'admin', 'manager'] },
-
-  { label: 'Reportes', href: '/dashboard/reportes', icon: BarChart3, group: 'Análisis', moduleKey: 'fin_reportes', roles: ['superadmin', 'admin', 'manager', 'supervisor', 'jefe_mantencion'] },
-  { label: 'Centros de costos', href: '/dashboard/centros-costos', icon: Building2, group: 'Análisis', moduleKey: 'core_centros_costos', roles: ['superadmin', 'admin', 'manager', 'Operaciones-Supervisor', 'Finanzas-Supervisor', 'jefe_mantencion'] },
+  { label: 'Reportes', href: '/dashboard/reportes', icon: BarChart3, group: 'Transversal', moduleKey: 'fin_reportes', roles: ['superadmin', 'admin', 'manager', 'supervisor', 'jefe_mantencion'] },
+  { label: 'Centros de costos', href: '/dashboard/centros-costos', icon: Building2, group: 'Transversal', moduleKey: 'core_centros_costos', roles: ['superadmin', 'admin', 'manager', 'Operaciones-Supervisor', 'Finanzas-Supervisor', 'jefe_mantencion'] },
 
   { label: 'Roles y cargos', href: '/dashboard/admin/roles', icon: ShieldCheck, group: 'Administración', roles: ['superadmin', 'admin'] },
   { label: 'Usuarios', href: '/dashboard/admin/users', icon: Users, group: 'Administración', roles: ['superadmin', 'admin'] },
   { label: 'Ayuda', href: '/dashboard/guias', icon: HelpCircle, group: 'Ayuda', roles: allStandardRoles },
 ];
 
-const groupOrder = ['Principal', 'Abastecimiento', 'Personas y entorno', 'Análisis', 'Administración', 'Ayuda'];
+const groupOrder = ['Principal', 'Áreas', 'Transversal', 'Administración', 'Ayuda'];
 
 function isItemActive(pathname: string, href: string) {
   if (href === '/dashboard') return pathname === href;
@@ -102,7 +101,7 @@ export function Sidebar() {
   const { role, logout } = useAuth();
   const { enforced, canView } = useModuleAccess();
   const [isOpen, setIsOpen] = useState(false);
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({ Principal: true });
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({ Principal: true, Áreas: true });
 
   const filteredItems = useMemo(() => {
     if (!role) return [];
@@ -153,7 +152,7 @@ export function Sidebar() {
             </div>
             <div>
               <p className="text-sm font-semibold tracking-tight">MOTIL</p>
-              <p className="text-[11px] text-muted-foreground">Gestión operacional</p>
+              <p className="text-[11px] text-muted-foreground">Mining Operating System</p>
             </div>
           </Link>
         </div>
