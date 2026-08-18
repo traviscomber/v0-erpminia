@@ -92,6 +92,7 @@ export async function GET(request: NextRequest) {
       totalPlannedHours: number;
       totalActualHours: number;
       efficiencyScores: number[];
+      criticalAssigned: number;
       criticalCompleted: number;
     }>();
 
@@ -116,6 +117,7 @@ export async function GET(request: NextRequest) {
         totalPlannedHours: 0,
         totalActualHours: 0,
         efficiencyScores: [],
+        criticalAssigned: 0,
         criticalCompleted: 0,
       };
 
@@ -137,7 +139,12 @@ export async function GET(request: NextRequest) {
       existing.totalPlannedHours += planned;
       existing.totalActualHours += actual;
       if (status === 'completed' && planned > 0 && actual > 0) existing.efficiencyScores.push(planned / actual);
-      if (status === 'completed' && ['critical', 'high'].includes(normalize(workOrder.priority))) existing.criticalCompleted += 1;
+
+      const critical = ['critical', 'high'].includes(normalize(workOrder.priority));
+      if (critical) {
+        existing.criticalAssigned += 1;
+        if (status === 'completed') existing.criticalCompleted += 1;
+      }
       workerMap.set(key, existing);
     }
 
@@ -146,17 +153,40 @@ export async function GET(request: NextRequest) {
       const avgEfficiency = worker.efficiencyScores.length > 0
         ? Math.round((worker.efficiencyScores.reduce((sum, value) => sum + value, 0) / worker.efficiencyScores.length) * 100)
         : 0;
-      const performanceScore = Math.min(100, Math.round(completionRate * 0.6 + Math.min(100, avgEfficiency) * 0.2 + Math.min(20, worker.criticalCompleted * 4)));
+      const timelinessRate = worker.total > 0 ? Math.max(0, Math.round(((worker.total - worker.overdue) / worker.total) * 100)) : 0;
+      const criticalResolutionRate = worker.criticalAssigned > 0
+        ? Math.round((worker.criticalCompleted / worker.criticalAssigned) * 100)
+        : 100;
+
+      // Sólo los mecánicos reciben score OT. Para operarios, las OT no representan su trabajo operacional
+      // y no deben producir una evaluación engañosa hasta que producción registre persona/turno/equipo.
+      const performanceScore = worker.workerType === 'Mecánico'
+        ? Math.min(100, Math.round(
+            completionRate * 0.4
+            + Math.min(100, avgEfficiency || completionRate) * 0.25
+            + timelinessRate * 0.2
+            + criticalResolutionRate * 0.15
+          ))
+        : null;
+
       return {
         ...worker,
         totalPlannedHours: Math.round(worker.totalPlannedHours * 10) / 10,
         totalActualHours: Math.round(worker.totalActualHours * 10) / 10,
         completionRate,
         avgEfficiency,
+        timelinessRate,
+        criticalResolutionRate,
         performanceScore,
+        evaluationStatus: worker.workerType === 'Mecánico' ? 'scored' : 'awaiting_operational_evidence',
         efficiencyScores: undefined,
       };
-    }).sort((a, b) => b.performanceScore - a.performanceScore);
+    }).sort((a, b) => {
+      if (a.performanceScore == null && b.performanceScore == null) return a.name.localeCompare(b.name);
+      if (a.performanceScore == null) return 1;
+      if (b.performanceScore == null) return -1;
+      return b.performanceScore - a.performanceScore;
+    });
 
     const completedRows = eligibleRows.filter((row) => normalize(row.status) === 'completed');
     const rowsWithActualDuration = completedRows.filter((row) => safeNum(row.actual_duration_hours) > 0);
@@ -174,13 +204,16 @@ export async function GET(request: NextRequest) {
       operators,
       unclassifiedAssignments,
       periodDays: days,
-      activeTechnicians: workers.length,
+      scoringMethod: {
+        mechanic: '40% cumplimiento OT + 25% eficiencia de horas + 20% puntualidad + 15% resolución crítica',
+        operator: 'Pendiente de evidencia operacional por persona/turno/equipo; no se infiere desde OT de mantenimiento',
+      },
     };
 
-    return NextResponse.json({ workers, technicians: workers, summary });
+    return NextResponse.json({ workers, summary });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Error al cargar desempeño de mecánicos y operarios';
     console.error('[maintenance/personnel/performance]', error);
-    return NextResponse.json({ workers: [], technicians: [], error: message }, { status: 500 });
+    return NextResponse.json({ workers: [], error: message }, { status: 500 });
   }
 }
