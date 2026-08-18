@@ -77,6 +77,7 @@ const menuItems: MenuItem[] = [
   { label: 'Compras', href: '/dashboard/compras', icon: ShoppingCart, group: 'Abastecimiento', moduleKey: 'fin_compras', roles: ['superadmin', 'admin', 'Compras-Supervisor'] },
   { label: 'Finanzas', href: '/dashboard/finanzas', icon: CircleDollarSign, group: 'Abastecimiento', moduleKey: 'fin_finanzas', roles: ['superadmin', 'admin', 'Finanzas-Supervisor'] },
 
+  { label: 'RRHH', href: '/dashboard/rrhh', icon: Users, group: 'Personas y entorno', roles: ['superadmin', 'admin', 'manager'] },
   { label: 'Sostenibilidad', href: '/dashboard/sostenibilidad', icon: Leaf, group: 'Personas y entorno', moduleKey: 'sos_tablero', roles: ['superadmin', 'admin', 'Sostenibilidad-Supervisor', 'HSE-Supervisor'] },
   { label: 'Legal y contratos', href: '/dashboard/legal', icon: FileCheck, group: 'Personas y entorno', moduleKey: 'legal_modulo', roles: ['superadmin', 'admin', 'manager'] },
 
