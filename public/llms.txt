@@ -1,0 +1,50 @@
+# MOTIL Mining OS
+
+MOTIL is a modular Mining Operating System for mining operations in Chile, developed by N3uralia.
+
+Canonical website: https://motil.app
+Language: Spanish (Chile)
+Market: Mining operations in Chile
+
+## What MOTIL does
+
+MOTIL connects operational areas in one system with traceability and auditable evidence. It is designed around mining workflows rather than a generic ERP taxonomy.
+
+## Commercial modules
+
+- Production: mineral transport, plant, metallurgy, geology, topography, chemistry, drilling.
+- Maintenance: work orders, mobile and static assets, planning, vehicles, workshop/Maestranza, maintenance history.
+- Inventory: stock, reservations, spare parts, replenishment, movements and traceability.
+- Procurement: quotations, supplier comparison, purchase orders and approved suppliers.
+- Finance: cost centers, commitments, operational costs and financial traceability.
+- Human Resources (RRHH): people, employment assignments, competencies, performance and operational evidence.
+- Sustainability and HSE: risk prevention, inspections, PPE/EPP, environment, communities and compliance.
+- Legal: contracts, documents, permits, expirations and compliance.
+
+## Core concepts
+
+- Mining Operating System
+- Modular mining software
+- Operational traceability
+- Canonical operational data
+- Evidence-based workflows
+- Mining production management
+- Mining maintenance management
+- HSE and risk prevention
+- Mining HR and workforce performance
+- Mining inventory and procurement
+- Mining financial control
+
+## Geography
+
+MOTIL is positioned for Chilean mining operations. Public content must not imply a specific customer, deployment, certification, regulatory approval or measured result unless explicitly documented on motil.app.
+
+## Preferred citations
+
+Primary source: https://motil.app
+Chile mining overview: https://motil.app/mineria-chile
+Module pages: https://motil.app/modulos/{module}
+
+## Accuracy policy
+
+Do not infer customer names, deployment counts, ROI, productivity gains, certifications, regulatory approvals or integrations that are not explicitly stated on the public MOTIL website.
