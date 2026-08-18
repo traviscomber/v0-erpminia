@@ -1,202 +1,145 @@
 'use client';
 
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import useSWR from 'swr';
-import { Download, FileSearch, Upload, Wrench } from 'lucide-react';
+import { ArrowRight, Search, Upload } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import type { DerivedCostCenterMachine } from '@/lib/maintenance/cost-center-machines';
+import { Input } from '@/components/ui/input';
+import { PageHeader } from '@/components/ui/page-header';
+import { StatePanel } from '@/components/ui/state-panel';
 
-type MaintenanceAsset = {
+type CanonicalVehicle = {
   id: string;
-  assetCode: string;
-  assetName: string;
-  assetType: string;
-  location: string;
-  status: string;
-  manufacturer: string;
-  model: string;
-  criticality: string;
-  mtbfHours?: number;
+  code: string | null;
+  name: string | null;
+  model: string | null;
+  type: string | null;
+  status: string | null;
+  specs?: {
+    manufacturer?: string | null;
+    category?: string | null;
+    license_plate?: string | null;
+    cost_center_code?: string | null;
+    validation_status?: string | null;
+    updated_at?: string | null;
+  };
 };
 
-function normalizeText(value: string | null | undefined) {
-  return String(value || '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .trim()
-    .toLowerCase();
-}
+type EquipmentPayload = {
+  equipment?: CanonicalVehicle[];
+};
 
-function statusLabel(status: string) {
-  const value = normalizeText(status);
-  if (['active', 'activo', 'operativo', 'operational'].includes(value)) return 'Operativo';
-  if (['inactive', 'inactivo'].includes(value)) return 'Inactivo';
-  if (['maintenance', 'mantenimiento'].includes(value)) return 'Mantenimiento';
-  return status || 'Sin estado';
-}
-
-const fetcher = async (url: string) => {
+const fetcher = async (url: string): Promise<EquipmentPayload> => {
   const response = await fetch(url, { credentials: 'include' });
   const payload = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(payload?.error || 'No fue posible cargar los activos');
+  if (!response.ok) throw new Error(payload?.error || 'No fue posible cargar los vehículos');
   return payload;
 };
 
-const VEHICLE_GROUPS = ['8', '9', '12'];
+function isVehicle(asset: CanonicalVehicle) {
+  const text = [asset.type, asset.specs?.category, asset.name, asset.code, asset.specs?.license_plate]
+    .filter(Boolean)
+    .join(' ')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+
+  return Boolean(asset.specs?.license_plate) || /(vehiculo|camion|camioneta|pickup|bus|furgon|tractor|tolva|aljibe|minibus)/.test(text);
+}
+
+function statusLabel(value: string | null | undefined) {
+  const normalized = String(value || '').toLowerCase();
+  if (['activo', 'active', 'operativo'].includes(normalized)) return 'Activo';
+  if (['inactivo', 'inactive'].includes(normalized)) return 'Inactivo';
+  return value || 'Sin estado';
+}
 
 export default function VehiclesPage() {
-  const { data, error, isLoading } = useSWR('/api/maintenance/assets', fetcher);
-  const { data: machineCatalogData } = useSWR('/api/maintenance/cost-center-machines', fetcher);
-  const vehicles = (data?.assets || []) as MaintenanceAsset[];
-  const derivedMachines = Array.isArray(machineCatalogData?.machines)
-    ? (machineCatalogData.machines as DerivedCostCenterMachine[])
-    : [];
+  const { data, error, isLoading, mutate } = useSWR<EquipmentPayload>('/api/maintenance/equipment', fetcher, { revalidateOnFocus: false });
+  const [query, setQuery] = useState('');
+
+  const vehicles = useMemo(() => (data?.equipment || []).filter(isVehicle), [data?.equipment]);
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return vehicles;
+    return vehicles.filter((vehicle) => [vehicle.code, vehicle.name, vehicle.model, vehicle.type, vehicle.specs?.manufacturer, vehicle.specs?.license_plate, vehicle.specs?.cost_center_code]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase()
+      .includes(q));
+  }, [query, vehicles]);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Vehiculos y traslados</h1>
-        <p className="mt-2 text-muted-foreground">
-          Administra vehiculos operativos y traslados desde un solo modulo de mantenimiento, con arbol de fallas y datos reales del sistema.
-        </p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Button asChild variant="outline">
-            <Link href="/dashboard/mantenimiento">
-              <Wrench className="mr-2 h-4 w-4" />
-              Volver a mantenimiento
-            </Link>
+    <div className="space-y-5">
+      <PageHeader
+        eyebrow="Mantenimiento · Activos móviles"
+        title="Vehículos"
+        description="Abre un vehículo para revisar su ficha 360°, órdenes de trabajo, costos, componentes e historial completo."
+        actions={
+          <Button asChild>
+            <Link href="/dashboard/mantenimiento/vehiculos/importar"><Upload className="h-4 w-4" />Importar vehículos</Link>
           </Button>
-          <Button asChild variant="outline">
-            <Link href="/dashboard/mantenimiento/vehiculos/importar">
-              <Upload className="mr-2 h-4 w-4" />
-              Importar vehiculos
-            </Link>
-          </Button>
-        </div>
-        <div className="mt-4 rounded-lg border border-[var(--secondary)]/30 bg-[var(--secondary)]/5 p-4 dark:border-blue-800 dark:bg-blue-950">
-          <p className="text-sm text-blue-900 dark:text-blue-100">
-            <strong>Como funciona:</strong> cada activo trae su informacion operacional y puedes abrir el
-            arbol de fallas para diagnosticar problemas y crear ordenes de trabajo.
-          </p>
-        </div>
-      </div>
+        }
+      />
 
+      {error ? (
+        <StatePanel tone="error" title="No fue posible cargar los vehículos" description={error.message} actions={<Button variant="outline" onClick={() => void mutate()}>Reintentar</Button>} />
+      ) : null}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Vehiculos en sistema</CardTitle>
-          <CardDescription>
-            {isLoading ? 'Cargando activos...' : `${vehicles.length} vehiculos registrados`}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {error ? (
-            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-              No fue posible cargar los vehiculos reales.
+      {!error ? (
+        <section className="space-y-3">
+          <div className="flex flex-col gap-3 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-medium">{isLoading ? 'Cargando…' : `${vehicles.length} vehículos canónicos`}</p>
+              <p className="text-xs text-muted-foreground">Fuente única para ficha, OT e historial de mantenimiento.</p>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {vehicles.map((vehicle) => (
-                <div
+            <div className="relative w-full sm:w-80">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar código, patente, modelo…" className="pl-9" />
+            </div>
+          </div>
+
+          {isLoading ? <StatePanel tone="loading" title="Cargando vehículos" description="Consultando el maestro canónico de activos." /> : null}
+
+          {!isLoading && filtered.length === 0 ? (
+            <StatePanel tone="neutral" title={query ? 'Sin coincidencias' : 'No hay vehículos identificados'} description={query ? 'Prueba con otro código, patente, fabricante o modelo.' : 'El maestro canónico no contiene activos clasificados como vehículos.'} />
+          ) : null}
+
+          {filtered.length > 0 ? (
+            <div className="divide-y border-y">
+              {filtered.map((vehicle) => (
+                <Link
                   key={vehicle.id}
-                  className="flex items-center justify-between rounded-lg border border-border p-4 transition-colors hover:bg-muted/50"
+                  href={`/dashboard/mantenimiento/vehiculos/${encodeURIComponent(vehicle.id)}/ficha`}
+                  className="group grid gap-3 px-1 py-4 transition-colors hover:bg-muted/40 sm:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,.8fr)_auto] sm:items-center sm:px-3"
                 >
-                  <div className="flex-1">
-                    <div className="mb-2 flex items-center gap-3">
-                      <h3 className="text-lg font-semibold">{vehicle.assetName}</h3>
-                      <Badge className="bg-accent">{statusLabel(vehicle.status)}</Badge>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-semibold">{vehicle.code || 'Sin código'}</p>
+                      <Badge variant="outline">{statusLabel(vehicle.status)}</Badge>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground md:grid-cols-4">
-                      <div>
-                        <span className="font-medium text-foreground">{vehicle.assetCode}</span>
-                        <p>Codigo</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-foreground">{vehicle.assetType || '-'}</span>
-                        <p>Tipo</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-foreground">{vehicle.model || '-'}</span>
-                        <p>Modelo</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-foreground">{vehicle.location || '-'}</span>
-                        <p>Ubicacion</p>
-                      </div>
-                    </div>
+                    <p className="mt-1 truncate text-sm">{vehicle.name || 'Vehículo sin nombre'}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{vehicle.specs?.license_plate || 'Sin patente registrada'}</p>
                   </div>
-                  <div className="ml-4 flex flex-col gap-2 sm:flex-row">
-                    <Link href={`/dashboard/mantenimiento/vehiculos/${vehicle.id}/ficha`}>
-                      <Button variant="outline" className="gap-2">
-                        Ver ficha completa
-                        <FileSearch className="h-4 w-4" />
-                      </Button>
-                    </Link>
-                    <Link href={`/dashboard/mantenimiento/vehiculos/${vehicle.id}/ficha-tecnica`}>
-                      <Button variant="outline" className="gap-2">
-                        Ficha tecnica
-                        <FileSearch className="h-4 w-4" />
-                      </Button>
-                    </Link>
-                    <Link href={`/dashboard/mantenimiento/vehiculos/${vehicle.id}/arbol`}>
-                      <Button variant="outline" className="gap-2">
-                        Ver arbol de fallas
-                        <Download className="h-4 w-4 rotate-90" />
-                      </Button>
-                    </Link>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Fabricante / modelo</p>
+                    <p className="mt-1 text-sm font-medium">{[vehicle.specs?.manufacturer, vehicle.model].filter(Boolean).join(' · ') || 'Sin dato'}</p>
                   </div>
-                </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Centro de costo</p>
+                    <p className="mt-1 text-sm font-medium">{vehicle.specs?.cost_center_code || 'Sin asignar'}</p>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground group-hover:text-foreground">
+                    Ver ficha <ArrowRight className="h-4 w-4" />
+                  </div>
+                </Link>
               ))}
-
-              {!isLoading && vehicles.length === 0 && (
-                <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
-                  Todavia no hay vehiculos cargados desde la base real.
-                </div>
-              )}
             </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Modelos derivados desde centros de costo</CardTitle>
-          <CardDescription>
-            {derivedMachines.length > 0
-              ? `${derivedMachines.length} modelos detectados desde la base de centros de costo`
-              : 'Todavia no se detectaron modelos en los centros de costo'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {derivedMachines.length > 0 ? (
-            <div className="max-h-[720px] overflow-y-auto pr-1">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {derivedMachines.map((machine) => (
-                  <div key={machine.id} className="rounded-lg border border-border p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{machine.family}</p>
-                        <h3 className="truncate text-base font-semibold">{machine.name}</h3>
-                        <p className="mt-1 text-sm text-muted-foreground">{machine.code}</p>
-                      </div>
-                      <Badge variant="outline">{machine.source}</Badge>
-                    </div>
-                    <p className="mt-3 text-xs text-muted-foreground">
-                      Este modelo viene del centro de costo y puede usarse como base del maestro de maquinas.
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
-              No se encontraron modelos claros desde centros de costo.
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          ) : null}
+        </section>
+      ) : null}
     </div>
   );
 }
