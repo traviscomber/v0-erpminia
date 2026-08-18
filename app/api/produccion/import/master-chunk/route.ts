@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic';
 
+import { createHash } from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 
@@ -86,6 +87,7 @@ type PlantRow = {
     dispatched_metric_tons?: number | null;
     concentrate_wet_metric_tons?: number | null;
     concentrate_moisture_pct?: number | null;
+    dispatch_fine_calculated?: number | null;
   };
 };
 
@@ -103,6 +105,10 @@ function finiteOrNull(value: unknown) {
   if (value === null || value === undefined || value === '') return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function dispatchHash(plantSourceHash: string) {
+  return createHash('sha256').update(`PLANT_DISPATCH_V1|${plantSourceHash}`).digest('hex');
 }
 
 export async function POST(request: NextRequest) {
@@ -201,6 +207,7 @@ export async function POST(request: NextRequest) {
         movement_number: row.movement_number || null,
         movement_date: row.movement_date || null,
         source_file: row.source_file,
+        source_file_sha256: row.source_file_sha256,
         source_sheet: row.source_sheet,
         source_row: Number(row.source_row),
         source_hash: row.source_hash,
@@ -294,7 +301,72 @@ export async function POST(request: NextRequest) {
       .upsert(metallurgyPayload, { onConflict: 'organization_id,source_hash' });
     if (metallurgyError) return NextResponse.json({ error: metallurgyError.message }, { status: 500 });
 
-    return NextResponse.json({ accepted: input.length });
+    const dispatchRows = input.filter((row) => {
+      const tons = finiteOrNull(row.metallurgy.dispatched_metric_tons);
+      return tons !== null && tons > 0;
+    });
+
+    let shipmentsMaterialized = 0;
+    if (dispatchRows.length > 0) {
+      const shipmentPayload = dispatchRows.map((row) => {
+        const wetTons = Number(row.metallurgy.dispatched_metric_tons);
+        const moisture = finiteOrNull(row.metallurgy.dispatch_moisture);
+        const grade = finiteOrNull(row.metallurgy.dispatch_grade);
+        const complete = moisture !== null && grade !== null;
+        return {
+          organization_id: context.organizationId,
+          import_batch_id: resolveBatch({ ...row.shift, source_file_sha256: row.source_file_sha256 }),
+          shipment_date: row.shift.operation_date,
+          raw_quantity: wetTons,
+          raw_unit: 't',
+          normalized_metric_tons: wetTons,
+          normalization_status: 'approved',
+          normalization_rule: 'PLANT_DISPATCH_WET_TONS_V1',
+          source_file: row.shift.source_file,
+          source_sheet: row.shift.source_sheet,
+          source_row: Number(row.shift.source_row),
+          source_hash: dispatchHash(row.shift.source_hash),
+          source_payload: {
+            FECHA: row.shift.operation_date,
+            TURNO: row.shift.shift_code,
+            'HUMEDAD CONCENTRADO %': moisture,
+            'LEY DESPACHO %': grade,
+            'DESPACHO HUMEDO t': wetTons,
+            'FINO DESPACHADO CALCULADO t': row.metallurgy.dispatch_fine_calculated ?? null,
+            _canonical_source: 'PLANTA_LEYES_CANONICO',
+          },
+          validation_status: complete ? 'valid' : 'review',
+          validation_notes: complete ? null : 'Despacho preservado; humedad de concentrado o ley de despacho faltante en fuente.',
+        };
+      });
+
+      const { data: shipmentData, error: shipmentError } = await context.supabase
+        .from('production_concentrate_shipments')
+        .upsert(shipmentPayload, { onConflict: 'organization_id,source_hash' })
+        .select('id, source_hash');
+      if (shipmentError) return NextResponse.json({ error: shipmentError.message }, { status: 500 });
+
+      const shipmentIds = new Map((shipmentData || []).map((row: { id: string; source_hash: string }) => [row.source_hash, row.id]));
+      const allocationPayload = dispatchRows.map((row) => ({
+        organization_id: context.organizationId,
+        shipment_id: shipmentIds.get(dispatchHash(row.shift.source_hash)),
+        plant_shift_id: shiftIds.get(row.shift.source_hash),
+        allocated_wet_metric_tons: Number(row.metallurgy.dispatched_metric_tons),
+        allocation_rule_version: 'source_row_v1',
+      }));
+
+      if (allocationPayload.some((row) => !row.shipment_id || !row.plant_shift_id)) {
+        return NextResponse.json({ error: 'No fue posible resolver todos los despachos materializados' }, { status: 500 });
+      }
+
+      const { error: allocationError } = await context.supabase
+        .from('production_concentrate_shipment_allocations')
+        .upsert(allocationPayload, { onConflict: 'organization_id,shipment_id,plant_shift_id' });
+      if (allocationError) return NextResponse.json({ error: allocationError.message }, { status: 500 });
+      shipmentsMaterialized = allocationPayload.length;
+    }
+
+    return NextResponse.json({ accepted: input.length, shipmentsMaterialized });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : 'Error de importación maestra' }, { status: 400 });
   }
