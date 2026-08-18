@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-export const dynamic = 'force-dynamic';
 
 import { Geist, Geist_Mono, Montserrat } from 'next/font/google';
 import { ThemeProvider } from 'next-themes';
