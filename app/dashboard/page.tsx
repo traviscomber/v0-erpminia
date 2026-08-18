@@ -16,13 +16,14 @@ const fetcher = async (url: string) => {
 };
 
 const workspaces = [
-  { title: 'Producción', href: '/dashboard/produccion', description: 'Transporte, planta, geología, topografía, química y sondaje.' },
-  { title: 'Mantenimiento', href: '/dashboard/mantenimiento', description: 'Órdenes, activos, planificación y Maestranza.' },
-  { title: 'Inventario', href: '/dashboard/bodega', description: 'Stock, reservas, reposición y trazabilidad.' },
-  { title: 'Compras', href: '/dashboard/compras', description: 'Cotizaciones, órdenes y proveedores.' },
-  { title: 'Finanzas', href: '/dashboard/finanzas', description: 'Costos, compromisos y trazabilidad financiera.' },
-  { title: 'Sostenibilidad', href: '/dashboard/sostenibilidad', description: 'HSE, ambiente, comunidades y cumplimiento.' },
-  { title: 'Legal', href: '/dashboard/legal', description: 'Contratos, documentos y vencimientos.' },
+  { title: 'Producción', href: '/dashboard/produccion', description: 'Transporte de Mineral, planta, metalurgia, geología, topografía, química y sondaje.' },
+  { title: 'Mantenimiento', href: '/dashboard/mantenimiento', description: 'Órdenes de trabajo, activos, planificación, vehículos y Maestranza.' },
+  { title: 'Inventario', href: '/dashboard/bodega', description: 'Stock, reservas, reposición, repuestos y trazabilidad.' },
+  { title: 'Compras', href: '/dashboard/compras', description: 'Cotizaciones, órdenes de compra, proveedores y comparación.' },
+  { title: 'Finanzas', href: '/dashboard/finanzas', description: 'Costos, compromisos, centros de costo y trazabilidad financiera.' },
+  { title: 'RRHH', href: '/dashboard/rrhh', description: 'Personas, contratos laborales, asistencia, desempeño, competencias y evidencia.' },
+  { title: 'Sostenibilidad', href: '/dashboard/sostenibilidad', description: 'HSE, prevención, EPP, medio ambiente, comunidades y cumplimiento.' },
+  { title: 'Legal', href: '/dashboard/legal', description: 'Contratos, documentos, permisos, vencimientos y cumplimiento.' },
 ];
 
 export default function DashboardPage() {
@@ -40,9 +41,9 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <PageHeader>
         <PageHeaderContent>
-          <PageHeaderEyebrow>Operación</PageHeaderEyebrow>
+          <PageHeaderEyebrow>MOTIL Mining OS</PageHeaderEyebrow>
           <PageHeaderTitle>Inicio</PageHeaderTitle>
-          <PageHeaderDescription>Lo que requiere atención ahora y acceso directo a cada área.</PageHeaderDescription>
+          <PageHeaderDescription>Estado de la operación y acceso directo a las áreas habilitadas para tu organización.</PageHeaderDescription>
         </PageHeaderContent>
         <PageHeaderActions>
           <Button asChild><Link href="/dashboard/alertas">Ver alertas</Link></Button>
@@ -100,7 +101,10 @@ export default function DashboardPage() {
       </section>
 
       <section className="space-y-3">
-        <div><h2 className="text-lg font-semibold">Áreas</h2><p className="text-sm text-muted-foreground">Entra directamente al trabajo que necesitas realizar.</p></div>
+        <div>
+          <h2 className="text-lg font-semibold">Áreas</h2>
+          <p className="text-sm text-muted-foreground">Cada área corresponde a un módulo comercial del Mining OS y contiene sus capacidades específicas.</p>
+        </div>
         <div className="overflow-hidden rounded-lg border bg-card">
           {workspaces.map((item) => (
             <Link key={item.href} href={item.href} className="group grid gap-1 border-b px-4 py-3 last:border-0 hover:bg-muted/30 sm:grid-cols-[180px_1fr_24px] sm:items-center sm:gap-4">
