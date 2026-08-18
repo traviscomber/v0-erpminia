@@ -42,17 +42,17 @@ function StatePanel({
     <div
       data-slot="state-panel"
       className={cn(
-        'flex min-h-44 flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card/30 px-6 py-8 text-center',
+        'flex min-h-32 flex-col items-center justify-center rounded-md border border-dashed border-border/80 bg-muted/15 px-5 py-6 text-center',
         className,
       )}
       {...props}
     >
-      <div className={cn('mb-4 flex size-10 items-center justify-center rounded-full bg-muted', toneClass[tone])}>
-        <Icon className={cn('size-5', tone === 'loading' && 'animate-spin')} />
+      <div className={cn('mb-3 flex size-8 items-center justify-center rounded-md bg-muted/70', toneClass[tone])}>
+        <Icon className={cn('size-4', tone === 'loading' && 'animate-spin')} />
       </div>
-      <p className="text-sm font-semibold text-foreground">{title}</p>
-      {description ? <p className="mt-1 max-w-md text-sm leading-6 text-muted-foreground">{description}</p> : null}
-      {actions ? <div className="mt-5 flex flex-wrap items-center justify-center gap-2">{actions}</div> : null}
+      <p className="text-sm font-medium text-foreground">{title}</p>
+      {description ? <p className="mt-1 max-w-lg text-sm leading-5 text-muted-foreground">{description}</p> : null}
+      {actions ? <div className="mt-4 flex flex-wrap items-center justify-center gap-2">{actions}</div> : null}
     </div>
   )
 }
