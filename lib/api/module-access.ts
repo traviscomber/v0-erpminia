@@ -45,6 +45,7 @@ export const MODULE_KEYS = {
   PROD_TELEMETRIA: 'prod_telemetria',
   CORE_ALERTAS: 'core_alertas',
   CORE_CENTROS_COSTOS: 'core_centros_costos',
+  CORE_DESEMPENO: 'core_desempeno',
 } as const;
 
 export type ModuleKey = (typeof MODULE_KEYS)[keyof typeof MODULE_KEYS];
