@@ -17,6 +17,15 @@ function formatValue(value: number | null, unit: string) {
   return `${new Intl.NumberFormat('es-CL', { maximumFractionDigits }).format(value)} ${unit}`;
 }
 
+function mergeScorecards(rows: Kpi[], executive: Kpi[]) {
+  const merged = new Map<string, Kpi>();
+  for (const row of [...executive, ...rows]) {
+    const key = `${row.cargo_name}|${row.domain || ''}|${row.kpi_key}`;
+    if (!merged.has(key)) merged.set(key, row);
+  }
+  return Array.from(merged.values());
+}
+
 const domainLabel: Record<string, string> = {
   production: 'Producción', mine: 'Mina', maintenance: 'Mantención', hse: 'HSE', risk: 'Riesgo', data_quality: 'Calidad de datos',
   inventory: 'Bodega', geology: 'Geología', procurement: 'Compras', finance: 'Finanzas', contracts: 'Contratos', documents: 'Documentos',
@@ -39,7 +48,7 @@ export default function DesempenoPage() {
     return () => controller.abort();
   }, [cargo]);
 
-  const rows = useMemo(() => !payload ? [] : payload.executive.length ? payload.executive : payload.rows, [payload]);
+  const rows = useMemo(() => !payload ? [] : mergeScorecards(payload.rows, payload.executive), [payload]);
   const domains = new Set(rows.map((row) => row.domain).filter(Boolean)).size;
   const withData = rows.filter((row) => row.measured_value !== null).length;
   const withoutTargets = rows.filter((row) => row.target_value === null || row.target_value === undefined).length;
@@ -56,7 +65,7 @@ export default function DesempenoPage() {
       <Card><CardHeader><CardDescription>Dominios</CardDescription><CardTitle className="flex items-center gap-2 text-2xl"><ShieldAlert className="h-5 w-5 text-muted-foreground" />{loading ? '—' : domains || '—'}</CardTitle></CardHeader></Card>
       <Card><CardHeader><CardDescription>Sin meta aprobada</CardDescription><CardTitle className="flex items-center gap-2 text-2xl"><Target className="h-5 w-5 text-muted-foreground" />{loading ? '—' : withoutTargets}</CardTitle></CardHeader></Card>
     </div>
-    <Card><CardHeader><div className="flex flex-wrap items-center gap-2"><CardTitle>Scorecard</CardTitle><Badge variant="outline">Baseline</Badge><Badge variant="neutral">No evaluación personal</Badge></div><CardDescription>{payload?.meta.note || 'Cargando evidencia operacional…'}</CardDescription></CardHeader><CardContent className="px-0 pb-0"><Table><TableHeader><TableRow><TableHead>Cargo / dominio</TableHead><TableHead>Indicador</TableHead><TableHead className="text-right">Valor</TableHead><TableHead>Dirección</TableHead><TableHead>Estado</TableHead></TableRow></TableHeader><TableBody>{loading ? <TableRow><TableCell colSpan={5} className="py-10 text-center text-muted-foreground">Cargando scorecard…</TableCell></TableRow> : rows.length === 0 ? <TableRow><TableCell colSpan={5} className="py-10 text-center text-muted-foreground">No existen indicadores medidos para este cargo.</TableCell></TableRow> : rows.map((row,index) => <TableRow key={`${row.cargo_name}-${row.kpi_key}-${index}`}><TableCell><div className="font-medium">{row.cargo_name}</div>{row.domain ? <div className="text-xs text-muted-foreground">{domainLabel[row.domain] || row.domain}</div> : null}</TableCell><TableCell>{row.label}</TableCell><TableCell className="text-right font-medium tabular-nums">{formatValue(row.measured_value,row.unit)}</TableCell><TableCell className="text-xs text-muted-foreground">{row.direction === 'higher_is_better' ? 'Mayor es mejor' : row.direction === 'lower_is_better' ? 'Menor es mejor' : 'Informativo'}</TableCell><TableCell><Badge variant="outline">{row.evaluation_state === 'baseline' ? 'Baseline' : row.evaluation_state}</Badge></TableCell></TableRow>)}</TableBody></Table></CardContent></Card>
+    <Card><CardHeader><div className="flex flex-wrap items-center gap-2"><CardTitle>Scorecard</CardTitle><Badge variant="outline">Baseline</Badge><Badge variant="neutral">No evaluación personal</Badge></div><CardDescription>{payload?.meta.note || 'Cargando evidencia operacional…'}</CardDescription></CardHeader><CardContent className="px-0 pb-0"><Table><TableHeader><TableRow><TableHead>Cargo / dominio</TableHead><TableHead>Indicador</TableHead><TableHead className="text-right">Valor</TableHead><TableHead>Dirección</TableHead><TableHead>Estado</TableHead></TableRow></TableHeader><TableBody>{loading ? <TableRow><TableCell colSpan={5} className="py-10 text-center text-muted-foreground">Cargando scorecard…</TableCell></TableRow> : rows.length === 0 ? <TableRow><TableCell colSpan={5} className="py-10 text-center text-muted-foreground">No existen indicadores medidos para este cargo.</TableCell></TableRow> : rows.map((row,index) => <TableRow key={`${row.cargo_name}-${row.domain || 'general'}-${row.kpi_key}-${index}`}><TableCell><div className="font-medium">{row.cargo_name}</div>{row.domain ? <div className="text-xs text-muted-foreground">{domainLabel[row.domain] || row.domain}</div> : null}</TableCell><TableCell>{row.label}</TableCell><TableCell className="text-right font-medium tabular-nums">{formatValue(row.measured_value,row.unit)}</TableCell><TableCell className="text-xs text-muted-foreground">{row.direction === 'higher_is_better' ? 'Mayor es mejor' : row.direction === 'lower_is_better' ? 'Menor es mejor' : 'Informativo'}</TableCell><TableCell><Badge variant="outline">{row.evaluation_state === 'baseline' ? 'Baseline' : row.evaluation_state}</Badge></TableCell></TableRow>)}</TableBody></Table></CardContent></Card>
     {(payload?.evidenceGaps?.length || 0) > 0 ? <Card><CardHeader><CardTitle>Brechas de evidencia</CardTitle><CardDescription>Áreas que todavía no deben convertirse en evaluación de desempeño.</CardDescription></CardHeader><CardContent className="space-y-3">{payload?.evidenceGaps?.map((gap) => <div key={gap.domain} className="flex gap-3 text-sm"><Badge variant="outline">{gap.domain}</Badge><span className="text-muted-foreground">{gap.detail}</span></div>)}</CardContent></Card> : null}
   </div>;
 }
