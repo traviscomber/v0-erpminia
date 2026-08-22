@@ -33,12 +33,13 @@ export async function GET(request: NextRequest) {
   const d = new Date(`${dataThrough}T12:00:00Z`);
   const periodStart = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-01`;
 
-  const [movements, metallurgy, drilling] = await Promise.all([
+  const [movements, metallurgy, drilling, drillingLineage] = await Promise.all([
     context.supabase.from('production_material_movements').select('movement_date,mine_source_id,mine_sector_id,mine_name_raw,sector_name_raw,normalized_metric_tons,validation_status').eq('organization_id', context.organizationId).gte('movement_date', periodStart).lte('movement_date', dataThrough),
     context.supabase.from('production_metallurgy_deterministic_v2').select('operation_date,treated_metric_tons,head_grade,recovery_reported,recovery_by_grades_pct,metallurgy_state').eq('organization_id', context.organizationId).gte('operation_date', periodStart).lte('operation_date', dataThrough),
-    context.supabase.from('production_drilling_source_reports').select('operation_date,mine_raw,sector_raw,drilled_meters,hole_code_raw,canonical_mine_source_id,canonical_mine_sector_id,canonical_drill_hole_id,reconciliation_status').eq('organization_id', context.organizationId),
+    context.supabase.from('production_drilling_source_reports').select('operation_date,drilled_meters,hole_code_raw,canonical_mine_source_id,canonical_mine_sector_id,canonical_drill_hole_id,reconciliation_status').eq('organization_id', context.organizationId),
+    context.supabase.from('production_drilling_reconciliation_v1').select('lineage_state').eq('organization_id', context.organizationId),
   ]);
-  const err = movements.error || metallurgy.error || drilling.error;
+  const err = movements.error || metallurgy.error || drilling.error || drillingLineage.error;
   if (err) return NextResponse.json({ error: err.message }, { status: 500 });
 
   const mineById = new Map((mines.data || []).map((m) => [m.id, m]));
@@ -61,7 +62,7 @@ export async function GET(request: NextRequest) {
   const activePlan = plan.data || null;
   for (const line of (planLines.data || []).filter((l) => !activePlan || l.plan_id === activePlan.id)) {
     const mine = line.mine_source_id ? mineById.get(line.mine_source_id) : null;
-    let sector = (sectors.data || []).find((s) => s.mine_source_id === line.mine_source_id && norm(s.normalized_name || s.name) === norm(line.sector_raw));
+    const sector = (sectors.data || []).find((s) => s.mine_source_id === line.mine_source_id && norm(s.normalized_name || s.name) === norm(line.sector_raw));
     const item = ensure(line.mine_source_id, sector?.id || null, mine?.name || line.mine_name_raw || '', sector?.name || line.sector_raw || line.section_raw || '');
     item.plannedTons += num(line.planned_tons);
     item.plannedAdvanceM += num(line.planned_advance_m);
@@ -70,16 +71,19 @@ export async function GET(request: NextRequest) {
     item.planMatch = sector ? 'canonical_mine+normalized_sector' : 'plan_label';
   }
 
+  // Drilling is attributed to a sector only when the report has canonical Mine + Sector + Hole lineage.
+  // Raw text labels are intentionally not used as a fallback: the source workbook can contain
+  // "No registrado", and text similarity is not auditable evidence of physical location.
   for (const row of drilling.data || []) {
-    const mine = row.canonical_mine_source_id ? mineById.get(row.canonical_mine_source_id) : null;
-    const sector = row.canonical_mine_sector_id ? sectorById.get(row.canonical_mine_sector_id) : null;
-    let target = sector ? ensure(row.canonical_mine_source_id, row.canonical_mine_sector_id, mine?.name || row.mine_raw || '', sector.name) : null;
-    if (!target) target = [...agg.values()].find((x) => norm(x.mineName) === norm(row.mine_raw) && norm(x.sectorName) === norm(row.sector_raw));
-    if (!target) continue;
+    if (!row.canonical_mine_source_id || !row.canonical_mine_sector_id || !row.canonical_drill_hole_id) continue;
+    const mine = mineById.get(row.canonical_mine_source_id);
+    const sector = sectorById.get(row.canonical_mine_sector_id);
+    if (!mine || !sector || sector.mine_source_id !== row.canonical_mine_source_id) continue;
+    const target = ensure(row.canonical_mine_source_id, row.canonical_mine_sector_id, mine.name, sector.name);
     target.drillingMetersHistorical += num(row.drilled_meters);
     target.drillingReportsHistorical += 1;
     if (row.hole_code_raw) target.drillingHoles.add(row.hole_code_raw);
-    if (row.canonical_mine_sector_id) target.drillingCanonicalSectorReports += 1;
+    target.drillingCanonicalSectorReports += 1;
   }
 
   const met = metallurgy.data || [];
@@ -98,6 +102,12 @@ export async function GET(request: NextRequest) {
     drillingReconciliationPct: x.drillingReportsHistorical > 0 ? (x.drillingCanonicalSectorReports / x.drillingReportsHistorical) * 100 : null,
   })).sort((a, b) => b.actualTons - a.actualTons || b.plannedTons - a.plannedTons);
 
+  const lineageCounts = (drillingLineage.data || []).reduce<Record<string, number>>((acc, row) => {
+    const key = row.lineage_state || 'unknown';
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+
   return NextResponse.json({
     periodStart,
     dataThrough,
@@ -114,10 +124,18 @@ export async function GET(request: NextRequest) {
       note: 'No se atribuyen KPI metalúrgicos a mina/sector sin linaje directo entre alimentación de planta y origen.',
     },
     drillingFreshness: drillingSummary.data || null,
+    drillingReconciliation: {
+      totalReports: drillingLineage.data?.length || 0,
+      fullyReconciled: lineageCounts.fully_reconciled || 0,
+      holeOnlyReview: lineageCounts.hole_only_review || 0,
+      unresolvedOrConflict: (drillingLineage.data?.length || 0) - (lineageCounts.fully_reconciled || 0) - (lineageCounts.hole_only_review || 0),
+      states: lineageCounts,
+      policy: 'Solo se atribuye sondaje a Mina/Sector cuando Mina + Sector + Pozo son canónicos y consistentes.',
+    },
     lineage: {
       transport: 'production_material_movements',
       plan: 'production_monthly_plans + production_monthly_plan_lines',
-      drilling: 'production_drilling_source_reports',
+      drilling: 'production_drilling_reconciliation_v1 -> production_drilling_source_reports -> production_drill_holes',
       plant: 'production_metallurgy_deterministic_v2 (contexto global)',
       sernageomin: 'Contexto externo disponible en módulo Geología; no reemplaza la verdad operacional interna.',
     },
