@@ -1,10 +1,14 @@
-/* Motil professional interface foundation.
-   Calm, operational, restrained: one visual system across every module. */
+/* MOTIL interface foundation.
+   Calm, operational and evidence-led: one visual system across every module. */
 
 :root {
   --motil-page-gutter: clamp(1rem, 2vw, 2rem);
-  --motil-section-gap: clamp(1.25rem, 2vw, 2rem);
-  --motil-content-max: 1680px;
+  --motil-section-gap: clamp(1.25rem, 1.8vw, 1.75rem);
+  --motil-content-max: 1600px;
+  --motil-control-height: 2.25rem;
+  --motil-surface-border: color-mix(in oklch, var(--border) 86%, transparent);
+  --motil-surface-muted: color-mix(in oklch, var(--muted) 64%, transparent);
+  --motil-surface-elevated: color-mix(in oklch, var(--card) 96%, var(--background));
 }
 
 body {
@@ -19,28 +23,29 @@ h4,
 h5,
 h6 {
   text-wrap: balance;
+  font-weight: 600;
 }
 
 h1 {
-  font-size: clamp(1.75rem, 2vw, 2.25rem);
-  line-height: 1.12;
-  letter-spacing: -0.035em;
+  font-size: clamp(1.65rem, 1.8vw, 2.05rem);
+  line-height: 1.15;
+  letter-spacing: -0.032em;
 }
 
 h2 {
-  font-size: clamp(1.375rem, 1.5vw, 1.75rem);
-  line-height: 1.2;
-  letter-spacing: -0.025em;
+  font-size: clamp(1.3rem, 1.4vw, 1.6rem);
+  line-height: 1.22;
+  letter-spacing: -0.024em;
 }
 
 h3 {
-  font-size: clamp(1.125rem, 1.2vw, 1.375rem);
-  line-height: 1.3;
-  letter-spacing: -0.018em;
+  font-size: clamp(1.05rem, 1.1vw, 1.25rem);
+  line-height: 1.32;
+  letter-spacing: -0.015em;
 }
 
 h4 {
-  font-size: 1rem;
+  font-size: 0.95rem;
   line-height: 1.4;
 }
 
@@ -49,26 +54,74 @@ p {
 }
 
 ::selection {
-  background: color-mix(in oklch, var(--primary) 24%, transparent);
+  background: color-mix(in oklch, var(--primary) 22%, transparent);
 }
 
+/* Shared surface hierarchy */
 [data-slot='card'] {
   isolation: isolate;
+  border-color: var(--motil-surface-border);
+  background: var(--motil-surface-elevated);
 }
 
 [data-slot='card']:has([data-slot='card']) {
   background: transparent;
 }
 
+[data-slot='card-title'] {
+  font-family: var(--font-heading);
+}
+
+[data-slot='card-description'] {
+  max-width: 58rem;
+}
+
+/* Shared controls */
 [data-slot='button'],
 [data-slot='input'],
-[data-slot='select-trigger'] {
+[data-slot='select-trigger'],
+[data-slot='textarea'] {
   -webkit-tap-highlight-color: transparent;
 }
 
+[data-slot='input'],
+[data-slot='select-trigger'],
+[data-slot='textarea'] {
+  border-color: var(--motil-surface-border);
+  background: color-mix(in oklch, var(--background) 72%, var(--card));
+}
+
+[data-slot='input']:focus-visible,
+[data-slot='select-trigger']:focus-visible,
+[data-slot='textarea']:focus-visible {
+  border-color: color-mix(in oklch, var(--primary) 54%, var(--border));
+}
+
+/* Tables should read like operational data, not floating cards. */
 [data-slot='table-container'] {
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in oklch, var(--foreground) 24%, transparent) transparent;
+  scrollbar-color: color-mix(in oklch, var(--foreground) 22%, transparent) transparent;
+}
+
+[data-slot='table-header'] {
+  background: var(--motil-surface-muted);
+}
+
+[data-slot='table-head'] {
+  height: 2.65rem;
+  color: var(--muted-foreground);
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+[data-slot='table-row'] {
+  border-color: var(--motil-surface-border);
+}
+
+[data-slot='table-body'] [data-slot='table-row']:hover {
+  background: color-mix(in oklch, var(--muted) 44%, transparent);
 }
 
 [data-slot='table-container']::-webkit-scrollbar {
@@ -79,7 +132,7 @@ p {
 [data-slot='table-container']::-webkit-scrollbar-thumb {
   border: 2px solid transparent;
   border-radius: 999px;
-  background: color-mix(in oklch, var(--foreground) 22%, transparent);
+  background: color-mix(in oklch, var(--foreground) 20%, transparent);
   background-clip: padding-box;
 }
 
@@ -87,6 +140,7 @@ p {
   background: transparent;
 }
 
+/* Canonical page primitives */
 .motil-page {
   margin-inline: auto;
   width: 100%;
@@ -103,25 +157,25 @@ p {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
-  padding-block: 0.25rem;
+  gap: 1.25rem;
+  padding-block: 0.125rem 0.25rem;
 }
 
 .motil-page-kicker {
-  color: var(--muted-foreground);
-  font-size: 0.6875rem;
+  color: var(--primary);
+  font-size: 0.66rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.13em;
   line-height: 1.4;
   text-transform: uppercase;
 }
 
 .motil-page-description {
-  margin-top: 0.375rem;
-  max-width: 52rem;
+  margin-top: 0.4rem;
+  max-width: 56rem;
   color: var(--muted-foreground);
   font-size: 0.875rem;
-  line-height: 1.6;
+  line-height: 1.65;
 }
 
 .motil-toolbar {
@@ -129,18 +183,30 @@ p {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.625rem;
-  border: 1px solid color-mix(in oklch, var(--border) 82%, transparent);
+  border: 1px solid var(--motil-surface-border);
   border-radius: var(--radius-md);
-  background: color-mix(in oklch, var(--card) 82%, transparent);
+  background: color-mix(in oklch, var(--card) 88%, transparent);
   padding: 0.75rem;
 }
 
 .motil-section-label {
   color: var(--muted-foreground);
-  font-size: 0.6875rem;
+  font-size: 0.66rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.11em;
   text-transform: uppercase;
+}
+
+.motil-metric-grid {
+  display: grid;
+  gap: 0.875rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+}
+
+.motil-divider {
+  height: 1px;
+  width: 100%;
+  background: var(--motil-surface-border);
 }
 
 @media (max-width: 767px) {
