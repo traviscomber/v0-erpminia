@@ -64,8 +64,8 @@ export async function GET(request: NextRequest) {
       .lte('operation_date', through)
       .order('operation_date'),
     context.supabase
-      .from('production_monthly_plans')
-      .select('id,plan_code,period_start,period_end,status,total_mineral_to_plant_tons,target_cu_grade_pct')
+      .from('production_copper_plan_v1')
+      .select('plan_id,plan_code,period_start,period_end,status,total_mineral_to_plant_tons,target_cu_grade_pct,planned_contained_cu_metric_tons,target_recovery_pct,planned_recovered_fine_cu_metric_tons,contained_cu_plan_state,planned_fine_semantic,source_reference')
       .eq('organization_id', context.organizationId)
       .eq('status', 'active')
       .order('period_start', { ascending: false })
@@ -100,6 +100,7 @@ export async function GET(request: NextRequest) {
       concentrateGradePct: weightedAverage(dayRows, (row) => row.concentrate_grade, (row) => row.treated_metric_tons),
       tailingsGradePct: weightedAverage(dayRows, (row) => row.tailings_grade, (row) => row.treated_metric_tons),
       recoveryPct: fine?.effective_recovery_pct == null ? weightedAverage(dayRows, (row) => row.recovery_reported ?? row.recovery_by_grades_pct, (row) => row.treated_metric_tons) : Number(fine.effective_recovery_pct),
+      containedCuTons: fine?.contained_feed_cu_metric_tons == null ? null : Number(fine.contained_feed_cu_metric_tons),
       fineCuTons: fine?.recovered_fine_cu_metric_tons == null ? null : Number(fine.recovered_fine_cu_metric_tons),
       fineCoverageState: fine?.fine_coverage_state || 'no_assay',
       assayed: dayRows.filter((row) => row.metallurgy_state === 'assayed').length,
@@ -115,9 +116,8 @@ export async function GET(request: NextRequest) {
   const wetTonsWithoutFine = fineDaily.reduce((sum, row) => sum + Number(row.treated_wet_tons_without_fine || 0), 0);
   const deterministicShifts = fineDaily.reduce((sum, row) => sum + Number(row.deterministic_shifts || 0), 0);
   const plan = planResult.data || null;
-  const plannedContainedCuTons = plan?.total_mineral_to_plant_tons != null && plan?.target_cu_grade_pct != null
-    ? Number(plan.total_mineral_to_plant_tons) * Number(plan.target_cu_grade_pct) / 100
-    : null;
+  const plannedContainedCuTons = plan?.planned_contained_cu_metric_tons == null ? null : Number(plan.planned_contained_cu_metric_tons);
+  const containedCuPlanProgressPct = plannedContainedCuTons && plannedContainedCuTons > 0 ? (containedFeedCuTons / plannedContainedCuTons) * 100 : null;
 
   return NextResponse.json({
     period: {
@@ -133,6 +133,7 @@ export async function GET(request: NextRequest) {
       recoveryPct: containedFeedCuTons > 0 ? (recoveredFineCuTons / containedFeedCuTons) * 100 : null,
       recoveredFineCuTons,
       containedFeedCuTons,
+      containedCuPlanProgressPct,
       wetTonsWithoutFine,
       fineCoverageState: deterministicShifts === rows.length ? 'complete' : deterministicShifts === 0 ? 'no_assay' : 'partial',
       fineRuleVersion: 'dry_tons_x_head_grade_x_recovery_v1',
@@ -144,9 +145,17 @@ export async function GET(request: NextRequest) {
       assayCoveragePct: rows.length ? (deterministicShifts / rows.length) * 100 : 0,
     },
     plan: plan ? {
-      ...plan,
+      plan_code: plan.plan_code,
+      period_start: plan.period_start,
+      period_end: plan.period_end,
+      total_mineral_to_plant_tons: plan.total_mineral_to_plant_tons,
+      target_cu_grade_pct: plan.target_cu_grade_pct,
       plannedContainedCuTons,
-      plannedRecoveredFineCuTons: null,
+      containedCuPlanState: plan.contained_cu_plan_state,
+      plannedFineSemantic: plan.planned_fine_semantic,
+      sourceReference: plan.source_reference,
+      targetRecoveryPct: plan.target_recovery_pct,
+      plannedRecoveredFineCuTons: plan.planned_recovered_fine_cu_metric_tons,
       recoveredFinePlanState: 'missing_target_recovery',
     } : null,
     daily,
@@ -160,9 +169,9 @@ export async function GET(request: NextRequest) {
       noAssay: historicalRows.filter((row) => row.metallurgy_state === 'no_assay').length,
     },
     lineage: {
-      source: 'LEY.xlsx + LEYES.xlsx',
-      model: 'production_fine_copper_v1 -> production_metallurgy_deterministic_v2',
-      note: 'Fino Cu real sólo se calcula con toneladas secas, ley cabeza y recuperación evidenciadas. Turnos sin ensayo permanecen fuera del fino.',
+      source: 'LEY.xlsx + LEYES.xlsx + PROGRAMA DE PRODUCCION AGOSTO 2026.pdf',
+      model: 'production_fine_copper_v1 + production_copper_plan_v1',
+      note: 'Cu contenido plan se compara con Cu contenido real pre-recuperación. Fino Cu recuperado permanece separado y sólo usa toneladas secas, ley cabeza y recuperación evidenciadas.',
     },
   });
 }
