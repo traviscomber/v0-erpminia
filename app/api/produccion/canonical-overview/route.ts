@@ -46,7 +46,8 @@ export async function GET(request: NextRequest) {
   const errors = [batches.error,movements.error,plantShifts.error,metallurgy.error,metallurgyAssayed.error,metallurgyPartial.error,metallurgyNoAssay.error,shipments.error,shipmentTonnage.error,allocations.error,allocationTonnage.error,reconciliation.error,latestMovement.error,latestPlant.error,latestShipment.error,drilling.error].filter(Boolean);
   if (errors.length) return NextResponse.json({ error: errors[0]?.message || 'No fue posible leer Producción canónica' }, { status: 500 });
 
-  const dataThrough = latestPlant.data?.operation_date || latestMovement.data?.movement_date || null;
+  const latestOperationalDates = [latestPlant.data?.operation_date, latestMovement.data?.movement_date].filter((value): value is string => Boolean(value));
+  const dataThrough = latestOperationalDates.sort().at(-1) || null;
   let currentPeriod = null;
 
   if (dataThrough) {
@@ -85,10 +86,22 @@ export async function GET(request: NextRequest) {
     const metallurgyRows = periodMetallurgy.data || [];
     const movementTons = movementRows.reduce((sum, row) => sum + Number(row.normalized_metric_tons || 0), 0);
     const treatedTons = metallurgyRows.reduce((sum, row) => sum + Number(row.treated_metric_tons || 0), 0);
-    const gradeRows = metallurgyRows.map((row) => Number(row.head_grade)).filter((value) => Number.isFinite(value));
-    const recoveryRows = metallurgyRows
-      .map((row) => Number(row.recovery_reported ?? row.recovery_by_grades_pct))
-      .filter((value) => Number.isFinite(value));
+
+    const gradeRows = metallurgyRows.filter((row) => row.head_grade !== null && row.head_grade !== undefined && Number.isFinite(Number(row.head_grade)) && Number(row.treated_metric_tons || 0) > 0);
+    const gradeWeight = gradeRows.reduce((sum, row) => sum + Number(row.treated_metric_tons || 0), 0);
+    const weightedHeadGrade = gradeWeight > 0
+      ? gradeRows.reduce((sum, row) => sum + Number(row.head_grade) * Number(row.treated_metric_tons || 0), 0) / gradeWeight
+      : null;
+
+    const recoveryRows = metallurgyRows.filter((row) => {
+      const recovery = row.recovery_reported ?? row.recovery_by_grades_pct;
+      return recovery !== null && recovery !== undefined && Number.isFinite(Number(recovery)) && Number(row.treated_metric_tons || 0) > 0;
+    });
+    const recoveryWeight = recoveryRows.reduce((sum, row) => sum + Number(row.treated_metric_tons || 0), 0);
+    const weightedRecovery = recoveryWeight > 0
+      ? recoveryRows.reduce((sum, row) => sum + Number(row.recovery_reported ?? row.recovery_by_grades_pct) * Number(row.treated_metric_tons || 0), 0) / recoveryWeight
+      : null;
+
     const fineMetalTons = metallurgyRows.reduce((sum, row) => sum + Number(row.fine_metal_reported || 0), 0);
     const plan = activePlan.data || null;
     const planMineralTons = Number(plan?.total_mineral_to_plant_tons || 0);
@@ -100,8 +113,8 @@ export async function GET(request: NextRequest) {
       movementTons,
       plantShifts: metallurgyRows.length,
       treatedTons,
-      avgHeadGradePct: gradeRows.length ? gradeRows.reduce((sum, value) => sum + value, 0) / gradeRows.length : null,
-      avgRecoveryPct: recoveryRows.length ? recoveryRows.reduce((sum, value) => sum + value, 0) / recoveryRows.length : null,
+      avgHeadGradePct: weightedHeadGrade,
+      avgRecoveryPct: weightedRecovery,
       fineMetalTons,
       plan: plan ? {
         code: plan.plan_code,
