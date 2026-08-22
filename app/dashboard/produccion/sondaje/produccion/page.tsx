@@ -1,7 +1,7 @@
 'use client';
 
 import useSWR from 'swr';
-import { Activity, AlertTriangle, Drill, Gauge, Wrench } from 'lucide-react';
+import { Activity, AlertTriangle, Drill, Gauge, Wrench, type LucideIcon } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -14,6 +14,7 @@ type Payload = {
   plan: null | { plan_code:string; period_start:string; period_end:string; total_mineral_to_plant_tons:number; target_cu_grade_pct:number; planned_drilling_m:number; planned_advance_m:number };
   lineage: { drillingSource:string; maintenanceSource:string; planSource:string; note:string };
 };
+type Metric = { label:string; value:string; icon:LucideIcon };
 
 const fetcher = async (url:string):Promise<Payload> => { const response=await fetch(url,{credentials:'include'}); const data=await response.json(); if(!response.ok) throw new Error(data.error||'No fue posible cargar Sondaje'); return data; };
 const fmt=(value:number|undefined|null,digits=0)=>value===null||value===undefined?'—':new Intl.NumberFormat('es-CL',{maximumFractionDigits:digits}).format(Number(value));
@@ -22,17 +23,23 @@ export default function SondajeProduccionPage() {
   const { data, error, isLoading } = useSWR('/api/produccion/sondaje', fetcher);
   const s=data?.summary;
   const assetsById=new Map((data?.maintenance.assets||[]).map((asset)=>[asset.id,asset.asset_name]));
+  const metrics:Metric[]=[
+    {label:'Metros perforados',value:s?`${fmt(s.drilled_meters,2)} m`:'—',icon:Drill},
+    {label:'Reportes',value:s?fmt(s.report_rows):'—',icon:Activity},
+    {label:'Pozos',value:s?fmt(s.holes):'—',icon:Gauge},
+    {label:'Sondas',value:s?fmt(s.rigs):'—',icon:Wrench},
+    {label:'Fuera de servicio',value:s?fmt(s.out_of_service_reports):'—',icon:AlertTriangle},
+  ];
   return (
-    <ProductionSectionShell eyebrow="Producción · Sondaje" title="Sondaje de Producción" description="Ejecución histórica de sondajes, disponibilidad de equipos y plan mensual, con ACTUAL y PLAN separados.">
+    <ProductionSectionShell
+      eyebrow="Producción · Sondaje"
+      title="Sondaje de Producción"
+      description="Ejecución histórica de sondajes, disponibilidad de equipos y plan mensual, con ACTUAL y PLAN separados."
+      capabilities={['Metros y pozos ejecutados','Actividad por sonda y turno','Disponibilidad y fallas reportadas','Mantención preventiva por horómetro','Programa mensual separado del actual']}
+    >
       {error ? <Card><CardContent className="pt-5 text-sm text-destructive">{error.message}</CardContent></Card> : null}
       <section className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 xl:grid-cols-5">
-        {[
-          ['Metros perforados',s?`${fmt(s.drilled_meters,2)} m`:'—',Drill],
-          ['Reportes',s?fmt(s.report_rows):'—',Activity],
-          ['Pozos',s?fmt(s.holes):'—',Gauge],
-          ['Sondas',s?fmt(s.rigs):'—',Wrench],
-          ['Fuera de servicio',s?fmt(s.out_of_service_reports):'—',AlertTriangle],
-        ].map(([label,value,Icon])=><div key={String(label)} className="bg-card px-5 py-4"><div className="flex items-center justify-between gap-3"><p className="text-xs text-muted-foreground">{label as string}</p><Icon className="h-4 w-4 text-muted-foreground" /></div><p className="mt-2 text-2xl font-semibold tracking-tight">{isLoading?'—':value as string}</p></div>)}
+        {metrics.map((metric)=>{const Icon=metric.icon;return <div key={metric.label} className="bg-card px-5 py-4"><div className="flex items-center justify-between gap-3"><p className="text-xs text-muted-foreground">{metric.label}</p><Icon className="h-4 w-4 text-muted-foreground" /></div><p className="mt-2 text-2xl font-semibold tracking-tight">{isLoading?'—':metric.value}</p></div>;})}
       </section>
 
       <div className="grid gap-4 xl:grid-cols-2">
