@@ -28,7 +28,7 @@ function mergeScorecards(rows: Kpi[], executive: Kpi[]) {
 
 const domainLabel: Record<string, string> = {
   production: 'Producción', mine: 'Mina', maintenance: 'Mantención', hse: 'HSE', risk: 'Riesgo', data_quality: 'Calidad de datos',
-  inventory: 'Bodega', geology: 'Geología', procurement: 'Compras', finance: 'Finanzas', contracts: 'Contratos', documents: 'Documentos',
+  inventory: 'Bodega', geology: 'Geología', drilling: 'Sondajes', procurement: 'Compras', finance: 'Finanzas', contracts: 'Contratos', documents: 'Documentos',
 };
 
 export default function DesempenoPage() {
