@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
   const date = new Date(`${through}T12:00:00Z`);
   const periodStart = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-01`;
 
-  const [rowsResult, recentResult, historicalResult, fineDailyResult, planResult] = await Promise.all([
+  const [rowsResult, recentResult, historicalResult, fineDailyResult, flowResult, planResult] = await Promise.all([
     context.supabase
       .from('production_metallurgy_deterministic_v2')
       .select('plant_shift_id,operation_date,shift_code,treated_metric_tons,mineral_moisture_pct,head_grade,concentrate_grade,tailings_grade,recovery_reported,recovery_by_grades_pct,fine_metal_reported,concentrate_wet_metric_tons,concentrate_moisture_pct,metallurgy_state,source_file,source_row')
@@ -64,6 +64,13 @@ export async function GET(request: NextRequest) {
       .lte('operation_date', through)
       .order('operation_date'),
     context.supabase
+      .from('production_fine_flow_daily_v1')
+      .select('operation_date,movements,transported_wet_metric_tons,treated_wet_metric_tons,transport_treatment_delta_metric_tons,flow_state')
+      .eq('organization_id', context.organizationId)
+      .gte('operation_date', periodStart)
+      .lte('operation_date', through)
+      .order('operation_date'),
+    context.supabase
       .from('production_copper_plan_v1')
       .select('plan_id,plan_code,period_start,period_end,status,total_mineral_to_plant_tons,target_cu_grade_pct,planned_contained_cu_metric_tons,target_recovery_pct,planned_recovered_fine_cu_metric_tons,contained_cu_plan_state,planned_fine_semantic,source_reference')
       .eq('organization_id', context.organizationId)
@@ -73,17 +80,22 @@ export async function GET(request: NextRequest) {
       .maybeSingle(),
   ]);
 
-  const error = rowsResult.error || recentResult.error || historicalResult.error || fineDailyResult.error || planResult.error;
+  const error = rowsResult.error || recentResult.error || historicalResult.error || fineDailyResult.error || flowResult.error || planResult.error;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   const rows = rowsResult.data || [];
   const fineDaily = fineDailyResult.data || [];
+  const flowRows = flowResult.data || [];
   const treatedTons = rows.reduce((sum, row) => sum + Number(row.treated_metric_tons || 0), 0);
+  const transportedTons = flowRows.reduce((sum, row) => sum + Number(row.transported_wet_metric_tons || 0), 0);
+  const movements = flowRows.reduce((sum, row) => sum + Number(row.movements || 0), 0);
+  const transportTreatmentDeltaTons = transportedTons - treatedTons;
   const assayed = rows.filter((row) => row.metallurgy_state === 'assayed').length;
   const partial = rows.filter((row) => row.metallurgy_state === 'partial').length;
   const noAssay = rows.filter((row) => row.metallurgy_state === 'no_assay').length;
 
   const fineByDate = new Map(fineDaily.map((row) => [row.operation_date, row]));
+  const flowByDate = new Map(flowRows.map((row) => [row.operation_date, row]));
   const byDate = new Map<string, typeof rows>();
   for (const row of rows) {
     const group = byDate.get(row.operation_date) || [];
@@ -92,10 +104,15 @@ export async function GET(request: NextRequest) {
   }
   const daily = Array.from(byDate.entries()).map(([operationDate, dayRows]) => {
     const fine = fineByDate.get(operationDate);
+    const flow = flowByDate.get(operationDate);
     return {
       operationDate,
       shifts: dayRows.length,
+      movements: Number(flow?.movements || 0),
+      transportedTons: flow?.transported_wet_metric_tons == null ? null : Number(flow.transported_wet_metric_tons),
       treatedTons: dayRows.reduce((sum, row) => sum + Number(row.treated_metric_tons || 0), 0),
+      transportTreatmentDeltaTons: flow?.transport_treatment_delta_metric_tons == null ? null : Number(flow.transport_treatment_delta_metric_tons),
+      flowState: flow?.flow_state || 'no_transport_record',
       headGradePct: fine?.avg_head_grade_pct == null ? weightedAverage(dayRows, (row) => row.head_grade, (row) => row.treated_metric_tons) : Number(fine.avg_head_grade_pct),
       concentrateGradePct: weightedAverage(dayRows, (row) => row.concentrate_grade, (row) => row.treated_metric_tons),
       tailingsGradePct: weightedAverage(dayRows, (row) => row.tailings_grade, (row) => row.treated_metric_tons),
@@ -124,7 +141,11 @@ export async function GET(request: NextRequest) {
       periodStart,
       dataThrough: through,
       shifts: rows.length,
+      movements,
+      transportedTons,
       treatedTons,
+      transportTreatmentDeltaTons,
+      flowReconciliationState: Math.abs(transportTreatmentDeltaTons) < 0.001 ? 'period_balanced' : 'inventory_or_timing_required',
       dryTons,
       mineralMoisturePct: weightedAverage(rows, (row) => row.mineral_moisture_pct, (row) => row.treated_metric_tons),
       headGradePct: dryTons > 0 ? fineDaily.reduce((sum, row) => sum + Number(row.avg_head_grade_pct || 0) * Number(row.mineral_dry_metric_tons || 0), 0) / dryTons : null,
@@ -169,9 +190,9 @@ export async function GET(request: NextRequest) {
       noAssay: historicalRows.filter((row) => row.metallurgy_state === 'no_assay').length,
     },
     lineage: {
-      source: 'LEY.xlsx + LEYES.xlsx + PROGRAMA DE PRODUCCION AGOSTO 2026.pdf',
-      model: 'production_fine_copper_v1 + production_copper_plan_v1',
-      note: 'Cu contenido plan se compara con Cu contenido real pre-recuperación. Fino Cu recuperado permanece separado y sólo usa toneladas secas, ley cabeza y recuperación evidenciadas.',
+      source: 'TM 2026 + LEY.xlsx + LEYES.xlsx + PROGRAMA DE PRODUCCION AGOSTO 2026.pdf',
+      model: 'production_fine_flow_daily_v1 -> production_fine_copper_v1 + production_copper_plan_v1',
+      note: 'La diferencia transporte-tratamiento es una brecha de reconciliación física, no una pérdida automática. Puede reflejar stock inicial/final, acopio o desfase temporal.',
     },
   });
 }
