@@ -26,8 +26,8 @@ export async function GET(request: NextRequest) {
       .limit(1)
       .maybeSingle(),
     context.supabase
-      .from('production_monthly_plans')
-      .select('id,plan_code,period_start,period_end,status,total_mineral_to_plant_tons,target_cu_grade_pct')
+      .from('production_copper_plan_v1')
+      .select('plan_id,plan_code,period_start,period_end,status,total_mineral_to_plant_tons,target_cu_grade_pct,planned_contained_cu_metric_tons,target_recovery_pct,planned_recovered_fine_cu_metric_tons,contained_cu_plan_state,planned_fine_semantic,source_reference')
       .eq('organization_id', context.organizationId)
       .eq('status', 'active')
       .order('period_start', { ascending: false })
@@ -81,8 +81,9 @@ export async function GET(request: NextRequest) {
   const effectiveRecoveryPct = containedFeedCuTons > 0 ? (recoveredFineCuTons / containedFeedCuTons) * 100 : null;
 
   const plan = activePlan.data || null;
-  const plannedContainedCuTons = plan?.total_mineral_to_plant_tons != null && plan?.target_cu_grade_pct != null
-    ? num(plan.total_mineral_to_plant_tons) * num(plan.target_cu_grade_pct) / 100
+  const plannedContainedCuTons = plan?.planned_contained_cu_metric_tons == null ? null : num(plan.planned_contained_cu_metric_tons);
+  const containedCuPlanProgressPct = plannedContainedCuTons && plannedContainedCuTons > 0
+    ? (containedFeedCuTons / plannedContainedCuTons) * 100
     : null;
 
   return NextResponse.json({
@@ -95,6 +96,7 @@ export async function GET(request: NextRequest) {
       effectiveRecoveryPct,
       containedFeedCuTons,
       recoveredFineCuTons,
+      containedCuPlanProgressPct,
       totalShifts,
       deterministicShifts,
       assayCoveragePct: totalShifts > 0 ? (deterministicShifts / totalShifts) * 100 : 0,
@@ -104,11 +106,21 @@ export async function GET(request: NextRequest) {
       ruleVersion: 'dry_tons_x_head_grade_x_recovery_v1',
     },
     plan: plan ? {
-      ...plan,
+      id: plan.plan_id,
+      planCode: plan.plan_code,
+      periodStart: plan.period_start,
+      periodEnd: plan.period_end,
+      status: plan.status,
+      totalMineralToPlantTons: plan.total_mineral_to_plant_tons,
+      targetCuGradePct: plan.target_cu_grade_pct,
       plannedContainedCuTons,
-      plannedRecoveredFineCuTons: null,
+      containedCuPlanState: plan.contained_cu_plan_state,
+      plannedFineSemantic: plan.planned_fine_semantic,
+      targetRecoveryPct: plan.target_recovery_pct,
+      plannedRecoveredFineCuTons: plan.planned_recovered_fine_cu_metric_tons,
       recoveredFinePlanState: 'missing_target_recovery',
-      note: 'El plan vigente informa toneladas y ley objetivo, pero no una recuperación objetivo auditable. No se inventa fino recuperado planificado.',
+      sourceReference: plan.source_reference,
+      note: 'El documento llama Cu Fino Mina al cobre contenido pre-recuperación. El fino recuperado de planta no tiene objetivo documentado y no se infiere.',
     } : null,
     daily: rows,
   });
