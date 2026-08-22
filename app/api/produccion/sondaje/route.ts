@@ -11,6 +11,8 @@ export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
 
+  const rig = request.nextUrl.searchParams.get('rig')?.trim() || null;
+
   const [summary, monthly, assets, schedules, plan, planLines] = await Promise.all([
     context.supabase
       .from('production_drilling_operational_summary_v1')
@@ -53,6 +55,21 @@ export async function GET(request: NextRequest) {
   const error = summary.error || monthly.error || assets.error || schedules.error || plan.error || planLines.error;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  let reports: Array<Record<string, unknown>> = [];
+  if (rig) {
+    const reportResult = await context.supabase
+      .from('production_drilling_source_reports')
+      .select('id,operation_date,hole_code_raw,rig_name_raw,mine_raw,sector_raw,shift_code_raw,operator_name_raw,meter_initial,meter_final,drilled_meters,equipment_status_raw,machine_observations,drilling_observations')
+      .eq('organization_id', context.organizationId)
+      .eq('rig_name_raw', rig)
+      .order('operation_date', { ascending: false })
+      .order('source_row', { ascending: false })
+      .limit(80);
+
+    if (reportResult.error) return NextResponse.json({ error: reportResult.error.message }, { status: 500 });
+    reports = reportResult.data || [];
+  }
+
   const activePlan = plan.data || null;
   const activePlanLines = activePlan
     ? (planLines.data || []).filter((line) => line.plan_id === activePlan.id)
@@ -74,6 +91,8 @@ export async function GET(request: NextRequest) {
     },
     plan: activePlan,
     planLines: activePlanLines,
+    selectedRig: rig,
+    reports,
     lineage: {
       drillingSource: 'Reporte_Sondajes_I_A.xlsx / BaseDatos',
       maintenanceSource: 'Mantención Sondajes - copia.xlsx',
