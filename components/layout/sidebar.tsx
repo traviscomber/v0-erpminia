@@ -37,7 +37,7 @@ function isItemActive(pathname:string,href:string){if(href==='/dashboard')return
 export function Sidebar(){
   const pathname=usePathname(); const router=useRouter(); const {role,logout}=useAuth(); const {enforced,canView}=useModuleAccess();
   const [isOpen,setIsOpen]=useState(false); const [expandedGroups,setExpandedGroups]=useState<Record<string,boolean>>({Principal:true,Áreas:true});
-  const filteredItems=useMemo(()=>{if(!role)return[];return menuItems.filter((item)=>{const roleAllowed=role==='superadmin'||role==='admin'||!item.roles||item.roles.includes(role);if(!roleAllowed)return false;if(!enforced||!item.moduleKey)return true;return canView(item.moduleKey)})},[role,enforced,canView]);
+  const filteredItems=useMemo(()=>{if(!role)return[];return menuItems.filter((item)=>{const roleAllowed=role==='superadmin'||role==='admin'||(role==='gerente_operaciones'&&item.group!=='Administración')||!item.roles||item.roles.includes(role);if(!roleAllowed)return false;if(!enforced||!item.moduleKey)return true;return canView(item.moduleKey)})},[role,enforced,canView]);
   const activeGroup=useMemo(()=>filteredItems.find((item)=>isItemActive(pathname,item.href))?.group,[filteredItems,pathname]);
   useEffect(()=>{if(activeGroup)setExpandedGroups((current)=>({...current,[activeGroup]:true}))},[activeGroup]);
   const navigate=(href:string)=>{router.push(href);setIsOpen(false)};
