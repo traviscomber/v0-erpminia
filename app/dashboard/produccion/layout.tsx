@@ -3,11 +3,12 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Beaker, Factory, Gem, Map, Mountain, Route, Waypoints } from 'lucide-react';
+import { Beaker, BrainCircuit, Factory, Gem, Map, Mountain, Route, Waypoints } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const items = [
   { href: '/dashboard/produccion', label: 'Resumen', icon: Mountain },
+  { href: '/dashboard/produccion/inteligencia', label: 'Inteligencia Mina / Sector', icon: BrainCircuit },
   { href: '/dashboard/produccion/transporte-mineral', label: 'Transporte de Mineral', icon: Route },
   { href: '/dashboard/produccion/planta-metalurgia', label: 'Planta / Metalurgia', icon: Factory },
   { href: '/dashboard/produccion/geologia', label: 'Geología', icon: Gem },
