@@ -11,17 +11,34 @@ export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
 
-  const latest = await context.supabase
-    .from('production_metallurgy_deterministic_v2')
-    .select('operation_date')
-    .eq('organization_id', context.organizationId)
-    .order('operation_date', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (latest.error) return NextResponse.json({ error: latest.error.message }, { status: 500 });
+  const [latest, chemistryQuality] = await Promise.all([
+    context.supabase
+      .from('production_metallurgy_deterministic_v2')
+      .select('operation_date')
+      .eq('organization_id', context.organizationId)
+      .order('operation_date', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    context.supabase
+      .from('production_chemistry_source_quality_v1')
+      .select('samples,results,holes_with_samples,sectors_with_samples,sample_review_rows,result_review_rows')
+      .eq('organization_id', context.organizationId)
+      .maybeSingle(),
+  ]);
+  const initialError = latest.error || chemistryQuality.error;
+  if (initialError) return NextResponse.json({ error: initialError.message }, { status: 500 });
 
   const through = latest.data?.operation_date || null;
-  if (!through) return NextResponse.json({ period: null, pending: [], recent: [], lineage: null });
+  const canonical = chemistryQuality.data || {
+    samples: 0,
+    results: 0,
+    holes_with_samples: 0,
+    sectors_with_samples: 0,
+    sample_review_rows: 0,
+    result_review_rows: 0,
+  };
+
+  if (!through) return NextResponse.json({ period: null, pending: [], recent: [], canonical, lineage: null });
   const date = new Date(`${through}T12:00:00Z`);
   const periodStart = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-01`;
 
@@ -51,6 +68,7 @@ export async function GET(request: NextRequest) {
   const head = assayed.map((row) => Number(row.head_grade)).filter(Number.isFinite);
   const concentrate = assayed.map((row) => Number(row.concentrate_grade)).filter(Number.isFinite);
   const tailings = assayed.map((row) => Number(row.tailings_grade)).filter(Number.isFinite);
+  const recovery = assayed.map((row) => Number(row.recovery_reported ?? row.recovery_by_grades_pct)).filter(Number.isFinite);
 
   const range = (values: number[]) => values.length ? { min: Math.min(...values), max: Math.max(...values), avg: values.reduce((a, b) => a + b, 0) / values.length } : null;
 
@@ -65,6 +83,7 @@ export async function GET(request: NextRequest) {
       headGrade: range(head),
       concentrateGrade: range(concentrate),
       tailingsGrade: range(tailings),
+      recovery: range(recovery),
     },
     pending: pending.map((row) => ({
       plantShiftId: row.plant_shift_id,
@@ -75,15 +94,19 @@ export async function GET(request: NextRequest) {
       sourceRow: row.source_row,
     })),
     recent: recentResult.data || [],
+    canonical,
     scope: {
-      canonicalChemistryAvailable: false,
-      currentProjection: 'Ensayos asociados a Planta/Metalurgia',
-      limitations: 'No existe aún una entidad canónica independiente muestra → ensayo → analito. Esta vista no representa sondajes o geología hasta incorporar fuentes de laboratorio identificables.',
+      canonicalChemistryAvailable: Number(canonical.samples || 0) > 0,
+      currentProjection: 'Ensayos de proceso asociados a Planta / Metalurgia',
+      limitations: Number(canonical.samples || 0) > 0
+        ? 'Existe una fuente química independiente y sus muestras se mantienen separadas de los ensayos de proceso.'
+        : 'Aún no existe una fuente de laboratorio independiente identificable. No se atribuyen leyes de Planta a Pozo o Sector.',
     },
     lineage: {
-      source: 'LEY.xlsx + LEYES.xlsx',
-      currentModel: 'production_metallurgy_results / production_metallurgy_deterministic_v2',
-      note: 'Química muestra sólo evidencia analítica realmente disponible. No se generan muestras, métodos ni analitos inexistentes.',
+      processAssays: 'LEY.xlsx + LEYES.xlsx + LEY (1).xlsx → production_metallurgy_results',
+      canonicalSamples: 'production_chemistry_samples → production_chemistry_results',
+      targetLineage: 'Muestra → Pozo → Mina → Sector → Analito',
+      note: 'La capa química independiente está preparada pero permanece vacía hasta incorporar una fuente de laboratorio real. Los ensayos de proceso no se reutilizan como geoquímica.',
     },
   });
 }
