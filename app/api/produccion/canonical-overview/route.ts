@@ -4,6 +4,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
 
+const num = (value: unknown) => Number(value || 0);
+
 export async function GET(request: NextRequest) {
   const access = await requireModuleAccess(request, MODULE_KEYS.PROD_OPERACIONES);
   if (!access.authorized) return access.response;
@@ -11,132 +13,150 @@ export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
 
-  const [
-    batches,
-    movements,
-    plantShifts,
-    metallurgy,
-    metallurgyAssayed,
-    metallurgyPartial,
-    metallurgyNoAssay,
-    shipments,
-    shipmentTonnage,
-    allocations,
-    allocationTonnage,
-    reconciliation,
-    latestMovement,
-    latestPlant,
-    latestShipment,
-    drilling,
-  ] = await Promise.all([
-    context.supabase.from('production_import_batches').select('id, source_type, source_file, period_start, period_end, status, normalization_rule_version, created_at').eq('organization_id', context.organizationId).order('period_start', { ascending: false }),
+  const [batches, movements, plantShifts, metallurgy, shipments, drilling, quality, sheetQuality, latestFlow] = await Promise.all([
+    context.supabase.from('production_import_batches').select('id,source_type,source_file,period_start,period_end,status,normalization_rule_version,created_at').eq('organization_id', context.organizationId).order('period_start', { ascending: false }),
     context.supabase.from('production_material_movements').select('id', { count: 'exact', head: true }).eq('organization_id', context.organizationId),
     context.supabase.from('production_plant_shifts').select('id', { count: 'exact', head: true }).eq('organization_id', context.organizationId),
     context.supabase.from('production_metallurgy_deterministic_v2').select('plant_shift_id', { count: 'exact', head: true }).eq('organization_id', context.organizationId),
-    context.supabase.from('production_metallurgy_deterministic_v2').select('plant_shift_id', { count: 'exact', head: true }).eq('organization_id', context.organizationId).eq('metallurgy_state', 'assayed'),
-    context.supabase.from('production_metallurgy_deterministic_v2').select('plant_shift_id', { count: 'exact', head: true }).eq('organization_id', context.organizationId).eq('metallurgy_state', 'partial'),
-    context.supabase.from('production_metallurgy_deterministic_v2').select('plant_shift_id', { count: 'exact', head: true }).eq('organization_id', context.organizationId).eq('metallurgy_state', 'no_assay'),
     context.supabase.from('production_concentrate_shipments').select('id', { count: 'exact', head: true }).eq('organization_id', context.organizationId),
-    context.supabase.from('production_concentrate_shipments').select('normalized_metric_tons').eq('organization_id', context.organizationId),
-    context.supabase.from('production_concentrate_shipment_allocations').select('id', { count: 'exact', head: true }).eq('organization_id', context.organizationId),
-    context.supabase.from('production_concentrate_shipment_allocations').select('allocated_wet_metric_tons').eq('organization_id', context.organizationId),
-    context.supabase.from('production_entity_reconciliation').select('id', { count: 'exact', head: true }).eq('organization_id', context.organizationId).in('status', ['pending', 'needs_review']),
-    context.supabase.from('production_material_movements').select('movement_date').eq('organization_id', context.organizationId).order('movement_date', { ascending: false }).limit(1).maybeSingle(),
-    context.supabase.from('production_plant_shifts').select('operation_date').eq('organization_id', context.organizationId).order('operation_date', { ascending: false }).limit(1).maybeSingle(),
-    context.supabase.from('production_concentrate_shipments').select('shipment_date').eq('organization_id', context.organizationId).order('shipment_date', { ascending: false }).limit(1).maybeSingle(),
     context.supabase.from('production_drilling_operational_summary_v1').select('*').eq('organization_id', context.organizationId).maybeSingle(),
+    context.supabase.from('production_master_normalization_quality_v1').select('check_key,expected_value,actual_value,status').order('check_key'),
+    context.supabase.from('production_source_sheet_coverage_quality_v1').select('check_key,expected_value,actual_value,status').order('check_key'),
+    context.supabase.from('production_flow_daily_fidelity_v1').select('operation_date').eq('organization_id', context.organizationId).order('operation_date', { ascending: false }).limit(1).maybeSingle(),
   ]);
 
-  const errors = [batches.error,movements.error,plantShifts.error,metallurgy.error,metallurgyAssayed.error,metallurgyPartial.error,metallurgyNoAssay.error,shipments.error,shipmentTonnage.error,allocations.error,allocationTonnage.error,reconciliation.error,latestMovement.error,latestPlant.error,latestShipment.error,drilling.error].filter(Boolean);
-  if (errors.length) return NextResponse.json({ error: errors[0]?.message || 'No fue posible leer Producción canónica' }, { status: 500 });
+  const baseError = batches.error || movements.error || plantShifts.error || metallurgy.error || shipments.error || drilling.error || quality.error || sheetQuality.error || latestFlow.error;
+  if (baseError) return NextResponse.json({ error: baseError.message }, { status: 500 });
 
-  const latestOperationalDates = [latestPlant.data?.operation_date, latestMovement.data?.movement_date].filter((value): value is string => Boolean(value));
-  const dataThrough = latestOperationalDates.sort().at(-1) || null;
-  let currentPeriod = null;
-
-  if (dataThrough) {
-    const throughDate = new Date(`${dataThrough}T12:00:00Z`);
-    const periodStart = `${throughDate.getUTCFullYear()}-${String(throughDate.getUTCMonth() + 1).padStart(2, '0')}-01`;
-
-    const [periodMovements, periodMetallurgy, activePlan] = await Promise.all([
-      context.supabase
-        .from('production_material_movements')
-        .select('normalized_metric_tons')
-        .eq('organization_id', context.organizationId)
-        .gte('movement_date', periodStart)
-        .lte('movement_date', dataThrough),
-      context.supabase
-        .from('production_metallurgy_deterministic_v2')
-        .select('treated_metric_tons,head_grade,recovery_reported,recovery_by_grades_pct,fine_metal_reported')
-        .eq('organization_id', context.organizationId)
-        .gte('operation_date', periodStart)
-        .lte('operation_date', dataThrough),
-      context.supabase
-        .from('production_monthly_plans')
-        .select('id,plan_code,period_start,period_end,total_mineral_to_plant_tons,target_cu_grade_pct,planned_drilling_m,planned_advance_m,status')
-        .eq('organization_id', context.organizationId)
-        .eq('status', 'active')
-        .lte('period_start', dataThrough)
-        .gte('period_end', periodStart)
-        .order('period_start', { ascending: false })
-        .limit(1)
-        .maybeSingle(),
-    ]);
-
-    const periodError = periodMovements.error || periodMetallurgy.error || activePlan.error;
-    if (periodError) return NextResponse.json({ error: periodError.message }, { status: 500 });
-
-    const movementRows = periodMovements.data || [];
-    const metallurgyRows = periodMetallurgy.data || [];
-    const movementTons = movementRows.reduce((sum, row) => sum + Number(row.normalized_metric_tons || 0), 0);
-    const treatedTons = metallurgyRows.reduce((sum, row) => sum + Number(row.treated_metric_tons || 0), 0);
-
-    const gradeRows = metallurgyRows.filter((row) => row.head_grade !== null && row.head_grade !== undefined && Number.isFinite(Number(row.head_grade)) && Number(row.treated_metric_tons || 0) > 0);
-    const gradeWeight = gradeRows.reduce((sum, row) => sum + Number(row.treated_metric_tons || 0), 0);
-    const weightedHeadGrade = gradeWeight > 0
-      ? gradeRows.reduce((sum, row) => sum + Number(row.head_grade) * Number(row.treated_metric_tons || 0), 0) / gradeWeight
-      : null;
-
-    const recoveryRows = metallurgyRows.filter((row) => {
-      const recovery = row.recovery_reported ?? row.recovery_by_grades_pct;
-      return recovery !== null && recovery !== undefined && Number.isFinite(Number(recovery)) && Number(row.treated_metric_tons || 0) > 0;
+  const dataThrough = latestFlow.data?.operation_date || null;
+  if (!dataThrough) {
+    return NextResponse.json({
+      batches: batches.data || [],
+      counts: { materialMovements: movements.count || 0, plantShifts: plantShifts.count || 0, metallurgyResults: metallurgy.count || 0, concentrateShipments: shipments.count || 0 },
+      quality: { status: 'HOLD', pass: 0, hold: 0, checks: quality.data || [] },
+      currentPeriod: null,
+      daily: [],
     });
-    const recoveryWeight = recoveryRows.reduce((sum, row) => sum + Number(row.treated_metric_tons || 0), 0);
-    const weightedRecovery = recoveryWeight > 0
-      ? recoveryRows.reduce((sum, row) => sum + Number(row.recovery_reported ?? row.recovery_by_grades_pct) * Number(row.treated_metric_tons || 0), 0) / recoveryWeight
-      : null;
-
-    const fineMetalTons = metallurgyRows.reduce((sum, row) => sum + Number(row.fine_metal_reported || 0), 0);
-    const plan = activePlan.data || null;
-    const planMineralTons = Number(plan?.total_mineral_to_plant_tons || 0);
-
-    currentPeriod = {
-      periodStart,
-      dataThrough,
-      movementRows: movementRows.length,
-      movementTons,
-      plantShifts: metallurgyRows.length,
-      treatedTons,
-      avgHeadGradePct: weightedHeadGrade,
-      avgRecoveryPct: weightedRecovery,
-      fineMetalTons,
-      plan: plan ? {
-        code: plan.plan_code,
-        periodStart: plan.period_start,
-        periodEnd: plan.period_end,
-        mineralToPlantTons: planMineralTons,
-        targetCuGradePct: Number(plan.target_cu_grade_pct || 0),
-        plannedDrillingM: Number(plan.planned_drilling_m || 0),
-        plannedAdvanceM: Number(plan.planned_advance_m || 0),
-        mineralProgressPct: planMineralTons > 0 ? (movementTons / planMineralTons) * 100 : null,
-      } : null,
-    };
   }
 
-  const shipmentWetTons = (shipmentTonnage.data || []).reduce((sum, row) => sum + Number(row.normalized_metric_tons || 0), 0);
-  const allocatedWetTons = (allocationTonnage.data || []).reduce((sum, row) => sum + Number(row.allocated_wet_metric_tons || 0), 0);
-  const shipmentCount = shipments.count || 0;
-  const allocationCount = allocations.count || 0;
+  const throughDate = new Date(`${dataThrough}T12:00:00Z`);
+  const year = throughDate.getUTCFullYear();
+  const month = throughDate.getUTCMonth();
+  const periodStart = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+  const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+  const elapsedDays = throughDate.getUTCDate();
+  const calendarProgressPct = (elapsedDays / daysInMonth) * 100;
+
+  const [flow, metallurgyRows, activePlan, exceptions] = await Promise.all([
+    context.supabase
+      .from('production_flow_daily_fidelity_v1')
+      .select('operation_date,movement_source_cutoff,movement_source_state,transported_t,treated_wet_t,contained_cu_t,recovered_fine_cu_t,shift_rows,deterministic_shift_rows,shipment_rows,valid_shipment_rows,review_shipment_rows,dispatched_concentrate_t,flow_source_state,movement_rows')
+      .eq('organization_id', context.organizationId)
+      .gte('operation_date', periodStart)
+      .lte('operation_date', dataThrough)
+      .order('operation_date'),
+    context.supabase
+      .from('production_metallurgy_deterministic_v2')
+      .select('operation_date,treated_metric_tons,head_grade,recovery_reported,recovery_by_grades_pct,metallurgy_state')
+      .eq('organization_id', context.organizationId)
+      .gte('operation_date', periodStart)
+      .lte('operation_date', dataThrough),
+    context.supabase
+      .from('production_monthly_plans')
+      .select('id,plan_code,period_start,period_end,total_mineral_to_plant_tons,target_cu_grade_pct,planned_drilling_m,planned_advance_m,status')
+      .eq('organization_id', context.organizationId)
+      .eq('status', 'active')
+      .lte('period_start', dataThrough)
+      .gte('period_end', periodStart)
+      .order('period_start', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    context.supabase
+      .from('production_normalization_exceptions_v1')
+      .select('domain,exception_type')
+      .eq('organization_id', context.organizationId),
+  ]);
+
+  const periodError = flow.error || metallurgyRows.error || activePlan.error || exceptions.error;
+  if (periodError) return NextResponse.json({ error: periodError.message }, { status: 500 });
+
+  const daily = flow.data || [];
+  const met = metallurgyRows.data || [];
+  const treatedTons = daily.reduce((sum, row) => sum + num(row.treated_wet_t), 0);
+  const containedCuTons = daily.reduce((sum, row) => sum + num(row.contained_cu_t), 0);
+  const recoveredFineCuTons = daily.reduce((sum, row) => sum + num(row.recovered_fine_cu_t), 0);
+  const dispatchedConcentrateTons = daily.reduce((sum, row) => sum + num(row.dispatched_concentrate_t), 0);
+  const plantShiftRows = daily.reduce((sum, row) => sum + num(row.shift_rows), 0);
+  const deterministicShiftRows = daily.reduce((sum, row) => sum + num(row.deterministic_shift_rows), 0);
+  const shipmentRows = daily.reduce((sum, row) => sum + num(row.shipment_rows), 0);
+  const validShipmentRows = daily.reduce((sum, row) => sum + num(row.valid_shipment_rows), 0);
+  const reviewShipmentRows = daily.reduce((sum, row) => sum + num(row.review_shipment_rows), 0);
+
+  const transportRows = daily.filter((row) => row.movement_source_state === 'within_source_window');
+  const transportComparableTons = transportRows.reduce((sum, row) => sum + num(row.transported_t), 0);
+  const transportSourceThrough = transportRows.at(-1)?.operation_date || null;
+  const treatedComparableTons = transportRows.reduce((sum, row) => sum + num(row.treated_wet_t), 0);
+
+  const gradeRows = met.filter((row) => row.head_grade !== null && num(row.treated_metric_tons) > 0);
+  const gradeWeight = gradeRows.reduce((sum, row) => sum + num(row.treated_metric_tons), 0);
+  const avgHeadGradePct = gradeWeight > 0 ? gradeRows.reduce((sum, row) => sum + num(row.head_grade) * num(row.treated_metric_tons), 0) / gradeWeight : null;
+  const recoveryRows = met.filter((row) => (row.recovery_reported ?? row.recovery_by_grades_pct) !== null && num(row.treated_metric_tons) > 0);
+  const recoveryWeight = recoveryRows.reduce((sum, row) => sum + num(row.treated_metric_tons), 0);
+  const avgRecoveryPct = recoveryWeight > 0 ? recoveryRows.reduce((sum, row) => sum + num(row.recovery_reported ?? row.recovery_by_grades_pct) * num(row.treated_metric_tons), 0) / recoveryWeight : null;
+
+  const plan = activePlan.data || null;
+  const planTons = num(plan?.total_mineral_to_plant_tons);
+  const treatmentProgressPct = planTons > 0 ? (treatedTons / planTons) * 100 : null;
+  const paceIndexPct = treatmentProgressPct !== null && calendarProgressPct > 0 ? (treatmentProgressPct / calendarProgressPct) * 100 : null;
+  const projectedTreatmentTons = elapsedDays > 0 ? (treatedTons / elapsedDays) * daysInMonth : null;
+  const projectedPlanPct = planTons > 0 && projectedTreatmentTons !== null ? (projectedTreatmentTons / planTons) * 100 : null;
+  const targetGrade = plan?.target_cu_grade_pct === null || plan?.target_cu_grade_pct === undefined ? null : num(plan.target_cu_grade_pct);
+  const gradeDeltaPctPoints = avgHeadGradePct !== null && targetGrade !== null ? avgHeadGradePct - targetGrade : null;
+
+  const qualityRows = quality.data || [];
+  const qualityPass = qualityRows.filter((row) => row.status === 'PASS').length;
+  const qualityHold = qualityRows.filter((row) => row.status !== 'PASS').length;
+  const sheetRows = sheetQuality.data || [];
+  const exceptionsByDomain = (exceptions.data || []).reduce<Record<string, number>>((acc, row) => {
+    acc[row.domain] = (acc[row.domain] || 0) + 1;
+    return acc;
+  }, {});
+
+  const intelligence: Array<{ level: 'info' | 'watch' | 'alert'; code: string; title: string; detail: string }> = [];
+  if (paceIndexPct !== null) {
+    intelligence.push({
+      level: paceIndexPct >= 97 ? 'info' : paceIndexPct >= 90 ? 'watch' : 'alert',
+      code: 'treatment_pace',
+      title: paceIndexPct >= 97 ? 'Ritmo de tratamiento alineado con el mes' : 'Ritmo de tratamiento bajo el avance calendario',
+      detail: `Tratamiento ${treatmentProgressPct?.toFixed(1)}% del plan con ${calendarProgressPct.toFixed(1)}% del mes transcurrido. Proyección simple: ${projectedPlanPct?.toFixed(1)}% del plan.`,
+    });
+  }
+  if (gradeDeltaPctPoints !== null) {
+    intelligence.push({
+      level: gradeDeltaPctPoints >= 0 ? 'info' : gradeDeltaPctPoints >= -0.08 ? 'watch' : 'alert',
+      code: 'head_grade_vs_target',
+      title: gradeDeltaPctPoints >= 0 ? 'Ley de cabeza en o sobre objetivo' : 'Ley de cabeza bajo objetivo',
+      detail: `Actual ponderada ${avgHeadGradePct?.toFixed(3)}% Cu vs objetivo ${targetGrade?.toFixed(2)}% Cu (${gradeDeltaPctPoints >= 0 ? '+' : ''}${gradeDeltaPctPoints.toFixed(3)} pp).`,
+    });
+  }
+  if (transportSourceThrough && transportSourceThrough < dataThrough) {
+    intelligence.push({
+      level: 'watch',
+      code: 'transport_source_cutoff',
+      title: 'Cobertura de transporte termina antes que Planta',
+      detail: `TM disponible hasta ${transportSourceThrough}; Planta llega hasta ${dataThrough}. No se interpreta ausencia de TM como 0 transportado.`,
+    });
+  }
+  if (reviewShipmentRows > 0) {
+    intelligence.push({
+      level: 'watch',
+      code: 'shipment_review',
+      title: 'Despacho con evidencia incompleta',
+      detail: `${reviewShipmentRows} despacho(s) requieren revisión de fuente; no se imputa ley faltante.`,
+    });
+  }
+
+  const sheetCounts = Object.fromEntries(sheetRows.map((row) => [row.check_key, num(row.actual_value)]));
   const drillingSummary = drilling.data || null;
 
   return NextResponse.json({
@@ -145,36 +165,70 @@ export async function GET(request: NextRequest) {
       materialMovements: movements.count || 0,
       plantShifts: plantShifts.count || 0,
       metallurgyResults: metallurgy.count || 0,
-      metallurgyAssayed: metallurgyAssayed.count || 0,
-      metallurgyPartial: metallurgyPartial.count || 0,
-      metallurgyNoAssay: metallurgyNoAssay.count || 0,
-      concentrateShipments: shipmentCount,
-      concentrateAllocations: allocationCount,
-      reconciliationPending: reconciliation.count || 0,
-      drillingReports: Number(drillingSummary?.report_rows || 0),
-      drillingHoles: Number(drillingSummary?.holes || 0),
+      concentrateShipments: shipments.count || 0,
+      drillingReports: num(drillingSummary?.report_rows),
+      drillingHoles: num(drillingSummary?.holes),
+    },
+    quality: {
+      status: qualityHold === 0 ? 'PASS' : 'HOLD',
+      pass: qualityPass,
+      hold: qualityHold,
+      checks: qualityRows,
+      sourceFiles: sheetCounts.canonical_source_files || 0,
+      sourceSheets: sheetCounts.source_sheet_registry || 0,
+      supplementalRecords: sheetCounts.supplemental_normalized_records || 0,
+      sourceAnomalies: sheetCounts.source_anomalies_classified || 0,
+      referenceOnly: sheetCounts.reference_only_records_classified || 0,
+      exceptionsByDomain,
     },
     freshness: {
-      latestMaterialMovementDate: latestMovement.data?.movement_date || null,
-      latestPlantOperationDate: latestPlant.data?.operation_date || null,
-      latestShipmentDate: latestShipment.data?.shipment_date || null,
-      latestDrillingDate: drillingSummary?.max_date || null,
+      dataThrough,
+      transportSourceThrough,
+      drillingThrough: drillingSummary?.max_date || null,
     },
-    currentPeriod,
+    currentPeriod: {
+      periodStart,
+      dataThrough,
+      elapsedDays,
+      daysInMonth,
+      calendarProgressPct,
+      treatedTons,
+      containedCuTons,
+      recoveredFineCuTons,
+      avgHeadGradePct,
+      avgRecoveryPct,
+      plantShifts: plantShiftRows,
+      deterministicShifts: deterministicShiftRows,
+      dispatch: { shipmentRows, validShipmentRows, reviewShipmentRows, wetMetricTons: dispatchedConcentrateTons },
+      transportComparable: { sourceThrough: transportSourceThrough, transportedTons: transportComparableTons, treatedTons: treatedComparableTons, deltaTons: transportComparableTons - treatedComparableTons },
+      plan: plan ? {
+        code: plan.plan_code,
+        periodStart: plan.period_start,
+        periodEnd: plan.period_end,
+        mineralToPlantTons: planTons,
+        targetCuGradePct: targetGrade,
+        plannedDrillingM: num(plan.planned_drilling_m),
+        plannedAdvanceM: num(plan.planned_advance_m),
+        treatmentProgressPct,
+        paceIndexPct,
+        projectedTreatmentTons,
+        projectedPlanPct,
+        gradeDeltaPctPoints,
+      } : null,
+    },
+    daily,
     drilling: drillingSummary ? {
-      meters: Number(drillingSummary.drilled_meters || 0),
-      rigs: Number(drillingSummary.rigs || 0),
-      operators: Number(drillingSummary.operators || 0),
-      outOfServiceReports: Number(drillingSummary.out_of_service_reports || 0),
-      meterCapturePct: Number(drillingSummary.meter_capture_pct || 0),
+      meters: num(drillingSummary.drilled_meters),
+      rigs: num(drillingSummary.rigs),
+      operators: num(drillingSummary.operators),
+      outOfServiceReports: num(drillingSummary.out_of_service_reports),
+      meterCapturePct: num(drillingSummary.meter_capture_pct),
     } : null,
-    dispatch: {
-      status: shipmentCount > 0 ? 'available' : 'pending_reconciliation',
-      wetMetricTons: shipmentWetTons,
-      allocatedWetMetricTons: allocatedWetTons,
-      allocationCoveragePct: shipmentWetTons > 0 ? (allocatedWetTons / shipmentWetTons) * 100 : 0,
-      note: shipmentCount > 0 ? `${shipmentCount.toLocaleString('es-CL')} despachos canónicos con ${allocationCount.toLocaleString('es-CL')} asignaciones de linaje.` : 'La estructura canónica está preparada, pero los despachos históricos aún no han sido conciliados y no se muestran valores simulados.',
+    intelligence,
+    semantics: {
+      planVsActual: 'El avance mensual usa tratamiento de planta como métrica operacional frente al plan de mineral a planta. Transporte se presenta sólo en la ventana cubierta por TM y no se extiende más allá del corte de fuente.',
+      concentrate: 'Concentrado producido no se infiere. Sólo se muestra concentrado despachado acreditado por fuente.',
+      sourceAbsence: 'Ausencia de una fuente no equivale a valor cero.',
     },
-    legacy: { produccionKpiIsCanonical: false, note: 'produccion_kpi se mantiene temporalmente como fuente legacy hasta reconstruir los KPI desde movimientos y planta validados.' },
   });
 }
