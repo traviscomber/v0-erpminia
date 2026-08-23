@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
 
-  const [resolution, evidence, sourceDocuments] = await Promise.all([
+  const [resolution, evidence, sourceDocuments, fidelity, exceptions] = await Promise.all([
     context.supabase
       .from('production_drill_hole_location_resolution_v1')
       .select('drill_hole_id,hole_code,current_mine_source_id,current_mine_sector_id,evidence_count,verified_evidence_count,verified_target_count,proposed_mine_source_id,proposed_mine_sector_id,proposed_mine_name,proposed_sector_name,last_verified_at,resolution_state')
@@ -28,9 +28,20 @@ export async function GET(request: NextRequest) {
       .eq('organization_id', context.organizationId)
       .in('source_kind', ['drilling', 'mine_report', 'plan', 'reference'])
       .order('source_file'),
+    context.supabase
+      .from('production_drilling_source_fidelity_v1')
+      .select('check_key,expected_value,actual_value,unit,status,delta')
+      .eq('organization_id', context.organizationId)
+      .order('check_key'),
+    context.supabase
+      .from('production_source_fidelity_exceptions_v1')
+      .select('exception_type,source_file,source_sheet,source_row,event_date,reference_code,description')
+      .eq('organization_id', context.organizationId)
+      .eq('domain', 'drilling')
+      .order('source_row'),
   ]);
 
-  const error = resolution.error || evidence.error || sourceDocuments.error;
+  const error = resolution.error || evidence.error || sourceDocuments.error || fidelity.error || exceptions.error;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   const rows = resolution.data || [];
@@ -40,6 +51,14 @@ export async function GET(request: NextRequest) {
     return acc;
   }, {});
 
+  const fidelityRows = fidelity.data || [];
+  const fidelityCounts = Object.fromEntries(
+    fidelityRows.map((row) => [row.check_key, Number(row.actual_value ?? 0)]),
+  );
+
+  const fidelityPass = fidelityRows.every((row) => row.status === 'PASS');
+  const sourceExceptions = exceptions.data || [];
+
   return NextResponse.json({
     summary: {
       drillHoles: rows.length,
@@ -48,12 +67,20 @@ export async function GET(request: NextRequest) {
       readyToPromote: counts.ready_to_promote || 0,
       evidenceConflict: counts.evidence_conflict || 0,
       needsReview: counts.needs_review || 0,
+      sourceReportsLinked: fidelityCounts.source_rows_linked_to_hole || 0,
+      sourceRowsWithoutHoleCode: fidelityCounts.source_rows_without_hole_code || 0,
+      holesWithExplicitMine: fidelityCounts.holes_with_explicit_mine || 0,
+      holesWithExplicitSector: fidelityCounts.holes_with_explicit_sector || 0,
+      sourceFidelity: fidelityPass ? 'PASS' : 'HOLD',
     },
     policy: {
-      rule: 'Pozo -> Mina/Sector se promueve solo con evidencia verificada y un destino inequívoco.',
-      forbiddenInference: 'Los prefijos o similitud textual del codigo de pozo no constituyen evidencia de ubicacion.',
-      acceptedEvidence: ['topography', 'survey', 'geology', 'source_document', 'import_mapping', 'manual_review'],
+      rule: 'RAW conserva exactamente el workbook. Mina/Sector se promueve solo cuando la fuente canónica aporta un valor explícito, único y no conflictivo.',
+      forbiddenInference: 'Los prefijos, similitud textual o conocimiento externo del código de pozo no constituyen evidencia de ubicación.',
+      preservedSourceValues: ['No registrado', '#ERROR!', 'vacío'],
+      acceptedEvidence: ['canonical_source_row', 'topography', 'survey', 'geology', 'source_document', 'import_mapping', 'manual_review'],
     },
+    fidelity: fidelityRows,
+    sourceExceptions,
     holes: rows,
     evidence: evidence.data || [],
     candidateSourceDocuments: sourceDocuments.data || [],
