@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
 
-  const [latest, chemistryQuality] = await Promise.all([
+  const [latest, chemistryQuality, sourceSectors] = await Promise.all([
     context.supabase
       .from('production_metallurgy_deterministic_v2')
       .select('operation_date')
@@ -24,8 +24,14 @@ export async function GET(request: NextRequest) {
       .select('samples,results,holes_with_samples,sectors_with_samples,sample_review_rows,result_review_rows')
       .eq('organization_id', context.organizationId)
       .maybeSingle(),
+    context.supabase
+      .from('production_chemistry_sector_source_summary_v1')
+      .select('mine_name,sector_raw,sample_count,result_count,first_sample_date,last_sample_date,avg_cu_pct,min_cu_pct,max_cu_pct,linked_holes,linked_canonical_sectors,resolution_state')
+      .eq('organization_id', context.organizationId)
+      .order('mine_name')
+      .order('sector_raw'),
   ]);
-  const initialError = latest.error || chemistryQuality.error;
+  const initialError = latest.error || chemistryQuality.error || sourceSectors.error;
   if (initialError) return NextResponse.json({ error: initialError.message }, { status: 500 });
 
   const through = latest.data?.operation_date || null;
@@ -37,8 +43,22 @@ export async function GET(request: NextRequest) {
     sample_review_rows: 0,
     result_review_rows: 0,
   };
+  const chemistrySectors = (sourceSectors.data || []).map((row) => ({
+    mineName: row.mine_name,
+    sectorRaw: row.sector_raw,
+    samples: Number(row.sample_count || 0),
+    results: Number(row.result_count || 0),
+    firstSampleDate: row.first_sample_date,
+    lastSampleDate: row.last_sample_date,
+    avgCuPct: row.avg_cu_pct == null ? null : Number(row.avg_cu_pct),
+    minCuPct: row.min_cu_pct == null ? null : Number(row.min_cu_pct),
+    maxCuPct: row.max_cu_pct == null ? null : Number(row.max_cu_pct),
+    linkedHoles: Number(row.linked_holes || 0),
+    linkedCanonicalSectors: Number(row.linked_canonical_sectors || 0),
+    resolutionState: row.resolution_state,
+  }));
 
-  if (!through) return NextResponse.json({ period: null, pending: [], recent: [], canonical, lineage: null });
+  if (!through) return NextResponse.json({ period: null, pending: [], recent: [], canonical, chemistrySectors, lineage: null });
   const date = new Date(`${through}T12:00:00Z`);
   const periodStart = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-01`;
 
@@ -95,18 +115,19 @@ export async function GET(request: NextRequest) {
     })),
     recent: recentResult.data || [],
     canonical,
+    chemistrySectors,
     scope: {
       canonicalChemistryAvailable: Number(canonical.samples || 0) > 0,
-      currentProjection: 'Ensayos de proceso asociados a Planta / Metalurgia',
+      currentProjection: 'Muestras especiales históricas + ensayos de proceso',
       limitations: Number(canonical.samples || 0) > 0
-        ? 'Existe una fuente química independiente y sus muestras se mantienen separadas de los ensayos de proceso.'
-        : 'Aún no existe una fuente de laboratorio independiente identificable. No se atribuyen leyes de Planta a Pozo o Sector.',
+        ? 'Las muestras especiales contienen Cu explícito por Mina/Sector fuente. No existe coincidencia exacta con Pozo en Sondajes, por lo que el vínculo a Pozo permanece sin asignar.'
+        : 'No existe una fuente química independiente identificable. No se atribuyen leyes de Planta a Pozo o Sector.',
     },
     lineage: {
       processAssays: 'LEY.xlsx + LEYES.xlsx + LEY (1).xlsx → production_metallurgy_results',
-      canonicalSamples: 'production_chemistry_samples → production_chemistry_results',
-      targetLineage: 'Muestra → Pozo → Mina → Sector → Analito',
-      note: 'La capa química independiente está preparada pero permanece vacía hasta incorporar una fuente de laboratorio real. Los ensayos de proceso no se reutilizan como geoquímica.',
+      canonicalSamples: 'LEY (1).xlsx / observaciones de muestra especial → production_chemistry_samples → production_chemistry_results',
+      targetLineage: 'Muestra → Mina → Sector fuente → Pozo cuando exista evidencia → Analito',
+      note: 'Las muestras especiales se mantienen separadas de los ensayos de proceso. Sector conserva el texto original; Pozo sólo se asignará con correspondencia demostrable.',
     },
   });
 }
