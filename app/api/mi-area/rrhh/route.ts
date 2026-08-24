@@ -84,12 +84,6 @@ export async function GET(request: NextRequest) {
   const masterCoverageMissing = peopleCount == null || peopleCount === 0 || evidenceOnly || assignmentCount === 0;
 
   const signals = [
-    masterCoverageMissing
-      ? { level: 'watch' as const, code: 'hr_master_coverage', title: 'La nómina maestra aún no está consolidada', detail: 'La evidencia disponible no permite tratar las personas registradas como dotación total de la organización.' }
-      : null,
-    evidenceOnly
-      ? { level: 'watch' as const, code: 'work_order_evidence_only', title: 'Las personas actuales provienen de evidencia operacional', detail: `${workOrderEvidencePeople.toLocaleString('es-CL')} persona(s) fueron identificadas desde órdenes de trabajo; esto no equivale a un maestro RRHH.` }
-      : null,
     expiredCredentials > 0
       ? { level: 'alert' as const, code: 'expired_credentials', title: 'Credenciales vencidas registradas', detail: `${expiredCredentials.toLocaleString('es-CL')} credencial(es) registradas tienen fecha de expiración vencida.` }
       : null,
@@ -106,8 +100,11 @@ export async function GET(request: NextRequest) {
 
   const interpretation = [
     masterCoverageMissing
-      ? { level: 'watch', title: 'El portal es de cobertura RRHH, no de dotación total', detail: 'Hasta integrar la nómina maestra, los conteos describen evidencia registrada en Motil y no el universo completo de trabajadores.' }
+      ? { level: 'watch', title: 'El portal es de cobertura RRHH, no de dotación total', detail: 'La brecha de nómina maestra se muestra en Calidad de datos. Los conteos describen evidencia registrada en Motil y no el universo completo de trabajadores.' }
       : { level: 'info', title: 'La base de personas tiene asignaciones laborales registradas', detail: `${activeAssignments.toLocaleString('es-CL')} asignación(es) vigentes aparecen en el corte actual.` },
+    evidenceOnly
+      ? { level: 'watch', title: 'La evidencia de personas proviene de órdenes de trabajo', detail: `${workOrderEvidencePeople.toLocaleString('es-CL')} persona(s) fueron identificadas desde evidencia operacional; no se trata como nómina maestra.` }
+      : null,
     credentialCount === 0
       ? { level: 'info', title: 'No hay credenciales cargadas en la base RRHH', detail: 'Este cero describe cobertura del sistema; no significa que las personas reales carezcan de credenciales.' }
       : null,
