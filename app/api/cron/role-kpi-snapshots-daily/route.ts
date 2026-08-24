@@ -12,14 +12,25 @@ const SOURCE_VIEWS = [
   'maintenance_role_kpi_snapshot_v1',
 ] as const;
 
+function chileBusinessDate(date = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Santiago',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
 async function capture(request: NextRequest) {
   const authHeader = request.headers.get('authorization');
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const supabase = getSupabaseServerClient();
-  const snapshotDate = new Date().toISOString().slice(0, 10);
+  const snapshotDate = chileBusinessDate();
   const results: Array<{ source: string; rows: number }> = [];
 
   for (const sourceView of SOURCE_VIEWS) {
@@ -118,7 +129,7 @@ async function capture(request: NextRequest) {
     results.push({ source: 'intelligence.people_overview', rows: hrHistoryRows.length });
   }
 
-  return NextResponse.json({ ok: true, snapshotDate, sources: results });
+  return NextResponse.json({ ok: true, snapshotDate, timeZone: 'America/Santiago', sources: results });
 }
 
 export async function GET(request: NextRequest) {
