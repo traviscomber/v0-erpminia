@@ -15,6 +15,7 @@ const pct=(v:number|null|undefined,d=1)=>v==null?'—':`${v.toLocaleString('es-C
 const num=(v:number|null|undefined,d=1)=>Number(v||0).toLocaleString('es-CL',{maximumFractionDigits:d});
 const date=(v:string)=>new Intl.DateTimeFormat('es-CL',{day:'2-digit',month:'short'}).format(new Date(`${v}T12:00:00`));
 const deltaPct=(current:number,previous:number)=>previous!==0?((current-previous)/Math.abs(previous))*100:null;
+const readingRank:Record<Reading['level'],number>={alert:0,watch:1,info:2};
 
 export default function MiOperacionPage(){
   const {data,error,isLoading}=useSWR<O>('/api/mi-operacion',fetcher,{revalidateOnFocus:false});
@@ -51,7 +52,7 @@ export default function MiOperacionPage(){
     if(variation!=null&&Math.abs(variation)>=10) readings.push({level:'watch',title:`El último corte ${variation<0?'redujo':'aumentó'} el tratamiento diario`,detail:`Cambio ${variation>0?'+':''}${num(variation)}% frente al corte anterior. Es una variación operacional, no una causa inferida.`});
   }
   if(data.quality.status==='HOLD') readings.push({level:'watch',title:'Parte de la evidencia sigue en HOLD',detail:`Hay ${data.quality.hold} chequeo(s) pendientes. Los vacíos no se completan como cero.`});
-  const executive=readings.sort((a,b)=>({alert:0,watch:1,info:2}[a.level]-{alert:0,watch:1,info:2}[b.level]).slice(0,4);
+  const executive=readings.sort((a,b)=>readingRank[a.level]-readingRank[b.level]).slice(0,4);
 
   return <div className="space-y-6">
     <section className="overflow-hidden rounded-lg border bg-card">
