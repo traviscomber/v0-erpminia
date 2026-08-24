@@ -10,11 +10,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useModuleAccess } from '@/hooks/use-module-access';
 
-type MenuItem = { label: string; href: string; icon: LucideIcon; group: string; moduleKey?: string; roles?: string[] };
+type MenuItem = { label: string; href: string; icon: LucideIcon; group: string; moduleKey?: string; roles?: string[]; pedroOnly?: boolean };
 const operationalRoles = ['superadmin','admin','manager','supervisor','Operaciones-Supervisor','Sostenibilidad-Supervisor','HSE-Supervisor','Bodega-Supervisor','Compras-Supervisor','jefe_mantencion'];
 const allStandardRoles = ['superadmin','admin','manager','supervisor','viewer','jefe_mantencion','Operaciones-Supervisor','Finanzas-Supervisor','Bodega-Supervisor','Compras-Supervisor','Sostenibilidad-Supervisor','HSE-Supervisor'];
 const menuItems: MenuItem[] = [
   { label:'Inicio',href:'/dashboard',icon:Home,group:'Principal',roles:allStandardRoles },
+  { label:'Mi operación',href:'/dashboard/mi-operacion',icon:Gauge,group:'Principal',pedroOnly:true },
   { label:'Gestión diaria',href:'/dashboard/daily-management',icon:Activity,group:'Principal',roles:operationalRoles },
   { label:'Producción',href:'/dashboard/produccion',icon:Zap,group:'Áreas',moduleKey:'prod_operaciones',roles:['superadmin','admin','Operaciones-Supervisor','jefe_mantencion'] },
   { label:'Mantenimiento',href:'/dashboard/mantenimiento',icon:Wrench,group:'Áreas',moduleKey:'mant_operaciones',roles:['superadmin','admin','Operaciones-Supervisor','jefe_mantencion'] },
@@ -34,9 +35,10 @@ const menuItems: MenuItem[] = [
 const groupOrder=['Principal','Áreas','Transversal','Administración','Ayuda'];
 function isItemActive(pathname:string,href:string){if(href==='/dashboard')return pathname===href;return pathname===href||pathname.startsWith(`${href}/`)}
 export function Sidebar(){
-  const pathname=usePathname(); const router=useRouter(); const {role,logout}=useAuth(); const {enforced,canView}=useModuleAccess();
+  const pathname=usePathname(); const router=useRouter(); const {role,user,logout}=useAuth(); const {enforced,canView}=useModuleAccess();
   const [isOpen,setIsOpen]=useState(false); const [expandedGroups,setExpandedGroups]=useState<Record<string,boolean>>({Principal:true,Áreas:true});
-  const filteredItems=useMemo(()=>{if(!role)return[];return menuItems.filter((item)=>{const roleAllowed=role==='superadmin'||role==='admin'||(role==='gerente_operaciones'&&item.group!=='Administración')||!item.roles||item.roles.includes(role);if(!roleAllowed)return false;if(!enforced||!item.moduleKey)return true;return canView(item.moduleKey)})},[role,enforced,canView]);
+  const isPedro=user?.email?.toLowerCase()==='pedrozegers@lapatagua.cl';
+  const filteredItems=useMemo(()=>{if(!role)return[];return menuItems.filter((item)=>{if(item.pedroOnly&&!isPedro)return false;const roleAllowed=role==='superadmin'||role==='admin'||(role==='gerente_operaciones'&&item.group!=='Administración')||!item.roles||item.roles.includes(role);if(!roleAllowed)return false;if(!enforced||!item.moduleKey)return true;return canView(item.moduleKey)})},[role,isPedro,enforced,canView]);
   const activeGroup=useMemo(()=>filteredItems.find((item)=>isItemActive(pathname,item.href))?.group,[filteredItems,pathname]);
   useEffect(()=>{if(activeGroup)setExpandedGroups((current)=>({...current,[activeGroup]:true}))},[activeGroup]);
   const navigate=(href:string)=>{router.push(href);setIsOpen(false)};
