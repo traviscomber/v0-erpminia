@@ -55,6 +55,35 @@ type ChangeRow = {
   interpretation_policy: string;
 };
 
+type OperationalEvidenceRow = {
+  canonical_asset_id: string;
+  asset_code: string | null;
+  asset_name: string | null;
+  window_start: string;
+  window_end: string;
+  drilling_reports: Numeric;
+  out_of_service_reports: Numeric;
+  operational_with_observations_reports: Numeric;
+  operational_reports: Numeric;
+  invalid_status_reports: Numeric;
+  equipment_without_crew_reports: Numeric;
+  power_outage_reports: Numeric;
+  water_shortage_reports: Numeric;
+  install_disassembly_reports: Numeric;
+  scaling_reports: Numeric;
+  work_order_count: Numeric;
+  open_work_order_count: Numeric;
+  recorded_downtime_hours: Numeric;
+  external_cost_clp: Numeric;
+  part_line_count: Numeric;
+  quantity_installed: Numeric;
+  installed_parts_cost_clp: Numeric;
+  availability_days: Numeric;
+  scheduled_minutes: Numeric;
+  availability_downtime_minutes: Numeric;
+  evidence_status: string;
+};
+
 function num(value: Numeric) {
   if (value === null || value === undefined || value === '') return null;
   const parsed = Number(value);
@@ -88,21 +117,30 @@ export async function GET(request: NextRequest) {
       .eq('organization_id', context.organizationId)
       .order('asset_name', { ascending: true });
 
+    let operationalEvidenceQuery = context.supabase
+      .from('drill_asset_operational_evidence_90d_v1')
+      .select('*')
+      .eq('organization_id', context.organizationId)
+      .order('asset_name', { ascending: true });
+
     if (assetId) {
       rollingQuery = rollingQuery.eq('canonical_asset_id', assetId);
       monthlyQuery = monthlyQuery.eq('canonical_asset_id', assetId);
       changeQuery = changeQuery.eq('canonical_asset_id', assetId);
+      operationalEvidenceQuery = operationalEvidenceQuery.eq('canonical_asset_id', assetId);
     }
 
     const [
       { data: rollingData, error: rollingError },
       { data: monthlyData, error: monthlyError },
       { data: changeData, error: changeError },
-    ] = await Promise.all([rollingQuery, monthlyQuery, changeQuery]);
+      { data: operationalEvidenceData, error: operationalEvidenceError },
+    ] = await Promise.all([rollingQuery, monthlyQuery, changeQuery, operationalEvidenceQuery]);
 
     if (rollingError) throw rollingError;
     if (monthlyError) throw monthlyError;
     if (changeError) throw changeError;
+    if (operationalEvidenceError) throw operationalEvidenceError;
 
     const rolling = ((rollingData || []) as RollingRow[]).map((row) => ({
       assetId: row.canonical_asset_id,
@@ -172,20 +210,58 @@ export async function GET(request: NextRequest) {
       interpretationPolicy: row.interpretation_policy,
     }));
 
+    const operationalEvidence = ((operationalEvidenceData || []) as OperationalEvidenceRow[]).map((row) => ({
+      assetId: row.canonical_asset_id,
+      assetCode: row.asset_code,
+      assetName: row.asset_name,
+      windowStart: row.window_start,
+      windowEnd: row.window_end,
+      sourceReports: {
+        total: num(row.drilling_reports),
+        outOfService: num(row.out_of_service_reports),
+        operationalWithObservations: num(row.operational_with_observations_reports),
+        operational: num(row.operational_reports),
+        invalidStatus: num(row.invalid_status_reports),
+        equipmentWithoutCrew: num(row.equipment_without_crew_reports),
+        powerOutage: num(row.power_outage_reports),
+        waterShortage: num(row.water_shortage_reports),
+        installDisassembly: num(row.install_disassembly_reports),
+        scaling: num(row.scaling_reports),
+      },
+      maintenance: {
+        workOrders: num(row.work_order_count),
+        openWorkOrders: num(row.open_work_order_count),
+        recordedDowntimeHours: num(row.recorded_downtime_hours),
+        externalCostClp: num(row.external_cost_clp),
+        partLines: num(row.part_line_count),
+        quantityInstalled: num(row.quantity_installed),
+        installedPartsCostClp: num(row.installed_parts_cost_clp),
+      },
+      availability: {
+        observedDays: num(row.availability_days),
+        scheduledMinutes: num(row.scheduled_minutes),
+        downtimeMinutes: num(row.availability_downtime_minutes),
+      },
+      evidenceStatus: row.evidence_status,
+    }));
+
     return NextResponse.json({
       rolling90d: rolling,
       monthly,
       observedChanges,
+      operationalEvidence,
       evidencePolicy: {
         ratioRequiresSameTimeWindow: true,
         currentDateIsNotAssumed: true,
         rollingWindowEndsAtLatestCommonEvidenceDate: true,
         changeIsObservedNotCausal: true,
+        companionOperationalEvidenceIsNotCausal: true,
+        sourceStatusReportsAreNotDowntimeHours: true,
         missingIsZero: false,
       },
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudo cargar la economía por perforadora';
-    return NextResponse.json({ rolling90d: [], monthly: {}, observedChanges: [], error: message }, { status: 500 });
+    return NextResponse.json({ rolling90d: [], monthly: {}, observedChanges: [], operationalEvidence: [], error: message }, { status: 500 });
   }
 }
