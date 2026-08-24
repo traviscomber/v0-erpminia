@@ -4,6 +4,40 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 
 const ALLOWED = new Set(['pending', 'read', 'snoozed']);
+const CHILE_TIME_ZONE = 'America/Santiago';
+
+function chileDateParts(date: Date) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: CHILE_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+  const map = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return { year: Number(map.year), month: Number(map.month), day: Number(map.day) };
+}
+
+function chileOffsetMs(date: Date) {
+  const part = new Intl.DateTimeFormat('en-US', {
+    timeZone: CHILE_TIME_ZONE,
+    timeZoneName: 'longOffset',
+  }).formatToParts(date).find((item) => item.type === 'timeZoneName')?.value || 'GMT+00:00';
+  const match = part.match(/GMT([+-])(\d{2}):(\d{2})/);
+  if (!match) return 0;
+  const sign = match[1] === '-' ? -1 : 1;
+  return sign * (Number(match[2]) * 60 + Number(match[3])) * 60 * 1000;
+}
+
+function nextChileMorningIso(now = new Date()) {
+  const local = chileDateParts(now);
+  const nextDate = new Date(Date.UTC(local.year, local.month - 1, local.day + 1));
+  const nextYear = nextDate.getUTCFullYear();
+  const nextMonth = nextDate.getUTCMonth();
+  const nextDay = nextDate.getUTCDate();
+  const localEightAmAsUtc = Date.UTC(nextYear, nextMonth, nextDay, 8, 0, 0);
+  const offset = chileOffsetMs(new Date(localEightAmAsUtc));
+  return new Date(localEightAmAsUtc - offset).toISOString();
+}
 
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
@@ -31,9 +65,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Estado de prioridad inválido' }, { status: 400 });
   }
 
-  const snoozedUntil = status === 'snoozed'
-    ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-    : null;
+  const snoozedUntil = status === 'snoozed' ? nextChileMorningIso() : null;
 
   const { data, error } = await context.supabase
     .from('user_action_states')
