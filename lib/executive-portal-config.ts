@@ -18,7 +18,7 @@ const portals: ExecutivePortalConfig[] = [
     areaPath: '/dashboard/mantenimiento',
     actionLabel: 'Abrir mantenimiento',
     allowedRoles: ['jefe_mantencion'],
-    allowedCargos: ['JEFE MAN. PLANTA'],
+    allowedCargos: ['JEFE MAN. EQ'],
   },
   {
     key: 'production',
