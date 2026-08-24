@@ -16,47 +16,21 @@ export async function GET(request: NextRequest) {
 
   const [
     batches,
-    movements,
-    plantShifts,
-    metallurgy,
-    shipments,
     drilling,
     quality,
     sheetQuality,
     latestFlow,
-    pendingImports,
-    pendingMovementNormalization,
-    movementReview,
-    entityReview,
-    plantReview,
-    metallurgyReview,
-    drillLocationReview,
-    drillIntervals,
-    chemistryResults,
-    geologyQuality,
+    coverageSummary,
   ] = await Promise.all([
     context.supabase.from('production_import_batches').select('id,source_type,source_file,period_start,period_end,status,normalization_rule_version,created_at').eq('organization_id', context.organizationId).order('period_start', { ascending: false }),
-    context.supabase.from('production_material_movements').select('id', { count: 'exact', head: true }).eq('organization_id', context.organizationId),
-    context.supabase.from('production_plant_shifts').select('id', { count: 'exact', head: true }).eq('organization_id', context.organizationId),
-    context.supabase.from('production_metallurgy_deterministic_v2').select('plant_shift_id', { count: 'exact', head: true }).eq('organization_id', context.organizationId),
-    context.supabase.from('production_concentrate_shipments').select('id', { count: 'exact', head: true }).eq('organization_id', context.organizationId),
     context.supabase.from('production_drilling_operational_summary_v1').select('*').eq('organization_id', context.organizationId).maybeSingle(),
     context.supabase.from('production_master_normalization_quality_v1').select('check_key,expected_value,actual_value,status').eq('organization_id', context.organizationId).order('check_key'),
     context.supabase.from('production_source_sheet_coverage_quality_v1').select('check_key,expected_value,actual_value,status').eq('organization_id', context.organizationId).order('check_key'),
     context.supabase.from('production_flow_daily_fidelity_v1').select('operation_date').eq('organization_id', context.organizationId).order('operation_date', { ascending: false }).limit(1).maybeSingle(),
-    context.supabase.from('production_import_exceptions').select('id', { count: 'exact', head: true }).eq('organization_id', context.organizationId).eq('review_status', 'pending'),
-    context.supabase.from('production_material_movements').select('id', { count: 'exact', head: true }).eq('organization_id', context.organizationId).eq('normalization_status', 'pending'),
-    context.supabase.from('production_material_movements').select('id', { count: 'exact', head: true }).eq('organization_id', context.organizationId).eq('validation_status', 'review'),
-    context.supabase.from('production_entity_reconciliation').select('id', { count: 'exact', head: true }).eq('organization_id', context.organizationId).eq('status', 'needs_review'),
-    context.supabase.from('production_plant_shifts').select('id', { count: 'exact', head: true }).eq('organization_id', context.organizationId).eq('validation_status', 'review'),
-    context.supabase.from('production_metallurgy_results').select('id', { count: 'exact', head: true }).eq('organization_id', context.organizationId).eq('validation_status', 'review'),
-    context.supabase.from('production_drill_hole_location_review_queue_v1').select('drill_hole_id', { count: 'exact', head: true }).eq('organization_id', context.organizationId).eq('resolution_state', 'needs_evidence'),
-    context.supabase.from('production_drill_intervals').select('id', { count: 'exact', head: true }).eq('organization_id', context.organizationId),
-    context.supabase.from('production_chemistry_results').select('id', { count: 'exact', head: true }).eq('organization_id', context.organizationId),
-    context.supabase.from('production_geology_context_quality_v1').select('external_records,sernageomin_records,valid_records,review_records').eq('organization_id', context.organizationId).maybeSingle(),
+    context.supabase.rpc('production_data_coverage_summary_v1', { p_organization_id: context.organizationId }),
   ]);
 
-  const baseError = batches.error || movements.error || plantShifts.error || metallurgy.error || shipments.error || drilling.error || quality.error || sheetQuality.error || latestFlow.error || pendingImports.error || pendingMovementNormalization.error || movementReview.error || entityReview.error || plantReview.error || metallurgyReview.error || drillLocationReview.error || drillIntervals.error || chemistryResults.error || geologyQuality.error;
+  const baseError = batches.error || drilling.error || quality.error || sheetQuality.error || latestFlow.error || coverageSummary.error;
   if (baseError) return NextResponse.json({ error: baseError.message }, { status: 500 });
 
   const qualityRows = quality.data || [];
@@ -64,28 +38,36 @@ export async function GET(request: NextRequest) {
   const qualityHold = qualityRows.filter((row) => row.status !== 'PASS').length;
   const sheetRows = sheetQuality.data || [];
   const sheetCounts = Object.fromEntries(sheetRows.map((row) => [row.check_key, num(row.actual_value)]));
+  const coverageCounts = (coverageSummary.data || {}) as Record<string, unknown>;
+  const materialMovements = num(coverageCounts.material_movements);
+  const plantShiftCount = num(coverageCounts.plant_shifts);
+  const metallurgyResultCount = num(coverageCounts.metallurgy_results);
+  const concentrateShipmentCount = num(coverageCounts.concentrate_shipments);
+  const drillIntervalCount = num(coverageCounts.drill_intervals);
+  const chemistryResultCount = num(coverageCounts.chemistry_results);
+  const geologyExternalCount = num(coverageCounts.geology_external_records);
+  const geologyReviewCount = num(coverageCounts.geology_review_records);
+  const queue = {
+    importExceptions: num(coverageCounts.pending_imports),
+    movementNormalization: num(coverageCounts.pending_movement_normalization),
+    movementValidation: num(coverageCounts.movement_review),
+    entityReconciliation: num(coverageCounts.entity_review),
+    plantShifts: num(coverageCounts.plant_review),
+    metallurgy: num(coverageCounts.metallurgy_review),
+    drillLocations: num(coverageCounts.drill_location_review),
+  };
 
   const dataThrough = latestFlow.data?.operation_date || null;
   if (!dataThrough) {
     const drillingSummary = drilling.data || null;
-    const queue = {
-      importExceptions: pendingImports.count || 0,
-      movementNormalization: pendingMovementNormalization.count || 0,
-      movementValidation: movementReview.count || 0,
-      entityReconciliation: entityReview.count || 0,
-      plantShifts: plantReview.count || 0,
-      metallurgy: metallurgyReview.count || 0,
-      drillLocations: drillLocationReview.count || 0,
-    };
-    const geology = geologyQuality.data || null;
 
     return NextResponse.json({
       batches: batches.data || [],
       counts: {
-        materialMovements: movements.count || 0,
-        plantShifts: plantShifts.count || 0,
-        metallurgyResults: metallurgy.count || 0,
-        concentrateShipments: shipments.count || 0,
+        materialMovements,
+        plantShifts: plantShiftCount,
+        metallurgyResults: metallurgyResultCount,
+        concentrateShipments: concentrateShipmentCount,
         drillingReports: num(drillingSummary?.report_rows),
         drillingHoles: num(drillingSummary?.holes),
       },
@@ -104,11 +86,11 @@ export async function GET(request: NextRequest) {
       coverage: {
         queue,
         domains: {
-          transport: { status: (movements.count || 0) > 0 ? 'partial' : 'awaiting_source', evidenceCount: movements.count || 0, reviewCount: Math.max(queue.movementNormalization, queue.movementValidation), dataThrough: null, note: 'No existe un período de flujo acreditado para presentar.' },
-          plant: { status: (plantShifts.count || 0) > 0 ? 'partial' : 'awaiting_source', evidenceCount: plantShifts.count || 0, reviewCount: queue.plantShifts + queue.metallurgy, dataThrough: null, note: 'No existe un período de Planta acreditado para presentar.' },
-          drilling: { status: num(drillingSummary?.holes) > 0 ? 'partial' : 'awaiting_source', evidenceCount: num(drillingSummary?.holes), reviewCount: queue.drillLocations, dataThrough: drillingSummary?.max_date || null, coveragePct: num(drillingSummary?.meter_capture_pct), intervalCount: drillIntervals.count || 0, note: 'Sondaje conserva sólo la evidencia disponible; no completa vacíos.' },
-          chemistry: { status: (chemistryResults.count || 0) > 0 ? 'operational' : 'awaiting_source', evidenceCount: chemistryResults.count || 0, reviewCount: 0, dataThrough: null, note: (chemistryResults.count || 0) > 0 ? 'Resultados canónicos disponibles según el paquete recibido.' : 'Modelo disponible; falta una fuente química acreditada.' },
-          geology: { status: num(geology?.external_records) > 0 ? 'operational' : 'awaiting_source', evidenceCount: num(geology?.external_records), reviewCount: num(geology?.review_records), dataThrough: null, note: 'Falta incorporar contexto geológico externo acreditado.' },
+          transport: { status: materialMovements > 0 ? 'partial' : 'awaiting_source', evidenceCount: materialMovements, reviewCount: Math.max(queue.movementNormalization, queue.movementValidation), dataThrough: null, note: 'No existe un período de flujo acreditado para presentar.' },
+          plant: { status: plantShiftCount > 0 ? 'partial' : 'awaiting_source', evidenceCount: plantShiftCount, reviewCount: queue.plantShifts + queue.metallurgy, dataThrough: null, note: 'No existe un período de Planta acreditado para presentar.' },
+          drilling: { status: num(drillingSummary?.holes) > 0 ? 'partial' : 'awaiting_source', evidenceCount: num(drillingSummary?.holes), reviewCount: queue.drillLocations, dataThrough: drillingSummary?.max_date || null, coveragePct: num(drillingSummary?.meter_capture_pct), intervalCount: drillIntervalCount, note: 'Sondaje conserva sólo la evidencia disponible; no completa vacíos.' },
+          chemistry: { status: chemistryResultCount > 0 ? 'operational' : 'awaiting_source', evidenceCount: chemistryResultCount, reviewCount: 0, dataThrough: null, note: chemistryResultCount > 0 ? 'Resultados canónicos disponibles según el paquete recibido.' : 'Modelo disponible; falta una fuente química acreditada.' },
+          geology: { status: geologyExternalCount > 0 ? 'operational' : 'awaiting_source', evidenceCount: geologyExternalCount, reviewCount: geologyReviewCount, dataThrough: null, note: 'Falta incorporar contexto geológico externo acreditado.' },
           topography: { status: 'awaiting_source', evidenceCount: 0, reviewCount: 0, dataThrough: null, note: 'Falta una fuente canónica de topografía real.' },
         },
       },
@@ -222,27 +204,17 @@ export async function GET(request: NextRequest) {
   }
 
   const drillingSummary = drilling.data || null;
-  const queue = {
-    importExceptions: pendingImports.count || 0,
-    movementNormalization: pendingMovementNormalization.count || 0,
-    movementValidation: movementReview.count || 0,
-    entityReconciliation: entityReview.count || 0,
-    plantShifts: plantReview.count || 0,
-    metallurgy: metallurgyReview.count || 0,
-    drillLocations: drillLocationReview.count || 0,
-  };
-  const geology = geologyQuality.data || null;
   const transportIsPartial = queue.movementNormalization > 0 || queue.movementValidation > 0 || Boolean(transportSourceThrough && transportSourceThrough < dataThrough);
   const plantIsPartial = queue.plantShifts > 0 || queue.metallurgy > 0;
-  const drillingIsPartial = queue.drillLocations > 0 || num(drillingSummary?.meter_capture_pct) < 100 || (drillIntervals.count || 0) === 0;
+  const drillingIsPartial = queue.drillLocations > 0 || num(drillingSummary?.meter_capture_pct) < 100 || drillIntervalCount === 0;
 
   return NextResponse.json({
     batches: batches.data || [],
     counts: {
-      materialMovements: movements.count || 0,
-      plantShifts: plantShifts.count || 0,
-      metallurgyResults: metallurgy.count || 0,
-      concentrateShipments: shipments.count || 0,
+      materialMovements,
+      plantShifts: plantShiftCount,
+      metallurgyResults: metallurgyResultCount,
+      concentrateShipments: concentrateShipmentCount,
       drillingReports: num(drillingSummary?.report_rows),
       drillingHoles: num(drillingSummary?.holes),
     },
@@ -305,14 +277,14 @@ export async function GET(request: NextRequest) {
       domains: {
         transport: {
           status: transportIsPartial ? 'partial' : 'operational',
-          evidenceCount: movements.count || 0,
+          evidenceCount: materialMovements,
           reviewCount: Math.max(queue.movementNormalization, queue.movementValidation),
           dataThrough: transportSourceThrough,
           note: transportIsPartial ? 'Útil dentro de la ventana acreditada; conserva movimientos ambiguos para revisión.' : 'Cobertura acreditada para la ventana disponible.',
         },
         plant: {
           status: plantIsPartial ? 'partial' : 'operational',
-          evidenceCount: plantShifts.count || 0,
+          evidenceCount: plantShiftCount,
           reviewCount: queue.plantShifts + queue.metallurgy,
           dataThrough,
           note: plantIsPartial ? 'La serie es utilizable; los turnos y análisis observados en revisión permanecen separados.' : 'Turnos y metalurgia acreditados para la fuente disponible.',
@@ -323,22 +295,22 @@ export async function GET(request: NextRequest) {
           reviewCount: queue.drillLocations,
           dataThrough: drillingSummary?.max_date || null,
           coveragePct: num(drillingSummary?.meter_capture_pct),
-          intervalCount: drillIntervals.count || 0,
+          intervalCount: drillIntervalCount,
           note: drillingIsPartial ? 'Operación visible; ubicación, captura de metros o intervalos requieren más evidencia.' : 'Pozos, ubicación e intervalos con cobertura acreditada.',
         },
         chemistry: {
-          status: (chemistryResults.count || 0) > 0 ? 'operational' : 'awaiting_source',
-          evidenceCount: chemistryResults.count || 0,
+          status: chemistryResultCount > 0 ? 'operational' : 'awaiting_source',
+          evidenceCount: chemistryResultCount,
           reviewCount: 0,
           dataThrough: null,
-          note: (chemistryResults.count || 0) > 0 ? 'Resultados canónicos disponibles según el paquete recibido.' : 'Modelo disponible; falta una fuente química acreditada.',
+          note: chemistryResultCount > 0 ? 'Resultados canónicos disponibles según el paquete recibido.' : 'Modelo disponible; falta una fuente química acreditada.',
         },
         geology: {
-          status: num(geology?.external_records) > 0 ? 'operational' : num(drillingSummary?.report_rows) > 0 ? 'partial' : 'awaiting_source',
-          evidenceCount: num(geology?.external_records),
-          reviewCount: num(geology?.review_records),
+          status: geologyExternalCount > 0 ? 'operational' : num(drillingSummary?.report_rows) > 0 ? 'partial' : 'awaiting_source',
+          evidenceCount: geologyExternalCount,
+          reviewCount: geologyReviewCount,
           dataThrough: null,
-          note: num(geology?.external_records) > 0 ? 'Contexto geológico externo acreditado y separado de la operación.' : 'Mina, Sector y Sondaje están disponibles; falta incorporar contexto geológico externo.',
+          note: geologyExternalCount > 0 ? 'Contexto geológico externo acreditado y separado de la operación.' : 'Mina, Sector y Sondaje están disponibles; falta incorporar contexto geológico externo.',
         },
         topography: {
           status: 'awaiting_source',

@@ -65,8 +65,6 @@ export function ProduccionDashboard(){
       <PageHeaderActions><Button asChild variant="outline"><Link href="/dashboard/produccion/ingreso-datos"><Upload className="h-4 w-4"/>Ingresar datos</Link></Button></PageHeaderActions>
     </PageHeader>
 
-    <CoverageOverview data={data}/>
-
     <section className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 xl:grid-cols-6">
       <Metric icon={Factory} label="Tratado" value={p?tons(p.treatedTons,1):'—'} detail={plan?`${pct(plan.treatmentProgressPct)} del plan de mineral a planta`:'Sin plan activo'}/>
       <Metric icon={Target} label="Ritmo mensual" value={paceLabel} detail={plan?`Índice ${pct(plan.paceIndexPct)} · calendario ${pct(p?.calendarProgressPct)}`:'Sin comparación'}/>
@@ -75,6 +73,8 @@ export function ProduccionDashboard(){
       <Metric icon={Beaker} label="Cu fino recuperado" value={p?tons(p.recoveredFineCuTons,3):'—'} detail={p?`${tons(p.containedCuTons,3)} Cu contenido`:'—'}/>
       <Metric icon={PackageCheck} label="Concentrado despachado" value={p?tons(p.dispatch.wetMetricTons,2):'—'} detail={p?`${p.dispatch.validShipmentRows} válidos · ${p.dispatch.reviewShipmentRows} revisión`:'—'}/>
     </section>
+
+    <CoverageOverview data={data}/>
 
     <section className="grid gap-4 xl:grid-cols-[1.35fr_0.65fr]">
       <div className="rounded-lg border bg-card">

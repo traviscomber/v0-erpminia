@@ -27,7 +27,7 @@ export default function ProduccionLayout({ children }: { children: ReactNode }) 
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Operaciones mineras</p>
           <p className="mt-1 text-sm text-muted-foreground">Producción integra transporte, planta, metalurgia y disciplinas técnicas de soporte operacional.</p>
         </div>
-        <nav className="flex gap-2 overflow-x-auto pb-1" aria-label="Navegación de Producción">
+        <nav className="flex gap-2 overflow-x-auto pb-1 lg:flex-wrap lg:overflow-visible" aria-label="Navegación de Producción">
           {items.map((item) => {
             const Icon = item.icon;
             const active = item.href === '/dashboard/produccion'
