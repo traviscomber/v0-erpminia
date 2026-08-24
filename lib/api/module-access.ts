@@ -67,7 +67,7 @@ export async function getUserModuleAccess(userId: string): Promise<UserModuleAcc
 export async function getModuleAccessLevel(userId: string, role: string | null | undefined, moduleKey: ModuleKey): Promise<AccessLevel> {
   if (isAdminRole(role)) return 'ED';
   const { hasCargo, access } = await getUserModuleAccess(userId);
-  if (!hasCargo) return 'ED';
+  if (!hasCargo) return 'SR';
   return access[moduleKey] ?? 'SR';
 }
 
