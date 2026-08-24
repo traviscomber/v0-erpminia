@@ -4,6 +4,7 @@ import { getSupabaseServerClient } from '@/lib/supabase-server';
 
 const ROLE_LABELS: Record<string, string> = {
   superadmin: 'superadmin',
+  super_admin: 'superadmin',
   admin: 'admin',
   manager: 'manager',
   technician: 'technician',
@@ -26,6 +27,12 @@ function getServiceSupabase() {
 function normalizeRole(role?: string | null) {
   const value = String(role || 'viewer').trim().toLowerCase();
   return ROLE_LABELS[value] || 'viewer';
+}
+
+function resolveEffectiveRole(profileRole?: string | null, assignedRole?: string | null) {
+  const normalizedProfileRole = normalizeRole(profileRole);
+  if (normalizedProfileRole === 'superadmin') return normalizedProfileRole;
+  return assignedRole ? normalizeRole(assignedRole) : normalizedProfileRole;
 }
 
 function buildPermissionCode(module: string, action: string) {
@@ -83,7 +90,7 @@ export async function listOrganizationUsers(organizationId: string) {
       email: profile.email,
       full_name: fullName,
       cargo: profile.cargo_id ? cargoMap.get(profile.cargo_id) || null : null,
-      role: roleMap.get(profile.id) || normalizeRole(profile.role),
+      role: resolveEffectiveRole(profile.role, roleMap.get(profile.id)),
       created_at: profile.created_at,
       email_confirmed_at: profile.status === 'pending' ? null : profile.created_at,
       last_sign_in_at: null,
@@ -132,53 +139,50 @@ export async function createOrganizationUser(input: {
     throw new Error(authError?.message || 'Failed to create auth user');
   }
 
-  const passwordHash = await bcrypt.hash(input.password, 12);
+  const createdUserId = createdAuthUser.user.id;
 
-  const { error: profileError } = await dbSupabase
-    .from('profiles')
-    .upsert({
-      id: createdAuthUser.user.id,
-      email,
-      organization_id: input.organizationId,
-      full_name: fullName,
-      first_name: firstName || fullName,
-      last_name: lastName,
-      role,
-      cargo_id: input.cargoId,
-      status: 'active',
-      password_hash: passwordHash,
-      updated_at: new Date().toISOString(),
-    });
+  try {
+    const passwordHash = await bcrypt.hash(input.password, 12);
 
-  if (profileError) {
-    throw new Error(profileError.message);
-  }
+    const { error: profileError } = await dbSupabase
+      .from('profiles')
+      .upsert({
+        id: createdUserId,
+        email,
+        organization_id: input.organizationId,
+        full_name: fullName,
+        first_name: firstName || fullName,
+        last_name: lastName,
+        role,
+        cargo_id: input.cargoId,
+        status: 'active',
+        password_hash: passwordHash,
+        updated_at: new Date().toISOString(),
+      });
 
-  const { error: deleteExistingRoleError } = await dbSupabase
-    .from('user_roles')
-    .delete()
-    .eq('user_id', createdAuthUser.user.id)
-    .eq('organization_id', input.organizationId);
+    if (profileError) throw profileError;
 
-  if (deleteExistingRoleError) {
-    throw new Error(deleteExistingRoleError.message);
-  }
+    const { error: roleError } = await dbSupabase
+      .from('user_roles')
+      .upsert(
+        {
+          user_id: createdUserId,
+          organization_id: input.organizationId,
+          role,
+          assigned_by: input.assignedBy,
+        },
+        { onConflict: 'user_id,organization_id' }
+      );
 
-  const { error: roleError } = await dbSupabase
-    .from('user_roles')
-    .insert({
-      user_id: createdAuthUser.user.id,
-      organization_id: input.organizationId,
-      role,
-      assigned_by: input.assignedBy,
-    });
-
-  if (roleError) {
-    throw new Error(roleError.message);
+    if (roleError) throw roleError;
+  } catch (error) {
+    await dbSupabase.from('profiles').delete().eq('id', createdUserId);
+    await serviceSupabase.auth.admin.deleteUser(createdUserId).catch(() => undefined);
+    throw error;
   }
 
   return {
-    id: createdAuthUser.user.id,
+    id: createdUserId,
     email,
     full_name: fullName,
     role,
@@ -208,24 +212,19 @@ export async function updateOrganizationUserRole(input: {
 
   if (profileError) throw profileError;
 
-  const { error: deleteError } = await dbSupabase
+  const { error: roleError } = await dbSupabase
     .from('user_roles')
-    .delete()
-    .eq('user_id', input.userId)
-    .eq('organization_id', input.organizationId);
+    .upsert(
+      {
+        user_id: input.userId,
+        organization_id: input.organizationId,
+        role,
+        assigned_by: input.assignedBy,
+      },
+      { onConflict: 'user_id,organization_id' }
+    );
 
-  if (deleteError) throw deleteError;
-
-  const { error: insertError } = await dbSupabase
-    .from('user_roles')
-    .insert({
-      user_id: input.userId,
-      organization_id: input.organizationId,
-      role,
-      assigned_by: input.assignedBy,
-    });
-
-  if (insertError) throw insertError;
+  if (roleError) throw roleError;
 
   return { userId: input.userId, role };
 }
