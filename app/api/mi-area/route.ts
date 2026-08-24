@@ -2,15 +2,121 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
-import { getExecutivePortalForRole } from '@/lib/executive-portal-config';
+import { getExecutivePortalForIdentity } from '@/lib/executive-portal-config';
+import { GET as getProductionOverview } from '@/app/api/produccion/canonical-overview/route';
+
+function num(value: unknown) {
+  return Number(value || 0);
+}
+
+function pct(value: unknown, digits = 1) {
+  const parsed = value === null || value === undefined ? null : Number(value);
+  return parsed === null || Number.isNaN(parsed) ? '—' : `${parsed.toLocaleString('es-CL', { maximumFractionDigits: digits })}%`;
+}
 
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
 
-  const portal = getExecutivePortalForRole(context.role);
-  if (!portal || portal.key !== 'maintenance') {
+  const { data: profile, error: profileError } = await context.supabase
+    .from('profiles')
+    .select('cargo_id')
+    .eq('id', context.userId)
+    .maybeSingle();
+
+  if (profileError) return NextResponse.json({ error: profileError.message }, { status: 500 });
+
+  let cargoName: string | null = null;
+  if (profile?.cargo_id) {
+    const { data: cargo, error: cargoError } = await context.supabase
+      .from('cargos')
+      .select('name')
+      .eq('id', profile.cargo_id)
+      .maybeSingle();
+    if (cargoError) return NextResponse.json({ error: cargoError.message }, { status: 500 });
+    cargoName = cargo?.name || null;
+  }
+
+  const portal = getExecutivePortalForIdentity(context.role, cargoName);
+  if (!portal) {
     return NextResponse.json({ error: 'Portal ejecutivo no disponible para este cargo' }, { status: 403 });
+  }
+
+  if (portal.key === 'production') {
+    const productionResponse = await getProductionOverview(request);
+    if (!productionResponse.ok) return productionResponse;
+    const production = await productionResponse.json();
+    const current = production.currentPeriod;
+    const plan = current?.plan || null;
+    const daily = Array.isArray(production.daily) ? production.daily : [];
+    const lastTwo = daily.filter((row: any) => row.operation_date).slice(-2);
+    const previous = lastTwo.length === 2 ? lastTwo[0] : null;
+    const latest = lastTwo.length === 2 ? lastTwo[1] : lastTwo[0] || null;
+    const intelligence = Array.isArray(production.intelligence) ? production.intelligence : [];
+    const alerts = intelligence.filter((item: any) => item.level === 'alert');
+    const watches = intelligence.filter((item: any) => item.level === 'watch');
+    const qualityHold = num(production.quality?.hold);
+
+    const changes = latest && previous ? [
+      {
+        label: 'Tratamiento diario',
+        current: num(latest.treated_wet_t),
+        previous: num(previous.treated_wet_t),
+        unit: 't',
+      },
+      {
+        label: 'Cu fino recuperado',
+        current: num(latest.recovered_fine_cu_t),
+        previous: num(previous.recovered_fine_cu_t),
+        unit: 't',
+      },
+      {
+        label: 'Concentrado despachado',
+        current: num(latest.dispatched_concentrate_t),
+        previous: num(previous.dispatched_concentrate_t),
+        unit: 't',
+      },
+    ] : [];
+
+    const interpretation = [
+      plan?.paceIndexPct != null ? (
+        Number(plan.paceIndexPct) < 90
+          ? { level: 'alert', title: 'El ritmo mensual requiere recuperación', detail: `Índice de ritmo ${pct(plan.paceIndexPct)} frente al calendario del mes.` }
+          : Number(plan.paceIndexPct) < 97
+            ? { level: 'watch', title: 'El ritmo está levemente bajo calendario', detail: `Índice de ritmo ${pct(plan.paceIndexPct)}. Conviene vigilar los próximos cortes.` }
+            : { level: 'info', title: 'El tratamiento mantiene el ritmo del mes', detail: `Índice de ritmo ${pct(plan.paceIndexPct)}.` }
+      ) : null,
+      plan?.gradeDeltaPctPoints != null ? (
+        Number(plan.gradeDeltaPctPoints) < -0.08
+          ? { level: 'alert', title: 'La ley de cabeza está materialmente bajo objetivo', detail: `Brecha de ${Math.abs(Number(plan.gradeDeltaPctPoints)).toLocaleString('es-CL', { maximumFractionDigits: 3 })} pp bajo el objetivo activo.` }
+          : Number(plan.gradeDeltaPctPoints) < 0
+            ? { level: 'watch', title: 'La ley de cabeza está bajo objetivo', detail: `Brecha de ${Math.abs(Number(plan.gradeDeltaPctPoints)).toLocaleString('es-CL', { maximumFractionDigits: 3 })} pp bajo el objetivo.` }
+            : { level: 'info', title: 'La ley de cabeza está en o sobre objetivo', detail: 'La ley ponderada no muestra brecha negativa contra el objetivo activo.' }
+      ) : null,
+      qualityHold > 0 ? { level: 'watch', title: 'Hay evidencia pendiente de revisión', detail: `${qualityHold} chequeo(s) de calidad permanecen en HOLD; los vacíos no se interpretan como cero.` } : null,
+    ].filter(Boolean).slice(0, 4);
+
+    return NextResponse.json({
+      portal,
+      user: { id: context.userId, name: context.userName, role: context.role, cargo: cargoName },
+      status: alerts.length || qualityHold ? 'attention' : watches.length ? 'watch' : 'stable',
+      metrics: [
+        { label: 'Tratado', value: current ? `${num(current.treatedTons).toLocaleString('es-CL', { maximumFractionDigits: 1 })} t` : '—' },
+        { label: 'Ritmo', value: plan?.paceIndexPct == null ? '—' : Number(plan.paceIndexPct) >= 97 ? 'En ritmo' : Number(plan.paceIndexPct) >= 90 ? 'Leve desvío' : 'Bajo ritmo' },
+        { label: 'Avance plan', value: pct(plan?.treatmentProgressPct) },
+        { label: 'Ley cabeza Cu', value: pct(current?.avgHeadGradePct, 3) },
+        { label: 'Recuperación', value: pct(current?.avgRecoveryPct, 2) },
+        { label: 'Calidad', value: `${num(production.quality?.pass)} PASS · ${qualityHold} HOLD` },
+      ],
+      signals: [...alerts, ...watches].slice(0, 5),
+      interpretation,
+      change: {
+        available: changes.length > 0,
+        note: changes.length ? 'Comparación contra el corte operacional inmediatamente anterior.' : 'Aún no hay dos cortes operacionales comparables.',
+        items: changes,
+      },
+      source: 'production_flow_daily_fidelity_v1 + production_metallurgy_deterministic_v2 + production_monthly_plans',
+    });
   }
 
   const { data, error } = await context.supabase
@@ -40,20 +146,18 @@ export async function GET(request: NextRequest) {
     missingAsset.length ? { level: 'watch', code: 'missing_asset', title: 'Órdenes sin equipo trazable', detail: `${missingAsset.length} orden(es) activas no tienen equipo asociado.` } : null,
   ].filter(Boolean);
 
-  const status = critical.length ? 'attention' : signals.length ? 'watch' : 'stable';
-
   return NextResponse.json({
     portal,
-    user: { id: context.userId, name: context.userName, role: context.role },
-    status,
-    metrics: {
-      activeWorkOrders: active.length,
-      criticalWorkOrders: critical.length,
-      waitingSupply: waitingProcurement.length + waitingParts.length,
-      missingOwner: missingOwner.length,
-      totalCost,
-      purchaseCommitment,
-    },
+    user: { id: context.userId, name: context.userName, role: context.role, cargo: cargoName },
+    status: critical.length ? 'attention' : signals.length ? 'watch' : 'stable',
+    metrics: [
+      { label: 'OT activas', value: String(active.length) },
+      { label: 'OT críticas', value: String(critical.length) },
+      { label: 'Esperando abastecimiento', value: String(waitingProcurement.length + waitingParts.length) },
+      { label: 'Sin responsable', value: String(missingOwner.length) },
+      { label: 'Costo ejecutado', value: new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(totalCost) },
+      { label: 'Compras comprometidas', value: new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(purchaseCommitment) },
+    ],
     signals: signals.slice(0, 5),
     interpretation: [
       critical.length ? { level: 'alert', title: 'La prioridad está en las OT críticas', detail: `${critical.length} orden(es) crítica(s) requieren seguimiento hasta cierre.` } : null,
@@ -61,7 +165,7 @@ export async function GET(request: NextRequest) {
       missingOwner.length ? { level: 'watch', title: 'Hay trabajo sin dueño operativo', detail: `${missingOwner.length} orden(es) activas deben quedar asignadas antes de evaluar ejecución.` } : null,
       !critical.length && !(waitingProcurement.length + waitingParts.length) && !missingOwner.length ? { level: 'info', title: 'La cartera activa no muestra bloqueos críticos', detail: 'No hay OT críticas ni bloqueos de abastecimiento en la evidencia actual.' } : null,
     ].filter(Boolean).slice(0, 4),
-    change: { available: false, note: 'Aún no existe un historial de estados comparable para afirmar qué cambió entre cortes.' },
+    change: { available: false, note: 'Aún no existe un historial de estados comparable para afirmar qué cambió entre cortes.', items: [] },
     source: 'public.maintenance_operational_work_order_flow_v1',
   });
 }
