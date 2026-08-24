@@ -6,10 +6,10 @@ import { getOrganizationContext } from '@/lib/api/organization-context';
 type AssetRow = {
   id: string;
   asset_code: string | null;
-  asset_name: string | null;
+  name: string | null;
   asset_type: string | null;
   location: string | null;
-  status: string | null;
+  operational_status: string | null;
   manufacturer: string | null;
   model: string | null;
   serial_number: string | null;
@@ -22,16 +22,16 @@ function mapAsset(asset: AssetRow) {
   return {
     id: asset.id,
     assetCode: asset.asset_code,
-    assetName: asset.asset_name,
+    assetName: asset.name,
     assetType: asset.asset_type,
     location: asset.location,
-    status: asset.status,
+    status: asset.operational_status,
     manufacturer: asset.manufacturer,
     model: asset.model,
     serialNumber: asset.serial_number,
     criticality: asset.criticality,
     mtbfHours: asset.mtbf_hours !== null && asset.mtbf_hours !== undefined ? Number(asset.mtbf_hours) : null,
-    acquisitionCost: asset.acquisition_cost !== null && asset.acquisition_cost !== undefined ? Number(asset.acquisition_cost) : 0,
+    acquisitionCost: asset.acquisition_cost !== null && asset.acquisition_cost !== undefined ? Number(asset.acquisition_cost) : null,
   };
 }
 
@@ -46,14 +46,14 @@ export async function GET(request: NextRequest) {
     const assetType = searchParams.get('asset_type');
 
     let query = context.supabase
-      .from('maintenance_assets')
-      .select('*')
+      .from('canonical_assets_current')
+      .select('id,asset_code,name,asset_type,location,operational_status,manufacturer,model,serial_number,criticality,mtbf_hours,acquisition_cost')
       .eq('organization_id', context.organizationId)
-      .order('criticality', { ascending: false })
-      .order('asset_name', { ascending: true });
+      .order('criticality', { ascending: false, nullsFirst: false })
+      .order('name', { ascending: true });
 
     if (status) {
-      query = query.eq('status', status);
+      query = query.eq('operational_status', status);
     }
 
     if (criticality) {
@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ assets: assets.map(mapAsset) });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'No se pudieron cargar los activos de mantenimiento';
+    const message = error instanceof Error ? error.message : 'No se pudieron cargar los activos canónicos';
     return NextResponse.json({ assets: [], error: message }, { status: 500 });
   }
 }
