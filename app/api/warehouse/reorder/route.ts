@@ -2,21 +2,10 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
-import { isStockBelowMinimum } from '@/lib/inventory-alerts';
-
-type WarehouseStockRow = {
-  id: string;
-  reorder_level: number | string | null;
-  quantity_on_hand: number | string | null;
-  item_name?: string | null;
-  item_code?: string | null;
-  category?: string | null;
-  bin?: Array<{
-    id: string;
-    bin_code: string | null;
-    bin_location: string | null;
-  }> | null;
-};
+import {
+  listInventoryStockAlerts,
+  type InventoryStockAlertItem,
+} from '@/lib/api/inventory-stock-alerts';
 
 type ReorderAlert = {
   id: string;
@@ -25,7 +14,7 @@ type ReorderAlert = {
   threshold_value: number;
   current_value: number;
   status: 'active';
-  stock: WarehouseStockRow;
+  stock: InventoryStockAlertItem;
 };
 
 export async function GET(request: NextRequest) {
@@ -33,22 +22,12 @@ export async function GET(request: NextRequest) {
   if (!context.ok) return context.response;
 
   try {
-    const { data: stock, error } = await context.supabase
-      .from('warehouse_stock')
-      .select('*, bin:warehouse_bins(id, bin_code, bin_location)')
-      .eq('organization_id', context.organizationId)
-      .gt('reorder_level', 0)
-      .order('quantity_on_hand', { ascending: true });
+    const result = await listInventoryStockAlerts({
+      organizationId: context.organizationId,
+      supabase: context.supabase,
+    });
 
-    if (error) throw error;
-
-    const warehouseStock = Array.isArray(stock) ? (stock as WarehouseStockRow[]) : [];
-
-    const lowStock = warehouseStock.filter((item) =>
-      isStockBelowMinimum(item.quantity_on_hand, item.reorder_level)
-    );
-
-    const alerts: ReorderAlert[] = lowStock.map((item) => ({
+    const alerts: ReorderAlert[] = result.items.map((item) => ({
       id: item.id,
       stock_id: item.id,
       alert_type: 'low_stock',
@@ -66,6 +45,8 @@ export async function GET(request: NextRequest) {
         lowStockItems: alerts.length,
         criticalAlerts,
       },
+      dataSource: result.dataSource,
+      evaluatedItems: result.evaluatedItems,
     });
   } catch (error) {
     const message =
