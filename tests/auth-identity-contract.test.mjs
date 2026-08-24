@@ -6,10 +6,12 @@ const authSession = await readFile(new URL('../lib/api/auth-session.ts', import.
 const guard = await readFile(new URL('../lib/api/guard.ts', import.meta.url), 'utf8');
 const adminData = await readFile(new URL('../lib/api/admin-data.ts', import.meta.url), 'utf8');
 
-test('verified Supabase users can bridge to a legacy profile by email', () => {
+test('Supabase auth resolves persisted legacy profile identity links before verified-email fallback', () => {
+  assert.match(authSession, /auth_profile_identity_links/);
+  assert.match(authSession, /\.eq\('auth_user_id', userId\)/);
   assert.match(authSession, /allowVerifiedEmailFallback/);
   assert.match(authSession, /Boolean\(user\.email_confirmed_at\)/);
-  assert.match(authSession, /\.eq\('email', normalizedEmail\)/);
+  assert.match(authSession, /link_reason: 'verified_email_runtime_bridge'/);
   assert.doesNotMatch(authSession, /user_metadata.*role/);
 });
 
