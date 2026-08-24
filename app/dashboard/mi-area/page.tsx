@@ -21,6 +21,7 @@ function endpointForCargo(cargo?:string|null){
   if(normalized==='JEFE ADM.')return'/api/mi-area/administracion';
   if(normalized==='JEFE GEÓLOGIA')return'/api/mi-area/geologia';
   if(normalized==='JEFE SONDAJE')return'/api/mi-area/sondaje';
+  if(normalized==='JEFE DEPARTAMENTO DE MANTENCIÓN')return'/api/mi-area/mantencion-departamento';
   return'/api/mi-area';
 }
 
