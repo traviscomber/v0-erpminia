@@ -2,118 +2,167 @@
 
 Fecha: 2026-08-24
 
-Objetivo: separar **permiso** (`role_matrix`) de **responsabilidad canónica** del módulo. Esta auditoría no cambia permisos, perfiles ni datos productivos.
+Objetivo: separar **permiso** (`role_matrix`) de **responsabilidad canónica** del módulo y dejar trazable el estado real de gobernanza.
 
-Reglas:
-- No se inventan cargos ni personas.
-- Sólo se usan cargos ya existentes en `cargos`.
-- `ED` significa permiso de edición, no necesariamente dueño del módulo.
-- Un módulo queda `CONFIRMADO` sólo cuando existe un cargo responsable inequívoco y coherente con el dominio.
-- Un módulo queda `POR RESOLVER` cuando hay múltiples cargos ED o cuando el único ED no es coherente con el dominio funcional.
+## Estado actual
 
-## Mapa actual
+- Los 48 módulos presentes en `role_matrix` tienen un propietario funcional definido en `lib/module-ownership.ts`.
+- El registro de ownership es la fuente canónica para responsabilidad funcional.
+- `role_matrix` sigue siendo la fuente de autorización; un cargo puede tener `ED` sin ser propietario del módulo.
+- No se crearon cargos ni personas nuevas.
+- No se eliminaron ni degradaron permisos existentes.
+- Se añadieron únicamente los permisos `ED` que faltaban para que seis propietarios canónicos pudieran operar sus módulos.
 
-| Módulo | Estado | Cargo responsable existente / evidencia | Observación |
-|---|---|---|---|
-| `prod_sondaje` | CONFIRMADO | JEFE SONDAJE | Único cargo ED y coincide con el dominio. |
-| `prod_sondaje_produccion` | CONFIRMADO | JEFE SONDAJE | Único cargo ED y coincide con el dominio. |
-| `prod_topografia` | CONFIRMADO | JEFE ING. PLA MINA | Único cargo ED y coincide con planificación/topografía mina. |
-| `mant_maestranza` | CONFIRMADO | JEFE MAN. PLANTA | Único cargo ED y coincide con el dominio. |
-| `legal_modulo` | CONFIRMADO | JEFE ADM. | Único cargo ED existente en la matriz. |
-| `legal_contratos` | CONFIRMADO | JEFE ADM. | Único cargo ED existente en la matriz. |
-| `legal_eecc` | CONFIRMADO | JEFE ADM. | Único cargo ED existente en la matriz. |
-| `fin_finanzas` | CONFIRMADO | JEFE ADM. | Único cargo ED existente en la matriz. |
-| `fin_reportes` | CONFIRMADO | JEFE ADM. | Único cargo ED existente en la matriz. |
-| `core_alertas` | CONFIRMADO | JEFE ADM. | Único cargo ED existente en la matriz. |
-| `core_centros_costos` | CONFIRMADO | JEFE ADM. | Único cargo ED existente en la matriz. |
-| `prod_geologia` | POR RESOLVER | JEFE GEÓLOGIA / JEFE GEOLOGÍA EXPLO. | Dos cargos ED. |
-| `prod_sondaje_exploracion` | POR RESOLVER | JEFE GEOLOGÍA EXPLO. / JEFE SONDAJE | Dos cargos ED. |
-| `prod_quimica` | POR RESOLVER | JEFE PLANTA / JEFES DE TURNO PLANTA | Dos cargos ED. |
-| `prod_operaciones` | POR RESOLVER | JEFE ADM. tiene ED; JEFE PLANTA existe pero no tiene ED aquí | Inconsistencia entre permiso y dominio funcional. |
-| `prod_telemetria` | POR RESOLVER | JEFE ADM. tiene ED | No existe evidencia suficiente para declarar que Administración sea dueño operacional. |
-| `bodega_inventario` | POR RESOLVER | JEFE ADM. / JEFE MAN. EQ; existe JEFE BODEGA | El cargo JEFE BODEGA existe pero no es ED en este módulo. |
-| `bodega_documentos` | POR RESOLVER | JEFE ADM. / JEFE MAN. EQ; existe JEFE BODEGA | Múltiples ED y cargo lógico sin ED. |
-| `fin_compras` | POR RESOLVER | JEFE ADM. / JEFE MAN. EQ | Dos cargos ED. |
-| `mant_operaciones` | POR RESOLVER | JEFE ADM. / JEFE SOSTENIBILIDAD | Los ED actuales no representan de forma inequívoca la jefatura de mantención. |
-| `mant_gerencial` | POR RESOLVER | JEFE ADM. / JEFE MAN. EQ | Dos cargos ED. |
-| `mant_recursos` | POR RESOLVER | JEFE ADM. / JEFE MAN. EQ | Dos cargos ED. |
-| `mant_documentos` | POR RESOLVER | JEFE ADM. / JEFE MAN. EQ | Dos cargos ED. |
-| `mant_activos_estado` | POR RESOLVER | GERENTE / JEFE MAN. PLANTA / SUBGERENTE OP. | Tres cargos ED. |
-| `mant_combustible_mina` | POR RESOLVER | JEFE MAN. PLANTA / JEFE PLANTA / JEFES DE TURNO PLANTA / SUBGERENTE OP. | Cuatro cargos ED. |
-| `mant_evaluaciones_personal` | POR RESOLVER | GERENTE / JEFE MAN. PLANTA / JEFE PLANTA / SUBGERENTE OP. | Cuatro cargos ED. |
-| `sos_tablero` | POR RESOLVER | JEFE ADM. / JEFE SOSTENIBILIDAD | Dos cargos ED; existe JEFE SOSTENIBILIDAD activo. |
-| `sos_medio_ambiente` | POR RESOLVER | JEFE ADM. / JEFE SOSTENIBILIDAD | Dos cargos ED. |
-| `sos_comunidades` | POR RESOLVER | JEFE ADM. / JEFE SOSTENIBILIDAD | Dos cargos ED. |
-| `sos_documentos` | POR RESOLVER | JEFE ADM. / JEFE SOSTENIBILIDAD | Dos cargos ED. |
-| `sos_calendario` | POR RESOLVER | JEFE ADM. / JEFE SOSTENIBILIDAD | Dos cargos ED. |
-| `hse_tablero` | POR RESOLVER | JEFE ADM. tiene ED; existen JEFE SOSTENIBILIDAD y PREVENCIONISTA en otros módulos HSE | Inconsistencia de gobernanza. |
-| `hse_kpls` | POR RESOLVER | JEFE ADM. / JEFE SOSTENIBILIDAD | Dos cargos ED. |
-| `hse_epp` | POR RESOLVER | JEFE ADM. / JEFE SOSTENIBILIDAD / PREVENCIONISTA | Tres cargos ED. |
-| `hse_riesgos` | POR RESOLVER | JEFE ADM. / JEFE SOSTENIBILIDAD / PREVENCIONISTA | Tres cargos ED. |
-| `hse_documentos_extra` | POR RESOLVER | JEFE ADM. / JEFE SOSTENIBILIDAD | Dos cargos ED. |
-| `hse_epp_diagnostico` | POR RESOLVER | GERENTE / JEFE MAN. PLANTA / JEFE SOSTENIBILIDAD | Tres cargos ED. |
-| `hse_capacitaciones` | POR RESOLVER | 20 cargos ED | Es un permiso transversal, no una propiedad clara. |
-| `hse_documentacion` | POR RESOLVER | 23 cargos ED | Es un permiso transversal, no una propiedad clara. |
-| `hse_incidente` | POR RESOLVER | 20 cargos ED | Es un flujo transversal; falta dueño canónico explícito. |
-| `hse_investigaciones` | POR RESOLVER | 20 cargos ED | Es un flujo transversal; falta dueño canónico explícito. |
-| `contratos_solicitar_link` | POR RESOLVER | ASISTENTE TÉCNICO / JEFE ADM. / PREVENCIONISTA | Tres cargos ED. |
-| `contratos_subir_info` | POR RESOLVER | ASISTENTE TÉCNICO / JEFE ADM. / JEFE RRHH / PREVENCIONISTA | Cuatro cargos ED. |
-| `contratos_aprobar` | POR RESOLVER | ASISTENTE TÉCNICO / JEFE ADM. / PREVENCIONISTA | Tres cargos ED. |
-| `contratos_autorizar` | POR RESOLVER | JEFE ADM. / PREVENCIONISTA | Dos cargos ED. |
-| `contratos_visualizacion` | POR RESOLVER | ASISTENTE TÉCNICO / JEFE ADM. / PREVENCIONISTA | Tres cargos ED. |
-| `rrhh_expediente` | POR RESOLVER | GERENTE / SUBGERENTE OP.; existe JEFE RRHH | Cargo JEFE RRHH existe pero no es ED aquí. |
-| `core_desempeno` | POR RESOLVER | GERENTE / PRESIDENTE | Dos cargos ED; es un módulo transversal, no de una sola jefatura operacional. |
+## Reglas de gobernanza
 
-## Cargos existentes relevantes
+1. Un módulo tiene exactamente un propietario funcional canónico.
+2. Ownership y autorización son conceptos separados.
+3. La propiedad se fundamenta en evidencia disponible: snapshot KPI, `role_matrix` y/o especialización funcional del módulo.
+4. Un permiso transversal no convierte al usuario en propietario del módulo.
+5. Los portales `Mi área` sólo se habilitan cuando el cargo autenticado coincide con la responsabilidad definida para el portal.
+6. No se atribuyen datos, OT, KPI o resultados a una jefatura cuando la evidencia no permite segmentarlos de forma trazable.
 
-- GERENTE
-- GERENTE OPERACIONES
-- SUBGERENTE OP.
-- JEFE ADM.
-- JEFE BODEGA
-- JEFE GEÓLOGIA
-- JEFE GEOLOGÍA EXPLO.
-- JEFE ING.
-- JEFE ING. PLA MINA
-- JEFE MAN. EQ
-- JEFE MAN. PLANTA
-- JEFE MANT EQ. MINA
-- JEFE MINA DON JAIME
-- JEFE MINA PEUMO
-- JEFE MINA SAN PEDRO
-- JEFE PLANTA
-- JEFE RRHH
-- JEFE SONDAJE
-- JEFE SOSTENIBILIDAD
-- JEFES DE TURNO PLANTA
-- PREVENCIONISTA
-- ASISTENTE TÉCNICO
-- PRESIDENTE
+## Registro canónico por dominio
 
-## Perfiles activos ya ligados a cargos de jefatura/gerencia
+### Producción
+
+| Módulo | Propietario canónico |
+|---|---|
+| `prod_operaciones` | JEFE PLANTA |
+| `prod_quimica` | JEFE PLANTA |
+| `prod_geologia` | JEFE GEÓLOGIA |
+| `prod_sondaje` | JEFE SONDAJE |
+| `prod_sondaje_exploracion` | JEFE GEOLOGÍA EXPLO. |
+| `prod_sondaje_produccion` | JEFE SONDAJE |
+| `prod_topografia` | JEFE ING. PLA MINA |
+| `prod_telemetria` | JEFE ADM. |
+
+`prod_telemetria` conserva a JEFE ADM. porque es el único cargo con evidencia `ED` vigente. Debe revisarse si la gobernanza operacional cambia.
+
+### Mantención
+
+| Módulo | Propietario canónico |
+|---|---|
+| `mant_operaciones` | JEFE MAN. EQ |
+| `mant_gerencial` | JEFE MAN. EQ |
+| `mant_recursos` | JEFE MAN. EQ |
+| `mant_documentos` | JEFE MAN. EQ |
+| `mant_activos_estado` | JEFE MAN. PLANTA |
+| `mant_combustible_mina` | JEFE MAN. PLANTA |
+| `mant_evaluaciones_personal` | JEFE MAN. PLANTA |
+| `mant_maestranza` | JEFE MAN. PLANTA |
+
+### Bodega
+
+| Módulo | Propietario canónico |
+|---|---|
+| `bodega_inventario` | JEFE BODEGA |
+| `bodega_documentos` | JEFE BODEGA |
+
+### Administración, finanzas y core
+
+| Módulo | Propietario canónico |
+|---|---|
+| `fin_compras` | JEFE ADM. |
+| `fin_finanzas` | JEFE ADM. |
+| `fin_reportes` | JEFE ADM. |
+| `core_alertas` | JEFE ADM. |
+| `core_centros_costos` | JEFE ADM. |
+
+### Legal y contratos
+
+JEFE ADM. es propietario canónico de:
+
+- `legal_modulo`
+- `legal_contratos`
+- `legal_eecc`
+- `contratos_solicitar_link`
+- `contratos_subir_info`
+- `contratos_aprobar`
+- `contratos_autorizar`
+- `contratos_visualizacion`
+
+### HSE
+
+JEFE SOSTENIBILIDAD es propietario canónico de:
+
+- `hse_tablero`
+- `hse_kpls`
+- `hse_documentacion`
+- `hse_documentos_extra`
+- `hse_epp`
+- `hse_epp_diagnostico`
+- `hse_incidente`
+- `hse_riesgos`
+- `hse_investigaciones`
+- `hse_capacitaciones`
+
+PREVENCIONISTA puede conservar permisos operativos donde corresponda, pero no reemplaza al propietario funcional del dominio HSE.
+
+### Sostenibilidad
+
+JEFE SOSTENIBILIDAD es propietario canónico de:
+
+- `sos_tablero`
+- `sos_medio_ambiente`
+- `sos_comunidades`
+- `sos_documentos`
+- `sos_calendario`
+
+### RRHH y desempeño
+
+| Módulo | Propietario canónico | Observación |
+|---|---|---|
+| `rrhh_expediente` | JEFE RRHH | Cargo existente; ownership definido por especialización del módulo. |
+| `core_desempeno` | GERENTE | PRESIDENTE puede conservar `ED` como nivel de gobierno, no como propietario operativo. |
+
+## Correcciones aditivas de `role_matrix`
+
+Se corrigieron seis ausencias de autorización del propio cargo responsable, sin quitar permisos a terceros:
+
+- JEFE BODEGA → `bodega_documentos` → `ED`
+- JEFE BODEGA → `bodega_inventario` → `ED`
+- JEFE SOSTENIBILIDAD → `hse_tablero` → `ED`
+- JEFE MAN. EQ → `mant_operaciones` → `ED`
+- JEFE PLANTA → `prod_operaciones` → `ED`
+- JEFE RRHH → `rrhh_expediente` → `ED`
+
+La existencia de múltiples cargos `ED` en un módulo ya no se interpreta como ownership múltiple. Es autorización; el propietario funcional sigue siendo único.
+
+## Perfiles activos relevantes
 
 - Daniel Villarroel — GERENTE
 - Pedro Pablo Zegers — GERENTE OPERACIONES
 - Gustavo Vega — Jefe Departamento de Mantención
 - Ariel Lopez — JEFE MAN. EQ
 - M Astudillo — JEFE MAN. EQ
+- Mauricio Astudillo — Jefe de Equipos Mineros
+- Rodrigo Olmo — Jefe de Camionetas
 - Gonzalo Canales — JEFE SOSTENIBILIDAD
 
-## Regla para los portales `Mi área`
+No se crean perfiles para cargos vacantes. Los portales preparados por cargo permanecen inactivos hasta que exista una asignación real.
 
-Un portal sólo se habilita cuando:
-1. el módulo tiene un cargo responsable confirmado;
-2. el usuario activo tiene ese `cargo_id`;
-3. el backend valida la misma responsabilidad;
-4. los datos del portal provienen de fuentes canónicas del módulo;
-5. `role_matrix` se trata como autorización, no como fuente única de propiedad.
+## Portales ejecutivos
 
-## Próxima acción
+El patrón vigente es:
 
-Resolver primero las discrepancias de mayor impacto, sin cambiar permisos todavía:
-1. Producción (`prod_operaciones` → revisar JEFE PLANTA)
-2. Bodega (`bodega_inventario` → revisar JEFE BODEGA)
-3. Mantención (`mant_operaciones` → revisar jefaturas de mantención existentes)
-4. RRHH (`rrhh_expediente` → revisar JEFE RRHH)
-5. HSE (`hse_tablero` → definir entre cargos existentes, no crear uno nuevo)
-6. Sostenibilidad (`sos_tablero` → revisar JEFE SOSTENIBILIDAD)
+- Pedro Pablo Zegers → `Mi operación`
+- JEFE PLANTA → `Mi producción`
+- JEFE MAN. EQ / Jefe Departamento de Mantención → portal ejecutivo de mantención según responsabilidad disponible
+- JEFE SOSTENIBILIDAD → `Mi HSE`
+- JEFE BODEGA → `Mi bodega`
+- JEFE ADM. → `Mi administración`
+- JEFE GEÓLOGIA → `Mi geología`
+- JEFE SONDAJE → `Mi sondaje`
+- Jefe de Equipos Mineros → `Mis equipos mineros`
+- Jefe de Camionetas → `Mis camionetas`
+
+Cada endpoint valida identidad/cargo en backend y usa fuentes canónicas de su dominio. Los endpoints especializados no deben caer en datos de otra área.
+
+## Pendientes reales
+
+1. Validar visualmente los portales autenticados en desktop y móvil cuando exista navegador con sesión disponible.
+2. Mantener `prod_telemetria` bajo revisión de gobernanza si aparece nueva evidencia operacional.
+3. Mejorar segmentación por activo para Equipos Mineros y Camionetas antes de atribuir OT globales a esas jefaturas.
+4. Activar portales de cargos actualmente vacantes sólo cuando exista un perfil real asignado.
+5. Revisar en una fase separada si algunos permisos `ED` transversales pueden simplificarse; no hacerlo como parte del ownership.
