@@ -20,8 +20,8 @@ export async function GET(request: NextRequest) {
     context.supabase.from('production_metallurgy_deterministic_v2').select('plant_shift_id', { count: 'exact', head: true }).eq('organization_id', context.organizationId),
     context.supabase.from('production_concentrate_shipments').select('id', { count: 'exact', head: true }).eq('organization_id', context.organizationId),
     context.supabase.from('production_drilling_operational_summary_v1').select('*').eq('organization_id', context.organizationId).maybeSingle(),
-    context.supabase.from('production_master_normalization_quality_v1').select('check_key,expected_value,actual_value,status').order('check_key'),
-    context.supabase.from('production_source_sheet_coverage_quality_v1').select('check_key,expected_value,actual_value,status').order('check_key'),
+    context.supabase.from('production_master_normalization_quality_v1').select('check_key,expected_value,actual_value,status').eq('organization_id', context.organizationId).order('check_key'),
+    context.supabase.from('production_source_sheet_coverage_quality_v1').select('check_key,expected_value,actual_value,status').eq('organization_id', context.organizationId).order('check_key'),
     context.supabase.from('production_flow_daily_fidelity_v1').select('operation_date').eq('organization_id', context.organizationId).order('operation_date', { ascending: false }).limit(1).maybeSingle(),
   ]);
 
@@ -170,7 +170,7 @@ export async function GET(request: NextRequest) {
       drillingHoles: num(drillingSummary?.holes),
     },
     quality: {
-      status: qualityHold === 0 ? 'PASS' : 'HOLD',
+      status: qualityRows.length > 0 && qualityHold === 0 ? 'PASS' : 'HOLD',
       pass: qualityPass,
       hold: qualityHold,
       checks: qualityRows,

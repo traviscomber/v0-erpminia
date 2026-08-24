@@ -15,17 +15,21 @@ export async function GET(request: NextRequest) {
     context.supabase
       .from('production_master_normalization_quality_v1')
       .select('check_key,expected_value,actual_value,status')
+      .eq('organization_id', context.organizationId)
       .order('check_key'),
     context.supabase
       .from('production_source_sheet_coverage_quality_v1')
       .select('check_key,expected_value,actual_value,status')
+      .eq('organization_id', context.organizationId)
       .order('check_key'),
     context.supabase
       .from('production_source_normalized_records')
-      .select('domain,semantic_status'),
+      .select('domain,semantic_status')
+      .eq('organization_id', context.organizationId),
     context.supabase
       .from('production_normalization_exceptions_v1')
-      .select('domain,exception_type'),
+      .select('domain,exception_type')
+      .eq('organization_id', context.organizationId),
   ]);
 
   const error = quality.error || sheetCoverage.error || supplemental.error || exceptions.error;
@@ -43,8 +47,8 @@ export async function GET(request: NextRequest) {
       return acc;
     }, {});
 
-  const masterPass = qualityRows.every((row) => row.status === 'PASS');
-  const coveragePass = sheetRows.every((row) => row.status === 'PASS');
+  const masterPass = qualityRows.length > 0 && qualityRows.every((row) => row.status === 'PASS');
+  const coveragePass = sheetRows.length > 0 && sheetRows.every((row) => row.status === 'PASS');
 
   return NextResponse.json({
     status: masterPass && coveragePass ? 'PASS' : 'HOLD',

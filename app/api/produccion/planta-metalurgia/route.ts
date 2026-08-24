@@ -73,6 +73,7 @@ export async function GET(request: NextRequest) {
     context.supabase
       .from('production_flow_fidelity_quality_v1')
       .select('check_key,expected_value,actual_value,status')
+      .eq('organization_id', context.organizationId)
       .order('check_key'),
     context.supabase
       .from('production_copper_plan_v1')

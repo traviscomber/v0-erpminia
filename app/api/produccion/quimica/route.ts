@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     context.supabase.from('production_chemistry_source_quality_v1').select('samples,results,holes_with_samples,sectors_with_samples,sample_review_rows,result_review_rows').eq('organization_id', context.organizationId).maybeSingle(),
     context.supabase.from('production_chemistry_sector_source_summary_v1').select('mine_name,sector_raw,sample_count,result_count,first_sample_date,last_sample_date,avg_cu_pct,min_cu_pct,max_cu_pct,linked_holes,linked_canonical_sectors,resolution_state').eq('organization_id', context.organizationId).order('mine_name').order('sector_raw'),
     context.supabase.from('production_chemistry_mine_intelligence_v1').select('mine_name,results,raw_locations,avg_cu_pct,min_cu_pct,max_cu_pct,first_sample_date,last_sample_date,sector_linked_results,hole_linked_results').eq('organization_id', context.organizationId).order('mine_name'),
-    context.supabase.from('production_chemistry_lineage_quality_v1').select('check_key,expected_value,actual_value,status'),
+    context.supabase.from('production_chemistry_lineage_quality_v1').select('check_key,expected_value,actual_value,status').eq('organization_id', context.organizationId),
   ]);
 
   const initialError = latest.error || chemistryQuality.error || sourceSectors.error || mineIntel.error || lineageQuality.error;
