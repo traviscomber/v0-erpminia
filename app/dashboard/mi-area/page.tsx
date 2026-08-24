@@ -22,6 +22,7 @@ function endpointForCargo(cargo?:string|null){
   if(normalized==='JEFE GEÓLOGIA')return'/api/mi-area/geologia';
   if(normalized==='JEFE SONDAJE')return'/api/mi-area/sondaje';
   if(normalized==='JEFE DEPARTAMENTO DE MANTENCIÓN')return'/api/mi-area/mantencion-departamento';
+  if(normalized==='JEFE DE EQUIPOS MINEROS'||normalized==='JEFE DE CAMIONETAS')return'/api/mi-area/mantencion-tecnica';
   return'/api/mi-area';
 }
 
@@ -40,7 +41,7 @@ export default function MiAreaPage(){
       <div className="p-6">
         <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Mi área · Centro de Control</p>
         <div className="mt-2 flex flex-wrap items-center gap-2"><h1 className="text-2xl font-semibold">{data.portal.title}</h1><Badge variant={variant}>{statusLabel}</Badge></div>
-        <p className="mt-2 text-sm text-muted-foreground">Resumen ejecutivo para {data.user.name||'el responsable del área'}. La evidencia permanece trazable al módulo operacional.</p>
+        <p className="mt-2 text-sm text-muted-foreground">Resumen para {data.user.name||'el responsable del área'}. La evidencia permanece trazable al módulo operacional.</p>
       </div>
       <div className="grid gap-px border-t bg-border sm:grid-cols-2 xl:grid-cols-6">{data.metrics.map((metric)=><div key={metric.label} className="bg-card p-4"><p className="text-xs text-muted-foreground">{metric.label}</p><p className="mt-2 text-lg font-semibold tabular-nums">{metric.value}</p></div>)}</div>
       <Block title="Lo que requiere atención"><div className="grid gap-3 lg:grid-cols-3">{data.signals.length?data.signals.slice(0,3).map((item,index)=><SignalCard key={`${item.title}-${index}`} item={item}/>):<Empty text="Sin señales prioritarias en la evidencia actual."/>}</div></Block>
