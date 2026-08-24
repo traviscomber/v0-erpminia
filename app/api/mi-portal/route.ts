@@ -140,21 +140,90 @@ async function getDataQuality(context: OrganizationContext, portalKey: string): 
     );
   }
 
+  if (portalKey === 'sustainability') {
+    const { data: ncRows, error: ncError } = await context.supabase
+      .from('sostenibilidad_nonconformances')
+      .select('id,status')
+      .eq('organization_id', context.organizationId);
+    if (ncError) return [];
+    const openNcIds = (ncRows || [])
+      .filter((row) => !['cerrada', 'closed', 'completada', 'completed'].includes(String(row.status || '').toLowerCase()))
+      .map((row) => row.id);
+    if (!openNcIds.length) return [];
+
+    const { data: actions, error: actionError } = await context.supabase
+      .from('sostenibilidad_corrective_actions')
+      .select('id,status,responsible_person_name,scheduled_completion_date')
+      .in('nc_id', openNcIds);
+    if (actionError) return [];
+
+    const openActions = (actions || []).filter((row) => !['cerrada', 'closed', 'completada', 'completed'].includes(String(row.status || '').toLowerCase()));
+    const withoutOwner = openActions.filter((row) => !String(row.responsible_person_name || '').trim()).length;
+    const withoutDate = openActions.filter((row) => !row.scheduled_completion_date).length;
+
+    return [
+      withoutOwner > 0 ? {
+        code: 'hse_actions_without_owner',
+        title: 'Acciones HSE sin responsable',
+        detail: `${withoutOwner.toLocaleString('es-CL')} acción(es) correctiva(s) abierta(s) no tienen responsable registrado.`,
+        level: 'watch' as const,
+      } : null,
+      withoutDate > 0 ? {
+        code: 'hse_actions_without_date',
+        title: 'Acciones HSE sin fecha comprometida',
+        detail: `${withoutDate.toLocaleString('es-CL')} acción(es) correctiva(s) abierta(s) no tienen fecha de término registrada.`,
+        level: 'watch' as const,
+      } : null,
+    ].filter(Boolean) as PortalDataQuality[];
+  }
+
   if (portalKey === 'hr') {
-    const { data, error } = await context.supabase
-      .from('intelligence.people_overview')
-      .select('people_with_ot_without_competencies')
-      .eq('organization_id', context.organizationId)
-      .maybeSingle();
-    if (error || data?.people_with_ot_without_competencies == null) return [];
-    const count = Number(data.people_with_ot_without_competencies);
-    if (!Number.isFinite(count) || count <= 0) return [];
-    return [{
-      code: 'people_with_ot_without_competencies',
-      title: 'OT sin evidencia de competencias asociada',
-      detail: `${count.toLocaleString('es-CL')} persona(s) con OT no tienen evidencia de competencias asociada en la fuente actual.`,
-      level: 'watch',
-    }];
+    const [overviewResult, peopleResult, assignmentsResult] = await Promise.all([
+      context.supabase
+        .schema('intelligence')
+        .from('people_overview')
+        .select('people_with_ot_without_competencies')
+        .eq('organization_id', context.organizationId)
+        .maybeSingle(),
+      context.supabase
+        .from('people')
+        .select('source_type', { count: 'exact' })
+        .eq('organization_id', context.organizationId),
+      context.supabase
+        .from('people_employment_assignments')
+        .select('id', { count: 'exact', head: true })
+        .eq('organization_id', context.organizationId),
+    ]);
+
+    if (overviewResult.error || peopleResult.error || assignmentsResult.error) return [];
+    const people = peopleResult.data || [];
+    const peopleCount = peopleResult.count || 0;
+    const evidencePeople = people.filter((row) => String(row.source_type || '').toLowerCase() === 'work_order_evidence').length;
+    const assignmentCount = assignmentsResult.count || 0;
+    const missingCompetencies = Number(overviewResult.data?.people_with_ot_without_competencies);
+    const quality: PortalDataQuality[] = [];
+
+    if (peopleCount === 0 || assignmentCount === 0 || evidencePeople === peopleCount) {
+      quality.push({
+        code: 'hr_master_coverage',
+        title: 'Nómina maestra RRHH no consolidada',
+        detail: peopleCount > 0
+          ? `${peopleCount.toLocaleString('es-CL')} persona(s) están evidenciadas, pero la fuente actual no permite tratarlas como dotación completa; asignaciones laborales registradas: ${assignmentCount.toLocaleString('es-CL')}.`
+          : 'No existe una nómina maestra consolidada en la evidencia actual. Los vacíos no se interpretan como dotación cero.',
+        level: 'watch',
+      });
+    }
+
+    if (Number.isFinite(missingCompetencies) && missingCompetencies > 0) {
+      quality.push({
+        code: 'people_with_ot_without_competencies',
+        title: 'OT sin evidencia de competencias asociada',
+        detail: `${missingCompetencies.toLocaleString('es-CL')} persona(s) con OT no tienen evidencia de competencias asociada en la fuente actual.`,
+        level: 'watch',
+      });
+    }
+
+    return quality.slice(0, 4);
   }
 
   if (['maintenance', 'maintenance_equipment', 'maintenance_fleet'].includes(portalKey)) {
