@@ -55,31 +55,23 @@ export async function GET(request: NextRequest) {
   const closure = kpiValue('wo_closure_rate');
   const mttr = kpiValue('mttr_hours');
 
-  const coverageSignal = coverage == null || coverage < 90 ? {
-    level: 'watch' as const,
-    code: 'asset_segmentation_incomplete',
-    title: 'Falta segmentación confiable de activos',
-    detail: coverage == null
-      ? 'El flujo general de Mantención no permite separar esta responsabilidad técnica.'
-      : `La clasificación global de activos alcanza ${pct(coverage)}. Hasta completar la segmentación, no se muestran OT globales como propias de esta jefatura.`,
-  } : null;
-
-  const signals = [coverageSignal].filter(Boolean);
+  const coverageIncomplete = coverage == null || coverage < 90;
+  const signals: Array<{ level: 'info' | 'watch' | 'alert'; code: string; title: string; detail: string }> = [];
   const title = isMiningEquipment ? 'Mis equipos mineros' : 'Mis camionetas';
   const interpretation = isMiningEquipment
     ? [
         { level: 'info', title: 'Sólo se muestran KPI propios del cargo', detail: 'Backlog, cierre y MTTR provienen del snapshot específico de Jefe de Equipos Mineros. El flujo global de Mantención no se atribuye a esta jefatura.' },
-        coverageSignal ? { level: 'watch', title: 'La segmentación por activo aún limita el diagnóstico', detail: 'Cuando la clasificación permita separar Equipos Mineros de otras flotas, se podrán incorporar OT, disponibilidad, tiempos y costos propios.' } : null,
+        coverageIncomplete ? { level: 'watch', title: 'La segmentación por activo aún limita el diagnóstico', detail: coverage == null ? 'La brecha se muestra en Calidad de datos hasta disponer de clasificación suficiente.' : `La clasificación global de activos alcanza ${pct(coverage)}. La brecha se muestra en Calidad de datos, no como prioridad operacional.` } : null,
       ].filter(Boolean)
     : [
         { level: 'info', title: 'Portal preparado sin atribuciones globales', detail: 'Todavía no existe un snapshot KPI específico para Jefe de Camionetas, por lo que no se muestran métricas del flujo general como si fueran propias.' },
-        { level: 'watch', title: 'La prioridad de datos es identificar la flota en cada OT', detail: 'Con activos trazables podremos mostrar backlog, disponibilidad, tiempos y costos propios de camionetas.' },
+        { level: 'watch', title: 'La prioridad de datos es identificar la flota en cada OT', detail: 'Esta brecha se presenta como Calidad de datos hasta que los activos permitan separar camionetas de otras flotas.' },
       ];
 
   return NextResponse.json({
     portal: { key: isMiningEquipment ? 'maintenance_equipment' : 'maintenance_fleet', label: 'Mi área', title },
     user: { id: context.userId, name: context.userName, role: context.role, cargo: cargoName },
-    status: signals.length ? 'watch' : 'stable',
+    status: 'stable',
     metrics: isMiningEquipment
       ? [
           { label: 'Backlog cargo', value: backlog == null ? '—' : backlog.toLocaleString('es-CL') },
