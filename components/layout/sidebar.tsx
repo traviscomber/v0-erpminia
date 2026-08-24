@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Activity, BarChart3, Boxes, Building2, ChevronDown, CircleDollarSign, Drill, FileCheck, Gauge, HelpCircle, Home, Leaf, LogOut, Menu, ShieldCheck, ShoppingCart, Users, Wrench, X, Zap, type LucideIcon } from 'lucide-react';
+import { Activity, BarChart3, Boxes, Building2, ChevronDown, CircleDollarSign, FileCheck, Gauge, HelpCircle, Home, Leaf, LogOut, Menu, ShieldCheck, ShoppingCart, Users, Wrench, X, Zap, type LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { cn } from '@/lib/utils';
@@ -17,7 +17,6 @@ const menuItems: MenuItem[] = [
   { label:'Inicio',href:'/dashboard',icon:Home,group:'Principal',roles:allStandardRoles },
   { label:'Gestión diaria',href:'/dashboard/daily-management',icon:Activity,group:'Principal',roles:operationalRoles },
   { label:'Producción',href:'/dashboard/produccion',icon:Zap,group:'Áreas',moduleKey:'prod_operaciones',roles:['superadmin','admin','Operaciones-Supervisor','jefe_mantencion'] },
-  { label:'Sondaje',href:'/dashboard/produccion/sondaje/produccion',icon:Drill,group:'Áreas',moduleKey:'prod_sondaje_produccion' },
   { label:'Mantenimiento',href:'/dashboard/mantenimiento',icon:Wrench,group:'Áreas',moduleKey:'mant_operaciones',roles:['superadmin','admin','Operaciones-Supervisor','jefe_mantencion'] },
   { label:'Inventario',href:'/dashboard/bodega',icon:Boxes,group:'Áreas',moduleKey:'bodega_inventario',roles:['superadmin','admin','Bodega-Supervisor','jefe_mantencion'] },
   { label:'Compras',href:'/dashboard/compras',icon:ShoppingCart,group:'Áreas',moduleKey:'fin_compras',roles:['superadmin','admin','Compras-Supervisor'] },
