@@ -17,7 +17,26 @@ type Rolling = {
   evidenceStatus:string;
 };
 
-type Response={rolling90d:Rolling[];evidencePolicy?:Record<string,boolean>;error?:string};
+type OperationalEvidence={
+  assetId:string;
+  sourceReports:{
+    total:number|null;
+    outOfService:number|null;
+    operationalWithObservations:number|null;
+    operational:number|null;
+    invalidStatus:number|null;
+    equipmentWithoutCrew:number|null;
+    powerOutage:number|null;
+    waterShortage:number|null;
+    installDisassembly:number|null;
+    scaling:number|null;
+  };
+  maintenance:{workOrders:number|null;openWorkOrders:number|null;recordedDowntimeHours:number|null;partLines:number|null};
+  availability:{observedDays:number|null;scheduledMinutes:number|null;downtimeMinutes:number|null};
+  evidenceStatus:string;
+};
+
+type Response={rolling90d:Rolling[];operationalEvidence?:OperationalEvidence[];evidencePolicy?:Record<string,boolean>;error?:string};
 
 const fetcher=async(url:string):Promise<Response>=>{
   const response=await fetch(url,{credentials:'include',cache:'no-store'});
@@ -36,6 +55,7 @@ export function DrillingEconomicsStrip(){
   if(error||!data)return <section className="rounded-xl border border-border/60 bg-card/40 p-5"><div className="text-sm text-muted-foreground">Economía de sondaje no disponible.</div></section>;
 
   const comparable=(data.rolling90d||[]).filter(row=>row.evidenceStatus==='comparable_at_common_cut'&&row.costClpPerMeter!=null);
+  const evidenceByAsset=new Map((data.operationalEvidence||[]).map(row=>[row.assetId,row]));
   const cut=comparable.length?comparable.reduce((latest,row)=>!latest||row.windowEnd>latest?row.windowEnd:latest,''):null;
 
   return <section className="space-y-4 rounded-xl border border-border/60 bg-card/40 p-5">
@@ -48,16 +68,25 @@ export function DrillingEconomicsStrip(){
     </div>
     {comparable.length===0?<p className="text-sm text-muted-foreground">Sin una ventana común suficiente entre costos y metros perforados.</p>:
       <div className="grid gap-3 lg:grid-cols-5">
-        {comparable.map(row=><article key={row.assetId} className="min-w-0 rounded-lg border border-border/50 bg-background/35 p-4">
-          <p className="truncate text-sm font-medium">{row.assetName||row.assetCode||'Perforadora'}</p>
-          <p className="mt-3 text-xl font-semibold tabular-nums">{clp(row.costClpPerMeter)}<span className="ml-1 text-xs font-normal text-muted-foreground">/m</span></p>
-          <div className="mt-3 space-y-1 text-xs text-muted-foreground">
-            <p>{num(row.drilledMeters,1)} m perforados</p>
-            <p>{clp(row.costClp)} costo observado</p>
-            <p>{date(row.windowStart)} → {date(row.windowEnd)}</p>
-          </div>
-        </article>)}
+        {comparable.map(row=>{
+          const evidence=evidenceByAsset.get(row.assetId);
+          const source=evidence?.sourceReports;
+          const formalMaintenance=(evidence?.maintenance.workOrders||0)+(evidence?.availability.observedDays||0)>0;
+          return <article key={row.assetId} className="min-w-0 rounded-lg border border-border/50 bg-background/35 p-4">
+            <p className="truncate text-sm font-medium">{row.assetName||row.assetCode||'Perforadora'}</p>
+            <p className="mt-3 text-xl font-semibold tabular-nums">{clp(row.costClpPerMeter)}<span className="ml-1 text-xs font-normal text-muted-foreground">/m</span></p>
+            <div className="mt-3 space-y-1 text-xs text-muted-foreground">
+              <p>{num(row.drilledMeters,1)} m perforados</p>
+              <p>{clp(row.costClp)} costo observado</p>
+              <p>{date(row.windowStart)} → {date(row.windowEnd)}</p>
+            </div>
+            {source&&<div className="mt-3 border-t border-border/40 pt-3 text-xs text-muted-foreground">
+              <p>{num(source.outOfService)} parte(s) fuera de servicio · {num(source.operationalWithObservations)} con observaciones</p>
+              <p className="mt-1">{num(source.powerOutage)} corte(s) energía · {num(source.waterShortage)} falta(s) agua · {num(source.installDisassembly)} montaje/desmontaje</p>
+              {!formalMaintenance&&<p className="mt-1">Sin OT, repuestos o disponibilidad formal en esta ventana.</p>}
+            </div>}
+          </article>})}
       </div>}
-    <p className="text-xs text-muted-foreground">Sólo compara costo y producción dentro de la misma ventana temporal. No clasifica desempeño ni completa períodos sin evidencia.</p>
+    <p className="text-xs text-muted-foreground">La evidencia operacional comparte la misma ventana temporal. Describe coexistencias observadas; no atribuye causalidad ni convierte estados de partes en horas de indisponibilidad.</p>
   </section>;
 }
