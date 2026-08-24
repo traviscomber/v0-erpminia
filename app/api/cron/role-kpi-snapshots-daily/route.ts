@@ -65,6 +65,59 @@ async function capture(request: NextRequest) {
     results.push({ source: sourceView, rows: rows.length });
   }
 
+  const { data: rrhhCargo, error: rrhhCargoError } = await supabase
+    .from('cargos')
+    .select('id,name')
+    .eq('name', 'JEFE RRHH')
+    .maybeSingle();
+  if (rrhhCargoError) return NextResponse.json({ error: rrhhCargoError.message }, { status: 500 });
+
+  const { data: peopleRows, error: peopleError } = await supabase
+    .schema('intelligence')
+    .from('people_overview')
+    .select('organization_id,active_people,credentials_expiring_30d,expired_credentials,epp_renewal_30d,work_order_count,people_with_ot_without_competencies');
+  if (peopleError) return NextResponse.json({ error: peopleError.message }, { status: 500 });
+
+  if (rrhhCargo) {
+    const hrDefinitions = [
+      ['active_people', 'Personas evidenciadas', 'personas'],
+      ['credentials_expiring_30d', 'Credenciales por vencer 30d', 'credenciales'],
+      ['expired_credentials', 'Credenciales vencidas', 'credenciales'],
+      ['epp_renewal_30d', 'EPP por renovar 30d', 'asignaciones'],
+      ['work_order_count', 'OT con personas evidenciadas', 'OT'],
+      ['people_with_ot_without_competencies', 'Personas con OT sin competencias', 'personas'],
+    ] as const;
+
+    const hrHistoryRows = (peopleRows || []).flatMap((row) =>
+      hrDefinitions.map(([key, label, unit]) => ({
+        snapshot_date: snapshotDate,
+        source_view: 'intelligence.people_overview',
+        organization_id: row.organization_id,
+        cargo_id: rrhhCargo.id,
+        cargo_name: rrhhCargo.name,
+        kpi_key: key,
+        label,
+        unit,
+        measured_value: row[key],
+        target_value: null,
+        direction: null,
+        evaluation_state: 'baseline',
+        evidence: { source_note: 'Cobertura de personas derivada de evidencia canónica disponible; no equivale a nómina maestra.' },
+      }))
+    );
+
+    if (hrHistoryRows.length) {
+      const { error: hrPersistError } = await supabase
+        .from('role_kpi_snapshot_history')
+        .upsert(hrHistoryRows, {
+          onConflict: 'snapshot_date,source_view,organization_id,cargo_id,kpi_key',
+          ignoreDuplicates: false,
+        });
+      if (hrPersistError) return NextResponse.json({ error: hrPersistError.message }, { status: 500 });
+    }
+    results.push({ source: 'intelligence.people_overview', rows: hrHistoryRows.length });
+  }
+
   return NextResponse.json({ ok: true, snapshotDate, sources: results });
 }
 
