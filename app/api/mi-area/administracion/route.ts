@@ -4,8 +4,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 
 function num(value: unknown) {
+  if (value === null || value === undefined || value === '') return null;
   const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : 0;
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function pct(value: unknown, digits = 1) {
@@ -13,8 +14,12 @@ function pct(value: unknown, digits = 1) {
   return parsed === null || Number.isNaN(parsed) ? '—' : `${parsed.toLocaleString('es-CL', { maximumFractionDigits: digits })}%`;
 }
 
-function clp(value: number) {
-  return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(value);
+function count(value: number | null) {
+  return value == null ? '—' : value.toLocaleString('es-CL');
+}
+
+function clp(value: number | null) {
+  return value == null ? '—' : new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(value);
 }
 
 export async function GET(request: NextRequest) {
@@ -51,17 +56,17 @@ export async function GET(request: NextRequest) {
   const costCenterCoverage = value('cost_center_coverage');
   const purchaseOrders = value('purchase_orders');
   const purchaseOrderValidation = value('purchase_order_validation');
-  const pendingRecognition = Math.max(committed - recognized, 0);
+  const pendingRecognition = committed != null && recognized != null ? Math.max(committed - recognized, 0) : null;
 
   const signals = [
-    costCenterCoverage > 0 && costCenterCoverage < 100 ? { level: costCenterCoverage < 90 ? 'watch' : 'info', code: 'cost_center_coverage', title: 'Cobertura de centro de costo incompleta', detail: `Cobertura observada: ${pct(costCenterCoverage, 2)}. El remanente debe tratarse como falta de clasificación, no como costo cero.` } : null,
-    purchaseOrderValidation > 0 && purchaseOrderValidation < 100 ? { level: 'watch', code: 'purchase_order_validation', title: 'Hay órdenes de compra pendientes de validación', detail: `Validación observada: ${pct(purchaseOrderValidation, 2)}.` } : null,
+    costCenterCoverage != null && costCenterCoverage < 100 ? { level: costCenterCoverage < 90 ? 'watch' : 'info', code: 'cost_center_coverage', title: 'Cobertura de centro de costo incompleta', detail: `Cobertura observada: ${pct(costCenterCoverage, 2)}. El remanente debe tratarse como falta de clasificación, no como costo cero.` } : null,
+    purchaseOrderValidation != null && purchaseOrderValidation < 100 ? { level: 'watch', code: 'purchase_order_validation', title: 'Hay órdenes de compra pendientes de validación', detail: `Validación observada: ${pct(purchaseOrderValidation, 2)}.` } : null,
   ].filter(Boolean) as Array<{ level: 'info' | 'watch' | 'alert'; code: string; title: string; detail: string }>;
 
   const interpretation = [
     { level: 'info', title: 'Los costos se muestran como baseline, no como evaluación', detail: 'Sin presupuesto o meta aprobada no se clasifica el nivel de gasto como favorable o desfavorable.' },
-    costCenterCoverage > 0 ? { level: costCenterCoverage < 90 ? 'watch' : 'info', title: 'La trazabilidad de centro de costo aún no es total', detail: `Cobertura actual: ${pct(costCenterCoverage, 2)}.` } : null,
-    purchaseOrderValidation >= 100 ? { level: 'info', title: 'Las órdenes de compra del corte están validadas', detail: `${purchaseOrders.toLocaleString('es-CL')} OC canónicas con cobertura de validación de ${pct(purchaseOrderValidation, 2)}.` } : null,
+    costCenterCoverage != null ? { level: costCenterCoverage < 90 ? 'watch' : 'info', title: 'Trazabilidad de centro de costo', detail: `Cobertura actual: ${pct(costCenterCoverage, 2)}.` } : null,
+    purchaseOrderValidation != null && purchaseOrderValidation >= 100 ? { level: 'info', title: 'Las órdenes de compra del corte están validadas', detail: `${count(purchaseOrders)} OC canónicas con cobertura de validación de ${pct(purchaseOrderValidation, 2)}.` } : null,
   ].filter(Boolean).slice(0, 4);
 
   return NextResponse.json({
@@ -72,9 +77,9 @@ export async function GET(request: NextRequest) {
       { label: 'Costo comprometido', value: clp(committed) },
       { label: 'Costo reconocido', value: clp(recognized) },
       { label: 'Pendiente reconocer', value: clp(pendingRecognition) },
-      { label: 'Centros de costo', value: costCenterCoverage ? pct(costCenterCoverage, 2) : '—' },
-      { label: 'Órdenes de compra', value: purchaseOrders.toLocaleString('es-CL') },
-      { label: 'OC validadas', value: purchaseOrderValidation ? pct(purchaseOrderValidation, 2) : '—' },
+      { label: 'Centros de costo', value: costCenterCoverage == null ? '—' : pct(costCenterCoverage, 2) },
+      { label: 'Órdenes de compra', value: count(purchaseOrders) },
+      { label: 'OC validadas', value: purchaseOrderValidation == null ? '—' : pct(purchaseOrderValidation, 2) },
     ],
     signals: signals.slice(0, 5),
     interpretation,
