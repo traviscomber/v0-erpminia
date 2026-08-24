@@ -13,6 +13,7 @@ function endpointForCargo(cargo?:string|null){
   if(normalized==='JEFE ADM.')return'/api/mi-area/administracion';
   if(normalized==='JEFE GEÓLOGIA')return'/api/mi-area/geologia';
   if(normalized==='JEFE SONDAJE')return'/api/mi-area/sondaje';
+  if(normalized==='JEFE RRHH')return'/api/mi-area/rrhh';
   if(normalized==='JEFE DEPARTAMENTO DE MANTENCIÓN')return'/api/mi-area/mantencion-departamento';
   if(normalized==='JEFE DE EQUIPOS MINEROS')return'/api/mi-area/mantencion-tecnica';
   if(normalized==='JEFE DE CAMIONETAS')return'/api/mi-area/mantencion-tecnica';
