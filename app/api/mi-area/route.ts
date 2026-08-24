@@ -183,6 +183,13 @@ export async function GET(request: NextRequest) {
     });
   }
 
+  if (portal.key !== 'maintenance') {
+    return NextResponse.json(
+      { error: 'Este portal utiliza un endpoint especializado' },
+      { status: 409 },
+    );
+  }
+
   const { data, error } = await context.supabase
     .from('maintenance_operational_work_order_flow_v1')
     .select('*')
