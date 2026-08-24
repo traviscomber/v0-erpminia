@@ -1,8 +1,10 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { Activity, Gauge, ShieldAlert, Target } from 'lucide-react';
+import { Activity, ArrowRight, Gauge, ShieldAlert, Target, UserRound } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -58,6 +60,7 @@ export default function DesempenoPage() {
       <div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Gestión transversal</p><h1 className="mt-1 text-2xl font-semibold tracking-tight">Desempeño operacional</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Baseline por cargo construido desde evidencia operacional. No corresponde a una evaluación personal mientras no existan metas aprobadas y atribución individual suficiente.</p></div>
       <Select value={cargo} onValueChange={setCargo}><SelectTrigger className="w-full md:w-[300px]"><SelectValue placeholder="Seleccionar cargo" /></SelectTrigger><SelectContent><SelectItem value="TODOS">Todos los cargos medidos</SelectItem><SelectItem value="GERENTE">GERENTE · ejecutivo</SelectItem><SelectItem value="SUBGERENTE OP.">SUBGERENTE OP. · ejecutivo</SelectItem><SelectItem value="PRESIDENTE">PRESIDENTE · ejecutivo</SelectItem>{(payload?.cargos || []).filter((item) => !['GERENTE','SUBGERENTE OP.','PRESIDENTE'].includes(item)).map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent></Select>
     </div>
+    <Card className="border-primary/20 bg-primary/[0.025]"><CardContent className="flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between"><div className="flex min-w-0 items-start gap-3"><div className="flex size-9 shrink-0 items-center justify-center rounded-md border border-primary/20 bg-primary/10 text-primary"><UserRound className="size-4" /></div><div><p className="font-medium">Pedro Zegers · Proyectos y mejora continua</p><p className="mt-1 text-sm leading-5 text-muted-foreground">Vista ejecutiva dedicada con mejoras, comprobación, fechas y evidencia contractual atribuible.</p></div></div><Button variant="outline" asChild><Link href="/dashboard/desempeno/pedro-zegers">Abrir scorecard<ArrowRight /></Link></Button></CardContent></Card>
     {error ? <Card><CardContent className="pt-5 text-sm text-destructive">{error}</CardContent></Card> : null}
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <Card><CardHeader><CardDescription>Indicadores visibles</CardDescription><CardTitle className="flex items-center gap-2 text-2xl"><Gauge className="h-5 w-5 text-muted-foreground" />{loading ? '—' : rows.length}</CardTitle></CardHeader></Card>
