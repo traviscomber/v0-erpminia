@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { resolveAuthContext } from '@/lib/api/auth-session';
 
+const ADMIN_ROLES = new Set(['admin', 'superadmin', 'super_admin']);
+
+function normalizeRole(role?: string | null) {
+  return String(role || '').trim().toLowerCase();
+}
+
 /**
  * Guard: Require authenticated user
  * Returns 401 JSON for API routes, throws for server components
@@ -31,8 +37,8 @@ export async function requireAuth(request: NextRequest) {
 }
 
 /**
- * Guard: Require admin role
- * Checks auth + admin role from database
+ * Guard: Require an administrative role.
+ * Superadmin is intentionally a superset of admin.
  */
 export async function requireAdmin(
   request: NextRequest
@@ -42,7 +48,7 @@ export async function requireAdmin(
     return { authorized: false, user: null, organizationId: null, source: null, response: auth.response };
   }
 
-  if (auth.role === 'admin') {
+  if (ADMIN_ROLES.has(normalizeRole(auth.role))) {
     return { authorized: true, user: auth.user, organizationId: auth.organizationId, source: auth.source, response: null };
   }
 
@@ -51,9 +57,11 @@ export async function requireAdmin(
     .from('user_roles')
     .select('role')
     .eq('user_id', auth.user.id)
-    .single();
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
-  if (userData?.role !== 'admin') {
+  if (!ADMIN_ROLES.has(normalizeRole(userData?.role))) {
     return {
       authorized: false,
       user: null,
