@@ -6,8 +6,9 @@ import { getOrganizationContext } from '@/lib/api/organization-context';
 const DANIEL_PROFILE_ID = '999fd840-8923-4dd2-b1cc-af8da2e7ef30';
 
 function num(value: unknown) {
+  if (value === null || value === undefined || value === '') return null;
   const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : 0;
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function pct(value: unknown, digits = 1) {
@@ -17,8 +18,8 @@ function pct(value: unknown, digits = 1) {
     : `${parsed.toLocaleString('es-CL', { maximumFractionDigits: digits })}%`;
 }
 
-function clp(value: number) {
-  return new Intl.NumberFormat('es-CL', {
+function clp(value: number | null) {
+  return value == null ? '—' : new Intl.NumberFormat('es-CL', {
     style: 'currency',
     currency: 'CLP',
     maximumFractionDigits: 0,
@@ -58,29 +59,31 @@ export async function GET(request: NextRequest) {
 
   const committed = value('committed_cost_clp');
   const recognized = value('recognized_cost_clp');
-  const pendingRecognition = Math.max(committed - recognized, 0);
+  const pendingRecognition = committed != null && recognized != null ? Math.max(committed - recognized, 0) : null;
   const costCenterCoverage = value('cost_center_coverage');
   const purchaseOrders = value('purchase_orders');
   const purchaseOrderValidation = value('purchase_order_validation');
 
-  const signals = [
-    costCenterCoverage > 0 && costCenterCoverage < 100
+  const signals: Array<{ level: 'info' | 'watch' | 'alert'; code: string; title: string; detail: string }> = [];
+
+  const dataQuality = [
+    costCenterCoverage != null && costCenterCoverage < 100
       ? {
-          level: costCenterCoverage < 90 ? 'watch' : 'info',
+          level: 'watch' as const,
           code: 'cost_center_coverage',
-          title: 'La trazabilidad por centro de costo no está completa',
-          detail: `Cobertura observada: ${pct(costCenterCoverage, 2)}. El remanente es información sin clasificación, no costo cero.`,
+          title: 'Cobertura de centros de costo incompleta',
+          detail: `Cobertura observada: ${pct(costCenterCoverage, 2)}. El remanente se mantiene como información sin clasificación, no como costo cero.`,
         }
       : null,
-    purchaseOrderValidation > 0 && purchaseOrderValidation < 100
+    purchaseOrderValidation != null && purchaseOrderValidation < 100
       ? {
-          level: 'watch',
+          level: 'watch' as const,
           code: 'purchase_order_validation',
-          title: 'Existen órdenes de compra pendientes de validación',
+          title: 'Validación de órdenes de compra incompleta',
           detail: `Validación observada: ${pct(purchaseOrderValidation, 2)}.`,
         }
       : null,
-  ].filter(Boolean) as Array<{ level: 'info' | 'watch' | 'alert'; code: string; title: string; detail: string }>;
+  ].filter(Boolean);
 
   const interpretation = [
     {
@@ -88,18 +91,18 @@ export async function GET(request: NextRequest) {
       title: 'La lectura financiera sigue en baseline',
       detail: 'Los montos son evidencia canónica del corte. Sin presupuesto o meta aprobada no se clasifican como favorables o desfavorables.',
     },
-    costCenterCoverage > 0
+    costCenterCoverage != null
       ? {
-          level: costCenterCoverage < 90 ? 'watch' : 'info',
+          level: costCenterCoverage < 100 ? 'watch' : 'info',
           title: 'La cobertura de centros de costo determina la calidad del análisis',
-          detail: `Cobertura actual: ${pct(costCenterCoverage, 2)}.`,
+          detail: `Cobertura actual: ${pct(costCenterCoverage, 2)}. Las brechas se muestran en Calidad de datos.`,
         }
       : null,
-    purchaseOrderValidation >= 100
+    purchaseOrderValidation != null && purchaseOrderValidation >= 100
       ? {
           level: 'info',
           title: 'Las órdenes de compra del corte están validadas',
-          detail: `${purchaseOrders.toLocaleString('es-CL')} OC canónicas con ${pct(purchaseOrderValidation, 2)} de validación.`,
+          detail: `${purchaseOrders == null ? '—' : purchaseOrders.toLocaleString('es-CL')} OC canónicas con ${pct(purchaseOrderValidation, 2)} de validación.`,
         }
       : null,
   ].filter(Boolean).slice(0, 4);
@@ -113,20 +116,17 @@ export async function GET(request: NextRequest) {
       actionLabel: 'Abrir finanzas',
     },
     user: { id: context.userId, name: profile.full_name || context.userName, role: context.role, cargo: 'Gerente de Finanzas' },
-    status: signals.some((item) => item.level === 'alert')
-      ? 'attention'
-      : signals.some((item) => item.level === 'watch')
-        ? 'watch'
-        : 'stable',
+    status: 'stable',
     metrics: [
       { label: 'Costo comprometido', value: clp(committed) },
       { label: 'Costo reconocido', value: clp(recognized) },
       { label: 'Pendiente reconocer', value: clp(pendingRecognition) },
-      { label: 'Centros de costo', value: costCenterCoverage ? pct(costCenterCoverage, 2) : '—' },
-      { label: 'Órdenes de compra', value: purchaseOrders.toLocaleString('es-CL') },
-      { label: 'OC validadas', value: purchaseOrderValidation ? pct(purchaseOrderValidation, 2) : '—' },
+      { label: 'Centros de costo', value: costCenterCoverage == null ? '—' : pct(costCenterCoverage, 2) },
+      { label: 'Órdenes de compra', value: purchaseOrders == null ? '—' : purchaseOrders.toLocaleString('es-CL') },
+      { label: 'OC validadas', value: purchaseOrderValidation == null ? '—' : pct(purchaseOrderValidation, 2) },
     ],
-    signals: signals.slice(0, 5),
+    signals,
+    dataQuality,
     interpretation,
     change: {
       available: false,
