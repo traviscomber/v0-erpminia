@@ -35,6 +35,10 @@ function pct(value: number | null, digits = 1) {
   return value == null ? '—' : `${value.toLocaleString('es-CL', { maximumFractionDigits: digits })}%`;
 }
 
+function count(value: number | null) {
+  return value == null ? '—' : value.toLocaleString('es-CL');
+}
+
 export async function GET(request: NextRequest) {
   const auth = await resolveAuthContext(request);
   if (!auth?.user) {
@@ -120,11 +124,12 @@ export async function GET(request: NextRequest) {
   const injuries = hse.get('incident_injuries') ?? null;
   const costCenterCoverage = admin.get('cost_center_coverage') ?? null;
   const drillingCapture = drilling.get('meter_capture_pct') ?? null;
+  const productionHold = n(production.quality?.hold);
   const criticalWorkOrders = maintenance.filter((row) => ['critical', 'critica', 'crítica'].includes(String(row.priority || '').toLowerCase())).length;
   const missingAsset = maintenance.filter((row) => row.flow_status === 'missing_asset').length;
   const waitingProcurement = maintenance.filter((row) => row.flow_status === 'waiting_procurement').length;
   const waitingParts = maintenance.filter((row) => row.flow_status === 'waiting_parts').length;
-  const warehouseMissingMinimum = warehouseMissingMinimumResult.count || 0;
+  const warehouseMissingMinimum = warehouseMissingMinimumResult.count ?? 0;
 
   const areaPriorities = [
     lowStock != null && lowStock > 0
@@ -136,7 +141,7 @@ export async function GET(request: NextRequest) {
         ? { level: 'watch' as const, code: 'area_maintenance_blocked', title: 'Mantención · trabajos bloqueados', detail: `${waitingProcurement} esperando compra · ${waitingParts} esperando repuestos.` }
         : null,
     (overdueRisks != null && overdueRisks > 0) || (injuries != null && injuries > 0) || (inspectionCompletion != null && inspectionCompletion < 100)
-      ? { level: 'watch' as const, code: 'area_hse_followup', title: 'HSE · requiere seguimiento', detail: `${overdueRisks ?? 0} revisión(es) de riesgo vencida(s) · inspecciones ${pct(inspectionCompletion)} · ${injuries ?? 0} lesión(es) registradas.` }
+      ? { level: 'watch' as const, code: 'area_hse_followup', title: 'HSE · requiere seguimiento', detail: `${count(overdueRisks)} revisión(es) de riesgo vencida(s) · inspecciones ${pct(inspectionCompletion)} · ${count(injuries)} lesión(es) registradas.` }
       : null,
   ].filter(Boolean) as AreaPriority[];
 
@@ -162,8 +167,8 @@ export async function GET(request: NextRequest) {
     costCenterCoverage != null && costCenterCoverage < 100
       ? { level: 'watch' as const, code: 'quality_admin_cost_centers', title: 'Administración · centros de costo incompletos', detail: `Cobertura observada: ${pct(costCenterCoverage, 2)}. Los movimientos no clasificados permanecen como brecha.` }
       : null,
-    Number(production.quality?.hold || 0) > 0
-      ? { level: 'watch' as const, code: 'quality_production_hold', title: 'Producción · evidencia en HOLD', detail: `${Number(production.quality.hold).toLocaleString('es-CL')} chequeo(s) permanecen pendientes de validación.` }
+    productionHold != null && productionHold > 0
+      ? { level: 'watch' as const, code: 'quality_production_hold', title: 'Producción · evidencia en HOLD', detail: `${productionHold.toLocaleString('es-CL')} chequeo(s) permanecen pendientes de validación.` }
       : null,
   ].filter(Boolean) as DataQualitySignal[];
 
