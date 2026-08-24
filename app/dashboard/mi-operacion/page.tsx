@@ -2,11 +2,11 @@
 
 import useSWR from 'swr';
 import { StatePanel } from '@/components/ui/state-panel';
-import { PersonalPortalView, type PersonalPortalData, type PortalSignal, type PortalDataQuality, type PortalBlocker, type PortalChange } from '@/components/executive/personal-portal-view';
+import { PersonalPortalView, type PersonalPortalData, type PortalSignal, type PortalDataQuality, type PortalBlocker, type PortalChange, type PortalOperatingChain } from '@/components/executive/personal-portal-view';
 
 type Daily={operation_date:string;treated_wet_t:number|null;recovered_fine_cu_t:number|null;transported_t:number|null;dispatched_concentrate_t:number|null};
 type Signal={level:'info'|'watch'|'alert';code:string;title:string;detail:string};
-type O={quality:{status:'PASS'|'HOLD';pass:number;hold:number};currentPeriod:null|{treatedTons:number|null;avgHeadGradePct:number|null;avgRecoveryPct:number|null;plan:null|{treatmentProgressPct:number|null;paceIndexPct:number|null;gradeDeltaPctPoints?:number|null}};intelligence:Signal[];areaPriorities?:Signal[];blockers?:PortalBlocker[];dataQuality?:PortalDataQuality[];daily?:Daily[]};
+type O={quality:{status:'PASS'|'HOLD';pass:number;hold:number};currentPeriod:null|{treatedTons:number|null;avgHeadGradePct:number|null;avgRecoveryPct:number|null;plan:null|{treatmentProgressPct:number|null;paceIndexPct:number|null;gradeDeltaPctPoints?:number|null}};intelligence:Signal[];areaPriorities?:Signal[];blockers?:PortalBlocker[];operatingChains?:PortalOperatingChain[];dataQuality?:PortalDataQuality[];daily?:Daily[]};
 
 const fetcher=async(url:string):Promise<O>=>{const r=await fetch(url,{credentials:'include',cache:'no-store'});const j=await r.json();if(!r.ok)throw new Error(j.error||'No fue posible cargar la vista ejecutiva');return j};
 const pct=(v:number|null|undefined,d=1)=>v==null?'—':`${v.toLocaleString('es-CL',{maximumFractionDigits:d})}%`;
@@ -26,6 +26,7 @@ export default function MiOperacionPage(){
   const watches=data.intelligence.filter(s=>s.level==='watch');
   const areaPriorities=data.areaPriorities||[];
   const blockers=data.blockers||[];
+  const operatingChains=data.operatingChains||[];
   const dataQuality=data.dataQuality||[];
   const qualityHold=data.quality.status==='HOLD';
   const pace=plan?.paceIndexPct??null;
@@ -71,10 +72,11 @@ export default function MiOperacionPage(){
     signals:globalSignals,
     interpretation:interpretation.slice(0,4),
     blockers,
+    operatingChains,
     dataQuality,
     change:{available:changes.length>0,note:changes.length?'Comparación sólo para variables con valor presente en ambos cortes.':'Aún no hay dos cortes operacionales comparables con valores presentes.',items:changes},
-    source:'production_flow_daily_fidelity_v1 + production_metallurgy_deterministic_v2 + production_monthly_plans + snapshots de jefaturas',
+    source:'production_flow_daily_fidelity_v1 + production_metallurgy_deterministic_v2 + production_monthly_plans + maintenance_operational_work_order_flow_v1 + snapshots de jefaturas',
   };
 
-  return <PersonalPortalView data={portalData} eyebrow="Mi operación" description="Centro de control personal de Operaciones. Resume el estado de la mina y las excepciones relevantes de las jefaturas, sin evaluar personas ni reemplazar el detalle operacional."/>;
+  return <PersonalPortalView data={portalData} eyebrow="Mi operación" description="Centro de control del Mining OS. Resume estado, prioridades y dependencias activas de la mina con evidencia trazable, sin evaluar personas ni inferir causas no demostradas."/>;
 }
