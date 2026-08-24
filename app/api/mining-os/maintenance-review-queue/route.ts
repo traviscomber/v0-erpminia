@@ -105,64 +105,27 @@ export async function POST(request: NextRequest) {
   if (scheduledDate && !/^\d{4}-\d{2}-\d{2}$/.test(scheduledDate)) return NextResponse.json({ error: 'scheduledDate inválida' }, { status: 400 });
 
   const supabase = getSupabaseServerClient();
-  const { data: review, error: reviewError } = await supabase
-    .from('operational_maintenance_reviews')
-    .select('id,status,organization_id,source_report_id,canonical_asset_id,review_reason,linked_work_order_id')
-    .eq('id', reviewId)
-    .eq('organization_id', access.organizationId)
-    .maybeSingle();
+  const { data, error } = await supabase.rpc('create_work_order_from_operational_review', {
+    p_organization_id: access.organizationId,
+    p_review_id: reviewId,
+    p_created_by: access.user.id,
+    p_title: title,
+    p_work_type: workType,
+    p_priority: priority,
+    p_scheduled_date: scheduledDate,
+    p_description: description,
+  });
 
-  if (reviewError) return NextResponse.json({ error: reviewError.message }, { status: 500 });
-  if (!review) return NextResponse.json({ error: 'Revisión no encontrada' }, { status: 404 });
-  if (review.status !== 'accepted') return NextResponse.json({ error: 'La revisión debe estar aceptada antes de crear una OT' }, { status: 409 });
-  if (review.linked_work_order_id) return NextResponse.json({ error: 'La revisión ya está vinculada a una OT', workOrderId: review.linked_work_order_id }, { status: 409 });
-
-  const suffix = review.id.replace(/-/g, '').slice(0, 8).toUpperCase();
-  const operationDate = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-  const workOrderNumber = `WO-DRILL-${operationDate}-${suffix}`;
-
-  const sourceEvidence = `production_drilling_source_reports:${review.source_report_id}`;
-  const finalDescription = [description, `Origen: revisión operacional de Sondaje (${review.review_reason}).`, `Evidencia: ${sourceEvidence}.`]
-    .filter(Boolean)
-    .join('\n');
-
-  const { data: workOrder, error: workOrderError } = await supabase
-    .from('maintenance_work_orders')
-    .insert({
-      organization_id: access.organizationId,
-      work_order_number: workOrderNumber,
-      canonical_asset_id: review.canonical_asset_id,
-      asset_id: review.canonical_asset_id,
-      title,
-      description: finalDescription,
-      work_type: workType,
-      status: 'pending',
-      priority,
-      scheduled_date: scheduledDate,
-      created_by: access.user.id,
-    })
-    .select('id,work_order_number,canonical_asset_id,title,status,priority,work_type,scheduled_date')
-    .single();
-
-  if (workOrderError) return NextResponse.json({ error: workOrderError.message }, { status: 500 });
-
-  const { error: linkError } = await supabase
-    .from('operational_maintenance_reviews')
-    .update({
-      status: 'work_order_created',
-      linked_work_order_id: workOrder.id,
-      reviewed_by: access.user.id,
-      reviewed_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', review.id)
-    .eq('organization_id', access.organizationId)
-    .eq('status', 'accepted')
-    .is('linked_work_order_id', null);
-
-  if (linkError) {
-    return NextResponse.json({ error: 'OT creada pero no fue posible vincular la revisión', workOrder }, { status: 500 });
+  if (error) {
+    const message = error.message.includes('operational_review_must_be_accepted')
+      ? 'La revisión debe estar aceptada antes de crear una OT'
+      : error.message.includes('operational_review_not_found')
+        ? 'Revisión no encontrada'
+        : error.message;
+    const status = message === 'Revisión no encontrada' ? 404 : message.startsWith('La revisión debe') ? 409 : 500;
+    return NextResponse.json({ error: message }, { status });
   }
 
-  return NextResponse.json({ workOrder, reviewId: review.id, sourceEvidence }, { status: 201 });
+  const workOrder = Array.isArray(data) ? data[0] : data;
+  return NextResponse.json({ workOrder }, { status: 201 });
 }
