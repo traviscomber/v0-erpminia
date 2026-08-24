@@ -17,11 +17,7 @@ export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
 
-  const { data: profile, error: profileError } = await context.supabase
-    .from('profiles')
-    .select('cargo_id')
-    .eq('id', context.userId)
-    .maybeSingle();
+  const { data: profile, error: profileError } = await context.supabase.from('profiles').select('cargo_id').eq('id', context.userId).maybeSingle();
   if (profileError) return NextResponse.json({ error: profileError.message }, { status: 500 });
 
   const { data: cargo, error: cargoError } = profile?.cargo_id
@@ -34,16 +30,8 @@ export async function GET(request: NextRequest) {
   }
 
   const [kpiResult, flowResult] = await Promise.all([
-    context.supabase
-      .from('maintenance_role_kpi_snapshot_v1')
-      .select('kpi_key,label,unit,measured_value,evaluation_state,measured_at')
-      .eq('organization_id', context.organizationId)
-      .eq('cargo_name', 'Jefe Departamento de Mantención'),
-    context.supabase
-      .from('maintenance_operational_work_order_flow_v1')
-      .select('work_order_id,status,priority,flow_status,total_cost,purchase_commitment')
-      .eq('organization_id', context.organizationId)
-      .limit(300),
+    context.supabase.from('maintenance_role_kpi_snapshot_v1').select('kpi_key,label,unit,measured_value,evaluation_state,measured_at').eq('organization_id', context.organizationId).eq('cargo_name', 'Jefe Departamento de Mantención'),
+    context.supabase.from('maintenance_operational_work_order_flow_v1').select('work_order_id,status,priority,flow_status,total_cost,purchase_commitment').eq('organization_id', context.organizationId).limit(300),
   ]);
 
   if (kpiResult.error) return NextResponse.json({ error: kpiResult.error.message }, { status: 500 });
@@ -82,7 +70,7 @@ export async function GET(request: NextRequest) {
   ].filter(Boolean).slice(0, 4);
 
   return NextResponse.json({
-    portal: { key: 'maintenance', label: 'Mi área', title: 'Mi mantenimiento', areaPath: '/dashboard/mantenimiento', actionLabel: 'Abrir mantenimiento' },
+    portal: { key: 'maintenance', label: 'Mi área', title: 'Mi mantenimiento' },
     user: { id: context.userId, name: context.userName, role: context.role, cargo: cargo?.name || null },
     status: signals.some((item) => item.level === 'alert') ? 'attention' : signals.length ? 'watch' : 'stable',
     metrics: [
