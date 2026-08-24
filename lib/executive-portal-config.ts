@@ -1,4 +1,4 @@
-export type ExecutivePortalKey = 'maintenance' | 'production';
+export type ExecutivePortalKey = 'maintenance' | 'production' | 'sustainability';
 
 export type ExecutivePortalConfig = {
   key: ExecutivePortalKey;
@@ -28,6 +28,15 @@ const portals: ExecutivePortalConfig[] = [
     actionLabel: 'Abrir producción',
     allowedRoles: ['jefe_planta', 'jefe_produccion'],
     allowedCargos: ['JEFE PLANTA'],
+  },
+  {
+    key: 'sustainability',
+    label: 'Mi área',
+    title: 'Mi sostenibilidad',
+    areaPath: '/dashboard/sostenibilidad',
+    actionLabel: 'Abrir sostenibilidad',
+    allowedRoles: ['jefe sostenibilidad', 'jefe_sostenibilidad'],
+    allowedCargos: ['JEFE SOSTENIBILIDAD'],
   },
 ];
 
