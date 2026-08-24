@@ -7,7 +7,7 @@
     },
     {
       "path": "/api/cron/role-kpi-snapshots-daily",
-      "schedule": "30 2 * * *"
+      "schedule": "30 6 * * *"
     }
   ]
 }
