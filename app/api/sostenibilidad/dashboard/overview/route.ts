@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { getSupabaseServerClient } from '@/lib/supabase-server';
+import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
 import { NextRequest, NextResponse } from 'next/server';
 
 type NumericStatsRow = {
@@ -8,6 +9,9 @@ type NumericStatsRow = {
 };
 
 export async function GET(request: NextRequest) {
+  const access = await requireModuleAccess(request, MODULE_KEYS.HSE_TABLERO);
+  if (!access.authorized) return access.response;
+
   try {
     const supabase = getSupabaseServerClient();
     const { searchParams } = new URL(request.url);
