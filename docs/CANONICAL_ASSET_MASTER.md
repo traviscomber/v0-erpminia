@@ -39,6 +39,10 @@ Verified domain linkage in the principal organization:
 - Recognized finance events with canonical asset: 19,426.
 - Drilling source reports linked by exact normalized rig name: 4,692 across 7 canonical drill rigs.
 - Drilling source reports still unresolved by asset identity: 1 (`rig_name_raw = "0"`).
+- Canonical drill holes with reports: 400.
+- Drill holes safely linked to one `drill_rig_asset_id`: 386.
+- Drill holes with evidence from multiple rigs: 14. They are intentionally not collapsed to one singular rig.
+- `production_drill_hole_asset_links_v1` preserves the full many-to-many `drill hole ↔ canonical asset` evidence for both single-rig and multi-rig holes.
 - Active maintenance work orders without resolvable canonical asset: 1. It references an `Excavadora CAT 390`, which is not present in the canonical master and is tracked in `data_reconciliation_reviews` rather than guessed.
 - Telemetry currently linked to canonical assets in the principal organization: none.
 
@@ -60,6 +64,10 @@ Any new import, API, workflow, ledger or intelligence projection that needs an a
 
 The spine must never infer causality. For example, cost and drilling activity belonging to the same asset may be shown together only when both records independently reference the same `canonical_asset_id`.
 
+## Production asset relations
+
+`production_drill_hole_asset_links_v1` is a rebuildable derived relation from reconciled drilling source reports. A drill hole may legitimately have more than one physical rig over its lifecycle. The singular `production_drill_holes.drill_rig_asset_id` may only be populated when exactly one canonical rig is evidenced for that hole.
+
 ## Prohibited patterns
 
 - New per-module asset master tables.
@@ -69,6 +77,7 @@ The spine must never infer causality. For example, cost and drilling activity be
 - Using unresolved identities in cost-per-asset, availability-per-asset or cross-area causal conclusions.
 - Treating an unlinked cost event as an asset cost.
 - Treating an absent telemetry reading, OT, cost or production measurement as zero.
+- Collapsing multi-rig production evidence to one asset when the source proves several rigs participated.
 
 ## Compatibility
 
