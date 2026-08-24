@@ -50,12 +50,8 @@ export async function GET(request: NextRequest) {
   const rigsReporting = n(latest.get('rigs_reporting')?.measured_value);
 
   const signals = [
-    capture != null && capture < 100 ? {
-      level: 'watch', code: 'meter_capture', title: 'La captura de metros perforados no está completa',
-      detail: `Cobertura observada: ${format(capture, 2)}%.`,
-    } : null,
     outOfService != null && outOfService > 0 ? {
-      level: 'watch', code: 'out_of_service_reports', title: 'Existen reportes fuera de servicio',
+      level: 'watch' as const, code: 'out_of_service_reports', title: 'Existen reportes fuera de servicio',
       detail: `${format(outOfService, 0)} reporte(s) aparecen en el snapshot canónico; no se asume que sean todos eventos abiertos actuales.`,
     } : null,
   ].filter(Boolean);
@@ -63,8 +59,10 @@ export async function GET(request: NextRequest) {
   const interpretation = [
     capture != null ? {
       level: capture < 100 ? 'watch' : 'info',
-      title: capture < 100 ? 'La principal brecha es de cobertura de captura' : 'La captura de metros está completa',
-      detail: `${format(capture, 2)}% de los metros perforados tiene cobertura en la evidencia actual.`,
+      title: capture < 100 ? 'La captura de metros todavía es incompleta' : 'La captura de metros está completa',
+      detail: capture < 100
+        ? `${format(capture, 2)}% de cobertura. La brecha se muestra en Calidad de datos y no como prioridad operacional.`
+        : `${format(capture, 2)}% de los metros perforados tiene cobertura en la evidencia actual.`,
     } : null,
     drilledMeters != null ? {
       level: 'info', title: 'La actividad de sondaje tiene volumen trazable',
