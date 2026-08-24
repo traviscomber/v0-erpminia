@@ -4,11 +4,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
 
-type MaintenanceAssetRow = {
+type CanonicalAssetRow = {
   id: string;
-  asset_name: string | null;
+  name: string | null;
   asset_type: string | null;
-  status: string | null;
+  operational_status: string | null;
 };
 
 type SensorRow = {
@@ -38,6 +38,7 @@ type AlarmRow = {
 };
 
 function toNumber(value: unknown) {
+  if (value === null || value === undefined || value === '') return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
 }
@@ -69,15 +70,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const assetId = resolvedParams.id || new URL(request.url).searchParams.get('equipment_id');
     if (!assetId) return NextResponse.json({ error: 'equipment_id es requerido' }, { status: 400 });
 
-    const { data: maintenanceAsset, error: assetError } = await context.supabase
-      .from('maintenance_assets')
-      .select('id, asset_name, asset_type, status')
+    const { data: canonicalAsset, error: assetError } = await context.supabase
+      .from('canonical_assets_current')
+      .select('id,name,asset_type,operational_status')
       .eq('id', assetId)
       .eq('organization_id', context.organizationId)
       .maybeSingle();
 
     if (assetError) return NextResponse.json({ error: assetError.message }, { status: 500 });
-    if (!maintenanceAsset) return NextResponse.json({ error: 'Equipo no encontrado para la organización' }, { status: 404 });
+    if (!canonicalAsset) return NextResponse.json({ error: 'Equipo no encontrado para la organización' }, { status: 404 });
 
     const { data: sensors, error: sensorsError } = await context.supabase
       .from('sensors')
@@ -119,8 +120,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const activeAlarms = alarms.filter(
       (alarm) => !['resolved', 'resuelta', 'cerrada', 'closed'].includes(String(alarm.status || '').toLowerCase())
     );
-    const asset = maintenanceAsset as MaintenanceAssetRow;
-    const status = activeAlarms.length > 0 ? 'alert' : normalizeStatus(asset.status);
+    const asset = canonicalAsset as CanonicalAssetRow;
+    const status = activeAlarms.length > 0 ? 'alert' : normalizeStatus(asset.operational_status);
     const latest = latestBySensor(readings);
 
     const byType = (tokens: string[]) => {
@@ -139,7 +140,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     return NextResponse.json({
       equipment_id: assetId,
-      equipment_name: asset.asset_name || 'Equipo',
+      equipment_name: asset.name || 'Equipo',
       equipment_type: asset.asset_type,
       status,
       availability_percentage: null,
