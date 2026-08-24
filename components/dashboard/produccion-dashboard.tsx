@@ -2,15 +2,21 @@
 
 import Link from 'next/link';
 import useSWR from 'swr';
-import { Activity, AlertTriangle, ArrowRight, Beaker, CheckCircle2, Drill, Factory, Gauge, PackageCheck, Target, Truck, Upload } from 'lucide-react';
+import { Activity, AlertTriangle, ArrowRight, Beaker, CheckCircle2, CircleDashed, Drill, Factory, Gauge, Gem, Map, PackageCheck, Target, Truck, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PageHeader, PageHeaderActions, PageHeaderContent, PageHeaderDescription, PageHeaderEyebrow, PageHeaderTitle } from '@/components/ui/page-header';
 import { StatePanel } from '@/components/ui/state-panel';
 
 type Overview = {
   counts: { materialMovements:number; plantShifts:number; metallurgyResults:number; concentrateShipments:number; drillingReports:number; drillingHoles:number };
-  quality: { status:'PASS'|'HOLD'; pass:number; hold:number; sourceFiles:number; sourceSheets:number; supplementalRecords:number; sourceAnomalies:number; referenceOnly:number; exceptionsByDomain:Record<string,number> };
+  quality: { status:'PASS'|'HOLD'; pass:number; hold:number; sourceFiles:number; sourceSheets:number; supplementalRecords:number; sourceAnomalies:number; referenceOnly:number };
   freshness: { dataThrough:string|null; transportSourceThrough:string|null; drillingThrough:string|null };
+  coverage: {
+    queue: { importExceptions:number; movementNormalization:number; movementValidation:number; entityReconciliation:number; plantShifts:number; metallurgy:number; drillLocations:number };
+    domains: Record<'transport'|'plant'|'drilling'|'chemistry'|'geology'|'topography', {
+      status:'operational'|'partial'|'awaiting_source'; evidenceCount:number; reviewCount:number; dataThrough:string|null; note:string; coveragePct?:number; intervalCount?:number;
+    }>;
+  };
   currentPeriod: null | {
     periodStart:string; dataThrough:string; elapsedDays:number; daysInMonth:number; calendarProgressPct:number;
     treatedTons:number; containedCuTons:number; recoveredFineCuTons:number; avgHeadGradePct:number|null; avgRecoveryPct:number|null; plantShifts:number; deterministicShifts:number;
@@ -27,14 +33,16 @@ const n=(v:number,d=0)=>v.toLocaleString('es-CL',{maximumFractionDigits:d});
 const tons=(v:number,d=0)=>`${n(v,d)} t`;
 const pct=(v:number|null|undefined,d=1)=>v===null||v===undefined?'—':`${n(v,d)}%`;
 const date=(v:string|null|undefined)=>v?new Intl.DateTimeFormat('es-CL',{dateStyle:'medium'}).format(new Date(`${v}T12:00:00`)):'Sin dato';
+const period=(v:string|null|undefined)=>v?new Intl.DateTimeFormat('es-CL',{month:'long',year:'numeric'}).format(new Date(`${v}T12:00:00`)):'Sin período';
 
 const domains=[
-  {href:'/dashboard/produccion/inteligencia',title:'Inteligencia',description:'Plan, Mina, Sector, Sondaje y contexto de Planta.'},
-  {href:'/dashboard/produccion/transporte-mineral',title:'Transporte',description:'Movimientos mina → planta y cobertura de fuente.'},
-  {href:'/dashboard/produccion/planta-metalurgia',title:'Planta / Metalurgia',description:'Tratamiento, ley, recuperación, fino y despachos.'},
-  {href:'/dashboard/produccion/sondaje',title:'Sondaje',description:'400 pozos y linaje Mina → Sector → Pozo.'},
-  {href:'/dashboard/produccion/quimica',title:'Química',description:'Siguiente capa para evidencia analítica por sector.'},
-];
+  {key:'transport',href:'/dashboard/produccion/transporte-mineral',title:'Transporte',unit:'movimientos',icon:Truck},
+  {key:'plant',href:'/dashboard/produccion/planta-metalurgia',title:'Planta / Metalurgia',unit:'turnos',icon:Factory},
+  {key:'drilling',href:'/dashboard/produccion/sondaje',title:'Sondaje',unit:'pozos',icon:Drill},
+  {key:'chemistry',href:'/dashboard/produccion/quimica',title:'Química',unit:'resultados',icon:Beaker},
+  {key:'geology',href:'/dashboard/produccion/geologia',title:'Geología',unit:'registros externos',icon:Gem},
+  {key:'topography',href:'/dashboard/produccion/topografia',title:'Topografía',unit:'levantamientos reales',icon:Map},
+] as const;
 
 export function ProduccionDashboard(){
   const {data,error,isLoading,mutate}=useSWR<Overview>('/api/produccion/canonical-overview',fetcher);
@@ -52,10 +60,12 @@ export function ProduccionDashboard(){
       <PageHeaderContent>
         <PageHeaderEyebrow>Operaciones · fuente canónica</PageHeaderEyebrow>
         <PageHeaderTitle>Producción</PageHeaderTitle>
-        <PageHeaderDescription>{p?`Agosto 2026 · Planta hasta ${date(p.dataThrough)}. Transporte sólo hasta ${date(data.freshness.transportSourceThrough)}.`:'Sin período operacional disponible.'}</PageHeaderDescription>
+        <PageHeaderDescription>{p?`${period(p.periodStart)} · Planta hasta ${date(p.dataThrough)}. Transporte sólo hasta ${date(data.freshness.transportSourceThrough)}.`:'Sin período operacional disponible.'}</PageHeaderDescription>
       </PageHeaderContent>
       <PageHeaderActions><Button asChild variant="outline"><Link href="/dashboard/produccion/ingreso-datos"><Upload className="h-4 w-4"/>Ingresar datos</Link></Button></PageHeaderActions>
     </PageHeader>
+
+    <CoverageOverview data={data}/>
 
     <section className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 xl:grid-cols-6">
       <Metric icon={Factory} label="Tratado" value={p?tons(p.treatedTons,1):'—'} detail={plan?`${pct(plan.treatmentProgressPct)} del plan de mineral a planta`:'Sin plan activo'}/>
@@ -99,8 +109,6 @@ export function ProduccionDashboard(){
       </div>
     </section>
 
-    <section className="divide-y rounded-lg border bg-card">{domains.map(domain=><Link key={domain.href} href={domain.href} className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-muted/30"><div><p className="font-medium">{domain.title}</p><p className="mt-1 text-sm text-muted-foreground">{domain.description}</p></div><ArrowRight className="h-4 w-4 text-muted-foreground"/></Link>)}</section>
-
     <section className="grid gap-px overflow-hidden rounded-lg border bg-border md:grid-cols-5">
       <Mini label="Movimientos" value={n(data.counts.materialMovements)} detail="Histórico"/>
       <Mini label="Turnos Planta" value={n(data.counts.plantShifts)} detail="Histórico"/>
@@ -111,6 +119,67 @@ export function ProduccionDashboard(){
 
     <div className="rounded-lg border bg-card px-5 py-4 text-xs leading-5 text-muted-foreground"><strong className="font-medium text-foreground">Semántica:</strong> {data.semantics.planVsActual} {data.semantics.concentrate}</div>
   </div>;
+}
+
+function CoverageOverview({data}:{data:Overview}){
+  const queue=data.coverage.queue;
+  const reviewItems=[
+    {label:'Importación',value:queue.importExceptions,detail:'excepciones pendientes'},
+    {label:'Transporte',value:queue.movementValidation,detail:`en revisión · ${n(queue.movementNormalization)} sin normalizar`},
+    {label:'Identidades',value:queue.entityReconciliation,detail:'por reconciliar'},
+    {label:'Planta',value:queue.plantShifts+queue.metallurgy,detail:'turnos o análisis'},
+    {label:'Ubicación de pozos',value:queue.drillLocations,detail:'requieren evidencia'},
+  ];
+
+  return <section aria-labelledby="production-coverage-title" className="space-y-3">
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Estado de las fuentes</p>
+        <h2 id="production-coverage-title" className="mt-1 text-lg font-semibold tracking-tight">Cobertura real por área</h2>
+      </div>
+      <p className="max-w-xl text-xs leading-5 text-muted-foreground">Cada área muestra sólo evidencia acreditada. Parcial significa utilizable con límites; sin fuente nunca se representa como cero.</p>
+    </div>
+
+    <div className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 xl:grid-cols-3">
+      {domains.map((domain)=>{
+        const coverage=data.coverage.domains[domain.key];
+        const Icon=domain.icon;
+        const meta=coverageStatus(coverage.status);
+        const StatusIcon=meta.icon;
+        return <Link key={domain.key} href={domain.href} aria-label={`Abrir ${domain.title}: ${meta.label}`} className="group flex min-h-52 flex-col bg-card px-5 py-5 outline-none transition-colors hover:bg-muted/25 focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-ring">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex size-9 items-center justify-center rounded-md border bg-background"><Icon className="size-4"/></div>
+            <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] ${meta.className}`}><StatusIcon className="size-3"/>{meta.label}</span>
+          </div>
+          <div className="mt-5 flex-1">
+            <p className="font-medium">{domain.title}</p>
+            <p className="mt-2 text-2xl font-semibold tracking-tight">{n(coverage.evidenceCount)}</p>
+            <p className="text-xs text-muted-foreground">{domain.unit}{coverage.dataThrough?` · corte ${date(coverage.dataThrough)}`:''}</p>
+            <p className="mt-3 text-xs leading-5 text-muted-foreground">{coverage.note}</p>
+          </div>
+          <div className="mt-4 flex items-center justify-between border-t pt-3 text-xs">
+            <span className={coverage.reviewCount>0?'text-foreground':'text-muted-foreground'}>{coverage.reviewCount>0?`${n(coverage.reviewCount)} requieren atención`:'Sin revisión pendiente'}</span>
+            <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5"/>
+          </div>
+        </Link>;
+      })}
+    </div>
+
+    <div className="rounded-lg border bg-card">
+      <div className="border-b px-5 py-4">
+        <div className="flex items-center justify-between gap-4"><div><h3 className="font-medium">Trabajo pendiente sobre datos</h3><p className="mt-1 text-xs text-muted-foreground">Colas de revisión; pueden solaparse y no deben sumarse como un único total.</p></div><AlertTriangle className="size-4 text-muted-foreground"/></div>
+      </div>
+      <div className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-5">
+        {reviewItems.map(item=><Mini key={item.label} label={item.label} value={n(item.value)} detail={item.detail}/>) }
+      </div>
+    </div>
+  </section>;
+}
+
+function coverageStatus(status:'operational'|'partial'|'awaiting_source'){
+  if(status==='operational') return {label:'Operativo',icon:CheckCircle2,className:'border-secondary/35 bg-secondary/10 text-secondary'};
+  if(status==='partial') return {label:'Parcial',icon:AlertTriangle,className:'border-primary/35 bg-primary/10 text-primary'};
+  return {label:'Sin fuente',icon:CircleDashed,className:'border-border bg-muted/40 text-muted-foreground'};
 }
 
 function Metric({icon:Icon,label,value,detail}:{icon:any;label:string;value:string;detail:string}){return <div className="bg-card px-5 py-4"><div className="flex items-center justify-between gap-3"><p className="text-xs text-muted-foreground">{label}</p><Icon className="h-4 w-4 text-muted-foreground"/></div><p className="mt-2 text-xl font-semibold tracking-tight">{value}</p><p className="mt-1 text-xs leading-5 text-muted-foreground">{detail}</p></div>}
