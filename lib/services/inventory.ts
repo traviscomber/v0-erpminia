@@ -1,6 +1,7 @@
 import { getSupabaseClient } from '@/lib/db/supabase';
 import { InventoryMovementType } from '@/lib/types';
 import type { InventoryItem, InventoryMovement } from '@/lib/types';
+import { isStockBelowMinimum } from '@/lib/inventory-alerts';
 
 export const inventoryService = {
   // Get all inventory items in a warehouse
@@ -36,11 +37,13 @@ export const inventoryService = {
       .from('inventory_items')
       .select('*')
       .eq('warehouse_id', warehouseId)
-      .lte('current_stock', supabase.rpc('col', ['minimum_stock']))
+      .gt('minimum_stock', 0)
       .order('current_stock', { ascending: true });
     
     if (error) throw error;
-    return data;
+    return (data || []).filter((item) =>
+      isStockBelowMinimum(item.current_stock, item.minimum_stock)
+    );
   },
 
   // Create inventory item
@@ -153,7 +156,7 @@ export const inventoryService = {
     items?.forEach((item) => {
       analytics.totalValue += (item.current_stock || 0) * (item.unit_cost || 0);
       
-      if (item.current_stock <= item.minimum_stock) {
+      if (isStockBelowMinimum(item.current_stock, item.minimum_stock)) {
         analytics.lowStockItems++;
       }
       

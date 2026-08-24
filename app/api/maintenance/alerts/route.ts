@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
+import { isStockBelowMinimum } from '@/lib/inventory-alerts';
 
 type AlertLevel = 'critical' | 'warning' | 'info';
 
@@ -137,7 +138,9 @@ export async function GET(request: NextRequest) {
       .or('part_code.ilike.NEU-%,part_name.ilike.Neumático%,part_name.ilike.Llanta%')
       .gt('reorder_level', 0);
 
-    for (const item of (lowStock || []).filter((s) => Number(s.quantity_on_hand) <= Number(s.reorder_level)).slice(0, 5)) {
+    for (const item of (lowStock || []).filter((item) =>
+      isStockBelowMinimum(item.quantity_on_hand, item.reorder_level)
+    ).slice(0, 5)) {
       alerts.push({
         id: `stock-low-${item.id}`,
         level: Number(item.quantity_on_hand) === 0 ? 'critical' : 'warning',

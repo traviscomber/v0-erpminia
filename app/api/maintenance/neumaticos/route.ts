@@ -13,6 +13,7 @@ import {
   type TireLifecycleStatus,
 } from '@/lib/maintenance/tire-traceability';
 import { normalizeText } from '@/lib/bodega-normalization';
+import { isStockBelowMinimum } from '@/lib/inventory-alerts';
 
 type WarehouseStockRow = {
   id: string;
@@ -168,7 +169,7 @@ function mapStockItem(item: WarehouseStockRow): TireStockItem {
     binCode: item.bin?.[0]?.bin_code || null,
     binLocation: item.bin?.[0]?.bin_location || null,
     totalValue: Number((quantityOnHand * Number(item.unit_cost || 0)).toFixed(2)),
-    lowStock: quantityAvailable <= Number(item.reorder_level || 0),
+    lowStock: isStockBelowMinimum(quantityAvailable, item.reorder_level),
     isTire,
   };
 }

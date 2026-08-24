@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { AlertCircle, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { isStockBelowMinimum } from '@/lib/inventory-alerts';
 
 interface StockItem {
   id: string;
@@ -108,7 +109,7 @@ export function InventoryDashboard() {
                       <p className="text-sm font-semibold">{item.quantity_on_hand}</p>
                       <p className="text-xs text-muted-foreground">Reservado: {item.quantity_reserved}</p>
                     </div>
-                    {item.quantity_on_hand <= item.reorder_level ? (
+                    {isStockBelowMinimum(item.quantity_on_hand, item.reorder_level) ? (
                       <Badge className="bg-red-600/20 text-red-700">Critico</Badge>
                     ) : (
                       <Badge className="bg-green-600/20 text-green-700">OK</Badge>

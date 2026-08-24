@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
+import { isStockBelowMinimum } from '@/lib/inventory-alerts';
 
 export async function POST(request: NextRequest) {
   const { sku, tipo, cantidad, razon, location_from, location_to } = await request.json();
@@ -74,7 +75,7 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     inventory: updated?.[0],
     movement: movement?.[0],
-    alert_reorder: newQuantity <= inventory.min_stock,
+    alert_reorder: isStockBelowMinimum(newQuantity, inventory.min_stock),
   }, { status: 201 });
 }
 

@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
+import { isStockBelowMinimum } from '@/lib/inventory-alerts';
 
 type WarehouseStockRow = {
   id: string;
@@ -36,17 +37,15 @@ export async function GET(request: NextRequest) {
       .from('warehouse_stock')
       .select('*, bin:warehouse_bins(id, bin_code, bin_location)')
       .eq('organization_id', context.organizationId)
+      .gt('reorder_level', 0)
       .order('quantity_on_hand', { ascending: true });
 
     if (error) throw error;
 
     const warehouseStock = Array.isArray(stock) ? (stock as WarehouseStockRow[]) : [];
 
-    const lowStock = warehouseStock.filter(
-      (item) =>
-        item.reorder_level !== null &&
-        item.reorder_level !== undefined &&
-        Number(item.quantity_on_hand || 0) <= Number(item.reorder_level || 0)
+    const lowStock = warehouseStock.filter((item) =>
+      isStockBelowMinimum(item.quantity_on_hand, item.reorder_level)
     );
 
     const alerts: ReorderAlert[] = lowStock.map((item) => ({

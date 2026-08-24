@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { orgHasCanonicalData } from '@/lib/api/canonical';
+import { isStockBelowMinimum } from '@/lib/inventory-alerts';
 
 type CanonicalInventoryRow = {
   id: string;
@@ -94,8 +95,8 @@ async function buildCanonicalStock(
       unit_cost: unitCost,
       total_value: totalValue,
       bin_location: row.warehouse_code || 'N/A',
-      is_low_stock: reorderLevel > 0 && quantityOnHand <= reorderLevel,
-      is_critical: quantityOnHand <= 0,
+      is_low_stock: isStockBelowMinimum(quantityOnHand, reorderLevel),
+      is_critical: isStockBelowMinimum(quantityOnHand, reorderLevel) && quantityOnHand <= 0,
     };
   });
 
@@ -149,8 +150,8 @@ export async function GET(request: NextRequest) {
         unit_cost: unitCost,
         total_value: quantityOnHand * unitCost,
         bin_location: item.bin?.bin_location || item.bin_location || 'N/A',
-        is_low_stock: quantityOnHand <= reorderLevel,
-        is_critical: quantityOnHand === 0,
+        is_low_stock: isStockBelowMinimum(quantityOnHand, reorderLevel),
+        is_critical: isStockBelowMinimum(quantityOnHand, reorderLevel) && quantityOnHand <= 0,
       };
     });
 

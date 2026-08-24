@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { isStockBelowMinimum } from '@/lib/inventory-alerts';
 
 function getSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -14,13 +15,15 @@ function getSupabaseClient() {
 export class ReorderService {
   static async checkReorderLevels(organizationId: string) {
     const supabase = getSupabaseClient();
-    const { data: stock } = await supabase
+    const { data } = await supabase
       .from('warehouse_stock')
       .select('*')
       .eq('organization_id', organizationId)
-      .lte('quantity_on_hand', 'reorder_level');
+      .gt('reorder_level', 0);
 
-    if (!stock) return [];
+    const stock = (data || []).filter((item) =>
+      isStockBelowMinimum(item.quantity_on_hand, item.reorder_level)
+    );
 
     for (const item of stock) {
       const supabase = getSupabaseClient();
@@ -54,7 +57,10 @@ export class ReorderService {
       .select('*, stock:warehouse_stock(*)')
       .eq('organization_id', organizationId)
       .eq('status', 'active');
-    return data || [];
+    return (data || []).filter((alert) => {
+      const stock = Array.isArray(alert.stock) ? alert.stock[0] : alert.stock;
+      return stock && isStockBelowMinimum(stock.quantity_on_hand, stock.reorder_level);
+    });
   }
 
   static async acknowledgeAlert(alertId: string, userId: string) {
@@ -70,16 +76,24 @@ export class ReorderService {
     const supabase = getSupabaseClient();
     const { data: alerts } = await supabase
       .from('reorder_alerts')
-      .select('*', { count: 'exact' })
+      .select('*, stock:warehouse_stock(quantity_on_hand, reorder_level)')
       .eq('organization_id', organizationId)
       .eq('status', 'active');
 
     const { data: stock } = await supabase
       .from('warehouse_stock')
-      .select('*', { count: 'exact' })
+      .select('quantity_on_hand, reorder_level')
       .eq('organization_id', organizationId)
-      .lt('quantity_on_hand', 'reorder_level');
+      .gt('reorder_level', 0);
 
-    return { activeAlerts: alerts?.length || 0, lowStockItems: stock?.length || 0 };
+    const activeAlerts = (alerts || []).filter((alert) => {
+      const alertStock = Array.isArray(alert.stock) ? alert.stock[0] : alert.stock;
+      return alertStock && isStockBelowMinimum(alertStock.quantity_on_hand, alertStock.reorder_level);
+    });
+    const lowStockItems = (stock || []).filter((item) =>
+      isStockBelowMinimum(item.quantity_on_hand, item.reorder_level)
+    );
+
+    return { activeAlerts: activeAlerts.length, lowStockItems: lowStockItems.length };
   }
 }

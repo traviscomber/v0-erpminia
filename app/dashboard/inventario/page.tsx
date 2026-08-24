@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { canonicalCategory } from '@/lib/bodega-normalization';
+import { hasConfiguredStockMinimum, isStockBelowMinimum } from '@/lib/inventory-alerts';
 
 type InventoryItem = {
   id: string;
@@ -47,6 +48,7 @@ function formatCurrency(value: number) {
 }
 
 function stockTone(quantity: number, minLevel: number) {
+  if (!hasConfiguredStockMinimum(minLevel)) return 'text-muted-foreground';
   if (quantity <= 0) return 'text-destructive';
   if (quantity <= minLevel) return 'text-amber-600';
   if (quantity < 10) return 'text-orange-500';
@@ -54,6 +56,7 @@ function stockTone(quantity: number, minLevel: number) {
 }
 
 function stockLabel(quantity: number, minLevel: number) {
+  if (!hasConfiguredStockMinimum(minLevel)) return 'Sin mínimo';
   if (quantity <= 0) return 'Sin stock';
   if (quantity <= minLevel) return 'Bajo';
   if (quantity < 10) return 'Revisar';
@@ -95,8 +98,12 @@ export default function InventarioPage() {
     [filteredItems],
   );
 
-  const lowStockItems = filteredItems.filter((item) => item.quantity_on_hand <= item.reorder_level);
-  const criticalStockItems = filteredItems.filter((item) => item.quantity_on_hand < 10 && item.quantity_on_hand <= item.reorder_level);
+  const lowStockItems = filteredItems.filter((item) =>
+    isStockBelowMinimum(item.quantity_on_hand, item.reorder_level)
+  );
+  const criticalStockItems = filteredItems.filter((item) =>
+    item.quantity_on_hand < 10 && isStockBelowMinimum(item.quantity_on_hand, item.reorder_level)
+  );
   const categoriesCount = new Set(filteredItems.map((item) => categoryForItem(item))).size;
 
   const abc = useMemo(() => {
@@ -250,7 +257,7 @@ export default function InventarioPage() {
                 {filteredItems.map((item) => {
                   const totalItemValue = item.quantity_on_hand * item.unit_cost;
                   const category = categoryForItem(item);
-                  const isLowStock = item.quantity_on_hand <= item.reorder_level;
+                  const isLowStock = isStockBelowMinimum(item.quantity_on_hand, item.reorder_level);
 
                   return (
                     <TableRow key={item.id} className={`border-border hover:bg-muted/50 ${isLowStock ? 'bg-destructive/5' : ''}`}>
@@ -273,7 +280,7 @@ export default function InventarioPage() {
                           </div>
                           <Progress value={Math.min(100, (item.quantity_on_hand / Math.max(item.reorder_level * 3, 1)) * 100)} className="h-1.5" />
                           <p className="text-xs text-muted-foreground">
-                            Min: {item.reorder_level} u. Disponible: {item.quantity_available} u.
+                            Min: {hasConfiguredStockMinimum(item.reorder_level) ? `${item.reorder_level} u.` : 'No definido'} Disponible: {item.quantity_available} u.
                           </p>
                         </div>
                       </TableCell>
@@ -345,7 +352,7 @@ export default function InventarioPage() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Nivel minimo</p>
-                <p className="font-semibold">{selectedItem.reorder_level} u.</p>
+                <p className="font-semibold">{hasConfiguredStockMinimum(selectedItem.reorder_level) ? `${selectedItem.reorder_level} u.` : 'No definido'}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Cantidad de reorden</p>
@@ -369,8 +376,10 @@ export default function InventarioPage() {
               <p className="mb-2 text-sm text-muted-foreground">Estado del stock</p>
               <Progress value={Math.min(100, (selectedItem.quantity_on_hand / Math.max(selectedItem.reorder_level * 3, 1)) * 100)} className="h-2" />
               <p className="mt-2 text-xs text-muted-foreground">
-                {selectedItem.quantity_on_hand <= selectedItem.reorder_level ? (
+                {isStockBelowMinimum(selectedItem.quantity_on_hand, selectedItem.reorder_level) ? (
                   <span className="font-medium text-[var(--secondary)]">Alerta: stock por debajo del nivel minimo</span>
+                ) : !hasConfiguredStockMinimum(selectedItem.reorder_level) ? (
+                  <span className="font-medium text-muted-foreground">Sin alerta: stock mínimo no configurado</span>
                 ) : (
                   <span className="font-medium text-[var(--brand-verde)]">Stock dentro del rango operacional esperado</span>
                 )}
