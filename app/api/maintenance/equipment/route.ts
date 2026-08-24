@@ -12,6 +12,10 @@ type CanonicalAssetRow = {
   serial_number: string | null;
   license_plate: string | null;
   cost_center_code: string | null;
+  location: string | null;
+  operational_status: string | null;
+  criticality: string | null;
+  acquisition_date: string | null;
   is_active: boolean;
   validation_status: string | null;
   validation_notes: string[] | null;
@@ -21,21 +25,14 @@ type CanonicalAssetRow = {
   updated_at: string | null;
 };
 
-function inferCriticality(assetType: string | null, category: string | null) {
-  const value = `${assetType || ''} ${category || ''}`.toLowerCase();
-  if (/(perfor|sondaj|excav|scoop|cargador)/.test(value)) return 'Alta';
-  if (/(camion|camión|compresor|generador)/.test(value)) return 'Media';
-  return 'Media';
-}
-
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
 
   try {
     const { data, error } = await context.supabase
-      .from('maintenance_canonical_assets_v1')
-      .select('id,asset_code,name,asset_type,category,manufacturer,model,serial_number,license_plate,cost_center_code,is_active,validation_status,validation_notes,source_file,source_sheet,source_row,updated_at')
+      .from('canonical_assets_current')
+      .select('id,asset_code,name,asset_type,category,manufacturer,model,serial_number,license_plate,cost_center_code,location,operational_status,criticality,acquisition_date,is_active,validation_status,validation_notes,source_file,source_sheet,source_row,updated_at')
       .eq('organization_id', context.organizationId)
       .eq('is_active', true)
       .order('name', { ascending: true });
@@ -50,9 +47,9 @@ export async function GET(request: NextRequest) {
       model: asset.model,
       serial_number: asset.serial_number,
       type: asset.asset_type || asset.category || 'Activo',
-      status: asset.is_active ? 'Activo' : 'Inactivo',
-      criticality: inferCriticality(asset.asset_type, asset.category),
-      purchase_date: null,
+      status: asset.operational_status || (asset.is_active ? 'Activo' : 'Inactivo'),
+      criticality: asset.criticality,
+      purchase_date: asset.acquisition_date,
       last_maintenance: null,
       next_maintenance: null,
       specs: {
@@ -60,6 +57,7 @@ export async function GET(request: NextRequest) {
         category: asset.category,
         license_plate: asset.license_plate,
         cost_center_code: asset.cost_center_code,
+        location: asset.location,
         validation_status: asset.validation_status,
         validation_notes: asset.validation_notes,
         source_file: asset.source_file,
@@ -69,7 +67,7 @@ export async function GET(request: NextRequest) {
       },
     }));
 
-    return NextResponse.json({ equipment: assets, total: assets.length, source: 'public.maintenance_canonical_assets_v1', canonical: true });
+    return NextResponse.json({ equipment: assets, total: assets.length, source: 'public.canonical_assets_current', canonical: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudieron cargar los activos';
     console.error('[maintenance/equipment]', error);
