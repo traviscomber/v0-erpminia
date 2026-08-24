@@ -16,11 +16,7 @@ export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
 
-  const { data: profile, error: profileError } = await context.supabase
-    .from('profiles')
-    .select('cargo_id')
-    .eq('id', context.userId)
-    .maybeSingle();
+  const { data: profile, error: profileError } = await context.supabase.from('profiles').select('cargo_id').eq('id', context.userId).maybeSingle();
   if (profileError) return NextResponse.json({ error: profileError.message }, { status: 500 });
 
   const { data: cargo, error: cargoError } = profile?.cargo_id
@@ -32,22 +28,12 @@ export async function GET(request: NextRequest) {
   const normalized = cargoName.toUpperCase();
   const isMiningEquipment = normalized === 'JEFE DE EQUIPOS MINEROS';
   const isFleet = normalized === 'JEFE DE CAMIONETAS';
-  if (!isMiningEquipment && !isFleet) {
-    return NextResponse.json({ error: 'Portal técnico no disponible para este cargo' }, { status: 403 });
-  }
+  if (!isMiningEquipment && !isFleet) return NextResponse.json({ error: 'Portal técnico no disponible para este cargo' }, { status: 403 });
 
   const [flowResult, kpiResult] = await Promise.all([
-    context.supabase
-      .from('maintenance_operational_work_order_flow_v1')
-      .select('work_order_id,asset_code,asset_name,flow_status')
-      .eq('organization_id', context.organizationId)
-      .limit(500),
+    context.supabase.from('maintenance_operational_work_order_flow_v1').select('work_order_id,asset_code,asset_name,flow_status').eq('organization_id', context.organizationId).limit(500),
     isMiningEquipment
-      ? context.supabase
-          .from('maintenance_role_kpi_snapshot_v1')
-          .select('kpi_key,label,unit,measured_value,evaluation_state,measured_at')
-          .eq('organization_id', context.organizationId)
-          .eq('cargo_name', 'Jefe de Equipos Mineros')
+      ? context.supabase.from('maintenance_role_kpi_snapshot_v1').select('kpi_key,label,unit,measured_value,evaluation_state,measured_at').eq('organization_id', context.organizationId).eq('cargo_name', 'Jefe de Equipos Mineros')
       : Promise.resolve({ data: [], error: null }),
   ]);
 
@@ -65,25 +51,21 @@ export async function GET(request: NextRequest) {
     if (!existing || String(row.measured_at || '') > String(existing.measured_at || '')) latestByKey.set(row.kpi_key, row);
   }
   const kpiValue = (key: string) => num(latestByKey.get(key)?.measured_value);
-
   const backlog = kpiValue('open_backlog');
   const closure = kpiValue('wo_closure_rate');
   const mttr = kpiValue('mttr_hours');
 
-  const coverageSignal = coverage == null || coverage < 90
-    ? {
-        level: 'watch' as const,
-        code: 'asset_segmentation_incomplete',
-        title: 'Falta segmentación confiable de activos',
-        detail: coverage == null
-          ? 'El flujo general de Mantención no permite separar esta responsabilidad técnica.'
-          : `La clasificación global de activos alcanza ${pct(coverage)}. Hasta completar la segmentación, no se muestran OT globales como propias de esta jefatura.`,
-      }
-    : null;
+  const coverageSignal = coverage == null || coverage < 90 ? {
+    level: 'watch' as const,
+    code: 'asset_segmentation_incomplete',
+    title: 'Falta segmentación confiable de activos',
+    detail: coverage == null
+      ? 'El flujo general de Mantención no permite separar esta responsabilidad técnica.'
+      : `La clasificación global de activos alcanza ${pct(coverage)}. Hasta completar la segmentación, no se muestran OT globales como propias de esta jefatura.`,
+  } : null;
 
   const signals = [coverageSignal].filter(Boolean);
   const title = isMiningEquipment ? 'Mis equipos mineros' : 'Mis camionetas';
-
   const interpretation = isMiningEquipment
     ? [
         { level: 'info', title: 'Sólo se muestran KPI propios del cargo', detail: 'Backlog, cierre y MTTR provienen del snapshot específico de Jefe de Equipos Mineros. El flujo global de Mantención no se atribuye a esta jefatura.' },
@@ -95,13 +77,7 @@ export async function GET(request: NextRequest) {
       ];
 
   return NextResponse.json({
-    portal: {
-      key: isMiningEquipment ? 'maintenance_equipment' : 'maintenance_fleet',
-      label: 'Mi área',
-      title,
-      areaPath: '/dashboard/mantenimiento',
-      actionLabel: 'Abrir mantenimiento',
-    },
+    portal: { key: isMiningEquipment ? 'maintenance_equipment' : 'maintenance_fleet', label: 'Mi área', title },
     user: { id: context.userId, name: context.userName, role: context.role, cargo: cargoName },
     status: signals.length ? 'watch' : 'stable',
     metrics: isMiningEquipment
@@ -124,8 +100,6 @@ export async function GET(request: NextRequest) {
     signals,
     interpretation,
     change: { available: false, note: 'No existe historial segmentado por activo suficiente para afirmar cambios de esta responsabilidad técnica.', items: [] },
-    source: isMiningEquipment
-      ? 'maintenance_role_kpi_snapshot_v1 + maintenance_operational_work_order_flow_v1 (coverage only)'
-      : 'maintenance_operational_work_order_flow_v1 (coverage only)',
+    source: isMiningEquipment ? 'maintenance_role_kpi_snapshot_v1 + maintenance_operational_work_order_flow_v1 (coverage only)' : 'maintenance_operational_work_order_flow_v1 (coverage only)',
   });
 }
