@@ -22,6 +22,7 @@ type InventoryItem = {
   reorder_level: number;
   reorder_quantity: number;
   unit_cost: number;
+  bin_location?: string;
   bin: {
     bin_code: string;
     bin_location: string;
@@ -67,7 +68,7 @@ export default function InventarioPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
 
-  const { data, error, isLoading, mutate } = useSWR('/api/warehouse/stock', fetcher, {
+  const { data, error, isLoading, mutate } = useSWR('/api/bodega/stock', fetcher, {
     revalidateOnFocus: false,
   });
 
@@ -368,7 +369,7 @@ export default function InventarioPage() {
               </div>
               <div className="col-span-2">
                 <p className="text-sm text-muted-foreground">Ubicación</p>
-                <p className="font-semibold">{selectedItem.bin?.bin_location || selectedItem.bin?.bin_code || 'Sin bin asignado'}</p>
+                <p className="font-semibold">{selectedItem.bin?.bin_location || selectedItem.bin?.bin_code || selectedItem.bin_location || 'Sin ubicación asignada'}</p>
               </div>
             </div>
 

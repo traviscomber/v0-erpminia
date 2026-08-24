@@ -75,7 +75,7 @@ async function buildCanonicalStock(
     start += pageSize;
   }
 
-    if (rows.length === 0) return null;
+  if (rows.length === 0) return null;
 
   const items: WarehouseStockItem[] = rows.map((row) => {
     const quantityOnHand = Number(row.quantity || 0);
@@ -119,7 +119,7 @@ export async function GET(request: NextRequest) {
     // Real org reads the authoritative valued inventory from the canonical view.
     if (orgHasCanonicalData(context.organizationId)) {
       const canonical = await buildCanonicalStock(context);
-      if (canonical) return NextResponse.json(canonical);
+      if (canonical) return NextResponse.json({ ...canonical, dataSource: 'canonical' });
     }
 
     const { data: stock, error } = await context.supabase
@@ -163,7 +163,7 @@ export async function GET(request: NextRequest) {
       critical_count: items.filter((i) => i.is_critical).length,
     };
 
-    return NextResponse.json({ items, summary });
+    return NextResponse.json({ items, summary, dataSource: 'warehouse' });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudo obtener el stock';
     return NextResponse.json({

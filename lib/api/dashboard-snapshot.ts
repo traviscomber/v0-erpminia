@@ -1,6 +1,6 @@
 import { DocumentService } from '@/lib/services/document.service';
 import { listContractsForOrganization } from '@/lib/api/contracts';
-import { isStockBelowMinimum } from '@/lib/inventory-alerts';
+import { listInventoryStockAlerts } from '@/lib/api/inventory-stock-alerts';
 
 type SupabaseClientLike = any;
 
@@ -152,7 +152,7 @@ export async function getDashboardSnapshot({ organizationId, supabase }: Dashboa
     return date.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit' });
   });
 
-  const [documentStats, expiringDocuments, workOrders, stock, costCenters, contracts, productionEquipment, maintenanceAssets, incidents] = await Promise.all([
+  const [documentStats, expiringDocuments, workOrders, stock, stockAlertResult, costCenters, contracts, productionEquipment, maintenanceAssets, incidents] = await Promise.all([
     DocumentService.getDashboardStats(organizationId),
     safeQuery(() =>
       supabase
@@ -183,6 +183,10 @@ export async function getDashboardSnapshot({ organizationId, supabase }: Dashboa
         .order('part_name', { ascending: true })
         .limit(1000),
       [] as StockRow[]
+    ),
+    safeQuery(
+      () => listInventoryStockAlerts({ organizationId, supabase }),
+      { items: [], evaluatedItems: 0, dataSource: 'warehouse' as const },
     ),
     safeQuery(() =>
       supabase
@@ -229,9 +233,7 @@ export async function getDashboardSnapshot({ organizationId, supabase }: Dashboa
         criticality: item.criticality,
       }));
 
-  const lowStockItems = stock.filter((item) =>
-    isStockBelowMinimum(item.quantity_on_hand, item.reorder_level)
-  );
+  const lowStockItems = stockAlertResult.items;
 
   const openWorkOrders = workOrders.filter((item) => ['open', 'in_progress'].includes(normalizeStatus(item.status)));
   const preventiveOrders = workOrders.filter((item) => normalizeStatus(item.work_type) === 'preventive');
@@ -290,8 +292,8 @@ export async function getDashboardSnapshot({ organizationId, supabase }: Dashboa
     ? clamp(Math.round((documentStats.approved / documentStats.total) * 100) - expiringDocuments.length * 2)
     : 100;
   const maintenanceHealth = clamp(100 - overdueWorkOrders.length * 8 - criticalWorkOrders.length * 5);
-  const inventoryHealth = stock.length > 0
-    ? clamp(100 - Math.round((lowStockItems.length / stock.length) * 100 * 1.6))
+  const inventoryHealth = stockAlertResult.evaluatedItems > 0
+    ? clamp(100 - Math.round((lowStockItems.length / stockAlertResult.evaluatedItems) * 100 * 1.6))
     : 100;
 
   const moduleHealth = [
@@ -390,6 +392,7 @@ export async function getDashboardSnapshot({ organizationId, supabase }: Dashboa
     workOrders,
     stock,
     lowStockItems,
+    stockAlertSource: stockAlertResult.dataSource,
     costCenters,
     contracts,
     pendingContracts,

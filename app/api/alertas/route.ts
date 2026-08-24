@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { listPendingApprovalsForUser } from '@/lib/api/documents';
 import { getLegalComplianceOverview } from '@/lib/api/contracts';
-import { isStockBelowMinimum } from '@/lib/inventory-alerts';
+import { listInventoryStockAlerts } from '@/lib/api/inventory-stock-alerts';
 
 type AlertSeverity = 'critica' | 'alta' | 'media' | 'baja' | 'info';
 type AlertType =
@@ -68,24 +68,6 @@ type WorkOrderAlertRow = {
   asset?: {
     asset_name?: string | null;
   } | null;
-};
-
-type WarehouseStockAlertRow = {
-  id: string;
-  part_code?: string | null;
-  part_name?: string | null;
-  quantity_on_hand?: number | null;
-  reorder_level?: number | null;
-  bin?:
-    | {
-        bin_code?: string | null;
-        bin_location?: string | null;
-      }
-    | Array<{
-        bin_code?: string | null;
-        bin_location?: string | null;
-      }>
-    | null;
 };
 
 type OverdueNCRow = {
@@ -202,7 +184,7 @@ export async function GET(request: NextRequest) {
         generatedAt: new Date().toISOString(),
       });
     }
-    const [pendingApprovals, legalCompliance, workOrders, lowStockRows, overdueNCs, overdueCAs] =
+    const [pendingApprovals, legalCompliance, workOrders, stockAlertResult, overdueNCs, overdueCAs] =
       await Promise.all([
         safeQuery(
           () => listPendingApprovalsForUser(context.organizationId, context.userId) as Promise<PendingApprovalItem[]>,
@@ -232,21 +214,11 @@ export async function GET(request: NextRequest) {
           [] as WorkOrderAlertRow[]
         ),
         safeQuery(
-          async () => {
-            const { data, error } = await context.supabase
-              .from('warehouse_stock')
-              .select('id, part_code, part_name, quantity_on_hand, reorder_level, bin:warehouse_bins(bin_code, bin_location)')
-              .eq('organization_id', context.organizationId)
-              .gt('reorder_level', 0)
-              .order('quantity_on_hand', { ascending: true });
-
-            if (error) throw error;
-            const stockRows = (data || []) as WarehouseStockAlertRow[];
-            return stockRows.filter((item) =>
-              isStockBelowMinimum(item.quantity_on_hand, item.reorder_level)
-            );
-          },
-          [] as WarehouseStockAlertRow[]
+          () => listInventoryStockAlerts({
+            organizationId: context.organizationId,
+            supabase: context.supabase,
+          }),
+          { items: [], evaluatedItems: 0, dataSource: 'warehouse' as const }
         ),
         safeQuery(
           async () => {
@@ -287,6 +259,7 @@ export async function GET(request: NextRequest) {
       ]);
 
     const alerts: AlertItem[] = [];
+    const lowStockRows = stockAlertResult.items;
 
     for (const approval of pendingApprovals) {
       alerts.push({
@@ -369,17 +342,16 @@ export async function GET(request: NextRequest) {
     for (const stock of lowStockRows) {
       const current = Number(stock.quantity_on_hand || 0);
       const reorder = Number(stock.reorder_level || 0);
-      const bin = Array.isArray(stock.bin) ? stock.bin[0] : stock.bin;
       alerts.push({
         id: `stock-${stock.id}`,
         title: `${current === 0 ? 'Stock agotado' : 'Stock bajo'} - ${stock.part_name || stock.part_code}`,
-        description: `${stock.part_code || 'Item'} en ${bin?.bin_code || bin?.bin_location || 'bodega'} con ${current} unidad(es). Nivel de reorden: ${reorder}.`,
+        description: `${stock.part_code || 'Item'} en ${stock.location_label} con ${current} unidad(es). Nivel de reorden: ${reorder}.`,
         severity: current === 0 ? 'critica' : 'alta',
         type: 'inventario',
         timestamp: new Date().toISOString(),
         read: false,
         actionRequired: true,
-        actionUrl: '/dashboard/bodega',
+        actionUrl: '/dashboard/inventario',
       });
     }
 
@@ -436,7 +408,10 @@ export async function GET(request: NextRequest) {
         unread: alerts.filter((alert) => !alert.read).length,
         critical: alerts.filter((alert) => alert.severity === 'critica').length,
         actionRequired: alerts.filter((alert) => alert.actionRequired).length,
+        stockAlerts: lowStockRows.length,
+        stockItemsEvaluated: stockAlertResult.evaluatedItems,
       },
+      stockAlertSource: stockAlertResult.dataSource,
       generatedAt: new Date().toISOString(),
     });
   } catch (error) {
