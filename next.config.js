@@ -27,7 +27,6 @@ const nextConfig = {
       {
         source: '/:path*',
         headers: [
-          // Security headers
           {
             key: 'X-Content-Type-Options',
             value: 'nosniff',
@@ -48,12 +47,10 @@ const nextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=()',
           },
-          // Content Security Policy
           {
             key: 'Content-Security-Policy',
             value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co wss://ttlptyheuqeotadtcbaw.supabase.co https://vercel.live wss://ws-us3.pusher.com https://*.blob.vercel-storage.com https://*.private.blob.vercel-storage.com https://*.public.blob.vercel-storage.com https://blob.vercel-storage.com; frame-ancestors 'self';",
           },
-          // Cache headers for static content
           {
             key: 'Cache-Control',
             value: 'public, max-age=31536000, immutable',
@@ -86,7 +83,6 @@ const nextConfig = {
           },
         ],
       },
-      // HTML pages - short cache for freshness
       {
         source: '/:path*.html',
         headers: [
@@ -96,7 +92,6 @@ const nextConfig = {
           },
         ],
       },
-      // API routes - no cache
       {
         source: '/api/:path*',
         headers: [
@@ -109,24 +104,13 @@ const nextConfig = {
     ];
   },
 
-  // Redirects for old URLs (if migrating)
   async redirects() {
-    return [
-      // Add redirects here if needed
-      // Example:
-      // {
-      //   source: '/old-page',
-      //   destination: '/new-page',
-      //   permanent: true,
-      // },
-    ];
+    return [];
   },
 
-  // Rewrites for clean URLs
   async rewrites() {
     return {
       beforeFiles: [
-        // Google verification
         {
           source: '/google:id.html',
           destination: '/:id',
@@ -135,21 +119,11 @@ const nextConfig = {
     };
   },
 
-  // Opt out of the webpack build worker.
-  // This keeps production builds on the main process and avoids the Windows/Node 24 worker write error.
-  webpack(config) {
-    return config;
-  },
-
   // Compression
   compress: true,
 
-  // Turbopack configuration for Next.js 16
-  turbopack: {
-    resolveAlias: {
-      '@': './src',
-    },
-  },
+  // Turbopack configuration for Next.js 16. Keep path aliases aligned with tsconfig.
+  turbopack: {},
 
   // Generate ETags for caching
   generateEtags: true,
