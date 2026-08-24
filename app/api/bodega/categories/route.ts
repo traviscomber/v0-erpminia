@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { resolveAuthContext } from '@/lib/api/auth-session';
 import { canonicalCategory, getCategoryColor } from '@/lib/bodega-normalization';
+import { isStockBelowMinimum } from '@/lib/inventory-alerts';
 
 type CategoryRow = {
   category?: string | null;
@@ -21,7 +22,7 @@ function summarize(rows: CategoryRow[]) {
     const minStock = Number(row.min_stock || 0);
     existing.count += 1;
     existing.total_stock += quantity;
-    if (quantity < minStock) existing.low_stock += 1;
+    if (isStockBelowMinimum(quantity, minStock)) existing.low_stock += 1;
     map.set(label, existing);
   }
 

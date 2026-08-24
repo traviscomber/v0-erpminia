@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
+import { isStockBelowMinimum } from '@/lib/inventory-alerts';
 
 export async function GET(request: NextRequest) {
   const cookieStore = await cookies();
@@ -29,6 +30,7 @@ export async function GET(request: NextRequest) {
   const { data, error } = await supabase
     .from('bodega_inventory')
     .select('id, sku, name, quantity, min_stock, category')
+    .gt('min_stock', 0)
     .order('name');
 
   if (error) {
@@ -40,7 +42,7 @@ export async function GET(request: NextRequest) {
   }
 
   const alerts = (data || [])
-    .filter((item) => (item.quantity || 0) <= (item.min_stock || 0))
+    .filter((item) => isStockBelowMinimum(item.quantity, item.min_stock))
     .map((item) => ({
       ...item,
       reorder_qty: Math.max(0, (item.min_stock || 0) * 2 - (item.quantity || 0)),

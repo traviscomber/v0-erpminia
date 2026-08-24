@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import useSWR from 'swr';
+import { isStockBelowMinimum } from '@/lib/inventory-alerts';
 import {
   AlertCircle,
   ArrowRight,
@@ -131,7 +132,7 @@ export function MaintenanceExecutiveDashboard() {
       acc.totalItems += 1;
       acc.totalQuantity += quantity;
       acc.totalValue += quantity * unitCost;
-      if (quantity <= minStock) acc.lowStock += 1;
+      if (isStockBelowMinimum(quantity, minStock)) acc.lowStock += 1;
       return acc;
     },
     { totalItems: 0, totalQuantity: 0, totalValue: 0, lowStock: 0 },

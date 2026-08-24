@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { useBodegaCategories, useBodegaInventory } from '@/hooks/use-module-apis';
 import { CategoryFilter } from './category-filter';
 import { canonicalCategory, formatCategoryLabel } from '@/lib/bodega-normalization';
+import { isStockBelowMinimum } from '@/lib/inventory-alerts';
 
 function splitHierarchy(description?: string) {
   const parts = String(description ?? '')
@@ -61,7 +62,9 @@ export function BodegaDashboard() {
     [inventory],
   );
 
-  const lowStock = normalizedInventory.filter((item) => item.quantity <= item.min_stock);
+  const lowStock = normalizedInventory.filter((item) =>
+    isStockBelowMinimum(item.quantity, item.min_stock)
+  );
   const totalValue = normalizedInventory.reduce((sum, item) => sum + item.quantity * (item.unit_cost || 0), 0);
 
   // Use server-side category data for accuracy
@@ -360,7 +363,7 @@ export function BodegaDashboard() {
                     return (
                       <tr
                         key={item.id}
-                        className={`border-b border-border hover:bg-muted ${idx % 2 === 0 ? 'bg-background' : 'bg-muted/30'} ${item.quantity <= item.min_stock ? 'bg-destructive/10' : ''}`}
+                        className={`border-b border-border hover:bg-muted ${idx % 2 === 0 ? 'bg-background' : 'bg-muted/30'} ${isStockBelowMinimum(item.quantity, item.min_stock) ? 'bg-destructive/10' : ''}`}
                       >
                         <td className="p-3 font-mono font-semibold text-foreground">{item.sku}</td>
                         <td className="max-w-xs p-3 text-foreground">
@@ -373,10 +376,10 @@ export function BodegaDashboard() {
                     </td>
                         <td className="p-3 text-sm text-muted-foreground">{hierarchy.subfamily || '-'}</td>
                         <td className="p-3 text-sm text-muted-foreground">{hierarchy.team || '-'}</td>
-                        <td className={`p-3 text-right font-semibold ${item.quantity < 10 ? 'text-destructive' : item.quantity <= item.min_stock ? 'text-yellow-600' : 'text-foreground'}`}>
+                        <td className={`p-3 text-right font-semibold ${isStockBelowMinimum(item.quantity, item.min_stock) && item.quantity < 10 ? 'text-destructive' : isStockBelowMinimum(item.quantity, item.min_stock) ? 'text-yellow-600' : 'text-foreground'}`}>
                           {item.quantity.toLocaleString()}
                           {item.quantity < 10 && <span className="ml-2 font-bold">Crítico</span>}
-                          {item.quantity >= 10 && item.quantity <= item.min_stock && <span className="ml-2 font-bold">Reorden</span>}
+                          {item.quantity >= 10 && isStockBelowMinimum(item.quantity, item.min_stock) && <span className="ml-2 font-bold">Reorden</span>}
                         </td>
                         <td className="p-3 text-right font-semibold text-muted-foreground">
                           {item.min_stock.toLocaleString()}

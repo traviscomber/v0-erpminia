@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext, type OrganizationSuccessContext } from '@/lib/api/organization-context';
+import { isStockBelowMinimum } from '@/lib/inventory-alerts';
 
 type WarehouseZoneRow = {
   id: string;
@@ -179,8 +180,8 @@ export async function GET(request: NextRequest) {
         unit_cost: unitCost,
         total_value: quantityOnHand * unitCost,
         bin_location: item.bin?.bin_location || item.bin_id || 'N/A',
-        is_low_stock: quantityOnHand <= reorderLevel,
-        is_critical: quantityOnHand === 0,
+        is_low_stock: isStockBelowMinimum(quantityOnHand, reorderLevel),
+        is_critical: isStockBelowMinimum(quantityOnHand, reorderLevel) && quantityOnHand <= 0,
       } satisfies StockItem & WarehouseStockRow & { total_value: number; bin_location: string; is_low_stock: boolean; is_critical: boolean };
     });
 

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useMemo } from 'react';
 import useSWR from 'swr';
+import { isStockBelowMinimum } from '@/lib/inventory-alerts';
 import { AlertCircle, ArrowRight, Fuel, Layers3, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -52,7 +53,9 @@ export function MaintenanceFuelBoard() {
       (sum: number, item: FuelInventoryItem) => sum + Number(item.quantity || 0) * Number(item.unit_cost || 0),
       0,
     );
-    const lowStock = fuelItems.filter((item: FuelInventoryItem) => Number(item.quantity || 0) <= Number(item.min_stock || 0)).length;
+    const lowStock = fuelItems.filter((item: FuelInventoryItem) =>
+      isStockBelowMinimum(item.quantity, item.min_stock)
+    ).length;
 
     return {
       totalItems: fuelItems.length,
@@ -167,8 +170,8 @@ export function MaintenanceFuelBoard() {
                       <p className="font-semibold">{item.name || item.sku || 'Combustible'}</p>
                       <p className="text-sm text-muted-foreground">{item.sku}</p>
                     </div>
-                    <Badge variant={Number(item.quantity || 0) <= Number(item.min_stock || 0) ? 'destructive' : 'outline'}>
-                      {Number(item.quantity || 0) <= Number(item.min_stock || 0) ? 'Bajo minimo' : 'Normal'}
+                    <Badge variant={isStockBelowMinimum(item.quantity, item.min_stock) ? 'destructive' : 'outline'}>
+                      {isStockBelowMinimum(item.quantity, item.min_stock) ? 'Bajo minimo' : 'Normal'}
                     </Badge>
                   </div>
                   <div className="mt-3 grid gap-3 text-sm md:grid-cols-4">

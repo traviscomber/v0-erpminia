@@ -1,5 +1,6 @@
 import { DocumentService } from '@/lib/services/document.service';
 import { listContractsForOrganization } from '@/lib/api/contracts';
+import { isStockBelowMinimum } from '@/lib/inventory-alerts';
 
 type SupabaseClientLike = any;
 
@@ -178,6 +179,7 @@ export async function getDashboardSnapshot({ organizationId, supabase }: Dashboa
         .from('warehouse_stock')
         .select('id, part_name, part_code, quantity_on_hand, reorder_level, unit_cost, created_at')
         .eq('organization_id', organizationId)
+        .gt('reorder_level', 0)
         .order('part_name', { ascending: true })
         .limit(1000),
       [] as StockRow[]
@@ -227,7 +229,9 @@ export async function getDashboardSnapshot({ organizationId, supabase }: Dashboa
         criticality: item.criticality,
       }));
 
-  const lowStockItems = stock.filter((item) => toNumber(item.quantity_on_hand) <= toNumber(item.reorder_level));
+  const lowStockItems = stock.filter((item) =>
+    isStockBelowMinimum(item.quantity_on_hand, item.reorder_level)
+  );
 
   const openWorkOrders = workOrders.filter((item) => ['open', 'in_progress'].includes(normalizeStatus(item.status)));
   const preventiveOrders = workOrders.filter((item) => normalizeStatus(item.work_type) === 'preventive');

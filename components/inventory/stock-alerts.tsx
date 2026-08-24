@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { AlertTriangle, TrendingDown } from 'lucide-react';
+import { hasConfiguredStockMinimum } from '@/lib/inventory-alerts';
 
 interface StockItem {
   id: string;
@@ -62,7 +63,12 @@ export function StockLevelAlerts() {
           const value = item.stock_current * item.unit_cost;
           total += value;
 
-          const stockPercentage = (item.stock_current / Math.max(item.stock_min, 1)) * 100;
+          if (!hasConfiguredStockMinimum(item.stock_min)) {
+            categorized.adequate.push(item);
+            return;
+          }
+
+          const stockPercentage = (item.stock_current / item.stock_min) * 100;
 
           if (item.stock_current === 0) {
             categorized.critical.push(item);

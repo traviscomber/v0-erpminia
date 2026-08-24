@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { listPendingApprovalsForUser } from '@/lib/api/documents';
 import { getLegalComplianceOverview } from '@/lib/api/contracts';
+import { isStockBelowMinimum } from '@/lib/inventory-alerts';
 
 type AlertSeverity = 'critica' | 'alta' | 'media' | 'baja' | 'info';
 type AlertType =
@@ -236,15 +237,13 @@ export async function GET(request: NextRequest) {
               .from('warehouse_stock')
               .select('id, part_code, part_name, quantity_on_hand, reorder_level, bin:warehouse_bins(bin_code, bin_location)')
               .eq('organization_id', context.organizationId)
+              .gt('reorder_level', 0)
               .order('quantity_on_hand', { ascending: true });
 
             if (error) throw error;
             const stockRows = (data || []) as WarehouseStockAlertRow[];
-            return stockRows.filter(
-              (item) =>
-                item.reorder_level !== null &&
-                item.reorder_level !== undefined &&
-                Number(item.quantity_on_hand || 0) <= Number(item.reorder_level || 0)
+            return stockRows.filter((item) =>
+              isStockBelowMinimum(item.quantity_on_hand, item.reorder_level)
             );
           },
           [] as WarehouseStockAlertRow[]

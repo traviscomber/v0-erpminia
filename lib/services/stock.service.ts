@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { isStockBelowMinimum } from '@/lib/inventory-alerts';
 
 function getSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -66,8 +67,10 @@ export class StockService {
       .from('warehouse_stock')
       .select('*')
       .eq('organization_id', organizationId)
-      .gte('reorder_level', 'quantity_on_hand');
-    return data || [];
+      .gt('reorder_level', 0);
+    return (data || []).filter((item) =>
+      isStockBelowMinimum(item.quantity_on_hand, item.reorder_level)
+    );
   }
 
   static async getStockValue(organizationId: string) {

@@ -3,6 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle } from 'lucide-react';
+import { isStockBelowMinimum } from '@/lib/inventory-alerts';
 
 interface StockCardProps {
   partCode: string;
@@ -23,7 +24,7 @@ export function StockCard({
   unitCost,
   binLocation,
 }: StockCardProps) {
-  const isLow = quantityOnHand <= reorderLevel;
+  const isLow = isStockBelowMinimum(quantityOnHand, reorderLevel);
   const value = (quantityOnHand * unitCost).toLocaleString();
 
   return (
