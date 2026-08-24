@@ -60,12 +60,12 @@ export async function GET(request: NextRequest) {
     critical.length ? { level: 'alert', code: 'critical_work_orders', title: 'Órdenes críticas abiertas', detail: `${critical.length} orden(es) crítica(s) permanecen abiertas.` } : null,
     waitingProcurement.length ? { level: 'watch', code: 'waiting_procurement', title: 'Trabajos condicionados por compra', detail: `${waitingProcurement.length} orden(es) esperan gestión de compra.` } : null,
     waitingParts.length ? { level: 'watch', code: 'waiting_parts', title: 'Trabajos esperando repuestos', detail: `${waitingParts.length} orden(es) esperan repuestos.` } : null,
-    missingAsset.length ? { level: 'watch', code: 'missing_asset', title: 'Falta trazabilidad de equipo', detail: `${missingAsset.length} orden(es) activas no tienen activo asociado.` } : null,
   ].filter(Boolean) as Array<{ level: 'info' | 'watch' | 'alert'; code: string; title: string; detail: string }>;
 
   const interpretation = [
     { level: 'info' as const, title: 'Los KPI de mantenimiento siguen en baseline', detail: 'Cierre de OT, preventivo y MTTR se muestran como evidencia observada; no se comparan contra una meta mientras no exista un objetivo aprobado.' },
     backlog !== null ? { level: 'info' as const, title: 'Backlog trazable del cargo', detail: `El snapshot registra ${backlog.toLocaleString('es-CL')} OT abiertas para la jefatura departamental.` } : null,
+    missingAsset.length ? { level: 'watch' as const, title: 'Hay una brecha de trazabilidad de activos', detail: `${missingAsset.length} OT activa(s) no tienen activo asociado. Se muestra en Calidad de datos y no como prioridad operacional.` } : null,
     mttr === null ? { level: 'watch' as const, title: 'MTTR no disponible en el corte actual', detail: 'La ausencia de valor se mantiene como dato faltante y no se convierte en cero.' } : null,
   ].filter(Boolean).slice(0, 4);
 
