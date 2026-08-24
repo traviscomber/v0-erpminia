@@ -1,4 +1,4 @@
-export type ExecutivePortalKey = 'maintenance' | 'production' | 'sustainability' | 'warehouse' | 'administration' | 'geology' | 'drilling';
+export type ExecutivePortalKey = 'maintenance' | 'maintenance_equipment' | 'maintenance_fleet' | 'production' | 'sustainability' | 'warehouse' | 'administration' | 'geology' | 'drilling';
 
 export type ExecutivePortalConfig = {
   key: ExecutivePortalKey;
@@ -19,6 +19,24 @@ const portals: ExecutivePortalConfig[] = [
     actionLabel: 'Abrir mantenimiento',
     allowedRoles: ['jefe_mantencion'],
     allowedCargos: ['JEFE MAN. EQ', 'Jefe Departamento de Mantención'],
+  },
+  {
+    key: 'maintenance_equipment',
+    label: 'Mi área',
+    title: 'Mis equipos mineros',
+    areaPath: '/dashboard/mantenimiento',
+    actionLabel: 'Abrir mantenimiento',
+    allowedRoles: [],
+    allowedCargos: ['Jefe de Equipos Mineros'],
+  },
+  {
+    key: 'maintenance_fleet',
+    label: 'Mi área',
+    title: 'Mis camionetas',
+    areaPath: '/dashboard/mantenimiento',
+    actionLabel: 'Abrir mantenimiento',
+    allowedRoles: [],
+    allowedCargos: ['Jefe de Camionetas'],
   },
   {
     key: 'production',
