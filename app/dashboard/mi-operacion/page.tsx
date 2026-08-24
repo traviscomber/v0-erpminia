@@ -2,11 +2,11 @@
 
 import useSWR from 'swr';
 import { StatePanel } from '@/components/ui/state-panel';
-import { PersonalPortalView, type PersonalPortalData, type PortalSignal, type PortalDataQuality } from '@/components/executive/personal-portal-view';
+import { PersonalPortalView, type PersonalPortalData, type PortalSignal, type PortalDataQuality, type PortalBlocker } from '@/components/executive/personal-portal-view';
 
 type Daily={operation_date:string;treated_wet_t:number|null;recovered_fine_cu_t:number|null;transported_t:number|null;dispatched_concentrate_t:number|null};
 type Signal={level:'info'|'watch'|'alert';code:string;title:string;detail:string};
-type O={quality:{status:'PASS'|'HOLD';pass:number;hold:number};currentPeriod:null|{treatedTons:number;avgHeadGradePct:number|null;avgRecoveryPct:number|null;plan:null|{treatmentProgressPct:number|null;paceIndexPct:number|null;gradeDeltaPctPoints?:number|null}};intelligence:Signal[];areaPriorities?:Signal[];dataQuality?:PortalDataQuality[];daily?:Daily[]};
+type O={quality:{status:'PASS'|'HOLD';pass:number;hold:number};currentPeriod:null|{treatedTons:number;avgHeadGradePct:number|null;avgRecoveryPct:number|null;plan:null|{treatmentProgressPct:number|null;paceIndexPct:number|null;gradeDeltaPctPoints?:number|null}};intelligence:Signal[];areaPriorities?:Signal[];blockers?:PortalBlocker[];dataQuality?:PortalDataQuality[];daily?:Daily[]};
 
 const fetcher=async(url:string):Promise<O>=>{const r=await fetch(url,{credentials:'include',cache:'no-store'});const j=await r.json();if(!r.ok)throw new Error(j.error||'No fue posible cargar la vista ejecutiva');return j};
 const pct=(v:number|null|undefined,d=1)=>v==null?'—':`${v.toLocaleString('es-CL',{maximumFractionDigits:d})}%`;
@@ -24,6 +24,7 @@ export default function MiOperacionPage(){
   const alerts=data.intelligence.filter(s=>s.level==='alert');
   const watches=data.intelligence.filter(s=>s.level==='watch');
   const areaPriorities=data.areaPriorities||[];
+  const blockers=data.blockers||[];
   const dataQuality=data.dataQuality||[];
   const qualityHold=data.quality.status==='HOLD';
   const pace=plan?.paceIndexPct??null;
@@ -68,6 +69,7 @@ export default function MiOperacionPage(){
     ],
     signals:globalSignals,
     interpretation:interpretation.slice(0,4),
+    blockers,
     dataQuality,
     change:{available:changes.length>0,note:changes.length?'Comparación contra el corte operacional inmediatamente anterior.':'Aún no hay dos cortes operacionales comparables.',items:changes},
     source:'production_flow_daily_fidelity_v1 + production_metallurgy_deterministic_v2 + production_monthly_plans + snapshots de jefaturas',
