@@ -28,6 +28,21 @@ function normalizeEmail(email?: string | null) {
   return String(email || '').trim().toLowerCase();
 }
 
+function normalizeRole(role?: string | null) {
+  return String(role || '').trim().toLowerCase();
+}
+
+function resolveEffectiveRole(profileRole?: string | null, assignedRole?: string | null) {
+  const normalizedProfileRole = normalizeRole(profileRole);
+  const normalizedAssignedRole = normalizeRole(assignedRole);
+
+  if (normalizedProfileRole === 'superadmin' || normalizedProfileRole === 'super_admin') {
+    return normalizedProfileRole;
+  }
+
+  return normalizedAssignedRole || normalizedProfileRole || undefined;
+}
+
 async function enrichIdentity(
   userId: string,
   email?: string | null,
@@ -69,7 +84,7 @@ async function enrichIdentity(
     return {
       applicationUserId,
       organizationId: profile?.organization_id || roleRow?.organization_id || undefined,
-      role: profile?.role || roleRow?.role || undefined,
+      role: resolveEffectiveRole(profile?.role, roleRow?.role),
       fullName:
         profile?.full_name ||
         [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') ||
