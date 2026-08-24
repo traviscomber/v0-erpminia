@@ -28,6 +28,10 @@ type AssetStateRow = {
   evidence_domain_count: number | string | null;
   availability_evidence_status: string | null;
   availability_pct: number | string | null;
+  last_availability_date: string | null;
+  availability_days_30d: number | string | null;
+  scheduled_minutes_30d: number | string | null;
+  downtime_minutes_30d: number | string | null;
 };
 
 function num(value: number | string | null | undefined) {
@@ -70,6 +74,11 @@ function mapAsset(row: AssetStateRow) {
     availability: {
       percent: num(row.availability_pct),
       evidenceStatus: row.availability_evidence_status || 'insufficient_evidence',
+      method: 'weighted_scheduled_minutes_30d',
+      lastObservedDate: row.last_availability_date,
+      observedDays30d: num(row.availability_days_30d),
+      scheduledMinutes30d: num(row.scheduled_minutes_30d),
+      downtimeMinutes30d: num(row.downtime_minutes_30d),
     },
     evidenceDomainCount: num(row.evidence_domain_count),
   };
@@ -103,6 +112,7 @@ export async function GET(request: NextRequest) {
       evidencePolicy: {
         missingIsZero: false,
         availabilityRequiresObservedEvidence: true,
+        availabilityWindowDays: 30,
       },
     });
   } catch (error) {
