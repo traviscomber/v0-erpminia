@@ -6,6 +6,7 @@ import { ArrowDownRight, ArrowRight, ArrowUpRight, Gauge, Minus } from 'lucide-r
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { StatePanel } from '@/components/ui/state-panel';
+import { useAuth } from '@/hooks/use-auth';
 
 type Signal={level:'info'|'watch'|'alert';code?:string;title:string;detail:string};
 type Metric={label:string;value:string};
@@ -14,10 +15,13 @@ type PortalResponse={portal:{label:string;title:string;areaPath:string;actionLab
 
 const fetcher=async(url:string):Promise<PortalResponse>=>{const r=await fetch(url,{credentials:'include',cache:'no-store'});const j=await r.json();if(!r.ok)throw new Error(j.error||'No fue posible cargar Mi área');return j};
 const num=(v:number,d=1)=>Number(v||0).toLocaleString('es-CL',{maximumFractionDigits:d});
+function endpointForCargo(cargo?:string|null){const normalized=String(cargo||'').trim().toUpperCase();if(normalized==='JEFE BODEGA')return'/api/mi-area/bodega';if(normalized==='JEFE ADM.')return'/api/mi-area/administracion';return'/api/mi-area'}
 
 export default function MiAreaPage(){
-  const {data,error,isLoading}=useSWR<PortalResponse>('/api/mi-area',fetcher,{revalidateOnFocus:false});
-  if(isLoading)return <StatePanel tone="loading" title="Cargando Mi área" description="Leyendo la evidencia operacional del área."/>;
+  const {user,loading:authLoading}=useAuth();
+  const endpoint=authLoading?null:endpointForCargo(user?.cargo);
+  const {data,error,isLoading}=useSWR<PortalResponse>(endpoint,fetcher,{revalidateOnFocus:false});
+  if(authLoading||isLoading)return <StatePanel tone="loading" title="Cargando Mi área" description="Leyendo la evidencia operacional del área."/>;
   if(error)return <StatePanel tone="error" title="Portal no disponible" description={error.message}/>;
   if(!data)return null;
   const statusLabel=data.status==='attention'?'Atención requerida':data.status==='watch'?'Con observaciones':'Área estable';
