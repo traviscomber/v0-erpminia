@@ -6,6 +6,8 @@ import { read, utils } from 'xlsx/xlsx.mjs';
 import { canonicalCategory, normalizeText } from '@/lib/bodega-normalization';
 import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
 
+const LEGACY_BODEGA_ORGANIZATION_ID = '2bd7fe06-8e4f-4a3a-b261-e3f5d8aa3dee';
+
 type InventoryRow = {
   sku: string;
   name: string;
@@ -13,8 +15,8 @@ type InventoryRow = {
   description: string;
   quantity: number;
   unit_cost: number;
-  min_stock: number;
-  max_stock: number;
+  min_stock: number | null;
+  max_stock: number | null;
   location: string;
 };
 
@@ -47,7 +49,17 @@ function parseRow(values: unknown[], columns: ParsedColumns): InventoryRow | nul
   const family = canonicalCategory(values[columns.family]);
   const subFamily = cleanText(values[columns.subFamily]);
   const team = cleanText(values[columns.team]);
-  return { sku, name, category: family, description: [subFamily, team].filter(Boolean).join(' - ') || name, quantity: stock, unit_cost: unitCost, min_stock: stock > 0 ? Math.max(0, Math.round(stock * 0.1)) : 0, max_stock: stock > 0 ? Math.max(stock, Math.round(stock * 1.5)) : 0, location: '' };
+  return {
+    sku,
+    name,
+    category: family,
+    description: [subFamily, team].filter(Boolean).join(' - ') || name,
+    quantity: stock,
+    unit_cost: unitCost,
+    min_stock: null,
+    max_stock: null,
+    location: '',
+  };
 }
 
 function parseCsvText(text: string): InventoryRow[] {
@@ -116,7 +128,6 @@ async function replaceInventoryWithStaging(rows: InventoryRow[], costCenterId?: 
   return withPgClient(async (client) => {
     await client.query('BEGIN');
     try {
-      await client.query(`ALTER TABLE public.bodega_inventory ALTER COLUMN unit_cost TYPE numeric(20,2) USING COALESCE(unit_cost, 0)::numeric(20,2);`);
       await client.query(`CREATE TEMP TABLE inventory_stage (LIKE public.bodega_inventory INCLUDING DEFAULTS INCLUDING CONSTRAINTS) ON COMMIT DROP;`);
       const hasCostCenterColumn = costCenterId ? await tableHasColumn(client, 'bodega_inventory', 'cost_center_id') : false;
       const stageColumns = hasCostCenterColumn ? `sku,name,category,description,quantity,unit_cost,min_stock,max_stock,location,cost_center_id` : `sku,name,category,description,quantity,unit_cost,min_stock,max_stock,location`;
@@ -147,6 +158,12 @@ function formatError(error: unknown) {
 export async function POST(request: NextRequest) {
   const access = await requireModuleAccess(request, MODULE_KEYS.BODEGA_INVENTARIO, true);
   if (!access.authorized) return access.response;
+  if (access.organizationId !== LEGACY_BODEGA_ORGANIZATION_ID) {
+    return NextResponse.json(
+      { error: 'Este importador legado no está habilitado para esta organización' },
+      { status: 403 },
+    );
+  }
 
   try {
     const formData = await request.formData();
