@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowDownRight, ArrowRight, ArrowUpRight, CircleAlert, CircleCheck, Clock3, Gauge, Minus, Sparkles } from 'lucide-react';
+import { ArrowDownRight, ArrowRight, ArrowUpRight, CircleAlert, CircleCheck, Clock3, Database, Gauge, Minus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { StatePanel } from '@/components/ui/state-panel';
@@ -11,6 +11,7 @@ export type PortalSignal={level:'info'|'watch'|'alert';code?:string;title:string
 export type PortalMetric={label:string;value:string};
 export type PortalChange={label:string;current:number;previous:number;unit:string};
 export type PortalBlocker={area:string;title:string;detail:string};
+export type PortalDataQuality={code:string;title:string;detail:string;level:'info'|'watch'};
 export type PersonalPortalData={
   portal:{label:string;title:string;areaPath?:string;actionLabel?:string;key:string};
   user:{name?:string;role?:string;cargo?:string|null};
@@ -19,6 +20,7 @@ export type PersonalPortalData={
   signals:PortalSignal[];
   interpretation:PortalSignal[];
   blockers?:PortalBlocker[];
+  dataQuality?:PortalDataQuality[];
   change:{available:boolean;note:string;items?:PortalChange[]};
   source:string;
 };
@@ -34,6 +36,7 @@ export function PersonalPortalView({data,eyebrow='Mi portal',description}:{data:
   const variant=data.status==='attention'?'destructive':data.status==='watch'?'secondary':'outline';
   const changes=data.change.items||[];
   const blockers=data.blockers||[];
+  const dataQuality=data.dataQuality||[];
   const [states,setStates]=useState<Record<string,ActionState>>({});
   const [saving,setSaving]=useState<string|null>(null);
 
@@ -70,7 +73,7 @@ export function PersonalPortalView({data,eyebrow='Mi portal',description}:{data:
           <div className="mt-5 flex flex-wrap items-center gap-3"><h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{data.portal.title}</h1><Badge variant={variant}>{statusLabel}</Badge></div>
           <p className="mt-4 max-w-3xl text-sm leading-6 text-muted-foreground sm:text-base">{description||`Vista personal de ${data.user.name||'la jefatura'}, enfocada en estado, prioridades y evidencia trazable del área.`}</p>
         </div>
-        <div className="border-t bg-muted/20 p-6 lg:border-l lg:border-t-0 lg:p-8"><div className="flex h-full flex-col justify-between gap-8"><div><div className="flex items-center gap-2 text-xs font-medium text-muted-foreground"><Gauge className="h-4 w-4"/>Estado del corte</div><p className="mt-3 text-lg font-medium leading-7">{statusCopy}</p></div><div className="flex items-center gap-2 text-xs text-muted-foreground"><Sparkles className="h-4 w-4"/>Lectura basada sólo en evidencia canónica.</div></div></div>
+        <div className="border-t bg-muted/20 p-6 lg:border-l lg:border-t-0 lg:p-8"><div className="flex h-full flex-col justify-between gap-8"><div><div className="flex items-center gap-2 text-xs font-medium text-muted-foreground"><Gauge className="h-4 w-4"/>Estado del corte</div><p className="mt-3 text-lg font-medium leading-7">{statusCopy}</p></div><div className="flex items-center gap-2 text-xs text-muted-foreground"><Database className="h-4 w-4"/>Lectura basada sólo en evidencia canónica.</div></div></div>
       </div>
       <div className="grid gap-px border-t bg-border sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">{data.metrics.map((metric,index)=><MetricCard key={`${metric.label}-${index}`} metric={metric} index={index}/>)}</div>
     </section>
@@ -93,7 +96,12 @@ export function PersonalPortalView({data,eyebrow='Mi portal',description}:{data:
     </section>
 
     <section className="rounded-xl border bg-card p-5 sm:p-6">
-      <SectionHeader index="04" title="Qué cambió" subtitle="Comparación sólo cuando existen cortes equivalentes."/>
+      <SectionHeader index="04" title="Calidad de datos" subtitle="Brechas de evidencia que afectan la confianza del corte."/>
+      <div className="mt-5">{dataQuality.length?<div className="grid gap-3 md:grid-cols-2">{dataQuality.slice(0,4).map((item)=><article key={item.code} className="rounded-lg border p-5"><div className="flex items-start gap-3"><Database className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"/><div><div className="flex flex-wrap items-center gap-2"><p className="text-sm font-medium">{item.title}</p><Badge variant={item.level==='watch'?'secondary':'outline'}>{item.level==='watch'?'Revisar':'Informativo'}</Badge></div><p className="mt-2 text-xs leading-5 text-muted-foreground">{item.detail}</p></div></div></article>)}</div>:<StatePanel tone="neutral" title="Sin brechas de calidad destacadas" description="No se identifican brechas de evidencia relevantes para este portal en el corte actual." className="min-h-0 py-5"/>}</div>
+    </section>
+
+    <section className="rounded-xl border bg-card p-5 sm:p-6">
+      <SectionHeader index="05" title="Qué cambió" subtitle="Comparación sólo cuando existen cortes equivalentes."/>
       <div className="mt-5">{data.change.available&&changes.length?<div className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 xl:grid-cols-4">{changes.map((item)=><ChangeCard key={item.label} item={item}/>)}</div>:<StatePanel tone="neutral" title="Comparación todavía no disponible" description={data.change.note} className="min-h-0 py-5"/>}</div>
     </section>
 
