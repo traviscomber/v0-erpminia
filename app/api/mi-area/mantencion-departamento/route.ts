@@ -30,13 +30,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Portal disponible sólo para Jefe Departamento de Mantención.' }, { status: 403 });
   }
 
-  const [kpiResult, flowResult] = await Promise.all([
+  const [kpiResult, flowResult, reviewResult] = await Promise.all([
     context.supabase.from('maintenance_role_kpi_snapshot_v1').select('kpi_key,label,unit,measured_value,evaluation_state,measured_at').eq('organization_id', context.organizationId).eq('cargo_name', 'Jefe Departamento de Mantención'),
     context.supabase.from('maintenance_operational_work_order_flow_v1').select('work_order_id,status,priority,flow_status,total_cost,purchase_commitment').eq('organization_id', context.organizationId).limit(300),
+    context.supabase.from('drilling_maintenance_review_queue_v1').select('review_status,review_reason,asset_name,operation_date').eq('organization_id', context.organizationId),
   ]);
 
-  if (kpiResult.error) return NextResponse.json({ error: kpiResult.error.message }, { status: 500 });
-  if (flowResult.error) return NextResponse.json({ error: flowResult.error.message }, { status: 500 });
+  const firstError = [kpiResult, flowResult, reviewResult].find((result) => result.error)?.error;
+  if (firstError) return NextResponse.json({ error: firstError.message }, { status: 500 });
 
   const kpis = kpiResult.data || [];
   const kpiMap = new Map(kpis.map((row) => [row.kpi_key, row]));
@@ -53,14 +54,25 @@ export async function GET(request: NextRequest) {
   const waitingProcurement = active.filter((row) => row.flow_status === 'waiting_procurement');
   const waitingParts = active.filter((row) => row.flow_status === 'waiting_parts');
   const missingAsset = active.filter((row) => row.flow_status === 'missing_asset');
+  const drillingReviews = (reviewResult.data || []).filter((row) => ['pending', 'accepted'].includes(String(row.review_status || '')));
 
   const signals = [
     critical.length ? { level: 'alert', code: 'critical_work_orders', title: 'Órdenes críticas abiertas', detail: `${critical.length} orden(es) crítica(s) permanecen abiertas.` } : null,
     waitingProcurement.length ? { level: 'watch', code: 'waiting_procurement', title: 'Trabajos condicionados por compra', detail: `${waitingProcurement.length} orden(es) esperan gestión de compra.` } : null,
     waitingParts.length ? { level: 'watch', code: 'waiting_parts', title: 'Trabajos esperando repuestos', detail: `${waitingParts.length} orden(es) esperan repuestos.` } : null,
+    drillingReviews.length ? { level: 'watch', code: 'drilling_maintenance_review', title: 'Sondaje · revisión de equipos', detail: `${drillingReviews.length} equipo(s) tienen evidencia reciente que requiere decisión de Mantención.` } : null,
   ].filter(Boolean) as Array<{ level: 'info' | 'watch' | 'alert'; code: string; title: string; detail: string }>;
 
   const operatingChains = [
+    drillingReviews.length ? {
+      code: 'drilling_to_maintenance_review',
+      from: 'Sondaje',
+      to: 'Mantención',
+      status: 'waiting' as const,
+      title: 'Partes de sondaje requieren revisión humana',
+      detail: `${drillingReviews.length} equipo(s) tienen en su último parte una condición mecánica o estado que requiere revisión. Motil no crea OT automáticamente.`,
+      evidenceCount: drillingReviews.length,
+    } : null,
     waitingProcurement.length ? {
       code: 'maintenance_to_procurement',
       from: 'Mantención',
@@ -85,6 +97,7 @@ export async function GET(request: NextRequest) {
     { level: 'info' as const, title: 'Los KPI de mantenimiento siguen en baseline', detail: 'Cierre de OT, preventivo y MTTR se muestran como evidencia observada; no se comparan contra una meta mientras no exista un objetivo aprobado.' },
     backlog !== null ? { level: 'info' as const, title: 'Backlog trazable del cargo', detail: `El snapshot registra ${backlog.toLocaleString('es-CL')} OT abiertas para la jefatura departamental.` } : null,
     missingAsset.length ? { level: 'watch' as const, title: 'Hay una brecha de trazabilidad de activos', detail: `${missingAsset.length} OT activa(s) no tienen activo asociado. Se muestra en Calidad de datos y no como prioridad operacional.` } : null,
+    drillingReviews.length ? { level: 'watch' as const, title: 'Sondaje está entregando evidencia directa a Mantención', detail: `${drillingReviews.length} revisión(es) provienen del último parte de cada equipo. Una revisión aceptada no equivale a una OT hasta que Mantención la cree explícitamente.` } : null,
     mttr === null ? { level: 'watch' as const, title: 'MTTR no disponible en el corte actual', detail: 'La ausencia de valor se mantiene como dato faltante y no se convierte en cero.' } : null,
   ].filter(Boolean).slice(0, 4);
 
@@ -98,12 +111,13 @@ export async function GET(request: NextRequest) {
       { label: 'Preventivo', value: preventiveRate === null ? '—' : pct(preventiveRate) },
       { label: 'MTTR', value: mttr === null ? '—' : `${mttr.toLocaleString('es-CL', { maximumFractionDigits: 1 })} h` },
       { label: 'OT activas', value: active.length.toLocaleString('es-CL') },
-      { label: 'OT críticas', value: critical.length.toLocaleString('es-CL') },
+      { label: 'Revisiones Sondaje', value: drillingReviews.length.toLocaleString('es-CL') },
     ],
     signals: signals.slice(0, 5),
     interpretation,
     operatingChains,
+    maintenanceReviews: drillingReviews,
     change: { available: false, note: 'El snapshot de Mantención actual no conserva dos cortes comparables para afirmar una variación temporal.', items: [] },
-    source: 'maintenance_role_kpi_snapshot_v1 + maintenance_operational_work_order_flow_v1',
+    source: 'maintenance_role_kpi_snapshot_v1 + maintenance_operational_work_order_flow_v1 + drilling_maintenance_review_queue_v1',
   });
 }
