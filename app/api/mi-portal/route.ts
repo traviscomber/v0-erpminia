@@ -24,7 +24,16 @@ type PortalBlocker = {
   count: number;
 };
 
-async function getMaintenanceBlockers(context: Extract<Awaited<ReturnType<typeof getOrganizationContext>>, { ok: true }>): Promise<PortalBlocker[]> {
+type PortalDataQuality = {
+  code: string;
+  title: string;
+  detail: string;
+  level: 'info' | 'watch';
+};
+
+type OrganizationContext = Extract<Awaited<ReturnType<typeof getOrganizationContext>>, { ok: true }>;
+
+async function getMaintenanceBlockers(context: OrganizationContext): Promise<PortalBlocker[]> {
   const { data, error } = await context.supabase
     .from('maintenance_operational_work_order_flow_v1')
     .select('flow_status')
@@ -60,6 +69,113 @@ async function getMaintenanceBlockers(context: Extract<Awaited<ReturnType<typeof
   ].filter(Boolean) as PortalBlocker[];
 }
 
+async function getSnapshotQuality(
+  context: OrganizationContext,
+  sourceView: string,
+  cargoName: string,
+  kpiKey: string,
+  title: string,
+  detail: (value: number) => string,
+): Promise<PortalDataQuality[]> {
+  const { data, error } = await context.supabase
+    .from(sourceView)
+    .select('measured_value')
+    .eq('organization_id', context.organizationId)
+    .eq('cargo_name', cargoName)
+    .eq('kpi_key', kpiKey)
+    .maybeSingle();
+  if (error || data?.measured_value == null) return [];
+  const value = Number(data.measured_value);
+  if (!Number.isFinite(value) || value >= 100) return [];
+  return [{ code: kpiKey, title, detail: detail(value), level: 'watch' }];
+}
+
+async function getDataQuality(context: OrganizationContext, portalKey: string): Promise<PortalDataQuality[]> {
+  if (portalKey === 'warehouse') {
+    const { count, error } = await context.supabase
+      .from('canonical_inventory_current')
+      .select('id', { count: 'exact', head: true })
+      .eq('organization_id', context.organizationId)
+      .eq('is_active', true)
+      .lte('min_stock', 0);
+    if (error || !count) return [];
+    return [{
+      code: 'inventory_without_positive_minimum',
+      title: 'Ítems sin mínimo positivo',
+      detail: `${count.toLocaleString('es-CL')} ítem(es) activos no tienen un mínimo positivo definido. No generan alerta de bajo stock hasta contar con ese dato.`,
+      level: 'watch',
+    }];
+  }
+
+  if (portalKey === 'administration') {
+    return getSnapshotQuality(
+      context,
+      'admin_finance_role_kpi_snapshot_v1',
+      'JEFE ADM.',
+      'cost_center_coverage',
+      'Cobertura de centro de costo incompleta',
+      (value) => `Cobertura canónica observada: ${value.toLocaleString('es-CL', { maximumFractionDigits: 1 })}%. Los movimientos sin centro de costo deben mantenerse como brecha, no asumirse como clasificados.`,
+    );
+  }
+
+  if (portalKey === 'geology') {
+    return getSnapshotQuality(
+      context,
+      'inventory_geology_role_kpi_snapshot_v1',
+      'JEFE GEÓLOGIA',
+      'sector_activity_coverage',
+      'Cobertura de actividad geológica incompleta',
+      (value) => `Cobertura observada: ${value.toLocaleString('es-CL', { maximumFractionDigits: 1 })}%. La parte no cubierta permanece sin inferencia automática.`,
+    );
+  }
+
+  if (portalKey === 'drilling') {
+    return getSnapshotQuality(
+      context,
+      'drilling_role_kpi_snapshot_v1',
+      'JEFE SONDAJE',
+      'meter_capture_pct',
+      'Captura de metros incompleta',
+      (value) => `Cobertura observada: ${value.toLocaleString('es-CL', { maximumFractionDigits: 1 })}%. Los metros no capturados no se interpretan como cero.`,
+    );
+  }
+
+  if (portalKey === 'hr') {
+    const { data, error } = await context.supabase
+      .from('intelligence.people_overview')
+      .select('people_with_ot_without_competencies')
+      .eq('organization_id', context.organizationId)
+      .maybeSingle();
+    if (error || data?.people_with_ot_without_competencies == null) return [];
+    const count = Number(data.people_with_ot_without_competencies);
+    if (!Number.isFinite(count) || count <= 0) return [];
+    return [{
+      code: 'people_with_ot_without_competencies',
+      title: 'OT sin evidencia de competencias asociada',
+      detail: `${count.toLocaleString('es-CL')} persona(s) con OT no tienen evidencia de competencias asociada en la fuente actual.`,
+      level: 'watch',
+    }];
+  }
+
+  if (['maintenance', 'maintenance_equipment', 'maintenance_fleet'].includes(portalKey)) {
+    const { data, error } = await context.supabase
+      .from('maintenance_operational_work_order_flow_v1')
+      .select('flow_status')
+      .eq('organization_id', context.organizationId)
+      .eq('flow_status', 'missing_asset')
+      .limit(500);
+    if (error || !data?.length) return [];
+    return [{
+      code: 'maintenance_missing_asset',
+      title: 'OT sin activo trazable',
+      detail: `${data.length.toLocaleString('es-CL')} OT activa(s) no tienen un activo canónico resoluble. Se muestran como brecha de calidad, no como bloqueo entre áreas.`,
+      level: 'watch',
+    }];
+  }
+
+  return [];
+}
+
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
@@ -92,10 +208,14 @@ export async function GET(request: NextRequest) {
   if (!response.ok) return response;
   const data = await response.json();
 
+  const portalKey = String(data.portal?.key || '');
   const maintenancePortalKeys = new Set(['maintenance', 'maintenance_equipment', 'maintenance_fleet']);
-  const blockers = maintenancePortalKeys.has(data.portal?.key) ? await getMaintenanceBlockers(context) : [];
+  const [blockers, dataQuality] = await Promise.all([
+    maintenancePortalKeys.has(portalKey) ? getMaintenanceBlockers(context) : Promise.resolve([]),
+    getDataQuality(context, portalKey),
+  ]);
 
-  if (data.portal?.key === 'production') return NextResponse.json({ ...data, blockers });
+  if (portalKey === 'production') return NextResponse.json({ ...data, blockers, dataQuality });
 
   const historyConfig: Record<string, { sourceView: string; cargoName: string; kpiKeys?: string[] }> = {
     warehouse: {
@@ -136,8 +256,8 @@ export async function GET(request: NextRequest) {
     },
   };
 
-  const config = historyConfig[data.portal?.key];
-  if (!config) return NextResponse.json({ ...data, blockers });
+  const config = historyConfig[portalKey];
+  if (!config) return NextResponse.json({ ...data, blockers, dataQuality });
 
   const change = await getRoleKpiChange({
     supabase: context.supabase,
@@ -147,5 +267,5 @@ export async function GET(request: NextRequest) {
     kpiKeys: config.kpiKeys,
   });
 
-  return NextResponse.json({ ...data, change, blockers });
+  return NextResponse.json({ ...data, change, blockers, dataQuality });
 }
