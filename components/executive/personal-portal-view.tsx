@@ -54,7 +54,25 @@ export function PersonalPortalView({data,eyebrow='Mi portal',description}:{data:
     return()=>{active=false};
   },[]);
 
-  const signalEntries=useMemo(()=>data.signals.slice(0,5).map((item,index)=>({item,key:`${data.portal.key}:${item.code||safeKey(item.title)||index}`})),[data.portal.key,data.signals]);
+  const signalEntries=useMemo(()=>{
+    const now=Date.now();
+    return data.signals
+      .map((item,index)=>{
+        const key=`${data.portal.key}:${item.code||safeKey(item.title)||index}`;
+        const stored=states[key];
+        const snoozedUntil=stored?.snoozed_until?new Date(stored.snoozed_until).getTime():null;
+        const snoozedActive=stored?.status==='snoozed'&&(snoozedUntil==null||snoozedUntil>now);
+        const state=stored?.status==='snoozed'&&!snoozedActive?{...stored,status:'pending' as const}:stored;
+        return {item,key,state,snoozedActive,index};
+      })
+      .filter((entry)=>!entry.snoozedActive)
+      .sort((a,b)=>{
+        const aRead=a.state?.status==='read'?1:0;
+        const bRead=b.state?.status==='read'?1:0;
+        return aRead-bRead||a.index-b.index;
+      })
+      .slice(0,5);
+  },[data.portal.key,data.signals,states]);
 
   async function setPriorityState(sourceKey:string,status:'pending'|'read'|'snoozed'){
     setSaving(sourceKey);
@@ -81,7 +99,7 @@ export function PersonalPortalView({data,eyebrow='Mi portal',description}:{data:
     <div className="grid gap-5 xl:grid-cols-[1.15fr_.85fr]">
       <section className="rounded-xl border bg-card p-5 sm:p-6">
         <SectionHeader index="01" title="Prioridades" subtitle="Sólo lo que requiere atención ahora."/>
-        <div className="mt-5 grid gap-3 md:grid-cols-2">{signalEntries.length?signalEntries.map(({item,key})=><SignalCard key={key} item={item} actionState={states[key]} saving={saving===key} onState={(status)=>setPriorityState(key,status)}/>):<Empty text="Sin prioridades en la evidencia actual."/>}</div>
+        <div className="mt-5 grid gap-3 md:grid-cols-2">{signalEntries.length?signalEntries.map(({item,key,state})=><SignalCard key={key} item={item} actionState={state} saving={saving===key} onState={(status)=>setPriorityState(key,status)}/>):<Empty text="Sin prioridades pendientes en la evidencia actual."/>}</div>
       </section>
 
       <section className="rounded-xl border bg-card p-5 sm:p-6">
