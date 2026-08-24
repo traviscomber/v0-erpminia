@@ -4,6 +4,7 @@ import useSWR from 'swr';
 import { StatePanel } from '@/components/ui/state-panel';
 import { PersonalPortalView, type PersonalPortalData, type PortalSignal, type PortalDataQuality, type PortalBlocker, type PortalChange, type PortalOperatingChain } from '@/components/executive/personal-portal-view';
 import { DrillingEconomicsStrip } from '@/components/executive/drilling-economics-strip';
+import { MaintenanceReviewStrip } from '@/components/executive/maintenance-review-strip';
 
 type Daily={operation_date:string;treated_wet_t:number|null;recovered_fine_cu_t:number|null;transported_t:number|null;dispatched_concentrate_t:number|null};
 type Signal={level:'info'|'watch'|'alert';code:string;title:string;detail:string};
@@ -81,6 +82,7 @@ export default function MiOperacionPage(){
 
   return <div className="space-y-6">
     <PersonalPortalView data={portalData} eyebrow="Mi operación" description="Centro de control del Mining OS. Resume estado, prioridades y dependencias activas de la mina con evidencia trazable, sin evaluar personas ni inferir causas no demostradas."/>
+    <MaintenanceReviewStrip/>
     <DrillingEconomicsStrip/>
   </div>;
 }
