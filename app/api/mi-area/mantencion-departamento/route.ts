@@ -4,8 +4,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 
 function num(value: unknown) {
+  if (value === null || value === undefined || value === '') return null;
   const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : 0;
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function pct(value: unknown, digits = 1) {
@@ -39,10 +40,7 @@ export async function GET(request: NextRequest) {
 
   const kpis = kpiResult.data || [];
   const kpiMap = new Map(kpis.map((row) => [row.kpi_key, row]));
-  const value = (key: string) => {
-    const raw = kpiMap.get(key)?.measured_value;
-    return raw === null || raw === undefined ? null : num(raw);
-  };
+  const value = (key: string) => num(kpiMap.get(key)?.measured_value);
 
   const backlog = value('open_backlog');
   const closureRate = value('wo_closure_rate');
@@ -61,6 +59,27 @@ export async function GET(request: NextRequest) {
     waitingProcurement.length ? { level: 'watch', code: 'waiting_procurement', title: 'Trabajos condicionados por compra', detail: `${waitingProcurement.length} orden(es) esperan gestión de compra.` } : null,
     waitingParts.length ? { level: 'watch', code: 'waiting_parts', title: 'Trabajos esperando repuestos', detail: `${waitingParts.length} orden(es) esperan repuestos.` } : null,
   ].filter(Boolean) as Array<{ level: 'info' | 'watch' | 'alert'; code: string; title: string; detail: string }>;
+
+  const operatingChains = [
+    waitingProcurement.length ? {
+      code: 'maintenance_to_procurement',
+      from: 'Mantención',
+      to: 'Compras',
+      status: 'blocked' as const,
+      title: 'OT detenidas por gestión de compra',
+      detail: `${waitingProcurement.length} OT requieren una gestión de compra registrada antes de continuar.`,
+      evidenceCount: waitingProcurement.length,
+    } : null,
+    waitingParts.length ? {
+      code: 'maintenance_to_warehouse',
+      from: 'Mantención',
+      to: 'Bodega',
+      status: 'waiting' as const,
+      title: 'OT esperando disponibilidad de repuesto',
+      detail: `${waitingParts.length} OT dependen de disponibilidad o entrega de repuestos registrada en el flujo canónico.`,
+      evidenceCount: waitingParts.length,
+    } : null,
+  ].filter(Boolean);
 
   const interpretation = [
     { level: 'info' as const, title: 'Los KPI de mantenimiento siguen en baseline', detail: 'Cierre de OT, preventivo y MTTR se muestran como evidencia observada; no se comparan contra una meta mientras no exista un objetivo aprobado.' },
@@ -83,6 +102,7 @@ export async function GET(request: NextRequest) {
     ],
     signals: signals.slice(0, 5),
     interpretation,
+    operatingChains,
     change: { available: false, note: 'El snapshot de Mantención actual no conserva dos cortes comparables para afirmar una variación temporal.', items: [] },
     source: 'maintenance_role_kpi_snapshot_v1 + maintenance_operational_work_order_flow_v1',
   });
