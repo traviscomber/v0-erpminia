@@ -53,7 +53,7 @@ test('canonical backend views are explicitly covered by the security migration',
 
   assert.equal(new Set(protectedViews).size, 38);
   for (const view of protectedViews) {
-    assert.match(sql, new RegExp(`'\\${view}'`), `${view} must be included`);
+    assert.ok(sql.includes(`'${view}'`), `${view} must be included`);
   }
 });
 
