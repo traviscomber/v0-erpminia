@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { resolveAuthContext } from '@/lib/api/auth-session';
+import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
 import { canonicalCategory } from '@/lib/bodega-normalization';
 import { orgHasCanonicalData } from '@/lib/api/canonical';
 
@@ -62,6 +63,9 @@ function mapInventoryItem(item: InventoryRow) {
 }
 
 export async function GET(request: NextRequest) {
+  const access = await requireModuleAccess(request, MODULE_KEYS.BODEGA_INVENTARIO);
+  if (!access.authorized) return access.response;
+
   const auth = await resolveAuthContext(request);
   if (!auth) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
@@ -76,16 +80,14 @@ export async function GET(request: NextRequest) {
   const validPage = Math.max(page, 0);
   const offset = validPage * validPageSize;
 
-  // Real org reads authoritative inventory from the canonical view.
   if (orgHasCanonicalData(orgId)) {
     if (searchParams.get('categories') === 'true') {
-      // Canonical categories
       const categorySet = new Set<string>();
       let from = 0;
       const chunk = 1000;
 
       while (true) {
-        let query = supabase
+        const query = supabase
           .from('canonical_inventory_current')
           .select('category')
           .eq('organization_id', orgId)
@@ -112,7 +114,6 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Canonical inventory list
     let canonicalQuery = supabase
       .from('canonical_inventory_current')
       .select('id, sku, name, category, description, quantity, min_stock, max_stock, unit_cost, warehouse_code', { count: 'exact' })
@@ -131,7 +132,6 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('[v0] canonical inventory error:', error);
-      // Fall through to operational fallback
     } else if (data && data.length > 0) {
       const inventory = (data as CanonicalInventoryRow[]).map((item) => ({
         id: item.id,
@@ -160,7 +160,7 @@ export async function GET(request: NextRequest) {
   }
 
   if (searchParams.get('categories') === 'true') {
-    let canonicalQuery = supabase
+    const canonicalQuery = supabase
       .from('canonical_inventory_current')
       .select('category')
       .eq('organization_id', orgId);
@@ -257,6 +257,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const access = await requireModuleAccess(request, MODULE_KEYS.BODEGA_INVENTARIO, true);
+  if (!access.authorized) return access.response;
+
   const auth = await resolveAuthContext(request);
   if (!auth) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
