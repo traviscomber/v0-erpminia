@@ -2,16 +2,17 @@
 
 import useSWR from 'swr';
 import { StatePanel } from '@/components/ui/state-panel';
-import { PersonalPortalView, type PersonalPortalData, type PortalSignal, type PortalDataQuality, type PortalBlocker } from '@/components/executive/personal-portal-view';
+import { PersonalPortalView, type PersonalPortalData, type PortalSignal, type PortalDataQuality, type PortalBlocker, type PortalChange } from '@/components/executive/personal-portal-view';
 
 type Daily={operation_date:string;treated_wet_t:number|null;recovered_fine_cu_t:number|null;transported_t:number|null;dispatched_concentrate_t:number|null};
 type Signal={level:'info'|'watch'|'alert';code:string;title:string;detail:string};
-type O={quality:{status:'PASS'|'HOLD';pass:number;hold:number};currentPeriod:null|{treatedTons:number;avgHeadGradePct:number|null;avgRecoveryPct:number|null;plan:null|{treatmentProgressPct:number|null;paceIndexPct:number|null;gradeDeltaPctPoints?:number|null}};intelligence:Signal[];areaPriorities?:Signal[];blockers?:PortalBlocker[];dataQuality?:PortalDataQuality[];daily?:Daily[]};
+type O={quality:{status:'PASS'|'HOLD';pass:number;hold:number};currentPeriod:null|{treatedTons:number|null;avgHeadGradePct:number|null;avgRecoveryPct:number|null;plan:null|{treatmentProgressPct:number|null;paceIndexPct:number|null;gradeDeltaPctPoints?:number|null}};intelligence:Signal[];areaPriorities?:Signal[];blockers?:PortalBlocker[];dataQuality?:PortalDataQuality[];daily?:Daily[]};
 
 const fetcher=async(url:string):Promise<O>=>{const r=await fetch(url,{credentials:'include',cache:'no-store'});const j=await r.json();if(!r.ok)throw new Error(j.error||'No fue posible cargar la vista ejecutiva');return j};
 const pct=(v:number|null|undefined,d=1)=>v==null?'—':`${v.toLocaleString('es-CL',{maximumFractionDigits:d})}%`;
-const num=(v:number|null|undefined,d=1)=>Number(v||0).toLocaleString('es-CL',{maximumFractionDigits:d});
+const num=(v:number|null|undefined,d=1)=>v==null?'—':v.toLocaleString('es-CL',{maximumFractionDigits:d});
 const deltaPct=(current:number,previous:number)=>previous!==0?((current-previous)/Math.abs(previous))*100:null;
+const comparableChange=(label:string,current:number|null,previous:number|null,unit:string):PortalChange|null=>current==null||previous==null?null:{label,current,previous,unit};
 
 export default function MiOperacionPage(){
   const {data,error,isLoading}=useSWR<O>('/api/mi-operacion',fetcher,{revalidateOnFocus:false});
@@ -31,12 +32,12 @@ export default function MiOperacionPage(){
   const days=(data.daily||[]).filter(row=>row.operation_date).slice(-2);
   const previous=days.length===2?days[0]:null;
   const latest=days.length===2?days[1]:days[0]||null;
-  const changes=latest&&previous?[
-    {label:'Tratamiento diario',current:Number(latest.treated_wet_t||0),previous:Number(previous.treated_wet_t||0),unit:'t'},
-    {label:'Cu fino recuperado',current:Number(latest.recovered_fine_cu_t||0),previous:Number(previous.recovered_fine_cu_t||0),unit:'t'},
-    {label:'Transporte acreditado',current:Number(latest.transported_t||0),previous:Number(previous.transported_t||0),unit:'t'},
-    {label:'Concentrado despachado',current:Number(latest.dispatched_concentrate_t||0),previous:Number(previous.dispatched_concentrate_t||0),unit:'t'},
-  ]:[];
+  const changes:PortalChange[]=latest&&previous?[
+    comparableChange('Tratamiento diario',latest.treated_wet_t,previous.treated_wet_t,'t'),
+    comparableChange('Cu fino recuperado',latest.recovered_fine_cu_t,previous.recovered_fine_cu_t,'t'),
+    comparableChange('Transporte acreditado',latest.transported_t,previous.transported_t,'t'),
+    comparableChange('Concentrado despachado',latest.dispatched_concentrate_t,previous.dispatched_concentrate_t,'t'),
+  ].filter((item):item is PortalChange=>item!==null):[];
 
   const interpretation:PortalSignal[]=[];
   if(plan?.paceIndexPct!=null){
@@ -45,8 +46,8 @@ export default function MiOperacionPage(){
   if(plan?.gradeDeltaPctPoints!=null){
     interpretation.push(plan.gradeDeltaPctPoints<-0.08?{level:'alert',title:'La ley de cabeza está materialmente bajo objetivo',detail:`Brecha de ${num(Math.abs(plan.gradeDeltaPctPoints),3)} pp bajo el objetivo activo.`}:plan.gradeDeltaPctPoints<0?{level:'watch',title:'La ley de cabeza está bajo objetivo',detail:`Brecha de ${num(Math.abs(plan.gradeDeltaPctPoints),3)} pp bajo el objetivo.`}:{level:'info',title:'La ley de cabeza está en o sobre objetivo',detail:`La ley se mantiene ${num(plan.gradeDeltaPctPoints,3)} pp sobre el objetivo.`});
   }
-  if(latest&&previous){
-    const variation=deltaPct(Number(latest.treated_wet_t||0),Number(previous.treated_wet_t||0));
+  if(latest&&previous&&latest.treated_wet_t!=null&&previous.treated_wet_t!=null){
+    const variation=deltaPct(latest.treated_wet_t,previous.treated_wet_t);
     if(variation!=null&&Math.abs(variation)>=10)interpretation.push({level:'watch',title:`El último corte ${variation<0?'redujo':'aumentó'} el tratamiento diario`,detail:`Cambio ${variation>0?'+':''}${num(variation)}% frente al corte anterior. Es una variación operacional, no una causa inferida.`});
   }
   if(qualityHold)interpretation.push({level:'watch',title:'Parte de la evidencia sigue en HOLD',detail:`Hay ${data.quality.hold} chequeo(s) pendientes. Los vacíos no se completan como cero.`});
@@ -60,7 +61,7 @@ export default function MiOperacionPage(){
     user:{name:'Pedro Pablo Zegers',role:'gerente_operaciones',cargo:'GERENTE OPERACIONES'},
     status:globalHasAlert||qualityHold?'attention':globalHasWatch?'watch':'stable',
     metrics:[
-      {label:'Tratado',value:current?`${current.treatedTons.toLocaleString('es-CL',{maximumFractionDigits:1})} t`:'—'},
+      {label:'Tratado',value:current?.treatedTons==null?'—':`${num(current.treatedTons)} t`},
       {label:'Ritmo',value:pace==null?'—':pace>=97?'En ritmo':pace>=90?'Leve desvío':'Bajo ritmo'},
       {label:'Avance plan',value:pct(plan?.treatmentProgressPct)},
       {label:'Ley cabeza Cu',value:pct(current?.avgHeadGradePct,3)},
@@ -71,7 +72,7 @@ export default function MiOperacionPage(){
     interpretation:interpretation.slice(0,4),
     blockers,
     dataQuality,
-    change:{available:changes.length>0,note:changes.length?'Comparación contra el corte operacional inmediatamente anterior.':'Aún no hay dos cortes operacionales comparables.',items:changes},
+    change:{available:changes.length>0,note:changes.length?'Comparación sólo para variables con valor presente en ambos cortes.':'Aún no hay dos cortes operacionales comparables con valores presentes.',items:changes},
     source:'production_flow_daily_fidelity_v1 + production_metallurgy_deterministic_v2 + production_monthly_plans + snapshots de jefaturas',
   };
 
