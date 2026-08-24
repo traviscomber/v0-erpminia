@@ -12,6 +12,7 @@ export type PortalMetric={label:string;value:string};
 export type PortalChange={label:string;current:number;previous:number;unit:string};
 export type PortalBlocker={area:string;title:string;detail:string};
 export type PortalDataQuality={code:string;title:string;detail:string;level:'info'|'watch'};
+export type PortalOperatingChain={code:string;from:string;to:string;status:'waiting'|'blocked';title:string;detail:string;evidenceCount:number};
 export type PersonalPortalData={
   portal:{label:string;title:string;areaPath?:string;actionLabel?:string;key:string};
   user:{name?:string;role?:string;cargo?:string|null};
@@ -20,6 +21,7 @@ export type PersonalPortalData={
   signals:PortalSignal[];
   interpretation:PortalSignal[];
   blockers?:PortalBlocker[];
+  operatingChains?:PortalOperatingChain[];
   dataQuality?:PortalDataQuality[];
   change:{available:boolean;note:string;items?:PortalChange[]};
   source:string;
@@ -36,6 +38,7 @@ export function PersonalPortalView({data,eyebrow='Mi portal',description}:{data:
   const variant=data.status==='attention'?'destructive':data.status==='watch'?'secondary':'outline';
   const changes=data.change.items||[];
   const blockers=data.blockers||[];
+  const operatingChains=data.operatingChains||[];
   const dataQuality=data.dataQuality||[];
   const [states,setStates]=useState<Record<string,ActionState>>({});
   const [saving,setSaving]=useState<string|null>(null);
@@ -109,8 +112,8 @@ export function PersonalPortalView({data,eyebrow='Mi portal',description}:{data:
     </div>
 
     <section className="rounded-xl border bg-card p-5 sm:p-6">
-      <SectionHeader index="03" title="Bloqueos" subtitle="Dependencias entre áreas sólo cuando están demostradas."/>
-      <div className="mt-5">{blockers.length?<div className="grid gap-3 md:grid-cols-2">{blockers.slice(0,4).map((item,index)=><article key={`${item.area}-${item.title}-${index}`} className="rounded-lg border p-5"><div className="flex items-center justify-between gap-3"><p className="text-sm font-medium">{item.title}</p><Badge variant="outline">{item.area}</Badge></div><p className="mt-2 text-xs leading-5 text-muted-foreground">{item.detail}</p></article>)}</div>:<StatePanel tone="neutral" title="Sin bloqueos entre áreas identificados" description="No hay una dependencia inter-área demostrada en la evidencia actual." className="min-h-0 py-5"/>}</div>
+      <SectionHeader index="03" title={operatingChains.length?'Flujos de la mina':'Bloqueos'} subtitle={operatingChains.length?'Dependencias operativas activas entre áreas, sólo cuando están demostradas.':'Dependencias entre áreas sólo cuando están demostradas.'}/>
+      <div className="mt-5">{operatingChains.length?<div className="grid gap-3 md:grid-cols-2">{operatingChains.slice(0,4).map((item)=><article key={item.code} className="rounded-lg border p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div className="flex items-center gap-2 text-sm font-medium"><span>{item.from}</span><ArrowRight className="h-4 w-4 text-muted-foreground"/><span>{item.to}</span></div><Badge variant={item.status==='blocked'?'destructive':'secondary'}>{item.status==='blocked'?'Bloqueado':'En espera'}</Badge></div><p className="mt-4 text-sm font-medium">{item.title}</p><p className="mt-2 text-xs leading-5 text-muted-foreground">{item.detail}</p><p className="mt-3 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{item.evidenceCount.toLocaleString('es-CL')} evidencia(s) activas</p></article>)}</div>:blockers.length?<div className="grid gap-3 md:grid-cols-2">{blockers.slice(0,4).map((item,index)=><article key={`${item.area}-${item.title}-${index}`} className="rounded-lg border p-5"><div className="flex items-center justify-between gap-3"><p className="text-sm font-medium">{item.title}</p><Badge variant="outline">{item.area}</Badge></div><p className="mt-2 text-xs leading-5 text-muted-foreground">{item.detail}</p></article>)}</div>:<StatePanel tone="neutral" title="Sin bloqueos entre áreas identificados" description="No hay una dependencia inter-área demostrada en la evidencia actual." className="min-h-0 py-5"/>}</div>
     </section>
 
     <section className="rounded-xl border bg-card p-5 sm:p-6">
