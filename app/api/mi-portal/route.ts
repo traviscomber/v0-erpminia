@@ -16,6 +16,50 @@ function normalize(value?: string | null) {
   return String(value || '').trim().toUpperCase();
 }
 
+type PortalBlocker = {
+  code: string;
+  title: string;
+  detail: string;
+  dependsOn: string;
+  count: number;
+};
+
+async function getMaintenanceBlockers(context: Extract<Awaited<ReturnType<typeof getOrganizationContext>>, { ok: true }>): Promise<PortalBlocker[]> {
+  const { data, error } = await context.supabase
+    .from('maintenance_operational_work_order_flow_v1')
+    .select('flow_status')
+    .eq('organization_id', context.organizationId)
+    .in('flow_status', ['waiting_procurement', 'waiting_parts'])
+    .limit(500);
+
+  if (error) return [];
+
+  const rows = data || [];
+  const procurement = rows.filter((row) => row.flow_status === 'waiting_procurement').length;
+  const parts = rows.filter((row) => row.flow_status === 'waiting_parts').length;
+
+  return [
+    procurement > 0
+      ? {
+          code: 'waiting_procurement',
+          title: 'OT esperando compra',
+          detail: `${procurement.toLocaleString('es-CL')} OT dependen de una gestión de compra antes de continuar.`,
+          dependsOn: 'Compras',
+          count: procurement,
+        }
+      : null,
+    parts > 0
+      ? {
+          code: 'waiting_parts',
+          title: 'OT esperando repuestos',
+          detail: `${parts.toLocaleString('es-CL')} OT dependen de disponibilidad o entrega de repuestos.`,
+          dependsOn: 'Bodega',
+          count: parts,
+        }
+      : null,
+  ].filter(Boolean) as PortalBlocker[];
+}
+
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
@@ -48,7 +92,10 @@ export async function GET(request: NextRequest) {
   if (!response.ok) return response;
   const data = await response.json();
 
-  if (data.portal?.key === 'production') return NextResponse.json(data);
+  const maintenancePortalKeys = new Set(['maintenance', 'maintenance_equipment', 'maintenance_fleet']);
+  const blockers = maintenancePortalKeys.has(data.portal?.key) ? await getMaintenanceBlockers(context) : [];
+
+  if (data.portal?.key === 'production') return NextResponse.json({ ...data, blockers });
 
   const historyConfig: Record<string, { sourceView: string; cargoName: string; kpiKeys?: string[] }> = {
     warehouse: {
@@ -90,7 +137,7 @@ export async function GET(request: NextRequest) {
   };
 
   const config = historyConfig[data.portal?.key];
-  if (!config) return NextResponse.json(data);
+  if (!config) return NextResponse.json({ ...data, blockers });
 
   const change = await getRoleKpiChange({
     supabase: context.supabase,
@@ -100,5 +147,5 @@ export async function GET(request: NextRequest) {
     kpiKeys: config.kpiKeys,
   });
 
-  return NextResponse.json({ ...data, change });
+  return NextResponse.json({ ...data, change, blockers });
 }
