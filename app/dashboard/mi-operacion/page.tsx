@@ -6,7 +6,7 @@ import { PersonalPortalView, type PersonalPortalData, type PortalSignal } from '
 
 type Daily={operation_date:string;treated_wet_t:number|null;recovered_fine_cu_t:number|null;transported_t:number|null;dispatched_concentrate_t:number|null};
 type Signal={level:'info'|'watch'|'alert';code:string;title:string;detail:string};
-type O={quality:{status:'PASS'|'HOLD';pass:number;hold:number};currentPeriod:null|{treatedTons:number;avgHeadGradePct:number|null;avgRecoveryPct:number|null;plan:null|{treatmentProgressPct:number|null;paceIndexPct:number|null;gradeDeltaPctPoints?:number|null}};intelligence:Signal[];daily?:Daily[]};
+type O={quality:{status:'PASS'|'HOLD';pass:number;hold:number};currentPeriod:null|{treatedTons:number;avgHeadGradePct:number|null;avgRecoveryPct:number|null;plan:null|{treatmentProgressPct:number|null;paceIndexPct:number|null;gradeDeltaPctPoints?:number|null}};intelligence:Signal[];areaPriorities?:Signal[];daily?:Daily[]};
 
 const fetcher=async(url:string):Promise<O>=>{const r=await fetch(url,{credentials:'include',cache:'no-store'});const j=await r.json();if(!r.ok)throw new Error(j.error||'No fue posible cargar la vista ejecutiva');return j};
 const pct=(v:number|null|undefined,d=1)=>v==null?'—':`${v.toLocaleString('es-CL',{maximumFractionDigits:d})}%`;
@@ -15,7 +15,7 @@ const deltaPct=(current:number,previous:number)=>previous!==0?((current-previous
 
 export default function MiOperacionPage(){
   const {data,error,isLoading}=useSWR<O>('/api/mi-operacion',fetcher,{revalidateOnFocus:false});
-  if(isLoading)return <StatePanel tone="loading" title="Cargando Mi operación" description="Leyendo producción desde la capa canónica."/>;
+  if(isLoading)return <StatePanel tone="loading" title="Cargando Mi operación" description="Leyendo producción y prioridades de jefaturas desde la capa canónica."/>;
   if(error)return <StatePanel tone="error" title="Vista no disponible" description={error.message}/>;
   if(!data)return null;
 
@@ -23,6 +23,7 @@ export default function MiOperacionPage(){
   const plan=current?.plan;
   const alerts=data.intelligence.filter(s=>s.level==='alert');
   const watches=data.intelligence.filter(s=>s.level==='watch');
+  const areaPriorities=data.areaPriorities||[];
   const qualityHold=data.quality.status==='HOLD';
   const pace=plan?.paceIndexPct??null;
   const days=(data.daily||[]).filter(row=>row.operation_date).slice(-2);
@@ -48,10 +49,14 @@ export default function MiOperacionPage(){
   }
   if(qualityHold)interpretation.push({level:'watch',title:'Parte de la evidencia sigue en HOLD',detail:`Hay ${data.quality.hold} chequeo(s) pendientes. Los vacíos no se completan como cero.`});
 
+  const globalSignals=[...alerts,...areaPriorities,...watches].slice(0,5);
+  const globalHasAlert=globalSignals.some((signal)=>signal.level==='alert');
+  const globalHasWatch=globalSignals.some((signal)=>signal.level==='watch');
+
   const portalData:PersonalPortalData={
     portal:{label:'Mi operación',title:'Estado de la mina',areaPath:'/dashboard/produccion',actionLabel:'Abrir producción',key:'operation'},
     user:{name:'Pedro Pablo Zegers',role:'gerente_operaciones',cargo:'GERENTE OPERACIONES'},
-    status:alerts.length||qualityHold?'attention':watches.length?'watch':'stable',
+    status:globalHasAlert||qualityHold?'attention':globalHasWatch?'watch':'stable',
     metrics:[
       {label:'Tratado',value:current?`${current.treatedTons.toLocaleString('es-CL',{maximumFractionDigits:1})} t`:'—'},
       {label:'Ritmo',value:pace==null?'—':pace>=97?'En ritmo':pace>=90?'Leve desvío':'Bajo ritmo'},
@@ -60,11 +65,11 @@ export default function MiOperacionPage(){
       {label:'Recuperación',value:pct(current?.avgRecoveryPct,2)},
       {label:'Calidad',value:`${data.quality.pass} PASS · ${data.quality.hold} HOLD`},
     ],
-    signals:[...alerts,...watches].slice(0,5),
+    signals:globalSignals,
     interpretation:interpretation.slice(0,4),
     change:{available:changes.length>0,note:changes.length?'Comparación contra el corte operacional inmediatamente anterior.':'Aún no hay dos cortes operacionales comparables.',items:changes},
-    source:'production_flow_daily_fidelity_v1 + production_metallurgy_deterministic_v2 + production_monthly_plans',
+    source:'production_flow_daily_fidelity_v1 + production_metallurgy_deterministic_v2 + production_monthly_plans + snapshots de jefaturas',
   };
 
-  return <PersonalPortalView data={portalData} eyebrow="Mi operación" description="Centro de control personal de Operaciones. Resume estado de la mina, desvíos y cambios relevantes sin reemplazar el detalle operacional."/>;
+  return <PersonalPortalView data={portalData} eyebrow="Mi operación" description="Centro de control personal de Operaciones. Resume el estado de la mina y las excepciones relevantes de las jefaturas, sin evaluar personas ni reemplazar el detalle operacional."/>;
 }
