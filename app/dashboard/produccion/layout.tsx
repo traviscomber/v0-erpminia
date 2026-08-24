@@ -27,7 +27,7 @@ export default function ProduccionLayout({ children }: { children: ReactNode }) 
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Operaciones mineras</p>
           <p className="mt-1 text-sm text-muted-foreground">Producción integra transporte, planta, metalurgia y disciplinas técnicas de soporte operacional.</p>
         </div>
-        <nav className="flex gap-2 overflow-x-auto pb-1 lg:flex-wrap lg:overflow-visible" aria-label="Navegación de Producción">
+        <nav className="flex gap-2 overflow-x-auto pb-1 lg:grid lg:grid-cols-4 lg:overflow-visible" aria-label="Navegación de Producción">
           {items.map((item) => {
             const Icon = item.icon;
             const active = item.href === '/dashboard/produccion'
@@ -39,7 +39,7 @@ export default function ProduccionLayout({ children }: { children: ReactNode }) 
                 href={item.href}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'inline-flex min-h-9 shrink-0 items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                  'inline-flex min-h-9 shrink-0 items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:w-full lg:justify-center',
                   active
                     ? 'border-primary bg-primary text-primary-foreground'
                     : 'border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground',

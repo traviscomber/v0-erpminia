@@ -65,7 +65,7 @@ export function ProduccionDashboard(){
       <PageHeaderActions><Button asChild variant="outline"><Link href="/dashboard/produccion/ingreso-datos"><Upload className="h-4 w-4"/>Ingresar datos</Link></Button></PageHeaderActions>
     </PageHeader>
 
-    <section className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 xl:grid-cols-6">
+    <section aria-label="Indicadores operacionales del período" className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 lg:grid-cols-3">
       <Metric icon={Factory} label="Tratado" value={p?tons(p.treatedTons,1):'—'} detail={plan?`${pct(plan.treatmentProgressPct)} del plan de mineral a planta`:'Sin plan activo'}/>
       <Metric icon={Target} label="Ritmo mensual" value={paceLabel} detail={plan?`Índice ${pct(plan.paceIndexPct)} · calendario ${pct(p?.calendarProgressPct)}`:'Sin comparación'}/>
       <Metric icon={Gauge} label="Ley cabeza Cu" value={pct(p?.avgHeadGradePct,3)} detail={plan?.targetCuGradePct!=null?`Objetivo ${pct(plan.targetCuGradePct,2)}`:'Sin objetivo'}/>
@@ -74,12 +74,10 @@ export function ProduccionDashboard(){
       <Metric icon={PackageCheck} label="Concentrado despachado" value={p?tons(p.dispatch.wetMetricTons,2):'—'} detail={p?`${p.dispatch.validShipmentRows} válidos · ${p.dispatch.reviewShipmentRows} revisión`:'—'}/>
     </section>
 
-    <CoverageOverview data={data}/>
-
     <section className="grid gap-4 xl:grid-cols-[1.35fr_0.65fr]">
       <div className="rounded-lg border bg-card">
         <div className="border-b px-5 py-4"><div className="flex items-center justify-between gap-4"><div><h2 className="font-medium">Plan vs ejecución</h2><p className="mt-1 text-xs text-muted-foreground">Comparación operacional usando tratamiento de Planta. Transporte conserva su propia ventana de fuente.</p></div>{plan?<span className="text-xs text-muted-foreground">{plan.code}</span>:null}</div></div>
-        <div className="grid gap-px bg-border md:grid-cols-4">
+        <div className="grid gap-px bg-border sm:grid-cols-2">
           <Mini label="Plan mineral a planta" value={plan?tons(plan.mineralToPlantTons):'—'} detail="Mes completo"/>
           <Mini label="Tratado acumulado" value={p?tons(p.treatedTons,1):'—'} detail={plan?`${pct(plan.treatmentProgressPct)} ejecutado`:'—'}/>
           <Mini label="Proyección simple" value={plan?.projectedTreatmentTons!=null?tons(plan.projectedTreatmentTons,0):'—'} detail={plan?.projectedPlanPct!=null?`${pct(plan.projectedPlanPct)} del plan`:'—'}/>
@@ -96,7 +94,7 @@ export function ProduccionDashboard(){
       </div>
     </section>
 
-    <section className="grid gap-4 lg:grid-cols-2">
+    <section className="grid gap-4 xl:grid-cols-[0.7fr_1.3fr]">
       <div className="rounded-lg border bg-card">
         <div className="border-b px-5 py-4"><h2 className="font-medium">Cobertura de transporte</h2><p className="mt-1 text-xs text-muted-foreground">Comparación sólo donde TM existe.</p></div>
         <div className="grid gap-px bg-border sm:grid-cols-3"><Mini label="Transportado" value={p?tons(p.transportComparable.transportedTons,1):'—'} detail={`Hasta ${date(p?.transportComparable.sourceThrough)}`}/><Mini label="Tratado comparable" value={p?tons(p.transportComparable.treatedTons,1):'—'} detail="Misma ventana"/><Mini label="Brecha comparable" value={p?tons(p.transportComparable.deltaTons,1):'—'} detail="No equivale a pérdida"/></div>
@@ -105,11 +103,13 @@ export function ProduccionDashboard(){
 
       <div className="rounded-lg border bg-card">
         <div className="border-b px-5 py-4"><h2 className="font-medium">Inteligencia operacional</h2><p className="mt-1 text-xs text-muted-foreground">Señales determinísticas; no son predicciones de ML.</p></div>
-        <div className="divide-y">{data.intelligence.length?data.intelligence.map(signal=><div key={signal.code} className="flex gap-3 px-5 py-4"><SignalIcon level={signal.level}/><div><p className="text-sm font-medium">{signal.title}</p><p className="mt-1 text-xs leading-5 text-muted-foreground">{signal.detail}</p></div></div>):<div className="px-5 py-5 text-sm text-muted-foreground">Sin señales para el período.</div>}</div>
+        <div className="divide-y">{data.intelligence.length?data.intelligence.map(signal=><div key={signal.code} className="flex gap-3 px-5 py-3.5"><SignalIcon level={signal.level}/><div><p className="text-sm font-medium">{signal.title}</p><p className="mt-1 text-xs leading-5 text-muted-foreground">{signal.detail}</p></div></div>):<div className="px-5 py-5 text-sm text-muted-foreground">Sin señales para el período.</div>}</div>
       </div>
     </section>
 
-    <section className="grid gap-px overflow-hidden rounded-lg border bg-border md:grid-cols-5">
+    <CoverageOverview data={data}/>
+
+    <section aria-label="Volumen histórico de evidencia" className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 lg:grid-cols-3">
       <Mini label="Movimientos" value={n(data.counts.materialMovements)} detail="Histórico"/>
       <Mini label="Turnos Planta" value={n(data.counts.plantShifts)} detail="Histórico"/>
       <Mini label="Metalurgia" value={n(data.counts.metallurgyResults)} detail="Resultados"/>
@@ -169,7 +169,7 @@ function CoverageOverview({data}:{data:Overview}){
       <div className="border-b px-5 py-4">
         <div className="flex items-center justify-between gap-4"><div><h3 className="font-medium">Trabajo pendiente sobre datos</h3><p className="mt-1 text-xs text-muted-foreground">Colas de revisión; pueden solaparse y no deben sumarse como un único total.</p></div><AlertTriangle className="size-4 text-muted-foreground"/></div>
       </div>
-      <div className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-3">
         {reviewItems.map(item=><Mini key={item.label} label={item.label} value={n(item.value)} detail={item.detail}/>) }
       </div>
     </div>

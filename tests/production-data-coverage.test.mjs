@@ -37,10 +37,18 @@ test('production dashboard prioritizes KPIs and keeps every desktop tab visible'
   ]);
 
   const kpiPosition = dashboard.indexOf('label="Tratado"');
+  const planPosition = dashboard.indexOf('Plan vs ejecución');
+  const intelligencePosition = dashboard.indexOf('Inteligencia operacional');
   const coveragePosition = dashboard.indexOf('<CoverageOverview data={data}/>');
 
-  assert.ok(kpiPosition >= 0 && coveragePosition > kpiPosition, 'KPIs must appear before the detailed coverage block');
-  assert.match(layout, /overflow-x-auto[^"]*lg:flex-wrap[^"]*lg:overflow-visible/);
+  assert.ok(
+    kpiPosition >= 0 && planPosition > kpiPosition && intelligencePosition > planPosition && coveragePosition > intelligencePosition,
+    'the executive sequence must be KPI, plan, intelligence, then detailed coverage',
+  );
+  assert.match(dashboard, /sm:grid-cols-2 lg:grid-cols-3/);
+  assert.doesNotMatch(dashboard, /grid-cols-[56]/, 'operational data groups must not exceed three columns');
+  assert.match(layout, /overflow-x-auto[^"]*lg:grid[^"]*lg:grid-cols-4[^"]*lg:overflow-visible/);
+  assert.match(layout, /lg:w-full lg:justify-center/);
 });
 
 test('production dashboard distinguishes operational, partial and missing-source areas', async () => {
