@@ -6,6 +6,10 @@ const migrationUrl = new URL(
   '../supabase/migrations/20260824001000_scope_production_quality_by_organization.sql',
   import.meta.url,
 );
+const geologySecurityMigrationUrl = new URL(
+  '../supabase/migrations/20260824013000_secure_production_geology_external_context.sql',
+  import.meta.url,
+);
 
 const backendViews = [
   'production_canonical_package_quality_v1',
@@ -55,5 +59,22 @@ test('source identity uniqueness includes organization ownership', async () => {
   assert.match(
     sql,
     /unique \(organization_id, source_file_sha256, source_sheet, source_row, record_type\);/,
+  );
+});
+
+test('external geology context is backend-only', async () => {
+  const sql = await readFile(geologySecurityMigrationUrl, 'utf8');
+
+  assert.match(
+    sql,
+    /alter table public\.production_geology_external_context enable row level security;/,
+  );
+  assert.match(
+    sql,
+    /revoke all on table public\.production_geology_external_context\s+from public, anon, authenticated;/,
+  );
+  assert.match(
+    sql,
+    /grant select, insert, update, delete\s+on table public\.production_geology_external_context\s+to service_role;/,
   );
 });
