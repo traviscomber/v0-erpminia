@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { createHash } from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
+import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
 
 type SourceBound = {
   source_file: string;
@@ -112,6 +113,9 @@ function dispatchHash(plantSourceHash: string) {
 }
 
 export async function POST(request: NextRequest) {
+  const access = await requireModuleAccess(request, MODULE_KEYS.PROD_OPERACIONES, true);
+  if (!access.authorized) return access.response;
+
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
 
