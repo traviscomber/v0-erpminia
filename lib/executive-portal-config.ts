@@ -32,9 +32,9 @@ const portals: ExecutivePortalConfig[] = [
   {
     key: 'sustainability',
     label: 'Mi área',
-    title: 'Mi sostenibilidad',
-    areaPath: '/dashboard/sostenibilidad',
-    actionLabel: 'Abrir sostenibilidad',
+    title: 'Mi HSE',
+    areaPath: '/dashboard/sostenibilidad/prevencion-riesgos',
+    actionLabel: 'Abrir HSE',
     allowedRoles: ['jefe sostenibilidad', 'jefe_sostenibilidad'],
     allowedCargos: ['JEFE SOSTENIBILIDAD'],
   },
