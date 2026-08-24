@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
+import { allQualityChecksPass } from '@/lib/production/quality-status.mjs';
 
 export async function GET(request: NextRequest) {
   const access = await requireModuleAccess(request, MODULE_KEYS.PROD_OPERACIONES);
@@ -56,7 +57,7 @@ export async function GET(request: NextRequest) {
     fidelityRows.map((row) => [row.check_key, Number(row.actual_value ?? 0)]),
   );
 
-  const fidelityPass = fidelityRows.every((row) => row.status === 'PASS');
+  const fidelityPass = allQualityChecksPass(fidelityRows);
   const sourceExceptions = exceptions.data || [];
 
   return NextResponse.json({

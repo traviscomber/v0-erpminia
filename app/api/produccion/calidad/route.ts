@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
+import { allQualityChecksPass } from '@/lib/production/quality-status.mjs';
 
 export async function GET(request: NextRequest) {
   const access = await requireModuleAccess(request, MODULE_KEYS.PROD_OPERACIONES);
@@ -47,8 +48,8 @@ export async function GET(request: NextRequest) {
       return acc;
     }, {});
 
-  const masterPass = qualityRows.length > 0 && qualityRows.every((row) => row.status === 'PASS');
-  const coveragePass = sheetRows.length > 0 && sheetRows.every((row) => row.status === 'PASS');
+  const masterPass = allQualityChecksPass(qualityRows);
+  const coveragePass = allQualityChecksPass(sheetRows);
 
   return NextResponse.json({
     status: masterPass && coveragePass ? 'PASS' : 'HOLD',

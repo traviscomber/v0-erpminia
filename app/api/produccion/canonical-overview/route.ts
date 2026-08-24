@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
+import { allQualityChecksPass } from '@/lib/production/quality-status.mjs';
 
 const num = (value: unknown) => Number(value || 0);
 
@@ -170,7 +171,7 @@ export async function GET(request: NextRequest) {
       drillingHoles: num(drillingSummary?.holes),
     },
     quality: {
-      status: qualityRows.length > 0 && qualityHold === 0 ? 'PASS' : 'HOLD',
+      status: allQualityChecksPass(qualityRows) ? 'PASS' : 'HOLD',
       pass: qualityPass,
       hold: qualityHold,
       checks: qualityRows,

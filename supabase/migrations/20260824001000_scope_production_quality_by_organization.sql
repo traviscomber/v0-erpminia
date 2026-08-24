@@ -293,16 +293,103 @@ select check_key, expected_value, actual_value,
        organization_id
 from checks;
 
-revoke all on public.production_transport_identity_quality_v1 from public, anon, authenticated;
-revoke all on public.production_source_sheet_coverage_quality_v1 from public, anon, authenticated;
-revoke all on public.production_flow_fidelity_quality_v1 from public, anon, authenticated;
-revoke all on public.production_concentrate_fidelity_quality_v1 from public, anon, authenticated;
-revoke all on public.production_chemistry_lineage_quality_v1 from public, anon, authenticated;
-revoke all on public.production_master_normalization_quality_v1 from public, anon, authenticated;
+-- Every production view introduced by this release is backend-only. Keep the
+-- view execution model aligned with the caller and remove Data API access.
+alter view public.production_canonical_package_quality_v1 set (security_invoker = true);
+alter view public.production_chemistry_fidelity_quality_v1 set (security_invoker = true);
+alter view public.production_chemistry_lineage_quality_v1 set (security_invoker = true);
+alter view public.production_chemistry_lineage_v1 set (security_invoker = true);
+alter view public.production_chemistry_mine_intelligence_v1 set (security_invoker = true);
+alter view public.production_chemistry_sector_source_summary_v1 set (security_invoker = true);
+alter view public.production_chemistry_source_quality_v1 set (security_invoker = true);
+alter view public.production_concentrate_fidelity_quality_v1 set (security_invoker = true);
+alter view public.production_copper_plan_v1 set (security_invoker = true);
+alter view public.production_drill_hole_location_resolution_v1 set (security_invoker = true);
+alter view public.production_drill_hole_location_review_queue_v1 set (security_invoker = true);
+alter view public.production_drilling_reconciliation_v1 set (security_invoker = true);
+alter view public.production_drilling_source_fidelity_v1 set (security_invoker = true);
+alter view public.production_fine_copper_daily_v1 set (security_invoker = true);
+alter view public.production_fine_copper_v1 set (security_invoker = true);
+alter view public.production_fine_flow_daily_v1 set (security_invoker = true);
+alter view public.production_flow_daily_fidelity_v1 set (security_invoker = true);
+alter view public.production_flow_fidelity_quality_v1 set (security_invoker = true);
+alter view public.production_geology_context_quality_v1 set (security_invoker = true);
+alter view public.production_master_normalization_quality_v1 set (security_invoker = true);
+alter view public.production_mine_sector_resolution_v1 set (security_invoker = true);
+alter view public.production_normalization_exceptions_v1 set (security_invoker = true);
+alter view public.production_source_fidelity_exceptions_v1 set (security_invoker = true);
+alter view public.production_source_sheet_coverage_quality_v1 set (security_invoker = true);
+alter view public.production_transport_identity_quality_v1 set (security_invoker = true);
+alter view public.production_transport_identity_resolution_v1 set (security_invoker = true);
 
-grant select on public.production_transport_identity_quality_v1 to service_role;
-grant select on public.production_source_sheet_coverage_quality_v1 to service_role;
-grant select on public.production_flow_fidelity_quality_v1 to service_role;
-grant select on public.production_concentrate_fidelity_quality_v1 to service_role;
-grant select on public.production_chemistry_lineage_quality_v1 to service_role;
-grant select on public.production_master_normalization_quality_v1 to service_role;
+revoke all on
+  public.production_canonical_package_quality_v1,
+  public.production_chemistry_fidelity_quality_v1,
+  public.production_chemistry_lineage_quality_v1,
+  public.production_chemistry_lineage_v1,
+  public.production_chemistry_mine_intelligence_v1,
+  public.production_chemistry_sector_source_summary_v1,
+  public.production_chemistry_source_quality_v1,
+  public.production_concentrate_fidelity_quality_v1,
+  public.production_copper_plan_v1,
+  public.production_drill_hole_location_resolution_v1,
+  public.production_drill_hole_location_review_queue_v1,
+  public.production_drilling_reconciliation_v1,
+  public.production_drilling_source_fidelity_v1,
+  public.production_fine_copper_daily_v1,
+  public.production_fine_copper_v1,
+  public.production_fine_flow_daily_v1,
+  public.production_flow_daily_fidelity_v1,
+  public.production_flow_fidelity_quality_v1,
+  public.production_geology_context_quality_v1,
+  public.production_master_normalization_quality_v1,
+  public.production_mine_sector_resolution_v1,
+  public.production_normalization_exceptions_v1,
+  public.production_source_fidelity_exceptions_v1,
+  public.production_source_sheet_coverage_quality_v1,
+  public.production_transport_identity_quality_v1,
+  public.production_transport_identity_resolution_v1
+from public, anon, authenticated;
+
+grant select on
+  public.production_canonical_package_quality_v1,
+  public.production_chemistry_fidelity_quality_v1,
+  public.production_chemistry_lineage_quality_v1,
+  public.production_chemistry_lineage_v1,
+  public.production_chemistry_mine_intelligence_v1,
+  public.production_chemistry_sector_source_summary_v1,
+  public.production_chemistry_source_quality_v1,
+  public.production_concentrate_fidelity_quality_v1,
+  public.production_copper_plan_v1,
+  public.production_drill_hole_location_resolution_v1,
+  public.production_drill_hole_location_review_queue_v1,
+  public.production_drilling_reconciliation_v1,
+  public.production_drilling_source_fidelity_v1,
+  public.production_fine_copper_daily_v1,
+  public.production_fine_copper_v1,
+  public.production_fine_flow_daily_v1,
+  public.production_flow_daily_fidelity_v1,
+  public.production_flow_fidelity_quality_v1,
+  public.production_geology_context_quality_v1,
+  public.production_master_normalization_quality_v1,
+  public.production_mine_sector_resolution_v1,
+  public.production_normalization_exceptions_v1,
+  public.production_source_fidelity_exceptions_v1,
+  public.production_source_sheet_coverage_quality_v1,
+  public.production_transport_identity_quality_v1,
+  public.production_transport_identity_resolution_v1
+to service_role;
+
+-- Source identity is tenant-owned. The same fingerprint and row coordinates
+-- can legitimately exist in two organizations without colliding.
+alter table public.production_source_sheet_registry
+  drop constraint if exists production_source_sheet_regis_source_file_sha256_source_she_key;
+alter table public.production_source_sheet_registry
+  add constraint production_source_sheet_registry_org_source_key
+  unique (organization_id, source_file_sha256, source_sheet);
+
+alter table public.production_source_normalized_records
+  drop constraint if exists production_source_normalized__source_file_sha256_source_she_key;
+alter table public.production_source_normalized_records
+  add constraint production_source_normalized_records_org_source_key
+  unique (organization_id, source_file_sha256, source_sheet, source_row, record_type);
