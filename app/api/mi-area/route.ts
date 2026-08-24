@@ -6,12 +6,31 @@ import { getExecutivePortalForIdentity } from '@/lib/executive-portal-config';
 import { GET as getProductionOverview } from '@/app/api/produccion/canonical-overview/route';
 
 function num(value: unknown) {
-  return Number(value || 0);
+  if (value === null || value === undefined || value === '') return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function pct(value: unknown, digits = 1) {
-  const parsed = value === null || value === undefined ? null : Number(value);
-  return parsed === null || Number.isNaN(parsed) ? '—' : `${parsed.toLocaleString('es-CL', { maximumFractionDigits: digits })}%`;
+  const parsed = num(value);
+  return parsed == null ? '—' : `${parsed.toLocaleString('es-CL', { maximumFractionDigits: digits })}%`;
+}
+
+function formatNumber(value: number | null, digits = 1) {
+  return value == null ? '—' : value.toLocaleString('es-CL', { maximumFractionDigits: digits });
+}
+
+function formatCurrency(value: number | null) {
+  return value == null
+    ? '—'
+    : new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(value);
+}
+
+function completeSum(rows: any[], key: string) {
+  if (!rows.length) return 0;
+  const values = rows.map((row) => num(row[key]));
+  if (values.some((value) => value == null)) return null;
+  return (values as number[]).reduce((sum, value) => sum + value, 0);
 }
 
 export async function GET(request: NextRequest) {
@@ -56,12 +75,16 @@ export async function GET(request: NextRequest) {
     const alerts = intelligence.filter((item: any) => item.level === 'alert');
     const watches = intelligence.filter((item: any) => item.level === 'watch');
     const qualityHold = num(production.quality?.hold);
+    const qualityPass = num(production.quality?.pass);
 
-    const changes = latest && previous ? [
+    const candidateChanges = latest && previous ? [
       { label: 'Tratamiento diario', current: num(latest.treated_wet_t), previous: num(previous.treated_wet_t), unit: 't' },
       { label: 'Cu fino recuperado', current: num(latest.recovered_fine_cu_t), previous: num(previous.recovered_fine_cu_t), unit: 't' },
       { label: 'Concentrado despachado', current: num(latest.dispatched_concentrate_t), previous: num(previous.dispatched_concentrate_t), unit: 't' },
     ] : [];
+    const changes = candidateChanges
+      .filter((item) => item.current != null && item.previous != null)
+      .map((item) => ({ ...item, current: item.current as number, previous: item.previous as number }));
 
     const interpretation = [
       plan?.paceIndexPct != null ? (
@@ -78,24 +101,27 @@ export async function GET(request: NextRequest) {
             ? { level: 'watch', title: 'La ley de cabeza está bajo objetivo', detail: `Brecha de ${Math.abs(Number(plan.gradeDeltaPctPoints)).toLocaleString('es-CL', { maximumFractionDigits: 3 })} pp bajo el objetivo.` }
             : { level: 'info', title: 'La ley de cabeza está en o sobre objetivo', detail: 'La ley ponderada no muestra brecha negativa contra el objetivo activo.' }
       ) : null,
-      qualityHold > 0 ? { level: 'watch', title: 'Hay evidencia pendiente de revisión', detail: `${qualityHold} chequeo(s) de calidad permanecen en HOLD; los vacíos no se interpretan como cero.` } : null,
+      qualityHold != null && qualityHold > 0 ? { level: 'watch', title: 'Hay evidencia pendiente de revisión', detail: `${qualityHold} chequeo(s) de calidad permanecen en HOLD; los vacíos no se interpretan como cero.` } : null,
     ].filter(Boolean).slice(0, 4);
+
+    const treatedTons = num(current?.treatedTons);
+    const qualityLabel = qualityPass == null || qualityHold == null ? '—' : `${qualityPass} PASS · ${qualityHold} HOLD`;
 
     return NextResponse.json({
       portal,
       user: { id: context.userId, name: context.userName, role: context.role, cargo: cargoName },
-      status: alerts.length || qualityHold ? 'attention' : watches.length ? 'watch' : 'stable',
+      status: alerts.length || (qualityHold != null && qualityHold > 0) ? 'attention' : watches.length ? 'watch' : 'stable',
       metrics: [
-        { label: 'Tratado', value: current ? `${num(current.treatedTons).toLocaleString('es-CL', { maximumFractionDigits: 1 })} t` : '—' },
+        { label: 'Tratado', value: treatedTons == null ? '—' : `${formatNumber(treatedTons)} t` },
         { label: 'Ritmo', value: plan?.paceIndexPct == null ? '—' : Number(plan.paceIndexPct) >= 97 ? 'En ritmo' : Number(plan.paceIndexPct) >= 90 ? 'Leve desvío' : 'Bajo ritmo' },
         { label: 'Avance plan', value: pct(plan?.treatmentProgressPct) },
         { label: 'Ley cabeza Cu', value: pct(current?.avgHeadGradePct, 3) },
         { label: 'Recuperación', value: pct(current?.avgRecoveryPct, 2) },
-        { label: 'Calidad', value: `${num(production.quality?.pass)} PASS · ${qualityHold} HOLD` },
+        { label: 'Calidad', value: qualityLabel },
       ],
       signals: [...alerts, ...watches].slice(0, 5),
       interpretation,
-      change: { available: changes.length > 0, note: changes.length ? 'Comparación contra el corte operacional inmediatamente anterior.' : 'Aún no hay dos cortes operacionales comparables.', items: changes },
+      change: { available: changes.length > 0, note: changes.length ? 'Comparación contra el corte operacional inmediatamente anterior sólo para métricas presentes en ambos cortes.' : 'Aún no hay dos cortes operacionales comparables con valores presentes.', items: changes },
       source: 'production_flow_daily_fidelity_v1 + production_metallurgy_deterministic_v2 + production_monthly_plans',
     });
   }
@@ -133,7 +159,7 @@ export async function GET(request: NextRequest) {
       correctiveActions = data || [];
     }
 
-    const today = new Date().toISOString().slice(0, 10);
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Santiago', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
     const openActions = correctiveActions.filter((row) => !['cerrada', 'closed', 'completada', 'completed'].includes(String(row.status || '').toLowerCase()));
     const overdueActions = openActions.filter((row) => row.scheduled_completion_date && row.scheduled_completion_date < today);
     const kpiValue = (key: string) => num(kpiMap.get(key)?.measured_value);
@@ -147,20 +173,20 @@ export async function GET(request: NextRequest) {
     const signals = [
       highNc.length ? { level: 'alert', code: 'high_nonconformances', title: 'No conformidades de alta severidad abiertas', detail: `${highNc.length} no conformidad(es) alta/crítica permanecen abiertas.` } : null,
       overdueActions.length ? { level: 'alert', code: 'overdue_corrective_actions', title: 'Acciones correctivas vencidas', detail: `${overdueActions.length} acción(es) correctiva(s) siguen abiertas después de su fecha comprometida.` } : null,
-      overdueRiskReviews > 0 ? { level: 'watch', code: 'risk_review_overdue', title: 'Revisiones de riesgo vencidas', detail: `${overdueRiskReviews.toLocaleString('es-CL')} riesgo(s) requieren actualización de revisión.` } : null,
-      injuries > 0 ? { level: 'watch', code: 'incident_injuries', title: 'Hay lesiones registradas en la evidencia', detail: `${injuries.toLocaleString('es-CL')} lesión(es) aparecen en el corte HSE actual.` } : null,
-      inspectionCompletion > 0 && inspectionCompletion < 100 ? { level: 'watch', code: 'inspection_completion', title: 'Inspecciones aún no completan cobertura total', detail: `Cumplimiento observado: ${pct(inspectionCompletion)}.` } : null,
+      overdueRiskReviews != null && overdueRiskReviews > 0 ? { level: 'watch', code: 'risk_review_overdue', title: 'Revisiones de riesgo vencidas', detail: `${overdueRiskReviews.toLocaleString('es-CL')} riesgo(s) requieren actualización de revisión.` } : null,
+      injuries != null && injuries > 0 ? { level: 'watch', code: 'incident_injuries', title: 'Hay lesiones registradas en la evidencia', detail: `${injuries.toLocaleString('es-CL')} lesión(es) aparecen en el corte HSE actual.` } : null,
+      inspectionCompletion != null && inspectionCompletion < 100 ? { level: 'watch', code: 'inspection_completion', title: 'Inspecciones aún no completan cobertura total', detail: `Cumplimiento observado: ${pct(inspectionCompletion)}.` } : null,
     ].filter(Boolean) as Array<{ level: 'info' | 'watch' | 'alert'; code: string; title: string; detail: string }>;
 
     const interpretation = [
       highNc.length || overdueActions.length
         ? { level: 'alert', title: 'La prioridad es cerrar excepciones vencidas o severas', detail: `${highNc.length} NC alta/crítica y ${overdueActions.length} acción(es) correctiva(s) vencida(s) requieren seguimiento.` }
         : { level: 'info', title: 'No hay excepciones severas vencidas en la evidencia consultada', detail: 'No se detectan NC alta/crítica abiertas ni acciones correctivas vencidas.' },
-      overdueRiskReviews > 0
+      overdueRiskReviews != null && overdueRiskReviews > 0
         ? { level: 'watch', title: 'La matriz de riesgos requiere actualización', detail: `${overdueRiskReviews.toLocaleString('es-CL')} revisión(es) están vencidas.` }
         : null,
-      inspectionCompletion > 0
-        ? { level: inspectionCompletion >= 95 ? 'info' : 'watch', title: 'Cobertura de inspecciones', detail: `Inspecciones completadas: ${pct(inspectionCompletion)}; hallazgos observados: ${findings.toLocaleString('es-CL')}.` }
+      inspectionCompletion != null
+        ? { level: inspectionCompletion >= 95 ? 'info' : 'watch', title: 'Cobertura de inspecciones', detail: `Inspecciones completadas: ${pct(inspectionCompletion)}; hallazgos observados: ${formatNumber(findings, 0)}.` }
         : null,
     ].filter(Boolean).slice(0, 4);
 
@@ -171,10 +197,10 @@ export async function GET(request: NextRequest) {
       metrics: [
         { label: 'NC abiertas', value: String(openNc.length) },
         { label: 'Acciones vencidas', value: String(overdueActions.length) },
-        { label: 'Inspecciones', value: inspectionCompletion ? pct(inspectionCompletion) : '—' },
-        { label: 'Lesiones', value: String(injuries) },
-        { label: 'Riesgo residual', value: residualRisk ? residualRisk.toLocaleString('es-CL', { maximumFractionDigits: 2 }) : '—' },
-        { label: 'Incidentes abiertos', value: openIncidentRate ? pct(openIncidentRate) : '—' },
+        { label: 'Inspecciones', value: pct(inspectionCompletion) },
+        { label: 'Lesiones', value: formatNumber(injuries, 0) },
+        { label: 'Riesgo residual', value: formatNumber(residualRisk, 2) },
+        { label: 'Incidentes abiertos', value: pct(openIncidentRate) },
       ],
       signals: signals.slice(0, 5),
       interpretation,
@@ -206,8 +232,8 @@ export async function GET(request: NextRequest) {
   const missingOwner = active.filter((row) => row.flow_status === 'missing_person');
   const missingAsset = active.filter((row) => row.flow_status === 'missing_asset');
   const critical = active.filter((row) => ['critical', 'critica', 'crítica'].includes(String(row.priority || '').toLowerCase()));
-  const totalCost = rows.reduce((sum, row) => sum + Number(row.total_cost || 0), 0);
-  const purchaseCommitment = rows.reduce((sum, row) => sum + Number(row.purchase_commitment || 0), 0);
+  const totalCost = completeSum(rows, 'total_cost');
+  const purchaseCommitment = completeSum(rows, 'purchase_commitment');
 
   const signals = [
     critical.length ? { level: 'alert', code: 'critical_work_orders', title: 'Órdenes críticas abiertas', detail: `${critical.length} orden(es) crítica(s) siguen abiertas.` } : null,
@@ -226,8 +252,8 @@ export async function GET(request: NextRequest) {
       { label: 'OT críticas', value: String(critical.length) },
       { label: 'Esperando abastecimiento', value: String(waitingProcurement.length + waitingParts.length) },
       { label: 'Sin responsable', value: String(missingOwner.length) },
-      { label: 'Costo ejecutado', value: new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(totalCost) },
-      { label: 'Compras comprometidas', value: new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(purchaseCommitment) },
+      { label: 'Costo ejecutado', value: formatCurrency(totalCost) },
+      { label: 'Compras comprometidas', value: formatCurrency(purchaseCommitment) },
     ],
     signals: signals.slice(0, 5),
     interpretation: [
