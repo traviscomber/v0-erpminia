@@ -1,0 +1,11 @@
+alter view public.asset_duplicate_identity_candidates_v1 set (security_invoker = true);
+alter view public.asset_identity_merge_plan_v1 set (security_invoker = true);
+alter view public.asset_identity_unified_preview_v1 set (security_invoker = true);
+alter view public.finance_maintenance_asset_reconciliation_v1 set (security_invoker = true);
+alter view public.asset_operational_state_v1 set (security_invoker = true);
+alter view public.asset_availability_daily_v1 set (security_invoker = true);
+alter view public.drill_asset_unit_economics_monthly_v1 set (security_invoker = true);
+alter view public.drill_asset_unit_economics_90d_v1 set (security_invoker = true);
+alter view public.drill_asset_unit_economics_change_v1 set (security_invoker = true);
+alter view public.drill_asset_operational_evidence_90d_v1 set (security_invoker = true);
+alter view public.drilling_maintenance_review_queue_v1 set (security_invoker = true);
