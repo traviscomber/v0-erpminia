@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
   if (!productionResponse.ok) return productionResponse;
   const production = await productionResponse.json();
 
-  const [warehouseResult, hseResult, maintenanceResult, adminResult, drillingResult, warehouseMissingMinimumResult, hseNcResult] = await Promise.all([
+  const [warehouseResult, hseResult, maintenanceResult, adminResult, drillingResult, warehouseMissingMinimumResult, hseNcResult, productionFlowResult] = await Promise.all([
     supabase
       .from('inventory_geology_role_kpi_snapshot_v1')
       .select('kpi_key,measured_value')
@@ -114,9 +114,13 @@ export async function GET(request: NextRequest) {
       .from('sostenibilidad_nonconformances')
       .select('id,status,severity')
       .eq('organization_id', profile.organization_id),
+    supabase
+      .from('production_flow_daily_fidelity_v1')
+      .select('review_shipment_rows,valid_shipment_rows,shipment_rows')
+      .eq('organization_id', profile.organization_id),
   ]);
 
-  const firstError = [warehouseResult, hseResult, maintenanceResult, adminResult, drillingResult, warehouseMissingMinimumResult, hseNcResult]
+  const firstError = [warehouseResult, hseResult, maintenanceResult, adminResult, drillingResult, warehouseMissingMinimumResult, hseNcResult, productionFlowResult]
     .find((result) => result.error)?.error;
   if (firstError) return NextResponse.json({ error: firstError.message }, { status: 500 });
 
@@ -163,6 +167,8 @@ export async function GET(request: NextRequest) {
   const ncWithoutOpenAction = openNc.filter((nc) => !openCorrectiveActions.some((action) => action.nc_id === nc.id)).length;
   const actionsWithoutOwner = openCorrectiveActions.filter((action) => !String(action.responsible_person_name || '').trim()).length;
   const actionsWithoutDate = openCorrectiveActions.filter((action) => !action.scheduled_completion_date).length;
+  const productionReviewRows = (productionFlowResult.data || []).reduce((sum, row) => sum + (n(row.review_shipment_rows) ?? 0), 0);
+  const productionShipmentRows = (productionFlowResult.data || []).reduce((sum, row) => sum + (n(row.shipment_rows) ?? 0), 0);
 
   const areaPriorities = [
     lowStock != null && lowStock > 0
@@ -208,6 +214,17 @@ export async function GET(request: NextRequest) {
           title: 'OT esperando disponibilidad de repuesto',
           detail: `${waitingParts} OT dependen de disponibilidad o entrega de repuestos registrada en el flujo canónico.`,
           evidenceCount: waitingParts,
+        }
+      : null,
+    productionReviewRows > 0
+      ? {
+          code: 'production_to_validation',
+          from: 'Producción',
+          to: 'Validación',
+          status: 'waiting' as const,
+          title: 'Despachos pendientes de validación',
+          detail: `${productionReviewRows.toLocaleString('es-CL')} de ${productionShipmentRows.toLocaleString('es-CL')} registro(s) de despacho permanecen en revisión antes de considerarse evidencia validada.`,
+          evidenceCount: productionReviewRows,
         }
       : null,
     ncWithoutOpenAction > 0
