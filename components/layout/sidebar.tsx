@@ -11,12 +11,13 @@ import { useAuth } from '@/hooks/use-auth';
 import { useModuleAccess } from '@/hooks/use-module-access';
 import { hasExecutiveAreaPortal } from '@/lib/executive-portal-config';
 
-type MenuItem = { label: string; href: string; icon: LucideIcon; group: string; moduleKey?: string; roles?: string[]; pedroOnly?: boolean; miAreaOnly?: boolean };
+type MenuItem = { label: string; href: string; icon: LucideIcon; group: string; moduleKey?: string; roles?: string[]; pedroOnly?: boolean; danielOnly?: boolean; miAreaOnly?: boolean };
 const operationalRoles = ['superadmin','admin','manager','supervisor','Operaciones-Supervisor','Sostenibilidad-Supervisor','HSE-Supervisor','Bodega-Supervisor','Compras-Supervisor','jefe_mantencion','jefe_planta','jefe_produccion'];
 const allStandardRoles = ['superadmin','admin','manager','supervisor','viewer','jefe_mantencion','jefe_planta','jefe_produccion','Operaciones-Supervisor','Finanzas-Supervisor','Bodega-Supervisor','Compras-Supervisor','Sostenibilidad-Supervisor','HSE-Supervisor'];
 const menuItems: MenuItem[] = [
   { label:'Inicio',href:'/dashboard',icon:Home,group:'Principal',roles:allStandardRoles },
   { label:'Mi operación',href:'/dashboard/mi-operacion',icon:Gauge,group:'Principal',pedroOnly:true },
+  { label:'Mi finanzas',href:'/dashboard/mi-finanzas',icon:CircleDollarSign,group:'Principal',danielOnly:true },
   { label:'Mi área',href:'/dashboard/mi-area',icon:Gauge,group:'Principal',miAreaOnly:true },
   { label:'Gestión diaria',href:'/dashboard/daily-management',icon:Activity,group:'Principal',roles:operationalRoles },
   { label:'Producción',href:'/dashboard/produccion',icon:Zap,group:'Áreas',moduleKey:'prod_operaciones',roles:['superadmin','admin','Operaciones-Supervisor','jefe_mantencion','jefe_planta','jefe_produccion'] },
@@ -40,8 +41,9 @@ export function Sidebar(){
   const pathname=usePathname(); const router=useRouter(); const {role,user,logout}=useAuth(); const {enforced,canView}=useModuleAccess();
   const [isOpen,setIsOpen]=useState(false); const [expandedGroups,setExpandedGroups]=useState<Record<string,boolean>>({Principal:true,Áreas:true});
   const isPedro=user?.email?.toLowerCase()==='pedrozegers@lapatagua.cl';
+  const isDaniel=user?.email?.toLowerCase()==='danielvillarroel@lapatagua.cl';
   const hasMiArea=hasExecutiveAreaPortal(role,user?.cargo);
-  const filteredItems=useMemo(()=>{if(!role)return[];return menuItems.filter((item)=>{if(item.pedroOnly&&!isPedro)return false;if(item.miAreaOnly&&!hasMiArea)return false;const roleAllowed=role==='superadmin'||role==='admin'||(role==='gerente_operaciones'&&item.group!=='Administración')||!item.roles||item.roles.includes(role);if(!roleAllowed)return false;if(!enforced||!item.moduleKey)return true;return canView(item.moduleKey)})},[role,isPedro,hasMiArea,enforced,canView]);
+  const filteredItems=useMemo(()=>{if(!role)return[];return menuItems.filter((item)=>{if(item.pedroOnly&&!isPedro)return false;if(item.danielOnly&&!isDaniel)return false;if(item.miAreaOnly&&!hasMiArea)return false;const roleAllowed=role==='superadmin'||role==='admin'||(role==='gerente_operaciones'&&item.group!=='Administración')||!item.roles||item.roles.includes(role);if(!roleAllowed)return false;if(!enforced||!item.moduleKey)return true;return canView(item.moduleKey)})},[role,isPedro,isDaniel,hasMiArea,enforced,canView]);
   const activeGroup=useMemo(()=>filteredItems.find((item)=>isItemActive(pathname,item.href))?.group,[filteredItems,pathname]);
   useEffect(()=>{if(activeGroup)setExpandedGroups((current)=>({...current,[activeGroup]:true}))},[activeGroup]);
   const navigate=(href:string)=>{router.push(href);setIsOpen(false)};
