@@ -49,6 +49,10 @@ function count(value: number | null) {
   return value == null ? '—' : value.toLocaleString('es-CL');
 }
 
+function isClosed(status: unknown) {
+  return ['cerrada', 'closed', 'completada', 'completed'].includes(String(status || '').toLowerCase());
+}
+
 export async function GET(request: NextRequest) {
   const auth = await resolveAuthContext(request);
   if (!auth?.user) {
@@ -73,7 +77,7 @@ export async function GET(request: NextRequest) {
   if (!productionResponse.ok) return productionResponse;
   const production = await productionResponse.json();
 
-  const [warehouseResult, hseResult, maintenanceResult, adminResult, drillingResult, warehouseMissingMinimumResult] = await Promise.all([
+  const [warehouseResult, hseResult, maintenanceResult, adminResult, drillingResult, warehouseMissingMinimumResult, hseNcResult] = await Promise.all([
     supabase
       .from('inventory_geology_role_kpi_snapshot_v1')
       .select('kpi_key,measured_value')
@@ -106,9 +110,13 @@ export async function GET(request: NextRequest) {
       .eq('organization_id', profile.organization_id)
       .eq('is_active', true)
       .lte('min_stock', 0),
+    supabase
+      .from('sostenibilidad_nonconformances')
+      .select('id,status,severity')
+      .eq('organization_id', profile.organization_id),
   ]);
 
-  const firstError = [warehouseResult, hseResult, maintenanceResult, adminResult, drillingResult, warehouseMissingMinimumResult]
+  const firstError = [warehouseResult, hseResult, maintenanceResult, adminResult, drillingResult, warehouseMissingMinimumResult, hseNcResult]
     .find((result) => result.error)?.error;
   if (firstError) return NextResponse.json({ error: firstError.message }, { status: 500 });
 
@@ -127,6 +135,18 @@ export async function GET(request: NextRequest) {
   const admin = mapRows(adminResult.data);
   const drilling = mapRows(drillingResult.data);
   const maintenance = maintenanceResult.data || [];
+  const openNc = (hseNcResult.data || []).filter((row) => !isClosed(row.status));
+  const openNcIds = openNc.map((row) => row.id);
+
+  let openCorrectiveActions: Array<{ id: string; nc_id: string; status: string | null; responsible_person_name: string | null; scheduled_completion_date: string | null }> = [];
+  if (openNcIds.length) {
+    const { data, error: actionsError } = await supabase
+      .from('sostenibilidad_corrective_actions')
+      .select('id,nc_id,status,responsible_person_name,scheduled_completion_date')
+      .in('nc_id', openNcIds);
+    if (actionsError) return NextResponse.json({ error: actionsError.message }, { status: 500 });
+    openCorrectiveActions = (data || []).filter((row) => !isClosed(row.status));
+  }
 
   const lowStock = warehouse.get('low_stock_items') ?? null;
   const overdueRisks = hse.get('risk_review_overdue') ?? null;
@@ -140,6 +160,9 @@ export async function GET(request: NextRequest) {
   const waitingProcurement = maintenance.filter((row) => row.flow_status === 'waiting_procurement').length;
   const waitingParts = maintenance.filter((row) => row.flow_status === 'waiting_parts').length;
   const warehouseMissingMinimum = warehouseMissingMinimumResult.count ?? 0;
+  const ncWithoutOpenAction = openNc.filter((nc) => !openCorrectiveActions.some((action) => action.nc_id === nc.id)).length;
+  const actionsWithoutOwner = openCorrectiveActions.filter((action) => !String(action.responsible_person_name || '').trim()).length;
+  const actionsWithoutDate = openCorrectiveActions.filter((action) => !action.scheduled_completion_date).length;
 
   const areaPriorities = [
     lowStock != null && lowStock > 0
@@ -187,6 +210,28 @@ export async function GET(request: NextRequest) {
           evidenceCount: waitingParts,
         }
       : null,
+    ncWithoutOpenAction > 0
+      ? {
+          code: 'hse_nc_to_corrective_action',
+          from: 'HSE',
+          to: 'Acción correctiva',
+          status: 'blocked' as const,
+          title: 'NC abiertas sin acción correctiva activa',
+          detail: `${ncWithoutOpenAction} no conformidad(es) abierta(s) aún no tienen una acción correctiva abierta asociada en la evidencia canónica.`,
+          evidenceCount: ncWithoutOpenAction,
+        }
+      : null,
+    actionsWithoutOwner + actionsWithoutDate > 0
+      ? {
+          code: 'hse_action_to_responsible',
+          from: 'Acción HSE',
+          to: 'Responsable',
+          status: 'waiting' as const,
+          title: 'Acciones HSE incompletas para seguimiento',
+          detail: `${actionsWithoutOwner} sin responsable · ${actionsWithoutDate} sin fecha comprometida.`,
+          evidenceCount: Math.max(actionsWithoutOwner, actionsWithoutDate),
+        }
+      : null,
   ].filter(Boolean) as OperatingChain[];
 
   const dataQuality = [
@@ -211,7 +256,7 @@ export async function GET(request: NextRequest) {
     ...production,
     areaPriorities: areaPriorities.slice(0, 5),
     blockers,
-    operatingChains,
+    operatingChains: operatingChains.slice(0, 6),
     dataQuality: dataQuality.slice(0, 5),
   });
 }
