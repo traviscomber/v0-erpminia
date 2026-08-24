@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
 
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
-      .select('id, email, full_name, password_hash, organization_id, role')
+      .select('id, email, full_name, password_hash, organization_id, role, cargo_id')
       .eq('email', email)
       .limit(1);
 
@@ -48,16 +48,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
     }
 
-    const { data: roleRows } = await supabase
-      .from('user_roles')
-      .select('role, organization_id')
-      .eq('user_id', profile.id)
-      .order('created_at', { ascending: false })
-      .limit(1);
+    const [{ data: roleRows }, { data: cargo }] = await Promise.all([
+      supabase
+        .from('user_roles')
+        .select('role, organization_id')
+        .eq('user_id', profile.id)
+        .order('created_at', { ascending: false })
+        .limit(1),
+      profile.cargo_id
+        ? supabase.from('cargos').select('name').eq('id', profile.cargo_id).maybeSingle()
+        : Promise.resolve({ data: null }),
+    ]);
 
     const roleAssignment = roleRows?.[0];
     const role = profile.role || roleAssignment?.role || 'viewer';
     const organizationId = profile.organization_id || roleAssignment?.organization_id || null;
+    const cargoName = cargo?.name || null;
 
     const authToken = await signCustomSession({
       user: {
@@ -77,6 +83,7 @@ export async function POST(request: NextRequest) {
         full_name: profile.full_name,
         organization_id: organizationId,
         role,
+        cargo: cargoName,
       },
     });
 
@@ -102,6 +109,13 @@ export async function POST(request: NextRequest) {
       ...cookieOptions,
       httpOnly: false,
     });
+
+    if (cargoName) {
+      response.cookies.set('user_cargo', cargoName, {
+        ...cookieOptions,
+        httpOnly: false,
+      });
+    }
 
     return response;
   } catch (error) {
