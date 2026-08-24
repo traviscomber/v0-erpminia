@@ -19,6 +19,12 @@ type DataQualitySignal = {
   detail: string;
 };
 
+type AreaBlocker = {
+  area: string;
+  title: string;
+  detail: string;
+};
+
 function n(value: unknown) {
   if (value === null || value === undefined || value === '') return null;
   const parsed = Number(value);
@@ -134,6 +140,15 @@ export async function GET(request: NextRequest) {
       : null,
   ].filter(Boolean) as AreaPriority[];
 
+  const blockers = [
+    waitingProcurement > 0
+      ? { area: 'Compras', title: 'Mantención esperando compra', detail: `${waitingProcurement} OT dependen de una gestión de compra antes de continuar.` }
+      : null,
+    waitingParts > 0
+      ? { area: 'Bodega', title: 'Mantención esperando repuestos', detail: `${waitingParts} OT dependen de disponibilidad o entrega de repuestos.` }
+      : null,
+  ].filter(Boolean) as AreaBlocker[];
+
   const dataQuality = [
     warehouseMissingMinimum > 0
       ? { level: 'watch' as const, code: 'quality_warehouse_minimum', title: 'Bodega · faltan mínimos definidos', detail: `${warehouseMissingMinimum.toLocaleString('es-CL')} ítem(es) activos no tienen un mínimo positivo. No generan alerta de bajo stock hasta contar con ese dato.` }
@@ -155,6 +170,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     ...production,
     areaPriorities: areaPriorities.slice(0, 5),
+    blockers,
     dataQuality: dataQuality.slice(0, 5),
   });
 }
