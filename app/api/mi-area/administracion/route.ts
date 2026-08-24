@@ -58,21 +58,18 @@ export async function GET(request: NextRequest) {
   const purchaseOrderValidation = value('purchase_order_validation');
   const pendingRecognition = committed != null && recognized != null ? Math.max(committed - recognized, 0) : null;
 
-  const signals = [
-    costCenterCoverage != null && costCenterCoverage < 100 ? { level: costCenterCoverage < 90 ? 'watch' : 'info', code: 'cost_center_coverage', title: 'Cobertura de centro de costo incompleta', detail: `Cobertura observada: ${pct(costCenterCoverage, 2)}. El remanente debe tratarse como falta de clasificación, no como costo cero.` } : null,
-    purchaseOrderValidation != null && purchaseOrderValidation < 100 ? { level: 'watch', code: 'purchase_order_validation', title: 'Hay órdenes de compra pendientes de validación', detail: `Validación observada: ${pct(purchaseOrderValidation, 2)}.` } : null,
-  ].filter(Boolean) as Array<{ level: 'info' | 'watch' | 'alert'; code: string; title: string; detail: string }>;
+  const signals: Array<{ level: 'info' | 'watch' | 'alert'; code: string; title: string; detail: string }> = [];
 
   const interpretation = [
     { level: 'info', title: 'Los costos se muestran como baseline, no como evaluación', detail: 'Sin presupuesto o meta aprobada no se clasifica el nivel de gasto como favorable o desfavorable.' },
-    costCenterCoverage != null ? { level: costCenterCoverage < 90 ? 'watch' : 'info', title: 'Trazabilidad de centro de costo', detail: `Cobertura actual: ${pct(costCenterCoverage, 2)}.` } : null,
-    purchaseOrderValidation != null && purchaseOrderValidation >= 100 ? { level: 'info', title: 'Las órdenes de compra del corte están validadas', detail: `${count(purchaseOrders)} OC canónicas con cobertura de validación de ${pct(purchaseOrderValidation, 2)}.` } : null,
+    costCenterCoverage != null ? { level: costCenterCoverage < 100 ? 'watch' : 'info', title: 'Trazabilidad de centro de costo', detail: `Cobertura actual: ${pct(costCenterCoverage, 2)}. Esta brecha se muestra en Calidad de datos y no como prioridad operacional.` } : null,
+    purchaseOrderValidation != null && purchaseOrderValidation >= 100 ? { level: 'info', title: 'Las órdenes de compra del corte están validadas', detail: `${count(purchaseOrders)} OC canónicas con cobertura de validación de ${pct(purchaseOrderValidation, 2)}.` } : purchaseOrderValidation != null ? { level: 'watch', title: 'La validación de OC está incompleta', detail: `Cobertura observada: ${pct(purchaseOrderValidation, 2)}. Se trata como brecha de calidad de datos.` } : null,
   ].filter(Boolean).slice(0, 4);
 
   return NextResponse.json({
     portal: { key: 'administration', label: 'Mi área', title: 'Mi administración', areaPath: '/dashboard/finanzas', actionLabel: 'Abrir finanzas' },
     user: { id: context.userId, name: context.userName, role: context.role, cargo: cargo?.name || null },
-    status: signals.some((item) => item.level === 'alert') ? 'attention' : signals.some((item) => item.level === 'watch') ? 'watch' : 'stable',
+    status: 'stable',
     metrics: [
       { label: 'Costo comprometido', value: clp(committed) },
       { label: 'Costo reconocido', value: clp(recognized) },
@@ -81,7 +78,7 @@ export async function GET(request: NextRequest) {
       { label: 'Órdenes de compra', value: count(purchaseOrders) },
       { label: 'OC validadas', value: purchaseOrderValidation == null ? '—' : pct(purchaseOrderValidation, 2) },
     ],
-    signals: signals.slice(0, 5),
+    signals,
     interpretation,
     change: { available: false, note: 'El snapshot administrativo actual no conserva dos cortes comparables para afirmar una variación temporal.', items: [] },
     source: 'admin_finance_role_kpi_snapshot_v1',
