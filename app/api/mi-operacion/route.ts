@@ -12,6 +12,13 @@ type AreaPriority = {
   detail: string;
 };
 
+type DataQualitySignal = {
+  level: 'info' | 'watch';
+  code: string;
+  title: string;
+  detail: string;
+};
+
 function n(value: unknown) {
   if (value === null || value === undefined || value === '') return null;
   const parsed = Number(value);
@@ -46,7 +53,7 @@ export async function GET(request: NextRequest) {
   if (!productionResponse.ok) return productionResponse;
   const production = await productionResponse.json();
 
-  const [warehouseResult, hseResult, maintenanceResult, adminResult, drillingResult] = await Promise.all([
+  const [warehouseResult, hseResult, maintenanceResult, adminResult, drillingResult, warehouseMissingMinimumResult] = await Promise.all([
     supabase
       .from('inventory_geology_role_kpi_snapshot_v1')
       .select('kpi_key,measured_value')
@@ -73,9 +80,15 @@ export async function GET(request: NextRequest) {
       .select('kpi_key,measured_value')
       .eq('organization_id', profile.organization_id)
       .eq('cargo_name', 'JEFE SONDAJE'),
+    supabase
+      .from('canonical_inventory_current')
+      .select('id', { count: 'exact', head: true })
+      .eq('organization_id', profile.organization_id)
+      .eq('is_active', true)
+      .lte('min_stock', 0),
   ]);
 
-  const firstError = [warehouseResult, hseResult, maintenanceResult, adminResult, drillingResult]
+  const firstError = [warehouseResult, hseResult, maintenanceResult, adminResult, drillingResult, warehouseMissingMinimumResult]
     .find((result) => result.error)?.error;
   if (firstError) return NextResponse.json({ error: firstError.message }, { status: 500 });
 
@@ -105,6 +118,7 @@ export async function GET(request: NextRequest) {
   const missingAsset = maintenance.filter((row) => row.flow_status === 'missing_asset').length;
   const waitingProcurement = maintenance.filter((row) => row.flow_status === 'waiting_procurement').length;
   const waitingParts = maintenance.filter((row) => row.flow_status === 'waiting_parts').length;
+  const warehouseMissingMinimum = warehouseMissingMinimumResult.count || 0;
 
   const areaPriorities = [
     lowStock != null && lowStock > 0
@@ -112,21 +126,35 @@ export async function GET(request: NextRequest) {
       : null,
     criticalWorkOrders > 0
       ? { level: 'alert' as const, code: 'area_maintenance_critical', title: 'Mantención · OT críticas abiertas', detail: `${criticalWorkOrders} OT crítica(s) permanecen abiertas.` }
-      : missingAsset > 0
-        ? { level: 'watch' as const, code: 'area_maintenance_traceability', title: 'Mantención · falta trazabilidad de activo', detail: `${missingAsset} OT activa(s) no tienen equipo asociado.` }
-        : waitingProcurement + waitingParts > 0
-          ? { level: 'watch' as const, code: 'area_maintenance_blocked', title: 'Mantención · trabajos bloqueados', detail: `${waitingProcurement} esperando compra · ${waitingParts} esperando repuestos.` }
-          : null,
+      : waitingProcurement + waitingParts > 0
+        ? { level: 'watch' as const, code: 'area_maintenance_blocked', title: 'Mantención · trabajos bloqueados', detail: `${waitingProcurement} esperando compra · ${waitingParts} esperando repuestos.` }
+        : null,
     (overdueRisks != null && overdueRisks > 0) || (injuries != null && injuries > 0) || (inspectionCompletion != null && inspectionCompletion < 100)
       ? { level: 'watch' as const, code: 'area_hse_followup', title: 'HSE · requiere seguimiento', detail: `${overdueRisks ?? 0} revisión(es) de riesgo vencida(s) · inspecciones ${pct(inspectionCompletion)} · ${injuries ?? 0} lesión(es) registradas.` }
       : null,
-    drillingCapture != null && drillingCapture < 100
-      ? { level: 'watch' as const, code: 'area_drilling_capture', title: 'Sondaje · cobertura incompleta', detail: `Cobertura de metros perforados: ${pct(drillingCapture, 2)}.` }
-      : null,
-    costCenterCoverage != null && costCenterCoverage < 100
-      ? { level: costCenterCoverage < 90 ? 'watch' as const : 'info' as const, code: 'area_admin_cost_centers', title: 'Administración · cobertura de centros de costo', detail: `Cobertura observada: ${pct(costCenterCoverage, 2)}.` }
-      : null,
   ].filter(Boolean) as AreaPriority[];
 
-  return NextResponse.json({ ...production, areaPriorities: areaPriorities.slice(0, 5) });
+  const dataQuality = [
+    warehouseMissingMinimum > 0
+      ? { level: 'watch' as const, code: 'quality_warehouse_minimum', title: 'Bodega · faltan mínimos definidos', detail: `${warehouseMissingMinimum.toLocaleString('es-CL')} ítem(es) activos no tienen un mínimo positivo. No generan alerta de bajo stock hasta contar con ese dato.` }
+      : null,
+    missingAsset > 0
+      ? { level: 'watch' as const, code: 'quality_maintenance_asset', title: 'Mantención · OT sin activo trazable', detail: `${missingAsset} OT activa(s) no tienen activo canónico resoluble.` }
+      : null,
+    drillingCapture != null && drillingCapture < 100
+      ? { level: 'watch' as const, code: 'quality_drilling_capture', title: 'Sondaje · captura incompleta', detail: `Cobertura de metros perforados: ${pct(drillingCapture, 2)}. El faltante no se interpreta como cero.` }
+      : null,
+    costCenterCoverage != null && costCenterCoverage < 100
+      ? { level: 'watch' as const, code: 'quality_admin_cost_centers', title: 'Administración · centros de costo incompletos', detail: `Cobertura observada: ${pct(costCenterCoverage, 2)}. Los movimientos no clasificados permanecen como brecha.` }
+      : null,
+    Number(production.quality?.hold || 0) > 0
+      ? { level: 'watch' as const, code: 'quality_production_hold', title: 'Producción · evidencia en HOLD', detail: `${Number(production.quality.hold).toLocaleString('es-CL')} chequeo(s) permanecen pendientes de validación.` }
+      : null,
+  ].filter(Boolean) as DataQualitySignal[];
+
+  return NextResponse.json({
+    ...production,
+    areaPriorities: areaPriorities.slice(0, 5),
+    dataQuality: dataQuality.slice(0, 5),
+  });
 }
