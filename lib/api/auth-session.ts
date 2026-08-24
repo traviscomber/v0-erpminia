@@ -61,15 +61,47 @@ async function enrichIdentity(
     let profile = profileById;
     const normalizedEmail = normalizeEmail(email);
 
-    // Legacy MOTIL profiles can predate Supabase Auth and therefore have a
-    // different UUID. Only bridge by email after Supabase has verified it.
+    if (!profile) {
+      const { data: identityLink } = await adminClient
+        .from('auth_profile_identity_links')
+        .select('profile_id')
+        .eq('auth_user_id', userId)
+        .maybeSingle();
+
+      if (identityLink?.profile_id) {
+        const { data: linkedProfile } = await adminClient
+          .from('profiles')
+          .select(profileFields)
+          .eq('id', identityLink.profile_id)
+          .maybeSingle();
+        profile = linkedProfile;
+      }
+    }
+
+    // Compatibility fallback for verified Supabase users created before MOTIL
+    // standardized on shared Auth/profile UUIDs. Once resolved, persist the link.
     if (!profile && allowVerifiedEmailFallback && normalizedEmail) {
       const { data: legacyProfile } = await adminClient
         .from('profiles')
         .select(profileFields)
         .eq('email', normalizedEmail)
         .maybeSingle();
-      profile = legacyProfile;
+
+      if (legacyProfile) {
+        profile = legacyProfile;
+        await adminClient
+          .from('auth_profile_identity_links')
+          .upsert(
+            {
+              auth_user_id: userId,
+              profile_id: legacyProfile.id,
+              linked_email: normalizedEmail,
+              link_reason: 'verified_email_runtime_bridge',
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: 'auth_user_id' }
+          );
+      }
     }
 
     const applicationUserId = profile?.id || userId;
