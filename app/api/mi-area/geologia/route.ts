@@ -48,12 +48,8 @@ export async function GET(request: NextRequest) {
   const coverage = n(latest.get('sector_activity_coverage')?.measured_value);
 
   const signals = [
-    coverage != null && coverage < 100 ? {
-      level: 'watch', code: 'sector_coverage', title: 'La cobertura de sectores no está completa',
-      detail: `Cobertura observada de sectores activos: ${format(coverage, 2)}%.`,
-    } : null,
     activeSources === 0 ? {
-      level: 'watch', code: 'mine_sources', title: 'No hay fuentes mina activas en el corte',
+      level: 'watch' as const, code: 'mine_sources', title: 'No hay fuentes mina activas en el corte',
       detail: 'La evidencia del snapshot no registra fuentes mina activas.',
     } : null,
   ].filter(Boolean);
@@ -61,8 +57,10 @@ export async function GET(request: NextRequest) {
   const interpretation = [
     coverage != null ? {
       level: coverage < 100 ? 'watch' : 'info',
-      title: coverage < 100 ? 'Conviene cerrar la brecha de cobertura' : 'La cobertura geológica está completa',
-      detail: `${format(coverage, 2)}% de cobertura observada sobre sectores activos.`,
+      title: coverage < 100 ? 'La cobertura geológica todavía es incompleta' : 'La cobertura geológica está completa',
+      detail: coverage < 100
+        ? `${format(coverage, 2)}% de cobertura observada. La brecha se muestra en Calidad de datos y no como prioridad operacional.`
+        : `${format(coverage, 2)}% de cobertura observada sobre sectores activos.`,
     } : null,
     activeSectors != null ? {
       level: 'info', title: 'La base operativa tiene sectores activos trazables',
