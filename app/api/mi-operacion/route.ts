@@ -25,6 +25,16 @@ type AreaBlocker = {
   detail: string;
 };
 
+type OperatingChain = {
+  code: string;
+  from: string;
+  to: string;
+  status: 'waiting' | 'blocked';
+  title: string;
+  detail: string;
+  evidenceCount: number;
+};
+
 function n(value: unknown) {
   if (value === null || value === undefined || value === '') return null;
   const parsed = Number(value);
@@ -154,6 +164,31 @@ export async function GET(request: NextRequest) {
       : null,
   ].filter(Boolean) as AreaBlocker[];
 
+  const operatingChains = [
+    waitingProcurement > 0
+      ? {
+          code: 'maintenance_to_procurement',
+          from: 'Mantención',
+          to: 'Compras',
+          status: 'blocked' as const,
+          title: 'OT detenidas por gestión de compra',
+          detail: `${waitingProcurement} OT no pueden continuar hasta resolver la gestión de compra registrada en el flujo canónico.`,
+          evidenceCount: waitingProcurement,
+        }
+      : null,
+    waitingParts > 0
+      ? {
+          code: 'maintenance_to_warehouse',
+          from: 'Mantención',
+          to: 'Bodega',
+          status: 'waiting' as const,
+          title: 'OT esperando disponibilidad de repuesto',
+          detail: `${waitingParts} OT dependen de disponibilidad o entrega de repuestos registrada en el flujo canónico.`,
+          evidenceCount: waitingParts,
+        }
+      : null,
+  ].filter(Boolean) as OperatingChain[];
+
   const dataQuality = [
     warehouseMissingMinimum > 0
       ? { level: 'watch' as const, code: 'quality_warehouse_minimum', title: 'Bodega · faltan mínimos definidos', detail: `${warehouseMissingMinimum.toLocaleString('es-CL')} ítem(es) activos no tienen un mínimo positivo. No generan alerta de bajo stock hasta contar con ese dato.` }
@@ -176,6 +211,7 @@ export async function GET(request: NextRequest) {
     ...production,
     areaPriorities: areaPriorities.slice(0, 5),
     blockers,
+    operatingChains,
     dataQuality: dataQuality.slice(0, 5),
   });
 }
