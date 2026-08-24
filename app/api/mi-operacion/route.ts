@@ -29,7 +29,7 @@ type OperatingChain = {
   code: string;
   from: string;
   to: string;
-  status: 'waiting' | 'blocked';
+  status: 'waiting' | 'blocked' | 'unresolved';
   title: string;
   detail: string;
   evidenceCount: number;
@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
   if (!productionResponse.ok) return productionResponse;
   const production = await productionResponse.json();
 
-  const [warehouseResult, hseResult, maintenanceResult, adminResult, drillingResult, warehouseMissingMinimumResult, hseNcResult, productionFlowResult] = await Promise.all([
+  const [warehouseResult, hseResult, maintenanceResult, adminResult, drillingResult, warehouseMissingMinimumResult, hseNcResult, productionFlowResult, financeReconciliationResult] = await Promise.all([
     supabase
       .from('inventory_geology_role_kpi_snapshot_v1')
       .select('kpi_key,measured_value')
@@ -118,9 +118,13 @@ export async function GET(request: NextRequest) {
       .from('production_flow_daily_fidelity_v1')
       .select('review_shipment_rows,valid_shipment_rows,shipment_rows')
       .eq('organization_id', profile.organization_id),
+    supabase
+      .from('finance_maintenance_asset_reconciliation_v1')
+      .select('reconciliation_status')
+      .eq('organization_id', profile.organization_id),
   ]);
 
-  const firstError = [warehouseResult, hseResult, maintenanceResult, adminResult, drillingResult, warehouseMissingMinimumResult, hseNcResult, productionFlowResult]
+  const firstError = [warehouseResult, hseResult, maintenanceResult, adminResult, drillingResult, warehouseMissingMinimumResult, hseNcResult, productionFlowResult, financeReconciliationResult]
     .find((result) => result.error)?.error;
   if (firstError) return NextResponse.json({ error: firstError.message }, { status: 500 });
 
@@ -169,6 +173,7 @@ export async function GET(request: NextRequest) {
   const actionsWithoutDate = openCorrectiveActions.filter((action) => !action.scheduled_completion_date).length;
   const productionReviewRows = (productionFlowResult.data || []).reduce((sum, row) => sum + (n(row.review_shipment_rows) ?? 0), 0);
   const productionShipmentRows = (productionFlowResult.data || []).reduce((sum, row) => sum + (n(row.shipment_rows) ?? 0), 0);
+  const unresolvedFinanceAssets = (financeReconciliationResult.data || []).filter((row) => row.reconciliation_status === 'unresolved').length;
 
   const areaPriorities = [
     lowStock != null && lowStock > 0
@@ -225,6 +230,17 @@ export async function GET(request: NextRequest) {
           title: 'Despachos pendientes de validación',
           detail: `${productionReviewRows.toLocaleString('es-CL')} de ${productionShipmentRows.toLocaleString('es-CL')} registro(s) de despacho permanecen en revisión antes de considerarse evidencia validada.`,
           evidenceCount: productionReviewRows,
+        }
+      : null,
+    unresolvedFinanceAssets > 0
+      ? {
+          code: 'finance_to_maintenance_asset_identity',
+          from: 'Finanzas',
+          to: 'Mantención',
+          status: 'unresolved' as const,
+          title: 'Maestros de activos aún no reconciliados',
+          detail: `${unresolvedFinanceAssets.toLocaleString('es-CL')} activo(s) del maestro financiero no tienen coincidencia exacta verificable con el maestro de Mantención. Hasta resolverlo, Motil no une automáticamente costo y mantenimiento por activo físico.`,
+          evidenceCount: unresolvedFinanceAssets,
         }
       : null,
     ncWithoutOpenAction > 0
