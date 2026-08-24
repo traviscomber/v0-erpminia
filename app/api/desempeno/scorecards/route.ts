@@ -64,10 +64,6 @@ function normalize(value: string | null | undefined) {
     .toUpperCase();
 }
 
-const baselineCargoAliases: Record<string, string> = {
-  'GERENTE OPERACIONES': 'GERENTE',
-};
-
 function profileCargoName(profile: ProfileRow | null) {
   if (!profile?.cargos) return '';
   if (Array.isArray(profile.cargos)) return profile.cargos[0]?.name || '';
@@ -119,13 +115,19 @@ export async function GET(request: NextRequest) {
 
   const selectedProfile = profileId ? ((profiles.data || []) as ProfileRow[]).find((profile) => profile.id === profileId) || null : null;
   const selectedProfileCargo = profileCargoName(selectedProfile);
-  const baselineCargo = selectedProfileCargo ? (baselineCargoAliases[normalize(selectedProfileCargo)] || selectedProfileCargo) : '';
-  const effectiveCargo = selectedProfile ? baselineCargo : cargo || '';
 
-  const filtered = effectiveCargo ? rows.filter((row) => normalize(row.cargo_name) === normalize(effectiveCargo)) : rows;
-  const filteredExecutive = effectiveCargo
-    ? executiveRows.filter((row) => normalize(row.cargo_name) === normalize(effectiveCargo))
-    : executiveRows;
+  // A selected executive profile is a management lens, not a KPI ownership filter.
+  // Pedro Zegers must be able to inspect every KPI across every measured cargo/domain.
+  const filtered = selectedProfile
+    ? rows
+    : cargo
+      ? rows.filter((row) => normalize(row.cargo_name) === normalize(cargo))
+      : rows;
+  const filteredExecutive = selectedProfile
+    ? executiveRows
+    : cargo
+      ? executiveRows.filter((row) => normalize(row.cargo_name) === normalize(cargo))
+      : executiveRows;
 
   let initiatives: KaizenRow[] = [];
   if (selectedProfile) {
@@ -140,8 +142,8 @@ export async function GET(request: NextRequest) {
     initiatives = ((kaizen.data || []) as KaizenRow[]).filter((item) => item.owner_id === selectedProfile.id || normalize(item.owner_name) === selectedName);
   }
 
-  const profileRows = [...filteredExecutive, ...filtered];
-  const comparablePeriods = Array.from(new Set(profileRows
+  const visibleRows = [...filteredExecutive, ...filtered];
+  const comparablePeriods = Array.from(new Set(visibleRows
     .map((row) => row.measured_at?.slice(0, 7))
     .filter(Boolean)))
     .sort();
@@ -159,8 +161,7 @@ export async function GET(request: NextRequest) {
       fullName: selectedProfile.full_name,
       role: selectedProfile.role,
       cargoName: selectedProfileCargo,
-      baselineCargo,
-      baselineInherited: normalize(selectedProfileCargo) !== normalize(baselineCargo),
+      globalKpiVisibility: true,
       initiatives,
       comparablePeriods,
       comparableClosures: comparablePeriods.length,
@@ -171,11 +172,11 @@ export async function GET(request: NextRequest) {
       { domain: 'document_approvals', status: 'insufficient_data', detail: 'No existen flujos de aprobación documentales registrados; no se calcula un porcentaje artificial de aprobación.' },
     ],
     meta: {
-      mode: selectedProfile ? 'person_operational_baseline' : 'operational_baseline',
+      mode: selectedProfile ? 'executive_global_kpi_view' : 'operational_baseline',
       personalEvaluation: false,
-      targetsDefined: profileRows.some((row) => row.target_value !== null && row.target_value !== undefined),
+      targetsDefined: visibleRows.some((row) => row.target_value !== null && row.target_value !== undefined),
       note: selectedProfile
-        ? 'Vista individual construida desde identidad canónica y baseline del cargo. Los indicadores heredados del cargo no constituyen atribución ni evaluación personal.'
+        ? 'Vista ejecutiva global: la persona seleccionada puede revisar todos los KPIs disponibles de todos los cargos y dominios. Los valores siguen siendo baselines operacionales y no constituyen una evaluación personal.'
         : 'Los valores son baselines operacionales derivados de fuentes del sistema. No constituyen una evaluación personal mientras no existan metas aprobadas y atribución individual suficiente.',
     },
   });
