@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,6 +34,9 @@ type BodegaInventoryUpsertRow = {
 };
 
 export async function POST(request: NextRequest) {
+  const access = await requireModuleAccess(request, MODULE_KEYS.BODEGA_INVENTARIO, true);
+  if (!access.authorized) return access.response;
+
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
