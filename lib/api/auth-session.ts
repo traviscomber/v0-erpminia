@@ -18,30 +18,56 @@ export interface AuthContext {
 }
 
 type EnrichedIdentity = {
+  applicationUserId?: string;
   role?: string;
   organizationId?: string;
   fullName?: string;
 };
 
-async function enrichIdentity(userId: string): Promise<EnrichedIdentity> {
+function normalizeEmail(email?: string | null) {
+  return String(email || '').trim().toLowerCase();
+}
+
+async function enrichIdentity(
+  userId: string,
+  email?: string | null,
+  allowVerifiedEmailFallback = false
+): Promise<EnrichedIdentity> {
   try {
     const adminClient = getSupabaseServerClient();
-    const [{ data: profile }, { data: roleRows }] = await Promise.all([
-      adminClient
+    const profileFields = 'id, organization_id, role, full_name, first_name, last_name';
+
+    const { data: profileById } = await adminClient
+      .from('profiles')
+      .select(profileFields)
+      .eq('id', userId)
+      .maybeSingle();
+
+    let profile = profileById;
+    const normalizedEmail = normalizeEmail(email);
+
+    // Legacy MOTIL profiles can predate Supabase Auth and therefore have a
+    // different UUID. Only bridge by email after Supabase has verified it.
+    if (!profile && allowVerifiedEmailFallback && normalizedEmail) {
+      const { data: legacyProfile } = await adminClient
         .from('profiles')
-        .select('organization_id, role, full_name, first_name, last_name')
-        .eq('id', userId)
-        .maybeSingle(),
-      adminClient
-        .from('user_roles')
-        .select('role, organization_id')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(1),
-    ]);
+        .select(profileFields)
+        .eq('email', normalizedEmail)
+        .maybeSingle();
+      profile = legacyProfile;
+    }
+
+    const applicationUserId = profile?.id || userId;
+    const { data: roleRows } = await adminClient
+      .from('user_roles')
+      .select('role, organization_id')
+      .eq('user_id', applicationUserId)
+      .order('created_at', { ascending: false })
+      .limit(1);
 
     const roleRow = roleRows?.[0];
     return {
+      applicationUserId,
       organizationId: profile?.organization_id || roleRow?.organization_id || undefined,
       role: profile?.role || roleRow?.role || undefined,
       fullName:
@@ -77,11 +103,16 @@ async function resolveSupabaseAuth(request: NextRequest): Promise<AuthContext | 
 
   if (error || !user) return null;
 
-  const identity = await enrichIdentity(user.id);
+  const identity = await enrichIdentity(
+    user.id,
+    user.email,
+    Boolean(user.email_confirmed_at)
+  );
+  const applicationUserId = identity.applicationUserId || user.id;
 
   return {
     user: {
-      id: user.id,
+      id: applicationUserId,
       email: user.email,
       full_name: identity.fullName,
       organization_id: identity.organizationId,
@@ -96,13 +127,18 @@ export async function resolveAuthContext(request: NextRequest): Promise<AuthCont
   const customSession = await verifyCustomSession(request.cookies.get('auth_token')?.value);
 
   if (customSession) {
-    const identity = await enrichIdentity(customSession.user.id);
+    const identity = await enrichIdentity(
+      customSession.user.id,
+      customSession.user.email,
+      true
+    );
+    const applicationUserId = identity.applicationUserId || customSession.user.id;
     const organizationId = identity.organizationId || customSession.user.organization_id || undefined;
     const role = identity.role || customSession.role || undefined;
 
     return {
       user: {
-        id: customSession.user.id,
+        id: applicationUserId,
         email: customSession.user.email,
         full_name: identity.fullName || customSession.user.full_name || undefined,
         organization_id: organizationId,
