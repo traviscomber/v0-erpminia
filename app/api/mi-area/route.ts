@@ -58,24 +58,9 @@ export async function GET(request: NextRequest) {
     const qualityHold = num(production.quality?.hold);
 
     const changes = latest && previous ? [
-      {
-        label: 'Tratamiento diario',
-        current: num(latest.treated_wet_t),
-        previous: num(previous.treated_wet_t),
-        unit: 't',
-      },
-      {
-        label: 'Cu fino recuperado',
-        current: num(latest.recovered_fine_cu_t),
-        previous: num(previous.recovered_fine_cu_t),
-        unit: 't',
-      },
-      {
-        label: 'Concentrado despachado',
-        current: num(latest.dispatched_concentrate_t),
-        previous: num(previous.dispatched_concentrate_t),
-        unit: 't',
-      },
+      { label: 'Tratamiento diario', current: num(latest.treated_wet_t), previous: num(previous.treated_wet_t), unit: 't' },
+      { label: 'Cu fino recuperado', current: num(latest.recovered_fine_cu_t), previous: num(previous.recovered_fine_cu_t), unit: 't' },
+      { label: 'Concentrado despachado', current: num(latest.dispatched_concentrate_t), previous: num(previous.dispatched_concentrate_t), unit: 't' },
     ] : [];
 
     const interpretation = [
@@ -110,12 +95,91 @@ export async function GET(request: NextRequest) {
       ],
       signals: [...alerts, ...watches].slice(0, 5),
       interpretation,
-      change: {
-        available: changes.length > 0,
-        note: changes.length ? 'Comparación contra el corte operacional inmediatamente anterior.' : 'Aún no hay dos cortes operacionales comparables.',
-        items: changes,
-      },
+      change: { available: changes.length > 0, note: changes.length ? 'Comparación contra el corte operacional inmediatamente anterior.' : 'Aún no hay dos cortes operacionales comparables.', items: changes },
       source: 'production_flow_daily_fidelity_v1 + production_metallurgy_deterministic_v2 + production_monthly_plans',
+    });
+  }
+
+  if (portal.key === 'sustainability') {
+    const [kpisResult, ncResult] = await Promise.all([
+      context.supabase
+        .from('hse_role_kpi_snapshot_v1')
+        .select('kpi_key,label,unit,measured_value,evaluation_state,measured_at')
+        .eq('organization_id', context.organizationId)
+        .eq('cargo_name', 'JEFE SOSTENIBILIDAD'),
+      context.supabase
+        .from('sostenibilidad_nonconformances')
+        .select('id,nc_number,title,severity,status,target_closure_date')
+        .eq('organization_id', context.organizationId),
+    ]);
+
+    if (kpisResult.error) return NextResponse.json({ error: kpisResult.error.message }, { status: 500 });
+    if (ncResult.error) return NextResponse.json({ error: ncResult.error.message }, { status: 500 });
+
+    const kpis = kpisResult.data || [];
+    const kpiMap = new Map(kpis.map((row) => [row.kpi_key, row]));
+    const ncRows = ncResult.data || [];
+    const openNc = ncRows.filter((row) => !['cerrada', 'closed', 'completada', 'completed'].includes(String(row.status || '').toLowerCase()));
+    const highNc = openNc.filter((row) => ['alta', 'high', 'critica', 'crítica', 'critical'].includes(String(row.severity || '').toLowerCase()));
+    const ncIds = ncRows.map((row) => row.id);
+
+    let correctiveActions: any[] = [];
+    if (ncIds.length) {
+      const { data, error } = await context.supabase
+        .from('sostenibilidad_corrective_actions')
+        .select('id,nc_id,ca_number,status,scheduled_completion_date,responsible_person_name')
+        .in('nc_id', ncIds);
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      correctiveActions = data || [];
+    }
+
+    const today = new Date().toISOString().slice(0, 10);
+    const openActions = correctiveActions.filter((row) => !['cerrada', 'closed', 'completada', 'completed'].includes(String(row.status || '').toLowerCase()));
+    const overdueActions = openActions.filter((row) => row.scheduled_completion_date && row.scheduled_completion_date < today);
+    const kpiValue = (key: string) => num(kpiMap.get(key)?.measured_value);
+    const injuries = kpiValue('incident_injuries');
+    const openIncidentRate = kpiValue('incident_open_rate');
+    const inspectionCompletion = kpiValue('inspection_completion_rate');
+    const overdueRiskReviews = kpiValue('risk_review_overdue');
+    const residualRisk = kpiValue('residual_risk_avg');
+    const findings = kpiValue('inspection_findings');
+
+    const signals = [
+      highNc.length ? { level: 'alert', code: 'high_nonconformances', title: 'No conformidades de alta severidad abiertas', detail: `${highNc.length} no conformidad(es) alta/crítica permanecen abiertas.` } : null,
+      overdueActions.length ? { level: 'alert', code: 'overdue_corrective_actions', title: 'Acciones correctivas vencidas', detail: `${overdueActions.length} acción(es) correctiva(s) siguen abiertas después de su fecha comprometida.` } : null,
+      overdueRiskReviews > 0 ? { level: 'watch', code: 'risk_review_overdue', title: 'Revisiones de riesgo vencidas', detail: `${overdueRiskReviews.toLocaleString('es-CL')} riesgo(s) requieren actualización de revisión.` } : null,
+      injuries > 0 ? { level: 'watch', code: 'incident_injuries', title: 'Hay lesiones registradas en la evidencia', detail: `${injuries.toLocaleString('es-CL')} lesión(es) aparecen en el corte HSE actual.` } : null,
+      inspectionCompletion > 0 && inspectionCompletion < 100 ? { level: 'watch', code: 'inspection_completion', title: 'Inspecciones aún no completan cobertura total', detail: `Cumplimiento observado: ${pct(inspectionCompletion)}.` } : null,
+    ].filter(Boolean) as Array<{ level: 'info' | 'watch' | 'alert'; code: string; title: string; detail: string }>;
+
+    const interpretation = [
+      highNc.length || overdueActions.length
+        ? { level: 'alert', title: 'La prioridad es cerrar excepciones vencidas o severas', detail: `${highNc.length} NC alta/crítica y ${overdueActions.length} acción(es) correctiva(s) vencida(s) requieren seguimiento.` }
+        : { level: 'info', title: 'No hay excepciones severas vencidas en la evidencia consultada', detail: 'No se detectan NC alta/crítica abiertas ni acciones correctivas vencidas.' },
+      overdueRiskReviews > 0
+        ? { level: 'watch', title: 'La matriz de riesgos requiere actualización', detail: `${overdueRiskReviews.toLocaleString('es-CL')} revisión(es) están vencidas.` }
+        : null,
+      inspectionCompletion > 0
+        ? { level: inspectionCompletion >= 95 ? 'info' : 'watch', title: 'Cobertura de inspecciones', detail: `Inspecciones completadas: ${pct(inspectionCompletion)}; hallazgos observados: ${findings.toLocaleString('es-CL')}.` }
+        : null,
+    ].filter(Boolean).slice(0, 4);
+
+    return NextResponse.json({
+      portal,
+      user: { id: context.userId, name: context.userName, role: context.role, cargo: cargoName },
+      status: signals.some((item) => item.level === 'alert') ? 'attention' : signals.length ? 'watch' : 'stable',
+      metrics: [
+        { label: 'NC abiertas', value: String(openNc.length) },
+        { label: 'Acciones vencidas', value: String(overdueActions.length) },
+        { label: 'Inspecciones', value: inspectionCompletion ? pct(inspectionCompletion) : '—' },
+        { label: 'Lesiones', value: String(injuries) },
+        { label: 'Riesgo residual', value: residualRisk ? residualRisk.toLocaleString('es-CL', { maximumFractionDigits: 2 }) : '—' },
+        { label: 'Incidentes abiertos', value: openIncidentRate ? pct(openIncidentRate) : '—' },
+      ],
+      signals: signals.slice(0, 5),
+      interpretation,
+      change: { available: false, note: 'El snapshot HSE actual no conserva dos cortes comparables para afirmar una variación temporal.', items: [] },
+      source: 'hse_role_kpi_snapshot_v1 + sostenibilidad_nonconformances + sostenibilidad_corrective_actions',
     });
   }
 
