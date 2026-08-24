@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
   const [flowResult, kpiResult] = await Promise.all([
     context.supabase
       .from('maintenance_operational_work_order_flow_v1')
-      .select('work_order_id,asset_code,asset_name,status,priority,flow_status')
+      .select('work_order_id,asset_code,asset_name,flow_status')
       .eq('organization_id', context.organizationId)
       .limit(500),
     isMiningEquipment
@@ -56,10 +56,7 @@ export async function GET(request: NextRequest) {
 
   const rows = flowResult.data || [];
   const classified = rows.filter((row) => row.asset_code || row.asset_name);
-  const unclassified = rows.length - classified.length;
   const coverage = rows.length ? (classified.length / rows.length) * 100 : null;
-  const active = rows.filter((row) => row.flow_status !== 'completed');
-  const critical = active.filter((row) => ['critical', 'critica', 'crítica'].includes(String(row.priority || '').toLowerCase()));
 
   const kpis = kpiResult.data || [];
   const latestByKey = new Map<string, any>();
@@ -73,26 +70,27 @@ export async function GET(request: NextRequest) {
   const closure = kpiValue('wo_closure_rate');
   const mttr = kpiValue('mttr_hours');
 
-  const coverageSignal = coverage == null
-    ? { level: 'watch' as const, code: 'asset_coverage_absent', title: 'Sin cobertura de activos suficiente', detail: 'No hay OT clasificadas suficientes para separar esta responsabilidad técnica.' }
-    : coverage < 90
-      ? { level: 'watch' as const, code: 'asset_coverage_low', title: 'Clasificación de activos incompleta', detail: `Sólo ${pct(coverage)} de las OT consultadas tiene activo trazable. No se atribuyen cifras globales a esta jefatura.` }
-      : null;
+  const coverageSignal = coverage == null || coverage < 90
+    ? {
+        level: 'watch' as const,
+        code: 'asset_segmentation_incomplete',
+        title: 'Falta segmentación confiable de activos',
+        detail: coverage == null
+          ? 'El flujo general de Mantención no permite separar esta responsabilidad técnica.'
+          : `La clasificación global de activos alcanza ${pct(coverage)}. Hasta completar la segmentación, no se muestran OT globales como propias de esta jefatura.`,
+      }
+    : null;
 
-  const signals = [
-    coverageSignal,
-    unclassified > 0 ? { level: 'watch' as const, code: 'missing_asset', title: 'OT sin activo asociado', detail: `${unclassified.toLocaleString('es-CL')} OT no tienen activo trazable en la evidencia consultada.` } : null,
-    isMiningEquipment && critical.length > 0 ? { level: 'info' as const, code: 'critical_global', title: 'Existen OT críticas en Mantención', detail: `${critical.length.toLocaleString('es-CL')} OT críticas aparecen en el flujo general. Sin clasificación de activo suficiente no se atribuyen a Equipos Mineros.` } : null,
-  ].filter(Boolean);
-
+  const signals = [coverageSignal].filter(Boolean);
   const title = isMiningEquipment ? 'Mis equipos mineros' : 'Mis camionetas';
+
   const interpretation = isMiningEquipment
     ? [
-        { level: 'info', title: 'Los KPI del cargo son baseline', detail: 'Backlog, cierre y MTTR se muestran como evidencia del cargo; no son una evaluación personal ni se comparan contra metas no aprobadas.' },
-        coverageSignal ? { level: 'watch', title: 'La segmentación por activo aún limita el diagnóstico', detail: 'Hasta completar la clasificación de activos, el portal no adjudica OT del flujo general a Equipos Mineros.' } : null,
+        { level: 'info', title: 'Sólo se muestran KPI propios del cargo', detail: 'Backlog, cierre y MTTR provienen del snapshot específico de Jefe de Equipos Mineros. El flujo global de Mantención no se atribuye a esta jefatura.' },
+        coverageSignal ? { level: 'watch', title: 'La segmentación por activo aún limita el diagnóstico', detail: 'Cuando la clasificación permita separar Equipos Mineros de otras flotas, se podrán incorporar OT, disponibilidad, tiempos y costos propios.' } : null,
       ].filter(Boolean)
     : [
-        { level: 'info', title: 'Portal técnico preparado sin inventar métricas', detail: 'Todavía no existe un snapshot KPI específico para Jefe de Camionetas.' },
+        { level: 'info', title: 'Portal preparado sin atribuciones globales', detail: 'Todavía no existe un snapshot KPI específico para Jefe de Camionetas, por lo que no se muestran métricas del flujo general como si fueran propias.' },
         { level: 'watch', title: 'La prioridad de datos es identificar la flota en cada OT', detail: 'Con activos trazables podremos mostrar backlog, disponibilidad, tiempos y costos propios de camionetas.' },
       ];
 
@@ -111,23 +109,23 @@ export async function GET(request: NextRequest) {
           { label: 'Backlog cargo', value: backlog == null ? '—' : backlog.toLocaleString('es-CL') },
           { label: 'Cierre OT', value: pct(closure) },
           { label: 'MTTR', value: mttr == null ? '—' : `${mttr.toLocaleString('es-CL', { maximumFractionDigits: 2 })} h` },
-          { label: 'OT con activo', value: classified.length.toLocaleString('es-CL') },
-          { label: 'OT sin activo', value: unclassified.toLocaleString('es-CL') },
-          { label: 'Cobertura activo', value: pct(coverage) },
+          { label: 'OT propias', value: '—' },
+          { label: 'Disponibilidad', value: '—' },
+          { label: 'Estado datos', value: coverage != null && coverage >= 90 ? 'Preparado' : 'Incompleto' },
         ]
       : [
-          { label: 'OT con activo', value: classified.length.toLocaleString('es-CL') },
-          { label: 'OT sin activo', value: unclassified.toLocaleString('es-CL') },
-          { label: 'Cobertura activo', value: pct(coverage) },
-          { label: 'KPI propios', value: 'Sin snapshot' },
-          { label: 'OT atribuidas', value: '—' },
+          { label: 'Backlog propio', value: '—' },
+          { label: 'Cierre OT', value: '—' },
+          { label: 'MTTR', value: '—' },
+          { label: 'OT propias', value: '—' },
+          { label: 'Disponibilidad', value: '—' },
           { label: 'Estado datos', value: coverage != null && coverage >= 90 ? 'Preparado' : 'Incompleto' },
         ],
     signals,
     interpretation,
     change: { available: false, note: 'No existe historial segmentado por activo suficiente para afirmar cambios de esta responsabilidad técnica.', items: [] },
     source: isMiningEquipment
-      ? 'maintenance_role_kpi_snapshot_v1 + maintenance_operational_work_order_flow_v1'
-      : 'maintenance_operational_work_order_flow_v1',
+      ? 'maintenance_role_kpi_snapshot_v1 + maintenance_operational_work_order_flow_v1 (coverage only)'
+      : 'maintenance_operational_work_order_flow_v1 (coverage only)',
   });
 }
