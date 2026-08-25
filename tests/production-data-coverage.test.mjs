@@ -20,6 +20,15 @@ test('production overview derives coverage from exact server-side counts', async
   assert.match(api, /drillingHoles: num\(drillingSummary\?\.holes\)/);
 });
 
+test('production overview preserves semantic copy for both data and no-data responses', async () => {
+  const api = await readFile(overviewApiUrl, 'utf8');
+  const [noDataBranch, dataBranch] = api.split('const throughDate =');
+
+  assert.match(api, /const semantics = \{[\s\S]*sourceAbsence: 'Ausencia de una fuente no equivale a valor cero\.'/);
+  assert.match(noDataBranch, /currentPeriod: null,[\s\S]*daily: \[\],[\s\S]*semantics,/);
+  assert.match(dataBranch, /intelligence,[\s\S]*semantics,[\s\S]*\}\);/);
+});
+
 test('production dashboard distinguishes operational, partial and missing-source areas', async () => {
   const dashboard = await readFile(dashboardUrl, 'utf8');
 
