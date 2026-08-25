@@ -3,12 +3,14 @@ export const runtime = 'nodejs';
 export const maxDuration = 300;
 
 import { NextRequest, NextResponse } from 'next/server';
+import { getOrganizationContext } from '@/lib/api/organization-context';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 
 const BUCKET = 'product-media';
 const BATCH_SIZE = 10;
 const MAX_BYTES = 10 * 1024 * 1024;
 const AUTO_APPROVE_CONFIDENCE = 0.9;
+const ADMIN_ROLES = new Set(['admin', 'superadmin', 'super_admin']);
 
 type Candidate = {
   id: string;
@@ -148,8 +150,16 @@ async function importCandidate(supabase: ReturnType<typeof getSupabaseServerClie
 }
 
 async function run(request: NextRequest) {
-  if (request.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const hasCronAuthorization =
+    Boolean(process.env.CRON_SECRET) &&
+    request.headers.get('authorization') === `Bearer ${process.env.CRON_SECRET}`;
+
+  if (!hasCronAuthorization) {
+    const context = await getOrganizationContext(request);
+    if (!context.ok) return context.response;
+    if (!ADMIN_ROLES.has(String(context.role || '').toLowerCase())) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
   }
 
   const supabase = getSupabaseServerClient();
