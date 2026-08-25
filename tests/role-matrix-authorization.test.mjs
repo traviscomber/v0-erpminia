@@ -57,3 +57,26 @@ test('role matrix change requests expose read-only table access to authenticated
   );
   assert.doesNotMatch(grantsMigration, /grant\s+(insert|update|delete|all).*authenticated/i);
 });
+
+test('legacy privileged RPCs are service-role only', () => {
+  const rpcMigration = readFileSync(
+    new URL('../supabase/migrations/20260825003607_restrict_legacy_privileged_rpcs_to_service_role.sql', import.meta.url),
+    'utf8',
+  );
+
+  for (const signature of [
+    'approve_procurement_supplier_candidate(uuid,boolean,text)',
+    'approve_role_matrix_change(uuid,text,boolean,text)',
+    'submit_role_matrix_change(uuid,uuid,text,text,text,text)',
+  ]) {
+    const escaped = signature.replace(/[()]/g, '\\$&');
+    assert.match(
+      rpcMigration,
+      new RegExp(`revoke execute on function public\\.${escaped} from public, anon, authenticated;`, 'i'),
+    );
+    assert.match(
+      rpcMigration,
+      new RegExp(`grant execute on function public\\.${escaped} to service_role;`, 'i'),
+    );
+  }
+});
