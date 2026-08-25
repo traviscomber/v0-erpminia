@@ -119,6 +119,7 @@ export async function GET(request: NextRequest) {
       },
       currentPeriod: null,
       daily: [],
+      intelligence: [],
       semantics,
     });
   }
