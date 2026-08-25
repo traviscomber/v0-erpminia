@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Boxes, Check, CircleDollarSign, ClipboardList, PackageSearch, RefreshCw, Search, ShoppingCart, Wrench, X } from 'lucide-react';
 import { apiFetch } from '@/lib/api-client';
 import { isStockBelowMinimum } from '@/lib/inventory-alerts';
@@ -25,6 +25,7 @@ export default function Products360Page() {
   const [canManageMedia, setCanManageMedia] = useState(false);
   const [importBusy, setImportBusy] = useState(false);
   const [importMessage, setImportMessage] = useState('');
+  const searchRequestRef = useRef(0);
 
   const mediaAction = async (action: 'generate' | 'approve' | 'reject') => {
     if (!detail) return;
@@ -40,6 +41,7 @@ export default function Products360Page() {
   };
 
   const search = useCallback(async (term = '') => {
+    const requestId = ++searchRequestRef.current;
     const normalizedTerm = term.trim();
     if (!normalizedTerm) {
       setProducts([]);
@@ -49,6 +51,7 @@ export default function Products360Page() {
     const response = await apiFetch(`/api/inventory/products-360?q=${encodeURIComponent(normalizedTerm)}`);
     const payload = await response.json();
     if (!response.ok) throw new Error(payload.error || 'No se pudieron cargar los productos.');
+    if (requestId !== searchRequestRef.current) return;
     setProducts(payload.products || []);
     setVisibleCount(PRODUCT_BATCH_SIZE);
     setCanManageMedia(Boolean(payload.canManageMedia));
@@ -83,6 +86,19 @@ export default function Products360Page() {
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'No se pudo cargar la ficha.'); }
     finally { setLoading(false); }
   }, []);
+
+  useEffect(() => {
+    const normalizedTerm = q.trim();
+    searchRequestRef.current += 1;
+    setProducts([]);
+    setVisibleCount(PRODUCT_BATCH_SIZE);
+    if (!normalizedTerm) return;
+
+    const timeout = window.setTimeout(() => {
+      search(normalizedTerm).catch((cause) => setError(cause instanceof Error ? cause.message : 'Error de búsqueda.'));
+    }, 250);
+    return () => window.clearTimeout(timeout);
+  }, [q, search]);
 
   useEffect(() => { if (selectedId) loadDetail(selectedId); }, [selectedId, loadDetail]);
 
@@ -122,7 +138,7 @@ export default function Products360Page() {
             }
           }}
         >
-          {!products.length ? <div className="p-6 text-center text-xs text-muted-foreground">Busca por código, nombre o familia para cargar productos.</div> : null}
+          {!products.length ? <div className="p-6 text-center text-xs text-muted-foreground">{q.trim() ? 'Buscando productos…' : 'Escribe un código, nombre o familia para buscar.'}</div> : null}
           {visibleProducts.map((product) => <button key={product.id} onClick={() => setSelectedId(product.id)} className={`flex w-full items-center gap-3 p-3 text-left text-sm hover:bg-muted ${selectedId === product.id ? 'bg-muted' : ''}`}><ProductPhoto media={product.media} name={product.name} size="sm"/><span><span className="block font-medium">{product.name}</span><span className="text-xs text-muted-foreground">{product.product_code} · {product.media?.status === 'approved' ? 'Foto validada' : 'Foto pendiente'}</span></span></button>)}
           {hasMoreProducts ? <div className="p-3 text-center text-xs text-muted-foreground">Desplázate para cargar 20 más</div> : null}
         </div>
