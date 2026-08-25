@@ -59,6 +59,11 @@ test('authenticated admin can render every operational module cleanly', async ({
     expect(bodyText.length, `blank or near-blank authenticated module ${route}`).toBeGreaterThan(50)
     expect(bodyText, `fatal UI message at ${route}`).not.toMatch(/Application error|Internal Server Error|This page could not be found|No autorizado|Forbidden/i)
 
+    if (route === '/dashboard/produccion') {
+      expect(bodyText).toContain('Cobertura real por área')
+      expect(bodyText).toContain('Ausencia de una fuente no equivale a valor cero.')
+    }
+
     const overflow = await page.evaluate(() => ({
       viewport: window.innerWidth,
       documentWidth: document.documentElement.scrollWidth,
