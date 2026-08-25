@@ -43,6 +43,127 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ suppliers: data || [] });
     }
 
+    if (resource === 'supplier_recommendations') {
+      const requestId = request.nextUrl.searchParams.get('requestId');
+      if (!requestId) return NextResponse.json({ error: 'Solicitud requerida' }, { status: 400 });
+
+      const { data: requestLines, error: requestLinesError } = await context.supabase
+        .from('canonical_procurement_request_lines_v1')
+        .select('canonical_product_id, product_code')
+        .eq('organization_id', context.organizationId)
+        .eq('request_id', requestId);
+      if (requestLinesError) throw requestLinesError;
+
+      const productIds = (requestLines || []).map((line) => line.canonical_product_id).filter(Boolean) as string[];
+      const productCodes = (requestLines || []).map((line) => line.product_code).filter(Boolean) as string[];
+      if (!productIds.length && !productCodes.length) return NextResponse.json({ recommendations: [], recent: [] });
+
+      let historyQuery = context.supabase
+        .from('canonical_purchase_order_lines_v1')
+        .select('purchase_order_id, canonical_product_id, product_code, unit_cost, quantity, unit')
+        .eq('organization_id', context.organizationId)
+        .not('unit_cost', 'is', null)
+        .limit(2000);
+      if (productIds.length) historyQuery = historyQuery.in('canonical_product_id', productIds);
+      else historyQuery = historyQuery.in('product_code', productCodes);
+
+      const { data: historyLines, error: historyError } = await historyQuery;
+      if (historyError) throw historyError;
+
+      const orderIds = Array.from(new Set((historyLines || []).map((line) => line.purchase_order_id).filter(Boolean))) as string[];
+      if (!orderIds.length) return NextResponse.json({ recommendations: [], recent: [] });
+
+      const { data: historyOrders, error: orderError } = await context.supabase
+        .from('canonical_purchase_orders_v1')
+        .select('id, order_number, order_date, supplier_name, supplier_tax_id, canonical_supplier_id, currency')
+        .eq('organization_id', context.organizationId)
+        .in('id', orderIds)
+        .order('order_date', { ascending: false });
+      if (orderError) throw orderError;
+
+      const orderById = new Map((historyOrders || []).map((order) => [order.id, order]));
+      const supplierIds = Array.from(new Set((historyOrders || []).map((order) => order.canonical_supplier_id).filter(Boolean))) as string[];
+      const { data: suppliers, error: supplierError } = supplierIds.length
+        ? await context.supabase.from('canonical_suppliers_v1').select('id, tax_id, legal_name, trade_name, payment_terms').eq('organization_id', context.organizationId).in('id', supplierIds).eq('is_active', true)
+        : { data: [], error: null };
+      if (supplierError) throw supplierError;
+      const supplierById = new Map((suppliers || []).map((supplier) => [supplier.id, supplier]));
+
+      type SupplierScore = {
+        supplier: any;
+        supplier_name: string;
+        order_count: number;
+        covered_products: Set<string>;
+        last_order_date: string | null;
+        last_order_number: string | null;
+        last_unit_cost: number | null;
+        currency: string | null;
+      };
+      const scores = new Map<string, SupplierScore>();
+      const recentRows: any[] = [];
+
+      for (const line of historyLines || []) {
+        const order: any = orderById.get(line.purchase_order_id);
+        if (!order?.canonical_supplier_id) continue;
+        const supplier: any = supplierById.get(order.canonical_supplier_id);
+        if (!supplier) continue;
+        const key = supplier.id;
+        const productKey = String(line.canonical_product_id || line.product_code || '');
+        const current = scores.get(key) || {
+          supplier,
+          supplier_name: supplier.trade_name || supplier.legal_name || order.supplier_name,
+          order_count: 0,
+          covered_products: new Set<string>(),
+          last_order_date: null,
+          last_order_number: null,
+          last_unit_cost: null,
+          currency: order.currency || 'CLP',
+        };
+        current.order_count += 1;
+        if (productKey) current.covered_products.add(productKey);
+        if (!current.last_order_date || (order.order_date && order.order_date > current.last_order_date)) {
+          current.last_order_date = order.order_date || null;
+          current.last_order_number = order.order_number || null;
+          current.last_unit_cost = line.unit_cost == null ? null : Number(line.unit_cost);
+          current.currency = order.currency || 'CLP';
+        }
+        scores.set(key, current);
+        recentRows.push({
+          supplier,
+          supplier_name: supplier.trade_name || supplier.legal_name || order.supplier_name,
+          order_date: order.order_date,
+          order_number: order.order_number,
+          product_code: line.product_code,
+          canonical_product_id: line.canonical_product_id,
+          unit_cost: line.unit_cost == null ? null : Number(line.unit_cost),
+          currency: order.currency || 'CLP',
+        });
+      }
+
+      const requestedCount = Math.max(1, new Set([...productIds, ...productCodes]).size);
+      const recommendations = Array.from(scores.values())
+        .map((row) => ({
+          ...row.supplier,
+          supplier_name: row.supplier_name,
+          order_count: row.order_count,
+          covered_products: row.covered_products.size,
+          coverage_ratio: row.covered_products.size / requestedCount,
+          last_order_date: row.last_order_date,
+          last_order_number: row.last_order_number,
+          last_unit_cost: row.last_unit_cost,
+          currency: row.currency,
+        }))
+        .sort((a, b) => b.coverage_ratio - a.coverage_ratio || b.covered_products - a.covered_products || b.order_count - a.order_count || String(b.last_order_date || '').localeCompare(String(a.last_order_date || '')))
+        .slice(0, 5);
+
+      const recent = recentRows
+        .sort((a, b) => String(b.order_date || '').localeCompare(String(a.order_date || '')))
+        .filter((row, index, rows) => rows.findIndex((other) => other.supplier.id === row.supplier.id) === index)
+        .slice(0, 5);
+
+      return NextResponse.json({ recommendations, recent });
+    }
+
     const [requestsResult, requestLinesResult, quotationsResult, quotationLinesResult, ordersResult, orderLinesResult, receiptsResult, eventsResult] = await Promise.all([
       context.supabase.from('canonical_procurement_requests_v1').select('*').eq('organization_id', context.organizationId).order('created_at', { ascending: false }).limit(100),
       context.supabase.from('canonical_procurement_request_lines_v1').select('*').eq('organization_id', context.organizationId).order('created_at'),
