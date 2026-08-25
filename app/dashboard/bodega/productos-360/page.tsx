@@ -11,10 +11,12 @@ type Media = { id: string; image_url?: string | null; status: 'pending' | 'appro
 type Product = { id: string; product_code: string; name: string; family?: string | null; subfamily?: string | null; unit?: string | null; standard_cost?: number | null; minimum_stock?: number | null; maximum_stock?: number | null; is_active: boolean; validation_status: string; media?: Media | null };
 type Detail = { product: Product; media?: Media | null; canManageMedia?: boolean; summary: any; stock: any[]; snapshots: any[]; movements: any[]; workOrderUsage: any[]; maintenanceOrders: any[]; assets: any[]; purchaseLines: any[]; purchaseOrders: any[]; receipts: any[]; returns: any[]; suppliers: any[] };
 const money = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 });
+const PRODUCT_BATCH_SIZE = 20;
 
 export default function Products360Page() {
   const [q, setQ] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
+  const [visibleCount, setVisibleCount] = useState(PRODUCT_BATCH_SIZE);
   const [selectedId, setSelectedId] = useState('');
   const [detail, setDetail] = useState<Detail | null>(null);
   const [loading, setLoading] = useState(false);
@@ -42,6 +44,7 @@ export default function Products360Page() {
     const payload = await response.json();
     if (!response.ok) throw new Error(payload.error || 'No se pudieron cargar los productos.');
     setProducts(payload.products || []);
+    setVisibleCount(PRODUCT_BATCH_SIZE);
     setCanManageMedia(Boolean(payload.canManageMedia));
   }, []);
 
@@ -87,6 +90,9 @@ export default function Products360Page() {
     };
   }, [detail]);
 
+  const visibleProducts = useMemo(() => products.slice(0, visibleCount), [products, visibleCount]);
+  const hasMoreProducts = visibleCount < products.length;
+
   const cards = detail ? [
     { label: 'Existencia', value: Number(detail.summary.quantity_on_hand || 0).toLocaleString('es-CL'), Icon: Boxes },
     { label: 'Disponible', value: Number(detail.summary.quantity_available || 0).toLocaleString('es-CL'), Icon: PackageSearch },
@@ -101,7 +107,19 @@ export default function Products360Page() {
     <section className="grid gap-6 lg:grid-cols-[340px_1fr]">
       <aside className="rounded-lg border bg-card">
         <form onSubmit={(e) => { e.preventDefault(); search(q).catch((cause) => setError(cause.message)); }} className="flex gap-2 border-b p-3"><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Código, nombre o familia" className="min-w-0 flex-1 rounded-md border bg-background px-3 py-2 text-sm"/><button className="rounded-md border px-3" aria-label="Buscar"><Search className="h-4 w-4"/></button></form>
-        <div className="max-h-[70vh] divide-y overflow-y-auto">{products.map((product) => <button key={product.id} onClick={() => setSelectedId(product.id)} className={`flex w-full items-center gap-3 p-3 text-left text-sm hover:bg-muted ${selectedId === product.id ? 'bg-muted' : ''}`}><ProductPhoto media={product.media} name={product.name} size="sm"/><span><span className="block font-medium">{product.name}</span><span className="text-xs text-muted-foreground">{product.product_code} · {product.media?.status === 'approved' ? 'Foto validada' : 'Foto pendiente'}</span></span></button>)}</div>
+        <div
+          className="max-h-[70vh] divide-y overflow-y-auto"
+          onScroll={(event) => {
+            if (!hasMoreProducts) return;
+            const target = event.currentTarget;
+            if (target.scrollHeight - target.scrollTop - target.clientHeight < 180) {
+              setVisibleCount((count) => Math.min(count + PRODUCT_BATCH_SIZE, products.length));
+            }
+          }}
+        >
+          {visibleProducts.map((product) => <button key={product.id} onClick={() => setSelectedId(product.id)} className={`flex w-full items-center gap-3 p-3 text-left text-sm hover:bg-muted ${selectedId === product.id ? 'bg-muted' : ''}`}><ProductPhoto media={product.media} name={product.name} size="sm"/><span><span className="block font-medium">{product.name}</span><span className="text-xs text-muted-foreground">{product.product_code} · {product.media?.status === 'approved' ? 'Foto validada' : 'Foto pendiente'}</span></span></button>)}
+          {hasMoreProducts ? <div className="p-3 text-center text-xs text-muted-foreground">Desplázate para cargar 20 más</div> : null}
+        </div>
       </aside>
       <div className="space-y-5">
         {!selectedId && <div className="rounded-lg border p-8 text-center text-sm text-muted-foreground">Selecciona un producto para abrir su trazabilidad completa.</div>}
