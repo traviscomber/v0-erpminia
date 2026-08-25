@@ -20,6 +20,9 @@ export default function Products360Page() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [mediaBusy, setMediaBusy] = useState(false);
+  const [canManageMedia, setCanManageMedia] = useState(false);
+  const [importBusy, setImportBusy] = useState(false);
+  const [importMessage, setImportMessage] = useState('');
 
   const mediaAction = async (action: 'generate' | 'approve' | 'reject') => {
     if (!detail) return;
@@ -39,7 +42,27 @@ export default function Products360Page() {
     const payload = await response.json();
     if (!response.ok) throw new Error(payload.error || 'No se pudieron cargar los productos.');
     setProducts(payload.products || []);
+    setCanManageMedia(Boolean(payload.canManageMedia));
   }, []);
+
+  const importWebBatch = async () => {
+    setImportBusy(true); setError(''); setImportMessage('');
+    let processed = 0; let imported = 0; let failed = 0;
+    try {
+      for (let batch = 0; batch < 10; batch += 1) {
+        const response = await apiFetch('/api/cron/product-media-web-import', { method: 'POST' });
+        const payload = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(payload?.error || 'No se pudo procesar la cola web.');
+        processed += Number(payload?.processed || 0);
+        imported += Number(payload?.imported || 0);
+        failed += Number(payload?.failed || 0);
+        if (!payload?.processed) break;
+      }
+      setImportMessage(`Procesados ${processed} · Importados ${imported} · Fallidos ${failed}`);
+      await search(q);
+    } catch (cause) { setError(cause instanceof Error ? cause.message : 'No se pudo procesar la cola web.'); }
+    finally { setImportBusy(false); }
+  };
 
   const loadDetail = useCallback(async (id: string) => {
     setLoading(true); setError('');
@@ -74,7 +97,7 @@ export default function Products360Page() {
   ] : [];
 
   return <main className="space-y-6">
-    <header><p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Bodega</p><h1 className="mt-1 text-2xl font-semibold">Producto 360°</h1><p className="mt-1 text-sm text-muted-foreground">Stock, lotes, movimientos, compras, proveedores, consumo, equipos y costos en una sola ficha.</p></header>
+    <header className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Bodega</p><h1 className="mt-1 text-2xl font-semibold">Producto 360°</h1><p className="mt-1 text-sm text-muted-foreground">Stock, lotes, movimientos, compras, proveedores, consumo, equipos y costos en una sola ficha.</p></div>{canManageMedia ? <div className="text-right"><Button variant="outline" onClick={() => void importWebBatch()} disabled={importBusy}><RefreshCw className={`mr-2 h-4 w-4 ${importBusy ? 'animate-spin' : ''}`}/>{importBusy ? 'Procesando fuentes…' : 'Procesar fuentes web'}</Button>{importMessage ? <p className="mt-2 text-xs text-muted-foreground">{importMessage}</p> : null}</div> : null}</header>
     <section className="grid gap-6 lg:grid-cols-[340px_1fr]">
       <aside className="rounded-lg border bg-card">
         <form onSubmit={(e) => { e.preventDefault(); search(q).catch((cause) => setError(cause.message)); }} className="flex gap-2 border-b p-3"><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Código, nombre o familia" className="min-w-0 flex-1 rounded-md border bg-background px-3 py-2 text-sm"/><button className="rounded-md border px-3" aria-label="Buscar"><Search className="h-4 w-4"/></button></form>
