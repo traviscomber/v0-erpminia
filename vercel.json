@@ -2,6 +2,10 @@
   "buildCommand": "npm run build",
   "crons": [
     {
+      "path": "/api/cron/product-media-generation",
+      "schedule": "* * * * *"
+    },
+    {
       "path": "/api/cron/maintenance-analytics-daily",
       "schedule": "0 1 * * *"
     },
