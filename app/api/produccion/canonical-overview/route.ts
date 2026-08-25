@@ -6,6 +6,11 @@ import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
 import { allQualityChecksPass } from '@/lib/production/quality-status.mjs';
 
 const num = (value: unknown) => Number(value || 0);
+const semantics = {
+  planVsActual: 'El avance mensual usa tratamiento de planta como métrica operacional frente al plan de mineral a planta. Transporte se presenta sólo en la ventana cubierta por TM y no se extiende más allá del corte de fuente.',
+  concentrate: 'Concentrado producido no se infiere. Sólo se muestra concentrado despachado acreditado por fuente.',
+  sourceAbsence: 'Ausencia de una fuente no equivale a valor cero.',
+} as const;
 
 export async function GET(request: NextRequest) {
   const access = await requireModuleAccess(request, MODULE_KEYS.PROD_OPERACIONES);
@@ -114,6 +119,7 @@ export async function GET(request: NextRequest) {
       },
       currentPeriod: null,
       daily: [],
+      semantics,
     });
   }
 
@@ -350,10 +356,6 @@ export async function GET(request: NextRequest) {
       },
     },
     intelligence,
-    semantics: {
-      planVsActual: 'El avance mensual usa tratamiento de planta como métrica operacional frente al plan de mineral a planta. Transporte se presenta sólo en la ventana cubierta por TM y no se extiende más allá del corte de fuente.',
-      concentrate: 'Concentrado producido no se infiere. Sólo se muestra concentrado despachado acreditado por fuente.',
-      sourceAbsence: 'Ausencia de una fuente no equivale a valor cero.',
-    },
+    semantics,
   });
 }
