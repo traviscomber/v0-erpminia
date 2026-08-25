@@ -161,14 +161,40 @@ test('authenticated demo can create preventive plan and generate a work order', 
   await expect(page.getByText('Orden de trabajo creada desde el plan.')).toBeVisible()
   await expect(planCard.getByRole('link', { name: 'Abrir OT' })).toBeVisible()
 
+  const detailApiResponses = []
+  page.on('response', (response) => {
+    const url = new URL(response.url())
+    if (url.pathname.startsWith('/api/maintenance/work-orders/') || url.pathname.startsWith('/api/timeline/work_order/')) {
+      detailApiResponses.push({ path: url.pathname, status: response.status() })
+    }
+  })
+
   await planCard.getByRole('link', { name: 'Abrir OT' }).click()
   await expect(page).toHaveURL(/\/dashboard\/mantenimiento\/ordenes-trabajo\/[0-9a-f-]+$/i, { timeout: 20_000 })
   await expect(page.getByRole('heading', { name: marker })).toBeVisible({ timeout: 20_000 })
+  await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {})
   await expect(page.getByText('Preventiva', { exact: true })).toBeVisible()
-  await expect(page.getByText('Planificada', { exact: true }).or(page.getByText('planned', { exact: true }))).toBeVisible()
+
+  const plannedStatusBadge = page.locator('[data-slot="badge"]').filter({ hasText: /^(Planificada|planned)$/ })
+  await expect(plannedStatusBadge).toHaveCount(1)
+  await expect(plannedStatusBadge).toBeVisible()
+
+  const workOrderId = new URL(page.url()).pathname.split('/').pop()
+  const expectedApiChecks = [
+    `/api/maintenance/work-orders/${workOrderId}`,
+    `/api/maintenance/work-orders/${workOrderId}/materials`,
+    `/api/maintenance/work-orders/${workOrderId}/execution`,
+    `/api/maintenance/work-orders/${workOrderId}/reserve-parts`,
+    `/api/timeline/work_order/${workOrderId}`,
+  ]
+  for (const path of expectedApiChecks) {
+    const matches = detailApiResponses.filter((entry) => entry.path === path)
+    expect(matches.length, `expected browser request was not observed: ${path}`).toBeGreaterThan(0)
+    expect(matches.every((entry) => entry.status >= 200 && entry.status < 400), `non-success response for ${path}: ${JSON.stringify(matches)}`).toBe(true)
+  }
 
   const detailBody = (await page.locator('body').innerText()).trim()
-  expect(detailBody).not.toMatch(/Application error|Internal Server Error|No se pudo cargar la orden/i)
+  expect(detailBody).not.toMatch(/Application error|Internal Server Error|No se pudo cargar la orden|No se pudo cargar la cobertura de materiales|No se pudo cargar la línea de tiempo/i)
   await page.screenshot({ path: testInfo.outputPath('authenticated-work-order-detail.png'), fullPage: true })
 
   expect(health.pageErrors, 'page errors during authenticated journey').toEqual([])
