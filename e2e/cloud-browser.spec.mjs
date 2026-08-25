@@ -13,6 +13,7 @@ const routes = [
   '/modulos/legal',
 ]
 
+// Live mode is explicit and runs the side-effecting authenticated journey once in Chromium.
 const RUN_LIVE = process.env.E2E_LIVE === '1'
 
 function attachHealth(page) {
