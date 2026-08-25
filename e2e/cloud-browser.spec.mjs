@@ -13,6 +13,8 @@ const routes = [
   '/modulos/legal',
 ]
 
+const RUN_LIVE = process.env.E2E_LIVE === '1'
+
 function attachHealth(page) {
   const sameOriginConsoleErrors = []
   const pageErrors = []
@@ -83,4 +85,92 @@ test('login form hydrates and accepts safe input without submit', async ({ page 
 
   expect(health.pageErrors).toEqual([])
   expect(health.sameOriginConsoleErrors).toEqual([])
+})
+
+test('authenticated demo can create preventive plan and generate a work order', async ({ page }, testInfo) => {
+  test.skip(!RUN_LIVE, 'Authenticated live journey is explicit opt-in only')
+  test.skip(testInfo.project.name !== 'chromium-desktop', 'Run the live production mutation once')
+
+  const emailValue = process.env.E2E_EMAIL || ''
+  const passwordValue = process.env.E2E_PASSWORD || ''
+  expect(emailValue, 'missing masked demo email').not.toBe('')
+  expect(passwordValue, 'missing masked demo password').not.toBe('')
+
+  const health = attachHealth(page)
+  const marker = `BROWSERIN-E2E-${process.env.GITHUB_RUN_ID || Date.now()}`
+  const scheduledDate = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10)
+
+  await page.goto('/auth/login?redirect=/dashboard/mantenimiento/planificacion', { waitUntil: 'domcontentloaded' })
+  await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {})
+
+  await page.getByLabel('Correo electrónico').fill(emailValue)
+  await page.getByLabel('Contraseña').fill(passwordValue)
+  await expect(page.getByRole('button', { name: 'Iniciar sesión' })).toBeEnabled()
+
+  const loginResponsePromise = page.waitForResponse((response) =>
+    response.url().includes('/api/auth/login') && response.request().method() === 'POST',
+  )
+  await page.getByRole('button', { name: 'Iniciar sesión' }).click()
+  const loginResponse = await loginResponsePromise
+  expect(loginResponse.status(), 'login API did not accept demo account').toBe(200)
+
+  await expect(page).toHaveURL(/\/dashboard\/mantenimiento\/planificacion(?:\?|$)/, { timeout: 20_000 })
+  await expect(page.getByRole('heading', { name: 'Planificación preventiva' })).toBeVisible()
+
+  const planningApi = await page.evaluate(async () => {
+    const response = await fetch('/api/maintenance/preventive', { credentials: 'include' })
+    const payload = await response.json().catch(() => null)
+    return { status: response.status, assets: payload?.assets?.length || 0 }
+  })
+  expect(planningApi.status, 'authenticated preventive API failed').toBe(200)
+  expect(planningApi.assets, 'demo organization has no maintenance assets').toBeGreaterThan(0)
+
+  await page.screenshot({ path: testInfo.outputPath('authenticated-planification-before.png'), fullPage: true })
+
+  await page.getByRole('button', { name: 'Nuevo plan' }).click()
+  await expect(page.getByText('Nuevo plan preventivo')).toBeVisible()
+
+  const equipmentSelect = page.getByRole('combobox').first()
+  await equipmentSelect.click()
+  await page.getByRole('option').first().click()
+  await page.getByPlaceholder('Tarea').fill(marker)
+  await page.locator('input[type="date"]').fill(scheduledDate)
+  await page.getByPlaceholder('Frecuencia en días').fill('30')
+  await page.getByPlaceholder('Duración estimada').fill('1')
+  await page.getByPlaceholder('Descripción').fill('Registro temporal creado por Browserin E2E; debe limpiarse al finalizar la verificación.')
+
+  const createResponsePromise = page.waitForResponse((response) =>
+    response.url().includes('/api/maintenance/preventive') && response.request().method() === 'POST',
+  )
+  await page.getByRole('button', { name: 'Guardar plan' }).click()
+  const createResponse = await createResponsePromise
+  expect(createResponse.status(), 'preventive plan POST failed').toBe(201)
+  await expect(page.getByText('Plan preventivo creado.')).toBeVisible()
+
+  const planCard = page.locator('[data-slot="card"]').filter({ hasText: marker })
+  await expect(planCard).toHaveCount(1)
+  await expect(planCard.getByRole('button', { name: 'Crear OT' })).toBeEnabled()
+  await page.screenshot({ path: testInfo.outputPath('authenticated-plan-created.png'), fullPage: true })
+
+  const generateResponsePromise = page.waitForResponse((response) =>
+    response.url().includes('/api/maintenance/preventive') && response.request().method() === 'PATCH',
+  )
+  await planCard.getByRole('button', { name: 'Crear OT' }).click()
+  const generateResponse = await generateResponsePromise
+  expect(generateResponse.status(), 'work-order generation PATCH failed').toBe(200)
+  await expect(page.getByText('Orden de trabajo creada desde el plan.')).toBeVisible()
+  await expect(planCard.getByRole('link', { name: 'Abrir OT' })).toBeVisible()
+
+  await planCard.getByRole('link', { name: 'Abrir OT' }).click()
+  await expect(page).toHaveURL(/\/dashboard\/mantenimiento\/ordenes-trabajo\/[0-9a-f-]+$/i, { timeout: 20_000 })
+  await expect(page.getByRole('heading', { name: marker })).toBeVisible({ timeout: 20_000 })
+  await expect(page.getByText('Preventiva', { exact: true })).toBeVisible()
+  await expect(page.getByText('Planificada', { exact: true }).or(page.getByText('planned', { exact: true }))).toBeVisible()
+
+  const detailBody = (await page.locator('body').innerText()).trim()
+  expect(detailBody).not.toMatch(/Application error|Internal Server Error|No se pudo cargar la orden/i)
+  await page.screenshot({ path: testInfo.outputPath('authenticated-work-order-detail.png'), fullPage: true })
+
+  expect(health.pageErrors, 'page errors during authenticated journey').toEqual([])
+  expect(health.sameOriginConsoleErrors, 'same-origin console errors during authenticated journey').toEqual([])
 })
