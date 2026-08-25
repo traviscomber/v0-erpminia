@@ -11,6 +11,8 @@ const BATCH_SIZE = 10;
 const MAX_BYTES = 10 * 1024 * 1024;
 const AUTO_APPROVE_CONFIDENCE = 0.9;
 const ADMIN_ROLES = new Set(['admin', 'superadmin', 'super_admin']);
+const IMAGE_JUNK_HINTS = ['logo', 'icon', 'favicon', 'spinner', 'placeholder', 'tracking', 'pixel', 'avatar', 'social'];
+const IMAGE_PRODUCT_HINTS = ['product', 'main', 'gallery', 'zoom', 'hero'];
 
 type Candidate = {
   id: string;
@@ -21,6 +23,11 @@ type Candidate = {
   source_domain: string;
   confidence: number;
   requested_by_auth_user_id: string;
+};
+
+type ImageChoice = {
+  url: string;
+  score: number;
 };
 
 function messageOf(error: unknown) {
@@ -36,8 +43,38 @@ function extensionFor(contentType: string) {
   return 'jpg';
 }
 
+function decodeHtml(value: string) {
+  return value
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>');
+}
+
 function absoluteUrl(value: string, base: string) {
-  try { return new URL(value, base).toString(); } catch { return value; }
+  const decoded = decodeHtml(String(value || '').trim());
+  if (!decoded || /^(?:data|blob|javascript):/i.test(decoded)) return null;
+  try {
+    const url = new URL(decoded, base);
+    if (!/^https?:$/.test(url.protocol)) return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+function attributeFromTag(tag: string, name: string) {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const quoted = tag.match(new RegExp(`(?:^|\\s)${escaped}\\s*=\\s*["']([^"']+)["']`, 'i'));
+  if (quoted?.[1]) return decodeHtml(quoted[1]);
+  const unquoted = tag.match(new RegExp(`(?:^|\\s)${escaped}\\s*=\\s*([^\\s>]+)`, 'i'));
+  return unquoted?.[1] ? decodeHtml(unquoted[1]) : null;
+}
+
+function isJunkImage(value: string) {
+  const normalized = value.toLowerCase();
+  return IMAGE_JUNK_HINTS.some((hint) => normalized.includes(hint));
 }
 
 function metaImageFromHtml(html: string, baseUrl: string) {
@@ -49,9 +86,123 @@ function metaImageFromHtml(html: string, baseUrl: string) {
   ];
   for (const pattern of patterns) {
     const match = html.match(pattern);
-    if (match?.[1]) return absoluteUrl(match[1].replace(/&amp;/g, '&'), baseUrl);
+    if (!match?.[1]) continue;
+    const resolved = absoluteUrl(match[1], baseUrl);
+    if (resolved && !isJunkImage(resolved)) return resolved;
   }
   return null;
+}
+
+function imageUrlsFromJsonValue(value: unknown): string[] {
+  if (typeof value === 'string') return [value];
+  if (Array.isArray(value)) return value.flatMap(imageUrlsFromJsonValue);
+  if (!value || typeof value !== 'object') return [];
+  const row = value as Record<string, unknown>;
+  return ['url', 'contentUrl', 'thumbnailUrl'].flatMap((key) => imageUrlsFromJsonValue(row[key]));
+}
+
+function productNodes(value: unknown): Record<string, unknown>[] {
+  if (Array.isArray(value)) return value.flatMap(productNodes);
+  if (!value || typeof value !== 'object') return [];
+  const row = value as Record<string, unknown>;
+  const type = row['@type'];
+  const types = Array.isArray(type) ? type : [type];
+  const matchesProduct = types.some((entry) => String(entry || '').toLowerCase() === 'product');
+  const nested = Object.values(row).flatMap(productNodes);
+  return matchesProduct ? [row, ...nested] : nested;
+}
+
+function jsonLdImageFromHtml(html: string, baseUrl: string) {
+  const scripts = html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi);
+  const productImages: string[] = [];
+  const fallbackImages: string[] = [];
+
+  for (const match of scripts) {
+    const raw = match[1]?.trim();
+    if (!raw) continue;
+    try {
+      const parsed = JSON.parse(raw);
+      const products = productNodes(parsed);
+      for (const product of products) productImages.push(...imageUrlsFromJsonValue(product.image));
+
+      const roots = Array.isArray(parsed) ? parsed : [parsed];
+      for (const root of roots) {
+        if (root && typeof root === 'object') fallbackImages.push(...imageUrlsFromJsonValue((root as Record<string, unknown>).image));
+      }
+    } catch {
+      // Invalid JSON-LD should not prevent the HTML fallback from running.
+    }
+  }
+
+  for (const value of [...productImages, ...fallbackImages]) {
+    const resolved = absoluteUrl(value, baseUrl);
+    if (resolved && !isJunkImage(resolved)) return resolved;
+  }
+  return null;
+}
+
+function srcsetChoices(srcset: string, baseUrl: string) {
+  return srcset.split(',').map((part) => {
+    const bits = part.trim().split(/\s+/);
+    const url = absoluteUrl(bits[0] || '', baseUrl);
+    if (!url) return null;
+    const descriptor = bits[1] || '';
+    const width = descriptor.endsWith('w') ? Number.parseInt(descriptor, 10) || 0 : 0;
+    const density = descriptor.endsWith('x') ? Number.parseFloat(descriptor) || 0 : 0;
+    return { url, rank: width || density * 1000 };
+  }).filter((value): value is { url: string; rank: number } => Boolean(value)).sort((a, b) => b.rank - a.rank);
+}
+
+function htmlImageFromHtml(html: string, baseUrl: string) {
+  const choices: ImageChoice[] = [];
+  const tags = html.match(/<img\b[^>]*>/gi) || [];
+
+  for (const tag of tags) {
+    const context = [
+      attributeFromTag(tag, 'alt'),
+      attributeFromTag(tag, 'class'),
+      attributeFromTag(tag, 'id'),
+      attributeFromTag(tag, 'title'),
+    ].filter(Boolean).join(' ').toLowerCase();
+
+    const rawCandidates: Array<{ value: string; bonus: number }> = [];
+    for (const attr of ['data-src', 'data-lazy-src', 'data-original', 'src']) {
+      const value = attributeFromTag(tag, attr);
+      if (value) rawCandidates.push({ value, bonus: attr === 'src' ? 0 : 12 });
+    }
+
+    const srcset = attributeFromTag(tag, 'srcset') || attributeFromTag(tag, 'data-srcset');
+    if (srcset) {
+      for (const [index, choice] of srcsetChoices(srcset, baseUrl).entries()) {
+        rawCandidates.push({ value: choice.url, bonus: 20 - Math.min(index, 10) });
+      }
+    }
+
+    for (const candidate of rawCandidates) {
+      const resolved = absoluteUrl(candidate.value, baseUrl);
+      if (!resolved) continue;
+      const combined = `${resolved} ${context}`.toLowerCase();
+      if (isJunkImage(combined)) continue;
+
+      let score = candidate.bonus;
+      if (IMAGE_PRODUCT_HINTS.some((hint) => combined.includes(hint))) score += 50;
+      if (/\.(?:jpe?g|png|webp|avif)(?:[?#]|$)/i.test(resolved)) score += 5;
+      const width = Number.parseInt(attributeFromTag(tag, 'width') || '', 10);
+      const height = Number.parseInt(attributeFromTag(tag, 'height') || '', 10);
+      if (width >= 500 || height >= 500) score += 15;
+      else if ((width > 0 && width <= 80) || (height > 0 && height <= 80)) score -= 30;
+      choices.push({ url: resolved, score });
+    }
+  }
+
+  choices.sort((a, b) => b.score - a.score);
+  return choices[0]?.url || null;
+}
+
+function pageImageFromHtml(html: string, baseUrl: string) {
+  return metaImageFromHtml(html, baseUrl)
+    || jsonLdImageFromHtml(html, baseUrl)
+    || htmlImageFromHtml(html, baseUrl);
 }
 
 async function fetchImage(candidate: Candidate) {
@@ -69,8 +220,8 @@ async function fetchImage(candidate: Candidate) {
   if (!contentType.startsWith('image/')) {
     if (!contentType.includes('text/html')) throw new Error(`La URL no devolvió imagen (${contentType || 'sin content-type'})`);
     const html = await response.text();
-    const resolved = metaImageFromHtml(html, response.url || candidate.source_url);
-    if (!resolved) throw new Error('La página no expone og:image/twitter:image');
+    const resolved = pageImageFromHtml(html, response.url || candidate.source_url);
+    if (!resolved) throw new Error('La página no expone una imagen de producto utilizable');
     imageUrl = resolved;
     response = await fetch(imageUrl, { headers: { ...headers, Referer: candidate.source_url }, cache: 'no-store', redirect: 'follow' });
     if (!response.ok) throw new Error(`Imagen de página HTTP ${response.status}`);
