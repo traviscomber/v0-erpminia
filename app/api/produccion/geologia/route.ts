@@ -22,5 +22,39 @@ export async function GET(request: NextRequest) {
   const totalMeters=drillingRows.reduce((s,r)=>s+Number(r.drilled_meters||0),0);
   const mineSummary=mineRows.map(m=>{const reports=drillingRows.filter(r=>r.canonical_mine_source_id===m.id);return {id:m.id,code:m.code,name:m.name,status:m.status,sectors:sectorRows.filter(s=>s.mine_source_id===m.id).length,drillingReports:reports.length,drilledMeters:reports.reduce((s,r)=>s+Number(r.drilled_meters||0),0),chemistry:(chemistry.data||[]).find(c=>c.mine_name===m.name)||null};});
   const q=quality.data||{external_records:0,sernageomin_records:0,mine_linked_records:0,sector_linked_records:0,georeferenced_records:0,valid_records:0,review_records:0};
-  return NextResponse.json({summary:{mines:mineRows.length,sectors:sectorRows.length,drillingReports:drillingRows.length,drilledMeters:totalMeters,mineLinkCoveragePct:drillingRows.length?(linkedMineReports/drillingRows.length)*100:0,sectorLinkCoveragePct:drillingRows.length?(linkedSectorReports/drillingRows.length)*100:0,holeLinkCoveragePct:drillingRows.length?(linkedHoleReports/drillingRows.length)*100:0},mines:mineSummary,recentDrilling:recentDrilling.data||[],externalQuality:q,intelligenceStatus:{geologicalSamplesCanonical:Number(q.external_records)>0,assaysCanonical:(chemistry.data||[]).length>0,drillHolesCanonical:linkedHoleReports>0,note:Number(q.external_records)>0?'Contexto geológico externo disponible y separado de la operación.':'SERNAGEOMIN está modelado pero aún no hay registros externos vinculados. No se infieren concesiones, unidades geológicas ni geometrías.'},externalContext:{authority:'SERNAGEOMIN',treatment:'external_context_not_canonical_operation',sources:[{key:'catastro_concesiones',name:'Catastro de Concesiones Mineras',status:'public',use:'Concesiones vigentes y contexto de propiedad minera.'},{key:'sigex',name:'SIGEX',status:'public',use:'Información oficial de exploración geológica entregada al Servicio.'},{key:'sia_yacimientos',name:'SIA Yacimientos',status:'public_viewer',use:'Yacimientos y ocurrencias minerales.'},{key:'geoquimica',name:'Visor de Datos Geoquímicos',status:'public_viewer',use:'Contexto geoquímico público.'}],lineage:'SERNAGEOMIN → geometría/identificador externo → Mina → Sector → Sondaje/Química cuando exista evidencia'}});
+  return NextResponse.json({canWrite:access.canWrite,summary:{mines:mineRows.length,sectors:sectorRows.length,drillingReports:drillingRows.length,drilledMeters:totalMeters,mineLinkCoveragePct:drillingRows.length?(linkedMineReports/drillingRows.length)*100:0,sectorLinkCoveragePct:drillingRows.length?(linkedSectorReports/drillingRows.length)*100:0,holeLinkCoveragePct:drillingRows.length?(linkedHoleReports/drillingRows.length)*100:0},mines:mineSummary,recentDrilling:recentDrilling.data||[],externalQuality:q,intelligenceStatus:{geologicalSamplesCanonical:Number(q.external_records)>0,assaysCanonical:(chemistry.data||[]).length>0,drillHolesCanonical:linkedHoleReports>0,note:Number(q.external_records)>0?'Contexto geológico externo disponible y separado de la operación.':'SERNAGEOMIN está modelado pero aún no hay registros externos vinculados. No se infieren concesiones, unidades geológicas ni geometrías.'},externalContext:{authority:'SERNAGEOMIN',treatment:'external_context_not_canonical_operation',sources:[{key:'catastro_concesiones',name:'Catastro de Concesiones Mineras',status:'public',use:'Concesiones vigentes y contexto de propiedad minera.'},{key:'sigex',name:'SIGEX',status:'public',use:'Información oficial de exploración geológica entregada al Servicio.'},{key:'sia_yacimientos',name:'SIA Yacimientos',status:'public_viewer',use:'Yacimientos y ocurrencias minerales.'},{key:'geoquimica',name:'Visor de Datos Geoquímicos',status:'public_viewer',use:'Contexto geoquímico público.'}],lineage:'SERNAGEOMIN → geometría/identificador externo → Mina → Sector → Sondaje/Química cuando exista evidencia'}});
+}
+
+export async function PATCH(request: NextRequest) {
+  const access = await requireModuleAccess(request, MODULE_KEYS.PROD_GEOLOGIA, true);
+  if (!access.authorized) return access.response;
+  const context = await getOrganizationContext(request); if (!context.ok) return context.response;
+  const body = await request.json().catch(() => null);
+  const reportId = typeof body?.reportId === 'string' ? body.reportId : '';
+  const mineId = typeof body?.mineId === 'string' ? body.mineId : '';
+  if (!reportId || !mineId) return NextResponse.json({error:'Debes seleccionar un registro y una mina'},{status:400});
+
+  const [reportResult,mineResult] = await Promise.all([
+    context.supabase.from('production_drilling_source_reports').select('id,canonical_mine_sector_id,canonical_drill_hole_id').eq('organization_id',context.organizationId).eq('id',reportId).maybeSingle(),
+    context.supabase.from('production_mine_sources').select('id,name').eq('organization_id',context.organizationId).eq('id',mineId).maybeSingle(),
+  ]);
+  if (reportResult.error || mineResult.error) return NextResponse.json({error:(reportResult.error||mineResult.error)?.message},{status:500});
+  if (!reportResult.data) return NextResponse.json({error:'El registro de sondaje no pertenece a esta organización'},{status:404});
+  if (!mineResult.data) return NextResponse.json({error:'La mina seleccionada no pertenece a esta organización'},{status:400});
+
+  let sectorId = reportResult.data.canonical_mine_sector_id as string|null;
+  if (sectorId) {
+    const { data:sector } = await context.supabase.from('production_mine_sectors').select('id').eq('organization_id',context.organizationId).eq('id',sectorId).eq('mine_source_id',mineId).maybeSingle();
+    if (!sector) sectorId = null;
+  }
+  const reconciledAt = new Date().toISOString();
+  const reviewer = access.user.id;
+  const { data:updated,error } = await context.supabase.from('production_drilling_source_reports').update({
+    canonical_mine_source_id:mineId,
+    canonical_mine_sector_id:sectorId,
+    reconciliation_status:sectorId && reportResult.data.canonical_drill_hole_id ? 'matched' : 'review',
+    reconciliation_notes:`Mina asignada manualmente: ${mineResult.data.name}. Reconciliado por ${reviewer} el ${reconciledAt}. Sector y pozo no se infieren.`,
+  }).eq('organization_id',context.organizationId).eq('id',reportId).select('id,canonical_mine_source_id,canonical_mine_sector_id,reconciliation_status,reconciliation_notes').single();
+  if (error) return NextResponse.json({error:error.message},{status:500});
+  return NextResponse.json({report:updated,mine:mineResult.data});
 }

@@ -16,14 +16,30 @@ const fetcher = async (url: string) => {
 };
 
 const workspaces = [
-  { title: 'Producción', href: '/dashboard/produccion', description: 'Transporte de Mineral, planta, metalurgia, geología, topografía, química y sondaje.' },
-  { title: 'Mantenimiento', href: '/dashboard/mantenimiento', description: 'Órdenes de trabajo, activos, planificación, vehículos y Maestranza.' },
-  { title: 'Inventario', href: '/dashboard/bodega', description: 'Stock, reservas, reposición, repuestos y trazabilidad.' },
-  { title: 'Compras', href: '/dashboard/compras', description: 'Cotizaciones, órdenes de compra, proveedores y comparación.' },
-  { title: 'Finanzas', href: '/dashboard/finanzas', description: 'Costos, compromisos, centros de costo y trazabilidad financiera.' },
-  { title: 'RRHH', href: '/dashboard/rrhh', description: 'Personas, contratos laborales, asistencia, desempeño, competencias y evidencia.' },
-  { title: 'Sostenibilidad', href: '/dashboard/sostenibilidad', description: 'HSE, prevención, EPP, medio ambiente, comunidades y cumplimiento.' },
-  { title: 'Legal', href: '/dashboard/legal', description: 'Contratos, documentos, permisos, vencimientos y cumplimiento.' },
+  { title: 'Producción', href: '/dashboard/produccion', capabilities: [
+    ['Transporte de Mineral', '/dashboard/produccion/transporte-mineral'], ['Planta y metalurgia', '/dashboard/produccion/planta-metalurgia'], ['Geología', '/dashboard/produccion/geologia'], ['Topografía', '/dashboard/produccion/topografia'], ['Química', '/dashboard/produccion/quimica'], ['Sondaje', '/dashboard/produccion/sondaje'],
+  ] },
+  { title: 'Mantenimiento', href: '/dashboard/mantenimiento', capabilities: [
+    ['Órdenes de trabajo', '/dashboard/mantenimiento/ordenes-trabajo'], ['Activos', '/dashboard/mantenimiento/equipos'], ['Planificación', '/dashboard/mantenimiento/planificacion'], ['Vehículos', '/dashboard/mantenimiento/vehiculos'], ['Maestranza', '/dashboard/mantenimiento/maestranza'],
+  ] },
+  { title: 'Inventario', href: '/dashboard/bodega', capabilities: [
+    ['Stock', '/dashboard/bodega'], ['Reservas', '/dashboard/bodega'], ['Reposición', '/dashboard/bodega/repuestos-criticos'], ['Repuestos', '/dashboard/bodega/repuestos-criticos'], ['Trazabilidad', '/dashboard/bodega/productos-360'],
+  ] },
+  { title: 'Compras', href: '/dashboard/compras', capabilities: [
+    ['Cotizaciones', '/dashboard/compras/flujo'], ['Órdenes de compra', '/dashboard/compras/flujo'], ['Proveedores', '/dashboard/compras/proveedores-360'], ['Comparación', '/dashboard/compras/inteligencia'],
+  ] },
+  { title: 'Finanzas', href: '/dashboard/finanzas', capabilities: [
+    ['Costos', '/dashboard/finanzas'], ['Compromisos', '/dashboard/finanzas/trazabilidad'], ['Centros de costo', '/dashboard/finanzas/centros'], ['Trazabilidad financiera', '/dashboard/finanzas/trazabilidad'],
+  ] },
+  { title: 'RRHH', href: '/dashboard/rrhh', capabilities: [
+    ['Personas', '/dashboard/personas'], ['Contratos laborales', '/dashboard/rrhh'], ['Asistencia', '/dashboard/rrhh'], ['Desempeño', '/dashboard/desempeno'], ['Competencias', '/dashboard/desempeno'], ['Evidencia', '/dashboard/desempeno'],
+  ] },
+  { title: 'Sostenibilidad', href: '/dashboard/sostenibilidad', capabilities: [
+    ['HSE', '/dashboard/hse'], ['Prevención', '/dashboard/sostenibilidad/prevencion-riesgos'], ['EPP', '/dashboard/hse/epp'], ['Medio ambiente', '/dashboard/sostenibilidad/medio-ambiente'], ['Comunidades', '/dashboard/sostenibilidad/comunidades'], ['Cumplimiento', '/dashboard/sostenibilidad/compliance'],
+  ] },
+  { title: 'Legal', href: '/dashboard/legal', capabilities: [
+    ['Contratos', '/dashboard/documentos-gestion/contratos'], ['Documentos', '/dashboard/legal/documentos'], ['Permisos', '/dashboard/legal/permisos-licencias'], ['Vencimientos', '/dashboard/legal/permisos-licencias'], ['Cumplimiento', '/dashboard/legal'],
+  ] },
 ];
 
 export default function DashboardPage() {
@@ -107,11 +123,25 @@ export default function DashboardPage() {
         </div>
         <div className="overflow-hidden rounded-lg border bg-card">
           {workspaces.map((item) => (
-            <Link key={item.href} href={item.href} className="group grid gap-1 border-b px-4 py-3 last:border-0 hover:bg-muted/30 sm:grid-cols-[180px_1fr_24px] sm:items-center sm:gap-4">
-              <span className="text-sm font-medium">{item.title}</span>
-              <span className="text-sm text-muted-foreground">{item.description}</span>
-              <ArrowRight className="hidden h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1 sm:block" />
-            </Link>
+            <div key={item.href} className="grid gap-2 border-b px-4 py-3 last:border-0 sm:grid-cols-[180px_1fr_24px] sm:items-start sm:gap-4">
+              <Link href={item.href} className="group flex items-center gap-2 text-sm font-medium hover:underline">
+                {item.title}
+                <ArrowRight className="h-3.5 w-3.5 text-muted-foreground transition-transform group-hover:translate-x-1 sm:hidden" />
+              </Link>
+              <div className="flex flex-wrap gap-x-1.5 gap-y-1" aria-label={`Accesos de ${item.title}`}>
+                {item.capabilities.map(([label, href], index) => (
+                  <span key={`${label}-${href}`} className="inline-flex items-center text-sm text-muted-foreground">
+                    <Link href={href} className="rounded-sm hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                      {label}
+                    </Link>
+                    {index < item.capabilities.length - 1 ? <span aria-hidden="true">,</span> : null}
+                  </span>
+                ))}
+              </div>
+              <Link href={item.href} aria-label={`Abrir ${item.title}`} className="group hidden sm:block">
+                <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
+              </Link>
+            </div>
           ))}
         </div>
       </section>
