@@ -8,6 +8,17 @@ const BUCKET = 'product-media';
 const OPENAI_IMAGE_ENDPOINT = 'https://api.openai.com/v1/images/generations';
 const OPENAI_IMAGE_MODEL = 'gpt-image-1.5';
 
+function messageOf(error: unknown) {
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === 'object') {
+    const candidate = error as { message?: unknown; error?: unknown; code?: unknown };
+    if (typeof candidate.message === 'string' && candidate.message) return candidate.message;
+    if (typeof candidate.error === 'string' && candidate.error) return candidate.error;
+    if (typeof candidate.code === 'string' && candidate.code) return candidate.code;
+  }
+  return String(error || 'Error desconocido');
+}
+
 function promptFor(product: Record<string, unknown>) {
   return [
     'Fotografía de catálogo industrial, vista de producto aislado sobre fondo gris claro, iluminación de estudio, encuadre cuadrado.',
@@ -23,13 +34,15 @@ export async function POST(request: NextRequest) {
   const auth = await requireAdmin(request);
   if (!auth.authorized || !auth.user || !auth.organizationId) return auth.response;
   const supabase = getSupabaseServerClient();
+  let stage = 'request';
 
   try {
     const body = await request.json();
     const action = String(body.action || '');
     const productId = String(body.productId || '');
-    if (!productId) return NextResponse.json({ error: 'Producto requerido.' }, { status: 400 });
+    if (!productId) return NextResponse.json({ error: 'Producto requerido.', stage }, { status: 400 });
 
+    stage = 'product_lookup';
     const { data: product, error: productError } = await supabase
       .from('canonical_products_v1')
       .select('id, product_code, name, description, family, subfamily')
@@ -37,13 +50,14 @@ export async function POST(request: NextRequest) {
       .eq('id', productId)
       .maybeSingle();
     if (productError) throw productError;
-    if (!product) return NextResponse.json({ error: 'Producto no encontrado.' }, { status: 404 });
+    if (!product) return NextResponse.json({ error: 'Producto no encontrado.', stage }, { status: 404 });
 
     if (action === 'generate') {
+      stage = 'openai_config';
       const apiKey = process.env.OPENAI_API_KEY?.trim();
       if (!apiKey) {
         console.error('[admin/product-media:openai-config]', { hasOpenAiApiKey: false });
-        return NextResponse.json({ error: 'OPENAI_API_KEY no está configurada en producción.' }, { status: 503 });
+        return NextResponse.json({ error: 'OPENAI_API_KEY no está configurada en producción.', stage }, { status: 503 });
       }
 
       const prompt = promptFor(product);
@@ -53,6 +67,7 @@ export async function POST(request: NextRequest) {
         hasOpenAiApiKey: true,
       });
 
+      stage = 'openai_generation';
       const generated = await fetch(OPENAI_IMAGE_ENDPOINT, {
         method: 'POST',
         headers: {
@@ -79,7 +94,7 @@ export async function POST(request: NextRequest) {
           code: payload?.error?.code || null,
           message: openAiMessage,
         });
-        return NextResponse.json({ error: `OpenAI: ${openAiMessage}` }, { status: 502 });
+        return NextResponse.json({ error: `OpenAI: ${openAiMessage}`, stage }, { status: 502 });
       }
 
       const base64 = payload?.data?.[0]?.b64_json;
@@ -89,15 +104,21 @@ export async function POST(request: NextRequest) {
           hasData: Array.isArray(payload?.data),
           hasBase64: false,
         });
-        return NextResponse.json({ error: 'OpenAI respondió sin datos de imagen.' }, { status: 502 });
+        return NextResponse.json({ error: 'OpenAI respondió sin datos de imagen.', stage }, { status: 502 });
       }
 
       const id = crypto.randomUUID();
       const storagePath = `${auth.organizationId}/${product.id}/${id}.png`;
       const image = Buffer.from(base64, 'base64');
-      const { error: uploadError } = await supabase.storage.from(BUCKET).upload(storagePath, image, { contentType: 'image/png', upsert: false });
-      if (uploadError) throw uploadError;
 
+      stage = 'storage_upload';
+      const { error: uploadError } = await supabase.storage.from(BUCKET).upload(storagePath, image, { contentType: 'image/png', upsert: false });
+      if (uploadError) {
+        console.error('[admin/product-media:storage-upload]', { message: messageOf(uploadError), productId: product.id });
+        return NextResponse.json({ error: `Storage: ${messageOf(uploadError)}`, stage }, { status: 500 });
+      }
+
+      stage = 'media_insert';
       const { data: media, error: insertError } = await supabase.from('product_media').insert({
         id,
         organization_id: auth.organizationId,
@@ -112,13 +133,15 @@ export async function POST(request: NextRequest) {
 
       if (insertError) {
         await supabase.storage.from(BUCKET).remove([storagePath]);
-        throw insertError;
+        console.error('[admin/product-media:media-insert]', { message: messageOf(insertError), productId: product.id });
+        return NextResponse.json({ error: `Base de datos: ${messageOf(insertError)}`, stage }, { status: 500 });
       }
 
-      return NextResponse.json({ media }, { status: 201 });
+      return NextResponse.json({ media, stage: 'complete' }, { status: 201 });
     }
 
-    if (!['approve', 'reject'].includes(action) || !body.mediaId) return NextResponse.json({ error: 'Acción no soportada.' }, { status: 400 });
+    stage = 'media_review';
+    if (!['approve', 'reject'].includes(action) || !body.mediaId) return NextResponse.json({ error: 'Acción no soportada.', stage }, { status: 400 });
     const mediaId = String(body.mediaId);
     const { data: candidate, error: candidateError } = await supabase.from('product_media')
       .select('id, status')
@@ -127,7 +150,7 @@ export async function POST(request: NextRequest) {
       .eq('canonical_product_id', product.id)
       .maybeSingle();
     if (candidateError) throw candidateError;
-    if (!candidate) return NextResponse.json({ error: 'Imagen no encontrada.' }, { status: 404 });
+    if (!candidate) return NextResponse.json({ error: 'Imagen no encontrada.', stage }, { status: 404 });
 
     if (action === 'approve') {
       const { error: oldError } = await supabase.from('product_media').update({ status: 'rejected', reviewed_by: auth.user.id, reviewed_at: new Date().toISOString(), review_notes: 'Reemplazada por una nueva foto aprobada.' }).eq('organization_id', auth.organizationId).eq('canonical_product_id', product.id).eq('status', 'approved');
@@ -138,7 +161,8 @@ export async function POST(request: NextRequest) {
     if (reviewError) throw reviewError;
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error('[admin/product-media]', error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'No se pudo gestionar la fotografía.' }, { status: 500 });
+    const message = messageOf(error);
+    console.error('[admin/product-media]', { stage, message });
+    return NextResponse.json({ error: `${stage}: ${message}`, stage }, { status: 500 });
   }
 }
