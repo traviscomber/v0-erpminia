@@ -4,15 +4,18 @@ type Media = { image_url?: string | null; status?: string | null; source_type?: 
 
 export function ProductPhoto({ media, name, size = 'md', showPending = false }: { media?: Media; name: string; size?: 'sm' | 'md' | 'lg'; showPending?: boolean }) {
   const classes = size === 'sm' ? 'h-10 w-10' : size === 'lg' ? 'h-32 w-32' : 'h-14 w-14';
-  const canShowImage = Boolean(media?.image_url && (media?.status === 'approved' || (showPending && media?.status === 'pending')));
+  const isPending = media?.status === 'pending';
+  const isWebSource = media?.source_type === 'web_source';
+  const canShowImage = Boolean(media?.image_url && (media?.status === 'approved' || (isPending && (showPending || isWebSource))));
 
   if (canShowImage) {
     const pending = media?.status === 'pending';
+    const sourceLabel = media?.source_type === 'web_source' ? 'web' : 'IA';
     return (
       <div className={`${classes} relative shrink-0`}>
         <img
           src={media?.image_url || ''}
-          alt={pending ? `Fotografía IA pendiente de validación de ${name}` : `Fotografía validada de ${name}`}
+          alt={pending ? `Fotografía ${sourceLabel} pendiente de validación de ${name}` : `Fotografía validada de ${name}`}
           className="h-full w-full rounded-md border bg-muted object-cover"
         />
         {pending ? (
