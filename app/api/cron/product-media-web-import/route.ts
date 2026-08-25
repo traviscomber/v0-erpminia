@@ -28,6 +28,7 @@ function messageOf(error: unknown) {
 }
 
 function extensionFor(contentType: string) {
+  if (contentType.includes('avif')) return 'avif';
   if (contentType.includes('png')) return 'png';
   if (contentType.includes('webp')) return 'webp';
   return 'jpg';
@@ -39,7 +40,7 @@ async function ensureBucket(supabase: ReturnType<typeof getSupabaseServerClient>
   const { error } = await supabase.storage.createBucket(BUCKET, {
     public: false,
     fileSizeLimit: MAX_BYTES,
-    allowedMimeTypes: ['image/png', 'image/jpeg', 'image/webp'],
+    allowedMimeTypes: ['image/png', 'image/jpeg', 'image/webp', 'image/avif'],
   });
   if (error && !/already exists/i.test(error.message)) throw error;
 }
@@ -62,7 +63,7 @@ async function importCandidate(supabase: ReturnType<typeof getSupabaseServerClie
   const response = await fetch(candidate.image_url, {
     headers: {
       'User-Agent': 'Mozilla/5.0 MOTIL Product Media Importer',
-      Accept: 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+      Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
       Referer: candidate.source_url,
     },
     cache: 'no-store',
