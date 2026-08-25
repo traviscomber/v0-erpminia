@@ -6,8 +6,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 
 const BUCKET = 'product-media';
-const BATCH_SIZE = 6;
+const BATCH_SIZE = 10;
 const MAX_BYTES = 10 * 1024 * 1024;
+const AUTO_APPROVE_CONFIDENCE = 0.9;
 
 type Candidate = {
   id: string;
@@ -46,7 +47,7 @@ async function ensureBucket(supabase: ReturnType<typeof getSupabaseServerClient>
 async function importCandidate(supabase: ReturnType<typeof getSupabaseServerClient>, candidate: Candidate) {
   const { data: existing } = await supabase
     .from('product_media')
-    .select('id')
+    .select('id,status')
     .eq('canonical_product_id', candidate.canonical_product_id)
     .in('status', ['approved', 'pending'])
     .limit(1)
@@ -80,6 +81,8 @@ async function importCandidate(supabase: ReturnType<typeof getSupabaseServerClie
   const { error: uploadError } = await supabase.storage.from(BUCKET).upload(storagePath, buffer, { contentType, upsert: false });
   if (uploadError) throw uploadError;
 
+  const autoApprove = Number(candidate.confidence || 0) >= AUTO_APPROVE_CONFIDENCE;
+  const now = new Date().toISOString();
   const { error: insertError } = await supabase.from('product_media').insert({
     id: mediaId,
     organization_id: candidate.organization_id,
@@ -89,12 +92,14 @@ async function importCandidate(supabase: ReturnType<typeof getSupabaseServerClie
     source_type: 'web_source',
     generation_model: 'web-import',
     generation_prompt: `Imported from ${candidate.source_url}`,
-    status: 'pending',
+    status: autoApprove ? 'approved' : 'pending',
     generated_by: candidate.requested_by_auth_user_id,
+    reviewed_by: autoApprove ? candidate.requested_by_auth_user_id : null,
+    reviewed_at: autoApprove ? now : null,
     source_url: candidate.source_url,
     source_domain: candidate.source_domain,
     source_confidence: candidate.confidence,
-    source_checked_at: new Date().toISOString(),
+    source_checked_at: now,
   });
   if (insertError) {
     await supabase.storage.from(BUCKET).remove([storagePath]);
@@ -102,10 +107,10 @@ async function importCandidate(supabase: ReturnType<typeof getSupabaseServerClie
   }
 
   await Promise.all([
-    supabase.from('product_media_web_candidates').update({ status: 'done', error_message: null, updated_at: new Date().toISOString() }).eq('id', candidate.id),
-    supabase.from('product_media_generation_queue').update({ status: 'done', last_error: null, locked_at: null, updated_at: new Date().toISOString() }).eq('product_id', candidate.canonical_product_id),
+    supabase.from('product_media_web_candidates').update({ status: 'done', error_message: null, updated_at: now }).eq('id', candidate.id),
+    supabase.from('product_media_generation_queue').update({ status: 'done', last_error: null, locked_at: null, updated_at: now }).eq('product_id', candidate.canonical_product_id),
   ]);
-  return { ok: true, mediaId };
+  return { ok: true, mediaId, autoApproved: autoApprove };
 }
 
 async function run(request: NextRequest) {
@@ -128,19 +133,25 @@ async function run(request: NextRequest) {
   const candidates = (data || []) as Candidate[];
   if (!candidates.length) return NextResponse.json({ ok: true, imported: 0, message: 'No hay candidatos web pendientes.' });
 
-  const results = [];
-  for (const candidate of candidates) {
+  const results = await Promise.all(candidates.map(async (candidate) => {
     try {
-      results.push({ candidateId: candidate.id, productId: candidate.canonical_product_id, ...(await importCandidate(supabase, candidate)) });
+      return { candidateId: candidate.id, productId: candidate.canonical_product_id, ...(await importCandidate(supabase, candidate)) };
     } catch (error) {
       const message = messageOf(error);
       await supabase.from('product_media_web_candidates').update({ status: 'failed', error_message: message.slice(0, 2000), updated_at: new Date().toISOString() }).eq('id', candidate.id);
       console.error('[cron/product-media-web-import]', { candidateId: candidate.id, productId: candidate.canonical_product_id, message });
-      results.push({ candidateId: candidate.id, productId: candidate.canonical_product_id, ok: false, error: message });
+      return { candidateId: candidate.id, productId: candidate.canonical_product_id, ok: false, error: message };
     }
-  }
+  }));
 
-  return NextResponse.json({ ok: true, processed: results.length, imported: results.filter((row) => row.ok && !('skipped' in row && row.skipped)).length, failed: results.filter((row) => !row.ok).length, results });
+  return NextResponse.json({
+    ok: true,
+    processed: results.length,
+    imported: results.filter((row) => row.ok && !('skipped' in row && row.skipped)).length,
+    autoApproved: results.filter((row) => row.ok && 'autoApproved' in row && row.autoApproved).length,
+    failed: results.filter((row) => !row.ok).length,
+    results,
+  });
 }
 
 export async function GET(request: NextRequest) { return run(request); }
