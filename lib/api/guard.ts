@@ -52,11 +52,22 @@ export async function requireAdmin(
     return { authorized: true, user: auth.user, organizationId: auth.organizationId, source: auth.source, response: null };
   }
 
+  if (!auth.organizationId) {
+    return {
+      authorized: false,
+      user: null,
+      organizationId: null,
+      source: null,
+      response: NextResponse.json({ error: 'Forbidden: organization context required' }, { status: 403 }),
+    };
+  }
+
   const supabase = getSupabaseServerClient();
   const { data: userData } = await supabase
     .from('user_roles')
     .select('role')
     .eq('user_id', auth.user.id)
+    .eq('organization_id', auth.organizationId)
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();
