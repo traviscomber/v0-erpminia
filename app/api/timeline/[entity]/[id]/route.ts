@@ -20,22 +20,19 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
   const limit = Math.min(Math.max(Number(searchParams.get('limit') || 30), 1), 100);
 
   try {
-    const { data, error } = await context.supabase
-      .schema('intelligence')
-      .from('universal_entity_timeline')
-      .select('event_id,event_at,origin,event_type,source_table,source_record_id,work_order_id,canonical_asset_id,canonical_product_id,supplier_id,amount,currency,description,metadata')
-      .eq('organization_id', context.organizationId)
-      .eq('entity_type', entity)
-      .eq('entity_id', id)
-      .order('event_at', { ascending: false })
-      .limit(limit);
+    const { data, error } = await context.supabase.rpc('get_entity_timeline_v1', {
+      p_organization_id: context.organizationId,
+      p_entity_type: entity,
+      p_entity_id: id,
+      p_limit: limit,
+    });
 
     if (error) throw error;
 
     return NextResponse.json({
       entity,
       entityId: id,
-      events: data || [],
+      events: Array.isArray(data) ? data : [],
       certification: {
         canonicalDataIsReadOnly: true,
         operationalEventsAreDerived: true,
