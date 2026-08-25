@@ -102,6 +102,15 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // Corrective actions inherit tenant ownership through their parent
+    // nonconformance. The corrective-actions table itself has no organization_id.
+    const { data: orgNonconformances, error: orgNonconformancesError } = await supabase
+      .from('sostenibilidad_nonconformances')
+      .select('id')
+      .eq('organization_id', orgId);
+    if (orgNonconformancesError) throw orgNonconformancesError;
+    const orgNonconformanceIds = (orgNonconformances || []).map((row) => row.id);
+
     const [complianceResult, ncResult, caResult, trendsResult, risksResult, inspectionsResult] = await Promise.all([
       supabase
         .from('sostenibilidad_compliance_history')
@@ -117,12 +126,14 @@ export async function GET(request: NextRequest) {
         .eq('organization_id', orgId)
         .gte('created_at', bounds.start)
         .lt('created_at', bounds.end),
-      supabase
-        .from('sostenibilidad_corrective_actions')
-        .select('status,scheduled_completion_date')
-        .eq('organization_id', orgId)
-        .gte('created_at', bounds.start)
-        .lt('created_at', bounds.end),
+      orgNonconformanceIds.length
+        ? supabase
+            .from('sostenibilidad_corrective_actions')
+            .select('status,scheduled_completion_date')
+            .in('nc_id', orgNonconformanceIds)
+            .gte('created_at', bounds.start)
+            .lt('created_at', bounds.end)
+        : Promise.resolve({ data: [] as CorrectiveActionStatsRow[], error: null }),
       supabase
         .from('sostenibilidad_compliance_history')
         .select('compliance_score, report_period')
