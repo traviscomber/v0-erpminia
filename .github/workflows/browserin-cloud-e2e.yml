@@ -1,0 +1,53 @@
+name: Browserin Cloud E2E
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [browserin-qa]
+    paths:
+      - 'e2e/**'
+      - '.github/workflows/browserin-cloud-e2e.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: browserin-cloud-e2e
+  cancel-in-progress: true
+
+jobs:
+  production-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CI: '1'
+      E2E_BASE_URL: 'https://www.motil.app'
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install application dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install isolated Playwright runtime
+        run: pnpm add --save-dev --ignore-workspace-root-check --lockfile=false @playwright/test@1.55.0
+      - name: Install browser engines
+        run: pnpm exec playwright install --with-deps chromium firefox webkit
+      - name: Run Browserin production smoke
+        run: pnpm exec playwright test --config=e2e/playwright.config.mjs
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browserin-cloud-evidence
+          path: |
+            e2e/test-results/
+            e2e/playwright-report/
+          if-no-files-found: warn
+          retention-days: 14
