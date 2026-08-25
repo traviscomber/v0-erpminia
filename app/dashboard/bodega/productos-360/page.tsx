@@ -1,12 +1,15 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Boxes, CircleDollarSign, ClipboardList, PackageSearch, Search, ShoppingCart, Wrench } from 'lucide-react';
+import { Boxes, Check, CircleDollarSign, ClipboardList, PackageSearch, RefreshCw, Search, ShoppingCart, Wrench, X } from 'lucide-react';
 import { apiFetch } from '@/lib/api-client';
 import { isStockBelowMinimum } from '@/lib/inventory-alerts';
+import { ProductPhoto } from '@/components/inventory/product-photo';
+import { Button } from '@/components/ui/button';
 
-type Product = { id: string; product_code: string; name: string; family?: string | null; subfamily?: string | null; unit?: string | null; standard_cost?: number | null; minimum_stock?: number | null; maximum_stock?: number | null; is_active: boolean; validation_status: string };
-type Detail = { product: Product; summary: any; stock: any[]; snapshots: any[]; movements: any[]; workOrderUsage: any[]; maintenanceOrders: any[]; assets: any[]; purchaseLines: any[]; purchaseOrders: any[]; receipts: any[]; returns: any[]; suppliers: any[] };
+type Media = { id: string; image_url?: string | null; status: 'pending' | 'approved' | 'rejected'; source_type: 'ai_generated' };
+type Product = { id: string; product_code: string; name: string; family?: string | null; subfamily?: string | null; unit?: string | null; standard_cost?: number | null; minimum_stock?: number | null; maximum_stock?: number | null; is_active: boolean; validation_status: string; media?: Media | null };
+type Detail = { product: Product; media?: Media | null; canManageMedia?: boolean; summary: any; stock: any[]; snapshots: any[]; movements: any[]; workOrderUsage: any[]; maintenanceOrders: any[]; assets: any[]; purchaseLines: any[]; purchaseOrders: any[]; receipts: any[]; returns: any[]; suppliers: any[] };
 const money = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 });
 
 export default function Products360Page() {
@@ -16,6 +19,20 @@ export default function Products360Page() {
   const [detail, setDetail] = useState<Detail | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [mediaBusy, setMediaBusy] = useState(false);
+
+  const mediaAction = async (action: 'generate' | 'approve' | 'reject') => {
+    if (!detail) return;
+    setMediaBusy(true); setError('');
+    try {
+      const response = await apiFetch('/api/admin/product-media', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, productId: detail.product.id, mediaId: detail.media?.id }) });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.error || 'No se pudo gestionar la fotografía.');
+      await loadDetail(detail.product.id);
+      await search(q);
+    } catch (cause) { setError(cause instanceof Error ? cause.message : 'No se pudo gestionar la fotografía.'); }
+    finally { setMediaBusy(false); }
+  };
 
   const search = useCallback(async (term = '') => {
     const response = await apiFetch(`/api/inventory/products-360?q=${encodeURIComponent(term)}`);
@@ -61,14 +78,14 @@ export default function Products360Page() {
     <section className="grid gap-6 lg:grid-cols-[340px_1fr]">
       <aside className="rounded-lg border bg-card">
         <form onSubmit={(e) => { e.preventDefault(); search(q).catch((cause) => setError(cause.message)); }} className="flex gap-2 border-b p-3"><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Código, nombre o familia" className="min-w-0 flex-1 rounded-md border bg-background px-3 py-2 text-sm"/><button className="rounded-md border px-3" aria-label="Buscar"><Search className="h-4 w-4"/></button></form>
-        <div className="max-h-[70vh] divide-y overflow-y-auto">{products.map((product) => <button key={product.id} onClick={() => setSelectedId(product.id)} className={`w-full p-3 text-left text-sm hover:bg-muted ${selectedId === product.id ? 'bg-muted' : ''}`}><p className="font-medium">{product.name}</p><p className="text-xs text-muted-foreground">{product.product_code} · {product.family || 'Sin familia'}</p></button>)}</div>
+        <div className="max-h-[70vh] divide-y overflow-y-auto">{products.map((product) => <button key={product.id} onClick={() => setSelectedId(product.id)} className={`flex w-full items-center gap-3 p-3 text-left text-sm hover:bg-muted ${selectedId === product.id ? 'bg-muted' : ''}`}><ProductPhoto media={product.media} name={product.name} size="sm"/><span><span className="block font-medium">{product.name}</span><span className="text-xs text-muted-foreground">{product.product_code} · {product.media?.status === 'approved' ? 'Foto validada' : 'Foto pendiente'}</span></span></button>)}</div>
       </aside>
       <div className="space-y-5">
         {!selectedId && <div className="rounded-lg border p-8 text-center text-sm text-muted-foreground">Selecciona un producto para abrir su trazabilidad completa.</div>}
         {loading && <div className="rounded-lg border p-6 text-sm text-muted-foreground">Cargando ficha…</div>}
         {error && <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">{error}</div>}
         {detail && !loading && <>
-          <section className="rounded-lg border bg-card p-5"><div className="flex flex-wrap items-start justify-between gap-4"><div><h2 className="text-xl font-semibold">{detail.product.name}</h2><p className="text-sm text-muted-foreground">{detail.product.product_code} · {detail.product.family || 'Sin familia'}{detail.product.subfamily ? ` / ${detail.product.subfamily}` : ''}</p></div><div className="text-right text-sm"><p>Unidad: {detail.product.unit || 'No informada'}</p><p>Costo estándar: {money.format(Number(detail.product.standard_cost || 0))}</p><p>Estado: {detail.product.is_active ? 'Activo' : 'Inactivo'}</p></div></div></section>
+          <section className="rounded-lg border bg-card p-5"><div className="flex flex-wrap items-start justify-between gap-4"><div className="flex gap-4"><ProductPhoto media={detail.media} name={detail.product.name} size="lg"/><div><h2 className="text-xl font-semibold">{detail.product.name}</h2><p className="text-sm text-muted-foreground">{detail.product.product_code} · {detail.product.family || 'Sin familia'}{detail.product.subfamily ? ` / ${detail.product.subfamily}` : ''}</p><p className="mt-2 text-xs text-muted-foreground">{detail.media?.status === 'approved' ? 'Imagen generada por IA y validada' : detail.media?.status === 'pending' ? 'Imagen IA pendiente de validación' : 'Foto pendiente'}</p>{detail.canManageMedia ? <div className="mt-3 flex flex-wrap gap-2">{detail.media?.status === 'pending' ? <><Button size="sm" onClick={() => void mediaAction('approve')} disabled={mediaBusy}><Check className="mr-2 h-4 w-4"/>Aprobar</Button><Button size="sm" variant="outline" onClick={() => void mediaAction('reject')} disabled={mediaBusy}><X className="mr-2 h-4 w-4"/>Rechazar</Button></> : null}<Button size="sm" variant="outline" onClick={() => void mediaAction('generate')} disabled={mediaBusy}><RefreshCw className={`mr-2 h-4 w-4 ${mediaBusy ? 'animate-spin' : ''}`}/>{detail.media ? 'Generar reemplazo' : 'Generar foto IA'}</Button></div> : null}</div></div><div className="text-right text-sm"><p>Unidad: {detail.product.unit || 'No informada'}</p><p>Costo estándar: {money.format(Number(detail.product.standard_cost || 0))}</p><p>Estado: {detail.product.is_active ? 'Activo' : 'Inactivo'}</p></div></div></section>
           <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">{cards.map(({ label, value, Icon }) => <article key={label} className="rounded-lg border bg-card p-4"><div className="flex justify-between text-muted-foreground"><span className="text-xs">{label}</span><Icon className="h-4 w-4"/></div><p className="mt-2 text-xl font-semibold">{value}</p></article>)}</section>
           {(detail.summary.expiring_lots > 0 || isStockBelowMinimum(detail.summary.quantity_available, detail.product.minimum_stock)) && <div className="space-y-2">{detail.summary.expiring_lots > 0 && <p className="rounded-lg border border-amber-500/40 bg-amber-500/5 p-4 text-sm">{detail.summary.expiring_lots} lote(s) vencen dentro de los próximos 90 días.</p>}{isStockBelowMinimum(detail.summary.quantity_available, detail.product.minimum_stock) && <p className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">La disponibilidad está en o bajo el stock mínimo definido.</p>}</div>}
           <section className="grid gap-5 xl:grid-cols-2">

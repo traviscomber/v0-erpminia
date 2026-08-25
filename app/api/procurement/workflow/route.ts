@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
+import { attachProductMedia, getProductMedia } from '@/lib/inventory/product-media';
 
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
@@ -23,7 +24,9 @@ export async function GET(request: NextRequest) {
       if (q) query = query.or(`product_code.ilike.%${q}%,name.ilike.%${q}%`);
       const { data, error } = await query;
       if (error) throw error;
-      return NextResponse.json({ products: data || [] });
+      const products = data || [];
+      const media = await getProductMedia(context.supabase, context.organizationId, products.map((row) => row.id));
+      return NextResponse.json({ products: attachProductMedia(products, media) });
     }
 
     if (resource === 'suppliers') {

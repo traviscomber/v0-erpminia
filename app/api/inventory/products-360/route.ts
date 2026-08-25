@@ -2,6 +2,9 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
+import { attachProductMedia, getProductMedia } from '@/lib/inventory/product-media';
+
+const ADMIN_ROLES = new Set(['admin', 'superadmin', 'super_admin']);
 
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
@@ -22,7 +25,9 @@ export async function GET(request: NextRequest) {
       if (q) query = query.or(`product_code.ilike.%${q}%,name.ilike.%${q}%,family.ilike.%${q}%`);
       const { data, error } = await query;
       if (error) throw error;
-      return NextResponse.json({ products: data || [] });
+      const products = data || [];
+      const media = await getProductMedia(context.supabase, context.organizationId, products.map((row) => row.id));
+      return NextResponse.json({ products: attachProductMedia(products, media) });
     }
 
     const { data: product, error: productError } = await canonical
@@ -33,7 +38,8 @@ export async function GET(request: NextRequest) {
       .single();
     if (productError) throw productError;
 
-    const [stockResult, snapshotsResult, movementsResult, workOrdersResult, purchaseLinesResult, receiptLinesResult, returnLinesResult] = await Promise.all([
+    const canManageMedia = ADMIN_ROLES.has(String(context.role || '').toLowerCase());
+    const [stockResult, snapshotsResult, movementsResult, workOrdersResult, purchaseLinesResult, receiptLinesResult, returnLinesResult, mediaResult] = await Promise.all([
       context.supabase.from('warehouse_stock').select('id, part_code, part_name, quantity_on_hand, quantity_reserved, quantity_available, reorder_level, reorder_quantity, unit_cost, last_counted_date, expiry_date, batch_number, supplier_lot, bin_id').eq('organization_id', context.organizationId).eq('canonical_product_id', productId).order('quantity_on_hand', { ascending: false }).limit(200),
       canonical.from('inventory_snapshots').select('snapshot_date, warehouse_code, quantity, unit_cost, total_value, family').eq('organization_id', context.organizationId).eq('product_code', product.product_code).order('snapshot_date', { ascending: false }).limit(200),
       context.supabase.from('stock_movements').select('id, movement_type, quantity, reference_doc, reference_id, reason, notes, created_at, work_order_id, canonical_asset_id, unit_cost, total_cost').eq('organization_id', context.organizationId).eq('canonical_product_id', productId).order('created_at', { ascending: false }).limit(200),
@@ -41,6 +47,7 @@ export async function GET(request: NextRequest) {
       canonical.from('purchase_order_lines').select('id, purchase_order_id, order_number, quantity, unit, unit_cost, net_amount, quantity_received').eq('organization_id', context.organizationId).eq('canonical_product_id', productId).order('imported_at', { ascending: false }).limit(500),
       canonical.from('goods_receipt_lines').select('id, receipt_id, purchase_order_line_id, quantity_received, quantity_accepted, quantity_rejected, batch_number, expiry_date, created_at').eq('organization_id', context.organizationId).eq('canonical_product_id', productId).order('created_at', { ascending: false }).limit(200),
       context.supabase.from('procurement_supplier_return_lines').select('id, return_id, quantity, unit_cost, line_total, created_at').eq('organization_id', context.organizationId).eq('canonical_product_id', productId).order('created_at', { ascending: false }).limit(200),
+      getProductMedia(context.supabase, context.organizationId, [productId], canManageMedia),
     ]);
 
     const firstError = [stockResult, snapshotsResult, movementsResult, workOrdersResult, purchaseLinesResult, receiptLinesResult, returnLinesResult].find((result) => result.error)?.error;
@@ -93,6 +100,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       product,
+      media: mediaResult.get(productId) || null,
+      canManageMedia,
       summary,
       stock,
       snapshots: snapshotsResult.data || [],
