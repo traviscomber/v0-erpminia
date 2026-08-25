@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
 import { cn } from '@/lib/utils';
+import { DashboardPeriodProvider } from '@/components/dashboard/dashboard-period-provider';
 
 const STORAGE_KEY = 'motil-sidebar-collapsed';
 
@@ -38,9 +39,11 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
       <div className="flex min-w-0 flex-1 flex-col">
         <Header sidebarCollapsed={collapsed} onToggleSidebar={toggleSidebar} />
-        <main className="flex-1 overflow-x-hidden bg-muted/20 px-4 py-5 md:px-6 md:py-6 xl:px-8 xl:py-7">
-          <div className="motil-page">{children}</div>
-        </main>
+        <DashboardPeriodProvider>
+          <main className="flex-1 overflow-x-hidden bg-muted/20 px-4 py-5 md:px-6 md:py-6 xl:px-8 xl:py-7">
+            <div className="motil-page">{children}</div>
+          </main>
+        </DashboardPeriodProvider>
       </div>
     </div>
   );

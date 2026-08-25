@@ -24,7 +24,7 @@ test('geology dashboard lets editors assign a canonical mine', async () => {
 
 test('geology API keeps external sources as backend context instead of site content', async () => {
   const api = await readFile(apiUrl, 'utf8');
-  const response = api.slice(api.indexOf('return NextResponse.json({canWrite'));
+  const response = api.slice(api.indexOf('return NextResponse.json({period:period.month'));
   assert.doesNotMatch(response, /externalContext|authority:'SERNAGEOMIN'|sernageomin_records/);
   assert.match(response, /contexto geológico auxiliar se mantiene separado/);
 });
