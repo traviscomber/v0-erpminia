@@ -34,6 +34,54 @@ function extensionFor(contentType: string) {
   return 'jpg';
 }
 
+function absoluteUrl(value: string, base: string) {
+  try { return new URL(value, base).toString(); } catch { return value; }
+}
+
+function metaImageFromHtml(html: string, baseUrl: string) {
+  const patterns = [
+    /<meta[^>]+property=["']og:image(?::secure_url)?["'][^>]+content=["']([^"']+)["']/i,
+    /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image(?::secure_url)?["']/i,
+    /<meta[^>]+name=["']twitter:image(?::src)?["'][^>]+content=["']([^"']+)["']/i,
+    /<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image(?::src)?["']/i,
+  ];
+  for (const pattern of patterns) {
+    const match = html.match(pattern);
+    if (match?.[1]) return absoluteUrl(match[1].replace(/&amp;/g, '&'), baseUrl);
+  }
+  return null;
+}
+
+async function fetchImage(candidate: Candidate) {
+  const headers = {
+    'User-Agent': 'Mozilla/5.0 MOTIL Product Media Importer',
+    Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8,text/html;q=0.7',
+    Referer: candidate.source_url,
+  };
+
+  let imageUrl = candidate.image_url || candidate.source_url;
+  let response = await fetch(imageUrl, { headers, cache: 'no-store', redirect: 'follow' });
+  if (!response.ok) throw new Error(`Fuente HTTP ${response.status}`);
+  let contentType = (response.headers.get('content-type') || '').toLowerCase();
+
+  if (!contentType.startsWith('image/')) {
+    if (!contentType.includes('text/html')) throw new Error(`La URL no devolvió imagen (${contentType || 'sin content-type'})`);
+    const html = await response.text();
+    const resolved = metaImageFromHtml(html, response.url || candidate.source_url);
+    if (!resolved) throw new Error('La página no expone og:image/twitter:image');
+    imageUrl = resolved;
+    response = await fetch(imageUrl, { headers: { ...headers, Referer: candidate.source_url }, cache: 'no-store', redirect: 'follow' });
+    if (!response.ok) throw new Error(`Imagen de página HTTP ${response.status}`);
+    contentType = (response.headers.get('content-type') || '').toLowerCase();
+  }
+
+  if (!contentType.startsWith('image/')) throw new Error(`La URL resuelta no devolvió imagen (${contentType || 'sin content-type'})`);
+  const buffer = Buffer.from(await response.arrayBuffer());
+  if (!buffer.length) throw new Error('Imagen vacía');
+  if (buffer.length > MAX_BYTES) throw new Error(`Imagen supera ${MAX_BYTES} bytes`);
+  return { buffer, contentType, imageUrl };
+}
+
 async function ensureBucket(supabase: ReturnType<typeof getSupabaseServerClient>) {
   const { data } = await supabase.storage.getBucket(BUCKET);
   if (data) return;
@@ -59,22 +107,7 @@ async function importCandidate(supabase: ReturnType<typeof getSupabaseServerClie
   }
 
   await supabase.from('product_media_web_candidates').update({ status: 'processing', error_message: null, updated_at: new Date().toISOString() }).eq('id', candidate.id);
-
-  const response = await fetch(candidate.image_url, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 MOTIL Product Media Importer',
-      Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
-      Referer: candidate.source_url,
-    },
-    cache: 'no-store',
-    redirect: 'follow',
-  });
-  if (!response.ok) throw new Error(`Fuente HTTP ${response.status}`);
-  const contentType = (response.headers.get('content-type') || '').toLowerCase();
-  if (!contentType.startsWith('image/')) throw new Error(`La URL no devolvió imagen (${contentType || 'sin content-type'})`);
-  const buffer = Buffer.from(await response.arrayBuffer());
-  if (!buffer.length) throw new Error('Imagen vacía');
-  if (buffer.length > MAX_BYTES) throw new Error(`Imagen supera ${MAX_BYTES} bytes`);
+  const { buffer, contentType, imageUrl } = await fetchImage(candidate);
 
   const mediaId = crypto.randomUUID();
   const ext = extensionFor(contentType);
@@ -108,7 +141,7 @@ async function importCandidate(supabase: ReturnType<typeof getSupabaseServerClie
   }
 
   await Promise.all([
-    supabase.from('product_media_web_candidates').update({ status: 'done', error_message: null, updated_at: now }).eq('id', candidate.id),
+    supabase.from('product_media_web_candidates').update({ status: 'done', image_url: imageUrl, error_message: null, updated_at: now }).eq('id', candidate.id),
     supabase.from('product_media_generation_queue').update({ status: 'done', last_error: null, locked_at: null, updated_at: now }).eq('product_id', candidate.canonical_product_id),
   ]);
   return { ok: true, mediaId, autoApproved: autoApprove };
