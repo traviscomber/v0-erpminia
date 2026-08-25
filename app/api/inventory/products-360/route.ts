@@ -6,6 +6,32 @@ import { attachProductMedia, getProductMedia } from '@/lib/inventory/product-med
 
 const ADMIN_ROLES = new Set(['admin', 'superadmin', 'super_admin']);
 
+type PriceBenchmark = {
+  product_id: string;
+  is_fuel: boolean | null;
+  benchmark_unit_cost: number | string | null;
+  benchmark_method: string | null;
+  benchmark_sample_count: number | string | null;
+  benchmark_supplier_count: number | string | null;
+  latest_observed_unit_cost: number | string | null;
+  latest_observed_order_number: string | null;
+  latest_observed_supplier_name: string | null;
+};
+
+function pricingPayload(row?: PriceBenchmark) {
+  if (!row) return null;
+  return {
+    reference_unit_cost: row.benchmark_unit_cost == null ? null : Number(row.benchmark_unit_cost),
+    method: row.benchmark_method || null,
+    sample_count: Number(row.benchmark_sample_count || 0),
+    supplier_count: Number(row.benchmark_supplier_count || 0),
+    is_fuel: Boolean(row.is_fuel),
+    latest_observed_unit_cost: row.latest_observed_unit_cost == null ? null : Number(row.latest_observed_unit_cost),
+    latest_observed_order_number: row.latest_observed_order_number || null,
+    latest_observed_supplier_name: row.latest_observed_supplier_name || null,
+  };
+}
+
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
@@ -25,9 +51,47 @@ export async function GET(request: NextRequest) {
       if (q) query = query.or(`product_code.ilike.%${q}%,name.ilike.%${q}%,family.ilike.%${q}%`);
       const { data, error } = await query;
       if (error) throw error;
+
       const products = data || [];
-      const media = await getProductMedia(context.supabase, context.organizationId, products.map((row) => row.id));
-      return NextResponse.json({ products: attachProductMedia(products, media) });
+      const productIds = products.map((row) => row.id);
+      const pricingByProduct = new Map<string, PriceBenchmark>();
+      let pricingWarning: string | null = null;
+      let mediaWarning: string | null = null;
+
+      try {
+        if (productIds.length) {
+          const { data: pricingRows, error: pricingError } = await context.supabase
+            .from('canonical_product_price_benchmarks_v1')
+            .select('product_id,is_fuel,benchmark_unit_cost,benchmark_method,benchmark_sample_count,benchmark_supplier_count,latest_observed_unit_cost,latest_observed_order_number,latest_observed_supplier_name')
+            .eq('organization_id', context.organizationId)
+            .in('product_id', productIds);
+          if (pricingError) throw pricingError;
+          for (const row of (pricingRows || []) as PriceBenchmark[]) pricingByProduct.set(row.product_id, row);
+        }
+      } catch (pricingError) {
+        pricingWarning = pricingError instanceof Error ? pricingError.message : 'No se pudo cargar la referencia de precios';
+        console.error('[inventory/products-360:pricing]', pricingError);
+      }
+
+      let enrichedProducts = products.map((product) => ({
+        ...product,
+        pricing: pricingPayload(pricingByProduct.get(product.id)),
+      }));
+
+      try {
+        const media = await getProductMedia(context.supabase, context.organizationId, productIds);
+        enrichedProducts = attachProductMedia(enrichedProducts, media);
+      } catch (mediaError) {
+        mediaWarning = mediaError instanceof Error ? mediaError.message : 'No se pudo cargar fotografías';
+        console.error('[inventory/products-360:media]', mediaError);
+        enrichedProducts = enrichedProducts.map((product) => ({ ...product, media: null }));
+      }
+
+      return NextResponse.json({
+        products: enrichedProducts,
+        ...(pricingWarning ? { pricingWarning } : {}),
+        ...(mediaWarning ? { mediaWarning } : {}),
+      });
     }
 
     const { data: product, error: productError } = await canonical
@@ -39,7 +103,7 @@ export async function GET(request: NextRequest) {
     if (productError) throw productError;
 
     const canManageMedia = ADMIN_ROLES.has(String(context.role || '').toLowerCase());
-    const [stockResult, snapshotsResult, movementsResult, workOrdersResult, purchaseLinesResult, receiptLinesResult, returnLinesResult, mediaResult] = await Promise.all([
+    const [stockResult, snapshotsResult, movementsResult, workOrdersResult, purchaseLinesResult, receiptLinesResult, returnLinesResult, priceResult] = await Promise.all([
       context.supabase.from('warehouse_stock').select('id, part_code, part_name, quantity_on_hand, quantity_reserved, quantity_available, reorder_level, reorder_quantity, unit_cost, last_counted_date, expiry_date, batch_number, supplier_lot, bin_id').eq('organization_id', context.organizationId).eq('canonical_product_id', productId).order('quantity_on_hand', { ascending: false }).limit(200),
       canonical.from('inventory_snapshots').select('snapshot_date, warehouse_code, quantity, unit_cost, total_value, family').eq('organization_id', context.organizationId).eq('product_code', product.product_code).order('snapshot_date', { ascending: false }).limit(200),
       context.supabase.from('stock_movements').select('id, movement_type, quantity, reference_doc, reference_id, reason, notes, created_at, work_order_id, canonical_asset_id, unit_cost, total_cost').eq('organization_id', context.organizationId).eq('canonical_product_id', productId).order('created_at', { ascending: false }).limit(200),
@@ -47,7 +111,7 @@ export async function GET(request: NextRequest) {
       canonical.from('purchase_order_lines').select('id, purchase_order_id, order_number, quantity, unit, unit_cost, net_amount, quantity_received').eq('organization_id', context.organizationId).eq('canonical_product_id', productId).order('imported_at', { ascending: false }).limit(500),
       canonical.from('goods_receipt_lines').select('id, receipt_id, purchase_order_line_id, quantity_received, quantity_accepted, quantity_rejected, batch_number, expiry_date, created_at').eq('organization_id', context.organizationId).eq('canonical_product_id', productId).order('created_at', { ascending: false }).limit(200),
       context.supabase.from('procurement_supplier_return_lines').select('id, return_id, quantity, unit_cost, line_total, created_at').eq('organization_id', context.organizationId).eq('canonical_product_id', productId).order('created_at', { ascending: false }).limit(200),
-      getProductMedia(context.supabase, context.organizationId, [productId], canManageMedia),
+      context.supabase.from('canonical_product_price_benchmarks_v1').select('product_id,is_fuel,benchmark_unit_cost,benchmark_method,benchmark_sample_count,benchmark_supplier_count,latest_observed_unit_cost,latest_observed_order_number,latest_observed_supplier_name').eq('organization_id', context.organizationId).eq('product_id', productId).maybeSingle(),
     ]);
 
     const firstError = [stockResult, snapshotsResult, movementsResult, workOrdersResult, purchaseLinesResult, receiptLinesResult, returnLinesResult].find((result) => result.error)?.error;
@@ -98,9 +162,22 @@ export async function GET(request: NextRequest) {
       expiring_lots: stock.filter((row) => row.expiry_date && new Date(row.expiry_date).getTime() <= Date.now() + 90 * 86400000).length,
     };
 
+    let media = null;
+    let mediaWarning: string | null = null;
+    try {
+      const mediaResult = await getProductMedia(context.supabase, context.organizationId, [productId], canManageMedia);
+      media = mediaResult.get(productId) || null;
+    } catch (mediaError) {
+      mediaWarning = mediaError instanceof Error ? mediaError.message : 'No se pudo cargar fotografía';
+      console.error('[inventory/products-360:media]', mediaError);
+    }
+
+    if (priceResult.error) console.error('[inventory/products-360:pricing]', priceResult.error);
+
     return NextResponse.json({
-      product,
-      media: mediaResult.get(productId) || null,
+      product: { ...product, pricing: priceResult.error ? null : pricingPayload(priceResult.data as PriceBenchmark | undefined) },
+      media,
+      ...(mediaWarning ? { mediaWarning } : {}),
       canManageMedia,
       summary,
       stock,
