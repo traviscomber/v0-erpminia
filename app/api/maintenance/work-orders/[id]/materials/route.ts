@@ -16,13 +16,10 @@ export async function GET(request: NextRequest, contextRoute: { params: Promise<
 
   try {
     const { id } = await contextRoute.params;
-    const { data, error } = await context.supabase
-      .schema('intelligence')
-      .from('work_order_supply_status')
-      .select('*')
-      .eq('organization_id', context.organizationId)
-      .eq('work_order_id', id)
-      .maybeSingle();
+    const { data, error } = await context.supabase.rpc('get_work_order_supply_status_v1', {
+      p_organization_id: context.organizationId,
+      p_work_order_id: id,
+    });
 
     if (error) throw error;
     return NextResponse.json({ data });
@@ -84,13 +81,10 @@ export async function PUT(request: NextRequest, contextRoute: { params: Promise<
     });
     if (refreshError) throw refreshError;
 
-    const { data: status, error: statusError } = await context.supabase
-      .schema('intelligence')
-      .from('work_order_supply_status')
-      .select('*')
-      .eq('organization_id', context.organizationId)
-      .eq('work_order_id', id)
-      .maybeSingle();
+    const { data: status, error: statusError } = await context.supabase.rpc('get_work_order_supply_status_v1', {
+      p_organization_id: context.organizationId,
+      p_work_order_id: id,
+    });
     if (statusError) throw statusError;
 
     return NextResponse.json({ supplyNeedId, data: status });
