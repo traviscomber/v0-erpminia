@@ -23,6 +23,11 @@ test('Supabase auth resolves persisted legacy profile identity links before veri
   assert.doesNotMatch(authSession, /user_metadata.*role/);
 });
 
+test('assigned auth roles are scoped to the resolved profile organization', () => {
+  assert.match(authSession, /if \(profile\?\.organization_id\)/);
+  assert.match(authSession, /roleQuery = roleQuery\.eq\('organization_id', profile\.organization_id\)/);
+});
+
 test('superadmin is accepted by the administrative guard', () => {
   assert.match(guard, /ADMIN_ROLES = new Set\(\['admin', 'superadmin', 'super_admin'\]\)/);
 });
