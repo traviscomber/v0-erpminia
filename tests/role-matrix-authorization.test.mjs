@@ -40,3 +40,20 @@ test('operational maintenance reviews remain RLS protected', () => {
     /alter table public\.operational_maintenance_reviews enable row level security;/i,
   );
 });
+
+test('role matrix change requests expose read-only table access to authenticated clients', () => {
+  const grantsMigration = readFileSync(
+    new URL('../supabase/migrations/20260825003244_harden_role_matrix_change_request_grants.sql', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(
+    grantsMigration,
+    /revoke all on table public\.role_matrix_change_requests from anon, authenticated;/i,
+  );
+  assert.match(
+    grantsMigration,
+    /grant select on table public\.role_matrix_change_requests to authenticated;/i,
+  );
+  assert.doesNotMatch(grantsMigration, /grant\s+(insert|update|delete|all).*authenticated/i);
+});
