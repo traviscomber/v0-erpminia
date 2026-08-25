@@ -31,6 +31,7 @@ function statusLabel(status?: string) {
   if (status === 'completed') return 'Completada';
   if (status === 'in_progress') return 'En ejecución';
   if (status === 'open') return 'Abierta';
+  if (status === 'planned') return 'Planificada';
   return status || 'Sin estado';
 }
 
