@@ -27,6 +27,11 @@ test('superadmin is accepted by the administrative guard', () => {
   assert.match(guard, /ADMIN_ROLES = new Set\(\['admin', 'superadmin', 'super_admin'\]\)/);
 });
 
+test('administrative fallback role is scoped to the current organization', () => {
+  assert.match(guard, /if \(!auth\.organizationId\)/);
+  assert.match(guard, /\.eq\('user_id', auth\.user\.id\)\s*\.eq\('organization_id', auth\.organizationId\)/s);
+});
+
 test('admin user writes use an auditable unique role assignment and compensate auth creation failures', () => {
   assert.match(adminData, /onConflict: 'user_id,organization_id'/);
   assert.match(adminData, /assigned_by: input\.assignedBy/);
