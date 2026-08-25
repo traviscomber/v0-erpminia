@@ -121,11 +121,61 @@ export async function POST(request: NextRequest) {
       ? 'La revisión debe estar aceptada antes de crear una OT'
       : error.message.includes('operational_review_not_found')
         ? 'Revisión no encontrada'
-        : error.message;
-    const status = message === 'Revisión no encontrada' ? 404 : message.startsWith('La revisión debe') ? 409 : 500;
+        : error.message.includes('work_order_title_required')
+          ? 'El título de la OT es obligatorio'
+          : error.message;
+    const status = message === 'Revisión no encontrada'
+      ? 404
+      : message.startsWith('La revisión debe')
+        ? 409
+        : message.startsWith('El título')
+          ? 400
+          : 500;
     return NextResponse.json({ error: message }, { status });
   }
 
-  const workOrder = Array.isArray(data) ? data[0] : data;
+  const rpcWorkOrder = Array.isArray(data) ? data[0] : data;
+  if (!rpcWorkOrder?.work_order_id) {
+    return NextResponse.json({ error: 'La OT fue procesada sin una identidad válida' }, { status: 500 });
+  }
+
+  // The RPC owns atomicity/idempotency. Read the resulting OT back so this API
+  // preserves the pre-RPC response contract (id/status/title/etc.) while also
+  // exposing the explicit RPC fields used by newer clients.
+  const { data: authoritativeWorkOrder, error: workOrderReadError } = await supabase
+    .from('maintenance_work_orders')
+    .select('id,work_order_number,canonical_asset_id,title,status,priority,work_type,scheduled_date,description')
+    .eq('id', rpcWorkOrder.work_order_id)
+    .eq('organization_id', access.organizationId)
+    .maybeSingle();
+
+  if (workOrderReadError) {
+    return NextResponse.json({ error: workOrderReadError.message }, { status: 500 });
+  }
+
+  const workOrder = authoritativeWorkOrder
+    ? {
+        ...authoritativeWorkOrder,
+        work_order_id: authoritativeWorkOrder.id,
+        work_order_status: authoritativeWorkOrder.status,
+        review_status: rpcWorkOrder.review_status,
+        source_report_id: rpcWorkOrder.source_report_id,
+      }
+    : {
+        id: rpcWorkOrder.work_order_id,
+        work_order_id: rpcWorkOrder.work_order_id,
+        work_order_number: rpcWorkOrder.work_order_number,
+        canonical_asset_id: rpcWorkOrder.canonical_asset_id,
+        title,
+        status: rpcWorkOrder.work_order_status,
+        work_order_status: rpcWorkOrder.work_order_status,
+        priority,
+        work_type: workType,
+        scheduled_date: scheduledDate,
+        description,
+        review_status: rpcWorkOrder.review_status,
+        source_report_id: rpcWorkOrder.source_report_id,
+      };
+
   return NextResponse.json({ workOrder }, { status: 201 });
 }
