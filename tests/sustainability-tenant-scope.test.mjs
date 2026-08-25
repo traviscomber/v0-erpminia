@@ -18,8 +18,13 @@ test('sustainability aggregate sources are tenant-scoped', () => {
   assert.doesNotMatch(overview, /rpc\('get_ca_stats'/);
   assert.match(overview, /from\('sostenibilidad_nonconformances'\)[\s\S]*\.eq\('organization_id', orgId\)/);
   assert.match(overview, /const orgNonconformanceIds =/);
-  assert.match(overview, /from\('sostenibilidad_corrective_actions'\)[\s\S]*\.in\('nc_id', orgNonconformanceIds\)/);
-  assert.doesNotMatch(overview, /from\('sostenibilidad_corrective_actions'\)[\s\S]*\.eq\('organization_id', orgId\)/);
+
+  const caStart = overview.indexOf(".from('sostenibilidad_corrective_actions')");
+  const caEnd = overview.indexOf(': Promise.resolve', caStart);
+  assert.ok(caStart >= 0 && caEnd > caStart, 'corrective-action query block is missing');
+  const caBlock = overview.slice(caStart, caEnd);
+  assert.match(caBlock, /\.in\('nc_id', orgNonconformanceIds\)/);
+  assert.doesNotMatch(caBlock, /\.eq\('organization_id', orgId\)/);
 });
 
 test('sustainability period input is validated before querying', () => {
