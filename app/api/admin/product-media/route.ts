@@ -28,8 +28,8 @@ export async function POST(request: NextRequest) {
     const productId = String(body.productId || '');
     if (!productId) return NextResponse.json({ error: 'Producto requerido.' }, { status: 400 });
 
-    const { data: product, error: productError } = await supabase.schema('canonical')
-      .from('products')
+    const { data: product, error: productError } = await supabase
+      .from('canonical_products_v1')
       .select('id, product_code, name, description, family, subfamily')
       .eq('organization_id', auth.organizationId)
       .eq('id', productId)
