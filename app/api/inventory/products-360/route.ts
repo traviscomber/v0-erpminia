@@ -42,14 +42,33 @@ export async function GET(request: NextRequest) {
 
   try {
     if (!productId) {
+      let photoProductIds: string[] = [];
+      if (!q) {
+        const { data: approvedMedia, error: approvedMediaError } = await context.supabase
+          .from('product_media')
+          .select('canonical_product_id')
+          .eq('organization_id', context.organizationId)
+          .eq('status', 'approved')
+          .order('updated_at', { ascending: false })
+          .limit(500);
+        if (approvedMediaError) throw approvedMediaError;
+        photoProductIds = [...new Set((approvedMedia || []).map((row) => row.canonical_product_id).filter(Boolean))];
+      }
+
       let query = context.supabase
         .from('canonical_products_v1')
         .select('id, product_code, name, family, subfamily, unit, standard_cost, minimum_stock, maximum_stock, is_active, validation_status')
         .eq('organization_id', context.organizationId)
         .order('name')
-        .limit(80);
+        .limit(q ? 80 : 200);
 
-      if (q) query = query.or(`product_code.ilike.%${q}%,name.ilike.%${q}%,family.ilike.%${q}%`);
+      if (q) {
+        query = query.or(`product_code.ilike.%${q}%,name.ilike.%${q}%,family.ilike.%${q}%`);
+      } else if (photoProductIds.length) {
+        query = query.in('id', photoProductIds);
+      } else {
+        return NextResponse.json({ products: [], canManageMedia, photoCount: 0 });
+      }
 
       const { data, error } = await query;
       if (error) throw error;
@@ -92,6 +111,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         products: enrichedProducts,
         canManageMedia,
+        photoCount: q ? null : photoProductIds.length,
         ...(pricingWarning ? { pricingWarning } : {}),
         ...(mediaWarning ? { mediaWarning } : {}),
       });
@@ -202,20 +222,7 @@ export async function GET(request: NextRequest) {
     if (secondaryError) throw secondaryError;
 
     const lineByOrder = new Map((purchaseLinesResult.data || []).map((line) => [line.purchase_order_id, line]));
-    const supplierMap = new Map<
-      string,
-      {
-        supplier_id: string | null;
-        supplier_name: string;
-        supplier_tax_id: string | null;
-        purchases: number;
-        quantity: number;
-        spend: number;
-        min_unit_cost: number;
-        max_unit_cost: number;
-        last_order_date: string | null;
-      }
-    >();
+    const supplierMap = new Map<string, { supplier_id: string | null; supplier_name: string; supplier_tax_id: string | null; purchases: number; quantity: number; spend: number; min_unit_cost: number; max_unit_cost: number; last_order_date: string | null }>();
 
     for (const order of ordersResult.data || []) {
       const line = lineByOrder.get(order.id);
