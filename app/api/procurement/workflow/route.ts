@@ -51,8 +51,10 @@ export async function GET(request: NextRequest) {
       context.supabase.from('canonical_procurement_events_v1').select('*').eq('organization_id', context.organizationId).order('event_at', { ascending: false }).limit(200),
     ]);
 
-    const firstError = [requestsResult, requestLinesResult, quotationsResult, quotationLinesResult, ordersResult, orderLinesResult, receiptsResult, eventsResult].find((result) => result.error)?.error;
-    if (firstError) throw firstError;
+    const warnings = [requestsResult, requestLinesResult, quotationsResult, quotationLinesResult, ordersResult, orderLinesResult, receiptsResult, eventsResult]
+      .map((result) => result.error && typeof result.error === 'object' && 'message' in result.error ? String(result.error.message) : null)
+      .filter(Boolean);
+    if (warnings.length) console.warn('[procurement/workflow:get:partial]', warnings);
 
     return NextResponse.json({
       requests: requestsResult.data || [],
@@ -63,9 +65,11 @@ export async function GET(request: NextRequest) {
       purchaseOrderLines: orderLinesResult.data || [],
       receipts: receiptsResult.data || [],
       events: eventsResult.data || [],
+      partial: warnings.length > 0,
+      warnings,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'No se pudo cargar el flujo de abastecimiento';
+    const message = error instanceof Error ? error.message : typeof error === 'object' && error && 'message' in error ? String(error.message) : 'No se pudo cargar el flujo de abastecimiento';
     console.error('[procurement/workflow:get]', error);
     return NextResponse.json({ error: message }, { status: 500 });
   }

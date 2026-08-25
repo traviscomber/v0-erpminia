@@ -15,7 +15,10 @@ export async function GET(request: NextRequest) {
       .select('*')
       .eq('organization_id', context.organizationId)
       .order('required_date', { ascending: true, nullsFirst: false });
-    if (pipelineError) throw pipelineError;
+    if (pipelineError) {
+      console.error('[procurement/operational-pipeline:view]', pipelineError);
+      return NextResponse.json({ pipeline: [], requestLines: [], orderLines: [], unavailable: true });
+    }
 
     const requestIds = (pipeline || []).map((row) => row.intake_request_id).filter(Boolean);
     const orderIds = (pipeline || []).map((row) => row.order_id).filter(Boolean);
@@ -27,7 +30,7 @@ export async function GET(request: NextRequest) {
     if (orderLinesError) throw orderLinesError;
     return NextResponse.json({ pipeline: pipeline || [], requestLines: requestLines || [], orderLines: orderLines || [] });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'No se pudo cargar el pipeline operativo';
+    const message = error instanceof Error ? error.message : typeof error === 'object' && error && 'message' in error ? String(error.message) : 'No se pudo cargar el pipeline operativo';
     console.error('[procurement/operational-pipeline]', error);
     return NextResponse.json({ pipeline: [], requestLines: [], orderLines: [], error: message }, { status: 500 });
   }
