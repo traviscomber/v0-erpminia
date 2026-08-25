@@ -166,7 +166,7 @@ test('authenticated demo can create preventive plan and generate a work order', 
   page.on('response', (response) => {
     const url = new URL(response.url())
     if (url.pathname.startsWith('/api/maintenance/work-orders/') || url.pathname.startsWith('/api/timeline/work_order/')) {
-      detailApiResponses.push({ path: url.pathname, status: response.status() })
+      detailApiResponses.push({ path: url.pathname, method: response.request().method(), status: response.status() })
     }
   })
 
@@ -186,13 +186,43 @@ test('authenticated demo can create preventive plan and generate a work order', 
     `/api/maintenance/work-orders/${workOrderId}/materials`,
     `/api/maintenance/work-orders/${workOrderId}/execution`,
     `/api/maintenance/work-orders/${workOrderId}/reserve-parts`,
+    `/api/maintenance/work-orders/${workOrderId}/timer`,
     `/api/timeline/work_order/${workOrderId}`,
   ]
   for (const path of expectedApiChecks) {
-    const matches = detailApiResponses.filter((entry) => entry.path === path)
-    expect(matches.length, `expected browser request was not observed: ${path}`).toBeGreaterThan(0)
+    const matches = detailApiResponses.filter((entry) => entry.path === path && entry.method === 'GET')
+    expect(matches.length, `expected browser GET was not observed: ${path}`).toBeGreaterThan(0)
     expect(matches.every((entry) => entry.status >= 200 && entry.status < 400), `non-success response for ${path}: ${JSON.stringify(matches)}`).toBe(true)
   }
+
+  await expect(page.getByText(/Estado: .*Detenido/)).toBeVisible()
+
+  const startTimerResponsePromise = page.waitForResponse((response) =>
+    response.url().endsWith(`/api/maintenance/work-orders/${workOrderId}/timer`) && response.request().method() === 'POST',
+  )
+  await page.getByRole('button', { name: 'Iniciar', exact: true }).click()
+  const startTimerResponse = await startTimerResponsePromise
+  expect(startTimerResponse.status(), 'timer play failed').toBe(200)
+  await expect(page.getByText(/Estado: .*En progreso/)).toBeVisible()
+
+  const pauseTimerResponsePromise = page.waitForResponse((response) =>
+    response.url().endsWith(`/api/maintenance/work-orders/${workOrderId}/timer`) && response.request().method() === 'POST',
+  )
+  await page.getByRole('button', { name: 'Pausa', exact: true }).click()
+  const pauseTimerResponse = await pauseTimerResponsePromise
+  expect(pauseTimerResponse.status(), 'timer pause failed').toBe(200)
+  await expect(page.getByText(/Estado: .*Pausado/)).toBeVisible()
+
+  const terminateTimerResponsePromise = page.waitForResponse((response) =>
+    response.url().endsWith(`/api/maintenance/work-orders/${workOrderId}/timer`) && response.request().method() === 'POST',
+  )
+  await page.getByRole('button', { name: 'Terminar', exact: true }).click()
+  const terminateTimerResponse = await terminateTimerResponsePromise
+  expect(terminateTimerResponse.status(), 'timer terminate failed').toBe(200)
+  await expect(page.getByText(/Estado: .*Detenido/)).toBeVisible()
+
+  const timerPosts = detailApiResponses.filter((entry) => entry.path === `/api/maintenance/work-orders/${workOrderId}/timer` && entry.method === 'POST')
+  expect(timerPosts.map((entry) => entry.status), 'timer actions must all succeed').toEqual([200, 200, 200])
 
   const detailBody = (await page.locator('body').innerText()).trim()
   expect(detailBody).not.toMatch(/Application error|Internal Server Error|No se pudo cargar la orden|No se pudo cargar la cobertura de materiales|No se pudo cargar la línea de tiempo/i)
