@@ -1,4 +1,6 @@
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+export const maxDuration = 300;
 
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/api/guard';
@@ -85,16 +87,19 @@ export async function POST(request: NextRequest) {
         cache: 'no-store',
       });
 
-      const payload = await generated.json().catch(() => null);
+      const responseText = await generated.text();
+      let payload: any = null;
+      try { payload = responseText ? JSON.parse(responseText) : null; } catch { payload = null; }
+
       if (!generated.ok) {
-        const openAiMessage = payload?.error?.message || `OpenAI respondió HTTP ${generated.status}.`;
+        const openAiMessage = payload?.error?.message || responseText.slice(0, 1000) || `OpenAI respondió HTTP ${generated.status}.`;
         console.error('[admin/product-media:openai-response]', {
           status: generated.status,
           type: payload?.error?.type || null,
           code: payload?.error?.code || null,
           message: openAiMessage,
         });
-        return NextResponse.json({ error: `OpenAI: ${openAiMessage}`, stage }, { status: 502 });
+        return NextResponse.json({ error: `OpenAI: ${openAiMessage}`, stage, status: generated.status }, { status: 502 });
       }
 
       const base64 = payload?.data?.[0]?.b64_json;
@@ -103,6 +108,7 @@ export async function POST(request: NextRequest) {
           status: generated.status,
           hasData: Array.isArray(payload?.data),
           hasBase64: false,
+          responsePreview: responseText.slice(0, 500),
         });
         return NextResponse.json({ error: 'OpenAI respondió sin datos de imagen.', stage }, { status: 502 });
       }
