@@ -17,7 +17,9 @@ test('sustainability aggregate sources are tenant-scoped', () => {
   assert.doesNotMatch(overview, /rpc\('get_nc_stats'/);
   assert.doesNotMatch(overview, /rpc\('get_ca_stats'/);
   assert.match(overview, /from\('sostenibilidad_nonconformances'\)[\s\S]*\.eq\('organization_id', orgId\)/);
-  assert.match(overview, /from\('sostenibilidad_corrective_actions'\)[\s\S]*\.eq\('organization_id', orgId\)/);
+  assert.match(overview, /const orgNonconformanceIds =/);
+  assert.match(overview, /from\('sostenibilidad_corrective_actions'\)[\s\S]*\.in\('nc_id', orgNonconformanceIds\)/);
+  assert.doesNotMatch(overview, /from\('sostenibilidad_corrective_actions'\)[\s\S]*\.eq\('organization_id', orgId\)/);
 });
 
 test('sustainability period input is validated before querying', () => {
