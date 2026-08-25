@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
-import { ArrowRight, CheckCircle2, ClipboardList, PackageCheck, Plus, ReceiptText, Search, type LucideIcon } from 'lucide-react';
+import { ArrowRight, CheckCircle2, ClipboardList, PackageCheck, Plus, ReceiptText, Search, Sparkles, type LucideIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,6 +25,7 @@ const dateLabel = (value?: string | null) => value ? value.split('-').reverse().
 
 type Product = { id: string; product_code: string; name: string; unit?: string | null; standard_cost?: number | null; media?: { image_url?: string | null; status?: string | null } | null };
 type Supplier = { id: string; tax_id: string; legal_name: string; trade_name?: string | null; payment_terms?: string | null };
+type SupplierRecommendation = Supplier & { supplier_name?: string | null; order_count?: number; covered_products?: number; coverage_ratio?: number; last_order_date?: string | null; last_order_number?: string | null; last_unit_cost?: number | null; currency?: string | null; order_date?: string | null; order_number?: string | null; unit_cost?: number | null; product_code?: string | null };
 type RequestLine = { id: string; request_id: string; canonical_product_id?: string | null; product_code?: string | null; description?: string | null; quantity: number; unit?: string | null; estimated_unit_cost?: number | null; historical_unit_cost?: number | null; historical_currency?: string | null; historical_price_date?: string | null; historical_supplier_name?: string | null; historical_order_number?: string | null };
 type RequestRow = { id: string; request_number: string; status: string; priority: string; required_date?: string | null; justification?: string | null; created_at: string };
 type QuoteRow = { id: string; request_id: string; quotation_number: string; supplier_id: string; total_amount: number; currency: string; lead_time_days?: number | null; status: string };
@@ -44,6 +45,7 @@ export default function ProcurementWorkflowPage() {
   const [supplierQuery, setSupplierQuery] = useState('');
   const { data: productData } = useSWR(requestOpen && productQuery.length >= 2 ? `/api/procurement/workflow?resource=products&q=${encodeURIComponent(productQuery)}` : null, fetcher);
   const { data: supplierData } = useSWR(quoteRequest && supplierQuery.length >= 2 ? `/api/procurement/workflow?resource=suppliers&q=${encodeURIComponent(supplierQuery)}` : null, fetcher);
+  const { data: supplierRecommendationData, isLoading: supplierRecommendationsLoading } = useSWR(quoteRequest ? `/api/procurement/workflow?resource=supplier_recommendations&requestId=${encodeURIComponent(quoteRequest.id)}` : null, fetcher);
 
   const [priority, setPriority] = useState('medium');
   const [requiredDate, setRequiredDate] = useState('');
@@ -59,6 +61,8 @@ export default function ProcurementWorkflowPage() {
   const quotations: QuoteRow[] = data?.quotations || [];
   const orders: PurchaseOrder[] = data?.purchaseOrders || [];
   const orderLines: PurchaseOrderLine[] = data?.purchaseOrderLines || [];
+  const recommendedSuppliers: SupplierRecommendation[] = supplierRecommendationData?.recommendations || [];
+  const recentSuppliers: SupplierRecommendation[] = supplierRecommendationData?.recent || [];
 
   const counts = useMemo(() => ({
     requests: requests.filter((row) => ['draft', 'submitted', 'quoted'].includes(row.status)).length,
@@ -119,8 +123,15 @@ export default function ProcurementWorkflowPage() {
     if (ok) { setReceiveOrder(null); setReceiptQuantities({}); }
   };
 
+  const chooseSupplier = (supplier: Supplier) => {
+    setSelectedSupplier(supplier);
+    setSupplierQuery('');
+  };
+
   const openQuote = (request: RequestRow) => {
     setQuoteRequest(request);
+    setSelectedSupplier(null);
+    setSupplierQuery('');
     const costs: Record<string, string> = {};
     requestLines.filter((line) => line.request_id === request.id).forEach((line) => { costs[line.id] = ''; });
     setQuoteCosts(costs);
@@ -197,8 +208,13 @@ export default function ProcurementWorkflowPage() {
       </Dialog>
 
       <Dialog open={Boolean(quoteRequest)} onOpenChange={(open) => !open && setQuoteRequest(null)}>
-        <DialogContent className="max-w-2xl"><DialogHeader><DialogTitle>Registrar cotización</DialogTitle><DialogDescription>{quoteRequest?.request_number}: el histórico es solo referencia; el precio final lo informa el proveedor.</DialogDescription></DialogHeader>
-          <div><Label>Buscar proveedor canónico</Label><Input value={supplierQuery} onChange={(e) => setSupplierQuery(e.target.value)} placeholder="RUT o razón social" />{selectedSupplier ? <div className="mt-2 rounded-md border p-3 text-sm"><strong>{selectedSupplier.trade_name || selectedSupplier.legal_name}</strong><span className="ml-2 text-muted-foreground">{selectedSupplier.tax_id}</span></div> : supplierData?.suppliers?.length ? <div className="mt-2 max-h-36 overflow-auto rounded-md border">{supplierData.suppliers.map((supplier: Supplier) => <button key={supplier.id} type="button" className="block w-full border-b px-3 py-2 text-left text-sm last:border-0 hover:bg-muted" onClick={() => { setSelectedSupplier(supplier); setSupplierQuery(''); }}>{supplier.trade_name || supplier.legal_name} · {supplier.tax_id}</button>)}</div> : null}</div>
+        <DialogContent className="max-w-2xl"><DialogHeader><DialogTitle>Registrar cotización</DialogTitle><DialogDescription>{quoteRequest?.request_number}: el histórico recomienda proveedor y precio de referencia; el precio final siempre lo informa el proveedor.</DialogDescription></DialogHeader>
+          <div className="space-y-3">
+            <div className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-muted-foreground"/><Label>Proveedores recomendados</Label></div>
+            {supplierRecommendationsLoading ? <p className="text-sm text-muted-foreground">Analizando historial de compras...</p> : recommendedSuppliers.length ? <div className="grid gap-2 sm:grid-cols-2">{recommendedSuppliers.map((supplier, index) => <button key={supplier.id} type="button" onClick={() => chooseSupplier(supplier)} className={`rounded-md border p-3 text-left transition-colors hover:bg-muted ${selectedSupplier?.id === supplier.id ? 'border-foreground bg-muted/40' : ''}`}><div className="flex items-start justify-between gap-2"><div><p className="text-sm font-medium">{supplier.trade_name || supplier.legal_name}</p><p className="text-xs text-muted-foreground">{supplier.tax_id}</p></div>{index === 0 ? <Badge variant="secondary">Recomendado</Badge> : null}</div><p className="mt-2 text-xs">Cubre {supplier.covered_products || 0} producto(s) · {supplier.order_count || 0} compra(s)</p><p className="mt-1 text-xs text-muted-foreground">Última: {dateLabel(supplier.last_order_date)}{supplier.last_order_number ? ` · ${supplier.last_order_number}` : ''}{supplier.last_unit_cost != null ? ` · ${money(supplier.last_unit_cost)}` : ''}</p></button>)}</div> : <p className="text-sm text-muted-foreground">No hay compras históricas suficientes para recomendar un proveedor.</p>}
+            {recentSuppliers.length ? <div><p className="mb-2 text-xs font-medium text-muted-foreground">Últimos proveedores usados</p><div className="flex flex-wrap gap-2">{recentSuppliers.map((supplier) => <Button key={`recent-${supplier.id}`} type="button" size="sm" variant={selectedSupplier?.id === supplier.id ? 'secondary' : 'outline'} onClick={() => chooseSupplier(supplier)}>{supplier.trade_name || supplier.legal_name} · {dateLabel(supplier.order_date)}</Button>)}</div></div> : null}
+          </div>
+          <div><Label>Buscar otro proveedor</Label><Input value={supplierQuery} onChange={(e) => setSupplierQuery(e.target.value)} placeholder="RUT o razón social" />{selectedSupplier ? <div className="mt-2 rounded-md border p-3 text-sm"><strong>{selectedSupplier.trade_name || selectedSupplier.legal_name}</strong><span className="ml-2 text-muted-foreground">{selectedSupplier.tax_id}</span></div> : supplierData?.suppliers?.length ? <div className="mt-2 max-h-36 overflow-auto rounded-md border">{supplierData.suppliers.map((supplier: Supplier) => <button key={supplier.id} type="button" className="block w-full border-b px-3 py-2 text-left text-sm last:border-0 hover:bg-muted" onClick={() => chooseSupplier(supplier)}>{supplier.trade_name || supplier.legal_name} · {supplier.tax_id}</button>)}</div> : null}</div>
           <div><Label>Plazo de entrega (días)</Label><Input type="number" min="0" value={leadTimeDays} onChange={(e) => setLeadTimeDays(e.target.value)} /></div>
           <div className="space-y-2">{requestLines.filter((line) => line.request_id === quoteRequest?.id).map((line) => <div key={line.id} className="grid gap-3 rounded-md border p-3 sm:grid-cols-[1fr_190px]"><div><p className="text-sm font-medium">{line.product_code} · {line.description}</p><p className="text-xs text-muted-foreground">Cantidad {line.quantity} {line.unit || ''}</p>{line.historical_unit_cost != null ? <div className="mt-2 rounded-md bg-muted/40 px-2.5 py-2"><p className="text-xs font-medium">Referencia histórica por {line.unit || 'unidad'}: {money(line.historical_unit_cost)} {line.historical_currency || 'CLP'}</p><p className="mt-0.5 text-xs text-muted-foreground">Última compra {dateLabel(line.historical_price_date)}{line.historical_supplier_name ? ` · ${line.historical_supplier_name}` : ''}{line.historical_order_number ? ` · ${line.historical_order_number}` : ''}</p></div> : <p className="mt-2 text-xs text-muted-foreground">Sin referencia histórica de compra para este producto.</p>}</div><div><Label>Precio proveedor por unidad</Label><Input type="number" min="0.01" step="any" value={quoteCosts[line.id] || ''} placeholder="Precio cotizado" onChange={(e) => setQuoteCosts({ ...quoteCosts, [line.id]: e.target.value })} />{Number(quoteCosts[line.id] || 0) > 0 ? <p className="mt-1 text-xs text-muted-foreground">Total línea: {money(Number(line.quantity) * Number(quoteCosts[line.id]))}</p> : null}</div></div>)}</div>
           <DialogFooter><Button variant="outline" onClick={() => setQuoteRequest(null)}>Cancelar</Button><Button onClick={createQuotation} disabled={busy}>{busy ? 'Guardando...' : 'Registrar cotización'}</Button></DialogFooter>
