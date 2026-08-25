@@ -33,15 +33,27 @@ export async function getProductMedia(
 
   const { data, error } = await query;
   if (error) {
-    if (error.code === '42P01' || error.code === 'PGRST205') return mediaByProduct;
-    throw error;
+    console.error('[product-media:list]', {
+      code: error.code,
+      message: error.message,
+      organizationId,
+      productCount: uniqueIds.length,
+    });
+    return mediaByProduct;
   }
 
   for (const row of data || []) {
     if (mediaByProduct.has(row.canonical_product_id)) continue;
-    const { data: signed } = await supabase.storage
+    const { data: signed, error: signedError } = await supabase.storage
       .from(row.storage_bucket)
       .createSignedUrl(row.storage_path, 3600);
+    if (signedError) {
+      console.error('[product-media:signed-url]', {
+        code: signedError.name,
+        message: signedError.message,
+        mediaId: row.id,
+      });
+    }
     mediaByProduct.set(row.canonical_product_id, {
       ...row,
       image_url: signed?.signedUrl || null,
