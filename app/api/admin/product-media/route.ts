@@ -32,38 +32,19 @@ function promptFor(product: Record<string, unknown>) {
   ].filter(Boolean).join(' ');
 }
 
-async function uploadProductImage(
-  supabase: ReturnType<typeof getSupabaseServerClient>,
-  storagePath: string,
-  image: Buffer,
-) {
-  let result = await supabase.storage.from(BUCKET).upload(storagePath, image, {
-    contentType: 'image/png',
-    upsert: false,
-  });
+async function resolveAuthUserId(supabase: ReturnType<typeof getSupabaseServerClient>, applicationUserId: string) {
+  const { data: directUser } = await supabase.auth.admin.getUserById(applicationUserId);
+  if (directUser?.user?.id) return directUser.user.id;
 
-  const firstMessage = messageOf(result.error);
-  if (result.error && /bucket not found/i.test(firstMessage)) {
-    console.warn('[admin/product-media:storage-bucket-missing]', { bucket: BUCKET });
+  const { data: link, error: linkError } = await supabase
+    .from('auth_profile_identity_links')
+    .select('auth_user_id')
+    .eq('profile_id', applicationUserId)
+    .maybeSingle();
+  if (linkError) throw linkError;
+  if (link?.auth_user_id) return String(link.auth_user_id);
 
-    const { error: createError } = await supabase.storage.createBucket(BUCKET, {
-      public: false,
-      fileSizeLimit: 10 * 1024 * 1024,
-      allowedMimeTypes: ['image/png', 'image/jpeg', 'image/webp'],
-    });
-
-    const createMessage = messageOf(createError);
-    if (createError && !/already exists|duplicate/i.test(createMessage)) {
-      return { error: new Error(`No se pudo crear bucket ${BUCKET}: ${createMessage}`) };
-    }
-
-    result = await supabase.storage.from(BUCKET).upload(storagePath, image, {
-      contentType: 'image/png',
-      upsert: false,
-    });
-  }
-
-  return result;
+  throw new Error('No existe vínculo entre el usuario de aplicación y auth.users.');
 }
 
 export async function POST(request: NextRequest) {
@@ -87,6 +68,9 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
     if (productError) throw productError;
     if (!product) return NextResponse.json({ error: 'Producto no encontrado.', stage }, { status: 404 });
+
+    stage = 'auth_identity';
+    const authUserId = await resolveAuthUserId(supabase, String(auth.user.id));
 
     if (action === 'generate') {
       stage = 'openai_config';
@@ -152,10 +136,21 @@ export async function POST(request: NextRequest) {
       const image = Buffer.from(base64, 'base64');
 
       stage = 'storage_upload';
-      const { error: uploadError } = await uploadProductImage(supabase, storagePath, image);
-      if (uploadError) {
-        console.error('[admin/product-media:storage-upload]', { message: messageOf(uploadError), productId: product.id });
-        return NextResponse.json({ error: `Storage: ${messageOf(uploadError)}`, stage }, { status: 500 });
+      let upload = await supabase.storage.from(BUCKET).upload(storagePath, image, { contentType: 'image/png', upsert: false });
+      if (upload.error && /bucket not found/i.test(messageOf(upload.error))) {
+        const { error: createBucketError } = await supabase.storage.createBucket(BUCKET, {
+          public: false,
+          fileSizeLimit: 10 * 1024 * 1024,
+          allowedMimeTypes: ['image/png', 'image/jpeg', 'image/webp'],
+        });
+        if (createBucketError && !/already exists/i.test(messageOf(createBucketError))) {
+          return NextResponse.json({ error: `Storage: ${messageOf(createBucketError)}`, stage }, { status: 500 });
+        }
+        upload = await supabase.storage.from(BUCKET).upload(storagePath, image, { contentType: 'image/png', upsert: false });
+      }
+      if (upload.error) {
+        console.error('[admin/product-media:storage-upload]', { message: messageOf(upload.error), productId: product.id });
+        return NextResponse.json({ error: `Storage: ${messageOf(upload.error)}`, stage }, { status: 500 });
       }
 
       stage = 'media_insert';
@@ -168,7 +163,7 @@ export async function POST(request: NextRequest) {
         generation_model: OPENAI_IMAGE_MODEL,
         generation_prompt: prompt,
         status: 'pending',
-        generated_by: auth.user.id,
+        generated_by: authUserId,
       }).select('id, status').single();
 
       if (insertError) {
@@ -193,11 +188,11 @@ export async function POST(request: NextRequest) {
     if (!candidate) return NextResponse.json({ error: 'Imagen no encontrada.', stage }, { status: 404 });
 
     if (action === 'approve') {
-      const { error: oldError } = await supabase.from('product_media').update({ status: 'rejected', reviewed_by: auth.user.id, reviewed_at: new Date().toISOString(), review_notes: 'Reemplazada por una nueva foto aprobada.' }).eq('organization_id', auth.organizationId).eq('canonical_product_id', product.id).eq('status', 'approved');
+      const { error: oldError } = await supabase.from('product_media').update({ status: 'rejected', reviewed_by: authUserId, reviewed_at: new Date().toISOString(), review_notes: 'Reemplazada por una nueva foto aprobada.' }).eq('organization_id', auth.organizationId).eq('canonical_product_id', product.id).eq('status', 'approved');
       if (oldError) throw oldError;
     }
 
-    const { error: reviewError } = await supabase.from('product_media').update({ status: action === 'approve' ? 'approved' : 'rejected', reviewed_by: auth.user.id, reviewed_at: new Date().toISOString(), review_notes: body.notes || null }).eq('id', mediaId).eq('organization_id', auth.organizationId);
+    const { error: reviewError } = await supabase.from('product_media').update({ status: action === 'approve' ? 'approved' : 'rejected', reviewed_by: authUserId, reviewed_at: new Date().toISOString(), review_notes: body.notes || null }).eq('id', mediaId).eq('organization_id', auth.organizationId);
     if (reviewError) throw reviewError;
     return NextResponse.json({ ok: true });
   } catch (error) {
