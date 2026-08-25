@@ -5,7 +5,7 @@ const mobile = { width: 390, height: 844 }
 
 export default defineConfig({
   testDir: '.',
-  testMatch: /cloud-browser\.spec\.mjs/,
+  testMatch: ['cloud-browser.spec.mjs', 'authenticated-modules.spec.mjs'],
   timeout: 90_000,
   expect: { timeout: 10_000 },
   fullyParallel: false,
