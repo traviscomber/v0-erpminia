@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from '@/lib/next-server-compat';
+import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 
 const TIMER_ACTIONS = new Set(['play', 'pause', 'resume', 'terminate']);
