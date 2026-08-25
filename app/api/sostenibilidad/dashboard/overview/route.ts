@@ -8,24 +8,75 @@ type NumericStatsRow = {
   [key: string]: number | string | null | undefined;
 };
 
+type NonconformanceStatsRow = {
+  status: string | null;
+  severity: string | null;
+  target_closure_date: string | null;
+};
+
+type CorrectiveActionStatsRow = {
+  status: string | null;
+  scheduled_completion_date: string | null;
+};
+
+function periodBounds(period: string) {
+  const match = /^(\d{4})-(\d{2})$/.exec(period);
+  if (!match) return null;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  if (month < 1 || month > 12) return null;
+
+  const start = `${match[1]}-${match[2]}-01T00:00:00.000Z`;
+  const next = new Date(Date.UTC(year, month, 1));
+  const end = next.toISOString();
+  return { start, end };
+}
+
+function buildNcStats(rows: NonconformanceStatsRow[]): NumericStatsRow {
+  const today = new Date().toISOString().slice(0, 10);
+  const isOpen = (status: string | null) => status === 'abierta';
+  const isClosed = (status: string | null) => status === 'cerrada';
+
+  return {
+    total: rows.length,
+    open: rows.filter((row) => isOpen(row.status)).length,
+    closed: rows.filter((row) => isClosed(row.status)).length,
+    overdue: rows.filter((row) => isOpen(row.status) && row.target_closure_date && row.target_closure_date < today).length,
+    critical: rows.filter((row) => row.severity === 'critica').length,
+    mayor: rows.filter((row) => row.severity === 'mayor').length,
+    menor: rows.filter((row) => row.severity === 'menor').length,
+  };
+}
+
+function buildCaStats(rows: CorrectiveActionStatsRow[]): NumericStatsRow {
+  const today = new Date().toISOString().slice(0, 10);
+  const isCompleted = (status: string | null) => status === 'completada' || status === 'cerrada';
+  const completed = rows.filter((row) => isCompleted(row.status)).length;
+
+  return {
+    total: rows.length,
+    open: rows.length - completed,
+    completed,
+    overdue: rows.filter((row) => !isCompleted(row.status) && row.scheduled_completion_date && row.scheduled_completion_date < today).length,
+    completionRate: rows.length === 0 ? 0 : Math.round((completed / rows.length) * 1000) / 10,
+  };
+}
+
 export async function GET(request: NextRequest) {
   const access = await requireModuleAccess(request, MODULE_KEYS.HSE_TABLERO);
   if (!access.authorized) return access.response;
+  if (!access.organizationId) {
+    return NextResponse.json({ error: 'Organización no disponible' }, { status: 400 });
+  }
 
   try {
     const supabase = getSupabaseServerClient();
     const { searchParams } = new URL(request.url);
     const period = searchParams.get('period') || getCurrentPeriod();
+    const bounds = periodBounds(period);
+    if (!bounds) return NextResponse.json({ error: 'Período inválido' }, { status: 400 });
 
-    // Get organization from auth context
-    const { data: { session } } = await supabase.auth.getSession();
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('organization_id')
-      .eq('id', session?.user?.id)
-      .maybeSingle();
-
-    const orgId = profile?.organization_id;
+    const orgId = access.organizationId;
     const DEMO_ORG = '550e8400-e29b-41d4-a716-446655440000';
 
     // Return mock data for demo organization - never mix with real data
@@ -51,42 +102,53 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Real data for other organizations
-    const { data: complianceData } = await supabase
-      .from('sostenibilidad_compliance_history')
-      .select('*')
-      .eq('report_period', period)
-      .eq('organization_id', orgId)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    const [complianceResult, ncResult, caResult, trendsResult, risksResult, inspectionsResult] = await Promise.all([
+      supabase
+        .from('sostenibilidad_compliance_history')
+        .select('*')
+        .eq('report_period', period)
+        .eq('organization_id', orgId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from('sostenibilidad_nonconformances')
+        .select('status,severity,target_closure_date')
+        .eq('organization_id', orgId)
+        .gte('created_at', bounds.start)
+        .lt('created_at', bounds.end),
+      supabase
+        .from('sostenibilidad_corrective_actions')
+        .select('status,scheduled_completion_date')
+        .eq('organization_id', orgId)
+        .gte('created_at', bounds.start)
+        .lt('created_at', bounds.end),
+      supabase
+        .from('sostenibilidad_compliance_history')
+        .select('compliance_score, report_period')
+        .eq('organization_id', orgId)
+        .order('report_period', { ascending: false })
+        .limit(12),
+      supabase
+        .from('sostenibilidad_nonconformances')
+        .select('id, nc_number, title, severity, status')
+        .eq('organization_id', orgId)
+        .in('status', ['abierta', 'open'])
+        .order('discovered_date', { ascending: true })
+        .limit(5),
+      supabase
+        .from('inspecciones_internas')
+        .select('id', { count: 'exact', head: true })
+        .eq('organization_id', orgId)
+        .eq('estado', 'completada'),
+    ]);
 
-    const { data: ncStats } = await supabase.rpc('get_nc_stats', { p_period: period });
-    const { data: caStats } = await supabase.rpc('get_ca_stats', { p_period: period });
+    const error = complianceResult.error || ncResult.error || caResult.error || trendsResult.error || risksResult.error || inspectionsResult.error;
+    if (error) throw error;
 
-    const { data: trends } = await supabase
-      .from('sostenibilidad_compliance_history')
-      .select('compliance_score, report_period')
-      .eq('organization_id', orgId)
-      .order('report_period', { ascending: false })
-      .limit(12);
-
-    const { data: topRisks } = await supabase
-      .from('sostenibilidad_nonconformances')
-      .select('id, nc_number, title, severity, status')
-      .eq('organization_id', orgId)
-      .in('status', ['abierta', 'open'])
-      .order('discovered_date', { ascending: true })
-      .limit(5);
-
-    const { count: inspectionsCompleted = 0 } = await supabase
-      .from('inspecciones_internas')
-      .select('id', { count: 'exact', head: true })
-      .eq('organization_id', orgId)
-      .eq('estado', 'completada');
-
-    const nc = ((ncStats as NumericStatsRow[] | null | undefined)?.[0] ?? {}) as NumericStatsRow;
-    const ca = ((caStats as NumericStatsRow[] | null | undefined)?.[0] ?? {}) as NumericStatsRow;
+    const complianceData = complianceResult.data;
+    const nc = buildNcStats((ncResult.data || []) as NonconformanceStatsRow[]);
+    const ca = buildCaStats((caResult.data || []) as CorrectiveActionStatsRow[]);
 
     return NextResponse.json({
       period,
@@ -100,9 +162,9 @@ export async function GET(request: NextRequest) {
       },
       nc_stats: nc,
       ca_stats: ca,
-      trends: trends ?? [],
-      top_risks: topRisks ?? [],
-      inspections_completed: inspectionsCompleted ?? 0,
+      trends: trendsResult.data ?? [],
+      top_risks: risksResult.data ?? [],
+      inspections_completed: inspectionsResult.count ?? 0,
       generated_at: new Date().toISOString(),
     });
   } catch (error) {
@@ -131,15 +193,4 @@ export async function GET(request: NextRequest) {
 function getCurrentPeriod(): string {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-}
-
-function getMonthBefore(period: string, monthsBack: number): string {
-  const [year, month] = period.split('-');
-  let y = parseInt(year);
-  let m = parseInt(month) - monthsBack;
-  while (m <= 0) {
-    m += 12;
-    y -= 1;
-  }
-  return `${y}-${String(m).padStart(2, '0')}`;
 }
