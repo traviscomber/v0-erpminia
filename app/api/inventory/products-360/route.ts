@@ -38,6 +38,7 @@ export async function GET(request: NextRequest) {
 
   const productId = request.nextUrl.searchParams.get('productId');
   const q = request.nextUrl.searchParams.get('q')?.trim() || '';
+  const canManageMedia = ADMIN_ROLES.has(String(context.role || '').toLowerCase());
 
   try {
     if (!productId) {
@@ -80,7 +81,7 @@ export async function GET(request: NextRequest) {
       }));
 
       try {
-        const media = await getProductMedia(context.supabase, context.organizationId, productIds);
+        const media = await getProductMedia(context.supabase, context.organizationId, productIds, canManageMedia);
         enrichedProducts = attachProductMedia(enrichedProducts, media);
       } catch (mediaError) {
         mediaWarning = mediaError instanceof Error ? mediaError.message : 'No se pudo cargar fotografías';
@@ -90,6 +91,7 @@ export async function GET(request: NextRequest) {
 
       return NextResponse.json({
         products: enrichedProducts,
+        canManageMedia,
         ...(pricingWarning ? { pricingWarning } : {}),
         ...(mediaWarning ? { mediaWarning } : {}),
       });
@@ -102,8 +104,6 @@ export async function GET(request: NextRequest) {
       .eq('id', productId)
       .single();
     if (productError) throw productError;
-
-    const canManageMedia = ADMIN_ROLES.has(String(context.role || '').toLowerCase());
 
     const [stockResult, snapshotsResult, movementsResult, workOrdersResult, purchaseLinesResult, receiptLinesResult, returnLinesResult, priceResult] = await Promise.all([
       context.supabase
