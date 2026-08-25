@@ -29,7 +29,7 @@ export default defineConfig({
     { name: 'chromium-desktop', use: { browserName: 'chromium', viewport: desktop } },
     { name: 'chromium-mobile', use: { browserName: 'chromium', viewport: mobile, isMobile: true } },
     { name: 'firefox-desktop', use: { browserName: 'firefox', viewport: desktop } },
-    { name: 'firefox-mobile', use: { browserName: 'firefox', viewport: mobile, isMobile: true } },
+    { name: 'firefox-mobile', use: { browserName: 'firefox', viewport: mobile } },
     { name: 'webkit-desktop', use: { browserName: 'webkit', viewport: desktop } },
     { name: 'webkit-mobile', use: { browserName: 'webkit', viewport: mobile, isMobile: true } },
   ],
