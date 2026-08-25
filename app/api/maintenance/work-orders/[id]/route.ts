@@ -22,14 +22,24 @@ function progressFromStatus(status: string | null) {
 async function loadCanonicalAsset(context: Awaited<ReturnType<typeof getOrganizationContext>> & { ok: true }, assetId: string | null) {
   if (!assetId) return null;
   const { data, error } = await context.supabase
-    .schema('canonical')
-    .from('assets')
-    .select('id, asset_code, name, asset_type, category, manufacturer, model, serial_number, license_plate')
+    .from('maintenance_assets')
+    .select('id, asset_code, asset_name, asset_type, manufacturer, model, serial_number')
     .eq('organization_id', context.organizationId)
     .eq('id', assetId)
     .maybeSingle();
   if (error) throw error;
-  return data;
+  if (!data) return null;
+  return {
+    id: data.id,
+    asset_code: data.asset_code,
+    name: data.asset_name,
+    asset_type: data.asset_type,
+    category: null,
+    manufacturer: data.manufacturer,
+    model: data.model,
+    serial_number: data.serial_number,
+    license_plate: null,
+  };
 }
 
 async function loadCostSummary(context: Awaited<ReturnType<typeof getOrganizationContext>> & { ok: true }, workOrderId: string) {
