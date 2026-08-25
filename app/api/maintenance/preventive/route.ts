@@ -76,27 +76,22 @@ export async function POST(request: NextRequest) {
 
     const { data: asset, error: assetError } = await context.supabase
       .from('maintenance_assets')
-      .select('id, asset_code')
+      .select('id')
       .eq('organization_id', context.organizationId)
       .eq('id', assetId)
       .maybeSingle();
     if (assetError) throw assetError;
     if (!asset) return NextResponse.json({ error: 'Equipo no encontrado.' }, { status: 404 });
 
-    const { data: canonicalAsset } = await context.supabase
-      .schema('canonical')
-      .from('assets')
-      .select('id')
-      .eq('organization_id', context.organizationId)
-      .eq('asset_code', asset.asset_code)
-      .maybeSingle();
-
+    // preventive_maintenance_schedules.asset_id is FK-backed by canonical.assets.
+    // Keep both references on the same canonical identity instead of attempting
+    // a PostgREST lookup against the non-exposed canonical schema.
     const { data, error } = await context.supabase
       .from('preventive_maintenance_schedules')
       .insert({
         organization_id: context.organizationId,
-        asset_id: assetId,
-        canonical_asset_id: canonicalAsset?.id || null,
+        asset_id: asset.id,
+        canonical_asset_id: asset.id,
         task_name: taskName,
         description: String(body.description || '').trim() || null,
         frequency_days: frequencyDays,
