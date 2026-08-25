@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
+import { getModuleAccessLevel, MODULE_KEYS } from '@/lib/api/module-access';
 
 type Overview = {
   total: number;
@@ -21,28 +22,17 @@ export async function GET(request: NextRequest) {
   if (!context.ok) return context.response;
 
   try {
-    const { data: profile, error: profileError } = await context.supabase
-      .from('profiles')
-      .select('cargo_id')
-      .eq('id', context.userId)
-      .maybeSingle();
+    const accessLevel = await getModuleAccessLevel(
+      context.userId,
+      context.role,
+      MODULE_KEYS.MANT_OPERACIONES,
+    );
 
-    if (profileError) throw profileError;
-    if (!profile?.cargo_id) {
-      return NextResponse.json({ error: 'Acceso a Mantención no autorizado para este usuario' }, { status: 403 });
-    }
-
-    const { data: permission, error: permissionError } = await context.supabase
-      .from('role_matrix')
-      .select('access_level')
-      .eq('cargo_id', profile.cargo_id)
-      .eq('module_key', 'mant_operaciones')
-      .in('access_level', ['LEC', 'ED'])
-      .maybeSingle();
-
-    if (permissionError) throw permissionError;
-    if (!permission) {
-      return NextResponse.json({ error: 'Acceso a Mantención no autorizado para este cargo' }, { status: 403 });
+    if (accessLevel !== 'LEC' && accessLevel !== 'ED') {
+      return NextResponse.json(
+        { error: 'Acceso a Mantención no autorizado para este usuario' },
+        { status: 403 },
+      );
     }
 
     const status = request.nextUrl.searchParams.get('status')?.trim();
