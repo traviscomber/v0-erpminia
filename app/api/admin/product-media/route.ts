@@ -32,6 +32,40 @@ function promptFor(product: Record<string, unknown>) {
   ].filter(Boolean).join(' ');
 }
 
+async function uploadProductImage(
+  supabase: ReturnType<typeof getSupabaseServerClient>,
+  storagePath: string,
+  image: Buffer,
+) {
+  let result = await supabase.storage.from(BUCKET).upload(storagePath, image, {
+    contentType: 'image/png',
+    upsert: false,
+  });
+
+  const firstMessage = messageOf(result.error);
+  if (result.error && /bucket not found/i.test(firstMessage)) {
+    console.warn('[admin/product-media:storage-bucket-missing]', { bucket: BUCKET });
+
+    const { error: createError } = await supabase.storage.createBucket(BUCKET, {
+      public: false,
+      fileSizeLimit: 10 * 1024 * 1024,
+      allowedMimeTypes: ['image/png', 'image/jpeg', 'image/webp'],
+    });
+
+    const createMessage = messageOf(createError);
+    if (createError && !/already exists|duplicate/i.test(createMessage)) {
+      return { error: new Error(`No se pudo crear bucket ${BUCKET}: ${createMessage}`) };
+    }
+
+    result = await supabase.storage.from(BUCKET).upload(storagePath, image, {
+      contentType: 'image/png',
+      upsert: false,
+    });
+  }
+
+  return result;
+}
+
 export async function POST(request: NextRequest) {
   const auth = await requireAdmin(request);
   if (!auth.authorized || !auth.user || !auth.organizationId) return auth.response;
@@ -118,7 +152,7 @@ export async function POST(request: NextRequest) {
       const image = Buffer.from(base64, 'base64');
 
       stage = 'storage_upload';
-      const { error: uploadError } = await supabase.storage.from(BUCKET).upload(storagePath, image, { contentType: 'image/png', upsert: false });
+      const { error: uploadError } = await uploadProductImage(supabase, storagePath, image);
       if (uploadError) {
         console.error('[admin/product-media:storage-upload]', { message: messageOf(uploadError), productId: product.id });
         return NextResponse.json({ error: `Storage: ${messageOf(uploadError)}`, stage }, { status: 500 });
