@@ -56,12 +56,12 @@ test('authenticated admin can render every operational module cleanly', async ({
     await page.waitForLoadState('networkidle', { timeout: 12_000 }).catch(() => {})
 
     const bodyText = (await page.locator('body').innerText()).trim()
-    expect(bodyText.length, `blank or near-blank authenticated module ${route}`).toBeGreaterThan(50)
-    expect(bodyText, `fatal UI message at ${route}`).not.toMatch(/Application error|Internal Server Error|This page could not be found|No autorizado|Forbidden/i)
+    expect.soft(bodyText.length, `blank or near-blank authenticated module ${route}`).toBeGreaterThan(50)
+    expect.soft(bodyText, `fatal UI message at ${route}`).not.toMatch(/Application error|Internal Server Error|This page could not be found|This page couldn’t load|No autorizado|Forbidden/i)
 
     if (route === '/dashboard/produccion') {
-      expect(bodyText).toContain('Cobertura real por área')
-      expect(bodyText).toContain('Ausencia de una fuente no equivale a valor cero.')
+      expect.soft(bodyText).toContain('Cobertura real por área')
+      expect.soft(bodyText).toContain('Ausencia de una fuente no equivale a valor cero.')
     }
 
     const overflow = await page.evaluate(() => ({
@@ -69,11 +69,11 @@ test('authenticated admin can render every operational module cleanly', async ({
       documentWidth: document.documentElement.scrollWidth,
       bodyWidth: document.body.scrollWidth,
     }))
-    expect(overflow.documentWidth, `document horizontal overflow at ${route}`).toBeLessThanOrEqual(overflow.viewport + 2)
-    expect(overflow.bodyWidth, `body horizontal overflow at ${route}`).toBeLessThanOrEqual(overflow.viewport + 2)
+    expect.soft(overflow.documentWidth, `document horizontal overflow at ${route}`).toBeLessThanOrEqual(overflow.viewport + 2)
+    expect.soft(overflow.bodyWidth, `body horizontal overflow at ${route}`).toBeLessThanOrEqual(overflow.viewport + 2)
 
-    expect(pageErrors.slice(pageErrorStart), `page errors at ${route}`).toEqual([])
-    expect(consoleErrors.slice(consoleStart), `same-origin console errors at ${route}`).toEqual([])
+    expect.soft(pageErrors.slice(pageErrorStart), `page errors at ${route}`).toEqual([])
+    expect.soft(consoleErrors.slice(consoleStart), `same-origin console errors at ${route}`).toEqual([])
 
     await page.screenshot({ path: testInfo.outputPath(`authenticated-${name}.png`), fullPage: true })
   }
