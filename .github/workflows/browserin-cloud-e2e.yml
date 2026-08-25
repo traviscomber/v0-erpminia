@@ -2,6 +2,12 @@ name: Browserin Cloud E2E
 
 on:
   workflow_dispatch:
+    inputs:
+      live:
+        description: 'Run one authenticated demo mutation in Chromium'
+        required: false
+        default: false
+        type: boolean
   push:
     branches: [browserin-qa]
     paths:
@@ -22,6 +28,7 @@ jobs:
     env:
       CI: '1'
       E2E_BASE_URL: 'https://www.motil.app'
+      E2E_LIVE: '0'
 
     steps:
       - uses: actions/checkout@v4
@@ -33,13 +40,28 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+      - name: Prepare masked demo credentials for explicit live run
+        if: (github.event_name == 'workflow_dispatch' && inputs.live) || (github.event_name == 'push' && contains(github.event.head_commit.message, '[browserin-live]'))
+        shell: bash
+        run: |
+          email="$(grep -m1 '^Email:' docs/DEMO_LOGIN.md | sed 's/^Email:[[:space:]]*//')"
+          password="$(grep -m1 '^Password:' docs/DEMO_LOGIN.md | sed 's/^Password:[[:space:]]*//')"
+          if [ -z "$email" ] || [ -z "$password" ]; then
+            echo 'Demo credential fixture is missing' >&2
+            exit 1
+          fi
+          echo "::add-mask::$email"
+          echo "::add-mask::$password"
+          echo "E2E_EMAIL=$email" >> "$GITHUB_ENV"
+          echo "E2E_PASSWORD=$password" >> "$GITHUB_ENV"
+          echo 'E2E_LIVE=1' >> "$GITHUB_ENV"
       - name: Install application dependencies
         run: pnpm install --frozen-lockfile
       - name: Install isolated Playwright runtime
         run: pnpm add --save-dev --ignore-workspace-root-check --lockfile=false @playwright/test@1.55.0
       - name: Install browser engines
         run: pnpm exec playwright install --with-deps chromium firefox webkit
-      - name: Run Browserin production smoke
+      - name: Run Browserin production suite
         run: pnpm exec playwright test --config=e2e/playwright.config.mjs
       - name: Upload browser evidence
         if: always()
