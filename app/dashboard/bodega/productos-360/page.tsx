@@ -40,7 +40,13 @@ export default function Products360Page() {
   };
 
   const search = useCallback(async (term = '') => {
-    const response = await apiFetch(`/api/inventory/products-360?q=${encodeURIComponent(term)}`);
+    const normalizedTerm = term.trim();
+    if (!normalizedTerm) {
+      setProducts([]);
+      setVisibleCount(PRODUCT_BATCH_SIZE);
+      return;
+    }
+    const response = await apiFetch(`/api/inventory/products-360?q=${encodeURIComponent(normalizedTerm)}`);
     const payload = await response.json();
     if (!response.ok) throw new Error(payload.error || 'No se pudieron cargar los productos.');
     setProducts(payload.products || []);
@@ -78,7 +84,6 @@ export default function Products360Page() {
     finally { setLoading(false); }
   }, []);
 
-  useEffect(() => { search().catch((cause) => setError(cause instanceof Error ? cause.message : 'Error de carga.')); }, [search]);
   useEffect(() => { if (selectedId) loadDetail(selectedId); }, [selectedId, loadDetail]);
 
   const relations = useMemo(() => {
@@ -117,6 +122,7 @@ export default function Products360Page() {
             }
           }}
         >
+          {!products.length ? <div className="p-6 text-center text-xs text-muted-foreground">Busca por código, nombre o familia para cargar productos.</div> : null}
           {visibleProducts.map((product) => <button key={product.id} onClick={() => setSelectedId(product.id)} className={`flex w-full items-center gap-3 p-3 text-left text-sm hover:bg-muted ${selectedId === product.id ? 'bg-muted' : ''}`}><ProductPhoto media={product.media} name={product.name} size="sm"/><span><span className="block font-medium">{product.name}</span><span className="text-xs text-muted-foreground">{product.product_code} · {product.media?.status === 'approved' ? 'Foto validada' : 'Foto pendiente'}</span></span></button>)}
           {hasMoreProducts ? <div className="p-3 text-center text-xs text-muted-foreground">Desplázate para cargar 20 más</div> : null}
         </div>
