@@ -105,13 +105,20 @@ async function enrichIdentity(
     }
 
     const applicationUserId = profile?.id || userId;
-    const { data: roleRows } = await adminClient
+    let roleQuery = adminClient
       .from('user_roles')
       .select('role, organization_id')
       .eq('user_id', applicationUserId)
-      .order('created_at', { ascending: false })
-      .limit(1);
+      .order('created_at', { ascending: false });
 
+    // An assigned role is only authoritative inside the same tenant as the
+    // resolved application profile. This prevents a future multi-organization
+    // membership from leaking an administrative role across organizations.
+    if (profile?.organization_id) {
+      roleQuery = roleQuery.eq('organization_id', profile.organization_id);
+    }
+
+    const { data: roleRows } = await roleQuery.limit(1);
     const roleRow = roleRows?.[0];
     return {
       applicationUserId,
