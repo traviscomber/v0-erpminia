@@ -1,70 +1,68 @@
-import { createClient } from '@supabase/supabase-js';
-import { NextRequest, NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
 
-export async function GET(req: NextRequest) {
-  const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
-  const orgId = req.headers.get('x-org-id') || '2bd7fe06-8e4f-4a3a-b261-e3f5d8aa3dee';
+import { NextRequest, NextResponse } from 'next/server';
+import { getOrganizationContext } from '@/lib/api/organization-context';
+import { getModuleAccessLevel, MODULE_KEYS } from '@/lib/api/module-access';
+
+const CLOSED = new Set(['completed','closed','cancelled','canceled','completada','cerrada','cancelada']);
+const HIGH = new Set(['critical','critica','high','alta']);
+const norm = (value: unknown) => String(value ?? '').trim().toLocaleLowerCase('es-CL');
+
+export async function GET(request: NextRequest) {
+  const context = await getOrganizationContext(request);
+  if (!context.ok) return context.response;
+  const access = await getModuleAccessLevel(context.userId, context.role, MODULE_KEYS.MANT_GERENCIAL);
+  if (access !== 'LEC' && access !== 'ED') return NextResponse.json({ error: 'Acceso gerencial de Mantención no autorizado' }, { status: 403 });
 
   try {
-    // Get all work orders by equipment for last 90 days
-    const ninetyDaysAgo = new Date();
-    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+    const since = new Date();
+    since.setDate(since.getDate() - 90);
+    const [woResult, assetResult] = await Promise.all([
+      context.supabase.from('maintenance_work_orders')
+        .select('id,asset_id,status,priority,work_type,created_at,scheduled_date,total_timer_minutes')
+        .eq('organization_id', context.organizationId)
+        .gte('created_at', since.toISOString()),
+      context.supabase.from('maintenance_assets')
+        .select('id,asset_code,asset_name,criticality,status')
+        .eq('organization_id', context.organizationId),
+    ]);
+    const error = woResult.error || assetResult.error;
+    if (error) throw error;
 
-    const { data: workOrders } = await sb
-      .from('maintenance_work_orders')
-      .select('id, equipment_code, equipment_type, status, priority, created_at, scheduled_date, total_timer_minutes')
-      .eq('organization_id', orgId)
-      .gte('created_at', ninetyDaysAgo.toISOString());
+    const assetMap = new Map((assetResult.data || []).map((a) => [a.id, a]));
+    const groups = new Map<string, any[]>();
+    for (const wo of woResult.data || []) {
+      if (!wo.asset_id) continue;
+      const rows = groups.get(wo.asset_id) || [];
+      rows.push(wo);
+      groups.set(wo.asset_id, rows);
+    }
 
-    // Calculate risk by equipment
-    const equipmentMap = new Map();
+    const now = Date.now();
+    const data = [...groups.entries()].map(([assetId, rows]) => {
+      const asset = assetMap.get(assetId);
+      const open = rows.filter((wo) => !CLOSED.has(norm(wo.status)));
+      const highOpen = open.filter((wo) => HIGH.has(norm(wo.priority)));
+      const overdue = open.filter((wo) => wo.scheduled_date && new Date(`${wo.scheduled_date}T23:59:59Z`).getTime() < now);
+      const timed = rows.filter((wo) => Number(wo.total_timer_minutes || 0) > 0);
+      return {
+        assetId,
+        assetCode: asset?.asset_code || null,
+        assetName: asset?.asset_name || 'Equipo sin ficha',
+        criticality: asset?.criticality || null,
+        workOrders90d: rows.length,
+        openWorkOrders: open.length,
+        highPriorityOpen: highOpen.length,
+        overdueOpen: overdue.length,
+        observedRepairHours: timed.length ? timed.reduce((s, wo) => s + Number(wo.total_timer_minutes || 0), 0) / timed.length / 60 : null,
+        attention: highOpen.length > 0 || overdue.length >= 2 ? 'high' : open.length > 0 ? 'watch' : 'ok',
+        evidence: `${open.length} OT abiertas · ${highOpen.length} de prioridad alta/crítica · ${overdue.length} vencidas`,
+      };
+    }).sort((a, b) => (a.attention === b.attention ? b.openWorkOrders - a.openWorkOrders : a.attention === 'high' ? -1 : b.attention === 'high' ? 1 : a.attention === 'watch' ? -1 : 1)).slice(0, 20);
 
-    workOrders?.forEach((wo) => {
-      const key = wo.equipment_code || wo.equipment_type;
-      if (!equipmentMap.has(key)) {
-        equipmentMap.set(key, {
-          equipment_code: wo.equipment_code || wo.equipment_type,
-          equipment_type: wo.equipment_type,
-          total_failures: 0,
-          critical_failures: 0,
-          total_downtime_hours: 0,
-          avg_repair_time_hours: 0,
-          risk_score: 0,
-          failure_frequency: 0,
-        });
-      }
-
-      const eq = equipmentMap.get(key);
-      eq.total_failures += 1;
-
-      if (wo.priority === 'high' || wo.priority === 'critical') {
-        eq.critical_failures += 1;
-      }
-
-      if (wo.total_timer_minutes) {
-        eq.total_downtime_hours += wo.total_timer_minutes / 60;
-      }
-    });
-
-    // Calculate risk scores and metrics
-    equipmentMap.forEach((eq) => {
-      // Average repair time
-      if (eq.total_failures > 0) {
-        eq.avg_repair_time_hours = Math.round((eq.total_downtime_hours / eq.total_failures) * 100) / 100;
-        eq.failure_frequency = Math.round((eq.total_failures / 90) * 100) / 100; // failures per day
-      }
-
-      // Risk score: (failures * 30) + (critical failures * 40) + (downtime * 20)
-      eq.risk_score = Math.min(100, (eq.total_failures * 2) + (eq.critical_failures * 15) + Math.floor(eq.failure_frequency * 5));
-    });
-
-    const equipmentRisk = Array.from(equipmentMap.values())
-      .sort((a, b) => b.risk_score - a.risk_score)
-      .slice(0, 20); // Top 20 at-risk equipment
-
-    return NextResponse.json({ data: equipmentRisk });
+    return NextResponse.json({ data, policy: 'La prioridad se deriva de OT abiertas, prioridad registrada y vencimiento. No se calcula probabilidad de falla ni risk score artificial.', generatedAt: new Date().toISOString() });
   } catch (error) {
-    console.error('[v0] Equipment risk error:', error);
-    return NextResponse.json({ error: 'Failed to fetch equipment risk' }, { status: 500 });
+    console.error('[maintenance/analytics/equipment-risk]', error);
+    return NextResponse.json({ error: 'No fue posible calcular riesgo operacional por equipo' }, { status: 500 });
   }
 }
