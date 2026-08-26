@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     context.supabase.from('preventive_maintenance_schedules').select('id,asset_id,task_name,frequency_hours,last_executed_meter,current_meter_snapshot,next_due_meter,meter_unit,enabled').eq('organization_id', context.organizationId).like('source_reference', 'Mantención Sondajes%').order('next_due_meter'),
     context.supabase.from('production_monthly_plans').select('*').eq('organization_id', context.organizationId).eq('status', 'active').order('period_start', { ascending: false }).limit(1).maybeSingle(),
     context.supabase.from('production_monthly_plan_lines').select('*').eq('organization_id', context.organizationId).order('line_type'),
-    context.supabase.from('production_drill_hole_location_review_queue_v2').select('drill_hole_id,hole_code,resolution_state,report_count,last_report_date,source_site,candidate_mine_name,review_lane,review_priority,recommended_action').eq('organization_id', context.organizationId).order('review_priority', { ascending: false }).order('last_report_date', { ascending: false }).limit(300),
+    context.supabase.from('production_drill_hole_location_review_queue_v3').select('drill_hole_id,hole_code,resolution_state,report_count,last_report_date,source_site,candidate_mine_name,review_lane,review_priority,recommended_action').eq('organization_id', context.organizationId).order('review_priority', { ascending: false }).order('last_report_date', { ascending: false }).limit(300),
   ]);
 
   const error = summary.error || monthly.error || assets.error || schedules.error || plan.error || planLines.error || locationQueue.error;
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
       drillingSource: 'Reporte_Sondajes_I_A.xlsx / BaseDatos',
       maintenanceSource: 'Mantención Sondajes - copia.xlsx',
       planSource: 'PROGRAMA DE PRODUCCION AGOSTO 2026.pdf',
-      note: 'ACTUAL y PLAN se mantienen separados. La ubicación de pozos sólo se promueve con evidencia verificable; los casos ambiguos permanecen en revisión.',
+      note: 'ACTUAL y PLAN se mantienen separados. La ubicación de pozos sólo se promueve con evidencia verificable; los alias tipográficos ya reconciliados no inflan la cola de ubicación.',
     },
   });
 }
