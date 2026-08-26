@@ -3,11 +3,12 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Boxes, FileText, PackageSearch, ShieldAlert, Upload } from 'lucide-react';
+import { Boxes, FileText, Gauge, PackageSearch, ShieldAlert, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const items = [
   { href: '/dashboard/bodega', label: 'Inventario', icon: Boxes },
+  { href: '/dashboard/bodega/inteligencia', label: 'Inteligencia', icon: Gauge },
   { href: '/dashboard/bodega/productos-360', label: 'Producto 360°', icon: PackageSearch },
   { href: '/dashboard/bodega/repuestos-criticos', label: 'Repuestos críticos', icon: ShieldAlert },
   { href: '/dashboard/bodega/importar-datos', label: 'Importar inventario', icon: Upload },
