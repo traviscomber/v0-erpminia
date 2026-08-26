@@ -32,6 +32,8 @@ type CanonicalAssetRow = { id: string; asset_code: string; name: string; asset_t
 type WorkOrderPayload = {
   canonicalAssetId?: string;
   canonical_asset_id?: string;
+  reviewId?: string | null;
+  review_id?: string | null;
   assignedPersonId?: string | null;
   assigned_person_id?: string | null;
   title?: string;
@@ -105,8 +107,11 @@ export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as WorkOrderPayload;
     const canonicalAssetId = body.canonicalAssetId || body.canonical_asset_id;
+    const reviewId = body.reviewId || body.review_id || null;
     const assignedPersonId = body.assignedPersonId || body.assigned_person_id || null;
     if (!canonicalAssetId) return NextResponse.json({ error: 'Selecciona un activo canónico' }, { status: 400 });
+    if (!body.title?.trim()) return NextResponse.json({ error: 'Describe brevemente el trabajo a realizar' }, { status: 400 });
+
     const { data: asset, error: assetError } = await context.supabase
       .from('maintenance_canonical_assets_v1')
       .select('id,asset_code,name,asset_type,is_active')
@@ -116,6 +121,54 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
     if (assetError) throw assetError;
     if (!asset) return NextResponse.json({ error: 'Activo canónico no encontrado o inactivo' }, { status: 404 });
+
+    if (reviewId) {
+      const { data: review, error: reviewError } = await context.supabase
+        .from('drilling_maintenance_review_queue_v1')
+        .select('review_id,canonical_asset_id,review_reason,review_status,linked_work_order_id')
+        .eq('organization_id', context.organizationId)
+        .eq('review_id', reviewId)
+        .maybeSingle();
+      if (reviewError) throw reviewError;
+      if (!review) return NextResponse.json({ error: 'Revisión operacional no encontrada' }, { status: 404 });
+      if (review.canonical_asset_id !== canonicalAssetId) {
+        return NextResponse.json({ error: 'La revisión no corresponde al equipo seleccionado' }, { status: 409 });
+      }
+      if (review.review_reason !== 'out_of_service' && review.review_status === 'pending') {
+        return NextResponse.json({ error: 'La revisión debe ser aceptada antes de crear la orden' }, { status: 409 });
+      }
+
+      const { data: rpcData, error: rpcError } = await context.supabase.rpc('create_work_order_from_operational_review', {
+        p_organization_id: context.organizationId,
+        p_review_id: reviewId,
+        p_created_by: context.userId,
+        p_title: body.title.trim(),
+        p_work_type: body.workType || body.work_type || 'corrective',
+        p_priority: body.priority || 'critical',
+        p_scheduled_date: body.scheduledDate || body.scheduled_date || null,
+        p_description: body.description?.trim() || null,
+      });
+      if (rpcError) throw rpcError;
+      const result = Array.isArray(rpcData) ? rpcData[0] : rpcData;
+      if (!result?.work_order_id) throw new Error('La revisión no devolvió una orden de trabajo válida');
+
+      const { data: linkedOrder, error: linkedOrderError } = await context.supabase
+        .from('maintenance_work_orders')
+        .select('*')
+        .eq('organization_id', context.organizationId)
+        .eq('id', result.work_order_id)
+        .single();
+      if (linkedOrderError) throw linkedOrderError;
+
+      return NextResponse.json({
+        data: mapWorkOrder(linkedOrder as WorkOrderRow, asset as CanonicalAssetRow),
+        review: {
+          id: reviewId,
+          status: result.review_status,
+          linkedWorkOrderId: result.work_order_id,
+        },
+      }, { status: review.linked_work_order_id ? 200 : 201 });
+    }
 
     let assignedPersonName = body.assignedToName || body.assigned_to_name || null;
     if (assignedPersonId) {
@@ -135,7 +188,7 @@ export async function POST(request: NextRequest) {
       canonical_asset_id: canonicalAssetId,
       asset_id: null,
       assigned_person_id: assignedPersonId,
-      title: body.title?.trim() || null,
+      title: body.title.trim(),
       description: body.description?.trim() || null,
       work_type: body.workType || body.work_type || 'preventive',
       status: 'open',
