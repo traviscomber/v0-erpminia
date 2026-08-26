@@ -2,22 +2,63 @@
 
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
-import { Activity, AlertTriangle, Beaker, CheckCircle2, Drill, Factory, Layers3, MapPinned, Target, Truck } from 'lucide-react';
+import { Activity, AlertTriangle, Beaker, CheckCircle2, Clock3, Drill, Factory, Layers3, MapPinned, Target, Truck } from 'lucide-react';
 import { StatePanel } from '@/components/ui/state-panel';
 
 type Attention='alert'|'watch'|'ok'|'no_comparison';
 type MineRow={key:string;mineName:string;actualTons:number;movements:number;plannedTons:number;expectedTonsToCutoff:number;plannedGradePct:number|null;observedVsExpectedPct:number|null;attention:Attention};
 type SectorRow={key:string;mineName:string;sectorName:string;actualTons:number;movements:number;drillingMetersHistorical:number;drillingReportsHistorical:number;drillingHoles:number;drillingReconciliationPct:number|null;plannedAdvanceM:number;plannedDrillingM:number};
 type Data={periodStart:string|null;dataThrough:string|null;plantThrough:string|null;transportThrough:string|null;plan:any;mines:MineRow[];sectors:SectorRow[];sourceCoverage:{transportPlanFraction:number;elapsedTransportDays:number;totalPlanDays:number;policy:string};attention:{alert:number;watch:number;ok:number;noComparison:number};plantContext:null|{scope:string;treatedTons:number;avgHeadGradePct:number|null;avgRecoveryPct:number|null;shifts:number;assayed:number;assayCoveragePct:number;note:string};drillingFreshness:any;semantics:{transport:string;plan:string;drilling:string;plant:string}};
+type ExecutiveException={key:string;severity:'critical'|'warning'|'info';title:string;evidence:string;action:string};
 const fetcher=async(url:string)=>{const r=await fetch(url,{credentials:'include'});const j=await r.json();if(!r.ok)throw new Error(j.error||'Error');return j;};
 const n=(v:number,d=0)=>v.toLocaleString('es-CL',{maximumFractionDigits:d});
 const pct=(v:number|null|undefined,d=1)=>v===null||v===undefined?'—':`${n(v,d)}%`;
 const date=(v:string|null|undefined)=>v?new Intl.DateTimeFormat('es-CL',{dateStyle:'medium'}).format(new Date(`${v}T12:00:00`)):'N/D';
+const dayDiff=(later:string|null|undefined,earlier:string|null|undefined)=>{
+  if(!later||!earlier)return null;
+  return Math.round((new Date(`${later}T12:00:00Z`).getTime()-new Date(`${earlier}T12:00:00Z`).getTime())/86400000);
+};
 
 export function MineSectorIntelligence(){
   const {data,error,isLoading}=useSWR<Data>('/api/produccion/inteligencia',fetcher);
   const [selected,setSelected]=useState('');
   const row=useMemo(()=>data?.sectors.find(x=>x.key===selected)||data?.sectors[0]||null,[data,selected]);
+  const executiveExceptions=useMemo<ExecutiveException[]>(()=>{
+    if(!data)return [];
+    const items:ExecutiveException[]=[];
+    for(const mine of data.mines){
+      if(mine.attention!=='alert'&&mine.attention!=='watch')continue;
+      const gap=Math.max(0,mine.expectedTonsToCutoff-mine.actualTons);
+      items.push({
+        key:`mine-${mine.key}`,
+        severity:mine.attention==='alert'?'critical':'warning',
+        title:`${mine.mineName}: ${mine.attention==='alert'?'bajo ritmo':'ritmo en vigilancia'}`,
+        evidence:`${n(mine.actualTons,1)} t observadas vs ${n(mine.expectedTonsToCutoff,1)} t esperadas al corte (${pct(mine.observedVsExpectedPct)}). Brecha ${n(gap,1)} t.`,
+        action:'Revisar secuencia de extracción y transporte de la mina antes del siguiente cierre operacional.',
+      });
+    }
+    const sourceLag=dayDiff(data.plantThrough,data.transportThrough);
+    if(sourceLag!==null&&sourceLag>=3){
+      items.push({
+        key:'transport-freshness',
+        severity:sourceLag>=7?'warning':'info',
+        title:'Transporte más atrasado que Planta',
+        evidence:`TM llega hasta ${date(data.transportThrough)} y Planta hasta ${date(data.plantThrough)}: ${sourceLag} días de diferencia.`,
+        action:'Actualizar la fuente TM antes de interpretar como actual cualquier desvío de ritmo por mina.',
+      });
+    }
+    const drillingLag=dayDiff(data.dataThrough,data.drillingFreshness?.max_date||null);
+    if(drillingLag!==null&&drillingLag>=3){
+      items.push({
+        key:'drilling-freshness',
+        severity:drillingLag>=7?'warning':'info',
+        title:'Sondaje con rezago de actualización',
+        evidence:`Último reporte ${date(data.drillingFreshness?.max_date)}; referencia operacional ${date(data.dataThrough)}.`,
+        action:'Validar carga de reportes de sondaje antes de usar su contexto para decisiones recientes.',
+      });
+    }
+    return items.sort((a,b)=>({critical:0,warning:1,info:2}[a.severity]-{critical:0,warning:1,info:2}[b.severity]));
+  },[data]);
   if(error)return <StatePanel tone="error" title="No fue posible cargar inteligencia de Producción" description={error.message}/>;
   if(isLoading||!data)return <StatePanel tone="neutral" title="Cargando inteligencia operacional" description="Integrando plan, transporte, sondaje y Planta."/>;
 
@@ -31,6 +72,11 @@ export function MineSectorIntelligence(){
       <Metric icon={Truck} label="Cobertura TM" value={pct(data.sourceCoverage.transportPlanFraction*100)} detail={`${data.sourceCoverage.elapsedTransportDays}/${data.sourceCoverage.totalPlanDays} días del plan`}/>
       <Metric icon={Factory} label="Tratado Planta" value={data.plantContext?`${n(data.plantContext.treatedTons,1)} t`:'—'} detail={`Hasta ${date(data.plantThrough)}`}/>
       <Metric icon={Beaker} label="Cobertura ensayo" value={data.plantContext?pct(data.plantContext.assayCoveragePct):'—'} detail={data.plantContext?`${data.plantContext.assayed}/${data.plantContext.shifts} turnos`:'Sin datos'}/>
+    </section>
+
+    <section className="overflow-hidden rounded-lg border bg-card">
+      <div className="flex items-end justify-between gap-4 border-b px-4 py-3"><div><h2 className="font-medium">Excepciones ejecutivas</h2><p className="mt-1 text-xs text-muted-foreground">Sólo condiciones que cambian una decisión o limitan la lectura de los datos.</p></div><span className="text-sm font-medium">{executiveExceptions.length}</span></div>
+      {executiveExceptions.length===0?<div className="flex items-center gap-3 px-4 py-4"><CheckCircle2 className="h-5 w-5 text-muted-foreground"/><div><p className="text-sm font-medium">Sin excepciones ejecutivas</p><p className="text-xs text-muted-foreground">Las fuentes y el ritmo comparable no requieren escalamiento.</p></div></div>:<div className="divide-y">{executiveExceptions.map(item=><div key={item.key} className="grid gap-2 px-4 py-4 md:grid-cols-[180px_1fr_1fr]"><div className="flex items-start gap-2"><ExceptionIcon severity={item.severity}/><div><p className="text-sm font-medium">{item.title}</p><p className="mt-1 text-xs text-muted-foreground">{item.severity==='critical'?'Crítica':item.severity==='warning'?'Vigilancia':'Información'}</p></div></div><p className="text-sm text-muted-foreground">{item.evidence}</p><p className="text-sm"><span className="font-medium">Acción: </span>{item.action}</p></div>)}</div>}
     </section>
 
     <section className="overflow-hidden rounded-lg border bg-card"><div className="border-b px-4 py-3"><h2 className="font-medium">Ritmo operacional por mina</h2><p className="mt-1 text-xs text-muted-foreground">Única comparación de tonelaje plan vs observado usada para priorización.</p></div><div className="overflow-x-auto"><table className="w-full min-w-[760px] text-sm"><thead className="bg-muted/30 text-xs text-muted-foreground"><tr><th className="px-4 py-3 text-left">Mina</th><th className="px-4 py-3 text-left">Estado</th><th className="px-4 py-3 text-right">Observado t</th><th className="px-4 py-3 text-right">Esperado al corte t</th><th className="px-4 py-3 text-right">Ritmo</th><th className="px-4 py-3 text-right">Plan mes t</th><th className="px-4 py-3 text-right">Ley plan</th></tr></thead><tbody className="divide-y">{data.mines.map(x=><tr key={x.key} className="hover:bg-muted/20"><td className="px-4 py-3 font-medium">{x.mineName}</td><td className="px-4 py-3">{attentionLabel(x.attention)}</td><td className="px-4 py-3 text-right">{n(x.actualTons,1)}</td><td className="px-4 py-3 text-right">{x.expectedTonsToCutoff?n(x.expectedTonsToCutoff,1):'—'}</td><td className="px-4 py-3 text-right">{pct(x.observedVsExpectedPct)}</td><td className="px-4 py-3 text-right">{x.plannedTons?n(x.plannedTons,1):'—'}</td><td className="px-4 py-3 text-right">{x.plannedGradePct===null?'—':`${n(x.plannedGradePct,3)}%`}</td></tr>)}</tbody></table></div></section>
@@ -58,4 +104,5 @@ export function MineSectorIntelligence(){
 }
 function Metric({icon:Icon,label,value,detail}:{icon:any;label:string;value:string;detail:string}){return <div className="bg-card px-4 py-4"><div className="flex items-center justify-between"><p className="text-xs text-muted-foreground">{label}</p><Icon className="h-4 w-4 text-muted-foreground"/></div><p className="mt-2 text-xl font-semibold">{value}</p><p className="mt-1 text-xs leading-5 text-muted-foreground">{detail}</p></div>}
 function Item({label,value}:{label:string;value:string}){return <div><dt className="text-xs text-muted-foreground">{label}</dt><dd className="mt-1 font-medium">{value}</dd></div>}
+function ExceptionIcon({severity}:{severity:ExecutiveException['severity']}){return severity==='critical'?<AlertTriangle className="mt-0.5 h-4 w-4 shrink-0"/>:severity==='warning'?<Clock3 className="mt-0.5 h-4 w-4 shrink-0"/>:<Activity className="mt-0.5 h-4 w-4 shrink-0"/>}
 function attentionLabel(v:Attention){return v==='alert'?'Alerta':v==='watch'?'Vigilancia':v==='ok'?'En ritmo':'Sin comparación'}
