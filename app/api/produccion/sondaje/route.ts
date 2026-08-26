@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
 
   const rig = request.nextUrl.searchParams.get('rig')?.trim() || null;
 
-  const [summary, monthly, assets, schedules, plan, planLines, locationQueue] = await Promise.all([
+  const [summary, monthly, assets, schedules, plan, planLines, locationQueue, sectors] = await Promise.all([
     context.supabase.from('production_drilling_operational_summary_v1').select('*').eq('organization_id', context.organizationId).maybeSingle(),
     context.supabase.from('production_drilling_monthly_metrics').select('month,rig_name_raw,mine_name_raw,shift_code_raw,report_count,drilled_meters,meter_rows,out_of_service_reports,no_crew_reports,power_outage_reports,water_shortage_reports,hole_count,operator_count').eq('organization_id', context.organizationId).order('month', { ascending: false }).limit(120),
     context.supabase.from('maintenance_assets').select('id,asset_code,asset_name,status,lifecycle_state').eq('organization_id', context.organizationId).like('asset_code', 'DRILL-%').order('asset_name'),
@@ -21,9 +21,10 @@ export async function GET(request: NextRequest) {
     context.supabase.from('production_monthly_plans').select('*').eq('organization_id', context.organizationId).eq('status', 'active').order('period_start', { ascending: false }).limit(1).maybeSingle(),
     context.supabase.from('production_monthly_plan_lines').select('*').eq('organization_id', context.organizationId).order('line_type'),
     context.supabase.from('production_drill_hole_location_review_queue_v5').select('drill_hole_id,hole_code,resolution_state,report_count,last_report_date,source_site,candidate_mine_name,review_lane,review_priority,recommended_action,distinct_site_count,source_sites,operational_bucket,operational_priority').eq('organization_id', context.organizationId).order('operational_priority', { ascending: false }).order('last_report_date', { ascending: false }).limit(300),
+    context.supabase.from('production_mine_sectors').select('id,name,mine_source_id,production_mine_sources!inner(name)').eq('organization_id', context.organizationId).eq('status', 'active').order('name'),
   ]);
 
-  const error = summary.error || monthly.error || assets.error || schedules.error || plan.error || planLines.error || locationQueue.error;
+  const error = summary.error || monthly.error || assets.error || schedules.error || plan.error || planLines.error || locationQueue.error || sectors.error;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   let reports: Array<Record<string, unknown>> = [];
@@ -54,7 +55,7 @@ export async function GET(request: NextRequest) {
     maintenance: { assets: assets.data || [], schedules: scheduleRows, overdueSchedules },
     plan: activePlan,
     planLines: activePlanLines,
-    locationReview: { summary: locationSummary, rows: locationRows.slice(0, 60) },
+    locationReview: { summary: locationSummary, rows: locationRows.slice(0, 60), sectors: sectors.data || [] },
     selectedRig: rig,
     reports,
     lineage: {
@@ -64,4 +65,29 @@ export async function GET(request: NextRequest) {
       note: 'ACTUAL y PLAN se mantienen separados. La ubicación sólo se promueve con evidencia verificable; los casos activos se priorizan sobre deuda histórica.',
     },
   });
+}
+
+export async function POST(request: NextRequest) {
+  const access = await requireModuleAccess(request, MODULE_KEYS.PROD_SONDAJE_PRODUCCION);
+  if (!access.authorized) return access.response;
+
+  const context = await getOrganizationContext(request);
+  if (!context.ok) return context.response;
+
+  const body = await request.json().catch(() => null);
+  const drillHoleId = String(body?.drillHoleId || '').trim();
+  const mineSectorId = String(body?.mineSectorId || '').trim();
+  const notes = String(body?.notes || '').trim();
+  if (!drillHoleId || !mineSectorId) return NextResponse.json({ error: 'Pozo y sector son obligatorios' }, { status: 400 });
+
+  const { data, error } = await context.supabase.rpc('resolve_drill_hole_location_manual_review', {
+    p_organization_id: context.organizationId,
+    p_drill_hole_id: drillHoleId,
+    p_mine_sector_id: mineSectorId,
+    p_reviewed_by: context.userId,
+    p_notes: notes || null,
+  });
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  return NextResponse.json({ ok: true, evidenceId: data });
 }
