@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import useSWR from 'swr';
-import { AlertTriangle, ArrowRight, CheckCircle2, RefreshCw, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, ArrowRight, CheckCircle2, GitBranch, RefreshCw, ShieldCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,6 +31,23 @@ type HealthResponse = { overall: HealthStatus; domains: HealthDomain[]; policy: 
 type MineRow = { key: string; mineName: string; actualTons: number; expectedTonsToCutoff: number; observedVsExpectedPct: number | null; attention: 'alert' | 'watch' | 'ok' | 'no_comparison' };
 type ProductionResponse = { mines: MineRow[]; transportThrough: string | null; plantThrough: string | null; drillingFreshness?: { max_date?: string | null } | null };
 
+type RootCauseChain = {
+  id: string;
+  assetId: string | null;
+  assetCode: string | null;
+  assetName: string | null;
+  equipmentStatus: string | null;
+  observation: string | null;
+  breakAt: 'work_order' | 'materials' | 'supply_need' | 'procurement_request' | 'purchase_order' | 'receipt' | 'resolved';
+  action: string;
+  evidenceLevel: 'operational_only' | 'partial' | 'linked';
+  workOrder: { id: string; number: string; title: string; status: string; priority: string | null; rootCause: string | null } | null;
+  materials: { count: number; shortage: number };
+  procurement: { id: string; requestNumber: string; status: string } | null;
+  purchaseOrders: Array<{ id: string; number: string; status: string; received: boolean }>;
+};
+type RootCauseResponse = { chains: RootCauseChain[]; generatedAt: string };
+
 type Decision = {
   id: string;
   category: string;
@@ -43,6 +60,9 @@ type Decision = {
   amount?: number | null;
   confidence: Confidence;
   confidenceReason: string;
+  cause?: string;
+  breakPoint?: string;
+  nextAction?: string;
 };
 
 const fetcher = async (url: string) => {
@@ -56,6 +76,15 @@ const severityRank: Record<Severity, number> = { critical: 0, warning: 1, info: 
 const statusConfidence: Record<HealthStatus, Confidence> = { healthy: 'high', watch: 'medium', critical: 'low', unknown: 'low' };
 const confidenceLabel: Record<Confidence, string> = { high: 'Confianza alta', medium: 'Con cautela', low: 'Confianza baja' };
 const severityLabel: Record<Severity, string> = { critical: 'Crítica', warning: 'Atención', info: 'Seguimiento' };
+const breakLabel: Record<RootCauseChain['breakAt'], string> = {
+  work_order: 'Falta OT',
+  materials: 'Falta evidencia de repuestos',
+  supply_need: 'Falta necesidad de abastecimiento',
+  procurement_request: 'Falta promoción a Compras',
+  purchase_order: 'Falta OC operacional',
+  receipt: 'Falta recepción',
+  resolved: 'Cadena cerrada',
+};
 
 function n(value: number, digits = 0) {
   return Number(value || 0).toLocaleString('es-CL', { maximumFractionDigits: digits });
@@ -74,13 +103,22 @@ function confidenceReason(domain?: HealthDomain) {
   return 'Data Health: estado de fuente desconocido.';
 }
 
-export default function DecisionCenterV2() {
+function rootCauseSeverity(chain: RootCauseChain): Severity {
+  const status = String(chain.equipmentStatus || '').toLowerCase();
+  const priority = String(chain.workOrder?.priority || '').toLowerCase();
+  if (status.includes('fuera de servicio') || priority === 'critical' || priority === 'critica' || priority === 'crítica') return 'critical';
+  if (chain.breakAt === 'receipt' || chain.breakAt === 'purchase_order' || chain.breakAt === 'procurement_request') return 'warning';
+  return 'warning';
+}
+
+export default function DecisionCenterV3() {
   const base = useSWR<ExecutiveResponse>('/api/dashboard/ia-operacional', fetcher, { revalidateOnFocus: false });
   const health = useSWR<HealthResponse>('/api/data-quality/health', fetcher, { revalidateOnFocus: false });
   const production = useSWR<ProductionResponse>('/api/produccion/inteligencia', fetcher, { revalidateOnFocus: false });
+  const rootCause = useSWR<RootCauseResponse>('/api/intelligence/root-cause', fetcher, { revalidateOnFocus: false });
 
-  const loading = base.isLoading || health.isLoading || production.isLoading;
-  const error = base.error || health.error || production.error;
+  const loading = base.isLoading || health.isLoading || production.isLoading || rootCause.isLoading;
+  const error = base.error || health.error || production.error || rootCause.error;
   const domains = health.data?.domains || [];
   const productionHealth = domains.find((d) => d.key === 'production');
   const transportFreshness = productionFreshness(productionHealth);
@@ -135,13 +173,46 @@ export default function DecisionCenterV2() {
     });
   }
 
-  decisions.sort((a, b) => severityRank[a.severity] - severityRank[b.severity] || a.title.localeCompare(b.title));
+  for (const chain of rootCause.data?.chains || []) {
+    if (chain.breakAt === 'resolved') continue;
+    const cause = chain.workOrder?.rootCause?.trim()
+      ? chain.workOrder.rootCause
+      : chain.observation?.trim()
+        ? chain.observation
+        : 'Existe una observación operacional, pero la causa técnica todavía no está acreditada.';
+    const confidence: Confidence = chain.evidenceLevel === 'linked' ? 'high' : chain.evidenceLevel === 'partial' ? 'medium' : 'medium';
+    decisions.push({
+      id: `root-cause-${chain.id}`,
+      category: 'Cadena operacional',
+      severity: rootCauseSeverity(chain),
+      title: `${chain.assetCode || chain.assetName || 'Equipo'}: ${breakLabel[chain.breakAt]}`,
+      description: chain.workOrder
+        ? `${chain.workOrder.number} · ${chain.workOrder.title}. La cadena está acreditada hasta ${breakLabel[chain.breakAt].toLowerCase()}.`
+        : `Observación operacional sin OT vinculada. La cadena se detiene antes de Mantención.`,
+      responsibleArea: chain.breakAt === 'work_order' || chain.breakAt === 'materials' ? 'Mantención' : chain.breakAt === 'supply_need' ? 'Mantención / Bodega' : 'Compras',
+      href: chain.workOrder ? `/dashboard/mantenimiento/ordenes-trabajo/${chain.workOrder.id}` : '/dashboard/decisiones/causa-raiz',
+      confidence,
+      confidenceReason: chain.evidenceLevel === 'linked'
+        ? 'Cadena respaldada por vínculos canónicos explícitos entre OT y abastecimiento.'
+        : chain.evidenceLevel === 'partial'
+          ? 'Existe OT vinculada, pero la cadena aún no tiene evidencia completa de repuestos/abastecimiento.'
+          : 'Existe evidencia operacional, pero todavía no hay OT vinculada; no se atribuye causa de Mantención, Inventario o Compras.',
+      cause,
+      breakPoint: breakLabel[chain.breakAt],
+      nextAction: chain.action,
+    });
+  }
 
-  const critical = decisions.filter((d) => d.severity === 'critical').length;
-  const lowConfidence = decisions.filter((d) => d.confidence === 'low').length;
+  const unique = new Map<string, Decision>();
+  for (const decision of decisions) unique.set(decision.id, decision);
+  const ordered = Array.from(unique.values()).sort((a, b) => severityRank[a.severity] - severityRank[b.severity] || a.title.localeCompare(b.title));
+
+  const critical = ordered.filter((d) => d.severity === 'critical').length;
+  const lowConfidence = ordered.filter((d) => d.confidence === 'low').length;
+  const withRootCause = ordered.filter((d) => d.breakPoint).length;
 
   const refresh = async () => {
-    await Promise.all([base.mutate(), health.mutate(), production.mutate()]);
+    await Promise.all([base.mutate(), health.mutate(), production.mutate(), rootCause.mutate()]);
   };
 
   return (
@@ -150,9 +221,10 @@ export default function DecisionCenterV2() {
         <div>
           <p className="text-sm font-medium text-muted-foreground">Gerencia · decisión operacional</p>
           <h1 className="mt-1 text-3xl font-semibold tracking-tight">Centro ejecutivo de decisiones</h1>
-          <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Una sola bandeja de excepciones con confianza de fuente. Las señales de Producción se degradan o se retienen cuando la evidencia está atrasada.</p>
+          <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Excepciones priorizadas con confianza, causa acreditada, punto de corte de la cadena y siguiente acción. La ausencia de evidencia nunca se presenta como causalidad.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline"><Link href="/dashboard/decisiones/causa-raiz"><GitBranch className="mr-2 h-4 w-4" />Causa raíz</Link></Button>
           <Button asChild variant="outline"><Link href="/dashboard/calidad-datos/salud"><ShieldCheck className="mr-2 h-4 w-4" />Data Health</Link></Button>
           <Button variant="outline" onClick={() => void refresh()} disabled={loading}><RefreshCw className="mr-2 h-4 w-4" />Actualizar</Button>
         </div>
@@ -160,25 +232,29 @@ export default function DecisionCenterV2() {
 
       {error ? <Card className="border-destructive/30"><CardContent className="p-6 text-sm text-destructive">No fue posible construir la bandeja ejecutiva completa. No se muestran decisiones parciales como si fueran completas.</CardContent></Card> : null}
 
-      <section className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 xl:grid-cols-4">
-        <Metric label="Decisiones abiertas" value={loading ? '—' : n(decisions.length)} detail="Todas las áreas" />
+      <section className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 xl:grid-cols-5">
+        <Metric label="Decisiones abiertas" value={loading ? '—' : n(ordered.length)} detail="Todas las áreas" />
         <Metric label="Críticas" value={loading ? '—' : n(critical)} detail="Requieren atención ejecutiva" />
+        <Metric label="Con cadena causal" value={loading ? '—' : n(withRootCause)} detail="Punto de corte acreditado" />
         <Metric label="Fuentes en cautela" value={loading ? '—' : n(domains.filter((d) => d.status === 'watch').length)} detail="Data Health" />
         <Metric label="Confianza baja" value={loading ? '—' : n(lowConfidence)} detail="No usar como lectura operacional actual" />
       </section>
 
       <Card className="shadow-none">
         <CardHeader className="flex-row items-start justify-between space-y-0">
-          <div><CardTitle className="text-lg">Decisiones requeridas</CardTitle><p className="mt-1 text-sm text-muted-foreground">Severidad + confianza de la evidencia. Calidad de datos y desempeño no se mezclan.</p></div>
+          <div><CardTitle className="text-lg">Decisiones requeridas</CardTitle><p className="mt-1 text-sm text-muted-foreground">Severidad + confianza + evidencia causal. Calidad de datos y desempeño no se mezclan.</p></div>
           <Badge variant={critical ? 'destructive' : 'outline'}>{critical ? `${critical} crítica(s)` : 'Sin críticas'}</Badge>
         </CardHeader>
         <CardContent className="p-0">
-          {loading ? <div className="space-y-2 p-5">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-24 animate-pulse rounded-lg bg-muted" />)}</div> : decisions.length === 0 ? <div className="p-10 text-center"><CheckCircle2 className="mx-auto h-6 w-6 text-muted-foreground"/><p className="mt-3 font-medium">Sin decisiones abiertas</p></div> : <div className="divide-y border-t">{decisions.map((decision) => <div key={decision.id} className="grid gap-4 p-4 md:grid-cols-[minmax(0,1fr)_220px_auto] md:items-center">
+          {loading ? <div className="space-y-2 p-5">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-28 animate-pulse rounded-lg bg-muted" />)}</div> : ordered.length === 0 ? <div className="p-10 text-center"><CheckCircle2 className="mx-auto h-6 w-6 text-muted-foreground"/><p className="mt-3 font-medium">Sin decisiones abiertas</p></div> : <div className="divide-y border-t">{ordered.map((decision) => <div key={decision.id} className="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_260px_auto] lg:items-center">
             <div className="min-w-0">
-              <div className="flex flex-wrap gap-2"><Badge variant={decision.severity === 'critical' ? 'destructive' : 'outline'}>{severityLabel[decision.severity]}</Badge><Badge variant="secondary">{decision.category}</Badge><Badge variant={decision.confidence === 'low' ? 'destructive' : 'outline'}>{confidenceLabel[decision.confidence]}</Badge></div>
-              <p className="mt-2 font-medium">{decision.title}</p><p className="mt-1 text-sm text-muted-foreground">{decision.description}</p><p className="mt-2 text-xs text-muted-foreground">{decision.confidenceReason}</p>
+              <div className="flex flex-wrap gap-2"><Badge variant={decision.severity === 'critical' ? 'destructive' : 'outline'}>{severityLabel[decision.severity]}</Badge><Badge variant="secondary">{decision.category}</Badge><Badge variant={decision.confidence === 'low' ? 'destructive' : 'outline'}>{confidenceLabel[decision.confidence]}</Badge>{decision.breakPoint ? <Badge variant="outline">{decision.breakPoint}</Badge> : null}</div>
+              <p className="mt-2 font-medium">{decision.title}</p><p className="mt-1 text-sm text-muted-foreground">{decision.description}</p>
+              {decision.cause ? <p className="mt-2 text-sm"><span className="font-medium">Causa/evidencia:</span> {decision.cause}</p> : null}
+              {decision.nextAction ? <p className="mt-1 text-sm"><span className="font-medium">Siguiente acción:</span> {decision.nextAction}</p> : null}
+              <p className="mt-2 text-xs text-muted-foreground">{decision.confidenceReason}</p>
             </div>
-            <div className="text-sm"><p className="text-xs text-muted-foreground">Responsable</p><p className="mt-1 font-medium">{decision.responsibleArea}</p></div>
+            <div className="text-sm"><p className="text-xs text-muted-foreground">Responsable</p><p className="mt-1 font-medium">{decision.responsibleArea}</p>{decision.breakPoint ? <><p className="mt-3 text-xs text-muted-foreground">Punto de corte</p><p className="mt-1 font-medium">{decision.breakPoint}</p></> : null}</div>
             <Button asChild size="sm" variant={decision.severity === 'critical' ? 'default' : 'outline'}><Link href={decision.href}>Resolver <ArrowRight className="ml-2 h-4 w-4"/></Link></Button>
           </div>)}</div>}
         </CardContent>
