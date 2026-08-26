@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import useSWR from 'swr';
@@ -31,10 +31,25 @@ type Asset = {
   model: string | null;
 };
 
+type DrillingReview = {
+  review_id: string;
+  source_report_id: string;
+  canonical_asset_id: string;
+  asset_code: string | null;
+  asset_name: string | null;
+  operation_date: string | null;
+  review_reason: string;
+  equipment_status_raw: string | null;
+  machine_observations: string | null;
+  review_status: string;
+  linked_work_order_id: string | null;
+  has_linked_work_order: boolean;
+};
+
 const fetcher = async (url: string) => {
   const response = await fetch(url, { credentials: 'include' });
   const payload = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(payload?.error || 'No fue posible cargar los equipos.');
+  if (!response.ok) throw new Error(payload?.error || 'No fue posible cargar los datos.');
   return payload;
 };
 
@@ -49,6 +64,7 @@ export default function CreateWorkOrderPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialAssetId = searchParams.get('assetId') || '';
+  const reviewId = searchParams.get('reviewId') || '';
   const [canonicalAssetId, setCanonicalAssetId] = useState(initialAssetId);
   const [title, setTitle] = useState(searchParams.get('title') || '');
   const [description, setDescription] = useState(searchParams.get('description') || '');
@@ -62,11 +78,34 @@ export default function CreateWorkOrderPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const { data, error, isLoading, mutate } = useSWR('/api/maintenance/equipment', fetcher, { revalidateOnFocus: false });
+  const {
+    data: reviewData,
+    error: reviewError,
+    isLoading: reviewLoading,
+  } = useSWR(reviewId ? `/api/maintenance/drilling-reviews/${reviewId}` : null, fetcher, { revalidateOnFocus: false });
+
   const assets = useMemo(() => (Array.isArray(data?.equipment) ? (data.equipment as Asset[]) : []), [data]);
   const selectedAsset = assets.find((asset) => asset.id === canonicalAssetId) || null;
+  const review = (reviewData?.review || null) as DrillingReview | null;
+
+  useEffect(() => {
+    if (!review) return;
+    if (!canonicalAssetId && review.canonical_asset_id) setCanonicalAssetId(review.canonical_asset_id);
+    if (!title.trim()) {
+      setTitle(`Reparación correctiva · ${review.asset_name || review.asset_code || 'equipo de sondaje'}`);
+    }
+    if (!description.trim()) {
+      setDescription([
+        review.equipment_status_raw ? `Estado reportado: ${review.equipment_status_raw}.` : null,
+        review.machine_observations ? `Observación de Sondaje: ${review.machine_observations}` : null,
+        review.operation_date ? `Fecha del reporte: ${review.operation_date}.` : null,
+      ].filter(Boolean).join('\n'));
+    }
+  }, [review, canonicalAssetId, title, description]);
 
   const validate = () => {
     if (!canonicalAssetId) return 'Selecciona el equipo que requiere el trabajo.';
+    if (review && review.canonical_asset_id !== canonicalAssetId) return 'La revisión de Sondaje corresponde a otro equipo.';
     if (!title.trim()) return 'Describe brevemente el trabajo a realizar.';
     if (!scheduledDate) return 'Selecciona una fecha programada.';
     if (plannedHours && (!Number.isFinite(Number(plannedHours)) || Number(plannedHours) < 0)) {
@@ -90,6 +129,7 @@ export default function CreateWorkOrderPage() {
         credentials: 'include',
         body: JSON.stringify({
           canonicalAssetId,
+          reviewId: reviewId || null,
           title: title.trim(),
           description: description.trim() || null,
           workType,
@@ -103,7 +143,7 @@ export default function CreateWorkOrderPage() {
       });
       const payload = await response.json().catch(() => null);
       if (!response.ok) throw new Error(payload?.error || 'No fue posible crear la orden.');
-      toast.success('Orden de trabajo creada');
+      toast.success(reviewId ? 'Orden creada y revisión de Sondaje vinculada' : 'Orden de trabajo creada');
       router.push(`/dashboard/mantenimiento/ordenes-trabajo/${payload.data.id}`);
     } catch (submitError) {
       toast.error(submitError instanceof Error ? submitError.message : 'No fue posible crear la orden.');
@@ -119,7 +159,9 @@ export default function CreateWorkOrderPage() {
           <PageHeaderEyebrow>Mantenimiento</PageHeaderEyebrow>
           <PageHeaderTitle>Crear orden de trabajo</PageHeaderTitle>
           <PageHeaderDescription>
-            Registra el equipo, el trabajo requerido y la planificación inicial. Los repuestos, horas y costos se agregan durante la ejecución.
+            {reviewId
+              ? 'Convierte una condición crítica reportada por Sondaje en una OT trazable. Al crearla, la revisión quedará vinculada automáticamente.'
+              : 'Registra el equipo, el trabajo requerido y la planificación inicial. Los repuestos, horas y costos se agregan durante la ejecución.'}
           </PageHeaderDescription>
         </PageHeaderContent>
         <PageHeaderActions>
@@ -139,6 +181,40 @@ export default function CreateWorkOrderPage() {
         />
       ) : null}
 
+      {reviewError ? (
+        <StatePanel
+          tone="error"
+          title="No fue posible cargar la revisión de Sondaje"
+          description={reviewError.message}
+          className="min-h-0 py-5"
+        />
+      ) : null}
+
+      {reviewId && !reviewError ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Origen · Sondaje</CardTitle>
+            <CardDescription>
+              {reviewLoading ? 'Cargando evidencia operacional…' : 'Esta evidencia quedará trazada con la orden de trabajo.'}
+            </CardDescription>
+          </CardHeader>
+          {review ? (
+            <CardContent className="grid gap-4 text-sm md:grid-cols-2">
+              <div><p className="text-xs text-muted-foreground">Equipo reportado</p><p className="font-medium">{review.asset_name || review.asset_code || 'Sin nombre'}</p></div>
+              <div><p className="text-xs text-muted-foreground">Fecha del reporte</p><p className="font-medium">{review.operation_date || 'Sin fecha'}</p></div>
+              <div><p className="text-xs text-muted-foreground">Estado</p><p className="font-medium">{review.equipment_status_raw || 'Sin estado'}</p></div>
+              <div><p className="text-xs text-muted-foreground">Revisión</p><p className="font-medium">{review.review_status === 'pending' ? 'Pendiente · se resolverá al crear la OT' : review.review_status}</p></div>
+              {review.machine_observations ? <div className="md:col-span-2"><p className="text-xs text-muted-foreground">Observación operacional</p><p className="font-medium">{review.machine_observations}</p></div> : null}
+              {review.linked_work_order_id ? (
+                <div className="md:col-span-2">
+                  <Button asChild variant="outline" size="sm"><Link href={`/dashboard/mantenimiento/ordenes-trabajo/${review.linked_work_order_id}`}>Abrir OT ya vinculada</Link></Button>
+                </div>
+              ) : null}
+            </CardContent>
+          ) : null}
+        </Card>
+      ) : null}
+
       <Card>
         <CardHeader>
           <CardTitle className="text-base">1. Equipo y trabajo</CardTitle>
@@ -147,7 +223,7 @@ export default function CreateWorkOrderPage() {
         <CardContent className="grid gap-5 md:grid-cols-2">
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="asset">Equipo *</Label>
-            <Select value={canonicalAssetId} onValueChange={setCanonicalAssetId} disabled={isLoading || Boolean(error)}>
+            <Select value={canonicalAssetId} onValueChange={setCanonicalAssetId} disabled={isLoading || Boolean(error) || Boolean(reviewId)}>
               <SelectTrigger id="asset"><SelectValue placeholder={isLoading ? 'Cargando equipos…' : 'Seleccionar equipo'} /></SelectTrigger>
               <SelectContent>{assets.map((asset) => <SelectItem key={asset.id} value={asset.id}>{asset.code} · {asset.name}</SelectItem>)}</SelectContent>
             </Select>
@@ -196,9 +272,9 @@ export default function CreateWorkOrderPage() {
 
       <div className="flex flex-col-reverse gap-2 border-t pt-5 sm:flex-row sm:justify-end">
         <Button asChild variant="outline"><Link href="/dashboard/mantenimiento/ordenes-trabajo">Cancelar</Link></Button>
-        <Button onClick={submit} disabled={submitting || isLoading || Boolean(error)}>
+        <Button onClick={submit} disabled={submitting || isLoading || Boolean(error) || reviewLoading || Boolean(reviewError) || Boolean(review?.linked_work_order_id)}>
           {submitting ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-          {submitting ? 'Creando orden…' : 'Crear orden'}
+          {submitting ? 'Creando orden…' : reviewId ? 'Crear OT y resolver revisión' : 'Crear orden'}
         </Button>
       </div>
     </div>
