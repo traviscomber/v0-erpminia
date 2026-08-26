@@ -24,6 +24,9 @@ function trend(points:DailyPoint[], absoluteThreshold:number, relative=false){
   return {state,recent,prior,delta,deltaPct,points:ordered.slice(-10)};
 }
 
+const operationalStatus=(value:string|null|undefined)=>String(value||'').trim().toLocaleUpperCase('es-CL').startsWith('OPERATIVO');
+const outOfServiceStatus=(value:string|null|undefined)=>String(value||'').trim().toLocaleUpperCase('es-CL').includes('FUERA DE SERVICIO');
+
 export async function GET(request:NextRequest){
   const access=await requireModuleAccess(request,MODULE_KEYS.PROD_OPERACIONES);
   if(!access.authorized) return access.response;
@@ -32,7 +35,7 @@ export async function GET(request:NextRequest){
 
   const [plant,drilling,availability]=await Promise.all([
     context.supabase.from('production_metallurgy_deterministic_v2').select('operation_date,treated_metric_tons,head_grade,recovery_reported,recovery_by_grades_pct').eq('organization_id',context.organizationId).order('operation_date',{ascending:false}).limit(120),
-    context.supabase.from('production_drilling_source_reports').select('operation_date,drilled_meters').eq('organization_id',context.organizationId).order('operation_date',{ascending:false}).limit(500),
+    context.supabase.from('production_drilling_source_reports').select('operation_date,drilled_meters,canonical_asset_id,equipment_status_raw').eq('organization_id',context.organizationId).order('operation_date',{ascending:false}).limit(800),
     context.supabase.from('asset_availability_daily_v1').select('operating_date,availability_pct').eq('organization_id',context.organizationId).order('operating_date',{ascending:false}).limit(500),
   ]);
   const error=plant.error||drilling.error||availability.error;
@@ -61,11 +64,30 @@ export async function GET(request:NextRequest){
   }
 
   const drillingDaily=new Map<string,number>();
+  const equipmentDaily=new Map<string,Map<string,{operational:boolean;outOfService:boolean}>>();
   for(const row of drilling.data||[]){
     if(!row.operation_date) continue;
     drillingDaily.set(row.operation_date,(drillingDaily.get(row.operation_date)||0)+num(row.drilled_meters));
+    if(!row.canonical_asset_id||!row.equipment_status_raw) continue;
+    const byAsset=equipmentDaily.get(row.operation_date)||new Map<string,{operational:boolean;outOfService:boolean}>();
+    const current=byAsset.get(row.canonical_asset_id)||{operational:false,outOfService:false};
+    current.operational=current.operational||operationalStatus(row.equipment_status_raw);
+    current.outOfService=current.outOfService||outOfServiceStatus(row.equipment_status_raw);
+    byAsset.set(row.canonical_asset_id,current);
+    equipmentDaily.set(row.operation_date,byAsset);
   }
   const drilled=[...drillingDaily].map(([date,value])=>({date,value}));
+  const equipmentOperationalRate:DailyPoint[]=[];
+  const equipmentStateSeries=[] as Array<{date:string;reportedAssets:number;operationalAssets:number;outOfServiceAssets:number;operationalRatePct:number}>;
+  for(const [date,assets] of equipmentDaily){
+    const rows=[...assets.values()];
+    if(!rows.length) continue;
+    const operationalAssets=rows.filter(x=>x.operational&&!x.outOfService).length;
+    const outOfServiceAssets=rows.filter(x=>x.outOfService).length;
+    const operationalRatePct=(operationalAssets/rows.length)*100;
+    equipmentOperationalRate.push({date,value:operationalRatePct});
+    equipmentStateSeries.push({date,reportedAssets:rows.length,operationalAssets,outOfServiceAssets,operationalRatePct});
+  }
 
   const availabilityDaily=new Map<string,{sum:number,count:number}>();
   for(const row of availability.data||[]){
@@ -80,6 +102,7 @@ export async function GET(request:NextRequest){
     headGrade:trend(grade,0.05,false),
     recovery:trend(recovery,2,false),
     drillingMeters:trend(drilled,10,true),
+    drillingOperationalRate:trend(equipmentOperationalRate,8,false),
     availability:trend(availabilityPoints,3,false),
   };
 
@@ -87,12 +110,15 @@ export async function GET(request:NextRequest){
   if(metrics.recovery.state==='declining') alerts.push({key:'recovery-trend',severity:'warning',title:'Recuperación en deterioro',evidence:`Promedio últimos 3 días ${metrics.recovery.recent?.toFixed(2)}% vs ${metrics.recovery.prior?.toFixed(2)}% en los 3 días previos.`,action:'Revisar secuencia metalúrgica y condiciones de operación de los últimos turnos antes de escalar una causa.'});
   if(metrics.headGrade.state==='declining') alerts.push({key:'grade-trend',severity:'warning',title:'Ley de cabeza en deterioro',evidence:`Promedio últimos 3 días ${metrics.headGrade.recent?.toFixed(3)}% Cu vs ${metrics.headGrade.prior?.toFixed(3)}% Cu previos.`,action:'Contrastar alimentación y origen de mineral; no atribuir causa a mina específica sin linaje directo.'});
   if(metrics.drillingMeters.state==='declining') alerts.push({key:'drilling-trend',severity:'warning',title:'Metros de sondaje en descenso',evidence:`Promedio últimos 3 días reportados ${metrics.drillingMeters.recent?.toFixed(1)} m vs ${metrics.drillingMeters.prior?.toFixed(1)} m previos.`,action:'Cruzar los equipos activos con observaciones de Mantención y continuidad de reportes.'});
+  if(metrics.drillingOperationalRate.state==='declining') alerts.push({key:'drilling-equipment-state-trend',severity:'warning',title:'Menor proporción de equipos reportados operativos',evidence:`Promedio últimos 3 días reportados ${metrics.drillingOperationalRate.recent?.toFixed(1)}% vs ${metrics.drillingOperationalRate.prior?.toFixed(1)}% previos.`,action:'Revisar equipos fuera de servicio y observaciones sin OT antes de atribuir el cambio a disponibilidad mecánica.'});
   if(metrics.treatedTons.state==='declining') alerts.push({key:'treatment-trend',severity:'info',title:'Tratamiento diario en descenso',evidence:`Promedio últimos 3 días ${metrics.treatedTons.recent?.toFixed(1)} t vs ${metrics.treatedTons.prior?.toFixed(1)} t previos.`,action:'Verificar si el cambio supera variación operacional normal antes de intervenir.'});
-  if(metrics.availability.state==='insufficient') alerts.push({key:'availability-no-series',severity:'info',title:'Disponibilidad sin serie diaria reciente',evidence:'No existen suficientes registros en asset_availability_daily_v1 para construir una tendencia confiable.',action:'Mantener disponibilidad como evidencia puntual hasta que exista una serie diaria canónica.'});
+  if(metrics.availability.state==='insufficient') alerts.push({key:'availability-no-series',severity:'info',title:'Disponibilidad mecánica sin serie diaria canónica',evidence:'No existen suficientes registros en asset_availability_daily_v1 para construir una tendencia confiable de minutos programados/disponibles.',action:'Usar mientras tanto el estado operativo reportado por Sondaje como evidencia separada; no tratarlo como disponibilidad porcentual.'});
 
   return NextResponse.json({
-    method:{window:'3d_vs_previous_3d',policy:'Tendencias determinísticas sobre ventanas móviles de 3 días. Umbrales: tratamiento 5% relativo, ley 0,05 pp Cu, recuperación 2 pp, sondaje 10% relativo, disponibilidad 3 pp.'},
+    method:{window:'3d_vs_previous_3d',policy:'Tendencias determinísticas sobre ventanas móviles de 3 días. Umbrales: tratamiento 5% relativo, ley 0,05 pp Cu, recuperación 2 pp, sondaje 10% relativo, tasa de equipos operativos reportados 8 pp y disponibilidad mecánica 3 pp cuando exista serie canónica.'},
     metrics,
+    equipmentStateSeries:equipmentStateSeries.sort((a,b)=>a.date.localeCompare(b.date)).slice(-14),
+    semantics:{drillingOperationalRate:'Porcentaje de activos canónicos de sondaje con estado reportado OPERATIVO en el día. Es evidencia de estado operacional, no disponibilidad mecánica ni utilización.'},
     alerts,
   });
 }
