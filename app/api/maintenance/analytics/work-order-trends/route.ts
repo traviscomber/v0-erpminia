@@ -1,55 +1,56 @@
-import { createClient } from '@supabase/supabase-js';
-import { NextRequest, NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
 
-export async function GET(req: NextRequest) {
-  const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
-  const orgId = req.headers.get('x-org-id') || '2bd7fe06-8e4f-4a3a-b261-e3f5d8aa3dee';
+import { NextRequest, NextResponse } from 'next/server';
+import { getOrganizationContext } from '@/lib/api/organization-context';
+import { getModuleAccessLevel, MODULE_KEYS } from '@/lib/api/module-access';
+
+const CLOSED = new Set(['completed','closed','cancelled','canceled','completada','cerrada','cancelada']);
+const norm = (value: unknown) => String(value ?? '').trim().toLocaleLowerCase('es-CL');
+
+export async function GET(request: NextRequest) {
+  const context = await getOrganizationContext(request);
+  if (!context.ok) return context.response;
+  const access = await getModuleAccessLevel(context.userId, context.role, MODULE_KEYS.MANT_GERENCIAL);
+  if (access !== 'LEC' && access !== 'ED') return NextResponse.json({ error: 'Acceso gerencial de Mantención no autorizado' }, { status: 403 });
 
   try {
-    // Get work orders for last 30 days grouped by day and type
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-    const { data: workOrders } = await sb
+    const since = new Date();
+    since.setDate(since.getDate() - 30);
+    const { data, error } = await context.supabase
       .from('maintenance_work_orders')
-      .select('id, created_at, work_type, status')
-      .eq('organization_id', orgId)
-      .gte('created_at', thirtyDaysAgo.toISOString());
+      .select('id,created_at,completion_date,work_type,status')
+      .eq('organization_id', context.organizationId)
+      .gte('created_at', since.toISOString());
+    if (error) throw error;
 
-    // Group by date
-    const dateMap = new Map();
-    const typeMap = new Map();
+    const timeline = new Map<string, { date: string; created: number; completed: number }>();
+    const byType = new Map<string, { type: string; count: number; completed: number; open: number }>();
+    for (const wo of data || []) {
+      const createdDate = new Date(wo.created_at).toISOString().slice(0, 10);
+      const created = timeline.get(createdDate) || { date: createdDate, created: 0, completed: 0 };
+      created.created += 1;
+      timeline.set(createdDate, created);
 
-    workOrders?.forEach((wo) => {
-      const date = new Date(wo.created_at).toISOString().split('T')[0]; // YYYY-MM-DD
-
-      if (!dateMap.has(date)) {
-        dateMap.set(date, { date, created: 0, completed: 0 });
+      if (CLOSED.has(norm(wo.status)) && wo.completion_date) {
+        const completedDate = new Date(wo.completion_date).toISOString().slice(0, 10);
+        const completed = timeline.get(completedDate) || { date: completedDate, created: 0, completed: 0 };
+        completed.completed += 1;
+        timeline.set(completedDate, completed);
       }
-      const dayData = dateMap.get(date);
-      dayData.created += 1;
-      if (wo.status === 'completed') dayData.completed += 1;
 
-      // Type aggregation
-      if (!typeMap.has(wo.work_type)) {
-        typeMap.set(wo.work_type, { type: wo.work_type, count: 0, completed: 0 });
-      }
-      const typeData = typeMap.get(wo.work_type);
-      typeData.count += 1;
-      if (wo.status === 'completed') typeData.completed += 1;
-    });
+      const type = wo.work_type || 'Sin tipo';
+      const bucket = byType.get(type) || { type, count: 0, completed: 0, open: 0 };
+      bucket.count += 1;
+      if (CLOSED.has(norm(wo.status))) bucket.completed += 1; else bucket.open += 1;
+      byType.set(type, bucket);
+    }
 
-    const dateData = Array.from(dateMap.values()).sort((a, b) => a.date.localeCompare(b.date));
-    const typeData = Array.from(typeMap.values());
-
-    return NextResponse.json({
-      data: {
-        timeline: dateData,
-        byType: typeData,
-      },
-    });
+    return NextResponse.json({ data: {
+      timeline: [...timeline.values()].sort((a,b) => a.date.localeCompare(b.date)),
+      byType: [...byType.values()].sort((a,b) => b.count - a.count),
+    }, generatedAt: new Date().toISOString(), policy: 'Creación y cierre se cuentan por sus fechas reales; no se infiere productividad cuando falta cierre.' });
   } catch (error) {
-    console.error('[v0] WO trends error:', error);
-    return NextResponse.json({ error: 'Failed to fetch trends' }, { status: 500 });
+    console.error('[maintenance/analytics/work-order-trends]', error);
+    return NextResponse.json({ error: 'No fue posible calcular tendencias de OT' }, { status: 500 });
   }
 }
