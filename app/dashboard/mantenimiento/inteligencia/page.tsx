@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { StatePanel } from '@/components/ui/state-panel';
+import { MaintenanceWorkloadForecast } from '@/components/maintenance/maintenance-workload-forecast';
 
 const fetcher = async (url: string) => { const r = await fetch(url, { credentials: 'include', cache: 'no-store' }); const j = await r.json().catch(() => null); if (!r.ok) throw new Error(j?.error || 'No fue posible cargar inteligencia'); return j; };
 
@@ -41,6 +42,8 @@ export default function MaintenanceIntelligencePage(){
     ['Sin equipo', s?.missing_asset ?? '—', Gauge],
    ].map(([label,value,Icon]:any)=><div key={label} className="bg-card p-4"><div className="flex items-center justify-between"><p className="text-xs text-muted-foreground">{label}</p><Icon className="h-4 w-4 text-muted-foreground"/></div><p className="mt-2 text-2xl font-semibold">{loading?'—':value}</p></div>)}
   </section>
+
+  <MaintenanceWorkloadForecast />
 
   <Card><CardHeader><div className="flex items-start justify-between gap-3"><div><CardTitle>Excepciones prioritarias</CardTitle><CardDescription>Equipos con OT abiertas de prioridad alta/crítica o múltiples órdenes vencidas.</CardDescription></div><Badge variant={high.length?'destructive':'outline'}>{high.length}</Badge></div></CardHeader><CardContent className="space-y-3">{loading?<StatePanel tone="loading" title="Evaluando presión operacional"/>:high.length===0?<div className="flex items-center gap-3 py-3"><CheckCircle2 className="h-5 w-5 text-muted-foreground"/><p className="text-sm">Sin equipos en condición prioritaria según las OT registradas.</p></div>:high.slice(0,10).map(row=><Link key={row.assetId} href={`/dashboard/mantenimiento/equipos/${row.assetId}`} className="flex items-center gap-4 rounded-lg border p-4 hover:bg-muted/30"><AlertTriangle className="h-4 w-4 shrink-0"/><div className="min-w-0 flex-1"><p className="font-medium">{row.assetCode?`${row.assetCode} · `:''}{row.assetName}</p><p className="mt-1 text-xs text-muted-foreground">{row.evidence}</p></div><ArrowRight className="h-4 w-4 text-muted-foreground"/></Link>)}</CardContent></Card>
 
