@@ -4,22 +4,24 @@ import { readFile } from 'node:fs/promises';
 
 const dashboardUrl = new URL('../app/dashboard/page.tsx', import.meta.url);
 
-test('dashboard areas expose direct links to their granular capabilities', async () => {
+test('dashboard home exposes role-specific operational shortcuts', async () => {
   const dashboard = await readFile(dashboardUrl, 'utf8');
 
   for (const [label, href] of [
-    ['Stock', '/dashboard/bodega'],
+    ['Planta y metalurgia', '/dashboard/produccion/planta-metalurgia'],
     ['Órdenes de trabajo', '/dashboard/mantenimiento/ordenes-trabajo'],
-    ['Transporte de Mineral', '/dashboard/produccion/transporte-mineral'],
-    ['Proveedores', '/dashboard/compras/proveedores-360'],
-    ['Centros de costo', '/dashboard/finanzas/centros'],
-    ['Desempeño', '/dashboard/desempeno'],
-    ['Medio ambiente', '/dashboard/sostenibilidad/medio-ambiente'],
-    ['Permisos', '/dashboard/legal/permisos-licencias'],
+    ['Disponibilidad', '/dashboard/mantenimiento/disponibilidad'],
+    ['Sondaje', '/dashboard/produccion/sondaje'],
+    ['Mis acciones', '/dashboard/acciones'],
+    ['Producción', '/dashboard/produccion'],
   ]) {
-    assert.match(dashboard, new RegExp(`\\['${label}', '${href.replaceAll('/', '\\/')}'\\]`));
+    assert.match(dashboard, new RegExp(`label: '${label}'.*href: '${href.replaceAll('/', '\\/')}'`));
   }
 
-  assert.match(dashboard, /item\.capabilities\.map/);
-  assert.match(dashboard, /aria-label=\{`Accesos de \$\{item\.title\}`\}/);
+  assert.match(dashboard, /resolveMode\(/);
+  assert.match(dashboard, /mode === 'plant'/);
+  assert.match(dashboard, /mode === 'maintenance'/);
+  assert.match(dashboard, /mode === 'drilling'/);
+  assert.match(dashboard, /mode === 'management'/);
+  assert.match(dashboard, /config\.shortcuts\.map/);
 });
