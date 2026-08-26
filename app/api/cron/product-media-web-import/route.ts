@@ -7,7 +7,7 @@ import { getOrganizationContext } from '@/lib/api/organization-context';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 
 const BUCKET = 'product-media';
-const BATCH_SIZE = 10;
+const BATCH_SIZE = 30;
 const MAX_BYTES = 10 * 1024 * 1024;
 const AUTO_APPROVE_CONFIDENCE = 0.9;
 const ADMIN_ROLES = new Set(['admin', 'superadmin', 'super_admin']);
