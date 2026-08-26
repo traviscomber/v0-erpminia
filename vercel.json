@@ -2,7 +2,7 @@
   "buildCommand": "npm run build",
   "crons": [
     {
-      "path": "/api/cron/product-media-web-import",
+      "path": "/api/cron/product-media-web-import-bulk",
       "schedule": "* * * * *"
     },
     {
