@@ -54,18 +54,20 @@ export function ProductionForecastPanel() {
     return <StatePanel tone="neutral" title="Calculando forecast operacional" description="Validando plan, corte real y confianza de fuente." />;
   }
 
-  const prodHealth = health.data.domains.find((domain) => domain.key === 'production');
+  const productionData = production.data;
+  const healthData = health.data;
+  const prodHealth = healthData.domains.find((domain) => domain.key === 'production');
   const confidence = prodHealth?.status || 'unknown';
-  const canProject = confidence === 'healthy' && production.data.sourceCoverage.elapsedTransportDays >= 3;
+  const canProject = confidence === 'healthy' && productionData.sourceCoverage.elapsedTransportDays >= 3;
 
-  const rows: ForecastRow[] = production.data.mines
+  const rows: ForecastRow[] = productionData.mines
     .filter((mine) => mine.plannedTons > 0)
     .map((mine) => {
-      if (!canProject || production.data.sourceCoverage.elapsedTransportDays <= 0) {
+      if (!canProject || productionData.sourceCoverage.elapsedTransportDays <= 0) {
         return { key: mine.key, mineName: mine.mineName, actualTons: mine.actualTons, plannedTons: mine.plannedTons, projectedTons: null, projectedVsPlanPct: null, gapToPlan: null };
       }
-      const dailyRate = mine.actualTons / production.data.sourceCoverage.elapsedTransportDays;
-      const projectedTons = dailyRate * production.data.sourceCoverage.totalPlanDays;
+      const dailyRate = mine.actualTons / productionData.sourceCoverage.elapsedTransportDays;
+      const projectedTons = dailyRate * productionData.sourceCoverage.totalPlanDays;
       const projectedVsPlanPct = mine.plannedTons > 0 ? (projectedTons / mine.plannedTons) * 100 : null;
       const gapToPlan = projectedTons - mine.plannedTons;
       return { key: mine.key, mineName: mine.mineName, actualTons: mine.actualTons, plannedTons: mine.plannedTons, projectedTons, projectedVsPlanPct, gapToPlan };
