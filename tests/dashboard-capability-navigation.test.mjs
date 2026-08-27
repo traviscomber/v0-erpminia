@@ -23,5 +23,6 @@ test('dashboard home exposes role-specific operational shortcuts', async () => {
   assert.match(dashboard, /mode === 'maintenance'/);
   assert.match(dashboard, /mode === 'drilling'/);
   assert.match(dashboard, /mode === 'management'/);
+  assert.match(dashboard, /jefe man\\\.\\? eq\|jefe mant\|planificador\.\*mant/);
   assert.match(dashboard, /config\.shortcuts\.map/);
 });
