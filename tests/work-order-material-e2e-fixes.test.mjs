@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const actorMigration = new URL('../supabase/migrations/20260827163000_fix_stock_movement_actor_identity_v1.sql', import.meta.url);
-const costMigration = new URL('../supabase/migrations/20260827163500_fix_work_order_parts_generated_total_cost_v1.sql', import.meta.url);
-const assetMigration = new URL('../supabase/migrations/20260827164000_allow_work_order_parts_without_canonical_asset_v1.sql', import.meta.url);
+const costMigration = new URL('../supabase/migrations/20260827165500_fix_work_order_parts_generated_total_cost_v1.sql', import.meta.url);
+const assetMigration = new URL('../supabase/migrations/20260827170000_allow_work_order_parts_without_canonical_asset_v1.sql', import.meta.url);
 
 test('stock movements use the auth identity required by the foreign key', async () => {
   const sql = await readFile(actorMigration, 'utf8');
