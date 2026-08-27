@@ -32,11 +32,11 @@ test('closure queue API is maintenance authorized and tenant scoped', () => {
   assert.match(api, /work_order_close_readiness_v1/);
 });
 
-test('progressive closure exposes one next action and never auto closes', () => {
+test('progressive closure exposes one next action and requires an explicit close click', () => {
   assert.match(component, /Siguiente acción/);
   assert.match(component, /Guardar y continuar/);
   assert.match(component, /Cerrar OT y congelar costo/);
-  assert.match(component, /status: 'completed'/);
-  assert.doesNotMatch(component, /useEffect\([\s\S]*status: 'completed'/);
+  assert.match(component, /async function performNextAction\(\)[\s\S]*current\.next_action === 'close_work_order'[\s\S]*status: 'completed'/);
+  assert.match(component, /useEffect\(\(\) => \{\s*setActionError\(null\);\s*setTextValue\(''\);\s*setHoursValue\(''\);\s*\}, \[current\?\.work_order_id, current\?\.next_action\]\);/);
   assert.match(page, /Cierre progresivo de OT/);
 });
