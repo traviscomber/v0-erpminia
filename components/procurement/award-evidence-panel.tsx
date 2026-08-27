@@ -1,8 +1,13 @@
 'use client';
 
-import useSWR from 'swr';
+import { useState } from 'react';
+import useSWR, { useSWRConfig } from 'swr';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 
 const fetcher = async (url: string) => {
   const response = await fetch(url, { credentials: 'include' });
@@ -42,8 +47,23 @@ type EvidenceRow = {
   } | null;
 };
 
+const REASONS = [
+  ['price', 'Precio'],
+  ['lead_time', 'Plazo'],
+  ['performance', 'Desempeño histórico'],
+  ['urgency', 'Urgencia operacional'],
+  ['commercial_terms', 'Condiciones comerciales'],
+  ['continuity', 'Continuidad / proveedor habitual'],
+  ['other', 'Otro'],
+] as const;
+
 export function AwardEvidencePanel() {
-  const { data, error, isLoading } = useSWR('/api/procurement/award-evidence', fetcher);
+  const { mutate: mutateGlobal } = useSWRConfig();
+  const { data, error, isLoading, mutate } = useSWR('/api/procurement/award-evidence', fetcher);
+  const [reasons, setReasons] = useState<Record<string, string>>({});
+  const [notes, setNotes] = useState<Record<string, string>>({});
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const rows: EvidenceRow[] = data?.evidence || [];
 
   const groups = new Map<string, EvidenceRow[]>();
@@ -53,6 +73,30 @@ export function AwardEvidencePanel() {
     groups.set(row.request_id, current);
   }
 
+  const award = async (quote: EvidenceRow) => {
+    const primaryReason = reasons[quote.id] || '';
+    const decisionNotes = (notes[quote.id] || '').trim();
+    if (!primaryReason) return setActionError('Selecciona el motivo de adjudicación antes de emitir la OC.');
+    if (primaryReason === 'other' && !decisionNotes) return setActionError('Explica el motivo cuando selecciones Otro.');
+    setBusyId(quote.id);
+    setActionError(null);
+    try {
+      const response = await fetch('/api/procurement/award-evidence', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quotationId: quote.id, primaryReason, decisionNotes }),
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.error || 'No se pudo adjudicar la cotización.');
+      await Promise.all([mutate(), mutateGlobal('/api/procurement/workflow')]);
+    } catch (cause) {
+      setActionError(cause instanceof Error ? cause.message : 'No se pudo adjudicar la cotización.');
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   if (isLoading) return <Card className="shadow-none"><CardContent className="p-5 text-sm text-muted-foreground">Cargando evidencia para adjudicación…</CardContent></Card>;
   if (error) return <Card className="shadow-none"><CardContent className="p-5 text-sm text-destructive">{error.message}</CardContent></Card>;
   if (!rows.length) return null;
@@ -60,9 +104,10 @@ export function AwardEvidencePanel() {
   return <Card className="shadow-none">
     <CardHeader>
       <CardTitle>Decisión de adjudicación</CardTitle>
-      <CardDescription>Precio, plazo y desempeño se muestran por separado. Motil no combina estos factores en un ranking oculto ni adjudica automáticamente.</CardDescription>
+      <CardDescription>Precio, plazo y desempeño se muestran por separado. La persona que adjudica debe registrar el motivo; Motil conserva el snapshot de evidencia usado en ese momento.</CardDescription>
     </CardHeader>
     <CardContent className="space-y-5">
+      {actionError ? <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{actionError}</div> : null}
       {Array.from(groups.entries()).map(([requestId, quotes]) => {
         const request = quotes[0]?.request;
         const currencies = new Set(quotes.map((row) => row.currency || 'CLP'));
@@ -80,11 +125,17 @@ export function AwardEvidencePanel() {
             {quotes.map((quote) => {
               const p = quote.performance;
               const supplierName = quote.supplier?.trade_name || quote.supplier?.legal_name || 'Proveedor';
+              const reason = reasons[quote.id] || '';
               return <article key={quote.id} className="rounded-lg border p-4">
                 <div className="flex items-start justify-between gap-3"><div><p className="font-medium">{supplierName}</p><p className="text-xs text-muted-foreground">{quote.quotation_number} · {quote.supplier?.tax_id || ''}</p></div><div className="flex flex-wrap justify-end gap-1">{minPrice != null && Number(quote.total_amount || 0) === minPrice ? <Badge variant="secondary">Menor precio</Badge> : null}{minLead != null && Number(quote.lead_time_days) === minLead ? <Badge variant="secondary">Menor plazo</Badge> : null}</div></div>
                 <div className="mt-4 grid grid-cols-2 gap-3 text-sm"><div><p className="text-xs text-muted-foreground">Precio</p><p className="font-medium">{money(quote.total_amount, quote.currency)}</p></div><div><p className="text-xs text-muted-foreground">Plazo</p><p className="font-medium">{quote.lead_time_days == null ? 'Sin dato' : `${quote.lead_time_days} días`}</p></div><div><p className="text-xs text-muted-foreground">Score operacional</p><p className="font-medium">{p?.operational_score == null ? 'Sin evidencia' : `${Number(p.operational_score).toFixed(0)}/100`}</p></div><div><p className="text-xs text-muted-foreground">Evidencia</p><p className="font-medium">{Number(p?.evidence_dimensions || 0)}/3 dimensiones</p></div></div>
                 <div className="mt-3 border-t pt-3 text-xs text-muted-foreground"><p>Entrega: {p?.delivery_score == null ? '—' : `${Number(p.delivery_score).toFixed(0)}%`} · {Number(p?.delivery_scored_orders || 0)} OC</p><p>Calidad: {p?.quality_score == null ? '—' : `${Number(p.quality_score).toFixed(0)}%`} · {Number(p?.quantity_received || 0)} unidades recibidas</p><p>Factura: {p?.invoice_score == null ? '—' : `${Number(p.invoice_score).toFixed(0)}%`} · {Number(p?.invoice_scored_count || 0)} factura(s)</p><p>Devoluciones: {Number(p?.returns_count || 0)}</p></div>
                 {quote.payment_terms ? <p className="mt-3 text-xs text-muted-foreground">Pago: {quote.payment_terms}</p> : null}
+                <div className="mt-4 space-y-3 border-t pt-4">
+                  <div><Label>Motivo principal</Label><Select value={reason} onValueChange={(value) => setReasons((current) => ({ ...current, [quote.id]: value }))}><SelectTrigger className="mt-1"><SelectValue placeholder="Seleccionar motivo" /></SelectTrigger><SelectContent>{REASONS.map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent></Select></div>
+                  <div><Label>Nota de decisión {reason === 'other' ? '(obligatoria)' : '(opcional)'}</Label><Textarea className="mt-1" rows={2} value={notes[quote.id] || ''} onChange={(event) => setNotes((current) => ({ ...current, [quote.id]: event.target.value }))} placeholder="Contexto adicional de la adjudicación" /></div>
+                  <Button className="w-full" onClick={() => award(quote)} disabled={busyId === quote.id || !reason}>{busyId === quote.id ? 'Adjudicando…' : 'Adjudicar y emitir OC'}</Button>
+                </div>
               </article>;
             })}
           </div>
