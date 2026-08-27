@@ -3,13 +3,14 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart3, Building2, History, Search, ShoppingCart } from 'lucide-react';
+import { BarChart3, Building2, FileCheck2, History, Search, ShoppingCart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const items = [
   { href: '/dashboard/compras/flujo', label: 'Comprar', icon: ShoppingCart },
   { href: '/dashboard/compras/control-proveedores/candidatos', label: 'Cotizar', icon: Search },
   { href: '/dashboard/compras', label: 'Órdenes', icon: History },
+  { href: '/dashboard/compras/facturas', label: 'Facturas', icon: FileCheck2 },
   { href: '/dashboard/compras/proveedores-360', label: 'Proveedores', icon: Building2 },
   { href: '/dashboard/compras/inteligencia', label: 'Análisis', icon: BarChart3 },
 ];
