@@ -49,11 +49,7 @@ function resolveTaskRoute(task: RoleTask) {
     return `/dashboard/mantenimiento/ordenes-trabajo/create?reviewId=${rawId}&workType=corrective&priority=${priority}`;
   }
 
-  if (kind === 'inspection' && rawId && rest.length === 0 && UUID_PATTERN.test(rawId)) {
-    return '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones';
-  }
-
-  if ((kind === 'incident' || kind === 'risk') && rawId && rest.length === 0 && UUID_PATTERN.test(rawId)) {
+  if ((kind === 'incident' || kind === 'inspection' || kind === 'risk') && rawId && rest.length === 0 && UUID_PATTERN.test(rawId)) {
     return `/dashboard/sostenibilidad/prevencion-riesgos/acciones/${kind}/${rawId}`;
   }
 
