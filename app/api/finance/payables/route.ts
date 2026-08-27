@@ -30,12 +30,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const action = String(body.action || '');
     if (action === 'set_due_date') {
-      const { error } = await context.supabase.rpc('set_supplier_payable_due_date_v1', { p_payable_id: body.payableId, p_due_date: body.dueDate });
+      const { error } = await context.supabase.rpc('set_supplier_payable_due_date_v2', { p_organization_id: context.organizationId, p_payable_id: body.payableId, p_due_date: body.dueDate });
       if (error) throw error;
       return NextResponse.json({ ok: true });
     }
     if (action === 'record_payment') {
-      const { data, error } = await context.supabase.rpc('record_supplier_payment_v1', {
+      const { data, error } = await context.supabase.rpc('record_supplier_payment_v2', {
+        p_organization_id: context.organizationId,
         p_payable_id: body.payableId,
         p_amount: body.amount,
         p_payment_date: body.paymentDate,
@@ -46,7 +47,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ paymentId: data });
     }
     if (action === 'reconcile_payment') {
-      const { error } = await context.supabase.rpc('reconcile_supplier_payment_v1', {
+      const { error } = await context.supabase.rpc('reconcile_supplier_payment_v2', {
+        p_organization_id: context.organizationId,
         p_payment_id: body.paymentId,
         p_reference: body.reference,
         p_notes: body.notes ?? null,
