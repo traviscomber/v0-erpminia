@@ -36,6 +36,21 @@ const responsibilityRank: Record<RoleTask['responsibility'], number> = {
   escalation: 2,
 };
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function resolveTaskRoute(task: RoleTask) {
+  const [kind, rawId, ...rest] = task.task_key.split(':');
+  if (kind === 'work_order' && rawId && rest.length === 0 && UUID_PATTERN.test(rawId)) {
+    return `/dashboard/mantenimiento/ordenes-trabajo/${rawId}`;
+  }
+
+  if (kind === 'inspection' && rawId && rest.length === 0 && UUID_PATTERN.test(rawId)) {
+    return '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones';
+  }
+
+  return task.module_route;
+}
+
 function deduplicateTasks(rows: RoleTask[]) {
   const byTaskKey = new Map<string, RoleTask>();
 
@@ -111,7 +126,7 @@ export async function GET(request: NextRequest) {
   }
 
   const rawTasks = (data || []) as RoleTask[];
-  const tasks = deduplicateTasks(rawTasks);
+  const tasks = deduplicateTasks(rawTasks).map((task) => ({ ...task, module_route: resolveTaskRoute(task) }));
   const now = Date.now();
   const backlogCutoff = now - 30 * 24 * 60 * 60 * 1000;
   const isOverdue = (task: RoleTask) => Boolean(task.due_at && new Date(task.due_at).getTime() < now);
