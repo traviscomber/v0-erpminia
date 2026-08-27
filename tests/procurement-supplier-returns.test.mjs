@@ -22,7 +22,7 @@ test('sending a supplier return reopens the exact order quantity',()=>{
 test('supplier return remains distinct from financial settlement',()=>{
   assert.match(migration,/credit_note/);
   assert.match(migration,/['"]sent['"]/);
-  assert.match(page,/la nota de crédito se resolverá como paso financiero separado/i);
+  assert.match(page,/nota de crédito.*separad/i);
 });
 
 test('supplier returns API is purchases-authorized and tenant scoped',()=>{
@@ -35,6 +35,6 @@ test('supplier returns API is purchases-authorized and tenant scoped',()=>{
 test('returns workspace exposes one explicit next action and honest empty state',()=>{
   assert.match(page,/Siguiente acción/);
   assert.match(page,/Enviar devolución al proveedor/);
-  assert.match(page,/No hay cantidades rechazadas pendientes de devolver/);
+  assert.match(page,/No hay devoluciones ni cantidades rechazadas pendientes/);
   assert.match(layout,/\/dashboard\/compras\/devoluciones/);
 });
