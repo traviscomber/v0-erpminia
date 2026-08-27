@@ -63,7 +63,7 @@ type MaintenanceOverview = {
   };
 };
 
-type HomeMode = 'plant' | 'maintenance' | 'drilling' | 'management' | 'general';
+type HomeMode = 'plant' | 'maintenance' | 'drilling' | 'inventory' | 'management' | 'general';
 
 type Metric = { label: string; value: string | number; detail?: string };
 type Shortcut = { label: string; href: string; detail: string };
@@ -97,6 +97,7 @@ function resolveMode(cargoName: string | null | undefined): HomeMode {
   if (/mantencion|mantenimiento|mecan|taller/.test(cargo)) return 'maintenance';
   if (/sondaje|perforacion|perforista/.test(cargo)) return 'drilling';
   if (/jefe.*planta|planta.*jefe|metalurg/.test(cargo)) return 'plant';
+  if (/bodega|inventario|almacen/.test(cargo)) return 'inventory';
   return 'general';
 }
 
@@ -127,12 +128,12 @@ function configFor(
         { label: 'Tratado acumulado', value: tons(p?.treatedTons, 1), detail: p?.plan ? `${pct(p.plan.treatmentProgressPct)} del plan` : 'Sin plan activo' },
         { label: 'Ritmo mensual', value: pct(p?.plan?.paceIndexPct), detail: 'Índice de avance contra calendario' },
         { label: 'Ley cabeza Cu', value: pct(p?.avgHeadGradePct, 3), detail: 'Promedio del período' },
-        { label: 'Recuperación', value: pct(p?.avgRecoveryPct, 2), detail: `${plant?.reviewCount || 0} registros en revisión` },
+        { label: 'Acciones críticas', value: summary?.critical ?? 0, detail: `${summary?.overdue ?? 0} vencidas para tu cargo` },
       ],
       shortcuts: [
+        { label: 'Inteligencia Producción', href: '/dashboard/produccion/inteligencia', detail: 'Plan, ritmo, confianza y forecast' },
         { label: 'Planta y metalurgia', href: '/dashboard/produccion/planta-metalurgia', detail: 'Turnos, tratamiento y metalurgia' },
-        { label: 'Producción', href: '/dashboard/produccion', detail: 'Plan vs ejecución y cobertura' },
-        { label: 'Ingresar datos', href: '/dashboard/produccion/ingreso-datos', detail: 'Carga operacional controlada' },
+        { label: 'Mis acciones', href: '/dashboard/acciones', detail: 'Incluye Data Health asignado a Planta' },
       ],
     };
   }
@@ -147,12 +148,12 @@ function configFor(
         { label: 'OT activas', value: active ?? '—', detail: `${m?.in_progress ?? 0} en ejecución` },
         { label: 'Esperando repuestos', value: m ? m.waiting_procurement + m.waiting_parts : '—', detail: 'Compra o abastecimiento pendiente' },
         { label: 'OT sin equipo', value: m?.missing_asset ?? '—', detail: 'Requieren completar activo' },
-        { label: 'OT sin responsable', value: m?.missing_person ?? '—', detail: 'Requieren asignación' },
+        { label: 'Acciones críticas', value: summary?.critical ?? 0, detail: `${summary?.overdue ?? 0} vencidas para tu cargo` },
       ],
       shortcuts: [
-        { label: 'Disponibilidad', href: '/dashboard/mantenimiento/disponibilidad', detail: 'Estado y disponibilidad por equipo' },
+        { label: 'Inteligencia Mantención', href: '/dashboard/mantenimiento/inteligencia', detail: 'Backlog, recurrencia y abastecimiento' },
         { label: 'Órdenes de trabajo', href: '/dashboard/mantenimiento/ordenes-trabajo', detail: 'Planificar, ejecutar y cerrar OT' },
-        { label: 'Activos', href: '/dashboard/mantenimiento/equipos', detail: 'Registro maestro de equipos' },
+        { label: 'Mis acciones', href: '/dashboard/acciones', detail: 'Incluye Data Health y escalaciones del cargo' },
       ],
     };
   }
@@ -165,13 +166,32 @@ function configFor(
       metrics: [
         { label: 'Reportes', value: production?.counts?.drillingReports ?? '—', detail: 'Registros canónicos' },
         { label: 'Pozos', value: production?.counts?.drillingHoles ?? '—', detail: 'Pozos identificados' },
-        { label: 'Evidencias', value: drill?.evidenceCount ?? '—', detail: 'Cobertura acreditada' },
         { label: 'En revisión', value: drill?.reviewCount ?? '—', detail: 'Casos que requieren evidencia' },
+        { label: 'Acciones críticas', value: summary?.critical ?? 0, detail: `${summary?.overdue ?? 0} vencidas para tu cargo` },
       ],
       shortcuts: [
-        { label: 'Sondaje', href: '/dashboard/produccion/sondaje', detail: 'Pozos, metros y actividad' },
+        { label: 'Sondaje', href: '/dashboard/produccion/sondaje', detail: 'Pozos, metros, equipos y ubicación' },
         { label: 'Equipos', href: '/dashboard/mantenimiento/equipos', detail: 'Estado de activos asociados' },
         { label: 'Mis acciones', href: '/dashboard/acciones', detail: 'Sólo tareas asignadas a tu cargo' },
+      ],
+    };
+  }
+
+  if (mode === 'inventory') {
+    return {
+      eyebrow: 'Bodega · stock y abastecimiento',
+      title: 'Mi Bodega',
+      description: 'Stock canónico, calidad del inventario y necesidades que requieren acción.',
+      metrics: [
+        { label: 'Acciones propias', value: summary?.owners ?? 0, detail: 'Responsabilidad directa' },
+        { label: 'Críticas', value: summary?.critical ?? 0, detail: `${summary?.overdue ?? 0} vencidas` },
+        { label: 'Escalaciones', value: summary?.escalations ?? 0, detail: 'Seguimiento superior' },
+        { label: 'Backlog', value: summary?.backlog ?? 0, detail: 'Más de 30 días' },
+      ],
+      shortcuts: [
+        { label: 'Inteligencia Inventario', href: '/dashboard/bodega/inteligencia', detail: 'Stock, calidad y readiness predictivo' },
+        { label: 'Inventario', href: '/dashboard/bodega', detail: 'Existencias y productos canónicos' },
+        { label: 'Mis acciones', href: '/dashboard/acciones', detail: 'Data Health y reposición asignada a Bodega' },
       ],
     };
   }
@@ -180,17 +200,17 @@ function configFor(
     return {
       eyebrow: 'Gerencia · excepciones',
       title: 'Resumen ejecutivo',
-      description: 'Sólo indicadores ejecutivos y excepciones que requieren decisión o escalamiento.',
+      description: 'Sólo indicadores ejecutivos, decisiones y escalaciones que requieren intervención.',
       metrics: [
-        { label: 'Excepciones importación', value: queue?.importExceptions ?? '—', detail: 'Deuda de datos de Producción' },
         { label: 'Acciones críticas', value: summary?.critical ?? 0, detail: `${summary?.overdue ?? 0} vencidas` },
         { label: 'Escalaciones', value: summary?.escalations ?? 0, detail: 'Requieren decisión superior' },
+        { label: 'Excepciones importación', value: queue?.importExceptions ?? '—', detail: 'Deuda de datos de Producción' },
         { label: 'Calidad Producción', value: production?.quality?.status ?? '—', detail: `${production?.quality?.hold ?? 0} fuentes HOLD` },
       ],
       shortcuts: [
-        { label: 'Mis acciones', href: '/dashboard/acciones', detail: 'Decisiones y escalaciones por cargo' },
-        { label: 'Producción', href: '/dashboard/produccion', detail: 'Plan vs ejecución y calidad de datos' },
-        { label: 'Reportes', href: '/dashboard/reportes', detail: 'Información ejecutiva consolidada' },
+        { label: 'Centro Ejecutivo', href: '/dashboard/decisiones', detail: 'Top decisiones, causa raíz y escalaciones' },
+        { label: 'Data Health', href: '/dashboard/calidad-datos/salud', detail: 'Confianza y frescura por dominio' },
+        { label: 'Mis acciones', href: '/dashboard/acciones', detail: 'Tareas y escalaciones visibles para Gerencia' },
       ],
     };
   }
@@ -233,7 +253,7 @@ export default function DashboardPage() {
           <PageHeaderDescription>{config.description}</PageHeaderDescription>
         </PageHeaderContent>
         <PageHeaderActions>
-          <Button asChild><Link href="/dashboard/acciones"><Inbox className="h-4 w-4" />Mis acciones</Link></Button>
+          <Button asChild><Link href={mode === 'management' ? '/dashboard/decisiones' : '/dashboard/acciones'}><Inbox className="h-4 w-4" />{mode === 'management' ? 'Centro Ejecutivo' : 'Mis acciones'}</Link></Button>
         </PageHeaderActions>
       </PageHeader>
 
@@ -292,7 +312,7 @@ export default function DashboardPage() {
       <section className="space-y-3">
         <div>
           <h2 className="text-lg font-semibold">Accesos de mi cargo</h2>
-          <p className="text-sm text-muted-foreground">La portada deja de mostrar módulos irrelevantes y prioriza el trabajo habitual.</p>
+          <p className="text-sm text-muted-foreground">La portada prioriza el trabajo habitual y evita módulos irrelevantes.</p>
         </div>
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {config.shortcuts.map((item) => {
