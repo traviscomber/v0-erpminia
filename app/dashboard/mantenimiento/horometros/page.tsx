@@ -46,7 +46,7 @@ export default function RuntimeReadingsPage() {
   return <div className="space-y-6">
     <section className="flex flex-col gap-4 border-b border-border/70 pb-6 lg:flex-row lg:items-end lg:justify-between">
       <div><p className="text-sm font-medium text-muted-foreground">Mantenimiento · Evidencia operacional</p><h1 className="mt-1 text-3xl font-semibold tracking-tight">Horómetros</h1><p className="mt-2 max-w-3xl text-sm text-muted-foreground">Registra horas acumuladas por activo. Motil calcula deltas observados y excluye automáticamente tramos con reinicio de medidor.</p></div>
-      <div className="flex gap-2"><Button asChild variant="outline"><Link href="/dashboard/mantenimiento/confiabilidad">Confiabilidad</Link></Button><Button variant="outline" onClick={() => void mutate()}><RefreshCw className="mr-2 h-4 w-4"/>Actualizar</Button></div>
+      <div className="flex flex-wrap gap-2"><Button asChild variant="outline"><Link href="/dashboard/mantenimiento/preventivo-horas">Preventivo por horas</Link></Button><Button asChild variant="outline"><Link href="/dashboard/mantenimiento/confiabilidad">Confiabilidad</Link></Button><Button variant="outline" onClick={() => void mutate()}><RefreshCw className="mr-2 h-4 w-4"/>Actualizar</Button></div>
     </section>
 
     {error ? <Card className="border-destructive/30 shadow-none"><CardContent className="p-5 text-sm text-destructive">{error.message}</CardContent></Card> : null}
