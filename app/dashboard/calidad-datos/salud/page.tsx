@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import { AlertTriangle, ArrowRight, CheckCircle2, Clock3, DatabaseZap, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +22,11 @@ const fetcher = async (url: string) => {
 };
 
 const labels: Record<HealthStatus, string> = { healthy: 'Confiable', watch: 'Revisar', critical: 'Crítico', unknown: 'Sin evidencia' };
+const issueLabels: Record<string, string> = {
+  freshness: 'Frescura de la fuente',
+  negative_stock: 'Stock negativo',
+  missing_asset: 'OT sin activo canónico',
+};
 
 function badgeVariant(status: HealthStatus): 'default' | 'destructive' | 'outline' | 'secondary' {
   if (status === 'critical') return 'destructive';
@@ -36,7 +42,14 @@ function metricValue(metric: Metric) {
 }
 
 export default function DataHealthPage() {
+  const params = useSearchParams();
+  const focusDomain = params.get('domain');
+  const focusIssue = params.get('issue');
   const { data, error, isLoading, mutate } = useSWR<HealthResponse>('/api/data-quality/health', fetcher, { revalidateOnFocus: false });
+  const domains = data?.domains || [];
+  const orderedDomains = focusDomain
+    ? [...domains].sort((a, b) => Number(b.key === focusDomain) - Number(a.key === focusDomain))
+    : domains;
 
   return <div className="space-y-6">
     <section className="flex flex-col gap-4 border-b border-border/70 pb-6 md:flex-row md:items-end md:justify-between">
@@ -50,6 +63,8 @@ export default function DataHealthPage() {
         <Button variant="outline" onClick={() => void mutate()}><RefreshCw className="mr-2 h-4 w-4"/>Actualizar</Button>
       </div>
     </section>
+
+    {focusDomain ? <Card className="border-primary/30 shadow-none"><CardContent className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-sm font-medium">Acción abierta desde Mis acciones</p><p className="mt-1 text-sm text-muted-foreground">Dominio: {focusDomain}{focusIssue ? ` · ${issueLabels[focusIssue] || focusIssue}` : ''}. Revisa primero esta fuente y usa el botón del dominio para corregirla en su módulo operacional.</p></div><Button asChild size="sm" variant="outline"><Link href="/dashboard/acciones">Volver a Mis acciones</Link></Button></CardContent></Card> : null}
 
     {error ? <StatePanel tone="error" title="No fue posible calcular Data Health" description={error.message} /> : null}
     {isLoading ? <StatePanel tone="loading" title="Evaluando fuentes canónicas" /> : null}
@@ -66,27 +81,30 @@ export default function DataHealthPage() {
       </Card>
 
       <section className="grid gap-4 xl:grid-cols-2">
-        {data.domains.map((domain) => <Card key={domain.key} className="shadow-none">
-          <CardHeader>
-            <div className="flex items-start justify-between gap-3">
-              <div><CardTitle className="flex items-center gap-2 text-base"><DatabaseZap className="h-4 w-4"/>{domain.label}</CardTitle><CardDescription className="mt-2">{domain.headline}</CardDescription></div>
-              <Badge variant={badgeVariant(domain.status)}>{labels[domain.status]}</Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2">
-              {domain.metrics.map((metric) => <div key={metric.label} className="bg-card p-3">
-                <p className="text-xs text-muted-foreground">{metric.label}</p>
-                <p className="mt-1 font-medium">{metricValue(metric)}</p>
-                {typeof metric.ageDays === 'number' ? <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><Clock3 className="h-3 w-3"/>{metric.ageDays} día{metric.ageDays === 1 ? '' : 's'} de antigüedad</p> : null}
-              </div>)}
-            </div>
-            <div className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm">{domain.action}</p>
-              <Button asChild size="sm" variant="ghost"><Link href={domain.href}>Abrir módulo<ArrowRight className="ml-2 h-4 w-4"/></Link></Button>
-            </div>
-          </CardContent>
-        </Card>)}
+        {orderedDomains.map((domain) => {
+          const focused = domain.key === focusDomain;
+          return <Card key={domain.key} className={focused ? 'border-primary/50 shadow-none ring-1 ring-primary/20' : 'shadow-none'}>
+            <CardHeader>
+              <div className="flex items-start justify-between gap-3">
+                <div><CardTitle className="flex items-center gap-2 text-base"><DatabaseZap className="h-4 w-4"/>{domain.label}{focused ? <Badge variant="outline">Acción actual</Badge> : null}</CardTitle><CardDescription className="mt-2">{domain.headline}</CardDescription></div>
+                <Badge variant={badgeVariant(domain.status)}>{labels[domain.status]}</Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2">
+                {domain.metrics.map((metric) => <div key={metric.label} className="bg-card p-3">
+                  <p className="text-xs text-muted-foreground">{metric.label}</p>
+                  <p className="mt-1 font-medium">{metricValue(metric)}</p>
+                  {typeof metric.ageDays === 'number' ? <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><Clock3 className="h-3 w-3"/>{metric.ageDays} día{metric.ageDays === 1 ? '' : 's'} de antigüedad</p> : null}
+                </div>)}
+              </div>
+              <div className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm">{domain.action}</p>
+                <Button asChild size="sm" variant={focused ? 'default' : 'ghost'}><Link href={domain.href}>Abrir módulo<ArrowRight className="ml-2 h-4 w-4"/></Link></Button>
+              </div>
+            </CardContent>
+          </Card>;
+        })}
       </section>
 
       <p className="text-xs text-muted-foreground">Generado {new Date(data.generatedAt).toLocaleString('es-CL')}. Esta vista no corrige registros ni sustituye la cola de conciliación; sólo expone la confianza operacional de cada dominio.</p>
