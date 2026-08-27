@@ -61,6 +61,29 @@ function family(task: Task) {
   return 'Otras acciones';
 }
 
+const severityRank: Record<Task['severity'], number> = { critical: 0, warning: 1, info: 2 };
+
+function urgencyRank(task: Task) {
+  if (task.urgency_state === 'escalated') return 0;
+  if (task.urgency_state === 'overdue') return 1;
+  return 2;
+}
+
+function taskOrder(a: Task, b: Task) {
+  return severityRank[a.severity] - severityRank[b.severity]
+    || urgencyRank(a) - urgencyRank(b)
+    || Number(b.priority_score || 0) - Number(a.priority_score || 0)
+    || String(a.due_at || '9999').localeCompare(String(b.due_at || '9999'))
+    || a.title.localeCompare(b.title, 'es');
+}
+
+function familyOrder(a: Task[], b: Task[]) {
+  const aCritical = a.some((task) => task.severity === 'critical');
+  const bCritical = b.some((task) => task.severity === 'critical');
+  if (aCritical !== bCritical) return aCritical ? -1 : 1;
+  return taskOrder([...a].sort(taskOrder)[0], [...b].sort(taskOrder)[0]);
+}
+
 export default function AccionesPage() {
   const inbox = useSWR<InboxPayload>('/api/actions/inbox', fetcher, { refreshInterval: 60000, revalidateOnFocus: false });
   const states = useSWR('/api/actions/state', fetcher, { revalidateOnFocus: false });
@@ -89,7 +112,7 @@ export default function AccionesPage() {
       <div>
         <p className="text-sm font-medium text-muted-foreground">{inbox.data?.profile?.cargoName || 'Trabajo por cargo'}</p>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">Mis acciones</h1>
-        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Sólo decisiones y tareas que corresponden a tu cargo, agrupadas por familia operacional. Cada caso mantiene su acción y evidencia individual.</p>
+        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Sólo decisiones y tareas que corresponden a tu cargo, agrupadas por familia operacional. Las familias con críticas se abren primero; las demás quedan compactas hasta que las necesites.</p>
       </div>
       <Button variant="outline" onClick={() => { void inbox.mutate(); void states.mutate(); }}><RefreshCw className="mr-2 h-4 w-4" />Actualizar</Button>
     </section>
@@ -106,20 +129,25 @@ export default function AccionesPage() {
         const laneTasks = tasks.filter((task) => lane(task) === laneName);
         if (!laneTasks.length) return null;
         const Icon = laneName === 'Escalaciones' ? ShieldAlert : laneName === 'Apoyos' ? Users : laneName === 'Vencidas' ? Clock3 : Inbox;
-        const families = Array.from(new Set(laneTasks.map(family)));
+        const families = Array.from(new Set(laneTasks.map(family)))
+          .map((familyName) => ({ familyName, tasks: laneTasks.filter((task) => family(task) === familyName).sort(taskOrder) }))
+          .sort((a, b) => familyOrder(a.tasks, b.tasks));
         return <Card key={laneName} className="shadow-none">
           <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2 text-lg"><Icon className="h-5 w-5" />{laneName}<Badge variant="secondary" className="ml-auto">{laneTasks.length}</Badge></CardTitle></CardHeader>
-          <CardContent className="space-y-4 border-t p-4">
-            {families.map((familyName) => {
-              const familyTasks = laneTasks.filter((task) => family(task) === familyName);
+          <CardContent className="space-y-3 border-t p-4">
+            {families.map(({ familyName, tasks: familyTasks }) => {
               const criticalCount = familyTasks.filter((task) => task.severity === 'critical').length;
-              return <section key={familyName} className="overflow-hidden rounded-lg border bg-card">
-                <div className="flex items-center gap-2 border-b bg-muted/20 px-4 py-2.5">
+              const overdueCount = familyTasks.filter((task) => task.urgency_state === 'overdue' || task.urgency_state === 'escalated').length;
+              return <details key={familyName} open={criticalCount > 0} className="group overflow-hidden rounded-lg border bg-card">
+                <summary className="flex cursor-pointer list-none items-center gap-2 bg-muted/20 px-4 py-3 marker:hidden hover:bg-muted/35">
                   <p className="text-sm font-medium">{familyName}</p>
                   <Badge variant="secondary">{familyTasks.length}</Badge>
                   {criticalCount > 0 ? <Badge variant="destructive">{criticalCount} crítica{criticalCount === 1 ? '' : 's'}</Badge> : null}
-                </div>
-                <div className="divide-y">
+                  {criticalCount === 0 && overdueCount > 0 ? <Badge variant="outline">{overdueCount} vencida{overdueCount === 1 ? '' : 's'}</Badge> : null}
+                  <span className="ml-auto text-xs text-muted-foreground group-open:hidden">Ver casos</span>
+                  <span className="ml-auto hidden text-xs text-muted-foreground group-open:inline">Ocultar</span>
+                </summary>
+                <div className="divide-y border-t">
                   {familyTasks.map((task) => {
                     const state = stateMap.get(task.task_key);
                     const isOwner = task.responsibility === 'owner';
@@ -143,7 +171,7 @@ export default function AccionesPage() {
                     </div>;
                   })}
                 </div>
-              </section>;
+              </details>;
             })}
           </CardContent>
         </Card>;
