@@ -26,7 +26,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const { id } = await params;
 
   try {
-    const [orderResult, partsResult, laborResult, servicesResult, eventsResult, costsResult] = await Promise.all([
+    const [orderResult, partsResult, laborResult, servicesResult, eventsResult, costsResult, snapshotResult] = await Promise.all([
       context.supabase
         .from('maintenance_work_orders')
         .select('id, work_order_number, title, description, status, assigned_to_name, scheduled_date, start_date, completion_date, actual_duration_hours, down_time_hours, root_cause, preventive_actions')
@@ -59,16 +59,48 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         .order('event_at', { ascending: false })
         .limit(100),
       context.supabase
-        .from('work_order_cost_summary')
+        .from('work_order_final_cost_v1')
         .select('*')
         .eq('organization_id', context.organizationId)
         .eq('work_order_id', id)
         .maybeSingle(),
+      context.supabase
+        .from('work_order_closure_cost_snapshots')
+        .select('closure_sequence,parts_cost,labor_cost,effective_external_cost,procurement_received_cost,procurement_currency,procurement_currency_count,total_cost,external_cost_basis,closed_at')
+        .eq('organization_id', context.organizationId)
+        .eq('work_order_id', id)
+        .order('closure_sequence', { ascending: false })
+        .limit(1),
     ]);
 
-    const firstError = orderResult.error || partsResult.error || laborResult.error || servicesResult.error || eventsResult.error || costsResult.error;
+    const firstError = orderResult.error || partsResult.error || laborResult.error || servicesResult.error || eventsResult.error || costsResult.error || snapshotResult.error;
     if (firstError) throw firstError;
     if (!orderResult.data) return NextResponse.json({ error: 'La orden no existe' }, { status: 404 });
+
+    const cost = costsResult.data;
+    const costs = cost
+      ? {
+          ...cost,
+          external_cost: cost.effective_external_cost,
+          latest_snapshot: snapshotResult.data?.[0] || null,
+        }
+      : {
+          parts_cost: 0,
+          labor_cost: 0,
+          external_cost: 0,
+          total_cost: 0,
+          procurement_received_cost: 0,
+          procurement_currency: null,
+          procurement_currency_count: 0,
+          open_procurement_orders: 0,
+          pending_parts: 0,
+          open_labor_entries: 0,
+          pending_external_services: 0,
+          unmet_material_requirements: 0,
+          external_cost_conflict: false,
+          operationally_ready_to_close: false,
+          latest_snapshot: snapshotResult.data?.[0] || null,
+        };
 
     return NextResponse.json({
       workOrder: orderResult.data,
@@ -76,7 +108,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       labor: laborResult.data || [],
       externalServices: servicesResult.data || [],
       events: eventsResult.data || [],
-      costs: costsResult.data || { parts_cost: 0, labor_cost: 0, external_cost: 0, total_cost: 0 },
+      costs,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudo cargar la ejecución de la orden';
