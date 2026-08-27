@@ -22,6 +22,9 @@ type MaterialRow = {
   product_name?: string | null;
   required?: number | string | null;
   available?: number | string | null;
+  reserved?: number | string | null;
+  issued?: number | string | null;
+  in_procurement?: number | string | null;
   shortage?: number | string | null;
   status?: string | null;
   id?: string | null;
@@ -49,6 +52,9 @@ type SupplyStatus = {
 
 const required = (row: MaterialRow) => Number(row.required ?? row.quantity_required ?? 0);
 const available = (row: MaterialRow) => Number(row.available ?? row.quantity_available ?? 0);
+const issued = (row: MaterialRow) => Number(row.issued ?? 0);
+const reserved = (row: MaterialRow) => Number(row.reserved ?? Math.max(available(row) - issued(row), 0));
+const inProcurement = (row: MaterialRow) => Number(row.in_procurement ?? 0);
 const shortage = (row: MaterialRow) => Number(row.shortage ?? row.quantity_shortage ?? 0);
 const rowKey = (row: MaterialRow) => row.requirement_id || row.id || row.product_id || `${row.product_code}-${row.product_name}`;
 
@@ -67,7 +73,11 @@ export function WorkOrderMaterialCoverage({ workOrderId }: { workOrderId: string
   const status = (data?.data || data || {}) as SupplyStatus;
   const rows = Array.isArray(status.materials) ? status.materials : [];
   const shortageCount = rows.filter((row) => shortage(row) > 0).length;
-  const availableCount = rows.filter((row) => available(row) > 0).length;
+  const reservedTotal = rows.reduce((sum, row) => sum + reserved(row), 0);
+  const issuedTotal = rows.reduce((sum, row) => sum + issued(row), 0);
+  const requiredTotal = rows.reduce((sum, row) => sum + required(row), 0);
+  const shortageTotal = rows.reduce((sum, row) => sum + shortage(row), 0);
+  const procurementTotal = rows.reduce((sum, row) => sum + inProcurement(row), 0);
   const alreadySent = Boolean(status.procurement_request_id) || ['sent_to_procurement', 'partially_covered', 'covered'].includes(status.supply_status || '');
   const catalogKey = query.trim().length >= 2 ? `/api/maintenance/material-catalog?q=${encodeURIComponent(query.trim())}` : null;
   const { data: catalogData, isLoading: catalogLoading } = useSWR<{ rows: CatalogRow[] }>(catalogKey, fetcher, { revalidateOnFocus: false });
@@ -113,7 +123,7 @@ export function WorkOrderMaterialCoverage({ workOrderId }: { workOrderId: string
       const response = await fetch(`/api/maintenance/work-orders/${workOrderId}/issue-materials`, { method: 'POST', credentials: 'include' });
       const payload = await response.json().catch(() => null);
       if (!response.ok) throw new Error(payload?.error || 'No se pudieron entregar los materiales');
-      setActionMessage('Los materiales disponibles fueron entregados a la orden.');
+      setActionMessage('Las reservas fueron entregadas a la orden.');
       await mutate();
     } catch (issueError) {
       setActionError(issueError instanceof Error ? issueError.message : 'No se pudieron entregar los materiales');
@@ -145,26 +155,49 @@ export function WorkOrderMaterialCoverage({ workOrderId }: { workOrderId: string
     }
   };
 
+  const primaryAction = rows.length === 0
+    ? { title: 'Define los materiales de la OT', detail: 'Agrega el primer producto requerido para activar reserva y abastecimiento.', action: 'add' as const }
+    : reservedTotal > 0
+      ? { title: 'Hay material reservado para entregar', detail: `${reservedTotal} unidad(es) ya están aseguradas para esta OT.`, action: 'issue' as const }
+      : shortageTotal > 0 && !alreadySent
+        ? { title: 'Hay faltantes que requieren Compras', detail: `${shortageTotal} unidad(es) no tienen cobertura reservada ni entregada.`, action: 'procure' as const }
+        : shortageTotal > 0
+          ? { title: 'Compras está gestionando los faltantes', detail: `${procurementTotal || shortageTotal} unidad(es) están registradas en el flujo de abastecimiento.`, action: 'waiting' as const }
+          : { title: 'Materiales listos para ejecución', detail: `${issuedTotal} de ${requiredTotal} unidad(es) requeridas ya fueron entregadas.`, action: 'ready' as const };
+
   return (
     <Card className="shadow-none">
-      <CardHeader className="flex-row items-center justify-between space-y-0">
-        <div>
-          <CardTitle className="text-base">Cobertura de materiales</CardTitle>
-          <p className="mt-1 text-sm text-muted-foreground">Requerimiento, existencias disponibles y faltantes para esta orden.</p>
+      <CardHeader className="space-y-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <CardTitle className="text-base">Materiales de la OT</CardTitle>
+            <p className="mt-1 text-sm text-muted-foreground">Una sola secuencia: requerir → reservar → entregar → comprar faltantes.</p>
+          </div>
+          {rows.length > 0 ? <Badge variant={shortageCount > 0 ? 'destructive' : 'secondary'}>{shortageCount > 0 ? `${shortageCount} línea(s) con faltante` : 'Cobertura completa'}</Badge> : <Badge variant="outline">Sin requerimiento</Badge>}
         </div>
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <Button size="sm" variant="outline" onClick={() => setAdding((value) => !value)} disabled={saving || issuing || sending}>
-            {adding ? <X className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}{adding ? 'Cerrar' : 'Agregar material'}
-          </Button>
-          {availableCount > 0 ? <Button size="sm" variant="outline" onClick={issueAvailable} disabled={issuing || sending || saving}><PackageCheck className="mr-2 h-4 w-4" />{issuing ? 'Entregando…' : 'Entregar disponibles'}</Button> : null}
-          {shortageCount > 0 && status.supply_need_id && !alreadySent ? <Button size="sm" onClick={sendShortagesToPurchasing} disabled={sending || issuing || saving}><ShoppingCart className="mr-2 h-4 w-4" />{sending ? 'Enviando…' : 'Enviar faltantes a Compras'}</Button> : null}
-          {alreadySent && shortageCount > 0 ? <Badge variant="secondary">Solicitud enviada a Compras</Badge> : null}
-          {rows.length > 0 ? <Badge variant={shortageCount > 0 ? 'destructive' : 'secondary'}>{shortageCount > 0 ? `${shortageCount} faltante(s)` : 'Cubierta'}</Badge> : <Badge variant="outline">Sin requerimiento</Badge>}
+
+        <div className="rounded-lg border bg-muted/20 p-4">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Siguiente acción</p>
+          <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div><p className="font-medium">{primaryAction.title}</p><p className="mt-1 text-sm text-muted-foreground">{primaryAction.detail}</p></div>
+            {primaryAction.action === 'add' ? <Button size="sm" onClick={() => setAdding(true)} disabled={saving || issuing || sending}><Plus className="mr-2 h-4 w-4" />Agregar material</Button> : null}
+            {primaryAction.action === 'issue' ? <Button size="sm" onClick={issueAvailable} disabled={issuing || sending || saving}><PackageCheck className="mr-2 h-4 w-4" />{issuing ? 'Entregando…' : 'Entregar reservas'}</Button> : null}
+            {primaryAction.action === 'procure' ? <Button size="sm" onClick={sendShortagesToPurchasing} disabled={sending || issuing || saving || !status.supply_need_id}><ShoppingCart className="mr-2 h-4 w-4" />{sending ? 'Enviando…' : 'Enviar a Compras'}</Button> : null}
+            {primaryAction.action === 'waiting' ? <Badge variant="secondary">En Compras</Badge> : null}
+            {primaryAction.action === 'ready' ? <Badge variant="secondary"><CheckCircle2 className="mr-1 h-3.5 w-3.5" />Listo</Badge> : null}
+          </div>
         </div>
       </CardHeader>
+
       <CardContent className="space-y-4">
         {actionError ? <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{actionError}</div> : null}
         {actionMessage ? <div className="rounded-lg border bg-muted/40 p-3 text-sm">{actionMessage}</div> : null}
+
+        {rows.length > 0 ? <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+          {[['Requerido', requiredTotal], ['Reservado', reservedTotal], ['Entregado', issuedTotal], ['Faltante', shortageTotal], ['En Compras', procurementTotal]].map(([label, value]) => <div key={String(label)} className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-xl font-semibold tabular-nums">{value}</p></div>)}
+        </div> : null}
+
+        <div className="flex justify-end"><Button size="sm" variant="outline" onClick={() => setAdding((value) => !value)} disabled={saving || issuing || sending}>{adding ? <X className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}{adding ? 'Cerrar' : 'Agregar otro material'}</Button></div>
 
         {adding ? <div className="rounded-lg border bg-muted/20 p-4">
           <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_120px_auto] md:items-end">
@@ -172,22 +205,29 @@ export function WorkOrderMaterialCoverage({ workOrderId }: { workOrderId: string
             <div className="space-y-2"><p className="text-xs font-medium">Cantidad</p><Input type="number" min="0.01" step="0.01" value={quantity} onChange={(event) => setQuantity(event.target.value)} /></div>
             <Button onClick={addMaterial} disabled={!selected || saving || Number(quantity) <= 0}>{saving ? 'Guardando…' : 'Agregar'}</Button>
           </div>
-          {selected ? <div className="mt-3 rounded-md border bg-card p-3 text-sm"><p className="font-medium">{selected.productCode || 'Sin código'} · {selected.productName}</p><p className="mt-1 text-xs text-muted-foreground">Disponible ahora: {selected.quantityAvailable} {selected.unit || 'unid.'} · {selected.warehouses.length ? selected.warehouses.join(', ') : 'sin bodega informada'}</p></div> : null}
+          {selected ? <div className="mt-3 rounded-md border bg-card p-3 text-sm"><p className="font-medium">{selected.productCode || 'Sin código'} · {selected.productName}</p><p className="mt-1 text-xs text-muted-foreground">Stock libre informado: {selected.quantityAvailable} {selected.unit || 'unid.'} · {selected.warehouses.length ? selected.warehouses.join(', ') : 'sin bodega informada'}</p></div> : null}
           {!selected && query.trim().length >= 2 ? <div className="mt-3 max-h-56 overflow-auto rounded-md border bg-card">
-            {catalogLoading ? <p className="p-3 text-sm text-muted-foreground">Buscando…</p> : catalogRows.length === 0 ? <p className="p-3 text-sm text-muted-foreground">Sin coincidencias disponibles.</p> : catalogRows.map((item) => <button key={item.productId} type="button" onClick={() => setSelected(item)} className="block w-full border-b px-3 py-2 text-left last:border-b-0 hover:bg-muted/50"><p className="text-sm font-medium">{item.productCode || 'Sin código'} · {item.productName}</p><p className="mt-0.5 text-xs text-muted-foreground">Disponible {item.quantityAvailable} {item.unit || 'unid.'}{item.family ? ` · ${item.family}` : ''}</p></button>)}
+            {catalogLoading ? <p className="p-3 text-sm text-muted-foreground">Buscando…</p> : catalogRows.length === 0 ? <p className="p-3 text-sm text-muted-foreground">Sin coincidencias disponibles.</p> : catalogRows.map((item) => <button key={item.productId} type="button" onClick={() => setSelected(item)} className="block w-full border-b px-3 py-2 text-left last:border-b-0 hover:bg-muted/50"><p className="text-sm font-medium">{item.productCode || 'Sin código'} · {item.productName}</p><p className="mt-0.5 text-xs text-muted-foreground">Stock libre {item.quantityAvailable} {item.unit || 'unid.'}{item.family ? ` · ${item.family}` : ''}</p></button>)}
           </div> : null}
         </div> : null}
 
         {isLoading ? <div className="h-20 animate-pulse rounded-lg bg-muted" /> : null}
         {error ? <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{error.message}</div> : null}
-        {!isLoading && !error && rows.length === 0 ? <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground"><PackageSearch className="mx-auto mb-2 h-5 w-5" />Aún no se han definido materiales requeridos para esta orden. Usa “Agregar material” para activar el cruce con stock y Compras.</div> : null}
+        {!isLoading && !error && rows.length === 0 ? <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground"><PackageSearch className="mx-auto mb-2 h-5 w-5" />Aún no se han definido materiales requeridos para esta orden.</div> : null}
         {rows.length > 0 ? <div className="divide-y rounded-lg border">{rows.map((row) => {
           const missing = shortage(row);
-          return <div key={String(rowKey(row))} className="grid gap-3 p-4 sm:grid-cols-[minmax(0,1fr)_110px_110px_120px] sm:items-center">
-            <div className="min-w-0"><p className="truncate font-medium">{row.product_name || 'Producto'}</p><p className="text-xs text-muted-foreground">{row.product_code || 'Sin código'}</p></div>
-            <div><p className="text-xs text-muted-foreground">Requerido</p><p className="font-medium">{required(row)}</p></div>
-            <div><p className="text-xs text-muted-foreground">Disponible</p><p className="font-medium">{available(row)}</p></div>
-            <div className="flex items-center justify-between gap-2 sm:justify-end">{missing > 0 ? <AlertTriangle className="h-4 w-4 text-destructive" /> : <CheckCircle2 className="h-4 w-4 text-muted-foreground" />}<span className={missing > 0 ? 'font-semibold text-destructive' : 'font-medium'}>{missing > 0 ? `Faltan ${missing}` : 'Cubierto'}</span></div>
+          const reservedQty = reserved(row);
+          const issuedQty = issued(row);
+          const purchasingQty = inProcurement(row);
+          return <div key={String(rowKey(row))} className="p-4">
+            <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate font-medium">{row.product_name || 'Producto'}</p><p className="text-xs text-muted-foreground">{row.product_code || 'Sin código'}</p></div>{missing > 0 ? <AlertTriangle className="mt-1 h-4 w-4 shrink-0 text-destructive" /> : <CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-muted-foreground" />}</div>
+            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-5">
+              <div><p className="text-xs text-muted-foreground">Requerido</p><p className="font-medium tabular-nums">{required(row)}</p></div>
+              <div><p className="text-xs text-muted-foreground">Reservado</p><p className="font-medium tabular-nums">{reservedQty}</p></div>
+              <div><p className="text-xs text-muted-foreground">Entregado</p><p className="font-medium tabular-nums">{issuedQty}</p></div>
+              <div><p className="text-xs text-muted-foreground">Faltante</p><p className={missing > 0 ? 'font-semibold tabular-nums text-destructive' : 'font-medium tabular-nums'}>{missing}</p></div>
+              <div><p className="text-xs text-muted-foreground">En Compras</p><p className="font-medium tabular-nums">{purchasingQty}</p></div>
+            </div>
           </div>;
         })}</div> : null}
       </CardContent>
