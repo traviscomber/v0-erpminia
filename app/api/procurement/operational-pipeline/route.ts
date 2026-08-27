@@ -129,7 +129,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Acción no soportada' }, { status: 400 });
   } catch (error) {
     const message = error instanceof Error ? error.message : typeof error === 'object' && error && 'message' in error ? String(error.message) : 'No se pudo completar la operación';
-    const status = message.startsWith('Imputación contable') || message.includes('inválida') || message.includes('requerid') ? 409 : 500;
+    const status = message.startsWith('Imputación contable') ? 409 : 500;
     return NextResponse.json({ error: message }, { status });
   }
 }
