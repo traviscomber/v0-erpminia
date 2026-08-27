@@ -6,7 +6,7 @@ import useSWR from 'swr';
 import { FileSearch } from 'lucide-react';
 
 type Row = Record<string, string | number | null>;
-type Response = { overview?: Row | null; topAssets?: Row[]; topProducts?: Row[]; topSuppliers?: Row[]; topCostCenters?: Row[]; validation?: Row | null; recentEvents?: Row[] };
+type Response = { overview?: Row | null; topAssets?: Row[]; topProducts?: Row[]; topSuppliers?: Row[]; topCostCenters?: Row[]; validation?: Row | null; recentEvents?: Row[]; operationalProcurement?: Row | null; operationalProcurementEvents?: Row[] };
 type ConcentrationKey = 'assets' | 'products' | 'suppliers' | 'costCenters';
 
 const fetcher = async (url: string): Promise<Response> => { const response = await fetch(url, { credentials: 'include' }); const payload = await response.json().catch(() => null); if (!response.ok) throw new Error(payload?.error || 'No se pudo cargar Finanzas'); return payload; };
@@ -24,6 +24,7 @@ export default function FinanzasPage() {
   const { data, error, isLoading } = useSWR<Response>('/api/finance/executive', fetcher);
   const [activeConcentration, setActiveConcentration] = useState<ConcentrationKey>('assets');
   const overview = data?.overview || {};
+  const operationalProcurement = data?.operationalProcurement || {};
   const validationPassed = String(data?.validation?.status || '').toLowerCase() === 'passed';
   const rowsByType: Record<ConcentrationKey, Row[]> = { assets: data?.topAssets || [], products: data?.topProducts || [], suppliers: data?.topSuppliers || [], costCenters: data?.topCostCenters || [] };
   const config = concentrationConfig[activeConcentration];
@@ -45,6 +46,19 @@ export default function FinanzasPage() {
           ['Eventos certificados', number(overview.event_count)],
           ['Validación', validationPassed ? 'Aprobada' : 'Revisar'],
         ].map(([label, value]) => <div key={label} className="bg-card px-5 py-4"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-2xl font-semibold tracking-tight">{isLoading ? '—' : value}</p></div>)}
+      </section>
+
+      <section className="space-y-3 border-t pt-5">
+        <div><h2 className="text-lg font-semibold">Compras operativas</h2><p className="text-sm text-muted-foreground">La OC mantiene sólo el saldo pendiente como compromiso; la recepción aceptada pasa a costo realizado.</p></div>
+        <div className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 xl:grid-cols-4">
+          {[
+            ['Compromiso pendiente', money(operationalProcurement.committed_clp)],
+            ['Recepcionado', money(operationalProcurement.recognized_clp)],
+            ['Eventos sin centro de costo', number(operationalProcurement.missing_cost_center_events)],
+            ['Monto sin centro de costo', money(operationalProcurement.missing_cost_center_amount)],
+          ].map(([label, value]) => <div key={label} className="bg-card px-5 py-4"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-xl font-semibold tracking-tight">{isLoading ? '—' : value}</p></div>)}
+        </div>
+        {Number(operationalProcurement.missing_cost_center_events || 0) > 0 ? <p className="text-sm text-amber-700 dark:text-amber-400">Hay compras operativas sin centro de costo. Se mantienen visibles como excepción y no se asignan automáticamente.</p> : null}
       </section>
 
       <section className="space-y-3">
