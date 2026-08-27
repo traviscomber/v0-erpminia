@@ -6,11 +6,13 @@ const migration = fs.readFileSync('supabase/migrations/20260827233000_standard_j
 const preventive = fs.readFileSync('app/dashboard/mantenimiento/preventivo-horas/page.tsx','utf8');
 const apply = fs.readFileSync('lib/maintenance/apply-standard-job-plan.ts','utf8');
 
+const proposalFn = migration.split('create or replace function public.add_standard_job_plan_step_v1')[0];
+
 test('standard plan proposal comes from an existing preventive schedule without invented steps', () => {
-  assert.match(migration,/propose_standard_job_plan_from_schedule_v1/);
-  assert.match(migration,/preventive_maintenance_schedules/);
-  assert.match(migration,/'proposed'/i);
-  assert.doesNotMatch(migration,/insert into public\.maintenance_standard_job_plan_steps[\s\S]*propose_standard_job_plan_from_schedule_v1/i);
+  assert.match(proposalFn,/propose_standard_job_plan_from_schedule_v1/);
+  assert.match(proposalFn,/preventive_maintenance_schedules/);
+  assert.match(proposalFn,/'proposed'/i);
+  assert.doesNotMatch(proposalFn,/insert into public\.maintenance_standard_job_plan_steps/i);
 });
 
 test('standard plan cannot be approved empty', () => {
