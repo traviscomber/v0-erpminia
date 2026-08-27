@@ -69,37 +69,20 @@ export async function POST(request: NextRequest, contextRoute: { params: Promise
       return NextResponse.json({ error: 'Producto y cantidad requerida son obligatorios' }, { status: 400 });
     }
 
-    const workOrder = await getWorkOrder(context, id);
-    if (!workOrder) return NextResponse.json({ error: 'Orden de trabajo no encontrada' }, { status: 404 });
+    const { data, error } = await context.supabase.rpc('upsert_work_order_material_requirement_v1', {
+      p_work_order_id: id,
+      p_canonical_product_id: item.canonicalProductId,
+      p_quantity_required: Number(item.quantityRequired),
+      p_required_date: item.requiredDate || null,
+      p_notes: item.notes?.trim() || null,
+    });
+    if (error) throw error;
 
-    const { data: product, error: productError } = await context.supabase
-      .schema('canonical')
-      .from('products')
-      .select('id')
-      .eq('organization_id', context.organizationId)
-      .eq('id', item.canonicalProductId)
-      .eq('is_active', true)
-      .maybeSingle();
-    if (productError) throw productError;
-    if (!product) return NextResponse.json({ error: 'Producto canónico no encontrado' }, { status: 404 });
-
-    const { error: upsertError } = await context.supabase
-      .from('work_order_material_requirements')
-      .upsert({
-        organization_id: context.organizationId,
-        work_order_id: id,
-        canonical_asset_id: workOrder.canonical_asset_id,
-        canonical_product_id: item.canonicalProductId,
-        quantity_required: Number(item.quantityRequired),
-        required_date: item.requiredDate || null,
-        notes: item.notes?.trim() || null,
-        created_by: context.userId,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'work_order_id,canonical_product_id' });
-    if (upsertError) throw upsertError;
-
-    const refreshed = await refreshStatus(context, id);
-    return NextResponse.json({ supplyNeedId: refreshed.supplyNeedId, data: refreshed.status });
+    return NextResponse.json({
+      supplyNeedId: data?.supply_need_id || null,
+      requirementId: data?.requirement_id || null,
+      data: data?.supply_status || null,
+    }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudo agregar el material requerido';
     return NextResponse.json({ error: message }, { status: 500 });
