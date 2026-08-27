@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const organizationId = context.organizationId;
-    const [overview, assets, products, suppliers, costCenters, validation, recent, alerts, operationalProcurement, operationalEvents, treasury, treasuryAging] = await Promise.all([
+    const [overview, assets, products, suppliers, costCenters, validation, recent, alerts, operationalProcurement, operationalEvents, treasury, treasuryAging, cashForecast] = await Promise.all([
       context.supabase.from('canonical_finance_overview').select('*').eq('organization_id', organizationId).maybeSingle(),
       context.supabase.from('canonical_finance_assets').select('*').eq('organization_id', organizationId).order('recognized_clp', { ascending: false }).limit(10),
       context.supabase.from('canonical_finance_products').select('*').eq('organization_id', organizationId).order('committed_clp', { ascending: false }).limit(10),
@@ -22,9 +22,10 @@ export async function GET(request: NextRequest) {
       context.supabase.from('operational_procurement_finance_ledger_v1').select('event_id,event_at,event_type,recognition_status,source_table,source_record_id,work_order_id,canonical_asset_id,canonical_product_id,supplier_id,cost_center_code,amount,currency,description,metadata').eq('organization_id', organizationId).order('event_at', { ascending: false }).limit(20),
       context.supabase.from('procurement_treasury_summary_v1').select('*').eq('organization_id', organizationId).order('currency', { ascending: true }),
       context.supabase.from('procurement_accounts_payable_aging_summary_v1').select('*').eq('organization_id', organizationId).order('outstanding_amount', { ascending: false }).limit(30),
+      context.supabase.from('procurement_cash_forecast_summary_v1').select('*').eq('organization_id', organizationId).order('currency', { ascending: true }),
     ]);
 
-    const error = overview.error || assets.error || products.error || suppliers.error || costCenters.error || validation.error || recent.error || alerts.error || operationalProcurement.error || operationalEvents.error || treasury.error || treasuryAging.error;
+    const error = overview.error || assets.error || products.error || suppliers.error || costCenters.error || validation.error || recent.error || alerts.error || operationalProcurement.error || operationalEvents.error || treasury.error || treasuryAging.error || cashForecast.error;
     if (error) throw error;
 
     return NextResponse.json({
@@ -40,6 +41,7 @@ export async function GET(request: NextRequest) {
       operationalProcurementEvents: operationalEvents.data || [],
       treasury: treasury.data || [],
       treasuryAging: treasuryAging.data || [],
+      cashForecast: cashForecast.data || [],
       certification: {
         origin: 'CANONICAL+ERP',
         currency: 'CLP',
