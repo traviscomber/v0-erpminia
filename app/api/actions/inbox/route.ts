@@ -65,6 +65,10 @@ function resolveTaskRoute(task: RoleTask) {
     return '/dashboard/bodega?status=negative&dataHealth=negative_stock';
   }
 
+  if (kind === 'data_health' && rawId === 'inventory' && rest[0] === 'freshness') {
+    return '/dashboard/compras/importar-existencias?dataHealth=freshness';
+  }
+
   if (kind === 'data_health' && rawId && rest.length === 1) {
     return `/dashboard/calidad-datos/salud?domain=${encodeURIComponent(rawId)}&issue=${encodeURIComponent(rest[0])}`;
   }
