@@ -57,6 +57,10 @@ function resolveTaskRoute(task: RoleTask) {
     return `/dashboard/produccion/despachos/revision/${rawId}`;
   }
 
+  if (kind === 'data_health' && rawId === 'maintenance' && rest[0] === 'missing_asset') {
+    return '/dashboard/mantenimiento/ordenes-trabajo?dataHealth=missing_asset';
+  }
+
   if (kind === 'data_health' && rawId && rest.length === 1) {
     return `/dashboard/calidad-datos/salud?domain=${encodeURIComponent(rawId)}&issue=${encodeURIComponent(rest[0])}`;
   }
