@@ -3,12 +3,13 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart3, Calendar, ClipboardList, Gauge, Settings, Users, Wrench } from 'lucide-react';
+import { BarChart3, Calendar, CircleDollarSign, ClipboardList, Gauge, Settings, Users, Wrench } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const items = [
   { href: '/dashboard/mantenimiento', label: 'Resumen', icon: Wrench },
   { href: '/dashboard/mantenimiento/ordenes-trabajo', label: 'Órdenes', icon: ClipboardList },
+  { href: '/dashboard/mantenimiento/ordenes-trabajo/imputacion', label: 'Imputación', icon: CircleDollarSign },
   { href: '/dashboard/mantenimiento/planificacion', label: 'Planificar', icon: Calendar },
   { href: '/dashboard/mantenimiento/equipos', label: 'Activos', icon: Settings },
   { href: '/dashboard/mantenimiento/maestranza', label: 'Maestranza', icon: Gauge },
