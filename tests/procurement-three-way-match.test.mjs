@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const migration = fs.readFileSync('supabase/migrations/20260827181500_operational_procurement_three_way_match_v1.sql', 'utf8');
+const facadeMigration = fs.readFileSync('supabase/migrations/20260827182000_expose_three_way_match_server_facades_v1.sql', 'utf8');
 const route = fs.readFileSync('app/api/procurement/operational-pipeline/route.ts', 'utf8');
 
 test('three-way match compares order, accepted receipt and supplier invoice', () => {
@@ -23,6 +24,13 @@ test('supplier invoice RPC is service-role only and tenant checked', () => {
   assert.match(migration, /current_application_user_id\(\)/);
   assert.match(migration, /revoke all on function public\.create_supplier_invoice_v1[\s\S]*authenticated/);
   assert.match(migration, /grant execute on function public\.create_supplier_invoice_v1[\s\S]*service_role/);
+});
+
+test('three-way match facades are public-schema but server-only', () => {
+  assert.match(facadeMigration, /with \(security_invoker=true\)/);
+  assert.match(facadeMigration, /revoke all on public\.procurement_three_way_match_summary_v1 from public, anon, authenticated/);
+  assert.match(facadeMigration, /grant select on public\.procurement_three_way_match_summary_v1 to service_role/);
+  assert.doesNotMatch(route, /\.schema\('intelligence'\)/);
 });
 
 test('operational pipeline exposes invoice creation and deterministic match evidence', () => {
