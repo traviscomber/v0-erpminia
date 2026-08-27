@@ -3,6 +3,51 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
+import { applyStandardJobPlanToWorkOrder } from '@/lib/maintenance/apply-standard-job-plan';
+
+async function findApprovedPlanForSchedule(context: Awaited<ReturnType<typeof getOrganizationContext>> & { ok: true }, scheduleId: string) {
+  const { data: application, error: applicationError } = await context.supabase
+    .from('maintenance_standard_job_plan_applications')
+    .select('plan_id')
+    .eq('organization_id', context.organizationId)
+    .eq('preventive_schedule_id', scheduleId)
+    .eq('status', 'active')
+    .maybeSingle();
+  if (applicationError) throw applicationError;
+  if (!application?.plan_id) return null;
+
+  const { data: plan, error: planError } = await context.supabase
+    .from('maintenance_standard_job_plans')
+    .select('id,plan_code,name,status')
+    .eq('organization_id', context.organizationId)
+    .eq('id', application.plan_id)
+    .eq('status', 'approved')
+    .maybeSingle();
+  if (planError) throw planError;
+  return plan || null;
+}
+
+async function applyApprovedPlanIfAvailable(
+  context: Awaited<ReturnType<typeof getOrganizationContext>> & { ok: true },
+  scheduleId: string,
+  workOrderId: string,
+) {
+  const plan = await findApprovedPlanForSchedule(context, scheduleId);
+  if (!plan) return { standardPlanApplied: false, standardPlan: null, createdRequirements: 0 };
+
+  const result = await applyStandardJobPlanToWorkOrder({
+    supabase: context.supabase,
+    organizationId: context.organizationId,
+    userId: context.userId,
+    planId: plan.id,
+    workOrderId,
+  });
+  return {
+    standardPlanApplied: true,
+    standardPlan: { id: plan.id, planCode: plan.plan_code, name: plan.name },
+    createdRequirements: Number(result.createdRequirements || 0),
+  };
+}
 
 export async function GET(request: NextRequest) {
   const access = await requireModuleAccess(request, MODULE_KEYS.MANT_OPERACIONES);
@@ -49,11 +94,19 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
     if (scheduleError) throw scheduleError;
     if (!schedule) return NextResponse.json({ error: 'Pauta no pertenece a la organización' }, { status: 404 });
-    if (schedule.generated_work_order_id) return NextResponse.json({ workOrderId: schedule.generated_work_order_id, existing: true });
+
+    if (schedule.generated_work_order_id) {
+      const planResult = await applyApprovedPlanIfAvailable(context, scheduleId, schedule.generated_work_order_id);
+      return NextResponse.json({ workOrderId: schedule.generated_work_order_id, existing: true, ...planResult });
+    }
     if (schedule.hour_status !== 'overdue') return NextResponse.json({ error: 'La pauta no está vencida' }, { status: 409 });
+
     const { data, error } = await context.supabase.rpc('plan_due_hour_preventive_work_order_v1', { p_schedule_id: scheduleId });
     if (error) throw error;
-    return NextResponse.json({ workOrderId: data, existing: false }, { status: 201 });
+    const workOrderId = String(data || '').trim();
+    if (!workOrderId) throw new Error('La planificación no devolvió una OT válida');
+    const planResult = await applyApprovedPlanIfAvailable(context, scheduleId, workOrderId);
+    return NextResponse.json({ workOrderId, existing: false, ...planResult }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : 'No se pudo generar la OT preventiva' }, { status: 500 });
   }
