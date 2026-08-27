@@ -53,6 +53,10 @@ function resolveTaskRoute(task: RoleTask) {
     return '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones';
   }
 
+  if ((kind === 'incident' || kind === 'risk') && rawId && rest.length === 0 && UUID_PATTERN.test(rawId)) {
+    return `/dashboard/sostenibilidad/prevencion-riesgos/acciones/${kind}/${rawId}`;
+  }
+
   return task.module_route;
 }
 
