@@ -69,7 +69,7 @@ export default function HSEActionPage() {
 
   const incident = data.kind === 'incident';
   const record = data.record;
-  const fields = incident
+  const fields: Array<[string, unknown]> = incident
     ? [
         ['Número', record.incident_number],
         ['Tipo', record.incident_type],
@@ -124,7 +124,7 @@ export default function HSEActionPage() {
     <Card className="shadow-none">
       <CardHeader><CardTitle className="text-base">Evidencia del registro</CardTitle><CardDescription>Fuente operacional protegida por la misma asignación de cargo que originó la tarea.</CardDescription></CardHeader>
       <CardContent className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 lg:grid-cols-3">
-        {fields.map(([label, value]) => <div key={String(label)} className="bg-card px-4 py-3"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-sm font-medium">{show(value)}</p></div>)}
+        {fields.map(([label, value]) => <div key={label} className="bg-card px-4 py-3"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-sm font-medium">{show(value)}</p></div>)}
       </CardContent>
     </Card>
 
