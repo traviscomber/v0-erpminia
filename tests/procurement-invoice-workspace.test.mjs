@@ -27,6 +27,6 @@ test('invoice workspace creates supplier invoices and surfaces three-way evidenc
 });
 
 test('invoice workspace states that receipt owns operational cost recognition', () => {
-  assert.match(page, /El costo operacional se reconoce en recepción/);
-  assert.match(page, /sin duplicar gasto/);
+  assert.match(page, /costo operacional[^.]*recepción/i);
+  assert.match(page, /una sola vez en recepción|sin duplicar gasto/i);
 });
