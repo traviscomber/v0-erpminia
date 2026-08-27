@@ -31,6 +31,10 @@ type CloseQueueRow = {
   missing_root_cause: boolean;
   missing_preventive_actions: boolean;
   missing_actual_hours: boolean;
+  runtime_evidence_status: string | null;
+  runtime_reading_id: string | null;
+  runtime_unavailable_reason: string | null;
+  missing_runtime_evidence: boolean;
   ready_to_close: boolean;
   next_action: string;
 };
@@ -48,7 +52,8 @@ const actionRank: Record<string, number> = {
   record_root_cause: 7,
   record_preventive_actions: 8,
   record_actual_hours: 9,
-  close_work_order: 10,
+  record_runtime_evidence: 10,
+  close_work_order: 11,
 };
 
 export async function GET(request: NextRequest) {
@@ -78,10 +83,7 @@ export async function GET(request: NextRequest) {
     }
 
     const queue = rows
-      .map((row) => ({
-        ...row,
-        asset: row.canonical_asset_id ? assetMap.get(row.canonical_asset_id) || null : null,
-      }))
+      .map((row) => ({ ...row, asset: row.canonical_asset_id ? assetMap.get(row.canonical_asset_id) || null : null }))
       .sort((a, b) => {
         const actionDiff = (actionRank[a.next_action] ?? 99) - (actionRank[b.next_action] ?? 99);
         if (actionDiff !== 0) return actionDiff;
@@ -95,6 +97,7 @@ export async function GET(request: NextRequest) {
       missingRootCause: queue.filter((row) => row.missing_root_cause).length,
       missingPreventiveActions: queue.filter((row) => row.missing_preventive_actions).length,
       missingActualHours: queue.filter((row) => row.missing_actual_hours).length,
+      missingRuntimeEvidence: queue.filter((row) => row.missing_runtime_evidence).length,
     };
 
     return NextResponse.json({ queue, summary, canEdit: access.canWrite });
