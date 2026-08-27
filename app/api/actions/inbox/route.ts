@@ -53,6 +53,10 @@ function resolveTaskRoute(task: RoleTask) {
     return `/dashboard/sostenibilidad/prevencion-riesgos/acciones/${kind}/${rawId}`;
   }
 
+  if (kind === 'shipment_review' && rawId && rest.length === 0 && UUID_PATTERN.test(rawId)) {
+    return `/dashboard/produccion/despachos/revision/${rawId}`;
+  }
+
   return task.module_route;
 }
 
