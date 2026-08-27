@@ -6,6 +6,7 @@ const migration = fs.readFileSync('supabase/migrations/20260827220000_work_order
 const api = fs.readFileSync('app/api/maintenance/work-order-close-queue/route.ts', 'utf8');
 const component = fs.readFileSync('components/maintenance/progressive-work-order-close-queue.tsx', 'utf8');
 const page = fs.readFileSync('app/dashboard/mantenimiento/ordenes-trabajo/cierre/page.tsx', 'utf8');
+const schedule = fs.readFileSync('components/maintenance/maintenance-schedule.tsx', 'utf8');
 
 test('closure readiness mirrors the safe close blockers', () => {
   assert.match(migration, /open_procurement_orders/);
@@ -38,5 +39,12 @@ test('progressive closure exposes one next action and requires an explicit close
   assert.match(component, /Cerrar OT y congelar costo/);
   assert.match(component, /async function performNextAction\(\)[\s\S]*current\.next_action === 'close_work_order'[\s\S]*status: 'completed'/);
   assert.match(component, /useEffect\(\(\) => \{\s*setActionError\(null\);\s*setTextValue\(''\);\s*setHoursValue\(''\);\s*\}, \[current\?\.work_order_id, current\?\.next_action\]\);/);
+  assert.match(component, /searchParams\.get\('workOrderId'\)/);
   assert.match(page, /Cierre progresivo de OT/);
+});
+
+test('scheduled maintenance hands completion to the safe progressive closure flow', () => {
+  assert.match(schedule, /Completar cierre/);
+  assert.match(schedule, /cierre\?workOrderId=/);
+  assert.doesNotMatch(schedule, /status:\s*'completed'/);
 });
