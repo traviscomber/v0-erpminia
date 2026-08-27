@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
 import { AlertCircle, Eye, Plus, RefreshCw, Search } from 'lucide-react';
@@ -79,6 +80,8 @@ function isOverdue(order: WorkOrderItem) {
 }
 
 export default function WorkOrdersPage() {
+  const searchParams = useSearchParams();
+  const missingAssetOnly = searchParams.get('dataHealth') === 'missing_asset';
   const [updatingScheduleId, setUpdatingScheduleId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -100,12 +103,13 @@ export default function WorkOrdersPage() {
   const filteredOrders = useMemo(() => {
     const query = normalizeText(search);
     return workOrders.filter((order) => {
+      const matchesDataHealth = !missingAssetOnly || !order.asset_name;
       const matchesSearch = !query || [order.work_order_number, order.title, order.asset_name, order.assigned_to_name].some((value) => normalizeText(value).includes(query));
       const matchesStatus = statusFilter === 'all' || normalizeText(order.status) === statusFilter;
       const matchesPriority = priorityFilter === 'all' || normalizeText(order.priority) === priorityFilter;
-      return matchesSearch && matchesStatus && matchesPriority;
+      return matchesDataHealth && matchesSearch && matchesStatus && matchesPriority;
     });
-  }, [priorityFilter, search, statusFilter, workOrders]);
+  }, [missingAssetOnly, priorityFilter, search, statusFilter, workOrders]);
 
   const scheduleItems = useMemo(() => workOrders
     .filter((order) => order.scheduled_date && !['completed', 'completado'].includes(normalizeText(order.status)))
@@ -152,13 +156,16 @@ export default function WorkOrdersPage() {
         <div>
           <p className="text-sm font-medium text-muted-foreground">Mantenimiento · Operación diaria</p>
           <h1 className="mt-1 text-3xl font-semibold tracking-tight">Órdenes de trabajo</h1>
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Planifica, asigna y controla trabajos correctivos, preventivos y predictivos sin perder el historial existente.</p>
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{missingAssetOnly ? 'Cola Data Health: sólo OT que todavía no tienen un activo canónico asociado. Resolver esta identidad antes de usar la OT en inteligencia de confiabilidad o causa raíz.' : 'Planifica, asigna y controla trabajos correctivos, preventivos y predictivos sin perder el historial existente.'}</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          {missingAssetOnly ? <Button asChild variant="outline"><Link href="/dashboard/mantenimiento/ordenes-trabajo">Ver todas las OT</Link></Button> : null}
           <Button variant="outline" onClick={() => void mutate()} disabled={isLoading}><RefreshCw className="mr-2 h-4 w-4" />Actualizar</Button>
           <Button asChild><Link href="/dashboard/mantenimiento/ordenes-trabajo/create"><Plus className="mr-2 h-4 w-4" />Nueva OT</Link></Button>
         </div>
       </section>
+
+      {missingAssetOnly ? <Card className="border-destructive/30 bg-destructive/5 shadow-none"><CardContent className="flex items-start gap-3 p-4"><AlertCircle className="mt-0.5 h-5 w-5 text-destructive" /><div><p className="font-medium">Data Health · OT sin activo canónico</p><p className="mt-1 text-sm text-muted-foreground">Esta vista no corrige automáticamente la asociación. Muestra únicamente las OT que necesitan resolución de identidad del equipo.</p></div></CardContent></Card> : null}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[['Abiertas', open], ['En progreso', inProgress], ['Críticas', critical], ['Vencidas', overdue]].map(([label, value]) => (
@@ -173,10 +180,10 @@ export default function WorkOrdersPage() {
         <Button variant="ghost" onClick={() => { setSearch(''); setStatusFilter('all'); setPriorityFilter('all'); }}>Limpiar</Button>
       </div></CardContent></Card>
 
-      {scheduleItems.length > 0 ? <Card className="shadow-none"><CardHeader className="pb-3"><CardTitle className="text-base">Próximas intervenciones</CardTitle></CardHeader><CardContent>{updatingScheduleId ? <p className="mb-3 text-sm text-muted-foreground">Actualizando orden...</p> : null}<MaintenanceSchedule schedules={scheduleItems} onMarkComplete={markScheduleComplete} /></CardContent></Card> : null}
+      {!missingAssetOnly && scheduleItems.length > 0 ? <Card className="shadow-none"><CardHeader className="pb-3"><CardTitle className="text-base">Próximas intervenciones</CardTitle></CardHeader><CardContent>{updatingScheduleId ? <p className="mb-3 text-sm text-muted-foreground">Actualizando orden...</p> : null}<MaintenanceSchedule schedules={scheduleItems} onMarkComplete={markScheduleComplete} /></CardContent></Card> : null}
 
-      <Card className="shadow-none"><CardHeader className="pb-3"><CardTitle className="text-base">Registro de órdenes</CardTitle><p className="text-sm text-muted-foreground">{filteredOrders.length} de {workOrders.length} órdenes</p></CardHeader><CardContent>
-        {isLoading ? <div className="space-y-2">{Array.from({ length: 5 }).map((_, index) => <div key={index} className="h-20 animate-pulse rounded-lg bg-muted" />)}</div> : error ? <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-8 text-center"><p className="font-medium text-destructive">No se pudieron cargar las órdenes</p><Button className="mt-4" variant="outline" onClick={() => void mutate()}>Reintentar</Button></div> : filteredOrders.length === 0 ? <div className="rounded-lg border border-dashed p-10 text-center text-sm text-muted-foreground">No hay órdenes que coincidan con los filtros.</div> : <div className="divide-y rounded-lg border">{filteredOrders.map((order) => <div key={order.id} className="grid gap-4 p-4 transition-colors hover:bg-muted/30 lg:grid-cols-[minmax(0,1.5fr)_minmax(160px,.8fr)_minmax(150px,.7fr)_auto] lg:items-center"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><span className="font-mono text-xs text-muted-foreground">{order.work_order_number || 'Sin folio'}</span><Badge variant="outline" className={getStatusClass(order.status)}>{getStatusLabel(order.status)}</Badge>{isOverdue(order) ? <Badge variant="destructive">Vencida</Badge> : null}</div><p className="mt-2 truncate font-medium">{order.title || 'Orden sin título'}</p><p className="mt-1 truncate text-sm text-muted-foreground">{order.asset_name || 'Sin activo asociado'}</p></div><div><p className="text-xs text-muted-foreground">Tipo y prioridad</p><p className="mt-1 text-sm">{getWorkTypeLabel(order.work_type)} · {getPriorityLabel(order.priority)}</p></div><div><p className="text-xs text-muted-foreground">Responsable / fecha</p><p className="mt-1 text-sm">{order.assigned_to_name || 'Sin asignar'}</p><p className="text-xs text-muted-foreground">{order.scheduled_date ? new Date(order.scheduled_date).toLocaleDateString('es-CL') : 'Sin fecha'}</p></div><Button asChild variant="ghost" size="sm"><Link href={`/dashboard/mantenimiento/ordenes-trabajo/${order.id}`}><Eye className="mr-2 h-4 w-4" />Ver detalle</Link></Button></div>)}</div>}
+      <Card className="shadow-none"><CardHeader className="pb-3"><CardTitle className="text-base">{missingAssetOnly ? 'OT pendientes de asociación canónica' : 'Registro de órdenes'}</CardTitle><p className="text-sm text-muted-foreground">{filteredOrders.length} de {workOrders.length} órdenes</p></CardHeader><CardContent>
+        {isLoading ? <div className="space-y-2">{Array.from({ length: 5 }).map((_, index) => <div key={index} className="h-20 animate-pulse rounded-lg bg-muted" />)}</div> : error ? <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-8 text-center"><p className="font-medium text-destructive">No se pudieron cargar las órdenes</p><Button className="mt-4" variant="outline" onClick={() => void mutate()}>Reintentar</Button></div> : filteredOrders.length === 0 ? <div className="rounded-lg border border-dashed p-10 text-center text-sm text-muted-foreground">{missingAssetOnly ? 'No hay OT sin activo canónico para los filtros actuales.' : 'No hay órdenes que coincidan con los filtros.'}</div> : <div className="divide-y rounded-lg border">{filteredOrders.map((order) => <div key={order.id} className="grid gap-4 p-4 transition-colors hover:bg-muted/30 lg:grid-cols-[minmax(0,1.5fr)_minmax(160px,.8fr)_minmax(150px,.7fr)_auto] lg:items-center"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><span className="font-mono text-xs text-muted-foreground">{order.work_order_number || 'Sin folio'}</span><Badge variant="outline" className={getStatusClass(order.status)}>{getStatusLabel(order.status)}</Badge>{isOverdue(order) ? <Badge variant="destructive">Vencida</Badge> : null}{!order.asset_name ? <Badge variant="destructive">Sin activo</Badge> : null}</div><p className="mt-2 truncate font-medium">{order.title || 'Orden sin título'}</p><p className="mt-1 truncate text-sm text-muted-foreground">{order.asset_name || 'Sin activo asociado'}</p></div><div><p className="text-xs text-muted-foreground">Tipo y prioridad</p><p className="mt-1 text-sm">{getWorkTypeLabel(order.work_type)} · {getPriorityLabel(order.priority)}</p></div><div><p className="text-xs text-muted-foreground">Responsable / fecha</p><p className="mt-1 text-sm">{order.assigned_to_name || 'Sin asignar'}</p><p className="text-xs text-muted-foreground">{order.scheduled_date ? new Date(order.scheduled_date).toLocaleDateString('es-CL') : 'Sin fecha'}</p></div><Button asChild variant="ghost" size="sm"><Link href={`/dashboard/mantenimiento/ordenes-trabajo/${order.id}`}><Eye className="mr-2 h-4 w-4" />Ver detalle</Link></Button></div>)}</div>}
       </CardContent></Card>
     </div>
   );
