@@ -63,7 +63,7 @@ type MaintenanceOverview = {
   };
 };
 
-type HomeMode = 'plant' | 'maintenance' | 'drilling' | 'inventory' | 'management' | 'general';
+type HomeMode = 'plant' | 'maintenance' | 'drilling' | 'inventory' | 'sustainability' | 'finance' | 'management' | 'general';
 
 type Metric = { label: string; value: string | number; detail?: string };
 type Shortcut = { label: string; href: string; detail: string };
@@ -94,6 +94,8 @@ function normalize(value: string | null | undefined) {
 function resolveMode(cargoName: string | null | undefined): HomeMode {
   const cargo = normalize(cargoName);
   if (/gerenc|director|administrador|admin|jefatura general/.test(cargo)) return 'management';
+  if (/sostenibilidad|prevencion|hse|medio ambiente/.test(cargo)) return 'sustainability';
+  if (/jefe adm|administracion|finanzas|financiero/.test(cargo)) return 'finance';
   if (/mantencion|mantenimiento|mecan|taller/.test(cargo)) return 'maintenance';
   if (/sondaje|perforacion|perforista/.test(cargo)) return 'drilling';
   if (/jefe.*planta|planta.*jefe|metalurg/.test(cargo)) return 'plant';
@@ -192,6 +194,44 @@ function configFor(
         { label: 'Inteligencia Inventario', href: '/dashboard/bodega/inteligencia', detail: 'Stock, calidad y readiness predictivo' },
         { label: 'Inventario', href: '/dashboard/bodega', detail: 'Existencias y productos canónicos' },
         { label: 'Mis acciones', href: '/dashboard/acciones', detail: 'Data Health y reposición asignada a Bodega' },
+      ],
+    };
+  }
+
+  if (mode === 'sustainability') {
+    return {
+      eyebrow: 'Sostenibilidad · riesgos y cumplimiento',
+      title: 'Mi Sostenibilidad',
+      description: 'Riesgos, cumplimiento y acciones HSE visibles para tu cargo.',
+      metrics: [
+        { label: 'Acciones propias', value: summary?.owners ?? 0, detail: 'Responsabilidad directa' },
+        { label: 'Críticas', value: summary?.critical ?? 0, detail: `${summary?.overdue ?? 0} vencidas` },
+        { label: 'Escalaciones', value: summary?.escalations ?? 0, detail: 'Seguimiento superior' },
+        { label: 'Backlog', value: summary?.backlog ?? 0, detail: 'Más de 30 días' },
+      ],
+      shortcuts: [
+        { label: 'Sostenibilidad', href: '/dashboard/sostenibilidad', detail: 'Estado general HSE y cumplimiento' },
+        { label: 'No conformidades', href: '/dashboard/sostenibilidad/no-conformidades', detail: 'Casos y acciones correctivas' },
+        { label: 'Mis acciones', href: '/dashboard/acciones', detail: 'Sólo tareas HSE asignadas a tu cargo' },
+      ],
+    };
+  }
+
+  if (mode === 'finance') {
+    return {
+      eyebrow: 'Administración · control financiero',
+      title: 'Mi Administración',
+      description: 'Excepciones financieras y trabajo administrativo que requieren revisión.',
+      metrics: [
+        { label: 'Acciones propias', value: summary?.owners ?? 0, detail: 'Responsabilidad directa' },
+        { label: 'Críticas', value: summary?.critical ?? 0, detail: `${summary?.overdue ?? 0} vencidas` },
+        { label: 'Escalaciones', value: summary?.escalations ?? 0, detail: 'Seguimiento superior' },
+        { label: 'Backlog', value: summary?.backlog ?? 0, detail: 'Más de 30 días' },
+      ],
+      shortcuts: [
+        { label: 'Finanzas', href: '/dashboard/finanzas', detail: 'Resumen financiero y excepciones' },
+        { label: 'Centros de costo', href: '/dashboard/finanzas/centros', detail: 'Control por centro y trazabilidad' },
+        { label: 'Mis acciones', href: '/dashboard/acciones', detail: 'Excepciones financieras asignadas al cargo' },
       ],
     };
   }
