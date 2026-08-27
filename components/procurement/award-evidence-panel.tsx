@@ -104,7 +104,7 @@ export function AwardEvidencePanel() {
   return <Card className="shadow-none">
     <CardHeader>
       <CardTitle>Decisión de adjudicación</CardTitle>
-      <CardDescription>Precio, plazo y desempeño se muestran por separado. La persona que adjudica debe registrar el motivo; Motil conserva el snapshot de evidencia usado en ese momento.</CardDescription>
+      <CardDescription>Precio, plazo y desempeño se muestran por separado. Motil no combina estos factores en un ranking oculto ni adjudica automáticamente. La persona que adjudica debe registrar el motivo y Motil conserva el snapshot de evidencia usado en ese momento.</CardDescription>
     </CardHeader>
     <CardContent className="space-y-5">
       {actionError ? <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{actionError}</div> : null}
