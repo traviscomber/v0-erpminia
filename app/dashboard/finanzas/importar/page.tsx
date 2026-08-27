@@ -1,12 +1,28 @@
 'use client';
 
 import Link from 'next/link';
-import { Download, ArrowRight, Sparkles } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { AlertTriangle, Download, ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MovementsImport } from '@/components/finanzas/movements-import';
 
+const issueCopy: Record<string, { title: string; description: string }> = {
+  zero_amount_lines: {
+    title: 'Revisar líneas con monto cero',
+    description: 'La fuente canónica contiene registros con monto neto igual a cero. Corrige o vuelve a importar sólo cuando la fuente permita acreditar el valor correcto.',
+  },
+  validation: {
+    title: 'Resolver validación financiera',
+    description: 'Existe una validación financiera pendiente. Revisa el archivo de origen y vuelve a importar sólo si la corrección está sustentada por evidencia contable.',
+  },
+};
+
 export default function FinanzasImportPage() {
+  const params = useSearchParams();
+  const issue = params.get('issue');
+  const issueContext = issue ? issueCopy[issue] : null;
+
   const downloadTemplate = () => {
     const headers = ['DATE', 'DESCRIPTION', 'AMOUNT', 'TYPE', 'CATEGORY', 'COST_CENTER_ID'];
     const rows = [
@@ -49,6 +65,8 @@ export default function FinanzasImportPage() {
           </Button>
         </div>
       </div>
+
+      {issueContext ? <Card className="border-primary/30 shadow-none"><CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:justify-between"><div className="flex gap-3"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0"/><div><p className="text-sm font-medium">{issueContext.title}</p><p className="mt-1 max-w-3xl text-sm text-muted-foreground">{issueContext.description}</p></div></div><Button asChild size="sm" variant="outline"><Link href="/dashboard/acciones">Mis acciones</Link></Button></CardContent></Card> : null}
 
       <Card>
         <CardHeader>
