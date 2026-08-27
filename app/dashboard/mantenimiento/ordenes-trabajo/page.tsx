@@ -160,6 +160,7 @@ export default function WorkOrdersPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           {missingAssetOnly ? <Button asChild variant="outline"><Link href="/dashboard/mantenimiento/ordenes-trabajo">Ver todas las OT</Link></Button> : null}
+          {!missingAssetOnly ? <Button asChild variant="outline"><Link href="/dashboard/mantenimiento/ordenes-trabajo/cierre">Cierre progresivo</Link></Button> : null}
           <Button variant="outline" onClick={() => void mutate()} disabled={isLoading}><RefreshCw className="mr-2 h-4 w-4" />Actualizar</Button>
           <Button asChild><Link href="/dashboard/mantenimiento/ordenes-trabajo/create"><Plus className="mr-2 h-4 w-4" />Nueva OT</Link></Button>
         </div>
