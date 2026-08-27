@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import { AlertCircle, ArrowRight, CheckCircle2, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -64,8 +65,18 @@ function money(value: unknown) {
 }
 
 export function ProgressiveWorkOrderCloseQueue() {
+  const searchParams = useSearchParams();
+  const selectedWorkOrderId = searchParams.get('workOrderId');
   const { data, error, isLoading, mutate } = useSWR<QueueResponse>('/api/maintenance/work-order-close-queue', fetcher);
-  const queue = Array.isArray(data?.queue) ? data.queue : [];
+  const rawQueue = Array.isArray(data?.queue) ? data.queue : [];
+  const queue = useMemo(() => {
+    if (!selectedWorkOrderId) return rawQueue;
+    return [...rawQueue].sort((a, b) => {
+      if (a.work_order_id === selectedWorkOrderId) return -1;
+      if (b.work_order_id === selectedWorkOrderId) return 1;
+      return 0;
+    });
+  }, [rawQueue, selectedWorkOrderId]);
   const current = queue[0] || null;
   const summary = data?.summary;
   const [textValue, setTextValue] = useState('');
