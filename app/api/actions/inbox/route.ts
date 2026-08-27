@@ -48,21 +48,29 @@ export async function GET(request: NextRequest) {
 
   if (!profile?.cargo_id) {
     return NextResponse.json({
-      profile: { name: profile?.full_name || null, cargoId: null },
+      profile: { name: profile?.full_name || null, cargoId: null, cargoName: null },
       tasks: [],
       summary: { total: 0, owners: 0, support: 0, escalations: 0, critical: 0, overdue: 0, backlog: 0 },
       generatedAt: new Date().toISOString(),
     });
   }
 
-  const { data, error } = await context.supabase
-    .from('role_task_frontend_v1')
-    .select('*')
-    .eq('organization_id', context.organizationId)
-    .eq('cargo_id', profile.cargo_id)
-    .eq('visible_now', true)
-    .order('priority_score', { ascending: false })
-    .order('due_at', { ascending: true, nullsFirst: false });
+  const [{ data: cargo, error: cargoError }, { data, error }] = await Promise.all([
+    context.supabase.from('cargos').select('name').eq('id', profile.cargo_id).maybeSingle(),
+    context.supabase
+      .from('role_task_frontend_v1')
+      .select('*')
+      .eq('organization_id', context.organizationId)
+      .eq('cargo_id', profile.cargo_id)
+      .eq('visible_now', true)
+      .order('priority_score', { ascending: false })
+      .order('due_at', { ascending: true, nullsFirst: false }),
+  ]);
+
+  if (cargoError) {
+    console.error('[role-task-inbox] cargo lookup failed', cargoError);
+    return NextResponse.json({ error: 'No se pudo resolver tu cargo' }, { status: 500 });
+  }
 
   if (error) {
     console.error('[role-task-inbox] task lookup failed', error);
@@ -76,7 +84,7 @@ export async function GET(request: NextRequest) {
   const isBacklog = (task: RoleTask) => Boolean(task.occurred_at && new Date(task.occurred_at).getTime() < backlogCutoff);
 
   return NextResponse.json({
-    profile: { name: profile.full_name || null, cargoId: profile.cargo_id, cargoName: tasks[0]?.cargo_name || null },
+    profile: { name: profile.full_name || null, cargoId: profile.cargo_id, cargoName: cargo?.name || null },
     tasks,
     summary: {
       total: tasks.length,
