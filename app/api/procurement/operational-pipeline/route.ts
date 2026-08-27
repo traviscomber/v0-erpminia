@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       .order('required_date', { ascending: true, nullsFirst: false });
     if (pipelineError) {
       console.error('[procurement/operational-pipeline:view]', pipelineError);
-      return NextResponse.json({ pipeline: [], requestLines: [], orderLines: [], invoiceMatchSummary: [], invoiceMatchLines: [], unavailable: true });
+      return NextResponse.json({ pipeline: [], requestLines: [], orderLines: [], invoiceMatchSummary: [], invoiceMatchLines: [], invoices: [], invoiceExceptions: [], unavailable: true });
     }
 
     const requestIds = (pipeline || []).map((row) => row.intake_request_id).filter(Boolean);
@@ -32,18 +32,32 @@ export async function GET(request: NextRequest) {
       { data: workOrders, error: workOrdersError },
       { data: invoiceMatchSummary, error: invoiceSummaryError },
       { data: invoiceMatchLines, error: invoiceLinesError },
+      { data: invoices, error: invoicesError },
     ] = await Promise.all([
       requestIds.length ? context.supabase.from('procurement_intake_request_lines').select('*').in('intake_request_id', requestIds) : Promise.resolve({ data: [], error: null }),
       orderIds.length ? context.supabase.from('procurement_operational_order_lines').select('*').in('order_id', orderIds) : Promise.resolve({ data: [], error: null }),
       workOrderIds.length ? context.supabase.from('maintenance_work_orders').select('id,cost_center_id').in('id', workOrderIds).eq('organization_id', context.organizationId) : Promise.resolve({ data: [], error: null }),
       orderIds.length ? context.supabase.from('procurement_three_way_match_summary_v1').select('*').eq('organization_id', context.organizationId).in('order_id', orderIds) : Promise.resolve({ data: [], error: null }),
       orderIds.length ? context.supabase.from('procurement_three_way_match_lines_v1').select('*').eq('organization_id', context.organizationId).in('order_id', orderIds) : Promise.resolve({ data: [], error: null }),
+      orderIds.length ? context.supabase.from('procurement_supplier_invoices').select('id,organization_id,order_id,invoice_number,status,approved_for_payment_by,approved_for_payment_at,approval_basis,approval_notes').eq('organization_id', context.organizationId).in('order_id', orderIds) : Promise.resolve({ data: [], error: null }),
     ]);
     if (requestLinesError) throw requestLinesError;
     if (orderLinesError) throw orderLinesError;
     if (workOrdersError) throw workOrdersError;
     if (invoiceSummaryError) throw invoiceSummaryError;
     if (invoiceLinesError) throw invoiceLinesError;
+    if (invoicesError) throw invoicesError;
+
+    const invoiceIds = (invoices || []).map((row) => row.id).filter(Boolean);
+    const { data: invoiceExceptions, error: invoiceExceptionsError } = invoiceIds.length
+      ? await context.supabase
+          .from('procurement_match_exceptions')
+          .select('id,invoice_id,order_line_id,exception_type,expected_value,actual_value,difference,status,resolution_notes,resolved_by,resolved_at,created_at')
+          .eq('organization_id', context.organizationId)
+          .in('invoice_id', invoiceIds)
+          .order('created_at', { ascending: false })
+      : { data: [], error: null };
+    if (invoiceExceptionsError) throw invoiceExceptionsError;
 
     const costCenterIds = (workOrders || []).map((row) => row.cost_center_id).filter(Boolean);
     const { data: costCenters, error: costCentersError } = costCenterIds.length
@@ -73,11 +87,13 @@ export async function GET(request: NextRequest) {
       orderLines: orderLines || [],
       invoiceMatchSummary: invoiceMatchSummary || [],
       invoiceMatchLines: invoiceMatchLines || [],
+      invoices: invoices || [],
+      invoiceExceptions: invoiceExceptions || [],
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : typeof error === 'object' && error && 'message' in error ? String(error.message) : 'No se pudo cargar el pipeline operativo';
     console.error('[procurement/operational-pipeline]', error);
-    return NextResponse.json({ pipeline: [], requestLines: [], orderLines: [], invoiceMatchSummary: [], invoiceMatchLines: [], error: message }, { status: 500 });
+    return NextResponse.json({ pipeline: [], requestLines: [], orderLines: [], invoiceMatchSummary: [], invoiceMatchLines: [], invoices: [], invoiceExceptions: [], error: message }, { status: 500 });
   }
 }
 
@@ -125,6 +141,23 @@ export async function POST(request: NextRequest) {
       const { data, error } = await context.supabase.rpc('refresh_supplier_invoice_match_v1', { p_invoice_id: body.invoiceId });
       if (error) throw error;
       return NextResponse.json({ matchStatus: data });
+    }
+    if (action === 'resolve_supplier_invoice_exception') {
+      const { error } = await context.supabase.rpc('resolve_procurement_match_exception_v1', {
+        p_exception_id: body.exceptionId,
+        p_decision: body.decision,
+        p_notes: body.notes,
+      });
+      if (error) return NextResponse.json({ error: error.message }, { status: 409 });
+      return NextResponse.json({ ok: true });
+    }
+    if (action === 'approve_supplier_invoice_payment') {
+      const { data, error } = await context.supabase.rpc('approve_supplier_invoice_for_payment_v1', {
+        p_invoice_id: body.invoiceId,
+        p_notes: body.notes ?? null,
+      });
+      if (error) return NextResponse.json({ error: error.message }, { status: 409 });
+      return NextResponse.json({ approvalBasis: data });
     }
     return NextResponse.json({ error: 'Acción no soportada' }, { status: 400 });
   } catch (error) {
