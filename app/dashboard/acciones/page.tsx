@@ -33,6 +33,7 @@ type InboxPayload = {
 
 type StateRow = { source_key: string; status: 'pending' | 'read' | 'snoozed'; snoozed_until?: string | null };
 type FamilyPreferences = Record<string, boolean>;
+type TaskFilter = 'all' | 'critical' | 'overdue' | 'owner';
 
 const fetcher = async (url: string) => {
   const response = await fetch(url, { credentials: 'include' });
@@ -90,11 +91,19 @@ function preferenceStorageKey(name: string | null | undefined, cargoName: string
   return `motil:actions-family-layout:${String(name || 'user')}:${String(cargoName || 'cargo')}`;
 }
 
+function matchesFilter(task: Task, filter: TaskFilter) {
+  if (filter === 'critical') return task.severity === 'critical';
+  if (filter === 'overdue') return task.urgency_state === 'overdue' || task.urgency_state === 'escalated';
+  if (filter === 'owner') return task.responsibility === 'owner';
+  return true;
+}
+
 export default function AccionesPage() {
   const inbox = useSWR<InboxPayload>('/api/actions/inbox', fetcher, { refreshInterval: 60000, revalidateOnFocus: false });
   const states = useSWR('/api/actions/state', fetcher, { revalidateOnFocus: false });
   const [familyPreferences, setFamilyPreferences] = useState<FamilyPreferences>({});
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+  const [taskFilter, setTaskFilter] = useState<TaskFilter>('all');
   const profileName = inbox.data?.profile?.name;
   const cargoName = inbox.data?.profile?.cargoName;
 
@@ -130,6 +139,7 @@ export default function AccionesPage() {
     const state = stateMap.get(task.task_key);
     return !(state?.status === 'snoozed' && state.snoozed_until && new Date(state.snoozed_until).getTime() > now);
   });
+  const visibleTasks = tasks.filter((task) => matchesFilter(task, taskFilter));
 
   async function setState(sourceKey: string, status: 'pending' | 'read' | 'snoozed') {
     await fetch('/api/actions/state', {
@@ -143,13 +153,19 @@ export default function AccionesPage() {
 
   const lanes = ['Operación actual', 'Vencidas', 'Apoyos', 'Escalaciones'] as const;
   const summary = inbox.data?.summary;
+  const filterCounts = {
+    all: tasks.length,
+    critical: tasks.filter((task) => task.severity === 'critical').length,
+    overdue: tasks.filter((task) => task.urgency_state === 'overdue' || task.urgency_state === 'escalated').length,
+    owner: tasks.filter((task) => task.responsibility === 'owner').length,
+  };
 
   return <div className="space-y-6">
     <section className="flex flex-col gap-4 border-b border-border/70 pb-6 md:flex-row md:items-end md:justify-between">
       <div>
         <p className="text-sm font-medium text-muted-foreground">{cargoName || 'Trabajo por cargo'}</p>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">Mis acciones</h1>
-        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Sólo decisiones y tareas que corresponden a tu cargo, agrupadas por familia operacional. Motil recuerda qué familias dejas abiertas o cerradas en este navegador.</p>
+        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Sólo decisiones y tareas que corresponden a tu cargo, agrupadas por familia operacional. Los filtros son temporales y siempre puedes volver al universo completo.</p>
       </div>
       <Button variant="outline" onClick={() => { void inbox.mutate(); void states.mutate(); }}><RefreshCw className="mr-2 h-4 w-4" />Actualizar</Button>
     </section>
@@ -161,9 +177,19 @@ export default function AccionesPage() {
       <Card className="shadow-none"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Escalaciones</p><p className="mt-1 text-2xl font-semibold">{summary?.escalations ?? 0}</p></CardContent></Card>
     </div>
 
-    {inbox.error || states.error ? <Card className="shadow-none"><CardContent className="p-8 text-center text-sm text-muted-foreground">No se pudo cargar la bandeja operacional.</CardContent></Card> : inbox.isLoading || states.isLoading ? <Card className="shadow-none"><CardContent className="p-8 text-sm text-muted-foreground">Cargando trabajo del cargo…</CardContent></Card> : tasks.length === 0 ? <Card className="shadow-none"><CardContent className="p-10 text-center"><CheckCircle2 className="mx-auto h-7 w-7" /><p className="mt-3 font-medium">Operación al día</p><p className="mt-1 text-sm text-muted-foreground">No tienes tareas ni escalaciones operacionales visibles en este momento.</p></CardContent></Card> : <div className="space-y-5">
+    <div className="flex flex-wrap items-center gap-2" aria-label="Filtros de acciones">
+      {([
+        ['all', 'Todas', filterCounts.all],
+        ['critical', 'Críticas', filterCounts.critical],
+        ['overdue', 'Vencidas', filterCounts.overdue],
+        ['owner', 'Sólo propias', filterCounts.owner],
+      ] as const).map(([value, label, count]) => <Button key={value} size="sm" variant={taskFilter === value ? 'default' : 'outline'} onClick={() => setTaskFilter(value)}>{label}<Badge variant="secondary" className="ml-2">{count}</Badge></Button>)}
+      {taskFilter !== 'all' ? <span className="text-xs text-muted-foreground">Mostrando {visibleTasks.length} de {tasks.length} acciones visibles.</span> : null}
+    </div>
+
+    {inbox.error || states.error ? <Card className="shadow-none"><CardContent className="p-8 text-center text-sm text-muted-foreground">No se pudo cargar la bandeja operacional.</CardContent></Card> : inbox.isLoading || states.isLoading ? <Card className="shadow-none"><CardContent className="p-8 text-sm text-muted-foreground">Cargando trabajo del cargo…</CardContent></Card> : tasks.length === 0 ? <Card className="shadow-none"><CardContent className="p-10 text-center"><CheckCircle2 className="mx-auto h-7 w-7" /><p className="mt-3 font-medium">Operación al día</p><p className="mt-1 text-sm text-muted-foreground">No tienes tareas ni escalaciones operacionales visibles en este momento.</p></CardContent></Card> : visibleTasks.length === 0 ? <Card className="shadow-none"><CardContent className="p-8 text-center"><p className="font-medium">Sin acciones para este filtro</p><p className="mt-1 text-sm text-muted-foreground">El universo completo sigue disponible.</p><Button className="mt-4" size="sm" variant="outline" onClick={() => setTaskFilter('all')}>Ver todas</Button></CardContent></Card> : <div className="space-y-5">
       {lanes.map((laneName) => {
-        const laneTasks = tasks.filter((task) => lane(task) === laneName);
+        const laneTasks = visibleTasks.filter((task) => lane(task) === laneName);
         if (!laneTasks.length) return null;
         const Icon = laneName === 'Escalaciones' ? ShieldAlert : laneName === 'Apoyos' ? Users : laneName === 'Vencidas' ? Clock3 : Inbox;
         const families = Array.from(new Set(laneTasks.map(family)))
