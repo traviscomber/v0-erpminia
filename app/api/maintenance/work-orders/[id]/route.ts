@@ -50,6 +50,17 @@ async function validateCostCenter(context: Awaited<ReturnType<typeof getOrganiza
   return data;
 }
 
+async function hasOpenOperationalOrder(context: Awaited<ReturnType<typeof getOrganizationContext>> & { ok: true }, workOrderId: string) {
+  const { count, error } = await context.supabase
+    .from('procurement_operational_orders')
+    .select('id', { head: true, count: 'exact' })
+    .eq('organization_id', context.organizationId)
+    .eq('work_order_id', workOrderId)
+    .in('status', ['issued', 'partially_received']);
+  if (error) throw error;
+  return (count || 0) > 0;
+}
+
 function mapWorkOrder(row: Record<string, unknown>, asset: Record<string, unknown> | null, costSummary?: Awaited<ReturnType<typeof loadCostSummary>>) {
   return { ...row, asset_id: row.canonical_asset_id || null, asset_name: asset?.name || null, asset_code: asset?.asset_code || null, asset_type: asset?.asset_type || null, asset_category: asset?.category || null, asset_manufacturer: asset?.manufacturer || null, asset_model: asset?.model || null, asset_serial_number: asset?.serial_number || null, asset_license_plate: asset?.license_plate || null, progress_percentage: progressFromStatus(String(row.status || '')), cost_summary: costSummary || null };
 }
@@ -115,8 +126,21 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (body.meter_reading !== undefined) updateData.meter_reading = body.meter_reading;
     if (body.meter_unit !== undefined) updateData.meter_unit = body.meter_unit;
     if (body.cost_center_id !== undefined) {
-      if (body.cost_center_id) await validateCostCenter(context, body.cost_center_id);
-      updateData.cost_center_id = body.cost_center_id || null;
+      const { data: currentOrder, error: currentOrderError } = await context.supabase
+        .from('maintenance_work_orders')
+        .select('cost_center_id')
+        .eq('id', id)
+        .eq('organization_id', context.organizationId)
+        .maybeSingle();
+      if (currentOrderError) throw currentOrderError;
+      if (!currentOrder) return NextResponse.json({ error: 'No se encontró la orden de trabajo' }, { status: 404 });
+
+      const nextCostCenterId = body.cost_center_id || null;
+      if (nextCostCenterId !== (currentOrder.cost_center_id || null) && await hasOpenOperationalOrder(context, id)) {
+        return NextResponse.json({ error: 'No se puede cambiar la imputación mientras exista una OC emitida o parcialmente recibida para esta OT.' }, { status: 409 });
+      }
+      if (nextCostCenterId) await validateCostCenter(context, nextCostCenterId);
+      updateData.cost_center_id = nextCostCenterId;
     }
 
     const { data, error } = await context.supabase.from('maintenance_work_orders').update(updateData).eq('id', id).eq('organization_id', context.organizationId).select('*').single();
