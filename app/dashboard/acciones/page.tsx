@@ -46,6 +46,21 @@ function lane(task: Task) {
   return 'Operación actual';
 }
 
+function family(task: Task) {
+  if (task.task_key.startsWith('data_health:')) return 'Calidad de datos';
+  if (task.task_key.startsWith('maintenance_review:')) return 'Observaciones de equipos';
+  if (task.task_key.startsWith('work_order:')) return 'Órdenes de trabajo';
+  if (task.task_key.startsWith('incident:')) return 'Incidentes HSE';
+  if (task.task_key.startsWith('inspection:')) return 'Inspecciones HSE';
+  if (task.task_key.startsWith('risk:')) return 'Riesgos HSE';
+  if (task.domain === 'inventory') return 'Inventario y abastecimiento';
+  if (task.domain === 'plant') return 'Producción';
+  if (task.domain === 'finance') return 'Finanzas';
+  if (task.domain === 'hse') return 'Sostenibilidad';
+  if (task.domain === 'maintenance') return 'Mantención';
+  return 'Otras acciones';
+}
+
 export default function AccionesPage() {
   const inbox = useSWR<InboxPayload>('/api/actions/inbox', fetcher, { refreshInterval: 60000, revalidateOnFocus: false });
   const states = useSWR('/api/actions/state', fetcher, { revalidateOnFocus: false });
@@ -74,7 +89,7 @@ export default function AccionesPage() {
       <div>
         <p className="text-sm font-medium text-muted-foreground">{inbox.data?.profile?.cargoName || 'Trabajo por cargo'}</p>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">Mis acciones</h1>
-        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Sólo decisiones y tareas que corresponden a tu cargo. Materiales, finanzas y calidad de datos permanecen en sus módulos salvo que bloqueen la operación.</p>
+        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Sólo decisiones y tareas que corresponden a tu cargo, agrupadas por familia operacional. Cada caso mantiene su acción y evidencia individual.</p>
       </div>
       <Button variant="outline" onClick={() => { void inbox.mutate(); void states.mutate(); }}><RefreshCw className="mr-2 h-4 w-4" />Actualizar</Button>
     </section>
@@ -91,28 +106,47 @@ export default function AccionesPage() {
         const laneTasks = tasks.filter((task) => lane(task) === laneName);
         if (!laneTasks.length) return null;
         const Icon = laneName === 'Escalaciones' ? ShieldAlert : laneName === 'Apoyos' ? Users : laneName === 'Vencidas' ? Clock3 : Inbox;
-        return <Card key={laneName} className="shadow-none"><CardHeader className="pb-3"><CardTitle className="flex items-center gap-2 text-lg"><Icon className="h-5 w-5" />{laneName}<Badge variant="secondary" className="ml-auto">{laneTasks.length}</Badge></CardTitle></CardHeader><CardContent className="p-0"><div className="divide-y border-t">{laneTasks.map((task) => {
-          const state = stateMap.get(task.task_key);
-          const isOwner = task.responsibility === 'owner';
-          return <div key={task.task_key} className="grid gap-4 p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
-            <div>
-              <div className="flex flex-wrap gap-2">
-                <Badge variant={task.severity === 'critical' ? 'destructive' : 'outline'}>{task.severity === 'critical' ? 'Crítica' : task.severity === 'warning' ? 'Atención' : 'Seguimiento'}</Badge>
-                <Badge variant="secondary">{task.responsibility_label}</Badge>
-                {task.urgency_label ? <Badge variant="outline">{task.urgency_label}</Badge> : null}
-                {state?.status === 'read' ? <Badge variant="secondary">Vista</Badge> : null}
-              </div>
-              <p className="mt-2 font-medium">{task.title}</p>
-              {task.evidence_summary ? <p className="mt-1 text-sm text-muted-foreground">{task.evidence_summary}</p> : null}
-              <p className="mt-1 text-xs text-muted-foreground">{task.domain} · {task.cargo_name}</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button size="sm" variant="ghost" onClick={() => void setState(task.task_key, state?.status === 'read' ? 'pending' : 'read')}>{state?.status === 'read' ? 'Marcar pendiente' : 'Vista'}</Button>
-              <Button size="sm" variant="ghost" onClick={() => void setState(task.task_key, 'snoozed')}><Clock3 className="mr-2 h-4 w-4" />Mañana</Button>
-              <Button asChild size="sm" variant={isOwner ? 'default' : 'outline'}><Link href={task.module_route}>{isOwner ? 'Resolver' : task.responsibility === 'support' ? 'Apoyar' : 'Revisar'}<ArrowRight className="ml-2 h-4 w-4" /></Link></Button>
-            </div>
-          </div>;
-        })}</div></CardContent></Card>;
+        const families = Array.from(new Set(laneTasks.map(family)));
+        return <Card key={laneName} className="shadow-none">
+          <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2 text-lg"><Icon className="h-5 w-5" />{laneName}<Badge variant="secondary" className="ml-auto">{laneTasks.length}</Badge></CardTitle></CardHeader>
+          <CardContent className="space-y-4 border-t p-4">
+            {families.map((familyName) => {
+              const familyTasks = laneTasks.filter((task) => family(task) === familyName);
+              const criticalCount = familyTasks.filter((task) => task.severity === 'critical').length;
+              return <section key={familyName} className="overflow-hidden rounded-lg border bg-card">
+                <div className="flex items-center gap-2 border-b bg-muted/20 px-4 py-2.5">
+                  <p className="text-sm font-medium">{familyName}</p>
+                  <Badge variant="secondary">{familyTasks.length}</Badge>
+                  {criticalCount > 0 ? <Badge variant="destructive">{criticalCount} crítica{criticalCount === 1 ? '' : 's'}</Badge> : null}
+                </div>
+                <div className="divide-y">
+                  {familyTasks.map((task) => {
+                    const state = stateMap.get(task.task_key);
+                    const isOwner = task.responsibility === 'owner';
+                    return <div key={task.task_key} className="grid gap-4 p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+                      <div>
+                        <div className="flex flex-wrap gap-2">
+                          <Badge variant={task.severity === 'critical' ? 'destructive' : 'outline'}>{task.severity === 'critical' ? 'Crítica' : task.severity === 'warning' ? 'Atención' : 'Seguimiento'}</Badge>
+                          <Badge variant="secondary">{task.responsibility_label}</Badge>
+                          {task.urgency_label ? <Badge variant="outline">{task.urgency_label}</Badge> : null}
+                          {state?.status === 'read' ? <Badge variant="secondary">Vista</Badge> : null}
+                        </div>
+                        <p className="mt-2 font-medium">{task.title}</p>
+                        {task.evidence_summary ? <p className="mt-1 text-sm text-muted-foreground">{task.evidence_summary}</p> : null}
+                        <p className="mt-1 text-xs text-muted-foreground">{task.domain} · {task.cargo_name}</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Button size="sm" variant="ghost" onClick={() => void setState(task.task_key, state?.status === 'read' ? 'pending' : 'read')}>{state?.status === 'read' ? 'Marcar pendiente' : 'Vista'}</Button>
+                        <Button size="sm" variant="ghost" onClick={() => void setState(task.task_key, 'snoozed')}><Clock3 className="mr-2 h-4 w-4" />Mañana</Button>
+                        <Button asChild size="sm" variant={isOwner ? 'default' : 'outline'}><Link href={task.module_route}>{isOwner ? 'Resolver' : task.responsibility === 'support' ? 'Apoyar' : 'Revisar'}<ArrowRight className="ml-2 h-4 w-4" /></Link></Button>
+                      </div>
+                    </div>;
+                  })}
+                </div>
+              </section>;
+            })}
+          </CardContent>
+        </Card>;
       })}
     </div>}
   </div>;
