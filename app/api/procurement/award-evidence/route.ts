@@ -3,6 +3,8 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 
+const AWARD_REASONS = new Set(['price', 'lead_time', 'performance', 'urgency', 'commercial_terms', 'continuity', 'other']);
+
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
@@ -57,6 +59,45 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('[procurement/award-evidence]', error);
     const message = error instanceof Error ? error.message : 'No se pudo cargar evidencia de adjudicación.';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function POST(request: NextRequest) {
+  const context = await getOrganizationContext(request);
+  if (!context.ok) return context.response;
+
+  try {
+    const body = await request.json();
+    const quotationId = String(body.quotationId || '');
+    const primaryReason = String(body.primaryReason || '');
+    const decisionNotes = String(body.decisionNotes || '').trim();
+
+    if (!quotationId) return NextResponse.json({ error: 'Cotización requerida.' }, { status: 400 });
+    if (!AWARD_REASONS.has(primaryReason)) return NextResponse.json({ error: 'Selecciona un motivo de adjudicación válido.' }, { status: 400 });
+    if (primaryReason === 'other' && !decisionNotes) return NextResponse.json({ error: 'Explica el motivo cuando selecciones Otro.' }, { status: 400 });
+
+    const { data: quote, error: quoteError } = await context.supabase
+      .from('canonical_supplier_quotations_v1')
+      .select('id, organization_id, status')
+      .eq('organization_id', context.organizationId)
+      .eq('id', quotationId)
+      .single();
+    if (quoteError || !quote) return NextResponse.json({ error: 'Cotización no encontrada en la organización.' }, { status: 404 });
+    if (!['received', 'evaluated'].includes(String(quote.status || ''))) return NextResponse.json({ error: 'La cotización ya no está disponible para adjudicación.' }, { status: 409 });
+
+    const { data, error } = await context.supabase.rpc('award_supplier_quotation_with_decision_v1', {
+      p_quotation_id: quotationId,
+      p_primary_reason: primaryReason,
+      p_decision_notes: decisionNotes || null,
+      p_actor_id: context.userId,
+    });
+    if (error) throw error;
+
+    return NextResponse.json({ purchaseOrderId: data }, { status: 201 });
+  } catch (error) {
+    console.error('[procurement/award-evidence:post]', error);
+    const message = error instanceof Error ? error.message : 'No se pudo adjudicar la cotización.';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
