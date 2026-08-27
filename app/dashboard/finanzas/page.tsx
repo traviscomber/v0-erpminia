@@ -6,7 +6,7 @@ import useSWR from 'swr';
 import { FileSearch } from 'lucide-react';
 
 type Row = Record<string, string | number | null>;
-type Response = { overview?: Row | null; topAssets?: Row[]; topProducts?: Row[]; topSuppliers?: Row[]; topCostCenters?: Row[]; validation?: Row | null; recentEvents?: Row[]; operationalProcurement?: Row | null; operationalProcurementEvents?: Row[]; treasury?: Row[]; treasuryAging?: Row[] };
+type Response = { overview?: Row | null; topAssets?: Row[]; topProducts?: Row[]; topSuppliers?: Row[]; topCostCenters?: Row[]; validation?: Row | null; recentEvents?: Row[]; operationalProcurement?: Row | null; operationalProcurementEvents?: Row[]; treasury?: Row[]; treasuryAging?: Row[]; cashForecast?: Row[] };
 type ConcentrationKey = 'assets' | 'products' | 'suppliers' | 'costCenters';
 
 const fetcher = async (url: string): Promise<Response> => { const response = await fetch(url, { credentials: 'include' }); const payload = await response.json().catch(() => null); if (!response.ok) throw new Error(payload?.error || 'No se pudo cargar Finanzas'); return payload; };
@@ -30,6 +30,7 @@ export default function FinanzasPage() {
   const operationalProcurement = data?.operationalProcurement || {};
   const treasury = data?.treasury || [];
   const treasuryAging = data?.treasuryAging || [];
+  const cashForecast = data?.cashForecast || [];
   const validationPassed = String(data?.validation?.status || '').toLowerCase() === 'passed';
   const rowsByType: Record<ConcentrationKey, Row[]> = { assets: data?.topAssets || [], products: data?.topProducts || [], suppliers: data?.topSuppliers || [], costCenters: data?.topCostCenters || [] };
   const config = concentrationConfig[activeConcentration];
@@ -65,6 +66,24 @@ export default function FinanzasPage() {
           ].map(([label, value]) => <div key={label} className="bg-card px-4 py-4"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-base font-semibold tracking-tight">{value}</p></div>)}
         </div>)}
         {treasuryAging.length > 0 ? <div className="overflow-hidden rounded-lg border"><div className="border-b px-4 py-3"><h3 className="text-sm font-semibold">Aging por proveedor</h3></div>{treasuryAging.slice(0, 8).map((row, index) => <div key={`${String(row.supplier_id)}-${String(row.aging_bucket)}-${index}`} className="grid gap-1 border-b px-4 py-3 last:border-b-0 sm:grid-cols-[1fr_180px_160px]"><span className="truncate text-sm font-medium">{String(row.supplier_name || 'Proveedor')}</span><span className="text-sm text-muted-foreground">{agingLabels[String(row.aging_bucket)] || String(row.aging_bucket)}</span><span className="text-sm font-semibold tabular-nums sm:text-right">{currencyMoney(row.outstanding_amount, row.currency)}</span></div>)}</div> : null}
+      </section>
+
+      <section className="space-y-3 border-t pt-5">
+        <div><h2 className="text-lg font-semibold">Forecast de caja</h2><p className="text-sm text-muted-foreground">Calendario acumulado de obligaciones con vencimiento real. Las cuentas sin fecha se mantienen fuera del forecast y visibles como excepción.</p></div>
+        {cashForecast.length === 0 ? <div className="rounded-lg border px-4 py-5 text-sm text-muted-foreground">No hay obligaciones aprobadas con saldo pendiente para proyectar.</div> : cashForecast.map((row) => <div key={`forecast-${String(row.currency)}`} className="space-y-2 rounded-lg border p-4">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-sm font-semibold">{String(row.currency || '')}</p><p className="text-xs text-muted-foreground">{number(row.open_payables)} obligación(es) abiertas</p></div><p className="text-sm font-semibold tabular-nums">Saldo {currencyMoney(row.total_outstanding_amount, row.currency)}</p></div>
+          <div className="grid gap-px overflow-hidden rounded-md border bg-border sm:grid-cols-2 xl:grid-cols-5">
+            {[
+              ['Vencido', row.overdue_amount],
+              ['Próx. 7 días', row.due_next_7_amount],
+              ['Próx. 30 días', row.due_next_30_amount],
+              ['Próx. 60 días', row.due_next_60_amount],
+              ['Próx. 90 días', row.due_next_90_amount],
+            ].map(([label, value]) => <div key={label} className="bg-card px-3 py-3"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-sm font-semibold tabular-nums">{currencyMoney(value, row.currency)}</p></div>)}
+          </div>
+          {Number(row.no_due_date_amount || 0) > 0 ? <p className="text-xs text-amber-700 dark:text-amber-400">Fuera del forecast: {number(row.no_due_date_count)} obligación(es) sin vencimiento por {currencyMoney(row.no_due_date_amount, row.currency)}.</p> : null}
+          {row.next_due_date ? <p className="text-xs text-muted-foreground">Próximo vencimiento registrado: {String(row.next_due_date)}.</p> : null}
+        </div>)}
       </section>
 
       <section className="space-y-3 border-t pt-5">
