@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const migration = fs.readFileSync('supabase/migrations/20260827190500_add_supplier_accounts_payable_and_cash_reconciliation_v1.sql','utf8');
+const migration = fs.readFileSync('supabase/migrations/20260827191000_add_supplier_accounts_payable_and_cash_reconciliation_v1.sql','utf8');
 const route = fs.readFileSync('app/api/finance/payables/route.ts','utf8');
 const page = fs.readFileSync('app/dashboard/finanzas/pagos/page.tsx','utf8');
 const layout = fs.readFileSync('app/dashboard/finanzas/layout.tsx','utf8');
