@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
       workOrderIds.length ? context.supabase.from('maintenance_work_orders').select('id,cost_center_id').in('id', workOrderIds).eq('organization_id', context.organizationId) : Promise.resolve({ data: [], error: null }),
       orderIds.length ? context.supabase.from('procurement_three_way_match_summary_v1').select('*').eq('organization_id', context.organizationId).in('order_id', orderIds) : Promise.resolve({ data: [], error: null }),
       orderIds.length ? context.supabase.from('procurement_three_way_match_lines_v1').select('*').eq('organization_id', context.organizationId).in('order_id', orderIds) : Promise.resolve({ data: [], error: null }),
-      orderIds.length ? context.supabase.from('procurement_supplier_invoices').select('id,organization_id,order_id,invoice_number,status,approved_for_payment_by,approved_for_payment_at,approval_basis,approval_notes').eq('organization_id', context.organizationId).in('order_id', orderIds) : Promise.resolve({ data: [], error: null }),
+      orderIds.length ? context.supabase.from('procurement_supplier_invoices').select('id,organization_id,order_id,invoice_number,status,approved_for_payment_by,approved_for_payment_at,approval_basis,approval_notes,replaces_invoice_id,rejected_for_correction_by,rejected_for_correction_at,rejection_reason').eq('organization_id', context.organizationId).in('order_id', orderIds) : Promise.resolve({ data: [], error: null }),
     ]);
     if (requestLinesError) throw requestLinesError;
     if (orderLinesError) throw orderLinesError;
@@ -123,20 +123,55 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ receiptId: data });
     }
     if (action === 'create_supplier_invoice') {
-      const { data, error } = await context.supabase.rpc('create_supplier_invoice_v1', {
-        p_order_id: body.orderId,
-        p_invoice_number: body.invoiceNumber,
-        p_invoice_date: body.invoiceDate,
-        p_net_amount: body.netAmount,
-        p_tax_amount: body.taxAmount,
-        p_total_amount: body.totalAmount,
-        p_lines: body.lines,
-        p_document_url: body.documentUrl ?? null,
-      });
+      const { data: rejected, error: rejectedError } = await context.supabase
+        .from('procurement_supplier_invoices')
+        .select('id,rejected_for_correction_at')
+        .eq('organization_id', context.organizationId)
+        .eq('order_id', body.orderId)
+        .eq('status', 'rejected')
+        .order('rejected_for_correction_at', { ascending: false, nullsFirst: false });
+      if (rejectedError) throw rejectedError;
+
+      const rejectedIds = (rejected || []).map((row) => row.id);
+      const { data: replacements, error: replacementsError } = rejectedIds.length
+        ? await context.supabase.from('procurement_supplier_invoices').select('replaces_invoice_id').eq('organization_id', context.organizationId).in('replaces_invoice_id', rejectedIds)
+        : { data: [], error: null };
+      if (replacementsError) throw replacementsError;
+
+      const alreadyReplaced = new Set((replacements || []).map((row) => row.replaces_invoice_id).filter(Boolean));
+      const pendingCorrections = (rejected || []).filter((row) => !alreadyReplaced.has(row.id));
+      if (pendingCorrections.length > 1) {
+        return NextResponse.json({ error: 'La OC tiene más de una factura rechazada pendiente de corrección; seleccione explícitamente cuál reemplazar.' }, { status: 409 });
+      }
+
+      const rpcName = pendingCorrections.length === 1 ? 'create_supplier_invoice_correction_v1' : 'create_supplier_invoice_v1';
+      const rpcArgs = pendingCorrections.length === 1
+        ? {
+            p_replaces_invoice_id: pendingCorrections[0].id,
+            p_invoice_number: body.invoiceNumber,
+            p_invoice_date: body.invoiceDate,
+            p_net_amount: body.netAmount,
+            p_tax_amount: body.taxAmount,
+            p_total_amount: body.totalAmount,
+            p_lines: body.lines,
+            p_document_url: body.documentUrl ?? null,
+          }
+        : {
+            p_order_id: body.orderId,
+            p_invoice_number: body.invoiceNumber,
+            p_invoice_date: body.invoiceDate,
+            p_net_amount: body.netAmount,
+            p_tax_amount: body.taxAmount,
+            p_total_amount: body.totalAmount,
+            p_lines: body.lines,
+            p_document_url: body.documentUrl ?? null,
+          };
+
+      const { data, error } = await context.supabase.rpc(rpcName, rpcArgs);
       if (error) throw error;
       const { data: matchStatus, error: matchError } = await context.supabase.rpc('refresh_supplier_invoice_match_v1', { p_invoice_id: data });
       if (matchError) throw matchError;
-      return NextResponse.json({ invoiceId: data, matchStatus });
+      return NextResponse.json({ invoiceId: data, matchStatus, correctionOfInvoiceId: pendingCorrections[0]?.id ?? null });
     }
     if (action === 'refresh_supplier_invoice_match') {
       const { data, error } = await context.supabase.rpc('refresh_supplier_invoice_match_v1', { p_invoice_id: body.invoiceId });
