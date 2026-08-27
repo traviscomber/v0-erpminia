@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -35,7 +36,7 @@ const getUrgency = (daysUntil: number | undefined) => {
   return { color: 'text-foreground', label: `En ${daysUntil} dias` };
 };
 
-export function MaintenanceSchedule({ schedules, onMarkComplete }: MaintenanceScheduleProps) {
+export function MaintenanceSchedule({ schedules }: MaintenanceScheduleProps) {
   return (
     <div className="space-y-3">
       {schedules.length === 0 ? (
@@ -63,11 +64,13 @@ export function MaintenanceSchedule({ schedules, onMarkComplete }: MaintenanceSc
                     </div>
                   </div>
                   <Button
+                    asChild
                     size="sm"
                     variant={(schedule.daysUntil ?? 999) <= 0 ? 'default' : 'outline'}
-                    onClick={() => onMarkComplete?.(schedule.id)}
                   >
-                    Marcar como completado
+                    <Link href={`/dashboard/mantenimiento/ordenes-trabajo/cierre?workOrderId=${encodeURIComponent(schedule.id)}`}>
+                      Completar cierre
+                    </Link>
                   </Button>
                 </div>
               </CardContent>
