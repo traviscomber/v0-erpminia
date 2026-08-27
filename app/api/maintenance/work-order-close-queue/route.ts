@@ -34,6 +34,7 @@ type CloseQueueRow = {
   runtime_evidence_status: string | null;
   runtime_reading_id: string | null;
   runtime_unavailable_reason: string | null;
+  hour_schedule_linked: boolean;
   missing_runtime_evidence: boolean;
   ready_to_close: boolean;
   next_action: string;
