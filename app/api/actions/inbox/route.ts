@@ -30,6 +30,39 @@ type RoleTask = {
   responsibility_label: string;
 };
 
+const responsibilityRank: Record<RoleTask['responsibility'], number> = {
+  owner: 0,
+  support: 1,
+  escalation: 2,
+};
+
+function deduplicateTasks(rows: RoleTask[]) {
+  const byTaskKey = new Map<string, RoleTask>();
+
+  for (const task of rows) {
+    const current = byTaskKey.get(task.task_key);
+    if (!current) {
+      byTaskKey.set(task.task_key, task);
+      continue;
+    }
+
+    const currentRank = responsibilityRank[current.responsibility];
+    const nextRank = responsibilityRank[task.responsibility];
+    const shouldReplace =
+      nextRank < currentRank ||
+      (nextRank === currentRank && task.priority_score > current.priority_score);
+
+    if (shouldReplace) byTaskKey.set(task.task_key, task);
+  }
+
+  return Array.from(byTaskKey.values()).sort((a, b) => {
+    if (b.priority_score !== a.priority_score) return b.priority_score - a.priority_score;
+    const aDue = a.due_at ? new Date(a.due_at).getTime() : Number.POSITIVE_INFINITY;
+    const bDue = b.due_at ? new Date(b.due_at).getTime() : Number.POSITIVE_INFINITY;
+    return aDue - bDue;
+  });
+}
+
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
@@ -77,7 +110,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'No se pudo cargar tu bandeja operacional' }, { status: 500 });
   }
 
-  const tasks = (data || []) as RoleTask[];
+  const rawTasks = (data || []) as RoleTask[];
+  const tasks = deduplicateTasks(rawTasks);
   const now = Date.now();
   const backlogCutoff = now - 30 * 24 * 60 * 60 * 1000;
   const isOverdue = (task: RoleTask) => Boolean(task.due_at && new Date(task.due_at).getTime() < now);
@@ -97,5 +131,7 @@ export async function GET(request: NextRequest) {
     },
     generatedAt: new Date().toISOString(),
     source: 'role_task_frontend_v1',
+    rawTaskCount: rawTasks.length,
+    deduplicatedTaskCount: tasks.length,
   });
 }
