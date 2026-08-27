@@ -73,6 +73,18 @@ function resolveTaskRoute(task: RoleTask) {
     return '/dashboard/produccion/actualizar-fuentes';
   }
 
+  if (kind === 'data_health' && rawId === 'production' && rest[0] === 'transport_freshness') {
+    return '/dashboard/produccion/importacion-maestra?dataHealth=transport_freshness';
+  }
+
+  if (kind === 'data_health' && rawId === 'production' && rest[0] === 'plant_freshness') {
+    return '/dashboard/produccion/importacion-maestra?dataHealth=plant_freshness';
+  }
+
+  if (kind === 'data_health' && rawId === 'production' && rest[0] === 'drilling_freshness') {
+    return '/dashboard/produccion/actualizar-fuentes?source=drilling';
+  }
+
   if (kind === 'data_health' && rawId && rest.length === 1) {
     return `/dashboard/calidad-datos/salud?domain=${encodeURIComponent(rawId)}&issue=${encodeURIComponent(rest[0])}`;
   }
