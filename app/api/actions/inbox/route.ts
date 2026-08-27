@@ -44,6 +44,11 @@ function resolveTaskRoute(task: RoleTask) {
     return `/dashboard/mantenimiento/ordenes-trabajo/${rawId}`;
   }
 
+  if (kind === 'maintenance_review' && rawId && rest.length === 0 && UUID_PATTERN.test(rawId)) {
+    const priority = task.severity === 'critical' ? 'critical' : 'high';
+    return `/dashboard/mantenimiento/ordenes-trabajo/create?reviewId=${rawId}&workType=corrective&priority=${priority}`;
+  }
+
   if (kind === 'inspection' && rawId && rest.length === 0 && UUID_PATTERN.test(rawId)) {
     return '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones';
   }
