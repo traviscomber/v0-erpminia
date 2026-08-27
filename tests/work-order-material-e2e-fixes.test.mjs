@@ -12,10 +12,10 @@ test('stock movements use the auth identity required by the foreign key', async 
   assert.match(sql, /auth\.uid\(\),'Entrega a OT'/);
 });
 
-test('work order part issue does not write the generated total cost column', async () => {
+test('work order part issue removes the generated total cost from the insert contract', async () => {
   const sql = await readFile(costMigration, 'utf8');
-  assert.match(sql, /quantity_requested,quantity_issued,unit_cost,status,created_by/);
-  assert.doesNotMatch(sql, /quantity_requested,quantity_issued,unit_cost,total_cost,status,created_by\$q\$/);
+  assert.match(sql, /replace\(v_def,\$q\$quantity_requested,quantity_issued,unit_cost,total_cost,status,created_by\$q\$,\$q\$quantity_requested,quantity_issued,unit_cost,status,created_by\$q\$\)/);
+  assert.match(sql, /v_stock\.unit_cost,v_qty\*v_stock\.unit_cost,'issued'.*v_stock\.unit_cost,'issued'/s);
 });
 
 test('work order parts can remain linked to an OT before canonical asset mapping', async () => {
