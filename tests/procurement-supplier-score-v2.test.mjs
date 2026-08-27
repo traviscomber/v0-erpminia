@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const migration = fs.readFileSync('supabase/migrations/20260827205000_supplier_operational_score_v2.sql','utf8');
+const migration = fs.readFileSync('supabase/migrations/20260827205500_supplier_operational_score_v2.sql','utf8');
 const route = fs.readFileSync('app/api/procurement/suppliers-360/route.ts','utf8');
 const page = fs.readFileSync('app/dashboard/compras/proveedores-360/page.tsx','utf8');
 
