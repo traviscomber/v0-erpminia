@@ -5,6 +5,7 @@ import fs from 'node:fs';
 const migration = fs.readFileSync('supabase/migrations/20260827183549_gate_supplier_invoice_payment_by_three_way_match_v1.sql', 'utf8');
 const route = fs.readFileSync('app/api/procurement/operational-pipeline/route.ts', 'utf8');
 const page = fs.readFileSync('app/dashboard/compras/facturas/page.tsx', 'utf8');
+const ui = fs.readFileSync('components/procurement/progressive-invoice-workflow.tsx', 'utf8');
 
 test('supplier invoice payment is gated by match or accepted traceable exception', () => {
   assert.match(migration, /approve_supplier_invoice_for_payment_v1/);
@@ -43,9 +44,10 @@ test('procurement API exposes exception resolution and payment approval', () => 
 });
 
 test('supplier invoice workspace shows open exceptions and audited payment approval', () => {
-  assert.match(page, /Excepciones abiertas/);
-  assert.match(page, /Aprobar pago/);
-  assert.match(page, /Aceptar excepción de pago/);
-  assert.match(page, /Fundamento de la decisión/);
-  assert.match(page, /Pago aprobado/);
+  assert.match(page, /ProgressiveInvoiceWorkflow/);
+  assert.match(ui, /Excepciones abiertas/);
+  assert.match(ui, /Aprobar pago/);
+  assert.match(ui, /Aceptar excepción de pago/);
+  assert.match(ui, /Fundamento de la decisión/);
+  assert.match(ui, /Pago aprobado/);
 });
