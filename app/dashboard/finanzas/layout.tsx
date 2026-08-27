@@ -3,13 +3,14 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FileSearch, Landmark, Users } from 'lucide-react';
+import { FileSearch, Landmark, ReceiptText, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const items = [
   { href: '/dashboard/finanzas', label: 'Resumen', icon: Landmark },
   { href: '/dashboard/finanzas/centros', label: 'Centros', icon: Landmark },
   { href: '/dashboard/finanzas/proveedores', label: 'Proveedores', icon: Users },
+  { href: '/dashboard/finanzas/pagos', label: 'Pagos', icon: ReceiptText },
   { href: '/dashboard/finanzas/trazabilidad', label: 'Trazabilidad', icon: FileSearch },
 ];
 
