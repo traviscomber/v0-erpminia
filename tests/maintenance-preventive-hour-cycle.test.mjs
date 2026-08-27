@@ -8,7 +8,7 @@ const page = fs.readFileSync('app/dashboard/mantenimiento/preventivo-horas/page.
 
 test('overdue hour schedule plans exactly one work order through tenant safe wrapper', () => {
   assert.match(migration, /plan_due_hour_preventive_work_order_v1/);
-  assert.match(migration, /hour_status <> 'overdue'/);
+  assert.match(migration, /v_status\s*<>\s*'overdue'/);
   assert.match(migration, /create_work_order_from_schedule/);
   assert.match(migration, /user_roles/);
   assert.match(migration, /grant execute .*service_role/i);
@@ -37,7 +37,7 @@ test('preventive hours endpoint plans only within tenant and UI exposes generate
   assert.match(api, /requireModuleAccess\(request, MODULE_KEYS\.MANT_OPERACIONES, true\)/);
   assert.match(api, /eq\('organization_id', context\.organizationId\)/);
   assert.match(api, /plan_due_hour_preventive_work_order_v1/);
-  assert.match(page, /Generar OT/);
+  assert.match(page, /Planificar intervención/);
   assert.match(page, /OT generada/);
   assert.match(page, /Crear la OT no mueve la pauta/);
 });
