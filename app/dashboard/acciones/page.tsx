@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import useSWR from 'swr';
-import { ArrowRight, CheckCircle2, Clock3, Inbox, RefreshCw, ShieldAlert, Users } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Clock3, Inbox, RefreshCw, Search, ShieldAlert, Users, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -98,12 +98,34 @@ function matchesFilter(task: Task, filter: TaskFilter) {
   return true;
 }
 
+function normalizeSearch(value: string) {
+  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+}
+
+function matchesSearch(task: Task, query: string) {
+  const normalized = normalizeSearch(query);
+  if (!normalized) return true;
+  const haystack = normalizeSearch([
+    task.task_key,
+    task.title,
+    task.evidence_summary || '',
+    task.domain,
+    task.cargo_name,
+    task.responsibility_label,
+    task.urgency_label,
+    task.module_route,
+    family(task),
+  ].join(' '));
+  return normalized.split(/\s+/).every((term) => haystack.includes(term));
+}
+
 export default function AccionesPage() {
   const inbox = useSWR<InboxPayload>('/api/actions/inbox', fetcher, { refreshInterval: 60000, revalidateOnFocus: false });
   const states = useSWR('/api/actions/state', fetcher, { revalidateOnFocus: false });
   const [familyPreferences, setFamilyPreferences] = useState<FamilyPreferences>({});
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
   const [taskFilter, setTaskFilter] = useState<TaskFilter>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const profileName = inbox.data?.profile?.name;
   const cargoName = inbox.data?.profile?.cargoName;
 
@@ -139,7 +161,8 @@ export default function AccionesPage() {
     const state = stateMap.get(task.task_key);
     return !(state?.status === 'snoozed' && state.snoozed_until && new Date(state.snoozed_until).getTime() > now);
   });
-  const visibleTasks = tasks.filter((task) => matchesFilter(task, taskFilter));
+  const filteredTasks = tasks.filter((task) => matchesFilter(task, taskFilter));
+  const visibleTasks = filteredTasks.filter((task) => matchesSearch(task, searchQuery));
 
   async function setState(sourceKey: string, status: 'pending' | 'read' | 'snoozed') {
     await fetch('/api/actions/state', {
@@ -159,13 +182,14 @@ export default function AccionesPage() {
     overdue: tasks.filter((task) => task.urgency_state === 'overdue' || task.urgency_state === 'escalated').length,
     owner: tasks.filter((task) => task.responsibility === 'owner').length,
   };
+  const hasSearch = normalizeSearch(searchQuery).length > 0;
 
   return <div className="space-y-6">
     <section className="flex flex-col gap-4 border-b border-border/70 pb-6 md:flex-row md:items-end md:justify-between">
       <div>
         <p className="text-sm font-medium text-muted-foreground">{cargoName || 'Trabajo por cargo'}</p>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">Mis acciones</h1>
-        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Sólo decisiones y tareas que corresponden a tu cargo, agrupadas por familia operacional. Los filtros son temporales y siempre puedes volver al universo completo.</p>
+        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Sólo decisiones y tareas que corresponden a tu cargo, agrupadas por familia operacional. Busca por equipo, OT, incidente o evidencia y combina la búsqueda con los filtros rápidos.</p>
       </div>
       <Button variant="outline" onClick={() => { void inbox.mutate(); void states.mutate(); }}><RefreshCw className="mr-2 h-4 w-4" />Actualizar</Button>
     </section>
@@ -177,17 +201,31 @@ export default function AccionesPage() {
       <Card className="shadow-none"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Escalaciones</p><p className="mt-1 text-2xl font-semibold">{summary?.escalations ?? 0}</p></CardContent></Card>
     </div>
 
-    <div className="flex flex-wrap items-center gap-2" aria-label="Filtros de acciones">
-      {([
-        ['all', 'Todas', filterCounts.all],
-        ['critical', 'Críticas', filterCounts.critical],
-        ['overdue', 'Vencidas', filterCounts.overdue],
-        ['owner', 'Sólo propias', filterCounts.owner],
-      ] as const).map(([value, label, count]) => <Button key={value} size="sm" variant={taskFilter === value ? 'default' : 'outline'} onClick={() => setTaskFilter(value)}>{label}<Badge variant="secondary" className="ml-2">{count}</Badge></Button>)}
-      {taskFilter !== 'all' ? <span className="text-xs text-muted-foreground">Mostrando {visibleTasks.length} de {tasks.length} acciones visibles.</span> : null}
+    <div className="space-y-3">
+      <div className="relative max-w-2xl">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <input
+          value={searchQuery}
+          onChange={(event) => setSearchQuery(event.target.value)}
+          placeholder="Buscar equipo, OT, incidente, evidencia..."
+          aria-label="Buscar acciones"
+          className="h-10 w-full rounded-md border border-input bg-background pl-9 pr-10 text-sm outline-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        />
+        {hasSearch ? <button type="button" aria-label="Limpiar búsqueda" onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"><X className="h-4 w-4" /></button> : null}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2" aria-label="Filtros de acciones">
+        {([
+          ['all', 'Todas', filterCounts.all],
+          ['critical', 'Críticas', filterCounts.critical],
+          ['overdue', 'Vencidas', filterCounts.overdue],
+          ['owner', 'Sólo propias', filterCounts.owner],
+        ] as const).map(([value, label, count]) => <Button key={value} size="sm" variant={taskFilter === value ? 'default' : 'outline'} onClick={() => setTaskFilter(value)}>{label}<Badge variant="secondary" className="ml-2">{count}</Badge></Button>)}
+        {(taskFilter !== 'all' || hasSearch) ? <span className="text-xs text-muted-foreground">Mostrando {visibleTasks.length} de {tasks.length} acciones visibles.</span> : null}
+      </div>
     </div>
 
-    {inbox.error || states.error ? <Card className="shadow-none"><CardContent className="p-8 text-center text-sm text-muted-foreground">No se pudo cargar la bandeja operacional.</CardContent></Card> : inbox.isLoading || states.isLoading ? <Card className="shadow-none"><CardContent className="p-8 text-sm text-muted-foreground">Cargando trabajo del cargo…</CardContent></Card> : tasks.length === 0 ? <Card className="shadow-none"><CardContent className="p-10 text-center"><CheckCircle2 className="mx-auto h-7 w-7" /><p className="mt-3 font-medium">Operación al día</p><p className="mt-1 text-sm text-muted-foreground">No tienes tareas ni escalaciones operacionales visibles en este momento.</p></CardContent></Card> : visibleTasks.length === 0 ? <Card className="shadow-none"><CardContent className="p-8 text-center"><p className="font-medium">Sin acciones para este filtro</p><p className="mt-1 text-sm text-muted-foreground">El universo completo sigue disponible.</p><Button className="mt-4" size="sm" variant="outline" onClick={() => setTaskFilter('all')}>Ver todas</Button></CardContent></Card> : <div className="space-y-5">
+    {inbox.error || states.error ? <Card className="shadow-none"><CardContent className="p-8 text-center text-sm text-muted-foreground">No se pudo cargar la bandeja operacional.</CardContent></Card> : inbox.isLoading || states.isLoading ? <Card className="shadow-none"><CardContent className="p-8 text-sm text-muted-foreground">Cargando trabajo del cargo…</CardContent></Card> : tasks.length === 0 ? <Card className="shadow-none"><CardContent className="p-10 text-center"><CheckCircle2 className="mx-auto h-7 w-7" /><p className="mt-3 font-medium">Operación al día</p><p className="mt-1 text-sm text-muted-foreground">No tienes tareas ni escalaciones operacionales visibles en este momento.</p></CardContent></Card> : visibleTasks.length === 0 ? <Card className="shadow-none"><CardContent className="p-8 text-center"><p className="font-medium">Sin acciones para esta búsqueda</p><p className="mt-1 text-sm text-muted-foreground">Prueba otro término o vuelve al universo completo.</p><div className="mt-4 flex justify-center gap-2">{hasSearch ? <Button size="sm" variant="outline" onClick={() => setSearchQuery('')}>Limpiar búsqueda</Button> : null}{taskFilter !== 'all' ? <Button size="sm" variant="outline" onClick={() => setTaskFilter('all')}>Ver todas</Button> : null}</div></CardContent></Card> : <div className="space-y-5">
       {lanes.map((laneName) => {
         const laneTasks = visibleTasks.filter((task) => lane(task) === laneName);
         if (!laneTasks.length) return null;
@@ -202,10 +240,10 @@ export default function AccionesPage() {
               const criticalCount = familyTasks.filter((task) => task.severity === 'critical').length;
               const overdueCount = familyTasks.filter((task) => task.urgency_state === 'overdue' || task.urgency_state === 'escalated').length;
               const preferenceKey = `${laneName}:${familyName}`;
-              const defaultOpen = criticalCount > 0;
-              const isOpen = preferencesLoaded && Object.hasOwn(familyPreferences, preferenceKey) ? familyPreferences[preferenceKey] : defaultOpen;
+              const defaultOpen = hasSearch || criticalCount > 0;
+              const isOpen = hasSearch ? true : preferencesLoaded && Object.hasOwn(familyPreferences, preferenceKey) ? familyPreferences[preferenceKey] : defaultOpen;
               return <details key={familyName} open={isOpen} onToggle={(event) => {
-                if (!preferencesLoaded) return;
+                if (!preferencesLoaded || hasSearch) return;
                 saveFamilyPreference(preferenceKey, event.currentTarget.open);
               }} className="group overflow-hidden rounded-lg border bg-card">
                 <summary className="flex cursor-pointer list-none items-center gap-2 bg-muted/20 px-4 py-3 marker:hidden hover:bg-muted/35">
