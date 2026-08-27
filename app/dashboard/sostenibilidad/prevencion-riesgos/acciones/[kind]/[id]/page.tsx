@@ -17,6 +17,8 @@ import {
 } from '@/components/ui/page-header';
 import { StatePanel } from '@/components/ui/state-panel';
 
+type HSEKind = 'incident' | 'inspection' | 'risk';
+
 type Task = {
   task_key: string;
   title: string;
@@ -31,7 +33,7 @@ type Task = {
 };
 
 type Payload = {
-  kind: 'incident' | 'risk';
+  kind: HSEKind;
   task: Task;
   record: Record<string, unknown>;
   source: string;
@@ -53,6 +55,12 @@ const formatDate = (value: unknown) => {
 
 const show = (value: unknown) => value === null || value === undefined || value === '' ? '—' : String(value);
 
+function kindLabel(kind: HSEKind) {
+  if (kind === 'incident') return 'Incidente';
+  if (kind === 'inspection') return 'Inspección';
+  return 'Riesgo';
+}
+
 export default function HSEActionPage() {
   const params = useParams<{ kind: string; id: string }>();
   const kind = params.kind;
@@ -67,43 +75,64 @@ export default function HSEActionPage() {
   if (error) return <StatePanel tone="error" title="No fue posible abrir esta acción" description={error.message} actions={<><Button asChild variant="outline"><Link href="/dashboard/acciones">Volver a Mis acciones</Link></Button><Button variant="outline" onClick={() => void mutate()}>Reintentar</Button></>} className="min-h-64" />;
   if (!data) return <StatePanel title="Acción HSE no disponible" actions={<Button asChild variant="outline"><Link href="/dashboard/acciones">Volver a Mis acciones</Link></Button>} className="min-h-64" />;
 
-  const incident = data.kind === 'incident';
   const record = data.record;
-  const fields: Array<[string, unknown]> = incident
-    ? [
-        ['Número', record.incident_number],
-        ['Tipo', record.incident_type],
-        ['Fecha del incidente', formatDate(record.date_occurred)],
-        ['Ubicación', record.location],
-        ['Severidad', record.severity],
-        ['Lesiones', record.injuries_count],
-        ['Estado', record.status],
-        ['Investigación', record.investigation_status],
-        ['Causa raíz identificada', record.root_cause_identified === true ? 'Sí' : record.root_cause_identified === false ? 'No' : '—'],
-        ['Responsable', record.assigned_to],
-      ]
-    : [
-        ['Peligro', record.hazard_id],
-        ['Área / proceso', record.process_or_area],
-        ['Probabilidad', record.likelihood],
-        ['Severidad', record.severity],
-        ['Nivel de riesgo', record.risk_level],
-        ['Riesgo residual', record.residual_risk_level],
-        ['Efectividad del control', record.control_effectiveness],
-        ['Responsable', record.risk_owner],
-        ['Última revisión', formatDate(record.last_review_date)],
-        ['Próxima revisión', formatDate(record.next_review_date)],
-        ['Estado', record.status],
-      ];
+  let fields: Array<[string, unknown]>;
+  let detailTitle: string;
+  let detailBlocks: Array<[string, unknown]>;
 
-  const description = incident ? show(record.description) : show(record.hazard_description);
-  const controls = incident ? null : show(record.current_controls);
-  const mitigation = incident ? null : show(record.mitigation_plan);
+  if (data.kind === 'incident') {
+    fields = [
+      ['Número', record.incident_number],
+      ['Tipo', record.incident_type],
+      ['Fecha del incidente', formatDate(record.date_occurred)],
+      ['Ubicación', record.location],
+      ['Severidad', record.severity],
+      ['Lesiones', record.injuries_count],
+      ['Estado', record.status],
+      ['Investigación', record.investigation_status],
+      ['Causa raíz identificada', record.root_cause_identified === true ? 'Sí' : record.root_cause_identified === false ? 'No' : '—'],
+      ['Responsable', record.assigned_to],
+    ];
+    detailTitle = 'Descripción reportada';
+    detailBlocks = [['Descripción', record.description]];
+  } else if (data.kind === 'inspection') {
+    fields = [
+      ['Número', record.inspection_number],
+      ['Tipo', record.inspection_type],
+      ['Alcance / área', record.scope],
+      ['Fecha programada', formatDate(record.scheduled_date)],
+      ['Fecha realizada', formatDate(record.actual_date)],
+      ['Hallazgos', record.findings_count],
+      ['Estado', record.status],
+    ];
+    detailTitle = 'Evidencia de la inspección';
+    detailBlocks = [['Notas', record.notes]];
+  } else {
+    fields = [
+      ['Peligro', record.hazard_id],
+      ['Área / proceso', record.process_or_area],
+      ['Probabilidad', record.likelihood],
+      ['Severidad', record.severity],
+      ['Nivel de riesgo', record.risk_level],
+      ['Riesgo residual', record.residual_risk_level],
+      ['Efectividad del control', record.control_effectiveness],
+      ['Responsable', record.risk_owner],
+      ['Última revisión', formatDate(record.last_review_date)],
+      ['Próxima revisión', formatDate(record.next_review_date)],
+      ['Estado', record.status],
+    ];
+    detailTitle = 'Peligro y controles';
+    detailBlocks = [
+      ['Descripción', record.hazard_description],
+      ['Controles actuales', record.current_controls],
+      ['Plan de mitigación', record.mitigation_plan],
+    ];
+  }
 
   return <div className="mx-auto max-w-6xl space-y-6">
     <PageHeader>
       <PageHeaderContent>
-        <PageHeaderEyebrow>HSE · {incident ? 'Incidente' : 'Riesgo'}</PageHeaderEyebrow>
+        <PageHeaderEyebrow>HSE · {kindLabel(data.kind)}</PageHeaderEyebrow>
         <PageHeaderTitle>{data.task.title}</PageHeaderTitle>
         <PageHeaderDescription>{data.task.evidence_summary || 'Evidencia operacional asociada a la acción de tu cargo.'}</PageHeaderDescription>
       </PageHeaderContent>
@@ -129,16 +158,15 @@ export default function HSEActionPage() {
     </Card>
 
     <Card className="shadow-none">
-      <CardHeader><CardTitle className="text-base">{incident ? 'Descripción reportada' : 'Peligro y controles'}</CardTitle></CardHeader>
+      <CardHeader><CardTitle className="text-base">{detailTitle}</CardTitle></CardHeader>
       <CardContent className="space-y-4 text-sm leading-6">
-        <div><p className="text-xs text-muted-foreground">Descripción</p><p className="mt-1">{description}</p></div>
-        {!incident ? <><div><p className="text-xs text-muted-foreground">Controles actuales</p><p className="mt-1">{controls}</p></div><div><p className="text-xs text-muted-foreground">Plan de mitigación</p><p className="mt-1">{mitigation}</p></div></> : null}
+        {detailBlocks.map(([label, value]) => <div key={label}><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1">{show(value)}</p></div>)}
       </CardContent>
     </Card>
 
     <div className="flex items-start gap-3 rounded-md border border-dashed p-4 text-sm text-muted-foreground">
       <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-      <p>Este workspace es de revisión y decisión. No modifica automáticamente el incidente ni el riesgo; cualquier cierre o cambio operacional debe quedar trazado en su flujo HSE correspondiente.</p>
+      <p>Este workspace es de revisión y decisión. No modifica automáticamente el registro HSE; cualquier cierre o cambio operacional debe quedar trazado en su flujo correspondiente.</p>
     </div>
   </div>;
 }
