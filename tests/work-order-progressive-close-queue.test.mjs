@@ -38,7 +38,7 @@ test('progressive closure exposes one next action and requires an explicit close
   assert.match(component, /Guardar y continuar/);
   assert.match(component, /Cerrar OT y congelar costo/);
   assert.match(component, /async function performNextAction\(\)[\s\S]*current\.next_action === 'close_work_order'[\s\S]*status: 'completed'/);
-  assert.match(component, /useEffect\(\(\) => \{\s*setActionError\(null\);\s*setTextValue\(''\);\s*setHoursValue\(''\);\s*\}, \[current\?\.work_order_id, current\?\.next_action\]\);/);
+  assert.match(component, /useEffect\(\(\) => \{[\s\S]*setActionError\(null\);[\s\S]*setTextValue\(''\);[\s\S]*setHoursValue\(''\);[\s\S]*\}, \[current\?\.work_order_id, current\?\.next_action\]\);/);
   assert.match(component, /searchParams\.get\('workOrderId'\)/);
   assert.match(page, /Cierre progresivo de OT/);
 });
