@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
-import { ArrowRightLeft, PackageX, RefreshCcw } from 'lucide-react';
+import { ArrowRightLeft, CheckCircle2, FileMinus2, PackageCheck, PackageX, RefreshCcw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,161 +19,54 @@ const fetcher = async (url: string) => {
   return payload;
 };
 
-type Returnable = {
-  receipt_line_id: string;
-  receipt_id: string;
-  receipt_number: string;
-  order_id: string;
-  order_number: string;
-  product_code?: string | null;
-  quantity_rejected: number;
-  quantity_returned: number;
-  quantity_returnable: number;
-  unit_cost: number;
-  received_at: string;
+const localDate = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Santiago' }).format(new Date());
+const money = (value: unknown, currency = 'CLP') => {
+  try { return new Intl.NumberFormat('es-CL', { style: 'currency', currency, maximumFractionDigits: currency === 'CLP' ? 0 : 2 }).format(Number(value || 0)); }
+  catch { return `${currency} ${Number(value || 0).toLocaleString('es-CL')}`; }
 };
 
-type SupplierReturn = {
-  id: string;
-  return_number: string;
-  reason: string;
-  resolution_type?: string | null;
-  status: string;
-  credit_note_number?: string | null;
-  requested_at: string;
-};
+type Returnable = { receipt_line_id:string; receipt_id:string; receipt_number:string; order_id:string; order_number:string; product_code?:string|null; quantity_rejected:number; quantity_returned:number; quantity_returnable:number; unit_cost:number; received_at:string };
+type SupplierReturn = { id:string; return_number:string; order_id:string; order_number:string; reason:string; resolution_type?:string|null; status:string; credit_note_number?:string|null; requested_at:string; resolution_reference?:string|null; approved_invoice_id?:string|null; invoice_number?:string|null; payable_currency?:string|null; outstanding_amount?:number|null; replacement_receipt_id?:string|null };
+type Receipt = { id:string; order_id:string; receipt_number:string; received_at:string };
 
-const resolutionLabel: Record<string, string> = {
-  replacement: 'Reposición',
-  credit_note: 'Nota de crédito',
-  refund: 'Reembolso',
-  repair: 'Reparación',
-  pending: 'Por definir',
-};
+const resolutionLabel:Record<string,string>={replacement:'Reposición',credit_note:'Nota de crédito',refund:'Reembolso',repair:'Reparación',pending:'Por definir'};
 
-export default function SupplierReturnsPage() {
-  const { data, error, isLoading, mutate } = useSWR('/api/procurement/returns', fetcher);
-  const [target, setTarget] = useState<Returnable | null>(null);
-  const [quantity, setQuantity] = useState('');
-  const [reason, setReason] = useState('');
-  const [resolutionType, setResolutionType] = useState('replacement');
-  const [evidenceUrl, setEvidenceUrl] = useState('');
-  const [notes, setNotes] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+export default function SupplierReturnsPage(){
+  const {data,error,isLoading,mutate}=useSWR('/api/procurement/returns',fetcher);
+  const [target,setTarget]=useState<Returnable|null>(null);
+  const [resolutionTarget,setResolutionTarget]=useState<SupplierReturn|null>(null);
+  const [resolutionMode,setResolutionMode]=useState<'received'|'replacement'|'credit_note'|null>(null);
+  const [quantity,setQuantity]=useState(''); const [reason,setReason]=useState(''); const [resolutionType,setResolutionType]=useState('replacement'); const [evidenceUrl,setEvidenceUrl]=useState(''); const [notes,setNotes]=useState('');
+  const [reference,setReference]=useState(''); const [replacementReceiptId,setReplacementReceiptId]=useState(''); const [creditNoteNumber,setCreditNoteNumber]=useState(''); const [creditNoteDate,setCreditNoteDate]=useState(''); const [creditAmount,setCreditAmount]=useState('');
+  const [busy,setBusy]=useState(false); const [message,setMessage]=useState<string|null>(null);
 
-  const returnable: Returnable[] = data?.returnable || [];
-  const returns: SupplierReturn[] = data?.returns || [];
-  const canEdit = data?.canEdit === true;
-  const openReturns = useMemo(() => returns.filter((row) => !['resolved', 'cancelled'].includes(row.status)), [returns]);
+  const returnable:Returnable[]=data?.returnable||[]; const returns:SupplierReturn[]=data?.returns||[]; const receipts:Receipt[]=data?.receipts||[]; const canEdit=data?.canEdit===true;
+  const openReturns=useMemo(()=>returns.filter(r=>!['resolved','cancelled'].includes(r.status)),[returns]);
+  const sent=openReturns.find(r=>r.status==='sent');
+  const received=openReturns.find(r=>r.status==='received_by_supplier');
+  const nextReturnable=returnable[0];
 
-  const openReturn = (row: Returnable) => {
-    setTarget(row);
-    setQuantity(String(Number(row.quantity_returnable || 0)));
-    setReason('');
-    setResolutionType('replacement');
-    setEvidenceUrl('');
-    setNotes('');
-    setMessage(null);
-  };
+  const post=async(body:unknown)=>{setBusy(true);setMessage(null);try{const response=await fetch('/api/procurement/returns',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify(body)});const payload=await response.json().catch(()=>null);if(!response.ok)throw new Error(payload?.error||'No se pudo completar la operación');await mutate();return true;}catch(err){setMessage(err instanceof Error?err.message:'No se pudo completar la operación');return false;}finally{setBusy(false);}};
 
-  const submit = async () => {
-    if (!target) return;
-    const qty = Number(quantity);
-    if (!Number.isFinite(qty) || qty <= 0 || qty > Number(target.quantity_returnable || 0)) {
-      return setMessage('La cantidad debe ser mayor que cero y no superar lo rechazado pendiente.');
-    }
-    if (!reason.trim()) return setMessage('Ingresa el motivo de devolución.');
-    setBusy(true);
-    setMessage(null);
-    try {
-      const response = await fetch('/api/procurement/returns', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          action: 'create_return',
-          receiptId: target.receipt_id,
-          receiptLineId: target.receipt_line_id,
-          quantity: qty,
-          reason: reason.trim(),
-          resolutionType,
-          evidenceUrl: evidenceUrl.trim() || null,
-          notes: notes.trim() || null,
-        }),
-      });
-      const payload = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(payload?.error || 'No se pudo registrar la devolución');
-      setTarget(null);
-      await mutate();
-    } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'No se pudo registrar la devolución');
-    } finally {
-      setBusy(false);
-    }
-  };
+  const openReturn=(row:Returnable)=>{setTarget(row);setQuantity(String(Number(row.quantity_returnable||0)));setReason('');setResolutionType('replacement');setEvidenceUrl('');setNotes('');setMessage(null);};
+  const submitReturn=async()=>{if(!target)return;const qty=Number(quantity);if(!Number.isFinite(qty)||qty<=0||qty>Number(target.quantity_returnable||0))return setMessage('La cantidad debe ser mayor que cero y no superar lo rechazado pendiente.');if(!reason.trim())return setMessage('Ingresa el motivo de devolución.');const ok=await post({action:'create_return',receiptId:target.receipt_id,receiptLineId:target.receipt_line_id,quantity:qty,reason:reason.trim(),resolutionType,evidenceUrl:evidenceUrl.trim()||null,notes:notes.trim()||null});if(ok)setTarget(null);};
+  const openResolution=(row:SupplierReturn,mode:'received'|'replacement'|'credit_note')=>{setResolutionTarget(row);setResolutionMode(mode);setReference('');setReplacementReceiptId('');setCreditNoteNumber('');setCreditNoteDate(localDate());setCreditAmount(row.outstanding_amount?String(Number(row.outstanding_amount)): '');setNotes('');setMessage(null);};
+  const submitResolution=async()=>{if(!resolutionTarget||!resolutionMode)return;let body:any={returnId:resolutionTarget.id,notes:notes.trim()||null};if(resolutionMode==='received')body={...body,action:'mark_received_by_supplier',reference:reference.trim()||null};if(resolutionMode==='replacement'){if(!replacementReceiptId)return setMessage('Selecciona la recepción que contiene la reposición aceptada.');body={...body,action:'resolve_replacement',replacementReceiptId};}if(resolutionMode==='credit_note'){const amount=Number(creditAmount);if(!resolutionTarget.approved_invoice_id)return setMessage('No existe una factura aprobada asociada para aplicar nota de crédito.');if(!creditNoteNumber.trim()||!creditNoteDate||!Number.isFinite(amount)||amount<=0)return setMessage('Número, fecha y monto de nota de crédito son requeridos.');body={...body,action:'resolve_credit_note',invoiceId:resolutionTarget.approved_invoice_id,creditNoteNumber:creditNoteNumber.trim(),creditNoteDate,amount};}const ok=await post(body);if(ok){setResolutionTarget(null);setResolutionMode(null);}};
 
-  const next = returnable[0];
+  let nextTitle='Sin devoluciones pendientes'; let nextDetail='No existen rechazos de recepción que requieran intervención.'; let nextControl:React.ReactNode=null;
+  if(nextReturnable){nextTitle='Enviar devolución al proveedor';nextDetail=`${nextReturnable.order_number} · ${nextReturnable.product_code||'Producto'} · ${Number(nextReturnable.quantity_returnable)} unidad(es) rechazadas pendientes.`;nextControl=canEdit?<Button onClick={()=>openReturn(nextReturnable)}><PackageX className="mr-2 h-4 w-4"/>Registrar devolución</Button>:null;}
+  else if(sent){nextTitle='Confirmar recepción del proveedor';nextDetail=`${sent.return_number} fue enviada y debe quedar recibida por el proveedor antes de resolverla.`;nextControl=canEdit?<Button onClick={()=>openResolution(sent,'received')}><PackageCheck className="mr-2 h-4 w-4"/>Proveedor recibió</Button>:null;}
+  else if(received){const mode=received.resolution_type==='credit_note'?'credit_note':'replacement';nextTitle=mode==='credit_note'?'Registrar nota de crédito':'Confirmar reposición';nextDetail=mode==='credit_note'?`${received.return_number} espera el documento financiero del proveedor.`:`${received.return_number} espera una nueva recepción aceptada que cubra lo devuelto.`;nextControl=canEdit?<Button onClick={()=>openResolution(received,mode)}>{mode==='credit_note'?<FileMinus2 className="mr-2 h-4 w-4"/>:<RefreshCcw className="mr-2 h-4 w-4"/>}{mode==='credit_note'?'Registrar nota':'Resolver reposición'}</Button>:null;}
 
   return <div className="space-y-6">
-    <section className="border-b border-border/70 pb-6">
-      <p className="text-sm font-medium text-muted-foreground">Abastecimiento · Devoluciones</p>
-      <h1 className="mt-1 text-3xl font-semibold tracking-tight">Rechazo → devolución → reposición o abono</h1>
-      <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Sólo aparecen cantidades realmente rechazadas y aún no devueltas. Enviar una devolución reabre esa cantidad de la OC; la nota de crédito se resolverá como paso financiero separado.</p>
-    </section>
+    <section className="border-b border-border/70 pb-6"><p className="text-sm font-medium text-muted-foreground">Abastecimiento · Devoluciones</p><h1 className="mt-1 text-3xl font-semibold tracking-tight">Rechazo → devolución → resolución → cierre</h1><p className="mt-2 max-w-3xl text-sm text-muted-foreground">La devolución física, la reposición y la nota de crédito quedan separadas y trazables. Una OC sólo se cierra cuando la diferencia queda realmente resuelta.</p></section>
+    {message?<div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{message}</div>:null}{error?<div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{error.message}</div>:null}
+    <Card className="shadow-none"><CardContent className="flex flex-col gap-4 p-5 lg:flex-row lg:items-center lg:justify-between"><div><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Siguiente acción</p><h2 className="mt-1 text-xl font-semibold">{nextTitle}</h2><p className="mt-1 text-sm text-muted-foreground">{nextDetail}</p></div>{nextControl}</CardContent></Card>
+    <div className="grid gap-4 sm:grid-cols-3"><Card className="shadow-none"><CardContent className="p-5"><p className="text-sm text-muted-foreground">Líneas por devolver</p><p className="mt-1 text-2xl font-semibold">{returnable.length}</p></CardContent></Card><Card className="shadow-none"><CardContent className="p-5"><p className="text-sm text-muted-foreground">Devoluciones abiertas</p><p className="mt-1 text-2xl font-semibold">{openReturns.length}</p></CardContent></Card><Card className="shadow-none"><CardContent className="p-5"><p className="text-sm text-muted-foreground">Resueltas</p><p className="mt-1 text-2xl font-semibold">{returns.filter(r=>r.status==='resolved').length}</p></CardContent></Card></div>
+    <Card className="shadow-none"><CardHeader><CardTitle>Devoluciones</CardTitle><CardDescription>Estado físico y resolución comercial del rechazo.</CardDescription></CardHeader><CardContent className="space-y-3">{isLoading?<p className="text-sm text-muted-foreground">Cargando...</p>:null}{!isLoading&&!returns.length&&!returnable.length?<p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">No hay devoluciones ni cantidades rechazadas pendientes.</p>:null}{returnable.map(row=><div key={row.receipt_line_id} className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-medium">{row.order_number} · {row.product_code||'Producto'}</p><p className="text-sm text-muted-foreground">Recepción {row.receipt_number} · rechazado {Number(row.quantity_rejected)} · devuelto {Number(row.quantity_returned)} · pendiente {Number(row.quantity_returnable)}</p></div>{canEdit?<Button size="sm" variant="outline" onClick={()=>openReturn(row)}><ArrowRightLeft className="mr-2 h-4 w-4"/>Devolver</Button>:null}</div>)}{returns.map(row=><div key={row.id} className="flex flex-col gap-3 rounded-lg border p-4 lg:flex-row lg:items-center lg:justify-between"><div><div className="flex flex-wrap items-center gap-2"><p className="font-medium">{row.return_number} · {row.order_number}</p><Badge variant="outline">{row.status}</Badge></div><p className="mt-1 text-sm text-muted-foreground">{row.reason} · {resolutionLabel[row.resolution_type||'pending']||row.resolution_type}{row.resolution_reference?` · ref. ${row.resolution_reference}`:''}</p>{row.invoice_number?<p className="text-xs text-muted-foreground">Factura {row.invoice_number} · saldo {money(row.outstanding_amount,row.payable_currency||'CLP')}</p>:null}</div><div className="flex gap-2">{row.status==='sent'&&canEdit?<Button size="sm" variant="outline" onClick={()=>openResolution(row,'received')}><PackageCheck className="mr-2 h-4 w-4"/>Recibida por proveedor</Button>:null}{row.status==='received_by_supplier'&&canEdit?<Button size="sm" onClick={()=>openResolution(row,row.resolution_type==='credit_note'?'credit_note':'replacement')}>{row.resolution_type==='credit_note'?<FileMinus2 className="mr-2 h-4 w-4"/>:<RefreshCcw className="mr-2 h-4 w-4"/>}Resolver</Button>:null}{row.status==='resolved'?<CheckCircle2 className="h-5 w-5 text-muted-foreground"/>:null}</div></div>)}</CardContent></Card>
 
-    {message ? <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{message}</div> : null}
-    {error ? <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{error.message}</div> : null}
+    <Dialog open={Boolean(target)} onOpenChange={open=>{if(!open&&!busy)setTarget(null);}}><DialogContent><DialogHeader><DialogTitle>Registrar devolución</DialogTitle><DialogDescription>La cantidad enviada dejará de contar como recibida hasta su resolución.</DialogDescription></DialogHeader><div className="space-y-4"><div className="space-y-2"><Label>Cantidad</Label><Input type="number" min="0" step="any" value={quantity} onChange={e=>setQuantity(e.target.value)}/></div><div className="space-y-2"><Label>Motivo</Label><Textarea value={reason} onChange={e=>setReason(e.target.value)}/></div><div className="space-y-2"><Label>Resolución esperada</Label><Select value={resolutionType} onValueChange={setResolutionType}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="replacement">Reposición</SelectItem><SelectItem value="credit_note">Nota de crédito</SelectItem><SelectItem value="refund">Reembolso</SelectItem><SelectItem value="repair">Reparación</SelectItem><SelectItem value="pending">Por definir</SelectItem></SelectContent></Select></div><div className="space-y-2"><Label>Evidencia URL</Label><Input value={evidenceUrl} onChange={e=>setEvidenceUrl(e.target.value)}/></div><div className="space-y-2"><Label>Notas</Label><Textarea value={notes} onChange={e=>setNotes(e.target.value)}/></div></div><DialogFooter><Button variant="outline" onClick={()=>setTarget(null)} disabled={busy}>Cancelar</Button><Button onClick={submitReturn} disabled={busy}><PackageX className="mr-2 h-4 w-4"/>{busy?'Registrando...':'Enviar devolución'}</Button></DialogFooter></DialogContent></Dialog>
 
-    <Card className="shadow-none">
-      <CardContent className="flex flex-col gap-4 p-5 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Siguiente acción</p>
-          <h2 className="mt-1 text-xl font-semibold">{next ? 'Enviar devolución al proveedor' : openReturns.length ? 'Esperar resolución del proveedor' : 'Sin devoluciones pendientes'}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{next ? `${next.order_number} · ${next.product_code || 'Producto'} · ${Number(next.quantity_returnable)} unidad(es) rechazadas pendientes.` : openReturns.length ? `${openReturns.length} devolución(es) ya enviadas esperan reposición, nota de crédito u otra resolución.` : 'No existen rechazos de recepción que requieran devolución.'}</p>
-        </div>
-        {next && canEdit ? <Button onClick={() => openReturn(next)}><PackageX className="mr-2 h-4 w-4" />Registrar devolución</Button> : null}
-      </CardContent>
-    </Card>
-
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-      <Card className="shadow-none"><CardContent className="p-5"><p className="text-sm text-muted-foreground">Líneas por devolver</p><p className="mt-1 text-2xl font-semibold">{returnable.length}</p></CardContent></Card>
-      <Card className="shadow-none"><CardContent className="p-5"><p className="text-sm text-muted-foreground">Devoluciones abiertas</p><p className="mt-1 text-2xl font-semibold">{openReturns.length}</p></CardContent></Card>
-      <Card className="shadow-none"><CardContent className="p-5"><p className="text-sm text-muted-foreground">Histórico</p><p className="mt-1 text-2xl font-semibold">{returns.length}</p></CardContent></Card>
-    </div>
-
-    <Card className="shadow-none">
-      <CardHeader><CardTitle>Rechazos pendientes</CardTitle><CardDescription>Cantidad rechazada menos devoluciones ya registradas.</CardDescription></CardHeader>
-      <CardContent className="space-y-3">
-        {isLoading ? <p className="text-sm text-muted-foreground">Cargando...</p> : null}
-        {!isLoading && !returnable.length ? <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">No hay cantidades rechazadas pendientes de devolver.</p> : null}
-        {returnable.map((row) => <div key={row.receipt_line_id} className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div><p className="font-medium">{row.order_number} · {row.product_code || 'Producto'}</p><p className="text-sm text-muted-foreground">Recepción {row.receipt_number} · rechazado {Number(row.quantity_rejected)} · ya devuelto {Number(row.quantity_returned)} · pendiente {Number(row.quantity_returnable)}</p></div>
-          {canEdit ? <Button size="sm" variant="outline" onClick={() => openReturn(row)}><ArrowRightLeft className="mr-2 h-4 w-4" />Devolver</Button> : null}
-        </div>)}
-      </CardContent>
-    </Card>
-
-    <Card className="shadow-none">
-      <CardHeader><CardTitle>Devoluciones registradas</CardTitle><CardDescription>La resolución final permanece separada de la salida física al proveedor.</CardDescription></CardHeader>
-      <CardContent className="space-y-3">
-        {!returns.length ? <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">No hay devoluciones registradas.</p> : null}
-        {returns.map((row) => <div key={row.id} className="flex flex-col gap-2 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-medium">{row.return_number}</p><p className="text-sm text-muted-foreground">{row.reason} · {resolutionLabel[row.resolution_type || 'pending'] || row.resolution_type}</p></div><Badge variant="outline">{row.status}</Badge></div>)}
-      </CardContent>
-    </Card>
-
-    <Dialog open={Boolean(target)} onOpenChange={(open) => { if (!open && !busy) setTarget(null); }}>
-      <DialogContent>
-        <DialogHeader><DialogTitle>Registrar devolución</DialogTitle><DialogDescription>La cantidad enviada al proveedor dejará de contar como recibida en la OC y quedará pendiente de resolución.</DialogDescription></DialogHeader>
-        <div className="space-y-4">
-          <div className="space-y-2"><Label>Cantidad</Label><Input type="number" min="0" step="any" value={quantity} onChange={(e) => setQuantity(e.target.value)} /></div>
-          <div className="space-y-2"><Label>Motivo</Label><Textarea value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Daño, especificación incorrecta, defecto, lote rechazado..." /></div>
-          <div className="space-y-2"><Label>Resolución esperada</Label><Select value={resolutionType} onValueChange={setResolutionType}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="replacement">Reposición</SelectItem><SelectItem value="credit_note">Nota de crédito</SelectItem><SelectItem value="refund">Reembolso</SelectItem><SelectItem value="repair">Reparación</SelectItem><SelectItem value="pending">Por definir</SelectItem></SelectContent></Select></div>
-          <div className="space-y-2"><Label>Evidencia URL</Label><Input value={evidenceUrl} onChange={(e) => setEvidenceUrl(e.target.value)} placeholder="Opcional" /></div>
-          <div className="space-y-2"><Label>Notas</Label><Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Opcional" /></div>
-        </div>
-        <DialogFooter><Button variant="outline" onClick={() => setTarget(null)} disabled={busy}>Cancelar</Button><Button onClick={submit} disabled={busy}><RefreshCcw className="mr-2 h-4 w-4" />{busy ? 'Registrando...' : 'Enviar devolución'}</Button></DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <Dialog open={Boolean(resolutionTarget&&resolutionMode)} onOpenChange={open=>{if(!open&&!busy){setResolutionTarget(null);setResolutionMode(null);}}}><DialogContent><DialogHeader><DialogTitle>{resolutionMode==='received'?'Proveedor recibió devolución':resolutionMode==='credit_note'?'Registrar nota de crédito':'Confirmar reposición'}</DialogTitle><DialogDescription>{resolutionMode==='received'?'Confirma la recepción física antes de resolver el caso.':resolutionMode==='credit_note'?'La nota reduce cuentas por pagar, no vuelve a reconocer ni borra costo operacional.':'Selecciona una recepción posterior que cubra toda la cantidad devuelta.'}</DialogDescription></DialogHeader><div className="space-y-4">{resolutionMode==='received'?<><div className="space-y-2"><Label>Referencia proveedor</Label><Input value={reference} onChange={e=>setReference(e.target.value)} placeholder="RMA, guía o acuse opcional"/></div></>:null}{resolutionMode==='replacement'?<div className="space-y-2"><Label>Recepción de reposición</Label><Select value={replacementReceiptId} onValueChange={setReplacementReceiptId}><SelectTrigger><SelectValue placeholder="Seleccionar recepción"/></SelectTrigger><SelectContent>{receipts.filter(r=>r.order_id===resolutionTarget?.order_id).map(r=><SelectItem key={r.id} value={r.id}>{r.receipt_number} · {new Date(r.received_at).toLocaleDateString('es-CL')}</SelectItem>)}</SelectContent></Select></div>:null}{resolutionMode==='credit_note'?<><div className="space-y-2"><Label>Factura asociada</Label><Input value={resolutionTarget?.invoice_number||''} disabled/></div><div className="space-y-2"><Label>Número nota de crédito</Label><Input value={creditNoteNumber} onChange={e=>setCreditNoteNumber(e.target.value)}/></div><div className="grid gap-3 sm:grid-cols-2"><div className="space-y-2"><Label>Fecha</Label><Input type="date" value={creditNoteDate} onChange={e=>setCreditNoteDate(e.target.value)}/></div><div className="space-y-2"><Label>Monto ({resolutionTarget?.payable_currency||'CLP'})</Label><Input type="number" min="0" step="any" value={creditAmount} onChange={e=>setCreditAmount(e.target.value)}/></div></div><p className="text-xs text-muted-foreground">Saldo máximo pendiente: {money(resolutionTarget?.outstanding_amount,resolutionTarget?.payable_currency||'CLP')}</p></>:null}<div className="space-y-2"><Label>Notas</Label><Textarea value={notes} onChange={e=>setNotes(e.target.value)}/></div></div><DialogFooter><Button variant="outline" onClick={()=>{setResolutionTarget(null);setResolutionMode(null);}} disabled={busy}>Cancelar</Button><Button onClick={submitResolution} disabled={busy}>{busy?'Guardando...':'Confirmar'}</Button></DialogFooter></DialogContent></Dialog>
   </div>;
 }
