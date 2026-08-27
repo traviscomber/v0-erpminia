@@ -25,13 +25,39 @@ export async function GET(request: NextRequest) {
 
     const requestIds = (pipeline || []).map((row) => row.intake_request_id).filter(Boolean);
     const orderIds = (pipeline || []).map((row) => row.order_id).filter(Boolean);
-    const [{ data: requestLines, error: requestLinesError }, { data: orderLines, error: orderLinesError }] = await Promise.all([
+    const workOrderIds = (pipeline || []).map((row) => row.work_order_id).filter(Boolean);
+    const [{ data: requestLines, error: requestLinesError }, { data: orderLines, error: orderLinesError }, { data: workOrders, error: workOrdersError }] = await Promise.all([
       requestIds.length ? context.supabase.from('procurement_intake_request_lines').select('*').in('intake_request_id', requestIds) : Promise.resolve({ data: [], error: null }),
       orderIds.length ? context.supabase.from('procurement_operational_order_lines').select('*').in('order_id', orderIds) : Promise.resolve({ data: [], error: null }),
+      workOrderIds.length ? context.supabase.from('maintenance_work_orders').select('id,cost_center_id').in('id', workOrderIds).eq('organization_id', context.organizationId) : Promise.resolve({ data: [], error: null }),
     ]);
     if (requestLinesError) throw requestLinesError;
     if (orderLinesError) throw orderLinesError;
-    return NextResponse.json({ pipeline: pipeline || [], requestLines: requestLines || [], orderLines: orderLines || [] });
+    if (workOrdersError) throw workOrdersError;
+
+    const costCenterIds = (workOrders || []).map((row) => row.cost_center_id).filter(Boolean);
+    const { data: costCenters, error: costCentersError } = costCenterIds.length
+      ? await context.supabase.from('cost_centers').select('id,code,name,status').in('id', costCenterIds).eq('organization_id', context.organizationId)
+      : { data: [], error: null };
+    if (costCentersError) throw costCentersError;
+
+    const workOrderById = new Map((workOrders || []).map((row) => [row.id, row]));
+    const costCenterById = new Map((costCenters || []).map((row) => [row.id, row]));
+    const pipelineWithFinance = (pipeline || []).map((row) => {
+      const workOrder = row.work_order_id ? workOrderById.get(row.work_order_id) : null;
+      const costCenter = workOrder?.cost_center_id ? costCenterById.get(workOrder.cost_center_id) : null;
+      const ready = !row.work_order_id || Boolean(costCenter && !['inactive', 'disabled', 'closed'].includes(String(costCenter.status || 'active')));
+      return {
+        ...row,
+        finance_ready: ready,
+        finance_blocker: ready ? null : 'Asigne un centro de costo válido a la OT antes de adjudicar',
+        cost_center_id: costCenter?.id || null,
+        cost_center_code: costCenter?.code || null,
+        cost_center_name: costCenter?.name || null,
+      };
+    });
+
+    return NextResponse.json({ pipeline: pipelineWithFinance, requestLines: requestLines || [], orderLines: orderLines || [] });
   } catch (error) {
     const message = error instanceof Error ? error.message : typeof error === 'object' && error && 'message' in error ? String(error.message) : 'No se pudo cargar el pipeline operativo';
     console.error('[procurement/operational-pipeline]', error);
@@ -65,7 +91,8 @@ export async function POST(request: NextRequest) {
     }
     return NextResponse.json({ error: 'Acción no soportada' }, { status: 400 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'No se pudo completar la operación';
-    return NextResponse.json({ error: message }, { status: 500 });
+    const message = error instanceof Error ? error.message : typeof error === 'object' && error && 'message' in error ? String(error.message) : 'No se pudo completar la operación';
+    const status = message.startsWith('Imputación contable') ? 409 : 500;
+    return NextResponse.json({ error: message }, { status });
   }
 }
