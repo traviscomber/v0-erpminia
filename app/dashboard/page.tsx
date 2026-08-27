@@ -115,7 +115,6 @@ function configFor(
   const p = production?.currentPeriod;
   const queue = production?.coverage?.queue;
   const drill = production?.coverage?.domains?.drilling;
-  const plant = production?.coverage?.domains?.plant;
   const m = maintenance?.overview;
   const summary = inbox?.summary;
 
@@ -152,6 +151,7 @@ function configFor(
       ],
       shortcuts: [
         { label: 'Inteligencia Mantención', href: '/dashboard/mantenimiento/inteligencia', detail: 'Backlog, recurrencia y abastecimiento' },
+        { label: 'Disponibilidad', href: '/dashboard/mantenimiento/disponibilidad', detail: 'Estado y disponibilidad por equipo' },
         { label: 'Órdenes de trabajo', href: '/dashboard/mantenimiento/ordenes-trabajo', detail: 'Planificar, ejecutar y cerrar OT' },
         { label: 'Mis acciones', href: '/dashboard/acciones', detail: 'Incluye Data Health y escalaciones del cargo' },
       ],
