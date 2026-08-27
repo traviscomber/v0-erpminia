@@ -69,6 +69,10 @@ function resolveTaskRoute(task: RoleTask) {
     return '/dashboard/compras/importar-existencias?dataHealth=freshness';
   }
 
+  if (kind === 'data_health' && rawId === 'production' && rest[0] === 'freshness') {
+    return '/dashboard/produccion/actualizar-fuentes';
+  }
+
   if (kind === 'data_health' && rawId && rest.length === 1) {
     return `/dashboard/calidad-datos/salud?domain=${encodeURIComponent(rawId)}&issue=${encodeURIComponent(rest[0])}`;
   }
