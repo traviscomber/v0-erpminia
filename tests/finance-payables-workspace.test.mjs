@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const migration = fs.readFileSync('supabase/migrations/20260827191000_add_supplier_accounts_payable_and_cash_reconciliation_v1.sql','utf8');
+const treasuryMigration = fs.readFileSync('supabase/migrations/20260827191500_add_treasury_aging_alerts_and_tenant_safe_rpc_v1.sql','utf8');
 const route = fs.readFileSync('app/api/finance/payables/route.ts','utf8');
 const page = fs.readFileSync('app/dashboard/finanzas/pagos/page.tsx','utf8');
 const layout = fs.readFileSync('app/dashboard/finanzas/layout.tsx','utf8');
@@ -27,9 +28,11 @@ test('bank reconciliation is explicit and does not alter cost recognition',()=>{
 
 test('finance payables API is finance-authorized and tenant scoped',()=>{
   assert.match(route,/MODULE_KEYS\.FIN_FINANZAS/);
-  assert.match(route,/organization_id/);
-  assert.match(route,/record_supplier_payment_v1/);
-  assert.match(route,/reconcile_supplier_payment_v1/);
+  assert.match(route,/p_organization_id: context\.organizationId/);
+  assert.match(route,/record_supplier_payment_v2/);
+  assert.match(route,/reconcile_supplier_payment_v2/);
+  assert.match(treasuryMigration,/organization_id=p_organization_id/);
+  assert.match(treasuryMigration,/revoke execute on function public\.record_supplier_payment_v1/);
 });
 
 test('finance navigation exposes the payments workspace with honest empty states',()=>{
