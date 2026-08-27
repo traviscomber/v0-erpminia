@@ -57,6 +57,18 @@ function resolveTaskRoute(task: RoleTask) {
     return `/dashboard/produccion/despachos/revision/${rawId}`;
   }
 
+  if (kind === 'data_health' && rawId && rest.length === 1) {
+    return `/dashboard/calidad-datos/salud?domain=${encodeURIComponent(rawId)}&issue=${encodeURIComponent(rest[0])}`;
+  }
+
+  if (kind === 'finance' && rawId === 'missing_cost_centers' && rest.length === 0) {
+    return '/dashboard/centros-costos';
+  }
+
+  if (kind === 'finance' && (rawId === 'zero_amount_lines' || rawId === 'validation') && rest.length === 0) {
+    return `/dashboard/finanzas/importar?issue=${encodeURIComponent(rawId)}`;
+  }
+
   return task.module_route;
 }
 
