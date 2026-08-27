@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       .order('required_date', { ascending: true, nullsFirst: false });
     if (pipelineError) {
       console.error('[procurement/operational-pipeline:view]', pipelineError);
-      return NextResponse.json({ pipeline: [], requestLines: [], orderLines: [], invoiceMatchSummary: [], invoiceMatchLines: [], invoices: [], invoiceExceptions: [], unavailable: true });
+      return NextResponse.json({ pipeline: [], requestLines: [], orderLines: [], invoiceMatchSummary: [], invoiceMatchLines: [], invoices: [], invoiceExceptions: [], canEdit: access.canWrite, unavailable: true });
     }
 
     const requestIds = (pipeline || []).map((row) => row.intake_request_id).filter(Boolean);
@@ -89,11 +89,12 @@ export async function GET(request: NextRequest) {
       invoiceMatchLines: invoiceMatchLines || [],
       invoices: invoices || [],
       invoiceExceptions: invoiceExceptions || [],
+      canEdit: access.canWrite,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : typeof error === 'object' && error && 'message' in error ? String(error.message) : 'No se pudo cargar el pipeline operativo';
     console.error('[procurement/operational-pipeline]', error);
-    return NextResponse.json({ pipeline: [], requestLines: [], orderLines: [], invoiceMatchSummary: [], invoiceMatchLines: [], invoices: [], invoiceExceptions: [], error: message }, { status: 500 });
+    return NextResponse.json({ pipeline: [], requestLines: [], orderLines: [], invoiceMatchSummary: [], invoiceMatchLines: [], invoices: [], invoiceExceptions: [], canEdit: access.canWrite, error: message }, { status: 500 });
   }
 }
 
