@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const HSE_KINDS = new Set(['incident', 'risk']);
+const HSE_KINDS = new Set(['incident', 'inspection', 'risk']);
 
 export async function GET(
   request: NextRequest,
@@ -49,17 +49,31 @@ export async function GET(
   }
   if (!task) return NextResponse.json({ error: 'Esta acción HSE no está disponible para tu cargo' }, { status: 404 });
 
-  const query = kind === 'incident'
-    ? context.supabase
-        .from('incidents')
-        .select('id,incident_number,date_occurred,date_reported,location,incident_type,severity,description,people_involved,injuries_count,reported_by,assigned_to,status,investigation_status,root_cause_identified,created_at,updated_at')
-        .eq('id', id)
-        .maybeSingle()
-    : context.supabase
-        .from('risk_matrix')
-        .select('id,hazard_id,hazard_description,process_or_area,likelihood,severity,risk_level,current_controls,control_effectiveness,residual_risk_level,risk_owner,mitigation_plan,last_review_date,next_review_date,status,created_at,updated_at')
-        .eq('id', id)
-        .maybeSingle();
+  let query;
+  let source: 'incidents' | 'hse_inspections' | 'risk_matrix';
+
+  if (kind === 'incident') {
+    source = 'incidents';
+    query = context.supabase
+      .from(source)
+      .select('id,incident_number,date_occurred,date_reported,location,incident_type,severity,description,people_involved,injuries_count,reported_by,assigned_to,status,investigation_status,root_cause_identified,created_at,updated_at')
+      .eq('id', id)
+      .maybeSingle();
+  } else if (kind === 'inspection') {
+    source = 'hse_inspections';
+    query = context.supabase
+      .from(source)
+      .select('id,inspection_number,inspection_type,scope,scheduled_date,actual_date,findings_count,status,notes,created_at')
+      .eq('id', id)
+      .maybeSingle();
+  } else {
+    source = 'risk_matrix';
+    query = context.supabase
+      .from(source)
+      .select('id,hazard_id,hazard_description,process_or_area,likelihood,severity,risk_level,current_controls,control_effectiveness,residual_risk_level,risk_owner,mitigation_plan,last_review_date,next_review_date,status,created_at,updated_at')
+      .eq('id', id)
+      .maybeSingle();
+  }
 
   const { data: record, error: recordError } = await query;
   if (recordError) {
@@ -72,7 +86,7 @@ export async function GET(
     kind,
     task,
     record,
-    source: kind === 'incident' ? 'incidents' : 'risk_matrix',
+    source,
     authorizationBoundary: 'role_task_frontend_v1',
   });
 }
