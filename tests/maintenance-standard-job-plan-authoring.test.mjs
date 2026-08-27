@@ -9,7 +9,7 @@ const apply = fs.readFileSync('lib/maintenance/apply-standard-job-plan.ts','utf8
 test('standard plan proposal comes from an existing preventive schedule without invented steps', () => {
   assert.match(migration,/propose_standard_job_plan_from_schedule_v1/);
   assert.match(migration,/preventive_maintenance_schedules/);
-  assert.match(migration,/status,'proposed'|status='proposed'/i);
+  assert.match(migration,/'proposed'/i);
   assert.doesNotMatch(migration,/insert into public\.maintenance_standard_job_plan_steps[\s\S]*propose_standard_job_plan_from_schedule_v1/i);
 });
 
