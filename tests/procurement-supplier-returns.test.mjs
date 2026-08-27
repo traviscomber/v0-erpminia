@@ -21,7 +21,7 @@ test('sending a supplier return reopens the exact order quantity',()=>{
 
 test('supplier return remains distinct from financial settlement',()=>{
   assert.match(migration,/credit_note/);
-  assert.match(migration,/status,'sent'/);
+  assert.match(migration,/['"]sent['"]/);
   assert.match(page,/la nota de crédito se resolverá como paso financiero separado/i);
 });
 
