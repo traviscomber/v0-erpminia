@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const migration = fs.readFileSync('supabase/migrations/20260827181500_operational_procurement_three_way_match_v1.sql', 'utf8');
-const facadeMigration = fs.readFileSync('supabase/migrations/20260827182000_expose_three_way_match_server_facades_v1.sql', 'utf8');
+const migration = fs.readFileSync('supabase/migrations/20260827190000_operational_procurement_three_way_match_v1.sql', 'utf8');
+const facadeMigration = fs.readFileSync('supabase/migrations/20260827190500_expose_three_way_match_server_facades_v1.sql', 'utf8');
 const route = fs.readFileSync('app/api/procurement/operational-pipeline/route.ts', 'utf8');
 
 test('three-way match compares order, accepted receipt and supplier invoice', () => {
