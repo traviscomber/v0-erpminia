@@ -6,11 +6,12 @@ import useSWR from 'swr';
 import { FileSearch } from 'lucide-react';
 
 type Row = Record<string, string | number | null>;
-type Response = { overview?: Row | null; topAssets?: Row[]; topProducts?: Row[]; topSuppliers?: Row[]; topCostCenters?: Row[]; validation?: Row | null; recentEvents?: Row[]; operationalProcurement?: Row | null; operationalProcurementEvents?: Row[] };
+type Response = { overview?: Row | null; topAssets?: Row[]; topProducts?: Row[]; topSuppliers?: Row[]; topCostCenters?: Row[]; validation?: Row | null; recentEvents?: Row[]; operationalProcurement?: Row | null; operationalProcurementEvents?: Row[]; treasury?: Row[]; treasuryAging?: Row[] };
 type ConcentrationKey = 'assets' | 'products' | 'suppliers' | 'costCenters';
 
 const fetcher = async (url: string): Promise<Response> => { const response = await fetch(url, { credentials: 'include' }); const payload = await response.json().catch(() => null); if (!response.ok) throw new Error(payload?.error || 'No se pudo cargar Finanzas'); return payload; };
 const money = (value: unknown) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(Number(value || 0));
+const currencyMoney = (value: unknown, currency: unknown) => { const code = String(currency || 'CLP').toUpperCase(); try { return new Intl.NumberFormat('es-CL', { style: 'currency', currency: code, maximumFractionDigits: 0 }).format(Number(value || 0)); } catch { return `${code} ${new Intl.NumberFormat('es-CL').format(Number(value || 0))}`; } };
 const number = (value: unknown) => new Intl.NumberFormat('es-CL').format(Number(value || 0));
 
 const concentrationConfig: Record<ConcentrationKey, { label: string; labelKey: string; amountKey: string }> = {
@@ -20,11 +21,15 @@ const concentrationConfig: Record<ConcentrationKey, { label: string; labelKey: s
   costCenters: { label: 'Centros de costo', labelKey: 'cost_center_code', amountKey: 'committed_clp' },
 };
 
+const agingLabels: Record<string, string> = { no_due_date: 'Sin vencimiento', current: 'Al día', overdue_1_30: '1–30 días vencido', overdue_31_60: '31–60 días vencido', overdue_61_90: '61–90 días vencido', overdue_90_plus: '90+ días vencido' };
+
 export default function FinanzasPage() {
   const { data, error, isLoading } = useSWR<Response>('/api/finance/executive', fetcher);
   const [activeConcentration, setActiveConcentration] = useState<ConcentrationKey>('assets');
   const overview = data?.overview || {};
   const operationalProcurement = data?.operationalProcurement || {};
+  const treasury = data?.treasury || [];
+  const treasuryAging = data?.treasuryAging || [];
   const validationPassed = String(data?.validation?.status || '').toLowerCase() === 'passed';
   const rowsByType: Record<ConcentrationKey, Row[]> = { assets: data?.topAssets || [], products: data?.topProducts || [], suppliers: data?.topSuppliers || [], costCenters: data?.topCostCenters || [] };
   const config = concentrationConfig[activeConcentration];
@@ -33,7 +38,7 @@ export default function FinanzasPage() {
   return (
     <div className="space-y-6">
       <section className="flex flex-col gap-4 border-b pb-5 lg:flex-row lg:items-end lg:justify-between">
-        <div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Finanzas</p><h1 className="mt-1 text-3xl font-semibold tracking-tight">Resumen financiero</h1><p className="mt-2 max-w-2xl text-sm text-muted-foreground">Costo reconocido y compromisos de compra, separados y trazables.</p></div>
+        <div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Finanzas</p><h1 className="mt-1 text-3xl font-semibold tracking-tight">Resumen financiero</h1><p className="mt-2 max-w-2xl text-sm text-muted-foreground">Costo reconocido, compromisos y caja pagada se mantienen separados y trazables.</p></div>
         <Link href="/dashboard/finanzas/trazabilidad" className="inline-flex h-9 w-fit items-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground"><FileSearch className="h-4 w-4"/>Ver trazabilidad</Link>
       </section>
 
@@ -46,6 +51,20 @@ export default function FinanzasPage() {
           ['Eventos certificados', number(overview.event_count)],
           ['Validación', validationPassed ? 'Aprobada' : 'Revisar'],
         ].map(([label, value]) => <div key={label} className="bg-card px-5 py-4"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-2xl font-semibold tracking-tight">{isLoading ? '—' : value}</p></div>)}
+      </section>
+
+      <section className="space-y-3 border-t pt-5">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between"><div><h2 className="text-lg font-semibold">Tesorería</h2><p className="text-sm text-muted-foreground">Saldo por pagar, vencimientos y conciliación. No modifica el costo reconocido.</p></div><Link href="/dashboard/finanzas/pagos" className="text-sm font-medium text-primary hover:underline">Operar pagos</Link></div>
+        {treasury.length === 0 ? <div className="rounded-lg border px-4 py-5 text-sm text-muted-foreground">No hay cuentas por pagar aprobadas.</div> : treasury.map((row) => <div key={String(row.currency)} className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 xl:grid-cols-5">
+          {[
+            [`Saldo ${String(row.currency || '')}`, currencyMoney(row.outstanding_amount, row.currency)],
+            ['Vence ≤ 7 días', `${number(row.due_soon_count)} · ${currencyMoney(row.due_soon_amount, row.currency)}`],
+            ['Vencido', `${number(row.overdue_count)} · ${currencyMoney(row.overdue_amount, row.currency)}`],
+            ['Sin vencimiento', `${number(row.no_due_date_count)} · ${currencyMoney(row.no_due_date_amount, row.currency)}`],
+            ['Sin conciliar', `${number(row.unreconciled_payment_count)} · ${currencyMoney(row.unreconciled_payment_amount, row.currency)}`],
+          ].map(([label, value]) => <div key={label} className="bg-card px-4 py-4"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-base font-semibold tracking-tight">{value}</p></div>)}
+        </div>)}
+        {treasuryAging.length > 0 ? <div className="overflow-hidden rounded-lg border"><div className="border-b px-4 py-3"><h3 className="text-sm font-semibold">Aging por proveedor</h3></div>{treasuryAging.slice(0, 8).map((row, index) => <div key={`${String(row.supplier_id)}-${String(row.aging_bucket)}-${index}`} className="grid gap-1 border-b px-4 py-3 last:border-b-0 sm:grid-cols-[1fr_180px_160px]"><span className="truncate text-sm font-medium">{String(row.supplier_name || 'Proveedor')}</span><span className="text-sm text-muted-foreground">{agingLabels[String(row.aging_bucket)] || String(row.aging_bucket)}</span><span className="text-sm font-semibold tabular-nums sm:text-right">{currencyMoney(row.outstanding_amount, row.currency)}</span></div>)}</div> : null}
       </section>
 
       <section className="space-y-3 border-t pt-5">
