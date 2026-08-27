@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import useSWR from 'swr';
 import { ArrowRight, CheckCircle2, Clock3, Inbox, RefreshCw, ShieldAlert, Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -31,6 +32,7 @@ type InboxPayload = {
 };
 
 type StateRow = { source_key: string; status: 'pending' | 'read' | 'snoozed'; snoozed_until?: string | null };
+type FamilyPreferences = Record<string, boolean>;
 
 const fetcher = async (url: string) => {
   const response = await fetch(url, { credentials: 'include' });
@@ -84,9 +86,44 @@ function familyOrder(a: Task[], b: Task[]) {
   return taskOrder([...a].sort(taskOrder)[0], [...b].sort(taskOrder)[0]);
 }
 
+function preferenceStorageKey(name: string | null | undefined, cargoName: string | null | undefined) {
+  return `motil:actions-family-layout:${String(name || 'user')}:${String(cargoName || 'cargo')}`;
+}
+
 export default function AccionesPage() {
   const inbox = useSWR<InboxPayload>('/api/actions/inbox', fetcher, { refreshInterval: 60000, revalidateOnFocus: false });
   const states = useSWR('/api/actions/state', fetcher, { revalidateOnFocus: false });
+  const [familyPreferences, setFamilyPreferences] = useState<FamilyPreferences>({});
+  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+  const profileName = inbox.data?.profile?.name;
+  const cargoName = inbox.data?.profile?.cargoName;
+
+  useEffect(() => {
+    if (!cargoName || typeof window === 'undefined') return;
+    try {
+      const saved = window.localStorage.getItem(preferenceStorageKey(profileName, cargoName));
+      setFamilyPreferences(saved ? JSON.parse(saved) as FamilyPreferences : {});
+    } catch {
+      setFamilyPreferences({});
+    } finally {
+      setPreferencesLoaded(true);
+    }
+  }, [profileName, cargoName]);
+
+  function saveFamilyPreference(key: string, open: boolean) {
+    setFamilyPreferences((current) => {
+      const next = { ...current, [key]: open };
+      if (typeof window !== 'undefined' && cargoName) {
+        try {
+          window.localStorage.setItem(preferenceStorageKey(profileName, cargoName), JSON.stringify(next));
+        } catch {
+          // UI preference persistence is optional and must never block the operational inbox.
+        }
+      }
+      return next;
+    });
+  }
+
   const stateMap = new Map<string, StateRow>((states.data?.states || []).map((row: StateRow) => [row.source_key, row]));
   const now = Date.now();
   const tasks = (inbox.data?.tasks || []).filter((task) => {
@@ -110,9 +147,9 @@ export default function AccionesPage() {
   return <div className="space-y-6">
     <section className="flex flex-col gap-4 border-b border-border/70 pb-6 md:flex-row md:items-end md:justify-between">
       <div>
-        <p className="text-sm font-medium text-muted-foreground">{inbox.data?.profile?.cargoName || 'Trabajo por cargo'}</p>
+        <p className="text-sm font-medium text-muted-foreground">{cargoName || 'Trabajo por cargo'}</p>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">Mis acciones</h1>
-        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Sólo decisiones y tareas que corresponden a tu cargo, agrupadas por familia operacional. Las familias con críticas se abren primero; las demás quedan compactas hasta que las necesites.</p>
+        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Sólo decisiones y tareas que corresponden a tu cargo, agrupadas por familia operacional. Motil recuerda qué familias dejas abiertas o cerradas en este navegador.</p>
       </div>
       <Button variant="outline" onClick={() => { void inbox.mutate(); void states.mutate(); }}><RefreshCw className="mr-2 h-4 w-4" />Actualizar</Button>
     </section>
@@ -138,7 +175,13 @@ export default function AccionesPage() {
             {families.map(({ familyName, tasks: familyTasks }) => {
               const criticalCount = familyTasks.filter((task) => task.severity === 'critical').length;
               const overdueCount = familyTasks.filter((task) => task.urgency_state === 'overdue' || task.urgency_state === 'escalated').length;
-              return <details key={familyName} open={criticalCount > 0} className="group overflow-hidden rounded-lg border bg-card">
+              const preferenceKey = `${laneName}:${familyName}`;
+              const defaultOpen = criticalCount > 0;
+              const isOpen = preferencesLoaded && Object.hasOwn(familyPreferences, preferenceKey) ? familyPreferences[preferenceKey] : defaultOpen;
+              return <details key={familyName} open={isOpen} onToggle={(event) => {
+                if (!preferencesLoaded) return;
+                saveFamilyPreference(preferenceKey, event.currentTarget.open);
+              }} className="group overflow-hidden rounded-lg border bg-card">
                 <summary className="flex cursor-pointer list-none items-center gap-2 bg-muted/20 px-4 py-3 marker:hidden hover:bg-muted/35">
                   <p className="text-sm font-medium">{familyName}</p>
                   <Badge variant="secondary">{familyTasks.length}</Badge>
