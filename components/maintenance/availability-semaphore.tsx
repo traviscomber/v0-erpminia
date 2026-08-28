@@ -1,279 +1,163 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import useSWR from 'swr';
-import { AlertCircle, CheckCircle2, Wrench, Zap } from 'lucide-react';
+import { Activity, AlertTriangle, ArrowRight, Gauge, RefreshCw, Wrench } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Progress } from '@/components/ui/progress';
+import { StatePanel } from '@/components/ui/state-panel';
 
-const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then((res) => res.json());
+const fetcher = async (url: string) => {
+  const response = await fetch(url, { credentials: 'include', cache: 'no-store' });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(payload?.error || 'No se pudo cargar la evidencia de disponibilidad');
+  return payload;
+};
 
-type AvailabilitySummary = {
+type AvailabilityAsset = {
+  id: string;
+  assetCode?: string | null;
+  assetName?: string | null;
+  assetType?: string | null;
+  location?: string | null;
+  observedStatus: 'operational' | 'maintenance' | 'unavailable' | 'unknown';
+  rawStatus?: string | null;
+  openWorkOrders: number;
+  criticalOpenOrders: number;
+  overduePreventives: number;
+  runtimeReadingCount: number;
+  latestMeterHours?: number | string | null;
+  auditedClosures: number;
+  auditedDowntimeHours?: number | string | null;
+  availabilityPercentage: null;
+  nextAction: string;
+};
+
+type AvailabilityResponse = {
   summary: {
     totalAssets: number;
-    operational: number;
-    maintenance: number;
-    critical: number;
-    availabilityPercentage: number;
-    healthStatus: 'excellent' | 'good' | 'warning' | 'critical';
+    canonicalOperational: number;
+    canonicalMaintenance: number;
+    canonicalUnavailable: number;
+    canonicalStatusUnknown: number;
+    assetsWithOpenWorkOrders: number;
+    assetsWithOverduePreventive: number;
+    assetsWithRuntimeReadings: number;
+    assetsWithDowntimeEvidence: number;
+    availabilityPercentage: null;
+    availabilityCalculableAssets: number;
+    evidenceStatus: string;
   };
+  assets: AvailabilityAsset[];
+  evidence?: { availabilityRule?: string };
   timestamp: string;
 };
 
-type AvailabilityByZone = {
-  byZone: Array<{
-    zone: string;
-    assets: Array<{
-      id: string;
-      assetCode: string;
-      assetName: string;
-      assetType: string;
-      location: string;
-      status: 'operational' | 'maintenance' | 'critical';
-      mtbfHours: number;
-      currentWorkOrder: {
-        workOrderNumber: string;
-        title: string;
-      } | null;
-    }>;
-    summary: {
-      total: number;
-      operational: number;
-      maintenance: number;
-      critical: number;
-      availabilityPercentage: number;
-    };
-  }>;
-  timestamp: string;
-};
-
-function getStatusColor(status: string): string {
-  switch (status) {
-    case 'operational':
-      return 'bg-green-950/40 text-green-300 border-green-800';
-    case 'maintenance':
-      return 'bg-amber-950/40 text-amber-300 border-amber-800';
-    case 'critical':
-      return 'bg-red-950/40 text-red-300 border-red-800';
-    default:
-      return 'bg-slate-900/40 text-slate-300 border-slate-700';
-  }
+function statusLabel(status: AvailabilityAsset['observedStatus']) {
+  if (status === 'operational') return 'Operacional informado';
+  if (status === 'maintenance') return 'En mantenimiento';
+  if (status === 'unavailable') return 'No disponible informado';
+  return 'Estado no informado';
 }
 
-function getHealthColor(health: string): string {
-  switch (health) {
-    case 'excellent':
-      return 'from-slate-900/60 to-slate-800/60 border-green-700/50';
-    case 'good':
-      return 'from-slate-900/60 to-slate-800/60 border-blue-700/50';
-    case 'warning':
-      return 'from-slate-900/60 to-slate-800/60 border-amber-700/50';
-    case 'critical':
-      return 'from-slate-900/60 to-slate-800/60 border-red-700/50';
-    default:
-      return 'from-slate-900/60 to-slate-800/60 border-slate-700';
-  }
-}
-
-function getHealthBadgeColor(health: string): string {
-  switch (health) {
-    case 'excellent':
-      return 'bg-green-900/60 text-green-300 border border-green-700/50';
-    case 'good':
-      return 'bg-blue-900/60 text-blue-300 border border-blue-700/50';
-    case 'warning':
-      return 'bg-amber-900/60 text-amber-300 border border-amber-700/50';
-    case 'critical':
-      return 'bg-red-900/60 text-red-300 border border-red-700/50';
-    default:
-      return 'bg-slate-900/60 text-slate-300 border border-slate-700/50';
-  }
+function statusVariant(status: AvailabilityAsset['observedStatus']): 'default' | 'secondary' | 'destructive' | 'outline' {
+  if (status === 'unavailable') return 'destructive';
+  if (status === 'maintenance') return 'secondary';
+  return 'outline';
 }
 
 export function AvailabilitySemaphore() {
-  const { data: summary } = useSWR<AvailabilitySummary>(
-    '/api/maintenance/availability/summary',
-    fetcher,
-    { refreshInterval: 30000 } // Refresh every 30 seconds
-  );
+  const { data, error, isLoading, mutate } = useSWR<AvailabilityResponse>('/api/maintenance/availability/summary', fetcher, { revalidateOnFocus: false });
 
-  const { data: byZone } = useSWR<AvailabilityByZone>(
-    '/api/maintenance/availability/by-zone',
-    fetcher,
-    { refreshInterval: 30000 }
-  );
+  if (isLoading) return <StatePanel tone="loading" title="Reuniendo evidencia de disponibilidad" description="Consultando activos canónicos, OT, horómetros y detenciones auditadas." />;
+  if (error || !data?.summary) return <StatePanel tone="error" title="No fue posible cargar disponibilidad" description={error instanceof Error ? error.message : 'Reintenta la consulta.'} actions={<Button variant="outline" onClick={() => void mutate()}><RefreshCw className="h-4 w-4" />Reintentar</Button>} />;
 
-  const [isWarning, setIsWarning] = useState(false);
-
-  useEffect(() => {
-    if (summary?.summary.availabilityPercentage && summary.summary.availabilityPercentage < 70) {
-      setIsWarning(true);
-    } else {
-      setIsWarning(false);
-    }
-  }, [summary?.summary.availabilityPercentage]);
-
-  if (!summary?.summary) {
-    return (
-      <div className="text-center py-8 text-gray-500">Cargando disponibilidad...</div>
-    );
-  }
-
-  const s = summary.summary;
+  const s = data.summary;
+  const priorityAssets = (data.assets || []).filter((asset) => asset.nextAction !== 'Sin acción prioritaria').slice(0, 12);
 
   return (
     <div className="space-y-6">
-      {/* Main Semaphore Card */}
-      <Card
-        className={`border-2 bg-gradient-to-br ${getHealthColor(s.healthStatus)} ${
-          isWarning ? 'animate-pulse' : ''
-        }`}
-      >
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <Zap className="w-5 h-5" />
-              Disponibilidad en Tiempo Real
-            </span>
-            <span
-              className={`px-3 py-1 rounded-full text-xs font-bold ${getHealthBadgeColor(
-                s.healthStatus
-              )}`}
-            >
-              {s.healthStatus === 'excellent'
-                ? 'Excelente'
-                : s.healthStatus === 'good'
-                  ? 'Bueno'
-                  : s.healthStatus === 'warning'
-                    ? 'Advertencia'
-                    : 'Crítico'}
-            </span>
-          </CardTitle>
+      <Card className="shadow-none">
+        <CardHeader className="gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Disponibilidad basada en evidencia</p>
+            <CardTitle className="mt-1 text-xl">Porcentaje aún no calculable</CardTitle>
+            <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+              Motil no publicará un porcentaje de disponibilidad hasta contar con una ventana operativa comparable que distinga horas programadas, operación y detención.
+            </p>
+          </div>
+          <Badge variant="outline">Sin base temporal suficiente</Badge>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Large Availability Percentage */}
-          <div className="text-center">
-            <div className="text-6xl font-bold">
-              <span
-                className={
-                  s.availabilityPercentage >= 80
-                    ? 'text-green-400'
-                    : s.availabilityPercentage >= 60
-                      ? 'text-blue-400'
-                      : s.availabilityPercentage >= 40
-                        ? 'text-amber-400'
-                        : 'text-red-400'
-                }
-              >
-                {s.availabilityPercentage}%
-              </span>
-            </div>
-            <p className="text-muted-foreground text-sm mt-1">Equipos disponibles operando</p>
+        <CardContent className="space-y-5">
+          <div className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 xl:grid-cols-6">
+            {[
+              ['Activos canónicos', s.totalAssets],
+              ['Estado operacional', s.canonicalOperational],
+              ['En mantenimiento', s.canonicalMaintenance],
+              ['Estado sin informar', s.canonicalStatusUnknown],
+              ['Con OT abierta', s.assetsWithOpenWorkOrders],
+              ['Preventivo vencido', s.assetsWithOverduePreventive],
+            ].map(([label, value]) => (
+              <div key={String(label)} className="bg-card p-4">
+                <p className="text-xs text-muted-foreground">{label}</p>
+                <p className="mt-2 text-xl font-semibold">{String(value)}</p>
+              </div>
+            ))}
           </div>
 
-          {/* Progress Bar */}
-          <Progress
-            value={s.availabilityPercentage}
-            className="h-3 bg-slate-800"
-          />
-
-          {/* Asset Stats */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="text-center p-3 bg-slate-900/50 rounded-lg border border-green-800/50">
-              <div className="text-2xl font-bold text-green-400">{s.operational}</div>
-              <p className="text-xs text-green-300/70">Operando</p>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="rounded-lg border p-4">
+              <div className="flex items-center gap-2 text-sm font-medium"><Gauge className="h-4 w-4" />Horómetro utilizable</div>
+              <p className="mt-2 text-2xl font-semibold">{s.assetsWithRuntimeReadings}</p>
+              <p className="mt-1 text-xs text-muted-foreground">Activos con lectura acumulada real disponible.</p>
             </div>
-            <div className="text-center p-3 bg-slate-900/50 rounded-lg border border-amber-800/50">
-              <div className="text-2xl font-bold text-amber-400">{s.maintenance}</div>
-              <p className="text-xs text-amber-300/70">Mantenimiento</p>
+            <div className="rounded-lg border p-4">
+              <div className="flex items-center gap-2 text-sm font-medium"><Activity className="h-4 w-4" />Detención auditada</div>
+              <p className="mt-2 text-2xl font-semibold">{s.assetsWithDowntimeEvidence}</p>
+              <p className="mt-1 text-xs text-muted-foreground">Activos con cierres auditados que registran evidencia de detención.</p>
             </div>
-            <div className="text-center p-3 bg-slate-900/50 rounded-lg border border-red-800/50">
-              <div className="text-2xl font-bold text-red-400">{s.critical}</div>
-              <p className="text-xs text-red-300/70">Críticos</p>
+            <div className="rounded-lg border p-4">
+              <div className="flex items-center gap-2 text-sm font-medium"><AlertTriangle className="h-4 w-4" />Disponibilidad calculable</div>
+              <p className="mt-2 text-2xl font-semibold">{s.availabilityCalculableAssets}</p>
+              <p className="mt-1 text-xs text-muted-foreground">Se mantiene en cero mientras no exista una ventana operativa comparable.</p>
             </div>
           </div>
 
-          {/* Warning Alert */}
-          {isWarning && (
-            <Alert className="border-red-800/50 bg-red-950/30">
-              <AlertCircle className="h-4 w-4 text-red-400" />
-              <AlertDescription className="text-red-300">
-                ⚠️ Disponibilidad por debajo del 70%. Revisar operaciones inmediatamente.
-              </AlertDescription>
-            </Alert>
+          <div className="rounded-lg border bg-muted/20 p-3 text-sm text-muted-foreground">
+            {data.evidence?.availabilityRule || 'La disponibilidad requiere evidencia temporal compatible.'}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="shadow-none">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base"><Wrench className="h-4 w-4" />Equipos que requieren atención</CardTitle>
+          <p className="text-sm text-muted-foreground">Priorizados por preventivo vencido, OT prioritaria, OT abierta o estado informado de mantenimiento. No es un ranking de impacto productivo.</p>
+        </CardHeader>
+        <CardContent>
+          {priorityAssets.length === 0 ? (
+            <div className="rounded-lg border border-dashed p-6 text-sm text-muted-foreground">No hay acciones operacionales prioritarias derivadas de estas fuentes.</div>
+          ) : (
+            <div className="divide-y rounded-lg border">
+              {priorityAssets.map((asset) => (
+                <div key={asset.id} className="grid gap-3 p-4 lg:grid-cols-[minmax(0,1.4fr)_150px_120px_160px_auto] lg:items-center">
+                  <div className="min-w-0">
+                    <p className="font-medium">{asset.assetCode || asset.assetName || 'Activo'}</p>
+                    <p className="truncate text-xs text-muted-foreground">{[asset.assetName, asset.assetType, asset.location].filter(Boolean).join(' · ') || 'Sin detalle adicional'}</p>
+                  </div>
+                  <Badge variant={statusVariant(asset.observedStatus)} className="w-fit">{statusLabel(asset.observedStatus)}</Badge>
+                  <div><p className="text-xs text-muted-foreground">OT abiertas</p><p className="font-medium">{asset.openWorkOrders}</p></div>
+                  <div><p className="text-xs text-muted-foreground">Siguiente acción</p><p className="text-sm font-medium">{asset.nextAction}</p></div>
+                  <Button asChild size="sm" variant="outline"><Link href={`/dashboard/mantenimiento/equipos/${encodeURIComponent(asset.id)}/ficha`}>Ficha 360<ArrowRight className="h-4 w-4" /></Link></Button>
+                </div>
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>
 
-      {/* By Zone Cards */}
-      {byZone?.byZone && byZone.byZone.length > 0 && (
-        <div>
-          <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
-            <Wrench className="w-5 h-5" />
-            Por Zona/Área
-          </h3>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {byZone.byZone.map((zone) => (
-              <Card key={zone.zone} className="border border-slate-700/50 bg-slate-900/30">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center justify-between">
-                    <span>{zone.zone}</span>
-                    <span className="text-2xl font-bold text-slate-200">
-                      {zone.summary.availabilityPercentage}%
-                    </span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {/* Inline Stats */}
-                  <div className="grid grid-cols-3 gap-2 text-center text-sm">
-                    <div className="p-2 bg-green-950/40 rounded border border-green-800/50">
-                      <div className="font-bold text-green-400">{zone.summary.operational}</div>
-                      <div className="text-xs text-green-300/70">OK</div>
-                    </div>
-                    <div className="p-2 bg-amber-950/40 rounded border border-amber-800/50">
-                      <div className="font-bold text-amber-400">{zone.summary.maintenance}</div>
-                      <div className="text-xs text-amber-300/70">Mto.</div>
-                    </div>
-                    <div className="p-2 bg-red-950/40 rounded border border-red-800/50">
-                      <div className="font-bold text-red-400">{zone.summary.critical}</div>
-                      <div className="text-xs text-red-300/70">Crítico</div>
-                    </div>
-                  </div>
-
-                  {/* Asset Indicators */}
-                  <div className="space-y-2">
-                    {zone.assets.slice(0, 2).map((asset) => (
-                      <div
-                        key={asset.id}
-                        className={`p-2 rounded border-l-4 ${getStatusColor(asset.status)}`}
-                      >
-                        <div className="font-semibold text-sm text-slate-200">{asset.assetCode}</div>
-                        <div className="text-xs text-slate-400 truncate">{asset.assetName}</div>
-                        {asset.currentWorkOrder && (
-                          <div className="text-xs italic text-slate-400 mt-1">
-                            {asset.currentWorkOrder.workOrderNumber}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                    {zone.assets.length > 2 && (
-                      <div className="text-xs text-slate-500 text-center p-1">
-                        +{zone.assets.length - 2} más
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Last Updated */}
-      <div className="text-xs text-slate-500 text-center">
-        Actualizado: {new Date(summary.timestamp).toLocaleTimeString('es-CL')}
-      </div>
+      <p className="text-center text-xs text-muted-foreground">Actualizado: {new Date(data.timestamp).toLocaleString('es-CL')}</p>
     </div>
   );
 }
