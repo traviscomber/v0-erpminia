@@ -1,3 +1,21 @@
+export interface EquipmentOperationalSummary {
+  openWorkOrders: number;
+  operationalBlockers: number;
+  pendingPlanSteps: number;
+  readyToClose: number;
+  overduePreventives: number;
+  nextPreventiveTask?: string | null;
+  nextPreventiveRemainingHours?: number | null;
+  latestMeterHours?: number | null;
+  runtimeReadingCount: number;
+  auditedClosures: number;
+  recurringCauseCount: number;
+  validMtbfIntervals: number;
+  mtbfOperatingHours?: number | null;
+  nextAction: string;
+  nextActionHref: string;
+}
+
 export interface Equipment {
   id: string;
   asset_id?: string | null;
@@ -13,4 +31,5 @@ export interface Equipment {
   last_maintenance: string | null;
   next_maintenance: string | null;
   specs: Record<string, unknown> | null;
+  operational?: EquipmentOperationalSummary | null;
 }
