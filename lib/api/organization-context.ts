@@ -83,7 +83,10 @@ export async function getOrganizationContext(
     };
   }
 
-  const supabase = getSupabaseServerClient();
+  // The service-role client has no end-user JWT. Forward the already verified
+  // application identity so privileged database functions can still enforce
+  // organization membership and write an accurate audit actor.
+  const supabase = getSupabaseServerClient(auth.user.id);
   let userName = auth.user.full_name || auth.user.email || auth.user.id;
 
   try {
