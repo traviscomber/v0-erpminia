@@ -17,25 +17,24 @@ type CloseQueueRow = {
   root_cause: string | null;
   preventive_actions: string | null;
   actual_duration_hours: number | string | null;
-  parts_cost: number | string | null;
-  labor_cost: number | string | null;
-  effective_external_cost: number | string | null;
   total_cost: number | string | null;
-  open_procurement_orders: number | string | null;
-  pending_parts: number | string | null;
-  unmet_material_requirements: number | string | null;
-  pending_external_services: number | string | null;
-  open_labor_entries: number | string | null;
-  external_cost_conflict: boolean | null;
-  missing_asset: boolean;
-  missing_root_cause: boolean;
-  missing_preventive_actions: boolean;
-  missing_actual_hours: boolean;
   runtime_evidence_status: string | null;
   runtime_reading_id: string | null;
   runtime_unavailable_reason: string | null;
   hour_schedule_linked: boolean;
   missing_runtime_evidence: boolean;
+  standard_plan_steps_total: number | string | null;
+  standard_plan_steps_completed: number | string | null;
+  standard_plan_steps_pending: number | string | null;
+  next_plan_step_id: string | null;
+  next_plan_step_sequence: number | null;
+  next_plan_step_title: string | null;
+  next_plan_step_instructions: string | null;
+  next_plan_step_control_requirement: string | null;
+  next_plan_step_document_reference: string | null;
+  missing_root_cause: boolean;
+  missing_preventive_actions: boolean;
+  missing_actual_hours: boolean;
   ready_to_close: boolean;
   next_action: string;
 };
@@ -50,11 +49,12 @@ const actionRank: Record<string, number> = {
   resolve_external_services: 4,
   resolve_labor: 5,
   reconcile_external_cost: 6,
-  record_root_cause: 7,
-  record_preventive_actions: 8,
-  record_actual_hours: 9,
-  record_runtime_evidence: 10,
-  close_work_order: 11,
+  complete_standard_plan_step: 7,
+  record_root_cause: 8,
+  record_preventive_actions: 9,
+  record_actual_hours: 10,
+  record_runtime_evidence: 11,
+  close_work_order: 12,
 };
 
 export async function GET(request: NextRequest) {
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const { data, error } = await context.supabase
-      .from('work_order_close_readiness_v1')
+      .from('work_order_close_readiness_v2')
       .select('*')
       .eq('organization_id', context.organizationId);
     if (error) throw error;
@@ -95,13 +95,15 @@ export async function GET(request: NextRequest) {
       openOrders: queue.length,
       readyToClose: queue.filter((row) => row.ready_to_close).length,
       blocked: queue.filter((row) => !row.ready_to_close).length,
+      pendingPlanSteps: queue.reduce((sum, row) => sum + Number(row.standard_plan_steps_pending || 0), 0),
+      workOrdersWithPendingPlan: queue.filter((row) => Number(row.standard_plan_steps_pending || 0) > 0).length,
       missingRootCause: queue.filter((row) => row.missing_root_cause).length,
       missingPreventiveActions: queue.filter((row) => row.missing_preventive_actions).length,
       missingActualHours: queue.filter((row) => row.missing_actual_hours).length,
       missingRuntimeEvidence: queue.filter((row) => row.missing_runtime_evidence).length,
     };
 
-    return NextResponse.json({ queue, summary, canEdit: access.canWrite });
+    return NextResponse.json({ queue, summary, canEdit: access.canWrite, source: 'work_order_close_readiness_v2' });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudo cargar la cola de cierre de OT';
     return NextResponse.json({ queue: [], error: message }, { status: 500 });
