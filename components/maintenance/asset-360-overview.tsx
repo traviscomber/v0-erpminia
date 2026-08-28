@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import useSWR from 'swr';
-import { Activity, AlertTriangle, ArrowRight, FileText, Gauge, GitBranch, QrCode, RefreshCw, Timer, Wrench } from 'lucide-react';
+import { Activity, AlertTriangle, ArrowRight, FileText, Gauge, GitBranch, QrCode, RefreshCw, Timer, Wrench, type LucideIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +17,8 @@ type Asset360Response = {
   nextPreventive?: { schedule_id: string; task_name?: string | null; frequency_hours?: number | string | null; due_meter?: number | string | null; effective_current_meter?: number | string | null; hour_status?: string | null; remaining_hours?: number | string | null; alert_due?: boolean; generated_work_order_id?: string | null } | null;
   closeReadiness?: Array<{ work_order_id: string; work_order_number?: string | null; next_action?: string | null; ready_to_close?: boolean; standard_plan_steps_pending?: number | string | null }>;
 };
+
+type Metric = [label: string, value: string | number, icon: LucideIcon];
 
 const fetcher = async (url: string): Promise<Asset360Response> => {
   const response = await fetch(url, { credentials: 'include', cache: 'no-store' });
@@ -44,6 +46,14 @@ export function Asset360Overview({ assetId, scope = 'equipos' }: { assetId: stri
   const mtbf = Number(rr?.valid_mtbf_intervals || 0) > 0 ? `${number(rr?.mtbf_operating_hours, 1)} h` : 'Sin base';
   const mttr = Number(rr?.audited_corrective_events || 0) > 0 && Number(rr?.mttr_hours || 0) > 0 ? `${number(rr?.mttr_hours, 1)} h` : 'Sin base';
   const auditedCost = Number(reliability?.audited_closures || 0) > 0 ? money(reliability?.audited_total_cost) : 'Sin base';
+  const metrics: Metric[] = [
+    ['OT activas', summary.activeWorkOrders, Wrench],
+    ['Preventivos vencidos', summary.overduePreventives, AlertTriangle],
+    ['Bloqueos operativos', summary.operationalBlockers, Activity],
+    ['Horómetro', runtime?.latest_meter_hours != null ? `${number(runtime.latest_meter_hours, 1)} h` : 'Sin lectura', Gauge],
+    ['MTBF real', mtbf, Timer],
+    ['Costo auditado', auditedCost, Activity],
+  ];
 
   const links = [
     { href: `${basePath}/ficha-tecnica`, label: 'Ficha técnica', icon: Gauge },
@@ -64,14 +74,7 @@ export function Asset360Overview({ assetId, scope = 'equipos' }: { assetId: stri
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 xl:grid-cols-6">
-          {[
-            ['OT activas', summary.activeWorkOrders, Wrench],
-            ['Preventivos vencidos', summary.overduePreventives, AlertTriangle],
-            ['Bloqueos operativos', summary.operationalBlockers, Activity],
-            ['Horómetro', runtime?.latest_meter_hours != null ? `${number(runtime.latest_meter_hours, 1)} h` : 'Sin lectura', Gauge],
-            ['MTBF real', mtbf, Timer],
-            ['Costo auditado', auditedCost, Activity],
-          ].map(([label, value, Icon]) => <div key={String(label)} className="bg-card p-4"><div className="flex items-center justify-between gap-2 text-muted-foreground"><span className="text-xs">{String(label)}</span><Icon className="h-4 w-4" /></div><p className="mt-2 text-lg font-semibold">{String(value)}</p></div>)}
+          {metrics.map(([label, value, Icon]) => <div key={label} className="bg-card p-4"><div className="flex items-center justify-between gap-2 text-muted-foreground"><span className="text-xs">{label}</span><Icon className="h-4 w-4" /></div><p className="mt-2 text-lg font-semibold">{String(value)}</p></div>)}
         </div>
 
         <div className="grid gap-4 lg:grid-cols-3">
