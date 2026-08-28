@@ -1,0 +1,35 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+
+const api = fs.readFileSync('app/api/maintenance/assets/[id]/operational-360/route.ts', 'utf8');
+const ui = fs.readFileSync('components/maintenance/asset-360-overview.tsx', 'utf8');
+
+test('asset 360 API is maintenance authorized tenant scoped and composes existing evidence', () => {
+  assert.match(api, /requireModuleAccess\(request, MODULE_KEYS\.MANT_OPERACIONES\)/);
+  assert.match(api, /eq\('organization_id', context\.organizationId\)/);
+  assert.match(api, /maintenance_operational_work_order_flow_v1/);
+  assert.match(api, /work_order_close_readiness_v2/);
+  assert.match(api, /preventive_maintenance_hour_status_v1/);
+  assert.match(api, /asset_runtime_summary_v1/);
+  assert.match(api, /maintenance_reliability_by_asset_v1/);
+  assert.match(api, /maintenance_runtime_reliability_by_asset_v1/);
+});
+
+test('asset 360 UI refuses legacy calendar MTBF and historical mixed cost', () => {
+  assert.doesNotMatch(ui, /hoursBetween/);
+  assert.doesNotMatch(ui, /completedDates/);
+  assert.match(ui, /MTBF real/);
+  assert.match(ui, /valid_mtbf_intervals/);
+  assert.match(ui, /Sin base/);
+  assert.match(ui, /snapshots de cierre auditado/);
+});
+
+test('asset 360 surfaces next preventive closure and reliability in one view', () => {
+  assert.match(ui, /Próximo preventivo por horas/);
+  assert.match(ui, /Confiabilidad auditada/);
+  assert.match(ui, /Cierre y ejecución/);
+  assert.match(ui, /Continuar trabajo/);
+  assert.match(ui, /preventivo-horas/);
+  assert.match(ui, /ordenes-trabajo\/cierre/);
+});
