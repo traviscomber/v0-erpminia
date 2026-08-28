@@ -21,7 +21,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     if (assetError) throw assetError;
     if (!asset) return NextResponse.json({ error: 'Equipo no encontrado' }, { status: 404 });
 
-    const [ordersResult, closeResult, preventiveResult, runtimeResult, reliabilityResult, runtimeReliabilityResult] = await Promise.all([
+    const [ordersResult, closeResult, preventiveResult, runtimeResult, reliabilityResult, runtimeReliabilityResult, snapshotsResult, partsResult, eventsResult] = await Promise.all([
       context.supabase
         .from('maintenance_operational_work_order_flow_v1')
         .select('work_order_id,work_order_number,status,priority,work_type,scheduled_date,assigned_person_name,flow_status,open_purchase_order_count,quantity_requested,quantity_issued,quantity_installed,total_cost')
@@ -58,9 +58,30 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         .eq('organization_id', context.organizationId)
         .eq('canonical_asset_id', id)
         .maybeSingle(),
+      context.supabase
+        .from('work_order_closure_cost_snapshots')
+        .select('id,work_order_id,closure_sequence,parts_cost,labor_cost,effective_external_cost,total_cost,closed_at')
+        .eq('organization_id', context.organizationId)
+        .eq('canonical_asset_id', id)
+        .order('closed_at', { ascending: false })
+        .limit(100),
+      context.supabase
+        .from('work_order_parts')
+        .select('id,work_order_id,canonical_product_id,quantity_requested,quantity_reserved,quantity_issued,quantity_installed,quantity_returned,unit_cost,status,installed_at,notes')
+        .eq('organization_id', context.organizationId)
+        .eq('canonical_asset_id', id)
+        .order('created_at', { ascending: false })
+        .limit(200),
+      context.supabase
+        .from('work_order_events')
+        .select('id,work_order_id,event_type,event_at,actor_name,summary')
+        .eq('organization_id', context.organizationId)
+        .eq('canonical_asset_id', id)
+        .order('event_at', { ascending: false })
+        .limit(30),
     ]);
 
-    const error = ordersResult.error || closeResult.error || preventiveResult.error || runtimeResult.error || reliabilityResult.error || runtimeReliabilityResult.error;
+    const error = ordersResult.error || closeResult.error || preventiveResult.error || runtimeResult.error || reliabilityResult.error || runtimeReliabilityResult.error || snapshotsResult.error || partsResult.error || eventsResult.error;
     if (error) throw error;
 
     const closeRows = closeResult.data || [];
@@ -71,6 +92,51 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return ar - br;
     });
 
+    const snapshotRows = snapshotsResult.data || [];
+    const latestSnapshots = Array.from(snapshotRows.reduce((map: Map<string, any>, row: any) => {
+      const current = map.get(row.work_order_id);
+      if (!current || Number(row.closure_sequence || 0) > Number(current.closure_sequence || 0)) map.set(row.work_order_id, row);
+      return map;
+    }, new Map()).values()).sort((a: any, b: any) => new Date(b.closed_at || 0).getTime() - new Date(a.closed_at || 0).getTime());
+
+    const workOrderIds = Array.from(new Set([
+      ...latestSnapshots.map((row: any) => row.work_order_id),
+      ...(partsResult.data || []).map((row: any) => row.work_order_id),
+    ].filter(Boolean)));
+    const workOrderResult = workOrderIds.length
+      ? await context.supabase
+          .from('maintenance_work_orders')
+          .select('id,work_order_number,title,status,priority,work_type,scheduled_date,start_date,completion_date,root_cause,preventive_actions,actual_duration_hours')
+          .eq('organization_id', context.organizationId)
+          .in('id', workOrderIds)
+      : { data: [], error: null };
+    if (workOrderResult.error) throw workOrderResult.error;
+    const workOrdersById = new Map((workOrderResult.data || []).map((row: any) => [row.id, row]));
+
+    const productIds = Array.from(new Set((partsResult.data || []).map((row: any) => row.canonical_product_id).filter(Boolean)));
+    const productResult = productIds.length
+      ? await context.supabase
+          .from('canonical_products_v1')
+          .select('id,product_code,name,unit')
+          .eq('organization_id', context.organizationId)
+          .in('id', productIds)
+      : { data: [], error: null };
+    if (productResult.error) throw productResult.error;
+    const productsById = new Map((productResult.data || []).map((row: any) => [row.id, row]));
+
+    const parts = (partsResult.data || []).map((row: any) => ({
+      ...row,
+      product: productsById.get(row.canonical_product_id) || null,
+      workOrder: workOrdersById.get(row.work_order_id) || null,
+    }));
+    const installedParts = parts.filter((row: any) => Number(row.quantity_installed || 0) > 0);
+    const pendingParts = parts.filter((row: any) => Math.max(Number(row.quantity_requested || 0) - Number(row.quantity_installed || 0) - Number(row.quantity_returned || 0), 0) > 0);
+
+    const auditedInterventions = latestSnapshots.map((row: any) => ({
+      ...row,
+      workOrder: workOrdersById.get(row.work_order_id) || null,
+    }));
+
     const summary = {
       activeWorkOrders: (ordersResult.data || []).length,
       criticalOpen: (ordersResult.data || []).filter((row: any) => String(row.priority || '').toLowerCase() === 'critical').length,
@@ -78,6 +144,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       readyToClose: closeRows.filter((row: any) => Boolean(row.ready_to_close)).length,
       pendingPlanSteps: closeRows.reduce((sum: number, row: any) => sum + Number(row.standard_plan_steps_pending || 0), 0),
       overduePreventives: preventives.filter((row: any) => Boolean(row.alert_due)).length,
+      installedPartLines: installedParts.length,
+      pendingPartLines: pendingParts.length,
+      auditedInterventions: auditedInterventions.length,
     };
 
     return NextResponse.json({
@@ -90,11 +159,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       runtime: runtimeResult.data || null,
       reliability: reliabilityResult.data || null,
       runtimeReliability: runtimeReliabilityResult.data || null,
+      auditedInterventions,
+      installedParts,
+      pendingParts,
+      recentEvents: eventsResult.data || [],
       canEdit: access.canWrite,
       evidence: {
         mtbf: 'Sólo desde intervalos correctivos auditados con horómetro válido.',
         mttr: 'Sólo desde horas reales de correctivos auditados.',
-        cost: 'Sólo desde snapshots auditados de cierre.',
+        cost: 'Sólo desde el último snapshot auditado de cada cierre de OT.',
+        parts: 'Cantidades observadas en work_order_parts; no se infiere stock disponible.',
       },
     });
   } catch (error) {
