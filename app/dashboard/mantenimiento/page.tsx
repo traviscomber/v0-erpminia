@@ -2,123 +2,80 @@
 
 import Link from 'next/link';
 import useSWR from 'swr';
-import { ArrowRight, ClipboardList, PackageCheck, Plus, ShoppingCart, Wrench } from 'lucide-react';
+import { AlertTriangle, ArrowRight, CheckCircle2, Clock3, Gauge, Plus, RefreshCw, ShieldAlert, Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  PageHeader,
-  PageHeaderActions,
-  PageHeaderContent,
-  PageHeaderDescription,
-  PageHeaderEyebrow,
-  PageHeaderTitle,
-} from '@/components/ui/page-header';
+import { PageHeader, PageHeaderActions, PageHeaderContent, PageHeaderDescription, PageHeaderEyebrow, PageHeaderTitle } from '@/components/ui/page-header';
 import { StatePanel } from '@/components/ui/state-panel';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
-const fetcher = async (url: string) => {
-  const response = await fetch(url, { credentials: 'include', cache: 'no-store' });
-  const payload = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(payload?.error || 'No fue posible cargar las órdenes de trabajo.');
+type ActionItem = { id:string; kind:string; priority:number; title:string; description:string; evidence:string; href:string };
+type Response = {
+  summary?: { openWorkOrders:number; overdueHourSchedules:number; operationallyBlocked:number; pendingPlanSteps:number; readyToClose:number; recurringReliabilityAssets:number; totalActions:number };
+  actions?: ActionItem[];
+};
+
+const fetcher = async (url:string):Promise<Response> => {
+  const response = await fetch(url,{ credentials:'include', cache:'no-store' });
+  const payload = await response.json().catch(()=>null);
+  if(!response.ok) throw new Error(payload?.error || 'No fue posible cargar el centro de mantenimiento.');
   return payload;
 };
 
-type FlowRow = {
-  work_order_id: string;
-  work_order_number: string;
-  asset_code: string | null;
-  asset_name: string | null;
-  assigned_person_name: string | null;
-  status: string | null;
-  priority: string | null;
-  flow_status: string;
-  procurement_request_count: number;
-  purchase_order_count: number;
-  receipt_count: number;
-  quantity_requested: number;
-  quantity_issued: number;
-  quantity_installed: number;
-  labor_hours: number;
-  total_cost: number;
-  purchase_commitment: number;
+const kindCopy: Record<string,{label:string; icon:any; variant:'default'|'secondary'|'destructive'|'outline'}> = {
+  preventive_overdue:{ label:'Preventivo vencido', icon:Clock3, variant:'destructive' },
+  meter_review:{ label:'Horómetro', icon:Gauge, variant:'outline' },
+  operational_blocker:{ label:'Bloqueo operacional', icon:ShieldAlert, variant:'destructive' },
+  plan_step:{ label:'Procedimiento', icon:Wrench, variant:'default' },
+  ready_to_close:{ label:'Listo para cierre', icon:CheckCircle2, variant:'secondary' },
+  closure_evidence:{ label:'Evidencia de cierre', icon:AlertTriangle, variant:'outline' },
+  reliability:{ label:'Confiabilidad', icon:AlertTriangle, variant:'outline' },
 };
 
-type FlowResponse = {
-  rows: FlowRow[];
-  overview: {
-    total: number;
-    planned: number;
-    in_progress: number;
-    waiting_procurement: number;
-    waiting_parts: number;
-    missing_asset: number;
-    missing_person: number;
-    completed: number;
-    totalCost: number;
-    purchaseCommitment: number;
-  };
-};
+export default function MantenimientoPage(){
+  const {data,error,isLoading,mutate}=useSWR<Response>('/api/maintenance/control-center',fetcher,{revalidateOnFocus:false});
+  const summary=data?.summary;
+  const actions=data?.actions || [];
+  const metrics=[
+    ['Preventivos vencidos',summary?.overdueHourSchedules ?? '—','/dashboard/mantenimiento/preventivo-horas'],
+    ['OT abiertas',summary?.openWorkOrders ?? '—','/dashboard/mantenimiento/ordenes-trabajo'],
+    ['Bloqueos operacionales',summary?.operationallyBlocked ?? '—','/dashboard/mantenimiento/ordenes-trabajo/cierre'],
+    ['Pasos pendientes',summary?.pendingPlanSteps ?? '—','/dashboard/mantenimiento/ordenes-trabajo/cierre'],
+    ['Listas para cerrar',summary?.readyToClose ?? '—','/dashboard/mantenimiento/ordenes-trabajo/cierre'],
+    ['Recurrencias auditadas',summary?.recurringReliabilityAssets ?? '—','/dashboard/mantenimiento/confiabilidad'],
+  ] as const;
 
-const labels: Record<string, string> = {
-  planned: 'Planificada',
-  in_progress: 'En ejecución',
-  waiting_procurement: 'Esperando compra',
-  waiting_parts: 'Esperando repuestos',
-  missing_asset: 'Sin equipo',
-  missing_person: 'Sin responsable',
-  completed: 'Completada',
-};
+  return <div className="space-y-6">
+    <PageHeader>
+      <PageHeaderContent>
+        <PageHeaderEyebrow>Mantenimiento · Centro operacional</PageHeaderEyebrow>
+        <PageHeaderTitle>Qué requiere acción ahora</PageHeaderTitle>
+        <PageHeaderDescription>Una sola bandeja priorizada desde evidencia real de preventivos, OT, abastecimiento, ejecución, cierre y confiabilidad.</PageHeaderDescription>
+      </PageHeaderContent>
+      <PageHeaderActions>
+        <Button variant="outline" onClick={()=>void mutate()} disabled={isLoading}><RefreshCw className="h-4 w-4"/>Actualizar</Button>
+        <Button asChild><Link href="/dashboard/mantenimiento/ordenes-trabajo/create"><Plus className="h-4 w-4"/>Crear orden</Link></Button>
+      </PageHeaderActions>
+    </PageHeader>
 
-const priorityLabels: Record<string, string> = {
-  critical: 'Crítica', critica: 'Crítica', high: 'Alta', alta: 'Alta',
-  medium: 'Media', media: 'Media', low: 'Baja', baja: 'Baja',
-};
+    <section aria-label="Estado de mantenimiento" className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 xl:grid-cols-6">
+      {metrics.map(([label,value,href])=><Link key={label} href={href} className="bg-card px-4 py-4 transition-colors hover:bg-muted/50"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-2xl font-semibold tracking-tight">{isLoading?'—':value}</p></Link>)}
+    </section>
 
-const money = (value: number) => new Intl.NumberFormat('es-CL', {
-  style: 'currency', currency: 'CLP', maximumFractionDigits: 0,
-}).format(value || 0);
+    {error?<StatePanel tone="error" title="No fue posible cargar el centro de mantenimiento" description={error.message} actions={<Button variant="outline" onClick={()=>void mutate()}>Reintentar</Button>} className="min-h-0 py-5"/>:null}
 
-export default function MantenimientoPage() {
-  const { data, error, isLoading, mutate } = useSWR<FlowResponse>(
-    '/api/maintenance/work-order-flow?limit=200', fetcher, { revalidateOnFocus: false },
-  );
-  const rows = data?.rows || [];
-  const overview = data?.overview;
-  const metrics = [
-    { label: 'Órdenes activas', value: overview ? overview.total - overview.completed : '—' },
-    { label: 'Esperando abastecimiento', value: overview ? overview.waiting_procurement + overview.waiting_parts : '—' },
-    { label: 'Costo ejecutado', value: overview ? money(overview.totalCost) : '—' },
-    { label: 'Compras comprometidas', value: overview ? money(overview.purchaseCommitment) : '—' },
-  ];
+    <Card>
+      <CardHeader className="flex flex-row items-start justify-between gap-4"><div><CardTitle className="text-base">Bandeja priorizada</CardTitle><CardDescription>Motil ordena primero vencimientos y bloqueos, luego ejecución, cierre y señales de confiabilidad.</CardDescription></div>{!isLoading&&!error?<Badge variant="outline">{actions.length} acciones</Badge>:null}</CardHeader>
+      <CardContent>
+        {isLoading?<StatePanel tone="loading" title="Calculando prioridades" className="min-h-64 border-0 bg-transparent"/>:!error&&actions.length===0?<StatePanel tone="neutral" title="No hay acciones pendientes" description="No existen vencimientos, bloqueos ni evidencias de cierre pendientes en las fuentes actuales." className="min-h-64 border-0 bg-transparent"/>:!error?<div className="divide-y rounded-lg border">{actions.map((action,index)=>{const meta=kindCopy[action.kind]||kindCopy.closure_evidence;const Icon=meta.icon;return <Link key={action.id} href={action.href} className="grid gap-3 p-4 transition-colors hover:bg-muted/40 md:grid-cols-[40px_1fr_auto] md:items-center"><div className="flex h-9 w-9 items-center justify-center rounded-md border bg-background"><Icon className="h-4 w-4"/></div><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><span className="text-xs tabular-nums text-muted-foreground">#{index+1}</span><Badge variant={meta.variant}>{meta.label}</Badge><p className="font-medium">{action.title}</p></div><p className="mt-1 text-sm text-muted-foreground">{action.description}</p><p className="mt-1 text-xs text-muted-foreground">Evidencia: {action.evidence}</p></div><ArrowRight className="h-4 w-4 text-muted-foreground"/></Link>})}</div>:null}
+      </CardContent>
+    </Card>
 
-  return (
-    <div className="space-y-6">
-      <PageHeader>
-        <PageHeaderContent>
-          <PageHeaderEyebrow>Mantenimiento</PageHeaderEyebrow>
-          <PageHeaderTitle>Trabajo de mantenimiento</PageHeaderTitle>
-          <PageHeaderDescription>Revisa lo pendiente y abre una orden cuando exista un trabajo que ejecutar.</PageHeaderDescription>
-        </PageHeaderContent>
-        <PageHeaderActions>
-          <Button asChild><Link href="/dashboard/mantenimiento/ordenes-trabajo/create"><Plus className="h-4 w-4" />Crear orden</Link></Button>
-        </PageHeaderActions>
-      </PageHeader>
-
-      <section aria-label="Resumen de mantenimiento" className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 xl:grid-cols-4">
-        {metrics.map((metric) => <div key={metric.label} className="bg-card px-5 py-4"><p className="text-xs text-muted-foreground">{metric.label}</p><p className="mt-1 text-2xl font-semibold tracking-tight">{isLoading ? '—' : metric.value}</p></div>)}
-      </section>
-
-      {error ? <StatePanel tone="error" title="No fue posible cargar las órdenes" description={error.message} actions={<Button variant="outline" onClick={() => void mutate()}>Reintentar</Button>} className="min-h-0 py-5" /> : null}
-
-      <Card>
-        <CardHeader className="flex flex-row items-start justify-between gap-4"><div><CardTitle className="text-base">Órdenes</CardTitle><CardDescription>Abre una orden para revisar su ejecución, repuestos y costo.</CardDescription></div>{!isLoading && !error ? <Badge variant="outline">{rows.length}</Badge> : null}</CardHeader>
-        <CardContent>
-          {isLoading ? <StatePanel tone="loading" title="Cargando órdenes" className="min-h-64 border-0 bg-transparent" /> : !error && rows.length === 0 ? <StatePanel tone="neutral" title="No hay órdenes de trabajo" description="Crea una orden cuando exista un trabajo que planificar o ejecutar." actions={<Button asChild><Link href="/dashboard/mantenimiento/ordenes-trabajo/create"><Plus className="h-4 w-4" />Crear orden</Link></Button>} className="min-h-64 border-0 bg-transparent" /> : !error ? (
-            <div className="overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Orden</TableHead><TableHead>Equipo</TableHead><TableHead>Responsable</TableHead><TableHead>Estado</TableHead><TableHead>Abastecimiento</TableHead><TableHead>Ejecución</TableHead><TableHead className="text-right">Costo</TableHead><TableHead className="w-20" /></TableRow></TableHeader><TableBody>{rows.map((row) => <TableRow key={row.work_order_id}><TableCell><p className="font-medium">{row.work_order_number}</p><p className="mt-1 text-xs text-muted-foreground">{priorityLabels[String(row.priority || '').toLowerCase()] || 'Sin prioridad'}</p></TableCell><TableCell><p className="font-medium">{row.asset_name || 'Equipo pendiente'}</p><p className="text-xs text-muted-foreground">{row.asset_code || 'Sin código'}</p></TableCell><TableCell>{row.assigned_person_name || 'Sin asignar'}</TableCell><TableCell><Badge variant={row.flow_status === 'completed' ? 'secondary' : row.flow_status.startsWith('missing') ? 'destructive' : 'outline'}>{labels[row.flow_status] || 'Pendiente'}</Badge></TableCell><TableCell><div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="inline-flex items-center gap-1"><ShoppingCart className="h-3.5 w-3.5" />{row.purchase_order_count}</span><span className="inline-flex items-center gap-1"><PackageCheck className="h-3.5 w-3.5" />{row.receipt_count}</span></div></TableCell><TableCell><div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="inline-flex items-center gap-1"><Wrench className="h-3.5 w-3.5" />{row.quantity_installed}/{row.quantity_requested}</span><span className="inline-flex items-center gap-1"><ClipboardList className="h-3.5 w-3.5" />{Number(row.labor_hours || 0).toFixed(1)} h</span></div></TableCell><TableCell className="text-right font-medium">{money(Number(row.total_cost || 0))}</TableCell><TableCell className="text-right"><Button asChild variant="ghost" size="icon-sm" aria-label={`Abrir orden ${row.work_order_number}`}><Link href={`/dashboard/mantenimiento/ordenes-trabajo/${row.work_order_id}`}><ArrowRight className="h-4 w-4" /></Link></Button></TableCell></TableRow>)}</TableBody></Table></div>
-          ) : null}
-        </CardContent>
-      </Card>
+    <div className="grid gap-3 md:grid-cols-4">
+      <Button asChild variant="outline" className="justify-between"><Link href="/dashboard/mantenimiento/preventivo-horas">Preventivo por horas<ArrowRight className="h-4 w-4"/></Link></Button>
+      <Button asChild variant="outline" className="justify-between"><Link href="/dashboard/mantenimiento/ordenes-trabajo/cierre">Cierre progresivo<ArrowRight className="h-4 w-4"/></Link></Button>
+      <Button asChild variant="outline" className="justify-between"><Link href="/dashboard/mantenimiento/horometros">Horómetros<ArrowRight className="h-4 w-4"/></Link></Button>
+      <Button asChild variant="outline" className="justify-between"><Link href="/dashboard/mantenimiento/confiabilidad">Confiabilidad<ArrowRight className="h-4 w-4"/></Link></Button>
     </div>
-  );
+  </div>;
 }
