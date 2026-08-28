@@ -111,6 +111,12 @@ export async function POST(request: NextRequest) {
     const assignedPersonId = body.assignedPersonId || body.assigned_person_id || null;
     if (!canonicalAssetId) return NextResponse.json({ error: 'Selecciona un activo canónico' }, { status: 400 });
     if (!body.title?.trim()) return NextResponse.json({ error: 'Describe brevemente el trabajo a realizar' }, { status: 400 });
+    if (!context.authUserId) {
+      return NextResponse.json(
+        { error: 'La identidad autenticada no está vinculada al perfil operacional' },
+        { status: 409 }
+      );
+    }
 
     const { data: asset, error: assetError } = await context.supabase
       .from('maintenance_canonical_assets_v1')
@@ -141,7 +147,7 @@ export async function POST(request: NextRequest) {
       const { data: rpcData, error: rpcError } = await context.supabase.rpc('create_work_order_from_operational_review', {
         p_organization_id: context.organizationId,
         p_review_id: reviewId,
-        p_created_by: context.userId,
+        p_created_by: context.authUserId,
         p_title: body.title.trim(),
         p_work_type: body.workType || body.work_type || 'corrective',
         p_priority: body.priority || 'critical',
@@ -199,7 +205,7 @@ export async function POST(request: NextRequest) {
       meter_reading: meterReading === null || meterReading === '' ? null : Number(meterReading),
       meter_unit: body.meterUnit || body.meter_unit || null,
       cost_center_id: body.costCenterId || body.cost_center_id || null,
-      created_by: context.userId,
+      created_by: context.authUserId,
       updated_at: new Date().toISOString(),
     }).select('*').single();
     if (error) throw error;

@@ -5,6 +5,7 @@ import { getSupabaseServerClient } from '@/lib/supabase-server';
 
 export interface AuthSessionUser {
   id: string;
+  auth_user_id?: string;
   email?: string;
   full_name?: string;
   organization_id?: string;
@@ -19,6 +20,7 @@ export interface AuthContext {
 
 type EnrichedIdentity = {
   applicationUserId?: string;
+  authUserId?: string;
   role?: string;
   organizationId?: string;
   fullName?: string;
@@ -59,7 +61,17 @@ async function enrichIdentity(
       .maybeSingle();
 
     let profile = profileById;
+    let authUserId: string | undefined;
     const normalizedEmail = normalizeEmail(email);
+
+    if (profileById) {
+      const { data: reverseIdentityLink } = await adminClient
+        .from('auth_profile_identity_links')
+        .select('auth_user_id')
+        .eq('profile_id', profileById.id)
+        .maybeSingle();
+      authUserId = reverseIdentityLink?.auth_user_id || undefined;
+    }
 
     if (!profile) {
       const { data: identityLink } = await adminClient
@@ -69,6 +81,7 @@ async function enrichIdentity(
         .maybeSingle();
 
       if (identityLink?.profile_id) {
+        authUserId = userId;
         const { data: linkedProfile } = await adminClient
           .from('profiles')
           .select(profileFields)
@@ -89,6 +102,7 @@ async function enrichIdentity(
 
       if (legacyProfile) {
         profile = legacyProfile;
+        authUserId = userId;
         await adminClient
           .from('auth_profile_identity_links')
           .upsert(
@@ -122,6 +136,7 @@ async function enrichIdentity(
     const roleRow = roleRows?.[0];
     return {
       applicationUserId,
+      authUserId,
       organizationId: profile?.organization_id || roleRow?.organization_id || undefined,
       role: resolveEffectiveRole(profile?.role, roleRow?.role),
       fullName:
@@ -167,6 +182,7 @@ async function resolveSupabaseAuth(request: NextRequest): Promise<AuthContext | 
   return {
     user: {
       id: applicationUserId,
+      auth_user_id: user.id,
       email: user.email,
       full_name: identity.fullName,
       organization_id: identity.organizationId,
@@ -193,6 +209,7 @@ export async function resolveAuthContext(request: NextRequest): Promise<AuthCont
     return {
       user: {
         id: applicationUserId,
+        auth_user_id: identity.authUserId,
         email: customSession.user.email,
         full_name: identity.fullName || customSession.user.full_name || undefined,
         organization_id: organizationId,

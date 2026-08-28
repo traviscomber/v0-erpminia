@@ -24,6 +24,7 @@ export type OrganizationContext =
       ok: true;
       organizationId: string;
       userId: string;
+      authUserId?: string;
       role?: string;
       userEmail?: string;
       userName?: string;
@@ -109,6 +110,7 @@ export async function getOrganizationContext(
     ok: true,
     organizationId: auth.organizationId,
     userId: auth.user.id,
+    authUserId: auth.user.auth_user_id,
     role: auth.role || undefined,
     userEmail: auth.user.email,
     userName,

@@ -28,6 +28,13 @@ test('assigned auth roles are scoped to the resolved profile organization', () =
   assert.match(authSession, /roleQuery = roleQuery\.eq\('organization_id', profile\.organization_id\)/);
 });
 
+test('auth resolution keeps the raw auth UUID alongside the canonical profile UUID', () => {
+  assert.match(authSession, /auth_user_id\?: string/);
+  assert.match(authSession, /\.eq\('profile_id', profileById\.id\)/);
+  assert.match(authSession, /auth_user_id: user\.id/);
+  assert.match(authSession, /auth_user_id: identity\.authUserId/);
+});
+
 test('superadmin is accepted by the administrative guard', () => {
   assert.match(guard, /ADMIN_ROLES = new Set\(\['admin', 'superadmin', 'super_admin'\]\)/);
 });

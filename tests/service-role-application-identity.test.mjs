@@ -8,10 +8,19 @@ const migration = fs.readFileSync(
   'supabase/migrations/20260828014500_bridge_service_role_application_identity.sql',
   'utf8',
 );
+const workOrders = fs.readFileSync('app/api/maintenance/work-orders/route.ts', 'utf8');
 
 test('organization context forwards only the already authenticated application user', () => {
   assert.match(context, /getSupabaseServerClient\(auth\.user\.id\)/);
   assert.match(client, /x-application-user-id/);
+});
+
+test('organization context preserves auth and application identities separately', () => {
+  assert.match(context, /userId: auth\.user\.id/);
+  assert.match(context, /authUserId: auth\.user\.auth_user_id/);
+  assert.match(workOrders, /created_by: context\.authUserId/);
+  assert.match(workOrders, /p_created_by: context\.authUserId/);
+  assert.doesNotMatch(workOrders, /created_by: context\.userId/);
 });
 
 test('database identity bridge trusts the forwarded actor only for service role', () => {
