@@ -5,12 +5,7 @@ import { Activity, ChevronDown, CircleDollarSign, FileText, FolderOpen, Settings
 import Link from 'next/link';
 import type { Equipment } from '@/lib/types/equipment';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { EquipmentList } from '@/components/maintenance/equipment-list';
 import { EquipmentSheet } from '@/components/maintenance/equipment-sheet';
 
@@ -41,49 +36,26 @@ export default function EquiposPage() {
     <div className="space-y-6">
       <section className="flex flex-col gap-4 border-b border-border/70 pb-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="text-sm font-medium text-muted-foreground">Mantenimiento · Registro maestro</p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Activos</h1>
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Fuente única para equipos, maquinaria y vehículos, con estado, criticidad y trazabilidad operacional.
+          <p className="text-sm font-medium text-muted-foreground">Mantenimiento · Flota operacional</p>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Equipos</h1>
+          <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+            Estado, trabajo pendiente, preventivos, horómetro y confiabilidad por activo. Cada fila conduce a la acción principal o a su Ficha 360.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                Vistas del activo
-                <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
+            <DropdownMenuTrigger asChild><Button variant="outline">Vistas del activo<ChevronDown className="ml-2 h-4 w-4" /></Button></DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-56">
-              {assetViews.map(({ href, label, icon: Icon }) => (
-                <DropdownMenuItem key={href} asChild>
-                  <Link href={href}>
-                    <Icon className="h-4 w-4" />
-                    {label}
-                  </Link>
-                </DropdownMenuItem>
-              ))}
+              {assetViews.map(({ href, label, icon: Icon }) => <DropdownMenuItem key={href} asChild><Link href={href}><Icon className="h-4 w-4" />{label}</Link></DropdownMenuItem>)}
             </DropdownMenuContent>
           </DropdownMenu>
-
-          <Button asChild>
-            <Link href="/dashboard/mantenimiento/equipos/importar">
-              <Upload className="mr-2 h-4 w-4" />
-              Importar activos
-            </Link>
-          </Button>
+          <Button asChild><Link href="/dashboard/mantenimiento/equipos/importar"><Upload className="mr-2 h-4 w-4" />Importar activos</Link></Button>
         </div>
       </section>
 
       <EquipmentList onSelectEquipment={handleSelectEquipment} />
 
-      <EquipmentSheet
-        equipment={selectedEquipment}
-        isOpen={isSheetOpen}
-        onClose={handleCloseSheet}
-        canEdit={true}
-      />
+      <EquipmentSheet equipment={selectedEquipment} isOpen={isSheetOpen} onClose={handleCloseSheet} canEdit={true} />
     </div>
   );
 }
