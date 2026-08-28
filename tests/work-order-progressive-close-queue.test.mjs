@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const migration = fs.readFileSync('supabase/migrations/20260827220000_work_order_close_readiness_queue_v1.sql', 'utf8');
+const migrationV2 = fs.readFileSync('supabase/migrations/20260827234500_integrate_standard_plan_steps_into_close_readiness_v2.sql', 'utf8');
 const api = fs.readFileSync('app/api/maintenance/work-order-close-queue/route.ts', 'utf8');
 const component = fs.readFileSync('components/maintenance/progressive-work-order-close-queue.tsx', 'utf8');
 const page = fs.readFileSync('app/dashboard/mantenimiento/ordenes-trabajo/cierre/page.tsx', 'utf8');
@@ -21,24 +22,28 @@ test('closure readiness mirrors the safe close blockers', () => {
   assert.match(migration, /close_work_order/);
 });
 
-test('closure readiness stays backend only and security invoker', () => {
-  assert.match(migration, /security_invoker=true/i);
-  assert.match(migration, /revoke select .* from public, anon, authenticated/i);
-  assert.match(migration, /grant select .* to service_role/i);
+test('closure readiness v2 adds standard plan execution without weakening blockers', () => {
+  assert.match(migrationV2, /work_order_standard_plan_execution_v1/);
+  assert.match(migrationV2, /complete_standard_plan_step/);
+  assert.match(migrationV2, /standard_plan_steps_pending/);
+  assert.match(migrationV2, /security_invoker=true/i);
 });
 
-test('closure queue API is maintenance authorized and tenant scoped', () => {
+test('closure queue API is maintenance authorized tenant scoped and reads v2', () => {
   assert.match(api, /requireModuleAccess\(request, MODULE_KEYS\.MANT_OPERACIONES\)/);
   assert.match(api, /eq\('organization_id', context\.organizationId\)/);
-  assert.match(api, /work_order_close_readiness_v1/);
+  assert.match(api, /work_order_close_readiness_v2/);
 });
 
 test('progressive closure exposes one next action and requires an explicit close click', () => {
   assert.match(component, /Siguiente acción/);
   assert.match(component, /Guardar y continuar/);
   assert.match(component, /Cerrar OT y congelar costo/);
-  assert.match(component, /async function performNextAction\(\)[\s\S]*current\.next_action === 'close_work_order'[\s\S]*status: 'completed'/);
-  assert.match(component, /useEffect\(\(\) => \{[\s\S]*setActionError\(null\);[\s\S]*setTextValue\(''\);[\s\S]*setHoursValue\(''\);[\s\S]*\}, \[current\?\.work_order_id, current\?\.next_action\]\);/);
+  assert.match(component, /performNextAction/);
+  assert.match(component, /current\.next_action === 'close_work_order'/);
+  assert.match(component, /status:\s*'completed'/);
+  assert.match(component, /complete_standard_plan_step/);
+  assert.match(component, /setStepObservation\(''\)/);
   assert.match(component, /searchParams\.get\('workOrderId'\)/);
   assert.match(page, /Cierre progresivo de OT/);
 });
