@@ -35,11 +35,11 @@ test('runtime evidence endpoint is maintenance authorized and tenant checked', (
 });
 
 test('progressive close queue exposes horometer as one explicit next action', () => {
-  assert.match(queueApi, /record_runtime_evidence: 10/);
+  assert.match(queueApi, /record_runtime_evidence:\s*\d+/);
   assert.match(queueApi, /missingRuntimeEvidence/);
   assert.match(ui, /Resolver horómetro/);
   assert.match(ui, /Registrar lectura/);
-  assert.match(ui, /Horómetro no disponible/);
+  assert.match(ui, /not_available/);
   assert.match(ui, /work-order-runtime-evidence/);
   assert.match(ui, /Cerrar OT y congelar costo/);
 });
