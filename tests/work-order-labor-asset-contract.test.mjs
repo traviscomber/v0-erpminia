@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const laborMigration = await readFile(new URL('../supabase/migrations/20260829023000_fix_work_order_labor_generated_hours_v2.sql', import.meta.url), 'utf8');
+const laborMigration = await readFile(new URL('../supabase/migrations/20260829021858_fix_work_order_labor_generated_hours_v2.sql', import.meta.url), 'utf8');
 const route = await readFile(new URL('../app/api/maintenance/work-orders/[id]/route.ts', import.meta.url), 'utf8');
 
 test('labor registration derives generated hours from started and ended timestamps', () => {
