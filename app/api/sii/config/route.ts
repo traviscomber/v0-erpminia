@@ -9,9 +9,11 @@ import {
   normalizeCompanyRut,
   type StoredSiiCertificate,
 } from '@/lib/sii/client';
+import { pkcs12ToPemBundle } from '@/lib/sii/pkcs12.mjs';
 
 const MAX_CERTIFICATE_BYTES = 256 * 1024;
 const MAX_PRIVATE_KEY_BYTES = 256 * 1024;
+const MAX_PKCS12_BYTES = 2 * 1024 * 1024;
 
 function publicConfig(row: any) {
   if (!row) return { configured: false, environment: 'certification' };
@@ -56,27 +58,55 @@ export async function POST(request: NextRequest) {
 
   try {
     const form = await request.formData();
+    const pfxFile = form.get('pfx');
     const certificateFile = form.get('certificate');
     const privateKeyFile = form.get('privateKey');
     const passphraseValue = form.get('passphrase');
     const companyRutValue = form.get('companyRut');
+    const passphrase = typeof passphraseValue === 'string' ? passphraseValue : '';
 
-    if (!(certificateFile instanceof File) || !(privateKeyFile instanceof File)) {
-      return NextResponse.json({ error: 'Certificado y llave privada son obligatorios' }, { status: 400 });
+    const hasPfx = pfxFile instanceof File && pfxFile.size > 0;
+    const hasCertificate = certificateFile instanceof File && certificateFile.size > 0;
+    const hasPrivateKey = privateKeyFile instanceof File && privateKeyFile.size > 0;
+
+    if (hasPfx && (hasCertificate || hasPrivateKey)) {
+      return NextResponse.json({ error: 'Usa PFX/P12 o PEM, no ambos formatos a la vez' }, { status: 400 });
     }
-    if (certificateFile.size <= 0 || certificateFile.size > MAX_CERTIFICATE_BYTES) {
+
+    if (!hasPfx && !(hasCertificate && hasPrivateKey)) {
+      return NextResponse.json({ error: 'Carga un archivo PFX/P12 o el par certificado + llave privada PEM' }, { status: 400 });
+    }
+
+    if (hasPfx && pfxFile.size > MAX_PKCS12_BYTES) {
+      return NextResponse.json({ error: 'Archivo PFX/P12 demasiado grande' }, { status: 400 });
+    }
+    if (hasCertificate && certificateFile.size > MAX_CERTIFICATE_BYTES) {
       return NextResponse.json({ error: 'Archivo de certificado inválido o demasiado grande' }, { status: 400 });
     }
-    if (privateKeyFile.size <= 0 || privateKeyFile.size > MAX_PRIVATE_KEY_BYTES) {
+    if (hasPrivateKey && privateKeyFile.size > MAX_PRIVATE_KEY_BYTES) {
       return NextResponse.json({ error: 'Archivo de llave privada inválido o demasiado grande' }, { status: 400 });
     }
 
     const companyRut = normalizeCompanyRut(String(companyRutValue || ''));
-    const bundle: StoredSiiCertificate = {
-      certificatePem: await certificateFile.text(),
-      privateKeyPem: await privateKeyFile.text(),
-      passphrase: typeof passphraseValue === 'string' && passphraseValue.length > 0 ? passphraseValue : undefined,
-    };
+    let bundle: StoredSiiCertificate;
+
+    if (hasPfx) {
+      const converted = await pkcs12ToPemBundle(
+        Buffer.from(await pfxFile.arrayBuffer()),
+        passphrase,
+      );
+      bundle = {
+        certificatePem: converted.certificatePem,
+        privateKeyPem: converted.privateKeyPem,
+      };
+    } else {
+      bundle = {
+        certificatePem: await (certificateFile as File).text(),
+        privateKeyPem: await (privateKeyFile as File).text(),
+        passphrase: passphrase.length > 0 ? passphrase : undefined,
+      };
+    }
+
     const metadata = inspectSiiCertificate(bundle);
 
     const supabase = getSupabaseServerClient(auth.user.id);
@@ -118,6 +148,9 @@ export async function POST(request: NextRequest) {
       'SII_CERTIFICATE_DATES_INVALID',
       'SII_CERTIFICATE_NOT_YET_VALID',
       'SII_CERTIFICATE_EXPIRED',
+      'SII_PFX_INVALID',
+      'SII_PFX_PASSWORD_INVALID',
+      'SII_PKCS12_RUNTIME_UNAVAILABLE',
     ]);
     return NextResponse.json(
       { error: userErrors.has(code) ? code : 'No se pudo validar el certificado SII' },
