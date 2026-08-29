@@ -4,7 +4,8 @@ export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/api/guard';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
-import { buildAndSignSiiDte33, type SiiDte33Item, type StoredSiiCertificate } from '@/lib/sii/dte';
+import { buildAndSignSiiDte33, type SiiDte33Item } from '@/lib/sii/dte';
+import { type StoredSiiCertificate } from '@/lib/sii/client';
 
 function publicDte(row: any) {
   return {
