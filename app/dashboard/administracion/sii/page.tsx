@@ -296,7 +296,7 @@ export default function SiiConnectivityPage() {
 
           <button type="button" onClick={() => { setUploadMode('pkcs12'); setCertificate(null); setPrivateKey(null); setPassphrase(''); }} className={`rounded-lg border p-4 text-left ${uploadMode === 'pkcs12' ? 'border-foreground bg-muted/40' : 'bg-background'}`}>
             <span className="text-sm font-semibold">PFX / P12 · recomendado</span>
-            <span className="mt-1 block text-xs text-muted-foreground">Formato habitual de certificados digitales en Chile.</span>
+            <span className="mt-1 block text-xs text-muted-foreground">Formato habitual de certificados digitales en Chile; no necesitas convertirlo a PEM.</span>
           </button>
           <button type="button" onClick={() => { setUploadMode('pem'); setPkcs12(null); setPassphrase(''); }} className={`rounded-lg border p-4 text-left ${uploadMode === 'pem' ? 'border-foreground bg-muted/40' : 'bg-background'}`}>
             <span className="text-sm font-semibold">PEM · avanzado</span>
