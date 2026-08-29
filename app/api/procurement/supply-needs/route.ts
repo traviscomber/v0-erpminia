@@ -50,8 +50,11 @@ export async function POST(request: NextRequest) {
 
     if (error) throw error;
 
+    // Read through the hardened public compatibility view. The intelligence
+    // schema view is not part of the server API contract and can be hidden by
+    // its schema grants even though the SECURITY DEFINER conversion succeeded.
+    // Using the public view also matches the other server-side consumers.
     const { data: intake, error: intakeError } = await context.supabase
-      .schema('intelligence')
       .from('procurement_intake_flow')
       .select('*')
       .eq('organization_id', context.organizationId)
