@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const migration = fs.readFileSync('supabase/migrations/20260829160500_add_sii_dte33_outbound_v1.sql', 'utf8');
+const migration = fs.readFileSync('supabase/migrations/20260829161320_add_sii_dte33_outbound_v1.sql', 'utf8');
 const engine = fs.readFileSync('lib/sii/dte.ts', 'utf8');
 const transport = fs.readFileSync('lib/sii/dte-transport.ts', 'utf8');
 const issuerApi = fs.readFileSync('app/api/sii/issuer/route.ts', 'utf8');
