@@ -40,6 +40,10 @@ test('DTE 33 generator builds taxed invoice, TED, document signature and EnvioDT
   assert.match(engine, /<MntNeto>\$\{netAmount\}<\/MntNeto>/);
   assert.match(engine, /<TasaIVA>\$\{SII_STANDARD_VAT_RATE\}<\/TasaIVA>/);
   assert.match(engine, /<IVA>\$\{taxAmount\}<\/IVA>/);
+  assert.match(engine, /tedRecipientName = recipient\.legalName\.slice\(0, 40\)/);
+  assert.match(engine, /tedFirstItemName = items\[0\]\.name\.slice\(0, 40\)/);
+  assert.match(engine, /<RSR>\$\{escapeXml\(tedRecipientName\)\}<\/RSR>/);
+  assert.match(engine, /<IT1>\$\{escapeXml\(tedFirstItemName\)\}<\/IT1>/);
   assert.match(engine, /<TED version="1\.0">/);
   assert.match(engine, /<FRMT algoritmo="SHA1withRSA">/);
   assert.match(engine, /createSign\('RSA-SHA1'\)/);
@@ -50,6 +54,8 @@ test('DTE 33 generator builds taxed invoice, TED, document signature and EnvioDT
   assert.match(engine, /EnvioDTE_v10\.xsd/);
   assert.match(engine, /encoding="ISO-8859-1"/);
   assert.match(engine, /America\/Santiago/);
+  assert.match(engine, /replace\(\/\\r\\n\?\/g, '\\n'\)/);
+  assert.doesNotMatch(engine, /&quot;|&apos;/);
 });
 
 test('issuer profile distinguishes company RUT from certificate holder RUT', () => {
