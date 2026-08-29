@@ -275,10 +275,22 @@ create or replace function public.record_sii_dte_status_v1(
 language plpgsql
 security definer
 set search_path = 'public', 'pg_temp'
-as $$;
+as $$
+declare
+  v_current_status text;
 begin
   if p_state not in ('processing','accepted','rejected','error') then
     raise exception 'Estado normalizado SII inválido';
+  end if;
+
+  select status into v_current_status
+  from public.sii_outbound_dtes
+  where id = p_dte_id and organization_id = p_organization_id
+  for update;
+
+  if not found then raise exception 'DTE SII no encontrado'; end if;
+  if v_current_status in ('accepted','rejected') and v_current_status <> p_state then
+    raise exception 'El DTE ya tiene estado final';
   end if;
 
   update public.sii_outbound_dtes
@@ -291,8 +303,6 @@ begin
       rejected_at = case when p_state = 'rejected' then coalesce(rejected_at,now()) else rejected_at end,
       updated_at = now()
   where id = p_dte_id and organization_id = p_organization_id;
-
-  if not found then raise exception 'DTE SII no encontrado'; end if;
 end
 $$;
 
