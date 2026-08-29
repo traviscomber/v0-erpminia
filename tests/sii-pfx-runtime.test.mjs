@@ -37,7 +37,8 @@ test('PKCS12 runtime converts a password-protected PFX into a matching certifica
       '-passout', `pass:${password}`,
     ]);
 
-    const converted = await pkcs12ToPemBundle(await readFile(pfxPath), password);
+    const pfxBuffer = await readFile(pfxPath);
+    const converted = await pkcs12ToPemBundle(pfxBuffer, password);
     assert.match(converted.certificatePem, /BEGIN CERTIFICATE/);
     assert.match(converted.privateKeyPem, /BEGIN (?:RSA )?PRIVATE KEY/);
 
@@ -48,8 +49,8 @@ test('PKCS12 runtime converts a password-protected PFX into a matching certifica
     assert.deepEqual(Buffer.from(certificatePublicKey), Buffer.from(privatePublicKey));
 
     await assert.rejects(
-      () => pkcs12ToPemBundle(readFile(pfxPath).then((buffer) => buffer), 'wrong-password'),
-      /SII_PFX_INVALID|SII_PFX_PASSWORD_INVALID/,
+      () => pkcs12ToPemBundle(pfxBuffer, 'wrong-password'),
+      /SII_PFX_PASSWORD_INVALID/,
     );
   } finally {
     await rm(directory, { recursive: true, force: true });
