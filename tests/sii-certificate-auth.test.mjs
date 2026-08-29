@@ -4,6 +4,7 @@ import fs from 'node:fs';
 
 const migration = fs.readFileSync('supabase/migrations/20260829143807_add_sii_certificate_vault_config_v1.sql','utf8');
 const client = fs.readFileSync('lib/sii/client.ts','utf8');
+const pkcs12 = fs.readFileSync('lib/sii/pkcs12.mjs','utf8');
 const configApi = fs.readFileSync('app/api/sii/config/route.ts','utf8');
 const authApi = fs.readFileSync('app/api/sii/auth-test/route.ts','utf8');
 const healthApi = fs.readFileSync('app/api/sii/health/route.ts','utf8');
@@ -27,6 +28,7 @@ test('certificate upload requires admin context and response contract contains m
   assert.match(configApi,/save_sii_certificate_v1/);
   assert.match(configApi,/MAX_CERTIFICATE_BYTES/);
   assert.match(configApi,/MAX_PRIVATE_KEY_BYTES/);
+  assert.match(configApi,/MAX_PKCS12_BYTES/);
   assert.match(configApi,/p_secret_payload: JSON\.stringify\(bundle\)/);
 
   const successResponse = configApi.match(/return NextResponse\.json\(\{\n\s+configured: true,[\s\S]*?lastAuthOk: null,\n\s+\}\);/);
@@ -36,6 +38,20 @@ test('certificate upload requires admin context and response contract contains m
   const publicConfigBody = configApi.match(/function publicConfig\(row: any\) \{[\s\S]*?\n\}/);
   assert.ok(publicConfigBody, 'GET response must be projected through publicConfig');
   assert.doesNotMatch(publicConfigBody[0],/privateKeyPem|passphrase|certificatePem|decrypted_secret/);
+});
+
+test('direct PFX/P12 upload is converted server-side before vault persistence',()=>{
+  assert.match(configApi,/form\.get\('pfx'\)/);
+  assert.match(configApi,/pkcs12ToPemBundle/);
+  assert.match(configApi,/Buffer\.from\(await pfxFile\.arrayBuffer\(\)\)/);
+  assert.match(pkcs12,/execFile\('openssl'/);
+  assert.match(pkcs12,/-passin/);
+  assert.match(pkcs12,/env:SII_PFX_PASSWORD/);
+  assert.match(pkcs12,/mode: 0o600/);
+  assert.match(pkcs12,/rm\(directory, \{ recursive: true, force: true \}\)/);
+  assert.doesNotMatch(pkcs12,/shell:\s*true/);
+  assert.match(page,/PFX \/ P12 · Recomendado/);
+  assert.match(page,/accept="\.pfx,\.p12,application\/x-pkcs12"/);
 });
 
 test('SII authentication follows seed sign token and does not expose the token',()=>{
