@@ -7,7 +7,7 @@ const awardMigration = fs.readFileSync(
   'utf8',
 );
 const receiptMigration = fs.readFileSync(
-  'supabase/migrations/20260829024902_fix_standalone_procurement_receipt_event_v1.sql',
+  'supabase/migrations/20260829025031_fix_standalone_procurement_receipt_actor_v2.sql',
   'utf8',
 );
 
@@ -19,15 +19,17 @@ test('standalone procurement award does not write a work-order event without a w
   assert.match(awardMigration,/'purchase_order_issued'/);
 });
 
-test('standalone procurement receipt skips OT coverage and OT events but retains application actor', () => {
+test('standalone procurement receipt skips OT-only side effects and bridges stock actor identity', () => {
   assert.match(
     receiptMigration,
     /if v_order\.work_order_id is not null then\s+perform public\.recalculate_work_order_material_coverage[\s\S]*insert into public\.work_order_events/s,
   );
   assert.match(receiptMigration,/'purchase_received'/);
+  assert.match(receiptMigration,/from public\.auth_profile_identity_links l/);
+  assert.match(receiptMigration,/where l\.profile_id=v_application_actor/);
   assert.match(
     receiptMigration,
-    /'operational_receipt',v_receipt_id,public\.current_application_user_id\(\),'Recepción de OC operativa'/,
+    /'operational_receipt',v_receipt_id,v_auth_actor,'Recepción de OC operativa'/,
   );
   assert.doesNotMatch(receiptMigration,/'operational_receipt',v_receipt_id,auth\.uid\(\)/);
 });
