@@ -6,6 +6,7 @@ const readinessApi = fs.readFileSync('app/api/sii/readiness/route.ts', 'utf8');
 const profilePage = fs.readFileSync('app/dashboard/administracion/sii/perfil/page.tsx', 'utf8');
 const preparationPage = fs.readFileSync('app/dashboard/administracion/sii/preparacion/page.tsx', 'utf8');
 const layout = fs.readFileSync('app/dashboard/administracion/sii/layout.tsx', 'utf8');
+const setupNavigator = fs.readFileSync('components/sii/sii-setup-navigator.tsx', 'utf8');
 
 test('SII readiness is admin scoped and does not mutate fiscal state', () => {
   assert.match(readinessApi, /requireAdmin\(request\)/);
@@ -39,6 +40,8 @@ test('activation UI surfaces external blockers without inventing data', () => {
   assert.match(preparationPage, /Esperando datos reales/);
   assert.match(preparationPage, /no se usan datos ficticios/i);
   assert.match(preparationPage, /\/api\/sii\/readiness/);
-  assert.match(layout, /Perfil tributario/);
-  assert.match(layout, /Preparación/);
+  assert.match(layout, /SiiSetupNavigator/);
+  assert.match(setupNavigator, /Perfil tributario/);
+  assert.match(setupNavigator, /Revisar y activar/);
+  assert.match(setupNavigator, /Siguiente acción/);
 });
