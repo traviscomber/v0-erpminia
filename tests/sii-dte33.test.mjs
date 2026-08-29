@@ -89,7 +89,9 @@ test('creation and submission APIs are admin scoped and production requires expl
   assert.match(dteApi, /get_sii_caf_payload_v1/);
   assert.match(dteApi, /get_sii_certificate_payload_v1/);
   assert.match(dteApi, /save_sii_signed_dte_v1/);
-  assert.doesNotMatch(dteApi, /dte_xml|envelope_xml.*NextResponse/);
+  const publicProjection = dteApi.match(/function publicDte\(row: any\) \{[\s\S]*?\n\}/);
+  assert.ok(publicProjection, 'DTE API must explicitly project public metadata');
+  assert.doesNotMatch(publicProjection[0], /dte_xml|envelope_xml|payload|upload_response|last_status_response/);
   assert.match(submitApi, /requireAdmin\(request\)/);
   assert.match(submitApi, /dte\.environment === 'production' && body\?\.confirmProduction !== true/);
   assert.match(submitApi, /SII_PRODUCTION_CONFIRMATION_REQUIRED/);
