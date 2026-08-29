@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -49,6 +50,7 @@ export function ProgressiveProcurementWorkflow() {
   const [receiveOrder, setReceiveOrder] = useState<PurchaseOrder | null>(null);
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [awardCandidate, setAwardCandidate] = useState<QuoteRow | null>(null);
   const [productQuery, setProductQuery] = useState('');
   const [supplierQuery, setSupplierQuery] = useState('');
   const { data: productData } = useSWR(requestOpen && productQuery.length >= 2 ? `/api/procurement/workflow?resource=products&q=${encodeURIComponent(productQuery)}` : null, fetcher);
@@ -142,7 +144,11 @@ export function ProgressiveProcurementWorkflow() {
     if (ok) { setQuoteRequest(null); setSelectedSupplier(null); setSupplierQuery(''); setLeadTimeDays(''); }
   };
 
-  const awardQuotation = async (quotationId: string) => { await execute({ action: 'award_quotation', quotationId }); };
+  const awardQuotation = async () => {
+    if (!awardCandidate) return;
+    const ok = await execute({ action: 'award_quotation', quotationId: awardCandidate.id });
+    if (ok) setAwardCandidate(null);
+  };
 
   const receive = async () => {
     if (!receiveOrder) return;
@@ -162,7 +168,7 @@ export function ProgressiveProcurementWorkflow() {
   };
 
   const nextActionControl = () => {
-    if (nextAction.kind === 'award') return <Button onClick={() => awardQuotation(nextAction.quote.id)} disabled={busy}><CheckCircle2 className="mr-2 h-4 w-4" />Adjudicar ahora</Button>;
+    if (nextAction.kind === 'award') return <Button onClick={() => setAwardCandidate(nextAction.quote)} disabled={busy}><CheckCircle2 className="mr-2 h-4 w-4" />Adjudicar ahora</Button>;
     if (nextAction.kind === 'receive') return <Button onClick={() => openReceive(nextAction.order)}><PackageCheck className="mr-2 h-4 w-4" />Registrar recepción</Button>;
     if (nextAction.kind === 'quote') return <Button onClick={() => openQuote(nextAction.request)}><ReceiptText className="mr-2 h-4 w-4" />Solicitar cotización</Button>;
     if (nextAction.kind === 'invoice') return <Button asChild><Link href="/dashboard/compras/facturas"><ReceiptText className="mr-2 h-4 w-4" />Ir a Facturas</Link></Button>;
@@ -208,7 +214,7 @@ export function ProgressiveProcurementWorkflow() {
               return <div key={request.id} className="rounded-lg border p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div><div className="flex items-center gap-2"><p className="font-medium">{request.request_number}</p><Badge variant="outline">{request.status}</Badge></div><p className="mt-1 text-sm text-muted-foreground">{lines.length} producto(s) · prioridad {request.priority}</p><p className="mt-2 text-sm">{request.justification || 'Sin justificación adicional'}</p></div>
-                  {awardable ? <Button size="sm" onClick={() => awardQuotation(awardable.id)} disabled={busy}>Adjudicar</Button> : waiting ? <Badge variant="secondary">Esperando respuesta</Badge> : ['draft', 'submitted', 'quoted'].includes(request.status) ? <Button size="sm" variant="outline" onClick={() => openQuote(request)}>Solicitar cotización</Button> : <Badge variant="outline">Sin acción pendiente</Badge>}
+                  {awardable ? <Button size="sm" onClick={() => setAwardCandidate(awardable)} disabled={busy}>Adjudicar</Button> : waiting ? <Badge variant="secondary">Esperando respuesta</Badge> : ['draft', 'submitted', 'quoted'].includes(request.status) ? <Button size="sm" variant="outline" onClick={() => openQuote(request)}>Solicitar cotización</Button> : <Badge variant="outline">Sin acción pendiente</Badge>}
                 </div>
                 {quotes.length ? <div className="mt-4 space-y-2 border-t pt-3">{quotes.map((quote) => <div key={quote.id} className="flex items-center justify-between gap-3 text-sm"><div><span className="font-medium">{quote.quotation_number}</span><span className="ml-2 text-muted-foreground">{quote.status === 'requested' ? `Solicitud enviada · ${quote.lead_time_days || 0} días` : `${money(quote.total_amount)} · ${quote.lead_time_days || 0} días`}</span></div><Badge variant="secondary">{quote.status}</Badge></div>)}</div> : null}
               </div>;
@@ -230,6 +236,10 @@ export function ProgressiveProcurementWorkflow() {
       </div>
 
       <Card className="shadow-none"><CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-medium">Continuidad financiera</p><p className="mt-1 text-sm text-muted-foreground">Después de recepción, Facturas aplica three-way match y sólo las facturas aprobadas pasan a Tesorería.</p></div><div className="flex gap-2"><Button asChild variant="outline"><Link href="/dashboard/compras/facturas"><ReceiptText className="mr-2 h-4 w-4" />Facturas</Link></Button><Button asChild variant="outline"><Link href="/dashboard/finanzas/pagos"><WalletCards className="mr-2 h-4 w-4" />Pagos</Link></Button></div></CardContent></Card>
+
+      <AlertDialog open={Boolean(awardCandidate)} onOpenChange={(open) => { if (!open && !busy) setAwardCandidate(null); }}>
+        <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>¿Adjudicar y emitir la orden de compra?</AlertDialogTitle><AlertDialogDescription>Esta acción adjudicará {awardCandidate?.quotation_number || 'la cotización'} por {money(awardCandidate?.total_amount)} y emitirá una orden de compra. No es sólo una vista previa.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel disabled={busy}>Cancelar</AlertDialogCancel><AlertDialogAction onClick={(event) => { event.preventDefault(); void awardQuotation(); }} disabled={busy}>{busy ? 'Emitiendo…' : 'Confirmar adjudicación y emitir OC'}</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={requestOpen} onOpenChange={setRequestOpen}>
         <DialogContent className="max-w-2xl"><DialogHeader><DialogTitle>Nueva solicitud de compra</DialogTitle><DialogDescription>Selecciona productos canónicos. La solicitud podrá vincularse después a cotizaciones y OC.</DialogDescription></DialogHeader>

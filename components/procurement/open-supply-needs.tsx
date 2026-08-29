@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
@@ -18,7 +19,7 @@ const fetcher = async (url: string) => {
   return payload;
 };
 
-type PipelineRow = { intake_request_id: string; request_number: string; pipeline_status: string; priority?: string | null; required_date?: string | null; work_order_id?: string | null; work_order_number?: string | null; work_order_title?: string | null; asset_code?: string | null; asset_name?: string | null; quotation_id?: string | null; quotation_number?: string | null; quotation_status?: string | null; supplier_name?: string | null; quotation_total?: number | null; order_id?: string | null; order_number?: string | null; order_status?: string | null; quantity_ordered?: number | null; quantity_received?: number | null };
+type PipelineRow = { intake_request_id: string; request_number: string; pipeline_status: string; priority?: string | null; required_date?: string | null; work_order_id?: string | null; work_order_number?: string | null; work_order_title?: string | null; asset_code?: string | null; asset_name?: string | null; quotation_id?: string | null; quotation_number?: string | null; quotation_status?: string | null; supplier_name?: string | null; quotation_total?: number | null; order_id?: string | null; order_number?: string | null; order_status?: string | null; quantity_ordered?: number | null; quantity_received?: number | null; required_supplier_quotes?: number; distinct_supplier_count?: number; award_policy_satisfied?: boolean };
 type RequestLine = { id: string; intake_request_id: string; description?: string | null; product_code?: string | null; quantity: number; unit?: string | null; estimated_unit_cost?: number | null };
 type OrderLine = { id: string; order_id: string; description?: string | null; product_code?: string | null; quantity_ordered: number; quantity_received: number; unit?: string | null; unit_cost: number };
 type Supplier = { id: string; legal_name: string; trade_name?: string | null; tax_id?: string | null; payment_terms?: string | null };
@@ -41,6 +42,7 @@ export function OpenSupplyNeeds() {
   const [receipts, setReceipts] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [awardCandidate, setAwardCandidate] = useState<PipelineRow | null>(null);
 
   const activeRows = useMemo(() => rows.filter((row) => !['closed', 'cancelled'].includes(row.pipeline_status)), [rows]);
   if (!isLoading && !error && activeRows.length === 0) return null;
@@ -73,7 +75,11 @@ export function OpenSupplyNeeds() {
     if (ok) { setMode(null); setSelected(null); }
   };
 
-  const award = async (row: PipelineRow) => { if (row.quotation_id) await execute({ action: 'award_quotation', quotationId: row.quotation_id }); };
+  const award = async () => {
+    if (!awardCandidate?.quotation_id) return;
+    const ok = await execute({ action: 'award_quotation', quotationId: awardCandidate.quotation_id });
+    if (ok) setAwardCandidate(null);
+  };
 
   const openReceive = (row: PipelineRow) => {
     const next: Record<string, string> = {};
@@ -100,10 +106,14 @@ export function OpenSupplyNeeds() {
           <div className="min-w-0"><div className="flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-muted-foreground" /><p className="truncate font-medium">{row.request_number} · {row.work_order_number || 'OT'}</p></div><p className="mt-1 truncate text-xs text-muted-foreground">{row.work_order_title || 'Sin título'} · {row.asset_code || 'Sin activo'} {row.asset_name || ''}</p></div>
           <div><p className="text-xs text-muted-foreground">Estado</p><Badge variant="outline">{statusLabel[row.pipeline_status] || row.pipeline_status}</Badge></div>
           <div><p className="text-xs text-muted-foreground">Documento</p><p className="text-sm font-medium">{row.order_number || row.quotation_number || 'Pendiente'}</p>{row.supplier_name ? <p className="text-xs text-muted-foreground">{row.supplier_name}</p> : null}</div>
-          <div className="flex flex-wrap justify-end gap-2">{row.pipeline_status === 'awaiting_quote' ? <Button size="sm" onClick={() => openQuote(row)}><ReceiptText className="mr-2 h-4 w-4" />Cotizar</Button> : null}{row.pipeline_status === 'awaiting_award' ? <Button size="sm" onClick={() => award(row)} disabled={busy}><CheckCircle2 className="mr-2 h-4 w-4" />Adjudicar</Button> : null}{row.pipeline_status === 'awaiting_receipt' ? <Button size="sm" onClick={() => openReceive(row)}><PackageCheck className="mr-2 h-4 w-4" />Recibir</Button> : null}{row.work_order_id ? <Button asChild size="sm" variant="outline"><Link href={`/dashboard/mantenimiento/ordenes-trabajo/${row.work_order_id}`}>Ver OT <ArrowRight className="ml-2 h-4 w-4" /></Link></Button> : null}</div>
+          <div className="flex flex-wrap justify-end gap-2">{row.pipeline_status === 'awaiting_quote' ? <Button size="sm" onClick={() => openQuote(row)}><ReceiptText className="mr-2 h-4 w-4" />Cotizar</Button> : null}{row.pipeline_status === 'awaiting_award' ? <Button size="sm" onClick={() => setAwardCandidate(row)} disabled={busy || row.award_policy_satisfied === false} title={row.award_policy_satisfied === false ? `Faltan ${Math.max(0, Number(row.required_supplier_quotes || 0) - Number(row.distinct_supplier_count || 0))} proveedores cotizados` : undefined}><CheckCircle2 className="mr-2 h-4 w-4" />Adjudicar</Button> : null}{row.pipeline_status === 'awaiting_receipt' ? <Button size="sm" onClick={() => openReceive(row)}><PackageCheck className="mr-2 h-4 w-4" />Recibir</Button> : null}{row.work_order_id ? <Button asChild size="sm" variant="outline"><Link href={`/dashboard/mantenimiento/ordenes-trabajo/${row.work_order_id}`}>Ver OT <ArrowRight className="ml-2 h-4 w-4" /></Link></Button> : null}</div>
         </div>)}</div>
       </CardContent>
     </Card>
+
+    <AlertDialog open={Boolean(awardCandidate)} onOpenChange={(open) => { if (!open && !busy) setAwardCandidate(null); }}>
+      <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>¿Adjudicar y emitir la orden de compra?</AlertDialogTitle><AlertDialogDescription>Esta acción adjudicará {awardCandidate?.quotation_number || 'la cotización'} a {awardCandidate?.supplier_name || 'este proveedor'} y emitirá una OC operativa. No es sólo una vista previa.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel disabled={busy}>Cancelar</AlertDialogCancel><AlertDialogAction onClick={(event) => { event.preventDefault(); void award(); }} disabled={busy}>{busy ? 'Emitiendo…' : 'Confirmar adjudicación y emitir OC'}</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
+    </AlertDialog>
 
     <Dialog open={mode === 'quote'} onOpenChange={(open) => { if (!open) setMode(null); }}><DialogContent className="max-w-2xl"><DialogHeader><DialogTitle>Registrar cotización</DialogTitle></DialogHeader><div className="space-y-4"><div><Label>Buscar proveedor</Label><Input value={supplierQuery} onChange={(event) => setSupplierQuery(event.target.value)} placeholder="Nombre o RUT" />{suppliers.length ? <div className="mt-2 max-h-36 divide-y overflow-auto rounded-lg border">{suppliers.map((item) => <button type="button" key={item.id} className="block w-full p-3 text-left hover:bg-muted" onClick={() => setSupplier(item)}><p className="font-medium">{item.legal_name}</p><p className="text-xs text-muted-foreground">{item.tax_id}</p></button>)}</div> : null}{supplier ? <p className="mt-2 text-sm font-medium">Seleccionado: {supplier.legal_name}</p> : null}</div><div><Label>Plazo de entrega (días)</Label><Input type="number" min="0" value={leadTime} onChange={(event) => setLeadTime(event.target.value)} /></div><div className="space-y-2">{requestLines.filter((line) => line.intake_request_id === selected?.intake_request_id).map((line) => <div key={line.id} className="grid gap-2 rounded-lg border p-3 sm:grid-cols-[1fr_120px_160px] sm:items-end"><div><p className="font-medium">{line.description || line.product_code}</p><p className="text-xs text-muted-foreground">{line.quantity} {line.unit || 'un.'}</p></div><div><Label>Cantidad</Label><Input value={String(line.quantity)} disabled /></div><div><Label>Costo unitario</Label><Input type="number" min="0" value={costs[line.id] || ''} onChange={(event) => setCosts((current) => ({ ...current, [line.id]: event.target.value }))} /></div></div>)}</div></div><DialogFooter><Button variant="outline" onClick={() => setMode(null)}>Cancelar</Button><Button onClick={saveQuote} disabled={busy}>{busy ? 'Guardando…' : 'Guardar cotización'}</Button></DialogFooter></DialogContent></Dialog>
 

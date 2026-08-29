@@ -28,6 +28,8 @@ export async function GET(request: NextRequest) {
     const workOrderIds = (pipeline || []).map((row) => row.work_order_id).filter(Boolean);
     const [
       { data: requestLines, error: requestLinesError },
+      { data: requestPolicies, error: requestPoliciesError },
+      { data: requestQuotations, error: requestQuotationsError },
       { data: orderLines, error: orderLinesError },
       { data: workOrders, error: workOrdersError },
       { data: invoiceMatchSummary, error: invoiceSummaryError },
@@ -35,6 +37,8 @@ export async function GET(request: NextRequest) {
       { data: invoices, error: invoicesError },
     ] = await Promise.all([
       requestIds.length ? context.supabase.from('procurement_intake_request_lines').select('*').in('intake_request_id', requestIds) : Promise.resolve({ data: [], error: null }),
+      requestIds.length ? context.supabase.from('procurement_intake_requests').select('id,required_supplier_quotes,quotation_exception_type,quotation_exception_reason,quotation_exception_approved_by,quotation_exception_approved_at').eq('organization_id', context.organizationId).in('id', requestIds) : Promise.resolve({ data: [], error: null }),
+      requestIds.length ? context.supabase.from('procurement_intake_quotations').select('intake_request_id,supplier_id,status').eq('organization_id', context.organizationId).in('intake_request_id', requestIds).in('status', ['received', 'awarded']) : Promise.resolve({ data: [], error: null }),
       orderIds.length ? context.supabase.from('procurement_operational_order_lines').select('*').in('order_id', orderIds) : Promise.resolve({ data: [], error: null }),
       workOrderIds.length ? context.supabase.from('maintenance_work_orders').select('id,cost_center_id').in('id', workOrderIds).eq('organization_id', context.organizationId) : Promise.resolve({ data: [], error: null }),
       orderIds.length ? context.supabase.from('procurement_three_way_match_summary_v1').select('*').eq('organization_id', context.organizationId).in('order_id', orderIds) : Promise.resolve({ data: [], error: null }),
@@ -42,6 +46,8 @@ export async function GET(request: NextRequest) {
       orderIds.length ? context.supabase.from('procurement_supplier_invoices').select('id,organization_id,order_id,invoice_number,status,approved_for_payment_by,approved_for_payment_at,approval_basis,approval_notes,replaces_invoice_id,rejected_for_correction_by,rejected_for_correction_at,rejection_reason').eq('organization_id', context.organizationId).in('order_id', orderIds) : Promise.resolve({ data: [], error: null }),
     ]);
     if (requestLinesError) throw requestLinesError;
+    if (requestPoliciesError) throw requestPoliciesError;
+    if (requestQuotationsError) throw requestQuotationsError;
     if (orderLinesError) throw orderLinesError;
     if (workOrdersError) throw workOrdersError;
     if (invoiceSummaryError) throw invoiceSummaryError;
@@ -67,10 +73,22 @@ export async function GET(request: NextRequest) {
 
     const workOrderById = new Map((workOrders || []).map((row) => [row.id, row]));
     const costCenterById = new Map((costCenters || []).map((row) => [row.id, row]));
+    const requestPolicyById = new Map((requestPolicies || []).map((row) => [row.id, row]));
+    const supplierIdsByRequest = new Map<string, Set<string>>();
+    for (const quotation of requestQuotations || []) {
+      if (!quotation.supplier_id) continue;
+      const suppliers = supplierIdsByRequest.get(quotation.intake_request_id) || new Set<string>();
+      suppliers.add(quotation.supplier_id);
+      supplierIdsByRequest.set(quotation.intake_request_id, suppliers);
+    }
     const pipelineWithFinance = (pipeline || []).map((row) => {
       const workOrder = row.work_order_id ? workOrderById.get(row.work_order_id) : null;
       const costCenter = workOrder?.cost_center_id ? costCenterById.get(workOrder.cost_center_id) : null;
       const ready = !row.work_order_id || Boolean(costCenter && !['inactive', 'disabled', 'closed'].includes(String(costCenter.status || 'active')));
+      const policy = requestPolicyById.get(row.intake_request_id);
+      const requiredSupplierQuotes = Math.max(1, Number(policy?.required_supplier_quotes || 3));
+      const distinctSupplierCount = supplierIdsByRequest.get(row.intake_request_id)?.size || 0;
+      const hasApprovedException = Boolean(policy?.quotation_exception_type && policy?.quotation_exception_reason && policy?.quotation_exception_approved_by && policy?.quotation_exception_approved_at);
       return {
         ...row,
         finance_ready: ready,
@@ -78,6 +96,9 @@ export async function GET(request: NextRequest) {
         cost_center_id: costCenter?.id || null,
         cost_center_code: costCenter?.code || null,
         cost_center_name: costCenter?.name || null,
+        required_supplier_quotes: requiredSupplierQuotes,
+        distinct_supplier_count: distinctSupplierCount,
+        award_policy_satisfied: distinctSupplierCount >= requiredSupplierQuotes || hasApprovedException,
       };
     });
 
@@ -198,7 +219,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Acción no soportada' }, { status: 400 });
   } catch (error) {
     const message = error instanceof Error ? error.message : typeof error === 'object' && error && 'message' in error ? String(error.message) : 'No se pudo completar la operación';
-    const status = message.startsWith('Imputación contable') ? 409 : 500;
+    const fallbackStatus = message.startsWith('Imputación contable') ? 409 : 500;
+    const status = message.startsWith('Política de cotizaciones') ? 409 : fallbackStatus;
     return NextResponse.json({ error: message }, { status });
   }
 }

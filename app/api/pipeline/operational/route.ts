@@ -23,7 +23,11 @@ export async function GET(request: NextRequest) {
     const { data, error } = await query.order('required_date', { ascending: true, nullsFirst: false }).limit(limit);
     if (error) throw error;
 
-    const normalizedData = (data || []).map(({ intake_request_id, ...item }) => ({ ...item, pipeline_id: intake_request_id }));
+    const normalizedData = (data || []).map(({ intake_request_id, ...item }) => ({
+      ...item,
+      pipeline_id: intake_request_id,
+      next_action_href: item.next_action_href === '/dashboard/abastecimiento' ? '/dashboard/compras/flujo' : item.next_action_href,
+    }));
     return NextResponse.json({ data: normalizedData });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudo cargar el seguimiento operacional';
