@@ -40,7 +40,7 @@ test('public login is presentation-ready', async ({ page }, testInfo) => {
   await page.waitForLoadState('networkidle');
   await expect(page).toHaveURL(/\/auth\/login/);
   await expect(page.getByRole('heading', { name: 'Gestión operacional conectada y trazable' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Iniciar sesión' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Iniciar sesión' })).toBeVisible();
   await expect(page.getByLabel('Correo electrónico')).toBeEditable();
   await expect(page.getByLabel('Contraseña')).toBeEditable();
   await assertNoOverflow(page);
