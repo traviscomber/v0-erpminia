@@ -28,16 +28,21 @@ type SiiConfig = {
   lastAuthError?: string | null;
 };
 
+type CertificateMode = 'pfx' | 'pem';
+
 function readableError(code?: string) {
   const map: Record<string, string> = {
     SII_COMPANY_RUT_INVALID: 'El RUT de la empresa no es válido.',
-    SII_CERTIFICATE_INVALID: 'El certificado X.509 no es válido o no está en formato PEM.',
+    SII_CERTIFICATE_INVALID: 'El certificado X.509 no es válido.',
     SII_PRIVATE_KEY_INVALID: 'La llave privada no es válida o la contraseña no corresponde.',
     SII_CERTIFICATE_KEY_MISMATCH: 'La llave privada no corresponde al certificado cargado.',
     SII_CERTIFICATE_EXPIRED: 'El certificado digital está vencido.',
     SII_CERTIFICATE_NOT_YET_VALID: 'El certificado digital todavía no está vigente.',
     SII_CERTIFICATE_NOT_CONFIGURED: 'Primero debes guardar el certificado digital.',
     SII_CERTIFICATE_SECRET_UNAVAILABLE: 'No fue posible recuperar el certificado desde el vault seguro.',
+    SII_PFX_INVALID: 'El archivo PFX/P12 no es válido o no contiene certificado y llave privada.',
+    SII_PFX_PASSWORD_INVALID: 'La contraseña del archivo PFX/P12 no corresponde.',
+    SII_PKCS12_RUNTIME_UNAVAILABLE: 'El servidor no pudo procesar archivos PFX/P12. Usa el modo PEM avanzado.',
     SII_TIMEOUT: 'El SII no respondió dentro del tiempo esperado.',
     SII_CONNECTION_FAILED: 'No fue posible conectar con el SII.',
   };
@@ -51,6 +56,8 @@ export default function SiiConnectivityPage() {
   const [health, setHealth] = useState<SiiHealth | null>(null);
   const [config, setConfig] = useState<SiiConfig | null>(null);
   const [companyRut, setCompanyRut] = useState('');
+  const [certificateMode, setCertificateMode] = useState<CertificateMode>('pfx');
+  const [pfxFile, setPfxFile] = useState<File | null>(null);
   const [certificate, setCertificate] = useState<File | null>(null);
   const [privateKey, setPrivateKey] = useState<File | null>(null);
   const [passphrase, setPassphrase] = useState('');
@@ -94,8 +101,14 @@ export default function SiiConnectivityPage() {
   }
 
   async function saveCertificate() {
-    if (!certificate || !privateKey) {
-      setMessage({ ok: false, text: 'Selecciona el certificado y su llave privada.' });
+    const hasRequiredFiles = certificateMode === 'pfx' ? Boolean(pfxFile) : Boolean(certificate && privateKey);
+    if (!hasRequiredFiles) {
+      setMessage({
+        ok: false,
+        text: certificateMode === 'pfx'
+          ? 'Selecciona el archivo .pfx o .p12 del certificado digital.'
+          : 'Selecciona el certificado y su llave privada.',
+      });
       return;
     }
 
@@ -104,15 +117,20 @@ export default function SiiConnectivityPage() {
     try {
       const form = new FormData();
       form.set('companyRut', companyRut);
-      form.set('certificate', certificate);
-      form.set('privateKey', privateKey);
       form.set('passphrase', passphrase);
+      if (certificateMode === 'pfx' && pfxFile) {
+        form.set('pfx', pfxFile);
+      } else if (certificate && privateKey) {
+        form.set('certificate', certificate);
+        form.set('privateKey', privateKey);
+      }
 
       const response = await fetch('/api/sii/config', { method: 'POST', body: form });
       const data = (await response.json()) as SiiConfig & { error?: string };
       if (!response.ok) throw new Error(data.error || 'SII_CERTIFICATE_CONFIGURATION_FAILED');
 
       setConfig(data);
+      setPfxFile(null);
       setCertificate(null);
       setPrivateKey(null);
       setPassphrase('');
@@ -149,6 +167,7 @@ export default function SiiConnectivityPage() {
   const connected = health?.siiReachable === true && health?.seedReceived === true;
   const certificateOk = config?.configured === true && Boolean(config.certificateValidTo) && Date.parse(config.certificateValidTo || '') > Date.now();
   const authenticated = health?.authenticated === true || config?.lastAuthOk === true;
+  const canSaveCertificate = Boolean(companyRut) && (certificateMode === 'pfx' ? Boolean(pfxFile) : Boolean(certificate && privateKey));
 
   return (
     <main className="mx-auto max-w-5xl space-y-6 p-6">
@@ -192,12 +211,12 @@ export default function SiiConnectivityPage() {
         <div className="flex flex-col gap-1">
           <p className="text-sm font-semibold">2. Certificado digital del firmante</p>
           <p className="text-sm text-muted-foreground">
-            Se valida que certificado y llave privada correspondan, que el certificado esté vigente y luego se almacenan cifrados en Supabase Vault. La contraseña nunca se vuelve a mostrar.
+            La opción recomendada acepta directamente el archivo .pfx/.p12 entregado por el proveedor del certificado. Motil extrae y valida el certificado y la llave privada en el servidor, y guarda el material cifrado en Supabase Vault.
           </p>
         </div>
 
         <div className="mt-5 grid gap-4 md:grid-cols-2">
-          <label className="space-y-2 text-sm">
+          <label className="space-y-2 text-sm md:col-span-2">
             <span className="font-medium">RUT empresa</span>
             <input
               value={companyRut}
@@ -206,46 +225,78 @@ export default function SiiConnectivityPage() {
               className="h-10 w-full rounded-md border bg-background px-3 outline-none focus:ring-2 focus:ring-ring"
             />
           </label>
-          <div className="rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
-            <p className="font-medium text-foreground">Formato admitido en este bloque</p>
-            <p className="mt-1">Certificado X.509 PEM (.pem/.crt) + llave privada PEM (.pem/.key), con contraseña si está cifrada.</p>
-            <p className="mt-1">Si el cliente tiene un .pfx/.p12, debe exportarse a PEM antes de cargarlo.</p>
+
+          <div className="md:col-span-2 grid gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => setCertificateMode('pfx')}
+              className={`rounded-lg border p-4 text-left ${certificateMode === 'pfx' ? 'border-primary bg-primary/5' : ''}`}
+            >
+              <p className="text-sm font-semibold">PFX / P12 · Recomendado</p>
+              <p className="mt-1 text-xs text-muted-foreground">Un solo archivo + contraseña. Es el formato habitual de certificados digitales en Chile.</p>
+            </button>
+            <button
+              type="button"
+              onClick={() => setCertificateMode('pem')}
+              className={`rounded-lg border p-4 text-left ${certificateMode === 'pem' ? 'border-primary bg-primary/5' : ''}`}
+            >
+              <p className="text-sm font-semibold">PEM · Avanzado</p>
+              <p className="mt-1 text-xs text-muted-foreground">Certificado X.509 y llave privada en archivos separados.</p>
+            </button>
           </div>
-          <label className="space-y-2 text-sm">
-            <span className="font-medium">Certificado público</span>
-            <input
-              type="file"
-              accept=".pem,.crt,.cer,text/plain,application/x-pem-file"
-              onChange={(event) => setCertificate(event.target.files?.[0] || null)}
-              className="block w-full rounded-md border bg-background p-2 text-sm"
-            />
-          </label>
-          <label className="space-y-2 text-sm">
-            <span className="font-medium">Llave privada</span>
-            <input
-              type="file"
-              accept=".pem,.key,text/plain,application/x-pem-file"
-              onChange={(event) => setPrivateKey(event.target.files?.[0] || null)}
-              className="block w-full rounded-md border bg-background p-2 text-sm"
-            />
-          </label>
+
+          {certificateMode === 'pfx' ? (
+            <label className="space-y-2 text-sm md:col-span-2">
+              <span className="font-medium">Certificado digital PFX/P12</span>
+              <input
+                type="file"
+                accept=".pfx,.p12,application/x-pkcs12"
+                onChange={(event) => setPfxFile(event.target.files?.[0] || null)}
+                className="block w-full rounded-md border bg-background p-2 text-sm"
+              />
+              <span className="block text-xs text-muted-foreground">Máximo 2 MB. El archivo original no queda almacenado: se convierte y valida antes de entrar al vault.</span>
+            </label>
+          ) : (
+            <>
+              <label className="space-y-2 text-sm">
+                <span className="font-medium">Certificado público</span>
+                <input
+                  type="file"
+                  accept=".pem,.crt,.cer,text/plain,application/x-pem-file"
+                  onChange={(event) => setCertificate(event.target.files?.[0] || null)}
+                  className="block w-full rounded-md border bg-background p-2 text-sm"
+                />
+              </label>
+              <label className="space-y-2 text-sm">
+                <span className="font-medium">Llave privada</span>
+                <input
+                  type="file"
+                  accept=".pem,.key,text/plain,application/x-pem-file"
+                  onChange={(event) => setPrivateKey(event.target.files?.[0] || null)}
+                  className="block w-full rounded-md border bg-background p-2 text-sm"
+                />
+              </label>
+            </>
+          )}
+
           <label className="space-y-2 text-sm md:col-span-2">
-            <span className="font-medium">Contraseña de la llave privada</span>
+            <span className="font-medium">Contraseña {certificateMode === 'pfx' ? 'del PFX/P12' : 'de la llave privada'}</span>
             <input
               type="password"
               autoComplete="new-password"
               value={passphrase}
               onChange={(event) => setPassphrase(event.target.value)}
-              placeholder="Sólo si la llave está cifrada"
+              placeholder={certificateMode === 'pfx' ? 'Contraseña entregada con el certificado' : 'Sólo si la llave está cifrada'}
               className="h-10 w-full rounded-md border bg-background px-3 outline-none focus:ring-2 focus:ring-ring"
             />
+            <span className="block text-xs text-muted-foreground">La contraseña se usa sólo en el servidor y nunca vuelve a mostrarse en la interfaz.</span>
           </label>
         </div>
 
         <button
           type="button"
           onClick={saveCertificate}
-          disabled={savingCertificate || !companyRut || !certificate || !privateKey}
+          disabled={savingCertificate || !canSaveCertificate}
           className="mt-5 inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
         >
           {savingCertificate ? 'Validando y guardando…' : 'Guardar certificado seguro'}
