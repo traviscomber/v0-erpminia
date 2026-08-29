@@ -9,9 +9,11 @@ import {
   normalizeCompanyRut,
   type StoredSiiCertificate,
 } from '@/lib/sii/client';
+import { importSiiPkcs12 } from '@/lib/sii/pkcs12';
 
 const MAX_CERTIFICATE_BYTES = 256 * 1024;
 const MAX_PRIVATE_KEY_BYTES = 256 * 1024;
+const MAX_PKCS12_BYTES = 1024 * 1024;
 
 function publicConfig(row: any) {
   if (!row) return { configured: false, environment: 'certification' };
@@ -56,27 +58,47 @@ export async function POST(request: NextRequest) {
 
   try {
     const form = await request.formData();
+    const pkcs12File = form.get('pkcs12');
     const certificateFile = form.get('certificate');
     const privateKeyFile = form.get('privateKey');
     const passphraseValue = form.get('passphrase');
     const companyRutValue = form.get('companyRut');
+    const passphrase = typeof passphraseValue === 'string' ? passphraseValue : '';
 
-    if (!(certificateFile instanceof File) || !(privateKeyFile instanceof File)) {
-      return NextResponse.json({ error: 'Certificado y llave privada son obligatorios' }, { status: 400 });
-    }
-    if (certificateFile.size <= 0 || certificateFile.size > MAX_CERTIFICATE_BYTES) {
-      return NextResponse.json({ error: 'Archivo de certificado inválido o demasiado grande' }, { status: 400 });
-    }
-    if (privateKeyFile.size <= 0 || privateKeyFile.size > MAX_PRIVATE_KEY_BYTES) {
-      return NextResponse.json({ error: 'Archivo de llave privada inválido o demasiado grande' }, { status: 400 });
+    const hasPkcs12 = pkcs12File instanceof File;
+    const hasCertificate = certificateFile instanceof File;
+    const hasPrivateKey = privateKeyFile instanceof File;
+
+    if (hasPkcs12 && (hasCertificate || hasPrivateKey)) {
+      return NextResponse.json({ error: 'Usa un archivo PFX/P12 o el par PEM, no ambos formatos a la vez' }, { status: 400 });
     }
 
     const companyRut = normalizeCompanyRut(String(companyRutValue || ''));
-    const bundle: StoredSiiCertificate = {
-      certificatePem: await certificateFile.text(),
-      privateKeyPem: await privateKeyFile.text(),
-      passphrase: typeof passphraseValue === 'string' && passphraseValue.length > 0 ? passphraseValue : undefined,
-    };
+    let bundle: StoredSiiCertificate;
+
+    if (hasPkcs12) {
+      if (pkcs12File.size <= 0 || pkcs12File.size > MAX_PKCS12_BYTES) {
+        return NextResponse.json({ error: 'Archivo PFX/P12 inválido o demasiado grande' }, { status: 400 });
+      }
+      bundle = await importSiiPkcs12(Buffer.from(await pkcs12File.arrayBuffer()), passphrase);
+    } else {
+      if (!hasCertificate || !hasPrivateKey) {
+        return NextResponse.json({ error: 'Selecciona un PFX/P12 o un certificado PEM con su llave privada' }, { status: 400 });
+      }
+      if (certificateFile.size <= 0 || certificateFile.size > MAX_CERTIFICATE_BYTES) {
+        return NextResponse.json({ error: 'Archivo de certificado inválido o demasiado grande' }, { status: 400 });
+      }
+      if (privateKeyFile.size <= 0 || privateKeyFile.size > MAX_PRIVATE_KEY_BYTES) {
+        return NextResponse.json({ error: 'Archivo de llave privada inválido o demasiado grande' }, { status: 400 });
+      }
+
+      bundle = {
+        certificatePem: await certificateFile.text(),
+        privateKeyPem: await privateKeyFile.text(),
+        passphrase: passphrase.length > 0 ? passphrase : undefined,
+      };
+    }
+
     const metadata = inspectSiiCertificate(bundle);
 
     const supabase = getSupabaseServerClient(auth.user.id);
@@ -118,7 +140,22 @@ export async function POST(request: NextRequest) {
       'SII_CERTIFICATE_DATES_INVALID',
       'SII_CERTIFICATE_NOT_YET_VALID',
       'SII_CERTIFICATE_EXPIRED',
+      'SII_PKCS12_INVALID_OR_PASSWORD',
+      'SII_PKCS12_PRIVATE_KEY_MISSING',
+      'SII_PKCS12_CERTIFICATE_MISSING',
+      'SII_PKCS12_UNSUPPORTED_ALGORITHM',
     ]);
+    const serviceErrors = new Set([
+      'SII_PKCS12_ENGINE_UNAVAILABLE',
+      'SII_PKCS12_ENGINE_TIMEOUT',
+      'SII_PKCS12_OUTPUT_TOO_LARGE',
+    ]);
+
+    if (serviceErrors.has(code)) {
+      console.error('[sii-config] PKCS12 runtime failed', { code });
+      return NextResponse.json({ error: code }, { status: 503 });
+    }
+
     return NextResponse.json(
       { error: userErrors.has(code) ? code : 'No se pudo validar el certificado SII' },
       { status: userErrors.has(code) ? 400 : 500 },
