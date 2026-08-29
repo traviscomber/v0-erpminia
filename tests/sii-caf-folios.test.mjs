@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const migration = fs.readFileSync('supabase/migrations/20260829151510_add_sii_caf_folio_inventory_v1.sql', 'utf8');
+const idempotencyMigration = fs.readFileSync('supabase/migrations/20260829152259_harden_sii_folio_idempotency_lock_v1.sql', 'utf8');
 const parser = fs.readFileSync('lib/sii/caf.ts', 'utf8');
 const api = fs.readFileSync('app/api/sii/cafs/route.ts', 'utf8');
 const page = fs.readFileSync('app/dashboard/administracion/sii/page.tsx', 'utf8');
@@ -44,13 +45,20 @@ test('CAF validation binds RUT range and all authorized RSA key material', () =>
 test('folio allocation is atomic idempotent and never recycles a used folio', () => {
   assert.match(migration, /constraint sii_folio_unique unique \(organization_id, environment, document_type, folio\)/);
   assert.match(migration, /constraint sii_folio_idempotency_unique unique \(organization_id, environment, idempotency_key\)/);
-  assert.match(migration, /pg_advisory_xact_lock/);
   assert.match(migration, /int8range\(c\.range_start, c\.range_end, '\[\]'\) && int8range\(p_range_start, p_range_end, '\[\]'\)/);
-  assert.match(migration, /where r\.organization_id = p_organization_id[\s\S]*r\.idempotency_key = p_idempotency_key/);
   assert.match(migration, /for update/);
   assert.match(migration, /set next_folio = v_folio \+ 1/);
   assert.match(migration, /if v_status = 'used' then raise exception 'Un folio SII usado no puede anularse'/);
   assert.match(migration, /status in \('reserved','used','voided'\)/);
+
+  assert.match(idempotencyMigration, /v_idempotency_key := btrim\(p_idempotency_key\)/);
+  assert.match(idempotencyMigration, /pg_advisory_xact_lock/);
+  assert.match(idempotencyMigration, /':folio:' \|\| v_idempotency_key/);
+  assert.match(idempotencyMigration, /r\.idempotency_key = v_idempotency_key/);
+  assert.match(idempotencyMigration, /if found then[\s\S]*return query select v_existing\.id/);
+  assert.match(idempotencyMigration, /for update/);
+  assert.match(idempotencyMigration, /v_idempotency_key, 'reserved'/);
+  assert.doesNotMatch(idempotencyMigration, /grant execute on function public\.reserve_sii_folio_v1\(uuid,text,integer,text\) to authenticated/);
 });
 
 test('CAF API is admin scoped tenant scoped and progressive UI exposes inventory only', () => {
