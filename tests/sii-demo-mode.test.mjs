@@ -6,6 +6,7 @@ const migration = fs.readFileSync('supabase/migrations/20260829165753_add_sii_de
 const api = fs.readFileSync('app/api/sii/demo/route.ts', 'utf8');
 const page = fs.readFileSync('app/dashboard/administracion/sii/demo/page.tsx', 'utf8');
 const layout = fs.readFileSync('app/dashboard/administracion/sii/layout.tsx', 'utf8');
+const setupNavigator = fs.readFileSync('components/sii/sii-setup-navigator.tsx', 'utf8');
 
 test('SII demo data is isolated in a server-only ledger', () => {
   assert.match(migration, /create table if not exists public\.sii_demo_runs/);
@@ -38,7 +39,9 @@ test('demo workflow can never contact SII transport or consume fiscal state', ()
 });
 
 test('demo UI is explicit and removable', () => {
-  assert.match(layout, /\/dashboard\/administracion\/sii\/demo/);
+  assert.match(layout, /SiiSetupNavigator/);
+  assert.match(setupNavigator, /\/demo/);
+  assert.match(setupNavigator, /Ir al demo seguro/);
   assert.match(page, /Modo demo aislado/);
   assert.match(page, /no llama a Maullín ni Palena/);
   assert.match(page, /no reserva folios fiscales/);
