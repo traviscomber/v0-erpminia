@@ -11,6 +11,7 @@ function publicIssuer(row: any) {
     configured: Boolean(
       row?.company_rut && row?.signer_rut && row?.issuer_legal_name && row?.issuer_giro && row?.issuer_acteco &&
       row?.issuer_address && row?.issuer_commune && row?.resolution_date && row?.resolution_number != null,
+    ),
     environment: row?.environment || 'certification',
     companyRut: row?.company_rut || null,
     signerRut: row?.signer_rut || null,
