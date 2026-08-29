@@ -64,7 +64,7 @@ function stripLeadingZeroes(value: Buffer) {
   return value.subarray(index);
 }
 
-function normalizePrivateKeyPem(raw: string) {
+function normalizePem(raw: string) {
   const lines = decodeXmlEntities(raw)
     .split(/\r?\n/)
     .map((line) => line.trim())
@@ -83,10 +83,11 @@ export function parseAndValidateSiiCaf(input: string, expectedCompanyRut?: strin
   const rangeXml = daXml ? extractBlock(daXml, 'RNG') : null;
   const publicKeyXml = daXml ? extractBlock(daXml, 'RSAPK') : null;
   const privateKeyRaw = extractTag(authorizationXml, 'RSASK');
+  const topLevelPublicKeyRaw = extractTag(authorizationXml, 'RSAPUBK');
   const cafOpening = cafXml?.match(/<CAF\b[^>]*>/i)?.[0] || '';
   const frmaOpening = cafXml?.match(/<FRMA\b[^>]*>/i)?.[0] || '';
 
-  if (!cafXml || !daXml || !rangeXml || !publicKeyXml || !privateKeyRaw) {
+  if (!cafXml || !daXml || !rangeXml || !publicKeyXml || !privateKeyRaw || !topLevelPublicKeyRaw) {
     throw new Error('SII_CAF_REQUIRED_FIELDS_MISSING');
   }
 
@@ -126,24 +127,42 @@ export function parseAndValidateSiiCaf(input: string, expectedCompanyRut?: strin
   }
   if (keyId != null && (!Number.isSafeInteger(keyId) || keyId < 0)) throw new Error('SII_CAF_KEY_ID_INVALID');
 
-  const privateKeyPem = normalizePrivateKeyPem(privateKeyRaw);
+  const privateKeyPem = normalizePem(privateKeyRaw);
+  const topLevelPublicKeyPem = normalizePem(topLevelPublicKeyRaw);
   let privateKey;
+  let topLevelPublicKey;
   try {
     privateKey = createPrivateKey(privateKeyPem);
   } catch {
     throw new Error('SII_CAF_PRIVATE_KEY_INVALID');
   }
+  try {
+    topLevelPublicKey = createPublicKey(topLevelPublicKeyPem);
+  } catch {
+    throw new Error('SII_CAF_PUBLIC_KEY_INVALID');
+  }
 
   const privatePublicJwk = createPublicKey(privateKey).export({ format: 'jwk' });
+  const topLevelPublicJwk = topLevelPublicKey.export({ format: 'jwk' });
   if (privatePublicJwk.kty !== 'RSA' || !privatePublicJwk.n || !privatePublicJwk.e) {
     throw new Error('SII_CAF_PRIVATE_KEY_NOT_RSA');
+  }
+  if (topLevelPublicJwk.kty !== 'RSA' || !topLevelPublicJwk.n || !topLevelPublicJwk.e) {
+    throw new Error('SII_CAF_PUBLIC_KEY_INVALID');
   }
 
   const cafModulus = stripLeadingZeroes(decodeBase64(modulusRaw, 'SII_CAF_PUBLIC_KEY_INVALID'));
   const cafExponent = stripLeadingZeroes(decodeBase64(exponentRaw, 'SII_CAF_PUBLIC_KEY_INVALID'));
   const privateModulus = stripLeadingZeroes(decodeBase64Url(privatePublicJwk.n));
   const privateExponent = stripLeadingZeroes(decodeBase64Url(privatePublicJwk.e));
-  if (!cafModulus.equals(privateModulus) || !cafExponent.equals(privateExponent)) {
+  const topLevelModulus = stripLeadingZeroes(decodeBase64Url(topLevelPublicJwk.n));
+  const topLevelExponent = stripLeadingZeroes(decodeBase64Url(topLevelPublicJwk.e));
+  if (
+    !cafModulus.equals(privateModulus) ||
+    !cafExponent.equals(privateExponent) ||
+    !topLevelModulus.equals(privateModulus) ||
+    !topLevelExponent.equals(privateExponent)
+  ) {
     throw new Error('SII_CAF_PRIVATE_PUBLIC_KEY_MISMATCH');
   }
 
