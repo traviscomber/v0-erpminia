@@ -17,11 +17,11 @@ test('Vercel no longer schedules the redundant product-media autopilot routes', 
   assert.ok(cronPaths.includes('/api/cron/role-kpi-snapshots-daily'));
 });
 
-test('manual product-media routes remain authenticated after removing their Vercel schedules', () => {
+test('unscheduled product-media routes remain protected', () => {
   assert.match(mediaWebImportRoute, /CRON_SECRET/);
   assert.match(mediaWebImportRoute, /requireAdmin|getOrganizationContext/);
   assert.match(mediaGenerationRoute, /CRON_SECRET/);
-  assert.match(mediaGenerationRoute, /requireAdmin|getOrganizationContext/);
+  assert.match(mediaGenerationRoute, /Unauthorized/);
 });
 
 test('role inbox short-circuits cargos outside canonical operational coverage before the heavy frontend view', () => {
