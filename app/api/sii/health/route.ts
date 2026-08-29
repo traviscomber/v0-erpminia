@@ -6,13 +6,13 @@ import { getOrganizationContext } from '@/lib/api/organization-context';
 
 const SII_ENVIRONMENT = 'certification';
 const SII_SEED_ENDPOINT = 'https://maullin.sii.cl/DTEWS/CrSeed.jws';
+const SII_SEED_NAMESPACE = 'https://maullin.sii.cl/DTEWS/CrSeed.jws';
 const TIMEOUT_MS = 10_000;
 
 const SOAP_ENVELOPE = `<?xml version="1.0" encoding="UTF-8"?>
-<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
-  <soapenv:Header/>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <soapenv:Body>
-    <getSeed/>
+    <ns1:getSeed soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" xmlns:ns1="${SII_SEED_NAMESPACE}" />
   </soapenv:Body>
 </soapenv:Envelope>`;
 
