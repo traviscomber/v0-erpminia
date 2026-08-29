@@ -22,18 +22,22 @@ test('CAF secret material stays server-only and encrypted in Vault', () => {
   assert.doesNotMatch(publicProjection[0], /secret_id|secretId|secret_payload|authorizationXml|privateKey/);
 });
 
-test('CAF validation binds RUT range and private key to the authorized public key', () => {
+test('CAF validation binds RUT range and all authorized RSA key material', () => {
   assert.match(parser, /<AUTORIZACION/);
   assert.match(parser, /extractBlock\(authorizationXml, 'CAF'\)/);
   assert.match(parser, /extractTag\(authorizationXml, 'RSASK'\)/);
+  assert.match(parser, /extractTag\(authorizationXml, 'RSAPUBK'\)/);
   assert.match(parser, /extractBlock\(daXml, 'RSAPK'\)/);
   assert.match(parser, /signatureAlgorithm\.toLowerCase\(\) !== 'sha1withrsa'/);
   assert.match(parser, /normalizeCompanyRut\(expectedCompanyRut\)/);
   assert.match(parser, /SII_CAF_COMPANY_RUT_MISMATCH/);
   assert.match(parser, /createPrivateKey\(privateKeyPem\)/);
+  assert.match(parser, /createPublicKey\(topLevelPublicKeyPem\)/);
   assert.match(parser, /createPublicKey\(privateKey\)\.export/);
   assert.match(parser, /cafModulus\.equals\(privateModulus\)/);
   assert.match(parser, /cafExponent\.equals\(privateExponent\)/);
+  assert.match(parser, /topLevelModulus\.equals\(privateModulus\)/);
+  assert.match(parser, /topLevelExponent\.equals\(privateExponent\)/);
   assert.match(parser, /createHash\('sha256'\)/);
 });
 
