@@ -6,6 +6,7 @@ const routePath = new URL('../app/api/procurement/operational-pipeline/route.ts'
 const boardRoutePath = new URL('../app/api/pipeline/operational/route.ts', import.meta.url);
 const operationalUiPath = new URL('../components/procurement/open-supply-needs.tsx', import.meta.url);
 const progressiveUiPath = new URL('../components/procurement/progressive-procurement-workflow.tsx', import.meta.url);
+const awardEvidenceUiPath = new URL('../components/procurement/award-evidence-panel.tsx', import.meta.url);
 const policyMigrationPath = new URL('../supabase/migrations/20260829010000_enforce_operational_quote_policy_v1.sql', import.meta.url);
 
 test('operational procurement pipeline requires compras read access', async () => {
@@ -22,14 +23,22 @@ test('operational award is enforced by supplier quote policy in the database', a
   assert.ok(source.indexOf('Política de cotizaciones incompleta') < source.indexOf('insert into public.procurement_operational_orders'));
 });
 
-test('award controls require explicit confirmation before issuing a purchase order', async () => {
+test('award controls require an explicit human decision before issuing a purchase order', async () => {
   const operationalUi = await readFile(operationalUiPath, 'utf8');
   const progressiveUi = await readFile(progressiveUiPath, 'utf8');
-  for (const source of [operationalUi, progressiveUi]) {
-    assert.match(source, /¿Adjudicar y emitir la orden de compra\?/);
-    assert.match(source, /Confirmar adjudicación y emitir OC/);
-    assert.match(source, /AlertDialog/);
-  }
+  const awardEvidenceUi = await readFile(awardEvidenceUiPath, 'utf8');
+
+  assert.match(operationalUi, /¿Adjudicar y emitir la orden de compra\?/);
+  assert.match(operationalUi, /Confirmar adjudicación y emitir OC/);
+  assert.match(operationalUi, /AlertDialog/);
+
+  assert.match(progressiveUi, /procurement-award-decision/);
+  assert.match(progressiveUi, /Revisar adjudicación/);
+  assert.doesNotMatch(progressiveUi, /Confirmar adjudicación y emitir OC/);
+
+  assert.match(awardEvidenceUi, /Motivo principal/);
+  assert.match(awardEvidenceUi, /primaryReason/);
+  assert.match(awardEvidenceUi, /Adjudicar y emitir OC/);
 });
 
 test('pipeline normalizes the legacy purchasing route to the canonical flow', async () => {

@@ -97,11 +97,11 @@ export function AwardEvidencePanel() {
     }
   };
 
-  if (isLoading) return <Card className="shadow-none"><CardContent className="p-5 text-sm text-muted-foreground">Cargando evidencia para adjudicación…</CardContent></Card>;
-  if (error) return <Card className="shadow-none"><CardContent className="p-5 text-sm text-destructive">{error.message}</CardContent></Card>;
+  if (isLoading) return <Card id="procurement-award-decision" className="scroll-mt-24 shadow-none"><CardContent className="p-5 text-sm text-muted-foreground">Cargando evidencia para adjudicación…</CardContent></Card>;
+  if (error) return <Card id="procurement-award-decision" className="scroll-mt-24 shadow-none"><CardContent className="p-5 text-sm text-destructive">{error.message}</CardContent></Card>;
   if (!rows.length) return null;
 
-  return <Card className="shadow-none">
+  return <Card id="procurement-award-decision" className="scroll-mt-24 shadow-none">
     <CardHeader>
       <CardTitle>Decisión de adjudicación</CardTitle>
       <CardDescription>Precio, plazo y desempeño se muestran por separado. Motil no combina estos factores en un ranking oculto ni adjudica automáticamente. La persona que adjudica debe registrar el motivo y Motil conserva el snapshot de evidencia usado en ese momento.</CardDescription>
