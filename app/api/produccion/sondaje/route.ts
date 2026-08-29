@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const access = await requireModuleAccess(request, MODULE_KEYS.PROD_SONDAJE_PRODUCCION);
+  const access = await requireModuleAccess(request, MODULE_KEYS.PROD_SONDAJE_PRODUCCION, true);
   if (!access.authorized) return access.response;
 
   const context = await getOrganizationContext(request);
