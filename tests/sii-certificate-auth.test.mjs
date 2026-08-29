@@ -20,15 +20,22 @@ test('SII certificate metadata is server-only and secret material is stored in S
   assert.doesNotMatch(migration,/grant execute on function public\.get_sii_certificate_payload_v1\(uuid\) to authenticated/);
 });
 
-test('certificate upload requires admin context and never returns private material',()=>{
+test('certificate upload requires admin context and response contract contains metadata only',()=>{
   assert.match(configApi,/requireAdmin\(request\)/);
   assert.match(configApi,/request\.formData\(\)/);
   assert.match(configApi,/inspectSiiCertificate\(bundle\)/);
   assert.match(configApi,/save_sii_certificate_v1/);
   assert.match(configApi,/MAX_CERTIFICATE_BYTES/);
   assert.match(configApi,/MAX_PRIVATE_KEY_BYTES/);
-  assert.doesNotMatch(configApi,/privateKeyPem:/);
-  assert.doesNotMatch(configApi,/passphrase:/);
+  assert.match(configApi,/p_secret_payload: JSON\.stringify\(bundle\)/);
+
+  const successResponse = configApi.match(/return NextResponse\.json\(\{\n\s+configured: true,[\s\S]*?lastAuthOk: null,\n\s+\}\);/);
+  assert.ok(successResponse, 'certificate POST must return an explicit metadata-only success object');
+  assert.doesNotMatch(successResponse[0],/privateKeyPem|passphrase|certificatePem|p_secret_payload/);
+
+  const publicConfigBody = configApi.match(/function publicConfig\(row: any\) \{[\s\S]*?\n\}/);
+  assert.ok(publicConfigBody, 'GET response must be projected through publicConfig');
+  assert.doesNotMatch(publicConfigBody[0],/privateKeyPem|passphrase|certificatePem|decrypted_secret/);
 });
 
 test('SII authentication follows seed sign token and does not expose the token',()=>{
