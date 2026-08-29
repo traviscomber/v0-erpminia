@@ -7,7 +7,6 @@ import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
 type MaintenanceWorkOrderRow = {
   id: string;
   asset_id: string | null;
-  canonical_asset_id: string | null;
   start_date: string | null;
 };
 
@@ -89,14 +88,13 @@ export async function POST(
 
     if (reloadError) throw reloadError;
 
-    const availabilityEquipmentId = typedWorkOrder.canonical_asset_id || typedWorkOrder.asset_id;
-    if (availabilityEquipmentId) {
+    if (typedWorkOrder.asset_id) {
       const today = new Date().toISOString().split('T')[0];
       const availabilityPercent = Math.max(0, 100 - (downtime / 24) * 100);
       const { error: availError } = await context.supabase
         .from('equipment_availability')
         .upsert({
-          equipment_id: availabilityEquipmentId,
+          equipment_id: typedWorkOrder.asset_id,
           date: today,
           availability_percentage: availabilityPercent,
           downtime_minutes: Math.round(downtime * 60),
