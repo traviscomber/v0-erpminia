@@ -134,20 +134,10 @@ export function SiiSetupNavigator() {
           })}
         </div>
 
-        <div className="mt-4 flex flex-col gap-3 rounded-lg border bg-muted/20 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Siguiente acción</p>
-            <p className="mt-1 text-sm font-semibold">{nextAction.label}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{nextAction.detail}</p>
-          </div>
-          {nextAction.href ? (
-            <Link
-              href={nextAction.href}
-              className="inline-flex h-9 shrink-0 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"
-            >
-              Continuar
-            </Link>
-          ) : null}
+        <div className="mt-4 rounded-lg border bg-muted/20 p-4" aria-live="polite">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Siguiente acción</p>
+          <p className="mt-1 text-sm font-semibold">{nextAction.label}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{nextAction.detail}</p>
         </div>
       </section>
 
@@ -185,7 +175,6 @@ function getNextAction(checks: Map<string, boolean>, readiness: SiiReadiness | n
     return {
       label: 'Revisa el estado de configuración',
       detail: 'Motil cargará el checklist y te indicará exactamente qué falta.',
-      href: ROOT_PATH,
     };
   }
 
@@ -193,7 +182,6 @@ function getNextAction(checks: Map<string, boolean>, readiness: SiiReadiness | n
     return {
       label: 'Carga el RUT y el certificado digital',
       detail: 'Usa el archivo PFX/P12 del firmante y su contraseña.',
-      href: ROOT_PATH,
     };
   }
 
@@ -201,7 +189,6 @@ function getNextAction(checks: Map<string, boolean>, readiness: SiiReadiness | n
     return {
       label: 'Prueba la autenticación con el SII',
       detail: 'Motil firmará la semilla y comprobará que el certificado obtiene token.',
-      href: ROOT_PATH,
     };
   }
 
@@ -209,7 +196,6 @@ function getNextAction(checks: Map<string, boolean>, readiness: SiiReadiness | n
     return {
       label: 'Carga el CAF de Factura Electrónica 33',
       detail: 'Selecciona el XML de folios descargado directamente desde el SII.',
-      href: ROOT_PATH,
     };
   }
 
@@ -217,7 +203,6 @@ function getNextAction(checks: Map<string, boolean>, readiness: SiiReadiness | n
     return {
       label: 'Completa el perfil tributario',
       detail: 'Ingresa firmante, razón social, giro, ACTECO, dirección y resolución.',
-      href: `${ROOT_PATH}/perfil`,
     };
   }
 
@@ -227,13 +212,11 @@ function getNextAction(checks: Map<string, boolean>, readiness: SiiReadiness | n
       detail: readiness.acceptedCertificationDtes > 0
         ? 'La evidencia de certificación existe; revisa el gate antes de producción.'
         : 'Producción seguirá bloqueada hasta que exista un DTE 33 aceptado en certificación.',
-      href: `${ROOT_PATH}/preparacion`,
     };
   }
 
   return {
     label: 'Configuración SII completa',
     detail: 'Los requisitos técnicos y la evidencia de certificación están completos.',
-    href: null,
   };
 }

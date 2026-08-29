@@ -12,6 +12,7 @@ test('SII configuration is presented as a simple three-step flow', () => {
   assert.match(navigator, /Perfil tributario/);
   assert.match(navigator, /Revisar y activar/);
   assert.match(navigator, /Siguiente acción/);
+  assert.doesNotMatch(navigator, />\s*Continuar\s*</);
   assert.match(layout, /SiiSetupNavigator/);
 });
 
