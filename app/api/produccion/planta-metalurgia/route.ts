@@ -15,6 +15,12 @@ function weightedAverage<T>(rows: T[], value: (row: T) => unknown, weight: (row:
   return valid.reduce((sum, row) => sum + Number(value(row)) * Number(weight(row) || 0), 0) / totalWeight;
 }
 
+const COMPARABLE_MOVEMENT_STATES = new Set([
+  'within_source_window',
+  'manual_evidence',
+  'historical_and_manual_evidence',
+]);
+
 export async function GET(request: NextRequest) {
   const access = await requireModuleAccess(request, MODULE_KEYS.PROD_OPERACIONES);
   if (!access.authorized) return access.response;
@@ -64,8 +70,8 @@ export async function GET(request: NextRequest) {
       .lte('operation_date', through)
       .order('operation_date'),
     context.supabase
-      .from('production_flow_daily_fidelity_v1')
-      .select('operation_date,movement_source_cutoff,movement_source_state,movement_rows,transported_t,treated_wet_t,recovered_fine_cu_t,shipment_rows,valid_shipment_rows,review_shipment_rows,dispatched_concentrate_t,flow_source_state')
+      .from('production_flow_daily_fidelity_v2')
+      .select('operation_date,movement_source_cutoff,movement_source_state,movement_rows,manual_movement_rows,transported_t,treated_wet_t,recovered_fine_cu_t,shipment_rows,valid_shipment_rows,review_shipment_rows,dispatched_concentrate_t,flow_source_state')
       .eq('organization_id', context.organizationId)
       .gte('operation_date', periodStart)
       .lte('operation_date', through)
@@ -92,10 +98,11 @@ export async function GET(request: NextRequest) {
   const fineDaily = fineDailyResult.data || [];
   const flowRows = flowResult.data || [];
   const treatedTons = rows.reduce((sum, row) => sum + Number(row.treated_metric_tons || 0), 0);
-  const comparableFlowRows = flowRows.filter((row) => row.movement_source_state === 'within_source_window');
+  const comparableFlowRows = flowRows.filter((row) => COMPARABLE_MOVEMENT_STATES.has(row.movement_source_state));
   const transportedTons = comparableFlowRows.reduce((sum, row) => sum + Number(row.transported_t || 0), 0);
   const comparableTreatedTons = comparableFlowRows.reduce((sum, row) => sum + Number(row.treated_wet_t || 0), 0);
   const movements = comparableFlowRows.reduce((sum, row) => sum + Number(row.movement_rows || 0), 0);
+  const manualMovementDays = flowRows.filter((row) => Number(row.manual_movement_rows || 0) > 0).length;
   const transportTreatmentDeltaTons = transportedTons - comparableTreatedTons;
   const movementSourceCutoff = flowRows.find((row) => row.movement_source_cutoff)?.movement_source_cutoff || null;
   const movementCoverageState = movementSourceCutoff && movementSourceCutoff < through ? 'partial_source_window' : 'complete_source_window';
@@ -162,6 +169,7 @@ export async function GET(request: NextRequest) {
       dataThrough: through,
       shifts: rows.length,
       movements,
+      manualMovementDays,
       movementSourceCutoff,
       movementCoverageState,
       transportedTons,
@@ -219,12 +227,12 @@ export async function GET(request: NextRequest) {
     },
     sourceFidelity: {
       checks: flowQualityResult.data || [],
-      rule: 'Los ceros solo representan cero cuando la fecha está dentro de la ventana de la fuente. Fuera de cobertura se devuelve null/source_unavailable.',
+      rule: 'La cobertura histórica TM sólo admite ceros hasta su cutoff. Fuera de esa ventana, sólo una evidencia manual registrada en esa fecha habilita comparación; las demás fechas siguen como source_unavailable.',
     },
     lineage: {
-      source: 'TM 2026 actualizado (06-08-2026).xlsx [movimientos hasta 06-08] + LEY (1).xlsx [planta/fino 01-18 agosto] + PROGRAMA DE PRODUCCION AGOSTO 2026.pdf',
-      model: 'production_flow_daily_fidelity_v1 -> production_fine_copper_v1 + production_concentrate_shipments + production_copper_plan_v1',
-      note: 'Transporte y tratamiento sólo se comparan dentro de la ventana cubierta por TM. Desde el 07-08 el transporte es fuente no disponible, no cero y no pérdida.',
+      source: 'TM 2026 actualizado (06-08-2026).xlsx [cobertura histórica] + ingresos manuales puntuales de Producción + LEY (1).xlsx [planta/fino histórico] + PROGRAMA DE PRODUCCION AGOSTO 2026.pdf',
+      model: 'production_flow_daily_fidelity_v2 -> production_fine_copper_v1 + production_concentrate_shipments + production_copper_plan_v1',
+      note: 'La ventana histórica de transporte termina en el cutoff TM. Los ingresos manuales posteriores se comparan sólo en su fecha exacta; no extienden ni rellenan la cobertura de los días intermedios.',
     },
   });
 }
