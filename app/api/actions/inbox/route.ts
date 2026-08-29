@@ -127,6 +127,18 @@ function deduplicateTasks(rows: RoleTask[]) {
   });
 }
 
+function emptyRoleInbox(name: string | null, cargoId: string, cargoName: string | null) {
+  return NextResponse.json({
+    profile: { name, cargoId, cargoName },
+    tasks: [],
+    summary: { total: 0, owners: 0, support: 0, escalations: 0, critical: 0, overdue: 0, backlog: 0 },
+    generatedAt: new Date().toISOString(),
+    source: 'role_task_frontend_v1',
+    rawTaskCount: 0,
+    deduplicatedTaskCount: 0,
+  });
+}
+
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
@@ -152,22 +164,43 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  const [{ data: cargo, error: cargoError }, { data, error }] = await Promise.all([
+  const [{ data: cargo, error: cargoError }, { data: coverage, error: coverageError }] = await Promise.all([
     context.supabase.from('cargos').select('name').eq('id', profile.cargo_id).maybeSingle(),
     context.supabase
-      .from('role_task_frontend_v1')
-      .select('*')
+      .from('operational_role_inbox_coverage_v1')
+      .select('cargo_id')
       .eq('organization_id', context.organizationId)
       .eq('cargo_id', profile.cargo_id)
-      .eq('visible_now', true)
-      .order('priority_score', { ascending: false })
-      .order('due_at', { ascending: true, nullsFirst: false }),
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   if (cargoError) {
     console.error('[role-task-inbox] cargo lookup failed', cargoError);
     return NextResponse.json({ error: 'No se pudo resolver tu cargo' }, { status: 500 });
   }
+
+  const cargoName = cargo?.name || null;
+  const hasPrivateFinanceInbox = cargoName?.toUpperCase() === 'JEFE ADM.';
+
+  if (!coverageError && !coverage && !hasPrivateFinanceInbox) {
+    return emptyRoleInbox(profile.full_name || null, profile.cargo_id, cargoName);
+  }
+
+  if (coverageError) {
+    // This lookup is an optimization only. Preserve the existing inbox behavior if
+    // the coverage surface is unavailable instead of hiding potentially valid tasks.
+    console.warn('[role-task-inbox] coverage lookup failed; falling back to task view', coverageError);
+  }
+
+  const { data, error } = await context.supabase
+    .from('role_task_frontend_v1')
+    .select('*')
+    .eq('organization_id', context.organizationId)
+    .eq('cargo_id', profile.cargo_id)
+    .eq('visible_now', true)
+    .order('priority_score', { ascending: false })
+    .order('due_at', { ascending: true, nullsFirst: false });
 
   if (error) {
     console.error('[role-task-inbox] task lookup failed', error);
@@ -182,7 +215,7 @@ export async function GET(request: NextRequest) {
   const isBacklog = (task: RoleTask) => Boolean(task.occurred_at && new Date(task.occurred_at).getTime() < backlogCutoff);
 
   return NextResponse.json({
-    profile: { name: profile.full_name || null, cargoId: profile.cargo_id, cargoName: cargo?.name || null },
+    profile: { name: profile.full_name || null, cargoId: profile.cargo_id, cargoName },
     tasks,
     summary: {
       total: tasks.length,
