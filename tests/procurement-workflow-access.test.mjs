@@ -37,7 +37,7 @@ test('procurement workflow POST requires FIN_COMPRAS write access before every p
   for (const rpc of [
     "rpc('create_procurement_request'",
     "rpc('create_supplier_quotation'",
-    "rpc('award_supplier_quotation'",
+    "rpc('award_supplier_quotation_with_decision_v1'",
     "rpc('receive_purchase_order'",
   ]) {
     assert.ok(
@@ -45,6 +45,16 @@ test('procurement workflow POST requires FIN_COMPRAS write access before every p
       `write authorization must happen before ${rpc}`,
     );
   }
+});
+
+test('progressive award records an explicit compatibility decision instead of bypassing award evidence', async () => {
+  const source = await readFile(routeUrl, 'utf8');
+  const postSource = getHandlerSource(source, 'POST');
+
+  assert.match(postSource, /rpc\('award_supplier_quotation_with_decision_v1'/);
+  assert.doesNotMatch(postSource, /rpc\('award_supplier_quotation',/);
+  assert.match(postSource, /p_primary_reason:\s*'other'/);
+  assert.match(postSource, /p_decision_notes:/);
 });
 
 test('FIN_COMPRAS LEC access remains read-only', async () => {

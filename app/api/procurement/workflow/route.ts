@@ -227,8 +227,13 @@ export async function POST(request: NextRequest) {
         p_actor_id: context.userId,
       });
     } else if (action === 'award_quotation') {
-      result = await context.supabase.rpc('award_supplier_quotation', {
+      if (!body.quotationId) {
+        return NextResponse.json({ error: 'Cotización requerida.' }, { status: 400 });
+      }
+      result = await context.supabase.rpc('award_supplier_quotation_with_decision_v1', {
         p_quotation_id: body.quotationId,
+        p_primary_reason: 'other',
+        p_decision_notes: 'Adjudicación iniciada desde el flujo progresivo de compatibilidad; esta interfaz aún no captura un motivo estructurado.',
         p_actor_id: context.userId,
       });
     } else if (action === 'receive_purchase_order') {
