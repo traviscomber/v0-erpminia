@@ -5,6 +5,7 @@ import fs from 'node:fs';
 const resolution = fs.readFileSync('supabase/migrations/20260827205000_resolve_supplier_returns_and_close_orders_v1.sql','utf8');
 const received = fs.readFileSync('supabase/migrations/20260827205500_mark_supplier_return_received_v1.sql','utf8');
 const creditCap = fs.readFileSync('supabase/migrations/20260829030817_enforce_supplier_return_credit_note_cap_v1.sql','utf8');
+const replacementGuard = fs.readFileSync('supabase/migrations/20260829181816_harden_supplier_return_replacement_v1.sql','utf8');
 const route = fs.readFileSync('app/api/procurement/returns/route.ts','utf8');
 const page = fs.readFileSync('app/dashboard/compras/devoluciones/page.tsx','utf8');
 
@@ -12,6 +13,31 @@ test('replacement resolution requires an accepted receipt covering the returned 
   assert.match(resolution,/resolve_supplier_return_replacement_v1/);
   assert.match(resolution,/sum\(x\.quantity_accepted\)>=rl\.quantity/);
   assert.match(resolution,/La recepción de reposición no cubre toda la devolución/);
+});
+
+test('replacement resolution requires supplier receipt evidence and a chronologically new receipt',()=>{
+  assert.match(replacementGuard,/received_by_supplier_at timestamptz/);
+  assert.match(replacementGuard,/status = 'received_by_supplier'/);
+  assert.match(replacementGuard,/received_by_supplier_at = now\(\)/);
+  assert.match(replacementGuard,/v_ret\.status <> 'received_by_supplier'/);
+  assert.match(replacementGuard,/v_ret\.received_by_supplier_at is null/);
+  assert.match(replacementGuard,/id is distinct from v_ret\.receipt_id/);
+  assert.match(replacementGuard,/received_at >= v_ret\.received_by_supplier_at/);
+});
+
+test('replacement receipt capacity cannot be reused across supplier returns',()=>{
+  assert.match(replacementGuard,/resolution_type = 'replacement'/);
+  assert.match(replacementGuard,/replacement_receipt_id = v_receipt\.id/);
+  assert.match(replacementGuard,/sum\(rl\.quantity\) as quantity/);
+  assert.match(replacementGuard,/coalesce\(a\.quantity,0\) < n\.quantity \+ coalesce\(al\.quantity,0\)/);
+  assert.match(replacementGuard,/La recepción de reposición no cubre toda la devolución disponible/);
+});
+
+test('replacement mutations remain service-role only after hardening',()=>{
+  assert.match(replacementGuard,/revoke all on function public\.mark_supplier_return_received_v1\(uuid,uuid,text,text\) from public, anon, authenticated/);
+  assert.match(replacementGuard,/grant execute on function public\.mark_supplier_return_received_v1\(uuid,uuid,text,text\) to service_role/);
+  assert.match(replacementGuard,/revoke all on function public\.resolve_supplier_return_replacement_v1\(uuid,uuid,uuid,text\) from public, anon, authenticated/);
+  assert.match(replacementGuard,/grant execute on function public\.resolve_supplier_return_replacement_v1\(uuid,uuid,uuid,text\) to service_role/);
 });
 
 test('credit note reduces only unpaid accounts payable and preserves operational cost separation',()=>{
@@ -41,6 +67,8 @@ test('order closes only when physical or commercial shortages and open returns a
   assert.match(resolution,/status='closed'/);
   assert.match(resolution,/status not in \('resolved','cancelled'\)/);
   assert.match(resolution,/resolution_type in \('credit_note','refund'\)/);
+  assert.match(replacementGuard,/status = 'closed'/);
+  assert.match(replacementGuard,/status not in \('resolved','cancelled'\)/);
 });
 
 test('supplier receipt confirmation is an explicit server-only transition',()=>{
