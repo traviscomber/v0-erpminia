@@ -85,9 +85,7 @@ function escapeXml(value: string) {
   return value
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
+    .replace(/>/g, '&gt;');
 }
 
 function ensureLatin1(value: string, code: string) {
@@ -99,7 +97,7 @@ function ensureLatin1(value: string, code: string) {
 }
 
 function textField(value: string | null | undefined, max: number, code: string, required = true) {
-  const normalized = String(value || '').trim();
+  const normalized = String(value || '').trim().replace(/\r\n?/g, '\n');
   if (required && !normalized) throw new Error(code);
   if (!normalized) return '';
   ensureLatin1(normalized, code);
@@ -294,6 +292,8 @@ export function buildAndSignSiiDte33(input: BuildSiiDte33Input): SignedSiiDte33 
 
   const timestamp = formatChileTimestamp(input.timestamp || new Date());
   const documentId = `F${input.folio}T33`;
+  const tedRecipientName = recipient.legalName.slice(0, 40);
+  const tedFirstItemName = items[0].name.slice(0, 40);
 
   const idDocXml =
     `<IdDoc><TipoDTE>33</TipoDTE><Folio>${input.folio}</Folio><FchEmis>${issueDate}</FchEmis>` +
@@ -320,8 +320,8 @@ export function buildAndSignSiiDte33(input: BuildSiiDte33Input): SignedSiiDte33 
 
   const ddXml =
     `<DD><RE>${escapeXml(issuer.companyRut)}</RE><TD>33</TD><F>${input.folio}</F><FE>${issueDate}</FE>` +
-    `<RR>${escapeXml(recipient.rut)}</RR><RSR>${escapeXml(recipient.legalName)}</RSR><MNT>${totalAmount}</MNT>` +
-    `<IT1>${escapeXml(items[0].name)}</IT1>${caf.cafXml}<TSTED>${timestamp}</TSTED></DD>`;
+    `<RR>${escapeXml(recipient.rut)}</RR><RSR>${escapeXml(tedRecipientName)}</RSR><MNT>${totalAmount}</MNT>` +
+    `<IT1>${escapeXml(tedFirstItemName)}</IT1>${caf.cafXml}<TSTED>${timestamp}</TSTED></DD>`;
   ensureLatin1(ddXml, 'SII_DTE_LATIN1_REQUIRED');
   const cafPrivateKey = createPrivateKey(caf.privateKeyPem);
   const frmt = signSha1Rsa(ddXml, cafPrivateKey, 'latin1');
