@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/api/guard';
+import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 
 function unauthorizedResponse(response: Response | null) {
@@ -9,6 +10,9 @@ function unauthorizedResponse(response: Response | null) {
 }
 
 export async function GET(request: NextRequest): Promise<Response> {
+  const access = await requireModuleAccess(request, MODULE_KEYS.FIN_COMPRAS);
+  if (!access.authorized) return access.response;
+
   const auth = await requireAuth(request);
   if (!auth.authorized || !auth.user || !auth.organizationId) return unauthorizedResponse(auth.response);
   const area = request.nextUrl.searchParams.get('area');
@@ -28,11 +32,14 @@ export async function GET(request: NextRequest): Promise<Response> {
   if (sErr || cErr || eErr) return NextResponse.json({ error: sErr?.message || cErr?.message || eErr?.message || 'Error al cargar proveedores' }, { status: 500 });
   const cargoName = (profile as any)?.cargos?.name || '';
   const role = (profile as any)?.role || auth.role || '';
-  const canApprove = ['JEFE BODEGA', 'JEFE ADM.', 'GERENTE', 'SUBGERENTE OP.'].includes(cargoName) || ['admin', 'superadmin'].includes(role);
+  const canApprove = access.canWrite && (['JEFE BODEGA', 'JEFE ADM.', 'GERENTE', 'SUBGERENTE OP.'].includes(cargoName) || ['admin', 'superadmin'].includes(role));
   return NextResponse.json({ suppliers: supplierRows || [], candidates: candidateRows || [], eppComparison: eppRows || [], canApprove });
 }
 
 export async function POST(request: NextRequest): Promise<Response> {
+  const access = await requireModuleAccess(request, MODULE_KEYS.FIN_COMPRAS, true);
+  if (!access.authorized) return access.response;
+
   const auth = await requireAuth(request);
   if (!auth.authorized || !auth.user || !auth.organizationId) return unauthorizedResponse(auth.response);
   const body = await request.json().catch(() => ({}));
@@ -56,8 +63,11 @@ export async function POST(request: NextRequest): Promise<Response> {
 }
 
 export async function PATCH(request: NextRequest): Promise<Response> {
+  const access = await requireModuleAccess(request, MODULE_KEYS.FIN_COMPRAS, true);
+  if (!access.authorized) return access.response;
+
   const auth = await requireAuth(request);
-  if (!auth.authorized || !auth.user) return unauthorizedResponse(auth.response);
+  if (!auth.authorized || !auth.user || !auth.organizationId) return unauthorizedResponse(auth.response);
   const body = await request.json().catch(() => ({}));
   const supabase = getSupabaseServerClient();
   const { data: profile } = await supabase.from('profiles').select('role,cargos(name)').eq('id', auth.user.id).maybeSingle();
