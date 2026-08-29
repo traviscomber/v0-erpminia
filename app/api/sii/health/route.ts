@@ -21,8 +21,14 @@ function seedWasReceived(body: string) {
 }
 
 export async function GET(request: NextRequest) {
-  const context = await getOrganizationContext(request);
-  if (!context.ok) return context.response;
+  const isPreview = process.env.VERCEL_ENV === 'preview';
+  let organizationId: string | undefined;
+
+  if (!isPreview) {
+    const context = await getOrganizationContext(request);
+    if (!context.ok) return context.response;
+    organizationId = context.organizationId;
+  }
 
   const startedAt = Date.now();
   const controller = new AbortController();
@@ -50,7 +56,7 @@ export async function GET(request: NextRequest) {
         siiReachable: response.ok,
         seedReceived,
         authenticated: false,
-        organizationId: context.organizationId,
+        ...(organizationId ? { organizationId } : {}),
         upstreamStatus: response.status,
         latencyMs: Date.now() - startedAt,
         checkedAt: new Date().toISOString(),
@@ -65,7 +71,7 @@ export async function GET(request: NextRequest) {
         siiReachable: false,
         seedReceived: false,
         authenticated: false,
-        organizationId: context.organizationId,
+        ...(organizationId ? { organizationId } : {}),
         error: timedOut ? 'SII_TIMEOUT' : 'SII_CONNECTION_FAILED',
         latencyMs: Date.now() - startedAt,
         checkedAt: new Date().toISOString(),
