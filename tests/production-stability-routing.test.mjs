@@ -1,0 +1,45 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import test from 'node:test';
+
+const vercelConfig = JSON.parse(await readFile(new URL('../vercel.json', import.meta.url), 'utf8'));
+const inboxRoute = await readFile(new URL('../app/api/actions/inbox/route.ts', import.meta.url), 'utf8');
+const administrationRoot = await readFile(new URL('../app/dashboard/administracion/page.tsx', import.meta.url), 'utf8');
+const mediaWebImportRoute = await readFile(new URL('../app/api/cron/product-media-web-import/route.ts', import.meta.url), 'utf8');
+const mediaGenerationRoute = await readFile(new URL('../app/api/cron/product-media-generation/route.ts', import.meta.url), 'utf8');
+
+test('Vercel no longer schedules the redundant product-media autopilot routes', () => {
+  const cronPaths = vercelConfig.crons.map((cron) => cron.path);
+
+  assert.doesNotMatch(cronPaths.join('\n'), /product-media-web-import/);
+  assert.doesNotMatch(cronPaths.join('\n'), /product-media-generation/);
+  assert.ok(cronPaths.includes('/api/cron/maintenance-analytics-daily'));
+  assert.ok(cronPaths.includes('/api/cron/role-kpi-snapshots-daily'));
+});
+
+test('manual product-media routes remain authenticated after removing their Vercel schedules', () => {
+  assert.match(mediaWebImportRoute, /CRON_SECRET/);
+  assert.match(mediaWebImportRoute, /requireAdmin|getOrganizationContext/);
+  assert.match(mediaGenerationRoute, /CRON_SECRET/);
+  assert.match(mediaGenerationRoute, /requireAdmin|getOrganizationContext/);
+});
+
+test('role inbox short-circuits cargos outside canonical operational coverage before the heavy frontend view', () => {
+  assert.match(inboxRoute, /operational_role_inbox_coverage_v1/);
+  assert.match(inboxRoute, /hasPrivateFinanceInbox/);
+  assert.match(inboxRoute, /JEFE ADM\./);
+  assert.match(inboxRoute, /!coverageError && !coverage && !hasPrivateFinanceInbox/);
+
+  const coverageGuard = inboxRoute.indexOf('!coverageError && !coverage && !hasPrivateFinanceInbox');
+  const heavyTaskLookup = inboxRoute.indexOf(".from('role_task_frontend_v1')");
+  assert.ok(coverageGuard >= 0 && heavyTaskLookup > coverageGuard);
+});
+
+test('role inbox falls back to the canonical task view if the optimization surface fails', () => {
+  assert.match(inboxRoute, /coverage lookup failed; falling back to task view/);
+  assert.match(inboxRoute, /role_task_frontend_v1/);
+});
+
+test('administration root has a stable destination instead of returning 404', () => {
+  assert.match(administrationRoot, /redirect\('\/dashboard\/administracion\/sii'\)/);
+});
