@@ -7,7 +7,7 @@ import { attachProductMedia, getProductMedia } from '@/lib/inventory/product-med
 const ADMIN_ROLES = new Set(['admin', 'superadmin', 'super_admin']);
 
 type PriceBenchmark = {
-  product_id: string;
+  canonical_product_id: string;
   is_fuel: boolean | null;
   benchmark_unit_cost: number | string | null;
   benchmark_method: string | null;
@@ -83,11 +83,11 @@ export async function GET(request: NextRequest) {
         if (productIds.length) {
           const { data: pricingRows, error: pricingError } = await context.supabase
             .from('canonical_product_price_benchmarks_v1')
-            .select('product_id,is_fuel,benchmark_unit_cost,benchmark_method,benchmark_sample_count,benchmark_supplier_count,latest_observed_unit_cost,latest_observed_order_number,latest_observed_supplier_name')
+            .select('canonical_product_id,is_fuel,benchmark_unit_cost,benchmark_method,benchmark_sample_count,benchmark_supplier_count,latest_observed_unit_cost,latest_observed_order_number,latest_observed_supplier_name')
             .eq('organization_id', context.organizationId)
-            .in('product_id', productIds);
+            .in('canonical_product_id', productIds);
           if (pricingError) throw pricingError;
-          for (const row of (pricingRows || []) as PriceBenchmark[]) pricingByProduct.set(row.product_id, row);
+          for (const row of (pricingRows || []) as PriceBenchmark[]) pricingByProduct.set(row.canonical_product_id, row);
         }
       } catch (pricingError) {
         pricingWarning = pricingError instanceof Error ? pricingError.message : 'No se pudo cargar la referencia de precios';
@@ -176,9 +176,9 @@ export async function GET(request: NextRequest) {
         .limit(200),
       context.supabase
         .from('canonical_product_price_benchmarks_v1')
-        .select('product_id,is_fuel,benchmark_unit_cost,benchmark_method,benchmark_sample_count,benchmark_supplier_count,latest_observed_unit_cost,latest_observed_order_number,latest_observed_supplier_name')
+        .select('canonical_product_id,is_fuel,benchmark_unit_cost,benchmark_method,benchmark_sample_count,benchmark_supplier_count,latest_observed_unit_cost,latest_observed_order_number,latest_observed_supplier_name')
         .eq('organization_id', context.organizationId)
-        .eq('product_id', productId)
+        .eq('canonical_product_id', productId)
         .maybeSingle(),
     ]);
 
