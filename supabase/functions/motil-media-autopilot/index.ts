@@ -1,3 +1,4 @@
+// @ts-nocheck -- Supabase Edge Function runs in Deno; Next.js must not resolve npm: specifiers.
 import { createClient } from 'npm:@supabase/supabase-js@2.57.4';
 
 const MAX_BYTES = 10 * 1024 * 1024;
