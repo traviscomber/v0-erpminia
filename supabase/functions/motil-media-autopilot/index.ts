@@ -35,6 +35,80 @@ function meta(h: string, b: string) {
   }
   return null;
 }
+function imageValue(v: any, b: string): string | null {
+  if (!v) return null;
+  if (typeof v === 'string') return abs(v, b);
+  if (Array.isArray(v)) {
+    for (const item of v) {
+      const hit = imageValue(item, b);
+      if (hit) return hit;
+    }
+    return null;
+  }
+  if (typeof v === 'object') {
+    for (const key of ['url', 'contentUrl', '@id']) {
+      if (typeof v[key] === 'string') return abs(v[key], b);
+    }
+  }
+  return null;
+}
+function productImageFromJsonLdNode(node: any, b: string): string | null {
+  if (!node) return null;
+  if (Array.isArray(node)) {
+    for (const item of node) {
+      const hit = productImageFromJsonLdNode(item, b);
+      if (hit) return hit;
+    }
+    return null;
+  }
+  if (typeof node !== 'object') return null;
+
+  const rawType = node['@type'];
+  const types = Array.isArray(rawType) ? rawType : [rawType];
+  if (types.some((t) => typeof t === 'string' && t.toLowerCase() === 'product')) {
+    const hit = imageValue(node.image, b);
+    if (hit) return hit;
+  }
+
+  if (node['@graph']) {
+    const hit = productImageFromJsonLdNode(node['@graph'], b);
+    if (hit) return hit;
+  }
+  return null;
+}
+function jsonLdProductImage(h: string, b: string) {
+  const scripts = h.matchAll(/<script[^>]+type=[\"']application\/ld\+json[\"'][^>]*>([\s\S]*?)<\/script>/gi);
+  for (const match of scripts) {
+    const raw = String(match[1] || '')
+      .trim()
+      .replace(/^<!--/, '')
+      .replace(/-->$/, '')
+      .replace(/&quot;/g, '"')
+      .replace(/&#34;/g, '"')
+      .replace(/&amp;/g, '&');
+    if (!raw) continue;
+    try {
+      const parsed = JSON.parse(raw);
+      const hit = productImageFromJsonLdNode(parsed, b);
+      if (hit) return hit;
+    } catch {
+      // Ignore malformed third-party JSON-LD and continue with the next block.
+    }
+  }
+  return null;
+}
+function pageProductImage(h: string, b: string) {
+  const metaImage = meta(h, b);
+  if (metaImage && !isLikelyBrandingImage(metaImage)) return metaImage;
+
+  const jsonLdImage = jsonLdProductImage(h, b);
+  if (jsonLdImage && !isLikelyBrandingImage(jsonLdImage)) return jsonLdImage;
+
+  if (metaImage || jsonLdImage) {
+    throw new Error('La pagina expone branding/logo en vez de imagen de producto');
+  }
+  return null;
+}
 async function fetchImage(c: any) {
   const headers = {
     'User-Agent': 'Mozilla/5.0 MOTIL Media Autopilot',
@@ -48,9 +122,8 @@ async function fetchImage(c: any) {
   if (!ct.startsWith('image/')) {
     if (!ct.includes('text/html')) throw new Error(`La URL no devolvio imagen (${ct || 'sin content-type'})`);
     const h = await r.text();
-    const resolved = meta(h, r.url || c.source_url);
-    if (!resolved) throw new Error('La pagina no expone og:image/twitter:image');
-    if (isLikelyBrandingImage(resolved)) throw new Error('La pagina expone branding/logo en vez de imagen de producto');
+    const resolved = pageProductImage(h, r.url || c.source_url);
+    if (!resolved) throw new Error('La pagina no expone imagen de producto en metadata o JSON-LD');
     u = resolved;
     r = await fetch(u, { headers: { ...headers, Referer: c.source_url }, redirect: 'follow' });
     if (!r.ok) throw new Error(`Imagen de pagina HTTP ${r.status}`);
