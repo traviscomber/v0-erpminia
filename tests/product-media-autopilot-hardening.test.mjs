@@ -54,3 +54,13 @@ test('autopilot rejects branding and placeholder images resolved from page metad
   assert.match(edge, /branding\/logo en vez de imagen de producto/);
   assert.match(edge, /parece branding\/logo, no imagen de producto/);
 });
+
+test('autopilot can resolve schema.org Product images when social metadata is absent', () => {
+  assert.match(edge, /application\\\/ld\\\+json/);
+  assert.match(edge, /function jsonLdProductImage/);
+  assert.match(edge, /function productImageFromJsonLdNode/);
+  assert.match(edge, /t\.toLowerCase\(\) === 'product'/);
+  assert.match(edge, /imageValue\(node\.image, b\)/);
+  assert.match(edge, /pageProductImage/);
+  assert.match(edge, /metadata o JSON-LD/);
+});
