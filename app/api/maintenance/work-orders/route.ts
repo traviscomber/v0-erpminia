@@ -24,6 +24,7 @@ type WorkOrderRow = {
   preventive_actions: string | null;
   meter_reading: number | string | null;
   meter_unit: string | null;
+  created_by: string | null;
   created_at: string;
 };
 
@@ -62,6 +63,7 @@ function mapWorkOrder(row: WorkOrderRow, asset?: CanonicalAssetRow | null) {
     asset_name: asset?.name || null,
     asset_code: asset?.asset_code || null,
     asset_type: asset?.asset_type || null,
+    record_scope: row.created_by ? 'operational' : 'historical',
     progress_percentage: row.status === 'completed' ? 100 : row.status === 'in_progress' ? 50 : 0,
   };
 }
@@ -84,10 +86,13 @@ export async function GET(request: NextRequest) {
   try {
     const status = request.nextUrl.searchParams.get('status')?.trim();
     const priority = request.nextUrl.searchParams.get('priority')?.trim();
+    const scope = request.nextUrl.searchParams.get('scope')?.trim();
     const limit = Number(request.nextUrl.searchParams.get('limit') || '0');
     let query = context.supabase.from('maintenance_work_orders').select('*').eq('organization_id', context.organizationId).order('created_at', { ascending: false });
     if (status) query = query.eq('status', status);
     if (priority) query = query.eq('priority', priority);
+    if (scope === 'operational') query = query.not('created_by', 'is', null);
+    if (scope === 'historical') query = query.is('created_by', null);
     if (Number.isFinite(limit) && limit > 0) query = query.limit(limit);
     const { data, error } = await query;
     if (error) throw error;

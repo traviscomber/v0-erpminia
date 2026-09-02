@@ -31,10 +31,17 @@ test('overdue preventive creates a planning action only while no work order exis
   assert.doesNotMatch(api,/Continuar OT preventiva/);
 });
 
+test('control center excludes historical work orders from operational actions',()=>{
+  assert.match(api,/maintenance_work_orders/);
+  assert.match(api,/not\('created_by', 'is', null\)/);
+  assert.match(api,/operationalWorkOrderIds/);
+  assert.match(api,/historicalOpenWorkOrders/);
+});
+
 test('maintenance home is an action center with direct operational routes',()=>{
   assert.match(page,/Qué requiere acción ahora/);
   assert.match(page,/Bandeja priorizada/);
-  assert.match(page,/Preventivos vencidos/);
+  assert.match(page,/Preventivos por planificar/);
   assert.match(page,/Bloqueos operacionales/);
   assert.match(page,/Pasos pendientes/);
   assert.match(page,/Listas para cerrar/);

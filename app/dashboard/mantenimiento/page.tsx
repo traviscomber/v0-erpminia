@@ -11,7 +11,7 @@ import { StatePanel } from '@/components/ui/state-panel';
 
 type ActionItem = { id:string; kind:string; priority:number; title:string; description:string; evidence:string; href:string; assetHref?:string|null };
 type Response = {
-  summary?: { openWorkOrders:number; overdueHourSchedules:number; operationallyBlocked:number; pendingPlanSteps:number; readyToClose:number; recurringReliabilityAssets:number; totalActions:number };
+  summary?: { openWorkOrders:number; overdueHourSchedules:number; unplannedOverdueHourSchedules:number; plannedOverdueHourSchedules:number; operationallyBlocked:number; pendingPlanSteps:number; readyToClose:number; recurringReliabilityAssets:number; totalActions:number };
   actions?: ActionItem[];
 };
 
@@ -37,7 +37,7 @@ export default function MantenimientoPage(){
   const summary=data?.summary;
   const actions=data?.actions || [];
   const metrics=[
-    ['Preventivos vencidos',summary?.overdueHourSchedules ?? '—','/dashboard/mantenimiento/preventivo-horas'],
+    ['Preventivos por planificar',summary?.unplannedOverdueHourSchedules ?? '—','/dashboard/mantenimiento/preventivo-horas'],
     ['OT abiertas',summary?.openWorkOrders ?? '—','/dashboard/mantenimiento/ordenes-trabajo'],
     ['Bloqueos operacionales',summary?.operationallyBlocked ?? '—','/dashboard/mantenimiento/ordenes-trabajo/cierre'],
     ['Pasos pendientes',summary?.pendingPlanSteps ?? '—','/dashboard/mantenimiento/ordenes-trabajo/cierre'],
