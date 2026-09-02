@@ -44,11 +44,23 @@ export function LoginPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
         credentials: 'include',
+        cache: 'no-store',
       });
       const data = await response.json().catch(() => null);
 
       if (response.ok && data?.success) {
-        window.location.assign(getSafeRedirect());
+        const sessionResponse = await fetch('/api/me/access', {
+          method: 'GET',
+          credentials: 'include',
+          cache: 'no-store',
+        });
+
+        if (!sessionResponse.ok) {
+          setError('Las credenciales fueron aceptadas, pero la sesión no pudo establecerse. Intenta nuevamente.');
+          return;
+        }
+
+        window.location.replace(getSafeRedirect());
         return;
       }
       setError(data?.error || 'Credenciales inválidas');
