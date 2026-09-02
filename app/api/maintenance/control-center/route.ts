@@ -40,16 +40,30 @@ export async function GET(request: NextRequest) {
     for (const row of preventiveRows) {
       if (row.hour_status === 'overdue') {
         const overdueHours = Math.abs(Number(row.remaining_hours || 0));
-        actions.push({
-          id: `preventive:${row.schedule_id}`,
-          kind: 'preventive_overdue',
-          priority: 10,
-          title: `Planificar preventivo vencido · ${row.task_name || 'Pauta'}`,
-          description: `${row.asset_code || 'Equipo'} · ${row.asset_name || 'Sin nombre'}`,
-          evidence: `${overdueHours.toLocaleString('es-CL')} h vencidas · frecuencia ${Number(row.frequency_hours || 0).toLocaleString('es-CL')} h`,
-          href: '/dashboard/mantenimiento/preventivo-horas',
-          assetHref: assetHref(row.canonical_asset_id),
-        });
+        const generatedWorkOrderId = row.generated_work_order_id ? String(row.generated_work_order_id) : null;
+        if (generatedWorkOrderId) {
+          actions.push({
+            id: `preventive-planned:${row.schedule_id}`,
+            kind: 'preventive_planned',
+            priority: 15,
+            title: `Continuar OT preventiva · ${row.task_name || 'Pauta'}`,
+            description: `${row.asset_code || 'Equipo'} · ${row.asset_name || 'Sin nombre'}`,
+            evidence: `${overdueHours.toLocaleString('es-CL')} h vencidas · OT ya generada`,
+            href: `/dashboard/mantenimiento/ordenes-trabajo/${encodeURIComponent(generatedWorkOrderId)}`,
+            assetHref: assetHref(row.canonical_asset_id),
+          });
+        } else {
+          actions.push({
+            id: `preventive:${row.schedule_id}`,
+            kind: 'preventive_overdue',
+            priority: 10,
+            title: `Planificar preventivo vencido · ${row.task_name || 'Pauta'}`,
+            description: `${row.asset_code || 'Equipo'} · ${row.asset_name || 'Sin nombre'}`,
+            evidence: `${overdueHours.toLocaleString('es-CL')} h vencidas · frecuencia ${Number(row.frequency_hours || 0).toLocaleString('es-CL')} h`,
+            href: '/dashboard/mantenimiento/preventivo-horas',
+            assetHref: assetHref(row.canonical_asset_id),
+          });
+        }
       } else if (row.hour_status === 'needs_review') {
         actions.push({
           id: `meter-review:${row.schedule_id}`,
@@ -98,6 +112,8 @@ export async function GET(request: NextRequest) {
       summary: {
         openWorkOrders: closeRows.length,
         overdueHourSchedules: preventiveRows.filter((row:any) => row.hour_status === 'overdue').length,
+        unplannedOverdueHourSchedules: preventiveRows.filter((row:any) => row.hour_status === 'overdue' && !row.generated_work_order_id).length,
+        plannedOverdueHourSchedules: preventiveRows.filter((row:any) => row.hour_status === 'overdue' && Boolean(row.generated_work_order_id)).length,
         operationallyBlocked: closeRows.filter((row:any) => Number(row.open_procurement_orders || 0) > 0 || Number(row.pending_parts || 0) > 0 || Number(row.unmet_material_requirements || 0) > 0 || Number(row.pending_external_services || 0) > 0 || Number(row.open_labor_entries || 0) > 0 || Boolean(row.external_cost_conflict)).length,
         pendingPlanSteps: closeRows.reduce((sum:number,row:any) => sum + Number(row.standard_plan_steps_pending || 0), 0),
         readyToClose: closeRows.filter((row:any) => row.ready_to_close).length,
