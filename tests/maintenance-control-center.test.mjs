@@ -23,6 +23,14 @@ test('maintenance control center prioritizes factual action classes',()=>{
   assert.match(api,/actions\.sort/);
 });
 
+test('overdue preventive creates a planning action only while no work order exists',()=>{
+  assert.match(api,/row\.hour_status === 'overdue' && !row\.generated_work_order_id/);
+  assert.match(api,/unplannedOverdueHourSchedules/);
+  assert.match(api,/plannedOverdueHourSchedules/);
+  assert.doesNotMatch(api,/preventive_planned/);
+  assert.doesNotMatch(api,/Continuar OT preventiva/);
+});
+
 test('maintenance home is an action center with direct operational routes',()=>{
   assert.match(page,/Qué requiere acción ahora/);
   assert.match(page,/Bandeja priorizada/);

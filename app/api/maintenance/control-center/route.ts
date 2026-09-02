@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     const actions: ActionItem[] = [];
 
     for (const row of preventiveRows) {
-      if (row.hour_status === 'overdue') {
+      if (row.hour_status === 'overdue' && !row.generated_work_order_id) {
         const overdueHours = Math.abs(Number(row.remaining_hours || 0));
         actions.push({
           id: `preventive:${row.schedule_id}`,
@@ -98,6 +98,8 @@ export async function GET(request: NextRequest) {
       summary: {
         openWorkOrders: closeRows.length,
         overdueHourSchedules: preventiveRows.filter((row:any) => row.hour_status === 'overdue').length,
+        unplannedOverdueHourSchedules: preventiveRows.filter((row:any) => row.hour_status === 'overdue' && !row.generated_work_order_id).length,
+        plannedOverdueHourSchedules: preventiveRows.filter((row:any) => row.hour_status === 'overdue' && Boolean(row.generated_work_order_id)).length,
         operationallyBlocked: closeRows.filter((row:any) => Number(row.open_procurement_orders || 0) > 0 || Number(row.pending_parts || 0) > 0 || Number(row.unmet_material_requirements || 0) > 0 || Number(row.pending_external_services || 0) > 0 || Number(row.open_labor_entries || 0) > 0 || Boolean(row.external_cost_conflict)).length,
         pendingPlanSteps: closeRows.reduce((sum:number,row:any) => sum + Number(row.standard_plan_steps_pending || 0), 0),
         readyToClose: closeRows.filter((row:any) => row.ready_to_close).length,

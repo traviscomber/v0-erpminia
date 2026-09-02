@@ -4,6 +4,7 @@ import fs from 'node:fs';
 
 const migration = fs.readFileSync('supabase/migrations/20260827233000_standard_job_plan_authoring_v1.sql','utf8');
 const preventive = fs.readFileSync('app/dashboard/mantenimiento/preventivo-horas/page.tsx','utf8');
+const preventiveApi = fs.readFileSync('app/api/maintenance/preventive-hours/route.ts','utf8');
 const apply = fs.readFileSync('lib/maintenance/apply-standard-job-plan.ts','utf8');
 
 const proposalFn = migration.split('create or replace function public.add_standard_job_plan_step_v1')[0];
@@ -26,9 +27,14 @@ test('standard plan authoring RPCs remain backend only', () => {
   assert.match(migration,/grant execute on function public\.propose_standard_job_plan_from_schedule_v1.*service_role/i);
 });
 
-test('preventive hours exposes the evidence gap and standard plan workspace', () => {
+test('preventive hours exposes standard plan workspace with live tenant-scoped readiness', () => {
   assert.match(preventive,/Planes estándar/);
-  assert.match(preventive,/no existen planes estándar aprobados ni BOM técnico cargado/i);
+  assert.match(preventive,/Procedimientos estándar disponibles/);
+  assert.match(preventive,/standardPlans\.approved>0/);
+  assert.match(preventiveApi,/maintenance_standard_job_plans/);
+  assert.match(preventiveApi,/maintenance_standard_job_plan_applications/);
+  assert.match(preventiveApi,/eq\('organization_id', context\.organizationId\)/);
+  assert.doesNotMatch(preventive,/hoy no existen planes estándar aprobados ni BOM técnico cargado/i);
 });
 
 test('approved plan application preserves existing material requirements', () => {

@@ -56,15 +56,21 @@ export async function GET(request: NextRequest) {
   if (!context.ok) return context.response;
 
   try {
-    const [summaryResult, tasksResult] = await Promise.all([
+    const [summaryResult, tasksResult, approvedPlansResult, linkedPlansResult] = await Promise.all([
       context.supabase.from('preventive_maintenance_hour_summary_v1').select('*').eq('organization_id', context.organizationId).maybeSingle(),
       context.supabase.from('preventive_maintenance_hour_status_v1').select('*').eq('organization_id', context.organizationId).order('alert_due', { ascending: false }).order('remaining_hours', { ascending: true, nullsFirst: false }).order('asset_code', { ascending: true }).order('task_name', { ascending: true }),
+      context.supabase.from('maintenance_standard_job_plans').select('id', { count: 'exact', head: true }).eq('organization_id', context.organizationId).eq('status', 'approved'),
+      context.supabase.from('maintenance_standard_job_plan_applications').select('id', { count: 'exact', head: true }).eq('organization_id', context.organizationId).eq('status', 'active').not('preventive_schedule_id', 'is', null),
     ]);
-    const error = summaryResult.error || tasksResult.error;
+    const error = summaryResult.error || tasksResult.error || approvedPlansResult.error || linkedPlansResult.error;
     if (error) throw error;
     return NextResponse.json({
       summary: summaryResult.data || { configured_tasks: 0, configured_assets: 0, overdue_tasks: 0, pending_tasks: 0, missing_meter_tasks: 0, meter_review_tasks: 0, tasks_using_runtime_reading: 0 },
       tasks: tasksResult.data || [],
+      standardPlans: {
+        approved: Number(approvedPlansResult.count || 0),
+        linkedSchedules: Number(linkedPlansResult.count || 0),
+      },
       canEdit: access.canWrite,
       rules: {
         source: 'Pautas configuradas en preventive_maintenance_schedules.',
