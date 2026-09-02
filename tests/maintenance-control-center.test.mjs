@@ -15,12 +15,22 @@ test('maintenance control center is maintenance-authorized and tenant scoped',()
 
 test('maintenance control center prioritizes factual action classes',()=>{
   assert.match(api,/preventive_overdue/);
+  assert.match(api,/preventive_planned/);
   assert.match(api,/operational_blocker/);
   assert.match(api,/plan_step/);
   assert.match(api,/ready_to_close/);
   assert.match(api,/closure_evidence/);
   assert.match(api,/reliability/);
   assert.match(api,/actions\.sort/);
+});
+
+test('planned overdue preventive work links to its existing work order instead of re-planning',()=>{
+  assert.match(api,/generated_work_order_id/);
+  assert.match(api,/Continuar OT preventiva/);
+  assert.match(api,/preventive-planned:/);
+  assert.match(api,/ordenes-trabajo\/\$\{encodeURIComponent\(generatedWorkOrderId\)\}/);
+  assert.match(api,/unplannedOverdueHourSchedules/);
+  assert.match(api,/plannedOverdueHourSchedules/);
 });
 
 test('maintenance home is an action center with direct operational routes',()=>{
