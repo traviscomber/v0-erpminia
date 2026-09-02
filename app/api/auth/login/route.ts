@@ -86,6 +86,7 @@ export async function POST(request: NextRequest) {
         cargo: cargoName,
       },
     });
+    response.headers.set('Cache-Control', 'no-store');
 
     const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
     const cookieOptions = {
@@ -113,6 +114,14 @@ export async function POST(request: NextRequest) {
     if (cargoName) {
       response.cookies.set('user_cargo', cargoName, {
         ...cookieOptions,
+        httpOnly: false,
+      });
+    } else {
+      response.cookies.set('user_cargo', '', {
+        path: '/',
+        maxAge: 0,
+        secure: isProduction,
+        sameSite: 'lax',
         httpOnly: false,
       });
     }
