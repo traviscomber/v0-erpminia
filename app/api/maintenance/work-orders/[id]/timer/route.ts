@@ -1,35 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
+import { requireOperationalMaintenanceWorkOrder } from '@/lib/maintenance/work-order-scope';
 
 const TIMER_ACTIONS = new Set(['play', 'pause', 'resume', 'terminate']);
 
 function timerErrorResponse(error: { code?: string; message?: string } | null | undefined) {
-  if (error?.code === 'P0002') {
-    return NextResponse.json({ ok: false, error: 'WO not found' }, { status: 404 });
-  }
-  if (error?.code === '22023') {
-    return NextResponse.json({ ok: false, error: error.message || 'Invalid action' }, { status: 400 });
-  }
-  if (error?.code === '55000') {
-    return NextResponse.json({ ok: false, error: error.message || 'Invalid timer transition' }, { status: 409 });
-  }
+  if (error?.code === 'P0002') return NextResponse.json({ ok: false, error: 'WO not found' }, { status: 404 });
+  if (error?.code === '22023') return NextResponse.json({ ok: false, error: error.message || 'Invalid action' }, { status: 400 });
+  if (error?.code === '55000') return NextResponse.json({ ok: false, error: error.message || 'Invalid timer transition' }, { status: 409 });
   return NextResponse.json({ ok: false, error: error?.message || 'Internal server error' }, { status: 500 });
 }
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const access = await requireModuleAccess(request, MODULE_KEYS.MANT_OPERACIONES, true);
   if (!access.authorized) return access.response;
-
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
 
   const { id: workOrderId } = await params;
+  const guard = await requireOperationalMaintenanceWorkOrder(context.supabase, context.organizationId, workOrderId);
+  if (!guard.ok) return NextResponse.json({ ok: false, error: guard.error, record_scope: guard.scope }, { status: guard.status });
+
   const body = (await request.json().catch(() => null)) as { action?: string; notes?: string | null } | null;
   const action = String(body?.action || '');
-  if (!TIMER_ACTIONS.has(action)) {
-    return NextResponse.json({ ok: false, error: 'Invalid action' }, { status: 400 });
-  }
+  if (!TIMER_ACTIONS.has(action)) return NextResponse.json({ ok: false, error: 'Invalid action' }, { status: 400 });
 
   const { data, error } = await context.supabase.rpc('update_work_order_timer', {
     p_organization_id: context.organizationId,
@@ -47,24 +42,19 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const access = await requireModuleAccess(request, MODULE_KEYS.MANT_OPERACIONES);
   if (!access.authorized) return access.response;
-
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
 
   const { id: workOrderId } = await params;
   const { data: workOrder, error } = await context.supabase
     .from('maintenance_work_orders')
-    .select('id, timer_status, timer_start_time, total_timer_minutes')
+    .select('id, timer_status, timer_start_time, total_timer_minutes, created_by')
     .eq('id', workOrderId)
     .eq('organization_id', context.organizationId)
     .maybeSingle();
 
-  if (error) {
-    return NextResponse.json({ ok: false, error: error.message || 'No se pudo cargar el temporizador' }, { status: 500 });
-  }
-  if (!workOrder) {
-    return NextResponse.json({ ok: false, error: 'WO not found' }, { status: 404 });
-  }
+  if (error) return NextResponse.json({ ok: false, error: error.message || 'No se pudo cargar el temporizador' }, { status: 500 });
+  if (!workOrder) return NextResponse.json({ ok: false, error: 'WO not found' }, { status: 404 });
 
   const { data: timeline, error: timelineError } = await context.supabase
     .from('work_order_events')
@@ -75,13 +65,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     .order('event_at', { ascending: false })
     .limit(10);
 
-  if (timelineError) {
-    return NextResponse.json({ ok: false, error: timelineError.message || 'No se pudo cargar el historial del temporizador' }, { status: 500 });
-  }
+  if (timelineError) return NextResponse.json({ ok: false, error: timelineError.message || 'No se pudo cargar el historial del temporizador' }, { status: 500 });
 
   const totalMinutes = Number(workOrder.total_timer_minutes || 0);
   return NextResponse.json({
     ok: true,
+    canEdit: access.canWrite && Boolean(workOrder.created_by),
+    record_scope: workOrder.created_by ? 'operational' : 'historical',
     current: {
       timer_status: workOrder.timer_status || 'idle',
       timer_start_time: workOrder.timer_start_time || null,
