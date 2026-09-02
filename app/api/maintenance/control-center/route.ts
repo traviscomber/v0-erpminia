@@ -38,32 +38,18 @@ export async function GET(request: NextRequest) {
     const actions: ActionItem[] = [];
 
     for (const row of preventiveRows) {
-      if (row.hour_status === 'overdue') {
+      if (row.hour_status === 'overdue' && !row.generated_work_order_id) {
         const overdueHours = Math.abs(Number(row.remaining_hours || 0));
-        const generatedWorkOrderId = row.generated_work_order_id ? String(row.generated_work_order_id) : null;
-        if (generatedWorkOrderId) {
-          actions.push({
-            id: `preventive-planned:${row.schedule_id}`,
-            kind: 'preventive_planned',
-            priority: 15,
-            title: `Continuar OT preventiva · ${row.task_name || 'Pauta'}`,
-            description: `${row.asset_code || 'Equipo'} · ${row.asset_name || 'Sin nombre'}`,
-            evidence: `${overdueHours.toLocaleString('es-CL')} h vencidas · OT ya generada`,
-            href: `/dashboard/mantenimiento/ordenes-trabajo/${encodeURIComponent(generatedWorkOrderId)}`,
-            assetHref: assetHref(row.canonical_asset_id),
-          });
-        } else {
-          actions.push({
-            id: `preventive:${row.schedule_id}`,
-            kind: 'preventive_overdue',
-            priority: 10,
-            title: `Planificar preventivo vencido · ${row.task_name || 'Pauta'}`,
-            description: `${row.asset_code || 'Equipo'} · ${row.asset_name || 'Sin nombre'}`,
-            evidence: `${overdueHours.toLocaleString('es-CL')} h vencidas · frecuencia ${Number(row.frequency_hours || 0).toLocaleString('es-CL')} h`,
-            href: '/dashboard/mantenimiento/preventivo-horas',
-            assetHref: assetHref(row.canonical_asset_id),
-          });
-        }
+        actions.push({
+          id: `preventive:${row.schedule_id}`,
+          kind: 'preventive_overdue',
+          priority: 10,
+          title: `Planificar preventivo vencido · ${row.task_name || 'Pauta'}`,
+          description: `${row.asset_code || 'Equipo'} · ${row.asset_name || 'Sin nombre'}`,
+          evidence: `${overdueHours.toLocaleString('es-CL')} h vencidas · frecuencia ${Number(row.frequency_hours || 0).toLocaleString('es-CL')} h`,
+          href: '/dashboard/mantenimiento/preventivo-horas',
+          assetHref: assetHref(row.canonical_asset_id),
+        });
       } else if (row.hour_status === 'needs_review') {
         actions.push({
           id: `meter-review:${row.schedule_id}`,
