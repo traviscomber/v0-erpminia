@@ -14,6 +14,15 @@ function ext(ct: string) {
 function abs(v: string, b: string) {
   try { return new URL(v, b).toString(); } catch { return v; }
 }
+function isLikelyBrandingImage(v: string) {
+  try {
+    const u = new URL(v);
+    const s = `${u.pathname}${u.search}`.toLowerCase();
+    return /(^|[\/_\-.])(logo|favicon|site-logo|brandmark|placeholder|no[-_]?image|default-avatar|sprite)([\/_\-.?]|$)/i.test(s);
+  } catch {
+    return false;
+  }
+}
 function meta(h: string, b: string) {
   const patterns = [
     /<meta[^>]+property=[\"']og:image(?::secure_url)?[\"'][^>]+content=[\"']([^\"']+)[\"']/i,
@@ -41,11 +50,13 @@ async function fetchImage(c: any) {
     const h = await r.text();
     const resolved = meta(h, r.url || c.source_url);
     if (!resolved) throw new Error('La pagina no expone og:image/twitter:image');
+    if (isLikelyBrandingImage(resolved)) throw new Error('La pagina expone branding/logo en vez de imagen de producto');
     u = resolved;
     r = await fetch(u, { headers: { ...headers, Referer: c.source_url }, redirect: 'follow' });
     if (!r.ok) throw new Error(`Imagen de pagina HTTP ${r.status}`);
     ct = (r.headers.get('content-type') || '').toLowerCase();
   }
+  if (isLikelyBrandingImage(u)) throw new Error('La URL resuelta parece branding/logo, no imagen de producto');
   if (!ct.startsWith('image/')) throw new Error(`La URL resuelta no devolvio imagen (${ct || 'sin content-type'})`);
   const b = new Uint8Array(await r.arrayBuffer());
   if (!b.length) throw new Error('Imagen vacia');
