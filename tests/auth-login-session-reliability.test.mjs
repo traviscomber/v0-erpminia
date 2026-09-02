@@ -1,0 +1,38 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { readFile } from 'node:fs/promises';
+
+const proxy = await readFile(new URL('../proxy.ts', import.meta.url), 'utf8');
+const loginRoute = await readFile(new URL('../app/api/auth/login/route.ts', import.meta.url), 'utf8');
+const loginPage = await readFile(new URL('../components/auth/login-page.tsx', import.meta.url), 'utf8');
+
+test('public login bypasses stale custom-session cleanup before auth verification', () => {
+  const publicGuard = proxy.indexOf("pathname.startsWith('/api/') && isPublicApiRoute(pathname)");
+  const authLookup = proxy.indexOf('await supabase.auth.getUser()');
+  const tokenLookup = proxy.indexOf("request.cookies.get('auth_token')");
+
+  assert.ok(publicGuard >= 0, 'expected early public API guard');
+  assert.ok(authLookup > publicGuard, 'Supabase auth lookup must happen after public login bypass');
+  assert.ok(tokenLookup > publicGuard, 'custom token validation must happen after public login bypass');
+  assert.match(proxy, /PUBLIC_API_ROUTES = new Set\(\[\s*'\/api\/health',[\s\S]*'\/api\/auth\/login'/);
+});
+
+test('custom-session cleanup removes stale role context as well as the auth token', () => {
+  assert.match(proxy, /\['auth_token', 'user_role', 'user_email', 'user_cargo'\]/);
+});
+
+test('successful login response is non-cacheable and clears stale cargo when absent', () => {
+  assert.match(loginRoute, /response\.headers\.set\('Cache-Control', 'no-store'\)/);
+  assert.match(loginRoute, /else \{\s*response\.cookies\.set\('user_cargo', '', \{[\s\S]*maxAge: 0/);
+});
+
+test('login confirms the authenticated session before redirecting', () => {
+  const loginRequest = loginPage.indexOf("fetch('/api/auth/login'");
+  const sessionCheck = loginPage.indexOf("fetch('/api/me/access'");
+  const redirect = loginPage.indexOf('window.location.replace(getSafeRedirect())');
+
+  assert.ok(loginRequest >= 0, 'expected login request');
+  assert.ok(sessionCheck > loginRequest, 'session check must follow accepted credentials');
+  assert.ok(redirect > sessionCheck, 'redirect must happen only after session verification');
+  assert.match(loginPage, /Las credenciales fueron aceptadas, pero la sesión no pudo establecerse/);
+});
