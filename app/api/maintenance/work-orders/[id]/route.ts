@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
+import { requireOperationalMaintenanceWorkOrder } from '@/lib/maintenance/work-order-scope';
 
 type WorkOrderPatchPayload = {
   status?: string;
@@ -23,12 +24,9 @@ function progressFromStatus(status: string | null) {
 
 async function loadCanonicalAsset(context: Awaited<ReturnType<typeof getOrganizationContext>> & { ok: true }, assetId: string | null) {
   if (!assetId) return null;
-  const { data, error } = await context.supabase
-    .from('maintenance_canonical_assets_v1')
+  const { data, error } = await context.supabase.from('maintenance_canonical_assets_v1')
     .select('id, asset_code, name, asset_type, category, manufacturer, model, serial_number, license_plate')
-    .eq('organization_id', context.organizationId)
-    .eq('id', assetId)
-    .maybeSingle();
+    .eq('organization_id', context.organizationId).eq('id', assetId).maybeSingle();
   if (error) throw error;
   return data || null;
 }
@@ -55,18 +53,28 @@ async function validateCostCenter(context: Awaited<ReturnType<typeof getOrganiza
 }
 
 async function hasOpenOperationalOrder(context: Awaited<ReturnType<typeof getOrganizationContext>> & { ok: true }, workOrderId: string) {
-  const { count, error } = await context.supabase
-    .from('procurement_operational_orders')
-    .select('id', { head: true, count: 'exact' })
-    .eq('organization_id', context.organizationId)
-    .eq('work_order_id', workOrderId)
-    .in('status', ['issued', 'partially_received']);
+  const { count, error } = await context.supabase.from('procurement_operational_orders').select('id', { head: true, count: 'exact' })
+    .eq('organization_id', context.organizationId).eq('work_order_id', workOrderId).in('status', ['issued', 'partially_received']);
   if (error) throw error;
   return (count || 0) > 0;
 }
 
 function mapWorkOrder(row: Record<string, unknown>, asset: Record<string, unknown> | null, costSummary?: Awaited<ReturnType<typeof loadCostSummary>>) {
-  return { ...row, asset_id: row.canonical_asset_id || null, asset_name: asset?.name || null, asset_code: asset?.asset_code || null, asset_type: asset?.asset_type || null, asset_category: asset?.category || null, asset_manufacturer: asset?.manufacturer || null, asset_model: asset?.model || null, asset_serial_number: asset?.serial_number || null, asset_license_plate: asset?.license_plate || null, progress_percentage: progressFromStatus(String(row.status || '')), cost_summary: costSummary || null };
+  return {
+    ...row,
+    asset_id: row.canonical_asset_id || null,
+    asset_name: asset?.name || null,
+    asset_code: asset?.asset_code || null,
+    asset_type: asset?.asset_type || null,
+    asset_category: asset?.category || null,
+    asset_manufacturer: asset?.manufacturer || null,
+    asset_model: asset?.model || null,
+    asset_serial_number: asset?.serial_number || null,
+    asset_license_plate: asset?.license_plate || null,
+    progress_percentage: progressFromStatus(String(row.status || '')),
+    cost_summary: costSummary || null,
+    record_scope: row.created_by ? 'operational' : 'historical',
+  };
 }
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -80,7 +88,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     if (error) throw error;
     if (!data) return NextResponse.json({ error: 'No se encontró la orden de trabajo' }, { status: 404 });
     const [asset, costSummary, costCenters] = await Promise.all([loadCanonicalAsset(context, data.canonical_asset_id || null), loadCostSummary(context, id), loadCostCenters(context)]);
-    return NextResponse.json({ data: mapWorkOrder(data, asset, costSummary), costCenters, canEdit: access.canWrite, canonical: true });
+    const recordScope = data.created_by ? 'operational' : 'historical';
+    return NextResponse.json({ data: mapWorkOrder(data, asset, costSummary), costCenters, canEdit: access.canWrite && recordScope === 'operational', record_scope: recordScope, canonical: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudo cargar la orden de trabajo';
     return NextResponse.json({ error: message }, { status: 500 });
@@ -94,8 +103,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   if (!context.ok) return context.response;
   const { id } = await params;
   try {
-    const body = (await request.json()) as WorkOrderPatchPayload;
+    const guard = await requireOperationalMaintenanceWorkOrder(context.supabase, context.organizationId, id);
+    if (!guard.ok) return NextResponse.json({ error: guard.error, record_scope: guard.scope }, { status: guard.status });
 
+    const body = (await request.json()) as WorkOrderPatchPayload;
     if (body.status === 'completed') {
       const rootCause = String(body.root_cause || '').trim();
       const preventiveActions = String(body.preventive_actions || '').trim();
@@ -130,19 +141,11 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (body.meter_reading !== undefined) updateData.meter_reading = body.meter_reading;
     if (body.meter_unit !== undefined) updateData.meter_unit = body.meter_unit;
     if (body.cost_center_id !== undefined) {
-      const { data: currentOrder, error: currentOrderError } = await context.supabase
-        .from('maintenance_work_orders')
-        .select('cost_center_id')
-        .eq('id', id)
-        .eq('organization_id', context.organizationId)
-        .maybeSingle();
+      const { data: currentOrder, error: currentOrderError } = await context.supabase.from('maintenance_work_orders').select('cost_center_id').eq('id', id).eq('organization_id', context.organizationId).maybeSingle();
       if (currentOrderError) throw currentOrderError;
       if (!currentOrder) return NextResponse.json({ error: 'No se encontró la orden de trabajo' }, { status: 404 });
-
       const nextCostCenterId = body.cost_center_id || null;
-      if (nextCostCenterId !== (currentOrder.cost_center_id || null) && await hasOpenOperationalOrder(context, id)) {
-        return NextResponse.json({ error: 'No se puede cambiar la imputación mientras exista una OC emitida o parcialmente recibida para esta OT.' }, { status: 409 });
-      }
+      if (nextCostCenterId !== (currentOrder.cost_center_id || null) && await hasOpenOperationalOrder(context, id)) return NextResponse.json({ error: 'No se puede cambiar la imputación mientras exista una OC emitida o parcialmente recibida para esta OT.' }, { status: 409 });
       if (nextCostCenterId) await validateCostCenter(context, nextCostCenterId);
       updateData.cost_center_id = nextCostCenterId;
     }
@@ -164,6 +167,9 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   if (!context.ok) return context.response;
   const { id } = await params;
   try {
+    const guard = await requireOperationalMaintenanceWorkOrder(context.supabase, context.organizationId, id);
+    if (!guard.ok) return NextResponse.json({ error: guard.error, record_scope: guard.scope }, { status: guard.status });
+
     const { count, error: countError } = await context.supabase.from('work_order_events').select('*', { head: true, count: 'exact' }).eq('organization_id', context.organizationId).eq('work_order_id', id);
     if (countError) throw countError;
     if ((count || 0) > 1) return NextResponse.json({ error: 'La orden ya tiene historial y no puede eliminarse. Cancélala en su lugar.' }, { status: 409 });
