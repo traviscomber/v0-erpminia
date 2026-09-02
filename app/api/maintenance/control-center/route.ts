@@ -53,6 +53,7 @@ export async function GET(request: NextRequest) {
       const equipment = row.asset_code || row.asset_name || 'Equipo';
       const observation = String(row.machine_observations || row.review_reason || 'Observación operacional pendiente de revisión').trim();
       const dateEvidence = row.operation_date ? ` · ${row.operation_date}` : '';
+      const reviewPriority = outOfService ? 'critical' : 'high';
       actions.push({
         id: `operational-review:${row.review_id}`,
         kind: 'operational_review',
@@ -60,7 +61,7 @@ export async function GET(request: NextRequest) {
         title: `${outOfService ? 'Equipo fuera de servicio' : 'Revisar señal operacional'} · ${equipment}`,
         description: `${row.asset_name || equipment} · ${row.equipment_status_raw || 'Observación de terreno'}`,
         evidence: `${observation}${dateEvidence}`,
-        href: '/dashboard/mantenimiento/ordenes-trabajo/create',
+        href: `/dashboard/mantenimiento/ordenes-trabajo/create?reviewId=${encodeURIComponent(String(row.review_id))}&workType=corrective&priority=${reviewPriority}`,
         assetHref: assetHref(row.canonical_asset_id),
       });
     }
