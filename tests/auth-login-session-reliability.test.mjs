@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 
 const proxy = await readFile(new URL('../proxy.ts', import.meta.url), 'utf8');
 const loginRoute = await readFile(new URL('../app/api/auth/login/route.ts', import.meta.url), 'utf8');
+const authLoginPage = await readFile(new URL('../app/auth/login/page.tsx', import.meta.url), 'utf8');
 const loginPage = await readFile(new URL('../components/auth/login-page.tsx', import.meta.url), 'utf8');
 
 test('public login bypasses stale custom-session cleanup before auth verification', () => {
@@ -24,6 +25,11 @@ test('custom-session cleanup removes stale role context as well as the auth toke
 test('successful login response is non-cacheable and clears stale cargo when absent', () => {
   assert.match(loginRoute, /response\.headers\.set\('Cache-Control', 'no-store'\)/);
   assert.match(loginRoute, /else \{\s*response\.cookies\.set\('user_cargo', '', \{[\s\S]*maxAge: 0/);
+});
+
+test('auth login page is always rendered from the current deployment', () => {
+  assert.match(authLoginPage, /export const dynamic = 'force-dynamic'/);
+  assert.match(authLoginPage, /export const revalidate = 0/);
 });
 
 test('stale legacy hashes can recover only through the linked Supabase Auth identity', () => {
