@@ -24,15 +24,18 @@ export async function GET(request: NextRequest) {
   if (!context.ok) return context.response;
 
   try {
-    const [closeResult, preventiveResult, reliabilityResult] = await Promise.all([
+    const [closeResult, preventiveResult, reliabilityResult, operationalOrdersResult] = await Promise.all([
       context.supabase.from('work_order_close_readiness_v2').select('*').eq('organization_id', context.organizationId),
       context.supabase.from('preventive_maintenance_hour_status_v1').select('*').eq('organization_id', context.organizationId),
       context.supabase.from('maintenance_reliability_by_asset_v1').select('canonical_asset_id,asset_code,asset_name,audited_closures,recurring_cause_count,max_same_cause_occurrences,has_recurring_root_cause').eq('organization_id', context.organizationId),
+      context.supabase.from('maintenance_work_orders').select('id').eq('organization_id', context.organizationId).not('created_by', 'is', null).neq('status', 'completed'),
     ]);
-    const error = closeResult.error || preventiveResult.error || reliabilityResult.error;
+    const error = closeResult.error || preventiveResult.error || reliabilityResult.error || operationalOrdersResult.error;
     if (error) throw error;
 
-    const closeRows = closeResult.data || [];
+    const operationalWorkOrderIds = new Set((operationalOrdersResult.data || []).map((row:any) => String(row.id)));
+    const allCloseRows = closeResult.data || [];
+    const closeRows = allCloseRows.filter((row:any) => operationalWorkOrderIds.has(String(row.work_order_id)));
     const preventiveRows = preventiveResult.data || [];
     const reliabilityRows = reliabilityResult.data || [];
     const actions: ActionItem[] = [];
@@ -97,6 +100,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       summary: {
         openWorkOrders: closeRows.length,
+        historicalOpenWorkOrders: Math.max(0, allCloseRows.length - closeRows.length),
         overdueHourSchedules: preventiveRows.filter((row:any) => row.hour_status === 'overdue').length,
         unplannedOverdueHourSchedules: preventiveRows.filter((row:any) => row.hour_status === 'overdue' && !row.generated_work_order_id).length,
         plannedOverdueHourSchedules: preventiveRows.filter((row:any) => row.hour_status === 'overdue' && Boolean(row.generated_work_order_id)).length,
@@ -108,7 +112,7 @@ export async function GET(request: NextRequest) {
       },
       actions: actions.slice(0, 100),
       canEdit: access.canWrite,
-      sources: ['work_order_close_readiness_v2','preventive_maintenance_hour_status_v1','maintenance_reliability_by_asset_v1'],
+      sources: ['work_order_close_readiness_v2','preventive_maintenance_hour_status_v1','maintenance_reliability_by_asset_v1','maintenance_work_orders'],
     });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : 'No se pudo cargar el centro de mantenimiento' }, { status: 500 });
