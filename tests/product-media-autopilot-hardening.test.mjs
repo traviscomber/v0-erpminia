@@ -45,3 +45,12 @@ test('autopilot protects existing active media and cleans up failed uploads', ()
   assert.match(edge, /storage\.from\('product-media'\)\.remove\(\[path\]\)/);
   assert.match(edge, /AUTOPILOT FAILED:/);
 });
+
+test('autopilot rejects branding and placeholder images resolved from page metadata', () => {
+  assert.match(edge, /function isLikelyBrandingImage/);
+  for (const marker of ['logo', 'favicon', 'site-logo', 'brandmark', 'placeholder', 'no[-_]?image', 'default-avatar', 'sprite']) {
+    assert.match(edge, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  }
+  assert.match(edge, /branding\/logo en vez de imagen de producto/);
+  assert.match(edge, /parece branding\/logo, no imagen de producto/);
+});
