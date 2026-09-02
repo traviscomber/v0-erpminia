@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
+import { requireOperationalMaintenanceWorkOrder } from '@/lib/maintenance/work-order-scope';
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const context = await getOrganizationContext(request);
@@ -9,6 +10,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   try {
     const { id } = await params;
+    const guard = await requireOperationalMaintenanceWorkOrder(context.supabase, context.organizationId, id);
+    if (!guard.ok) return NextResponse.json({ error: guard.error, record_scope: guard.scope }, { status: guard.status });
+
     const { data, error } = await context.supabase.rpc('issue_available_materials_to_work_order', { p_work_order_id: id });
     if (error) throw error;
     return NextResponse.json(data || { work_order_id: id, lines_issued: 0 });
