@@ -2,6 +2,8 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
+import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
+import { getMaintenanceWorkOrderScope, requireOperationalMaintenanceWorkOrder } from '@/lib/maintenance/work-order-scope';
 
 type ExecutionPayload = {
   action?: 'install_part' | 'return_part' | 'add_labor' | 'add_external_service';
@@ -21,56 +23,24 @@ type ExecutionPayload = {
 };
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const access = await requireModuleAccess(request, MODULE_KEYS.MANT_OPERACIONES);
+  if (!access.authorized) return access.response;
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
   const { id } = await params;
 
   try {
+    const scope = await getMaintenanceWorkOrderScope(context.supabase, context.organizationId, id);
+    if (scope === 'missing') return NextResponse.json({ error: 'La orden no existe' }, { status: 404 });
+
     const [orderResult, partsResult, laborResult, servicesResult, eventsResult, costsResult, snapshotResult] = await Promise.all([
-      context.supabase
-        .from('maintenance_work_orders')
-        .select('id, work_order_number, title, description, status, assigned_to_name, scheduled_date, start_date, completion_date, actual_duration_hours, down_time_hours, root_cause, preventive_actions')
-        .eq('organization_id', context.organizationId)
-        .eq('id', id)
-        .maybeSingle(),
-      context.supabase
-        .from('work_order_parts')
-        .select('*, stock:warehouse_stock(id, part_code, part_name, unit_cost)')
-        .eq('organization_id', context.organizationId)
-        .eq('work_order_id', id)
-        .order('created_at', { ascending: false }),
-      context.supabase
-        .from('work_order_labor_entries')
-        .select('*')
-        .eq('organization_id', context.organizationId)
-        .eq('work_order_id', id)
-        .order('created_at', { ascending: false }),
-      context.supabase
-        .from('work_order_external_services')
-        .select('*')
-        .eq('organization_id', context.organizationId)
-        .eq('work_order_id', id)
-        .order('service_date', { ascending: false }),
-      context.supabase
-        .from('work_order_events')
-        .select('*')
-        .eq('organization_id', context.organizationId)
-        .eq('work_order_id', id)
-        .order('event_at', { ascending: false })
-        .limit(100),
-      context.supabase
-        .from('work_order_final_cost_v1')
-        .select('*')
-        .eq('organization_id', context.organizationId)
-        .eq('work_order_id', id)
-        .maybeSingle(),
-      context.supabase
-        .from('work_order_closure_cost_snapshots')
-        .select('closure_sequence,parts_cost,labor_cost,effective_external_cost,procurement_received_cost,procurement_currency,procurement_currency_count,total_cost,external_cost_basis,closed_at')
-        .eq('organization_id', context.organizationId)
-        .eq('work_order_id', id)
-        .order('closure_sequence', { ascending: false })
-        .limit(1),
+      context.supabase.from('maintenance_work_orders').select('id, work_order_number, title, description, status, assigned_to_name, scheduled_date, start_date, completion_date, actual_duration_hours, down_time_hours, root_cause, preventive_actions').eq('organization_id', context.organizationId).eq('id', id).maybeSingle(),
+      context.supabase.from('work_order_parts').select('*, stock:warehouse_stock(id, part_code, part_name, unit_cost)').eq('organization_id', context.organizationId).eq('work_order_id', id).order('created_at', { ascending: false }),
+      context.supabase.from('work_order_labor_entries').select('*').eq('organization_id', context.organizationId).eq('work_order_id', id).order('created_at', { ascending: false }),
+      context.supabase.from('work_order_external_services').select('*').eq('organization_id', context.organizationId).eq('work_order_id', id).order('service_date', { ascending: false }),
+      context.supabase.from('work_order_events').select('*').eq('organization_id', context.organizationId).eq('work_order_id', id).order('event_at', { ascending: false }).limit(100),
+      context.supabase.from('work_order_final_cost_v1').select('*').eq('organization_id', context.organizationId).eq('work_order_id', id).maybeSingle(),
+      context.supabase.from('work_order_closure_cost_snapshots').select('closure_sequence,parts_cost,labor_cost,effective_external_cost,procurement_received_cost,procurement_currency,procurement_currency_count,total_cost,external_cost_basis,closed_at').eq('organization_id', context.organizationId).eq('work_order_id', id).order('closure_sequence', { ascending: false }).limit(1),
     ]);
 
     const firstError = orderResult.error || partsResult.error || laborResult.error || servicesResult.error || eventsResult.error || costsResult.error || snapshotResult.error;
@@ -78,29 +48,23 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     if (!orderResult.data) return NextResponse.json({ error: 'La orden no existe' }, { status: 404 });
 
     const cost = costsResult.data;
-    const costs = cost
-      ? {
-          ...cost,
-          external_cost: cost.effective_external_cost,
-          latest_snapshot: snapshotResult.data?.[0] || null,
-        }
-      : {
-          parts_cost: 0,
-          labor_cost: 0,
-          external_cost: 0,
-          total_cost: 0,
-          procurement_received_cost: 0,
-          procurement_currency: null,
-          procurement_currency_count: 0,
-          open_procurement_orders: 0,
-          pending_parts: 0,
-          open_labor_entries: 0,
-          pending_external_services: 0,
-          unmet_material_requirements: 0,
-          external_cost_conflict: false,
-          operationally_ready_to_close: false,
-          latest_snapshot: snapshotResult.data?.[0] || null,
-        };
+    const costs = cost ? { ...cost, external_cost: cost.effective_external_cost, latest_snapshot: snapshotResult.data?.[0] || null } : {
+      parts_cost: 0,
+      labor_cost: 0,
+      external_cost: 0,
+      total_cost: 0,
+      procurement_received_cost: 0,
+      procurement_currency: null,
+      procurement_currency_count: 0,
+      open_procurement_orders: 0,
+      pending_parts: 0,
+      open_labor_entries: 0,
+      pending_external_services: 0,
+      unmet_material_requirements: 0,
+      external_cost_conflict: false,
+      operationally_ready_to_close: false,
+      latest_snapshot: snapshotResult.data?.[0] || null,
+    };
 
     return NextResponse.json({
       workOrder: orderResult.data,
@@ -109,6 +73,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       externalServices: servicesResult.data || [],
       events: eventsResult.data || [],
       costs,
+      canEdit: access.canWrite && scope === 'operational',
+      record_scope: scope,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudo cargar la ejecución de la orden';
@@ -117,17 +83,20 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 }
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const access = await requireModuleAccess(request, MODULE_KEYS.MANT_OPERACIONES, true);
+  if (!access.authorized) return access.response;
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
   const { id } = await params;
 
   try {
+    const guard = await requireOperationalMaintenanceWorkOrder(context.supabase, context.organizationId, id);
+    if (!guard.ok) return NextResponse.json({ error: guard.error, record_scope: guard.scope }, { status: guard.status });
+
     const body = (await request.json()) as ExecutionPayload;
 
     if (body.action === 'install_part' || body.action === 'return_part') {
-      if (!body.workOrderPartId || !body.quantity || body.quantity <= 0) {
-        return NextResponse.json({ error: 'Repuesto y cantidad son obligatorios' }, { status: 400 });
-      }
+      if (!body.workOrderPartId || !body.quantity || body.quantity <= 0) return NextResponse.json({ error: 'Repuesto y cantidad son obligatorios' }, { status: 400 });
       const functionName = body.action === 'install_part' ? 'install_work_order_part' : 'return_work_order_part';
       const { data, error } = await context.supabase.rpc(functionName, {
         p_organization_id: context.organizationId,
@@ -142,9 +111,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     if (body.action === 'add_labor') {
-      if (!body.technicianName?.trim() || !body.hours || body.hours <= 0) {
-        return NextResponse.json({ error: 'Técnico y horas son obligatorios' }, { status: 400 });
-      }
+      if (!body.technicianName?.trim() || !body.hours || body.hours <= 0) return NextResponse.json({ error: 'Técnico y horas son obligatorios' }, { status: 400 });
       const { data, error } = await context.supabase.rpc('add_work_order_labor', {
         p_organization_id: context.organizationId,
         p_work_order_id: id,
@@ -161,34 +128,20 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     if (body.action === 'add_external_service') {
       const amount = Number(body.amount || 0);
-      if (!body.providerName?.trim() || !body.serviceDescription?.trim() || !Number.isFinite(amount) || amount < 0) {
-        return NextResponse.json({ error: 'Proveedor, servicio y monto válido son obligatorios' }, { status: 400 });
-      }
-      const { data: order, error: orderError } = await context.supabase
-        .from('maintenance_work_orders')
-        .select('id')
-        .eq('organization_id', context.organizationId)
-        .eq('id', id)
-        .maybeSingle();
-      if (orderError) throw orderError;
-      if (!order) return NextResponse.json({ error: 'La orden no existe' }, { status: 404 });
+      if (!body.providerName?.trim() || !body.serviceDescription?.trim() || !Number.isFinite(amount) || amount < 0) return NextResponse.json({ error: 'Proveedor, servicio y monto válido son obligatorios' }, { status: 400 });
 
-      const { data, error } = await context.supabase
-        .from('work_order_external_services')
-        .insert({
-          organization_id: context.organizationId,
-          work_order_id: id,
-          provider_name: body.providerName.trim(),
-          service_description: body.serviceDescription.trim(),
-          document_number: body.documentNumber?.trim() || null,
-          service_date: body.serviceDate || new Date().toISOString().slice(0, 10),
-          amount,
-          status: body.serviceStatus || 'approved',
-          notes: body.notes || null,
-          created_by: context.userId,
-        })
-        .select('*')
-        .single();
+      const { data, error } = await context.supabase.from('work_order_external_services').insert({
+        organization_id: context.organizationId,
+        work_order_id: id,
+        provider_name: body.providerName.trim(),
+        service_description: body.serviceDescription.trim(),
+        document_number: body.documentNumber?.trim() || null,
+        service_date: body.serviceDate || new Date().toISOString().slice(0, 10),
+        amount,
+        status: body.serviceStatus || 'approved',
+        notes: body.notes || null,
+        created_by: context.userId,
+      }).select('*').single();
       if (error) throw error;
       return NextResponse.json({ data }, { status: 201 });
     }

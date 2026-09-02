@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
+import { requireOperationalMaintenanceWorkOrder } from '@/lib/maintenance/work-order-scope';
 
 type MaterialInput = {
   canonicalProductId: string;
@@ -39,6 +40,9 @@ export async function POST(request: NextRequest, contextRoute: { params: Promise
 
   try {
     const { id } = await contextRoute.params;
+    const guard = await requireOperationalMaintenanceWorkOrder(context.supabase, context.organizationId, id);
+    if (!guard.ok) return NextResponse.json({ error: guard.error, record_scope: guard.scope }, { status: guard.status });
+
     const item = (await request.json()) as MaterialInput;
     if (!item.canonicalProductId || !Number.isFinite(Number(item.quantityRequired)) || Number(item.quantityRequired) <= 0) {
       return NextResponse.json({ error: 'Producto y cantidad requerida son obligatorios' }, { status: 400 });
@@ -72,6 +76,9 @@ export async function PUT(request: NextRequest, contextRoute: { params: Promise<
 
   try {
     const { id } = await contextRoute.params;
+    const guard = await requireOperationalMaintenanceWorkOrder(context.supabase, context.organizationId, id);
+    if (!guard.ok) return NextResponse.json({ error: guard.error, record_scope: guard.scope }, { status: guard.status });
+
     const body = (await request.json()) as { materials?: MaterialInput[] };
     const materials = Array.isArray(body.materials) ? body.materials : [];
 
