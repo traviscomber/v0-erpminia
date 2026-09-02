@@ -10,9 +10,10 @@ test('maintenance missing-asset data health opens the filtered work-order queue'
   assert.match(inboxRoute, /ordenes-trabajo\?dataHealth=missing_asset/);
 });
 
-test('work-order queue filters to orders without canonical assets when requested', () => {
+test('work-order queue filters to operational orders without canonical assets when requested', () => {
   assert.match(workOrdersPage, /searchParams\.get\('dataHealth'\) === 'missing_asset'/);
+  assert.match(workOrdersPage, /order\.record_scope !== 'historical'/);
   assert.match(workOrdersPage, /!missingAssetOnly \|\| !order\.asset_name/);
-  assert.match(workOrdersPage, /Data Health · OT sin activo canónico/);
+  assert.match(workOrdersPage, /Data Health · OT operacional sin activo canónico/);
   assert.match(workOrdersPage, /Sin activo/);
 });
